@@ -32,7 +32,7 @@ private class Citizenship : Record {
     
     // Record
     
-    override class func databaseTableName() -> String {
+    override class var databaseTableName: String {
         return "citizenships"
     }
     

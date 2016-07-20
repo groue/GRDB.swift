@@ -28,7 +28,7 @@ class Pet : Record {
     
     // Record
     
-    override class func databaseTableName() -> String {
+    override class var databaseTableName: String {
         return "pets"
     }
     

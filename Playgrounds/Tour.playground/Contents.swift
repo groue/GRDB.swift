@@ -39,7 +39,7 @@ try dbQueue.inDatabase { db in
 
 //: Fetch database rows and values
 
-try dbQueue.inDatabase { db in
+dbQueue.inDatabase { db in
     for row in Row.fetchAll(db, "SELECT * FROM pointOfInterests") {
         let title: String = row.value(named: "title")
         let favorite: Bool = row.value(named: "favorite")
@@ -77,9 +77,7 @@ extension PointOfInterest : RowConvertible {
 
 // Adopt TableMapping
 extension PointOfInterest : TableMapping {
-    static func databaseTableName() -> String {
-        return "pointOfInterests"
-    }
+    static let databaseTableName = "pointOfInterests"
 }
 
 // Adopt MutablePersistable

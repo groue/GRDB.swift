@@ -13,7 +13,7 @@ class Person: Record {
     
     // MARK: Record overrides
     
-    override class func databaseTableName() -> String {
+    override class var databaseTableName: String {
         return "persons"
     }
     

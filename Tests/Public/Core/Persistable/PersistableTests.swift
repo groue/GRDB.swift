@@ -11,9 +11,7 @@ private struct PersistablePerson : Persistable {
     var name: String?
     var age: Int?
     
-    static func databaseTableName() -> String {
-        return "persons"
-    }
+    static let databaseTableName = "persons"
     
     var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["name": name, "age": age]
@@ -31,9 +29,7 @@ private class PersistablePersonClass : Persistable {
         self.age = age
     }
     
-    static func databaseTableName() -> String {
-        return "persons"
-    }
+    static let databaseTableName = "persons"
     
     var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "name": name, "age": age]
@@ -48,9 +44,7 @@ private struct PersistableCountry : Persistable {
     var isoCode: String
     var name: String
     
-    static func databaseTableName() -> String {
-        return "countries"
-    }
+    static let databaseTableName = "countries"
     
     var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["isoCode": isoCode, "name": name]
@@ -66,9 +60,7 @@ private struct PersistableCustomizedCountry : Persistable {
     let willDelete: (Void) -> Void
     let willExists: (Void) -> Void
     
-    static func databaseTableName() -> String {
-        return "countries"
-    }
+    static let databaseTableName = "countries"
     
     var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["isoCode": isoCode, "name": name]
@@ -104,9 +96,7 @@ private struct Citizenship : Persistable {
     let personID: Int64
     let countryIsoCode: String
     
-    static func databaseTableName() -> String {
-        return "citizenships"
-    }
+    static let databaseTableName = "citizenships"
     
     var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["countryIsoCode": countryIsoCode, "personID": personID]

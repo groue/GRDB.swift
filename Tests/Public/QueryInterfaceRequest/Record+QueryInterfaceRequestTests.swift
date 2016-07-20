@@ -26,7 +26,7 @@ private class Reader : Record {
         super.init(row: row)
     }
     
-    override static func databaseTableName() -> String {
+    override class var databaseTableName: String {
         return "readers"
     }
     

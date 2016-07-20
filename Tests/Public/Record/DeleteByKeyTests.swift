@@ -8,15 +8,11 @@ import XCTest
 #endif
 
 private struct Person : TableMapping {
-    static func databaseTableName() -> String {
-        return "persons"
-    }
+    static let databaseTableName = "persons"
 }
 
 private struct Citizenship : TableMapping {
-    static func databaseTableName() -> String {
-        return "citizenships"
-    }
+    static let databaseTableName = "citizenships"
 }
 
 

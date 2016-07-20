@@ -15,9 +15,7 @@ private struct Col {
 }
 
 private struct Reader : TableMapping {
-    static func databaseTableName() -> String {
-        return "readers"
-    }
+    static let databaseTableName = "readers"
 }
 
 

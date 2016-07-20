@@ -48,7 +48,7 @@ public class Record : RowConvertible, TableMapping, Persistable {
     /// and exists methods.
     ///
     ///     class Person : Record {
-    ///         override class func databaseTableName() -> String {
+    ///         override class var databaseTableName: String {
     ///             return "persons"
     ///         }
     ///     }
@@ -56,7 +56,7 @@ public class Record : RowConvertible, TableMapping, Persistable {
     /// The implementation of the base class Record raises a fatal error.
     ///
     /// - returns: The name of a database table.
-    public class func databaseTableName() -> String {
+    public class var databaseTableName: String {
         fatalError("subclass must override")
     }
     

@@ -22,7 +22,7 @@
 /// TableMapping is adopted by Record.
 public protocol TableMapping {
     /// The name of the database table
-    static func databaseTableName() -> String
+    static var databaseTableName: String { get }
 }
 
 extension RowConvertible where Self: TableMapping {
@@ -83,7 +83,7 @@ extension RowConvertible where Self: TableMapping {
     // Returns nil if values is empty.
     private static func makeFetchByPrimaryKeyStatement<Sequence: Swift.Sequence where Sequence.Iterator.Element: DatabaseValueConvertible>(_ db: Database, keys: Sequence) throws -> SelectStatement? {
         // Fail early if database table does not exist.
-        let databaseTableName = self.databaseTableName()
+        let databaseTableName = self.databaseTableName
         let primaryKey = try db.primaryKey(databaseTableName)
         
         // Fail early if database table has not one column in its primary key
@@ -153,7 +153,7 @@ extension TableMapping {
     // Returns nil if keys is empty.
     private static func makeDeleteByPrimaryKeyStatement<Sequence: Swift.Sequence where Sequence.Iterator.Element: DatabaseValueConvertible>(_ db: Database, keys: Sequence) throws -> UpdateStatement? {
         // Fail early if database table does not exist.
-        let databaseTableName = self.databaseTableName()
+        let databaseTableName = self.databaseTableName
         let primaryKey = try db.primaryKey(databaseTableName)
         
         // Fail early if database table has not one column in its primary key
@@ -246,7 +246,7 @@ extension RowConvertible where Self: TableMapping {
             return nil
         }
         
-        let databaseTableName = self.databaseTableName()
+        let databaseTableName = self.databaseTableName
         var arguments: [DatabaseValueConvertible?] = []
         var whereClauses: [String] = []
         for dictionary in keys {
@@ -316,7 +316,7 @@ extension TableMapping {
             return nil
         }
         
-        let databaseTableName = self.databaseTableName()
+        let databaseTableName = self.databaseTableName
         var arguments: [DatabaseValueConvertible?] = []
         var whereClauses: [String] = []
         for dictionary in keys {

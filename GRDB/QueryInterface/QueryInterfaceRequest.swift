@@ -237,7 +237,7 @@ extension TableMapping {
     
     /// Returns a QueryInterfaceRequest which fetches all rows in the table.
     public static func all() -> QueryInterfaceRequest<Self> {
-        return QueryInterfaceRequest(tableName: databaseTableName())
+        return QueryInterfaceRequest(tableName: databaseTableName)
     }
     
     /// Returns a QueryInterfaceRequest which selects *selection*.

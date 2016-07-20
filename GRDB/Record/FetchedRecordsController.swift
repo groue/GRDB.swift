@@ -419,7 +419,7 @@ extension FetchedRecordsController where Record: TableMapping {
     public convenience init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue = .main, compareRecordsByPrimaryKey: Bool) {
         if compareRecordsByPrimaryKey {
             self.init(databaseWriter, request: request, queue: queue, isSameItemFactory: { db in
-                let comparator = try! makePrimaryKeyComparator(db, tableName: Record.databaseTableName())
+                let comparator = try! makePrimaryKeyComparator(db, tableName: Record.databaseTableName)
                 return { comparator($0.row, $1.row) }
             })
         } else {

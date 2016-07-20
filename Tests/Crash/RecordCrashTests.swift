@@ -10,19 +10,19 @@ import XCTest
 private class RecordWithoutDatabaseTableName: Record { }
 
 private class RecordWithInexistingDatabaseTable: Record {
-    override static func databaseTableName() -> String {
+    override class var databaseTableName: String {
         return "foo"
     }
 }
 
 private class RecordWithEmptyPersistentDictionary : Record {
-    override static func databaseTableName() -> String {
+    override class var databaseTableName: String {
         return "records"
     }
 }
 
 private class RecordWithNilPrimaryKey : Record {
-    override static func databaseTableName() -> String {
+    override class var databaseTableName: String {
         return "records"
     }
     
@@ -32,7 +32,7 @@ private class RecordWithNilPrimaryKey : Record {
 }
 
 private class RecordForTableWithoutPrimaryKey : Record {
-    override static func databaseTableName() -> String {
+    override class var databaseTableName: String {
         return "records"
     }
     
@@ -42,7 +42,7 @@ private class RecordForTableWithoutPrimaryKey : Record {
 }
 
 private class RecordForTableWithMultipleColumnsPrimaryKey : Record {
-    override static func databaseTableName() -> String {
+    override class var databaseTableName: String {
         return "records"
     }
     
@@ -52,7 +52,7 @@ private class RecordForTableWithMultipleColumnsPrimaryKey : Record {
 }
 
 private class RecordWithRowIDPrimaryKeyNotExposedInPersistentDictionary : Record {
-    override static func databaseTableName() -> String {
+    override class var databaseTableName: String {
         return "records"
     }
     

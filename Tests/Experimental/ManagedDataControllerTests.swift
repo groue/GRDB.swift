@@ -218,7 +218,7 @@
 //    }
 //    
 //    // OK
-//    override static func databaseTableName() -> String {
+//    override class var databaseTableName: String {
 //        return "datas"
 //    }
 //    

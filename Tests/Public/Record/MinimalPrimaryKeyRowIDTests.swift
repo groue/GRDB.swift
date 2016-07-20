@@ -24,7 +24,7 @@ class MinimalRowID : Record {
     
     // Record
     
-    override class func databaseTableName() -> String {
+    override class var databaseTableName: String {
         return "minimalRowIDs"
     }
     

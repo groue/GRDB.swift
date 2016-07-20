@@ -53,7 +53,7 @@ class Person : Record {
 //:
 //: 1. The table name:
     
-    override class func databaseTableName() -> String {
+    override class var databaseTableName: String {
         return "persons"
     }
     

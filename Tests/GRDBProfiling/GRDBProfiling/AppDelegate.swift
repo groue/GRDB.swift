@@ -202,7 +202,7 @@ class Item : Record {
         super.init()
     }
     
-    override class func databaseTableName() -> String {
+    override class var databaseTableName: String {
         return "items"
     }
     

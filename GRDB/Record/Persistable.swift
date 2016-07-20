@@ -220,7 +220,7 @@ public extension MutablePersistable {
     
     private func canUpdate(_ db: Database) -> Bool {
         // Fail early if database table does not exist.
-        let databaseTableName = self.dynamicType.databaseTableName()
+        let databaseTableName = self.dynamicType.databaseTableName
         guard let primaryKey = try! db.primaryKey(databaseTableName) else {
             return false
         }
@@ -476,7 +476,7 @@ final class DataMapper {
     
     init(_ db: Database, _ persistable: MutablePersistable) {
         // Fail early if database table does not exist.
-        let databaseTableName = persistable.dynamicType.databaseTableName()
+        let databaseTableName = persistable.dynamicType.databaseTableName
         let primaryKey = try! db.primaryKey(databaseTableName)
         
         // Fail early if persistentDictionary is empty

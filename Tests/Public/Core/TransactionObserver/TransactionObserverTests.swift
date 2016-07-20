@@ -101,7 +101,7 @@ private class Artist : Record {
     
     // Record
     
-    static override func databaseTableName() -> String {
+    override class var databaseTableName: String {
         return "artists"
     }
     
@@ -143,7 +143,7 @@ private class Artwork : Record {
     
     // Record
     
-    static override func databaseTableName() -> String {
+    override class var databaseTableName: String {
         return "artworks"
     }
     

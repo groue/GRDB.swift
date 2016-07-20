@@ -8,17 +8,13 @@ import XCTest
 #endif
 
 private struct Person : RowConvertible, TableMapping {
-    static func databaseTableName() -> String {
-        return "persons"
-    }
+    static let databaseTableName = "persons"
     init(row: Row) {
     }
 }
 
 private struct Citizenship : RowConvertible, TableMapping {
-    static func databaseTableName() -> String {
-        return "citizenships"
-    }
+    static let databaseTableName = "citizenships"
     init(row: Row) {
     }
 }

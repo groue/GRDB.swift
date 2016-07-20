@@ -1690,7 +1690,7 @@ Occasionnally, you'll want to write a complex SQL query that uses different colu
 
 ```swift
 public protocol TableMapping {
-    static func databaseTableName() -> String
+    static var databaseTableName: String { get }
 }
 ```
 
@@ -1698,9 +1698,7 @@ public protocol TableMapping {
 
 ```swift
 extension PointOfInterest : TableMapping {
-    static func databaseTableName() -> String {
-        return "pointOfInterests"
-    }
+    static let databaseTableName = "pointOfInterests"
 }
 ```
 
@@ -1749,7 +1747,7 @@ Person.fetchOne(db, key: ["name": "Arthur"]) // fatal error: table persons has n
 ```swift
 public protocol MutablePersistable : TableMapping {
     /// The name of the database table (from TableMapping)
-    static func databaseTableName() -> String
+    static var databaseTableName: String { get }
     
     /// The values persisted in the database
     var persistentDictionary: [String: DatabaseValueConvertible?] { get }
@@ -1902,7 +1900,7 @@ struct Link : Persistable {
 ```swift
 class Record {
     /// The table name
-    class func databaseTableName() -> String
+    class var databaseTableName: String { get }
     
     /// Initialize from a database row
     required init(row: Row)
@@ -1924,7 +1922,7 @@ class PointOfInterest : Record {
     var coordinate: CLLocationCoordinate2D
     
     /// The table name
-    override class func databaseTableName() -> String {
+    override class var databaseTableName: String {
         return "pointOfInterests"
     }
     

@@ -152,9 +152,8 @@ extension UserDefaultsItem: RowConvertible {
 }
 
 extension UserDefaultsItem: Persistable {
-    static func databaseTableName() -> String {
-        return UserDefaultsItemTableName
-    }
+    static let databaseTableName = UserDefaultsItemTableName
+    
     var persistentDictionary: [String: DatabaseValueConvertible?] {
         let data = try! PropertyListSerialization.data(fromPropertyList: value, format: .binary, options: 0)
         return ["key": key, "value": data]

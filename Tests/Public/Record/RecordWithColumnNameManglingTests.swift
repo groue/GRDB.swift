@@ -25,7 +25,7 @@ class BadlyMangledStuff : Record {
     
     // Record
     
-    override static func databaseTableName() -> String {
+    override class var databaseTableName: String {
         return "stuffs"
     }
     

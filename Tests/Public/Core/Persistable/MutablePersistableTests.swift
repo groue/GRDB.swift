@@ -11,9 +11,7 @@ private struct MutablePersistablePerson : MutablePersistable {
     var id: Int64?
     var name: String?
     
-    static func databaseTableName() -> String {
-        return "persons"
-    }
+    static let databaseTableName = "persons"
     
     var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "name": name]
@@ -29,9 +27,7 @@ private struct MutablePersistableCountry : MutablePersistable {
     var isoCode: String
     var name: String
     
-    static func databaseTableName() -> String {
-        return "countries"
-    }
+    static let databaseTableName = "countries"
     
     var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["isoCode": isoCode, "name": name]
@@ -52,9 +48,7 @@ private struct MutablePersistableCustomizedCountry : MutablePersistable {
     let willDelete: (Void) -> Void
     let willExists: (Void) -> Void
     
-    static func databaseTableName() -> String {
-        return "countries"
-    }
+    static let databaseTableName = "countries"
     
     var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["isoCode": isoCode, "name": name]

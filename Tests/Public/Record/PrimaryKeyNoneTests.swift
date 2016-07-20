@@ -28,7 +28,7 @@ private class Item : Record {
     
     // Record
     
-    override class func databaseTableName() -> String {
+    override class var databaseTableName: String {
         return "items"
     }
     

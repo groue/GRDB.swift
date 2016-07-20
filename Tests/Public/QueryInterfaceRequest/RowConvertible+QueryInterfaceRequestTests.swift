@@ -22,9 +22,7 @@ extension Reader : RowConvertible {
 }
 
 extension Reader : MutablePersistable {
-    static func databaseTableName() -> String {
-        return "readers"
-    }
+    static let databaseTableName = "readers"
     
     var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "name": name, "age": age]

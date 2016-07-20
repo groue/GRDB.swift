@@ -58,7 +58,7 @@ private class Person : Record {
         super.init(row: row)
     }
     
-    override class func databaseTableName() -> String {
+    override class var databaseTableName: String {
         return "persons"
     }
     
