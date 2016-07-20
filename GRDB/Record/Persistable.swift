@@ -503,7 +503,7 @@ final class DataMapper {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey?.columns ?? []
         let primaryKeyValues = databaseValues(for: primaryKeyColumns, inDictionary: persistentDictionary)
-        GRDBPrecondition(primaryKeyValues.contains { !$0.isNull }, "invalid primary key in \(persistable)")
+        GRDBPrecondition(primaryKeyValues.contains { !$0.isNull }, "record can not be identified. persistentDictionary must contain non-nil value(s) for the key(s) \(primaryKeyColumns.joined(separator: ","))")
         
         // Update everything but primary key
         var updatedColumns = persistentDictionary.keys.removing(contentsOf: primaryKeyColumns)
@@ -533,7 +533,7 @@ final class DataMapper {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey?.columns ?? []
         let primaryKeyValues = databaseValues(for: primaryKeyColumns, inDictionary: persistentDictionary)
-        GRDBPrecondition(primaryKeyValues.contains { !$0.isNull }, "invalid primary key in \(persistable)")
+        GRDBPrecondition(primaryKeyValues.contains { !$0.isNull }, "record can not be identified. persistentDictionary must contain non-nil value(s) for the key(s) \(primaryKeyColumns.joined(separator: ","))")
         
         let query = DeleteQuery(
             tableName: databaseTableName,
@@ -547,7 +547,7 @@ final class DataMapper {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey?.columns ?? []
         let primaryKeyValues = databaseValues(for: primaryKeyColumns, inDictionary: persistentDictionary)
-        GRDBPrecondition(primaryKeyValues.contains { !$0.isNull }, "invalid primary key in \(persistable)")
+        GRDBPrecondition(primaryKeyValues.contains { !$0.isNull }, "record can not be identified. persistentDictionary must contain non-nil value(s) for the key(s) \(primaryKeyColumns.joined(separator: ","))")
         
         let query = ExistsQuery(
             tableName: databaseTableName,

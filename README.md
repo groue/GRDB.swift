@@ -1549,6 +1549,8 @@ Add the [TableMapping](#tablemapping-protocol) protocol and you can stop writing
 ```swift
 let persons = Person.filter(emailColumn != nil).order(nameColumn).fetchAll(db)
 let person = Person.fetchOne(db, key: 1)
+let person = Person.fetchOne(db, key: ["email": "arthur@example.com"])
+let countries = Country.fetchAll(db, keys: ["FR", "US"])
 ```
 
 To learn more about querying records, check the [query interface](#the-query-interface).
@@ -1590,7 +1592,15 @@ let person = Person.fetchOne(db, key: 1)!
 try person.delete(db)
 ```
 
-For batch deletions, you have to execute an [SQL query](#executing-updates):
+The [TableMapping](#tablemapping-protocol) protocol gives you methods that delete according to primary key or any unique index:
+
+```swift
+try Person.deleteOne(db, key: 1)
+try Person.deleteOne(db, key: ["email": "arthur@example.com"])
+try Country.deleteAll(db, keys: ["FR", "US"])
+```
+
+Other deletions require an [SQL query](#executing-updates):
 
 ```swift
 try db.execute("DELETE FROM persons")
@@ -1602,7 +1612,7 @@ try db.execute("DELETE FROM persons")
 [Record](#record-class) subclasses and types that adopt the [TableMapping](#tablemapping-protocol) protocol can be counted:
 
 ```swift
-let personWithEmailCount = Person.filter(email != nil).fetchCount(db)  // Int
+let personWithEmailCount = Person.filter(emailColumn != nil).fetchCount(db)  // Int
 ```
 
 
