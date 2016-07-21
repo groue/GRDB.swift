@@ -920,8 +920,8 @@ extension Database {
         return indexes
     }
     
-    /// True if a set of columns uniquely identifies a row, that is to say if
-    /// the columns are the primary key, or if there is a unique index on them.
+    /// True if a sequence of columns uniquely identifies a row, that is to say
+    /// if the columns are the primary key, or if there is a unique index on them.
     public func table<T: SequenceType where T.Generator.Element == String>(tableName: String, hasUniqueKey columns: T) throws -> Bool {
         let primaryKey = try self.primaryKey(tableName) // first, so that we fail early and consistently should the table not exist
         let columns = Set(columns)
