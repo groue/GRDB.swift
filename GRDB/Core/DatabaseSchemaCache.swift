@@ -10,14 +10,14 @@ protocol DatabaseSchemaCacheType {
     func primaryKey(tableName tableName: String) -> PrimaryKey??
     mutating func setPrimaryKey(primaryKey: PrimaryKey?, forTableName tableName: String)
 
-    func indexes(on tableName: String) -> [Database.IndexInfo]?
-    mutating func setIndexes(indexes: [Database.IndexInfo], forTableName tableName: String)
+    func indexes(on tableName: String) -> [TableIndex]?
+    mutating func setIndexes(indexes: [TableIndex], forTableName tableName: String)
 }
 
 /// A thread-unsafe database schema cache
 final class DatabaseSchemaCache: DatabaseSchemaCacheType {
     private var primaryKeys: [String: PrimaryKey?] = [:]
-    private var indexes: [String: [Database.IndexInfo]] = [:]
+    private var indexes: [String: [TableIndex]] = [:]
     
     func clear() {
         primaryKeys = [:]
@@ -32,11 +32,11 @@ final class DatabaseSchemaCache: DatabaseSchemaCacheType {
         primaryKeys[tableName] = primaryKey
     }
     
-    func indexes(on tableName: String) -> [Database.IndexInfo]? {
+    func indexes(on tableName: String) -> [TableIndex]? {
         return indexes[tableName]
     }
     
-    func setIndexes(indexes: [Database.IndexInfo], forTableName tableName: String) {
+    func setIndexes(indexes: [TableIndex], forTableName tableName: String) {
         self.indexes[tableName] = indexes
     }
 }
@@ -57,11 +57,11 @@ final class SharedDatabaseSchemaCache: DatabaseSchemaCacheType {
         cache.write { $0.setPrimaryKey(primaryKey, forTableName: tableName) }
     }
     
-    func indexes(on tableName: String) -> [Database.IndexInfo]? {
+    func indexes(on tableName: String) -> [TableIndex]? {
         return cache.read { $0.indexes(on: tableName) }
     }
     
-    func setIndexes(indexes: [Database.IndexInfo], forTableName tableName: String) {
+    func setIndexes(indexes: [TableIndex], forTableName tableName: String) {
         cache.write { $0.setIndexes(indexes, forTableName: tableName) }
     }
 }
