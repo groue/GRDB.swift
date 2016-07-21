@@ -1,3 +1,4 @@
+- [ ] Move Database Events filtering to the TransactionObserverType protocol
 - [ ] Make public functions that return tables indexes
 - [ ] GRDBCipher: remove limitations on iOS or OS X versions
 - [ ] FetchedRecordsController: take inspiration from https://github.com/jflinter/Dwifft
