@@ -1,4 +1,4 @@
-- [ ] Move Database Events filtering to the TransactionObserverType protocol
+- [ ] Fix "More, when you're interested in specific table columns, you're out of luck, because databaseDidChange does not know about columns: it just knows that a row has been inserted, deleted, or updated, without further detail"
 - [ ] Make public functions that return tables indexes
 - [ ] GRDBCipher: remove limitations on iOS or OS X versions
 - [ ] FetchedRecordsController: take inspiration from https://github.com/jflinter/Dwifft
@@ -20,7 +20,8 @@
 
 Not sure
 
-- [ ] Issue 85: Consider Django ordering: "Each order_by() call will clear any previous ordering": https://docs.djangoproject.com/en/1.9/ref/models/querysets/#order-by
+- [ ] Move Database Events filtering to the TransactionObserverType protocol
+https://docs.djangoproject.com/en/1.9/ref/models/querysets/#order-by
 - [ ] Support for NSColor/UIColor. Beware UIColor components can go beyond [0, 1.0] in iOS10.
 
 
