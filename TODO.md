@@ -19,6 +19,7 @@
 
 Not sure
 
+- [ ] Remove DatabaseValue.value()
 - [ ] Move Database Events filtering to the TransactionObserverType protocol
 - [ ] Support for NSColor/UIColor. Beware UIColor components can go beyond [0, 1.0] in iOS10.
 
