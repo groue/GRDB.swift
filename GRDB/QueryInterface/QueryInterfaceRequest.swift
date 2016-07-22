@@ -25,10 +25,10 @@ extension QueryInterfaceRequest : FetchRequest {
     @warn_unused_result
     public func prepare(db: Database) throws -> (SelectStatement, RowAdapter?) {
         // TODO: split statement generation from arguments building
-        var arguments = StatementArguments()
+        var arguments: StatementArguments? = StatementArguments()
         let sql = try query.sql(db, &arguments)
         let statement = try db.selectStatement(sql)
-        try statement.setArgumentsWithValidation(arguments)
+        try statement.setArgumentsWithValidation(arguments!)
         return (statement, nil)
     }
 }
