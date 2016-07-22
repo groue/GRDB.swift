@@ -236,7 +236,7 @@ public final class SelectStatement : Statement {
     }
     
     /// Creates a DatabaseSequence
-    func fetchSequence<Element>(arguments: StatementArguments?, element: () -> Element) -> DatabaseSequence<Element> {
+    func fetchSequence<Element>(arguments: StatementArguments? = nil, element: () -> Element) -> DatabaseSequence<Element> {
         // Force arguments validity. See UpdateStatement.execute(), and Database.execute()
         try! prepare(withArguments: arguments)
         return DatabaseSequence(statement: self, element: element)

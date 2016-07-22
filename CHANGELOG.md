@@ -1,6 +1,14 @@
 Release Notes
 =============
 
+## Next Version
+
+**New**
+
+- `Database.indexes(on:)` returns the indexes defined on a database table
+- `Database.table(_:hasUniqueKey:)` returns true if a sequence of columns uniquely identifies a row, that is to say if the columns are the primary key, or if there is a unique index on them.
+
+
 ## 0.76.0
 
 Released July 19, 2016

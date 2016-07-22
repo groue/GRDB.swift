@@ -252,7 +252,7 @@ extension RowConvertible where Self: TableMapping {
         for dictionary in keys {
             GRDBPrecondition(dictionary.count > 0, "Invalid empty key dictionary")
             let columns = dictionary.keys
-            guard try db.columns(columns, uniquelyIdentifyRowsIn: databaseTableName) else {
+            guard try db.table(databaseTableName, hasUniqueKey: columns) else {
                 if fatalErrorOnMissingUniqueIndex {
                     fatalError("table \(databaseTableName) has no unique index on column(s) \(columns.joined(separator: ", "))")
                 } else {
@@ -322,7 +322,7 @@ extension TableMapping {
         for dictionary in keys {
             GRDBPrecondition(dictionary.count > 0, "Invalid empty key dictionary")
             let columns = dictionary.keys
-            guard try db.columns(columns, uniquelyIdentifyRowsIn: databaseTableName) else {
+            guard try db.table(databaseTableName, hasUniqueKey: columns) else {
                 if fatalErrorOnMissingUniqueIndex {
                     fatalError("table \(databaseTableName) has no unique index on column(s) \(columns.joined(separator: ", "))")
                 } else {

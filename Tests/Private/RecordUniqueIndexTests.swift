@@ -13,34 +13,7 @@ private struct Person : RowConvertible, TableMapping {
     }
 }
 
-private struct Citizenship : RowConvertible, TableMapping {
-    static let databaseTableName = "citizenships"
-    init(row: Row) {
-    }
-}
-
-class UniqueIndexTests: GRDBTestCase {
-    
-    func testColumnsThatUniquelyIdentityRows() {
-        assertNoError { db in
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, email TEXT UNIQUE)")
-                try XCTAssertTrue(db.columns(["id"], uniquelyIdentifyRowsIn: "persons"))
-                try XCTAssertTrue(db.columns(["email"], uniquelyIdentifyRowsIn: "persons"))
-                try XCTAssertFalse(db.columns([], uniquelyIdentifyRowsIn: "persons"))
-                try XCTAssertFalse(db.columns(["name"], uniquelyIdentifyRowsIn: "persons"))
-                try XCTAssertFalse(db.columns(["id", "email"], uniquelyIdentifyRowsIn: "persons"))
-
-                try db.execute("CREATE TABLE citizenships (personId INTEGER NOT NULL, countryIsoCode TEXT NOT NULL, PRIMARY KEY (personId, countryIsoCode))")
-                try XCTAssertTrue(db.columns(["personId", "countryIsoCode"], uniquelyIdentifyRowsIn: "citizenships"))
-                try XCTAssertTrue(db.columns(["countryIsoCode", "personId"], uniquelyIdentifyRowsIn: "citizenships"))
-                try XCTAssertFalse(db.columns([], uniquelyIdentifyRowsIn: "persons"))
-                try XCTAssertFalse(db.columns(["personId"], uniquelyIdentifyRowsIn: "persons"))
-                try XCTAssertFalse(db.columns(["countryIsoCode"], uniquelyIdentifyRowsIn: "persons"))
-            }
-        }
-    }
+class RecordUniqueIndexTests: GRDBTestCase {
 
     func testFetchOneRequiresUniqueIndex() {
         assertNoError { db in

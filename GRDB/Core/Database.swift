@@ -893,34 +893,33 @@ extension Database {
     /// The indexes on table named `tableName`; returns the empty array if the
     /// table does not exist.
     ///
-    /// Note: SQLite defines no index for INTEGER PRIMARY KEY columns: this
-    /// method does not return any index that represents this unique constraint.
+    /// Note: SQLite does not define any index for INTEGER PRIMARY KEY columns:
+    /// this method does not return any index that represents this primary key.
     ///
     /// If you want to know if a set of columns uniquely identify a row, prefer
-    /// columns(_:uniquelyIdentifyRowsIn:) instead.
-    func indexes(on tableName: String) -> [IndexInfo] {
+    /// table(_:hasUniqueKey:) instead.
+    public func indexes(on tableName: String) -> [TableIndex] {
         if let indexes = schemaCache.indexes(on: tableName) {
             return indexes
         }
         
-        let indexes = Row.fetch(self, "PRAGMA index_list(\(tableName.quotedDatabaseIdentifier))").map { row -> IndexInfo in
+        let indexes = Row.fetch(self, "PRAGMA index_list(\(tableName.quotedDatabaseIdentifier))").map { row -> TableIndex in
             let indexName: String = row.value(atIndex: 1)
             let unique: Bool = row.value(atIndex: 2)
             let columns = Row.fetch(self, "PRAGMA index_info(\(indexName.quotedDatabaseIdentifier))")
                 .map { ($0.value(atIndex: 0) as Int, $0.value(atIndex: 2) as String) }
                 .sorted { $0.0 < $1.0 }
                 .map { $0.1 }
-            return IndexInfo(name: indexName, columns: columns, unique: unique)
+            return TableIndex(name: indexName, columns: columns, unique: unique)
         }
         
         schemaCache.set(indexes: indexes, forTableName: tableName)
         return indexes
     }
     
-    /// True if a set of columns uniquely identify a row, that is to say if
-    /// there is a unique index on those columns, or if the column is the
-    /// INTEGER PRIMARY KEY.
-    func columns<T: Sequence where T.Iterator.Element == String>(_ columns: T, uniquelyIdentifyRowsIn tableName: String) throws -> Bool {
+    /// True if a sequence of columns uniquely identifies a row, that is to say
+    /// if the columns are the primary key, or if there is a unique index on them.
+    public func table<T: Sequence where T.Iterator.Element == String>(_ tableName: String, hasUniqueKey columns: T) throws -> Bool {
         let primaryKey = try self.primaryKey(tableName) // first, so that we fail early and consistently should the table not exist
         let columns = Set(columns)
         if indexes(on: tableName).contains({ index in index.isUnique && Set(index.columns) == columns }) {
@@ -961,17 +960,25 @@ extension Database {
             primaryKeyIndex = row.value(named: "pk")
         }
     }
+}
+
+/// An index on a database table.
+///
+/// See `Database.indexes(on:)`
+public struct TableIndex {
+    /// The name of the index
+    public let name: String
     
-    struct IndexInfo {
-        let name: String
-        let columns: [String]
-        let isUnique: Bool
-        
-        init(name: String, columns: [String], unique: Bool) {
-            self.name = name
-            self.columns = columns
-            self.isUnique = unique
-        }
+    /// The indexed columns
+    public let columns: [String]
+    
+    /// True if the index is unique
+    public let isUnique: Bool
+    
+    init(name: String, columns: [String], unique: Bool) {
+        self.name = name
+        self.columns = columns
+        self.isUnique = unique
     }
 }
 

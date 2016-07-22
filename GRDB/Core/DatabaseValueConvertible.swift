@@ -372,3 +372,29 @@ extension Optional where Wrapped: DatabaseValueConvertible {
         return fetchAll(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
+
+
+extension DatabaseValueConvertible {
+    /// self as an SQL literal, with proper escaping
+    ///
+    ///     "'foo'".sqlLiteral // "'''foo'''"
+    var sqlLiteral: String {
+        // Slow but reliable implementation.
+        return escapingConnection.inDatabase { db in
+            let escapingStatement = try! db.makeSelectStatement("SELECT ?")
+            escapingStatement.unsafeSetArguments([self])
+            _ = escapingStatement.fetchSequence { _ in }.makeIterator().next()
+            let index = lastEscapingSQL.index(lastEscapingSQL.startIndex, offsetBy: 7)
+            assert(lastEscapingSQL.substring(to: index) == "SELECT ")
+            return lastEscapingSQL.substring(from: index)
+        }
+    }
+}
+
+// Suport for DatabaseValueConvertible.sqlLiteral
+private var lastEscapingSQL: String = ""
+private let escapingConnection: DatabaseQueue = {
+    var configuration = Configuration()
+    configuration.trace = { lastEscapingSQL = $0 }
+    return DatabaseQueue(configuration: configuration)
+}()
