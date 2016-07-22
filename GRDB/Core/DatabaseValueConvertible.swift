@@ -381,9 +381,7 @@ extension DatabaseValueConvertible {
     var sqlLiteral: String {
         // Slow but reliable implementation.
         return escapingConnection.inDatabase { db in
-            let escapingStatement = try! db.makeSelectStatement("SELECT ?")
-            escapingStatement.unsafeSetArguments([self])
-            _ = escapingStatement.fetchSequence { _ in }.makeIterator().next()
+            _ = Row.fetch(db, "SELECT ?", arguments: [self]).makeIterator().next()
             let index = lastEscapingSQL.index(lastEscapingSQL.startIndex, offsetBy: 7)
             assert(lastEscapingSQL.substring(to: index) == "SELECT ")
             return lastEscapingSQL.substring(from: index)
