@@ -25,7 +25,7 @@ extension QueryInterfaceRequest : FetchRequest {
     public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
         // TODO: split statement generation from arguments building
         var arguments: StatementArguments? = StatementArguments()
-        let sql = try query.sql(db, &arguments)
+        let sql = query.sql(&arguments)
         let statement = try db.makeSelectStatement(sql)
         try statement.setArgumentsWithValidation(arguments!)
         return (statement, nil)
