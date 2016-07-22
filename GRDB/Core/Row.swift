@@ -647,14 +647,10 @@ extension Row : Collection {
     
     // MARK: - Row as a Collection of (ColumnName, DatabaseValue) Pairs
     
-    // TODO
-//    /// The number of columns in the row.
-//    public var count: Int {
-//        guard let sqliteStatement = sqliteStatement else {
-//            return impl.count
-//        }
-//        return Int(sqlite3_column_count(sqliteStatement))
-//    }
+    /// The number of columns in the row.
+    public var count: Int {
+        return impl.count
+    }
     
     /// The index of the first (ColumnName, DatabaseValue) pair.
     public var startIndex: RowIndex {
@@ -664,7 +660,7 @@ extension Row : Collection {
     /// The "past-the-end" index, successor of the index of the last
     /// (ColumnName, DatabaseValue) pair.
     public var endIndex: RowIndex {
-        return Index(impl.count)
+        return Index(count)
     }
     
     /// Accesses the (ColumnName, DatabaseValue) pair at given index.
@@ -689,21 +685,6 @@ extension Row : Collection {
     }
 }
 
-// TODO
-//extension Row : BidirectionalCollection {
-//
-//    /// Returns the position immediately preceding `i`.
-//    ///
-//    /// - Precondition: `i > startIndex && i <= endIndex`
-//    public func index(before i: RowIndex) -> RowIndex {
-//        return RowIndex(i.index - 1)
-//    }
-//}
-//
-// TODO
-//extension Row : RandomAccessCollection {
-//    
-//}
 
 extension Row : Equatable { }
 
