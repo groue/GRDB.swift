@@ -46,7 +46,7 @@ extension _SQLCollatedExpression : _SQLOrdering {
     /// Do not use it directly.
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public func orderingSQL(_ db: Database, _ arguments: inout StatementArguments) throws -> String {
+    public func orderingSQL(_ db: Database, _ arguments: inout StatementArguments?) throws -> String {
         return try sqlExpression.orderingSQL(db, &arguments)
     }
 }

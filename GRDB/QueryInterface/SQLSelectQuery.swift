@@ -50,7 +50,7 @@ public struct _SQLSelectQuery {
         self.limit = limit
     }
     
-    func sql(_ db: Database, _ arguments: inout StatementArguments) throws -> String {
+    func sql(_ db: Database, _ arguments: inout StatementArguments?) throws -> String {
         var sql = "SELECT"
         
         if isDistinct {
@@ -200,7 +200,7 @@ indirect enum _SQLSource {
     case table(name: String, alias: String?)
     case query(query: _SQLSelectQuery, alias: String?)
     
-    func sql(_ db: Database, _ arguments: inout StatementArguments) throws -> String {
+    func sql(_ db: Database, _ arguments: inout StatementArguments?) throws -> String {
         switch self {
         case .table(let table, let alias):
             if let alias = alias {
@@ -227,7 +227,7 @@ indirect enum _SQLSource {
 /// See https://github.com/groue/GRDB.swift/#the-query-interface
 public protocol _SQLOrdering {
     var reversedOrdering: _SQLOrderingExpression { get }
-    func orderingSQL(_ db: Database, _ arguments: inout StatementArguments) throws -> String
+    func orderingSQL(_ db: Database, _ arguments: inout StatementArguments?) throws -> String
 }
 
 /// This type is an implementation detail of the query interface.
@@ -258,7 +258,7 @@ extension _SQLOrderingExpression : _SQLOrdering {
     /// Do not use it directly.
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public func orderingSQL(_ db: Database, _ arguments: inout StatementArguments) throws -> String {
+    public func orderingSQL(_ db: Database, _ arguments: inout StatementArguments?) throws -> String {
         switch self {
         case .asc(let expression):
             return try expression.sql(db, &arguments) + " ASC"
@@ -347,7 +347,7 @@ extension _SpecificSQLExpressible where Self: _SQLOrdering {
     /// Do not use it directly.
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public func orderingSQL(_ db: Database, _ arguments: inout StatementArguments) throws -> String {
+    public func orderingSQL(_ db: Database, _ arguments: inout StatementArguments?) throws -> String {
         return try sqlExpression.sql(db, &arguments)
     }
 }
@@ -358,7 +358,7 @@ extension _SpecificSQLExpressible where Self: _SQLSelectable {
     /// Do not use it directly.
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public func resultColumnSQL(_ db: Database, _ arguments: inout StatementArguments) throws -> String {
+    public func resultColumnSQL(_ db: Database, _ arguments: inout StatementArguments?) throws -> String {
         return try sqlExpression.sql(db, &arguments)
     }
     
@@ -366,7 +366,7 @@ extension _SpecificSQLExpressible where Self: _SQLSelectable {
     /// Do not use it directly.
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public func countedSQL(_ db: Database, _ arguments: inout StatementArguments) throws -> String {
+    public func countedSQL(_ db: Database, _ arguments: inout StatementArguments?) throws -> String {
         return try sqlExpression.sql(db, &arguments)
     }
     
@@ -464,7 +464,7 @@ public indirect enum _SQLExpression {
     case countDistinct(_SQLExpression)
     
     ///
-    func sql(_ db: Database, _ arguments: inout StatementArguments) throws -> String {
+    func sql(_ db: Database, _ arguments: inout StatementArguments?) throws -> String {
         // NOTE: this method *was* slow to compile
         // https://medium.com/swift-programming/speeding-up-slow-swift-build-times-922feeba5780#.s77wmh4h0
         // 10746.4ms	/Users/groue/Documents/git/groue/GRDB.swift/GRDB/FetchRequest/SQLSelectQuery.swift:439:10	func sql(db: Database, _ arguments: inout StatementArguments) throws -> String
@@ -473,12 +473,15 @@ public indirect enum _SQLExpression {
         switch self {
         case .SQLLiteral(let sql, let literalArguments):
             if let literalArguments = literalArguments {
-                arguments.values.append(contentsOf: literalArguments.values)
+                guard arguments != nil else {
+                    fatalError("Not implemented")
+                }
+                arguments!.values.append(contentsOf: literalArguments.values)
                 for (name, value) in literalArguments.namedValues {
-                    if arguments.namedValues[name] != nil {
+                    if arguments!.namedValues[name] != nil {
                         throw DatabaseError(code: SQLITE_MISUSE, message: "argument \(String(reflecting: name)) can't be reused")
                     }
-                    arguments.namedValues[name] = value
+                    arguments!.namedValues[name] = value
                 }
             }
             return sql
@@ -487,8 +490,12 @@ public indirect enum _SQLExpression {
             guard let value = value else {
                 return "NULL"
             }
-            arguments.values.append(value)
-            return "?"
+            if arguments == nil {
+                return value.sqlLiteral
+            } else {
+                arguments!.values.append(value)
+                return "?"
+            }
             
         case .identifier(let identifier, let sourceName):
             if let sourceName = sourceName {
@@ -650,8 +657,8 @@ extension _SQLExpression : _SQLOrdering {}
 ///
 /// See https://github.com/groue/GRDB.swift/#the-query-interface
 public protocol _SQLSelectable {
-    func resultColumnSQL(_ db: Database, _ arguments: inout StatementArguments) throws -> String
-    func countedSQL(_ db: Database, _ arguments: inout StatementArguments) throws -> String
+    func resultColumnSQL(_ db: Database, _ arguments: inout StatementArguments?) throws -> String
+    func countedSQL(_ db: Database, _ arguments: inout StatementArguments?) throws -> String
     var sqlSelectableKind: _SQLSelectableKind { get }
 }
 
@@ -671,7 +678,7 @@ enum _SQLResultColumn {
 
 extension _SQLResultColumn : _SQLSelectable {
     
-    func resultColumnSQL(_ db: Database, _ arguments: inout StatementArguments) throws -> String {
+    func resultColumnSQL(_ db: Database, _ arguments: inout StatementArguments?) throws -> String {
         switch self {
         case .star(let sourceName):
             if let sourceName = sourceName {
@@ -684,7 +691,7 @@ extension _SQLResultColumn : _SQLSelectable {
         }
     }
     
-    func countedSQL(_ db: Database, _ arguments: inout StatementArguments) throws -> String {
+    func countedSQL(_ db: Database, _ arguments: inout StatementArguments?) throws -> String {
         switch self {
         case .star:
             return "*"
