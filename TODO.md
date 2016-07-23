@@ -1,3 +1,5 @@
+- [ ] Swift3: return Self when possible
+- [ ] Swift3: have a look at the new GCD: https://medium.com/swift-and-ios-writing/a-quick-look-at-gcd-and-swift-3-732bef6e1838#.oplqethl5
 - [ ] Swift3: move more top-level enums inside an owner type. Foundation uses lowercase for those enum *types* (besides the lowercase *values*)
 - [ ] Swift3: check .autoreleaseWorkItem option in GCD Queue creation
 - [ ] Swift3: move database event filtering into the TransactionObserver protocol
