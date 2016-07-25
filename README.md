@@ -750,7 +750,7 @@ for (columnName, databaseValue) in row {
 let row = Row(["name": "foo", "date": nil])
 ```
 
-Yet rows are not real dictionaries, because they may contain duplicate keys:
+Yet rows are not real dictionaries: they are ordered, and may contain duplicate keys:
 
 ```swift
 let row = Row.fetchOne(db, "SELECT 1 AS foo, 2 AS foo")!
