@@ -1,7 +1,9 @@
 GRDB.swift [![Swift](https://img.shields.io/badge/swift-2.2-orange.svg?style=flat)](https://developer.apple.com/swift/) [![Platforms](https://img.shields.io/cocoapods/p/GRDB.swift.svg)](https://developer.apple.com/swift/) [![License](https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000)](/LICENSE)
 ==========
 
-GRDB.swift is an SQLite toolkit for Swift 2.2. For Swift 3, see the [Swift3](https://github.com/groue/GRDB.swift/tree/Swift3) branch.
+GRDB.swift is a Swift application toolkit that provides access to SQLite databases.
+
+It targets Swift 2.2, and Swift 3 in the [Swift3](https://github.com/groue/GRDB.swift/tree/Swift3) branch.
 
 It ships with a **low-level SQLite API**, and high-level tools that help dealing with databases:
 
@@ -19,9 +21,9 @@ More than a set of tools that leverage SQLite abilities, GRDB is also:
 - **Safer**: read the blog post [Four different ways to handle SQLite concurrency](https://medium.com/@gwendal.roue/four-different-ways-to-handle-sqlite-concurrency-db3bcc74d00e)
 - **Faster**: see [Comparing the Performances of Swift SQLite libraries](https://github.com/groue/GRDB.swift/wiki/Performance)
 - Well documented & tested
-- Suited for experienced SQLite users as well as beginners.
 
-You should give it a try.
+If you have experience with other database libraries, have a read at [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3): it will show how protocol-oriented programming helps you building robust applications.
+
 
 ---
 
