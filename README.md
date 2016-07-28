@@ -1860,6 +1860,8 @@ paris.id   // some value
 
 [Record](#record-class) subclasses and types that adopt [Persistable](#persistable-protocol) are given default implementations for methods that insert, update, and delete:
 
+TODO: update columns
+
 ```swift
 try pointOfInterest.insert(db) // INSERT
 try pointOfInterest.update(db) // UPDATE
@@ -1917,9 +1919,9 @@ struct Link : Persistable {
         try performInsert(db)
     }
     
-    func update(db: Database) throws {
+    func update(db: Database, columns: Set<String>) throws {
         try validate()
-        try performUpdate(db)
+        try performUpdate(db, columns: columns)
     }
     
     func validate() throws {

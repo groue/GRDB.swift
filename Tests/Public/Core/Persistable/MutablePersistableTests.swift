@@ -69,9 +69,9 @@ private struct MutablePersistableCustomizedCountry : MutablePersistable {
         try performInsert(db)
     }
     
-    func update(db: Database) throws {
+    func update(db: Database, columns: Set<String>) throws {
         willUpdate()
-        try performUpdate(db)
+        try performUpdate(db, columns: columns)
     }
     
     mutating func save(db: Database) throws {

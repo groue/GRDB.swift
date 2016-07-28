@@ -115,11 +115,13 @@ public protocol MutablePersistable : TableMapping {
     /// implementation of update(). In their implementation, it is recommended
     /// that they invoke the performUpdate() method.
     ///
+    /// TODO: columns
+    ///
     /// - parameter db: A database connection.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.NotFound is thrown if the primary key does not
     ///   match any row in the database.
-    func update(db: Database) throws
+    func update(db: Database, columns: Set<String>) throws
     
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
     /// the database.
@@ -187,9 +189,39 @@ public extension MutablePersistable {
     
     /// Executes an UPDATE statement.
     ///
+    /// TODO: columns
+    ///
+    /// The default implementation for update() invokes performUpdate().
+    func update(db: Database, columns: Set<String>) throws {
+        try performUpdate(db, columns: columns)
+    }
+    
+    /// Executes an UPDATE statement.
+    ///
+    /// TODO: columns
+    ///
+    /// The default implementation for update() invokes performUpdate().
+    func update<S: SequenceType where S.Generator.Element == SQLColumn>(db: Database, columns: S) throws {
+        try update(db, columns: Set(columns.map { $0.name }))
+    }
+    
+    /// Executes an UPDATE statement.
+    ///
+    /// TODO: columns
+    ///
+    /// The default implementation for update() invokes performUpdate().
+    func update<S: SequenceType where S.Generator.Element == String>(db: Database, columns: S) throws {
+        try update(db, columns: Set(columns))
+    }
+    
+    /// Executes an UPDATE statement.
+    ///
+    /// TODO: columns
+    ///
     /// The default implementation for update() invokes performUpdate().
     func update(db: Database) throws {
-        try performUpdate(db)
+        // TODO
+        try update(db, columns: Set())
     }
     
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
@@ -248,12 +280,14 @@ public extension MutablePersistable {
     /// Don't invoke this method directly: it is an internal method for types
     /// that adopt MutablePersistable.
     ///
+    /// TODO: columns
+    ///
     /// performUpdate() provides the default implementation for update(). Types
     /// that adopt MutablePersistable can invoke performUpdate() in their
     /// implementation of update(). They should not provide their own
     /// implementation of performUpdate().
-    func performUpdate(db: Database) throws {
-        try DataMapper(db, self).updateStatement().execute()
+    func performUpdate(db: Database, columns: Set<String>) throws {
+        try DataMapper(db, self).updateStatement(columns: columns).execute()
         if db.changesCount == 0 {
             throw PersistenceError.NotFound(self)
         }
@@ -499,7 +533,7 @@ final class DataMapper {
         return statement
     }
     
-    func updateStatement() -> UpdateStatement {
+    func updateStatement(columns columns: Set<String>) -> UpdateStatement {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey?.columns ?? []
         let primaryKeyValues = databaseValues(forColumns: primaryKeyColumns, inDictionary: persistentDictionary)
