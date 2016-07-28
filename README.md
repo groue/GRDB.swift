@@ -1332,7 +1332,7 @@ GRDB provides four high-level methods as well:
 
 ```swift
 db.tableExists("persons")    // Bool, true if the table exists
-db.indexes(on: "persons")    // [TableIndex], the indexes defined on the table
+db.indexes(on: "persons")    // [IndexInfo], the indexes defined on the table
 try db.table("persons", hasUniqueKey: ["id"]) // Bool, true if column(s) is a unique key
 try db.primaryKey("persons") // PrimaryKey?
 ```

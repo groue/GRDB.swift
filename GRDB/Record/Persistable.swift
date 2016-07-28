@@ -552,8 +552,9 @@ final class DataMapper {
         
         // Don't update primary key columns
         var updatedColumns = Array(persistentDictionary.keys)
-            .filter { columns.contains($0) }
-            .filter { !primaryKeyColumns.contains($0) }
+            .map { $0.lowercaseString }
+            .filter { (lowercaseKey: String) in columns.contains { $0.lowercaseString == lowercaseKey } }
+            .filter { (lowercaseKey: String) in !primaryKeyColumns.contains { $0.lowercaseString == lowercaseKey } }
         if updatedColumns.isEmpty {
             // IMPLEMENTATION NOTE
             //
