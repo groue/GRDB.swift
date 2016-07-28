@@ -220,8 +220,9 @@ public extension MutablePersistable {
     ///
     /// The default implementation for update() invokes performUpdate().
     func update(db: Database) throws {
-        // TODO
-        try update(db, columns: Set())
+        let databaseTableName = self.dynamicType.databaseTableName()
+        let columns = try db.columns(in: databaseTableName)
+        try update(db, columns: Set(columns.map { $0.name }))
     }
     
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
@@ -539,8 +540,10 @@ final class DataMapper {
         let primaryKeyValues = databaseValues(forColumns: primaryKeyColumns, inDictionary: persistentDictionary)
         GRDBPrecondition(primaryKeyValues.contains { !$0.isNull }, "record can not be identified. persistentDictionary must contain non-nil value(s) for the key(s) \(primaryKeyColumns.joinWithSeparator((", ")))")
         
-        // Update everything but primary key
-        var updatedColumns = persistentDictionary.keys.removingElementsOf(primaryKeyColumns)
+        // Don't update primary key columns
+        var updatedColumns = Array(persistentDictionary.keys)
+            .filter { columns.contains($0.lowercaseString) }
+            .filter { !primaryKeyColumns.contains($0.lowercaseString) }
         if updatedColumns.isEmpty {
             // IMPLEMENTATION NOTE
             //
