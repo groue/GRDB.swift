@@ -149,6 +149,54 @@ class MutablePersistableTests: GRDBTestCase {
         }
     }
     
+    func testPartialUpdateMutablePersistablePerson() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                var person1 = MutablePersistablePerson(id: nil, name: "Arthur")
+                try person1.insert(db)
+                var person2 = MutablePersistablePerson(id: nil, name: "Barbara")
+                try person2.insert(db)
+                
+                do {
+                    person1.name = "Craig"
+                    try person1.update(db, columns: [String]())
+                    
+                    let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+                    XCTAssertEqual(rows.count, 2)
+                    XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
+                    XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
+                    XCTAssertEqual(rows[1].value(named: "id") as Int64, person2.id!)
+                    XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
+                }
+                
+                do {
+                    person1.name = "Craig"
+                    try person1.update(db, columns: [SQLColumn("name")])
+                    
+                    let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+                    XCTAssertEqual(rows.count, 2)
+                    XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
+                    XCTAssertEqual(rows[0].value(named: "name") as String, "Craig")
+                    XCTAssertEqual(rows[1].value(named: "id") as Int64, person2.id!)
+                    XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
+                }
+                
+                do {
+                    person1.name = "David"
+                    try person1.update(db, columns: ["age"])
+                    
+                    let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+                    XCTAssertEqual(rows.count, 2)
+                    XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
+                    XCTAssertEqual(rows[0].value(named: "name") as String, "Craig")
+                    XCTAssertEqual(rows[1].value(named: "id") as Int64, person2.id!)
+                    XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
+                }
+            }
+        }
+    }
+    
     func testSaveMutablePersistablePerson() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
