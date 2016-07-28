@@ -249,12 +249,11 @@ public class Record : RowConvertible, TableMapping, Persistable {
     /// This method is guaranteed to have updated a row in the database if it
     /// returns without error.
     ///
-    /// TODO: columns
-    ///
     /// - parameter db: A database connection.
+    /// - parameter columns: The columns to update.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.NotFound is thrown if the primary key does not match
-    ///   any row in the database and record could not be updated.
+    ///   PersistenceError.NotFound is thrown if the primary key does not
+    ///   match any row in the database.
     public func update(db: Database, columns: Set<String>) throws {
         // The simplest code would be:
         //

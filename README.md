@@ -1860,14 +1860,13 @@ paris.id   // some value
 
 [Record](#record-class) subclasses and types that adopt [Persistable](#persistable-protocol) are given default implementations for methods that insert, update, and delete:
 
-TODO: update columns
-
 ```swift
-try pointOfInterest.insert(db) // INSERT
-try pointOfInterest.update(db) // UPDATE
-try pointOfInterest.save(db)   // Inserts or updates
-try pointOfInterest.delete(db) // DELETE
-pointOfInterest.exists(db)     // Bool
+try pointOfInterest.insert(db)               // INSERT
+try pointOfInterest.update(db)               // UPDATE
+try pointOfInterest.update(db, columns: ...) // UPDATE
+try pointOfInterest.save(db)                 // Inserts or updates
+try pointOfInterest.delete(db)               // DELETE
+pointOfInterest.exists(db)                   // Bool
 ```
 
 - `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling) whenever an SQLite integrity check fails.

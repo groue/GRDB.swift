@@ -115,9 +115,8 @@ public protocol MutablePersistable : TableMapping {
     /// implementation of update(). In their implementation, it is recommended
     /// that they invoke the performUpdate() method.
     ///
-    /// TODO: columns
-    ///
     /// - parameter db: A database connection.
+    /// - parameter columns: The columns to update.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.NotFound is thrown if the primary key does not
     ///   match any row in the database.
@@ -189,36 +188,43 @@ public extension MutablePersistable {
     
     /// Executes an UPDATE statement.
     ///
-    /// TODO: columns
-    ///
-    /// The default implementation for update() invokes performUpdate().
+    /// - parameter db: A database connection.
+    /// - parameter columns: The columns to update.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    ///   PersistenceError.NotFound is thrown if the primary key does not
+    ///   match any row in the database.
     func update(db: Database, columns: Set<String>) throws {
         try performUpdate(db, columns: columns)
     }
     
     /// Executes an UPDATE statement.
     ///
-    /// TODO: columns
-    ///
-    /// The default implementation for update() invokes performUpdate().
+    /// - parameter db: A database connection.
+    /// - parameter columns: The columns to update.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    ///   PersistenceError.NotFound is thrown if the primary key does not
+    ///   match any row in the database.
     func update<S: SequenceType where S.Generator.Element == SQLColumn>(db: Database, columns: S) throws {
         try update(db, columns: Set(columns.map { $0.name }))
     }
     
     /// Executes an UPDATE statement.
     ///
-    /// TODO: columns
-    ///
-    /// The default implementation for update() invokes performUpdate().
+    /// - parameter db: A database connection.
+    /// - parameter columns: The columns to update.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    ///   PersistenceError.NotFound is thrown if the primary key does not
+    ///   match any row in the database.
     func update<S: SequenceType where S.Generator.Element == String>(db: Database, columns: S) throws {
         try update(db, columns: Set(columns))
     }
     
-    /// Executes an UPDATE statement.
+    /// Executes an UPDATE statement that updates all table columns.
     ///
-    /// TODO: columns
-    ///
-    /// The default implementation for update() invokes performUpdate().
+    /// - parameter db: A database connection.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    ///   PersistenceError.NotFound is thrown if the primary key does not
+    ///   match any row in the database.
     func update(db: Database) throws {
         let databaseTableName = self.dynamicType.databaseTableName()
         let columns = try db.columns(in: databaseTableName)
@@ -281,12 +287,16 @@ public extension MutablePersistable {
     /// Don't invoke this method directly: it is an internal method for types
     /// that adopt MutablePersistable.
     ///
-    /// TODO: columns
-    ///
     /// performUpdate() provides the default implementation for update(). Types
     /// that adopt MutablePersistable can invoke performUpdate() in their
     /// implementation of update(). They should not provide their own
     /// implementation of performUpdate().
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter columns: The columns to update.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    ///   PersistenceError.NotFound is thrown if the primary key does not
+    ///   match any row in the database.
     func performUpdate(db: Database, columns: Set<String>) throws {
         try DataMapper(db, self).updateStatement(columns: columns).execute()
         if db.changesCount == 0 {
