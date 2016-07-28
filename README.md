@@ -1,7 +1,9 @@
 GRDB.swift [![Swift](https://img.shields.io/badge/swift-2.2-orange.svg?style=flat)](https://developer.apple.com/swift/) [![Platforms](https://img.shields.io/cocoapods/p/GRDB.swift.svg)](https://developer.apple.com/swift/) [![License](https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000)](/LICENSE)
 ==========
 
-GRDB.swift is an SQLite toolkit for Swift 2.2. For Swift 3, see the [Swift3](https://github.com/groue/GRDB.swift/tree/Swift3) branch.
+GRDB.swift is a Swift application toolkit that provides access to SQLite databases.
+
+It targets Swift 2.2, and Swift 3 in the [Swift3](https://github.com/groue/GRDB.swift/tree/Swift3) branch.
 
 It ships with a **low-level SQLite API**, and high-level tools that help dealing with databases:
 
@@ -19,9 +21,9 @@ More than a set of tools that leverage SQLite abilities, GRDB is also:
 - **Safer**: read the blog post [Four different ways to handle SQLite concurrency](https://medium.com/@gwendal.roue/four-different-ways-to-handle-sqlite-concurrency-db3bcc74d00e)
 - **Faster**: see [Comparing the Performances of Swift SQLite libraries](https://github.com/groue/GRDB.swift/wiki/Performance)
 - Well documented & tested
-- Suited for experienced SQLite users as well as beginners.
 
-You should give it a try.
+If you have experience with other database libraries, have a look at [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3): it will show how protocol-oriented programming helps you building robust applications.
+
 
 ---
 
@@ -1553,9 +1555,18 @@ On top of the SQLite API described above, GRDB provides a toolkit for applicatio
 
 ## Records
 
-**On top of the [SQLite API](#sqlite-api), GRDB provides protocols and a class** that help manipulating database rows as regular objects named "records".
+**On top of the [SQLite API](#sqlite-api), GRDB provides protocols and a class** that help manipulating database rows as regular objects named "records":
+
+```swift
+if let poi = PointOfInterest.fetchOne(db, key: 1) {
+    poi.isFavorite = true
+    try poi.update(db)
+}
+```
 
 Your custom structs and classes can adopt each protocol individually, and opt in to focused sets of features. Or you can subclass the `Record` class, and get the full toolkit in one go: fetching methods, persistence methods, and changes tracking.
+
+> :point_up: **Note**: if you are familiar with Core Data's NSManagedObject or Realm's Object, you may experience a cultural shock: GRDB records are not uniqued, and do not auto-update. This is both a purpose, and a consequence of protocol-oriented programming. You should read [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3) for a general introduction.
 
 
 #### Inserting Records
