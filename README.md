@@ -103,11 +103,11 @@ try dbQueue.inDatabase { db in
         favorite: false,
         coordinate: CLLocationCoordinate2DMake(52.52437, 13.41053))
 
-    try berlin.insert(dbQueue)
+    try berlin.insert(db)
     berlin.id // some value
 
     berlin.favorite = true
-    try berlin.update(dbQueue)
+    try berlin.update(db)
     
     // Fetch [PointOfInterest] from SQL
     let pois = PointOfInterest.fetchAll(db, "SELECT * FROM pointOfInterests")
