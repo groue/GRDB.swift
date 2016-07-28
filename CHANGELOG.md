@@ -18,7 +18,7 @@ Release Notes
 
 **Breaking Changes**
 
-- MutablePersistable `update` and `performUpdate` methods have changed their signature:
+- MutablePersistable `update` and `performUpdate` methods have changed their signatures. You only have to care about this change if you override the default `update` method.
     
     ```diff
      protocol MutablePersistable : TableMapping {
