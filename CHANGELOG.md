@@ -14,13 +14,13 @@ Released July 28, 2016
 - MutablePersistable types, including Record subclasses, support partial updates:
     
     ```swift
-    try person.update(db)                    // Full update
-    try person.update(db, columns: ["age"])  // Only updates the age column
+    try person.update(db)                     // Full update
+    try person.update(db, columns: ["name"])  // Only updates the name column
     ```
 
 **Breaking Changes**
 
-- MutablePersistable `update` and `performUpdate` methods have changed their signatures. You only have to care about this change if you override the default `update` method.
+- MutablePersistable `update` and `performUpdate` methods have changed their signatures. You only have to care about this change if you customize the protocol `update` method.
     
     ```diff
      protocol MutablePersistable : TableMapping {
