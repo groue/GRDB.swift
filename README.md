@@ -22,7 +22,7 @@ More than a set of tools that leverage SQLite abilities, GRDB is also:
 - **Faster**: see [Comparing the Performances of Swift SQLite libraries](https://github.com/groue/GRDB.swift/wiki/Performance)
 - Well documented & tested
 
-If you have experience with other database libraries, have a look at [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3): it will show how protocol-oriented programming helps you building robust applications.
+For a general overview of how a protocol-oriented library impacts database acesses, have a look at [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3).
 
 
 ---
