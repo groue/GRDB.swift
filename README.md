@@ -710,28 +710,27 @@ case .Blob(let data):       print("NSData: \(data)")
 }
 ```
 
-You can extract [values](#values) (Bool, Int, String, NSDate, Swift enums, etc.) from DatabaseValue, just like you do from [rows](#column-values):
+You can extract [values](#values) (Bool, Int, String, NSDate, Swift enums, etc.) from DatabaseValue with the [DatabaseValueConvertible.fromDatabaseValue()](#custom-value-types) method:
 
 ```swift
 let dbv = row.databaseValue(named: "bookCount")
-let bookCount: Int     = dbv.value()
-let bookCount64: Int64 = dbv.value()
-let hasBooks: Bool     = dbv.value() // false when 0
+let bookCount   = Int.fromDatabaseValue(dbv)   // Int?
+let bookCount64 = Int64.fromDatabaseValue(dbv) // Int64?
+let hasBooks    = Bool.fromDatabaseValue(dbv)  // Bool?, false when 0
 
 let dbv = row.databaseValue(named: "date")
-let string: String = dbv.value()     // "2015-09-11 18:14:15.123"
-let date: NSDate   = dbv.value()     // NSDate
-self.date          = dbv.value()     // Depends on the type of the property.
+let string = String.fromDatabaseValue(dbv)     // "2015-09-11 18:14:15.123"
+let date   = NSDate.fromDatabaseValue(dbv)     // NSDate?
 ```
 
-Invalid conversions from non-NULL values raise a fatal error. This fatal error can be avoided with the [DatabaseValueConvertible.fromDatabaseValue()](#custom-value-types) method:
+`fromDatabaseValue` returns nil for invalid conversions:
 
 ```swift
 let row = Row.fetchOne(db, "SELECT 'foo'")!
 let dbv = row.databaseValue(at: 0)
-let string = dbv.value() as String  // "foo"
-let date = dbv.value() as NSDate?   // fatal error: could not convert "foo" to NSDate.
-let date = NSDate.fromDatabaseValue(dbv) // nil
+let string = String.fromDatabaseValue(dbv) // "foo"
+let int    = Int.fromDatabaseValue(dbv)    // nil
+let date   = NSDate.fromDatabaseValue(dbv) // nil
 ```
 
 
