@@ -7,7 +7,7 @@ import XCTest
     import GRDB
 #endif
 
-class TableIndexTests: GRDBTestCase {
+class IndexInfoTests: GRDBTestCase {
     
     func testIndexes() {
         assertNoError { db in

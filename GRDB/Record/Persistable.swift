@@ -116,10 +116,11 @@ public protocol MutablePersistable : TableMapping {
     /// that they invoke the performUpdate() method.
     ///
     /// - parameter db: A database connection.
+    /// - parameter columns: The columns to update.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
-    func update(_ db: Database) throws
+    func update(_ db: Database, columns: Set<String>) throws
     
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
     /// the database.
@@ -187,9 +188,47 @@ public extension MutablePersistable {
     
     /// Executes an UPDATE statement.
     ///
-    /// The default implementation for update() invokes performUpdate().
+    /// - parameter db: A database connection.
+    /// - parameter columns: The columns to update.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    ///   PersistenceError.NotFound is thrown if the primary key does not
+    ///   match any row in the database.
+    func update(_ db: Database, columns: Set<String>) throws {
+        try performUpdate(db, columns: columns)
+    }
+    
+    /// Executes an UPDATE statement.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter columns: The columns to update.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    ///   PersistenceError.NotFound is thrown if the primary key does not
+    ///   match any row in the database.
+    func update<S: Sequence where S.Iterator.Element == SQLColumn>(_ db: Database, columns: S) throws {
+        try update(db, columns: Set(columns.map { $0.name }))
+    }
+    
+    /// Executes an UPDATE statement.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter columns: The columns to update.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    ///   PersistenceError.NotFound is thrown if the primary key does not
+    ///   match any row in the database.
+    func update<S: Sequence where S.Iterator.Element == String>(_ db: Database, columns: S) throws {
+        try update(db, columns: Set(columns))
+    }
+    
+    /// Executes an UPDATE statement that updates all table columns.
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    ///   PersistenceError.NotFound is thrown if the primary key does not
+    ///   match any row in the database.
     func update(_ db: Database) throws {
-        try performUpdate(db)
+        let databaseTableName = self.dynamicType.databaseTableName
+        let columns = try db.columns(in: databaseTableName)
+        try update(db, columns: Set(columns.map { $0.name }))
     }
     
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
@@ -252,8 +291,14 @@ public extension MutablePersistable {
     /// that adopt MutablePersistable can invoke performUpdate() in their
     /// implementation of update(). They should not provide their own
     /// implementation of performUpdate().
-    func performUpdate(_ db: Database) throws {
-        try DataMapper(db, self).updateStatement().execute()
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter columns: The columns to update.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    ///   PersistenceError.NotFound is thrown if the primary key does not
+    ///   match any row in the database.
+    func performUpdate(_ db: Database, columns: Set<String>) throws {
+        try DataMapper(db, self).updateStatement(columns: columns).execute()
         if db.changesCount == 0 {
             throw PersistenceError.recordNotFound(self)
         }
@@ -499,14 +544,17 @@ final class DataMapper {
         return statement
     }
     
-    func updateStatement() -> UpdateStatement {
+    func updateStatement(columns: Set<String>) -> UpdateStatement {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey?.columns ?? []
         let primaryKeyValues = databaseValues(for: primaryKeyColumns, inDictionary: persistentDictionary)
         GRDBPrecondition(primaryKeyValues.contains { !$0.isNull }, "record can not be identified. persistentDictionary must contain non-nil value(s) for the key(s) \(primaryKeyColumns.joined(separator: ","))")
         
-        // Update everything but primary key
-        var updatedColumns = persistentDictionary.keys.removing(contentsOf: primaryKeyColumns)
+        // Don't update primary key columns
+        var updatedColumns = Array(persistentDictionary.keys)
+            .map { $0.lowercased() }
+            .filter { (lowercaseKey: String) in columns.contains { $0.lowercased() == lowercaseKey } }
+            .filter { (lowercaseKey: String) in !primaryKeyColumns.contains { $0.lowercased() == lowercaseKey } }
         if updatedColumns.isEmpty {
             // IMPLEMENTATION NOTE
             //

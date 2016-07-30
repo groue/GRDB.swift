@@ -1,7 +1,9 @@
 GRDB.swift [![Swift](https://img.shields.io/badge/swift-3-orange.svg?style=flat)](https://developer.apple.com/swift/) [![Platforms](https://img.shields.io/cocoapods/p/GRDB.swift.svg)](https://developer.apple.com/swift/) [![License](https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000)](/LICENSE)
 ==========
 
-GRDB.swift is an SQLite toolkit for Swift 3.0 Preview 3 (July 18, 2016).
+GRDB.swift is a Swift application toolkit that provides access to SQLite databases.
+
+It targets Swift 3.0 Preview 3 (July 18, 2016).
 
 It ships with a **low-level SQLite API**, and high-level tools that help dealing with databases:
 
@@ -19,13 +21,13 @@ More than a set of tools that leverage SQLite abilities, GRDB is also:
 - **Safer**: read the blog post [Four different ways to handle SQLite concurrency](https://medium.com/@gwendal.roue/four-different-ways-to-handle-sqlite-concurrency-db3bcc74d00e)
 - **Faster**: see [Comparing the Performances of Swift SQLite libraries](https://github.com/groue/GRDB.swift/wiki/Performance)
 - Well documented & tested
-- Suited for experienced SQLite users as well as beginners.
 
-You should give it a try.
+For a general overview of how a protocol-oriented library impacts database acesses, have a look at [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3).
+
 
 ---
 
-The Swift3 branch has no version. It is currently synced with v0.76.0 of the Swift 2.2 [main branch](https://github.com/groue/GRDB.swift).
+The Swift3 branch has no version. It is currently synced with v0.77.0 of the Swift 2.2 [main branch](https://github.com/groue/GRDB.swift).
 
 Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
@@ -105,11 +107,11 @@ try dbQueue.inDatabase { db in
         isFavorite: false,
         coordinate: CLLocationCoordinate2DMake(52.52437, 13.41053))
 
-    try berlin.insert(dbQueue)
+    try berlin.insert(db)
     berlin.id // some value
 
     berlin.isFavorite = true
-    try berlin.update(dbQueue)
+    try berlin.update(db)
     
     // Fetch [PointOfInterest] from SQL
     let pois = PointOfInterest.fetchAll(db, "SELECT * FROM pointOfInterests")
@@ -280,7 +282,7 @@ let dbQueue = try DatabaseQueue(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.76.0/Structs/Configuration.html) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.77.0/Structs/Configuration.html) for more details.
 
 
 ## Database Pools
@@ -360,7 +362,7 @@ let dbPool = try DatabasePool(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.76.0/Structs/Configuration.html) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.77.0/Structs/Configuration.html) for more details.
 
 
 Database pools are more memory-hungry than database queues. See [Memory Management](#memory-management) for more information.
@@ -677,28 +679,27 @@ case .blob(let data):       print("Data: \(data)")
 }
 ```
 
-You can extract [values](#values) (Bool, Int, String, Date, Swift enums, etc.) from DatabaseValue, just like you do from [rows](#column-values):
+You can extract [values](#values) (Bool, Int, String, Date, Swift enums, etc.) from DatabaseValue with the [DatabaseValueConvertible.fromDatabaseValue()](#custom-value-types) method:
 
 ```swift
 let dbv = row.databaseValue(named: "bookCount")
-let bookCount: Int     = dbv.value()
-let bookCount64: Int64 = dbv.value()
-let hasBooks: Bool     = dbv.value() // false when 0
+let bookCount   = Int.fromDatabaseValue(dbv)   // Int?
+let bookCount64 = Int64.fromDatabaseValue(dbv) // Int64?
+let hasBooks    = Bool.fromDatabaseValue(dbv)  // Bool?, false when 0
 
 let dbv = row.databaseValue(named: "date")
-let string: String = dbv.value()     // "2015-09-11 18:14:15.123"
-let date: Date     = dbv.value()     // Date
-self.date          = dbv.value()     // Depends on the type of the property.
+let string = String.fromDatabaseValue(dbv)     // "2015-09-11 18:14:15.123"
+let date   = NSDate.fromDatabaseValue(dbv)     // NSDate?
 ```
 
-Invalid conversions from non-NULL values raise a fatal error. This fatal error can be avoided with the [DatabaseValueConvertible.fromDatabaseValue()](#custom-value-types) method:
+`fromDatabaseValue` returns nil for invalid conversions:
 
 ```swift
 let row = Row.fetchOne(db, "SELECT 'foo'")!
 let dbv = row.databaseValue(at: 0)
-let string = dbv.value() as String  // "foo"
-let date = dbv.value() as Date?     // fatal error: could not convert "foo" to Date.
-let date = Date.fromDatabaseValue(dbv) // nil
+let string = String.fromDatabaseValue(dbv) // "foo"
+let int    = Int.fromDatabaseValue(dbv)    // nil
+let date   = NSDate.fromDatabaseValue(dbv) // nil
 ```
 
 
@@ -719,7 +720,7 @@ for (columnName, databaseValue) in row {
 let row = Row(["name": "foo", "date": nil])
 ```
 
-Yet rows are not real dictionaries, because they may contain duplicate keys:
+Yet rows are not real dictionaries: they are ordered, and may contain duplicate keys:
 
 ```swift
 let row = Row.fetchOne(db, "SELECT 1 AS foo, 2 AS foo")!
@@ -1297,7 +1298,7 @@ GRDB provides four high-level methods as well:
 
 ```swift
 db.tableExists("persons")    // Bool, true if the table exists
-db.indexes(on: "persons")    // [TableIndex], the indexes defined on the table
+db.indexes(on: "persons")    // [IndexInfo], the indexes defined on the table
 try db.table("persons", hasUniqueKey: ["id"]) // Bool, true if column(s) is a unique key
 try db.primaryKey("persons") // PrimaryKey?
 ```
@@ -1444,10 +1445,10 @@ for person in Person.fetch(db, sql, adapter: adapter) {
 
 For more information about row adapters, see the documentation of:
 
-- [RowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.76.0/Protocols/RowAdapter.html): the protocol that lets you define your custom row adapters
-- [ColumnMapping](http://cocoadocs.org/docsets/GRDB.swift/0.76.0/Structs/ColumnMapping.html): a row adapter that renames row columns
-- [SuffixRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.76.0/Structs/SuffixRowAdapter.html): a row adapter that hides the first columns of a row
-- [ScopeAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.76.0/Structs/ScopeAdapter.html): the row adapter that groups several adapters together to define scopes
+- [RowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.77.0/Protocols/RowAdapter.html): the protocol that lets you define your custom row adapters
+- [ColumnMapping](http://cocoadocs.org/docsets/GRDB.swift/0.77.0/Structs/ColumnMapping.html): a row adapter that renames row columns
+- [SuffixRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.77.0/Structs/SuffixRowAdapter.html): a row adapter that hides the first columns of a row
+- [ScopeAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.77.0/Structs/ScopeAdapter.html): the row adapter that groups several adapters together to define scopes
 
 
 ## Raw SQLite Pointers
@@ -1518,9 +1519,18 @@ On top of the SQLite API described above, GRDB provides a toolkit for applicatio
 
 ## Records
 
-**On top of the [SQLite API](#sqlite-api), GRDB provides protocols and a class** that help manipulating database rows as regular objects named "records".
+**On top of the [SQLite API](#sqlite-api), GRDB provides protocols and a class** that help manipulating database rows as regular objects named "records":
+
+```swift
+if let poi = PointOfInterest.fetchOne(db, key: 1) {
+    poi.isFavorite = true
+    try poi.update(db)
+}
+```
 
 Your custom structs and classes can adopt each protocol individually, and opt in to focused sets of features. Or you can subclass the `Record` class, and get the full toolkit in one go: fetching methods, persistence methods, and changes tracking.
+
+> :point_up: **Note**: if you are familiar with Core Data's NSManagedObject or Realm's Object, you may experience a cultural shock: GRDB records are not uniqued, and do not auto-update. This is both a purpose, and a consequence of protocol-oriented programming. You should read [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3) for a general introduction.
 
 
 #### Inserting Records
@@ -1824,11 +1834,12 @@ paris.id   // some value
 [Record](#record-class) subclasses and types that adopt [Persistable](#persistable-protocol) are given default implementations for methods that insert, update, and delete:
 
 ```swift
-try pointOfInterest.insert(db) // INSERT
-try pointOfInterest.update(db) // UPDATE
-try pointOfInterest.save(db)   // Inserts or updates
-try pointOfInterest.delete(db) // DELETE
-pointOfInterest.exists(db)     // Bool
+try pointOfInterest.insert(db)               // INSERT
+try pointOfInterest.update(db)               // UPDATE
+try pointOfInterest.update(db, columns: ...) // UPDATE
+try pointOfInterest.save(db)                 // Inserts or updates
+try pointOfInterest.delete(db)               // DELETE
+pointOfInterest.exists(db)                   // Bool
 ```
 
 - `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling) whenever an SQLite integrity check fails.
@@ -1880,9 +1891,9 @@ struct Link : Persistable {
         try performInsert(db)
     }
     
-    func update(_ db: Database) throws {
+    func update(_ db: Database, columns: Set<String>) throws {
         try validate()
-        try performUpdate(db)
+        try performUpdate(db, columns: columns)
     }
     
     func validate() throws {
@@ -3358,7 +3369,7 @@ let count2 = dbQueue.inDatabase { db in
 
 SQLite concurrency is a wiiide topic.
 
-First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.76.0/Classes/DatabaseQueue.html) and [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.76.0/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.76.0/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.76.0/Protocols/DatabaseWriter.html) protocols, so that you can write code that targets both classes.
+First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.77.0/Classes/DatabaseQueue.html) and [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.77.0/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.77.0/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.77.0/Protocols/DatabaseWriter.html) protocols, so that you can write code that targets both classes.
 
 If the built-in queues and pools do not fit your needs, or if you can not guarantee that a single queue or pool is accessing your database file, you may have a look at:
 

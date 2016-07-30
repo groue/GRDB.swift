@@ -831,30 +831,20 @@ extension Database {
         // 1   | firstName | TEXT    | 0       | NULL       | 0  |
         // 2   | lastName  | TEXT    | 0       | NULL       | 0  |
         
-        if #available(iOS 8.2, OSX 10.10, *) { } else {
-            // Work around a bug in SQLite where PRAGMA table_info would
-            // return a result even after the table was deleted.
-            if !tableExists(tableName) {
-                throw DatabaseError(message: "no such table: \(tableName)")
-            }
-        }
-        let columnInfos = ColumnInfo.fetchAll(self, "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))")
-        guard columnInfos.count > 0 else {
-            throw DatabaseError(message: "no such table: \(tableName)")
-        }
+        let columns = try self.columns(in: tableName)
         
         let primaryKey: PrimaryKey?
-        let pkColumnInfos = columnInfos
+        let pkColumns = columns
             .filter { $0.primaryKeyIndex > 0 }
             .sorted { $0.primaryKeyIndex < $1.primaryKeyIndex }
         
-        switch pkColumnInfos.count {
+        switch pkColumns.count {
         case 0:
             // No primary key column
             primaryKey = nil
         case 1:
             // Single column
-            let pkColumnInfo = pkColumnInfos.first!
+            let pkColumn = pkColumns.first!
             
             // https://www.sqlite.org/lang_createtable.html:
             //
@@ -876,18 +866,66 @@ extension Database {
             //
             // FIXME: We ignore the exception, and consider all INTEGER primary
             // keys as aliases for the rowid:
-            if pkColumnInfo.type.uppercased() == "INTEGER" {
-                primaryKey = .rowID(pkColumnInfo.name)
+            if pkColumn.type.uppercased() == "INTEGER" {
+                primaryKey = .rowID(pkColumn.name)
             } else {
-                primaryKey = .regular([pkColumnInfo.name])
+                primaryKey = .regular([pkColumn.name])
             }
         default:
             // Multi-columns primary key
-            primaryKey = .regular(pkColumnInfos.map { $0.name })
+            primaryKey = .regular(pkColumns.map { $0.name })
         }
         
         schemaCache.set(primaryKey: primaryKey, for: tableName)
         return primaryKey
+    }
+    
+    /// The columns in table named `tableName`.
+    ///
+    /// - throws: A DatabaseError if table does not exist.
+    func columns(in tableName: String) throws -> [ColumnInfo] {
+        if let columns = schemaCache.columns(in: tableName) {
+            return columns
+        }
+        
+        // https://www.sqlite.org/pragma.html
+        //
+        // > PRAGMA database.table_info(table-name);
+        // >
+        // > This pragma returns one row for each column in the named table.
+        // > Columns in the result set include the column name, data type,
+        // > whether or not the column can be NULL, and the default value for
+        // > the column. The "pk" column in the result set is zero for columns
+        // > that are not part of the primary key, and is the index of the
+        // > column in the primary key for columns that are part of the primary
+        // > key.
+        //
+        // CREATE TABLE persons (
+        //   id INTEGER PRIMARY KEY,
+        //   firstName TEXT,
+        //   lastName TEXT)
+        //
+        // PRAGMA table_info("persons")
+        //
+        // cid | name      | type    | notnull | dflt_value | pk |
+        // 0   | id        | INTEGER | 0       | NULL       | 1  |
+        // 1   | firstName | TEXT    | 0       | NULL       | 0  |
+        // 2   | lastName  | TEXT    | 0       | NULL       | 0  |
+        
+        if #available(iOS 8.2, OSX 10.10, *) { } else {
+            // Work around a bug in SQLite where PRAGMA table_info would
+            // return a result even after the table was deleted.
+            if !tableExists(tableName) {
+                throw DatabaseError(message: "no such table: \(tableName)")
+            }
+        }
+        let columns = ColumnInfo.fetchAll(self, "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))")
+        guard columns.count > 0 else {
+            throw DatabaseError(message: "no such table: \(tableName)")
+        }
+        
+        schemaCache.set(columns: columns, forTableName: tableName)
+        return columns
     }
     
     /// The indexes on table named `tableName`; returns the empty array if the
@@ -898,19 +936,19 @@ extension Database {
     ///
     /// If you want to know if a set of columns uniquely identify a row, prefer
     /// table(_:hasUniqueKey:) instead.
-    public func indexes(on tableName: String) -> [TableIndex] {
+    public func indexes(on tableName: String) -> [IndexInfo] {
         if let indexes = schemaCache.indexes(on: tableName) {
             return indexes
         }
         
-        let indexes = Row.fetch(self, "PRAGMA index_list(\(tableName.quotedDatabaseIdentifier))").map { row -> TableIndex in
+        let indexes = Row.fetch(self, "PRAGMA index_list(\(tableName.quotedDatabaseIdentifier))").map { row -> IndexInfo in
             let indexName: String = row.value(atIndex: 1)
             let unique: Bool = row.value(atIndex: 2)
             let columns = Row.fetch(self, "PRAGMA index_info(\(indexName.quotedDatabaseIdentifier))")
                 .map { ($0.value(atIndex: 0) as Int, $0.value(atIndex: 2) as String) }
                 .sorted { $0.0 < $1.0 }
                 .map { $0.1 }
-            return TableIndex(name: indexName, columns: columns, unique: unique)
+            return IndexInfo(name: indexName, columns: columns, unique: unique)
         }
         
         schemaCache.set(indexes: indexes, forTableName: tableName)
@@ -934,6 +972,10 @@ extension Database {
         return false
     }
     
+}
+
+/// A column of a table
+struct ColumnInfo : RowConvertible {
     // CREATE TABLE persons (
     //   id INTEGER PRIMARY KEY,
     //   firstName TEXT,
@@ -945,27 +987,25 @@ extension Database {
     // 0   | id        | INTEGER | 0       | NULL       | 1  |
     // 1   | firstName | TEXT    | 0       | NULL       | 0  |
     // 2   | lastName  | TEXT    | 0       | NULL       | 0  |
-    private struct ColumnInfo : RowConvertible {
-        let name: String
-        let type: String
-        let notNull: Bool
-        let defaultDatabaseValue: DatabaseValue
-        let primaryKeyIndex: Int
-        
-        init(row: Row) {
-            name = row.value(named: "name")
-            type = row.value(named: "type")
-            notNull = row.value(named: "notnull")
-            defaultDatabaseValue = row.databaseValue(named: "dflt_value")!
-            primaryKeyIndex = row.value(named: "pk")
-        }
+    let name: String
+    let type: String
+    let notNull: Bool
+    let defaultDatabaseValue: DatabaseValue
+    let primaryKeyIndex: Int
+    
+    init(row: Row) {
+        name = row.value(named: "name")
+        type = row.value(named: "type")
+        notNull = row.value(named: "notnull")
+        defaultDatabaseValue = row.databaseValue(named: "dflt_value")!
+        primaryKeyIndex = row.value(named: "pk")
     }
 }
 
 /// An index on a database table.
 ///
 /// See `Database.indexes(on:)`
-public struct TableIndex {
+public struct IndexInfo {
     /// The name of the index
     public let name: String
     

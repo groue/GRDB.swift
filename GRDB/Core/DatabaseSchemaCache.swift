@@ -9,18 +9,23 @@ protocol DatabaseSchemaCache {
     
     func primaryKey(_ tableName: String) -> PrimaryKey??
     mutating func set(primaryKey: PrimaryKey?, for tableName: String)
-
-    func indexes(on tableName: String) -> [TableIndex]?
-    mutating func set(indexes: [TableIndex], forTableName tableName: String)
+    
+    func columns(in tableName: String) -> [ColumnInfo]?
+    mutating func set(columns: [ColumnInfo], forTableName tableName: String)
+    
+    func indexes(on tableName: String) -> [IndexInfo]?
+    mutating func set(indexes: [IndexInfo], forTableName tableName: String)
 }
 
 /// A thread-unsafe database schema cache
 final class SimpleDatabaseSchemaCache: DatabaseSchemaCache {
     private var primaryKeys: [String: PrimaryKey?] = [:]
-    private var indexes: [String: [TableIndex]] = [:]
+    private var columns: [String: [ColumnInfo]] = [:]
+    private var indexes: [String: [IndexInfo]] = [:]
     
     func clear() {
         primaryKeys = [:]
+        columns = [:]
         indexes = [:]
     }
     
@@ -32,11 +37,19 @@ final class SimpleDatabaseSchemaCache: DatabaseSchemaCache {
         primaryKeys[tableName] = primaryKey
     }
     
-    func indexes(on tableName: String) -> [TableIndex]? {
+    func columns(in tableName: String) -> [ColumnInfo]? {
+        return columns[tableName]
+    }
+    
+    func set(columns: [ColumnInfo], forTableName tableName: String) {
+        self.columns[tableName] = columns
+    }
+    
+    func indexes(on tableName: String) -> [IndexInfo]? {
         return indexes[tableName]
     }
     
-    func set(indexes: [TableIndex], forTableName tableName: String) {
+    func set(indexes: [IndexInfo], forTableName tableName: String) {
         self.indexes[tableName] = indexes
     }
 }
@@ -57,11 +70,19 @@ final class SharedDatabaseSchemaCache: DatabaseSchemaCache {
         cache.write { $0.set(primaryKey: primaryKey, for: tableName) }
     }
     
-    func indexes(on tableName: String) -> [TableIndex]? {
+    func columns(in tableName: String) -> [ColumnInfo]? {
+        return cache.read { $0.columns(in: tableName) }
+    }
+    
+    func set(columns: [ColumnInfo], forTableName tableName: String) {
+        cache.write { $0.set(columns: columns, forTableName: tableName) }
+    }
+    
+    func indexes(on tableName: String) -> [IndexInfo]? {
         return cache.read { $0.indexes(on: tableName) }
     }
     
-    func set(indexes: [TableIndex], forTableName tableName: String) {
+    func set(indexes: [IndexInfo], forTableName tableName: String) {
         cache.write { $0.set(indexes: indexes, forTableName: tableName) }
     }
 }

@@ -1,12 +1,42 @@
 Release Notes
 =============
 
-## Next Version
+## 0.77.0
+
+Released July 28, 2016
 
 **New**
 
-- `Database.indexes(on:)` returns the indexes defined on a database table
+- `Database.indexes(on:)` returns the indexes defined on a database table.
+
 - `Database.table(_:hasUniqueKey:)` returns true if a sequence of columns uniquely identifies a row, that is to say if the columns are the primary key, or if there is a unique index on them.
+
+- MutablePersistable types, including Record subclasses, support partial updates:
+    
+    ```swift
+    try person.update(db)                     // Full update
+    try person.update(db, columns: ["name"])  // Only updates the name column
+    ```
+
+**Breaking Changes**
+
+- MutablePersistable `update` and `performUpdate` methods have changed their signatures. You only have to care about this change if you customize the protocol `update` method.
+    
+    ```diff
+     protocol MutablePersistable : TableMapping {
+    -func update(db: Database) throws
+    +func update(db: Database, columns: Set<String>) throws
+     }
+     
+     extension MutablePersistable {
+     func update(db: Database) throws
+    +func update(db: Database, columns: Set<String>) throws
+    +func update<S: SequenceType where S.Generator.Element == SQLColumn>(db: Database, columns: S) throws
+    +func update<S: SequenceType where S.Generator.Element == String>(db: Database, columns: S) throws
+    -func performUpdate(db: Database) throws
+    +func performUpdate(db: Database, columns: Set<String>) throws
+     }
+    ```
 
 
 ## 0.76.0
