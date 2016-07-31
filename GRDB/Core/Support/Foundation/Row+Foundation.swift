@@ -3,7 +3,7 @@ import Foundation
 /// Foundation support for Row
 extension Row {
     
-    /// Builds a row from an NSDictionary.
+    /// Creates a row from an NSDictionary.
     ///
     /// The result is nil unless all dictionary keys are strings, and values
     /// adopt DatabaseValueConvertible (NSData, NSDate, NSNull, NSNumber,

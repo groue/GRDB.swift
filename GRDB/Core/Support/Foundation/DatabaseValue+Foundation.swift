@@ -3,7 +3,7 @@ import Foundation
 /// Foundation support for DatabaseValue
 extension DatabaseValue {
     
-    /// Builds a DatabaseValue from AnyObject.
+    /// Creates a DatabaseValue from AnyObject.
     ///
     /// The result is nil unless object adopts DatabaseValueConvertible (NSData,
     /// NSDate, NSNull, NSNumber, NSString, NSURL).

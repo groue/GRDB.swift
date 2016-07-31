@@ -748,7 +748,9 @@ for (columnName, databaseValue) in row {
 **You can build rows from dictionaries** (standard Swift dictionaries and NSDictionary). See [Values](#values) for more information on supported types:
 
 ```swift
+let row: Row = ["name": "foo", "date": nil]
 let row = Row(["name": "foo", "date": nil])
+let row = Row(nsDictionary) // nil if invalid NSDictionary
 ```
 
 Yet rows are not real dictionaries: they are ordered, and may contain duplicate keys:

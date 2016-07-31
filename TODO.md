@@ -20,7 +20,8 @@
 
 Not sure
 
-- [ ] Have Row adopt LiteralDictionaryConvertible
+- [X] Have Row adopt LiteralDictionaryConvertible
+    - [ ] ... allowing non unique column names
 - [ ] Remove DatabaseValue.value()
     - [X] Don't talk about DatabaseValue.value() in README.md
 - [ ] Move Database Events filtering to the TransactionObserverType protocol
