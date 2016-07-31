@@ -20,7 +20,9 @@
 
 Not sure
 
+- [ ] Have Row adopt LiteralDictionaryConvertible
 - [ ] Remove DatabaseValue.value()
+    - [X] Don't talk about DatabaseValue.value() in README.md
 - [ ] Move Database Events filtering to the TransactionObserverType protocol
 - [ ] Support for NSColor/UIColor. Beware UIColor components can go beyond [0, 1.0] in iOS10.
 
