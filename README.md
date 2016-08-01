@@ -3106,6 +3106,7 @@ This chapter covers general topics that you should be aware of.
 - [Unicode](#unicode)
 - [Memory Management](#memory-management)
 - [Concurrency](#concurrency)
+- [Performance](#performance)
 
 
 ## Avoiding SQL Injection
@@ -3444,25 +3445,40 @@ Don't make any assumption, avoid optimizing code too early, and use [Instruments
 
 ### Performance tip: know your platform
 
-You can't complain about an unresponsive user interface if your application processes a huge JSON file and inserts thousands of rows in the database right from the main thread. Instead, read the [Concurrency Programming Guide](https://developer.apple.com/library/ios/documentation/General/Conceptual/ConcurrencyProgrammingGuide/Introduction/Introduction.html#//apple_ref/doc/uid/TP40008091) and learn how to perform heavy computations without blocking your application.
+If your application processes a huge JSON file and inserts thousands of rows in the database right from the main thread, it will quite likely become unresponsive, and provide a sub-quality user experience.
+
+If not done yet, read the [Concurrency Programming Guide](https://developer.apple.com/library/ios/documentation/General/Conceptual/ConcurrencyProgrammingGuide/Introduction/Introduction.html#//apple_ref/doc/uid/TP40008091) and learn how to perform heavy computations without blocking your application.
+
+Since most GRBD APIs are [synchronous](#database-connections), spawning them into parallel queues is as easy as:
+
+```swift
+dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
+    dbQueue.inDatabase { db in
+        // Perform database work
+    }
+    dispatch_async(dispatch_get_main_queue()) {
+        // update your user interface
+    }
+}
+```
 
 
 ### Performance tip: use transactions
 
-Individual SQLite statements are much faster when executed inside a [transaction](#transactions-and-savepoints). This is because a transaction allows SQLite to postpone writing changes to disk until the final commit:
+Performing multiple updates to the database is much faster when executed inside a [transaction](#transactions-and-savepoints). This is because a transaction allows SQLite to postpone writing changes to disk until the final commit:
 
 ```swift
 // Inefficient
 try dbQueue.inDatabase { db in
     for person in persons {
-        try person.update()
+        try person.insert(db)
     }
 }
 
 // Efficient
 try dbQueue.inTransaction { db in
     for person in persons {
-        try person.update()
+        try person.insert(db)
     }
     return .Commit
 }
