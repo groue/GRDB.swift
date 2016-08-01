@@ -3557,7 +3557,7 @@ The following code is inefficient. It is an example of the [N+1 problem](http://
 
 ```swift
 // SELECT * FROM authors
-let authors = Author.findAll(db)
+let authors = Author.fetchAll(db)
 for author in authors {
     // SELECT COUNT(*) FROM books WHERE authorId = ...
     author.bookCount = Book.filter(authorIdColumn == author.id).fetchCount(db)
@@ -3572,7 +3572,7 @@ let sql = "SELECT authors.*, COUNT(books.id) AS bookCount " +
           "LEFT JOIN books ON books.authorId = authors.id " +
           "GROUP BY authors.id " +
           "ORDER BY authors.name"
-let authors = Author.findAll(db, sql)
+let authors = Author.fetchAll(db, sql)
 ```
 
 In the example above, consider extending your Author with an extra bookCount property, or define and use a different type.
