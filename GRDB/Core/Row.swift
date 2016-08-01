@@ -17,12 +17,12 @@ public final class Row {
     
     // MARK: - Building rows
     
-    /// Builds an empty row.
+    /// Creates an empty row.
     public convenience init() {
         self.init(impl: EmptyRowImpl())
     }
     
-    /// Builds a row from a dictionary of values.
+    /// Creates a row from a dictionary of values.
     public convenience init(_ dictionary: [String: DatabaseValueConvertible?]) {
         self.init(impl: DictionaryRowImpl(dictionary: dictionary))
     }
@@ -58,7 +58,8 @@ public final class Row {
         statementRef?.release()
     }
     
-    /// Builds a row from the an SQLite statement.
+    /// Creates a row that maps an SQLite statement. Further calls to
+    /// sqlite3_step() modify the row.
     ///
     /// The row is implemented on top of StatementRowImpl, which grants *direct*
     /// access to the SQLite statement. Iteration of the statement does modify
@@ -70,7 +71,8 @@ public final class Row {
         self.impl = StatementRowImpl(sqliteStatement: statement.sqliteStatement, statementRef: statementRef)
     }
     
-    /// Builds a row from the *current state* of the SQLite statement.
+    /// Creates a row that contain a copy of the current state of the
+    /// SQLite statement. Further calls to sqlite3_step() do not modify the row.
     ///
     /// The row is implemented on top of StatementCopyRowImpl, which *copies*
     /// the values from the SQLite statement so that further iteration of the
@@ -79,7 +81,7 @@ public final class Row {
         self.init(impl: StatementCopyRowImpl(sqliteStatement: sqliteStatement, columnNames: statementRef.takeUnretainedValue().columnNames))
     }
     
-    /// Builds a row from the *current state* of the SQLite statement.
+    /// Creates a row from the *current state* of the SQLite statement.
     ///
     /// The row is implemented on top of StatementCopyRowImpl, which *copies*
     /// the values from the SQLite statement so that further iteration of the
@@ -640,6 +642,14 @@ extension Row {
     /// - returns: An optional row.
     public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Row? {
         return fetchOne(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
+    }
+}
+
+extension Row : DictionaryLiteralConvertible {
+    
+    /// Creates a row initialized with elements.
+    public convenience init(dictionaryLiteral elements: (String, DatabaseValueConvertible?)...) {
+        self.init(Dictionary(keyValueSequence: elements))
     }
 }
 

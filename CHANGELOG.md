@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## Next version
+
+**New**
+
+- Upgrade sqlcipher to v3.4.0 ([announcement](https://discuss.zetetic.net/t/sqlcipher-3-4-0-release/1273), [changelog](https://github.com/sqlcipher/sqlcipher/blob/master/CHANGELOG.md))
+
+- Row adopts DictionaryLiteralConvertible
+    
+
 ## 0.77.0
 
 Released July 28, 2016

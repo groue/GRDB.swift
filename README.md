@@ -171,6 +171,7 @@ Documentation
 - [Unicode](#unicode)
 - [Memory Management](#memory-management)
 - [Concurrency](#concurrency)
+- [Performance](#performance)
 
 [FAQ](#faq)
 
@@ -717,7 +718,9 @@ for (columnName, databaseValue) in row {
 **You can build rows from dictionaries** (standard Swift dictionaries and NSDictionary). See [Values](#values) for more information on supported types:
 
 ```swift
+let row: Row = ["name": "foo", "date": nil]
 let row = Row(["name": "foo", "date": nil])
+let row = Row(nsDictionary) // nil if invalid NSDictionary
 ```
 
 Yet rows are not real dictionaries: they are ordered, and may contain duplicate keys:
@@ -1299,7 +1302,7 @@ GRDB provides four high-level methods as well:
 ```swift
 db.tableExists("persons")    // Bool, true if the table exists
 db.indexes(on: "persons")    // [IndexInfo], the indexes defined on the table
-try db.table("persons", hasUniqueKey: ["id"]) // Bool, true if column(s) is a unique key
+try db.table("persons", hasUniqueKey: ["email"]) // Bool, true if column(s) is a unique key
 try db.primaryKey("persons") // PrimaryKey?
 ```
 
@@ -1797,7 +1800,7 @@ Yes, two protocols instead of one. Both grant exactly the same advantages. Here 
 
 The `persistentDictionary` property returns a dictionary whose keys are column names, and values any DatabaseValueConvertible value (Bool, Int, String, Date, Swift enums, etc.) See [Values](#values) for more information.
 
-The optional `didInsert` method lets the adopting type store its rowID after successful insertion. It is called from a protected dispatch queue, and serialized with all database updates.
+The optional `didInsert` method lets the adopting type store its rowID after successful insertion. If your table has an INTEGER PRIMARY KEY column, you are likely to define this method. Otherwise, you can safely ignore it. It is called from a protected dispatch queue, and serialized with all database updates.
 
 **To use those protocols**, subclass the [Record](#record-class) class, or adopt one of them explicitely. For example:
 
@@ -3066,6 +3069,7 @@ This chapter covers general topics that you should be aware of.
 - [Unicode](#unicode)
 - [Memory Management](#memory-management)
 - [Concurrency](#concurrency)
+- [Performance](#performance)
 
 
 ## Avoiding SQL Injection
@@ -3379,6 +3383,235 @@ If the built-in queues and pools do not fit your needs, or if you can not guaran
 - Busy handlers: https://www.sqlite.org/c3ref/busy_handler.html
 
 See also [Transactions](#transactions-and-savepoints) for more precise handling of transactions, and [Configuration](GRDB/Core/Configuration.swift) for more precise handling of eventual SQLITE_BUSY errors.
+
+
+## Performance
+
+GRDB is a reasonably fast library, and can deliver quite efficient SQLite access. See [Comparing the Performances of Swift SQLite libraries](https://github.com/groue/GRDB.swift/wiki/Performance) for an overview.
+
+You'll find below general advice when you do look after performance:
+
+- Focus
+- Know your platform
+- Use transactions
+- Don't do useless work
+- Learn about SQL strengths and weaknesses
+- Avoid strings & dictionaries
+
+
+### Performance tip: focus
+
+You don't know which part of your program needs improvement until you have run a benchmarking tool.
+
+Don't make any assumption, avoid optimizing code too early, and use [Instruments](https://developer.apple.com/library/ios/documentation/ToolsLanguages/Conceptual/Xcode_Overview/MeasuringPerformance.html).
+
+
+### Performance tip: know your platform
+
+If your application processes a huge JSON file and inserts thousands of rows in the database right from the main thread, it will quite likely become unresponsive, and provide a sub-quality user experience.
+
+If not done yet, read the [Concurrency Programming Guide](https://developer.apple.com/library/ios/documentation/General/Conceptual/ConcurrencyProgrammingGuide/Introduction/Introduction.html#//apple_ref/doc/uid/TP40008091) and learn how to perform heavy computations without blocking your application.
+
+Most GRBD APIs are [synchronous](#database-connections). Spawning them into parallel queues is as easy as:
+
+```swift
+DispatchQueue.global(attributes: [.qosDefault]).async { 
+    dbQueue.inDatabase { db in
+        // Perform database work
+    }
+    DispatchQueue.main.async { 
+        // update your user interface
+    }
+}
+```
+
+
+### Performance tip: use transactions
+
+Performing multiple updates to the database is much faster when executed inside a [transaction](#transactions-and-savepoints). This is because a transaction allows SQLite to postpone writing changes to disk until the final commit:
+
+```swift
+// Inefficient
+try dbQueue.inDatabase { db in
+    for person in persons {
+        try person.insert(db)
+    }
+}
+
+// Efficient
+try dbQueue.inTransaction { db in
+    for person in persons {
+        try person.insert(db)
+    }
+    return .Commit
+}
+```
+
+
+### Performance tip: don't do useless work
+
+Obviously, no code is faster than any code.
+
+
+**Don't fetch columns you don't use**
+
+```swift
+// SELECT * FROM persons
+Person.fetchAll(db)
+
+// SELECT id, name FROM persons
+Person.select(idColumn, nameColumn).fetchAll(db)
+```
+
+If your Person type can't be built without other columns (it has non-optional properties for other columns), *do define and use a different type*.
+
+
+**Don't fetch rows you don't use**
+
+Use [fetchOne](#fetching-methods) when you need a single value, and otherwise limit your queries at the database level:
+
+```swift
+// Wrong way: this code may discard hundreds of useless database rows
+let persons = Person.order(scoreColumn.desc).fetchAll(db)
+let hallOfFame = persons.prefix(5)
+
+// Better way
+let hallOfFame = Person.order(scoreColumn.desc).limit(5).fetchAll(db)
+```
+
+
+**Don't copy values unless necessary**
+
+Particularly: the Array returned by the `fetchAll` method, and the sequence returned by `fetch` aren't the same:
+
+`fetchAll` copies all values from the database into memory, when `fetch` iterates database results as they are generated by SQLite, taking profit from SQLite efficiency.
+
+You should only load arrays if you need to keep them for later use (such as iterating their contents in the main thread). Otherwise, use `fetch`.
+
+See [fetching methods](#fetching-methods) for more information about `fetchAll` and `fetch`. See also the [Row.dataNoCopy](#nsdata-and-memory-savings) method.
+
+
+**Don't update rows unless necessary**
+
+An UPDATE statement is costly: SQLite has to look for the updated row, update values, and write changes to disk.
+
+When the overwritten values are the same as the existing ones, it's thus better to avoid performing the UPDATE statement.
+
+The [Record](#record-class) class can help you: it provides [changes tracking](#changes-tracking):
+
+```swift
+if person.hasPersistentChangedValues {
+    try person.update(db)
+}
+```
+
+
+### Performance tip: learn about SQL strengths and weaknesses
+
+Consider a simple use case: your store application has to display a list of authors with the number of available books:
+
+- Jonathan Coe (6)
+- Herman Melville (1)
+- Alice Munro (3)
+- Kim Stanly Robinson (7)
+- Olivier Sacks (4)
+
+The following code is inefficient. It is an example of the [N+1 problem](http://stackoverflow.com/questions/97197/what-is-the-n1-selects-issue), because it performs N+1 queries (N being the number of authors):
+
+```swift
+// SELECT * FROM authors
+let authors = Author.findAll(db)
+for author in authors {
+    // SELECT COUNT(*) FROM books WHERE authorId = ...
+    author.bookCount = Book.filter(authorIdColumn == author.id).fetchCount(db)
+}
+```
+
+Instead, perform *a single query*:
+
+```swift
+let sql = "SELECT authors.*, COUNT(books.id) AS bookCount " +
+          "FROM authors " +
+          "LEFT JOIN books ON books.authorId = authors.id " +
+          "GROUP BY authors.id " +
+          "ORDER BY authors.name"
+let authors = Author.findAll(db, sql)
+```
+
+In the example above, consider extending your Author with an extra bookCount property, or define and use a different type.
+
+Generally, define indexes on your database tables, and use SQLite's efficient query planning:
+
+- [Query Planning](https://www.sqlite.org/queryplanner.html)
+- [CREATE INDEX](https://www.sqlite.org/lang_createindex.html)
+- [The SQLite Query Planner](https://www.sqlite.org/optoverview.html)
+- [EXPLAIN QUERY PLAN](https://www.sqlite.org/eqp.html)
+
+
+### Performance tip: avoid strings & dictionaries
+
+The String and Dictionary Swift types are better avoided when you look for the best performance.
+
+Now GRDB [records](#records), for your convenience, do use strings and dictionaries:
+
+```swift
+class Person : Record {
+    var id: Int64?
+    var name: String
+    var email: String
+    
+    required init(_ row: Row) {
+        id = row.value(named: "id")       // String
+        name = row.value(named: "name")   // String
+        email = row.value(named: "email") // String
+        super.init()
+    }
+    
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
+        return ["id": id, "name": name, "email": email] // Dictionary
+    }
+}
+```
+
+When hunting for performance, you can still use records, but avoid their string and dictionary-based methods.
+
+For example, when fetching values, prefer loading columns by index:
+
+```swift
+// Strings & dictionaries
+for person in Person.fetch(db) {
+    ...
+}
+
+// Column indexes
+let request = Person.select(idColumn, nameColumn, emailColumn)
+for row in Row.fetch(db, request).map {
+    let id: Int64 = row.value(atIndex: 0)
+    let name: String = row.value(atIndex: 1)
+    let email: String = row.value(atIndex: 2)
+    let person = Person(id: id, name: name, email: email)
+    ...
+}
+```
+
+When inserting values, use [prepared statements](#prepared-statements), and set statements values with an array:
+
+```swift
+// Strings & dictionaries
+for person in persons {
+    try person.insert(db)
+}
+
+// Prepared statement
+let insertStatement = db.prepareStatement("INSERT INTO persons (name, email) VALUES (?, ?)")
+for person in persons {
+    // Only use the unsafe arguments setter if you are sure that you provide
+    // all statement arguments. A mistake can store unexpected values in
+    // the database.
+    insertStatement.unsafeSetArguments([person.name, person.email])
+    try insertStatement.execute()
+}
+```
 
 
 FAQ

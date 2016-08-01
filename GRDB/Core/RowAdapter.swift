@@ -269,7 +269,7 @@ struct ConcreteScopeAdapter : ConcreteRowAdapter {
 }
 
 extension Row {
-    /// Builds a row from a base row and a statement adapter
+    /// Creates a row from a base row and a statement adapter
     convenience init(baseRow: Row, concreteRowAdapter: ConcreteRowAdapter) {
         self.init(impl: AdapterRowImpl(baseRow: baseRow, concreteRowAdapter: concreteRowAdapter))
     }

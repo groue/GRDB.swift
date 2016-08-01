@@ -34,6 +34,20 @@
                ReferencedContainer = "container:GRDB.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "56AFCA841CB1ABC800F48B96"
+               BuildableName = "GRDBTests.xctest"
+               BlueprintName = "GRDBCipheriOSEncryptedTests"
+               ReferencedContainer = "container:GRDB.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -46,9 +60,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "56AFCA2B1CB1AA9900F48B96"
+               BlueprintIdentifier = "56AFCA841CB1ABC800F48B96"
                BuildableName = "GRDBTests.xctest"
-               BlueprintName = "GRDBCipheriOSTests"
+               BlueprintName = "GRDBCipheriOSEncryptedTests"
                ReferencedContainer = "container:GRDB.xcodeproj">
             </BuildableReference>
          </TestableReference>
@@ -56,9 +70,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "56AFCA841CB1ABC800F48B96"
+               BlueprintIdentifier = "56AFCA2B1CB1AA9900F48B96"
                BuildableName = "GRDBTests.xctest"
-               BlueprintName = "GRDBCipheriOSEncryptedTests"
+               BlueprintName = "GRDBCipheriOSTests"
                ReferencedContainer = "container:GRDB.xcodeproj">
             </BuildableReference>
          </TestableReference>

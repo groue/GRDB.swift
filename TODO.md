@@ -3,7 +3,9 @@
 - [ ] Swift3: move more top-level enums inside an owner type. Foundation uses lowercase for those enum *types* (besides the lowercase *values*)
 - [ ] Swift3: check .autoreleaseWorkItem option in GCD Queue creation
 - [ ] Swift3: move database event filtering into the TransactionObserver protocol
-- [ ] Fix "More, when you're interested in specific table columns, you're out of luck, because databaseDidChange does not know about columns: it just knows that a row has been inserted, deleted, or updated, without further detail"
+- [ ] Document Statement.unsafeSetArguments
+- [ ] What is the behavior inTransaction and inSavepoint behaviors in case of commit error? Code looks like we do not rollback, leaving the app in a weird state (out of Swift transaction block with a SQLite transaction that may still be opened).
+>>>>>>> c49506e588760f4bdfac649ac02ceffe484a1edb
 - [ ] GRDBCipher: remove limitations on iOS or OS X versions
 - [ ] FetchedRecordsController: take inspiration from https://github.com/jflinter/Dwifft
 - [ ] File protection: Read https://github.com/ccgus/fmdb/issues/262 and understand https://lists.apple.com/archives/cocoa-dev/2012/Aug/msg00527.html
@@ -24,7 +26,10 @@
 
 Not sure
 
+- [X] Have Row adopt LiteralDictionaryConvertible
+    - [ ] ... allowing non unique column names
 - [ ] Remove DatabaseValue.value()
+    - [X] Don't talk about DatabaseValue.value() in README.md
 - [ ] Move Database Events filtering to the TransactionObserverType protocol
 - [ ] Support for NSColor/UIColor. Beware UIColor components can go beyond [0, 1.0] in iOS10.
 
@@ -51,3 +56,4 @@ Reading list:
 - https://sqlite.org/sharedcache.html
 - Amazing tip from Xcode labs: add a EXCLUDED_SOURCE_FILE_NAMES build setting to conditionally exclude sources for different configuration: https://twitter.com/zats/status/74386298602026496
 - SQLITE_ENABLE_SQLLOG: http://mjtsai.com/blog/2016/07/19/sqlite_enable_sqllog/
+- [Writing High-Performance Swift Code](https://github.com/apple/swift/blob/master/docs/OptimizationTips.rst)
