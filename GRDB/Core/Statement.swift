@@ -530,7 +530,7 @@ public struct StatementArguments {
     }
 }
 
-extension StatementArguments : ArrayLiteralConvertible {
+extension StatementArguments : ExpressibleByArrayLiteral {
     /// Returns a StatementArguments from an array literal:
     ///
     ///     db.selectRows("SELECT ...", arguments: ["Arthur", 41])
@@ -539,7 +539,7 @@ extension StatementArguments : ArrayLiteralConvertible {
     }
 }
 
-extension StatementArguments : DictionaryLiteralConvertible {
+extension StatementArguments : ExpressibleByDictionaryLiteral {
     /// Returns a StatementArguments from a dictionary literal:
     ///
     ///     db.selectRows("SELECT ...", arguments: ["name": "Arthur", "age": 41])

@@ -68,15 +68,15 @@ extension Date : DatabaseValueConvertible {
 private let storageDateFormatter: DateFormatter = {
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
-    formatter.locale = Locale(localeIdentifier: "en_US_POSIX")
-    formatter.timeZone = TimeZone(forSecondsFromGMT: 0)
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.timeZone = TimeZone(secondsFromGMT: 0)
     return formatter
     }()
 
 // The NSCalendar for stored dates.
 private let UTCCalendar: Calendar = {
-    let calendar = Calendar(calendarIdentifier: .gregorian)!
-    calendar.locale = Locale(localeIdentifier: "en_US_POSIX")
-    calendar.timeZone = TimeZone(forSecondsFromGMT: 0)
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.locale = Locale(identifier: "en_US_POSIX")
+    calendar.timeZone = TimeZone(secondsFromGMT: 0)!
     return calendar
     }()

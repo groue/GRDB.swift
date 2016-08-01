@@ -286,6 +286,7 @@
 					568C7A951CA6C63100796484 = {
 						CreatedOnToolsVersion = 7.3;
 						DevelopmentTeam = AMD8W895CT;
+						LastSwiftMigration = 0800;
 					};
 				};
 			};
@@ -582,6 +583,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = GRDB.GRDBDemoiOS;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
@@ -599,6 +601,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
 		};

@@ -156,7 +156,7 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(atIndex index: Int) -> Value? {
+    public func value<Value: DatabaseValueConvertible & StatementColumnConvertible>(atIndex index: Int) -> Value? {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
         guard let sqliteStatement = sqliteStatement else {
             return impl.databaseValue(atUncheckedIndex: index).value()
@@ -187,7 +187,7 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(atIndex index: Int) -> Value {
+    public func value<Value: DatabaseValueConvertible & StatementColumnConvertible>(atIndex index: Int) -> Value {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
         guard let sqliteStatement = sqliteStatement else {
             return impl.databaseValue(atUncheckedIndex: index).value()
@@ -243,7 +243,7 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(named columnName: String) -> Value? {
+    public func value<Value: DatabaseValueConvertible & StatementColumnConvertible>(named columnName: String) -> Value? {
         guard let index = impl.index(ofColumn: columnName) else {
             return nil
         }
@@ -282,7 +282,7 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(named columnName: String) -> Value {
+    public func value<Value: DatabaseValueConvertible & StatementColumnConvertible>(named columnName: String) -> Value {
         guard let index = impl.index(ofColumn: columnName) else {
             fatalError("no such column: \(columnName)")
         }
@@ -645,7 +645,7 @@ extension Row {
     }
 }
 
-extension Row : DictionaryLiteralConvertible {
+extension Row : ExpressibleByDictionaryLiteral {
     
     /// Creates a row initialized with elements.
     public convenience init(dictionaryLiteral elements: (String, DatabaseValueConvertible?)...) {

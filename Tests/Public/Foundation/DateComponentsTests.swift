@@ -350,11 +350,11 @@ class DateComponentsTests : GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                let calendar = Calendar(calendarIdentifier: .gregorian)!
-                calendar.timeZone = TimeZone(forSecondsFromGMT: 0)
+                var calendar = Calendar(identifier: .gregorian)
+                calendar.timeZone = TimeZone(secondsFromGMT: 0)!
                 do {
                     let date = Date().addingTimeInterval(-1)
-                    let dateComponents = calendar.components([.year, .month, .day, .hour, .minute, .second], from: date)
+                    let dateComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
                     try db.execute(
                         "INSERT INTO dates (id, creationDate) VALUES (?,?)",
                         arguments: [1, DatabaseDateComponents(dateComponents, format: .YMD_HMS)])
@@ -366,7 +366,7 @@ class DateComponentsTests : GRDBTestCase {
                 }
                 do {
                     let date = Date().addingTimeInterval(1)
-                    let dateComponents = calendar.components([.year, .month, .day, .hour, .minute, .second], from: date)
+                    let dateComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
                     try db.execute(
                         "INSERT INTO dates (id, creationDate) VALUES (?,?)",
                         arguments: [3, DatabaseDateComponents(dateComponents, format: .YMD_HMS)])

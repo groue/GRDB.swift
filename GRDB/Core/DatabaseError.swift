@@ -11,7 +11,7 @@
 #endif
 
 /// DatabaseError wraps an SQLite error.
-public struct DatabaseError : ErrorProtocol {
+public struct DatabaseError : Error {
     
     /// The SQLite error code (see https://www.sqlite.org/c3ref/c_abort.html).
     public let code: Int32

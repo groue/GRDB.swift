@@ -157,7 +157,7 @@ public final class DatabaseQueue {
             releaseMemory()
         } else {
             // Perform releaseMemory() asynchronously.
-            DispatchQueue.global(attributes: [.qosDefault]).async {
+            DispatchQueue.global().async {
                 self.releaseMemory()
                 application.endBackgroundTask(task)
             }
@@ -165,7 +165,7 @@ public final class DatabaseQueue {
     }
     
     @objc private func applicationDidReceiveMemoryWarning(_ notification: NSNotification) {
-        DispatchQueue.global(attributes: [.qosDefault]).async {
+        DispatchQueue.global().async {
             self.releaseMemory()
         }
     }

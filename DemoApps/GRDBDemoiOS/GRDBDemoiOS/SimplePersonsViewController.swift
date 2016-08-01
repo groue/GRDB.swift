@@ -9,7 +9,7 @@ class SimplePersonsViewController: UITableViewController {
         
         navigationItem.rightBarButtonItems = [
             UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(SimplePersonsViewController.addPerson(_:))),
-            editButtonItem()
+            editButtonItem
         ]
     }
     
@@ -34,7 +34,7 @@ extension SimplePersonsViewController : PersonEditionViewControllerDelegate {
     override func prepare(for segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "EditPerson" {
             let person = persons[tableView.indexPathForSelectedRow!.row]
-            let controller = segue.destinationViewController as! PersonEditionViewController
+            let controller = segue.destination as! PersonEditionViewController
             controller.title = person.name
             controller.person = person
             controller.delegate = self // we will save person when back button is tapped
@@ -43,7 +43,7 @@ extension SimplePersonsViewController : PersonEditionViewControllerDelegate {
         }
         else if segue.identifier == "NewPerson" {
             setEditing(false, animated: true)
-            let navigationController = segue.destinationViewController as! UINavigationController
+            let navigationController = segue.destination as! UINavigationController
             let controller = navigationController.viewControllers.first as! PersonEditionViewController
             controller.title = "New Person"
             controller.person = Person(name: "", score: 0)
@@ -60,7 +60,7 @@ extension SimplePersonsViewController : PersonEditionViewControllerDelegate {
     
     @IBAction func commitPersonEdition(_ segue: UIStoryboardSegue) {
         // Person creation: commit button was tapped
-        let controller = segue.sourceViewController as! PersonEditionViewController
+        let controller = segue.source as! PersonEditionViewController
         controller.applyChanges()
         let person = controller.person!
         if !person.name.isEmpty {

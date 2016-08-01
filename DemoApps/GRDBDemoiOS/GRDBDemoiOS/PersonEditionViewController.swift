@@ -30,7 +30,7 @@ class PersonEditionViewController: UITableViewController {
     }
     
     private func configureView() {
-        guard isViewLoaded() else { return }
+        guard isViewLoaded else { return }
         
         nameTextField.text = person.name
         if person.score == 0 && person.id == nil {

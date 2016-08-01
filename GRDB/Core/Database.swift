@@ -468,7 +468,7 @@ extension Database {
         // Execute statements
         
         let sqlCodeUnits = sql.nulTerminatedUTF8
-        var error: ErrorProtocol?
+        var error: Error?
         
         // During the execution of sqlite3_prepare_v2, the observer listens to
         // authorization callbacks in order to recognize "interesting"
@@ -960,7 +960,7 @@ extension Database {
     public func table<T: Sequence where T.Iterator.Element == String>(_ tableName: String, hasUniqueKey columns: T) throws -> Bool {
         let primaryKey = try self.primaryKey(tableName) // first, so that we fail early and consistently should the table not exist
         let columns = Set(columns)
-        if indexes(on: tableName).contains({ index in index.isUnique && Set(index.columns) == columns }) {
+        if indexes(on: tableName).contains(where: { index in index.isUnique && Set(index.columns) == columns }) {
             return true
         }
         if columns.count == 1,
@@ -1231,7 +1231,7 @@ extension Database {
         // Now that transaction has begun, we'll rollback in case of error.
         // But we'll throw the first caught error, so that user knows
         // what happened.
-        var firstError: ErrorProtocol? = nil
+        var firstError: Error? = nil
         let needsRollback: Bool
         do {
             let completion = try block()
@@ -1307,7 +1307,7 @@ extension Database {
         // Now that savepoint has begun, we'll rollback in case of error.
         // But we'll throw the first caught error, so that user knows
         // what happened.
-        var firstError: ErrorProtocol? = nil
+        var firstError: Error? = nil
         let needsRollback: Bool
         do {
             let completion = try block()
@@ -1358,7 +1358,7 @@ extension Database {
         isInsideExplicitTransaction = true
     }
     
-    private func rollback(underlyingError: ErrorProtocol? = nil) throws {
+    private func rollback(underlyingError: Error? = nil) throws {
         do {
             try execute("ROLLBACK TRANSACTION")
         } catch {
@@ -1560,7 +1560,7 @@ extension Database {
         for (event, notifiedObservers) in eventsBuffer {
             for observer in notifiedObservers.flatMap({ $0.transactionObserver }) {
                 event.send(to: observer)
-                if !notifiedObserversForCommit.contains({ $0 === observer }) {
+                if !notifiedObserversForCommit.contains(where: { $0 === observer }) {
                     notifiedObserversForCommit.append(observer)
                 }
             }
@@ -1703,7 +1703,7 @@ private enum TransactionState {
     case waitForTransactionCompletion
     case commit
     case rollback
-    case rollbackFromTransactionObserver(ErrorProtocol)
+    case rollbackFromTransactionObserver(Error)
 }
 
 /// A transaction observer is notified of all changes and transactions committed
@@ -2095,7 +2095,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
                     finalDatabaseValues: finalDatabaseValues))
         }
     
-        private func preupdate_getValues(_ connection: SQLiteConnection, sqlite_func: (connection: SQLiteConnection, column: CInt, inout value: SQLiteValue? ) -> CInt ) -> [DatabaseValue]?
+        private func preupdate_getValues(_ connection: SQLiteConnection, sqlite_func: (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) -> CInt ) -> [DatabaseValue]?
         {
             let columnCount = sqlite3_preupdate_count(connection)
             guard columnCount > 0 else { return nil }
@@ -2110,7 +2110,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
             return columnValues
         }
         
-        private func getValue(_ connection: SQLiteConnection, column: CInt, sqlite_func: (connection: SQLiteConnection, column: CInt, inout value: SQLiteValue? ) -> CInt ) -> DatabaseValue?
+        private func getValue(_ connection: SQLiteConnection, column: CInt, sqlite_func: (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) -> CInt ) -> DatabaseValue?
         {
             var value : SQLiteValue? = nil
             guard sqlite_func(connection: connection, column: column, value: &value) == SQLITE_OK else { return nil }

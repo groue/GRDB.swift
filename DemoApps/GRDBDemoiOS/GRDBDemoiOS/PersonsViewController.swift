@@ -9,7 +9,7 @@ class PersonsViewController: UITableViewController {
         
         navigationItem.rightBarButtonItems = [
             UIBarButtonItem(barButtonSystemItem: .add, target: self, action: .addPerson),
-            editButtonItem()
+            editButtonItem
         ]
         
         let request = personsSortedByScore
@@ -66,7 +66,7 @@ extension PersonsViewController : PersonEditionViewControllerDelegate {
     override func prepare(for segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "EditPerson" {
             let person = personsController.record(at: tableView.indexPathForSelectedRow!)
-            let controller = segue.destinationViewController as! PersonEditionViewController
+            let controller = segue.destination as! PersonEditionViewController
             controller.title = person.name
             controller.person = person
             controller.delegate = self // we will save person when back button is tapped
@@ -75,7 +75,7 @@ extension PersonsViewController : PersonEditionViewControllerDelegate {
         }
         else if segue.identifier == "NewPerson" {
             setEditing(false, animated: true)
-            let navigationController = segue.destinationViewController as! UINavigationController
+            let navigationController = segue.destination as! UINavigationController
             let controller = navigationController.viewControllers.first as! PersonEditionViewController
             controller.title = "New Person"
             controller.person = Person(name: "", score: 0)
@@ -92,7 +92,7 @@ extension PersonsViewController : PersonEditionViewControllerDelegate {
     
     @IBAction func commitPersonEdition(_ segue: UIStoryboardSegue) {
         // Person creation: commit button was tapped
-        let controller = segue.sourceViewController as! PersonEditionViewController
+        let controller = segue.source as! PersonEditionViewController
         controller.applyChanges()
         let person = controller.person!
         if !person.name.isEmpty {
@@ -187,8 +187,8 @@ extension PersonsViewController {
     @IBAction func stressTest() {
         setEditing(false, animated: true)
         
-        for _ in 0..<1000 {
-            DispatchQueue.global(attributes: [.qosDefault]).async {
+        for _ in 0..<50 {
+            DispatchQueue.global().async {
                 try! dbQueue.inTransaction { db in
                     if Person.fetchCount(db) == 0 {
                         // Insert persons

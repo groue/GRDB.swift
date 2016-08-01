@@ -14,7 +14,7 @@ let insertedRowCount = 20_000
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
-    func applicationDidFinishLaunching(aNotification: NSNotification) {
+    func applicationDidFinishLaunching(_ aNotification: Notification) {
         fetchPositionalValues()
         fetchNamedValues()
         fetchRecords()
@@ -24,7 +24,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func fetchPositionalValues() {
-        let databasePath = Bundle(for: self.dynamicType).pathForResource("ProfilingDatabase", ofType: "sqlite")!
+        let databasePath = Bundle(for: self.dynamicType).path(forResource: "ProfilingDatabase", ofType: "sqlite")!
         let dbQueue = try! DatabaseQueue(path: databasePath)
         
         var count = 0
@@ -50,7 +50,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func fetchNamedValues() {
-        let databasePath = Bundle(for: self.dynamicType).pathForResource("ProfilingDatabase", ofType: "sqlite")!
+        let databasePath = Bundle(for: self.dynamicType).path(forResource: "ProfilingDatabase", ofType: "sqlite")!
         let dbQueue = try! DatabaseQueue(path: databasePath)
         
         var count = 0
@@ -76,7 +76,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func fetchRecords() {
-        let databasePath = Bundle(for: self.dynamicType).pathForResource("ProfilingDatabase", ofType: "sqlite")!
+        let databasePath = Bundle(for: self.dynamicType).path(forResource: "ProfilingDatabase", ofType: "sqlite")!
         let dbQueue = try! DatabaseQueue(path: databasePath)
         let items = dbQueue.inDatabase { db in
             Item.fetchAll(db)

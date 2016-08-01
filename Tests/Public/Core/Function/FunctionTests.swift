@@ -266,7 +266,7 @@ class FunctionTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("f", argumentCount: 2) { databaseValues in
                 let ints: [Int] = databaseValues.flatMap { $0.value() }
-                return ints.reduce(0, combine: +)
+                return ints.reduce(0, +)
             }
             dbQueue.add(function: fn)
             dbQueue.inDatabase { db in

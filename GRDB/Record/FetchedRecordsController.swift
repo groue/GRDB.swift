@@ -548,14 +548,14 @@ private class FetchedChangesController<Record: RowConvertible, T> {
                     tableViewChanges = changes
                 } else {
                     // Look for a row difference
-                    guard fetchedItems.count != strongObserver.items.count || zip(fetchedItems, strongObserver.items).contains({ (fetchedItem, item) in fetchedItem.row != item.row }) else {
+                    guard fetchedItems.count != strongObserver.items.count || zip(fetchedItems, strongObserver.items).contains(where: { (fetchedItem, item) in fetchedItem.row != item.row }) else {
                         return
                     }
                     tableViewChanges = nil
                 }
             #else
                 // Look for a row difference
-                guard fetchedItems.count != strongObserver.items.count || zip(fetchedItems, strongObserver.items).contains({ (fetchedItem, item) in fetchedItem.row != item.row }) else {
+                guard fetchedItems.count != strongObserver.items.count || zip(fetchedItems, strongObserver.items).contains(where: { (fetchedItem, item) in fetchedItem.row != item.row }) else {
                     return
                 }
             #endif
@@ -1034,8 +1034,8 @@ func makePrimaryKeyComparator(_ db: Database, tableName: String) throws -> (Row,
     let primaryKey = try makePrimaryKeyFunction(db, tableName: tableName)
     return { (lhs, rhs) in
         let (lhs, rhs) = (primaryKey(lhs), primaryKey(rhs))
-        guard lhs.contains({ !$1.isNull }) else { return false }
-        guard rhs.contains({ !$1.isNull }) else { return false }
+        guard lhs.contains(where: { !$1.isNull }) else { return false }
+        guard rhs.contains(where: { !$1.isNull }) else { return false }
         return lhs == rhs
     }
 }

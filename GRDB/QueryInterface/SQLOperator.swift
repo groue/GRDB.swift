@@ -10,9 +10,9 @@ public func == (lhs: _SpecificSQLExpressible, rhs: _SQLExpressible?) -> _SQLExpr
 /// Returns an SQL expression that compares two values.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-operators
-public func == (lhs: _SpecificSQLExpressible, rhs: protocol<_SQLExpressible, Boolean>?) -> _SQLExpression {
+public func == (lhs: _SpecificSQLExpressible, rhs: Bool?) -> _SQLExpression {
     if let rhs = rhs {
-        if rhs.boolValue {
+        if rhs {
             return lhs.sqlExpression
         } else {
             return .notOperator(lhs.sqlExpression)
@@ -32,9 +32,9 @@ public func == (lhs: _SQLExpressible?, rhs: _SpecificSQLExpressible) -> _SQLExpr
 /// Returns an SQL expression that compares two values.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-operators
-public func == (lhs: protocol<_SQLExpressible, Boolean>?, rhs: _SpecificSQLExpressible) -> _SQLExpression {
+public func == (lhs: Bool?, rhs: _SpecificSQLExpressible) -> _SQLExpression {
     if let lhs = lhs {
-        if lhs.boolValue {
+        if lhs {
             return rhs.sqlExpression
         } else {
             return .notOperator(rhs.sqlExpression)
@@ -64,9 +64,9 @@ public func != (lhs: _SpecificSQLExpressible, rhs: _SQLExpressible?) -> _SQLExpr
 /// Returns an SQL expression that compares two values.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-operators
-public func != (lhs: _SpecificSQLExpressible, rhs: protocol<_SQLExpressible, Boolean>?) -> _SQLExpression {
+public func != (lhs: _SpecificSQLExpressible, rhs: Bool?) -> _SQLExpression {
     if let rhs = rhs {
-        if rhs.boolValue {
+        if rhs {
             return .notOperator(lhs.sqlExpression)
         } else {
             return lhs.sqlExpression
@@ -86,9 +86,9 @@ public func != (lhs: _SQLExpressible?, rhs: _SpecificSQLExpressible) -> _SQLExpr
 /// Returns an SQL expression that compares two values.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-operators
-public func != (lhs: protocol<_SQLExpressible, Boolean>?, rhs: _SpecificSQLExpressible) -> _SQLExpression {
+public func != (lhs: Bool?, rhs: _SpecificSQLExpressible) -> _SQLExpression {
     if let lhs = lhs {
-        if lhs.boolValue {
+        if lhs {
             return .notOperator(rhs.sqlExpression)
         } else {
             return rhs.sqlExpression

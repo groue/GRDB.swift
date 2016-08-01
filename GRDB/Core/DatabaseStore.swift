@@ -39,7 +39,7 @@ class DatabaseStore {
         }
         
         let queue = DispatchQueue(label: "GRDB.DatabaseStore")
-        let source = DispatchSource.fileSystemObject(fileDescriptor: Int32(directoryDescriptor), eventMask: [.write], queue: queue)
+        let source = DispatchSource.makeFileSystemObjectSource(fileDescriptor: Int32(directoryDescriptor), eventMask: [.write], queue: queue)
         self.queue = queue
         self.source = source
         

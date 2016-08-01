@@ -1,7 +1,7 @@
 // MARK: - PersistenceError
 
 /// An error thrown by a type that adopts Persistable.
-public enum PersistenceError: ErrorProtocol {
+public enum PersistenceError: Error {
     
     /// Thrown by MutablePersistable.update() when no matching row could be
     /// found in the database.

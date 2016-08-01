@@ -51,7 +51,7 @@ class DatabasePoolBackupTests: GRDBTestCase {
             
             let s1 = DispatchSemaphore(value: 0)
             let s2 = DispatchSemaphore(value: 0)
-            DispatchQueue.global(attributes: [.qosDefault]).async {
+            DispatchQueue.global().async {
                 _ = s1.wait(timeout: .distantFuture)
                 try! source.writeInTransaction(.immediate) { db in
                     try db.execute("INSERT INTO items (id) VALUES (NULL)")

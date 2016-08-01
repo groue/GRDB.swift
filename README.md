@@ -3,7 +3,7 @@ GRDB.swift [![Swift](https://img.shields.io/badge/swift-3-orange.svg?style=flat)
 
 GRDB.swift is a Swift application toolkit that provides access to SQLite databases.
 
-It targets Swift 3.0 Preview 3 (July 18, 2016).
+It targets Swift 3.0 Preview 4 (August 1, 2016).
 
 It ships with a **low-level SQLite API**, and high-level tools that help dealing with databases:
 
@@ -31,7 +31,7 @@ The Swift3 branch has no version. It is currently synced with v0.77.0 of the Swi
 
 Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
-**Requirements**: iOS 8.0+ / OSX 10.9+, Xcode Version 8.0 beta 3 (8S174q)
+**Requirements**: iOS 8.0+ / OSX 10.9+, Xcode Version 8.0 beta 4 (8S188o)
 
 
 ### Usage
@@ -1167,7 +1167,7 @@ try dbQueue.inDatabase { db in
 }
 ```
 
-The `?` and colon-prefixed keys like `:name` in the SQL query are the statement arguments. You set them with arrays or dictionaries (arguments are actually of type StatementArguments, which happens to adopt the ArrayLiteralConvertible and DictionaryLiteralConvertible protocols).
+The `?` and colon-prefixed keys like `:name` in the SQL query are the statement arguments. You set them with arrays or dictionaries (arguments are actually of type StatementArguments, which happens to adopt the ExpressibleByArrayLiteral and ExpressibleByDictionaryLiteral protocols).
 
 ```swift
 updateStatement.arguments = ["name": "Arthur", "age": 41]
@@ -1255,7 +1255,7 @@ When you don't provide any explicit *argumentCount*, the function can take any n
 ```swift
 let averageOf = DatabaseFunction("averageOf", pure: true) { (databaseValues: [DatabaseValue]) in
     let doubles = databaseValues.flatMap { Double.fromDatabaseValue($0) }
-    return doubles.reduce(0, combine: +) / Double(doubles.count)
+    return doubles.reduce(0, +) / Double(doubles.count)
 }
 dbQueue.add(function: averageOf)
 
@@ -3415,7 +3415,7 @@ If not done yet, read the [Concurrency Programming Guide](https://developer.appl
 Most GRBD APIs are [synchronous](#database-connections). Spawning them into parallel queues is as easy as:
 
 ```swift
-DispatchQueue.global(attributes: [.qosDefault]).async { 
+DispatchQueue.global().async { 
     dbQueue.inDatabase { db in
         // Perform database work
     }
@@ -3687,7 +3687,7 @@ FAQ
     let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
     let dbPath = (documentsPath as NSString).appendingPathComponent("db.sqlite")
     if !fm.fileExists(atPath: dbPath) {
-        let dbResourcePath = Bundle.main.pathForResource("db", ofType: "sqlite")!
+        let dbResourcePath = Bundle.main.path(forResource: "db", ofType: "sqlite")!
         try fm.copyItem(atPath: dbResourcePath, toPath: dbPath)
     }
     let dbQueue = try DatabaseQueue(path: dbPath)
