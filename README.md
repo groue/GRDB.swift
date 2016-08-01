@@ -3577,7 +3577,7 @@ let authors = Author.findAll(db, sql)
 
 In the example above, consider extending your Author with an extra bookCount property, or define and use a different type.
 
-Generally, define indexes on your database tables, and know your database:
+Generally, define indexes on your database tables, and use SQLite's efficient query planning:
 
 - [Query Planning](https://www.sqlite.org/queryplanner.html)
 - [CREATE INDEX](https://www.sqlite.org/lang_createindex.html)
@@ -3589,7 +3589,7 @@ Generally, define indexes on your database tables, and know your database:
 
 The String and Dictionary Swift types are better avoided when you look for the best performance.
 
-Now GRDB [records](#records), for your convenience, make heavy use of strings and dictionaries:
+Now GRDB [records](#records), for your convenience, do use strings and dictionaries:
 
 ```swift
 class Person : Record {
