@@ -3553,7 +3553,7 @@ Consider a simple use case: your store application has to display a list of auth
 - Kim Stanly Robinson (7)
 - Olivier Sacks (4)
 
-The following code is inefficient. It is an example of the [N+1 problem](https://www.sitepoint.com/silver-bullet-n1-problem/), because it performs N+1 queries (N being the number of authors):
+The following code is inefficient. It is an example of the [N+1 problem](http://stackoverflow.com/questions/97197/what-is-the-n1-selects-issue), because it performs N+1 queries (N being the number of authors):
 
 ```swift
 // SELECT * FROM authors
