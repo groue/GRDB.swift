@@ -3551,9 +3551,9 @@ Consider a simple use case: your store application has to display a list of auth
 - Herman Melville (1)
 - Alice Munro (3)
 - Kim Stanly Robinson (7)
-- Olivier Sacks (4)
+- Oliver Sacks (4)
 
-The following code is inefficient. It is an example of the [N+1 problem](http://stackoverflow.com/questions/97197/what-is-the-n1-selects-issue), because it performs N+1 queries (N being the number of authors):
+The following code is inefficient. It is an example of the [N+1 problem](http://stackoverflow.com/questions/97197/what-is-the-n1-selects-issue), because it performs one query to load the authors, and then N queries, as many as there are authors. This turns very inefficient as the number of authors grows:
 
 ```swift
 // SELECT * FROM authors
@@ -3610,7 +3610,7 @@ class Person : Record {
 }
 ```
 
-When hunting for performance, you can still use records, but avoid their string and dictionary-based methods.
+When convenience hurts performance, you can still use records, but you have better avoiding their string and dictionary-based methods.
 
 For example, when fetching values, prefer loading columns by index:
 
@@ -3621,6 +3621,7 @@ for person in Person.fetch(db) {
 }
 
 // Column indexes
+// SELECT id, name, email FROM persons
 let request = Person.select(idColumn, nameColumn, emailColumn)
 for row in Row.fetch(db, request).map {
     let id: Int64 = row.value(atIndex: 0)
