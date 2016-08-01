@@ -3642,8 +3642,9 @@ for person in persons {
 // Prepared statement
 let insertStatement = db.prepareStatement("INSERT INTO persons (name, email) VALUES (?, ?)")
 for person in persons {
-    // Only use the unsafe arguments setter if you know what you are doing
-    // (here the statement expects two values).
+    // Only use the unsafe arguments setter if you are sure that you provide
+    // all statement arguments. A mistake can store unexpected values in
+    // the database.
     insertStatement.unsafeSetArguments([person.name, person.email])
     try insertStatement.execute()
 }
