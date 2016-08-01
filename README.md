@@ -3444,7 +3444,7 @@ Don't make any assumption, avoid optimizing code too early, and use [Instruments
 
 ### Performance tip: know your platform
 
-You can't complain about an unresponsive user interface if your application processes a huge JSON file and insert thousands of rows in the database right from the main thread. Instead, read the [Concurrency Programming Guide](https://developer.apple.com/library/ios/documentation/General/Conceptual/ConcurrencyProgrammingGuide/Introduction/Introduction.html#//apple_ref/doc/uid/TP40008091) and learn how to perform heavy computations without blocking your application.
+You can't complain about an unresponsive user interface if your application processes a huge JSON file and inserts thousands of rows in the database right from the main thread. Instead, read the [Concurrency Programming Guide](https://developer.apple.com/library/ios/documentation/General/Conceptual/ConcurrencyProgrammingGuide/Introduction/Introduction.html#//apple_ref/doc/uid/TP40008091) and learn how to perform heavy computations without blocking your application.
 
 
 ### Performance tip: use transactions
