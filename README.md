@@ -3563,14 +3563,14 @@ class Person : Record {
     var email: String
     
     required init(_ row: Row) {
-        id = row.value(named: "id")       // String!
-        name = row.value(named: "name")   // String!
-        email = row.value(named: "email") // String!
+        id = row.value(named: "id")       // String
+        name = row.value(named: "name")   // String
+        email = row.value(named: "email") // String
         super.init()
     }
     
     override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "name": name, "email": email] // Dictionary!
+        return ["id": id, "name": name, "email": email] // Dictionary
     }
 }
 ```
@@ -3605,9 +3605,9 @@ for person in persons {
 }
 
 // Prepared statement
-let insertStatement = db.prepareStatement("INSERT INTO persons (id, name, email) VALUES (?, ?, ?)")
+let insertStatement = db.prepareStatement("INSERT INTO persons (name, email) VALUES (?, ?)")
 for person in persons {
-    try insertStatement.execute(arguments: [person.id, person.name, person.email])
+    try insertStatement.execute(arguments: [person.name, person.email])
 }
 ```
 
