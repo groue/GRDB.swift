@@ -3449,7 +3449,7 @@ If your application processes a huge JSON file and inserts thousands of rows in 
 
 If not done yet, read the [Concurrency Programming Guide](https://developer.apple.com/library/ios/documentation/General/Conceptual/ConcurrencyProgrammingGuide/Introduction/Introduction.html#//apple_ref/doc/uid/TP40008091) and learn how to perform heavy computations without blocking your application.
 
-Since most GRBD APIs are [synchronous](#database-connections), spawning them into parallel queues is as easy as:
+Most GRBD APIs are [synchronous](#database-connections). Spawning them into parallel queues is as easy as:
 
 ```swift
 dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
