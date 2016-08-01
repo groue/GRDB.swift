@@ -3510,10 +3510,10 @@ if person.hasPersistentChangedValues {
 
 Consider a simple use case: your store application has to display a list of authors with the number of available books:
 
-- Jonathan Coe (6)
+- J. M. Coetzee (6)
 - Herman Melville (1)
 - Alice Munro (3)
-- Kim Stanly Robinson (7)
+- Kim Stanley Robinson (7)
 - Oliver Sacks (4)
 
 The following code is inefficient. It is an example of the [N+1 problem](http://stackoverflow.com/questions/97197/what-is-the-n1-selects-issue), because it performs one query to load the authors, and then N queries, as many as there are authors. This turns very inefficient as the number of authors grows:
