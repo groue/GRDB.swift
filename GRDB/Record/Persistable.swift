@@ -204,7 +204,7 @@ public extension MutablePersistable {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.NotFound is thrown if the primary key does not
     ///   match any row in the database.
-    func update<S: Sequence where S.Iterator.Element == SQLColumn>(_ db: Database, columns: S) throws {
+    func update<Sequence: Swift.Sequence>(_ db: Database, columns: Sequence) throws where Sequence.Iterator.Element == SQLColumn {
         try update(db, columns: Set(columns.map { $0.name }))
     }
     
@@ -215,7 +215,7 @@ public extension MutablePersistable {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.NotFound is thrown if the primary key does not
     ///   match any row in the database.
-    func update<S: Sequence where S.Iterator.Element == String>(_ db: Database, columns: S) throws {
+    func update<Sequence: Swift.Sequence>(_ db: Database, columns: Sequence) throws where Sequence.Iterator.Element == String {
         try update(db, columns: Set(columns))
     }
     

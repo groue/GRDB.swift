@@ -255,7 +255,7 @@ private func closeConnection(_ sqliteConnection: SQLiteConnection) {
             // A rare situation where GRDB doesn't fatalError on unprocessed
             // errors.
             let message = String(cString: sqlite3_errmsg(sqliteConnection))
-            NSLog("GRDB could not close database with error %@: %@", NSNumber(value: code), NSString(string: message ?? ""))
+            NSLog("GRDB could not close database with error %@: %@", NSNumber(value: code), NSString(string: message))
         }
     } else {
         // https://www.sqlite.org/c3ref/close.html
@@ -268,7 +268,7 @@ private func closeConnection(_ sqliteConnection: SQLiteConnection) {
             // A rare situation where GRDB doesn't fatalError on unprocessed
             // errors.
             let message = String(cString: sqlite3_errmsg(sqliteConnection))
-            NSLog("GRDB could not close database with error %@: %@", NSNumber(value: code), NSString(string: message ?? ""))
+            NSLog("GRDB could not close database with error %@: %@", NSNumber(value: code), NSString(string: message))
             if code == SQLITE_BUSY {
                 // Let the user know about unfinalized statements that did
                 // prevent the connection from closing properly.
@@ -957,7 +957,7 @@ extension Database {
     
     /// True if a sequence of columns uniquely identifies a row, that is to say
     /// if the columns are the primary key, or if there is a unique index on them.
-    public func table<T: Sequence where T.Iterator.Element == String>(_ tableName: String, hasUniqueKey columns: T) throws -> Bool {
+    public func table<T: Sequence>(_ tableName: String, hasUniqueKey columns: T) throws -> Bool where T.Iterator.Element == String {
         let primaryKey = try self.primaryKey(tableName) // first, so that we fail early and consistently should the table not exist
         let columns = Set(columns)
         if indexes(on: tableName).contains(where: { index in index.isUnique && Set(index.columns) == columns }) {
@@ -1890,8 +1890,8 @@ private struct MetalDatabaseEventImpl : DatabaseEventImpl {
 
 /// Impl for DatabaseEvent that contains copies of event strings.
 private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
-    private let databaseName: String
-    private let tableName: String
+    let databaseName: String
+    let tableName: String
     func copy(_ event: DatabaseEvent) -> DatabaseEvent {
         return event
     }

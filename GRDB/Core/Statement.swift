@@ -453,7 +453,7 @@ public struct StatementArguments {
     ///
     /// - parameter sequence: A sequence of DatabaseValueConvertible values.
     /// - returns: A StatementArguments.
-    public init<Sequence: Swift.Sequence where Sequence.Iterator.Element == DatabaseValueConvertible?>(_ sequence: Sequence) {
+    public init<Sequence: Swift.Sequence>(_ sequence: Sequence) where Sequence.Iterator.Element == DatabaseValueConvertible? {
         values = Array(sequence)
     }
     
@@ -464,7 +464,7 @@ public struct StatementArguments {
     ///
     /// - parameter sequence: A sequence of DatabaseValueConvertible values.
     /// - returns: A StatementArguments.
-    public init<Sequence: Swift.Sequence where Sequence.Iterator.Element: DatabaseValueConvertible>(_ sequence: Sequence) {
+    public init<Sequence: Swift.Sequence>(_ sequence: Sequence) where Sequence.Iterator.Element: DatabaseValueConvertible {
         values = sequence.map { $0 }
     }
     
@@ -491,7 +491,7 @@ public struct StatementArguments {
     ///
     /// - parameter sequence: A sequence of (key, value) pairs
     /// - returns: A StatementArguments.
-    public init<Sequence: Swift.Sequence where Sequence.Iterator.Element == (String, DatabaseValueConvertible?)>(_ sequence: Sequence) {
+    public init<Sequence: Swift.Sequence>(_ sequence: Sequence) where Sequence.Iterator.Element == (String, DatabaseValueConvertible?) {
         namedValues = Dictionary(keyValueSequence: sequence)
     }
     

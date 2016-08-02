@@ -61,7 +61,7 @@ extension Array {
 extension Dictionary {
     
     /// Create a dictionary with the keys and values in the given sequence.
-    init<Sequence: Swift.Sequence where Sequence.Iterator.Element == (Key, Value)>(keyValueSequence: Sequence) {
+    init<Sequence: Swift.Sequence>(keyValueSequence: Sequence) where Sequence.Iterator.Element == (Key, Value) {
         self.init(minimumCapacity: keyValueSequence.underestimatedCount)
         for (key, value) in keyValueSequence {
             self[key] = value
@@ -69,7 +69,7 @@ extension Dictionary {
     }
     
     /// Create a dictionary from keys and a value builder.
-    init<Sequence: Swift.Sequence where Sequence.Iterator.Element == Key>(keys: Sequence, value: (Key) -> Value) {
+    init<Sequence: Swift.Sequence>(keys: Sequence, value: (Key) -> Value) where Sequence.Iterator.Element == Key {
         self.init(minimumCapacity: keys.underestimatedCount)
         for key in keys {
             self[key] = value(key)
@@ -80,7 +80,7 @@ extension Dictionary {
 extension Sequence where Iterator.Element: Equatable {
     
     /// Filter out elements contained in *removedElements*.
-    func removing<S : Sequence where S.Iterator.Element == Self.Iterator.Element>(contentsOf elements: S) -> [Self.Iterator.Element] {
+    func removing<S : Sequence>(contentsOf elements: S) -> [Self.Iterator.Element] where S.Iterator.Element == Self.Iterator.Element {
         return filter { element in !elements.contains(element) }
     }
 }

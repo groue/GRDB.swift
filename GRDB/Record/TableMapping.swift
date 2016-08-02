@@ -39,7 +39,7 @@ extension RowConvertible where Self: TableMapping {
     ///     - db: A Database.
     ///     - keys: A sequence of primary keys.
     /// - returns: A sequence of records.
-    public static func fetch<Sequence: Swift.Sequence where Sequence.Iterator.Element: DatabaseValueConvertible>(_ db: Database, keys: Sequence) -> DatabaseSequence<Self> {
+    public static func fetch<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) -> DatabaseSequence<Self> where Sequence.Iterator.Element: DatabaseValueConvertible {
         guard let statement = try! makeFetchByPrimaryKeyStatement(db, keys: keys) else {
             return DatabaseSequence.makeEmptySequence(inDatabase: db)
         }
@@ -56,7 +56,7 @@ extension RowConvertible where Self: TableMapping {
     ///     - db: A database connection.
     ///     - keys: A sequence of primary keys.
     /// - returns: An array of records.
-    public static func fetchAll<Sequence: Swift.Sequence where Sequence.Iterator.Element: DatabaseValueConvertible>(_ db: Database, keys: Sequence) -> [Self] {
+    public static func fetchAll<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) -> [Self] where Sequence.Iterator.Element: DatabaseValueConvertible {
         guard let statement = try! makeFetchByPrimaryKeyStatement(db, keys: keys) else {
             return []
         }
@@ -81,7 +81,7 @@ extension RowConvertible where Self: TableMapping {
     // Returns "SELECT * FROM table WHERE id IN (?,?,?)"
     //
     // Returns nil if values is empty.
-    private static func makeFetchByPrimaryKeyStatement<Sequence: Swift.Sequence where Sequence.Iterator.Element: DatabaseValueConvertible>(_ db: Database, keys: Sequence) throws -> SelectStatement? {
+    private static func makeFetchByPrimaryKeyStatement<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> SelectStatement? where Sequence.Iterator.Element: DatabaseValueConvertible {
         // Fail early if database table does not exist.
         let databaseTableName = self.databaseTableName
         let primaryKey = try db.primaryKey(databaseTableName)
@@ -125,7 +125,7 @@ extension TableMapping {
     ///     - db: A database connection.
     ///     - keys: A sequence of primary keys.
     /// - returns: The number of deleted rows
-    public static func deleteAll<Sequence: Swift.Sequence where Sequence.Iterator.Element: DatabaseValueConvertible>(_ db: Database, keys: Sequence) throws -> Int {
+    public static func deleteAll<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> Int where Sequence.Iterator.Element: DatabaseValueConvertible {
         guard let statement = try! makeDeleteByPrimaryKeyStatement(db, keys: keys) else {
             return 0
         }
@@ -151,7 +151,7 @@ extension TableMapping {
     // Returns "DELETE FROM table WHERE id IN (?,?,?)"
     //
     // Returns nil if keys is empty.
-    private static func makeDeleteByPrimaryKeyStatement<Sequence: Swift.Sequence where Sequence.Iterator.Element: DatabaseValueConvertible>(_ db: Database, keys: Sequence) throws -> UpdateStatement? {
+    private static func makeDeleteByPrimaryKeyStatement<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> UpdateStatement? where Sequence.Iterator.Element: DatabaseValueConvertible {
         // Fail early if database table does not exist.
         let databaseTableName = self.databaseTableName
         let primaryKey = try db.primaryKey(databaseTableName)
