@@ -3570,8 +3570,7 @@ Instead, perform *a single query*:
 let sql = "SELECT authors.*, COUNT(books.id) AS bookCount " +
           "FROM authors " +
           "LEFT JOIN books ON books.authorId = authors.id " +
-          "GROUP BY authors.id " +
-          "ORDER BY authors.name"
+          "GROUP BY authors.id"
 let authors = Author.fetchAll(db, sql)
 ```
 
@@ -3623,7 +3622,7 @@ for person in Person.fetch(db) {
 // Column indexes
 // SELECT id, name, email FROM persons
 let request = Person.select(idColumn, nameColumn, emailColumn)
-for row in Row.fetch(db, request).map {
+for row in Row.fetch(db, request) {
     let id: Int64 = row.value(atIndex: 0)
     let name: String = row.value(atIndex: 1)
     let email: String = row.value(atIndex: 2)
