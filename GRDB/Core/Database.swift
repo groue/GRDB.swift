@@ -1578,7 +1578,7 @@ extension Database {
             // Only notify those that are interested in the event, and have been
             // isolated in updateStatementWillExecute().
             for observer in statementEventObservers.flatMap({ $0.transactionObserver }) {
-                observer.databaseWillChangeWithEvent(event)
+                observer.databaseWillChange(with: event)
             }
         } else {
             // Buffer both event and the observers that should be notified of the event.
