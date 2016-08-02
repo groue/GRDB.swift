@@ -3631,7 +3631,7 @@ for row in Row.fetch(db, request) {
 }
 ```
 
-When inserting values, use [prepared statements](#prepared-statements), and set statements values with an array:
+When inserting values, use reusable [prepared statements](#prepared-statements), and set statements values with an *array*:
 
 ```swift
 // Strings & dictionaries
