@@ -41,6 +41,8 @@ public class SQLColumnBuilder {
     let name: String
     let type: SQLColumnType
     var primaryKey: (ordering: SQLOrdering?, conflictResolution: SQLConflictResolution?, autoincrement: Bool)?
+    var notNullConflictResolution: SQLConflictResolution?
+    var uniqueConflictResolution: SQLConflictResolution?
     
     init(name: String, type: SQLColumnType) {
         self.name = name
@@ -51,10 +53,19 @@ public class SQLColumnBuilder {
         primaryKey = (ordering: ordering, conflictResolution: conflictResolution, autoincrement: autoincrement)
     }
     
+    public func notNull(onConflict conflictResolution: SQLConflictResolution? = nil) {
+        notNullConflictResolution = conflictResolution ?? .Abort
+    }
+    
+    public func unique(onConflict conflictResolution: SQLConflictResolution? = nil) {
+        uniqueConflictResolution = conflictResolution ?? .Abort
+    }
+    
     var sql: String {
         var chunks: [String] = []
         chunks.append(name.quotedDatabaseIdentifier)
         chunks.append(type.rawValue)
+        
         if let (ordering, conflictResolution, autoincrement) = primaryKey {
             chunks.append("PRIMARY KEY")
             if let ordering = ordering {
@@ -68,6 +79,27 @@ public class SQLColumnBuilder {
                 chunks.append("AUTOINCREMENT")
             }
         }
+        
+        switch notNullConflictResolution {
+        case .None:
+            break
+        case .Abort?:
+            chunks.append("NOT NULL")
+        case let conflictResolution?:
+            chunks.append("NOT NULL ON CONFLICT")
+            chunks.append(conflictResolution.rawValue)
+        }
+        
+        switch uniqueConflictResolution {
+        case .None:
+            break
+        case .Abort?:
+            chunks.append("UNIQUE")
+        case let conflictResolution?:
+            chunks.append("UNIQUE ON CONFLICT")
+            chunks.append(conflictResolution.rawValue)
+        }
+        
         return chunks.joinWithSeparator(" ")
     }
 }
