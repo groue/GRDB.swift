@@ -40,51 +40,39 @@ public class SQLTableBuilder {
 public class SQLColumnBuilder {
     let name: String
     let type: SQLColumnType
-    var primaryKeyBuilder: SQLPrimaryKeyBuilder?
+    var primaryKey: (ordering: SQLOrdering?, conflictResolution: SQLConflictResolution?, autoincrement: Bool)?
     
     init(name: String, type: SQLColumnType) {
         self.name = name
         self.type = type
     }
     
-    public func primaryKey(ordering ordering: SQLPrimaryKeyOrdering? = nil, onConflict conflictResolution: SQLConflictResolution? = nil, autoincrement: Bool = false) {
-        primaryKeyBuilder = SQLPrimaryKeyBuilder(ordering: ordering, conflictResolution: conflictResolution, autoincrement: autoincrement)
+    public func primaryKey(ordering ordering: SQLOrdering? = nil, onConflict conflictResolution: SQLConflictResolution? = nil, autoincrement: Bool = false) {
+        primaryKey = (ordering: ordering, conflictResolution: conflictResolution, autoincrement: autoincrement)
     }
     
     var sql: String {
         var chunks: [String] = []
         chunks.append(name.quotedDatabaseIdentifier)
         chunks.append(type.rawValue)
-        if let primaryKeyBuilder = primaryKeyBuilder {
-            chunks.append(primaryKeyBuilder.sql)
+        if let (ordering, conflictResolution, autoincrement) = primaryKey {
+            chunks.append("PRIMARY KEY")
+            if let ordering = ordering {
+                chunks.append(ordering.rawValue)
+            }
+            if let conflictResolution = conflictResolution {
+                chunks.append("ON CONFLICT")
+                chunks.append(conflictResolution.rawValue)
+            }
+            if autoincrement {
+                chunks.append("AUTOINCREMENT")
+            }
         }
         return chunks.joinWithSeparator(" ")
     }
 }
 
-struct SQLPrimaryKeyBuilder {
-    let ordering: SQLPrimaryKeyOrdering?
-    let conflictResolution: SQLConflictResolution?
-    let autoincrement: Bool
-    
-    var sql: String {
-        var chunks: [String] = []
-        chunks.append("PRIMARY KEY")
-        if let ordering = ordering {
-            chunks.append(ordering.rawValue)
-        }
-        if let conflictResolution = conflictResolution {
-            chunks.append("ON CONFLICT")
-            chunks.append(conflictResolution.rawValue)
-        }
-        if autoincrement {
-            chunks.append("AUTOINCREMENT")
-        }
-        return chunks.joinWithSeparator(" ")
-    }
-}
-
-public enum SQLPrimaryKeyOrdering : String {
+public enum SQLOrdering : String {
     case Asc = "ASC"
     case Desc = "DESC"
 }
