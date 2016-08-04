@@ -44,6 +44,7 @@ public class SQLColumnBuilder {
     var notNullConflictResolution: SQLConflictResolution?
     var uniqueConflictResolution: SQLConflictResolution?
     var checkExpression: _SQLExpression?
+    var defaultExpression: _SQLExpression?
     
     init(name: String, type: SQLColumnType) {
         self.name = name
@@ -64,6 +65,10 @@ public class SQLColumnBuilder {
     
     public func check(@noescape condition: (SQLColumn) -> _SQLExpressible) {
         checkExpression = condition(SQLColumn(name)).sqlExpression
+    }
+    
+    public func defaults(value: _SQLExpressible) {
+        defaultExpression = value.sqlExpression
     }
     
     var sql: String {
@@ -107,7 +112,14 @@ public class SQLColumnBuilder {
         
         if let checkExpression = checkExpression {
             var arguments: StatementArguments? = nil // nil so that checkExpression.sql(&arguments) embeds literals
-            chunks.append("CHECK(" + checkExpression.sql(&arguments) + ")")
+            chunks.append("CHECK")
+            chunks.append("(" + checkExpression.sql(&arguments) + ")")
+        }
+        
+        if let defaultExpression = defaultExpression {
+            var arguments: StatementArguments? = nil // nil so that checkExpression.sql(&arguments) embeds literals
+            chunks.append("DEFAULT")
+            chunks.append("(" + defaultExpression.sql(&arguments) + ")")
         }
         
         return chunks.joinWithSeparator(" ")

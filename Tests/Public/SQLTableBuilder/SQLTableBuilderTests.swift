@@ -127,7 +127,7 @@ class SQLTableBuilderTests: GRDBTestCase {
                 }
                 XCTAssertEqual(self.lastSQLQuery,
                     "CREATE TABLE \"test\" (" +
-                        "\"a\" INTEGER CHECK((\"a\" > 0))" +
+                        "\"a\" INTEGER CHECK ((\"a\" > 0))" +
                     ")")
                 
                 // Sanity check
@@ -137,6 +137,25 @@ class SQLTableBuilderTests: GRDBTestCase {
                     XCTFail()
                 } catch {
                 }
+            }
+        }
+    }
+    
+    func testColumnDefault() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.create(table: "test") { t in
+                    t.column("a", .Integer).defaults(1)
+                }
+                XCTAssertEqual(self.lastSQLQuery,
+                    "CREATE TABLE \"test\" (" +
+                        "\"a\" INTEGER DEFAULT (1)" +
+                    ")")
+                
+                // Sanity check
+                try db.execute("INSERT INTO test DEFAULT VALUES")
+                XCTAssertEqual(Int.fetchOne(db, "SELECT a FROM test")!, 1)
             }
         }
     }
