@@ -43,6 +43,7 @@ public class SQLColumnBuilder {
     var primaryKey: (ordering: SQLOrdering?, conflictResolution: SQLConflictResolution?, autoincrement: Bool)?
     var notNullConflictResolution: SQLConflictResolution?
     var uniqueConflictResolution: SQLConflictResolution?
+    var checkExpression: _SQLExpression?
     
     init(name: String, type: SQLColumnType) {
         self.name = name
@@ -59,6 +60,10 @@ public class SQLColumnBuilder {
     
     public func unique(onConflict conflictResolution: SQLConflictResolution? = nil) {
         uniqueConflictResolution = conflictResolution ?? .Abort
+    }
+    
+    public func check(@noescape condition: (SQLColumn) -> _SQLExpressible) {
+        checkExpression = condition(SQLColumn(name)).sqlExpression
     }
     
     var sql: String {
@@ -98,6 +103,11 @@ public class SQLColumnBuilder {
         case let conflictResolution?:
             chunks.append("UNIQUE ON CONFLICT")
             chunks.append(conflictResolution.rawValue)
+        }
+        
+        if let checkExpression = checkExpression {
+            var arguments: StatementArguments? = nil // nil so that checkExpression.sql(&arguments) embeds literals
+            chunks.append("CHECK(" + checkExpression.sql(&arguments) + ")")
         }
         
         return chunks.joinWithSeparator(" ")
