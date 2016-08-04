@@ -45,6 +45,7 @@ public class SQLColumnBuilder {
     var uniqueConflictResolution: SQLConflictResolution?
     var checkExpression: _SQLExpression?
     var defaultExpression: _SQLExpression?
+    var collationName: String?
     
     init(name: String, type: SQLColumnType) {
         self.name = name
@@ -69,6 +70,14 @@ public class SQLColumnBuilder {
     
     public func defaults(value: _SQLExpressible) {
         defaultExpression = value.sqlExpression
+    }
+    
+    public func collate(collation: SQLCollation) {
+        collationName = collation.rawValue
+    }
+    
+    public func collate(collation: DatabaseCollation) {
+        collationName = collation.name
     }
     
     var sql: String {
@@ -122,6 +131,11 @@ public class SQLColumnBuilder {
             chunks.append("(" + defaultExpression.sql(&arguments) + ")")
         }
         
+        if let collationName = collationName {
+            chunks.append("COLLATE")
+            chunks.append(collationName)
+        }
+        
         return chunks.joinWithSeparator(" ")
     }
 }
@@ -129,6 +143,12 @@ public class SQLColumnBuilder {
 public enum SQLOrdering : String {
     case Asc = "ASC"
     case Desc = "DESC"
+}
+
+public enum SQLCollation : String {
+    case Binary = "BINARY"
+    case Nocase = "NOCASE"
+    case Rtrim = "RTRIM"
 }
 
 public enum SQLConflictResolution : String {

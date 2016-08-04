@@ -160,6 +160,35 @@ class SQLTableBuilderTests: GRDBTestCase {
         }
     }
     
+    func testColumnCollation() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inTransaction { db in
+                try db.create(table: "test") { t in
+                    t.column("name", .Text).collate(.Nocase)
+                }
+                XCTAssertEqual(self.lastSQLQuery,
+                    "CREATE TABLE \"test\" (" +
+                        "\"name\" TEXT COLLATE NOCASE" +
+                    ")")
+                return .Rollback
+            }
+            
+            let collation = DatabaseCollation("foo") { (lhs, rhs) in .OrderedSame }
+            dbQueue.addCollation(collation)
+            try dbQueue.inTransaction { db in
+                try db.create(table: "test") { t in
+                    t.column("name", .Text).collate(collation)
+                }
+                XCTAssertEqual(self.lastSQLQuery,
+                    "CREATE TABLE \"test\" (" +
+                        "\"name\" TEXT COLLATE foo" +
+                    ")")
+                return .Rollback
+            }
+        }
+    }
+    
     func testDropTable() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
