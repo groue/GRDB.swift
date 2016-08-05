@@ -1,4 +1,20 @@
-public class SQLTableBuilder {
+extension Database {
+    // TODO: doc
+    // TODO: Don't expose withoutRowID if not available
+    public func create(table name: String, temporary: Bool = false, ifNotExists: Bool = false, withoutRowID: Bool = false, body: (SQLTableBuilder) -> Void) throws {
+        let builder = SQLTableBuilder(name: name, temporary: temporary, ifNotExists: ifNotExists, withoutRowID: withoutRowID)
+        body(builder)
+        let sql = try builder.sql(self)
+        try execute(sql)
+    }
+    
+    // TODO: doc
+    public func drop(table name: String) throws {
+        try execute("DROP TABLE \(name.quotedDatabaseIdentifier)")
+    }
+}
+
+public final class SQLTableBuilder {
     let name: String
     let temporary: Bool
     let ifNotExists: Bool
@@ -39,7 +55,113 @@ public class SQLTableBuilder {
     public func foreignKey(columns: [String], to table: String, columns destinationColumns: [String]? = nil, onDelete deleteAction: SQLForeignKeyAction? = nil, onUpdate updateAction: SQLForeignKeyAction? = nil, deferred: Bool = false) {
         foreignKeyConstraints.append((columns: columns, table: table, destinationColumns: destinationColumns, deleteAction: deleteAction, updateAction: updateAction, deferred: deferred))
     }
+}
+
+public final class SQLColumnBuilder {
+    let name: String
+    let type: SQLColumnType
+    var primaryKey: (ordering: SQLOrdering?, conflictResolution: SQLConflictResolution?, autoincrement: Bool)?
+    var notNullConflictResolution: SQLConflictResolution?
+    var uniqueConflictResolution: SQLConflictResolution?
+    var checkExpression: _SQLExpression?
+    var defaultExpression: _SQLExpression?
+    var collationName: String?
+    var reference: (table: String, column: String?, deleteAction: SQLForeignKeyAction?, updateAction: SQLForeignKeyAction?, deferred: Bool)?
     
+    init(name: String, type: SQLColumnType) {
+        self.name = name
+        self.type = type
+    }
+    
+    // TODO: doc
+    public func primaryKey(ordering ordering: SQLOrdering? = nil, onConflict conflictResolution: SQLConflictResolution? = nil, autoincrement: Bool = false) {
+        primaryKey = (ordering: ordering, conflictResolution: conflictResolution, autoincrement: autoincrement)
+    }
+    
+    // TODO: doc
+    public func notNull(onConflict conflictResolution: SQLConflictResolution? = nil) {
+        notNullConflictResolution = conflictResolution ?? .Abort
+    }
+    
+    // TODO: doc
+    public func unique(onConflict conflictResolution: SQLConflictResolution? = nil) {
+        uniqueConflictResolution = conflictResolution ?? .Abort
+    }
+    
+    // TODO: doc
+    public func check(@noescape condition: (SQLColumn) -> _SQLExpressible) {
+        checkExpression = condition(SQLColumn(name)).sqlExpression
+    }
+    
+    // TODO: doc
+    // TODO: defaults(sql: "CURRENT_TIMESTAMP")
+    // TODO: _SQLExpressible or DatabaseValueConvertible?
+    public func defaults(value: _SQLExpressible) {
+        defaultExpression = value.sqlExpression
+    }
+    
+    // TODO: doc
+    public func collate(collation: SQLCollation) {
+        collationName = collation.rawValue
+    }
+    
+    // TODO: doc
+    public func collate(collation: DatabaseCollation) {
+        collationName = collation.name
+    }
+    
+    // TODO: doc
+    public func references(table: String, column: String? = nil, onDelete deleteAction: SQLForeignKeyAction? = nil, onUpdate updateAction: SQLForeignKeyAction? = nil, deferred: Bool = false) {
+        reference = (table: table, column: column, deleteAction: deleteAction, updateAction: updateAction, deferred: deferred)
+    }
+}
+
+// TODO: doc
+public enum SQLOrdering : String {
+    case Asc = "ASC"
+    case Desc = "DESC"
+}
+
+// TODO: doc
+public enum SQLCollation : String {
+    case Binary = "BINARY"
+    case Nocase = "NOCASE"
+    case Rtrim = "RTRIM"
+}
+
+// TODO: doc
+public enum SQLConflictResolution : String {
+    case Rollback = "ROLLBACK"
+    case Abort = "ABORT"
+    case Fail = "FAIL"
+    case Ignore = "IGNORE"
+    case Replace = "REPLACE"
+}
+
+// TODO: doc
+public enum SQLColumnType : String {
+    case Text = "TEXT"
+    case Integer = "INTEGER"
+    case Double = "DOUBLE"
+    case Numeric = "NUMERIC"
+    case Boolean = "BOOLEAN"
+    case Blob = "BLOB"
+    case Date = "DATE"
+    case Datetime = "DATETIME"
+}
+
+// TODO: doc
+public enum SQLForeignKeyAction : String {
+    case Cascade = "CASCADE"
+    case Restrict = "RESTRICT"
+    case SetNull = "SET NULL"
+    case SetDefault = "SET DEFAULT"
+}
+
+
+// MARK: - SQL Generation
+
+extension SQLTableBuilder {
     func sql(db: Database) throws -> String {
         var chunks: [String] = []
         chunks.append("CREATE")
@@ -114,63 +236,7 @@ public class SQLTableBuilder {
     }
 }
 
-public class SQLColumnBuilder {
-    let name: String
-    let type: SQLColumnType
-    var primaryKey: (ordering: SQLOrdering?, conflictResolution: SQLConflictResolution?, autoincrement: Bool)?
-    var notNullConflictResolution: SQLConflictResolution?
-    var uniqueConflictResolution: SQLConflictResolution?
-    var checkExpression: _SQLExpression?
-    var defaultExpression: _SQLExpression?
-    var collationName: String?
-    var reference: (table: String, column: String?, deleteAction: SQLForeignKeyAction?, updateAction: SQLForeignKeyAction?, deferred: Bool)?
-    
-    init(name: String, type: SQLColumnType) {
-        self.name = name
-        self.type = type
-    }
-    
-    // TODO: doc
-    public func primaryKey(ordering ordering: SQLOrdering? = nil, onConflict conflictResolution: SQLConflictResolution? = nil, autoincrement: Bool = false) {
-        primaryKey = (ordering: ordering, conflictResolution: conflictResolution, autoincrement: autoincrement)
-    }
-    
-    // TODO: doc
-    public func notNull(onConflict conflictResolution: SQLConflictResolution? = nil) {
-        notNullConflictResolution = conflictResolution ?? .Abort
-    }
-    
-    // TODO: doc
-    public func unique(onConflict conflictResolution: SQLConflictResolution? = nil) {
-        uniqueConflictResolution = conflictResolution ?? .Abort
-    }
-    
-    // TODO: doc
-    public func check(@noescape condition: (SQLColumn) -> _SQLExpressible) {
-        checkExpression = condition(SQLColumn(name)).sqlExpression
-    }
-    
-    // TODO: doc
-    // TODO: defaults(sql: "CURRENT_TIMESTAMP")
-    public func defaults(value: _SQLExpressible) {
-        defaultExpression = value.sqlExpression
-    }
-    
-    // TODO: doc
-    public func collate(collation: SQLCollation) {
-        collationName = collation.rawValue
-    }
-    
-    // TODO: doc
-    public func collate(collation: DatabaseCollation) {
-        collationName = collation.name
-    }
-    
-    // TODO: doc
-    public func references(table: String, column: String? = nil, onDelete deleteAction: SQLForeignKeyAction? = nil, onUpdate updateAction: SQLForeignKeyAction? = nil, deferred: Bool = false) {
-        reference = (table: table, column: column, deleteAction: deleteAction, updateAction: updateAction, deferred: deferred)
-    }
-    
+extension SQLColumnBuilder {
     func sql(db: Database) throws -> String {
         var chunks: [String] = []
         chunks.append(name.quotedDatabaseIdentifier)
@@ -250,63 +316,5 @@ public class SQLColumnBuilder {
         }
         
         return chunks.joinWithSeparator(" ")
-    }
-}
-
-// TODO: doc
-public enum SQLOrdering : String {
-    case Asc = "ASC"
-    case Desc = "DESC"
-}
-
-// TODO: doc
-public enum SQLCollation : String {
-    case Binary = "BINARY"
-    case Nocase = "NOCASE"
-    case Rtrim = "RTRIM"
-}
-
-// TODO: doc
-public enum SQLConflictResolution : String {
-    case Rollback = "ROLLBACK"
-    case Abort = "ABORT"
-    case Fail = "FAIL"
-    case Ignore = "IGNORE"
-    case Replace = "REPLACE"
-}
-
-// TODO: doc
-public enum SQLColumnType : String {
-    case Text = "TEXT"
-    case Integer = "INTEGER"
-    case Double = "DOUBLE"
-    case Numeric = "NUMERIC"
-    case Boolean = "BOOLEAN"
-    case Blob = "BLOB"
-    case Date = "DATE"
-    case Datetime = "DATETIME"
-}
-
-// TODO: doc
-public enum SQLForeignKeyAction : String {
-    case Cascade = "CASCADE"
-    case Restrict = "RESTRICT"
-    case SetNull = "SET NULL"
-    case SetDefault = "SET DEFAULT"
-}
-
-extension Database {
-    // TODO: doc
-    // TODO: Don't expose withoutRowID if not available
-    public func create(table name: String, temporary: Bool = false, ifNotExists: Bool = false, withoutRowID: Bool = false, body: (SQLTableBuilder) -> Void) throws {
-        let builder = SQLTableBuilder(name: name, temporary: temporary, ifNotExists: ifNotExists, withoutRowID: withoutRowID)
-        body(builder)
-        let sql = try builder.sql(self)
-        try execute(sql)
-    }
-    
-    // TODO: doc
-    public func drop(table name: String) throws {
-        try execute("DROP TABLE \(name.quotedDatabaseIdentifier)")
     }
 }
