@@ -2258,7 +2258,7 @@ try db.drop(table: "obsolete")
 
 #### Create Indexes
 
-Create index with the `create(index:)` method:
+Create indexes with the `create(index:)` method:
 
 ```swift
 // CREATE UNIQUE INDEX byEmail ON users(email)
