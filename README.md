@@ -2138,7 +2138,7 @@ So don't miss the [SQL API](#sqlite-api).
 
 ### Database Schema
 
-Once granted with a [database connection](#database-connections), you can use the query interface to setup your database schema.
+Once granted with a [database connection](#database-connections), you can use the query interface to setup your database schema:
 
 - [Create Tables](#create-tables)
 - [Modify Tables](#alter-tables)
@@ -2176,8 +2176,8 @@ Add regular columns with their name and type (text, integer, double, numeric, bo
 
 ```swift
     // name TEXT,
-    t.column("name", .Text)
     // creationDate DATETIME,
+    t.column("name", .Text)
     t.column("creationDate", .Datetime)
 ```
 
