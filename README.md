@@ -2241,9 +2241,9 @@ SQLite let you rename tables, and add columns to existing tables:
 // ALTER TABLE referers RENAME TO referrers
 try db.rename(table: "referers", to: "referrers")
 
-// ALTER TABLE persons ADD COLUMN website TEXT
+// ALTER TABLE persons ADD COLUMN url TEXT
 try db.alter(table: "persons") { t in
-    t.add(column: "website", .Text)
+    t.add(column: "url", .Text)
 }
 ```
 
