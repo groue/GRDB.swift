@@ -14,6 +14,7 @@ Follow [@groue](http://twitter.com/groue) on Twitter for release announcements a
 <p align="center">
     <a href="#features">Features</a> &bull;
     <a href="#usage">Usage</a> &bull;
+    <a href="#installation">Installation</a> &bull;
     <a href="#documentation">Documentation</a> &bull;
     <a href="#faq">FAQ</a>
 </p>
