@@ -2190,8 +2190,8 @@ Define not null and unique columns, and set default values:
     // uuid TEXT UNIQUE ON CONFLICT REPLACE,
     t.column("uuid", .Text).unique(onConflict: .Replace)
     
-    // flag BOOLEAN NOT NULL DEFAULT 0,
-    t.column("flag", .Boolean).notNull().default(false)
+    // name TEXT NOT NULL DEFAULT 'Anonymous',
+    t.column("name", .Text).notNull().default("Anonymous")
 ```
     
 Perform integrity checks on individual columns, and SQLite will only let conforming rows in. In the example below, the `$0` closure variable is a column which lets you build any SQL [expression](#expressions).
