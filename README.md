@@ -2308,41 +2308,41 @@ All the methods above return another request, which you can further refine by ap
 - `all()`: the request for all rows.
 
     ```swift
-    // SELECT * FROM "persons"
+    // SELECT * FROM persons
     Person.all()
     ```
 
 - `select(expression, ...)` defines the selected columns.
     
     ```swift
-    // SELECT "id", "name" FROM "persons"
+    // SELECT id, name FROM persons
     Person.select(idColumn, nameColumn)
     
-    // SELECT MAX("age") AS "maxAge" FROM "persons"
+    // SELECT MAX(age) AS maxAge FROM persons
     Person.select(max(ageColumn).aliased("maxAge"))
     ```
 
 - `distinct` performs uniquing:
     
     ```swift
-    // SELECT DISTINCT "name" FROM "persons"
+    // SELECT DISTINCT name FROM persons
     Person.select(nameColumn).distinct
     ```
 
 - `filter(expression)` applies conditions.
     
     ```swift
-    // SELECT * FROM "persons" WHERE ("id" IN (1, 2, 3))
+    // SELECT * FROM persons WHERE id IN (1, 2, 3)
     Person.filter([1,2,3].contains(idColumn))
     
-    // SELECT * FROM "persons" WHERE (("name" IS NOT NULL) AND ("height" > 1.75))
+    // SELECT * FROM persons WHERE (name IS NOT NULL) AND (height > 1.75)
     Person.filter(nameColumn != nil && heightColumn > 1.75)
     ```
 
 - `group(expression, ...)` groups rows.
     
     ```swift
-    // SELECT "name", MAX("age") FROM "persons" GROUP BY "name"
+    // SELECT name, MAX(age) FROM persons GROUP BY name
     Person
         .select(nameColumn, max(ageColumn))
         .group(nameColumn)
@@ -2351,7 +2351,7 @@ All the methods above return another request, which you can further refine by ap
 - `having(expression)` applies conditions on grouped rows.
     
     ```swift
-    // SELECT "name", MAX("age") FROM "persons" GROUP BY "name" HAVING MIN("age") >= 18
+    // SELECT name, MAX(age) FROM persons GROUP BY name HAVING MIN(age) >= 18
     Person
         .select(nameColumn, max(ageColumn))
         .group(nameColumn)
@@ -2361,59 +2361,59 @@ All the methods above return another request, which you can further refine by ap
 - `order(ordering, ...)` sorts.
     
     ```swift
-    // SELECT * FROM "persons" ORDER BY "name"
+    // SELECT * FROM persons ORDER BY name
     Person.order(nameColumn)
     
-    // SELECT * FROM "persons" ORDER BY "score" DESC, "name"
+    // SELECT * FROM persons ORDER BY score DESC, name
     Person.order(scoreColumn.desc, nameColumn)
     ```
     
     Each `order` call clears any previous ordering:
     
     ```swift
-    // SELECT * FROM "persons" ORDER BY "name"
+    // SELECT * FROM persons ORDER BY name
     Person.order(scoreColumn).order(nameColumn)
     ```
 
 - `reverse()` reverses the eventual orderings.
     
     ```swift
-    // SELECT * FROM "persons" ORDER BY "score" ASC, "name" DESC
+    // SELECT * FROM persons ORDER BY score ASC, name DESC
     Person.order(scoreColumn.desc, nameColumn).reverse()
     ```
     
     If no ordering was specified, the result is ordered by rowID in reverse order.
     
     ```swift
-    // SELECT * FROM "persons" ORDER BY "_rowid_" DESC
+    // SELECT * FROM persons ORDER BY _rowid_ DESC
     Person.all().reverse()
     ```
 
 - `limit(limit, offset: offset)` limits and pages results.
     
     ```swift
-    // SELECT * FROM "persons" LIMIT 5
+    // SELECT * FROM persons LIMIT 5
     Person.limit(5)
     
-    // SELECT * FROM "persons" LIMIT 5 OFFSET 10
+    // SELECT * FROM persons LIMIT 5 OFFSET 10
     Person.limit(5, offset: 10)
     ```
 
 You can refine requests by chaining those methods:
 
 ```swift
-// SELECT * FROM "persons" WHERE ("email" IS NOT NULL) ORDER BY "name"
+// SELECT * FROM persons WHERE (email IS NOT NULL) ORDER BY name
 Person.order(nameColumn).filter(emailColumn != nil)
 ```
 
 The `select`, `order`, `group`, and `limit` methods ignore and replace previously applied selection, orderings, grouping, and limits. On the opposite, `filter`, and `having` methods extend the query:
 
 ```swift
-Person                          // SELECT * FROM "persons"
-    .filter(nameColumn != nil)  // WHERE (("name" IS NOT NULL)
-    .filter(emailColumn != nil) //        AND ("email IS NOT NULL"))
+Person                          // SELECT * FROM persons
+    .filter(nameColumn != nil)  // WHERE (name IS NOT NULL)
+    .filter(emailColumn != nil) //        AND (email IS NOT NULL)
     .order(nameColumn)          // - ignored -
-    .order(ageColumn)           // ORDER BY "age"
+    .order(ageColumn)           // ORDER BY age
     .limit(20, offset: 40)      // - ignored -
     .limit(10)                  // LIMIT 10
 ```
@@ -2422,7 +2422,7 @@ Person                          // SELECT * FROM "persons"
 Raw SQL snippets are also accepted, with eventual arguments:
 
 ```swift
-// SELECT DATE(creationDate), COUNT(*) FROM "persons" WHERE name = 'Arthur' GROUP BY date(creationDate)
+// SELECT DATE(creationDate), COUNT(*) FROM persons WHERE name = 'Arthur' GROUP BY date(creationDate)
 Person
     .select(sql: "DATE(creationDate), COUNT(*)")
     .filter(sql: "name = ?", arguments: ["Arthur"])
@@ -2442,19 +2442,19 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Comparison operators are based on the Swift operators `==`, `!=`, `===`, `!==`, `<`, `<=`, `>`, `>=`:
     
     ```swift
-    // SELECT * FROM "persons" WHERE ("name" = 'Arthur')
+    // SELECT * FROM persons WHERE (name = 'Arthur')
     Person.filter(nameColumn == "Arthur")
     
-    // SELECT * FROM "persons" WHERE ("name" IS NULL)
+    // SELECT * FROM persons WHERE (name IS NULL)
     Person.filter(nameColumn == nil)
     
-    // SELECT * FROM "persons" WHERE ("age" <> 18)
+    // SELECT * FROM persons WHERE (age <> 18)
     Person.filter(ageColumn != 18)
     
-    // SELECT * FROM "persons" WHERE ("age" IS NOT 18)
+    // SELECT * FROM persons WHERE (age IS NOT 18)
     Person.filter(ageColumn !== 18)
     
-    // SELECT * FROM "rectangles" WHERE ("width" < "height")
+    // SELECT * FROM rectangles WHERE width < height
     Rectangle.filter(widthColumn < heightColumn)
     ```
     
@@ -2466,7 +2466,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     SQLite arithmetic operators are derived from their Swift equivalent:
     
     ```swift
-    // SELECT (("temperature" * 1.8) + 32) AS "farenheit" FROM "persons"
+    // SELECT ((temperature * 1.8) + 32) AS farenheit FROM persons
     Planet.select((temperatureColumn * 1.8 + 32).aliased("farenheit"))
     ```
     
@@ -2477,7 +2477,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     The SQL logical operators are derived from the Swift `&&`, `||` and `!`:
     
     ```swift
-    // SELECT * FROM "persons" WHERE ((NOT "verified") OR ("age" < 18))
+    // SELECT * FROM persons WHERE ((NOT verified) OR (age < 18))
     Person.filter(!verifiedColumn || ageColumn < 18)
     ```
 
@@ -2486,22 +2486,22 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     To check inclusion in a collection, call the `contains` method on any Swift sequence:
     
     ```swift
-    // SELECT * FROM "persons" WHERE ("id" IN (1, 2, 3))
+    // SELECT * FROM persons WHERE id IN (1, 2, 3)
     Person.filter([1, 2, 3].contains(idColumn))
     
-    // SELECT * FROM "persons" WHERE ("id" NOT IN (1, 2, 3))
+    // SELECT * FROM persons WHERE id NOT IN (1, 2, 3)
     Person.filter(![1, 2, 3].contains(idColumn))
     
-    // SELECT * FROM "persons" WHERE ("age" BETWEEN 0 AND 17)
+    // SELECT * FROM persons WHERE age BETWEEN 0 AND 17
     Person.filter((0..<18).contains(ageColumn))
     
-    // SELECT * FROM "persons" WHERE ("age" BETWEEN 0 AND 17)
+    // SELECT * FROM persons WHERE age BETWEEN 0 AND 17
     Person.filter((0...17).contains(ageColumn))
     
-    // SELECT * FROM "persons" WHERE ("name" BETWEEN 'A' AND 'z')
+    // SELECT * FROM persons WHERE name BETWEEN 'A' AND 'z'
     Person.filter(("A"..."z").contains(nameColumn))
     
-    // SELECT * FROM "persons" WHERE (("name" >= 'A') AND ("name" < 'z'))
+    // SELECT * FROM persons WHERE (name >= 'A') AND (name < 'z')
     Person.filter(("A"..<"z").contains(nameColumn))
     ```
     
@@ -2510,8 +2510,8 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     To check inclusion in a subquery, call the `contains` method on another request:
     
     ```swift
-    // SELECT * FROM "events"
-    //  WHERE ("userId" IN (SELECT "id" FROM "persons" WHERE "verified"))
+    // SELECT * FROM events
+    //  WHERE userId IN (SELECT id FROM persons WHERE verified)
     let verifiedUserIds = User.select(idColumn).filter(verifiedColumn)
     Event.filter(verifiedUserIds.contains(userIdColumn))
     ```
@@ -2521,8 +2521,8 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     To check is a subquery would return any row, use the `exists` property on another request:
     
     ```swift
-    // SELECT * FROM "persons"
-    // WHERE EXISTS (SELECT * FROM "books"
+    // SELECT * FROM persons
+    // WHERE EXISTS (SELECT * FROM books
     //                WHERE books.ownerId = persons.id)
     Person.filter(Book.filter(sql: "books.ownerId = persons.id").exists)
     ```
@@ -2535,13 +2535,13 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Those are based on the `abs`, `average`, `count`, `max`, `min` and `sum` Swift functions:
     
     ```swift
-    // SELECT MIN("age"), MAX("age") FROM persons
+    // SELECT MIN(age), MAX(age) FROM persons
     Person.select(min(ageColumn), max(ageColumn))
     
-    // SELECT COUNT("name") FROM persons
+    // SELECT COUNT(name) FROM persons
     Person.select(count(nameColumn))
     
-    // SELECT COUNT(DISTINCT "name") FROM persons
+    // SELECT COUNT(DISTINCT name) FROM persons
     Person.select(count(distinct: nameColumn))
     ```
 
@@ -2550,10 +2550,10 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Use the Swift `??` operator:
     
     ```swift
-    // SELECT IFNULL("name", 'Anonymous') FROM persons
+    // SELECT IFNULL(name, 'Anonymous') FROM persons
     Person.select(nameColumn ?? "Anonymous")
     
-    // SELECT IFNULL("name", "email") FROM persons
+    // SELECT IFNULL(name, email) FROM persons
     Person.select(nameColumn ?? emailColumn)
     ```
 
@@ -2576,7 +2576,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     ```swift
     let f = DatabaseFunction("f", ...)
     
-    // SELECT f("name") FROM persons
+    // SELECT f(name) FROM persons
     Person.select(f.apply(nameColumn))
     ```
 
@@ -2651,16 +2651,16 @@ Citizenship.fetchOne(db, key: ["personID": 1, "countryISOCode": "FR"]) // Citize
 **Requests can count.** The `fetchCount()` method returns the number of rows that would be returned by a fetch request:
 
 ```swift
-// SELECT COUNT(*) FROM "persons"
+// SELECT COUNT(*) FROM persons
 let count = Person.fetchCount(db) // Int
 
-// SELECT COUNT(*) FROM "persons" WHERE "email" IS NOT NULL
+// SELECT COUNT(*) FROM persons WHERE email IS NOT NULL
 let count = Person.filter(emailColumn != nil).fetchCount(db)
 
-// SELECT COUNT(DISTINCT "name") FROM "persons"
+// SELECT COUNT(DISTINCT name) FROM persons
 let count = Person.select(nameColumn).distinct.fetchCount(db)
 
-// SELECT COUNT(*) FROM (SELECT DISTINCT "name", "age" FROM "persons")
+// SELECT COUNT(*) FROM (SELECT DISTINCT name, age FROM persons)
 let count = Person.select(nameColumn, ageColumn).distinct.fetchCount(db)
 ```
 
@@ -2688,24 +2688,21 @@ Migrations run in order, once and only once. When a user upgrades your applicati
 var migrator = DatabaseMigrator()
 
 // v1.0 database
-migrator.registerMigration("createTables") { db in
-    try db.execute(
-        "CREATE TABLE persons (...); " +
-        "CREATE TABLE books (...)")
+migrator.registerMigration("v1") { db in
+    try db.create(table: "persons") { t in ... }
+    try db.create(table: "books") { t in ... }
 }
 
 // v2.0 database
-migrator.registerMigration("AddBirthDateToPersons") { db in
-    try db.execute(
-        "ALTER TABLE persons ADD COLUMN birthDate DATE")
+migrator.registerMigration("v2") { db in
+    try db.alter(table: "persons") { t in ... }
 }
 
 // Migrations for future versions will be inserted here:
 //
 // // v3.0 database
-// migrator.registerMigration("AddYearAgeToBooks") { db in
-//     try db.execute(
-//         "ALTER TABLE books ADD COLUMN year INT")
+// migrator.registerMigration("v3") { db in
+//     ...
 // }
 
 try migrator.migrate(dbQueue) // or migrator.migrate(dbPool)
