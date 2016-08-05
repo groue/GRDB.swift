@@ -288,8 +288,8 @@ class SQLTableBuilderTests: GRDBTestCase {
                     t.column("b", .Text)
                 }
                 try db.create(table: "child") { t in
-                    t.foreignKey(["c", "d"], to: "parent", onDelete: .Cascade, onUpdate: .Cascade)
-                    t.foreignKey(["d", "e"], to: "parent", columns: ["b", "a"], onDelete: .Restrict, deferred: true)
+                    t.foreignKey(["c", "d"], references: "parent", onDelete: .Cascade, onUpdate: .Cascade)
+                    t.foreignKey(["d", "e"], references: "parent", columns: ["b", "a"], onDelete: .Restrict, deferred: true)
                     t.column("c", .Text)
                     t.column("d", .Text)
                     t.column("e", .Text)
