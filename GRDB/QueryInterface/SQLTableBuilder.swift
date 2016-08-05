@@ -151,6 +151,7 @@ public class SQLColumnBuilder {
     }
     
     // TODO: doc
+    // TODO: defaults(sql: "CURRENT_TIMESTAMP")
     public func defaults(value: _SQLExpressible) {
         defaultExpression = value.sqlExpression
     }
