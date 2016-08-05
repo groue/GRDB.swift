@@ -210,6 +210,63 @@ class SQLTableBuilderTests: GRDBTestCase {
         }
     }
     
+    func testTablePrimaryKey() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inTransaction { db in
+                try db.create(table: "test") { t in
+                    t.column("a", .Text)
+                    t.column("b", .Text)
+                    t.primaryKey(["a", "b"])
+                }
+                XCTAssertEqual(self.lastSQLQuery,
+                    "CREATE TABLE \"test\" (" +
+                        "\"a\" TEXT, " +
+                        "\"b\" TEXT, " +
+                        "PRIMARY KEY (\"a\", \"b\")" +
+                    ")")
+                return .Rollback
+            }
+            try dbQueue.inTransaction { db in
+                try db.create(table: "test") { t in
+                    t.column("a", .Text)
+                    t.column("b", .Text)
+                    t.primaryKey(["a", "b"], onConflict: .Fail)
+                }
+                XCTAssertEqual(self.lastSQLQuery,
+                    "CREATE TABLE \"test\" (" +
+                        "\"a\" TEXT, " +
+                        "\"b\" TEXT, " +
+                        "PRIMARY KEY (\"a\", \"b\") ON CONFLICT FAIL" +
+                    ")")
+                return .Rollback
+            }
+        }
+    }
+    
+    func testTableUniqueKey() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.create(table: "test") { t in
+                    t.column("a", .Text)
+                    t.column("b", .Text)
+                    t.column("c", .Text)
+                    t.uniqueKey(["a"])
+                    t.uniqueKey(["b", "c"], onConflict: .Fail)
+                }
+                XCTAssertEqual(self.lastSQLQuery,
+                    "CREATE TABLE \"test\" (" +
+                        "\"a\" TEXT, " +
+                        "\"b\" TEXT, " +
+                        "\"c\" TEXT, " +
+                        "UNIQUE (\"a\"), " +
+                        "UNIQUE (\"b\", \"c\") ON CONFLICT FAIL" +
+                    ")")
+            }
+        }
+    }
+    
     func testDropTable() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()

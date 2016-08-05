@@ -4,6 +4,8 @@ public class SQLTableBuilder {
     let ifNotExists: Bool
     let withoutRowID: Bool
     var columns: [SQLColumnBuilder] = []
+    var primaryKeyConstraint: (columns: [String], conflictResolution: SQLConflictResolution?)?
+    var uniqueKeyConstraints: [(columns: [String], conflictResolution: SQLConflictResolution?)] = []
     
     init(name: String, temporary: Bool, ifNotExists: Bool, withoutRowID: Bool) {
         self.name = name
@@ -19,6 +21,19 @@ public class SQLTableBuilder {
         return column
     }
     
+    // TODO: doc
+    public func primaryKey(columns: [String], onConflict conflictResolution: SQLConflictResolution? = nil) {
+        guard primaryKeyConstraint == nil else {
+            fatalError("can't define several primary keys")
+        }
+        primaryKeyConstraint = (columns: columns, conflictResolution: conflictResolution)
+    }
+    
+    // TODO: doc
+    public func uniqueKey(columns: [String], onConflict conflictResolution: SQLConflictResolution? = nil) {
+        uniqueKeyConstraints.append((columns: columns, conflictResolution: conflictResolution))
+    }
+    
     func sql(db: Database) throws -> String {
         var chunks: [String] = []
         chunks.append("CREATE")
@@ -30,7 +45,36 @@ public class SQLTableBuilder {
             chunks.append("IF NOT EXISTS")
         }
         chunks.append(name.quotedDatabaseIdentifier)
-        try chunks.append("(" + (columns.map { try $0.sql(db) } as [String]).joinWithSeparator(", ") + ")")
+        
+        do {
+            var items: [String] = []
+            try items.appendContentsOf(columns.map { try $0.sql(db) })
+            
+            if let (columns, conflictResolution) = primaryKeyConstraint {
+                var chunks: [String] = []
+                chunks.append("PRIMARY KEY")
+                chunks.append("(\((columns.map { $0.quotedDatabaseIdentifier } as [String]).joinWithSeparator(", ")))")
+                if let conflictResolution = conflictResolution {
+                    chunks.append("ON CONFLICT")
+                    chunks.append(conflictResolution.rawValue)
+                }
+                items.append(chunks.joinWithSeparator(" "))
+            }
+            
+            for (columns, conflictResolution) in uniqueKeyConstraints {
+                var chunks: [String] = []
+                chunks.append("UNIQUE")
+                chunks.append("(\((columns.map { $0.quotedDatabaseIdentifier } as [String]).joinWithSeparator(", ")))")
+                if let conflictResolution = conflictResolution {
+                    chunks.append("ON CONFLICT")
+                    chunks.append(conflictResolution.rawValue)
+                }
+                items.append(chunks.joinWithSeparator(" "))
+            }
+            
+            chunks.append("(\(items.joinWithSeparator(", ")))")
+        }
+        
         if withoutRowID {
             chunks.append("WITHOUT ROWID")
         }
