@@ -9,8 +9,20 @@ extension Database {
     }
     
     // TODO: doc
+    public func create(index name: String, on table: String, columns: [String], unique: Bool = false, ifNotExists: Bool = false, condition: _SQLExpressible? = nil) throws {
+        let builder = IndexBuilder(name: name, table: table, columns: columns, unique: unique, ifNotExists: ifNotExists, condition: condition?.sqlExpression)
+        let sql = builder.sql()
+        try execute(sql)
+    }
+
+    // TODO: doc
     public func drop(table name: String) throws {
         try execute("DROP TABLE \(name.quotedDatabaseIdentifier)")
+    }
+    
+    // TODO: doc
+    public func drop(index name: String) throws {
+        try execute("DROP INDEX \(name.quotedDatabaseIdentifier)")
     }
 }
 
@@ -247,8 +259,8 @@ extension SQLTableBuilder {
             
             for checkExpression in checkConstraints {
                 var chunks: [String] = []
-                var arguments: StatementArguments? = nil // nil so that checkExpression.sql(&arguments) embeds literals
                 chunks.append("CHECK")
+                var arguments: StatementArguments? = nil // nil so that checkExpression.sql(&arguments) embeds literals
                 chunks.append("(" + checkExpression.sql(&arguments) + ")")
                 items.append(chunks.joinWithSeparator(" "))
             }
@@ -304,8 +316,8 @@ extension SQLColumnBuilder {
         }
         
         if let checkExpression = checkExpression {
-            var arguments: StatementArguments? = nil // nil so that checkExpression.sql(&arguments) embeds literals
             chunks.append("CHECK")
+            var arguments: StatementArguments? = nil // nil so that checkExpression.sql(&arguments) embeds literals
             chunks.append("(" + checkExpression.sql(&arguments) + ")")
         }
         
@@ -342,6 +354,36 @@ extension SQLColumnBuilder {
             }
         }
         
+        return chunks.joinWithSeparator(" ")
+    }
+}
+
+struct IndexBuilder {
+    let name: String
+    let table: String
+    let columns: [String]
+    let unique: Bool
+    let ifNotExists: Bool
+    let condition: _SQLExpression?
+    
+    func sql() -> String {
+        var chunks: [String] = []
+        chunks.append("CREATE")
+        if unique {
+            chunks.append("UNIQUE")
+        }
+        chunks.append("INDEX")
+        if ifNotExists {
+            chunks.append("IF NOT EXISTS")
+        }
+        chunks.append(name.quotedDatabaseIdentifier)
+        chunks.append("ON")
+        chunks.append("\(table.quotedDatabaseIdentifier)(\((columns.map { $0.quotedDatabaseIdentifier } as [String]).joinWithSeparator(", ")))")
+        if let condition = condition {
+            chunks.append("WHERE")
+            var arguments: StatementArguments? = nil // nil so that checkExpression.sql(&arguments) embeds literals
+            chunks.append(condition.sql(&arguments))
+        }
         return chunks.joinWithSeparator(" ")
     }
 }

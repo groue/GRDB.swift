@@ -350,4 +350,45 @@ class SQLTableBuilderTests: GRDBTestCase {
             }
         }
     }
+    
+    func testCreateIndex() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.create(table: "test") { t in
+                    t.column("id", .Integer).primaryKey()
+                    t.column("a", .Text)
+                    t.column("b", .Text)
+                }
+                
+                try db.create(index: "test_on_a", on: "test", columns: ["a"])
+                XCTAssertEqual(self.lastSQLQuery, "CREATE INDEX \"test_on_a\" ON \"test\"(\"a\")")
+                
+                try db.create(index: "test_on_a_b", on: "test", columns: ["a", "b"], unique: true, ifNotExists: true, condition: SQLColumn("a") == 1)
+                XCTAssertEqual(self.lastSQLQuery, "CREATE UNIQUE INDEX IF NOT EXISTS \"test_on_a_b\" ON \"test\"(\"a\", \"b\") WHERE (\"a\" = 1)")
+                
+                // Sanity check
+                XCTAssertEqual(Set(db.indexes(on: "test").map { $0.name }), ["test_on_a", "test_on_a_b"])
+            }
+        }
+    }
+    
+    func testDropIndex() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.create(table: "test") { t in
+                    t.column("id", .Integer).primaryKey()
+                    t.column("name", .Text)
+                }
+                try db.create(index: "test_on_name", on: "test", columns: ["name"])
+                
+                try db.drop(index: "test_on_name")
+                XCTAssertEqual(self.lastSQLQuery, "DROP INDEX \"test_on_name\"")
+                
+                // Sanity check
+                XCTAssertTrue(db.indexes(on: "test").isEmpty)
+            }
+        }
+    }
 }
