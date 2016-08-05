@@ -64,7 +64,7 @@ public final class SQLColumnBuilder {
     var notNullConflictResolution: SQLConflictResolution?
     var uniqueConflictResolution: SQLConflictResolution?
     var checkExpression: _SQLExpression?
-    var defaultValue: DatabaseValueConvertible?
+    var defaultExpression: _SQLExpression?
     var collationName: String?
     var reference: (table: String, column: String?, deleteAction: SQLForeignKeyAction?, updateAction: SQLForeignKeyAction?, deferred: Bool)?
     
@@ -94,9 +94,18 @@ public final class SQLColumnBuilder {
     }
     
     // TODO: doc
-    // TODO: defaults(sql: "CURRENT_TIMESTAMP")
+    public func check(sql sql: String) {
+        checkExpression = _SQLExpression.Literal(sql, nil)
+    }
+    
+    // TODO: doc
     public func defaults(value: DatabaseValueConvertible) {
-        defaultValue = value
+        defaultExpression = value.sqlExpression
+    }
+    
+    // TODO: doc
+    public func defaults(sql sql: String) {
+        defaultExpression = _SQLExpression.Literal(sql, nil)
     }
     
     // TODO: doc
@@ -281,10 +290,10 @@ extension SQLColumnBuilder {
             chunks.append("(" + checkExpression.sql(&arguments) + ")")
         }
         
-        if let defaultValue = defaultValue {
-            var arguments: StatementArguments? = nil // nil so that defaultValue.sqlExpression.sql(&arguments) embeds literals
+        if let defaultExpression = defaultExpression {
+            var arguments: StatementArguments? = nil // nil so that defaultExpression.sql(&arguments) embeds literals
             chunks.append("DEFAULT")
-            chunks.append("(" + defaultValue.sqlExpression.sql(&arguments) + ")")
+            chunks.append("(" + defaultExpression.sql(&arguments) + ")")
         }
         
         if let collationName = collationName {

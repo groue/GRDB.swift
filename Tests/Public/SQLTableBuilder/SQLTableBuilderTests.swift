@@ -124,16 +124,18 @@ class SQLTableBuilderTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.create(table: "test") { t in
                     t.column("a", .Integer).check { $0 > 0 }
+                    t.column("b", .Integer).check(sql: "b <> 2")
                 }
                 XCTAssertEqual(self.lastSQLQuery,
                     "CREATE TABLE \"test\" (" +
-                        "\"a\" INTEGER CHECK ((\"a\" > 0))" +
+                        "\"a\" INTEGER CHECK ((\"a\" > 0)), " +
+                        "\"b\" INTEGER CHECK (b <> 2)" +
                     ")")
                 
                 // Sanity check
-                try db.execute("INSERT INTO test (a) VALUES (1)")
+                try db.execute("INSERT INTO test (a, b) VALUES (1, 0)")
                 do {
-                    try db.execute("INSERT INTO test (a) VALUES (0)")
+                    try db.execute("INSERT INTO test (a, b) VALUES (0, 0)")
                     XCTFail()
                 } catch {
                 }
@@ -147,10 +149,18 @@ class SQLTableBuilderTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.create(table: "test") { t in
                     t.column("a", .Integer).defaults(1)
+                    t.column("b", .Integer).defaults(1.0)
+                    t.column("c", .Integer).defaults("foo")
+                    t.column("d", .Integer).defaults("foo".dataUsingEncoding(NSUTF8StringEncoding)!)
+                    t.column("e", .Integer).defaults(sql: "NULL")
                 }
                 XCTAssertEqual(self.lastSQLQuery,
                     "CREATE TABLE \"test\" (" +
-                        "\"a\" INTEGER DEFAULT (1)" +
+                        "\"a\" INTEGER DEFAULT (1), " +
+                        "\"b\" INTEGER DEFAULT (1.0), " +
+                        "\"c\" INTEGER DEFAULT ('foo'), " +
+                        "\"d\" INTEGER DEFAULT (x'666f6f'), " +
+                        "\"e\" INTEGER DEFAULT (NULL)" +
                     ")")
                 
                 // Sanity check
