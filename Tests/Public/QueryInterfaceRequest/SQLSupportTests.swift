@@ -885,6 +885,14 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT AVG((\"age\" / 2)) FROM \"readers\"")
     }
     
+    func testLengthExpression() {
+        let dbQueue = try! makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(length(Col.name))),
+            "SELECT LENGTH(\"name\") FROM \"readers\"")
+    }
+    
     func testMinExpression() {
         let dbQueue = try! makeDatabaseQueue()
         

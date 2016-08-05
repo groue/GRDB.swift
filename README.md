@@ -2194,11 +2194,13 @@ Define not null and unique columns, and set default values:
     t.column("flag", .Boolean).notNull().default(false)
 ```
     
-Perform integrity checks on individual columns (SQLite will only allow conforming rows):
+Perform integrity checks on individual columns, and SQLite will only let conforming rows in. In the example below, the `$0` closure variable is a column which lets you build any SQL [expression](#expressions).
 
 ```swift
     // age INTEGER CHECK (age > 0)
+    // name TEXT CHECK (LENGTH(name) > 0)
     t.column("age", .Integer).check { $0 > 0 }
+    t.column("name", .Text).check { length($0) > 0 }
 ```
 
 Use individual columns as primary or foreign keys. When not specified, the referenced column is the primary key of the referenced table:

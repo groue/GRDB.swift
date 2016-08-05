@@ -326,7 +326,7 @@ class SQLTableBuilderTests: GRDBTestCase {
                 // Sanity check
                 try db.execute("INSERT INTO test (a, b) VALUES (1, 0)")
                 do {
-                    try db.execute("INSERT INTO test (a, b) VALUES (0, 1)")
+                    try db.execute("INSERT INTO test (a, b) VALUES (5, 5)")
                     XCTFail()
                 } catch {
                 }

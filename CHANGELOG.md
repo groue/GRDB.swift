@@ -21,6 +21,8 @@ Release Notes
     }
     ```
 
+- Support for the `length` SQLite built-in function.
+
 **Breaking Changes**
 
 - Built-in SQLite collations used to be named by string: "NOCASE", etc. Now use the SQLCollation enum: `.Nocase`, etc.
