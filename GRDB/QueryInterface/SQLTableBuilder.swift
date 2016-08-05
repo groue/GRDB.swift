@@ -46,7 +46,7 @@ public class SQLColumnBuilder {
     var checkExpression: _SQLExpression?
     var defaultExpression: _SQLExpression?
     var collationName: String?
-    var reference: (table: String, column: String?, deleteAction: SQLForeignKeyAction?, updateAction: SQLForeignKeyAction?)?
+    var reference: (table: String, column: String?, deleteAction: SQLForeignKeyAction?, updateAction: SQLForeignKeyAction?, deferred: Bool)?
     
     init(name: String, type: SQLColumnType) {
         self.name = name
@@ -81,8 +81,8 @@ public class SQLColumnBuilder {
         collationName = collation.name
     }
     
-    public func references(table: String, column: String? = nil, onDelete deleteAction: SQLForeignKeyAction? = nil, onUpdate updateAction: SQLForeignKeyAction? = nil) {
-        reference = (table: table, column: column, deleteAction: deleteAction, updateAction: updateAction)
+    public func references(table: String, column: String? = nil, onDelete deleteAction: SQLForeignKeyAction? = nil, onUpdate updateAction: SQLForeignKeyAction? = nil, deferred: Bool = false) {
+        reference = (table: table, column: column, deleteAction: deleteAction, updateAction: updateAction, deferred: deferred)
     }
     
     func sql(db: Database) throws -> String {
@@ -141,7 +141,7 @@ public class SQLColumnBuilder {
             chunks.append(collationName)
         }
         
-        if let (table, column, deleteAction, updateAction) = reference {
+        if let (table, column, deleteAction, updateAction, deferred) = reference {
             chunks.append("REFERENCES")
             if let column = column {
                 chunks.append("\(table.quotedDatabaseIdentifier)(\(column.quotedDatabaseIdentifier))")
@@ -157,6 +157,9 @@ public class SQLColumnBuilder {
             if let updateAction = updateAction {
                 chunks.append("ON UPDATE")
                 chunks.append(updateAction.rawValue)
+            }
+            if deferred {
+                chunks.append("DEFERRABLE INITIALLY DEFERRED")
             }
         }
         

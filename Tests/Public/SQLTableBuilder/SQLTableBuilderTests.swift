@@ -199,12 +199,12 @@ class SQLTableBuilderTests: GRDBTestCase {
                 }
                 try db.create(table: "child") { t in
                     t.column("parentName", .Text).references("parent", onDelete: .Cascade, onUpdate: .Cascade)
-                    t.column("parentEmail", .Text).references("parent", column: "email", onDelete: .Restrict)
+                    t.column("parentEmail", .Text).references("parent", column: "email", onDelete: .Restrict, deferred: true)
                 }
                 XCTAssertEqual(self.lastSQLQuery,
                     "CREATE TABLE \"child\" (" +
                         "\"parentName\" TEXT REFERENCES \"parent\"(\"name\") ON DELETE CASCADE ON UPDATE CASCADE, " +
-                        "\"parentEmail\" TEXT REFERENCES \"parent\"(\"email\") ON DELETE RESTRICT" +
+                        "\"parentEmail\" TEXT REFERENCES \"parent\"(\"email\") ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED" +
                     ")")
             }
         }
