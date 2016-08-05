@@ -2273,7 +2273,7 @@ try db.create(index: "byEmail", on: "users", columns: ["email"], unique: true)
 **The query interface requests** let you fetch values from the database:
 
 ```swift
-let request = Person.filter(email != nil).order(name)
+let request = Person.filter(emailColumn != nil).order(nameColumn)
 let persons = request.fetchAll(db)  // [Person]
 let count = request.fetchCount(db)  // Int
 ```
