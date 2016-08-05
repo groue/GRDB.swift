@@ -8,7 +8,30 @@ Release Notes
 - Upgrade sqlcipher to v3.4.0 ([announcement](https://discuss.zetetic.net/t/sqlcipher-3-4-0-release/1273), [changelog](https://github.com/sqlcipher/sqlcipher/blob/master/CHANGELOG.md))
 
 - Row adopts DictionaryLiteralConvertible
-    
+
+- Database schema DSL (TODO: doc link):
+
+    ```swift
+    // CREATE TABLE pointOfInterests (
+    //   id INTEGER PRIMARY KEY,
+    //   title TEXT,
+    //   favorite BOOLEAN NOT NULL,
+    //   latitude DOUBLE NOT NULL,
+    //   longitude DOUBLE NOT NULL
+    // )
+    db.create(table: "pointOfInterests") { t in
+        t.column("id", .Integer).primaryKey()
+        t.column("title", .Text)
+        t.column("favorite", .Boolean).notNull()
+        t.column("longitude", .Double).notNull()
+        t.column("latitude", .Double).notNull()
+    }
+    ```
+
+**Breaking Changes**
+
+- Built-in SQLite collations used to be named by string: "NOCASE", etc. Now use the SQLCollation enum: `.Nocase`, etc.
+
 
 ## 0.77.0
 

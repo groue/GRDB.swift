@@ -53,12 +53,16 @@ extension _SQLCollatedExpression : _SQLOrdering {
 
 extension _SpecificSQLExpressible {
     
+    func collating(collationName: String) -> _SQLCollatedExpression {
+        return _SQLCollatedExpression(baseExpression: sqlExpression, collationName: collationName)
+    }
+    
     /// This method is an implementation detail of the query interface.
     /// Do not use it directly.
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public func collating(collationName: String) -> _SQLCollatedExpression {
-        return _SQLCollatedExpression(baseExpression: sqlExpression, collationName: collationName)
+    public func collating(collation: SQLCollation) -> _SQLCollatedExpression {
+        return collating(collation.rawValue)
     }
     
     /// This method is an implementation detail of the query interface.
