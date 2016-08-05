@@ -150,7 +150,7 @@ class SQLTableBuilderTests: GRDBTestCase {
                 try db.create(table: "test") { t in
                     t.column("a", .Integer).defaults(1)
                     t.column("b", .Integer).defaults(1.0)
-                    t.column("c", .Integer).defaults("foo")
+                    t.column("c", .Integer).defaults("'fooéı👨👨🏿🇫🇷🇨🇮'")
                     t.column("d", .Integer).defaults("foo".dataUsingEncoding(NSUTF8StringEncoding)!)
                     t.column("e", .Integer).defaults(sql: "NULL")
                 }
@@ -158,7 +158,7 @@ class SQLTableBuilderTests: GRDBTestCase {
                     "CREATE TABLE \"test\" (" +
                         "\"a\" INTEGER DEFAULT 1, " +
                         "\"b\" INTEGER DEFAULT 1.0, " +
-                        "\"c\" INTEGER DEFAULT 'foo', " +
+                        "\"c\" INTEGER DEFAULT '''fooéı👨👨🏿🇫🇷🇨🇮''', " +
                         "\"d\" INTEGER DEFAULT x'666f6f', " +
                         "\"e\" INTEGER DEFAULT NULL" +
                     ")")
@@ -166,6 +166,7 @@ class SQLTableBuilderTests: GRDBTestCase {
                 // Sanity check
                 try db.execute("INSERT INTO test DEFAULT VALUES")
                 XCTAssertEqual(Int.fetchOne(db, "SELECT a FROM test")!, 1)
+                XCTAssertEqual(String.fetchOne(db, "SELECT c FROM test")!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
             }
         }
     }
