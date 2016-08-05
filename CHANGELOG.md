@@ -12,13 +12,6 @@ Release Notes
 - Database schema DSL (TODO: doc link):
 
     ```swift
-    // CREATE TABLE pointOfInterests (
-    //   id INTEGER PRIMARY KEY,
-    //   title TEXT,
-    //   favorite BOOLEAN NOT NULL,
-    //   latitude DOUBLE NOT NULL,
-    //   longitude DOUBLE NOT NULL
-    // )
     db.create(table: "pointOfInterests") { t in
         t.column("id", .Integer).primaryKey()
         t.column("title", .Text)

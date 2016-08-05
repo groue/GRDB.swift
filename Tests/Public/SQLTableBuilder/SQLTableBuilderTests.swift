@@ -310,7 +310,7 @@ class SQLTableBuilderTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.create(table: "test") { t in
-                    t.check(SQLColumn("a") > SQLColumn("b"))
+                    t.check(SQLColumn("a") + SQLColumn("b") < 10)
                     t.check(sql: "a + b < 10")
                     t.column("a", .Integer)
                     t.column("b", .Integer)
@@ -319,7 +319,7 @@ class SQLTableBuilderTests: GRDBTestCase {
                     "CREATE TABLE \"test\" (" +
                         "\"a\" INTEGER, " +
                         "\"b\" INTEGER, " +
-                        "CHECK ((\"a\" > \"b\")), " +
+                        "CHECK (((\"a\" + \"b\") < 10)), " +
                         "CHECK (a + b < 10)" +
                     ")")
                 

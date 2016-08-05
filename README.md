@@ -5,7 +5,7 @@ GRDB.swift [![Swift](https://img.shields.io/badge/swift-2.2-orange.svg?style=fla
 
 **Requirements**: iOS 8.0+ / OSX 10.9+ &bull; Xcode 7.3+ &bull; Swift 2.2 (see the [Swift3](https://github.com/groue/GRDB.swift/tree/Swift3) branch for Swift 3).
 
-**Last release**: July 28, 2016 &bull; version 0.77.0 &bull; [CHANGELOG](CHANGELOG.md)
+**Latest release**: July 28, 2016 &bull; version 0.77.0 &bull; [CHANGELOG](CHANGELOG.md)
 
 Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
@@ -130,17 +130,24 @@ try dbQueue.inDatabase { db in
 Avoid SQL with the [query interface](#the-query-interface):
 
 ```swift
-let titleColumn = SQLColumn("title")
-let favoriteColumn = SQLColumn("favorite")
-
 dbQueue.inDatabase { db in
+    try db.create(table: "pointOfInterests") { t in
+        t.column("id", .Integer).primaryKey()
+        t.column("title", .Text)
+        t.column("favorite", .Boolean).notNull()
+        t.column("longitude", .Double).notNull()
+        t.column("latitude", .Double).notNull()
+    }
+    
     // PointOfInterest?
     let paris = PointOfInterest.fetchOne(db, key: 1)
     
     // PointOfInterest?
+    let titleColumn = SQLColumn("title")
     let berlin = PointOfInterest.filter(titleColumn == "Berlin").fetchOne(db)
     
     // [PointOfInterest]
+    let favoriteColumn = SQLColumn("favorite")
     let favoritePois = PointOfInterest
         .filter(favoriteColumn)
         .order(titleColumn)
@@ -1593,7 +1600,7 @@ let person = Person(name: "Arthur", email: "arthur@example.com")
 try person.insert(db)
 ```
 
-Of course, you need to open a [database connection](#database-connections), and [create a database table](#executing-updates) first.
+Of course, you need to open a [database connection](#database-connections), and [create a database table](#database-schema) first.
 
 
 #### Fetching Records
@@ -2119,6 +2126,7 @@ let wines = Wine.fetchAll(db, "SELECT * FROM wines WHERE origin = ? ORDER BY pri
 
 So don't miss the [SQL API](#sqlite-api).
 
+- [Database Schema](#database-schema)
 - [Requests](#requests)
 - [Expressions](#expressions)
     - [SQL Operators](#sql-operators)
@@ -2128,9 +2136,139 @@ So don't miss the [SQL API](#sqlite-api).
 - [Fetching Aggregated Values](#fetching-aggregated-values)
 
 
+### Database Schema
+
+Once granted with a [database connection](#database-connections), you can use the query interface to setup your database schema.
+
+- [Create Tables](#create-tables)
+- [Modify Tables](#alter-tables)
+- [Drop Tables](#drop-tables)
+- [Create Indexes](#create-indexes)
+
+
+#### Create Tables
+
+```swift
+// CREATE TABLE pointOfInterests (
+//   id INTEGER PRIMARY KEY,
+//   title TEXT,
+//   favorite BOOLEAN NOT NULL DEFAULT 0,
+//   latitude DOUBLE NOT NULL,
+//   longitude DOUBLE NOT NULL
+// )
+try db.create(table: "pointOfInterests") { t in
+    t.column("id", .Integer).primaryKey()
+    t.column("title", .Text)
+    t.column("favorite", .Boolean).notNull().default(false)
+    t.column("longitude", .Double).notNull()
+    t.column("latitude", .Double).notNull()
+}
+```
+
+The `create(table:)` method covers nearly all [CREATE TABLE](https://www.sqlite.org/lang_createtable.html) SQLite statements:
+
+```swift
+// CREATE TEMPORARY TABLE demo IF NOT EXISTS (
+try db.create(table: "demo", temporary: true, ifNotExists: true) { t in
+```
+
+Add regular columns with their name and type (text, integer, double, numeric, boolean, blob, date and datetime) - see [SQLite data types](https://www.sqlite.org/datatype3.html):
+
+```swift
+    // name TEXT,
+    t.column("name", .Text)
+    // creationDate DATETIME,
+    t.column("creationDate", .Datetime)
+```
+
+Define not null and unique columns, and set default values:
+
+```swift
+    // email TEXT NOT NULL UNIQUE,
+    t.column("email", .Text).notNull().unique()
+    
+    // uuid TEXT UNIQUE ON CONFLICT REPLACE,
+    t.column("uuid", .Text).unique(onConflict: .Replace)
+    
+    // flag BOOLEAN NOT NULL DEFAULT 0,
+    t.column("flag", .Boolean).notNull().default(false)
+```
+    
+Perform integrity checks on individual columns (SQLite will only allow conforming rows):
+
+```swift
+    // age INTEGER CHECK (age > 0)
+    t.column("age", .Integer).check { $0 > 0 }
+```
+
+Use individual columns as primary or foreign keys. When not specified, the referenced column is the primary key of the referenced table:
+
+```swift
+    // id INTEGER PRIMARY KEY,
+    t.column("id", .Integer).primaryKey()
+    
+    // countryCode TEXT REFERENCES countries(code) ON DELETE CASCADE,
+    t.column("countryCode", .Text).references("countries", onDelete: .Cascade)
+```
+
+Other constraints can involve several columns:
+
+```swift
+    // PRIMARY KEY (a, b),
+    t.primaryKey(["a", "b"])
+    
+    // UNIQUE (a, b) ON CONFLICT REPLACE,
+    t.uniqueKey(["a", "b"], onConfict: .Replace)
+    
+    // FOREIGN KEY (c, d) REFERENCES parents(a, b),
+    t.foreignKey(["c", "d"], to: "parent", columns: ["a", "b"])
+    
+    // CHECK (a + b < 10),
+    t.check(SQLColumn("a") + SQLColumn("b") < 10)
+    
+    // CHECK (a + b < 10)
+    t.check(sql: "a + b < 10")
+}
+```
+
+#### Modify Tables
+
+SQLite let you rename tables, and add columns to existing tables:
+
+```swift
+// ALTER TABLE referers RENAME TO referrers
+try db.rename(table: "referers", to: "referrers")
+
+// ALTER TABLE persons ADD COLUMN website TEXT
+try db.alter(table: "persons") { t in
+    t.add(column: "website", .Text)
+}
+```
+
+Table alterations are restricted: see the documentation of the [ALTER TABLE](https://www.sqlite.org/lang_altertable.html), and  [Migrations](#migrations) for a way to lift those restrictions.
+
+
+#### Drop Tables
+
+Drop tables with the `drop(table:)` method:
+
+```swift
+try db.drop(table: "obsolete")
+```
+
+#### Create Indexes
+
+Create index with the `create(index:)` method:
+
+```swift
+// CREATE UNIQUE INDEX byEmail ON users(email)
+try db.create(index: "byEmail", on: "users", columns: ["email"], unique: true)
+```
+
+
 ### Requests
 
-Everything starts from **a type** that adopts the `TableMapping` protocol, such as a `Record` subclass (see [Records](#records)):
+**All requests** start from a type that adopts the `TableMapping` protocol, such as a `Record` subclass (see [Records](#records)):
 
 ```swift
 class Person: Record { ... }
@@ -3665,40 +3803,6 @@ for person in persons {
 FAQ
 ===
 
-- **Generic parameter 'T' could not be inferred**
-    
-    You may get this error when using DatabaseQueue.inDatabase, DatabasePool.read, or DatabasePool.write:
-    
-    ```swift
-    // Generic parameter 'T' could not be inferred
-    let x = dbQueue.inDatabase { db in
-        let result = String.fetchOne(db, ...)
-        return result
-    }
-    ```
-    
-    This is a Swift compiler issue (see [SR-1570](https://bugs.swift.org/browse/SR-1570)).
-    
-    The general workaround is to explicitly declare the type of the closure result:
-    
-    ```swift
-    // General Workaround
-    let x = dbQueue.inDatabase { db -> String? in
-        let result = String.fetchOne(db, ...)
-        return result
-    }
-    ```
-    
-    You can also, when possible, write a single-line closure:
-    
-    ```swift
-    // Single-line closure workaround:
-    let x = dbQueue.inDatabase { db in
-        String.fetchOne(db, ...)
-    }
-    ```
-    
-
 - **How do I close a database connection?**
     
     The short answer is:
@@ -3738,6 +3842,39 @@ FAQ
         try! fm.copyItemAtPath(dbResourcePath, toPath: dbPath)
     }
     let dbQueue = DatabaseQueue(path: dbPath)
+    ```
+
+- **Generic parameter 'T' could not be inferred**
+    
+    You may get this error when using DatabaseQueue.inDatabase, DatabasePool.read, or DatabasePool.write:
+    
+    ```swift
+    // Generic parameter 'T' could not be inferred
+    let x = dbQueue.inDatabase { db in
+        let result = String.fetchOne(db, ...)
+        return result
+    }
+    ```
+    
+    This is a Swift compiler issue (see [SR-1570](https://bugs.swift.org/browse/SR-1570)).
+    
+    The general workaround is to explicitly declare the type of the closure result:
+    
+    ```swift
+    // General Workaround
+    let x = dbQueue.inDatabase { db -> String? in
+        let result = String.fetchOne(db, ...)
+        return result
+    }
+    ```
+    
+    You can also, when possible, write a single-line closure:
+    
+    ```swift
+    // Single-line closure workaround:
+    let x = dbQueue.inDatabase { db in
+        String.fetchOne(db, ...)
+    }
     ```
 
 
