@@ -2172,7 +2172,7 @@ The `create(table:)` method covers nearly all [CREATE TABLE](https://www.sqlite.
 try db.create(table: "demo", temporary: true, ifNotExists: true) { t in
 ```
 
-Add regular columns with their name and type (text, integer, double, numeric, boolean, blob, date and datetime) - see [SQLite data types](https://www.sqlite.org/datatype3.html):
+**Add regular columns** with their name and type (text, integer, double, numeric, boolean, blob, date and datetime) - see [SQLite data types](https://www.sqlite.org/datatype3.html):
 
 ```swift
     // name TEXT,
@@ -2181,7 +2181,7 @@ Add regular columns with their name and type (text, integer, double, numeric, bo
     t.column("creationDate", .Datetime)
 ```
 
-Define not null and unique columns, and set default values:
+Define **not null** and **unique** columns, and set **default** values:
 
 ```swift
     // email TEXT NOT NULL UNIQUE,
@@ -2194,7 +2194,7 @@ Define not null and unique columns, and set default values:
     t.column("name", .Text).notNull().default("Anonymous")
 ```
     
-Perform integrity checks on individual columns, and SQLite will only let conforming rows in. In the example below, the `$0` closure variable is a column which lets you build any SQL [expression](#expressions).
+**Perform integrity checks** on individual columns, and SQLite will only let conforming rows in. In the example below, the `$0` closure variable is a column which lets you build any SQL [expression](#expressions).
 
 ```swift
     // age INTEGER CHECK (age > 0)
@@ -2203,7 +2203,7 @@ Perform integrity checks on individual columns, and SQLite will only let conform
     t.column("name", .Text).check { length($0) > 0 }
 ```
 
-Use individual columns as primary or foreign keys. When not specified, the referenced column is the primary key of the referenced table:
+Use an individual columns as a **primary** or **foreign key**. When not specified, the referenced column is the primary key of the referenced table:
 
 ```swift
     // id INTEGER PRIMARY KEY,
@@ -2213,7 +2213,7 @@ Use individual columns as primary or foreign keys. When not specified, the refer
     t.column("countryCode", .Text).references("countries", onDelete: .Cascade)
 ```
 
-Other constraints can involve several columns:
+Other **table constraints** can involve several columns. Integrity checks accept any [expression](#expressions), or a raw SQL snippet:
 
 ```swift
     // PRIMARY KEY (a, b),
