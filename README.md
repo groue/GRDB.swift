@@ -2141,7 +2141,7 @@ So don't miss the [SQL API](#sqlite-api).
 Once granted with a [database connection](#database-connections), you can use the query interface to setup your database schema:
 
 - [Create Tables](#create-tables)
-- [Modify Tables](#alter-tables)
+- [Modify Tables](#modify-tables)
 - [Drop Tables](#drop-tables)
 - [Create Indexes](#create-indexes)
 
@@ -2273,8 +2273,7 @@ try db.create(index: "byEmail", on: "users", columns: ["email"], unique: true)
 **The query interface requests** let you fetch values from the database:
 
 ```swift
-let count = Wine.filter(color == Color.Red).fetchCount(db)
-let wines = Wine.filter(origin == "Burgundy").order(price).fetchAll(db)
+let persons = Person.filter(email != nil).order(name).fetchAll(db)
 ```
 
 All requests start from **a type** that adopts the `TableMapping` protocol, such as a `Record` subclass (see [Records](#records)):
