@@ -156,11 +156,11 @@ class SQLTableBuilderTests: GRDBTestCase {
                 }
                 XCTAssertEqual(self.lastSQLQuery,
                     "CREATE TABLE \"test\" (" +
-                        "\"a\" INTEGER DEFAULT (1), " +
-                        "\"b\" INTEGER DEFAULT (1.0), " +
-                        "\"c\" INTEGER DEFAULT ('foo'), " +
-                        "\"d\" INTEGER DEFAULT (x'666f6f'), " +
-                        "\"e\" INTEGER DEFAULT (NULL)" +
+                        "\"a\" INTEGER DEFAULT 1, " +
+                        "\"b\" INTEGER DEFAULT 1.0, " +
+                        "\"c\" INTEGER DEFAULT 'foo', " +
+                        "\"d\" INTEGER DEFAULT x'666f6f', " +
+                        "\"e\" INTEGER DEFAULT NULL" +
                     ")")
                 
                 // Sanity check
@@ -347,6 +347,26 @@ class SQLTableBuilderTests: GRDBTestCase {
                 XCTAssertEqual(self.lastSQLQuery, "ALTER TABLE \"test\" RENAME TO \"foo\"")
                 XCTAssertFalse(db.tableExists("test"))
                 XCTAssertTrue(db.tableExists("foo"))
+            }
+        }
+    }
+    
+    func testAlterTable() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.create(table: "test") { t in
+                    t.column("a", .Text)
+                }
+                
+                self.sqlQueries.removeAll()
+                try db.alter(table: "test") { t in
+                    t.add(column: "b", .Text)
+                    t.add(column: "c", .Integer).notNull().defaults(1)
+                }
+                
+                XCTAssertEqual(self.sqlQueries[0], "ALTER TABLE \"test\" ADD COLUMN \"b\" TEXT;")
+                XCTAssertEqual(self.sqlQueries[1], " ALTER TABLE \"test\" ADD COLUMN \"c\" INTEGER NOT NULL DEFAULT 1")
             }
         }
     }

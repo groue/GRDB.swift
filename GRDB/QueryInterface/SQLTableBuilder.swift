@@ -14,6 +14,14 @@ extension Database {
     }
     
     // TODO: doc
+    public func alter(table name: String, body: (SQLTableAlterationBuilder) -> Void) throws {
+        let builder = SQLTableAlterationBuilder(name: name)
+        body(builder)
+        let sql = try builder.sql(self)
+        try execute(sql)
+    }
+    
+    // TODO: doc
     public func drop(table name: String) throws {
         try execute("DROP TABLE \(name.quotedDatabaseIdentifier)")
     }
@@ -31,6 +39,7 @@ extension Database {
     }
 }
 
+// TODO: doc
 public final class SQLTableBuilder {
     let name: String
     let temporary: Bool
@@ -85,6 +94,24 @@ public final class SQLTableBuilder {
     }
 }
 
+// TODO: doc
+public final class SQLTableAlterationBuilder {
+    let name: String
+    var addedColumns: [SQLColumnBuilder] = []
+    
+    init(name: String) {
+        self.name = name
+    }
+    
+    // TODO: doc
+    public func add(column name: String, _ type: SQLColumnType) -> SQLColumnBuilder {
+        let column = SQLColumnBuilder(name: name, type: type)
+        addedColumns.append(column)
+        return column
+    }
+}
+
+// TODO: doc
 public final class SQLColumnBuilder {
     let name: String
     let type: SQLColumnType
@@ -102,53 +129,63 @@ public final class SQLColumnBuilder {
     }
     
     // TODO: doc
-    public func primaryKey(ordering ordering: SQLOrdering? = nil, onConflict conflictResolution: SQLConflictResolution? = nil, autoincrement: Bool = false) {
+    public func primaryKey(ordering ordering: SQLOrdering? = nil, onConflict conflictResolution: SQLConflictResolution? = nil, autoincrement: Bool = false) -> SQLColumnBuilder {
         primaryKey = (ordering: ordering, conflictResolution: conflictResolution, autoincrement: autoincrement)
+        return self
     }
     
     // TODO: doc
-    public func notNull(onConflict conflictResolution: SQLConflictResolution? = nil) {
+    public func notNull(onConflict conflictResolution: SQLConflictResolution? = nil) -> SQLColumnBuilder {
         notNullConflictResolution = conflictResolution ?? .Abort
+        return self
     }
     
     // TODO: doc
-    public func unique(onConflict conflictResolution: SQLConflictResolution? = nil) {
+    public func unique(onConflict conflictResolution: SQLConflictResolution? = nil) -> SQLColumnBuilder {
         uniqueConflictResolution = conflictResolution ?? .Abort
+        return self
     }
     
     // TODO: doc
-    public func check(@noescape condition: (SQLColumn) -> _SQLExpressible) {
+    public func check(@noescape condition: (SQLColumn) -> _SQLExpressible) -> SQLColumnBuilder {
         checkExpression = condition(SQLColumn(name)).sqlExpression
+        return self
     }
     
     // TODO: doc
-    public func check(sql sql: String) {
+    public func check(sql sql: String) -> SQLColumnBuilder {
         checkExpression = _SQLExpression.Literal(sql, nil)
+        return self
     }
     
     // TODO: doc
-    public func defaults(value: DatabaseValueConvertible) {
+    public func defaults(value: DatabaseValueConvertible) -> SQLColumnBuilder {
         defaultExpression = value.sqlExpression
+        return self
     }
     
     // TODO: doc
-    public func defaults(sql sql: String) {
+    public func defaults(sql sql: String) -> SQLColumnBuilder {
         defaultExpression = _SQLExpression.Literal(sql, nil)
+        return self
     }
     
     // TODO: doc
-    public func collate(collation: SQLCollation) {
+    public func collate(collation: SQLCollation) -> SQLColumnBuilder {
         collationName = collation.rawValue
+        return self
     }
     
     // TODO: doc
-    public func collate(collation: DatabaseCollation) {
+    public func collate(collation: DatabaseCollation) -> SQLColumnBuilder {
         collationName = collation.name
+        return self
     }
     
     // TODO: doc
-    public func references(table: String, column: String? = nil, onDelete deleteAction: SQLForeignKeyAction? = nil, onUpdate updateAction: SQLForeignKeyAction? = nil, deferred: Bool = false) {
+    public func references(table: String, column: String? = nil, onDelete deleteAction: SQLForeignKeyAction? = nil, onUpdate updateAction: SQLForeignKeyAction? = nil, deferred: Bool = false) -> SQLColumnBuilder {
         reference = (table: table, column: column, deleteAction: deleteAction, updateAction: updateAction, deferred: deferred)
+        return self
     }
 }
 
@@ -280,6 +317,24 @@ extension SQLTableBuilder {
     }
 }
 
+extension SQLTableAlterationBuilder {
+    func sql(db: Database) throws -> String {
+        var statements: [String] = []
+        
+        for column in addedColumns {
+            var chunks: [String] = []
+            chunks.append("ALTER TABLE")
+            chunks.append(name.quotedDatabaseIdentifier)
+            chunks.append("ADD COLUMN")
+            try chunks.append(column.sql(db))
+            let statement = chunks.joinWithSeparator(" ")
+            statements.append(statement)
+        }
+        
+        return statements.joinWithSeparator("; ")
+    }
+}
+
 extension SQLColumnBuilder {
     func sql(db: Database) throws -> String {
         var chunks: [String] = []
@@ -329,7 +384,7 @@ extension SQLColumnBuilder {
         if let defaultExpression = defaultExpression {
             var arguments: StatementArguments? = nil // nil so that defaultExpression.sql(&arguments) embeds literals
             chunks.append("DEFAULT")
-            chunks.append("(" + defaultExpression.sql(&arguments) + ")")
+            chunks.append(defaultExpression.sql(&arguments))
         }
         
         if let collationName = collationName {
