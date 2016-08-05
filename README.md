@@ -1,11 +1,30 @@
 GRDB.swift [![Swift](https://img.shields.io/badge/swift-2.2-orange.svg?style=flat)](https://developer.apple.com/swift/) [![Platforms](https://img.shields.io/cocoapods/p/GRDB.swift.svg)](https://developer.apple.com/swift/) [![License](https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000)](/LICENSE)
 ==========
 
-GRDB.swift is a Swift application toolkit that provides access to SQLite databases.
+### A Swift application toolkit that provides access to SQLite databases.
+
+GRDB provides raw SQLite access and high-level APIs that help building applications.
 
 It targets Swift 2.2, and Swift 3 in the [Swift3](https://github.com/groue/GRDB.swift/tree/Swift3) branch.
 
-It ships with a **low-level SQLite API**, and high-level tools that help dealing with databases:
+**July 28, 2016: GRDB.swift 0.77.0 is out** ([CHANGELOG](CHANGELOG.md)). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
+
+**Requirements**: iOS 8.0+ / OSX 10.9+, Xcode 7.3+
+
+---
+
+<p align="center">
+    <a href="#features">Features</a> &bull;
+    <a href="#usage">Usage</a> &bull;
+    <a href="#documentation">Documentation</a> &bull;
+    <a href="#faq">FAQ</a> &bull;
+</p>
+
+---
+
+## Features
+
+GRDB ships with a **low-level SQLite API**, and high-level tools that help dealing with databases:
 
 - **Records**: fetching and persistence methods for your custom structs and class hierarchies
 - **Query Interface**: a swift way to avoid the SQL language
@@ -25,14 +44,7 @@ More than a set of tools that leverage SQLite abilities, GRDB is also:
 For a general overview of how a protocol-oriented library impacts database acesses, have a look at [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3).
 
 
----
-
-**July 28, 2016: GRDB.swift 0.77.0 is out** ([changelog](CHANGELOG.md)). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
-
-**Requirements**: iOS 8.0+ / OSX 10.9+, Xcode 7.3+
-
-
-### Usage
+## Usage
 
 Open a [connection](#database-connections) to the database:
 
