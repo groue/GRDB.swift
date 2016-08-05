@@ -225,9 +225,9 @@ class SQLTableBuilderTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inTransaction { db in
                 try db.create(table: "test") { t in
+                    t.primaryKey(["a", "b"])
                     t.column("a", .Text)
                     t.column("b", .Text)
-                    t.primaryKey(["a", "b"])
                 }
                 XCTAssertEqual(self.lastSQLQuery,
                     "CREATE TABLE \"test\" (" +
@@ -239,9 +239,9 @@ class SQLTableBuilderTests: GRDBTestCase {
             }
             try dbQueue.inTransaction { db in
                 try db.create(table: "test") { t in
+                    t.primaryKey(["a", "b"], onConflict: .Fail)
                     t.column("a", .Text)
                     t.column("b", .Text)
-                    t.primaryKey(["a", "b"], onConflict: .Fail)
                 }
                 XCTAssertEqual(self.lastSQLQuery,
                     "CREATE TABLE \"test\" (" +
@@ -259,11 +259,11 @@ class SQLTableBuilderTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.create(table: "test") { t in
+                    t.uniqueKey(["a"])
+                    t.uniqueKey(["b", "c"], onConflict: .Fail)
                     t.column("a", .Text)
                     t.column("b", .Text)
                     t.column("c", .Text)
-                    t.uniqueKey(["a"])
-                    t.uniqueKey(["b", "c"], onConflict: .Fail)
                 }
                 XCTAssertEqual(self.lastSQLQuery,
                     "CREATE TABLE \"test\" (" +
@@ -282,16 +282,16 @@ class SQLTableBuilderTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.create(table: "parent") { t in
+                    t.primaryKey(["a", "b"])
                     t.column("a", .Text)
                     t.column("b", .Text)
-                    t.primaryKey(["a", "b"])
                 }
                 try db.create(table: "child") { t in
+                    t.foreignKey(["c", "d"], to: "parent", onDelete: .Cascade, onUpdate: .Cascade)
+                    t.foreignKey(["d", "e"], to: "parent", columns: ["b", "a"], onDelete: .Restrict, deferred: true)
                     t.column("c", .Text)
                     t.column("d", .Text)
                     t.column("e", .Text)
-                    t.foreignKey(["c", "d"], to: "parent", onDelete: .Cascade, onUpdate: .Cascade)
-                    t.foreignKey(["d", "e"], to: "parent", columns: ["b", "a"], onDelete: .Restrict, deferred: true)
                 }
                 XCTAssertEqual(self.lastSQLQuery,
                     "CREATE TABLE \"child\" (" +
@@ -310,10 +310,10 @@ class SQLTableBuilderTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.create(table: "test") { t in
-                    t.column("a", .Integer)
-                    t.column("b", .Integer)
                     t.check(SQLColumn("a") > SQLColumn("b"))
                     t.check(sql: "a + b < 10")
+                    t.column("a", .Integer)
+                    t.column("b", .Integer)
                 }
                 XCTAssertEqual(self.lastSQLQuery,
                     "CREATE TABLE \"test\" (" +
