@@ -305,6 +305,35 @@ class SQLTableBuilderTests: GRDBTestCase {
         }
     }
     
+    func testTableCheck() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.create(table: "test") { t in
+                    t.column("a", .Integer)
+                    t.column("b", .Integer)
+                    t.check(SQLColumn("a") > SQLColumn("b"))
+                    t.check(sql: "a + b < 10")
+                }
+                XCTAssertEqual(self.lastSQLQuery,
+                    "CREATE TABLE \"test\" (" +
+                        "\"a\" INTEGER, " +
+                        "\"b\" INTEGER, " +
+                        "CHECK ((\"a\" > \"b\")), " +
+                        "CHECK (a + b < 10)" +
+                    ")")
+                
+                // Sanity check
+                try db.execute("INSERT INTO test (a, b) VALUES (1, 0)")
+                do {
+                    try db.execute("INSERT INTO test (a, b) VALUES (0, 1)")
+                    XCTFail()
+                } catch {
+                }
+            }
+        }
+    }
+    
     func testDropTable() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()

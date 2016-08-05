@@ -23,6 +23,7 @@ public final class SQLTableBuilder {
     var primaryKeyConstraint: (columns: [String], conflictResolution: SQLConflictResolution?)?
     var uniqueKeyConstraints: [(columns: [String], conflictResolution: SQLConflictResolution?)] = []
     var foreignKeyConstraints: [(columns: [String], table: String, destinationColumns: [String]?, deleteAction: SQLForeignKeyAction?, updateAction: SQLForeignKeyAction?, deferred: Bool)] = []
+    var checkConstraints: [_SQLExpression] = []
     
     init(name: String, temporary: Bool, ifNotExists: Bool, withoutRowID: Bool) {
         self.name = name
@@ -54,6 +55,16 @@ public final class SQLTableBuilder {
     // TODO: doc
     public func foreignKey(columns: [String], to table: String, columns destinationColumns: [String]? = nil, onDelete deleteAction: SQLForeignKeyAction? = nil, onUpdate updateAction: SQLForeignKeyAction? = nil, deferred: Bool = false) {
         foreignKeyConstraints.append((columns: columns, table: table, destinationColumns: destinationColumns, deleteAction: deleteAction, updateAction: updateAction, deferred: deferred))
+    }
+    
+    // TODO: doc
+    public func check(condition: _SQLExpressible) {
+        checkConstraints.append(condition.sqlExpression)
+    }
+    
+    // TODO: doc
+    public func check(sql sql: String) {
+        checkConstraints.append(_SQLExpression.Literal(sql, nil))
     }
 }
 
@@ -231,6 +242,14 @@ extension SQLTableBuilder {
                 if deferred {
                     chunks.append("DEFERRABLE INITIALLY DEFERRED")
                 }
+                items.append(chunks.joinWithSeparator(" "))
+            }
+            
+            for checkExpression in checkConstraints {
+                var chunks: [String] = []
+                var arguments: StatementArguments? = nil // nil so that checkExpression.sql(&arguments) embeds literals
+                chunks.append("CHECK")
+                chunks.append("(" + checkExpression.sql(&arguments) + ")")
                 items.append(chunks.joinWithSeparator(" "))
             }
             
