@@ -2268,7 +2268,9 @@ try db.create(index: "byEmail", on: "users", columns: ["email"], unique: true)
 
 ### Requests
 
-**All requests** start from a type that adopts the `TableMapping` protocol, such as a `Record` subclass (see [Records](#records)):
+**The query interface requests** let you fetch values from the database.
+
+All requests start from **a type** that adopts the `TableMapping` protocol, such as a `Record` subclass (see [Records](#records)):
 
 ```swift
 class Person: Record { ... }
