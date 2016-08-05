@@ -12,6 +12,7 @@ public class SQLTableBuilder {
         self.withoutRowID = withoutRowID
     }
     
+    // TODO: doc
     public func column(name: String, _ type: SQLColumnType) -> SQLColumnBuilder {
         let column = SQLColumnBuilder(name: name, type: type)
         columns.append(column)
@@ -53,34 +54,42 @@ public class SQLColumnBuilder {
         self.type = type
     }
     
+    // TODO: doc
     public func primaryKey(ordering ordering: SQLOrdering? = nil, onConflict conflictResolution: SQLConflictResolution? = nil, autoincrement: Bool = false) {
         primaryKey = (ordering: ordering, conflictResolution: conflictResolution, autoincrement: autoincrement)
     }
     
+    // TODO: doc
     public func notNull(onConflict conflictResolution: SQLConflictResolution? = nil) {
         notNullConflictResolution = conflictResolution ?? .Abort
     }
     
+    // TODO: doc
     public func unique(onConflict conflictResolution: SQLConflictResolution? = nil) {
         uniqueConflictResolution = conflictResolution ?? .Abort
     }
     
+    // TODO: doc
     public func check(@noescape condition: (SQLColumn) -> _SQLExpressible) {
         checkExpression = condition(SQLColumn(name)).sqlExpression
     }
     
+    // TODO: doc
     public func defaults(value: _SQLExpressible) {
         defaultExpression = value.sqlExpression
     }
     
+    // TODO: doc
     public func collate(collation: SQLCollation) {
         collationName = collation.rawValue
     }
     
+    // TODO: doc
     public func collate(collation: DatabaseCollation) {
         collationName = collation.name
     }
     
+    // TODO: doc
     public func references(table: String, column: String? = nil, onDelete deleteAction: SQLForeignKeyAction? = nil, onUpdate updateAction: SQLForeignKeyAction? = nil, deferred: Bool = false) {
         reference = (table: table, column: column, deleteAction: deleteAction, updateAction: updateAction, deferred: deferred)
     }
@@ -167,17 +176,20 @@ public class SQLColumnBuilder {
     }
 }
 
+// TODO: doc
 public enum SQLOrdering : String {
     case Asc = "ASC"
     case Desc = "DESC"
 }
 
+// TODO: doc
 public enum SQLCollation : String {
     case Binary = "BINARY"
     case Nocase = "NOCASE"
     case Rtrim = "RTRIM"
 }
 
+// TODO: doc
 public enum SQLConflictResolution : String {
     case Rollback = "ROLLBACK"
     case Abort = "ABORT"
@@ -186,6 +198,7 @@ public enum SQLConflictResolution : String {
     case Replace = "REPLACE"
 }
 
+// TODO: doc
 public enum SQLColumnType : String {
     case Text = "TEXT"
     case Integer = "INTEGER"
@@ -197,6 +210,7 @@ public enum SQLColumnType : String {
     case Datetime = "DATETIME"
 }
 
+// TODO: doc
 public enum SQLForeignKeyAction : String {
     case Cascade = "CASCADE"
     case Restrict = "RESTRICT"
