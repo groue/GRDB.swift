@@ -2273,7 +2273,9 @@ try db.create(index: "byEmail", on: "users", columns: ["email"], unique: true)
 **The query interface requests** let you fetch values from the database:
 
 ```swift
-let persons = Person.filter(email != nil).order(name).fetchAll(db)
+let request = Person.filter(email != nil).order(name)
+let persons = request.fetchAll(db)  // [Person]
+let count = request.fetchCount(db)  // Int
 ```
 
 All requests start from **a type** that adopts the `TableMapping` protocol, such as a `Record` subclass (see [Records](#records)):
