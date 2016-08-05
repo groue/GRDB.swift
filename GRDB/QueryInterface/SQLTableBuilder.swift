@@ -18,7 +18,7 @@ public class SQLTableBuilder {
         return column
     }
     
-    var sql: String {
+    func sql(db: Database) throws -> String {
         var chunks: [String] = []
         chunks.append("CREATE")
         if temporary {
@@ -29,7 +29,7 @@ public class SQLTableBuilder {
             chunks.append("IF NOT EXISTS")
         }
         chunks.append(name.quotedDatabaseIdentifier)
-        chunks.append("(" + columns.map { $0.sql }.joinWithSeparator(", ") + ")")
+        try chunks.append("(" + (columns.map { try $0.sql(db) } as [String]).joinWithSeparator(", ") + ")")
         if withoutRowID {
             chunks.append("WITHOUT ROWID")
         }
@@ -46,6 +46,7 @@ public class SQLColumnBuilder {
     var checkExpression: _SQLExpression?
     var defaultExpression: _SQLExpression?
     var collationName: String?
+    var reference: (table: String, column: String?, deleteAction: SQLForeignKeyAction?, updateAction: SQLForeignKeyAction?)?
     
     init(name: String, type: SQLColumnType) {
         self.name = name
@@ -80,7 +81,11 @@ public class SQLColumnBuilder {
         collationName = collation.name
     }
     
-    var sql: String {
+    public func references(table: String, column: String? = nil, onDelete deleteAction: SQLForeignKeyAction? = nil, onUpdate updateAction: SQLForeignKeyAction? = nil) {
+        reference = (table: table, column: column, deleteAction: deleteAction, updateAction: updateAction)
+    }
+    
+    func sql(db: Database) throws -> String {
         var chunks: [String] = []
         chunks.append(name.quotedDatabaseIdentifier)
         chunks.append(type.rawValue)
@@ -126,7 +131,7 @@ public class SQLColumnBuilder {
         }
         
         if let defaultExpression = defaultExpression {
-            var arguments: StatementArguments? = nil // nil so that checkExpression.sql(&arguments) embeds literals
+            var arguments: StatementArguments? = nil // nil so that defaultExpression.sql(&arguments) embeds literals
             chunks.append("DEFAULT")
             chunks.append("(" + defaultExpression.sql(&arguments) + ")")
         }
@@ -134,6 +139,25 @@ public class SQLColumnBuilder {
         if let collationName = collationName {
             chunks.append("COLLATE")
             chunks.append(collationName)
+        }
+        
+        if let (table, column, deleteAction, updateAction) = reference {
+            chunks.append("REFERENCES")
+            if let column = column {
+                chunks.append("\(table.quotedDatabaseIdentifier)(\(column.quotedDatabaseIdentifier))")
+            } else if let primaryKey = try db.primaryKey(table) {
+                chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKey.columns.map { $0.quotedDatabaseIdentifier } as [String]).joinWithSeparator(", ")))")
+            } else {
+                chunks.append("\(table.quotedDatabaseIdentifier)(_rowid_)")
+            }
+            if let deleteAction = deleteAction {
+                chunks.append("ON DELETE")
+                chunks.append(deleteAction.rawValue)
+            }
+            if let updateAction = updateAction {
+                chunks.append("ON UPDATE")
+                chunks.append(updateAction.rawValue)
+            }
         }
         
         return chunks.joinWithSeparator(" ")
@@ -170,13 +194,21 @@ public enum SQLColumnType : String {
     case Datetime = "DATETIME"
 }
 
+public enum SQLForeignKeyAction : String {
+    case Cascade = "CASCADE"
+    case Restrict = "RESTRICT"
+    case SetNull = "SET NULL"
+    case SetDefault = "SET DEFAULT"
+}
+
 extension Database {
     // TODO: doc
     // TODO: Don't expose withoutRowID if not available
     public func create(table name: String, temporary: Bool = false, ifNotExists: Bool = false, withoutRowID: Bool = false, body: (SQLTableBuilder) -> Void) throws {
         let builder = SQLTableBuilder(name: name, temporary: temporary, ifNotExists: ifNotExists, withoutRowID: withoutRowID)
         body(builder)
-        try execute(builder.sql)
+        let sql = try builder.sql(self)
+        try execute(sql)
     }
     
     // TODO: doc

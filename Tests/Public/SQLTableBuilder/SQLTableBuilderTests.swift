@@ -189,6 +189,27 @@ class SQLTableBuilderTests: GRDBTestCase {
         }
     }
     
+    func testColumnReference() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.create(table: "parent") { t in
+                    t.column("name", .Text).primaryKey()
+                    t.column("email", .Text).unique()
+                }
+                try db.create(table: "child") { t in
+                    t.column("parentName", .Text).references("parent", onDelete: .Cascade, onUpdate: .Cascade)
+                    t.column("parentEmail", .Text).references("parent", column: "email", onDelete: .Restrict)
+                }
+                XCTAssertEqual(self.lastSQLQuery,
+                    "CREATE TABLE \"child\" (" +
+                        "\"parentName\" TEXT REFERENCES \"parent\"(\"name\") ON DELETE CASCADE ON UPDATE CASCADE, " +
+                        "\"parentEmail\" TEXT REFERENCES \"parent\"(\"email\") ON DELETE RESTRICT" +
+                    ")")
+            }
+        }
+    }
+    
     func testDropTable() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
