@@ -2268,7 +2268,12 @@ try db.create(index: "byEmail", on: "users", columns: ["email"], unique: true)
 
 ### Requests
 
-**The query interface requests** let you fetch values from the database.
+**The query interface requests** let you fetch values from the database:
+
+```swift
+let count = Wine.filter(color == Color.Red).fetchCount(db)
+let wines = Wine.filter(origin == "Burgundy").order(price).fetchAll(db)
+```
 
 All requests start from **a type** that adopts the `TableMapping` protocol, such as a `Record` subclass (see [Records](#records)):
 
