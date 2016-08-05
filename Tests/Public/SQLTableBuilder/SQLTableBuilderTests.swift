@@ -334,6 +334,23 @@ class SQLTableBuilderTests: GRDBTestCase {
         }
     }
     
+    func testRenameTable() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.create(table: "test") { t in
+                    t.column("a", .Text)
+                }
+                XCTAssertTrue(db.tableExists("test"))
+                
+                try db.rename(table: "test", to: "foo")
+                XCTAssertEqual(self.lastSQLQuery, "ALTER TABLE \"test\" RENAME TO \"foo\"")
+                XCTAssertFalse(db.tableExists("test"))
+                XCTAssertTrue(db.tableExists("foo"))
+            }
+        }
+    }
+    
     func testDropTable() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()

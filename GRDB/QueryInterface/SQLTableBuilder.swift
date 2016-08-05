@@ -9,15 +9,20 @@ extension Database {
     }
     
     // TODO: doc
+    public func rename(table name: String, to newName: String) throws {
+        try execute("ALTER TABLE \(name.quotedDatabaseIdentifier) RENAME TO \(newName.quotedDatabaseIdentifier)")
+    }
+    
+    // TODO: doc
+    public func drop(table name: String) throws {
+        try execute("DROP TABLE \(name.quotedDatabaseIdentifier)")
+    }
+    
+    // TODO: doc
     public func create(index name: String, on table: String, columns: [String], unique: Bool = false, ifNotExists: Bool = false, condition: _SQLExpressible? = nil) throws {
         let builder = IndexBuilder(name: name, table: table, columns: columns, unique: unique, ifNotExists: ifNotExists, condition: condition?.sqlExpression)
         let sql = builder.sql()
         try execute(sql)
-    }
-
-    // TODO: doc
-    public func drop(table name: String) throws {
-        try execute("DROP TABLE \(name.quotedDatabaseIdentifier)")
     }
     
     // TODO: doc
