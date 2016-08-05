@@ -267,6 +267,34 @@ class SQLTableBuilderTests: GRDBTestCase {
         }
     }
     
+    func testTableForeignKey() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.create(table: "parent") { t in
+                    t.column("a", .Text)
+                    t.column("b", .Text)
+                    t.primaryKey(["a", "b"])
+                }
+                try db.create(table: "child") { t in
+                    t.column("c", .Text)
+                    t.column("d", .Text)
+                    t.column("e", .Text)
+                    t.foreignKey(["c", "d"], to: "parent", onDelete: .Cascade, onUpdate: .Cascade)
+                    t.foreignKey(["d", "e"], to: "parent", columns: ["b", "a"], onDelete: .Restrict, deferred: true)
+                }
+                XCTAssertEqual(self.lastSQLQuery,
+                    "CREATE TABLE \"child\" (" +
+                        "\"c\" TEXT, " +
+                        "\"d\" TEXT, " +
+                        "\"e\" TEXT, " +
+                        "FOREIGN KEY (\"c\", \"d\") REFERENCES \"parent\"(\"a\", \"b\") ON DELETE CASCADE ON UPDATE CASCADE, " +
+                        "FOREIGN KEY (\"d\", \"e\") REFERENCES \"parent\"(\"b\", \"a\") ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED" +
+                    ")")
+            }
+        }
+    }
+    
     func testDropTable() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()

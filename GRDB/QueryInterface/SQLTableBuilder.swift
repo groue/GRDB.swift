@@ -6,6 +6,7 @@ public class SQLTableBuilder {
     var columns: [SQLColumnBuilder] = []
     var primaryKeyConstraint: (columns: [String], conflictResolution: SQLConflictResolution?)?
     var uniqueKeyConstraints: [(columns: [String], conflictResolution: SQLConflictResolution?)] = []
+    var foreignKeyConstraints: [(columns: [String], table: String, destinationColumns: [String]?, deleteAction: SQLForeignKeyAction?, updateAction: SQLForeignKeyAction?, deferred: Bool)] = []
     
     init(name: String, temporary: Bool, ifNotExists: Bool, withoutRowID: Bool) {
         self.name = name
@@ -32,6 +33,11 @@ public class SQLTableBuilder {
     // TODO: doc
     public func uniqueKey(columns: [String], onConflict conflictResolution: SQLConflictResolution? = nil) {
         uniqueKeyConstraints.append((columns: columns, conflictResolution: conflictResolution))
+    }
+    
+    // TODO: doc
+    public func foreignKey(columns: [String], to table: String, columns destinationColumns: [String]? = nil, onDelete deleteAction: SQLForeignKeyAction? = nil, onUpdate updateAction: SQLForeignKeyAction? = nil, deferred: Bool = false) {
+        foreignKeyConstraints.append((columns: columns, table: table, destinationColumns: destinationColumns, deleteAction: deleteAction, updateAction: updateAction, deferred: deferred))
     }
     
     func sql(db: Database) throws -> String {
@@ -68,6 +74,32 @@ public class SQLTableBuilder {
                 if let conflictResolution = conflictResolution {
                     chunks.append("ON CONFLICT")
                     chunks.append(conflictResolution.rawValue)
+                }
+                items.append(chunks.joinWithSeparator(" "))
+            }
+            
+            for (columns, table, destinationColumns, deleteAction, updateAction, deferred) in foreignKeyConstraints {
+                var chunks: [String] = []
+                chunks.append("FOREIGN KEY")
+                chunks.append("(\((columns.map { $0.quotedDatabaseIdentifier } as [String]).joinWithSeparator(", ")))")
+                chunks.append("REFERENCES")
+                if let destinationColumns = destinationColumns {
+                    chunks.append("\(table.quotedDatabaseIdentifier)(\((destinationColumns.map { $0.quotedDatabaseIdentifier } as [String]).joinWithSeparator(", ")))")
+                } else if let primaryKey = try db.primaryKey(table) {
+                    chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKey.columns.map { $0.quotedDatabaseIdentifier } as [String]).joinWithSeparator(", ")))")
+                } else {
+                    fatalError("explicit referenced column(s) required, since table \(table) has no primary key")
+                }
+                if let deleteAction = deleteAction {
+                    chunks.append("ON DELETE")
+                    chunks.append(deleteAction.rawValue)
+                }
+                if let updateAction = updateAction {
+                    chunks.append("ON UPDATE")
+                    chunks.append(updateAction.rawValue)
+                }
+                if deferred {
+                    chunks.append("DEFERRABLE INITIALLY DEFERRED")
                 }
                 items.append(chunks.joinWithSeparator(" "))
             }
@@ -201,7 +233,7 @@ public class SQLColumnBuilder {
             } else if let primaryKey = try db.primaryKey(table) {
                 chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKey.columns.map { $0.quotedDatabaseIdentifier } as [String]).joinWithSeparator(", ")))")
             } else {
-                chunks.append("\(table.quotedDatabaseIdentifier)(_rowid_)")
+                fatalError("explicit referenced column required, since table \(table) has no primary key")
             }
             if let deleteAction = deleteAction {
                 chunks.append("ON DELETE")
