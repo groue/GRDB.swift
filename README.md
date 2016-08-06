@@ -165,7 +165,7 @@ Documentation
 
 - [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.77.0/index.html) (on cocoadocs.org)
 
-**Getting started**
+**Getting Started**
 
 - [Installation](#installation)
 - [Database Connections](#database-connections): Connect to SQLite databases
@@ -174,7 +174,7 @@ Documentation
 
 - [SQLite API](#sqlite-api): The low-level SQLite API &bull; [executing updates](#executing-updates) &bull; [fetch queries](#fetch-queries)
 
-**Application tools**
+**Application Tools**
 
 - [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies.
 - [Query Interface](#the-query-interface): A swift way to generate SQL &bull; [table creation](#database-schema) &bull; [fetch requests](#requests)
@@ -184,7 +184,7 @@ Documentation
 - [Encryption](#encryption): Encrypt your database with SQLCipher.
 - [Backup](#backup): Dump the content of a database to another.
 
-**Good to know**
+**Good to Know**
 
 - [Avoiding SQL Injection](#avoiding-sql-injection)
 - [Error Handling](#error-handling)
