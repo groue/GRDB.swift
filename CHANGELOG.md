@@ -3,6 +3,8 @@ Release Notes
 
 ## 0.78.0
 
+Released August 6, 2016
+
 **New**
 
 - Upgrade sqlcipher to v3.4.0 ([announcement](https://discuss.zetetic.net/t/sqlcipher-3-4-0-release/1273), [changelog](https://github.com/sqlcipher/sqlcipher/blob/master/CHANGELOG.md))
