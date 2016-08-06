@@ -660,7 +660,7 @@ Generally speaking, you can extract the type you need, *provided it can be conve
 
 - **Successful conversions include:**
     
-    - Numeric SQLite values to numeric Swift types, and Bool (zero is the only false boolean).
+    - All numeric SQLite values to all numeric Swift types, and Bool (zero is the only false boolean).
     - Text SQLite values to Swift String.
     - Blob SQLite values to NSData.
     
@@ -1043,7 +1043,7 @@ enum Grape : String {
     case Chardonnay, Merlot, Riesling
 }
 
-// Declare DatabaseValueConvertible adoption
+// Declare empty DatabaseValueConvertible adoption
 extension Color : DatabaseValueConvertible { }
 extension Grape : DatabaseValueConvertible { }
 
@@ -2305,7 +2305,7 @@ let count = request.fetchCount(db)  // Int
 All requests start from **a type** that adopts the `TableMapping` protocol, such as a `Record` subclass (see [Records](#records)):
 
 ```swift
-class Person: Record { ... }
+class Person : Record { ... }
 ```
 
 Declare the table **columns** that you want to use for filtering, or sorting:
@@ -2881,7 +2881,7 @@ At first sight, this looks somewhat redundant with the checks that observers can
 
 ```swift
 // BAD: An inefficient way to track the "persons" table:
-class PersonObserver: TransactionObserverType {
+class PersonObserver : TransactionObserverType {
     func databaseDidChangeWithEvent(event: DatabaseEvent) {
         guard event.tableName == "persons" else {
             return
