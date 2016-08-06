@@ -1,4 +1,7 @@
 extension Database {
+    
+    // MARK: - Database Schema
+    
     /// Creates a database table.
     ///
     ///     try db.create(table: "pointOfInterests") { t in

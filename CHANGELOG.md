@@ -7,9 +7,13 @@ Release Notes
 
 - Upgrade sqlcipher to v3.4.0 ([announcement](https://discuss.zetetic.net/t/sqlcipher-3-4-0-release/1273), [changelog](https://github.com/sqlcipher/sqlcipher/blob/master/CHANGELOG.md))
 
-- Row adopts DictionaryLiteralConvertible
+- Row adopts DictionaryLiteralConvertible:
 
-- Database schema DSL (TODO: doc link):
+    ```swift
+    let row: Row = ["name": "foo", "date": NSDate()]
+    ```
+
+- Create, and alter tables ([documentation](https://github.com/groue/GRDB.swift#database-schema)):
 
     ```swift
     db.create(table: "pointOfInterests") { t in
@@ -21,11 +25,20 @@ Release Notes
     }
     ```
 
-- Support for the `length` SQLite built-in function.
+- Support for the `length` SQLite built-in function:
+    
+    ```swift
+    db.create(table: "persons") { t in
+        t.column("name", .Text).check { length($0) > 0 }
+    }
+    ```
+
 
 **Breaking Changes**
 
 - Built-in SQLite collations used to be named by string: "NOCASE", etc. Now use the SQLCollation enum: `.Nocase`, etc.
+
+- PrimaryKey has been renamed PrimaryKeyInfo.
 
 
 ## 0.77.0

@@ -7,8 +7,8 @@
 protocol DatabaseSchemaCacheType {
     mutating func clear()
     
-    func primaryKey(tableName tableName: String) -> PrimaryKey??
-    mutating func setPrimaryKey(primaryKey: PrimaryKey?, forTableName tableName: String)
+    func primaryKey(tableName tableName: String) -> PrimaryKeyInfo??
+    mutating func setPrimaryKey(primaryKey: PrimaryKeyInfo?, forTableName tableName: String)
     
     func columns(in tableName: String) -> [ColumnInfo]?
     mutating func setColumns(columns: [ColumnInfo], forTableName tableName: String)
@@ -19,7 +19,7 @@ protocol DatabaseSchemaCacheType {
 
 /// A thread-unsafe database schema cache
 final class DatabaseSchemaCache: DatabaseSchemaCacheType {
-    private var primaryKeys: [String: PrimaryKey?] = [:]
+    private var primaryKeys: [String: PrimaryKeyInfo?] = [:]
     private var columns: [String: [ColumnInfo]] = [:]
     private var indexes: [String: [IndexInfo]] = [:]
     
@@ -29,11 +29,11 @@ final class DatabaseSchemaCache: DatabaseSchemaCacheType {
         indexes = [:]
     }
     
-    func primaryKey(tableName tableName: String) -> PrimaryKey?? {
+    func primaryKey(tableName tableName: String) -> PrimaryKeyInfo?? {
         return primaryKeys[tableName]
     }
     
-    func setPrimaryKey(primaryKey: PrimaryKey?, forTableName tableName: String) {
+    func setPrimaryKey(primaryKey: PrimaryKeyInfo?, forTableName tableName: String) {
         primaryKeys[tableName] = primaryKey
     }
     
@@ -62,11 +62,11 @@ final class SharedDatabaseSchemaCache: DatabaseSchemaCacheType {
         cache.write { $0.clear() }
     }
     
-    func primaryKey(tableName tableName: String) -> PrimaryKey?? {
+    func primaryKey(tableName tableName: String) -> PrimaryKeyInfo?? {
         return cache.read { $0.primaryKey(tableName: tableName) }
     }
     
-    func setPrimaryKey(primaryKey: PrimaryKey?, forTableName tableName: String) {
+    func setPrimaryKey(primaryKey: PrimaryKeyInfo?, forTableName tableName: String) {
         cache.write { $0.setPrimaryKey(primaryKey, forTableName: tableName) }
     }
     
