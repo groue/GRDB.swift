@@ -2265,7 +2265,7 @@ try db.alter(table: "persons") { t in
 }
 ```
 
-> :point_up: **Note**: Table alterations are restricted, and may require you to recreate triggers or views: see the documentation of the [ALTER TABLE](https://www.sqlite.org/lang_altertable.html), and [Advanced Database Schema Changes](#advanced-database-schema-changes) for a way to lift those restrictions.
+> :point_up: **Note**: Table alterations are restricted, and may require you to recreate triggers or views. See the documentation of the [ALTER TABLE](https://www.sqlite.org/lang_altertable.html) for details. See [Advanced Database Schema Changes](#advanced-database-schema-changes) for a way to lift restrictions.
 
 
 #### Drop Tables
