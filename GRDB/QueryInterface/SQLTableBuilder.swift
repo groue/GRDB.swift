@@ -20,12 +20,12 @@ extension Database {
     ///     - body: A closure that defines table columns and constraints.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     @available(iOS 8.2, OSX 10.10, *)
-    public func create(table name: String, temporary: Bool = false, ifNotExists: Bool = false, withoutRowID: Bool, body: (SQLTableBuilder) -> Void) throws {
+    public func create(table name: String, temporary: Bool = false, ifNotExists: Bool = false, withoutRowID: Bool, body: (TableDefinition) -> Void) throws {
         // WITHOUT ROWID was added in SQLite 3.8.2 http://www.sqlite.org/changes.html#version_3_8_2
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        let builder = SQLTableBuilder(name: name, temporary: temporary, ifNotExists: ifNotExists, withoutRowID: withoutRowID)
-        body(builder)
-        let sql = try builder.sql(self)
+        let definition = TableDefinition(name: name, temporary: temporary, ifNotExists: ifNotExists, withoutRowID: withoutRowID)
+        body(definition)
+        let sql = try definition.sql(self)
         try execute(sql)
     }
 
@@ -47,10 +47,10 @@ extension Database {
     ///     - ifNotExists: If false, no error is thrown if table already exists.
     ///     - body: A closure that defines table columns and constraints.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func create(table name: String, temporary: Bool = false, ifNotExists: Bool = false, body: (SQLTableBuilder) -> Void) throws {
-        let builder = SQLTableBuilder(name: name, temporary: temporary, ifNotExists: ifNotExists, withoutRowID: false)
-        body(builder)
-        let sql = try builder.sql(self)
+    public func create(table name: String, temporary: Bool = false, ifNotExists: Bool = false, body: (TableDefinition) -> Void) throws {
+        let definition = TableDefinition(name: name, temporary: temporary, ifNotExists: ifNotExists, withoutRowID: false)
+        body(definition)
+        let sql = try definition.sql(self)
         try execute(sql)
     }
     
@@ -75,10 +75,10 @@ extension Database {
     ///     - name: The table name.
     ///     - body: A closure that defines table alterations.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func alter(table name: String, body: (SQLTableAlterationBuilder) -> Void) throws {
-        let builder = SQLTableAlterationBuilder(name: name)
-        body(builder)
-        let sql = try builder.sql(self)
+    public func alter(table name: String, body: (TableAlteration) -> Void) throws {
+        let alteration = TableAlteration(name: name)
+        body(alteration)
+        let sql = try alteration.sql(self)
         try execute(sql)
     }
     
@@ -112,8 +112,8 @@ extension Database {
     ///     - condition: If not nil, creates a partial index
     ///       (see https://www.sqlite.org/partialindex.html).
     public func create(index name: String, on table: String, columns: [String], unique: Bool = false, ifNotExists: Bool = false, condition: _SQLExpressible? = nil) throws {
-        let builder = IndexBuilder(name: name, table: table, columns: columns, unique: unique, ifNotExists: ifNotExists, condition: condition?.sqlExpression)
-        let sql = builder.sql()
+        let definition = IndexDefinition(name: name, table: table, columns: columns, unique: unique, ifNotExists: ifNotExists, condition: condition?.sqlExpression)
+        let sql = definition.sql()
         try execute(sql)
     }
     
@@ -127,26 +127,28 @@ extension Database {
     }
 }
 
-/// The SQLTableBuilder class lets you define table columns and constraints.
+/// The TableDefinition class lets you define table columns and constraints.
 ///
 /// You don't create instances of this class. Instead, you use the Database
 /// `create(table:)` method:
 ///
-///     try db.create(table: "persons") { t in // t is SQLTableBuilder
+///     try db.create(table: "persons") { t in // t is TableDefinition
 ///         t.column(...)
 ///     }
 ///
 /// See https://www.sqlite.org/lang_createtable.html
-public final class SQLTableBuilder {
-    let name: String
-    let temporary: Bool
-    let ifNotExists: Bool
-    let withoutRowID: Bool
-    var columns: [SQLColumnBuilder] = []
-    var primaryKeyConstraint: (columns: [String], conflictResolution: SQLConflictResolution?)?
-    var uniqueKeyConstraints: [(columns: [String], conflictResolution: SQLConflictResolution?)] = []
-    var foreignKeyConstraints: [(columns: [String], table: String, destinationColumns: [String]?, deleteAction: SQLForeignKeyAction?, updateAction: SQLForeignKeyAction?, deferred: Bool)] = []
-    var checkConstraints: [_SQLExpression] = []
+public final class TableDefinition {
+    private typealias KeyConstraint = (columns: [String], conflictResolution: SQLConflictResolution?)
+    
+    private let name: String
+    private let temporary: Bool
+    private let ifNotExists: Bool
+    private let withoutRowID: Bool
+    private var columns: [ColumnDefinition] = []
+    private var primaryKeyConstraint: KeyConstraint?
+    private var uniqueKeyConstraints: [KeyConstraint] = []
+    private var foreignKeyConstraints: [(columns: [String], table: String, destinationColumns: [String]?, deleteAction: SQLForeignKeyAction?, updateAction: SQLForeignKeyAction?, deferred: Bool)] = []
+    private var checkConstraints: [_SQLExpression] = []
     
     init(name: String, temporary: Bool, ifNotExists: Bool, withoutRowID: Bool) {
         self.name = name
@@ -165,10 +167,10 @@ public final class SQLTableBuilder {
     ///
     /// - parameter name: the column name.
     /// - parameter type: the column type.
-    /// - returns: An SQLColumnBuilder that allows you to refine the
+    /// - returns: An ColumnDefinition that allows you to refine the
     ///   column definition.
-    public func column(name: String, _ type: SQLColumnType) -> SQLColumnBuilder {
-        let column = SQLColumnBuilder(name: name, type: type)
+    public func column(name: String, _ type: SQLColumnType) -> ColumnDefinition {
+        let column = ColumnDefinition(name: name, type: type)
         columns.append(column)
         return column
     }
@@ -350,19 +352,19 @@ public final class SQLTableBuilder {
     }
 }
 
-/// The SQLTableAlterationBuilder class lets you alter database tables.
+/// The TableAlteration class lets you alter database tables.
 ///
 /// You don't create instances of this class. Instead, you use the Database
 /// `alter(table:)` method:
 ///
-///     try db.alter(table: "persons") { t in // t is SQLTableAlterationBuilder
+///     try db.alter(table: "persons") { t in // t is TableAlteration
 ///         t.add(column: ...)
 ///     }
 ///
 /// See https://www.sqlite.org/lang_altertable.html
-public final class SQLTableAlterationBuilder {
-    let name: String
-    var addedColumns: [SQLColumnBuilder] = []
+public final class TableAlteration {
+    private let name: String
+    private var addedColumns: [ColumnDefinition] = []
     
     init(name: String) {
         self.name = name
@@ -378,10 +380,10 @@ public final class SQLTableAlterationBuilder {
     ///
     /// - parameter name: the column name.
     /// - parameter type: the column type.
-    /// - returns: An SQLColumnBuilder that allows you to refine the
+    /// - returns: An ColumnDefinition that allows you to refine the
     ///   column definition.
-    public func add(column name: String, _ type: SQLColumnType) -> SQLColumnBuilder {
-        let column = SQLColumnBuilder(name: name, type: type)
+    public func add(column name: String, _ type: SQLColumnType) -> ColumnDefinition {
+        let column = ColumnDefinition(name: name, type: type)
         addedColumns.append(column)
         return column
     }
@@ -403,30 +405,30 @@ public final class SQLTableAlterationBuilder {
     }
 }
 
-/// The SQLColumnBuilder class lets you refine a table column.
+/// The ColumnDefinition class lets you refine a table column.
 ///
 /// You get instances of this class when you create or alter a database table:
 ///
 ///     try db.create(table: "persons") { t in
-///         t.column(...)      // SQLColumnBuilder
+///         t.column(...)      // ColumnDefinition
 ///     }
 ///
 ///     try db.alter(table: "persons") { t in
-///         t.add(column: ...) // SQLColumnBuilder
+///         t.add(column: ...) // ColumnDefinition
 ///     }
 ///
 /// See https://www.sqlite.org/lang_createtable.html and
 /// https://www.sqlite.org/lang_altertable.html
-public final class SQLColumnBuilder {
-    let name: String
-    let type: SQLColumnType
-    var primaryKey: (conflictResolution: SQLConflictResolution?, autoincrement: Bool)?
-    var notNullConflictResolution: SQLConflictResolution?
-    var uniqueConflictResolution: SQLConflictResolution?
-    var checkExpression: _SQLExpression?
-    var defaultExpression: _SQLExpression?
-    var collationName: String?
-    var reference: (table: String, column: String?, deleteAction: SQLForeignKeyAction?, updateAction: SQLForeignKeyAction?, deferred: Bool)?
+public final class ColumnDefinition {
+    private let name: String
+    private let type: SQLColumnType
+    private var primaryKey: (conflictResolution: SQLConflictResolution?, autoincrement: Bool)?
+    private var notNullConflictResolution: SQLConflictResolution?
+    private var uniqueConflictResolution: SQLConflictResolution?
+    private var checkExpression: _SQLExpression?
+    private var defaultExpression: _SQLExpression?
+    private var collationName: String?
+    private var reference: (table: String, column: String?, deleteAction: SQLForeignKeyAction?, updateAction: SQLForeignKeyAction?, deferred: Bool)?
     
     init(name: String, type: SQLColumnType) {
         self.name = name
@@ -447,7 +449,7 @@ public final class SQLColumnBuilder {
     ///       (see https://www.sqlite.org/lang_conflict.html).
     ///     - autoincrement: If true, the primary key is autoincremented.
     /// - returns: Self so that you can further refine the column definition.
-    public func primaryKey(onConflict conflictResolution: SQLConflictResolution? = nil, autoincrement: Bool = false) -> SQLColumnBuilder {
+    public func primaryKey(onConflict conflictResolution: SQLConflictResolution? = nil, autoincrement: Bool = false) -> ColumnDefinition {
         primaryKey = (conflictResolution: conflictResolution, autoincrement: autoincrement)
         return self
     }
@@ -463,7 +465,7 @@ public final class SQLColumnBuilder {
     /// - parameter conflitResolution: An optional conflict resolution
     ///   (see https://www.sqlite.org/lang_conflict.html).
     /// - returns: Self so that you can further refine the column definition.
-    public func notNull(onConflict conflictResolution: SQLConflictResolution? = nil) -> SQLColumnBuilder {
+    public func notNull(onConflict conflictResolution: SQLConflictResolution? = nil) -> ColumnDefinition {
         notNullConflictResolution = conflictResolution ?? .Abort
         return self
     }
@@ -479,7 +481,7 @@ public final class SQLColumnBuilder {
     /// - parameter conflitResolution: An optional conflict resolution
     ///   (see https://www.sqlite.org/lang_conflict.html).
     /// - returns: Self so that you can further refine the column definition.
-    public func unique(onConflict conflictResolution: SQLConflictResolution? = nil) -> SQLColumnBuilder {
+    public func unique(onConflict conflictResolution: SQLConflictResolution? = nil) -> ColumnDefinition {
         uniqueConflictResolution = conflictResolution ?? .Abort
         return self
     }
@@ -495,7 +497,7 @@ public final class SQLColumnBuilder {
     /// - parameter condition: A closure whose argument is an SQLColumn that
     ///   represents the defined column, and returns the expression to check.
     /// - returns: Self so that you can further refine the column definition.
-    public func check(@noescape condition: (SQLColumn) -> _SQLExpressible) -> SQLColumnBuilder {
+    public func check(@noescape condition: (SQLColumn) -> _SQLExpressible) -> ColumnDefinition {
         checkExpression = condition(SQLColumn(name)).sqlExpression
         return self
     }
@@ -510,7 +512,7 @@ public final class SQLColumnBuilder {
     ///
     /// - parameter sql: An SQL snippet.
     /// - returns: Self so that you can further refine the column definition.
-    public func check(sql sql: String) -> SQLColumnBuilder {
+    public func check(sql sql: String) -> ColumnDefinition {
         checkExpression = _SQLExpression.Literal(sql, nil)
         return self
     }
@@ -525,7 +527,7 @@ public final class SQLColumnBuilder {
     ///
     /// - parameter value: A DatabaseValueConvertible value.
     /// - returns: Self so that you can further refine the column definition.
-    public func defaults(value: DatabaseValueConvertible) -> SQLColumnBuilder {
+    public func defaults(value: DatabaseValueConvertible) -> ColumnDefinition {
         defaultExpression = value.sqlExpression
         return self
     }
@@ -540,7 +542,7 @@ public final class SQLColumnBuilder {
     ///
     /// - parameter sql: An SQL snippet.
     /// - returns: Self so that you can further refine the column definition.
-    public func defaults(sql sql: String) -> SQLColumnBuilder {
+    public func defaults(sql sql: String) -> ColumnDefinition {
         defaultExpression = _SQLExpression.Literal(sql, nil)
         return self
     }
@@ -555,7 +557,7 @@ public final class SQLColumnBuilder {
     ///
     /// - parameter collation: An SQLCollation.
     /// - returns: Self so that you can further refine the column definition.
-    public func collate(collation: SQLCollation) -> SQLColumnBuilder {
+    public func collate(collation: SQLCollation) -> ColumnDefinition {
         collationName = collation.rawValue
         return self
     }
@@ -570,7 +572,7 @@ public final class SQLColumnBuilder {
     ///
     /// - parameter collation: A custom DatabaseCollation.
     /// - returns: Self so that you can further refine the column definition.
-    public func collate(collation: DatabaseCollation) -> SQLColumnBuilder {
+    public func collate(collation: DatabaseCollation) -> ColumnDefinition {
         collationName = collation.name
         return self
     }
@@ -592,7 +594,7 @@ public final class SQLColumnBuilder {
     ///     - deferred: If true, defines a deferred foreign key constraint.
     ///       See https://www.sqlite.org/foreignkeys.html#fk_deferred.
     /// - returns: Self so that you can further refine the column definition.
-    public func references(table: String, column: String? = nil, onDelete deleteAction: SQLForeignKeyAction? = nil, onUpdate updateAction: SQLForeignKeyAction? = nil, deferred: Bool = false) -> SQLColumnBuilder {
+    public func references(table: String, column: String? = nil, onDelete deleteAction: SQLForeignKeyAction? = nil, onUpdate updateAction: SQLForeignKeyAction? = nil, deferred: Bool = false) -> ColumnDefinition {
         reference = (table: table, column: column, deleteAction: deleteAction, updateAction: updateAction, deferred: deferred)
         return self
     }
@@ -676,7 +678,7 @@ public final class SQLColumnBuilder {
     }
 }
 
-private struct IndexBuilder {
+private struct IndexDefinition {
     let name: String
     let table: String
     let columns: [String]
