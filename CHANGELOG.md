@@ -13,7 +13,7 @@ Release Notes
     let row: Row = ["name": "foo", "date": NSDate()]
     ```
 
-- Create, and alter tables ([documentation](https://github.com/groue/GRDB.swift#database-schema)):
+- DSL for table creation and updates (closes [#83](https://github.com/groue/GRDB.swift/issues/83), [documentation](https://github.com/groue/GRDB.swift#database-schema)):
 
     ```swift
     db.create(table: "pointOfInterests") { t in
@@ -38,7 +38,12 @@ Release Notes
 
 - Built-in SQLite collations used to be named by string: "NOCASE", etc. Now use the SQLCollation enum: `.Nocase`, etc.
 
-- PrimaryKey has been renamed PrimaryKeyInfo.
+- PrimaryKey has been renamed PrimaryKeyInfo:
+
+    ```swift
+    let pk = db.primaryKey("persons")
+    pk.columns  // ["id"]
+    ```
 
 
 ## 0.77.0
