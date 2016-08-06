@@ -1,8 +1,18 @@
 extension Database {
     // TODO: doc
-    // TODO: Don't expose withoutRowID if not available
-    public func create(table name: String, temporary: Bool = false, ifNotExists: Bool = false, withoutRowID: Bool = false, body: (SQLTableBuilder) -> Void) throws {
+    @available(iOS 8.2, OSX 10.10, *)
+    public func create(table name: String, temporary: Bool = false, ifNotExists: Bool = false, withoutRowID: Bool, body: (SQLTableBuilder) -> Void) throws {
+        // WITHOUT ROWID was added in SQLite 3.8.2 http://www.sqlite.org/changes.html#version_3_8_2
+        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         let builder = SQLTableBuilder(name: name, temporary: temporary, ifNotExists: ifNotExists, withoutRowID: withoutRowID)
+        body(builder)
+        let sql = try builder.sql(self)
+        try execute(sql)
+    }
+
+    // TODO: doc
+    public func create(table name: String, temporary: Bool = false, ifNotExists: Bool = false, body: (SQLTableBuilder) -> Void) throws {
+        let builder = SQLTableBuilder(name: name, temporary: temporary, ifNotExists: ifNotExists, withoutRowID: false)
         body(builder)
         let sql = try builder.sql(self)
         try execute(sql)
