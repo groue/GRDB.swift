@@ -3403,7 +3403,18 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     let date: NSDate? = row.value(named: "date")
     ```
     
-    Solution: fix the contents of the database, or jump to [untrusted databases](#how-to-deal-with-untrusted-inputs).
+    Solution: fix the contents of the database, or use [DatabaseValue](#databasevalue) to handle all possible cases:
+    
+    ```swift
+    let dbv = row.databaseValue(named: "date")
+    if dbv.isNull {
+        // Handle NULL
+    if let date = NSDate.fromDatabaseValue(dbv) {
+        // Handle valid date
+    } else {
+        // Handle invalid date
+    }
+    ```
 
 - Database connections are not reentrant:
     
