@@ -2159,7 +2159,7 @@ Once granted with a [database connection](#database-connections), you can use th
 try db.create(table: "pointOfInterests") { t in
     t.column("id", .Integer).primaryKey()
     t.column("title", .Text)
-    t.column("favorite", .Boolean).notNull().default(false)
+    t.column("favorite", .Boolean).notNull().defaults(false)
     t.column("longitude", .Double).notNull()
     t.column("latitude", .Double).notNull()
 }
@@ -2191,7 +2191,7 @@ Define **not null** and **unique** columns, and set **default** values:
     t.column("uuid", .Text).unique(onConflict: .Replace)
     
     // name TEXT NOT NULL DEFAULT 'Anonymous',
-    t.column("name", .Text).notNull().default("Anonymous")
+    t.column("name", .Text).notNull().defaults("Anonymous")
 ```
     
 **Perform integrity checks** on individual columns, and SQLite will only let conforming rows in. In the example below, the `$0` closure variable is a column which lets you build any SQL [expression](#expressions).
