@@ -3380,7 +3380,7 @@ For example, the code contains a wrong SQL query:
 Row.fetchAll(db, "SELECT * FROM boooks")
 ```
 
-**Solution**: fix the SQL query.
+Solution: fix the SQL query.
 
 ```swift
 Row.fetchAll(db, "SELECT * FROM books")
@@ -3398,7 +3398,7 @@ For example, the code asks for a non-optional values, when the database contains
 let name: String = row.value(named: "name")
 ```
 
-**Solution**: fix the contents of the database, use [NOT NULL constraints](#create-tables), or load an optional:
+Solution: fix the contents of the database, use [NOT NULL constraints](#create-tables), or load an optional:
 
 ```swift
 let name: String? = row.value(named: "name")
@@ -3411,12 +3411,12 @@ Second example: the code asks for an NSDate, when the database contains garbage:
 let date: NSDate? = row.value(named: "date")
 ```
 
-**Solution**: fix the contents of the database, or jump to [untrusted databases](#how-to-deal-with-untrusted-inputs).
+Solution: fix the contents of the database, or jump to [untrusted databases](#how-to-deal-with-untrusted-inputs).
 
 
 #### Misuses
 
-For example, did you know that database connections are not reentrant?
+For example, database connections are not reentrant:
 
 ```swift
 // fatal error: Database methods are not reentrant.
@@ -3427,7 +3427,7 @@ dbQueue.inDatabase { db in
 }
 ```
 
-Well, now you know. Avoid reentrancy, and instead pass a database connection along.
+Solution: Avoid reentrancy, and instead pass a database connection along.
 
 
 ### How to Deal with Untrusted Inputs
