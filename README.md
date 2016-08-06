@@ -172,12 +172,12 @@ Documentation
 
 **SQLite and SQL**
 
-- [SQLite API](#sqlite-api): The low-level SQLite API &bull; [executing updates](#executing-updates), [fetch queries](#fetch-queries), etc.
+- [SQLite API](#sqlite-api): The low-level SQLite API &bull; [executing updates](#executing-updates) &bull; [fetch queries](#fetch-queries)
 
 **Application tools**
 
 - [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies.
-- [Query Interface](#the-query-interface): A swift way to generate SQL &bull; [table creation](#database-schema), [requests](#requests), etc.
+- [Query Interface](#the-query-interface): A swift way to generate SQL &bull; [table creation](#database-schema) &bull; [fetch requests](#requests)
 - [Migrations](#migrations): Transform your database as your application evolves.
 - [Database Changes Observation](#database-changes-observation): Perform post-commit and post-rollback actions.
 - [FetchedRecordsController](#fetchedrecordscontroller): Automatic database changes tracking, plus UITableView animations.
