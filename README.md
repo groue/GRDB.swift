@@ -2645,6 +2645,12 @@ For multiple-column primary keys, provide a dictionary:
 Citizenship.fetchOne(db, key: ["personID": 1, "countryISOCode": "FR"]) // Citizenship?
 ```
 
+You can use generally use a dictionary for any **unique key** (primary key and columns involved in a unique index):
+
+```swift
+Person.fetchOne(db, key: ["email": "arthur@example.com"]) // Person?
+```
+
 
 ### Fetching Aggregated Values
 
