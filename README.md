@@ -3364,70 +3364,59 @@ do {
 
 **Fatal errors notify that the program, or the database, has to be changed.**
 
-- [Programming Errors](#programming-errors)
-- [False Assumptions](#false-assumptions)
-- [Misuses](#misuses)
+They uncover programmer errors, false assumptions, and prevent misuses.
 
+1. For example, the code contains a wrong SQL query:
+    
+    ```swift
+    // fatal error:
+    // SQLite error 1 with statement `SELECT * FROM boooks`:
+    // no such table: boooks
+    Row.fetchAll(db, "SELECT * FROM boooks")
+    ```
+    
+    Solution: fix the SQL query.
+    
+    ```swift
+    Row.fetchAll(db, "SELECT * FROM books")
+    ```
+    
+    If you do have to run untrusted SQL queries, jump to [untrusted databases](#how-to-deal-with-untrusted-inputs).
 
-#### Programming Errors
+2. The code asks for a non-optional values, when the database contains NULL:
+    
+    ```swift
+    // fatal error: could not convert NULL to String.
+    let name: String = row.value(named: "name")
+    ```
+    
+    Solution: fix the contents of the database, use [NOT NULL constraints](#create-tables), or load an optional:
+    
+    ```swift
+    let name: String? = row.value(named: "name")
+    ```
 
-For example, the code contains a wrong SQL query:
+3. The code asks for an NSDate, when the database contains garbage:
+    
+    ```swift
+    // fatal error: could not convert "Mom's birthday" to NSDate.
+    let date: NSDate? = row.value(named: "date")
+    ```
+    
+    Solution: fix the contents of the database, or jump to [untrusted databases](#how-to-deal-with-untrusted-inputs).
 
-```swift
-// fatal error:
-// SQLite error 1 with statement `SELECT * FROM boooks`:
-// no such table: boooks
-Row.fetchAll(db, "SELECT * FROM boooks")
-```
-
-Solution: fix the SQL query.
-
-```swift
-Row.fetchAll(db, "SELECT * FROM books")
-```
-
-If you do have to run untrusted SQL queries, jump to [untrusted databases](#how-to-deal-with-untrusted-inputs).
-
-
-#### False Assumptions
-
-For example, the code asks for a non-optional values, when the database contains NULL:
-
-```swift
-// fatal error: could not convert NULL to String.
-let name: String = row.value(named: "name")
-```
-
-Solution: fix the contents of the database, use [NOT NULL constraints](#create-tables), or load an optional:
-
-```swift
-let name: String? = row.value(named: "name")
-```
-
-Second example: the code asks for an NSDate, when the database contains garbage:
-
-```swift
-// fatal error: could not convert "Mom's birthday" to NSDate.
-let date: NSDate? = row.value(named: "date")
-```
-
-Solution: fix the contents of the database, or jump to [untrusted databases](#how-to-deal-with-untrusted-inputs).
-
-
-#### Misuses
-
-For example, database connections are not reentrant:
-
-```swift
-// fatal error: Database methods are not reentrant.
-dbQueue.inDatabase { db in
+4. Database connections are not reentrant:
+    
+    ```swift
+    // fatal error: Database methods are not reentrant.
     dbQueue.inDatabase { db in
-        ...
+        dbQueue.inDatabase { db in
+            ...
+        }
     }
-}
-```
-
-Solution: avoid reentrancy, and instead pass a database connection along.
+    ```
+    
+    Solution: avoid reentrancy, and instead pass a database connection along.
 
 
 ### How to Deal with Untrusted Inputs
