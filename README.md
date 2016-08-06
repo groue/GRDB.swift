@@ -2213,7 +2213,7 @@ Use an individual column as **primary**, **unique**, or **foreign key**. When no
     t.column("name", .Text).check { length($0) > 0 }
 ```
 
-Other **table constraints** can involve several columns. Integrity checks accept any [expression](#expressions), or a raw SQL snippet:
+Other **table constraints** can involve several columns:
 
 ```swift
     // PRIMARY KEY (a, b),
