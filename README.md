@@ -2253,7 +2253,7 @@ Other **table constraints** can involve several columns:
 
 #### Modify Tables
 
-SQLite let you rename tables, and add columns to existing tables:
+SQLite lets you rename tables, and add columns to existing tables:
 
 ```swift
 // ALTER TABLE referers RENAME TO referrers
