@@ -2138,7 +2138,7 @@ So don't miss the [SQL API](#sqlite-api).
 
 ### Database Schema
 
-Once granted with a [database connection](#database-connections), you can use the query interface to setup your database schema:
+Once granted with a [database connection](#database-connections), you can setup your database schema without writing SQL:
 
 - [Create Tables](#create-tables)
 - [Modify Tables](#modify-tables)
