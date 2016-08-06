@@ -2712,23 +2712,26 @@ let maxHeight = row.value(atIndex: 1) as Double?
 
 Migrations run in order, once and only once. When a user upgrades your application, only non-applied migrations are run.
 
+Inside each migration, you typically [define and update your database tables](#database-schema) according to your evolving application needs:
+
 ```swift
 var migrator = DatabaseMigrator()
 
-// v1.0 database
+// v1 database
 migrator.registerMigration("v1") { db in
     try db.create(table: "persons") { t in ... }
     try db.create(table: "books") { t in ... }
+    try db.create(index: ...)
 }
 
-// v2.0 database
+// v2 database
 migrator.registerMigration("v2") { db in
     try db.alter(table: "persons") { t in ... }
 }
 
 // Migrations for future versions will be inserted here:
 //
-// // v3.0 database
+// // v3 database
 // migrator.registerMigration("v3") { db in
 //     ...
 // }
