@@ -47,11 +47,11 @@ class SQLTableBuilderTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inTransaction { db in
                 try db.create(table: "test") { t in
-                    t.column("id", .Integer).primaryKey(ordering: .Desc, onConflict: .Fail)
+                    t.column("id", .Integer).primaryKey(onConflict: .Fail)
                 }
                 XCTAssertEqual(self.lastSQLQuery,
                     "CREATE TABLE \"test\" (" +
-                        "\"id\" INTEGER PRIMARY KEY DESC ON CONFLICT FAIL" +
+                        "\"id\" INTEGER PRIMARY KEY ON CONFLICT FAIL" +
                     ")")
                 return .Rollback
             }
