@@ -2181,19 +2181,29 @@ try db.create(table: "demo", temporary: true, ifNotExists: true) { t in
     t.column("creationDate", .Datetime)
 ```
 
-Define **not null** and **unique** columns, and set **default** values:
+Define **not null** columns, and set **default** values:
 
 ```swift
-    // email TEXT NOT NULL UNIQUE,
-    t.column("email", .Text).notNull().unique()
-    
-    // uuid TEXT UNIQUE ON CONFLICT REPLACE,
-    t.column("uuid", .Text).unique(onConflict: .Replace)
+    // email TEXT NOT NULL,
+    t.column("email", .Text).notNull()
     
     // name TEXT NOT NULL DEFAULT 'Anonymous',
     t.column("name", .Text).notNull().defaults("Anonymous")
 ```
     
+Use an individual column as **primary**, **unique**, or **foreign key**. When not specified, the referenced column is the primary key of the referenced table:
+
+```swift
+    // id INTEGER PRIMARY KEY,
+    t.column("id", .Integer).primaryKey()
+    
+    // email TEXT UNIQUE,
+    t.column("email", .Text).unique()
+    
+    // countryCode TEXT REFERENCES countries(code) ON DELETE CASCADE,
+    t.column("countryCode", .Text).references("countries", onDelete: .Cascade)
+```
+
 **Perform integrity checks** on individual columns, and SQLite will only let conforming rows in. In the example below, the `$0` closure variable is a column which lets you build any SQL [expression](#expressions).
 
 ```swift
@@ -2201,16 +2211,6 @@ Define **not null** and **unique** columns, and set **default** values:
     // name TEXT CHECK (LENGTH(name) > 0)
     t.column("age", .Integer).check { $0 > 0 }
     t.column("name", .Text).check { length($0) > 0 }
-```
-
-Use an individual column as **primary** or **foreign key**. When not specified, the referenced column is the primary key of the referenced table:
-
-```swift
-    // id INTEGER PRIMARY KEY,
-    t.column("id", .Integer).primaryKey()
-    
-    // countryCode TEXT REFERENCES countries(code) ON DELETE CASCADE,
-    t.column("countryCode", .Text).references("countries", onDelete: .Cascade)
 ```
 
 Other **table constraints** can involve several columns. Integrity checks accept any [expression](#expressions), or a raw SQL snippet:
