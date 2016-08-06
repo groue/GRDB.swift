@@ -288,7 +288,7 @@ SQLite creates the database file if it does not already exist. The connection is
 ```swift
 // Execute database statements:
 try dbQueue.inDatabase { db in
-    try db.execute("CREATE TABLE pointOfInterests (...)")
+    try db.create(table: "pointOfInterests") { ... }
     try PointOfInterest(...).insert(db)
 }
 
@@ -356,7 +356,7 @@ SQLite creates the database file if it does not already exist. The connection is
 ```swift
 // Execute database statements:
 try dbPool.write { db in
-    try db.execute("CREATE TABLE pointOfInterests (...)")
+    try db.create(table: "pointOfInterests") { ... }
     try PointOfInterest(...).insert(db)
 }
 
@@ -1335,7 +1335,10 @@ Person.select(reverseString.apply(nameColumn))
 **SQLite provides database schema introspection tools**, such as the [sqlite_master](https://www.sqlite.org/faq.html#q7) table, and the pragma [table_info](https://www.sqlite.org/pragma.html#pragma_table_info):
 
 ```swift
-try db.execute("CREATE TABLE persons(id INTEGER PRIMARY KEY, name TEXT)")
+try db.create(table: "persons") { t in
+    t.column("id", .Integer).primaryKey()
+    t.column("name", .Text)
+}
 
 // <Row type:"table" name:"persons" tbl_name:"persons" rootpage:2
 //      sql:"CREATE TABLE persons(id INTEGER PRIMARY KEY, name TEXT)">
@@ -2178,11 +2181,11 @@ Relevant SQLite documentation:
 **Configure table creation**:
 
 ```swift
-// CREATE TABLE demo (
-try db.create(table: "demo") { t in ... }
+// CREATE TABLE example (
+try db.create(table: "example") { t in ... }
     
-// CREATE TEMPORARY TABLE demo IF NOT EXISTS (
-try db.create(table: "demo", temporary: true, ifNotExists: true) { t in
+// CREATE TEMPORARY TABLE example IF NOT EXISTS (
+try db.create(table: "example", temporary: true, ifNotExists: true) { t in
 ```
 
 **Add regular columns** with their name and type (text, integer, double, numeric, boolean, blob, date and datetime) - see [SQLite data types](https://www.sqlite.org/datatype3.html):
@@ -2747,11 +2750,13 @@ Yet any kind of schema change is still possible. The SQLite documentation explai
 ```swift
 // Add a NOT NULL constraint on persons.name:
 migrator.registerMigrationWithDisabledForeignKeyChecks("AddNotNullCheckOnName") { db in
-    try db.execute(
-        "CREATE TABLE new_persons (id INTEGER PRIMARY KEY, name TEXT NOT NULL);" +
-        "INSERT INTO new_persons SELECT * FROM persons;" +
-        "DROP TABLE persons;" +
-        "ALTER TABLE new_persons RENAME TO persons;")
+    try db.create(table: "new_persons") { t in
+        t.column("id", .Integer).primaryKey()
+        t.column("name", .Text).notNull()
+    }
+    try db.execute("INSERT INTO new_persons SELECT * FROM persons")
+    try db.drop(table: "persons")
+    try db.rename(table: "new_persons", to: "persons")
 }
 ```
 
@@ -3549,24 +3554,24 @@ GRDB comes with five extra collations that leverage unicode-aware comparisons ba
 A collation can be applied to a table column. All comparisons involving this column will then automatically trigger the comparison function:
     
 ```swift
-let collation = DatabaseCollation.localizedCaseInsensitiveCompare
-try db.execute(
-    "CREATE TABLE persons (" +
-        "name TEXT COLLATE \(collation.name)" +
-    ")")
+try db.create(table: "persons") { t in
+    t.column("name", .Text).collate(.localizedCaseInsensitiveCompare)
+}
 
 // Persons are sorted in a localized case insensitive way:
 let persons = Person.order(nameColumn).fetchAll(db)
 ```
 
-If you can't or don't want to define the comparison behavior of a column, you can still use an explicit collation in SQL requests and in the [query interface](#the-query-interface):
+> :warning: **Warning**: defining collations in the table definition *requires* the application to provide the collation. This means that the database file becomes uneasy to share with other SQLite libraries or platforms (such as the Android version of your application).
+
+If you can't or don't want (see warning above) to define the comparison behavior of a column, you can still use an explicit collation in SQL requests and in the [query interface](#the-query-interface):
 
 ```swift
 let collation = DatabaseCollation.localizedCaseInsensitiveCompare
 let persons = Person.fetchAll(db,
     "SELECT * FROM persons ORDER BY name COLLATE \(collation.name))")
 let persons = Person.order(nameColumn.collating(collation)).fetchAll(db)
-let persons = Person.filter(uuidColumn.collating("NOCASE") == uuid).fetchAll(db)
+let persons = Person.filter(uuidColumn.collating(.Nocase) == uuid).fetchAll(db)
 ```
 
 
