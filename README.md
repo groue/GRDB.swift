@@ -2223,7 +2223,7 @@ Other **table constraints** can involve several columns:
     t.uniqueKey(["a", "b"], onConfict: .Replace)
     
     // FOREIGN KEY (c, d) REFERENCES parents(a, b),
-    t.foreignKey(["c", "d"], references: "parent", columns: ["a", "b"])
+    t.foreignKey(["c", "d"], references: "parent")
     
     // CHECK (a + b < 10),
     t.check(SQLColumn("a") + SQLColumn("b") < 10)
