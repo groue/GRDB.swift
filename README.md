@@ -3364,9 +3364,9 @@ do {
 
 **Fatal errors notify that the program, or the database, has to be changed.**
 
-They uncover programmer errors, false assumptions, and prevent misuses.
+They uncover programmer errors, false assumptions, and prevent misuses. Here are a few examples:
 
-1. For example, the code contains a wrong SQL query:
+- The code contains a wrong SQL query:
     
     ```swift
     // fatal error:
@@ -3383,7 +3383,7 @@ They uncover programmer errors, false assumptions, and prevent misuses.
     
     If you do have to run untrusted SQL queries, jump to [untrusted databases](#how-to-deal-with-untrusted-inputs).
 
-2. The code asks for a non-optional values, when the database contains NULL:
+- The code asks for a non-optional values, when the database contains NULL:
     
     ```swift
     // fatal error: could not convert NULL to String.
@@ -3396,7 +3396,7 @@ They uncover programmer errors, false assumptions, and prevent misuses.
     let name: String? = row.value(named: "name")
     ```
 
-3. The code asks for an NSDate, when the database contains garbage:
+- The code asks for an NSDate, when the database contains garbage:
     
     ```swift
     // fatal error: could not convert "Mom's birthday" to NSDate.
@@ -3405,7 +3405,7 @@ They uncover programmer errors, false assumptions, and prevent misuses.
     
     Solution: fix the contents of the database, or jump to [untrusted databases](#how-to-deal-with-untrusted-inputs).
 
-4. Database connections are not reentrant:
+- Database connections are not reentrant:
     
     ```swift
     // fatal error: Database methods are not reentrant.
