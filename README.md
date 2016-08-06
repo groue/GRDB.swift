@@ -2203,7 +2203,7 @@ Define **not null** and **unique** columns, and set **default** values:
     t.column("name", .Text).check { length($0) > 0 }
 ```
 
-Use an individual columns as a **primary** or **foreign key**. When not specified, the referenced column is the primary key of the referenced table:
+Use an individual column as **primary** or **foreign key**. When not specified, the referenced column is the primary key of the referenced table:
 
 ```swift
     // id INTEGER PRIMARY KEY,
