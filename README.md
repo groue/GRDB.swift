@@ -3314,9 +3314,14 @@ See [Executing Updates](#executing-updates) for more information on statement ar
 
 ## Error Handling
 
-**No SQLite error goes unnoticed.**
+GRDB can throw [DatabaseError](#databaseerror), [PersistenceError](#persistenceerror), or crash your program with a [fatal error](#fatal-errors).
 
-Some GRDB functions throw a DatabaseError (see [the list of SQLite error codes](https://www.sqlite.org/rescode.html)):
+Considering that a local database is not some JSON loaded from a remote server, GRDB focuses on **trusted databases**. Dealing with [untrusted databases](#how-to-deal-with-untrusted-inputs) requires extra care.
+
+
+### DatabaseError
+
+**DatabaseError** are thrown on SQLite errors (see [the list of SQLite error codes](https://www.sqlite.org/rescode.html)):
 
 ```swift
 do {
@@ -3341,31 +3346,93 @@ do {
 }
 ```
 
-Fatal errors uncover programmer errors, false assumptions, and prevent misuses:
+
+### PersistenceError
+
+**PersistenceError** is thrown by the [Persistable](#persistable-protocol) protocol, in a single case: when the `update` method could not find any row to update:
+
+```swift
+do {
+    try person.update(db)
+} catch PersistenceError.NotFound {
+    // There was nothing to update
+}
+```
+
+
+### Fatal Errors
+
+**Fatal errors notify that the program, or the database, has to be changed.**
+
+- [Programming Errors](#programming-errors)
+- [False Assumptions](#false-assumptions)
+- [Misuses](#misuses)
+
+
+#### Programming Errors
+
+For example, the code contains a wrong SQL query:
 
 ```swift
 // fatal error:
 // SQLite error 1 with statement `SELECT * FROM boooks`:
 // no such table: boooks
 Row.fetchAll(db, "SELECT * FROM boooks")
-// solution: fix the SQL query:
-Row.fetchAll(db, "SELECT * FROM books")
+```
 
+**Solution**: fix the SQL query.
+
+```swift
+Row.fetchAll(db, "SELECT * FROM books")
+```
+
+If you have to run untrusted SQL queries, jump to [untrusted databases](#how-to-deal-with-untrusted-inputs).
+
+
+#### False Assumptions
+
+For example, the code asks for a non-optional values, when the database contains NULL:
+
+```swift
 // fatal error: could not convert NULL to String.
 let name: String = row.value(named: "name")
-// solution: fix the contents of the database, or load an optional:
-let name: String? = row.value(named: "name")
+```
 
+**Solution**: fix the contents of the database, use [NOT NULL constraints](#create-tables), or load an optional:
+
+```swift
+let name: String? = row.value(named: "name")
+```
+
+Second example: the code asks for an NSDate, when the database contains garbage:
+
+```swift
+// fatal error: could not convert "Mom's birthday" to NSDate.
+let date: NSDate? = row.value(named: "date")
+```
+
+**Solution**: fix the contents of the database, or jump to [untrusted databases](#how-to-deal-with-untrusted-inputs).
+
+
+#### Misuses
+
+For example, did you know that database connections are not reentrant?
+
+```swift
 // fatal error: Database methods are not reentrant.
 dbQueue.inDatabase { db in
     dbQueue.inDatabase { db in
         ...
     }
 }
-// solution: avoid reentrancy, and instead pass a database connection along.
 ```
 
-**Fatal errors can be avoided**. For example, let's consider the code below:
+Well, now you know. Avoid reentrancy, and instead pass a database connection along.
+
+
+### How to Deal with Untrusted Inputs
+
+Let's consider the code below:
 
 ```swift
 // Some untrusted SQL query
