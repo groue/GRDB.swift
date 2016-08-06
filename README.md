@@ -2530,9 +2530,9 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
 
 #### SQL Functions
 
-- `ABS`, `AVG`, `COUNT`, `MAX`, `MIN`, `SUM`:
+- `ABS`, `AVG`, `COUNT`, `LENGTH`, `MAX`, `MIN`, `SUM`:
     
-    Those are based on the `abs`, `average`, `count`, `max`, `min` and `sum` Swift functions:
+    Those are based on the `abs`, `average`, `count`, `length`, `max`, `min` and `sum` Swift functions:
     
     ```swift
     // SELECT MIN(age), MAX(age) FROM persons
