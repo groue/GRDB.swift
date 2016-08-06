@@ -1356,7 +1356,7 @@ GRDB provides four high-level methods as well:
 db.tableExists("persons")    // Bool, true if the table exists
 db.indexes(on: "persons")    // [IndexInfo], the indexes defined on the table
 try db.table("persons", hasUniqueKey: ["email"]) // Bool, true if column(s) is a unique key
-try db.primaryKey("persons") // PrimaryKey?
+try db.primaryKey("persons") // PrimaryKeyInfo?
 ```
 
 Primary key is nil when table has no primary key:
@@ -2165,9 +2165,22 @@ try db.create(table: "pointOfInterests") { t in
 }
 ```
 
-The `create(table:)` method covers nearly all [CREATE TABLE](https://www.sqlite.org/lang_createtable.html) SQLite statements:
+The `create(table:)` method covers nearly all SQLite table creation features.
+
+Relevant SQLite documentation:
+
+- [CREATE TABLE](https://www.sqlite.org/lang_createtable.html)
+- [Datatypes In SQLite Version 3](https://www.sqlite.org/datatype3.html)
+- [SQLite Foreign Key Support](https://www.sqlite.org/foreignkeys.html)
+- [ON CONFLICT](https://www.sqlite.org/lang_conflict.html)
+- [The WITHOUT ROWID Optimization](https://www.sqlite.org/withoutrowid.html)
+
+**Configure table creation**:
 
 ```swift
+// CREATE TABLE demo (
+try db.create(table: "demo") { t in ... }
+    
 // CREATE TEMPORARY TABLE demo IF NOT EXISTS (
 try db.create(table: "demo", temporary: true, ifNotExists: true) { t in
 ```
@@ -2247,7 +2260,7 @@ try db.alter(table: "persons") { t in
 }
 ```
 
-Table alterations are restricted: see the documentation of the [ALTER TABLE](https://www.sqlite.org/lang_altertable.html), and  [Migrations](#migrations) for a way to lift those restrictions.
+> :point_up: **Note**: Table alterations are restricted, and may require you to recreate triggers or views: see the documentation of the [ALTER TABLE](https://www.sqlite.org/lang_altertable.html), and  [migrations](#migrations) for a way to lift those restrictions.
 
 
 #### Drop Tables
@@ -2266,6 +2279,12 @@ Create indexes with the `create(index:)` method:
 // CREATE UNIQUE INDEX byEmail ON users(email)
 try db.create(index: "byEmail", on: "users", columns: ["email"], unique: true)
 ```
+
+Relevant SQLite documentation:
+
+- [CREATE INDEX](https://www.sqlite.org/lang_createindex.html)
+- [Indexes On Expressions](https://www.sqlite.org/expridx.html)
+- [Partial Indexes](https://www.sqlite.org/partialindex.html)
 
 
 ### Requests
