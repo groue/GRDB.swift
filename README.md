@@ -3386,7 +3386,7 @@ Solution: fix the SQL query.
 Row.fetchAll(db, "SELECT * FROM books")
 ```
 
-If you have to run untrusted SQL queries, jump to [untrusted databases](#how-to-deal-with-untrusted-inputs).
+If you do have to run untrusted SQL queries, jump to [untrusted databases](#how-to-deal-with-untrusted-inputs).
 
 
 #### False Assumptions
@@ -3427,7 +3427,7 @@ dbQueue.inDatabase { db in
 }
 ```
 
-Solution: Avoid reentrancy, and instead pass a database connection along.
+Solution: avoid reentrancy, and instead pass a database connection along.
 
 
 ### How to Deal with Untrusted Inputs
