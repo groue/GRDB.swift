@@ -2207,7 +2207,7 @@ Define **not null** columns, and set **default** values:
     t.column("name", .Text).notNull().defaults("Anonymous")
 ```
     
-Use an individual column as **primary**, **unique**, or **foreign key**. When not specified, the referenced column is the primary key of the referenced table:
+Use an individual column as **primary**, **unique**, or **foreign key**. When defining a foreign key, the referenced column is the primary key of the referenced table (unless you specify it):
 
 ```swift
     // id INTEGER PRIMARY KEY,
@@ -2223,10 +2223,10 @@ Use an individual column as **primary**, **unique**, or **foreign key**. When no
 **Perform integrity checks** on individual columns, and SQLite will only let conforming rows in. In the example below, the `$0` closure variable is a column which lets you build any SQL [expression](#expressions).
 
 ```swift
-    // age INTEGER CHECK (age > 0)
     // name TEXT CHECK (LENGTH(name) > 0)
-    t.column("age", .Integer).check { $0 > 0 }
+    // age INTEGER CHECK (age > 0)
     t.column("name", .Text).check { length($0) > 0 }
+    t.column("age", .Integer).check(sql: "age > 0")
 ```
 
 Other **table constraints** can involve several columns:
