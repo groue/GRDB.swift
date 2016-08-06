@@ -803,7 +803,7 @@ extension Database {
     /// primary key.
     ///
     /// - throws: A DatabaseError if table does not exist.
-    public func primaryKey(tableName: String) throws -> PrimaryKey? {
+    public func primaryKey(tableName: String) throws -> PrimaryKeyInfo? {
         SchedulingWatchdog.preconditionValidQueue(self)
         
         if let primaryKey = schemaCache.primaryKey(tableName: tableName) {
@@ -836,7 +836,7 @@ extension Database {
         
         let columns = try self.columns(in: tableName)
         
-        let primaryKey: PrimaryKey?
+        let primaryKey: PrimaryKeyInfo?
         let pkColumns = columns
             .filter { $0.primaryKeyIndex > 0 }
             .sort { $0.primaryKeyIndex < $1.primaryKeyIndex }
@@ -1059,7 +1059,7 @@ public struct IndexInfo {
 ///     let citizenshipsPk = db.primaryKey("citizenships")!
 ///     citizenshipsPk.columns     // ["personID", "countryIsoCode"]
 ///     citizenshipsPk.rowIDColumn // nil
-public struct PrimaryKey {
+public struct PrimaryKeyInfo {
     private enum Impl {
         /// An INTEGER PRIMARY KEY column that aliases the Row ID.
         /// Associated string is the column name.
@@ -1072,13 +1072,13 @@ public struct PrimaryKey {
     
     private let impl: Impl
     
-    static func rowID(column: String) -> PrimaryKey {
-        return PrimaryKey(impl: .RowID(column))
+    static func rowID(column: String) -> PrimaryKeyInfo {
+        return PrimaryKeyInfo(impl: .RowID(column))
     }
     
-    static func regular(columns: [String]) -> PrimaryKey {
+    static func regular(columns: [String]) -> PrimaryKeyInfo {
         assert(!columns.isEmpty)
-        return PrimaryKey(impl: .Regular(columns))
+        return PrimaryKeyInfo(impl: .Regular(columns))
     }
     
     /// The columns in the primary key; this array is never empty.

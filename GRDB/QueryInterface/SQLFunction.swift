@@ -71,6 +71,16 @@ public func ?? (lhs: _SQLExpressible?, rhs: _SpecificSQLExpressible) -> _SQLExpr
 }
 
 
+// MARK: - LENGTH(...)
+
+/// Returns an SQL expression.
+///
+/// See https://github.com/groue/GRDB.swift/#sql-functions
+public func length(value: _SpecificSQLExpressible) -> _SQLExpression {
+    return .Function("LENGTH", [value.sqlExpression])
+}
+
+
 // MARK: - MAX(...)
 
 /// Returns an SQL expression.
