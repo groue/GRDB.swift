@@ -706,7 +706,7 @@ let hasBooks    = Bool.fromDatabaseValue(dbv)  // Bool?, false when 0
 
 let dbv = row.databaseValue(named: "date")
 let string = String.fromDatabaseValue(dbv)     // "2015-09-11 18:14:15.123"
-let date   = NSDate.fromDatabaseValue(dbv)     // NSDate?
+let date   = Date.fromDatabaseValue(dbv)       // Date?
 ```
 
 `fromDatabaseValue` returns nil for invalid conversions:
@@ -716,7 +716,7 @@ let row = Row.fetchOne(db, "SELECT 'foo'")!
 let dbv = row.databaseValue(at: 0)
 let string = String.fromDatabaseValue(dbv) // "foo"
 let int    = Int.fromDatabaseValue(dbv)    // nil
-let date   = NSDate.fromDatabaseValue(dbv) // nil
+let date   = Date.fromDatabaseValue(dbv)   // nil
 ```
 
 
@@ -1891,11 +1891,11 @@ When you subclass [Record](#record-class), you simply have to override the custo
 
 ```swift
 class Person : Record {
-    var uuid: NSUUID?
+    var uuid: UUID?
     
     override func insert(_ db: Database) throws {
         if uuid == nil {
-            uuid = NSUUID()
+            uuid = UUID()
         }
         try super.insert(db)
     }
@@ -3078,15 +3078,15 @@ controller.setRequest(sql: "SELECT ...", arguments: ...)
 On iOS, the table view data source asks the fetched records controller to provide relevant information:
 
 ```swift
-func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+func numberOfSections(in tableView: UITableView) -> Int {
     return fetchedRecordsController.sections.count
 }
 
-func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     return fetchedRecordsController.sections[section].numberOfRecords
 }
 
-func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = ...
     let record = fetchedRecordsController.record(at: indexPath)
     // Configure the cell
@@ -3386,11 +3386,11 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     let name: String? = row.value(named: "name")
     ```
 
-- The code asks for an NSDate, when the database contains garbage:
+- The code asks for an Date, when the database contains garbage:
     
     ```swift
-    // fatal error: could not convert "Mom's birthday" to NSDate.
-    let date: NSDate? = row.value(named: "date")
+    // fatal error: could not convert "Mom's birthday" to Date.
+    let date: Date? = row.value(named: "date")
     ```
     
     Solution: fix the contents of the database, or use [DatabaseValue](#databasevalue) to handle all possible cases:
@@ -3399,7 +3399,7 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     let dbv = row.databaseValue(named: "date")
     if dbv.isNull {
         // Handle NULL
-    if let date = NSDate.fromDatabaseValue(dbv) {
+    if let date = Date.fromDatabaseValue(dbv) {
         // Handle valid date
     } else {
         // Handle invalid date
@@ -3747,7 +3747,7 @@ Particularly: the Array returned by the `fetchAll` method, and the sequence retu
 
 You should only load arrays if you need to keep them for later use (such as iterating their contents in the main thread). Otherwise, use `fetch`.
 
-See [fetching methods](#fetching-methods) for more information about `fetchAll` and `fetch`. See also the [Row.dataNoCopy](#nsdata-and-memory-savings) method.
+See [fetching methods](#fetching-methods) for more information about `fetchAll` and `fetch`. See also the [Row.dataNoCopy](#data-and-memory-savings) method.
 
 
 **Don't update rows unless necessary**
