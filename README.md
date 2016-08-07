@@ -101,7 +101,7 @@ Insert and fetch [records](#records):
 ```swift
 struct PointOfInterest {
     var id: Int64?
-    var title: String?
+    var title: String
     var favorite: Bool
     var coordinate: CLLocationCoordinate2D
 }
@@ -1716,7 +1716,7 @@ public protocol RowConvertible {
 ```swift
 struct PointOfInterest {
     var id: Int64?
-    var title: String?
+    var title: String
     var coordinate: CLLocationCoordinate2D
 }
 
@@ -2002,7 +2002,7 @@ For example, here is a fully functional Record subclass:
 ```swift
 class PointOfInterest : Record {
     var id: Int64?
-    var title: String?
+    var title: String
     var coordinate: CLLocationCoordinate2D
     
     /// The table name
