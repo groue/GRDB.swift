@@ -2183,7 +2183,7 @@ Relevant SQLite documentation:
 **Configure table creation**:
 
 ```swift
-// CREATE TABLE example (
+// CREATE TABLE example ( ... )
 try db.create(table: "example") { t in ... }
     
 // CREATE TEMPORARY TABLE example IF NOT EXISTS (
