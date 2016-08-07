@@ -202,10 +202,10 @@ class StatementColumnConvertibleTests : GRDBTestCase {
                 return .rollback
             }
             
-            // "fooéı👨👨🏿🇫🇷🇨🇮" is turned to Text
+            // "'fooéı👨👨🏿🇫🇷🇨🇮'" is turned to Text
             
             try dbQueue.inTransaction { db in
-                try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: ["fooéı👨👨🏿🇫🇷🇨🇮"])
+                try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: ["'fooéı👨👨🏿🇫🇷🇨🇮'"])
                 // Check SQLite conversions from Text storage:
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
@@ -223,12 +223,12 @@ class StatementColumnConvertibleTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertEqual((row.value(atIndex: 0) as String?)!, "fooéı👨👨🏿🇫🇷🇨🇮")
+                    XCTAssertEqual((row.value(atIndex: 0) as String?)!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertEqual((row.value(atIndex: 0) as String), "fooéı👨👨🏿🇫🇷🇨🇮")
+                    XCTAssertEqual((row.value(atIndex: 0) as String), "'fooéı👨👨🏿🇫🇷🇨🇮'")
                 }
-                // Data extraction: precondition failed: could not convert "fooéı👨👨🏿🇫🇷🇨🇮" to Data
+                // Data extraction: precondition failed: could not convert "'fooéı👨👨🏿🇫🇷🇨🇮'" to Data
 //                for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as Data?) == nil)
 //                }
@@ -238,7 +238,7 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             // Blob is turned to Blob
             
             try dbQueue.inTransaction { db in
-                try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: ["fooéı👨👨🏿🇫🇷🇨🇮".data(using: .utf8)])
+                try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: ["'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8)])
                 // Check SQLite conversions from Blob storage:
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
@@ -256,10 +256,10 @@ class StatementColumnConvertibleTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertEqual((row.value(atIndex: 0) as String?), "fooéı👨👨🏿🇫🇷🇨🇮")   // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "'fooéı👨👨🏿🇫🇷🇨🇮'")   // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertEqual((row.value(atIndex: 0) as Data?), "fooéı👨👨🏿🇫🇷🇨🇮".data(using: .utf8))
+                    XCTAssertEqual((row.value(atIndex: 0) as Data?), "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
                 }
                 return .rollback
             }
@@ -595,10 +595,10 @@ class StatementColumnConvertibleTests : GRDBTestCase {
                 return .rollback
             }
             
-            // "fooéı👨👨🏿🇫🇷🇨🇮" is turned to Text
+            // "'fooéı👨👨🏿🇫🇷🇨🇮'" is turned to Text
             
             try dbQueue.inTransaction { db in
-                try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", arguments: ["fooéı👨👨🏿🇫🇷🇨🇮"])
+                try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", arguments: ["'fooéı👨👨🏿🇫🇷🇨🇮'"])
                 // Check SQLite conversions from Text storage:
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
@@ -616,12 +616,12 @@ class StatementColumnConvertibleTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertEqual((row.value(atIndex: 0) as String?)!, "fooéı👨👨🏿🇫🇷🇨🇮")
+                    XCTAssertEqual((row.value(atIndex: 0) as String?)!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
                 }
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertEqual((row.value(atIndex: 0) as String), "fooéı👨👨🏿🇫🇷🇨🇮")
+                    XCTAssertEqual((row.value(atIndex: 0) as String), "'fooéı👨👨🏿🇫🇷🇨🇮'")
                 }
-                // Data extraction: precondition failed: could not convert "fooéı👨👨🏿🇫🇷🇨🇮" to Data
+                // Data extraction: precondition failed: could not convert "'fooéı👨👨🏿🇫🇷🇨🇮'" to Data
 //                for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as Data?) == nil)
 //                }
@@ -631,7 +631,7 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             // Blob is turned to Blob
             
             try dbQueue.inTransaction { db in
-                try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", arguments: ["fooéı👨👨🏿🇫🇷🇨🇮".data(using: .utf8)])
+                try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", arguments: ["'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8)])
                 // Check SQLite conversions from Blob storage:
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
@@ -649,10 +649,10 @@ class StatementColumnConvertibleTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertEqual((row.value(atIndex: 0) as String?), "fooéı👨👨🏿🇫🇷🇨🇮")   // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "'fooéı👨👨🏿🇫🇷🇨🇮'")   // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertEqual((row.value(atIndex: 0) as Data?), "fooéı👨👨🏿🇫🇷🇨🇮".data(using: .utf8))
+                    XCTAssertEqual((row.value(atIndex: 0) as Data?), "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
                 }
                 return .rollback
             }
@@ -885,7 +885,7 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             // Blob is turned to Blob
             
             try dbQueue.inTransaction { db in
-                try db.execute("INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: ["fooéı👨👨🏿🇫🇷🇨🇮".data(using: .utf8)])
+                try db.execute("INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: ["'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8)])
                 // Check SQLite conversions from Blob storage
                 for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
@@ -903,10 +903,10 @@ class StatementColumnConvertibleTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
-                    XCTAssertEqual((row.value(atIndex: 0) as String?), "fooéı👨👨🏿🇫🇷🇨🇮")   // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "'fooéı👨👨🏿🇫🇷🇨🇮'")   // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
-                    XCTAssertEqual((row.value(atIndex: 0) as Data?), "fooéı👨👨🏿🇫🇷🇨🇮".data(using: .utf8))
+                    XCTAssertEqual((row.value(atIndex: 0) as Data?), "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
                 }
                 return .rollback
             }
@@ -1216,10 +1216,10 @@ class StatementColumnConvertibleTests : GRDBTestCase {
                 return .rollback
             }
             
-            // "fooéı👨👨🏿🇫🇷🇨🇮" is turned to Text
+            // "'fooéı👨👨🏿🇫🇷🇨🇮'" is turned to Text
             
             try dbQueue.inTransaction { db in
-                try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: ["fooéı👨👨🏿🇫🇷🇨🇮"])
+                try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: ["'fooéı👨👨🏿🇫🇷🇨🇮'"])
                 // Check SQLite conversions from Text storage:
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
@@ -1237,12 +1237,12 @@ class StatementColumnConvertibleTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertEqual((row.value(atIndex: 0) as String?)!, "fooéı👨👨🏿🇫🇷🇨🇮")
+                    XCTAssertEqual((row.value(atIndex: 0) as String?)!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
                 }
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertEqual((row.value(atIndex: 0) as String), "fooéı👨👨🏿🇫🇷🇨🇮")
+                    XCTAssertEqual((row.value(atIndex: 0) as String), "'fooéı👨👨🏿🇫🇷🇨🇮'")
                 }
-                // Data extraction: precondition failed: could not convert "fooéı👨👨🏿🇫🇷🇨🇮" to Data
+                // Data extraction: precondition failed: could not convert "'fooéı👨👨🏿🇫🇷🇨🇮'" to Data
 //                for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as Data?) == nil)
 //                }
@@ -1252,7 +1252,7 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             // Blob is turned to Blob
             
             try dbQueue.inTransaction { db in
-                try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: ["fooéı👨👨🏿🇫🇷🇨🇮".data(using: .utf8)])
+                try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: ["'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8)])
                 // Check SQLite conversions from Blob storage:
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
@@ -1270,10 +1270,10 @@ class StatementColumnConvertibleTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertEqual((row.value(atIndex: 0) as String?), "fooéı👨👨🏿🇫🇷🇨🇮")   // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "'fooéı👨👨🏿🇫🇷🇨🇮'")   // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertEqual((row.value(atIndex: 0) as Data?), "fooéı👨👨🏿🇫🇷🇨🇮".data(using: .utf8))
+                    XCTAssertEqual((row.value(atIndex: 0) as Data?), "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
                 }
                 return .rollback
             }

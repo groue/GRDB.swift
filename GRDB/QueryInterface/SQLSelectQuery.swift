@@ -410,7 +410,7 @@ extension _SpecificSQLExpressible {
 /// See https://github.com/groue/GRDB.swift/#the-query-interface
 public indirect enum _SQLExpression {
     /// For example: `name || 'rrr' AS pirateName`
-    case SQLLiteral(String, StatementArguments?)
+    case sqlLiteral(String, StatementArguments?)
     
     /// For example: `1` or `'foo'`
     case value(DatabaseValueConvertible?)   // TODO: switch to DatabaseValue?
@@ -466,7 +466,7 @@ public indirect enum _SQLExpression {
     ///
     func sql(_ arguments: inout StatementArguments?) -> String {
         switch self {
-        case .SQLLiteral(let sql, let literalArguments):
+        case .sqlLiteral(let sql, let literalArguments):
             if let literalArguments = literalArguments {
                 guard arguments != nil else {
                     fatalError("Not implemented")

@@ -134,29 +134,29 @@ class SQLSupportTests: GRDBTestCase {
         
         // Array.contains(): IN operator
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(["arthur", "barbara"].contains(Col.name.collating("NOCASE")))),
+            sql(dbQueue, tableRequest.filter(["arthur", "barbara"].contains(Col.name.collating(.nocase)))),
             "SELECT * FROM \"readers\" WHERE (\"name\" IN ('arthur', 'barbara') COLLATE NOCASE)")
         
         // Sequence.contains(): IN operator
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(AnySequence(["arthur", "barbara"]).contains(Col.name.collating("NOCASE")))),
+            sql(dbQueue, tableRequest.filter(AnySequence(["arthur", "barbara"]).contains(Col.name.collating(.nocase)))),
             "SELECT * FROM \"readers\" WHERE (\"name\" IN ('arthur', 'barbara') COLLATE NOCASE)")
         
         // Sequence.contains(): IN operator
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(AnySequence([Col.name]).contains(Col.name.collating("NOCASE")))),
+            sql(dbQueue, tableRequest.filter(AnySequence([Col.name]).contains(Col.name.collating(.nocase)))),
             "SELECT * FROM \"readers\" WHERE (\"name\" IN (\"name\") COLLATE NOCASE)")
         
         // ClosedInterval: BETWEEN operator
         let closedInterval = "A"..."z"
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(closedInterval.contains(Col.name.collating("NOCASE")))),
+            sql(dbQueue, tableRequest.filter(closedInterval.contains(Col.name.collating(.nocase)))),
             "SELECT * FROM \"readers\" WHERE (\"name\" BETWEEN 'A' AND 'z' COLLATE NOCASE)")
         
         // HalfOpenInterval:  min <= x < max
         let halfOpenInterval = "A"..<"z"
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(halfOpenInterval.contains(Col.name.collating("NOCASE")))),
+            sql(dbQueue, tableRequest.filter(halfOpenInterval.contains(Col.name.collating(.nocase)))),
             "SELECT * FROM \"readers\" WHERE ((\"name\" >= 'A' COLLATE NOCASE) AND (\"name\" < 'z' COLLATE NOCASE))")
     }
     
@@ -198,7 +198,7 @@ class SQLSupportTests: GRDBTestCase {
         let dbQueue = try! makeDatabaseQueue()
         
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(Col.name.collating("NOCASE") > "fOo")),
+            sql(dbQueue, tableRequest.filter(Col.name.collating(.nocase) > "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" > 'fOo' COLLATE NOCASE)")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.name.collating(collation) > "fOo")),
@@ -243,7 +243,7 @@ class SQLSupportTests: GRDBTestCase {
         let dbQueue = try! makeDatabaseQueue()
         
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(Col.name.collating("NOCASE") >= "fOo")),
+            sql(dbQueue, tableRequest.filter(Col.name.collating(.nocase) >= "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" >= 'fOo' COLLATE NOCASE)")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.name.collating(collation) >= "fOo")),
@@ -288,7 +288,7 @@ class SQLSupportTests: GRDBTestCase {
         let dbQueue = try! makeDatabaseQueue()
         
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(Col.name.collating("NOCASE") < "fOo")),
+            sql(dbQueue, tableRequest.filter(Col.name.collating(.nocase) < "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" < 'fOo' COLLATE NOCASE)")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.name.collating(collation) < "fOo")),
@@ -333,7 +333,7 @@ class SQLSupportTests: GRDBTestCase {
         let dbQueue = try! makeDatabaseQueue()
         
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(Col.name.collating("NOCASE") <= "fOo")),
+            sql(dbQueue, tableRequest.filter(Col.name.collating(.nocase) <= "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" <= 'fOo' COLLATE NOCASE)")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.name.collating(collation) <= "fOo")),
@@ -412,13 +412,13 @@ class SQLSupportTests: GRDBTestCase {
         let dbQueue = try! makeDatabaseQueue()
         
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(Col.name.collating("NOCASE") == "fOo")),
+            sql(dbQueue, tableRequest.filter(Col.name.collating(.nocase) == "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" = 'fOo' COLLATE NOCASE)")
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(Col.name.collating("NOCASE") == ("fOo" as String?))),
+            sql(dbQueue, tableRequest.filter(Col.name.collating(.nocase) == ("fOo" as String?))),
             "SELECT * FROM \"readers\" WHERE (\"name\" = 'fOo' COLLATE NOCASE)")
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(Col.name.collating("NOCASE") == nil)),
+            sql(dbQueue, tableRequest.filter(Col.name.collating(.nocase) == nil)),
             "SELECT * FROM \"readers\" WHERE (\"name\" IS NULL COLLATE NOCASE)")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.name.collating(collation) == "fOo")),
@@ -497,13 +497,13 @@ class SQLSupportTests: GRDBTestCase {
         let dbQueue = try! makeDatabaseQueue()
         
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(Col.name.collating("NOCASE") != "fOo")),
+            sql(dbQueue, tableRequest.filter(Col.name.collating(.nocase) != "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" <> 'fOo' COLLATE NOCASE)")
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(Col.name.collating("NOCASE") != ("fOo" as String?))),
+            sql(dbQueue, tableRequest.filter(Col.name.collating(.nocase) != ("fOo" as String?))),
             "SELECT * FROM \"readers\" WHERE (\"name\" <> 'fOo' COLLATE NOCASE)")
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(Col.name.collating("NOCASE") != nil)),
+            sql(dbQueue, tableRequest.filter(Col.name.collating(.nocase) != nil)),
             "SELECT * FROM \"readers\" WHERE (\"name\" IS NOT NULL COLLATE NOCASE)")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.name.collating(collation) != "fOo")),
@@ -581,7 +581,7 @@ class SQLSupportTests: GRDBTestCase {
         let dbQueue = try! makeDatabaseQueue()
         
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(Col.name.collating("NOCASE") === "fOo")),
+            sql(dbQueue, tableRequest.filter(Col.name.collating(.nocase) === "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" IS 'fOo' COLLATE NOCASE)")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.name.collating(collation) === "fOo")),
@@ -632,7 +632,7 @@ class SQLSupportTests: GRDBTestCase {
         let dbQueue = try! makeDatabaseQueue()
         
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(Col.name.collating("NOCASE") !== "fOo")),
+            sql(dbQueue, tableRequest.filter(Col.name.collating(.nocase) !== "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" IS NOT 'fOo' COLLATE NOCASE)")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.name.collating(collation) !== "fOo")),
@@ -891,6 +891,14 @@ class SQLSupportTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.select(average(Col.age / 2))),
             "SELECT AVG((\"age\" / 2)) FROM \"readers\"")
+    }
+    
+    func testLengthExpression() {
+        let dbQueue = try! makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(length(Col.name))),
+            "SELECT LENGTH(\"name\") FROM \"readers\"")
     }
     
     func testMinExpression() {

@@ -517,7 +517,7 @@ final class DataMapper {
     let databaseTableName: String
     
     /// The table primary key
-    let primaryKey: PrimaryKey?
+    let primaryKey: PrimaryKeyInfo?
     
     init(_ db: Database, _ persistable: MutablePersistable) {
         // Fail early if database table does not exist.

@@ -7,8 +7,8 @@
 protocol DatabaseSchemaCache {
     mutating func clear()
     
-    func primaryKey(_ tableName: String) -> PrimaryKey??
-    mutating func set(primaryKey: PrimaryKey?, for tableName: String)
+    func primaryKey(_ tableName: String) -> PrimaryKeyInfo??
+    mutating func set(primaryKey: PrimaryKeyInfo?, for tableName: String)
     
     func columns(in tableName: String) -> [ColumnInfo]?
     mutating func set(columns: [ColumnInfo], forTableName tableName: String)
@@ -19,7 +19,7 @@ protocol DatabaseSchemaCache {
 
 /// A thread-unsafe database schema cache
 final class SimpleDatabaseSchemaCache: DatabaseSchemaCache {
-    private var primaryKeys: [String: PrimaryKey?] = [:]
+    private var primaryKeys: [String: PrimaryKeyInfo?] = [:]
     private var columns: [String: [ColumnInfo]] = [:]
     private var indexes: [String: [IndexInfo]] = [:]
     
@@ -29,11 +29,11 @@ final class SimpleDatabaseSchemaCache: DatabaseSchemaCache {
         indexes = [:]
     }
     
-    func primaryKey(_ tableName: String) -> PrimaryKey?? {
+    func primaryKey(_ tableName: String) -> PrimaryKeyInfo?? {
         return primaryKeys[tableName]
     }
     
-    func set(primaryKey: PrimaryKey?, for tableName: String) {
+    func set(primaryKey: PrimaryKeyInfo?, for tableName: String) {
         primaryKeys[tableName] = primaryKey
     }
     
@@ -62,11 +62,11 @@ final class SharedDatabaseSchemaCache: DatabaseSchemaCache {
         cache.write { $0.clear() }
     }
     
-    func primaryKey(_ tableName: String) -> PrimaryKey?? {
+    func primaryKey(_ tableName: String) -> PrimaryKeyInfo?? {
         return cache.read { $0.primaryKey(tableName) }
     }
     
-    func set(primaryKey: PrimaryKey?, for tableName: String) {
+    func set(primaryKey: PrimaryKeyInfo?, for tableName: String) {
         cache.write { $0.set(primaryKey: primaryKey, for: tableName) }
     }
     

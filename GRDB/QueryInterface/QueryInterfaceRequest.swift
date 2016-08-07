@@ -100,7 +100,7 @@ extension QueryInterfaceRequest {
     
     /// Returns a new QueryInterfaceRequest with a new net of selected columns.
     public func select(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<T> {
-        return select(_SQLExpression.SQLLiteral(sql, arguments))
+        return select(_SQLExpression.sqlLiteral(sql, arguments))
     }
     
     /// Returns a new QueryInterfaceRequest which returns distinct rows.
@@ -125,7 +125,7 @@ extension QueryInterfaceRequest {
     /// Returns a new QueryInterfaceRequest with the provided *predicate* added to the
     /// eventual set of already applied predicates.
     public func filter(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<T> {
-        return filter(_SQLExpression.SQLLiteral(sql, arguments))
+        return filter(_SQLExpression.sqlLiteral(sql, arguments))
     }
     
     /// Returns a new QueryInterfaceRequest grouped according to *expressions*.
@@ -142,7 +142,7 @@ extension QueryInterfaceRequest {
     
     /// Returns a new QueryInterfaceRequest with a new grouping.
     public func group(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<T> {
-        return group(_SQLExpression.SQLLiteral(sql, arguments))
+        return group(_SQLExpression.sqlLiteral(sql, arguments))
     }
     
     /// Returns a new QueryInterfaceRequest with the provided *predicate* added to the
@@ -160,7 +160,7 @@ extension QueryInterfaceRequest {
     /// Returns a new QueryInterfaceRequest with the provided *sql* added to
     /// the eventual set of already applied predicates.
     public func having(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<T> {
-        return having(_SQLExpression.SQLLiteral(sql, arguments))
+        return having(_SQLExpression.sqlLiteral(sql, arguments))
     }
     
     /// Returns a new QueryInterfaceRequest with the provided *orderings* added to
@@ -180,7 +180,7 @@ extension QueryInterfaceRequest {
     /// Returns a new QueryInterfaceRequest with the provided *sql* added to the
     /// eventual set of already applied orderings.
     public func order(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<T> {
-        return order([_SQLExpression.SQLLiteral(sql, arguments)])
+        return order([_SQLExpression.sqlLiteral(sql, arguments)])
     }
     
     /// Returns a new QueryInterfaceRequest sorted in reversed order.

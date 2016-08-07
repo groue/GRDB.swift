@@ -3,9 +3,7 @@
 - [ ] Swift3: move more top-level enums inside an owner type. Foundation uses lowercase for those enum *types* (besides the lowercase *values*)
 - [ ] Swift3: check .autoreleaseWorkItem option in GCD Queue creation
 - [ ] Swift3: move database event filtering into the TransactionObserver protocol
-- [ ] Document Statement.unsafeSetArguments
 - [ ] What is the behavior inTransaction and inSavepoint behaviors in case of commit error? Code looks like we do not rollback, leaving the app in a weird state (out of Swift transaction block with a SQLite transaction that may still be opened).
->>>>>>> c49506e588760f4bdfac649ac02ceffe484a1edb
 - [ ] GRDBCipher: remove limitations on iOS or OS X versions
 - [ ] FetchedRecordsController: take inspiration from https://github.com/jflinter/Dwifft
 - [ ] File protection: Read https://github.com/ccgus/fmdb/issues/262 and understand https://lists.apple.com/archives/cocoa-dev/2012/Aug/msg00527.html
