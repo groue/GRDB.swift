@@ -8,10 +8,10 @@ import XCTest
 #endif
 
 private struct Col {
-    static let id = SQLColumn("id")
-    static let name = SQLColumn("name")
-    static let age = SQLColumn("age")
-    static let readerId = SQLColumn("readerId")
+    static let id = Column("id")
+    static let name = Column("name")
+    static let age = Column("age")
+    static let readerId = Column("readerId")
 }
 
 private let tableRequest = QueryInterfaceRequest<Void>(tableName: "readers")

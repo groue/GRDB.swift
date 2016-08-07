@@ -143,11 +143,11 @@ dbQueue.inDatabase { db in
     let paris = PointOfInterest.fetchOne(db, key: 1)
     
     // PointOfInterest?
-    let titleColumn = SQLColumn("title")
+    let titleColumn = Column("title")
     let berlin = PointOfInterest.filter(titleColumn == "Berlin").fetchOne(db)
     
     // [PointOfInterest]
-    let favoriteColumn = SQLColumn("favorite")
+    let favoriteColumn = Column("favorite")
     let favoritePois = PointOfInterest
         .filter(favoriteColumn)
         .order(titleColumn)
@@ -2205,7 +2205,7 @@ Other **table constraints** can involve several columns:
     t.foreignKey(["c", "d"], references: "parent")
     
     // CHECK (a + b < 10),
-    t.check(SQLColumn("a") + SQLColumn("b") < 10)
+    t.check(Column("a") + Column("b") < 10)
     
     // CHECK (a + b < 10)
     t.check(sql: "a + b < 10")
@@ -2272,8 +2272,8 @@ class Person : Record { ... }
 Declare the table **columns** that you want to use for filtering, or sorting:
 
 ```swift
-let idColumn = SQLColumn("id")
-let nameColumn = SQLColumn("name")
+let idColumn = Column("id")
+let nameColumn = Column("name")
 ```
 
 You can now derive requests with the following methods:
@@ -2935,7 +2935,7 @@ let dbQueue = DatabaseQueue(...)    // Or DatabasePool
 // Using a FetchRequest from the Query Interface:
 let controller = FetchedRecordsController<Person>(
     dbQueue,
-    request: Person.order(SQLColumn("name")))
+    request: Person.order(Column("name")))
 
 // Using SQL, and eventual arguments:
 let controller = FetchedRecordsController<Person>(
@@ -3066,7 +3066,7 @@ You can change a fetched records controller's fetch request or SQL query.
 The [notification callbacks](#the-changes-notifications) are notified of changes in the fetched records:
 
 ```swift
-controller.setRequest(Person.order(SQLColumn("name")))
+controller.setRequest(Person.order(Column("name")))
 controller.setRequest(sql: "SELECT ...", arguments: ...)
 ```
 

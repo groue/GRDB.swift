@@ -39,7 +39,7 @@ extension QueryInterfaceRequest where T: RowConvertible {
     
     /// Returns a sequence of values.
     ///
-    ///     let nameColumn = SQLColumn("name")
+    ///     let nameColumn = Column("name")
     ///     let request = Person.order(nameColumn)
     ///     let persons = request.fetch(db) // DatabaseSequence<Person>
     ///
@@ -60,7 +60,7 @@ extension QueryInterfaceRequest where T: RowConvertible {
     
     /// Returns an array of values fetched from a fetch request.
     ///
-    ///     let nameColumn = SQLColumn("name")
+    ///     let nameColumn = Column("name")
     ///     let request = Person.order(nameColumn)
     ///     let persons = request.fetchAll(db) // [Person]
     ///
@@ -71,7 +71,7 @@ extension QueryInterfaceRequest where T: RowConvertible {
     
     /// Returns a single value fetched from a fetch request.
     ///
-    ///     let nameColumn = SQLColumn("name")
+    ///     let nameColumn = Column("name")
     ///     let request = Person.order(nameColumn)
     ///     let person = request.fetchOne(db) // Person?
     ///
@@ -165,13 +165,13 @@ extension QueryInterfaceRequest {
     
     /// Returns a new QueryInterfaceRequest with the provided *orderings* added to
     /// the eventual set of already applied orderings.
-    public func order(_ orderings: _SQLOrdering...) -> QueryInterfaceRequest<T> {
+    public func order(_ orderings: _SQLOrderable...) -> QueryInterfaceRequest<T> {
         return order(orderings)
     }
     
     /// Returns a new QueryInterfaceRequest with the provided *orderings* added to
     /// the eventual set of already applied orderings.
-    public func order(_ orderings: [_SQLOrdering]) -> QueryInterfaceRequest<T> {
+    public func order(_ orderings: [_SQLOrderable]) -> QueryInterfaceRequest<T> {
         var query = self.query
         query.orderings = orderings
         return QueryInterfaceRequest(query: query)
@@ -267,13 +267,13 @@ extension TableMapping {
     
     /// Returns a QueryInterfaceRequest sorted according to the
     /// provided *orderings*.
-    public static func order(_ orderings: _SQLOrdering...) -> QueryInterfaceRequest<Self> {
+    public static func order(_ orderings: _SQLOrderable...) -> QueryInterfaceRequest<Self> {
         return all().order(orderings)
     }
     
     /// Returns a QueryInterfaceRequest sorted according to the
     /// provided *orderings*.
-    public static func order(_ orderings: [_SQLOrdering]) -> QueryInterfaceRequest<Self> {
+    public static func order(_ orderings: [_SQLOrderable]) -> QueryInterfaceRequest<Self> {
         return all().order(orderings)
     }
     

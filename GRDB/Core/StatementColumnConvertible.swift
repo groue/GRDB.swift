@@ -141,7 +141,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     
     /// Returns a sequence of values fetched from a fetch request.
     ///
-    ///     let nameColumn = SQLColumn("name")
+    ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn)
     ///     let names = String.fetch(db, request) // DatabaseSequence<String>
     ///
@@ -163,7 +163,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     
     /// Returns an array of values fetched from a fetch request.
     ///
-    ///     let nameColumn = SQLColumn("name")
+    ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn)
     ///     let names = String.fetchAll(db, request)  // [String]
     ///
@@ -178,7 +178,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     /// The result is nil if the query returns no row, or if no value can be
     /// extracted from the first row.
     ///
-    ///     let nameColumn = SQLColumn("name")
+    ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn)
     ///     let name = String.fetchOne(db, request)   // String?
     ///

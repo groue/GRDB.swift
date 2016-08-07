@@ -116,8 +116,8 @@ try dbQueue.inDatabase { db in
     
     //: Avoid SQL with the query interface:
     
-    let title = SQLColumn("title")
-    let favorite = SQLColumn("favorite")
+    let title = Column("title")
+    let favorite = Column("favorite")
     
     berlin = PointOfInterest.filter(title == "Berlin").fetchOne(db)!   // PointOfInterest
     let paris = PointOfInterest.fetchOne(db, key: 1)                   // PointOfInterest?

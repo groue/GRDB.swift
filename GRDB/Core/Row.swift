@@ -515,8 +515,8 @@ extension Row {
     
     /// Returns a sequence of rows fetched from a fetch request.
     ///
-    ///     let idColumn = SQLColumn("id")
-    ///     let nameColumn = SQLColumn("name")
+    ///     let idColumn = Column("id")
+    ///     let nameColumn = Column("name")
     ///     let request = Person.select(idColumn, nameColumn)
     ///     for row in Row.fetch(db, request) {
     ///         let id: Int64 = row.value(atIndex: 0)
@@ -549,8 +549,8 @@ extension Row {
     
     /// Returns an array of rows fetched from a fetch request.
     ///
-    ///     let idColumn = SQLColumn("id")
-    ///     let nameColumn = SQLColumn("name")
+    ///     let idColumn = Column("id")
+    ///     let nameColumn = Column("name")
     ///     let request = Person.select(idColumn, nameColumn)
     ///     let rows = Row.fetchAll(db, request)
     ///
@@ -562,8 +562,8 @@ extension Row {
     
     /// Returns a single row fetched from a fetch request.
     ///
-    ///     let idColumn = SQLColumn("id")
-    ///     let nameColumn = SQLColumn("name")
+    ///     let idColumn = Column("id")
+    ///     let nameColumn = Column("name")
     ///     let request = Person.select(idColumn, nameColumn)
     ///     let row = Row.fetchOne(db, request)
     ///

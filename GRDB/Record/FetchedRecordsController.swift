@@ -43,7 +43,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// Returns a fetched records controller initialized from a fetch request
     /// from the [Query Interface](https://github.com/groue/GRDB.swift#the-query-interface).
     ///
-    ///     let request = Wine.order(SQLColumn("name"))
+    ///     let request = Wine.order(Column("name"))
     ///     let controller = FetchedRecordsController<Wine>(
     ///         dbQueue,
     ///         request: request,
@@ -397,7 +397,7 @@ extension FetchedRecordsController where Record: TableMapping {
     
     /// Returns a fetched records controller initialized from a fetch request.
     ///
-    ///     let request = Wine.order(SQLColumn("name"))
+    ///     let request = Wine.order(Column("name"))
     ///     let controller = FetchedRecordsController<Wine>(
     ///         dbQueue,
     ///         request: request,

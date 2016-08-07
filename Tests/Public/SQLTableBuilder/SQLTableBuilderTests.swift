@@ -311,7 +311,7 @@ class SQLTableBuilderTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.create(table: "test") { t in
-                    t.check(SQLColumn("a") + SQLColumn("b") < 10)
+                    t.check(Column("a") + Column("b") < 10)
                     t.check(sql: "a + b < 10")
                     t.column("a", .integer)
                     t.column("b", .integer)
@@ -402,7 +402,7 @@ class SQLTableBuilderTests: GRDBTestCase {
                 try db.create(index: "test_on_a", on: "test", columns: ["a"])
                 XCTAssertEqual(self.lastSQLQuery, "CREATE INDEX \"test_on_a\" ON \"test\"(\"a\")")
                 
-                try db.create(index: "test_on_a_b", on: "test", columns: ["a", "b"], unique: true, ifNotExists: true, condition: SQLColumn("a") == 1)
+                try db.create(index: "test_on_a_b", on: "test", columns: ["a", "b"], unique: true, ifNotExists: true, condition: Column("a") == 1)
                 XCTAssertEqual(self.lastSQLQuery, "CREATE UNIQUE INDEX IF NOT EXISTS \"test_on_a_b\" ON \"test\"(\"a\", \"b\") WHERE (\"a\" = 1)")
                 
                 // Sanity check

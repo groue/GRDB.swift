@@ -111,7 +111,7 @@ extension RowConvertible {
     
     /// Returns a sequence of records fetched from a fetch request.
     ///
-    ///     let nameColumn = SQLColumn("firstName")
+    ///     let nameColumn = Column("firstName")
     ///     let request = Person.order(nameColumn)
     ///     let identities = Identity.fetch(db, request) // DatabaseSequence<Identity>
     ///
@@ -133,7 +133,7 @@ extension RowConvertible {
     
     /// Returns an array of records fetched from a fetch request.
     ///
-    ///     let nameColumn = SQLColumn("name")
+    ///     let nameColumn = Column("name")
     ///     let request = Person.order(nameColumn)
     ///     let identities = Identity.fetchAll(db, request) // [Identity]
     ///
@@ -145,7 +145,7 @@ extension RowConvertible {
     
     /// Returns a single record fetched from a fetch request.
     ///
-    ///     let nameColumn = SQLColumn("name")
+    ///     let nameColumn = Column("name")
     ///     let request = Person.order(nameColumn)
     ///     let identity = Identity.fetchOne(db, request) // Identity?
     ///

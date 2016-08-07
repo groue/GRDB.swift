@@ -23,7 +23,7 @@ public struct _SQLSelectQuery {
     var source: _SQLSource?
     var whereExpression: _SQLExpression?
     var groupByExpressions: [_SQLExpression]
-    var orderings: [_SQLOrdering]
+    var orderings: [_SQLOrderable]
     var isReversed: Bool
     var havingExpression: _SQLExpression?
     var limit: _SQLLimit?
@@ -34,7 +34,7 @@ public struct _SQLSelectQuery {
         from source: _SQLSource? = nil,
         filter whereExpression: _SQLExpression? = nil,
         groupBy groupByExpressions: [_SQLExpression] = [],
-        orderBy orderings: [_SQLOrdering] = [],
+        orderBy orderings: [_SQLOrderable] = [],
         isReversed: Bool = false,
         having havingExpression: _SQLExpression? = nil,
         limit: _SQLLimit? = nil)
@@ -91,7 +91,7 @@ public struct _SQLSelectQuery {
                 // Here we assume that _rowid_ is not a custom column.
                 // TODO: support for user-defined _rowid_ column.
                 // TODO: support for WITHOUT ROWID tables.
-                orderings = [SQLColumn("_rowid_").desc]
+                orderings = [Column("_rowid_").desc]
             } else {
                 orderings = orderings.map { $0.reversedOrdering }
             }
@@ -219,13 +219,13 @@ indirect enum _SQLSource {
 }
 
 
-// MARK: - _SQLOrdering
+// MARK: - _SQLOrderable
 
 /// This protocol is an implementation detail of the query interface.
 /// Do not use it directly.
 ///
 /// See https://github.com/groue/GRDB.swift/#the-query-interface
-public protocol _SQLOrdering {
+public protocol _SQLOrderable {
     var reversedOrdering: _SQLOrderingExpression { get }
     func orderingSQL(_ arguments: inout StatementArguments?) -> String
 }
@@ -239,7 +239,7 @@ public enum _SQLOrderingExpression {
     case desc(_SQLExpression)
 }
 
-extension _SQLOrderingExpression : _SQLOrdering {
+extension _SQLOrderingExpression : _SQLOrderable {
     
     /// This property is an implementation detail of the query interface.
     /// Do not use it directly.
@@ -322,7 +322,7 @@ public protocol _SpecificSQLExpressible : _SQLExpressible {
     //
     // _SpecificSQLExpressible, on the other side, is not adopted by any
     // Swift standard type or any user type. It is only adopted by GRDB types,
-    // such as SQLColumn and _SQLExpression.
+    // such as Column and _SQLExpression.
     //
     // This separation lets us define functions and operators that do not
     // spill out. The three declarations below have no chance overloading a
@@ -333,7 +333,7 @@ public protocol _SpecificSQLExpressible : _SQLExpressible {
     // - ==(_SpecificSQLExpressible, _SpecificSQLExpressible)
 }
 
-extension _SpecificSQLExpressible where Self: _SQLOrdering {
+extension _SpecificSQLExpressible where Self: _SQLOrderable {
     
     /// This property is an implementation detail of the query interface.
     /// Do not use it directly.
@@ -633,7 +633,7 @@ extension _SQLExpression : _SpecificSQLExpressible {
 }
 
 extension _SQLExpression : _SQLSelectable {}
-extension _SQLExpression : _SQLOrdering {}
+extension _SQLExpression : _SQLOrderable {}
 
 
 // MARK: - _SQLSelectable
@@ -697,12 +697,12 @@ extension _SQLResultColumn : _SQLSelectable {
 }
 
 
-// MARK: - SQLColumn
+// MARK: - Column
 
 /// A column in the database
 ///
 /// See https://github.com/groue/GRDB.swift#the-query-interface
-public struct SQLColumn {
+public struct Column {
     let sourceName: String?
     
     /// The name of the column
@@ -720,7 +720,7 @@ public struct SQLColumn {
     }
 }
 
-extension SQLColumn : _SpecificSQLExpressible {
+extension Column : _SpecificSQLExpressible {
     
     /// This property is an implementation detail of the query interface.
     /// Do not use it directly.
@@ -731,5 +731,5 @@ extension SQLColumn : _SpecificSQLExpressible {
     }
 }
 
-extension SQLColumn : _SQLSelectable {}
-extension SQLColumn : _SQLOrdering {}
+extension Column : _SQLSelectable {}
+extension Column : _SQLOrderable {}

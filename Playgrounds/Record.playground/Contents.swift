@@ -116,8 +116,8 @@ dbQueue.inDatabase { db in
     //: To fetch persons using the query interface, you need some colums that can filter or sort:
 
     struct Col {
-        static let firstName = SQLColumn("firstName")
-        static let lastName = SQLColumn("lastName")
+        static let firstName = Column("firstName")
+        static let lastName = Column("lastName")
     }
 
     //: Sort

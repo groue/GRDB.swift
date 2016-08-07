@@ -246,8 +246,8 @@ public final class TableDefinition {
     ///     try db.create(table: "persons") { t in
     ///         t.column("personalPhone", .Text)
     ///         t.column("workPhone", .Text)
-    ///         let personalPhone = SQLColumn("personalPhone")
-    ///         let workPhone = SQLColumn("workPhone")
+    ///         let personalPhone = Column("personalPhone")
+    ///         let workPhone = Column("workPhone")
     ///         t.check(personalPhone != nil || workPhone != nil)
     ///     }
     ///
@@ -497,11 +497,11 @@ public final class ColumnDefinition {
     ///
     /// See https://www.sqlite.org/lang_createtable.html#ckconst
     ///
-    /// - parameter condition: A closure whose argument is an SQLColumn that
+    /// - parameter condition: A closure whose argument is an Column that
     ///   represents the defined column, and returns the expression to check.
     /// - returns: Self so that you can further refine the column definition.
-    @discardableResult public func check(_ condition: @noescape (SQLColumn) -> _SQLExpressible) -> Self {
-        checkExpression = condition(SQLColumn(name)).sqlExpression
+    @discardableResult public func check(_ condition: @noescape (Column) -> _SQLExpressible) -> Self {
+        checkExpression = condition(Column(name)).sqlExpression
         return self
     }
     

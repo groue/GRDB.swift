@@ -319,7 +319,7 @@ extension DatabaseFunction {
     /// connections. It is the function used by the query interface's
     /// capitalized:
     ///
-    ///     let nameColumn = SQLColumn("name")
+    ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn.capitalized)
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
     public static let capitalize = DatabaseFunction("swiftCapitalizedString", argumentCount: 1, pure: true) { databaseValues in
@@ -338,7 +338,7 @@ extension DatabaseFunction {
     /// connections. It is the function used by the query interface's
     /// lowercased:
     ///
-    ///     let nameColumn = SQLColumn("name")
+    ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn.lowercased())
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
     public static let lowercase = DatabaseFunction("swiftLowercaseString", argumentCount: 1, pure: true) { databaseValues in
@@ -357,7 +357,7 @@ extension DatabaseFunction {
     /// connections. It is the function used by the query interface's
     /// uppercased:
     ///
-    ///     let nameColumn = SQLColumn("name")
+    ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn.uppercased())
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
     public static let uppercase = DatabaseFunction("swiftUppercaseString", argumentCount: 1, pure: true) { databaseValues in
@@ -379,7 +379,7 @@ extension DatabaseFunction {
     /// connections. It is the function used by the query interface's
     /// localizedCapitalized:
     ///
-    ///     let nameColumn = SQLColumn("name")
+    ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn.localizedCapitalized)
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
     public static let localizedCapitalize = DatabaseFunction("swiftLocalizedCapitalizedString", argumentCount: 1, pure: true) { databaseValues in
@@ -398,7 +398,7 @@ extension DatabaseFunction {
     /// connections. It is the function used by the query interface's
     /// localizedLowercased:
     ///
-    ///     let nameColumn = SQLColumn("name")
+    ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn.localizedLowercased)
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
     public static let localizedLowercase = DatabaseFunction("swiftLocalizedLowercaseString", argumentCount: 1, pure: true) { databaseValues in
@@ -417,7 +417,7 @@ extension DatabaseFunction {
     /// connections. It is the function used by the query interface's
     /// localizedUppercased:
     ///
-    ///     let nameColumn = SQLColumn("name")
+    ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn.localizedUppercased)
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
     public static let localizedUppercase = DatabaseFunction("swiftLocalizedUppercaseString", argumentCount: 1, pure: true) { databaseValues in

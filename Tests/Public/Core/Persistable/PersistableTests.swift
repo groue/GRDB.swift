@@ -222,7 +222,7 @@ class PersistableTests: GRDBTestCase {
                 
                 do {
                     person1.name = "Craig"
-                    try person1.update(db, columns: [SQLColumn("name")])
+                    try person1.update(db, columns: [Column("name")])
                     
                     let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
                     XCTAssertEqual(rows.count, 2)
@@ -383,7 +383,7 @@ class PersistableTests: GRDBTestCase {
                 
                 do {
                     country1.name = "France Métropolitaine"
-                    try country1.update(db, columns: [SQLColumn("name")])
+                    try country1.update(db, columns: [Column("name")])
                     
                     let rows = Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
                     XCTAssertEqual(rows.count, 2)

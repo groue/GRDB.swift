@@ -18,7 +18,7 @@ extension _SQLCollatedExpression : _SQLExpressible {
     }
 }
 
-extension _SQLCollatedExpression : _SQLOrdering {
+extension _SQLCollatedExpression : _SQLOrderable {
     
     /// This property is an implementation detail of the query interface.
     /// Do not use it directly.
