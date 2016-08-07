@@ -59,8 +59,8 @@ try dbQueue.inDatabase { db in
     try db.execute(
         "CREATE TABLE pointOfInterests (" +
             "id INTEGER PRIMARY KEY, " +
-            "title TEXT, " +
-            "favorite BOOLEAN NOT NULL, " +
+            "title TEXT NOT NULL, " +
+            "favorite BOOLEAN NOT NULL DEFAULT 0, " +
             "latitude DOUBLE NOT NULL, " +
             "longitude DOUBLE NOT NULL" +
         ")")
@@ -133,8 +133,8 @@ Avoid SQL with the [query interface](#the-query-interface):
 dbQueue.inDatabase { db in
     try db.create(table: "pointOfInterests") { t in
         t.column("id", .Integer).primaryKey()
-        t.column("title", .Text)
-        t.column("favorite", .Boolean).notNull()
+        t.column("title", .Text).notNull()
+        t.column("favorite", .Boolean).notNull().defaults(false)
         t.column("longitude", .Double).notNull()
         t.column("latitude", .Double).notNull()
     }
