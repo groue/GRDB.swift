@@ -1930,11 +1930,11 @@ When you subclass [Record](#record-class), you simply have to override the custo
 
 ```swift
 class Person : Record {
-    var uuid: String?
+    var uuid: NSUUID?
     
     override func insert(db: Database) throws {
         if uuid == nil {
-            uuid = NSUUID().UUIDString
+            uuid = NSUUID()
         }
         try super.insert(db)
     }
