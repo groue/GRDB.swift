@@ -231,5 +231,5 @@ private extension Selector {
     static let stressTest      = #selector(PersonsViewController.stressTest)
 }
 
-private let personsSortedByName = Person.order(SQLColumn("name"))
-private let personsSortedByScore = Person.order(SQLColumn("score").desc, SQLColumn("name"))
+private let personsSortedByName = Person.order(Column("name"))
+private let personsSortedByScore = Person.order(Column("score").desc, Column("name"))

@@ -21,7 +21,7 @@ class SimplePersonsViewController: UITableViewController {
     
     private func loadPersons() {
         persons = dbQueue.inDatabase { db in
-            Person.order(SQLColumn("score").desc, SQLColumn("name")).fetchAll(db)
+            Person.order(Column("score").desc, Column("name")).fetchAll(db)
         }
     }
 }

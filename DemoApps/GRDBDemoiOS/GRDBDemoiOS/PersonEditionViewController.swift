@@ -18,7 +18,7 @@ class PersonEditionViewController: UITableViewController {
     @IBOutlet private weak var scoreTextField: UITextField!
     
     func applyChanges() {
-        if let name = nameTextField.text where !name.isEmpty {
+        if let name = nameTextField.text, !name.isEmpty {
             person.name = name
         }
         person.score = scoreTextField.text.flatMap { Int($0) } ?? 0
