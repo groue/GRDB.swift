@@ -102,8 +102,8 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
             
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.preUpdateEvents.count, 2)
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[0], kind: .Insert, tableName: "items1", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[1], kind: .Insert, tableName: "items2", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[0], kind: .insert, tableName: "items1", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[1], kind: .insert, tableName: "items2", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
             #endif
         }
     }
@@ -135,8 +135,8 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
             
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.preUpdateEvents.count, 2)
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[0], kind: .Insert, tableName: "items1", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[1], kind: .Insert, tableName: "items2", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[0], kind: .insert, tableName: "items1", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[1], kind: .insert, tableName: "items2", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
             #endif
         }
     }
@@ -183,10 +183,10 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
             
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.preUpdateEvents.count, 4)
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[0], kind: .Insert, tableName: "items1", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[1], kind: .Insert, tableName: "items2", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[2], kind: .Insert, tableName: "items3", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[3], kind: .Insert, tableName: "items4", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[0], kind: .insert, tableName: "items1", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[1], kind: .insert, tableName: "items2", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[2], kind: .insert, tableName: "items3", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[3], kind: .insert, tableName: "items4", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
             #endif
         }
     }
@@ -230,8 +230,8 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
             
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.preUpdateEvents.count, 2)
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[0], kind: .Insert, tableName: "items1", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[1], kind: .Insert, tableName: "items4", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[0], kind: .insert, tableName: "items1", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[1], kind: .insert, tableName: "items4", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
             #endif
         }
     }
@@ -274,10 +274,10 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
             
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.preUpdateEvents.count, 4)
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[0], kind: .Insert, tableName: "items1", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[1], kind: .Insert, tableName: "items2", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[2], kind: .Insert, tableName: "items3", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[3], kind: .Insert, tableName: "items4", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[0], kind: .insert, tableName: "items1", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[1], kind: .insert, tableName: "items2", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[2], kind: .insert, tableName: "items3", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[3], kind: .insert, tableName: "items4", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
             #endif
         }
     }
@@ -322,8 +322,8 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
             
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.preUpdateEvents.count, 2)
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[0], kind: .Insert, tableName: "items1", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[1], kind: .Insert, tableName: "items4", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[0], kind: .insert, tableName: "items1", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[1], kind: .insert, tableName: "items4", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
             #endif
         }
     }

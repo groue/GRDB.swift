@@ -31,13 +31,23 @@ class SQLTableBuilderTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                try db.create(table: "test", temporary: true, ifNotExists: true, withoutRowID: true) { t in
-                    t.column("id", .integer).primaryKey()
+                if #available(iOS 8.2, *) {
+                    try db.create(table: "test", temporary: true, ifNotExists: true, withoutRowID: true) { t in
+                        t.column("id", .integer).primaryKey()
+                    }
+                    XCTAssertEqual(self.lastSQLQuery,
+                        "CREATE TEMPORARY TABLE IF NOT EXISTS \"test\" (" +
+                            "\"id\" INTEGER PRIMARY KEY" +
+                        ") WITHOUT ROWID")
+                } else {
+                    try db.create(table: "test", temporary: true, ifNotExists: true) { t in
+                        t.column("id", .integer).primaryKey()
+                    }
+                    XCTAssertEqual(self.lastSQLQuery,
+                        "CREATE TEMPORARY TABLE IF NOT EXISTS \"test\" (" +
+                            "\"id\" INTEGER PRIMARY KEY" +
+                        ")")
                 }
-                XCTAssertEqual(self.lastSQLQuery,
-                    "CREATE TEMPORARY TABLE IF NOT EXISTS \"test\" (" +
-                        "\"id\" INTEGER PRIMARY KEY" +
-                    ") WITHOUT ROWID")
             }
         }
     }

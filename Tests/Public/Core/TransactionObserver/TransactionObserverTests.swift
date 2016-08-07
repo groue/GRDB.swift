@@ -227,7 +227,7 @@ class TransactionObserverTests: GRDBTestCase {
                 #if SQLITE_ENABLE_PREUPDATE_HOOK
                     XCTAssertEqual(observer.lastCommittedPreUpdateEvents.count, 1)
                     let preUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
-                        self.match(preUpdateEvent: event, kind: .Insert, tableName: "artists", initialRowID: nil, finalRowID: artist.id!, initialValues: nil,
+                        self.match(preUpdateEvent: event, kind: .insert, tableName: "artists", initialRowID: nil, finalRowID: artist.id!, initialValues: nil,
                             finalValues: [
                                 artist.id!.databaseValue,
                                 artist.name!.databaseValue
@@ -261,7 +261,7 @@ class TransactionObserverTests: GRDBTestCase {
                 #if SQLITE_ENABLE_PREUPDATE_HOOK
                     XCTAssertEqual(observer.lastCommittedPreUpdateEvents.count, 1)
                     let preUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
-                        self.match(preUpdateEvent: event, kind: .Update, tableName: "artists", initialRowID: artist.id!, finalRowID: artist.id!,
+                        self.match(preUpdateEvent: event, kind: .update, tableName: "artists", initialRowID: artist.id!, finalRowID: artist.id!,
                             initialValues: [
                                 artist.id!.databaseValue,
                                 "Gerhard Richter".databaseValue
@@ -297,7 +297,7 @@ class TransactionObserverTests: GRDBTestCase {
                 #if SQLITE_ENABLE_PREUPDATE_HOOK
                     XCTAssertEqual(observer.lastCommittedPreUpdateEvents.count, 1)
                     let preUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
-                        self.match(preUpdateEvent: event, kind: .Delete, tableName: "artists", initialRowID: artist.id!, finalRowID: nil,
+                        self.match(preUpdateEvent: event, kind: .delete, tableName: "artists", initialRowID: artist.id!, finalRowID: nil,
                             initialValues: [
                                 artist.id!.databaseValue,
                                 artist.name!.databaseValue
@@ -342,7 +342,7 @@ class TransactionObserverTests: GRDBTestCase {
                 #if SQLITE_ENABLE_PREUPDATE_HOOK
                     XCTAssertEqual(observer.lastCommittedPreUpdateEvents.count, 3)
                     let artistPreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
-                        self.match(preUpdateEvent: event, kind: .Delete, tableName: "artists", initialRowID: artist.id!, finalRowID: nil,
+                        self.match(preUpdateEvent: event, kind: .delete, tableName: "artists", initialRowID: artist.id!, finalRowID: nil,
                             initialValues: [
                                 artist.id!.databaseValue,
                                 artist.name!.databaseValue
@@ -350,7 +350,7 @@ class TransactionObserverTests: GRDBTestCase {
                         }.first
                     XCTAssertTrue(artistPreUpdateEvent != nil)
                     let artwork1PreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
-                        self.match(preUpdateEvent: event, kind: .Delete, tableName: "artworks", initialRowID: artwork1.id!, finalRowID: nil,
+                        self.match(preUpdateEvent: event, kind: .delete, tableName: "artworks", initialRowID: artwork1.id!, finalRowID: nil,
                             initialValues: [
                                 artwork1.id!.databaseValue,
                                 artwork1.artistId!.databaseValue,
@@ -359,7 +359,7 @@ class TransactionObserverTests: GRDBTestCase {
                         }.first
                     XCTAssertTrue(artwork1PreUpdateEvent != nil)
                     let artwork2PreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
-                        self.match(preUpdateEvent: event, kind: .Delete, tableName: "artworks", initialRowID: artwork2.id!, finalRowID: nil,
+                        self.match(preUpdateEvent: event, kind: .delete, tableName: "artworks", initialRowID: artwork2.id!, finalRowID: nil,
                             initialValues: [
                                 artwork2.id!.databaseValue,
                                 artwork2.artistId!.databaseValue,
@@ -443,7 +443,7 @@ class TransactionObserverTests: GRDBTestCase {
                 #if SQLITE_ENABLE_PREUPDATE_HOOK
                     XCTAssertEqual(observer.lastCommittedPreUpdateEvents.count, 3)
                     let artistPreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
-                        self.match(preUpdateEvent: event, kind: .Delete, tableName: "artists", initialRowID: artist.id!, finalRowID: nil,
+                        self.match(preUpdateEvent: event, kind: .delete, tableName: "artists", initialRowID: artist.id!, finalRowID: nil,
                             initialValues: [
                                 artist.id!.databaseValue,
                                 artist.name!.databaseValue
@@ -451,7 +451,7 @@ class TransactionObserverTests: GRDBTestCase {
                         }.first
                     XCTAssertTrue(artistPreUpdateEvent != nil)
                     let artwork1PreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
-                        self.match(preUpdateEvent: event, kind: .Delete, tableName: "artworks", initialRowID: artwork1.id!, finalRowID: nil,
+                        self.match(preUpdateEvent: event, kind: .delete, tableName: "artworks", initialRowID: artwork1.id!, finalRowID: nil,
                             initialValues: [
                                 artwork1.id!.databaseValue,
                                 artwork1.artistId!.databaseValue,
@@ -460,7 +460,7 @@ class TransactionObserverTests: GRDBTestCase {
                         }.first
                     XCTAssertTrue(artwork1PreUpdateEvent != nil)
                     let artwork2PreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
-                        self.match(preUpdateEvent: event, kind: .Delete, tableName: "artworks", initialRowID: artwork2.id!, finalRowID: nil,
+                        self.match(preUpdateEvent: event, kind: .delete, tableName: "artworks", initialRowID: artwork2.id!, finalRowID: nil,
                             initialValues: [
                                 artwork2.id!.databaseValue,
                                 artwork2.artistId!.databaseValue,
@@ -547,7 +547,7 @@ class TransactionObserverTests: GRDBTestCase {
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.lastCommittedPreUpdateEvents.count, 3)
                 let artistPreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
-                    self.match(preUpdateEvent: event, kind: .Insert, tableName: "artists", initialRowID: nil, finalRowID: artist.id!,
+                    self.match(preUpdateEvent: event, kind: .insert, tableName: "artists", initialRowID: nil, finalRowID: artist.id!,
                         initialValues: nil, finalValues: [
                             artist.id!.databaseValue,
                             artist.name!.databaseValue
@@ -555,7 +555,7 @@ class TransactionObserverTests: GRDBTestCase {
                     }.first
                 XCTAssertTrue(artistPreUpdateEvent != nil)
                 let artwork1PreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
-                    self.match(preUpdateEvent: event, kind: .Insert, tableName: "artworks", initialRowID: nil, finalRowID: artwork1.id!,
+                    self.match(preUpdateEvent: event, kind: .insert, tableName: "artworks", initialRowID: nil, finalRowID: artwork1.id!,
                         initialValues: nil, finalValues: [
                             artwork1.id!.databaseValue,
                             artwork1.artistId!.databaseValue,
@@ -564,7 +564,7 @@ class TransactionObserverTests: GRDBTestCase {
                     }.first
                 XCTAssertTrue(artwork1PreUpdateEvent != nil)
                 let artwork2PreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
-                    self.match(preUpdateEvent: event, kind: .Insert, tableName: "artworks", initialRowID: nil, finalRowID: artwork2.id!,
+                    self.match(preUpdateEvent: event, kind: .insert, tableName: "artworks", initialRowID: nil, finalRowID: artwork2.id!,
                         initialValues: nil, finalValues: [
                             artwork2.id!.databaseValue,
                             artwork2.artistId!.databaseValue,
@@ -650,7 +650,7 @@ class TransactionObserverTests: GRDBTestCase {
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.lastCommittedPreUpdateEvents.count, 6)  // 3 inserts, and 3 deletes
                 let artistInsertPreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
-                    self.match(preUpdateEvent: event, kind: .Insert, tableName: "artists", initialRowID: nil, finalRowID: artist.id!,
+                    self.match(preUpdateEvent: event, kind: .insert, tableName: "artists", initialRowID: nil, finalRowID: artist.id!,
                         initialValues: nil, finalValues: [
                             artist.id!.databaseValue,
                             artist.name!.databaseValue
@@ -658,7 +658,7 @@ class TransactionObserverTests: GRDBTestCase {
                     }.first
                 XCTAssertTrue(artistInsertPreUpdateEvent != nil)
                 let artwork1InsertPreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
-                    self.match(preUpdateEvent: event, kind: .Insert, tableName: "artworks", initialRowID: nil, finalRowID: artwork1.id!,
+                    self.match(preUpdateEvent: event, kind: .insert, tableName: "artworks", initialRowID: nil, finalRowID: artwork1.id!,
                         initialValues: nil, finalValues: [
                             artwork1.id!.databaseValue,
                             artwork1.artistId!.databaseValue,
@@ -667,7 +667,7 @@ class TransactionObserverTests: GRDBTestCase {
                     }.first
                 XCTAssertTrue(artwork1InsertPreUpdateEvent != nil)
                 let artwork2InsertPreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
-                    self.match(preUpdateEvent: event, kind: .Insert, tableName: "artworks", initialRowID: nil, finalRowID: artwork2.id!,
+                    self.match(preUpdateEvent: event, kind: .insert, tableName: "artworks", initialRowID: nil, finalRowID: artwork2.id!,
                         initialValues: nil, finalValues: [
                             artwork2.id!.databaseValue,
                             artwork2.artistId!.databaseValue,
@@ -677,7 +677,7 @@ class TransactionObserverTests: GRDBTestCase {
                 XCTAssertTrue(artwork2InsertPreUpdateEvent != nil)
 
                 let artistDeletePreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
-                    self.match(preUpdateEvent: event, kind: .Delete, tableName: "artists", initialRowID: artist.id!, finalRowID: nil,
+                    self.match(preUpdateEvent: event, kind: .delete, tableName: "artists", initialRowID: artist.id!, finalRowID: nil,
                         initialValues: [
                             artist.id!.databaseValue,
                             artist.name!.databaseValue
@@ -685,7 +685,7 @@ class TransactionObserverTests: GRDBTestCase {
                     }.first
                 XCTAssertTrue(artistDeletePreUpdateEvent != nil)
                 let artwork1DeletePreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
-                    self.match(preUpdateEvent: event, kind: .Delete, tableName: "artworks", initialRowID: artwork1.id!, finalRowID: nil,
+                    self.match(preUpdateEvent: event, kind: .delete, tableName: "artworks", initialRowID: artwork1.id!, finalRowID: nil,
                         initialValues: [
                             artwork1.id!.databaseValue,
                             artwork1.artistId!.databaseValue,
@@ -694,7 +694,7 @@ class TransactionObserverTests: GRDBTestCase {
                     }.first
                 XCTAssertTrue(artwork1DeletePreUpdateEvent != nil)
                 let artwork2DeletePreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
-                    self.match(preUpdateEvent: event, kind: .Delete, tableName: "artworks", initialRowID: artwork2.id!, finalRowID: nil,
+                    self.match(preUpdateEvent: event, kind: .delete, tableName: "artworks", initialRowID: artwork2.id!, finalRowID: nil,
                         initialValues: [
                             artwork2.id!.databaseValue,
                             artwork2.artistId!.databaseValue,
@@ -1009,7 +1009,7 @@ class TransactionObserverTests: GRDBTestCase {
                     #if SQLITE_ENABLE_PREUPDATE_HOOK
                         XCTAssertEqual(observer1.lastCommittedPreUpdateEvents.count, 1)
                         let preUpdateEvent = observer1.lastCommittedPreUpdateEvents.filter { event in
-                            self.match(preUpdateEvent: event, kind: .Insert, tableName: "artists", initialRowID: nil, finalRowID: artist.id!, initialValues: nil,
+                            self.match(preUpdateEvent: event, kind: .insert, tableName: "artists", initialRowID: nil, finalRowID: artist.id!, initialValues: nil,
                                 finalValues: [
                                     artist.id!.databaseValue,
                                     artist.name!.databaseValue
@@ -1028,7 +1028,7 @@ class TransactionObserverTests: GRDBTestCase {
                     #if SQLITE_ENABLE_PREUPDATE_HOOK
                         XCTAssertEqual(observer2.lastCommittedPreUpdateEvents.count, 1)
                         let preUpdateEvent = observer2.lastCommittedPreUpdateEvents.filter { event in
-                            self.match(preUpdateEvent: event, kind: .Insert, tableName: "artists", initialRowID: nil, finalRowID: artist.id!, initialValues: nil,
+                            self.match(preUpdateEvent: event, kind: .insert, tableName: "artists", initialRowID: nil, finalRowID: artist.id!, initialValues: nil,
                                 finalValues: [
                                     artist.id!.databaseValue,
                                     artist.name!.databaseValue
@@ -1132,7 +1132,7 @@ class TransactionObserverTests: GRDBTestCase {
                 #if SQLITE_ENABLE_PREUPDATE_HOOK
                     XCTAssertEqual(observer.lastCommittedPreUpdateEvents.count, 1)
                     let preUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
-                        self.match(preUpdateEvent: event, kind: .Insert, tableName: "artists", initialRowID: nil, finalRowID: artist.id!, initialValues: nil,
+                        self.match(preUpdateEvent: event, kind: .insert, tableName: "artists", initialRowID: nil, finalRowID: artist.id!, initialValues: nil,
                             finalValues: [
                                 artist.id!.databaseValue,
                                 artist.name!.databaseValue
