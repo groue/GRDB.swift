@@ -1904,13 +1904,13 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
         /// An event kind
         public enum Kind: Int32 {
             /// SQLITE_INSERT
-            case Insert = 18
+            case insert = 18
             
             /// SQLITE_DELETE
-            case Delete = 9
+            case delete = 9
             
             /// SQLITE_UPDATE
-            case Update = 23
+            case update = 23
         }
         
         /// The event kind
@@ -1949,7 +1949,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
         /// The result is nil if the event is an .Insert event.
         public var initialDatabaseValues: [DatabaseValue]?
         {
-            guard (kind == .Update || kind == .Delete) else { return nil }
+            guard (kind == .update || kind == .delete) else { return nil }
             return impl.initialDatabaseValues
         }
         
@@ -1962,7 +1962,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
         public func initialDatabaseValue(atIndex index: Int) -> DatabaseValue?
         {
             GRDBPrecondition(index >= 0 && index < count, "row index out of range")
-            guard (kind == .Update || kind == .Delete) else { return nil }
+            guard (kind == .update || kind == .delete) else { return nil }
             return impl.initialDatabaseValue(atIndex: index)
         }
         
@@ -1973,7 +1973,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
         /// The result is nil if the event is a .Delete event.
         public var finalDatabaseValues: [DatabaseValue]?
         {
-            guard (kind == .Update || kind == .Insert) else { return nil }
+            guard (kind == .update || kind == .insert) else { return nil }
             return impl.finalDatabaseValues
         }
         
@@ -1986,7 +1986,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
         public func finalDatabaseValue(atIndex index: Int) -> DatabaseValue?
         {
             GRDBPrecondition(index >= 0 && index < count, "row index out of range")
-            guard (kind == .Update || kind == .Insert) else { return nil }
+            guard (kind == .update || kind == .insert) else { return nil }
             return impl.finalDatabaseValue(atIndex: index)
         }
         
@@ -2004,15 +2004,15 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
         
         private init(kind: Kind, initialRowID: Int64?, finalRowID: Int64?, impl: DatabasePreUpdateEventImpl) {
             self.kind = kind
-            self.initialRowID = (kind == .Update || kind == .Delete ) ? initialRowID : nil
-            self.finalRowID = (kind == .Update || kind == .Insert ) ? finalRowID : nil
+            self.initialRowID = (kind == .update || kind == .delete ) ? initialRowID : nil
+            self.finalRowID = (kind == .update || kind == .insert ) ? finalRowID : nil
             self.impl = impl
         }
         
         init(connection: SQLiteConnection, kind: Kind, initialRowID: Int64, finalRowID: Int64, databaseNameCString: UnsafePointer<Int8>?, tableNameCString: UnsafePointer<Int8>?) {
             self.init(kind: kind,
-                      initialRowID: (kind == .Update || kind == .Delete ) ? finalRowID : nil,
-                      finalRowID: (kind == .Update || kind == .Insert ) ? finalRowID : nil,
+                      initialRowID: (kind == .update || kind == .delete ) ? finalRowID : nil,
+                      finalRowID: (kind == .update || kind == .insert ) ? finalRowID : nil,
                       impl: MetalDatabasePreUpdateEventImpl(connection: connection, kind: kind, databaseNameCString: databaseNameCString, tableNameCString: tableNameCString))
         }
         
@@ -2058,12 +2058,12 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
         var columnsCount: CInt { return sqlite3_preupdate_count(connection) }
         var depth: CInt { return sqlite3_preupdate_depth(connection) }
         var initialDatabaseValues: [DatabaseValue]? {
-            guard (kind == .Update || kind == .Delete) else { return nil }
+            guard (kind == .update || kind == .delete) else { return nil }
             return preupdate_getValues_old(connection)
         }
         
         var finalDatabaseValues: [DatabaseValue]? {
-            guard (kind == .Update || kind == .Insert) else { return nil }
+            guard (kind == .update || kind == .insert) else { return nil }
             return preupdate_getValues_new(connection)
         }
         
