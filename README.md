@@ -2209,7 +2209,7 @@ Define **not null** columns, and set **default** values:
     t.column("name", .Text).notNull().defaults("Anonymous")
 ```
     
-Use an individual column as **primary**, **unique**, or **foreign key**. When defining a foreign key, the referenced column is the primary key of the referenced table (unless you specify it):
+Use an individual column as **primary**, **unique**, or **foreign key**. When defining a foreign key, the referenced column is the primary key of the referenced table (unless you specify otherwise):
 
 ```swift
     // id INTEGER PRIMARY KEY,
@@ -3546,11 +3546,11 @@ Person.select(nameColumn.uppercaseString)
 
 SQLite compares strings in many occasions: when you sort rows according to a string column, or when you use a comparison operator such as `=` and `<=`.
 
-The comparison result comes from a *collating function*, or *collation*. SQLite comes with [three built-in collations](https://www.sqlite.org/datatype3.html#collation) that do not support Unicode.
+The comparison result comes from a *collating function*, or *collation*. SQLite comes with [three built-in collations](https://www.sqlite.org/datatype3.html#collation) that do not support Unicode: binary, nocase, and rtrim.
 
 GRDB comes with five extra collations that leverage unicode-aware comparisons based on the standard Swift String comparison functions and operators:
 
-- `unicodeCompare` (uses the built-in `<=` and `==` operators)
+- `unicodeCompare` (uses the built-in `<=` and `==` Swift operators)
 - `caseInsensitiveCompare`
 - `localizedCaseInsensitiveCompare`
 - `localizedCompare`
@@ -3560,6 +3560,10 @@ A collation can be applied to a table column. All comparisons involving this col
     
 ```swift
 try db.create(table: "persons") { t in
+    // Guarantees case-insensitive email unicity
+    t.column("email", .Text).unique().collate(.Nocase)
+    
+    // Sort names in a localized case insensitive way
     t.column("name", .Text).collate(.localizedCaseInsensitiveCompare)
 }
 
@@ -3567,16 +3571,15 @@ try db.create(table: "persons") { t in
 let persons = Person.order(nameColumn).fetchAll(db)
 ```
 
-> :warning: **Warning**: defining collations in the table definition *requires* the application to provide the collation. This means that the database file becomes uneasy to share with other SQLite libraries or platforms (such as the Android version of your application).
+> :warning: **Warning**: using a custom collation in a table definition *requires* the host application to provide the collation definition. This means that any the database file becomes uneasy to share with other SQLite libraries or platforms (such as the Android version of your application).
 
-If you can't or don't want (see warning above) to define the comparison behavior of a column, you can still use an explicit collation in SQL requests and in the [query interface](#the-query-interface):
+If you can't or don't want to define the comparison behavior of a column (see warning above), you can still use an explicit collation in SQL requests and in the [query interface](#the-query-interface):
 
 ```swift
 let collation = DatabaseCollation.localizedCaseInsensitiveCompare
 let persons = Person.fetchAll(db,
     "SELECT * FROM persons ORDER BY name COLLATE \(collation.name))")
 let persons = Person.order(nameColumn.collating(collation)).fetchAll(db)
-let persons = Person.filter(uuidColumn.collating(.Nocase) == uuid).fetchAll(db)
 ```
 
 
