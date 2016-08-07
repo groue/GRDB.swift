@@ -649,11 +649,11 @@ row.value(...) as Int
 row.value(...) as Int?
 ```
 
-> :warning: **Warning**: avoid the `as!` and `as?` operators (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
+> :warning: **Warning**: avoid the `as!` and `as?` operators, because they misbehave in the context of type inference (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
 > 
 > ```swift
-> row.value(...) as! Int   // NO NO NO DON'T DO THAT!
-> row.value(...) as? Int   // NO NO NO DON'T DO THAT!
+> if let int = row.value(...) as? Int { ... } // BAD - doesn't work
+> if let int = row.value(...) as Int? { ... } // GOOD
 > ```
 
 Generally speaking, you can extract the type you need, *provided it can be converted from the underlying SQLite value*:
