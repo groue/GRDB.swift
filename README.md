@@ -852,8 +852,8 @@ class Link : Record {
     var verified: Bool
     
     required init(_ row: Row) {
-        url = row.value("url")
-        verified = row.value("verified")
+        url = row.value(named: "url")
+        verified = row.value(named: "verified")
         super.init(row)
     }
     
