@@ -2717,8 +2717,8 @@ Yet any kind of schema change is still possible. The SQLite documentation explai
 // Add a NOT NULL constraint on persons.name:
 migrator.registerMigrationWithDisabledForeignKeyChecks("AddNotNullCheckOnName") { db in
     try db.create(table: "new_persons") { t in
-        t.column("id", .Integer).primaryKey()
-        t.column("name", .Text).notNull()
+        t.column("id", .integer).primaryKey()
+        t.column("name", .text).notNull()
     }
     try db.execute("INSERT INTO new_persons SELECT * FROM persons")
     try db.drop(table: "persons")

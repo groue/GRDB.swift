@@ -5,11 +5,11 @@ extension Database {
     /// Creates a database table.
     ///
     ///     try db.create(table: "pointOfInterests") { t in
-    ///         t.column("id", .Integer).primaryKey()
-    ///         t.column("title", .Text)
-    ///         t.column("favorite", .Boolean).notNull().default(false)
-    ///         t.column("longitude", .Double).notNull()
-    ///         t.column("latitude", .Double).notNull()
+    ///         t.column("id", .integer).primaryKey()
+    ///         t.column("title", .text)
+    ///         t.column("favorite", .boolean).notNull().default(false)
+    ///         t.column("longitude", .double).notNull()
+    ///         t.column("latitude", .double).notNull()
     ///     }
     ///
     /// See https://www.sqlite.org/lang_createtable.html and
@@ -35,11 +35,11 @@ extension Database {
     /// Creates a database table.
     ///
     ///     try db.create(table: "pointOfInterests") { t in
-    ///         t.column("id", .Integer).primaryKey()
-    ///         t.column("title", .Text)
-    ///         t.column("favorite", .Boolean).notNull().default(false)
-    ///         t.column("longitude", .Double).notNull()
-    ///         t.column("latitude", .Double).notNull()
+    ///         t.column("id", .integer).primaryKey()
+    ///         t.column("title", .text)
+    ///         t.column("favorite", .boolean).notNull().default(false)
+    ///         t.column("longitude", .double).notNull()
+    ///         t.column("latitude", .double).notNull()
     ///     }
     ///
     /// See https://www.sqlite.org/lang_createtable.html
@@ -69,7 +69,7 @@ extension Database {
     /// Modifies a database table.
     ///
     ///     try db.alter(table: "persons") { t in
-    ///         t.add(column: "url", .Text)
+    ///         t.add(column: "url", .text)
     ///     }
     ///
     /// See https://www.sqlite.org/lang_altertable.html
@@ -163,7 +163,7 @@ public final class TableDefinition {
     /// Appends a table column.
     ///
     ///     try db.create(table: "persons") { t in
-    ///         t.column("name", .Text)
+    ///         t.column("name", .text)
     ///     }
     ///
     /// See https://www.sqlite.org/lang_createtable.html#tablecoldef
@@ -181,8 +181,8 @@ public final class TableDefinition {
     /// Defines the table primary key.
     ///
     ///     try db.create(table: "citizenships") { t in
-    ///         t.column("personID", .Integer)
-    ///         t.column("countryCode", .Text)
+    ///         t.column("personID", .integer)
+    ///         t.column("countryCode", .text)
     ///         t.primaryKey(["personID", "countryCode"])
     ///     }
     ///
@@ -202,8 +202,8 @@ public final class TableDefinition {
     /// Adds a unique key.
     ///
     ///     try db.create(table: "pointOfInterests") { t in
-    ///         t.column("latitude", .Double)
-    ///         t.column("longitude", .Double)
+    ///         t.column("latitude", .double)
+    ///         t.column("longitude", .double)
     ///         t.uniqueKey(["latitude", "longitude"])
     ///     }
     ///
@@ -219,9 +219,9 @@ public final class TableDefinition {
     /// Adds a foreign key.
     ///
     ///     try db.create(table: "passport") { t in
-    ///         t.column("issueDate", .Date)
-    ///         t.column("personID", .Integer)
-    ///         t.column("countryCode", .Text)
+    ///         t.column("issueDate", .date)
+    ///         t.column("personID", .integer)
+    ///         t.column("countryCode", .text)
     ///         t.foreignKey(["personID", "countryCode"], references: "citizenships", onDelete: .cascade)
     ///     }
     ///
@@ -244,8 +244,8 @@ public final class TableDefinition {
     /// Adds a CHECK constraint.
     ///
     ///     try db.create(table: "persons") { t in
-    ///         t.column("personalPhone", .Text)
-    ///         t.column("workPhone", .Text)
+    ///         t.column("personalPhone", .text)
+    ///         t.column("workPhone", .text)
     ///         let personalPhone = Column("personalPhone")
     ///         let workPhone = Column("workPhone")
     ///         t.check(personalPhone != nil || workPhone != nil)
@@ -261,8 +261,8 @@ public final class TableDefinition {
     /// Adds a CHECK constraint.
     ///
     ///     try db.create(table: "persons") { t in
-    ///         t.column("personalPhone", .Text)
-    ///         t.column("workPhone", .Text)
+    ///         t.column("personalPhone", .text)
+    ///         t.column("workPhone", .text)
     ///         t.check(sql: "personalPhone IS NOT NULL OR workPhone IS NOT NULL")
     ///     }
     ///
@@ -376,7 +376,7 @@ public final class TableAlteration {
     /// Appends a column to the table.
     ///
     ///     try db.alter(table: "persons") { t in
-    ///         t.add(column: "url", .Text)
+    ///         t.add(column: "url", .text)
     ///     }
     ///
     /// See https://www.sqlite.org/lang_altertable.html
@@ -441,7 +441,7 @@ public final class ColumnDefinition {
     /// Adds a primary key constraint on the column.
     ///
     ///     try db.create(table: "persons") { t in
-    ///         t.column("id", .Integer).primaryKey()
+    ///         t.column("id", .integer).primaryKey()
     ///     }
     ///
     /// See https://www.sqlite.org/lang_createtable.html#primkeyconst and
@@ -460,7 +460,7 @@ public final class ColumnDefinition {
     /// Adds a NOT NULL constraint on the column.
     ///
     ///     try db.create(table: "persons") { t in
-    ///         t.column("name", .Text).notNull()
+    ///         t.column("name", .text).notNull()
     ///     }
     ///
     /// See https://www.sqlite.org/lang_createtable.html#notnullconst
@@ -476,7 +476,7 @@ public final class ColumnDefinition {
     /// Adds a UNIQUE constraint on the column.
     ///
     ///     try db.create(table: "persons") { t in
-    ///         t.column("email", .Text).unique()
+    ///         t.column("email", .text).unique()
     ///     }
     ///
     /// See https://www.sqlite.org/lang_createtable.html#uniqueconst
@@ -492,7 +492,7 @@ public final class ColumnDefinition {
     /// Adds a CHECK constraint on the column.
     ///
     ///     try db.create(table: "persons") { t in
-    ///         t.column("name", .Text).check { length($0) > 0 }
+    ///         t.column("name", .text).check { length($0) > 0 }
     ///     }
     ///
     /// See https://www.sqlite.org/lang_createtable.html#ckconst
@@ -508,7 +508,7 @@ public final class ColumnDefinition {
     /// Adds a CHECK constraint on the column.
     ///
     ///     try db.create(table: "persons") { t in
-    ///         t.column("name", .Text).check(sql: "LENGTH(name) > 0")
+    ///         t.column("name", .text).check(sql: "LENGTH(name) > 0")
     ///     }
     ///
     /// See https://www.sqlite.org/lang_createtable.html#ckconst
@@ -523,7 +523,7 @@ public final class ColumnDefinition {
     /// Defines the default column value.
     ///
     ///     try db.create(table: "persons") { t in
-    ///         t.column("name", .Text).defaults("Anonymous")
+    ///         t.column("name", .text).defaults("Anonymous")
     ///     }
     ///
     /// See https://www.sqlite.org/lang_createtable.html#dfltval
@@ -553,7 +553,7 @@ public final class ColumnDefinition {
     // Defines the default column collation.
     ///
     ///     try db.create(table: "persons") { t in
-    ///         t.column("email", .Text).collate(.nocase)
+    ///         t.column("email", .text).collate(.nocase)
     ///     }
     ///
     /// See https://www.sqlite.org/datatype3.html#collation
@@ -568,7 +568,7 @@ public final class ColumnDefinition {
     // Defines the default column collation.
     ///
     ///     try db.create(table: "persons") { t in
-    ///         t.column("name", .Text).collate(.localizedCaseInsensitiveCompare)
+    ///         t.column("name", .text).collate(.localizedCaseInsensitiveCompare)
     ///     }
     ///
     /// See https://www.sqlite.org/datatype3.html#collation
@@ -583,7 +583,7 @@ public final class ColumnDefinition {
     /// Defines a foreign key.
     ///
     ///     try db.create(table: "books") { t in
-    ///         t.column("authorId", .Integer).references("authors", onDelete: .cascade)
+    ///         t.column("authorId", .integer).references("authors", onDelete: .cascade)
     ///     }
     ///
     /// See https://www.sqlite.org/foreignkeys.html
@@ -734,8 +734,8 @@ public enum SQLConflictResolution : String {
 /// An SQL column type.
 ///
 ///     try db.create(table: "persons") { t in
-///         t.column("id", .Integer).primaryKey()
-///         t.column("title", .Text)
+///         t.column("id", .integer).primaryKey()
+///         t.column("title", .text)
 ///     }
 ///
 /// See https://www.sqlite.org/datatype3.html
