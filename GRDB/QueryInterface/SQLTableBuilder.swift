@@ -114,7 +114,7 @@ extension Database {
     ///     - ifNotExists: If false, no error is thrown if index already exists.
     ///     - condition: If not nil, creates a partial index
     ///       (see https://www.sqlite.org/partialindex.html).
-    public func create(index name: String, on table: String, columns: [String], unique: Bool = false, ifNotExists: Bool = false, condition: _SQLExpressible? = nil) throws {
+    public func create(index name: String, on table: String, columns: [String], unique: Bool = false, ifNotExists: Bool = false, condition: SQLExpressible? = nil) throws {
         let definition = IndexDefinition(name: name, table: table, columns: columns, unique: unique, ifNotExists: ifNotExists, condition: condition?.sqlExpression)
         let sql = definition.sql()
         try execute(sql)
@@ -254,7 +254,7 @@ public final class TableDefinition {
     /// See https://www.sqlite.org/lang_createtable.html#ckconst
     ///
     /// - parameter condition: The checked condition
-    public func check(condition: _SQLExpressible) {
+    public func check(condition: SQLExpressible) {
         checkConstraints.append(condition.sqlExpression)
     }
     
@@ -500,7 +500,7 @@ public final class ColumnDefinition {
     /// - parameter condition: A closure whose argument is an SQLColumn that
     ///   represents the defined column, and returns the expression to check.
     /// - returns: Self so that you can further refine the column definition.
-    public func check(@noescape condition: (SQLColumn) -> _SQLExpressible) -> ColumnDefinition {
+    public func check(@noescape condition: (SQLColumn) -> SQLExpressible) -> ColumnDefinition {
         checkExpression = condition(SQLColumn(name)).sqlExpression
         return self
     }

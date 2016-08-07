@@ -1,3 +1,32 @@
+// MARK: - SQLExpressible
+
+/// This protocol is an implementation detail of the query interface.
+/// Do not use it directly.
+///
+/// See https://github.com/groue/GRDB.swift/#the-query-interface
+public protocol _SQLExpressible {
+    
+    /// This property is an implementation detail of the query interface.
+    /// Do not use it directly.
+    ///
+    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    var sqlExpression: _SQLExpression { get }
+}
+
+/// The protocol for all types that can be turned into an SQL expression.
+///
+/// It is adopted by protocols like DatabaseValueConvertible, and types
+/// like Column.
+///
+/// Do not declare adoption of SQLExpressible on any type: you would have to
+/// use semi-private APIs and types, whose name start with an underscore, that
+/// are subject to change as GRDB evolves.
+public protocol SQLExpressible : _SQLExpressible {
+}
+
+
+// MARK: - DatabaseValueConvertible
+
 /// Types that adopt DatabaseValueConvertible can be initialized from
 /// database values.
 ///
@@ -14,12 +43,25 @@
 ///     String.fetchOne(statement, arguments:...)        // String?
 ///
 /// DatabaseValueConvertible is adopted by Bool, Int, String, etc.
-public protocol DatabaseValueConvertible : _SQLExpressible {
+public protocol DatabaseValueConvertible : SQLExpressible {
     /// Returns a value that can be stored in the database.
     var databaseValue: DatabaseValue { get }
     
     /// Returns a value initialized from *databaseValue*, if possible.
     static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self?
+}
+
+
+// SQLExpressible adoption
+extension DatabaseValueConvertible {
+    
+    /// This property is an implementation detail of the query interface.
+    /// Do not use it directly.
+    ///
+    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    public var sqlExpression: _SQLExpression {
+        return .Value(self)
+    }
 }
 
 

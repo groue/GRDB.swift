@@ -4,7 +4,7 @@ extension DatabaseFunction {
     /// Returns an SQL expression that applies the function.
     ///
     /// See https://github.com/groue/GRDB.swift/#sql-functions
-    public func apply(arguments: _SQLExpressible...) -> _SQLExpression {
+    public func apply(arguments: SQLExpressible...) -> _SQLExpression {
         return .Function(name, arguments.map { $0.sqlExpression })
     }
 }
@@ -55,14 +55,14 @@ public func count(distinct value: _SpecificSQLExpressible) -> _SQLExpression {
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func ?? (lhs: _SpecificSQLExpressible, rhs: _SQLExpressible) -> _SQLExpression {
+public func ?? (lhs: _SpecificSQLExpressible, rhs: SQLExpressible) -> _SQLExpression {
     return .Function("IFNULL", [lhs.sqlExpression, rhs.sqlExpression])
 }
 
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func ?? (lhs: _SQLExpressible?, rhs: _SpecificSQLExpressible) -> _SQLExpression {
+public func ?? (lhs: SQLExpressible?, rhs: _SpecificSQLExpressible) -> _SQLExpression {
     if let lhs = lhs {
         return .Function("IFNULL", [lhs.sqlExpression, rhs.sqlExpression])
     } else {

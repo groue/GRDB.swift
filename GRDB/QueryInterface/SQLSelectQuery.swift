@@ -285,39 +285,18 @@ struct _SQLLimit {
 }
 
 
-// MARK: - _SQLExpressible
-
-public protocol _SQLExpressible {
-    
-    /// This property is an implementation detail of the query interface.
-    /// Do not use it directly.
-    ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    var sqlExpression: _SQLExpression { get }
-}
-
-// Conformance to _SQLExpressible
-extension DatabaseValueConvertible {
-    
-    /// This property is an implementation detail of the query interface.
-    /// Do not use it directly.
-    ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public var sqlExpression: _SQLExpression {
-        return .Value(self)
-    }
-}
+// MARK: - _SpecificSQLExpressible
 
 /// This protocol is an implementation detail of the query interface.
 /// Do not use it directly.
 ///
 /// See https://github.com/groue/GRDB.swift/#the-query-interface
-public protocol _SpecificSQLExpressible : _SQLExpressible {
-    // _SQLExpressible can be adopted by Swift standard types, and user
-    // types, through the DatabaseValueConvertible protocol, which inherits
-    // from _SQLExpressible.
+public protocol _SpecificSQLExpressible : SQLExpressible {
+    // SQLExpressible can be adopted by Swift standard types, and user
+    // types, through the DatabaseValueConvertible protocol which inherits
+    // from SQLExpressible.
     //
-    // For example, Int adopts _SQLExpressible through
+    // For example, Int adopts SQLExpressible through
     // DatabaseValueConvertible.
     //
     // _SpecificSQLExpressible, on the other side, is not adopted by any
@@ -328,8 +307,8 @@ public protocol _SpecificSQLExpressible : _SQLExpressible {
     // spill out. The three declarations below have no chance overloading a
     // Swift-defined operator, or a user-defined operator:
     //
-    // - ==(_SQLExpressible, _SpecificSQLExpressible)
-    // - ==(_SpecificSQLExpressible, _SQLExpressible)
+    // - ==(SQLExpressible, _SpecificSQLExpressible)
+    // - ==(_SpecificSQLExpressible, SQLExpressible)
     // - ==(_SpecificSQLExpressible, _SpecificSQLExpressible)
 }
 
