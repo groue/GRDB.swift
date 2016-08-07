@@ -3571,7 +3571,7 @@ try db.create(table: "persons") { t in
 let persons = Person.order(nameColumn).fetchAll(db)
 ```
 
-> :warning: **Warning**: using a custom collation in a table definition *requires* the host application to provide the collation definition. This means that any the database file becomes uneasy to share with other SQLite libraries or platforms (such as the Android version of your application).
+> :warning: **Warning**: SQLite *requires* host applications to provide the definition of any collation other than binary, nocase and rtrim. When a database file has to be shared or migrated to another SQLite library of platform (such as the Android version of your application), make sure you provide a compatible collation.
 
 If you can't or don't want to define the comparison behavior of a column (see warning above), you can still use an explicit collation in SQL requests and in the [query interface](#the-query-interface):
 
