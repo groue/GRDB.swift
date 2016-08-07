@@ -18,7 +18,7 @@ Released August 6, 2016
 - DSL for table creation and updates (closes [#83](https://github.com/groue/GRDB.swift/issues/83), [documentation](https://github.com/groue/GRDB.swift#database-schema)):
 
     ```swift
-    db.create(table: "pointOfInterests") { t in
+    try db.create(table: "pointOfInterests") { t in
         t.column("id", .Integer).primaryKey()
         t.column("title", .Text)
         t.column("favorite", .Boolean).notNull()
@@ -30,7 +30,7 @@ Released August 6, 2016
 - Support for the `length` SQLite built-in function:
     
     ```swift
-    db.create(table: "persons") { t in
+    try db.create(table: "persons") { t in
         t.column("name", .Text).check { length($0) > 0 }
     }
     ```
