@@ -23,7 +23,7 @@ extension Database {
     ///     - body: A closure that defines table columns and constraints.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     @available(iOS 8.2, OSX 10.10, *)
-    public func create(table name: String, temporary: Bool = false, ifNotExists: Bool = false, withoutRowID: Bool, body: (TableDefinition) -> Void) throws {
+    public func create(table name: String, temporary: Bool = false, ifNotExists: Bool = false, withoutRowID: Bool, @noescape body: (TableDefinition) -> Void) throws {
         // WITHOUT ROWID was added in SQLite 3.8.2 http://www.sqlite.org/changes.html#version_3_8_2
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         let definition = TableDefinition(name: name, temporary: temporary, ifNotExists: ifNotExists, withoutRowID: withoutRowID)
@@ -50,7 +50,7 @@ extension Database {
     ///     - ifNotExists: If false, no error is thrown if table already exists.
     ///     - body: A closure that defines table columns and constraints.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func create(table name: String, temporary: Bool = false, ifNotExists: Bool = false, body: (TableDefinition) -> Void) throws {
+    public func create(table name: String, temporary: Bool = false, ifNotExists: Bool = false, @noescape body: (TableDefinition) -> Void) throws {
         let definition = TableDefinition(name: name, temporary: temporary, ifNotExists: ifNotExists, withoutRowID: false)
         body(definition)
         let sql = try definition.sql(self)
@@ -78,7 +78,7 @@ extension Database {
     ///     - name: The table name.
     ///     - body: A closure that defines table alterations.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func alter(table name: String, body: (TableAlteration) -> Void) throws {
+    public func alter(table name: String, @noescape body: (TableAlteration) -> Void) throws {
         let alteration = TableAlteration(name: name)
         body(alteration)
         let sql = try alteration.sql(self)

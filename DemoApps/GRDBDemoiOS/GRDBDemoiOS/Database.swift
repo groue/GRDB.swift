@@ -26,7 +26,7 @@ func setupDatabase(_ application: UIApplication) {
     var migrator = DatabaseMigrator()
     
     migrator.registerMigration("createPersons") { db in
-        // Have person names compared in a localized case insensitive fashion
+        // Compare person names in a localized case insensitive fashion
         // See https://github.com/groue/GRDB.swift/#unicode
         try db.create(table: "persons") { t in
             t.column("id", .integer).primaryKey()
