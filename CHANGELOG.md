@@ -1,6 +1,21 @@
 Release Notes
 =============
 
+## 0.79.0
+
+Released August 8, 2016
+
+**Breaking Change**
+
+- Column creation method `defaults(_:)` has been renamed `defaults(to:)`.
+    
+    ```swift
+    try db.create(table: "pointOfInterests") { t in
+        t.column("favorite", .Boolean).notNull().defaults(to: false)
+        ...
+    }
+    ```
+
 ## 0.78.0
 
 Released August 6, 2016
