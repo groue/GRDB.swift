@@ -1,4 +1,3 @@
-- [ ] Record.exists(db) should return false when primary key is nil
 - [ ] Fatal Error when MutablePersistable.update(_:columns:) is given columns that do not exist in the database.
 - [ ] What is the behavior inTransaction and inSavepoint behaviors in case of commit error? Code looks like we do not rollback, leaving the app in a weird state (out of Swift transaction block with a SQLite transaction that may still be opened).
 - [ ] GRDBCipher: remove limitations on iOS or OS X versions
@@ -21,6 +20,7 @@
 
 Not sure
 
+- [ ] Record.exists(db) should return false when primary key is nil
 - [X] Have Row adopt LiteralDictionaryConvertible
     - [ ] ... allowing non unique column names
 - [ ] Remove DatabaseValue.value()
