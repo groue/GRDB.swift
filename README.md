@@ -2315,9 +2315,7 @@ let idColumn = SQLColumn("id")
 let nameColumn = SQLColumn("name")
 ```
 
-You can now build requests with the following methods: `all`, `select`, `distinct`, `filter`, `group`, `having`, `order`, `reverse`, `limit`.
-
-All those methods return another request, which you can further refine by applying another method: `Person.select(...).filter(...).order(...)`.
+You can now build requests with the following methods: `all`, `select`, `distinct`, `filter`, `group`, `having`, `order`, `reverse`, `limit`. All those methods return another request, which you can further refine by applying another method: `Person.select(...).filter(...).order(...)`.
 
 - `all()`: the request for all rows.
 
