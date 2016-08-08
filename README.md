@@ -2240,8 +2240,8 @@ Other **table constraints** can involve several columns:
     // UNIQUE (a, b) ON CONFLICT REPLACE,
     t.uniqueKey(["a", "b"], onConfict: .Replace)
     
-    // FOREIGN KEY (c, d) REFERENCES parents(a, b),
-    t.foreignKey(["c", "d"], references: "parent")
+    // FOREIGN KEY (a, b) REFERENCES parents(c, d),
+    t.foreignKey(["a", "b"], references: "parent")
     
     // CHECK (a + b < 10),
     t.check(SQLColumn("a") + SQLColumn("b") < 10)
