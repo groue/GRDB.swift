@@ -2315,19 +2315,9 @@ let idColumn = SQLColumn("id")
 let nameColumn = SQLColumn("name")
 ```
 
-You can now derive requests with the following methods:
+You can now build requests with the following methods: `all`, `select`, `distinct`, `filter`, `group`, `having`, `order`, `reverse`, `limit`.
 
-- `all`
-- `select`
-- `distinct`
-- `filter`
-- `group`
-- `having`
-- `order`
-- `reverse`
-- `limit`
-
-All the methods above return another request, which you can further refine by applying another derivation method.
+All those methods return another request, which you can further refine by applying another method: `Person.select(...).filter(...).order(...)`.
 
 - `all()`: the request for all rows.
 
