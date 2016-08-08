@@ -158,10 +158,10 @@ class SQLTableBuilderTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.create(table: "test") { t in
-                    t.column("a", .integer).defaults(1)
-                    t.column("b", .integer).defaults(1.0)
-                    t.column("c", .integer).defaults("'fooéı👨👨🏿🇫🇷🇨🇮'")
-                    t.column("d", .integer).defaults("foo".data(using: .utf8)!)
+                    t.column("a", .integer).defaults(to: 1)
+                    t.column("b", .integer).defaults(to: 1.0)
+                    t.column("c", .integer).defaults(to: "'fooéı👨👨🏿🇫🇷🇨🇮'")
+                    t.column("d", .integer).defaults(to: "foo".data(using: .utf8)!)
                     t.column("e", .integer).defaults(sql: "NULL")
                 }
                 XCTAssertEqual(self.lastSQLQuery,
@@ -373,7 +373,7 @@ class SQLTableBuilderTests: GRDBTestCase {
                 self.sqlQueries.removeAll()
                 try db.alter(table: "test") { t in
                     t.add(column: "b", .text)
-                    t.add(column: "c", .integer).notNull().defaults(1)
+                    t.add(column: "c", .integer).notNull().defaults(to: 1)
                 }
                 
                 XCTAssertEqual(self.sqlQueries[0], "ALTER TABLE \"test\" ADD COLUMN \"b\" TEXT;")

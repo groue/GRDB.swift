@@ -3,6 +3,7 @@
 - [ ] Swift3: move more top-level enums inside an owner type. Foundation uses lowercase for those enum *types* (besides the lowercase *values*)
 - [ ] Swift3: check .autoreleaseWorkItem option in GCD Queue creation
 - [ ] Swift3: move database event filtering into the TransactionObserver protocol
+- [ ] Fatal Error when MutablePersistable.update(_:columns:) is given columns that do not exist in the database.
 - [ ] What is the behavior inTransaction and inSavepoint behaviors in case of commit error? Code looks like we do not rollback, leaving the app in a weird state (out of Swift transaction block with a SQLite transaction that may still be opened).
 - [ ] GRDBCipher: remove limitations on iOS or OS X versions
 - [ ] FetchedRecordsController: take inspiration from https://github.com/jflinter/Dwifft

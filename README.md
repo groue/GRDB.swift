@@ -5,7 +5,7 @@ GRDB.swift [![Swift](https://img.shields.io/badge/swift-3-orange.svg?style=flat)
 
 **Requirements**: iOS 8.0+ / OSX 10.9+ &bull; Xcode Version 8.0 beta 4 (8S188o) &bull; Swift 3.
 
-The Swift3 branch has no version. It is currently synced with v0.78.0 of the Swift 2.2 [main branch](https://github.com/groue/GRDB.swift).
+The Swift3 branch has no version. It is currently synced with v0.79.0 of the Swift 2.2 [main branch](https://github.com/groue/GRDB.swift).
 
 Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
@@ -115,10 +115,10 @@ try dbQueue.inDatabase { db in
         title: "Berlin",
         isFavorite: false,
         coordinate: CLLocationCoordinate2DMake(52.52437, 13.41053))
-
+    
     try berlin.insert(db)
     berlin.id // some value
-
+    
     berlin.isFavorite = true
     try berlin.update(db)
     
@@ -134,7 +134,7 @@ dbQueue.inDatabase { db in
     try db.create(table: "pointOfInterests") { t in
         t.column("id", .integer).primaryKey()
         t.column("title", .text).notNull()
-        t.column("favorite", .boolean).notNull().defaults(false)
+        t.column("favorite", .boolean).notNull().defaults(to: false)
         t.column("longitude", .double).notNull()
         t.column("latitude", .double).notNull()
     }
@@ -299,7 +299,7 @@ let dbQueue = try DatabaseQueue(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.78.0/Structs/Configuration.html) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.79.0/Structs/Configuration.html) for more details.
 
 
 ## Database Pools
@@ -379,7 +379,7 @@ let dbPool = try DatabasePool(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.78.0/Structs/Configuration.html) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.79.0/Structs/Configuration.html) for more details.
 
 
 Database pools are more memory-hungry than database queues. See [Memory Management](#memory-management) for more information.
@@ -1467,10 +1467,10 @@ for person in Person.fetch(db, sql, adapter: adapter) {
 
 For more information about row adapters, see the documentation of:
 
-- [RowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.78.0/Protocols/RowAdapter.html): the protocol that lets you define your custom row adapters
-- [ColumnMapping](http://cocoadocs.org/docsets/GRDB.swift/0.78.0/Structs/ColumnMapping.html): a row adapter that renames row columns
-- [SuffixRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.78.0/Structs/SuffixRowAdapter.html): a row adapter that hides the first columns of a row
-- [ScopeAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.78.0/Structs/ScopeAdapter.html): the row adapter that groups several adapters together to define scopes
+- [RowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.79.0/Protocols/RowAdapter.html): the protocol that lets you define your custom row adapters
+- [ColumnMapping](http://cocoadocs.org/docsets/GRDB.swift/0.79.0/Structs/ColumnMapping.html): a row adapter that renames row columns
+- [SuffixRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.79.0/Structs/SuffixRowAdapter.html): a row adapter that hides the first columns of a row
+- [ScopeAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.79.0/Structs/ScopeAdapter.html): the row adapter that groups several adapters together to define scopes
 
 
 ## Raw SQLite Pointers
@@ -2125,7 +2125,7 @@ Once granted with a [database connection](#database-connections), you can setup 
 try db.create(table: "pointOfInterests") { t in
     t.column("id", .integer).primaryKey()
     t.column("title", .text)
-    t.column("favorite", .boolean).notNull().defaults(false)
+    t.column("favorite", .boolean).notNull().defaults(to: false)
     t.column("longitude", .double).notNull()
     t.column("latitude", .double).notNull()
 }
@@ -2167,7 +2167,7 @@ Define **not null** columns, and set **default** values:
     t.column("email", .text).notNull()
     
     // name TEXT NOT NULL DEFAULT 'Anonymous',
-    t.column("name", .text).notNull().defaults("Anonymous")
+    t.column("name", .text).notNull().defaults(to: "Anonymous")
 ```
     
 Use an individual column as **primary**, **unique**, or **foreign key**. When defining a foreign key, the referenced column is the primary key of the referenced table (unless you specify otherwise):
@@ -3495,7 +3495,7 @@ Person.select(nameColumn.uppercased)
 
 SQLite compares strings in many occasions: when you sort rows according to a string column, or when you use a comparison operator such as `=` and `<=`.
 
-The comparison result comes from a *collating function*, or *collation*. SQLite comes with [three built-in collations](https://www.sqlite.org/datatype3.html#collation) that do not support Unicode: binary, nocase, and rtrim.
+The comparison result comes from a *collating function*, or *collation*. SQLite comes with three built-in collations that do not support Unicode: [binary, nocase, and rtrim](https://www.sqlite.org/datatype3.html#collation).
 
 GRDB comes with five extra collations that leverage unicode-aware comparisons based on the standard Swift String comparison functions and operators:
 
@@ -3620,7 +3620,7 @@ let count2 = dbQueue.inDatabase { db in
 
 SQLite concurrency is a wiiide topic.
 
-First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.78.0/Classes/DatabaseQueue.html) and [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.78.0/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.78.0/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.78.0/Protocols/DatabaseWriter.html) protocols, so that you can write code that targets both classes.
+First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.79.0/Classes/DatabaseQueue.html) and [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.79.0/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.79.0/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.79.0/Protocols/DatabaseWriter.html) protocols, so that you can write code that targets both classes.
 
 If the built-in queues and pools do not fit your needs, or if you can not guarantee that a single queue or pool is accessing your database file, you may have a look at:
 
