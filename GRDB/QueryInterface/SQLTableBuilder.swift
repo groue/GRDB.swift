@@ -523,14 +523,14 @@ public final class ColumnDefinition {
     /// Defines the default column value.
     ///
     ///     try db.create(table: "persons") { t in
-    ///         t.column("name", .Text).defaults("Anonymous")
+    ///         t.column("name", .Text).defaults(to: "Anonymous")
     ///     }
     ///
     /// See https://www.sqlite.org/lang_createtable.html#dfltval
     ///
     /// - parameter value: A DatabaseValueConvertible value.
     /// - returns: Self so that you can further refine the column definition.
-    public func defaults(value: DatabaseValueConvertible) -> ColumnDefinition {
+    public func defaults(to value: DatabaseValueConvertible) -> ColumnDefinition {
         defaultExpression = value.sqlExpression
         return self
     }

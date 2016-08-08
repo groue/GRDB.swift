@@ -134,7 +134,7 @@ dbQueue.inDatabase { db in
     try db.create(table: "pointOfInterests") { t in
         t.column("id", .Integer).primaryKey()
         t.column("title", .Text).notNull()
-        t.column("favorite", .Boolean).notNull().defaults(false)
+        t.column("favorite", .Boolean).notNull().defaults(to: false)
         t.column("longitude", .Double).notNull()
         t.column("latitude", .Double).notNull()
     }
@@ -2164,7 +2164,7 @@ Once granted with a [database connection](#database-connections), you can setup 
 try db.create(table: "pointOfInterests") { t in
     t.column("id", .Integer).primaryKey()
     t.column("title", .Text)
-    t.column("favorite", .Boolean).notNull().defaults(false)
+    t.column("favorite", .Boolean).notNull().defaults(to: false)
     t.column("longitude", .Double).notNull()
     t.column("latitude", .Double).notNull()
 }
@@ -2206,7 +2206,7 @@ Define **not null** columns, and set **default** values:
     t.column("email", .Text).notNull()
     
     // name TEXT NOT NULL DEFAULT 'Anonymous',
-    t.column("name", .Text).notNull().defaults("Anonymous")
+    t.column("name", .Text).notNull().defaults(to: "Anonymous")
 ```
     
 Use an individual column as **primary**, **unique**, or **foreign key**. When defining a foreign key, the referenced column is the primary key of the referenced table (unless you specify otherwise):
