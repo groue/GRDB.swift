@@ -9,16 +9,10 @@ Released August 6, 2016
 
 - Upgrade sqlcipher to v3.4.0 ([announcement](https://discuss.zetetic.net/t/sqlcipher-3-4-0-release/1273), [changelog](https://github.com/sqlcipher/sqlcipher/blob/master/CHANGELOG.md))
 
-- Row adopts DictionaryLiteralConvertible:
-
-    ```swift
-    let row: Row = ["name": "foo", "date": NSDate()]
-    ```
-
 - DSL for table creation and updates (closes [#83](https://github.com/groue/GRDB.swift/issues/83), [documentation](https://github.com/groue/GRDB.swift#database-schema)):
 
     ```swift
-    db.create(table: "pointOfInterests") { t in
+    try db.create(table: "pointOfInterests") { t in
         t.column("id", .Integer).primaryKey()
         t.column("title", .Text)
         t.column("favorite", .Boolean).notNull()
@@ -30,9 +24,15 @@ Released August 6, 2016
 - Support for the `length` SQLite built-in function:
     
     ```swift
-    db.create(table: "persons") { t in
+    try db.create(table: "persons") { t in
         t.column("name", .Text).check { length($0) > 0 }
     }
+    ```
+
+- Row adopts DictionaryLiteralConvertible:
+
+    ```swift
+    let row: Row = ["name": "foo", "date": NSDate()]
     ```
 
 

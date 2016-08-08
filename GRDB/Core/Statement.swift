@@ -221,7 +221,7 @@ public final class SelectStatement : Statement {
     /// The column names, ordered from left to right.
     public lazy var columnNames: [String] = {
         let sqliteStatement = self.sqliteStatement
-        return (0..<self.columnCount).map { String(cString: sqlite3_column_name(sqliteStatement, Int32($0))) }
+        return (0..<self.columnCount).map { (index: Int) -> String in String(cString: sqlite3_column_name(sqliteStatement, Int32(index))) }
     }()
     
     /// Cache for indexOfColumn(). Keys are lowercase.
