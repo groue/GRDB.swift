@@ -25,6 +25,7 @@
 
 Not sure
 
+- [ ] Record.exists(db) should return false when primary key is nil
 - [X] Have Row adopt LiteralDictionaryConvertible
     - [ ] ... allowing non unique column names
 - [ ] Remove DatabaseValue.value()

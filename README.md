@@ -170,10 +170,13 @@ Documentation
 
 - [SQLite API](#sqlite-api): The low-level SQLite API &bull; [executing updates](#executing-updates) &bull; [fetch queries](#fetch-queries)
 
-**Application Tools**
+**Records and the Query Interface**
 
 - [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies.
 - [Query Interface](#the-query-interface): A swift way to generate SQL &bull; [table creation](#database-schema) &bull; [fetch requests](#requests)
+
+**Application Tools**
+
 - [Migrations](#migrations): Transform your database as your application evolves.
 - [Database Changes Observation](#database-changes-observation): Perform post-commit and post-rollback actions.
 - [FetchedRecordsController](#fetchedrecordscontroller): Automatic database changes tracking, plus UITableView animations.
@@ -1525,21 +1528,8 @@ Before jumping in the low-level wagon, here is a reminder of most SQLite APIs us
     - [sqlite3_set_authorizer](https://www.sqlite.org/c3ref/set_authorizer.html)
 
 
-Application Tools
-=================
-
-On top of the SQLite API described above, GRDB provides a toolkit for applications. While none of those are mandatory, all of them help dealing with the database:
-
-- [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies.
-- [Query Interface](#the-query-interface): A swift way to generate SQL.
-- [Migrations](#migrations): Transform your database as your application evolves.
-- [Database Changes Observation](#database-changes-observation): Perform post-commit and post-rollback actions.
-- [FetchedRecordsController](#fetchedrecordscontroller): Automatic database changes tracking, plus UITableView animations.
-- [Encryption](#encryption): Encrypt your database with SQLCipher.
-- [Backup](#backup): Dump the content of a database to another.
-
-
-## Records
+Records
+=======
 
 **On top of the [SQLite API](#sqlite-api), GRDB provides protocols and a class** that help manipulating database rows as regular objects named "records":
 
@@ -1555,7 +1545,7 @@ Your custom structs and classes can adopt each protocol individually, and opt in
 > :point_up: **Note**: if you are familiar with Core Data's NSManagedObject or Realm's Object, you may experience a cultural shock: GRDB records are not uniqued, and do not auto-update. This is both a purpose, and a consequence of protocol-oriented programming. You should read [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3) for a general introduction.
 
 
-#### Inserting Records
+### Inserting Records
 
 To insert a record in the database, subclass the [Record](#record-class) class or adopt the [Persistable](#persistable-protocol) protocol, and call the `insert` method:
 
@@ -1569,7 +1559,7 @@ try person.insert(db)
 Of course, you need to open a [database connection](#database-connections), and [create a database table](#database-schema) first.
 
 
-#### Fetching Records
+### Fetching Records
 
 [Record](#record-class) subclasses and types that adopt the [RowConvertible](#rowconvertible-protocol) protocol can be fetched from the database:
 
@@ -1590,7 +1580,7 @@ let countries = Country.fetchAll(db, keys: ["FR", "US"])
 To learn more about querying records, check the [query interface](#the-query-interface).
 
 
-#### Updating Records
+### Updating Records
 
 [Record](#record-class) subclasses and types that adopt the [Persistable](#persistable-protocol) protocol can be updated in the database:
 
@@ -1617,7 +1607,7 @@ try db.execute("UPDATE persons SET synchronized = 1")
 ```
 
 
-#### Deleting Records
+### Deleting Records
 
 [Record](#record-class) subclasses and types that adopt the [Persistable](#persistable-protocol) protocol can be deleted from the database:
 
@@ -1641,7 +1631,7 @@ try db.execute("DELETE FROM persons")
 ```
 
 
-#### Counting Records
+### Counting Records
 
 [Record](#record-class) subclasses and types that adopt the [TableMapping](#tablemapping-protocol) protocol can be counted:
 
@@ -1659,7 +1649,7 @@ You can now jump to:
 - [The Query Interface](#the-query-interface)
 
 
-### RowConvertible Protocol
+## RowConvertible Protocol
 
 **The RowConvertible protocol grants fetching methods to any type** that can be built from a database row:
 
@@ -1709,7 +1699,7 @@ PointOfInterest.fetchOne(db, "SELECT ...", arguments:...) // PointOfInterest?
 See [fetching methods](#fetching-methods) for information about the `fetch`, `fetchAll` and `fetchOne` methods. See [fetching rows](#fetching-rows) for more information about the query arguments.
 
 
-#### RowConvertible and Row Adapters
+### RowConvertible and Row Adapters
 
 RowConvertible types usually consume rows by column name:
 
@@ -1728,7 +1718,7 @@ extension PointOfInterest : RowConvertible {
 Occasionnally, you'll want to write a complex SQL query that uses different column names. In this case, [row adapters](#row-adapters) are there to help you mapping raw column names to the names expected by your RowConvertible types.
 
 
-### TableMapping Protocol
+## TableMapping Protocol
 
 **Adopt the TableMapping protocol** on top of [RowConvertible](#rowconvertible-protocol), and you are granted with the full [query interface](#the-query-interface).
 
@@ -1784,7 +1774,7 @@ Person.fetchOne(db, key: ["name": "Arthur"]) // fatal error: table persons has n
 ```
 
 
-### Persistable Protocol
+## Persistable Protocol
 
 **GRDB provides two protocols that let adopting types store themselves in the database:**
 
@@ -1851,7 +1841,7 @@ paris.id   // some value
 ```
 
 
-#### Persistence Methods
+### Persistence Methods
 
 [Record](#record-class) subclasses and types that adopt [Persistable](#persistable-protocol) are given default implementations for methods that insert, update, and delete:
 
@@ -1881,7 +1871,7 @@ pointOfInterest.exists(db)                   // Bool
 **All primary keys are supported**, including primary keys that span several columns.
 
 
-#### Customizing the Persistence Methods
+### Customizing the Persistence Methods
 
 Your custom type may want to perform extra work when the persistence methods are invoked.
 
@@ -1931,7 +1921,7 @@ struct Link : Persistable {
 > :point_up: **Note**: it is recommended that you do not implement your own version of the `save` method. Its default implementation forwards the job to `update` or `insert`: these are the methods that may need customization, not `save`.
 
 
-### Record Class
+## Record Class
 
 **Record** is a class that is designed to be subclassed, and provides the full GRDB Record toolkit in one go:
 
@@ -2037,7 +2027,7 @@ try poi.delete(db)
 ```
 
 
-#### Changes Tracking
+### Changes Tracking
 
 **The [Record](#record-class) class provides changes tracking.**
 
@@ -2072,7 +2062,8 @@ person.persistentChangedValues    // ["age": 35]
 For an efficient algorithm which synchronizes the content of a database table with a JSON payload, check [JSONSynchronization.playground](Playgrounds/JSONSynchronization.playground/Contents.swift).
 
 
-## The Query Interface
+The Query Interface
+===================
 
 **The query interface lets you write pure Swift instead of SQL:**
 
@@ -2102,7 +2093,7 @@ So don't miss the [SQL API](#sqlite-api).
 - [Fetching Aggregated Values](#fetching-aggregated-values)
 
 
-### Database Schema
+## Database Schema
 
 Once granted with a [database connection](#database-connections), you can setup your database schema without writing SQL:
 
@@ -2112,7 +2103,7 @@ Once granted with a [database connection](#database-connections), you can setup 
 - [Create Indexes](#create-indexes)
 
 
-#### Create Tables
+### Create Tables
 
 ```swift
 // CREATE TABLE pointOfInterests (
@@ -2212,7 +2203,7 @@ Other **table constraints** can involve several columns:
 }
 ```
 
-#### Modify Tables
+### Modify Tables
 
 SQLite lets you rename tables, and add columns to existing tables:
 
@@ -2229,7 +2220,7 @@ try db.alter(table: "persons") { t in
 > :point_up: **Note**: SQLite restricts the possible table alterations, and may require you to recreate dependent triggers or views. See the documentation of the [ALTER TABLE](https://www.sqlite.org/lang_altertable.html) for details. See [Advanced Database Schema Changes](#advanced-database-schema-changes) for a way to lift restrictions.
 
 
-#### Drop Tables
+### Drop Tables
 
 Drop tables with the `drop(table:)` method:
 
@@ -2237,7 +2228,7 @@ Drop tables with the `drop(table:)` method:
 try db.drop(table: "obsolete")
 ```
 
-#### Create Indexes
+### Create Indexes
 
 Create indexes with the `create(index:)` method:
 
@@ -2253,7 +2244,7 @@ Relevant SQLite documentation:
 - [Partial Indexes](https://www.sqlite.org/partialindex.html)
 
 
-### Requests
+## Requests
 
 **The query interface requests** let you fetch values from the database:
 
@@ -2403,12 +2394,12 @@ Person
 ```
 
 
-### Expressions
+## Expressions
 
 Feed [requests](#requests) with SQL expressions built from your Swift code:
 
 
-#### SQL Operators
+### SQL Operators
 
 - `=`, `<>`, `<`, `<=`, `>`, `>=`, `IS`, `IS NOT`
     
@@ -2501,7 +2492,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     ```
 
 
-#### SQL Functions
+### SQL Functions
 
 - `ABS`, `AVG`, `COUNT`, `LENGTH`, `MAX`, `MIN`, `SUM`:
     
@@ -2554,7 +2545,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     ```
 
     
-### Fetching from Requests
+## Fetching from Requests
 
 Once you have a request, you can fetch the records at the origin of the request:
 
@@ -2593,7 +2584,7 @@ let maxHeight = row.value(atIndex: 1) as Double?
 ```
 
 
-### Fetching By Primary Key
+## Fetching By Primary Key
 
 **Fetching records according to their primary key** is a very common task. It has a shortcut which accepts any single-column primary key:
 
@@ -2625,7 +2616,7 @@ Person.fetchOne(db, key: ["email": "arthur@example.com"]) // Person?
 ```
 
 
-### Fetching Aggregated Values
+## Fetching Aggregated Values
 
 **Requests can count.** The `fetchCount()` method returns the number of rows that would be returned by a fetch request:
 
@@ -2655,6 +2646,18 @@ let row = Row.fetchOne(db, request)!
 let minHeight = row.value(atIndex: 0) as Double?
 let maxHeight = row.value(atIndex: 1) as Double?
 ```
+
+
+Application Tools
+=================
+
+On top of the APIs described above, GRDB provides a toolkit for applications. While none of those are mandatory, all of them help dealing with the database:
+
+- [Migrations](#migrations): Transform your database as your application evolves.
+- [Database Changes Observation](#database-changes-observation): Perform post-commit and post-rollback actions.
+- [FetchedRecordsController](#fetchedrecordscontroller): Automatic database changes tracking, plus UITableView animations.
+- [Encryption](#encryption): Encrypt your database with SQLCipher.
+- [Backup](#backup): Dump the content of a database to another.
 
 
 ## Migrations
@@ -3353,7 +3356,7 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     Row.fetchAll(db, "SELECT * FROM boooks")
     ```
     
-    Solution: fix the SQL query.
+    Solution: fix the SQL query:
     
     ```swift
     Row.fetchAll(db, "SELECT * FROM books")
@@ -3361,7 +3364,7 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     
     If you do have to run untrusted SQL queries, jump to [untrusted databases](#how-to-deal-with-untrusted-inputs).
 
-- The code asks for a non-optional values, when the database contains NULL:
+- The code asks for a non-optional value, when the database contains NULL:
     
     ```swift
     // fatal error: could not convert NULL to String.
