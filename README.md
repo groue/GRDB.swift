@@ -3377,7 +3377,7 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     let name: String? = row.value(named: "name")
     ```
 
-- The code asks for an Date, when the database contains garbage:
+- The code asks for a Date, when the database contains garbage:
     
     ```swift
     // fatal error: could not convert "Mom's birthday" to Date.
