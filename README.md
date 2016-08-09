@@ -3395,7 +3395,7 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     Row.fetchAll(db, "SELECT * FROM boooks")
     ```
     
-    Solution: fix the SQL query.
+    Solution: fix the SQL query:
     
     ```swift
     Row.fetchAll(db, "SELECT * FROM books")
@@ -3403,7 +3403,7 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     
     If you do have to run untrusted SQL queries, jump to [untrusted databases](#how-to-deal-with-untrusted-inputs).
 
-- The code asks for a non-optional values, when the database contains NULL:
+- The code asks for a non-optional value, when the database contains NULL:
     
     ```swift
     // fatal error: could not convert NULL to String.
