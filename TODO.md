@@ -1,3 +1,4 @@
+- [ ] @hdlj: Extensibility of the Query Interface
 - [ ] @hdlj: FetchedRecordsController throttling
 - [ ] @hdlj: Check RAM pressure
 - [ ] Fatal Error when MutablePersistable.update(_:columns:) is given columns that do not exist in the database.
