@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## 0.79.2
+
+Released August 10, 2016
+
+**Fixed**
+
+- Persistable used to generate sub optimal UPDATE requests.
+
+
 ## 0.79.1
 
 Released August 10, 2016
