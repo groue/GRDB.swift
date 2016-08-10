@@ -355,6 +355,17 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
     
     // MARK: - Delete
     
+    func testDeleteWithNilPrimaryKey() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let record = Person(id: nil, name: "Arthur")
+                let deleted = try record.delete(db)
+                XCTAssertFalse(deleted)
+            }
+        }
+    }
+    
     func testDeleteWithNotNilPrimaryKeyThatDoesNotMatchAnyRowDoesNothing() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
