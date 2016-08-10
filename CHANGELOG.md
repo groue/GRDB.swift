@@ -5,7 +5,7 @@ Release Notes
 
 **Fixed**
 
-- ColumnDefinition `check` and `references` methods can now define several constraints:
+- [ColumnDefinition](https://github.com/groue/GRDB.swift#database-schema) `check` and `references` methods can now define several constraints:
     
     ```swift
     try db.create(table: "users") { t in
@@ -15,10 +15,9 @@ Release Notes
     }
     ```
 
+- [Persistable](https://github.com/groue/GRDB.swift#persistable-protocol) `update`, `exists` and `delete` methods now work with objects that have a nil primary key. They used to crash.
 
-**New**
-
-- Persistable `update`, `exists` and `delete` methods now work with objects that have a nil primary key. They used to crash.
+- The `update(_:columns:)` method, which performs partial updates, no longer ignores unknown columns.
 
 
 ## 0.79.0

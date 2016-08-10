@@ -517,10 +517,10 @@ final class DAO {
     /// The database
     let db: Database
     
-    /// The persistable
-    let persistable: MutablePersistable
+    /// The record
+    let record: MutablePersistable
     
-    /// DAO keeps a copy the persistable's persistentDictionary, so that this
+    /// DAO keeps a copy the record's persistentDictionary, so that this
     /// dictionary is built once whatever the database operation. It is
     /// guaranteed to have at least one (key, value) pair.
     let persistentDictionary: [String: DatabaseValueConvertible?]
@@ -531,17 +531,17 @@ final class DAO {
     /// The table primary key
     let primaryKey: PrimaryKeyInfo?
     
-    init(_ db: Database, _ persistable: MutablePersistable) {
+    init(_ db: Database, _ record: MutablePersistable) {
         // Fail early if database table does not exist.
-        let databaseTableName = persistable.dynamicType.databaseTableName()
+        let databaseTableName = record.dynamicType.databaseTableName()
         let primaryKey = try! db.primaryKey(databaseTableName)
         
         // Fail early if persistentDictionary is empty
-        let persistentDictionary = persistable.persistentDictionary
-        GRDBPrecondition(persistentDictionary.count > 0, "\(persistable.dynamicType).persistentDictionary: invalid empty dictionary")
+        let persistentDictionary = record.persistentDictionary
+        GRDBPrecondition(persistentDictionary.count > 0, "\(record.dynamicType).persistentDictionary: invalid empty dictionary")
         
         self.db = db
-        self.persistable = persistable
+        self.record = record
         self.persistentDictionary = persistentDictionary
         self.databaseTableName = databaseTableName
         self.primaryKey = primaryKey
@@ -563,11 +563,18 @@ final class DAO {
         let primaryKeyValues = databaseValues(forColumns: primaryKeyColumns, inDictionary: persistentDictionary)
         guard primaryKeyValues.contains({ !$0.isNull }) else { return nil }
         
-        // Don't update primary key columns
-        var updatedColumns = Array(persistentDictionary.keys)
-            .map { $0.lowercaseString }
-            .filter { (lowercaseKey: String) in columns.contains { $0.lowercaseString == lowercaseKey } }
-            .filter { (lowercaseKey: String) in !primaryKeyColumns.contains { $0.lowercaseString == lowercaseKey } }
+        let lowercasePersistentColumns = Set(persistentDictionary.keys.map { $0.lowercaseString })
+        let lowercasePrimaryKeyColumns = Set(primaryKeyColumns.map { $0.lowercaseString })
+        var updatedColumns: [String] = []
+        for column in columns {
+            let lowercaseColumn = column.lowercaseString
+            // Make sure the requested column is present in persistentDictionary
+            GRDBPrecondition(lowercasePersistentColumns.contains(lowercaseColumn), "column \(column) can't be updated because it is missing from persistentDictionary")
+            // Don't update primary key columns
+            guard !lowercasePrimaryKeyColumns.contains(column) else { continue }
+            updatedColumns.append(column)
+        }
+        
         if updatedColumns.isEmpty {
             // IMPLEMENTATION NOTE
             //
