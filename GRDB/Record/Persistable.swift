@@ -279,9 +279,9 @@ public extension MutablePersistable {
     /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
     mutating func performInsert(db: Database) throws {
-        let dataMapper = DataMapper(db, self)
-        try dataMapper.insertStatement().execute()
-        didInsertWithRowID(db.lastInsertedRowID, forColumn: dataMapper.primaryKey?.rowIDColumn)
+        let dao = DAO(db, self)
+        try dao.insertStatement().execute()
+        didInsertWithRowID(db.lastInsertedRowID, forColumn: dao.primaryKey?.rowIDColumn)
     }
     
     /// Don't invoke this method directly: it is an internal method for types
@@ -298,7 +298,7 @@ public extension MutablePersistable {
     ///   PersistenceError.NotFound is thrown if the primary key does not
     ///   match any row in the database.
     func performUpdate(db: Database, columns: Set<String>) throws {
-        guard let statement = DataMapper(db, self).updateStatement(columns: columns) else {
+        guard let statement = DAO(db, self).updateStatement(columns: columns) else {
             // Nil primary key
             throw PersistenceError.NotFound(self)
         }
@@ -345,7 +345,7 @@ public extension MutablePersistable {
     /// their implementation of delete(). They should not provide their own
     /// implementation of performDelete().
     func performDelete(db: Database) throws -> Bool {
-        guard let statement = DataMapper(db, self).deleteStatement() else {
+        guard let statement = DAO(db, self).deleteStatement() else {
             // Nil primary key
             return false
         }
@@ -361,7 +361,7 @@ public extension MutablePersistable {
     /// their implementation of exists(). They should not provide their own
     /// implementation of performExists().
     func performExists(db: Database) -> Bool {
-        guard let statement = DataMapper(db, self).existsStatement() else {
+        guard let statement = DAO(db, self).existsStatement() else {
             // Nil primary key
             return false
         }
@@ -473,9 +473,9 @@ public extension Persistable {
     /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
     func performInsert(db: Database) throws {
-        let dataMapper = DataMapper(db, self)
-        try dataMapper.insertStatement().execute()
-        didInsertWithRowID(db.lastInsertedRowID, forColumn: dataMapper.primaryKey?.rowIDColumn)
+        let dao = DAO(db, self)
+        try dao.insertStatement().execute()
+        didInsertWithRowID(db.lastInsertedRowID, forColumn: dao.primaryKey?.rowIDColumn)
     }
     
     /// Don't invoke this method directly: it is an internal method for types
@@ -509,10 +509,10 @@ public extension Persistable {
 }
 
 
-// MARK: - DataMapper
+// MARK: - DAO
 
-/// DataMapper takes care of Persistable CRUD
-final class DataMapper {
+/// DAO takes care of Persistable CRUD
+final class DAO {
     
     /// The database
     let db: Database
@@ -520,9 +520,9 @@ final class DataMapper {
     /// The persistable
     let persistable: MutablePersistable
     
-    /// DataMapper keeps a copy the persistable's persistentDictionary, so
-    /// that this dictionary is built once whatever the database operation.
-    /// It is guaranteed to have at least one (key, value) pair.
+    /// DAO keeps a copy the persistable's persistentDictionary, so that this
+    /// dictionary is built once whatever the database operation. It is
+    /// guaranteed to have at least one (key, value) pair.
     let persistentDictionary: [String: DatabaseValueConvertible?]
     
     /// The table name
