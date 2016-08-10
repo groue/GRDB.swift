@@ -191,7 +191,7 @@ public extension MutablePersistable {
     /// - parameter db: A database connection.
     /// - parameter columns: The columns to update.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.NotFound is thrown if the primary key does not
+    ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
     func update(_ db: Database, columns: Set<String>) throws {
         try performUpdate(db, columns: columns)
@@ -202,7 +202,7 @@ public extension MutablePersistable {
     /// - parameter db: A database connection.
     /// - parameter columns: The columns to update.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.NotFound is thrown if the primary key does not
+    ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
     func update<Sequence: Swift.Sequence>(_ db: Database, columns: Sequence) throws where Sequence.Iterator.Element == Column {
         try update(db, columns: Set(columns.map { $0.name }))
@@ -213,7 +213,7 @@ public extension MutablePersistable {
     /// - parameter db: A database connection.
     /// - parameter columns: The columns to update.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.NotFound is thrown if the primary key does not
+    ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
     func update<Sequence: Swift.Sequence>(_ db: Database, columns: Sequence) throws where Sequence.Iterator.Element == String {
         try update(db, columns: Set(columns))
@@ -223,7 +223,7 @@ public extension MutablePersistable {
     ///
     /// - parameter db: A database connection.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.NotFound is thrown if the primary key does not
+    ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
     func update(_ db: Database) throws {
         let databaseTableName = self.dynamicType.databaseTableName
@@ -279,9 +279,9 @@ public extension MutablePersistable {
     /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
     mutating func performInsert(_ db: Database) throws {
-        let dataMapper = DataMapper(db, self)
-        try dataMapper.insertStatement().execute()
-        didInsert(with: db.lastInsertedRowID, for: dataMapper.primaryKey?.rowIDColumn)
+        let dao = DAO(db, self)
+        try dao.insertStatement().execute()
+        didInsert(with: db.lastInsertedRowID, for: dao.primaryKey?.rowIDColumn)
     }
     
     /// Don't invoke this method directly: it is an internal method for types
@@ -295,10 +295,14 @@ public extension MutablePersistable {
     /// - parameter db: A database connection.
     /// - parameter columns: The columns to update.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.NotFound is thrown if the primary key does not
+    ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
     func performUpdate(_ db: Database, columns: Set<String>) throws {
-        try DataMapper(db, self).updateStatement(columns: columns).execute()
+        guard let statement = DAO(db, self).updateStatement(columns: columns) else {
+            // Nil primary key
+            throw PersistenceError.recordNotFound(self)
+        }
+        try statement.execute()
         if db.changesCount == 0 {
             throw PersistenceError.recordNotFound(self)
         }
@@ -341,7 +345,11 @@ public extension MutablePersistable {
     /// their implementation of delete(). They should not provide their own
     /// implementation of performDelete().
     func performDelete(_ db: Database) throws -> Bool {
-        try DataMapper(db, self).deleteStatement().execute()
+        guard let statement = DAO(db, self).deleteStatement() else {
+            // Nil primary key
+            return false
+        }
+        try statement.execute()
         return db.changesCount > 0
     }
     
@@ -353,7 +361,11 @@ public extension MutablePersistable {
     /// their implementation of exists(). They should not provide their own
     /// implementation of performExists().
     func performExists(_ db: Database) -> Bool {
-        return (Row.fetchOne(DataMapper(db, self).existsStatement()) != nil)
+        guard let statement = DAO(db, self).existsStatement() else {
+            // Nil primary key
+            return false
+        }
+        return Row.fetchOne(statement) != nil
     }
     
 }
@@ -461,9 +473,9 @@ public extension Persistable {
     /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
     func performInsert(_ db: Database) throws {
-        let dataMapper = DataMapper(db, self)
-        try dataMapper.insertStatement().execute()
-        didInsert(with: db.lastInsertedRowID, for: dataMapper.primaryKey?.rowIDColumn)
+        let dao = DAO(db, self)
+        try dao.insertStatement().execute()
+        didInsert(with: db.lastInsertedRowID, for: dao.primaryKey?.rowIDColumn)
     }
     
     /// Don't invoke this method directly: it is an internal method for types
@@ -497,20 +509,20 @@ public extension Persistable {
 }
 
 
-// MARK: - DataMapper
+// MARK: - DAO
 
-/// DataMapper takes care of Persistable CRUD
-final class DataMapper {
+/// DAO takes care of Persistable CRUD
+final class DAO {
     
     /// The database
     let db: Database
     
-    /// The persistable
-    let persistable: MutablePersistable
+    /// The record
+    let record: MutablePersistable
     
-    /// DataMapper keeps a copy the persistable's persistentDictionary, so
-    /// that this dictionary is built once whatever the database operation.
-    /// It is guaranteed to have at least one (key, value) pair.
+    /// DAO keeps a copy the record's persistentDictionary, so that this
+    /// dictionary is built once whatever the database operation. It is
+    /// guaranteed to have at least one (key, value) pair.
     let persistentDictionary: [String: DatabaseValueConvertible?]
     
     /// The table name
@@ -519,17 +531,17 @@ final class DataMapper {
     /// The table primary key
     let primaryKey: PrimaryKeyInfo?
     
-    init(_ db: Database, _ persistable: MutablePersistable) {
+    init(_ db: Database, _ record: MutablePersistable) {
         // Fail early if database table does not exist.
-        let databaseTableName = persistable.dynamicType.databaseTableName
+        let databaseTableName = record.dynamicType.databaseTableName
         let primaryKey = try! db.primaryKey(databaseTableName)
         
         // Fail early if persistentDictionary is empty
-        let persistentDictionary = persistable.persistentDictionary
-        GRDBPrecondition(persistentDictionary.count > 0, "\(persistable.dynamicType).persistentDictionary: invalid empty dictionary")
+        let persistentDictionary = record.persistentDictionary
+        GRDBPrecondition(persistentDictionary.count > 0, "\(record.dynamicType).persistentDictionary: invalid empty dictionary")
         
         self.db = db
-        self.persistable = persistable
+        self.record = record
         self.persistentDictionary = persistentDictionary
         self.databaseTableName = databaseTableName
         self.primaryKey = primaryKey
@@ -544,17 +556,25 @@ final class DataMapper {
         return statement
     }
     
-    func updateStatement(columns: Set<String>) -> UpdateStatement {
+    /// Returns nil if and only if primary key is nil
+    func updateStatement(columns: Set<String>) -> UpdateStatement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey?.columns ?? []
         let primaryKeyValues = databaseValues(for: primaryKeyColumns, inDictionary: persistentDictionary)
-        GRDBPrecondition(primaryKeyValues.contains { !$0.isNull }, "record can not be identified. persistentDictionary must contain non-nil value(s) for the key(s) \(primaryKeyColumns.joined(separator: ","))")
+        guard primaryKeyValues.contains(where: { !$0.isNull }) else { return nil }
         
-        // Don't update primary key columns
-        var updatedColumns = Array(persistentDictionary.keys)
-            .map { $0.lowercased() }
-            .filter { (lowercaseKey: String) in columns.contains { $0.lowercased() == lowercaseKey } }
-            .filter { (lowercaseKey: String) in !primaryKeyColumns.contains { $0.lowercased() == lowercaseKey } }
+        let lowercasePersistentColumns = Set(persistentDictionary.keys.map { $0.lowercased() })
+        let lowercasePrimaryKeyColumns = Set(primaryKeyColumns.map { $0.lowercased() })
+        var updatedColumns: [String] = []
+        for column in columns {
+            let lowercaseColumn = column.lowercased()
+            // Make sure the requested column is present in persistentDictionary
+            GRDBPrecondition(lowercasePersistentColumns.contains(lowercaseColumn), "column \(column) can't be updated because it is missing from persistentDictionary")
+            // Don't update primary key columns
+            guard !lowercasePrimaryKeyColumns.contains(column) else { continue }
+            updatedColumns.append(column)
+        }
+        
         if updatedColumns.isEmpty {
             // IMPLEMENTATION NOTE
             //
@@ -577,11 +597,12 @@ final class DataMapper {
         return statement
     }
     
-    func deleteStatement() -> UpdateStatement {
+    /// Returns nil if and only if primary key is nil
+    func deleteStatement() -> UpdateStatement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey?.columns ?? []
         let primaryKeyValues = databaseValues(for: primaryKeyColumns, inDictionary: persistentDictionary)
-        GRDBPrecondition(primaryKeyValues.contains { !$0.isNull }, "record can not be identified. persistentDictionary must contain non-nil value(s) for the key(s) \(primaryKeyColumns.joined(separator: ","))")
+        guard primaryKeyValues.contains(where: { !$0.isNull }) else { return nil }
         
         let query = DeleteQuery(
             tableName: databaseTableName,
@@ -591,11 +612,12 @@ final class DataMapper {
         return statement
     }
     
-    func existsStatement() -> SelectStatement {
+    /// Returns nil if and only if primary key is nil
+    func existsStatement() -> SelectStatement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey?.columns ?? []
         let primaryKeyValues = databaseValues(for: primaryKeyColumns, inDictionary: persistentDictionary)
-        GRDBPrecondition(primaryKeyValues.contains { !$0.isNull }, "record can not be identified. persistentDictionary must contain non-nil value(s) for the key(s) \(primaryKeyColumns.joined(separator: ","))")
+        guard primaryKeyValues.contains(where: { !$0.isNull }) else { return nil }
         
         let query = ExistsQuery(
             tableName: databaseTableName,

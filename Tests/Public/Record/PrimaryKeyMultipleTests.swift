@@ -138,6 +138,21 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     
     // MARK: - Update
     
+    func testUpdateWithNilPrimaryKeyThrowsRecordNotFound() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let record = Citizenship(personName: nil, countryName: nil, native: true)
+                do {
+                    try record.update(db)
+                    XCTFail("Expected PersistenceError.recordNotFound")
+                } catch PersistenceError.recordNotFound {
+                    // Expected PersistenceError.recordNotFound
+                }
+            }
+        }
+    }
+    
     func testUpdateWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRecordNotFound() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
@@ -275,6 +290,17 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     
     // MARK: - Delete
     
+    func testDeleteWithNilPrimaryKey() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let record = Citizenship(personName: nil, countryName: nil, native: true)
+                let deleted = try record.delete(db)
+                XCTAssertFalse(deleted)
+            }
+        }
+    }
+    
     func testDeleteWithNotNilPrimaryKeyThatDoesNotMatchAnyRowDoesNothing() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
@@ -393,6 +419,16 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     
     
     // MARK: - Exists
+    
+    func testExistsWithNilPrimaryKeyReturnsFalse() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                let record = Citizenship(personName: nil, countryName: nil, native: true)
+                XCTAssertFalse(record.exists(db))
+            }
+        }
+    }
     
     func testExistsWithNotNilPrimaryKeyThatDoesNotMatchAnyRowReturnsFalse() {
         assertNoError {

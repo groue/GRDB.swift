@@ -215,11 +215,11 @@ public class Record : RowConvertible, TableMapping, Persistable {
         // So let's provide our custom implementation of insert, which uses the
         // same persistentDictionary for both insertion, and change tracking.
         
-        let dataMapper = DataMapper(db, self)
-        var persistentDictionary = dataMapper.persistentDictionary
-        try dataMapper.insertStatement().execute()
+        let dao = DAO(db, self)
+        var persistentDictionary = dao.persistentDictionary
+        try dao.insertStatement().execute()
         let rowID = db.lastInsertedRowID
-        let rowIDColumn = dataMapper.primaryKey?.rowIDColumn
+        let rowIDColumn = dao.primaryKey?.rowIDColumn
         didInsert(with: rowID, for: rowIDColumn)
         
         // Update persistentDictionary with inserted id, so that we can
@@ -265,14 +265,18 @@ public class Record : RowConvertible, TableMapping, Persistable {
         //
         // So let's provide our custom implementation of insert, which uses the
         // same persistentDictionary for both update, and change tracking.
-        let dataMapper = DataMapper(db, self)
-        try dataMapper.updateStatement(columns: columns).execute()
+        let dao = DAO(db, self)
+        guard let statement = dao.updateStatement(columns: columns) else {
+            // Nil primary key
+            throw PersistenceError.recordNotFound(self)
+        }
+        try statement.execute()
         if db.changesCount == 0 {
             throw PersistenceError.recordNotFound(self)
         }
         
         // Set hasPersistentChangedValues to false
-        referenceRow = Row(dataMapper.persistentDictionary)
+        referenceRow = Row(dao.persistentDictionary)
     }
     
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in

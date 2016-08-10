@@ -10,11 +10,12 @@ import XCTest
 private struct MutablePersistablePerson : MutablePersistable {
     var id: Int64?
     var name: String?
+    var age: Int?
     
     static let databaseTableName = "persons"
     
     var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "name": name]
+        return ["id": id, "name": name, "age": age]
     }
     
     mutating func didInsert(with rowID: Int64, for column: String?) {
@@ -92,7 +93,8 @@ class MutablePersistableTests: GRDBTestCase {
             try db.execute(
                 "CREATE TABLE persons (" +
                     "id INTEGER PRIMARY KEY, " +
-                    "name NOT NULL " +
+                    "name NOT NULL, " +
+                    "age INTEGER" +
                 ")")
             try db.execute(
                 "CREATE TABLE countries (" +
@@ -110,7 +112,7 @@ class MutablePersistableTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                var person = MutablePersistablePerson(id: nil, name: "Arthur")
+                var person = MutablePersistablePerson(id: nil, name: "Arthur", age: 24)
                 try person.insert(db)
                 
                 let rows = Row.fetchAll(db, "SELECT * FROM persons")
@@ -125,9 +127,9 @@ class MutablePersistableTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                var person1 = MutablePersistablePerson(id: nil, name: "Arthur")
+                var person1 = MutablePersistablePerson(id: nil, name: "Arthur", age: 24)
                 try person1.insert(db)
-                var person2 = MutablePersistablePerson(id: nil, name: "Barbara")
+                var person2 = MutablePersistablePerson(id: nil, name: "Barbara", age: 24)
                 try person2.insert(db)
                 
                 person1.name = "Craig"
@@ -147,9 +149,9 @@ class MutablePersistableTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                var person1 = MutablePersistablePerson(id: nil, name: "Arthur")
+                var person1 = MutablePersistablePerson(id: nil, name: "Arthur", age: 24)
                 try person1.insert(db)
-                var person2 = MutablePersistablePerson(id: nil, name: "Barbara")
+                var person2 = MutablePersistablePerson(id: nil, name: "Barbara", age: 36)
                 try person2.insert(db)
                 
                 do {
@@ -160,32 +162,39 @@ class MutablePersistableTests: GRDBTestCase {
                     XCTAssertEqual(rows.count, 2)
                     XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
                     XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
+                    XCTAssertEqual(rows[0].value(named: "age") as Int, 24)
                     XCTAssertEqual(rows[1].value(named: "id") as Int64, person2.id!)
                     XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
+                    XCTAssertEqual(rows[1].value(named: "age") as Int, 36)
                 }
                 
                 do {
                     person1.name = "Craig"
+                    person1.age = 25
                     try person1.update(db, columns: [Column("name")])
                     
                     let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
                     XCTAssertEqual(rows.count, 2)
                     XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
                     XCTAssertEqual(rows[0].value(named: "name") as String, "Craig")
+                    XCTAssertEqual(rows[0].value(named: "age") as Int, 24)
                     XCTAssertEqual(rows[1].value(named: "id") as Int64, person2.id!)
                     XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
+                    XCTAssertEqual(rows[1].value(named: "age") as Int, 36)
                 }
                 
                 do {
                     person1.name = "David"
-                    try person1.update(db, columns: ["age"])
+                    try person1.update(db, columns: ["AgE"])    // case insensitivity
                     
                     let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
                     XCTAssertEqual(rows.count, 2)
                     XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
                     XCTAssertEqual(rows[0].value(named: "name") as String, "Craig")
+                    XCTAssertEqual(rows[0].value(named: "age") as Int, 25)
                     XCTAssertEqual(rows[1].value(named: "id") as Int64, person2.id!)
                     XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
+                    XCTAssertEqual(rows[1].value(named: "age") as Int, 36)
                 }
             }
         }
@@ -195,7 +204,7 @@ class MutablePersistableTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                var person1 = MutablePersistablePerson(id: nil, name: "Arthur")
+                var person1 = MutablePersistablePerson(id: nil, name: "Arthur", age: 24)
                 try person1.save(db)
                 
                 var rows = Row.fetchAll(db, "SELECT * FROM persons")
@@ -203,7 +212,7 @@ class MutablePersistableTests: GRDBTestCase {
                 XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
                 
-                var person2 = MutablePersistablePerson(id: nil, name: "Barbara")
+                var person2 = MutablePersistablePerson(id: nil, name: "Barbara", age: 24)
                 try person2.save(db)
                 
                 person1.name = "Craig"
@@ -233,9 +242,9 @@ class MutablePersistableTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                var person1 = MutablePersistablePerson(id: nil, name: "Arthur")
+                var person1 = MutablePersistablePerson(id: nil, name: "Arthur", age: 24)
                 try person1.insert(db)
-                var person2 = MutablePersistablePerson(id: nil, name: "Barbara")
+                var person2 = MutablePersistablePerson(id: nil, name: "Barbara", age: 24)
                 try person2.insert(db)
                 
                 // TODO: test delete return value
@@ -253,7 +262,7 @@ class MutablePersistableTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                var person = MutablePersistablePerson(id: nil, name: "Arthur")
+                var person = MutablePersistablePerson(id: nil, name: "Arthur", age: 24)
                 try person.insert(db)
                 XCTAssertTrue(person.exists(db))
                 

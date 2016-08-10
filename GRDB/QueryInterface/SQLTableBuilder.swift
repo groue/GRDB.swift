@@ -428,10 +428,10 @@ public final class ColumnDefinition {
     private var primaryKey: (conflictResolution: SQLConflictResolution?, autoincrement: Bool)?
     private var notNullConflictResolution: SQLConflictResolution?
     private var uniqueConflictResolution: SQLConflictResolution?
-    private var checkExpression: _SQLExpression?
+    private var checkConstraints: [_SQLExpression] = []
+    private var foreignKeyConstraints: [(table: String, column: String?, deleteAction: SQLForeignKeyAction?, updateAction: SQLForeignKeyAction?, deferred: Bool)] = []
     private var defaultExpression: _SQLExpression?
     private var collationName: String?
-    private var reference: (table: String, column: String?, deleteAction: SQLForeignKeyAction?, updateAction: SQLForeignKeyAction?, deferred: Bool)?
     
     init(name: String, type: SQLColumnType) {
         self.name = name
@@ -501,7 +501,7 @@ public final class ColumnDefinition {
     ///   represents the defined column, and returns the expression to check.
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult public func check(_ condition: @noescape (Column) -> SQLExpressible) -> Self {
-        checkExpression = condition(Column(name)).sqlExpression
+        checkConstraints.append(condition(Column(name)).sqlExpression)
         return self
     }
     
@@ -516,7 +516,7 @@ public final class ColumnDefinition {
     /// - parameter sql: An SQL snippet.
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult public func check(sql: String) -> Self {
-        checkExpression = _SQLExpression.sqlLiteral(sql, nil)
+        checkConstraints.append(_SQLExpression.sqlLiteral(sql, nil))
         return self
     }
     
@@ -598,7 +598,7 @@ public final class ColumnDefinition {
     ///       See https://www.sqlite.org/foreignkeys.html#fk_deferred.
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult public func references(_ table: String, column: String? = nil, onDelete deleteAction: SQLForeignKeyAction? = nil, onUpdate updateAction: SQLForeignKeyAction? = nil, deferred: Bool = false) -> Self {
-        reference = (table: table, column: column, deleteAction: deleteAction, updateAction: updateAction, deferred: deferred)
+        foreignKeyConstraints.append((table: table, column: column, deleteAction: deleteAction, updateAction: updateAction, deferred: deferred))
         return self
     }
     
@@ -638,10 +638,10 @@ public final class ColumnDefinition {
             chunks.append(conflictResolution.rawValue)
         }
         
-        if let checkExpression = checkExpression {
+        for checkConstraint in checkConstraints {
             chunks.append("CHECK")
-            var arguments: StatementArguments? = nil // nil so that checkExpression.sql(&arguments) embeds literals
-            chunks.append("(" + checkExpression.sql(&arguments) + ")")
+            var arguments: StatementArguments? = nil // nil so that checkConstraint.sql(&arguments) embeds literals
+            chunks.append("(" + checkConstraint.sql(&arguments) + ")")
         }
         
         if let defaultExpression = defaultExpression {
@@ -655,7 +655,7 @@ public final class ColumnDefinition {
             chunks.append(collationName)
         }
         
-        if let (table, column, deleteAction, updateAction, deferred) = reference {
+        for (table, column, deleteAction, updateAction, deferred) in foreignKeyConstraints {
             chunks.append("REFERENCES")
             if let column = column {
                 chunks.append("\(table.quotedDatabaseIdentifier)(\(column.quotedDatabaseIdentifier))")
@@ -704,7 +704,7 @@ private struct IndexDefinition {
         chunks.append("\(table.quotedDatabaseIdentifier)(\((columns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
         if let condition = condition {
             chunks.append("WHERE")
-            var arguments: StatementArguments? = nil // nil so that checkExpression.sql(&arguments) embeds literals
+            var arguments: StatementArguments? = nil // nil so that condition.sql(&arguments) embeds literals
             chunks.append(condition.sql(&arguments))
         }
         return chunks.joined(separator: " ")

@@ -135,17 +135,19 @@ class SQLTableBuilderTests: GRDBTestCase {
                 try db.create(table: "test") { t in
                     t.column("a", .integer).check { $0 > 0 }
                     t.column("b", .integer).check(sql: "b <> 2")
+                    t.column("c", .integer).check { $0 > 0 }.check { $0 < 10 }
                 }
                 XCTAssertEqual(self.lastSQLQuery,
                     "CREATE TABLE \"test\" (" +
                         "\"a\" INTEGER CHECK ((\"a\" > 0)), " +
-                        "\"b\" INTEGER CHECK (b <> 2)" +
+                        "\"b\" INTEGER CHECK (b <> 2), " +
+                        "\"c\" INTEGER CHECK ((\"c\" > 0)) CHECK ((\"c\" < 10))" +
                     ")")
                 
                 // Sanity check
-                try db.execute("INSERT INTO test (a, b) VALUES (1, 0)")
+                try db.execute("INSERT INTO test (a, b, c) VALUES (1, 0, 1)")
                 do {
-                    try db.execute("INSERT INTO test (a, b) VALUES (0, 0)")
+                    try db.execute("INSERT INTO test (a, b, c) VALUES (0, 0, 1)")
                     XCTFail()
                 } catch {
                 }
@@ -221,11 +223,13 @@ class SQLTableBuilderTests: GRDBTestCase {
                 try db.create(table: "child") { t in
                     t.column("parentName", .text).references("parent", onDelete: .cascade, onUpdate: .cascade)
                     t.column("parentEmail", .text).references("parent", column: "email", onDelete: .restrict, deferred: true)
+                    t.column("weird", .text).references("parent", column: "name").references("parent", column: "email")
                 }
                 XCTAssertEqual(self.lastSQLQuery,
                     "CREATE TABLE \"child\" (" +
                         "\"parentName\" TEXT REFERENCES \"parent\"(\"name\") ON DELETE CASCADE ON UPDATE CASCADE, " +
-                        "\"parentEmail\" TEXT REFERENCES \"parent\"(\"email\") ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED" +
+                        "\"parentEmail\" TEXT REFERENCES \"parent\"(\"email\") ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED, " +
+                        "\"weird\" TEXT REFERENCES \"parent\"(\"name\") REFERENCES \"parent\"(\"email\")" +
                     ")")
             }
         }

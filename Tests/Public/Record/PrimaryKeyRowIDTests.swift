@@ -197,6 +197,21 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
     
     // MARK: - Update
     
+    func testUpdateWithNilPrimaryKeyThrowsRecordNotFound() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let record = Person(id: nil, name: "Arthur")
+                do {
+                    try record.update(db)
+                    XCTFail("Expected PersistenceError.recordNotFound")
+                } catch PersistenceError.recordNotFound {
+                    // Expected PersistenceError.recordNotFound
+                }
+            }
+        }
+    }
+    
     func testUpdateWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRecordNotFound() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
@@ -339,6 +354,17 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
     
     
     // MARK: - Delete
+    
+    func testDeleteWithNilPrimaryKey() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let record = Person(id: nil, name: "Arthur")
+                let deleted = try record.delete(db)
+                XCTAssertFalse(deleted)
+            }
+        }
+    }
     
     func testDeleteWithNotNilPrimaryKeyThatDoesNotMatchAnyRowDoesNothing() {
         assertNoError {
@@ -536,6 +562,16 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
     
     
     // MARK: - Exists
+    
+    func testExistsWithNilPrimaryKeyReturnsFalse() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                let record = Person(id: nil, name: "Arthur")
+                XCTAssertFalse(record.exists(db))
+            }
+        }
+    }
     
     func testExistsWithNotNilPrimaryKeyThatDoesNotMatchAnyRowReturnsFalse() {
         assertNoError {
