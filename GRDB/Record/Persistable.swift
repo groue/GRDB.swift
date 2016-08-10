@@ -345,7 +345,11 @@ public extension MutablePersistable {
     /// their implementation of delete(). They should not provide their own
     /// implementation of performDelete().
     func performDelete(db: Database) throws -> Bool {
-        try DataMapper(db, self).deleteStatement().execute()
+        guard let statement = DataMapper(db, self).deleteStatement() else {
+            // Nil primary key
+            return false
+        }
+        try statement.execute()
         return db.changesCount > 0
     }
     
@@ -586,11 +590,12 @@ final class DataMapper {
         return statement
     }
     
-    func deleteStatement() -> UpdateStatement {
+    /// Returns nil if and only if primary key is nil
+    func deleteStatement() -> UpdateStatement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey?.columns ?? []
         let primaryKeyValues = databaseValues(forColumns: primaryKeyColumns, inDictionary: persistentDictionary)
-        GRDBPrecondition(primaryKeyValues.contains { !$0.isNull }, "record can not be identified. persistentDictionary must contain non-nil value(s) for the key(s) \(primaryKeyColumns.joinWithSeparator((", ")))")
+        guard primaryKeyValues.contains({ !$0.isNull }) else { return nil }
         
         let query = DeleteQuery(
             tableName: databaseTableName,
