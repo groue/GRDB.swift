@@ -459,6 +459,16 @@ class PrimaryKeySingleTests: GRDBTestCase {
     
     // MARK: - Exists
     
+    func testExistsWithNilPrimaryKeyThatDoesNotMatchAnyRowReturnsFalse() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                let record = Pet(UUID: nil, name: "Bobby")
+                XCTAssertFalse(record.exists(db))
+            }
+        }
+    }
+    
     func testExistsWithNotNilPrimaryKeyThatDoesNotMatchAnyRowReturnsFalse() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
