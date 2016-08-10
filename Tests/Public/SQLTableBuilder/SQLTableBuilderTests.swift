@@ -125,17 +125,19 @@ class SQLTableBuilderTests: GRDBTestCase {
                 try db.create(table: "test") { t in
                     t.column("a", .Integer).check { $0 > 0 }
                     t.column("b", .Integer).check(sql: "b <> 2")
+                    t.column("c", .Integer).check { $0 > 0 }.check { $0 < 10 }
                 }
                 XCTAssertEqual(self.lastSQLQuery,
                     "CREATE TABLE \"test\" (" +
                         "\"a\" INTEGER CHECK ((\"a\" > 0)), " +
-                        "\"b\" INTEGER CHECK (b <> 2)" +
+                        "\"b\" INTEGER CHECK (b <> 2), " +
+                        "\"c\" INTEGER CHECK ((\"c\" > 0)) CHECK ((\"c\" < 10))" +
                     ")")
                 
                 // Sanity check
-                try db.execute("INSERT INTO test (a, b) VALUES (1, 0)")
+                try db.execute("INSERT INTO test (a, b, c) VALUES (1, 0, 1)")
                 do {
-                    try db.execute("INSERT INTO test (a, b) VALUES (0, 0)")
+                    try db.execute("INSERT INTO test (a, b, c) VALUES (0, 0, 1)")
                     XCTFail()
                 } catch {
                 }
