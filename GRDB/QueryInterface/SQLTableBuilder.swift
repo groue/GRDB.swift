@@ -428,7 +428,7 @@ public final class ColumnDefinition {
     private var primaryKey: (conflictResolution: SQLConflictResolution?, autoincrement: Bool)?
     private var notNullConflictResolution: SQLConflictResolution?
     private var uniqueConflictResolution: SQLConflictResolution?
-    private var checkExpression: _SQLExpression?
+    private var checkConstraints: [_SQLExpression] = []
     private var defaultExpression: _SQLExpression?
     private var collationName: String?
     private var reference: (table: String, column: String?, deleteAction: SQLForeignKeyAction?, updateAction: SQLForeignKeyAction?, deferred: Bool)?
@@ -501,7 +501,7 @@ public final class ColumnDefinition {
     ///   represents the defined column, and returns the expression to check.
     /// - returns: Self so that you can further refine the column definition.
     public func check(@noescape condition: (SQLColumn) -> SQLExpressible) -> ColumnDefinition {
-        checkExpression = condition(SQLColumn(name)).sqlExpression
+        checkConstraints.append(condition(SQLColumn(name)).sqlExpression)
         return self
     }
     
@@ -516,7 +516,7 @@ public final class ColumnDefinition {
     /// - parameter sql: An SQL snippet.
     /// - returns: Self so that you can further refine the column definition.
     public func check(sql sql: String) -> ColumnDefinition {
-        checkExpression = _SQLExpression.Literal(sql, nil)
+        checkConstraints.append(_SQLExpression.Literal(sql, nil))
         return self
     }
     
@@ -638,10 +638,10 @@ public final class ColumnDefinition {
             chunks.append(conflictResolution.rawValue)
         }
         
-        if let checkExpression = checkExpression {
+        for checkConstraint in checkConstraints {
             chunks.append("CHECK")
-            var arguments: StatementArguments? = nil // nil so that checkExpression.sql(&arguments) embeds literals
-            chunks.append("(" + checkExpression.sql(&arguments) + ")")
+            var arguments: StatementArguments? = nil // nil so that checkConstraint.sql(&arguments) embeds literals
+            chunks.append("(" + checkConstraint.sql(&arguments) + ")")
         }
         
         if let defaultExpression = defaultExpression {
