@@ -5,7 +5,7 @@ Release Notes
 
 **Fixed**
 
-- `ColumnDefinition.check()` can now define several constraints:
+- ColumnDefinition `check` and `references` methods can now define several constraints:
     
     ```swift
     try db.create(table: "users") { t in
