@@ -2,7 +2,7 @@
 - [ ] @hdlj: FetchedRecordsController throttling
 - [ ] @hdlj: Check RAM pressure
 - [ ] Table builder: allow several foreign keys on a columns
-- [ ] Table builder: allow checks on a columns
+- [X] Table builder: allow checks on a columns
 - [X] Record.exists(db) should return false when primary key is nil
 - [X] Record.update(db) should throw, not crash, when primary key is nil
 - [ ] Fatal Error when MutablePersistable.update(_:columns:) is given columns that do not exist in the database.

@@ -3,6 +3,19 @@ Release Notes
 
 ## Next Version
 
+**Fixed**
+
+- `ColumnDefinition.check()` can now define several constraints:
+    
+    ```swift
+    try db.create(table: "users") { t in
+        t.column("name", .Text).notNull()
+            .check { length($0) > 0 }
+            .check { !["root", "admin"].contains($0) }
+    }
+    ```
+
+
 **New**
 
 - Persistable `update`, `exists` and `delete` methods now work with objects that have a nil primary key. They used to crash.
