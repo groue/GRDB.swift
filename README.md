@@ -942,17 +942,26 @@ Here is the support provided by GRDB for the various [date formats](https://www.
 
 #### NSDate
 
-**GRDB stores NSDate using the format "yyyy-MM-dd HH:mm:ss.SSS" in the UTC time zone.** It is precise to the millisecond.
-
-This format may not fit your needs. We provide below some sample code for [storing dates as timestamps](#custom-value-types) that you can adapt for your application.
-
-NSDate can be stored and fetched from the database just like other [value types](#values):
+**NSDate** can be stored and fetched from the database just like other [value types](#values):
 
 ```swift
 try db.execute(
     "INSERT INTO persons (creationDate, ...) VALUES (?, ...)",
     arguments: [NSDate(), ...])
+
+let creationDate: NSDate = row.value(named: "creationDate")
 ```
+
+Dates are stored using the format "YYYY-MM-DD HH:MM:SS.SSS" in the UTC time zone. It is precise to the millisecond.
+
+> :point_up: **Note**: this format was chosen because it is the only format that is:
+> 
+> - Comparable (`ORDER BY date` works)
+> - Comparable with the SQLite keyword NOW (`WHERE date > NOW` works)
+> - Able to feed [SQLite date & time functions](https://www.sqlite.org/lang_datefunc.html)
+> - Precise enough
+> 
+> Yet this format may not fit your needs. For example, you may want to store dates as timestamps. In this case, store and load Doubles instead of Date, and perform the required conversions.
 
 
 #### NSDateComponents
@@ -1203,8 +1212,6 @@ All types that adopt this protocol can be used like all other [value types](#val
 The `databaseValue` property returns [DatabaseValue](#databasevalue), a type that wraps the five values supported by SQLite: NULL, Int64, Double, String and NSData. DatabaseValue has no public initializer: to create one, use `DatabaseValue.Null`, or another type that already adopts the protocol: `1.databaseValue`, `"foo".databaseValue`, etc.
 
 The `fromDatabaseValue()` factory method returns an instance of your custom type if the databaseValue contains a suitable value. If the databaseValue does not contain a suitable value, such as "foo" for NSDate, the method returns nil.
-
-As an example, see [DatabaseTimestamp.playground](Playgrounds/DatabaseTimestamp.playground/Contents.swift): it shows how to store dates as timestamps, unlike the built-in [NSDate](#nsdate-and-nsdatecomponents).
 
 
 ## Prepared Statements
@@ -3987,7 +3994,6 @@ Sample Code
 - The [Documentation](#documentation) is full of GRDB snippets.
 - [GRDBDemoiOS](DemoApps/GRDBDemoiOS): A sample iOS application.
 - Check `GRDB.xcworkspace`: it contains GRDB-enabled playgrounds to play with.
-- How to read and write NSDate as timestamp: [DatabaseTimestamp.playground](Playgrounds/DatabaseTimestamp.playground/Contents.swift)
 - How to synchronize a database table with a JSON payload: [JSONSynchronization.playground](Playgrounds/JSONSynchronization.playground/Contents.swift)
 - A class that behaves like NSUserDefaults, but backed by SQLite: [UserDefaults.playground](Playgrounds/UserDefaults.playground/Contents.swift)
 - How to notify view controllers of database changes: [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd)
