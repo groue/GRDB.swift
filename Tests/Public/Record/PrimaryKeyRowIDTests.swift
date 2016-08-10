@@ -197,6 +197,21 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
     
     // MARK: - Update
     
+    func testUpdateWithNilPrimaryKeyThrowsRecordNotFound() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let record = Person(id: nil, name: "Arthur")
+                do {
+                    try record.update(db)
+                    XCTFail("Expected PersistenceError.NotFound")
+                } catch PersistenceError.NotFound {
+                    // Expected PersistenceError.NotFound
+                }
+            }
+        }
+    }
+    
     func testUpdateWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRecordNotFound() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()

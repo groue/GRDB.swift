@@ -138,6 +138,21 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     
     // MARK: - Update
     
+    func testUpdateWithNilPrimaryKeyThrowsRecordNotFound() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let record = Citizenship(personName: nil, countryName: nil, native: true)
+                do {
+                    try record.update(db)
+                    XCTFail("Expected PersistenceError.NotFound")
+                } catch PersistenceError.NotFound {
+                    // Expected PersistenceError.NotFound
+                }
+            }
+        }
+    }
+    
     func testUpdateWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRecordNotFound() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
@@ -394,7 +409,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     
     // MARK: - Exists
     
-    func testExistsWithNilPrimaryKeyThatDoesNotMatchAnyRowReturnsFalse() {
+    func testExistsWithNilPrimaryKeyReturnsFalse() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
