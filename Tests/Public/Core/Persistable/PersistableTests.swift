@@ -32,7 +32,7 @@ private class PersistablePersonClass : Persistable {
     static let databaseTableName = "persons"
     
     var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "name": name, "age": age]
+        return ["ID": id, "naME": name, "Age": age] // various cases
     }
     
     func didInsert(with rowID: Int64, for column: String?) {
@@ -188,6 +188,7 @@ class PersistableTests: GRDBTestCase {
                 
                 person1.name = "Craig"
                 try person1.update(db)
+                XCTAssertEqual(self.lastSQLQuery, "UPDATE \"persons\" SET \"age\"=42, \"name\"='Craig' WHERE \"id\"=1")
                 
                 let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
                 XCTAssertEqual(rows.count, 2)
@@ -203,45 +204,55 @@ class PersistableTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                let person1 = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
+                let person1 = PersistablePersonClass(id: nil, name: "Arthur", age: 24)
                 try person1.insert(db)
-                let person2 = PersistablePersonClass(id: nil, name: "Barbara", age: 39)
+                let person2 = PersistablePersonClass(id: nil, name: "Barbara", age: 36)
                 try person2.insert(db)
                 
                 do {
                     person1.name = "Craig"
                     try person1.update(db, columns: [String]())
+                    XCTAssertEqual(self.lastSQLQuery, "UPDATE \"persons\" SET \"id\"=1 WHERE \"id\"=1")
                     
                     let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
                     XCTAssertEqual(rows.count, 2)
                     XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
                     XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
+                    XCTAssertEqual(rows[0].value(named: "age") as Int, 24)
                     XCTAssertEqual(rows[1].value(named: "id") as Int64, person2.id!)
                     XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
+                    XCTAssertEqual(rows[1].value(named: "age") as Int, 36)
                 }
                 
                 do {
                     person1.name = "Craig"
+                    person1.age = 25
                     try person1.update(db, columns: [Column("name")])
+                    XCTAssertEqual(self.lastSQLQuery, "UPDATE \"persons\" SET \"name\"='Craig' WHERE \"id\"=1")
                     
                     let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
                     XCTAssertEqual(rows.count, 2)
                     XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
                     XCTAssertEqual(rows[0].value(named: "name") as String, "Craig")
+                    XCTAssertEqual(rows[0].value(named: "age") as Int, 24)
                     XCTAssertEqual(rows[1].value(named: "id") as Int64, person2.id!)
                     XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
+                    XCTAssertEqual(rows[1].value(named: "age") as Int, 36)
                 }
                 
                 do {
                     person1.name = "David"
-                    try person1.update(db, columns: ["age"])
+                    try person1.update(db, columns: ["AgE"])    // case insensitivity
+                    XCTAssertEqual(self.lastSQLQuery, "UPDATE \"persons\" SET \"AgE\"=25 WHERE \"id\"=1")
                     
                     let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
                     XCTAssertEqual(rows.count, 2)
                     XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
                     XCTAssertEqual(rows[0].value(named: "name") as String, "Craig")
+                    XCTAssertEqual(rows[0].value(named: "age") as Int, 25)
                     XCTAssertEqual(rows[1].value(named: "id") as Int64, person2.id!)
                     XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
+                    XCTAssertEqual(rows[1].value(named: "age") as Int, 36)
                 }
             }
         }
@@ -349,6 +360,7 @@ class PersistableTests: GRDBTestCase {
                 
                 country1.name = "France Métropolitaine"
                 try country1.update(db)
+                XCTAssertEqual(self.lastSQLQuery, "UPDATE \"countries\" SET \"name\"='France Métropolitaine' WHERE \"isoCode\"='FR'")
                 
                 let rows = Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
                 XCTAssertEqual(rows.count, 2)
@@ -372,6 +384,7 @@ class PersistableTests: GRDBTestCase {
                 do {
                     country1.name = "France Métropolitaine"
                     try country1.update(db, columns: [String]())
+                    XCTAssertEqual(self.lastSQLQuery, "UPDATE \"countries\" SET \"isoCode\"='FR' WHERE \"isoCode\"='FR'")
                     
                     let rows = Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
                     XCTAssertEqual(rows.count, 2)
@@ -384,6 +397,7 @@ class PersistableTests: GRDBTestCase {
                 do {
                     country1.name = "France Métropolitaine"
                     try country1.update(db, columns: [Column("name")])
+                    XCTAssertEqual(self.lastSQLQuery, "UPDATE \"countries\" SET \"name\"='France Métropolitaine' WHERE \"isoCode\"='FR'")
                     
                     let rows = Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
                     XCTAssertEqual(rows.count, 2)
@@ -535,6 +549,7 @@ class PersistableTests: GRDBTestCase {
                 
                 country1.name = "France Métropolitaine"
                 try country1.update(db)
+                XCTAssertEqual(self.lastSQLQuery, "UPDATE \"countries\" SET \"name\"='France Métropolitaine' WHERE \"isoCode\"='FR'")
                 
                 XCTAssertEqual(insertCount, 1)
                 XCTAssertEqual(updateCount, 1)
@@ -582,6 +597,7 @@ class PersistableTests: GRDBTestCase {
                 
                 country1.name = "France Métropolitaine"
                 try country1.update(db, columns: ["name"])
+                XCTAssertEqual(self.lastSQLQuery, "UPDATE \"countries\" SET \"name\"='France Métropolitaine' WHERE \"isoCode\"='FR'")
                 
                 XCTAssertEqual(insertCount, 1)
                 XCTAssertEqual(updateCount, 1)
