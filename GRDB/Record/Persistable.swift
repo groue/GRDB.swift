@@ -298,7 +298,11 @@ public extension MutablePersistable {
     ///   PersistenceError.NotFound is thrown if the primary key does not
     ///   match any row in the database.
     func performUpdate(db: Database, columns: Set<String>) throws {
-        try DataMapper(db, self).updateStatement(columns: columns).execute()
+        guard let statement = DataMapper(db, self).updateStatement(columns: columns) else {
+            // Nil primary key
+            throw PersistenceError.NotFound(self)
+        }
+        try statement.execute()
         if db.changesCount == 0 {
             throw PersistenceError.NotFound(self)
         }
@@ -353,7 +357,11 @@ public extension MutablePersistable {
     /// their implementation of exists(). They should not provide their own
     /// implementation of performExists().
     func performExists(db: Database) -> Bool {
-        return (Row.fetchOne(DataMapper(db, self).existsStatement()) != nil)
+        guard let statement = DataMapper(db, self).existsStatement() else {
+            // Nil primary key
+            return false
+        }
+        return Row.fetchOne(statement) != nil
     }
     
 }
@@ -544,11 +552,12 @@ final class DataMapper {
         return statement
     }
     
-    func updateStatement(columns columns: Set<String>) -> UpdateStatement {
+    /// Returns nil if and only if primary key is nil
+    func updateStatement(columns columns: Set<String>) -> UpdateStatement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey?.columns ?? []
         let primaryKeyValues = databaseValues(forColumns: primaryKeyColumns, inDictionary: persistentDictionary)
-        GRDBPrecondition(primaryKeyValues.contains { !$0.isNull }, "record can not be identified. persistentDictionary must contain non-nil value(s) for the key(s) \(primaryKeyColumns.joinWithSeparator((", ")))")
+        guard primaryKeyValues.contains({ !$0.isNull }) else { return nil }
         
         // Don't update primary key columns
         var updatedColumns = Array(persistentDictionary.keys)
@@ -591,11 +600,12 @@ final class DataMapper {
         return statement
     }
     
-    func existsStatement() -> SelectStatement {
+    /// Returns nil if and only if primary key is nil
+    func existsStatement() -> SelectStatement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey?.columns ?? []
         let primaryKeyValues = databaseValues(forColumns: primaryKeyColumns, inDictionary: persistentDictionary)
-        GRDBPrecondition(primaryKeyValues.contains { !$0.isNull }, "record can not be identified. persistentDictionary must contain non-nil value(s) for the key(s) \(primaryKeyColumns.joinWithSeparator((", ")))")
+        guard primaryKeyValues.contains({ !$0.isNull }) else { return nil }
         
         let query = ExistsQuery(
             tableName: databaseTableName,
