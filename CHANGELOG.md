@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Version
+
+**New**
+
+- Persistable `update`, `exists` and `delete` methods now work with objects that have a nil primary key. They used to crash.
+
+
 ## 0.79.0
 
 Released August 8, 2016
