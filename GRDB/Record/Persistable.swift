@@ -571,7 +571,7 @@ final class DAO {
             // Make sure the requested column is present in persistentDictionary
             GRDBPrecondition(lowercasePersistentColumns.contains(lowercaseColumn), "column \(column) can't be updated because it is missing from persistentDictionary")
             // Don't update primary key columns
-            guard !lowercasePrimaryKeyColumns.contains(column) else { continue }
+            guard !lowercasePrimaryKeyColumns.contains(lowercaseColumn) else { continue }
             updatedColumns.append(column)
         }
         
@@ -651,7 +651,7 @@ extension InsertQuery {
         if let sql = InsertQuery.sqlCache.read({ $0[self] }) {
             return sql
         }
-        let columnsSQL = insertedColumns.map { $0.quotedDatabaseIdentifier }.joinWithSeparator(",")
+        let columnsSQL = insertedColumns.map { $0.quotedDatabaseIdentifier }.joinWithSeparator(", ")
         let valuesSQL = databaseQuestionMarks(count: insertedColumns.count)
         let sql = "INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) VALUES (\(valuesSQL))"
         InsertQuery.sqlCache.write { $0[self] = sql }
@@ -684,7 +684,7 @@ extension UpdateQuery {
         if let sql = UpdateQuery.sqlCache.read({ $0[self] }) {
             return sql
         }
-        let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(",")
+        let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(", ")
         let whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(" AND ")
         let sql = "UPDATE \(tableName.quotedDatabaseIdentifier) SET \(updateSQL) WHERE \(whereSQL)"
         UpdateQuery.sqlCache.write { $0[self] = sql }
