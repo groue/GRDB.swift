@@ -134,7 +134,10 @@ class MutablePersistableTests: GRDBTestCase {
                 
                 person1.name = "Craig"
                 try person1.update(db)
-                XCTAssertEqual(self.lastSQLQuery, "UPDATE \"persons\" SET \"age\"=24, \"name\"='Craig' WHERE \"id\"=1")
+                XCTAssertTrue([
+                    "UPDATE \"persons\" SET \"age\"=24, \"name\"='Craig' WHERE \"id\"=1",
+                    "UPDATE \"persons\" SET \"name\"='Craig', \"age\"=24 WHERE \"id\"=1"
+                    ].contains(self.lastSQLQuery))
                 
                 let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
                 XCTAssertEqual(rows.count, 2)
