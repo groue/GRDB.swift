@@ -5,7 +5,7 @@ Release Notes
 
 **New**
 
-- Use SQLColumn of the [query interface](https://github.com/groue/GRDB.swift/#the-query-interface) when extracting values from row:
+- Use SQLColumn of the [query interface](https://github.com/groue/GRDB.swift/#the-query-interface) when extracting values from rows:
     
     ```swift
     let nameColumn = SQLColumn("name")
