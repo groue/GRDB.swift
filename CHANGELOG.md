@@ -1,6 +1,18 @@
 Release Notes
 =============
 
+## Next Release
+
+**New**
+
+- Use SQLColumn of the [query interface](https://github.com/groue/GRDB.swift/#the-query-interface) when extracting values from row:
+    
+    ```swift
+    let nameColumn = SQLColumn("name")
+    let name: String = row.value(nameColumn)
+    ```
+
+
 ## 0.79.2
 
 Released August 10, 2016

@@ -291,6 +291,80 @@ extension Row {
         return fastValue(atUncheckedIndex: index)
     }
     
+    /// Returns Int64, Double, String, NSData or nil, depending on the value
+    /// stored at the given column.
+    ///
+    /// Column name lookup is case-insensitive, and when several columns have
+    /// the same name, the leftmost column is considered.
+    ///
+    /// The result is nil if the row does not contain the column.
+    @warn_unused_result
+    public func value(column: SQLColumn) -> DatabaseValueConvertible? {
+        return value(named: column.name)
+    }
+    
+    /// Returns the value at given column, converted to the requested type.
+    ///
+    /// Column name lookup is case-insensitive, and when several columns have
+    /// the same name, the leftmost column is considered.
+    ///
+    /// If the column is missing or if the SQLite value is NULL, the result is
+    /// nil. Otherwise the SQLite value is converted to the requested type
+    /// `Value`. Should this conversion fail, a fatal error is raised.
+    @warn_unused_result
+    public func value<Value: DatabaseValueConvertible>(column: SQLColumn) -> Value? {
+        return value(named: column.name)
+    }
+    
+    /// Returns the value at given column, converted to the requested type.
+    ///
+    /// Column name lookup is case-insensitive, and when several columns have
+    /// the same name, the leftmost column is considered.
+    ///
+    /// If the column is missing or if the SQLite value is NULL, the result is
+    /// nil. Otherwise the SQLite value is converted to the requested type
+    /// `Value`. Should this conversion fail, a fatal error is raised.
+    ///
+    /// This method exists as an optimization opportunity for types that adopt
+    /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
+    /// (see https://www.sqlite.org/datatype3.html).
+    @warn_unused_result
+    public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(column: SQLColumn) -> Value? {
+        return value(named: column.name)
+    }
+    
+    /// Returns the value at given column, converted to the requested type.
+    ///
+    /// Column name lookup is case-insensitive, and when several columns have
+    /// the same name, the leftmost column is considered.
+    ///
+    /// If the row does not contain the column, a fatal error is raised.
+    ///
+    /// This method crashes if the fetched SQLite value is NULL, or if the
+    /// SQLite value can not be converted to `Value`.
+    @warn_unused_result
+    public func value<Value: DatabaseValueConvertible>(column: SQLColumn) -> Value {
+        return value(named: column.name)
+    }
+    
+    /// Returns the value at given column, converted to the requested type.
+    ///
+    /// Column name lookup is case-insensitive, and when several columns have
+    /// the same name, the leftmost column is considered.
+    ///
+    /// If the row does not contain the column, a fatal error is raised.
+    ///
+    /// This method crashes if the fetched SQLite value is NULL, or if the
+    /// SQLite value can not be converted to `Value`.
+    ///
+    /// This method exists as an optimization opportunity for types that adopt
+    /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
+    /// (see https://www.sqlite.org/datatype3.html).
+    @warn_unused_result
+    public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(column: SQLColumn) -> Value {
+        return value(named: column.name)
+    }
+    
     /// Returns the optional `NSData` at given index.
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
@@ -324,6 +398,22 @@ extension Row {
             return nil
         }
         return impl.dataNoCopy(atIndex: index)
+    }
+    
+    /// Returns the optional `NSData` at given column.
+    ///
+    /// Column name lookup is case-insensitive, and when several columns have
+    /// the same name, the leftmost column is considered.
+    ///
+    /// If the column is missing or if the SQLite value is NULL, the result is
+    /// nil. If the SQLite value can not be converted to NSData, a fatal error
+    /// is raised.
+    ///
+    /// The returned data does not owns its bytes: it must not be used longer
+    /// than the row's lifetime.
+    @warn_unused_result
+    public func dataNoCopy(column: SQLColumn) -> NSData? {
+        return dataNoCopy(named: column.name)
     }
 }
 

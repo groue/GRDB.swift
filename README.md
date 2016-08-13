@@ -624,7 +624,8 @@ Unlike row arrays that contain copies of the database rows, row sequences are cl
 
 ```swift
 let name: String = row.value(atIndex: 0)    // 0 is the leftmost column
-let name: String = row.value(named: "name") // leftmost matching column - lookup is case-insensitive
+let name: String = row.value(named: "name") // Leftmost matching column - lookup is case-insensitive
+let name: String = row.value(nameColumn)    // Using query interface's SQLColumn
 ```
 
 Make sure to ask for an optional when the value may be NULL:
