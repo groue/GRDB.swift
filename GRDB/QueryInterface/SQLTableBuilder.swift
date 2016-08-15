@@ -285,9 +285,18 @@ public final class TableDefinition {
         }
         chunks.append(name.quotedDatabaseIdentifier)
         
+        let primaryKeyColumns: [String]
+        if let (columns, _) = primaryKeyConstraint {
+            primaryKeyColumns = columns
+        } else if let index = columns.indexOf({ $0.primaryKey != nil }) {
+            primaryKeyColumns = [columns[index].name]
+        } else {
+            primaryKeyColumns = []
+        }
+        
         do {
             var items: [String] = []
-            try items.appendContentsOf(columns.map { try $0.sql(db) })
+            try items.appendContentsOf(columns.map { try $0.sql(db, tableName: name, primaryKeyColumns: primaryKeyColumns) })
             
             if let (columns, conflictResolution) = primaryKeyConstraint {
                 var chunks: [String] = []
@@ -318,6 +327,8 @@ public final class TableDefinition {
                 chunks.append("REFERENCES")
                 if let destinationColumns = destinationColumns {
                     chunks.append("\(table.quotedDatabaseIdentifier)(\((destinationColumns.map { $0.quotedDatabaseIdentifier } as [String]).joinWithSeparator(", ")))")
+                } else if table == name {
+                    chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKeyColumns.map { $0.quotedDatabaseIdentifier } as [String]).joinWithSeparator(", ")))")
                 } else if let primaryKey = try db.primaryKey(table) {
                     chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKey.columns.map { $0.quotedDatabaseIdentifier } as [String]).joinWithSeparator(", ")))")
                 } else {
@@ -399,7 +410,7 @@ public final class TableAlteration {
             chunks.append("ALTER TABLE")
             chunks.append(name.quotedDatabaseIdentifier)
             chunks.append("ADD COLUMN")
-            try chunks.append(column.sql(db))
+            try chunks.append(column.sql(db, tableName: nil, primaryKeyColumns: nil))
             let statement = chunks.joinWithSeparator(" ")
             statements.append(statement)
         }
@@ -602,7 +613,7 @@ public final class ColumnDefinition {
         return self
     }
     
-    private func sql(db: Database) throws -> String {
+    private func sql(db: Database, tableName: String?, primaryKeyColumns: [String]?) throws -> String {
         var chunks: [String] = []
         chunks.append(name.quotedDatabaseIdentifier)
         chunks.append(type.rawValue)
@@ -659,6 +670,8 @@ public final class ColumnDefinition {
             chunks.append("REFERENCES")
             if let column = column {
                 chunks.append("\(table.quotedDatabaseIdentifier)(\(column.quotedDatabaseIdentifier))")
+            } else if let tableName = tableName, let primaryKeyColumns = primaryKeyColumns where table == tableName {
+                chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKeyColumns.map { $0.quotedDatabaseIdentifier } as [String]).joinWithSeparator(", ")))")
             } else if let primaryKey = try db.primaryKey(table) {
                 chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKey.columns.map { $0.quotedDatabaseIdentifier } as [String]).joinWithSeparator(", ")))")
             } else {

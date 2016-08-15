@@ -3,6 +3,18 @@ Release Notes
 
 ## Next Release
 
+**Fixed**
+
+- [Table creation DSL](https://github.com/groue/GRDB.swift#database-schema) accepts auto references with implicit primary key:
+
+    ```swift
+    try db.create(table: "persons") { t in
+        t.column("id", .Integer).primaryKey()
+        t.column("fatherId", .Integer).references("persons")
+        t.column("motherId", .Integer).references("persons")
+    }
+    ```
+
 **New**
 
 - Use SQLColumn of the [query interface](https://github.com/groue/GRDB.swift/#the-query-interface) when extracting values from rows:
