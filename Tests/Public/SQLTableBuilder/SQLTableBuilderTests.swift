@@ -339,6 +339,53 @@ class SQLTableBuilderTests: GRDBTestCase {
         }
     }
     
+    func testAutoReferences() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.create(table: "test1") { t in
+                    t.column("id", .Integer).primaryKey()
+                    t.column("id2", .Integer).references("test1")
+                }
+                XCTAssertEqual(self.lastSQLQuery,
+                    "CREATE TABLE \"test1\" (" +
+                        "\"id\" INTEGER PRIMARY KEY, " +
+                        "\"id2\" INTEGER REFERENCES \"test1\"(\"id\")" +
+                    ")")
+                
+                try db.create(table: "test2") { t in
+                    t.column("id", .Integer)
+                    t.column("id2", .Integer).references("test2")
+                    t.primaryKey(["id"])
+                }
+                XCTAssertEqual(self.lastSQLQuery,
+                    "CREATE TABLE \"test2\" (" +
+                        "\"id\" INTEGER, " +
+                        "\"id2\" INTEGER REFERENCES \"test2\"(\"id\"), " +
+                        "PRIMARY KEY (\"id\")" +
+                    ")")
+                
+                try db.create(table: "test3") { t in
+                    t.column("a", .Integer)
+                    t.column("b", .Integer)
+                    t.column("c", .Integer)
+                    t.column("d", .Integer)
+                    t.foreignKey(["c", "d"], references: "test3")
+                    t.primaryKey(["a", "b"])
+                }
+                XCTAssertEqual(self.lastSQLQuery,
+                    "CREATE TABLE \"test3\" (" +
+                        "\"a\" INTEGER, " +
+                        "\"b\" INTEGER, " +
+                        "\"c\" INTEGER, " +
+                        "\"d\" INTEGER, " +
+                        "PRIMARY KEY (\"a\", \"b\"), " +
+                        "FOREIGN KEY (\"c\", \"d\") REFERENCES \"test3\"(\"a\", \"b\")" +
+                    ")")
+            }
+        }
+    }
+    
     func testRenameTable() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
