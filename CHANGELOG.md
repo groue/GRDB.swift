@@ -1,17 +1,18 @@
 Release Notes
 =============
 
-## Next Release
+## 0.79.3
+
+Released August 16, 2016
 
 **Fixed**
 
 - [Table creation DSL](https://github.com/groue/GRDB.swift#database-schema) accepts auto references with implicit primary key:
 
     ```swift
-    try db.create(table: "persons") { t in
+    try db.create(table: "nodes") { t in
         t.column("id", .Integer).primaryKey()
-        t.column("fatherId", .Integer).references("persons")
-        t.column("motherId", .Integer).references("persons")
+        t.column("parentId", .Integer).references("nodes")
     }
     ```
 
