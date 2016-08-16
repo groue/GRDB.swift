@@ -57,7 +57,7 @@ public struct DatabaseMigrator {
     ///     - identifier: The migration identifier.
     ///     - block: The migration block that performs SQL statements.
     /// - precondition: No migration with the same same as already been registered.
-    public mutating func registerMigration(_ identifier: String, migrate: (Database) throws -> Void) {
+    public mutating func registerMigration(_ identifier: String, migrate: @escaping (Database) throws -> Void) {
         registerMigration(Migration(identifier: identifier, migrate: migrate))
     }
     
@@ -81,7 +81,7 @@ public struct DatabaseMigrator {
     ///     - identifier: The migration identifier.
     ///     - block: The migration block that performs SQL statements.
     /// - precondition: No migration with the same same as already been registered.
-    public mutating func registerMigrationWithDisabledForeignKeyChecks(_ identifier: String, migrate: (Database) throws -> Void) {
+    public mutating func registerMigrationWithDisabledForeignKeyChecks(_ identifier: String, migrate: @escaping (Database) throws -> Void) {
         registerMigration(Migration(identifier: identifier, disabledForeignKeyChecks: true, migrate: migrate))
     }
     

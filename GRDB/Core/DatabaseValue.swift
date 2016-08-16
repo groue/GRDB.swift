@@ -43,6 +43,16 @@ public struct DatabaseValue {
     /// The NULL DatabaseValue.
     public static let null = DatabaseValue(storage: .null)
     
+    /// Creates a DatabaseValue from Any.
+    ///
+    /// The result is nil unless object adopts DatabaseValueConvertible.
+    public init?(value: Any) {
+        guard let convertible = value as? DatabaseValueConvertible else {
+            return nil
+        }
+        self = convertible.databaseValue
+    }
+    
     
     // MARK: - Extracting Value
     
@@ -125,8 +135,7 @@ public struct DatabaseValue {
         case SQLITE_FLOAT:
             storage = .double(sqlite3_value_double(sqliteValue))
         case SQLITE_TEXT:
-            let cString = UnsafePointer<Int8>(sqlite3_value_text(sqliteValue))
-            storage = .string(String(cString: cString!))
+            storage = .string(String(cString: sqlite3_value_text(sqliteValue)!))
         case SQLITE_BLOB:
             let bytes = unsafeBitCast(sqlite3_value_blob(sqliteValue), to: UnsafePointer<UInt8>.self)
             let count = Int(sqlite3_value_bytes(sqliteValue))
@@ -231,8 +240,7 @@ extension DatabaseValue : StatementColumnConvertible {
         case SQLITE_FLOAT:
             storage = .double(sqlite3_column_double(sqliteStatement, Int32(index)))
         case SQLITE_TEXT:
-            let cString = UnsafePointer<Int8>(sqlite3_column_text(sqliteStatement, Int32(index)))
-            storage = .string(String(cString: cString!))
+            storage = .string(String(cString: sqlite3_column_text(sqliteStatement, Int32(index))))
         case SQLITE_BLOB:
             let bytes = unsafeBitCast(sqlite3_column_blob(sqliteStatement, Int32(index)), to: UnsafePointer<UInt8>.self)
             let count = Int(sqlite3_column_bytes(sqliteStatement, Int32(index)))

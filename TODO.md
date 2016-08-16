@@ -3,6 +3,7 @@
 - [ ] Swift3: move more top-level enums inside an owner type. Foundation uses lowercase for those enum *types* (besides the lowercase *values*)
 - [ ] Swift3: check .autoreleaseWorkItem option in GCD Queue creation
 - [ ] Swift3: move database event filtering into the TransactionObserver protocol
+- [ ] Swift3: conversion from Row to NSDictionary 
 - [ ] Fatal Error when MutablePersistable.update(_:columns:) is given columns that do not exist in the database.
 - [ ] @hdlj: Extensibility of the Query Interface
 - [ ] @hdlj: FetchedRecordsController throttling

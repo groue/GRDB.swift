@@ -21,6 +21,7 @@ class UUIDTests: GRDBTestCase {
         }
         
         XCTAssertTrue(roundTrip(UUID(uuidString: "56e7d8d3-e9e4-48b6-968e-8d102833af00")!))
+        XCTAssertTrue(roundTrip(UUID()))
     }
     
     func testUUIDFromDatabaseValueFailure() {

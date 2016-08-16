@@ -22,7 +22,7 @@ private struct CustomRecord: RowConvertible {
 
 private struct CustomStruct: DatabaseValueConvertible {
     // CustomStruct that *only* conforms to DatabaseValueConvertible, *NOT* StatementColumnConvertible
-    private let number: Int64
+    fileprivate let number: Int64
     
     /// Returns a value that can be stored in the database.
     var databaseValue: DatabaseValue {

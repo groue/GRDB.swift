@@ -226,7 +226,7 @@ public extension MutablePersistable {
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
     func update(_ db: Database) throws {
-        let databaseTableName = self.dynamicType.databaseTableName
+        let databaseTableName = type(of: self).databaseTableName
         let columns = try db.columns(in: databaseTableName)
         try update(db, columns: Set(columns.map { $0.name }))
     }
@@ -257,9 +257,9 @@ public extension MutablePersistable {
     
     // MARK: - CRUD Internals
     
-    private func canUpdate(_ db: Database) -> Bool {
+    fileprivate func canUpdate(_ db: Database) -> Bool {
         // Fail early if database table does not exist.
-        let databaseTableName = self.dynamicType.databaseTableName
+        let databaseTableName = type(of: self).databaseTableName
         guard let primaryKey = try! db.primaryKey(databaseTableName) else {
             return false
         }
@@ -533,12 +533,12 @@ final class DAO {
     
     init(_ db: Database, _ record: MutablePersistable) {
         // Fail early if database table does not exist.
-        let databaseTableName = record.dynamicType.databaseTableName
+        let databaseTableName = type(of: record).databaseTableName
         let primaryKey = try! db.primaryKey(databaseTableName)
         
         // Fail early if persistentDictionary is empty
         let persistentDictionary = record.persistentDictionary
-        GRDBPrecondition(persistentDictionary.count > 0, "\(record.dynamicType).persistentDictionary: invalid empty dictionary")
+        GRDBPrecondition(persistentDictionary.count > 0, "\(type(of: record)).persistentDictionary: invalid empty dictionary")
         
         self.db = db
         self.record = record

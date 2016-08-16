@@ -35,7 +35,7 @@ final class SchedulingWatchdog {
     }
     
     // Temporarily allows `databases` while executing `body`
-    func allowing<T>(databases: [Database], execute body: @noescape () throws -> T) rethrows -> T {
+    func allowing<T>(databases: [Database], execute body: () throws -> T) rethrows -> T {
         let backup = allowedDatabases
         allowedDatabases.append(contentsOf: databases)
         defer { allowedDatabases = backup }

@@ -49,7 +49,7 @@ public protocol DatabaseReader : class {
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    func read<T>(_ block: @noescape (db: Database) throws -> T) rethrows -> T
+    func read<T>(_ block: (Database) throws -> T) rethrows -> T
     
     /// Synchronously executes a read-only block that takes a database
     /// connection, and returns its result.
@@ -71,7 +71,7 @@ public protocol DatabaseReader : class {
     ///         let int1 = Int.fetchOne(db, sql)
     ///         let int2 = Int.fetchOne(db, sql)
     ///     }
-    func nonIsolatedRead<T>(_ block: @noescape (db: Database) throws -> T) rethrows -> T
+    func nonIsolatedRead<T>(_ block: (Database) throws -> T) rethrows -> T
     
     
     // MARK: - Functions
@@ -124,7 +124,7 @@ extension DatabaseReader {
         try backup(to: writer, afterBackupInit: nil, afterBackupStep: nil)
     }
     
-    func backup(to writer: DatabaseWriter, afterBackupInit: (@noescape () -> ())?, afterBackupStep: (@noescape () -> ())?) throws {
+    func backup(to writer: DatabaseWriter, afterBackupInit: (() -> ())?, afterBackupStep: (() -> ())?) throws {
         try read { dbFrom in
             try writer.write { dbDest in
                 guard let backup = sqlite3_backup_init(dbDest.sqliteConnection, "main", dbFrom.sqliteConnection, "main") else {

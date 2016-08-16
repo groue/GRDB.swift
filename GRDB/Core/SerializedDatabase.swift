@@ -51,7 +51,7 @@ final class SerializedDatabase {
     /// its result.
     ///
     /// This method is *not* reentrant.
-    func sync<T>(_ block: @noescape (db: Database) throws -> T) rethrows -> T {
+    func sync<T>(_ block: (Database) throws -> T) rethrows -> T {
         // Three different cases:
         //
         // 1. A database is invoked from some queue like the main queue:
@@ -106,7 +106,7 @@ final class SerializedDatabase {
             // currently allowed databases inside.
             return try queue.sync {
                 try SchedulingWatchdog.current!.allowing(databases: watchdog.allowedDatabases) {
-                    try block(db: db)
+                    try block(db)
                 }
             }
         } else {
@@ -119,24 +119,24 @@ final class SerializedDatabase {
             //
             // Just dispatch block to queue:
             return try queue.sync {
-                try block(db: db)
+                try block(db)
             }
         }
     }
     
     /// Asynchronously executes a block in the serialized dispatch queue.
-    func async(_ block: (db: Database) -> Void) {
+    func async(_ block: @escaping (Database) -> Void) {
         queue.async {
-            block(db: self.db)
+            block(self.db)
         }
     }
     
     /// Executes the block in the current queue.
     ///
     /// - precondition: the current dispatch queue is valid.
-    func execute<T>(_ block: @noescape (db: Database) throws -> T) rethrows -> T {
+    func execute<T>(_ block: (Database) throws -> T) rethrows -> T {
         preconditionValidQueue()
-        return try block(db: db)
+        return try block(db)
     }
     
     /// Fatal error if current dispatch queue is not valid.

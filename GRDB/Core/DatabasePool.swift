@@ -195,12 +195,12 @@ public final class DatabasePool {
     // MARK: - Not public
     
     let store: DatabaseStore    // Not private for tests that require syncing with the store
-    private let writer: SerializedDatabase
+    fileprivate let writer: SerializedDatabase
     private var readerConfig: Configuration
-    private let readerPool: Pool<SerializedDatabase>
+    fileprivate let readerPool: Pool<SerializedDatabase>
     
-    private var functions = Set<DatabaseFunction>()
-    private var collations = Set<DatabaseCollation>()
+    fileprivate var functions = Set<DatabaseFunction>()
+    fileprivate var collations = Set<DatabaseCollation>()
 }
 
 /// The available [checkpoint modes](https://www.sqlite.org/c3ref/wal_checkpoint_v2.html).
@@ -264,14 +264,14 @@ extension DatabasePool : DatabaseReader {
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    public func read<T>(_ block: @noescape (db: Database) throws -> T) rethrows -> T {
+    public func read<T>(_ block: (Database) throws -> T) rethrows -> T {
         // The block isolation comes from the DEFERRED transaction.
         // See DatabasePoolTests.testReadMethodIsolationOfBlock().
         return try readerPool.get { reader in
             try reader.sync { db in
                 var result: T? = nil
                 try db.inTransaction(.deferred) {
-                    result = try block(db: db)
+                    result = try block(db)
                     return .commit
                 }
                 return result!
@@ -299,10 +299,10 @@ extension DatabasePool : DatabaseReader {
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    public func nonIsolatedRead<T>(_ block: @noescape (db: Database) throws -> T) rethrows -> T {
+    public func nonIsolatedRead<T>(_ block: (Database) throws -> T) rethrows -> T {
         return try readerPool.get { reader in
             try reader.sync { db in
-                try block(db: db)
+                try block(db)
             }
         }
     }
@@ -381,7 +381,7 @@ extension DatabasePool : DatabaseWriter {
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    public func write<T>(_ block: @noescape (db: Database) throws -> T) rethrows -> T {
+    public func write<T>(_ block: (Database) throws -> T) rethrows -> T {
         return try writer.sync(block)
     }
     
@@ -406,10 +406,10 @@ extension DatabasePool : DatabaseWriter {
     ///     - block: A block that executes SQL statements and return either
     ///       .commit or .rollback.
     /// - throws: The error thrown by the block.
-    public func writeInTransaction(_ kind: TransactionKind? = nil, _ block: @noescape (db: Database) throws -> TransactionCompletion) throws {
+    public func writeInTransaction(_ kind: TransactionKind? = nil, _ block: (Database) throws -> TransactionCompletion) throws {
         try writer.sync { db in
             try db.inTransaction(kind) {
-                try block(db: db)
+                try block(db)
             }
         }
     }
@@ -440,7 +440,7 @@ extension DatabasePool : DatabaseWriter {
     ///
     /// The database pool releases the writing dispatch queue early, before the
     /// block has finished.
-    public func readFromWrite(_ block: (db: Database) -> Void) {
+    public func readFromWrite(_ block: @escaping (Database) -> Void) {
         writer.preconditionValidQueue()
         
         let semaphore = DispatchSemaphore(value: 0)
@@ -450,7 +450,7 @@ extension DatabasePool : DatabaseWriter {
                 try! db.inTransaction(.deferred) {
                     // Now we're isolated: release the writing queue
                     semaphore.signal()
-                    block(db: db)
+                    block(db)
                     return .commit
                 }
             }

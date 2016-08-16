@@ -37,13 +37,13 @@ public class Statement {
         self.sqliteStatement = sqliteStatement
     }
     
-    private init(database: Database, sql: String, observer: StatementCompilationObserver) throws {
+    fileprivate init(database: Database, sql: String, observer: StatementCompilationObserver) throws {
         SchedulingWatchdog.preconditionValidQueue(database)
         
         observer.start()
         defer { observer.stop() }
         
-        let sqlCodeUnits = sql.nulTerminatedUTF8
+        let sqlCodeUnits = sql.utf8CString
         var sqliteStatement: SQLiteStatement? = nil
         var code: Int32 = 0
         var remainingSQL = ""
@@ -51,7 +51,7 @@ public class Statement {
             let sqlStart = UnsafePointer<Int8>(codeUnits.baseAddress)!
             var sqlEnd: UnsafePointer<Int8>? = nil
             code = sqlite3_prepare_v2(database.sqliteConnection, sqlStart, -1, &sqliteStatement, &sqlEnd)
-            let remainingData = Data(bytesNoCopy: UnsafeMutablePointer<UInt8>(sqlEnd!), count: sqlStart + sqlCodeUnits.count - sqlEnd! - 1, deallocator: .none)
+            let remainingData = Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: sqlEnd!), count: sqlStart + sqlCodeUnits.count - sqlEnd! - 1, deallocator: .none)
             remainingSQL = String(data: remainingData, encoding: .utf8)!.trimmingCharacters(in: .whitespacesAndNewlines)
         }
         
@@ -91,7 +91,7 @@ public class Statement {
     }()
     
     // Returns ["id", nil", "name"] for "INSERT INTO table VALUES (:id, ?, :name)"
-    private lazy var sqliteArgumentNames: [String?] = {
+    fileprivate lazy var sqliteArgumentNames: [String?] = {
         return (0..<self.sqliteArgumentCount).map {
             guard let cString = sqlite3_bind_parameter_name(self.sqliteStatement, Int32($0 + 1)) else {
                 return nil
@@ -180,7 +180,7 @@ public class Statement {
         }
     }
 
-    private func prepare(withArguments arguments: StatementArguments?) throws {
+    fileprivate func prepare(withArguments arguments: StatementArguments?) throws {
         if let arguments = arguments {
             try setArgumentsWithValidation(arguments)
         } else if argumentsNeedValidation {
@@ -236,7 +236,7 @@ public final class SelectStatement : Statement {
     }
     
     /// Creates a DatabaseSequence
-    func fetchSequence<Element>(arguments: StatementArguments? = nil, element: () -> Element) -> DatabaseSequence<Element> {
+    func fetchSequence<Element>(arguments: StatementArguments? = nil, element: @escaping () -> Element) -> DatabaseSequence<Element> {
         // Force arguments validity. See UpdateStatement.execute(), and Database.execute()
         try! prepare(withArguments: arguments)
         return DatabaseSequence(statement: self, element: element)
@@ -248,7 +248,7 @@ public struct DatabaseSequence<Element>: Sequence {
     private let makeIteratorImpl: () throws -> DatabaseIterator<Element>
     
     // Statement sequence
-    private init(statement: SelectStatement, element: () -> Element) {
+    fileprivate init(statement: SelectStatement, element: @escaping () -> Element) {
         self.makeIteratorImpl = {
             // Check that iterator is built on a valid queue.
             SchedulingWatchdog.preconditionValidQueue(statement.database, "Database was not used on the correct thread. Iterate sequences in a protected dispatch queue, or consider using an array returned by fetchAll() instead.")
@@ -283,7 +283,7 @@ public struct DatabaseSequence<Element>: Sequence {
         }
     }
     
-    private init(_ makeIteratorImpl: () throws -> DatabaseIterator<Element>) {
+    private init(_ makeIteratorImpl: @escaping () throws -> DatabaseIterator<Element>) {
         self.makeIteratorImpl = makeIteratorImpl
     }
     
@@ -300,7 +300,7 @@ public final class DatabaseIterator<Element>: IteratorProtocol {
     private let element: ((SQLiteStatement, Unmanaged<SelectStatement>) -> Element?)?
     
     // Iterator takes ownership of statementRef
-    init(statementRef: Unmanaged<SelectStatement>, element: (SQLiteStatement, Unmanaged<SelectStatement>) -> Element?) {
+    init(statementRef: Unmanaged<SelectStatement>, element: @escaping (SQLiteStatement, Unmanaged<SelectStatement>) -> Element?) {
         self.statementRef = statementRef
         self.sqliteStatement = statementRef.takeUnretainedValue().sqliteStatement
         self.element = element
@@ -468,6 +468,23 @@ public struct StatementArguments {
         values = sequence.map { $0 }
     }
     
+    /// Initializes arguments from [Any].
+    ///
+    /// The result is nil unless all objects adopt DatabaseValueConvertible.
+    ///
+    /// - parameter array: An array
+    /// - returns: A StatementArguments.
+    public init?(_ array: [Any]) {
+        var values = [DatabaseValueConvertible?]()
+        for value in array {
+            guard let databaseValue = DatabaseValue(value: value) else {
+                return nil
+            }
+            values.append(databaseValue)
+        }
+        self.init(values)
+    }
+    
     
     // MARK: Named Arguments
     
@@ -493,6 +510,27 @@ public struct StatementArguments {
     /// - returns: A StatementArguments.
     public init<Sequence: Swift.Sequence>(_ sequence: Sequence) where Sequence.Iterator.Element == (String, DatabaseValueConvertible?) {
         namedValues = Dictionary(keyValueSequence: sequence)
+    }
+    
+    /// Initializes arguments from [AnyHashable: Any].
+    ///
+    /// The result is nil unless all dictionary keys are strings, and values
+    /// adopt DatabaseValueConvertible.
+    ///
+    /// - parameter dictionary: A dictionary.
+    /// - returns: A StatementArguments.
+    public init?(_ dictionary: [AnyHashable: Any]) {
+        var initDictionary = [String: DatabaseValueConvertible?]()
+        for (key, value) in dictionary {
+            guard let columnName = key as? String else {
+                return nil
+            }
+            guard let databaseValue = DatabaseValue(value: value) else {
+                return nil
+            }
+            initDictionary[columnName] = databaseValue
+        }
+        self.init(initDictionary)
     }
     
     

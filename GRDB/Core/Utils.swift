@@ -51,7 +51,7 @@ func GRDBPrecondition(_ condition: @autoclosure() -> Bool, _ message: @autoclosu
 
 extension Array {
     /// Removes the first object that matches *predicate*.
-    mutating func removeFirst(_ predicate: @noescape(Element) throws -> Bool) rethrows {
+    mutating func removeFirst(_ predicate: (Element) throws -> Bool) rethrows {
         if let index = try index(where: predicate) {
             remove(at: index)
         }
@@ -86,7 +86,7 @@ extension Sequence where Iterator.Element: Equatable {
 }
 
 extension Sequence {
-    func all(predicate: @noescape (Self.Iterator.Element) throws -> Bool) rethrows -> Bool {
+    func all(predicate: (Self.Iterator.Element) throws -> Bool) rethrows -> Bool {
         return try !contains { try !predicate($0) }
     }
 }
@@ -178,7 +178,7 @@ final class Pool<T> {
     
     /// Performs a synchronous block with an element. The element turns
     /// available after the block has executed.
-    func get<U>(block: @noescape(T) throws -> U) rethrows -> U {
+    func get<U>(block: (T) throws -> U) rethrows -> U {
         let (element, release) = get()
         defer { release() }
         return try block(element)
@@ -186,7 +186,7 @@ final class Pool<T> {
     
     /// Performs a block on each pool element, available or not.
     /// The block is run is some arbitrary queue.
-    func forEach(_ body: @noescape (T) throws -> ()) rethrows {
+    func forEach(_ body: (T) throws -> ()) rethrows {
         try queue.sync {
             for item in items {
                 try body(item.element)
@@ -201,7 +201,7 @@ final class Pool<T> {
     
     /// Empty the pool. Currently used items won't be reused.
     /// Eventual block is executed before any other element is dequeued.
-    func clear(_ block: @noescape () throws -> ()) rethrows {
+    func clear(_ block: () throws -> ()) rethrows {
         try queue.sync {
             items = []
             try block()

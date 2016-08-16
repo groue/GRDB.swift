@@ -6,7 +6,7 @@ extension UUID: DatabaseValueConvertible {
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
         var uuid = self.uuid
-        return withUnsafePointer(&uuid) { pointer in
+        return withUnsafePointer(to: &uuid) { pointer in
             return NSData(bytes: pointer, length: 16).databaseValue
         }
     }

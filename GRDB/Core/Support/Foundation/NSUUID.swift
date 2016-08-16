@@ -17,6 +17,6 @@ extension NSUUID: DatabaseValueConvertible {
         guard let data = NSData.fromDatabaseValue(databaseValue), data.length == 16 else {
             return nil
         }
-        return self.init(uuidBytes: UnsafePointer<UInt8>(data.bytes))
+        return self.init(uuidBytes: data.bytes.assumingMemoryBound(to: UInt8.self))
     }
 }

@@ -58,7 +58,7 @@ class DataMemoryTests: GRDBTestCase {
                 let databaseValue = row.first!.1
                 switch databaseValue.storage {
                 case .blob(let data):
-                    data.withUnsafeBytes { (dataBytes: UnsafePointer<Void>) -> Void in
+                    data.withUnsafeBytes { (dataBytes: UnsafePointer<UInt8>) -> Void in
                         do {
                             // This data should not be copied:
                             let nonCopiedData: Data = row.value(atIndex: 0)

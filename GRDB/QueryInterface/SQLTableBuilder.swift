@@ -23,7 +23,7 @@ extension Database {
     ///     - body: A closure that defines table columns and constraints.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     @available(iOS 8.2, OSX 10.10, *)
-    public func create(table name: String, temporary: Bool = false, ifNotExists: Bool = false, withoutRowID: Bool, body: @noescape (TableDefinition) -> Void) throws {
+    public func create(table name: String, temporary: Bool = false, ifNotExists: Bool = false, withoutRowID: Bool, body: (TableDefinition) -> Void) throws {
         // WITHOUT ROWID was added in SQLite 3.8.2 http://www.sqlite.org/changes.html#version_3_8_2
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         let definition = TableDefinition(name: name, temporary: temporary, ifNotExists: ifNotExists, withoutRowID: withoutRowID)
@@ -50,7 +50,7 @@ extension Database {
     ///     - ifNotExists: If false, no error is thrown if table already exists.
     ///     - body: A closure that defines table columns and constraints.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func create(table name: String, temporary: Bool = false, ifNotExists: Bool = false, body: @noescape (TableDefinition) -> Void) throws {
+    public func create(table name: String, temporary: Bool = false, ifNotExists: Bool = false, body: (TableDefinition) -> Void) throws {
         let definition = TableDefinition(name: name, temporary: temporary, ifNotExists: ifNotExists, withoutRowID: false)
         body(definition)
         let sql = try definition.sql(self)
@@ -78,7 +78,7 @@ extension Database {
     ///     - name: The table name.
     ///     - body: A closure that defines table alterations.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func alter(table name: String, body: @noescape (TableAlteration) -> Void) throws {
+    public func alter(table name: String, body: (TableAlteration) -> Void) throws {
         let alteration = TableAlteration(name: name)
         body(alteration)
         let sql = try alteration.sql(self)
@@ -273,7 +273,7 @@ public final class TableDefinition {
         checkConstraints.append(_SQLExpression.sqlLiteral(sql, nil))
     }
     
-    private func sql(_ db: Database) throws -> String {
+    fileprivate func sql(_ db: Database) throws -> String {
         var chunks: [String] = []
         chunks.append("CREATE")
         if temporary {
@@ -391,7 +391,7 @@ public final class TableAlteration {
         return column
     }
     
-    private func sql(_ db: Database) throws -> String {
+    fileprivate func sql(_ db: Database) throws -> String {
         var statements: [String] = []
         
         for column in addedColumns {
@@ -500,7 +500,7 @@ public final class ColumnDefinition {
     /// - parameter condition: A closure whose argument is an Column that
     ///   represents the defined column, and returns the expression to check.
     /// - returns: Self so that you can further refine the column definition.
-    @discardableResult public func check(_ condition: @noescape (Column) -> SQLExpressible) -> Self {
+    @discardableResult public func check(_ condition: (Column) -> SQLExpressible) -> Self {
         checkConstraints.append(condition(Column(name)).sqlExpression)
         return self
     }
@@ -602,7 +602,7 @@ public final class ColumnDefinition {
         return self
     }
     
-    private func sql(_ db: Database) throws -> String {
+    fileprivate func sql(_ db: Database) throws -> String {
         var chunks: [String] = []
         chunks.append(name.quotedDatabaseIdentifier)
         chunks.append(type.rawValue)

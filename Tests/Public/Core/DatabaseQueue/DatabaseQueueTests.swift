@@ -12,7 +12,7 @@ class DatabaseQueueTests: GRDBTestCase {
     func testInvalidFileFormat() {
         assertNoError {
             do {
-                let testBundle = Bundle(for: self.dynamicType)
+                let testBundle = Bundle(for: type(of: self))
                 let url = testBundle.url(forResource: "Betty", withExtension: "jpeg")!
                 guard (try? Data(contentsOf: url)) != nil else {
                     XCTFail("Missing file")

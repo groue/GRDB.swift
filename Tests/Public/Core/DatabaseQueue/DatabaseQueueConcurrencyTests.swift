@@ -16,7 +16,7 @@ class ConcurrencyTests: GRDBTestCase {
         self.busyCallback = nil
         let busyCallback: BusyCallback = { numberOfTries in
             if let busyCallback = self.busyCallback {
-                return busyCallback(numberOfTries: numberOfTries)
+                return busyCallback(numberOfTries)
             } else {
                 // Default give up
                 return false

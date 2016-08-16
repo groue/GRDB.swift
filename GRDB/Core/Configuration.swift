@@ -57,7 +57,7 @@ public struct Configuration {
     /// GRDB will apply file attributes to all those files.
     ///
     /// Default: nil
-    public var fileAttributes: [FileAttributeKey: AnyObject]? = nil
+    public var fileAttributes: [FileAttributeKey: Any]? = nil
     
     
     // MARK: - Transactions

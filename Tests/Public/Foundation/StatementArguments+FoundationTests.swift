@@ -26,14 +26,14 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
         try migrator.migrate(dbWriter)
     }
     
-    func testStatementArgumentsNSArrayInitializer() {
+    func testStatementArgumentsArrayInitializer() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             
             try dbQueue.inTransaction { db in
                 
                 let statement = try db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
-                let persons: [NSArray] = [
+                let persons: [[Any]] = [
                     ["Arthur", 41],
                     ["Barbara", 38],
                 ]
@@ -66,14 +66,14 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
         }
     }
     
-    func testStatementArgumentsNSDictionaryInitializer() {
+    func testStatementArgumentsDictionaryInitializer() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             
             try dbQueue.inTransaction { db in
                 
                 let statement = try db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
-                let persons: [NSDictionary] = [
+                let persons: [[AnyHashable: Any]] = [
                     ["name": "Arthur", "age": 41],
                     ["name": "Barbara", "age": 38],
                 ]
@@ -96,11 +96,11 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
     }
     
     func testStatementArgumentsNSDictionaryInitializerFromInvalidNSDictionary() {
-        let dictionary: NSDictionary = ["a": NSObject()]
+        let dictionary: [AnyHashable: Any] = ["a": NSObject()]
         let arguments = StatementArguments(dictionary)
         XCTAssertTrue(arguments == nil)
         
-        let dictionaryInvalidKeyType: NSDictionary = [NSNumber(value: 1): "bar"]
+        let dictionaryInvalidKeyType: [AnyHashable: Any] = [NSNumber(value: 1): "bar"]
         let arguments2 = StatementArguments(dictionaryInvalidKeyType)
         XCTAssertTrue(arguments2 == nil)
     }

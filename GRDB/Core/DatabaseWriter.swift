@@ -22,7 +22,7 @@ public protocol DatabaseWriter : DatabaseReader {
     ///
     /// The *block* argument is completely isolated. Eventual concurrent
     /// database updates are postponed until the block has executed.
-    func write<T>(_ block: @noescape (db: Database) throws -> T) rethrows -> T
+    func write<T>(_ block: (Database) throws -> T) rethrows -> T
     
     
     // MARK: - Reading from Database
@@ -54,7 +54,7 @@ public protocol DatabaseWriter : DatabaseReader {
     /// DatabaseQueue.readFromWrite simply runs *block* synchronously, and
     /// returns when the block has completed. In the example above, the
     /// insertion is run after the select.
-    func readFromWrite(_ block: (db: Database) -> Void)
+    func readFromWrite(_ block: @escaping (Database) -> Void)
 }
 
 extension DatabaseWriter {

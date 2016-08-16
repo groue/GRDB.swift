@@ -632,8 +632,8 @@ private func synchronizePersons(_ db: Database, _ newPersons: [Person]) throws {
 private func sortedMerge<LeftSequence: Sequence, RightSequence: Sequence, Key: Comparable>(
     left lSeq: LeftSequence,
     right rSeq: RightSequence,
-    leftKey: (LeftSequence.Iterator.Element) -> Key,
-    rightKey: (RightSequence.Iterator.Element) -> Key) -> AnySequence<MergeStep<LeftSequence.Iterator.Element, RightSequence.Iterator.Element>>
+    leftKey: @escaping (LeftSequence.Iterator.Element) -> Key,
+    rightKey: @escaping (RightSequence.Iterator.Element) -> Key) -> AnySequence<MergeStep<LeftSequence.Iterator.Element, RightSequence.Iterator.Element>>
 {
     return AnySequence { () -> AnyIterator<MergeStep<LeftSequence.Iterator.Element, RightSequence.Iterator.Element>> in
         var (lGen, rGen) = (lSeq.makeIterator(), rSeq.makeIterator())

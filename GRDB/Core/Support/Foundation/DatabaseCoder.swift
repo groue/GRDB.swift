@@ -5,12 +5,12 @@ import Foundation
 public struct DatabaseCoder: DatabaseValueConvertible {
     
     /// The object
-    public let object: AnyObject
+    public let object: Any
     
     /// Creates a DatabaseCoder from an object that conforms to NSCoding.
     ///
     /// The result is nil if and only if *object* is nil.
-    public init?(_ object: AnyObject?) {
+    public init?(_ object: Any?) {
         guard let object = object else {
             return nil
         }
