@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## 0.79.4
+
+Released August 17, 2016
+
+**Fixed**
+
+- [DatabasePool](https://github.com/groue/GRDB.swift#database-pools) can now open an existing database which is not yet in the WAL mode, and then immediately read from it. It used to crash unless at least one write operation was performed before any read (fixes [#102](https://github.com/groue/GRDB.swift/issues/102)).
+
+
 ## 0.79.3
 
 Released August 16, 2016
