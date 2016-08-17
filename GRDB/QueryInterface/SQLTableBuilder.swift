@@ -285,9 +285,18 @@ public final class TableDefinition {
         }
         chunks.append(name.quotedDatabaseIdentifier)
         
+        let primaryKeyColumns: [String]
+        if let (columns, _) = primaryKeyConstraint {
+            primaryKeyColumns = columns
+        } else if let index = columns.index(where: { $0.primaryKey != nil }) {
+            primaryKeyColumns = [columns[index].name]
+        } else {
+            primaryKeyColumns = []
+        }
+        
         do {
             var items: [String] = []
-            try items.append(contentsOf: columns.map { try $0.sql(db) })
+            try items.append(contentsOf: columns.map { try $0.sql(db, tableName: name, primaryKeyColumns: primaryKeyColumns) })
             
             if let (columns, conflictResolution) = primaryKeyConstraint {
                 var chunks: [String] = []
@@ -318,6 +327,8 @@ public final class TableDefinition {
                 chunks.append("REFERENCES")
                 if let destinationColumns = destinationColumns {
                     chunks.append("\(table.quotedDatabaseIdentifier)(\((destinationColumns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
+                } else if table == name {
+                    chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKeyColumns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
                 } else if let primaryKey = try db.primaryKey(table) {
                     chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKey.columns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
                 } else {
@@ -399,7 +410,7 @@ public final class TableAlteration {
             chunks.append("ALTER TABLE")
             chunks.append(name.quotedDatabaseIdentifier)
             chunks.append("ADD COLUMN")
-            try chunks.append(column.sql(db))
+            try chunks.append(column.sql(db, tableName: nil, primaryKeyColumns: nil))
             let statement = chunks.joined(separator: " ")
             statements.append(statement)
         }
@@ -423,9 +434,9 @@ public final class TableAlteration {
 /// See https://www.sqlite.org/lang_createtable.html and
 /// https://www.sqlite.org/lang_altertable.html
 public final class ColumnDefinition {
-    private let name: String
+    fileprivate let name: String
     private let type: SQLColumnType
-    private var primaryKey: (conflictResolution: SQLConflictResolution?, autoincrement: Bool)?
+    fileprivate var primaryKey: (conflictResolution: SQLConflictResolution?, autoincrement: Bool)?
     private var notNullConflictResolution: SQLConflictResolution?
     private var uniqueConflictResolution: SQLConflictResolution?
     private var checkConstraints: [_SQLExpression] = []
@@ -602,7 +613,7 @@ public final class ColumnDefinition {
         return self
     }
     
-    fileprivate func sql(_ db: Database) throws -> String {
+    fileprivate func sql(_ db: Database, tableName: String?, primaryKeyColumns: [String]?) throws -> String {
         var chunks: [String] = []
         chunks.append(name.quotedDatabaseIdentifier)
         chunks.append(type.rawValue)
@@ -659,6 +670,8 @@ public final class ColumnDefinition {
             chunks.append("REFERENCES")
             if let column = column {
                 chunks.append("\(table.quotedDatabaseIdentifier)(\(column.quotedDatabaseIdentifier))")
+            } else if let tableName = tableName, let primaryKeyColumns = primaryKeyColumns, table == tableName {
+                chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKeyColumns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
             } else if let primaryKey = try db.primaryKey(table) {
                 chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKey.columns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
             } else {

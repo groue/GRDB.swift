@@ -1,6 +1,40 @@
 Release Notes
 =============
 
+## 0.79.4
+
+Released August 17, 2016
+
+**Fixed**
+
+- [DatabasePool](https://github.com/groue/GRDB.swift#database-pools) can now open an existing database which is not yet in the WAL mode, and then immediately read from it. It used to crash unless at least one write operation was performed before any read (fixes [#102](https://github.com/groue/GRDB.swift/issues/102)).
+
+
+## 0.79.3
+
+Released August 16, 2016
+
+**Fixed**
+
+- [Table creation DSL](https://github.com/groue/GRDB.swift#database-schema) accepts auto references with implicit primary key:
+
+    ```swift
+    try db.create(table: "nodes") { t in
+        t.column("id", .Integer).primaryKey()
+        t.column("parentId", .Integer).references("nodes")
+    }
+    ```
+
+**New**
+
+- Use SQLColumn of the [query interface](https://github.com/groue/GRDB.swift/#the-query-interface) when extracting values from rows:
+    
+    ```swift
+    let nameColumn = SQLColumn("name")
+    let name: String = row.value(nameColumn)
+    ```
+
+
 ## 0.79.2
 
 Released August 10, 2016

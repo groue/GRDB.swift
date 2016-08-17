@@ -1,3 +1,5 @@
+import Foundation
+
 #if !USING_BUILTIN_SQLITE
     #if os(OSX)
         import SQLiteMacOSX
@@ -56,6 +58,15 @@ public final class DatabasePool {
                 // https://www.sqlite.org/pragma.html#pragma_synchronous
                 // > Many applications choose NORMAL when in WAL mode
                 try db.execute("PRAGMA synchronous = NORMAL")
+                
+                if !FileManager.default.fileExists(atPath: path + "-wal") {
+                    // Create the -wal file if it does not exist yet. This
+                    // avoids an SQLITE_CANTOPEN (14) error whenever a user
+                    // opens a pool to an existing non-WAL database, and
+                    // attempts to read from it.
+                    // See https://github.com/groue/GRDB.swift/issues/102
+                    try db.execute("CREATE TABLE grdb_issue_102 (id INTEGER PRIMARY KEY); DROP TABLE grdb_issue_102;")
+                }
             }
         }
         

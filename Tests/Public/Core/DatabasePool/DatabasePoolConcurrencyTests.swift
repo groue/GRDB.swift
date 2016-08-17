@@ -23,6 +23,25 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         }
     }
     
+    func testReadFromPreviousNonWALDatabase() {
+        assertNoError {
+            do {
+                let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
+                try dbQueue.inDatabase { db in
+                    try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                    try db.execute("INSERT INTO items (id) VALUES (NULL)")
+                }
+            }
+            do {
+                let dbPool = try makeDatabasePool(filename: "test.sqlite")
+                let id = dbPool.read { db in
+                    Int.fetchOne(db, "SELECT id FROM items")!
+                }
+                XCTAssertEqual(id, 1)
+            }
+        }
+    }
+    
     func testConcurrentRead() {
         assertNoError {
             let dbPool = try makeDatabasePool()
