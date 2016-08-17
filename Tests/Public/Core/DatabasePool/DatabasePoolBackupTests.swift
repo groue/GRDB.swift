@@ -78,6 +78,7 @@ class DatabasePoolBackupTests: GRDBTestCase {
             destination.read { db in
                 // TODO: understand why the fix for https://github.com/groue/GRDB.swift/issues/102
                 // had this value change from 2 to 1.
+                // TODO: Worse, this test is fragile. I've seen not 1 but 2 once.
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
             }
         }
