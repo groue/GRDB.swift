@@ -2999,7 +2999,7 @@ Let's describe all joining APIs: `Relation`, `include`, `join`, `on`, `select`, 
     
     The `row.scoped(on:)` method grants access to the row parts that comes from each joined relation.
     
-    It returns a non-nil row if and only if the scope is present in the request's scoping tree, and the join has found a matching row (it can happen with LEFT JOIN):
+    It returns a non-nil row if and only if the scope is present in the request's scoping tree, and the join has found a matching row (LEFT JOINs may not find a matching row).
     
     You can join several tables:
     
