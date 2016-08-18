@@ -3064,7 +3064,7 @@ Let's describe all joining APIs: `Relation`, `include`, `join`, `on`, `select`, 
     let request = Person.include(father, father)
     ```
 
-- `include(required: true, relation, ...)`: adds a JOIN and selects the joined table columns
+- `include(required: relation, ...)`: adds a JOIN and selects the joined table columns
     
     TODO
     
