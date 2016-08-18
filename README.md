@@ -2810,7 +2810,7 @@ LEFT JOIN authors ON authors.id = books.authorId
 
 Let's look at the Swift code that generates this query, and consumes its results.
 
-First the setup. As a starting point, we need a type that adopts TableMapping, such as the Record class. And a relation that allow jumping from the "books" table to the "authors" table:
+First the setup. As a starting point, we need a type that adopts [TableMapping](#tablemapping-protocol), such as the Record class. And a relation that allow jumping from the "books" table to the "authors" table:
 
 ```swift
 class Book : Record { ... }
