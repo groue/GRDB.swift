@@ -1,6 +1,7 @@
 - [ ] @hdlj: Extensibility of the Query Interface
 - [ ] @hdlj: FetchedRecordsController throttling
 - [ ] @hdlj: Check RAM pressure
+- [ ] DatabasePool: attempt to read from the database in DatabasePool.init(). Don't crash, but throw eventual error instead. (Related issue: https://github.com/groue/GRDB.swift/issues/99)
 - [ ] Test Row(SQLColumn)
 - [ ] Persistable partial update: allow models whose persistentDictionary only contains a subset of table columns (and count of default value)
 - [ ] What is the behavior inTransaction and inSavepoint behaviors in case of commit error? Code looks like we do not rollback, leaving the app in a weird state (out of Swift transaction block with a SQLite transaction that may still be opened).
