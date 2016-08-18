@@ -116,7 +116,7 @@ extension Database {
     ///       (see https://www.sqlite.org/partialindex.html).
     public func create(index name: String, on table: String, columns: [String], unique: Bool = false, ifNotExists: Bool = false, condition: SQLExpressible? = nil) throws {
         let definition = IndexDefinition(name: name, table: table, columns: columns, unique: unique, ifNotExists: ifNotExists, condition: condition?.sqlExpression)
-        let sql = definition.sql()
+        let sql = try definition.sql(self)
         try execute(sql)
     }
     
@@ -352,7 +352,7 @@ public final class TableDefinition {
                 var chunks: [String] = []
                 chunks.append("CHECK")
                 var arguments: StatementArguments? = nil // nil so that checkExpression.sql(&arguments) embeds literals
-                chunks.append("(" + checkExpression.sql(&arguments) + ")")
+                try chunks.append("(" + checkExpression.sql(db, &arguments) + ")")
                 items.append(chunks.joinWithSeparator(" "))
             }
             
@@ -652,13 +652,13 @@ public final class ColumnDefinition {
         for checkConstraint in checkConstraints {
             chunks.append("CHECK")
             var arguments: StatementArguments? = nil // nil so that checkConstraint.sql(&arguments) embeds literals
-            chunks.append("(" + checkConstraint.sql(&arguments) + ")")
+            try chunks.append("(" + checkConstraint.sql(db, &arguments) + ")")
         }
         
         if let defaultExpression = defaultExpression {
             var arguments: StatementArguments? = nil // nil so that defaultExpression.sql(&arguments) embeds literals
             chunks.append("DEFAULT")
-            chunks.append(defaultExpression.sql(&arguments))
+            try chunks.append(defaultExpression.sql(db, &arguments))
         }
         
         if let collationName = collationName {
@@ -702,7 +702,7 @@ private struct IndexDefinition {
     let ifNotExists: Bool
     let condition: _SQLExpression?
     
-    func sql() -> String {
+    func sql(db: Database) throws -> String {
         var chunks: [String] = []
         chunks.append("CREATE")
         if unique {
@@ -718,7 +718,7 @@ private struct IndexDefinition {
         if let condition = condition {
             chunks.append("WHERE")
             var arguments: StatementArguments? = nil // nil so that condition.sql(&arguments) embeds literals
-            chunks.append(condition.sql(&arguments))
+            try chunks.append(condition.sql(db, &arguments))
         }
         return chunks.joinWithSeparator(" ")
     }

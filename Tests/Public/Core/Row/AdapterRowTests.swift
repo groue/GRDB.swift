@@ -284,18 +284,18 @@ class AdapterRowTests: GRDBTestCase {
             XCTAssertEqual(row.value(named: "id2") as Int, 2)
             XCTAssertEqual(row.value(named: "val2") as String, "foo2")
             
-            if let scope = row.scoped(on: "sub1") {
-                XCTAssertEqual(scope.count, 2)
-                XCTAssertEqual(scope.value(named: "id") as Int, 1)
-                XCTAssertEqual(scope.value(named: "val") as String, "foo1")
+            if let row = row.scoped(on: "sub1") {
+                XCTAssertEqual(row.count, 2)
+                XCTAssertEqual(row.value(named: "id") as Int, 1)
+                XCTAssertEqual(row.value(named: "val") as String, "foo1")
             } else {
                 XCTFail()
             }
             
-            if let scope = row.scoped(on: "sub2") {
-                XCTAssertEqual(scope.count, 2)
-                XCTAssertEqual(scope.value(named: "id") as Int, 2)
-                XCTAssertEqual(scope.value(named: "val") as String, "foo2")
+            if let row = row.scoped(on: "sub2") {
+                XCTAssertEqual(row.count, 2)
+                XCTAssertEqual(row.value(named: "id") as Int, 2)
+                XCTAssertEqual(row.value(named: "val") as String, "foo2")
             } else {
                 XCTFail()
             }
@@ -318,18 +318,18 @@ class AdapterRowTests: GRDBTestCase {
             XCTAssertEqual(row.value(named: "id") as Int, 0)
             XCTAssertEqual(row.value(named: "val") as String, "foo0")
 
-            if let scope = row.scoped(on: "sub1") {
-                XCTAssertEqual(scope.count, 2)
-                XCTAssertEqual(scope.value(named: "id") as Int, 1)
-                XCTAssertEqual(scope.value(named: "val") as String, "foo1")
+            if let row = row.scoped(on: "sub1") {
+                XCTAssertEqual(row.count, 2)
+                XCTAssertEqual(row.value(named: "id") as Int, 1)
+                XCTAssertEqual(row.value(named: "val") as String, "foo1")
             } else {
                 XCTFail()
             }
             
-            if let scope = row.scoped(on: "sub2") {
-                XCTAssertEqual(scope.count, 2)
-                XCTAssertEqual(scope.value(named: "id") as Int, 2)
-                XCTAssertEqual(scope.value(named: "val") as String, "foo2")
+            if let row = row.scoped(on: "sub2") {
+                XCTAssertEqual(row.count, 2)
+                XCTAssertEqual(row.value(named: "id") as Int, 2)
+                XCTAssertEqual(row.value(named: "val") as String, "foo2")
             } else {
                 XCTFail()
             }
@@ -351,29 +351,29 @@ class AdapterRowTests: GRDBTestCase {
             let row = Row.fetchOne(db, "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
             
             // sub0 is defined in the the first scoped adapter
-            if let scope = row.scoped(on: "sub0") {
-                XCTAssertEqual(scope.count, 2)
-                XCTAssertEqual(scope.value(named: "id") as Int, 0)
-                XCTAssertEqual(scope.value(named: "val") as String, "foo0")
+            if let row = row.scoped(on: "sub0") {
+                XCTAssertEqual(row.count, 2)
+                XCTAssertEqual(row.value(named: "id") as Int, 0)
+                XCTAssertEqual(row.value(named: "val") as String, "foo0")
             } else {
                 XCTFail()
             }
             
             // sub1 is defined in the the first scoped adapter, and then
             // redefined in the second
-            if let scope = row.scoped(on: "sub1") {
-                XCTAssertEqual(scope.count, 2)
-                XCTAssertEqual(scope.value(named: "id") as Int, 1)
-                XCTAssertEqual(scope.value(named: "val") as String, "foo1")
+            if let row = row.scoped(on: "sub1") {
+                XCTAssertEqual(row.count, 2)
+                XCTAssertEqual(row.value(named: "id") as Int, 1)
+                XCTAssertEqual(row.value(named: "val") as String, "foo1")
             } else {
                 XCTFail()
             }
             
             // sub2 is defined in the the second scoped adapter
-            if let scope = row.scoped(on: "sub2") {
-                XCTAssertEqual(scope.count, 2)
-                XCTAssertEqual(scope.value(named: "id") as Int, 2)
-                XCTAssertEqual(scope.value(named: "val") as String, "foo2")
+            if let row = row.scoped(on: "sub2") {
+                XCTAssertEqual(row.count, 2)
+                XCTAssertEqual(row.value(named: "id") as Int, 2)
+                XCTAssertEqual(row.value(named: "val") as String, "foo2")
             } else {
                 XCTFail()
             }
@@ -394,15 +394,15 @@ class AdapterRowTests: GRDBTestCase {
             XCTAssertEqual(row.value(named: "id") as Int, 0)
             XCTAssertEqual(row.value(named: "val") as String, "foo0")
             
-            if let scope = row.scoped(on: "sub1") {
-                XCTAssertEqual(scope.count, 2)
-                XCTAssertEqual(scope.value(named: "id") as Int, 1)
-                XCTAssertEqual(scope.value(named: "val") as String, "foo1")
+            if let row = row.scoped(on: "sub1") {
+                XCTAssertEqual(row.count, 2)
+                XCTAssertEqual(row.value(named: "id") as Int, 1)
+                XCTAssertEqual(row.value(named: "val") as String, "foo1")
                 
-                if let scope = scope.scoped(on: "sub2") {
-                    XCTAssertEqual(scope.count, 2)
-                    XCTAssertEqual(scope.value(named: "id") as Int, 2)
-                    XCTAssertEqual(scope.value(named: "val") as String, "foo2")
+                if let row = row.scoped(on: "sub2") {
+                    XCTAssertEqual(row.count, 2)
+                    XCTAssertEqual(row.value(named: "id") as Int, 2)
+                    XCTAssertEqual(row.value(named: "val") as String, "foo2")
                 } else {
                     XCTFail()
                 }
@@ -428,15 +428,15 @@ class AdapterRowTests: GRDBTestCase {
             XCTAssertEqual(row.value(named: "id") as Int, 0)
             XCTAssertEqual(row.value(named: "val") as String, "foo0")
             
-            if let scope = row.scoped(on: "sub1") {
-                XCTAssertEqual(scope.count, 4)
-                XCTAssertEqual(scope.value(named: "id") as Int, 1)
-                XCTAssertEqual(scope.value(named: "val") as String, "foo1")
+            if let row = row.scoped(on: "sub1") {
+                XCTAssertEqual(row.count, 4)
+                XCTAssertEqual(row.value(named: "id") as Int, 1)
+                XCTAssertEqual(row.value(named: "val") as String, "foo1")
                 
-                if let scope = scope.scoped(on: "sub2") {
-                    XCTAssertEqual(scope.count, 2)
-                    XCTAssertEqual(scope.value(named: "id") as Int, 2)
-                    XCTAssertEqual(scope.value(named: "val") as String, "foo2")
+                if let row = row.scoped(on: "sub2") {
+                    XCTAssertEqual(row.count, 2)
+                    XCTAssertEqual(row.value(named: "id") as Int, 2)
+                    XCTAssertEqual(row.value(named: "val") as String, "foo2")
                 } else {
                     XCTFail()
                 }
@@ -464,9 +464,9 @@ class AdapterRowTests: GRDBTestCase {
                 XCTAssertEqual(copiedRow.value(named: "a") as Int, 0)
                 XCTAssertEqual(copiedRow.value(named: "b") as Int, 1)
                 XCTAssertEqual(copiedRow.value(named: "c") as Int, 2)
-                if let scope = copiedRow.scoped(on: "sub") {
-                    XCTAssertEqual(scope.count, 1)
-                    XCTAssertEqual(scope.value(named: "a") as Int, 1)
+                if let row = copiedRow.scoped(on: "sub") {
+                    XCTAssertEqual(row.count, 1)
+                    XCTAssertEqual(row.value(named: "a") as Int, 1)
                 }
             } else {
                 XCTFail()

@@ -10,10 +10,44 @@
     #endif
 #endif
 
+// MARK: - Scope
+
+/// TODO: documentation
+public final class Scope {
+    let name: String?
+    
+    init(_ name: String? = nil) {
+        self.name = name
+    }
+}
+
+extension Scope : Equatable { }
+
+// Two scopes are equal if and only if (they are the same instance), or (both are named, and the names are equal).
+public func == (lhs: Scope, rhs: Scope) -> Bool {
+    if lhs === rhs { return true }
+    if case let (lname?, rname?) = (lhs.name, rhs.name) where lname == rname { return true }
+    return false
+}
+
+extension Scope : Hashable {
+    public var hashValue: Int {
+        if let name = name {
+            return name.hashValue
+        } else {
+            return ObjectIdentifier(self).hashValue
+        }
+    }
+}
+
+
+// MARK: - ConcreteColumnMapping
+
 /// ConcreteColumnMapping is a type that supports the RowAdapter protocol.
 public struct ConcreteColumnMapping {
-    let columns: [(Int, String)]         // [(baseRowIndex, adaptedColumn), ...]
+    let mapping: [(Int, String)]                // [(baseRowIndex, adaptedColumn), ...]
     let lowercaseColumnIndexes: [String: Int]   // [adaptedColumn: adaptedRowIndex]
+    let failureColumnIndexes: [Int]             // indexes in baseRow. If non empty, and all columns are NULL, the mapping is "failed".
 
     /// Creates an ConcreteColumnMapping from an array of (index, name)
     /// pairs. In each pair:
@@ -37,21 +71,24 @@ public struct ConcreteColumnMapping {
     ///
     ///     // <Row foo:"foo" bar: "bar">
     ///     Row.fetchOne(db, "SELECT NULL, 'foo', 'bar'", adapter: FooBarAdapter())
-    public init(columns: [(Int, String)]) {
-        self.columns = columns
-        self.lowercaseColumnIndexes = Dictionary(keyValueSequence: columns.enumerate().map { ($1.1.lowercaseString, $0) }.reverse())
+    ///
+    /// TODO: document failureColumnIndexes
+    public init(mapping: [(Int, String)], failureColumnIndexes: [Int]? = nil) {
+        self.mapping = mapping
+        self.lowercaseColumnIndexes = Dictionary(keyValueSequence: mapping.enumerate().map { ($1.1.lowercaseString, $0) }.reverse())
+        self.failureColumnIndexes = failureColumnIndexes ?? mapping.map { (index, name) in index }
     }
 
     var count: Int {
-        return columns.count
+        return mapping.count
     }
 
     func baseColumIndex(adaptedIndex index: Int) -> Int {
-        return columns[index].0
+        return mapping[index].0
     }
 
     func columnName(adaptedIndex index: Int) -> String {
-        return columns[index].1
+        return mapping[index].1
     }
 
     func adaptedIndexOfColumn(named name: String) -> Int? {
@@ -70,10 +107,20 @@ extension ConcreteColumnMapping : ConcreteRowAdapter {
     }
     
     /// Part of the ConcreteRowAdapter protocol; returns the empty dictionary.
-    public var scopes: [String: ConcreteRowAdapter] {
+    public var scopes: [Scope: ConcreteRowAdapter] {
         return [:]
     }
+    
+    /// TODO: documentation
+    public func failed(row: Row) -> Bool {
+        // IMPORTANT: row has to be the base row
+        guard !failureColumnIndexes.isEmpty else { return false }
+        return !failureColumnIndexes.contains { row.value(atIndex: $0) != nil }
+    }
 }
+
+
+// MARK: - ConcreteRowAdapter
 
 /// ConcreteRowAdapter is a protocol that supports the RowAdapter protocol.
 ///
@@ -88,8 +135,14 @@ public protocol ConcreteRowAdapter {
     var concreteColumnMapping: ConcreteColumnMapping { get }
     
     /// A dictionary of scopes
-    var scopes: [String: ConcreteRowAdapter] { get }
+    var scopes: [Scope: ConcreteRowAdapter] { get }
+    
+    /// Used by joining API to recognize failed left joins.
+    func failed(row: Row) -> Bool
 }
+
+
+// MARK: - RowAdapter
 
 /// RowAdapter is a protocol that helps two incompatible row interfaces working
 /// together.
@@ -142,10 +195,28 @@ extension RowAdapter {
     ///
     /// - parameter scopes: A dictionary that maps scope names to
     ///   row adapters.
+    func addingScopes(scopes: [Scope: RowAdapter]) -> RowAdapter {
+        if scopes.isEmpty {
+            return self
+        } else {
+            return ScopeAdapter(mainAdapter: self, scopes: scopes)
+        }
+    }
+    
+    /// Returns an adapter based on self, with added scopes.
+    ///
+    /// If self already defines scopes, the added scopes replace
+    /// eventual existing scopes with the same name.
+    ///
+    /// - parameter scopes: A dictionary that maps scope names to
+    ///   row adapters.
     public func addingScopes(scopes: [String: RowAdapter]) -> RowAdapter {
-        return ScopeAdapter(mainAdapter: self, scopes: scopes)
+        return addingScopes(Dictionary(keyValueSequence: scopes.map { (Scope($0), $1) }))
     }
 }
+
+
+// MARK: - ColumnMapping
 
 /// ColumnMapping is a row adapter that maps column names.
 ///
@@ -166,7 +237,7 @@ public struct ColumnMapping : RowAdapter {
     
     /// Part of the RowAdapter protocol
     public func concreteRowAdapter(with statement: SelectStatement) throws -> ConcreteRowAdapter {
-        let columns = try mapping
+        let mapping = try self.mapping
             .map { (mappedColumn, baseColumn) -> (Int, String) in
                 guard let index = statement.indexOfColumn(named: baseColumn) else {
                     throw DatabaseError(code: SQLITE_MISUSE, message: "Mapping references missing column \(baseColumn). Valid column names are: \(statement.columnNames.joinWithSeparator(", ")).")
@@ -174,9 +245,12 @@ public struct ColumnMapping : RowAdapter {
                 return (index, mappedColumn)
             }
             .sort { $0.0 < $1.0 }
-        return ConcreteColumnMapping(columns: columns)
+        return ConcreteColumnMapping(mapping: mapping)
     }
 }
+
+
+// MARK: - SuffixRowAdapter
 
 /// SuffixRowAdapter is a row adapter that hides the first columns in a row.
 ///
@@ -188,22 +262,40 @@ public struct ColumnMapping : RowAdapter {
 public struct SuffixRowAdapter : RowAdapter {
     /// The suffix index
     let index: Int
+    let failureEndIndex: Int?
     
     /// Creates a SuffixRowAdapter that hides all columns before the
     /// provided index.
     ///
     /// If index is 0, the adapted row is identical to the original row.
     public init(fromIndex index: Int) {
+        self.init(fromIndex: index, failureEndIndex: nil)
+    }
+    
+    /// Creates a SuffixRowAdapter that hides all columns before the
+    /// provided index.
+    ///
+    /// If index is 0, the adapted row is identical to the original row.
+    ///
+    /// TODO: document failureEndIndex
+    public init(fromIndex index: Int, failureEndIndex: Int?) {
         GRDBPrecondition(index >= 0, "Negative column index is out of range")
         self.index = index
+        self.failureEndIndex = failureEndIndex
     }
     
     /// Part of the RowAdapter protocol
     public func concreteRowAdapter(with statement: SelectStatement) throws -> ConcreteRowAdapter {
         GRDBPrecondition(index <= statement.columnCount, "Column index is out of range")
-        return ConcreteColumnMapping(columns: statement.columnNames.suffixFrom(index).enumerate().map { ($0 + index, $1) })
+        let failureEndIndex = self.failureEndIndex ?? statement.columnCount
+        return ConcreteColumnMapping(
+            mapping: statement.columnNames.suffixFrom(index).enumerate().map { ($0 + index, $1) },
+            failureColumnIndexes: Array(index..<failureEndIndex))
     }
 }
+
+
+// MARK: - ScopeAdapter
 
 /// ScopeAdapter is a row adapter that lets you define scopes on rows.
 ///
@@ -233,18 +325,18 @@ public struct ScopeAdapter : RowAdapter {
     let mainAdapter: RowAdapter
     
     /// The scope adapters
-    let scopes: [String: RowAdapter]
+    let scopes: [Scope: RowAdapter]
     
     /// Creates a scoped adapter.
     ///
     /// - parameter scopes: A dictionary that maps scope names to
     ///   row adapters.
     public init(_ scopes: [String: RowAdapter]) {
-        self.mainAdapter = SuffixRowAdapter(fromIndex: 0)   // Use SuffixRowAdapter(fromIndex: 0) as the identity adapter
-        self.scopes = scopes
+        // Use SuffixRowAdapter(fromIndex: 0) as the identity adapter
+        self.init(mainAdapter: SuffixRowAdapter(fromIndex: 0), scopes: Dictionary(keyValueSequence: scopes.map { (Scope($0), $1) }))
     }
     
-    init(mainAdapter: RowAdapter, scopes: [String: RowAdapter]) {
+    init(mainAdapter: RowAdapter, scopes: [Scope: RowAdapter]) {
         self.mainAdapter = mainAdapter
         self.scopes = scopes
     }
@@ -253,8 +345,8 @@ public struct ScopeAdapter : RowAdapter {
     public func concreteRowAdapter(with statement: SelectStatement) throws -> ConcreteRowAdapter {
         let mainConcreteAdapter = try mainAdapter.concreteRowAdapter(with: statement)
         var concreteAdapterScopes = mainConcreteAdapter.scopes
-        for (name, adapter) in scopes {
-            try concreteAdapterScopes[name] = adapter.concreteRowAdapter(with: statement)
+        for (scope, adapter) in scopes {
+            try concreteAdapterScopes[scope] = adapter.concreteRowAdapter(with: statement)
         }
         return ConcreteScopeAdapter(
             concreteColumnMapping: mainConcreteAdapter.concreteColumnMapping,
@@ -265,8 +357,15 @@ public struct ScopeAdapter : RowAdapter {
 /// The concrete row adapter for ScopeAdapter
 struct ConcreteScopeAdapter : ConcreteRowAdapter {
     let concreteColumnMapping: ConcreteColumnMapping
-    let scopes: [String: ConcreteRowAdapter]
+    let scopes: [Scope: ConcreteRowAdapter]
+    
+    func failed(row: Row) -> Bool {
+        return concreteColumnMapping.failed(row)
+    }
 }
+
+
+// MARK: - Row
 
 extension Row {
     /// Creates a row from a base row and a statement adapter
@@ -314,14 +413,17 @@ struct AdapterRowImpl : RowImpl {
         return concreteColumnMapping.adaptedIndexOfColumn(named: name)
     }
 
-    func scoped(on name: String) -> Row? {
-        guard let concreteRowAdapter = concreteRowAdapter.scopes[name] else {
+    func scoped(on scope: Scope) -> Row? {
+        guard let concreteRowAdapter = concreteRowAdapter.scopes[scope] else {
+            return nil
+        }
+        if concreteRowAdapter.failed(baseRow) {
             return nil
         }
         return Row(baseRow: baseRow, concreteRowAdapter: concreteRowAdapter)
     }
     
-    var scopeNames: Set<String> {
+    var scopes: Set<Scope> {
         return Set(concreteRowAdapter.scopes.keys)
     }
     

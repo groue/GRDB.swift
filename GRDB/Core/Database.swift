@@ -883,6 +883,11 @@ extension Database {
         return primaryKey
     }
     
+    /// Returns the number of columns in a table
+    func numberOfColumns(tableName: String) throws -> Int {
+        return try columns(in: tableName).count
+    }
+    
     /// The columns in table named `tableName`.
     ///
     /// - throws: A DatabaseError if table does not exist.

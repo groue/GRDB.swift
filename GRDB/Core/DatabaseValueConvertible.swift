@@ -60,7 +60,7 @@ extension DatabaseValueConvertible {
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public var sqlExpression: _SQLExpression {
-        return .Value(self)
+        return .Value(databaseValue)
     }
 }
 
@@ -429,27 +429,3 @@ extension Optional where Wrapped: DatabaseValueConvertible {
         return fetchAll(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
-
-
-extension DatabaseValueConvertible {
-    /// self as an SQL literal, with proper escaping
-    ///
-    ///     "'foo'".sqlLiteral // "'''foo'''"
-    var sqlLiteral: String {
-        // Slow but reliable implementation.
-        return escapingConnection.inDatabase { db in
-            _ = Row.fetch(db, "SELECT ?", arguments: [self]).generate().next()
-            let index = lastEscapingSQL.startIndex.advancedBy(7)
-            assert(lastEscapingSQL.substringToIndex(index) == "SELECT ")
-            return lastEscapingSQL.substringFromIndex(index)
-        }
-    }
-}
-
-// Suport for DatabaseValueConvertible.sqlLiteral
-private var lastEscapingSQL: String = ""
-private let escapingConnection: DatabaseQueue = {
-    var configuration = Configuration()
-    configuration.trace = { lastEscapingSQL = $0 }
-    return DatabaseQueue(configuration: configuration)
-}()

@@ -1,3 +1,18 @@
+- [ ] Joins: why do we write A.filter { $0["name"] == "foo" } instead of A.filter { $0.value(named: "name") == "foo" }
+    - [ ] We'd thus also need A.filter { $0.value(nameColumn) == "foo" }
+    - [?] We'd thus also need A.filter { $0.value(atIndex: 0) == "foo" }
+    - [X] We'd thus also need Row.value(nameColumn)
+- [ ] Joins: see "Self Join / Tree example" in http://greenrobot.org/greendao/documentation/joins/
+– [ ] Joins: allow to give an alias, so that one can use an alias in an explicit SQL snippet
+    - [X] Person.include(Person.birthCountry.aliased("customCountryAlias"))
+    - [ ] Person.aliased("customPersonAlias").include(Person.birthCountry)
+- [ ] Join annotations: min, max, average
+- [ ] Join annotations: multiple annotations
+- [ ] Join annotations: expressions like count(relation) + 1
+- [ ] Joins: support for "through" relations, and especially have include/join methods apply to the target table, not the inner table. See also consequences on the required modifier.
+- [ ] Joins: the more I look at it, the more I think `A.join(r1.include(r2))` should not include r2 columns. After all, it reads `A.join(...)` and thus looks like it does not extend the selection.
+- [ ] Joins: Add fetchOne(key:), fetchAll(keys:), and fetch(keys:) to all requests. Goal: `Book.include(author).fetchOne(key: 1)`
+
 - [ ] @hdlj: Extensibility of the Query Interface
 - [ ] @hdlj: FetchedRecordsController throttling
 - [ ] @hdlj: Check RAM pressure
@@ -25,6 +40,7 @@
 
 Not sure
 
+- [ ] row.value(SQLColumn)
 - [X] Have Row adopt LiteralDictionaryConvertible
     - [ ] ... allowing non unique column names
 - [ ] Remove DatabaseValue.value()
