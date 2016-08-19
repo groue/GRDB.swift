@@ -1082,9 +1082,8 @@ row.value(atIndex: 0) as Grape?  // fatal error: could not convert "Syrah" to Gr
 row.value(atIndex: 0) as Grape   // fatal error: could not convert "Syrah" to Grape.
 
 let dbv = row.databaseValue(atIndex: 0)
-dbv.value() as String           // "Syrah"
-dbv.value() as Grape?           // fatal error: could not convert "Syrah" to Grape.
-Grape.fromDatabaseValue(dbv)    // nil
+String.fromDatabaseValue(dbv) // "Syrah"
+Grape.fromDatabaseValue(dbv)  // nil
 ```
 
 
