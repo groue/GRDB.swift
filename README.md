@@ -2724,7 +2724,7 @@ The draft documentation below focuses on SQL. Dear reader, it's better if you kn
 
 1. Start from SQL, and leak into application record objects (a general GRDB design decision)
 
-2. As a consequence of 1, focus on building join queries that populate an object graph.
+2. Focus on building join queries that populate an object graph.
 
     ```swift
     // Load all books along with their author
@@ -2734,7 +2734,7 @@ The draft documentation below focuses on SQL. Dear reader, it's better if you kn
     
     Note that support for "to-many" relations, as in "load all authors with all their books" is partial, to say the least: we can generate the SQL, but records would require a totally different fetching strategy (including performing several requests sometimes - see Rails' ActiveRecord).
 
-3. As a consequence of 1, grant access to the parts of a fetched row that come from a joined table, with *natural column names*. Use [Row Adapters](#row-adapters) for this task.
+3. Grant access to the parts of a fetched row that come from a joined table, with *natural column names*. Use [Row Adapters](#row-adapters) for this task.
     
     ```swift
     for row in Row.fetch(db, Book.include(author)) {
@@ -2742,10 +2742,13 @@ The draft documentation below focuses on SQL. Dear reader, it's better if you kn
         if let authorRow = row.scoped(on: author) {
             let authorId = row.value(named: "id")
         }
+        
+        let book = Book(row)
+        let author = row.scoped(on: author).flatMap { Author($0) }
     }
     ```
     
-    Let [RowConvertible](#rowconvertible-protocol) types access a joined record from their Row initializer.
+    When [RowConvertible](#rowconvertible-protocol) types load a joined record from their Row initializer, we get:
     
     ```swift
     for book in Book.include(author).fetch(db) {
