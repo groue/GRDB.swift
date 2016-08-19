@@ -5,7 +5,7 @@ GRDB.swift [![Swift](https://img.shields.io/badge/swift-3-orange.svg?style=flat)
 
 **Requirements**: iOS 8.0+ / OSX 10.9+ &bull; Xcode Version 8.0 beta 6 (8S201h) &bull; Swift 3.
 
-The Swift3 branch has no version. It is currently synced with v0.79.2 of the Swift 2.2 [main branch](https://github.com/groue/GRDB.swift).
+The Swift3 branch has no version. It is currently synced with v0.79.4 of the Swift 2.2 [main branch](https://github.com/groue/GRDB.swift).
 
 Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
