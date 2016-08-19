@@ -2871,7 +2871,7 @@ for book in request.fetch(db) {
 
 ### A Less Trivial Joined Query
 
-Now let's look a less trivial query. It will help us dig deeper in the joining API:
+Now let's look at a less trivial query. It will help us dig deeper in the joining API:
 
 ```sql
 -- All books along with their author, published in France since 2000
@@ -2944,7 +2944,7 @@ Let's describe all joining APIs: `Relation`, `include`, `join`, `on`, `select`, 
     Book.join(author)
     ```
     
-    Unused in our example, the reverse relation:
+    The reverse relation:
     
     ```swift
     let books = Relation(to: "books", columns: ["authorId"])
@@ -2952,12 +2952,14 @@ Let's describe all joining APIs: `Relation`, `include`, `join`, `on`, `select`, 
     Author.join(books)
     ```
     
-    In both cases above, the targetted primary key was implicit (all primary keys are supported). You can also be explicit about all joining columns:
+    In both cases above, the targetted primary key was implicit (all primary keys are supported, including composite ones). You can also be explicit about all joining columns:
     
     ```swift
     // Our author relation, with explicit target column:
     let author = Relation(to: "authors", columns: ["id"], fromColumns: ["authorId"])
     ```
+    
+    (TODO: look at the USING SQLite keyword)
     
     Actually any joining condition can be used, as long as it involves two tables: the left and the right (other joins are not supported):
     
