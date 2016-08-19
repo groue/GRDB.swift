@@ -2766,7 +2766,7 @@ The draft documentation below focuses on SQL. Dear reader, it's better if you kn
     
     ```swift
     let request = Person
-        .include(birthCountry.aliased("birthCountry"))
+        .join(birthCountry.aliased("birthCountry"))
         .filter(sql: "birthCountry.isoCode = ?", arguments: ["FR"])
     ```
 
@@ -3031,7 +3031,7 @@ Let's describe all joining APIs: `Relation`, `include`, `join`, `on`, `select`, 
     }
     ```
     
-    You use join the same *table* several times, using different relations:
+    The same *table* can be joined several times, using different relations:
     
     ```swift
     let mother = Relation(to: "persons", fromColumns: ["motherId"])
@@ -3043,7 +3043,7 @@ Let's describe all joining APIs: `Relation`, `include`, `join`, `on`, `select`, 
     }
     ```
     
-    You can join the same *relation* several times, at different nesting level:
+    The same *relation* can be joined several times, at different nesting level:
     
     ```swift
     let request = Person.include(
@@ -3057,7 +3057,7 @@ Let's describe all joining APIs: `Relation`, `include`, `join`, `on`, `select`, 
     }
     ```
     
-    ...But you can't join the same *relation* several times at the *same level* (because scoping could not work):
+    ...But you can't introduce scoping ambiguity:
     
     ```swift
     // Invalid (TODO: raise a fatal error)
@@ -3078,7 +3078,25 @@ Let's describe all joining APIs: `Relation`, `include`, `join`, `on`, `select`, 
     
 - `select { source in ... }`: chooses the selected columns
     
-    TODO
+    ```swift
+    // SELECT books.title, authors.name
+    // FROM books
+    // LEFT JOIN authors ON authors.id = books.authorID
+    let request = Book
+        .select { $0["title"] }
+        .include(author.select { $0["name"] })
+    ```
+    
+    If you already use SQLColumn, reuse them:
+    
+    ```swift
+    let title = SQLColumn("title")
+    let name = SQLColumn("name")
+    
+    let request = Book
+        .select { $0[title] }
+        .include(author.select { $0[name] })
+    ```
     
 - `filter { source in ... }`: filters the returned rows
     
@@ -3092,27 +3110,49 @@ Let's describe all joining APIs: `Relation`, `include`, `join`, `on`, `select`, 
         .filter(idColumn == 1)
     
     // SELECT books.*, authors.*
+    // FROM books
     // LEFT JOIN authors on authors.id = books.authorId
     // WHERE books.id = 1
     Book.include(author)
         .filter { source in source[idColumn] == 1 }
     
     // SELECT books.*, authors.*
+    // FROM books
     // LEFT JOIN authors on authors.id = books.authorId
     // WHERE authors.id = 1
     Book.include(author)
         .filter { source in source.scoped(on: author)[idColumn] == 1 }
     ```
 
+- `order { source in ... }`: order returned rows
+- `group { source in ... }`: groups returned rows
+- `having { source in ... }`: groups returned rows
+    
+    TODO: document that there are closures everywhere so that any joined table can be used in the ORDER, GROUP and HAVING clauses of the query.
+    
 - `aliased(name)`: explicit SQL alias. Since GRDB automatically handles table disambiguation, aliasing is only required when you want to provide SQL snippets and need to control the aliasing.
     
-    TODO
+    ```swift
+    // SELECT persons.*
+    // FROM authors
+    // LEFT JOIN countries birthCountry ON birthCountry.isoCode = persons.birthCountryIsoCode
+    // WHERE birthCountry.isoCode = 'FR'
+    let request = Person
+        .join(birthCountry.aliased("birthCountry"))
+        .filter(sql: "birthCountry.isoCode = ?", arguments: ["FR"])
+    ```
     
 - `annotate(...)`: grab aggregates from relations
     
     ```swift
+    // SELECT authors.*, COUNT(books.id) AS booksCount
+    // FROM authors
+    // LEFT JOIN books ON books.authorId = authors.id
+    // GROUP BY authors.id
     let authors = Author.annotate(count(books)).fetchAll(db)
     ```
+    
+    Support for annotations is barely implemented today.
 
 <p align="center"><strong>END OF DRAFT</strong></p>
 
