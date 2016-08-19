@@ -274,13 +274,19 @@ class RelationTests: GRDBTestCase {
             let leftRight = Node(name: "leftRight")
             let rightLeft = Node(name: "rightLeft")
             let rightRight = Node(name: "rightRight")
+            let leftLeftLeft = Node(name: "leftLeftLeft")
+            let rightRightRight = Node(name: "rightRightRight")
             try dbQueue.inDatabase { db in
+                try leftLeftLeft.insert(db)
+                leftLeft.leftId = leftLeftLeft.id
                 try leftLeft.insert(db)
                 try leftRight.insert(db)
                 left.leftId = leftLeft.id
                 left.rightId = leftRight.id
                 try left.insert(db)
                 
+                try rightRightRight.insert(db)
+                rightRight.rightId = rightRightRight.id
                 try rightLeft.insert(db)
                 try rightRight.insert(db)
                 right.leftId = rightLeft.id
@@ -327,7 +333,7 @@ class RelationTests: GRDBTestCase {
                     XCTAssertTrue(row.scoped(on: Node.left)!.value(named:"leftId") == left.leftId)
                     XCTAssertTrue(row.scoped(on: Node.left)!.value(named:"rightId") == left.rightId)
                     XCTAssertTrue(row.scoped(on: Node.left, Node.left)!.value(named:"id") == leftLeft.id)
-                    XCTAssertTrue(row.scoped(on: Node.left, Node.left)!.value(named:"leftId") == nil)
+                    XCTAssertTrue(row.scoped(on: Node.left, Node.left)!.value(named:"leftId") == leftLeftLeft.id)
                     XCTAssertTrue(row.scoped(on: Node.left, Node.left)!.value(named:"rightId") == nil)
                     XCTAssertTrue(row.scoped(on: Node.left, Node.right)!.value(named:"id") == leftRight.id)
                     XCTAssertTrue(row.scoped(on: Node.left, Node.right)!.value(named:"leftId") == nil)
@@ -340,7 +346,7 @@ class RelationTests: GRDBTestCase {
                     XCTAssertTrue(row.scoped(on: Node.right, Node.left)!.value(named:"rightId") == nil)
                     XCTAssertTrue(row.scoped(on: Node.right, Node.right)!.value(named:"id") == rightRight.id)
                     XCTAssertTrue(row.scoped(on: Node.right, Node.right)!.value(named:"leftId") == nil)
-                    XCTAssertTrue(row.scoped(on: Node.right, Node.right)!.value(named:"rightId") == nil)
+                    XCTAssertTrue(row.scoped(on: Node.right, Node.right)!.value(named:"rightId") == rightRightRight.id)
                 } else {
                     XCTFail()
                 }
@@ -350,9 +356,11 @@ class RelationTests: GRDBTestCase {
                     XCTAssertTrue(row.value(named:"leftId") == left.leftId)
                     XCTAssertTrue(row.value(named:"rightId") == left.rightId)
                     XCTAssertTrue(row.scoped(on: Node.left)!.value(named:"id") == leftLeft.id)
-                    XCTAssertTrue(row.scoped(on: Node.left)!.value(named:"leftId") == nil)
+                    XCTAssertTrue(row.scoped(on: Node.left)!.value(named:"leftId") == leftLeftLeft.id)
                     XCTAssertTrue(row.scoped(on: Node.left)!.value(named:"rightId") == nil)
-                    XCTAssertTrue(row.scoped(on: Node.left, Node.left) == nil)
+                    XCTAssertTrue(row.scoped(on: Node.left, Node.left)!.value(named:"id") == leftLeftLeft.id)
+                    XCTAssertTrue(row.scoped(on: Node.left, Node.left)!.value(named:"leftId") == nil)
+                    XCTAssertTrue(row.scoped(on: Node.left, Node.left)!.value(named:"rightId") == nil)
                     XCTAssertTrue(row.scoped(on: Node.left, Node.right) == nil)
                     XCTAssertTrue(row.scoped(on: Node.right)!.value(named:"id") == leftRight.id)
                     XCTAssertTrue(row.scoped(on: Node.right)!.value(named:"leftId") == nil)
@@ -365,9 +373,11 @@ class RelationTests: GRDBTestCase {
                 if let index = rows.indexOf({ $0.value(named:"id") == leftLeft.id }) {
                     let row = rows[index]
                     XCTAssertTrue(row.value(named:"id") == leftLeft.id)
-                    XCTAssertTrue(row.value(named:"leftId") == nil)
+                    XCTAssertTrue(row.value(named:"leftId") == leftLeftLeft.id)
                     XCTAssertTrue(row.value(named:"rightId") == nil)
-                    XCTAssertTrue(row.scoped(on: Node.left) == nil)
+                    XCTAssertTrue(row.scoped(on: Node.left)!.value(named:"id") == leftLeftLeft.id)
+                    XCTAssertTrue(row.scoped(on: Node.left)!.value(named:"leftId") == nil)
+                    XCTAssertTrue(row.scoped(on: Node.left)!.value(named:"rightId") == nil)
                     XCTAssertTrue(row.scoped(on: Node.left, Node.left) == nil)
                     XCTAssertTrue(row.scoped(on: Node.left, Node.right) == nil)
                     XCTAssertTrue(row.scoped(on: Node.right) == nil)
@@ -402,9 +412,11 @@ class RelationTests: GRDBTestCase {
                     XCTAssertTrue(row.scoped(on: Node.left, Node.right) == nil)
                     XCTAssertTrue(row.scoped(on: Node.right)!.value(named:"id") == rightRight.id)
                     XCTAssertTrue(row.scoped(on: Node.right)!.value(named:"leftId") == nil)
-                    XCTAssertTrue(row.scoped(on: Node.right)!.value(named:"rightId") == nil)
+                    XCTAssertTrue(row.scoped(on: Node.right)!.value(named:"rightId") == rightRightRight.id)
                     XCTAssertTrue(row.scoped(on: Node.right, Node.left) == nil)
-                    XCTAssertTrue(row.scoped(on: Node.right, Node.right) == nil)
+                    XCTAssertTrue(row.scoped(on: Node.right, Node.right)!.value(named:"id") == rightRightRight.id)
+                    XCTAssertTrue(row.scoped(on: Node.right, Node.right)!.value(named:"leftId") == nil)
+                    XCTAssertTrue(row.scoped(on: Node.right, Node.right)!.value(named:"rightId") == nil)
                 } else {
                     XCTFail()
                 }
@@ -426,11 +438,13 @@ class RelationTests: GRDBTestCase {
                     let row = rows[index]
                     XCTAssertTrue(row.value(named:"id") == rightRight.id)
                     XCTAssertTrue(row.value(named:"leftId") == nil)
-                    XCTAssertTrue(row.value(named:"rightId") == nil)
+                    XCTAssertTrue(row.value(named:"rightId") == rightRightRight.id)
                     XCTAssertTrue(row.scoped(on: Node.left) == nil)
                     XCTAssertTrue(row.scoped(on: Node.left, Node.left) == nil)
                     XCTAssertTrue(row.scoped(on: Node.left, Node.right) == nil)
-                    XCTAssertTrue(row.scoped(on: Node.right) == nil)
+                    XCTAssertTrue(row.scoped(on: Node.right)!.value(named:"id") == rightRightRight.id)
+                    XCTAssertTrue(row.scoped(on: Node.right)!.value(named:"leftId") == nil)
+                    XCTAssertTrue(row.scoped(on: Node.right)!.value(named:"rightId") == nil)
                     XCTAssertTrue(row.scoped(on: Node.right, Node.left) == nil)
                     XCTAssertTrue(row.scoped(on: Node.right, Node.right) == nil)
                 } else {
