@@ -263,3 +263,27 @@ extension DatabaseValue : CustomStringConvertible {
         }
     }
 }
+
+
+extension DatabaseValueConvertible {
+    /// self as an SQL literal, with proper escaping
+    ///
+    ///     "'foo'".databaseValue.sqlLiteral // "'''foo'''"
+    var sqlLiteral: String {
+        // Slow but reliable implementation.
+        return escapingConnection.inDatabase { db in
+            _ = Row.fetch(db, "SELECT ?", arguments: [self]).generate().next()
+            let index = lastEscapingSQL.startIndex.advancedBy(7)
+            assert(lastEscapingSQL.substringToIndex(index) == "SELECT ")
+            return lastEscapingSQL.substringFromIndex(index)
+        }
+    }
+}
+
+// Suport for DatabaseValueConvertible.sqlLiteral
+private var lastEscapingSQL: String = ""
+private let escapingConnection: DatabaseQueue = {
+    var configuration = Configuration()
+    configuration.trace = { lastEscapingSQL = $0 }
+    return DatabaseQueue(configuration: configuration)
+}()

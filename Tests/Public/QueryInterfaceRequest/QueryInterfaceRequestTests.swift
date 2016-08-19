@@ -245,21 +245,21 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(sql: "id <> 1")),
-            "SELECT * FROM \"readers\" WHERE id <> 1")
+            "SELECT * FROM \"readers\" WHERE (id <> 1)")
     }
     
     func testFilterLiteralWithPositionalArguments() {
         let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(sql: "id <> ?", arguments: [1])),
-            "SELECT * FROM \"readers\" WHERE id <> 1")
+            "SELECT * FROM \"readers\" WHERE (id <> 1)")
     }
     
     func testFilterLiteralWithNamedArguments() {
         let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(sql: "id <> :id", arguments: ["id": 1])),
-            "SELECT * FROM \"readers\" WHERE id <> 1")
+            "SELECT * FROM \"readers\" WHERE (id <> 1)")
     }
     
     func testFilter() {

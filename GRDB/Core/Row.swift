@@ -488,30 +488,54 @@ extension Row {
     // MARK: - Scopes
     
     /// Returns a scoped row, if the row was fetched along with a row adapter
-    /// that defines this scope.
+    /// that defines these scopes.
     ///
-    ///     // Two adapters
-    ///     let fooAdapter = ColumnMapping(["value": "foo"])
-    ///     let barAdapter = ColumnMapping(["value": "bar"])
+    /// TODO: link to high-level documentation
+    func scoped(on scopes: [Scope]) -> Row? {
+        guard let scope = scopes.first else {
+            return self
+        }
+        return impl.scoped(on: scope)?.scoped(on: Array(scopes.suffixFrom(1)))
+    }
+    
+    /// Returns a scoped row, if the row was fetched along with a row adapter
+    /// that defines these scopes.
     ///
-    ///     // Define scopes
-    ///     let adapter = ScopeAdapter([
-    ///         "foo": fooAdapter,
-    ///         "bar": barAdapter])
+    /// TODO: link to high-level documentation
+    func scoped(on scope: Scope) -> Row? {
+        return scoped(on: [scope])
+    }
+    
+    /// Returns a scoped row, if the row was fetched along with a row adapter
+    /// that defines these scopes.
     ///
-    ///     // Fetch
-    ///     let sql = "SELECT 'foo' AS foo, 'bar' AS bar"
-    ///     let row = Row.fetchOne(db, sql, adapter: adapter)!
+    /// TODO: link to high-level documentation
+    public func scoped(on scopes: [String]) -> Row? {
+        return scoped(on: scopes.map { Scope($0) })
+    }
+    
+    /// Returns a scoped row, if the row was fetched along with a row adapter
+    /// that defines these scopes.
     ///
-    ///     // Scoped rows:
-    ///     if let fooRow = row.scoped(on: "foo") {
-    ///         fooRow.value(named: "value")    // "foo"
-    ///     }
-    ///     if let barRow = row.scopeed(on: "bar") {
-    ///         barRow.value(named: "value")    // "bar"
-    ///     }
-    public func scoped(on name: String) -> Row? {
-        return impl.scoped(on: name)
+    /// TODO: link to high-level documentation
+    public func scoped(on scopes: String...) -> Row? {
+        return scoped(on: scopes.map { Scope($0) })
+    }
+    
+    /// Returns a scoped row, if the row was fetched along with a row adapter
+    /// that defines these scopes.
+    ///
+    /// TODO: link to high-level documentation
+    public func scoped(on relations: [Relation]) -> Row? {
+        return scoped(on: relations.map { $0.scope })
+    }
+    
+    /// Returns a scoped row, if the row was fetched along with a row adapter
+    /// that defines these scopes.
+    ///
+    /// TODO: link to high-level documentation
+    public func scoped(on relations: Relation...) -> Row? {
+        return scoped(on: relations)
     }
 }
 
@@ -828,15 +852,15 @@ public func ==(lhs: Row, rhs: Row) -> Bool {
         }
     }
     
-    let lscopeNames = lhs.impl.scopeNames
-    let rscopeNames = rhs.impl.scopeNames
-    guard lscopeNames == rscopeNames else {
+    let lscopes = lhs.impl.scopes
+    let rscopes = rhs.impl.scopes
+    guard lscopes == rscopes else {
         return false
     }
     
-    for name in lscopeNames {
-        let lscope = lhs.scoped(on: name)
-        let rscope = rhs.scoped(on: name)
+    for scope in lscopes {
+        let lscope = lhs.scoped(on: scope)
+        let rscope = rhs.scoped(on: scope)
         guard lscope == rscope else {
             return false
         }
@@ -898,9 +922,9 @@ protocol RowImpl {
     // leftmost column that matches *name*.
     func indexOfColumn(named name: String) -> Int?
     
-    func scoped(on name: String) -> Row?
+    func scoped(on scope: Scope) -> Row?
     
-    var scopeNames: Set<String> { get }
+    var scopes: Set<Scope> { get }
     
     // row.impl is guaranteed to be self.
     func copy(row: Row) -> Row
@@ -941,11 +965,11 @@ private struct DictionaryRowImpl : RowImpl {
         return dictionary.startIndex.distanceTo(index)
     }
     
-    func scoped(on name: String) -> Row? {
+    func scoped(on scope: Scope) -> Row? {
         return nil
     }
     
-    var scopeNames: Set<String> {
+    var scopes: Set<Scope> {
         return []
     }
     
@@ -990,11 +1014,11 @@ private struct StatementCopyRowImpl : RowImpl {
         return columnNames.indexOf { $0.lowercaseString == lowercaseName }
     }
     
-    func scoped(on name: String) -> Row? {
+    func scoped(on scope: Scope) -> Row? {
         return nil
     }
     
-    var scopeNames: Set<String> {
+    var scopes: Set<Scope> {
         return []
     }
     
@@ -1049,11 +1073,11 @@ private struct StatementRowImpl : RowImpl {
         return lowercaseColumnIndexes[name.lowercaseString]
     }
     
-    func scoped(on name: String) -> Row? {
+    func scoped(on scope: Scope) -> Row? {
         return nil
     }
     
-    var scopeNames: Set<String> {
+    var scopes: Set<Scope> {
         return []
     }
     
@@ -1083,11 +1107,11 @@ private struct EmptyRowImpl : RowImpl {
         return nil
     }
     
-    func scoped(on name: String) -> Row? {
+    func scoped(on scope: Scope) -> Row? {
         return nil
     }
     
-    var scopeNames: Set<String> {
+    var scopes: Set<Scope> {
         return []
     }
     

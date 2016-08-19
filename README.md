@@ -691,7 +691,7 @@ Generally speaking, you can extract the type you need, *provided it can be conve
 - **Invalid conversions throw a fatal error.**
     
     ```swift
-    let row = Row.fetchOne(db, "SELECT 'foo'")!
+    let row = Row.fetchOne(db, "SELECT 'Mom’s birthday'")!
     row.value(atIndex: 0) as String  // "foo"
     row.value(atIndex: 0) as NSDate? // fatal error: could not convert "foo" to NSDate.
     row.value(atIndex: 0) as NSDate  // fatal error: could not convert "foo" to NSDate.
@@ -2137,6 +2137,7 @@ So don't miss the [SQL API](#sqlite-api).
 - [Fetching from Requests](#fetching-from-requests)
 - [Fetching by Primary Key](#fetching-by-primary-key)
 - [Fetching Aggregated Values](#fetching-aggregated-values)
+- [Relations and Joins](#relations-and-joins)
 
 
 ## Database Schema
@@ -2692,6 +2693,477 @@ let row = Row.fetchOne(db, request)!
 let minHeight = row.value(atIndex: 0) as Double?
 let maxHeight = row.value(atIndex: 1) as Double?
 ```
+
+## Relations and Joins
+
+So far, we have only seen fetch requests from a single database table. Now we'll discuss requests that involve several. For example:
+
+```swift
+// Load all authors along with their number of books:
+let authors = Author.annotate(count(books)).fetchAll(db)
+
+// Load all books along with their author:
+let books = Book.include(author).fetchAll(db)
+```
+
+---
+
+<p align="center"><strong>DRAFT</strong></p>
+
+Until a not too bad documentation is written, let's write a bad one.
+
+The draft documentation below focuses on SQL. Dear reader, it's better if you know:
+
+- the difference between a JOIN and a LEFT JOIN
+- the difference between an ON and a WHERE clause
+- how to read [GRDB rows](#row-queries)
+- that [Row Adapters](#row-adapters) exist
+
+**The goals of the joining API are:**
+
+1. Start from SQL, and leak into application record objects (a general GRDB design decision)
+
+2. Focus on building join queries that populate an object graph.
+
+    ```swift
+    // Load all books along with their author
+    let books = Book.include(author).fetchAll(db)
+    let book = Book.include(author).fetchOne(db, key: 1) // TODO: not implemented yet
+    ```
+    
+    Note that support for "to-many" relations, as in "load all authors with all their books" is partial, to say the least: we can generate the SQL, but records would require a totally different fetching strategy (including performing several requests sometimes - see Rails' ActiveRecord).
+
+3. Grant access to the parts of a fetched row that come from a joined table, with *natural column names*. Use [Row Adapters](#row-adapters) for this task.
+    
+    ```swift
+    for row in Row.fetch(db, Book.include(author)) {
+        let bookId = row.value(named: "id")
+        if let authorRow = row.scoped(on: author) {
+            let authorId = row.value(named: "id")
+        }
+        
+        let book = Book(row)
+        let author = row.scoped(on: author).flatMap { Author($0) }
+    }
+    ```
+    
+    When [RowConvertible](#rowconvertible-protocol) types load a joined record from their Row initializer, we get:
+    
+    ```swift
+    for book in Book.include(author).fetch(db) {
+        book        // Book
+        book.author // Author
+    }
+    ```
+
+4. Support arbitrarily deep join trees: any table can have as many joined tables, recursively:
+    
+    ```swift
+    let request = Node.include(
+        left.include(left, right),
+        right.include(left, right))
+    ```
+
+5. Allow the developer to totally ignore SQL table aliases. Navigation in the query is based on a "scoping tree" instead (see above the example of nested relations). Still, allow explicit aliases when the developer wants to use SQL snippets in his joined queries.
+    
+    ```swift
+    let request = Person
+        .join(birthCountry.aliased("birthCountry"))
+        .filter(sql: "birthCountry.isoCode = ?", arguments: ["FR"])
+    ```
+
+6. Allow custom filtering on joined tables, both in ON clauses (considered an advanced use case), and in WHERE clauses (considered the most common use case).
+
+    ```swift
+    let request = Person
+        .include(birthCountry)
+        .filter { source in
+            let country = source.scoped(on: birthCountry)
+            return country["isoCode"] == "FR"
+        }
+    ```
+    
+    (TODO: there is a better name than "source")
+
+7. Allow precise selection of joined columns
+    
+    (TODO: quick example)
+
+8. Dedicated API for aggregates, as in [Django ORM](https://docs.djangoproject.com/en/1.10/topics/db/aggregation/).
+
+    ```swift
+    // Load authors with their number of books
+    let authors = Author.annotate(count(books)).fetchAll(db)
+    ```
+
+TODO: list todos and known issues/caveats
+
+
+### A Trivial Joined Query
+
+Let's start with a simple example:
+
+```sql
+-- All books along with their author:
+SELECT books.*, authors.*
+FROM books
+LEFT JOIN authors ON authors.id = books.authorId
+```
+
+Let's look at the Swift code that generates this query, and consumes its results.
+
+First the setup. As a starting point, we need a type that adopts [TableMapping](#tablemapping-protocol), such as the Record class. And a relation that allow jumping from the "books" table to the "authors" table:
+
+```swift
+class Book : Record { ... }
+let author = Relation(to: "authors", fromColumns: ["authorId"])
+```
+
+Then we can build the request:
+
+```swift
+let request = Book.include(author)
+```
+
+We can now fetch database rows, and consume author's columns with **row scoping** (see [Row Adapters](#row-adapters)):
+
+```swift
+for row in Row.fetch(db, request) {
+    // Book's columns
+    let bookId: Int64 = row.value(named: "id")
+    
+    // Use the joined relation as a scope to access author's columns:
+    if let authorRow = row.scoped(on: author) {
+        let authorId: Int64 = row.value(named: "id")
+    }
+}
+```
+
+Fetching [RowConvertible](#rowconvertible-protocol) records is now trivial:
+
+```swift
+for row in Row.fetch(db, request) {
+    let book = Book(row)
+    let author = row.scoped(on: author).flatMap { Author($0) }
+}
+```
+
+With the right initializer, it's even better:
+
+```swift
+// Have Book row initializer consumes author columns:
+class Book {
+    init(_ row: Row) {
+        id = row.value(named: "id")
+        title = row.value(named: "title")
+        author = row.scoped(on: author).flatMap { Author($0) }
+        super.init(row)
+    }
+}
+
+for book in request.fetch(db) {
+    print(book)
+    print(book.author)
+}
+```
+
+
+### A Less Trivial Joined Query
+
+Now let's look at a less trivial query. It will help us dig deeper in the joining API:
+
+```sql
+-- All books along with their author, published in France since 2000
+SELECT books.*, authors.*
+FROM books
+LEFT JOIN authors ON authors.id = books.authorId
+LEFT JOIN publishers ON publishers.id = books.publisherId
+WHERE books.year >= 2000 AND publishers.country = 'FR'
+```
+
+The setup is similar: a type that adopts TableMapping as a starting point, and, this time, two relations that allow jumping from a table to another:
+
+```swift
+class Book : Record { ... }
+let author = Relation(to: "authors", fromColumns: ["authorId"])
+let publisher = Relation(to: "publishers", fromColumns: ["publisherId"])
+```
+
+The request:
+
+```swift
+let request = Book
+    .include(author)
+    .join(publisher)
+    .filter { source in
+        let bookYear = source["year"]
+        let publisherCountry = source.scoped(on: publisher)["country"]
+        return bookYear >= 2000 && publisherCountry == "FR"
+    }
+```
+
+Now it's time to describe the new APIs with more details. We have already seen Relations, which link a table to another:
+
+```swift
+let author = Relation(to: "authors", fromColumns: ["authorId"])
+let publisher = Relation(to: "publishers", fromColumns: ["publisherId"])
+```
+
+Those relations are consumed by the `include` and `join` methods:
+
+```swift
+Book.include(author) // joins and adds authors.* to the selection
+    .join(publisher) // joins but does not add publishers.* to the selection
+```
+
+The filter() function takes a closure that yields a "source". This source can be scoped on relations, just like the consumed rows we have seen above, and is used to specify the columns involved in the final WHERE clause:
+
+```swift
+Book...filter { source in
+    let bookYear = source["year"]
+    let publisherCountry = source.scoped(on: publisher)["country"]
+    return bookYear >= 2000 && publisherCountry == "FR"
+}
+```
+
+**Reference**
+
+Let's describe all joining APIs: `Relation`, `include`, `join`, `on`, `select`, `filter`, `aliased`, `annotate` methods.
+
+
+- `Relation`
+    
+    **A relation defines a join from a left table to a right table.**
+    
+    A common use case is joining from a column of the left table to the primary key of the right table: 
+    
+    ```swift
+    let author = Relation(to: "authors", fromColumns: ["authorId"])
+    // ... LEFT JOIN authors ON authors.id = books.authorId
+    Book.join(author)
+    ```
+    
+    The reverse relation:
+    
+    ```swift
+    let books = Relation(to: "books", columns: ["authorId"])
+    // ... LEFT JOIN books ON books.authorId = authors.id
+    Author.join(books)
+    ```
+    
+    In both cases above, the targetted primary key was implicit (all primary keys are supported, including composite ones). You can also be explicit about all joining columns:
+    
+    ```swift
+    // Our author relation, with explicit target column:
+    let author = Relation(to: "authors", columns: ["id"], fromColumns: ["authorId"])
+    ```
+    
+    (TODO: look at the USING SQLite keyword)
+    
+    Actually any joining condition can be used, as long as it involves two tables: the left and the right (other joins are not supported):
+    
+    ```swift
+    // Yet another way to declare our author relation:
+    let author = Relation(to: "authors") { (left, right) in
+        left["authorId"] == right["id"]
+    }
+    ```
+    
+    The `left` and `right` closure arguments above are **Sources**. Basically sources are there to target specific columns in specific tables. They hide table aliases inside. We'll see them often in the rest of this documentation.
+    
+    The left table of a join is not named in a Relation definition. It is because the left table is provided at the call site, when you actually use relations:
+    
+    ```swift
+    let author = Relation(to: "authors", fromColumns: ["authorId"])
+    // ... LEFT JOIN authors ON authors.id = books.authorId
+    Book.join(author)
+    // ... LEFT JOIN authors ON authors.id = paintings.authorId
+    Painting.join(author)
+    ```
+    
+- `include(relation, ...)`: adds a LEFT JOIN and selects the joined table columns:
+    
+    ```swift
+    // SELECT books.*, authors.*
+    // FROM books
+    // LEFT JOIN authors ON authors.id = books.authorID
+    let request = Book.include(author)
+    ```
+    
+    When you consume fetched rows, you access an author's columns by *scoping* a row on the author relation:
+    
+    ```swift
+    for row in Row.fetch(db, request) {
+        let bookId = row.value(named: "id")             // the book id
+        if let authorRow = row.scoped(on: author) {
+            let authorId = authorRow.value(named: "id") // the author id
+        }
+    }
+    ```
+    
+    The `row.scoped(on:)` method grants access to the row parts that comes from each joined relation.
+    
+    It returns a non-nil row if and only if the scope is present in the request's scoping tree, and the join has found a matching row (LEFT JOINs may not find a matching row).
+    
+    You can join several tables:
+    
+    ```swift
+    // SELECT books.*, authors.*
+    // FROM books
+    // LEFT JOIN authors ON authors.id = books.authorID
+    // LEFT JOIN publishers ON publishers.id = books.publisherID
+    let request = Book.include(author, publisher)
+    for row in Row.fetch(db, request) {
+        let authorRow = row.scoped(on: author)
+        let publisherRow = row.scoped(on: publisher)
+    }
+    ```
+    
+    When you nest joins, scopes are nested as well:
+    
+    ```swift
+    // SELECT books.*, authors.*, agents.*
+    // FROM books
+    // LEFT JOIN authors ON authors.id = books.authorID
+    // LEFT JOIN agents ON agents.id = authors.agentID
+    let request = Book.include(author.include(agent))
+    for row in Row.fetch(db, request) {
+        if let authorRow = row.scoped(on: author) {
+            let agentRow = authorRow.scoped(on: agent) // agent through author
+        }
+        let agentRow = row.scoped(on: author, agent)   // direct access to agent 
+    }
+    ```
+    
+    The same *table* can be joined several times, using different relations:
+    
+    ```swift
+    let mother = Relation(to: "persons", fromColumns: ["motherId"])
+    let father = Relation(to: "persons", fromColumns: ["fatherId"])
+    let request = Person.include(mother, father)
+    for row in Row.fetch(db, request) {
+        let fatherRow = row.scoped(on: father)
+        let motherRow = row.scoped(on: mother)
+    }
+    ```
+    
+    The same *relation* can be joined several times, at different nesting level:
+    
+    ```swift
+    let request = Person.include(
+        mother.include(mother, father),
+        father.include(mother, father))
+    for row in Row.fetch(db, request) {
+        let fatherRow = row.scoped(on: father)
+        let motherRow = row.scoped(on: mother)
+        let paternalGrandFather = row.scoped(on: father, father)
+        let maternalGrandFather = row.scoped(on: mother, father)
+    }
+    ```
+    
+    ...But you can't introduce scoping ambiguity:
+    
+    ```swift
+    // Invalid (TODO: raise a fatal error)
+    let request = Person.include(father, father)
+    ```
+
+- `include(required: relation, ...)`: adds a JOIN and selects the joined table columns
+    
+    TODO
+    
+- `join(relation, ...)`: adds a LEFT JOIN, and does not select the joined table columns
+    
+    TODO
+    
+- `join(required: relation, ...)`: adds a JOIN, and does not select the joined table columns
+    
+    TODO
+    
+- `select { source in ... }`: chooses the selected columns
+    
+    ```swift
+    // SELECT books.id, books.title, authors.name
+    // FROM books
+    // LEFT JOIN authors ON authors.id = books.authorID
+    let request = Book
+        .select { [$0["id"], $0["title"]] }
+        .include(author.select { $0["name"] })
+    ```
+    
+    If you already use SQLColumn, reuse them:
+    
+    ```swift
+    let id = SQLColumn("id")
+    let title = SQLColumn("title")
+    let name = SQLColumn("name")
+    
+    let request = Book
+        .select { [$0[id], $0[title]] }
+        .include(author.select { $0[name] })
+    ```
+    
+    TODO: we really need some sugar here. All those brackets and dollar signs hurt legibility. Is `Book.select(id, title).include(author.select(name))` so hard? Beware that we select expressions, not columns, and injecting an implicit source in an expression may not be very very easy either: `Book.select(id + 1, title.uppercaseString)`.
+    
+- `filter { source in ... }`: filters the returned rows
+    
+    The closure allows you to access a specific column of a specific joined relation without any ambiguity.
+    
+    ```swift
+    let idColumn = SQLColumn("id")
+    
+    // Error: ambiguous column "id"
+    Book.include(author)
+        .filter(idColumn == 1)
+    
+    // SELECT books.*, authors.*
+    // FROM books
+    // LEFT JOIN authors on authors.id = books.authorId
+    // WHERE books.id = 1
+    Book.include(author)
+        .filter { source in source[idColumn] == 1 }
+    
+    // SELECT books.*, authors.*
+    // FROM books
+    // LEFT JOIN authors on authors.id = books.authorId
+    // WHERE authors.id = 1
+    Book.include(author)
+        .filter { source in source.scoped(on: author)[idColumn] == 1 }
+    ```
+
+- `order { source in ... }`: order returned rows
+- `group { source in ... }`: groups returned rows
+- `having { source in ... }`: groups returned rows
+    
+    TODO: document that there are closures everywhere so that any joined table can be used in the ORDER, GROUP and HAVING clauses of the query.
+    
+- `aliased(name)`: explicit SQL alias. Since GRDB automatically handles table disambiguation, aliasing is only required when you want to provide SQL snippets and need to control the aliasing.
+    
+    ```swift
+    // SELECT persons.*
+    // FROM authors
+    // LEFT JOIN countries birthCountry ON birthCountry.isoCode = persons.birthCountryIsoCode
+    // WHERE birthCountry.isoCode = 'FR'
+    let request = Person
+        .join(birthCountry.aliased("birthCountry"))
+        .filter(sql: "birthCountry.isoCode = ?", arguments: ["FR"])
+    ```
+    
+- `annotate(...)`: grab aggregates from relations
+    
+    ```swift
+    // SELECT authors.*, COUNT(books.id) AS booksCount
+    // FROM authors
+    // LEFT JOIN books ON books.authorId = authors.id
+    // GROUP BY authors.id
+    let authors = Author.annotate(count(books)).fetchAll(db)
+    ```
+    
+    Support for annotations is barely implemented today.
+
+<p align="center"><strong>END OF DRAFT</strong></p>
+
+---
 
 
 Application Tools
@@ -3426,7 +3898,7 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
 - The code asks for an NSDate, when the database contains garbage:
     
     ```swift
-    // fatal error: could not convert "Mom's birthday" to NSDate.
+    // fatal error: could not convert "Mom’s birthday" to NSDate.
     let date: NSDate? = row.value(named: "date")
     ```
     
