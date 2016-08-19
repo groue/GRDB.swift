@@ -3079,24 +3079,27 @@ Let's describe all joining APIs: `Relation`, `include`, `join`, `on`, `select`, 
 - `select { source in ... }`: chooses the selected columns
     
     ```swift
-    // SELECT books.title, authors.name
+    // SELECT books.id, books.title, authors.name
     // FROM books
     // LEFT JOIN authors ON authors.id = books.authorID
     let request = Book
-        .select { $0["title"] }
+        .select { [$0["id"], $0["title"]] }
         .include(author.select { $0["name"] })
     ```
     
     If you already use SQLColumn, reuse them:
     
     ```swift
+    let id = SQLColumn("id")
     let title = SQLColumn("title")
     let name = SQLColumn("name")
     
     let request = Book
-        .select { $0[title] }
+        .select { [$0[id], $0[title]] }
         .include(author.select { $0[name] })
     ```
+    
+    TODO: we really need some sugar here. All those brackets and dollar signs hurt legibility. Is `Book.select(id, title).include(author.select(name))` so hard? Beware that we select expressions, not columns, and injecting an implicit source in an expression may not be very very easy either: `Book.select(id + 1, title.uppercaseString)`.
     
 - `filter { source in ... }`: filters the returned rows
     
