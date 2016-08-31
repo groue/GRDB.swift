@@ -1,7 +1,10 @@
-- [ ] Partial update. update(db) should call update(db, columns: [String]) (single point of override)
-    - [ ] cache columns
-    - [ ] columns should be case-insensitive
-- [ ] Fix "More, when you're interested in specific table columns, you're out of luck, because databaseDidChange does not know about columns: it just knows that a row has been inserted, deleted, or updated, without further detail"
+- [ ] @hdlj: Extensibility of the Query Interface
+- [ ] @hdlj: FetchedRecordsController throttling
+- [ ] @hdlj: Check RAM pressure
+- [ ] DatabasePool: attempt to read from the database in DatabasePool.init(). Don't crash, but throw eventual error instead. (Related issue: https://github.com/groue/GRDB.swift/issues/99)
+- [ ] Test Row(SQLColumn)
+- [ ] Persistable partial update: allow models whose persistentDictionary only contains a subset of table columns (and count of default value)
+- [ ] What is the behavior inTransaction and inSavepoint behaviors in case of commit error? Code looks like we do not rollback, leaving the app in a weird state (out of Swift transaction block with a SQLite transaction that may still be opened).
 - [ ] GRDBCipher: remove limitations on iOS or OS X versions
 - [ ] FetchedRecordsController: take inspiration from https://github.com/jflinter/Dwifft
 - [ ] File protection: Read https://github.com/ccgus/fmdb/issues/262 and understand https://lists.apple.com/archives/cocoa-dev/2012/Aug/msg00527.html
@@ -22,7 +25,10 @@
 
 Not sure
 
+- [X] Have Row adopt LiteralDictionaryConvertible
+    - [ ] ... allowing non unique column names
 - [ ] Remove DatabaseValue.value()
+    - [X] Don't talk about DatabaseValue.value() in README.md
 - [ ] Move Database Events filtering to the TransactionObserverType protocol
 - [ ] Support for NSColor/UIColor. Beware UIColor components can go beyond [0, 1.0] in iOS10.
 
@@ -49,3 +55,4 @@ Reading list:
 - https://sqlite.org/sharedcache.html
 - Amazing tip from Xcode labs: add a EXCLUDED_SOURCE_FILE_NAMES build setting to conditionally exclude sources for different configuration: https://twitter.com/zats/status/74386298602026496
 - SQLITE_ENABLE_SQLLOG: http://mjtsai.com/blog/2016/07/19/sqlite_enable_sqllog/
+- [Writing High-Performance Swift Code](https://github.com/apple/swift/blob/master/docs/OptimizationTips.rst)

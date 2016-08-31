@@ -17,12 +17,12 @@ public final class Row {
     
     // MARK: - Building rows
     
-    /// Builds an empty row.
+    /// Creates an empty row.
     public convenience init() {
         self.init(impl: EmptyRowImpl())
     }
     
-    /// Builds a row from a dictionary of values.
+    /// Creates a row from a dictionary of values.
     public convenience init(_ dictionary: [String: DatabaseValueConvertible?]) {
         self.init(impl: DictionaryRowImpl(dictionary: dictionary))
     }
@@ -59,7 +59,8 @@ public final class Row {
         statementRef?.release()
     }
     
-    /// Builds a row from the an SQLite statement.
+    /// Creates a row that maps an SQLite statement. Further calls to
+    /// sqlite3_step() modify the row.
     ///
     /// The row is implemented on top of StatementRowImpl, which grants *direct*
     /// access to the SQLite statement. Iteration of the statement does modify
@@ -71,7 +72,8 @@ public final class Row {
         self.impl = StatementRowImpl(sqliteStatement: statement.sqliteStatement, statementRef: statementRef)
     }
     
-    /// Builds a row from the *current state* of the SQLite statement.
+    /// Creates a row that contain a copy of the current state of the
+    /// SQLite statement. Further calls to sqlite3_step() do not modify the row.
     ///
     /// The row is implemented on top of StatementCopyRowImpl, which *copies*
     /// the values from the SQLite statement so that further iteration of the
@@ -80,7 +82,7 @@ public final class Row {
         self.init(impl: StatementCopyRowImpl(sqliteStatement: sqliteStatement, columnNames: statementRef.takeUnretainedValue().columnNames))
     }
     
-    /// Builds a row from the *current state* of the SQLite statement.
+    /// Creates a row from the *current state* of the SQLite statement.
     ///
     /// The row is implemented on top of StatementCopyRowImpl, which *copies*
     /// the values from the SQLite statement so that further iteration of the
@@ -289,6 +291,80 @@ extension Row {
         return fastValue(atUncheckedIndex: index)
     }
     
+    /// Returns Int64, Double, String, NSData or nil, depending on the value
+    /// stored at the given column.
+    ///
+    /// Column name lookup is case-insensitive, and when several columns have
+    /// the same name, the leftmost column is considered.
+    ///
+    /// The result is nil if the row does not contain the column.
+    @warn_unused_result
+    public func value(column: SQLColumn) -> DatabaseValueConvertible? {
+        return value(named: column.name)
+    }
+    
+    /// Returns the value at given column, converted to the requested type.
+    ///
+    /// Column name lookup is case-insensitive, and when several columns have
+    /// the same name, the leftmost column is considered.
+    ///
+    /// If the column is missing or if the SQLite value is NULL, the result is
+    /// nil. Otherwise the SQLite value is converted to the requested type
+    /// `Value`. Should this conversion fail, a fatal error is raised.
+    @warn_unused_result
+    public func value<Value: DatabaseValueConvertible>(column: SQLColumn) -> Value? {
+        return value(named: column.name)
+    }
+    
+    /// Returns the value at given column, converted to the requested type.
+    ///
+    /// Column name lookup is case-insensitive, and when several columns have
+    /// the same name, the leftmost column is considered.
+    ///
+    /// If the column is missing or if the SQLite value is NULL, the result is
+    /// nil. Otherwise the SQLite value is converted to the requested type
+    /// `Value`. Should this conversion fail, a fatal error is raised.
+    ///
+    /// This method exists as an optimization opportunity for types that adopt
+    /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
+    /// (see https://www.sqlite.org/datatype3.html).
+    @warn_unused_result
+    public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(column: SQLColumn) -> Value? {
+        return value(named: column.name)
+    }
+    
+    /// Returns the value at given column, converted to the requested type.
+    ///
+    /// Column name lookup is case-insensitive, and when several columns have
+    /// the same name, the leftmost column is considered.
+    ///
+    /// If the row does not contain the column, a fatal error is raised.
+    ///
+    /// This method crashes if the fetched SQLite value is NULL, or if the
+    /// SQLite value can not be converted to `Value`.
+    @warn_unused_result
+    public func value<Value: DatabaseValueConvertible>(column: SQLColumn) -> Value {
+        return value(named: column.name)
+    }
+    
+    /// Returns the value at given column, converted to the requested type.
+    ///
+    /// Column name lookup is case-insensitive, and when several columns have
+    /// the same name, the leftmost column is considered.
+    ///
+    /// If the row does not contain the column, a fatal error is raised.
+    ///
+    /// This method crashes if the fetched SQLite value is NULL, or if the
+    /// SQLite value can not be converted to `Value`.
+    ///
+    /// This method exists as an optimization opportunity for types that adopt
+    /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
+    /// (see https://www.sqlite.org/datatype3.html).
+    @warn_unused_result
+    public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(column: SQLColumn) -> Value {
+        return value(named: column.name)
+    }
+    
     /// Returns the optional `NSData` at given index.
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
@@ -322,6 +398,22 @@ extension Row {
             return nil
         }
         return impl.dataNoCopy(atIndex: index)
+    }
+    
+    /// Returns the optional `NSData` at given column.
+    ///
+    /// Column name lookup is case-insensitive, and when several columns have
+    /// the same name, the leftmost column is considered.
+    ///
+    /// If the column is missing or if the SQLite value is NULL, the result is
+    /// nil. If the SQLite value can not be converted to NSData, a fatal error
+    /// is raised.
+    ///
+    /// The returned data does not owns its bytes: it must not be used longer
+    /// than the row's lifetime.
+    @warn_unused_result
+    public func dataNoCopy(column: SQLColumn) -> NSData? {
+        return dataNoCopy(named: column.name)
     }
 }
 
@@ -665,6 +757,14 @@ extension Row {
     }
 }
 
+extension Row : DictionaryLiteralConvertible {
+    
+    /// Creates a row initialized with elements.
+    public convenience init(dictionaryLiteral elements: (String, DatabaseValueConvertible?)...) {
+        self.init(Dictionary(keyValueSequence: elements))
+    }
+}
+
 extension Row : CollectionType {
     
     // MARK: - Row as a Collection of (ColumnName, DatabaseValue) Pairs
@@ -863,7 +963,7 @@ private struct StatementCopyRowImpl : RowImpl {
     init(sqliteStatement: SQLiteStatement, columnNames: [String]) {
         assert(sqliteStatement != nil)
         let sqliteStatement = sqliteStatement
-        self.databaseValues = ContiguousArray((0..<sqlite3_column_count(sqliteStatement)).lazy.map { DatabaseValue(sqliteStatement: sqliteStatement, index: $0) })
+        self.databaseValues = ContiguousArray((0..<sqlite3_column_count(sqliteStatement)).map { DatabaseValue(sqliteStatement: sqliteStatement, index: $0) } as [DatabaseValue])
         self.columnNames = columnNames
     }
     

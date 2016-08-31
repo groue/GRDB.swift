@@ -172,10 +172,10 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 return .Rollback
             }
             
-            // "fooéı👨👨🏿🇫🇷🇨🇮" is turned to Text
+            // "'fooéı👨👨🏿🇫🇷🇨🇮'" is turned to Text
             
             try dbQueue.inTransaction { db in
-                try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: ["fooéı👨👨🏿🇫🇷🇨🇮"])
+                try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: ["'fooéı👨👨🏿🇫🇷🇨🇮'"])
                 let dbv = Row.fetchOne(db, "SELECT textAffinity FROM `values`")!.first!.1   // first is (columnName, dbv)
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Text)
                 
@@ -185,11 +185,11 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(Int32.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Int64.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Double.fromDatabaseValue(dbv) == nil)
-                XCTAssertEqual(String.fromDatabaseValue(dbv)!, "fooéı👨👨🏿🇫🇷🇨🇮")
+                XCTAssertEqual(String.fromDatabaseValue(dbv)!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
                 XCTAssertTrue(NSData.fromDatabaseValue(dbv) == nil)
                 
-                XCTAssertEqual((dbv.value() as String?)!, "fooéı👨👨🏿🇫🇷🇨🇮")
-                XCTAssertEqual((dbv.value() as String), "fooéı👨👨🏿🇫🇷🇨🇮")
+                XCTAssertEqual((dbv.value() as String?)!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
+                XCTAssertEqual((dbv.value() as String), "'fooéı👨👨🏿🇫🇷🇨🇮'")
                 
                 return .Rollback
             }
@@ -197,7 +197,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
             // Blob is turned to Blob
             
             try dbQueue.inTransaction { db in
-                try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: ["fooéı👨👨🏿🇫🇷🇨🇮".dataUsingEncoding(NSUTF8StringEncoding)])
+                try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: ["'fooéı👨👨🏿🇫🇷🇨🇮'".dataUsingEncoding(NSUTF8StringEncoding)])
                 let dbv = Row.fetchOne(db, "SELECT textAffinity FROM `values`")!.first!.1   // first is (columnName, dbv)
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Blob)
                 
@@ -208,10 +208,10 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(Int64.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Double.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
-                XCTAssertEqual(NSData.fromDatabaseValue(dbv), "fooéı👨👨🏿🇫🇷🇨🇮".dataUsingEncoding(NSUTF8StringEncoding))
+                XCTAssertEqual(NSData.fromDatabaseValue(dbv), "'fooéı👨👨🏿🇫🇷🇨🇮'".dataUsingEncoding(NSUTF8StringEncoding))
                 
-                XCTAssertEqual((dbv.value() as NSData?), "fooéı👨👨🏿🇫🇷🇨🇮".dataUsingEncoding(NSUTF8StringEncoding))
-                XCTAssertTrue((dbv.value() as NSData).isEqualToData("fooéı👨👨🏿🇫🇷🇨🇮".dataUsingEncoding(NSUTF8StringEncoding)!))
+                XCTAssertEqual((dbv.value() as NSData?), "'fooéı👨👨🏿🇫🇷🇨🇮'".dataUsingEncoding(NSUTF8StringEncoding))
+                XCTAssertTrue((dbv.value() as NSData).isEqualToData("'fooéı👨👨🏿🇫🇷🇨🇮'".dataUsingEncoding(NSUTF8StringEncoding)!))
                 
                 return .Rollback
             }
@@ -460,10 +460,10 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 return .Rollback
             }
             
-            // "fooéı👨👨🏿🇫🇷🇨🇮" is turned to Text
+            // "'fooéı👨👨🏿🇫🇷🇨🇮'" is turned to Text
             
             try dbQueue.inTransaction { db in
-                try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", arguments: ["fooéı👨👨🏿🇫🇷🇨🇮"])
+                try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", arguments: ["'fooéı👨👨🏿🇫🇷🇨🇮'"])
                 let dbv = Row.fetchOne(db, "SELECT realAffinity FROM `values`")!.first!.1   // first is (columnName, dbv)
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Text)
                 
@@ -473,11 +473,11 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(Int32.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Int64.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Double.fromDatabaseValue(dbv) == nil)
-                XCTAssertEqual(String.fromDatabaseValue(dbv)!, "fooéı👨👨🏿🇫🇷🇨🇮")
+                XCTAssertEqual(String.fromDatabaseValue(dbv)!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
                 XCTAssertTrue(NSData.fromDatabaseValue(dbv) == nil)
                 
-                XCTAssertEqual((dbv.value() as String?)!, "fooéı👨👨🏿🇫🇷🇨🇮")
-                XCTAssertEqual((dbv.value() as String), "fooéı👨👨🏿🇫🇷🇨🇮")
+                XCTAssertEqual((dbv.value() as String?)!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
+                XCTAssertEqual((dbv.value() as String), "'fooéı👨👨🏿🇫🇷🇨🇮'")
                 
                 return .Rollback
             }
@@ -485,7 +485,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
             // Blob is turned to Blob
             
             try dbQueue.inTransaction { db in
-                try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", arguments: ["fooéı👨👨🏿🇫🇷🇨🇮".dataUsingEncoding(NSUTF8StringEncoding)])
+                try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", arguments: ["'fooéı👨👨🏿🇫🇷🇨🇮'".dataUsingEncoding(NSUTF8StringEncoding)])
                 let dbv = Row.fetchOne(db, "SELECT realAffinity FROM `values`")!.first!.1   // first is (columnName, dbv)
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Blob)
                 
@@ -496,10 +496,10 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(Int64.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Double.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
-                XCTAssertEqual(NSData.fromDatabaseValue(dbv), "fooéı👨👨🏿🇫🇷🇨🇮".dataUsingEncoding(NSUTF8StringEncoding))
+                XCTAssertEqual(NSData.fromDatabaseValue(dbv), "'fooéı👨👨🏿🇫🇷🇨🇮'".dataUsingEncoding(NSUTF8StringEncoding))
                 
-                XCTAssertEqual((dbv.value() as NSData?), "fooéı👨👨🏿🇫🇷🇨🇮".dataUsingEncoding(NSUTF8StringEncoding))
-                XCTAssertTrue((dbv.value() as NSData).isEqualToData("fooéı👨👨🏿🇫🇷🇨🇮".dataUsingEncoding(NSUTF8StringEncoding)!))
+                XCTAssertEqual((dbv.value() as NSData?), "'fooéı👨👨🏿🇫🇷🇨🇮'".dataUsingEncoding(NSUTF8StringEncoding))
+                XCTAssertTrue((dbv.value() as NSData).isEqualToData("'fooéı👨👨🏿🇫🇷🇨🇮'".dataUsingEncoding(NSUTF8StringEncoding)!))
                 
                 return .Rollback
             }
@@ -661,7 +661,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
             // Blob is turned to Blob
             
             try dbQueue.inTransaction { db in
-                try db.execute("INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: ["fooéı👨👨🏿🇫🇷🇨🇮".dataUsingEncoding(NSUTF8StringEncoding)])
+                try db.execute("INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: ["'fooéı👨👨🏿🇫🇷🇨🇮'".dataUsingEncoding(NSUTF8StringEncoding)])
                 let dbv = Row.fetchOne(db, "SELECT noneAffinity FROM `values`")!.first!.1   // first is (columnName, dbv)
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Blob)
                 
@@ -672,10 +672,10 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(Int64.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Double.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
-                XCTAssertEqual(NSData.fromDatabaseValue(dbv), "fooéı👨👨🏿🇫🇷🇨🇮".dataUsingEncoding(NSUTF8StringEncoding))
+                XCTAssertEqual(NSData.fromDatabaseValue(dbv), "'fooéı👨👨🏿🇫🇷🇨🇮'".dataUsingEncoding(NSUTF8StringEncoding))
                 
-                XCTAssertEqual((dbv.value() as NSData?), "fooéı👨👨🏿🇫🇷🇨🇮".dataUsingEncoding(NSUTF8StringEncoding))
-                XCTAssertTrue((dbv.value() as NSData).isEqualToData("fooéı👨👨🏿🇫🇷🇨🇮".dataUsingEncoding(NSUTF8StringEncoding)!))
+                XCTAssertEqual((dbv.value() as NSData?), "'fooéı👨👨🏿🇫🇷🇨🇮'".dataUsingEncoding(NSUTF8StringEncoding))
+                XCTAssertTrue((dbv.value() as NSData).isEqualToData("'fooéı👨👨🏿🇫🇷🇨🇮'".dataUsingEncoding(NSUTF8StringEncoding)!))
                 
                 return .Rollback
             }
@@ -898,10 +898,10 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 return .Rollback
             }
             
-            // "fooéı👨👨🏿🇫🇷🇨🇮" is turned to Text
+            // "'fooéı👨👨🏿🇫🇷🇨🇮'" is turned to Text
             
             try dbQueue.inTransaction { db in
-                try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: ["fooéı👨👨🏿🇫🇷🇨🇮"])
+                try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: ["'fooéı👨👨🏿🇫🇷🇨🇮'"])
                 let dbv = Row.fetchOne(db, "SELECT \(columnName) FROM `values`")!.first!.1   // first is (columnName, dbv)
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Text)
                 
@@ -911,11 +911,11 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(Int32.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Int64.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Double.fromDatabaseValue(dbv) == nil)
-                XCTAssertEqual(String.fromDatabaseValue(dbv)!, "fooéı👨👨🏿🇫🇷🇨🇮")
+                XCTAssertEqual(String.fromDatabaseValue(dbv)!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
                 XCTAssertTrue(NSData.fromDatabaseValue(dbv) == nil)
                 
-                XCTAssertEqual((dbv.value() as String?)!, "fooéı👨👨🏿🇫🇷🇨🇮")
-                XCTAssertEqual((dbv.value() as String), "fooéı👨👨🏿🇫🇷🇨🇮")
+                XCTAssertEqual((dbv.value() as String?)!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
+                XCTAssertEqual((dbv.value() as String), "'fooéı👨👨🏿🇫🇷🇨🇮'")
                 
                 return .Rollback
             }
@@ -923,7 +923,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
             // Blob is turned to Blob
             
             try dbQueue.inTransaction { db in
-                try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: ["fooéı👨👨🏿🇫🇷🇨🇮".dataUsingEncoding(NSUTF8StringEncoding)])
+                try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: ["'fooéı👨👨🏿🇫🇷🇨🇮'".dataUsingEncoding(NSUTF8StringEncoding)])
                 let dbv = Row.fetchOne(db, "SELECT \(columnName) FROM `values`")!.first!.1   // first is (columnName, dbv)
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Blob)
                 
@@ -934,10 +934,10 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(Int64.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Double.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
-                XCTAssertEqual(NSData.fromDatabaseValue(dbv), "fooéı👨👨🏿🇫🇷🇨🇮".dataUsingEncoding(NSUTF8StringEncoding))
+                XCTAssertEqual(NSData.fromDatabaseValue(dbv), "'fooéı👨👨🏿🇫🇷🇨🇮'".dataUsingEncoding(NSUTF8StringEncoding))
                 
-                XCTAssertEqual((dbv.value() as NSData?), "fooéı👨👨🏿🇫🇷🇨🇮".dataUsingEncoding(NSUTF8StringEncoding))
-                XCTAssertTrue((dbv.value() as NSData).isEqualToData("fooéı👨👨🏿🇫🇷🇨🇮".dataUsingEncoding(NSUTF8StringEncoding)!))
+                XCTAssertEqual((dbv.value() as NSData?), "'fooéı👨👨🏿🇫🇷🇨🇮'".dataUsingEncoding(NSUTF8StringEncoding))
+                XCTAssertTrue((dbv.value() as NSData).isEqualToData("'fooéı👨👨🏿🇫🇷🇨🇮'".dataUsingEncoding(NSUTF8StringEncoding)!))
                 
                 return .Rollback
             }

@@ -1,24 +1,152 @@
 Release Notes
 =============
 
-## Next Version
+## 0.79.4
+
+Released August 17, 2016
+
+**Fixed**
+
+- [DatabasePool](https://github.com/groue/GRDB.swift#database-pools) can now open an existing database which is not yet in the WAL mode, and then immediately read from it. It used to crash unless at least one write operation was performed before any read (fixes [#102](https://github.com/groue/GRDB.swift/issues/102)).
+
+
+## 0.79.3
+
+Released August 16, 2016
+
+**Fixed**
+
+- [Table creation DSL](https://github.com/groue/GRDB.swift#database-schema) accepts auto references with implicit primary key:
+
+    ```swift
+    try db.create(table: "nodes") { t in
+        t.column("id", .Integer).primaryKey()
+        t.column("parentId", .Integer).references("nodes")
+    }
+    ```
 
 **New**
 
-- `Database.indexes(on:)` returns the indexes defined on a database table
+- Use SQLColumn of the [query interface](https://github.com/groue/GRDB.swift/#the-query-interface) when extracting values from rows:
+    
+    ```swift
+    let nameColumn = SQLColumn("name")
+    let name: String = row.value(nameColumn)
+    ```
+
+
+## 0.79.2
+
+Released August 10, 2016
+
+**Fixed**
+
+- Persistable used to generate sub optimal UPDATE requests.
+
+
+## 0.79.1
+
+Released August 10, 2016
+
+**Fixed**
+
+- [ColumnDefinition](https://github.com/groue/GRDB.swift#database-schema) `check` and `references` methods can now define several constraints:
+    
+    ```swift
+    try db.create(table: "users") { t in
+        t.column("name", .Text).notNull()
+            .check { length($0) > 0 }
+            .check { !["root", "admin"].contains($0) }
+    }
+    ```
+
+- [Persistable](https://github.com/groue/GRDB.swift#persistable-protocol) `update`, `exists` and `delete` methods now work with objects that have a nil primary key. They used to crash.
+
+- The `update(_:columns:)` method, which performs partial updates, no longer ignores unknown columns.
+
+
+## 0.79.0
+
+Released August 8, 2016
+
+**Breaking Change**
+
+- Column creation method `defaults(_:)` has been renamed `defaults(to:)`.
+    
+    ```swift
+    try db.create(table: "pointOfInterests") { t in
+        t.column("favorite", .Boolean).notNull().defaults(to: false)
+        ...
+    }
+    ```
+
+## 0.78.0
+
+Released August 6, 2016
+
+**New**
+
+- Upgrade sqlcipher to v3.4.0 ([announcement](https://discuss.zetetic.net/t/sqlcipher-3-4-0-release/1273), [changelog](https://github.com/sqlcipher/sqlcipher/blob/master/CHANGELOG.md))
+
+- DSL for table creation and updates (closes [#83](https://github.com/groue/GRDB.swift/issues/83), [documentation](https://github.com/groue/GRDB.swift#database-schema)):
+
+    ```swift
+    try db.create(table: "pointOfInterests") { t in
+        t.column("id", .Integer).primaryKey()
+        t.column("title", .Text)
+        t.column("favorite", .Boolean).notNull()
+        t.column("longitude", .Double).notNull()
+        t.column("latitude", .Double).notNull()
+    }
+    ```
+
+- Support for the `length` SQLite built-in function:
+    
+    ```swift
+    try db.create(table: "persons") { t in
+        t.column("name", .Text).check { length($0) > 0 }
+    }
+    ```
+
+- Row adopts DictionaryLiteralConvertible:
+
+    ```swift
+    let row: Row = ["name": "foo", "date": NSDate()]
+    ```
+
+
+**Breaking Changes**
+
+- Built-in SQLite collations used to be named by string: "NOCASE", etc. Now use the SQLCollation enum: `.Nocase`, etc.
+
+- PrimaryKey has been renamed PrimaryKeyInfo:
+
+    ```swift
+    let pk = db.primaryKey("persons")
+    pk.columns  // ["id"]
+    ```
+
+
+## 0.77.0
+
+Released July 28, 2016
+
+**New**
+
+- `Database.indexes(on:)` returns the indexes defined on a database table.
 
 - `Database.table(_:hasUniqueKey:)` returns true if a sequence of columns uniquely identifies a row, that is to say if the columns are the primary key, or if there is a unique index on them.
 
 - MutablePersistable types, including Record subclasses, support partial updates:
     
     ```swift
-    try person.update(db)                    // Full update
-    try person.update(db, columns: ["age"])  // Only updates the age column
+    try person.update(db)                     // Full update
+    try person.update(db, columns: ["name"])  // Only updates the name column
     ```
 
 **Breaking Changes**
 
-- MutablePersistable `update` and `performUpdate` methods have changed their signature:
+- MutablePersistable `update` and `performUpdate` methods have changed their signatures. You only have to care about this change if you customize the protocol `update` method.
     
     ```diff
      protocol MutablePersistable : TableMapping {

@@ -187,7 +187,7 @@ extension PersonsViewController {
     @IBAction func stressTest() {
         setEditing(false, animated: true)
         
-        for _ in 0..<1000 {
+        for _ in 0..<50 {
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
                 try! dbQueue.inTransaction { db in
                     if Person.fetchCount(db) == 0 {

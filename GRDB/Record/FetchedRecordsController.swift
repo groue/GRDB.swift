@@ -10,7 +10,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     
     // MARK: - Initialization
     
-    /// Returns a fetched records controller initialized from a SQL query and
+    /// Creates a fetched records controller initialized from a SQL query and
     /// its eventual arguments.
     ///
     ///     let controller = FetchedRecordsController<Wine>(
@@ -40,7 +40,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         self.init(databaseWriter, request: SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter), queue: queue, isSameRecord: isSameRecord)
     }
     
-    /// Returns a fetched records controller initialized from a fetch request
+    /// Creates a fetched records controller initialized from a fetch request
     /// from the [Query Interface](https://github.com/groue/GRDB.swift#the-query-interface).
     ///
     ///     let request = Wine.order(SQLColumn("name"))
@@ -363,12 +363,8 @@ extension FetchedRecordsController where Record: TableMapping {
     
     // MARK: - Initialization
     
-    /// Returns a fetched records controller initialized from a SQL query and
+    /// Creates a fetched records controller initialized from a SQL query and
     /// its eventual arguments.
-    ///
-    /// The type of the fetched records must be a subclass of the Record class,
-    /// or adopt both RowConvertible, and Persistable or MutablePersistable
-    /// protocols.
     ///
     ///     let controller = FetchedRecordsController<Wine>(
     ///         dbQueue,
@@ -395,7 +391,8 @@ extension FetchedRecordsController where Record: TableMapping {
         self.init(databaseWriter, request: SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter), queue: queue, compareRecordsByPrimaryKey: compareRecordsByPrimaryKey)
     }
     
-    /// Returns a fetched records controller initialized from a fetch request.
+    /// Creates a fetched records controller initialized from a fetch request.
+    /// from the [Query Interface](https://github.com/groue/GRDB.swift#the-query-interface).
     ///
     ///     let request = Wine.order(SQLColumn("name"))
     ///     let controller = FetchedRecordsController<Wine>(
