@@ -57,3 +57,4 @@ Reading list:
 - SQLITE_ENABLE_SQLLOG: http://mjtsai.com/blog/2016/07/19/sqlite_enable_sqllog/
 - [Writing High-Performance Swift Code](https://github.com/apple/swift/blob/master/docs/OptimizationTips.rst)
 - http://docs.diesel.rs/diesel/associations/index.html
+- http://cocoamine.net/blog/2015/09/07/contentless-fts4-for-large-immutable-documents/
