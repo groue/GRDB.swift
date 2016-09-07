@@ -1,7 +1,9 @@
 Release Notes
 =============
 
-## Next Version
+## 0.80.0
+
+Released September 7, 2016
 
 **Fixed**
 
@@ -9,7 +11,9 @@ Release Notes
 
 **New**
 
-- `QueryInterfaceRequest.deleteAll(db)` deletes matching database rows:
+- WatchOS support
+
+- `QueryInterfaceRequest.deleteAll()` deletes database rows:
 
     ```swift
     try Wine.filter(corked == true).deleteAll(db)
