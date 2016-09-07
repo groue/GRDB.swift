@@ -1,4 +1,3 @@
-- [ ] @pakko972: fix documentation of deleteOne/All(keys:) so that it makes clear that the arguments are unique keys.
 - [ ] @pakko972: try Record.filter(...).deleteAll(db)
 - [ ] @hdlj: Extensibility of the Query Interface
 - [ ] @hdlj: FetchedRecordsController throttling
