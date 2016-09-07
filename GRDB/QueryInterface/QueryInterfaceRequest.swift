@@ -237,11 +237,14 @@ extension QueryInterfaceRequest {
     
     // MARK: Deleting
     
-    /// Returns the number of rows matched by the request.
+    /// Deletes matching rows; returns the number of deleted rows.
     ///
     /// - parameter db: A database connection.
-    public func deleteAll(db: Database) throws {
+    /// - returns: The number of deleted rows
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func deleteAll(db: Database) throws -> Int {
         try query.makeDeleteStatement(db).execute()
+        return db.changesCount
     }
 }
 

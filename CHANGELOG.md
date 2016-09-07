@@ -7,6 +7,14 @@ Release Notes
 
 - `Database.tableExists()` learned about temporary tables
 
+**New**
+
+- `QueryInterfaceRequest.deleteAll(db)` deletes matching database rows:
+
+    ```swift
+    try Wine.filter(corked == true).deleteAll(db)
+    ```
+
 
 ## 0.79.4
 

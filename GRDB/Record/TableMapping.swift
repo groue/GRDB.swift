@@ -121,7 +121,8 @@ extension TableMapping {
     
     // MARK: - Deleting by Single-Column Primary Key
     
-    /// Delete records identified by their primary keys.
+    /// Delete records identified by their primary keys; returns the number of
+    /// deleted rows.
     ///
     ///     try Person.deleteAll(db, keys: [1, 2, 3])
     ///
@@ -137,7 +138,8 @@ extension TableMapping {
         return db.changesCount
     }
     
-    /// Delete a record, identified by its primary key.
+    /// Delete a record, identified by its primary key; returns whether a
+    /// database row was deleted.
     ///
     ///     try Person.deleteOne(db, key: 123)
     ///
@@ -289,7 +291,7 @@ extension TableMapping {
     // MARK: - Deleting by Key
     
     /// Delete records identified by the provided unique keys (primary key or
-    /// any key with a unique index on it).
+    /// any key with a unique index on it); returns the number of deleted rows.
     ///
     ///     try Person.deleteAll(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]])
     ///
@@ -306,7 +308,7 @@ extension TableMapping {
     }
     
     /// Delete a record, identified by a unique key (the primary key or any key
-    /// with a unique index on it).
+    /// with a unique index on it); returns whether a database row was deleted.
     ///
     ///     Person.deleteOne(db, key: ["name": Arthur"])
     ///

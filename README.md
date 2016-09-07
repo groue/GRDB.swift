@@ -1810,9 +1810,9 @@ When given dictionaries, `fetchOne`, `deleteOne`, `fetchAll` and `deleteAll` acc
 
 ```swift
 // CREATE TABLE persons (
-//   id INTEGER PRIMARY KEY, -- can fetch and delete by id
-//   email TEXT UNIQUE,      -- can fetch and delete by email
-//   name TEXT               -- nope
+//   id INTEGER PRIMARY KEY, -- unique id
+//   email TEXT UNIQUE,      -- unique email
+//   name TEXT               -- not unique
 // )
 Person.fetchOne(db, key: ["id": 1])                       // Person?
 Person.fetchOne(db, key: ["email": "arthur@example.com"]) // Person?
@@ -2114,9 +2114,17 @@ The Query Interface
 **The query interface lets you write pure Swift instead of SQL:**
 
 ```swift
+// Update database schema
 try db.create(table: "wines") { t in ... }
-let count = Wine.filter(color == Color.Red).fetchCount(db)
+
+// Fetch
 let wines = Wine.filter(origin == "Burgundy").order(price).fetchAll(db)
+
+// Count
+let count = Wine.filter(color == Color.Red).fetchCount(db)
+
+// Delete
+try Wine.filter(corked == true).deleteAll(db)
 ```
 
 Please bear in mind that the query interface can not generate all possible SQL queries. You may also *prefer* writing SQL, and this is just OK. From little snippets to full queries, your SQL skills are welcome:
@@ -2125,6 +2133,7 @@ Please bear in mind that the query interface can not generate all possible SQL q
 try db.execute("CREATE TABLE wines (...)")
 let count = Wine.filter(sql: "color = ?", arguments: [Color.Red]).fetchCount(db)
 let wines = Wine.fetchAll(db, "SELECT * FROM wines WHERE origin = ? ORDER BY price", arguments: ["Burgundy"])
+try db.execute("DELETE FROM wines WHERE corked")
 ```
 
 So don't miss the [SQL API](#sqlite-api).
@@ -2137,6 +2146,7 @@ So don't miss the [SQL API](#sqlite-api).
 - [Fetching from Requests](#fetching-from-requests)
 - [Fetching by Primary Key](#fetching-by-primary-key)
 - [Fetching Aggregated Values](#fetching-aggregated-values)
+- [Delete Requests](#delete-requests)
 
 
 ## Database Schema
@@ -2655,7 +2665,7 @@ For multiple-column primary keys, provide a dictionary:
 Citizenship.fetchOne(db, key: ["personID": 1, "countryISOCode": "FR"]) // Citizenship?
 ```
 
-You can use generally use a dictionary for any **unique key** (primary key and columns involved in a unique index):
+You can generally use a dictionary for any **unique key** (primary key and columns involved in a unique index):
 
 ```swift
 Person.fetchOne(db, key: ["email": "arthur@example.com"]) // Person?
@@ -2692,6 +2702,60 @@ let row = Row.fetchOne(db, request)!
 let minHeight = row.value(atIndex: 0) as Double?
 let maxHeight = row.value(atIndex: 1) as Double?
 ```
+
+
+## Delete Requests
+
+**Requests can delete records**, with the `deleteAll()` method:
+
+```swift
+// DELETE FROM persons WHERE email IS NULL
+let request = Person.filter(emailColumn == nil)
+try request.deleteAll(db)
+```
+
+**Deleting records according to their primary key** is also quite common. It has a shortcut which accepts any single-column primary key:
+
+```swift
+// DELETE FROM persons WHERE id = 1
+try Person.deleteOne(db, key: 1)
+
+// DELETE FROM persons WHERE id IN (1, 2, 3)
+try Person.deleteAll(db, keys: [1, 2, 3])
+
+// DELETE FROM persons WHERE isoCode = 'FR'
+try Country.deleteOne(db, key: "FR")
+
+// DELETE FROM countries WHERE isoCode IN ('FR', 'US')
+try Country.deleteAll(db, keys: ["FR", "US"])
+```
+
+For multiple-column primary keys, provide a dictionary:
+
+```swift
+// DELETE FROM citizenships WHERE personID = 1 AND countryISOCode = 'FR'
+try Citizenship.deleteOne(db, key: ["personID": 1, "countryISOCode": "FR"])
+```
+
+You can generally use a dictionary for any **unique key** (primary key and columns involved in a unique index):
+
+```swift
+Person.deleteOne(db, key: ["email": "arthur@example.com"])
+```
+
+When given dictionaries, `deleteOne` and `deleteAll` accept any set of columns that uniquely identify rows. These are the primary key columns, or any columns involved in a unique index:
+
+```swift
+// CREATE TABLE persons (
+//   id INTEGER PRIMARY KEY, -- unique id
+//   email TEXT UNIQUE,      -- unique email
+//   name TEXT               -- not unique
+// )
+try Person.deleteOne(db, key: ["id": 1])
+try Person.deleteOne(db, key: ["email": "arthur@example.com"])
+try Person.deleteOne(db, key: ["name": "Arthur"]) // fatal error: table persons has no unique index on column name.
+```
+
 
 
 Application Tools
