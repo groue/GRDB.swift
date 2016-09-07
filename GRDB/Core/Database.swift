@@ -795,7 +795,7 @@ extension Database {
         
         // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)
         return Row.fetchOne(self,
-            "SELECT sql FROM sqlite_master WHERE type = 'table' AND LOWER(name) = ?",
+            "SELECT * FROM (SELECT sql, type, name FROM sqlite_master UNION SELECT sql, type, name FROM sqlite_temp_master) WHERE type = 'table' AND LOWER(name) = ?",
             arguments: [tableName.lowercaseString]) != nil
     }
     

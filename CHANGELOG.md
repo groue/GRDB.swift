@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Version
+
+**Fixed**
+
+- `Database.tableExists()` learned about temporary tables
+
+
 ## 0.79.4
 
 Released August 17, 2016
