@@ -235,6 +235,19 @@ extension QueryInterfaceRequest {
 
 extension QueryInterfaceRequest {
     
+    // MARK: Deleting
+    
+    /// Returns the number of rows matched by the request.
+    ///
+    /// - parameter db: A database connection.
+    public func deleteAll(db: Database) throws {
+        try query.makeDeleteStatement(db).execute()
+    }
+}
+
+
+extension QueryInterfaceRequest {
+    
     // MARK: QueryInterfaceRequest as subquery
     
     /// Returns an SQL expression that checks the inclusion of a value in

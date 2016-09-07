@@ -177,6 +177,35 @@ public struct _SQLSelectQuery {
         }
     }
     
+    func makeDeleteStatement(db: Database) -> UpdateStatement {
+        guard groupByExpressions.isEmpty else {
+            fatalError("Can't delete query with GROUP BY expression")
+        }
+        
+        guard havingExpression == nil else {
+            fatalError("Can't delete query with GROUP BY expression")
+        }
+        
+        guard limit == nil else {
+            fatalError("Can't delete query with limit")
+        }
+        
+        var sql = "DELETE"
+        var arguments: StatementArguments? = StatementArguments()
+        
+        if let source = source {
+            sql += " FROM " + source.sql(&arguments)
+        }
+        
+        if let whereExpression = whereExpression {
+            sql += " WHERE " + whereExpression.sql(&arguments)
+        }
+        
+        let statement = try! db.updateStatement(sql)
+        statement.arguments = arguments!
+        return statement
+    }
+    
     // SELECT COUNT(*) FROM (self)
     private var trivialCountQuery: _SQLSelectQuery {
         return _SQLSelectQuery(

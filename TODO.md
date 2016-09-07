@@ -1,4 +1,7 @@
+- [ ] Fix slow compilation time of SQLTableBuilderTests.swift
 - [ ] @pakko972: try Record.filter(...).deleteAll(db)
+    - [X] feature
+    - [ ] documentation
 - [ ] @hdlj: Extensibility of the Query Interface
 - [ ] @hdlj: FetchedRecordsController throttling
 - [ ] @hdlj: Check RAM pressure
