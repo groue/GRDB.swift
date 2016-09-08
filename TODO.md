@@ -13,7 +13,6 @@
 - [ ] Swift3: move database event filtering into the TransactionObserver protocol
 - [ ] Swift3: Fondation conversion between Row and DatabaseValue
 - [ ] Fatal Error when MutablePersistable.update(_:columns:) is given columns that do not exist in the database.
-- [ ] Fix slow compilation time of SQLTableBuilderTests.swift
 - [ ] @hdlj: Extensibility of the Query Interface
 - [ ] @hdlj: FetchedRecordsController throttling
 - [ ] @hdlj: Check RAM pressure
