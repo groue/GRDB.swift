@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## 0.80.1
+
+**Fixed**
+
+- WatchOS framework is now available through CocoaPods.
+
+
 ## 0.80.0
 
 Released September 7, 2016
