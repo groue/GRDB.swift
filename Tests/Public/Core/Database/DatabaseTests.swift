@@ -24,6 +24,21 @@ class DatabaseTests : GRDBTestCase {
         }
     }
     
+    func testCreateTemporaryTable() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                XCTAssertFalse(db.tableExists("persons"))
+                try db.execute(
+                    "CREATE TEMPORARY TABLE persons (" +
+                        "id INTEGER PRIMARY KEY, " +
+                        "name TEXT, " +
+                    "age INT)")
+                XCTAssertTrue(db.tableExists("persons"))
+            }
+        }
+    }
+    
     func testMultipleStatementsWithoutArguments() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()

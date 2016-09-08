@@ -1,6 +1,25 @@
 Release Notes
 =============
 
+## 0.80.0
+
+Released September 7, 2016
+
+**Fixed**
+
+- `Database.tableExists()` learned about temporary tables
+
+**New**
+
+- WatchOS support
+
+- `QueryInterfaceRequest.deleteAll()` deletes database rows:
+
+    ```swift
+    try Wine.filter(corked == true).deleteAll(db)
+    ```
+
+
 ## 0.79.4
 
 Released August 17, 2016
