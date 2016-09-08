@@ -7,6 +7,12 @@
         #else
             import SQLiteiPhoneOS
         #endif
+    #elseif os(watchOS)
+        #if (arch(i386) || arch(x86_64))
+            import SQLiteWatchSimulator
+        #else
+            import SQLiteWatchOS
+        #endif
     #endif
 #endif
 
@@ -175,6 +181,35 @@ public struct _SQLSelectQuery {
             countQuery.selection = [_SQLExpression.count(_SQLResultColumn.star(nil))]
             return countQuery
         }
+    }
+    
+    func makeDeleteStatement(_ db: Database) -> UpdateStatement {
+        guard groupByExpressions.isEmpty else {
+            fatalError("Can't delete query with GROUP BY expression")
+        }
+        
+        guard havingExpression == nil else {
+            fatalError("Can't delete query with GROUP BY expression")
+        }
+        
+        guard limit == nil else {
+            fatalError("Can't delete query with limit")
+        }
+        
+        var sql = "DELETE"
+        var arguments: StatementArguments? = StatementArguments()
+        
+        if let source = source {
+            sql += " FROM " + source.sql(&arguments)
+        }
+        
+        if let whereExpression = whereExpression {
+            sql += " WHERE " + whereExpression.sql(&arguments)
+        }
+        
+        let statement = try! db.makeUpdateStatement(sql)
+        statement.arguments = arguments!
+        return statement
     }
     
     // SELECT COUNT(*) FROM (self)

@@ -485,4 +485,33 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             sql(dbQueue, tableRequest.limit(1, offset: 2).limit(3)),
             "SELECT * FROM \"readers\" LIMIT 3")
     }
+    
+    
+    // MARK: - Delete
+    
+    func testDelete() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            
+            try dbQueue.inDatabase { db in
+                try tableRequest.deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"readers\"")
+
+                try tableRequest.filter(Col.age == 42).deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"readers\" WHERE (\"age\" = 42)")
+                
+                try tableRequest.filter(sql: "id = 1").deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"readers\" WHERE id = 1")
+                
+                try tableRequest.select(Col.name).deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"readers\"")
+                
+                try tableRequest.distinct().deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"readers\"")
+                
+                try tableRequest.order(Col.name).deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"readers\"")
+            }
+        }
+    }
 }

@@ -7,6 +7,12 @@
         #else
             import SQLiteiPhoneOS
         #endif
+    #elseif os(watchOS)
+        #if (arch(i386) || arch(x86_64))
+            import SQLiteWatchSimulator
+        #else
+            import SQLiteWatchOS
+        #endif
     #endif
 #endif
 
@@ -117,7 +123,8 @@ extension TableMapping {
     
     // MARK: - Deleting by Single-Column Primary Key
     
-    /// Delete records identified by their primary keys.
+    /// Delete records identified by their primary keys; returns the number of
+    /// deleted rows.
     ///
     ///     try Person.deleteAll(db, keys: [1, 2, 3])
     ///
@@ -125,7 +132,7 @@ extension TableMapping {
     ///     - db: A database connection.
     ///     - keys: A sequence of primary keys.
     /// - returns: The number of deleted rows
-    public static func deleteAll<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> Int where Sequence.Iterator.Element: DatabaseValueConvertible {
+    @discardableResult public static func deleteAll<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> Int where Sequence.Iterator.Element: DatabaseValueConvertible {
         guard let statement = try! makeDeleteByPrimaryKeyStatement(db, keys: keys) else {
             return 0
         }
@@ -133,7 +140,8 @@ extension TableMapping {
         return db.changesCount
     }
     
-    /// Delete a record, identified by its primary key.
+    /// Delete a record, identified by its primary key; returns whether a
+    /// database row was deleted.
     ///
     ///     try Person.deleteOne(db, key: 123)
     ///
@@ -141,7 +149,7 @@ extension TableMapping {
     ///     - db: A database connection.
     ///     - key: A primary key value.
     /// - returns: Whether a database row was deleted.
-    public static func deleteOne<PrimaryKeyType: DatabaseValueConvertible>(_ db: Database, key: PrimaryKeyType?) throws -> Bool {
+    @discardableResult public static func deleteOne<PrimaryKeyType: DatabaseValueConvertible>(_ db: Database, key: PrimaryKeyType?) throws -> Bool {
         guard let key = key else {
             return false
         }
@@ -188,9 +196,10 @@ extension RowConvertible where Self: TableMapping {
 
     // MARK: - Fetching by Key
     
-    /// Returns a sequence of records, given an array of key dictionaries.
+    /// Returns a sequence of records identified by the provided unique keys
+    /// (primary key or any key with a unique index on it).
     ///
-    ///     let persons = Person.fetch(db, keys: [["name": "Arthur"], ["name": "Barbara"]]) // DatabaseSequence<Person>
+    ///     let persons = Person.fetch(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]]) // DatabaseSequence<Person>
     ///
     /// The order of records in the returned sequence is undefined.
     ///
@@ -205,9 +214,10 @@ extension RowConvertible where Self: TableMapping {
         return fetch(statement)
     }
     
-    /// Returns an array of records, given an array of key dictionaries.
+    /// Returns an array of records identified by the provided unique keys
+    /// (primary key or any key with a unique index on it).
     ///
-    ///     let persons = Person.fetchAll(db, keys: [["name": "Arthur"], ["name": "Barbara"]]) // [Person]
+    ///     let persons = Person.fetchAll(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]]) // [Person]
     ///
     /// The order of records in the returned array is undefined.
     ///
@@ -222,7 +232,8 @@ extension RowConvertible where Self: TableMapping {
         return fetchAll(statement)
     }
     
-    /// Returns a single record given a key dictionary.
+    /// Returns a single record identified by a unique key (the primary key or
+    /// any key with a unique index on it).
     ///
     ///     let person = Person.fetchOne(db, key: ["name": Arthur"]) // Person?
     ///
@@ -276,15 +287,16 @@ extension TableMapping {
 
     // MARK: - Deleting by Key
     
-    /// Delete records, given an array of key dictionaries.
+    /// Delete records identified by the provided unique keys (primary key or
+    /// any key with a unique index on it); returns the number of deleted rows.
     ///
-    ///     try Person.deleteAll(db, keys: [["name": "Arthur"], ["name": "Barbara"]])
+    ///     try Person.deleteAll(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]])
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - keys: An array of key dictionaries.
     /// - returns: The number of deleted rows
-    public static func deleteAll(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> Int {
+    @discardableResult public static func deleteAll(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> Int {
         guard let statement = try makeDeleteByKeyStatement(db, keys: keys) else {
             return 0
         }
@@ -292,7 +304,8 @@ extension TableMapping {
         return db.changesCount
     }
     
-    /// Delete a record, identified by a key dictionary.
+    /// Delete a record, identified by a unique key (the primary key or any key
+    /// with a unique index on it); returns whether a database row was deleted.
     ///
     ///     Person.deleteOne(db, key: ["name": Arthur"])
     ///
@@ -300,7 +313,7 @@ extension TableMapping {
     ///     - db: A database connection.
     ///     - key: A dictionary of values.
     /// - returns: Whether a database row was deleted.
-    public static func deleteOne(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Bool {
+    @discardableResult public static func deleteOne(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Bool {
         return try deleteAll(db, keys: [key]) > 0
     }
     

@@ -13,6 +13,7 @@
 - [ ] Swift3: move database event filtering into the TransactionObserver protocol
 - [ ] Swift3: conversion from Row to NSDictionary 
 - [ ] Fatal Error when MutablePersistable.update(_:columns:) is given columns that do not exist in the database.
+- [ ] Fix slow compilation time of SQLTableBuilderTests.swift
 - [ ] @hdlj: Extensibility of the Query Interface
 - [ ] @hdlj: FetchedRecordsController throttling
 - [ ] @hdlj: Check RAM pressure
@@ -71,3 +72,5 @@ Reading list:
 - Amazing tip from Xcode labs: add a EXCLUDED_SOURCE_FILE_NAMES build setting to conditionally exclude sources for different configuration: https://twitter.com/zats/status/74386298602026496
 - SQLITE_ENABLE_SQLLOG: http://mjtsai.com/blog/2016/07/19/sqlite_enable_sqllog/
 - [Writing High-Performance Swift Code](https://github.com/apple/swift/blob/master/docs/OptimizationTips.rst)
+- http://docs.diesel.rs/diesel/associations/index.html
+- http://cocoamine.net/blog/2015/09/07/contentless-fts4-for-large-immutable-documents/

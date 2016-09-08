@@ -19,3 +19,13 @@ module SQLiteiPhoneSimulator {
     header "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr/include/sqlite3.h"
     export *
 }
+
+module SQLiteWatchOS {
+    header "/Applications/Xcode.app/Contents/Developer/Platforms/WatchOS.platform/Developer/SDKs/WatchOS.sdk/usr/includesqlite3.h"
+    export *
+}
+
+module SQLiteWatchSimulator {
+    header "/Applications/Xcode.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator.sdk/usr/include/sqlite3.h"
+    export *
+}
