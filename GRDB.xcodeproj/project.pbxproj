@@ -2329,6 +2329,14 @@
 			path = Foundation;
 			sourceTree = "<group>";
 		};
+		56F5ABDE1D817B91001F60CB /* GRDBwatchOS */ = {
+			isa = PBXGroup;
+			children = (
+				565490E51D5AE282005622CB /* libsqlite3.tbd */,
+			);
+			name = GRDBwatchOS;
+			sourceTree = "<group>";
+		};
 		56FC78631BBAEB6D00CA1285 /* Experimental */ = {
 			isa = PBXGroup;
 			children = (
@@ -2356,7 +2364,6 @@
 		DC3773E919C8CBB3004FCF85 = {
 			isa = PBXGroup;
 			children = (
-				565490E51D5AE282005622CB /* libsqlite3.tbd */,
 				56DBEC341C19A0020093A2EE /* CHANGELOG.md */,
 				DC37744719C8F50B004FCF85 /* README.md */,
 				56E1524B1B43FD5B00EE27AA /* TODO.md */,
@@ -2423,6 +2430,7 @@
 				56C48E731C9A9923005DF1D9 /* module.modulemap */,
 				567D10621C9A911C00ACC500 /* GRDBiOS */,
 				567D10641C9A911C00ACC500 /* GRDBOSX */,
+				56F5ABDE1D817B91001F60CB /* GRDBwatchOS */,
 				DC3773F819C8CBB3004FCF85 /* GRDB.h */,
 				DC2393C61ABE35F8003FF113 /* GRDB-Bridging.h */,
 				DC3773F719C8CBB3004FCF85 /* Info.plist */,
