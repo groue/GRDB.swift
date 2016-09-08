@@ -8,7 +8,7 @@ import XCTest
 #endif
 
 class SQLTableBuilderTests: GRDBTestCase {
-
+    
     func testCreateTable() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
@@ -18,11 +18,12 @@ class SQLTableBuilderTests: GRDBTestCase {
                     t.column("id", .integer).primaryKey()
                     t.column("name", .text)
                 }
-                XCTAssertEqual(self.lastSQLQuery,
-                    "CREATE TABLE \"test\" (" +
+                XCTAssertEqual(
+                    self.lastSQLQuery,
+                    ("CREATE TABLE \"test\" (" +
                         "\"id\" INTEGER PRIMARY KEY, " +
                         "\"name\" TEXT" +
-                    ")")
+                        ")") as String)
             }
         }
     }
@@ -35,18 +36,20 @@ class SQLTableBuilderTests: GRDBTestCase {
                     try db.create(table: "test", temporary: true, ifNotExists: true, withoutRowID: true) { t in
                         t.column("id", .integer).primaryKey()
                     }
-                    XCTAssertEqual(self.lastSQLQuery,
-                        "CREATE TEMPORARY TABLE IF NOT EXISTS \"test\" (" +
+                    XCTAssertEqual(
+                        self.lastSQLQuery,
+                        ("CREATE TEMPORARY TABLE IF NOT EXISTS \"test\" (" +
                             "\"id\" INTEGER PRIMARY KEY" +
-                        ") WITHOUT ROWID")
+                            ") WITHOUT ROWID") as String)
                 } else {
                     try db.create(table: "test", temporary: true, ifNotExists: true) { t in
                         t.column("id", .integer).primaryKey()
                     }
-                    XCTAssertEqual(self.lastSQLQuery,
-                        "CREATE TEMPORARY TABLE IF NOT EXISTS \"test\" (" +
+                    XCTAssertEqual(
+                        self.lastSQLQuery,
+                        ("CREATE TEMPORARY TABLE IF NOT EXISTS \"test\" (" +
                             "\"id\" INTEGER PRIMARY KEY" +
-                        ")")
+                            ")") as String)
                 }
             }
         }
@@ -59,20 +62,22 @@ class SQLTableBuilderTests: GRDBTestCase {
                 try db.create(table: "test") { t in
                     t.column("id", .integer).primaryKey(onConflict: .fail)
                 }
-                XCTAssertEqual(self.lastSQLQuery,
-                    "CREATE TABLE \"test\" (" +
+                XCTAssertEqual(
+                    self.lastSQLQuery,
+                    ("CREATE TABLE \"test\" (" +
                         "\"id\" INTEGER PRIMARY KEY ON CONFLICT FAIL" +
-                    ")")
+                        ")") as String)
                 return .rollback
             }
             try dbQueue.inTransaction { db in
                 try db.create(table: "test") { t in
                     t.column("id", .integer).primaryKey(autoincrement: true)
                 }
-                XCTAssertEqual(self.lastSQLQuery,
-                    "CREATE TABLE \"test\" (" +
+                XCTAssertEqual(
+                    self.lastSQLQuery,
+                    ("CREATE TABLE \"test\" (" +
                         "\"id\" INTEGER PRIMARY KEY AUTOINCREMENT" +
-                    ")")
+                        ")") as String)
                 return .rollback
             }
         }
@@ -90,15 +95,16 @@ class SQLTableBuilderTests: GRDBTestCase {
                     t.column("e", .integer).notNull(onConflict: .ignore)
                     t.column("f", .integer).notNull(onConflict: .replace)
                 }
-                XCTAssertEqual(self.lastSQLQuery,
-                    "CREATE TABLE \"test\" (" +
+                XCTAssertEqual(
+                    self.lastSQLQuery,
+                    ("CREATE TABLE \"test\" (" +
                         "\"a\" INTEGER NOT NULL, " +
                         "\"b\" INTEGER NOT NULL, " +
                         "\"c\" INTEGER NOT NULL ON CONFLICT ROLLBACK, " +
                         "\"d\" INTEGER NOT NULL ON CONFLICT FAIL, " +
                         "\"e\" INTEGER NOT NULL ON CONFLICT IGNORE, " +
                         "\"f\" INTEGER NOT NULL ON CONFLICT REPLACE" +
-                    ")")
+                        ")") as String)
             }
         }
     }
@@ -115,15 +121,16 @@ class SQLTableBuilderTests: GRDBTestCase {
                     t.column("e", .integer).unique(onConflict: .ignore)
                     t.column("f", .integer).unique(onConflict: .replace)
                 }
-                XCTAssertEqual(self.lastSQLQuery,
-                    "CREATE TABLE \"test\" (" +
+                XCTAssertEqual(
+                    self.lastSQLQuery,
+                    ("CREATE TABLE \"test\" (" +
                         "\"a\" INTEGER UNIQUE, " +
                         "\"b\" INTEGER UNIQUE, " +
                         "\"c\" INTEGER UNIQUE ON CONFLICT ROLLBACK, " +
                         "\"d\" INTEGER UNIQUE ON CONFLICT FAIL, " +
                         "\"e\" INTEGER UNIQUE ON CONFLICT IGNORE, " +
                         "\"f\" INTEGER UNIQUE ON CONFLICT REPLACE" +
-                    ")")
+                        ")") as String)
             }
         }
     }
@@ -137,12 +144,13 @@ class SQLTableBuilderTests: GRDBTestCase {
                     t.column("b", .integer).check(sql: "b <> 2")
                     t.column("c", .integer).check { $0 > 0 }.check { $0 < 10 }
                 }
-                XCTAssertEqual(self.lastSQLQuery,
-                    "CREATE TABLE \"test\" (" +
+                XCTAssertEqual(
+                    self.lastSQLQuery,
+                    ("CREATE TABLE \"test\" (" +
                         "\"a\" INTEGER CHECK ((\"a\" > 0)), " +
                         "\"b\" INTEGER CHECK (b <> 2), " +
                         "\"c\" INTEGER CHECK ((\"c\" > 0)) CHECK ((\"c\" < 10))" +
-                    ")")
+                        ")") as String)
                 
                 // Sanity check
                 try db.execute("INSERT INTO test (a, b, c) VALUES (1, 0, 1)")
@@ -166,14 +174,15 @@ class SQLTableBuilderTests: GRDBTestCase {
                     t.column("d", .integer).defaults(to: "foo".data(using: .utf8)!)
                     t.column("e", .integer).defaults(sql: "NULL")
                 }
-                XCTAssertEqual(self.lastSQLQuery,
-                    "CREATE TABLE \"test\" (" +
+                XCTAssertEqual(
+                    self.lastSQLQuery,
+                    ("CREATE TABLE \"test\" (" +
                         "\"a\" INTEGER DEFAULT 1, " +
                         "\"b\" INTEGER DEFAULT 1.0, " +
                         "\"c\" INTEGER DEFAULT '''fooéı👨👨🏿🇫🇷🇨🇮''', " +
                         "\"d\" INTEGER DEFAULT x'666f6f', " +
                         "\"e\" INTEGER DEFAULT NULL" +
-                    ")")
+                        ")") as String)
                 
                 // Sanity check
                 try db.execute("INSERT INTO test DEFAULT VALUES")
@@ -190,10 +199,11 @@ class SQLTableBuilderTests: GRDBTestCase {
                 try db.create(table: "test") { t in
                     t.column("name", .text).collate(.nocase)
                 }
-                XCTAssertEqual(self.lastSQLQuery,
-                    "CREATE TABLE \"test\" (" +
+                XCTAssertEqual(
+                    self.lastSQLQuery,
+                    ("CREATE TABLE \"test\" (" +
                         "\"name\" TEXT COLLATE NOCASE" +
-                    ")")
+                        ")") as String)
                 return .rollback
             }
             
@@ -203,10 +213,11 @@ class SQLTableBuilderTests: GRDBTestCase {
                 try db.create(table: "test") { t in
                     t.column("name", .text).collate(collation)
                 }
-                XCTAssertEqual(self.lastSQLQuery,
-                    "CREATE TABLE \"test\" (" +
+                XCTAssertEqual(
+                    self.lastSQLQuery,
+                    ("CREATE TABLE \"test\" (" +
                         "\"name\" TEXT COLLATE foo" +
-                    ")")
+                        ")") as String)
                 return .rollback
             }
         }
@@ -225,12 +236,13 @@ class SQLTableBuilderTests: GRDBTestCase {
                     t.column("parentEmail", .text).references("parent", column: "email", onDelete: .restrict, deferred: true)
                     t.column("weird", .text).references("parent", column: "name").references("parent", column: "email")
                 }
-                XCTAssertEqual(self.lastSQLQuery,
-                    "CREATE TABLE \"child\" (" +
+                XCTAssertEqual(
+                    self.lastSQLQuery,
+                    ("CREATE TABLE \"child\" (" +
                         "\"parentName\" TEXT REFERENCES \"parent\"(\"name\") ON DELETE CASCADE ON UPDATE CASCADE, " +
                         "\"parentEmail\" TEXT REFERENCES \"parent\"(\"email\") ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED, " +
                         "\"weird\" TEXT REFERENCES \"parent\"(\"name\") REFERENCES \"parent\"(\"email\")" +
-                    ")")
+                        ")") as String)
             }
         }
     }
@@ -244,12 +256,13 @@ class SQLTableBuilderTests: GRDBTestCase {
                     t.column("a", .text)
                     t.column("b", .text)
                 }
-                XCTAssertEqual(self.lastSQLQuery,
-                    "CREATE TABLE \"test\" (" +
+                XCTAssertEqual(
+                    self.lastSQLQuery,
+                    ("CREATE TABLE \"test\" (" +
                         "\"a\" TEXT, " +
                         "\"b\" TEXT, " +
                         "PRIMARY KEY (\"a\", \"b\")" +
-                    ")")
+                        ")") as String)
                 return .rollback
             }
             try dbQueue.inTransaction { db in
@@ -258,12 +271,13 @@ class SQLTableBuilderTests: GRDBTestCase {
                     t.column("a", .text)
                     t.column("b", .text)
                 }
-                XCTAssertEqual(self.lastSQLQuery,
-                    "CREATE TABLE \"test\" (" +
+                XCTAssertEqual(
+                    self.lastSQLQuery,
+                    ("CREATE TABLE \"test\" (" +
                         "\"a\" TEXT, " +
                         "\"b\" TEXT, " +
                         "PRIMARY KEY (\"a\", \"b\") ON CONFLICT FAIL" +
-                    ")")
+                        ")") as String)
                 return .rollback
             }
         }
@@ -280,14 +294,15 @@ class SQLTableBuilderTests: GRDBTestCase {
                     t.column("b", .text)
                     t.column("c", .text)
                 }
-                XCTAssertEqual(self.lastSQLQuery,
-                    "CREATE TABLE \"test\" (" +
+                XCTAssertEqual(
+                    self.lastSQLQuery,
+                    ("CREATE TABLE \"test\" (" +
                         "\"a\" TEXT, " +
                         "\"b\" TEXT, " +
                         "\"c\" TEXT, " +
                         "UNIQUE (\"a\"), " +
                         "UNIQUE (\"b\", \"c\") ON CONFLICT FAIL" +
-                    ")")
+                        ")") as String)
             }
         }
     }
@@ -308,14 +323,15 @@ class SQLTableBuilderTests: GRDBTestCase {
                     t.column("d", .text)
                     t.column("e", .text)
                 }
-                XCTAssertEqual(self.lastSQLQuery,
-                    "CREATE TABLE \"child\" (" +
+                XCTAssertEqual(
+                    self.lastSQLQuery,
+                    ("CREATE TABLE \"child\" (" +
                         "\"c\" TEXT, " +
                         "\"d\" TEXT, " +
                         "\"e\" TEXT, " +
                         "FOREIGN KEY (\"c\", \"d\") REFERENCES \"parent\"(\"a\", \"b\") ON DELETE CASCADE ON UPDATE CASCADE, " +
                         "FOREIGN KEY (\"d\", \"e\") REFERENCES \"parent\"(\"b\", \"a\") ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED" +
-                    ")")
+                        ")") as String)
             }
         }
     }
@@ -330,13 +346,14 @@ class SQLTableBuilderTests: GRDBTestCase {
                     t.column("a", .integer)
                     t.column("b", .integer)
                 }
-                XCTAssertEqual(self.lastSQLQuery,
-                    "CREATE TABLE \"test\" (" +
+                XCTAssertEqual(
+                    self.lastSQLQuery,
+                    ("CREATE TABLE \"test\" (" +
                         "\"a\" INTEGER, " +
                         "\"b\" INTEGER, " +
                         "CHECK (((\"a\" + \"b\") < 10)), " +
                         "CHECK (a + b < 10)" +
-                    ")")
+                        ")") as String)
                 
                 // Sanity check
                 try db.execute("INSERT INTO test (a, b) VALUES (1, 0)")
@@ -357,23 +374,25 @@ class SQLTableBuilderTests: GRDBTestCase {
                     t.column("id", .integer).primaryKey()
                     t.column("id2", .integer).references("test1")
                 }
-                XCTAssertEqual(self.lastSQLQuery,
-                    "CREATE TABLE \"test1\" (" +
+                XCTAssertEqual(
+                    self.lastSQLQuery,
+                    ("CREATE TABLE \"test1\" (" +
                         "\"id\" INTEGER PRIMARY KEY, " +
                         "\"id2\" INTEGER REFERENCES \"test1\"(\"id\")" +
-                    ")")
+                        ")") as String)
                 
                 try db.create(table: "test2") { t in
                     t.column("id", .integer)
                     t.column("id2", .integer).references("test2")
                     t.primaryKey(["id"])
                 }
-                XCTAssertEqual(self.lastSQLQuery,
-                    "CREATE TABLE \"test2\" (" +
+                XCTAssertEqual(
+                    self.lastSQLQuery,
+                    ("CREATE TABLE \"test2\" (" +
                         "\"id\" INTEGER, " +
                         "\"id2\" INTEGER REFERENCES \"test2\"(\"id\"), " +
                         "PRIMARY KEY (\"id\")" +
-                    ")")
+                        ")") as String)
                 
                 try db.create(table: "test3") { t in
                     t.column("a", .integer)
@@ -383,15 +402,16 @@ class SQLTableBuilderTests: GRDBTestCase {
                     t.foreignKey(["c", "d"], references: "test3")
                     t.primaryKey(["a", "b"])
                 }
-                XCTAssertEqual(self.lastSQLQuery,
-                    "CREATE TABLE \"test3\" (" +
+                XCTAssertEqual(
+                    self.lastSQLQuery,
+                    ("CREATE TABLE \"test3\" (" +
                         "\"a\" INTEGER, " +
                         "\"b\" INTEGER, " +
                         "\"c\" INTEGER, " +
                         "\"d\" INTEGER, " +
                         "PRIMARY KEY (\"a\", \"b\"), " +
                         "FOREIGN KEY (\"c\", \"d\") REFERENCES \"test3\"(\"a\", \"b\")" +
-                    ")")
+                        ")") as String)
             }
         }
     }
