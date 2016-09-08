@@ -1,3 +1,11 @@
+- [ ] Put back dispatching tests in GRDBOSXTests (they are disabled in order to avoid linker errors)
+    - DatabasePoolReleaseMemoryTests
+    - DatabasePoolSchemaCacheTests
+    - DatabaseQueueReleaseMemoryTests
+    - DatabasePoolBackupTests
+    - DatabasePoolConcurrencyTests
+    - DatabasePoolReadOnlyTests
+    - DatabaseQueueConcurrencyTests
 - [ ] Swift3: return Self when possible
 - [ ] Swift3: have a look at the new GCD: https://medium.com/swift-and-ios-writing/a-quick-look-at-gcd-and-swift-3-732bef6e1838#.oplqethl5
 - [ ] Swift3: move more top-level enums inside an owner type. Foundation uses lowercase for those enum *types* (besides the lowercase *values*)
