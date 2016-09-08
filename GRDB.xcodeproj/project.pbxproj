@@ -919,6 +919,11 @@
 		56F0B9921B6001C600A2F135 /* NSDateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56F0B98E1B6001C600A2F135 /* NSDateTests.swift */; };
 		56F26C1C1CEE3F32007969C4 /* AdapterRowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565F03C11CE5D3AA00DE108F /* AdapterRowTests.swift */; };
 		56F26C241CEE3F34007969C4 /* AdapterRowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565F03C11CE5D3AA00DE108F /* AdapterRowTests.swift */; };
+		56F5ABD91D814330001F60CB /* Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5690C33F1D23E82A00E59934 /* Data.swift */; };
+		56F5ABDA1D814330001F60CB /* NSData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5657AAB81D107001006283EF /* NSData.swift */; };
+		56F5ABDB1D814330001F60CB /* NSDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5657AAA91D106E39006283EF /* NSDate.swift */; };
+		56F5ABDC1D814330001F60CB /* URL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5657AB0E1D10899D006283EF /* URL.swift */; };
+		56F5ABDD1D814330001F60CB /* UUID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A8C22F1D1914540096E9D4 /* UUID.swift */; };
 		56FC78661BBAEB8C00CA1285 /* MappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FC78641BBAEB8C00CA1285 /* MappingTests.swift */; };
 		56FC78671BBAEB8C00CA1285 /* MappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FC78641BBAEB8C00CA1285 /* MappingTests.swift */; };
 		56FC78681BBAEB8C00CA1285 /* ManagedDataControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FC78651BBAEB8C00CA1285 /* ManagedDataControllerTests.swift */; };
@@ -3394,6 +3399,7 @@
 				565490CF1D5AE252005622CB /* NSNumber.swift in Sources */,
 				565490E21D5AE252005622CB /* Record.swift in Sources */,
 				565490C11D5AE236005622CB /* FetchRequest.swift in Sources */,
+				56F5ABDA1D814330001F60CB /* NSData.swift in Sources */,
 				565490BD1D5AE236005622CB /* DatabaseStore.swift in Sources */,
 				565490B91D5AE236005622CB /* DatabasePool.swift in Sources */,
 				565490D81D5AE252005622CB /* DatabaseMigrator.swift in Sources */,
@@ -3402,6 +3408,7 @@
 				565490D91D5AE252005622CB /* Migration.swift in Sources */,
 				565490D51D5AE252005622CB /* RawRepresentable.swift in Sources */,
 				565490C51D5AE236005622CB /* SerializedDatabase.swift in Sources */,
+				56F5ABDB1D814330001F60CB /* NSDate.swift in Sources */,
 				565490D71D5AE252005622CB /* Utils.swift in Sources */,
 				565490BF1D5AE236005622CB /* DatabaseValueConvertible.swift in Sources */,
 				565490BB1D5AE236005622CB /* DatabaseReader.swift in Sources */,
@@ -3420,6 +3427,7 @@
 				565490CC1D5AE252005622CB /* (null) in Sources */,
 				565490DB1D5AE252005622CB /* SQLCollation.swift in Sources */,
 				565490C61D5AE236005622CB /* Statement.swift in Sources */,
+				56F5ABD91D814330001F60CB /* Data.swift in Sources */,
 				565490D41D5AE252005622CB /* (null) in Sources */,
 				565490B61D5AE236005622CB /* Configuration.swift in Sources */,
 				565490E11D5AE252005622CB /* Persistable.swift in Sources */,
@@ -3427,8 +3435,10 @@
 				565490C81D5AE252005622CB /* CGFloat.swift in Sources */,
 				565490D21D5AE252005622CB /* NSUUID.swift in Sources */,
 				565490DC1D5AE252005622CB /* SQLFunction.swift in Sources */,
+				56F5ABDC1D814330001F60CB /* URL.swift in Sources */,
 				565490D31D5AE252005622CB /* (null) in Sources */,
 				565490DE1D5AE252005622CB /* SQLSelectQuery.swift in Sources */,
+				56F5ABDD1D814330001F60CB /* UUID.swift in Sources */,
 				565490CB1D5AE252005622CB /* (null) in Sources */,
 				565490D61D5AE252005622CB /* StandardLibrary.swift in Sources */,
 				565490B81D5AE236005622CB /* DatabaseError.swift in Sources */,
@@ -4864,7 +4874,6 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -4888,7 +4897,6 @@
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
-				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -5002,6 +5010,7 @@
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 3.0;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};
@@ -5039,6 +5048,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				SWIFT_VERSION = 3.0;
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -5061,7 +5071,6 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
@@ -5082,7 +5091,6 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
-				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
 		};
@@ -5104,7 +5112,6 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -5129,7 +5136,6 @@
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
-				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -5189,7 +5195,6 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
@@ -5211,7 +5216,6 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
-				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
 		};

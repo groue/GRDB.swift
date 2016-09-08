@@ -63,7 +63,7 @@ class PersonsViewController: UITableViewController {
 
 extension PersonsViewController : PersonEditionViewControllerDelegate {
     
-    override func prepare(for segue: UIStoryboardSegue, sender: AnyObject?) {
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "EditPerson" {
             let person = personsController.record(at: tableView.indexPathForSelectedRow!)
             let controller = segue.destination as! PersonEditionViewController
@@ -152,7 +152,7 @@ extension PersonsViewController {
 
 extension PersonsViewController {
     
-    private func configureToolbar() {
+    fileprivate func configureToolbar() {
         toolbarItems = [
             UIBarButtonItem(title: "Name ⬆︎", style: .plain, target: self, action: .sortByName),
             UIBarButtonItem(title: "Score ⬇︎", style: .plain, target: self, action: .sortByScore),

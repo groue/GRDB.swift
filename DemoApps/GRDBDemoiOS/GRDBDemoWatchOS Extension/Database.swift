@@ -9,8 +9,8 @@ func setupDatabase() {
     // Connect to the database
     // See https://github.com/groue/GRDB.swift/#database-connections
     
-    let documentsPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true).first! as NSString
-    let databasePath = documentsPath.stringByAppendingPathComponent("db.sqlite")
+    let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first! as NSString
+    let databasePath = documentsPath.appendingPathComponent("db.sqlite")
     dbQueue = try! DatabaseQueue(path: databasePath)
     
     
@@ -23,8 +23,8 @@ func setupDatabase() {
         // Compare person names in a localized case insensitive fashion
         // See https://github.com/groue/GRDB.swift/#unicode
         try db.create(table: "persons") { t in
-            t.column("id", .Integer).primaryKey()
-            t.column("name", .Text).notNull().collate(.localizedCaseInsensitiveCompare)
+            t.column("id", .integer).primaryKey()
+            t.column("name", .text).notNull().collate(.localizedCaseInsensitiveCompare)
         }
     }
     

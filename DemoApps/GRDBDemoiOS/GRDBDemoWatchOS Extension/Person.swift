@@ -11,14 +11,14 @@ class Person: Record {
     
     // MARK: Record overrides
     
-    override class func databaseTableName() -> String {
+    override class var databaseTableName: String {
         return "persons"
     }
     
-    required init(_ row: Row) {
+    required init(row: Row) {
         id = row.value(named: "id")
         name = row.value(named: "name")
-        super.init(row)
+        super.init(row: row)
     }
     
     override var persistentDictionary: [String : DatabaseValueConvertible?] {
@@ -27,7 +27,7 @@ class Person: Record {
             "name": name]
     }
     
-    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    override func didInsert(with rowID: Int64, for column: String?) {
         id = rowID
     }
     
@@ -38,5 +38,4 @@ class Person: Record {
     class func randomName() -> String {
         return names[Int(arc4random_uniform(UInt32(names.count)))]
     }
-
 }

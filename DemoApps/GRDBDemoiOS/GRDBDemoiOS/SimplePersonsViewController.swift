@@ -31,7 +31,7 @@ class SimplePersonsViewController: UITableViewController {
 
 extension SimplePersonsViewController : PersonEditionViewControllerDelegate {
     
-    override func prepare(for segue: UIStoryboardSegue, sender: AnyObject?) {
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "EditPerson" {
             let person = persons[tableView.indexPathForSelectedRow!.row]
             let controller = segue.destination as! PersonEditionViewController

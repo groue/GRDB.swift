@@ -10,12 +10,12 @@ class PersonEditionViewController: UITableViewController {
     var cancelButtonHidden: Bool = false { didSet { configureView() } }
     var commitButtonHidden: Bool = false { didSet { configureView() } }
 
-    @IBOutlet private weak var cancelBarButtonItem: UIBarButtonItem!
-    @IBOutlet private weak var commitBarButtonItem: UIBarButtonItem!
-    @IBOutlet private weak var nameCell: UITableViewCell!
-    @IBOutlet private weak var nameTextField: UITextField!
-    @IBOutlet private weak var scoreCell: UITableViewCell!
-    @IBOutlet private weak var scoreTextField: UITextField!
+    @IBOutlet fileprivate weak var cancelBarButtonItem: UIBarButtonItem!
+    @IBOutlet fileprivate weak var commitBarButtonItem: UIBarButtonItem!
+    @IBOutlet fileprivate weak var nameCell: UITableViewCell!
+    @IBOutlet fileprivate weak var nameTextField: UITextField!
+    @IBOutlet fileprivate weak var scoreCell: UITableViewCell!
+    @IBOutlet fileprivate weak var scoreTextField: UITextField!
     
     func applyChanges() {
         if let name = nameTextField.text, !name.isEmpty {
@@ -58,7 +58,7 @@ class PersonEditionViewController: UITableViewController {
 
 extension PersonEditionViewController {
     
-    override func shouldPerformSegue(withIdentifier identifier: String, sender: AnyObject?) -> Bool {
+    override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool {
         // Force keyboard to dismiss early
         view.endEditing(true)
         return true
