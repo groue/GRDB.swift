@@ -7,7 +7,7 @@ GRDB.swift [![Swift](https://img.shields.io/badge/swift-2.3-orange.svg?style=fla
 
 **Requirements**: iOS 8.0+ / OSX 10.9+ / watchOS 2.0+ &bull; Xcode 8+ &bull; Swift 2.2, 2.3, or Swift 3:
 
-- Swift 2.2: use the [v0.80.1 version](https://github.com/groue/GRDB.swift/tree/v0.80.1)
+- Swift 2.2: use the [version 0.80.2](https://github.com/groue/GRDB.swift/tree/v0.80.2)
 - Swift 2.3: use the [Swift2.3 branch](https://github.com/groue/GRDB.swift/tree/Swift2.3)
 - Swift 3: use the [Swift3 branch](https://github.com/groue/GRDB.swift/tree/Swift3)
 - Master branch is currently using Swift 2.3
