@@ -1,11 +1,18 @@
-GRDB.swift [![Swift](https://img.shields.io/badge/swift-2.2-orange.svg?style=flat)](https://developer.apple.com/swift/) [![Platforms](https://img.shields.io/cocoapods/p/GRDB.swift.svg)](https://developer.apple.com/swift/) [![License](https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000)](/LICENSE)
+GRDB.swift [![Swift](https://img.shields.io/badge/swift-2.3-orange.svg?style=flat)](https://developer.apple.com/swift/) [![Platforms](https://img.shields.io/cocoapods/p/GRDB.swift.svg)](https://developer.apple.com/swift/) [![License](https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000)](/LICENSE)
 ==========
 
 ### A Swift application toolkit for SQLite databases.
 
 **Latest release**: September 8, 2016 &bull; version 0.80.1 &bull; [CHANGELOG](CHANGELOG.md)
 
-**Requirements**: iOS 8.0+ / OSX 10.9+ &bull; Xcode 7.3+ &bull; Swift 2.2 (see the [Swift3](https://github.com/groue/GRDB.swift/tree/Swift3) branch for Swift 3).
+**Requirements**: iOS 8.0+ / OSX 10.9+ &bull; Xcode 7.3+ &bull; Swift 2.2, 2.3, or Swift 3:
+
+- Swift 2.2: use the [v0.80.1 version](https://github.com/groue/GRDB.swift/tree/v0.80.1)
+- Swift 2.3: use the [Swift2.3 branch](https://github.com/groue/GRDB.swift/tree/Swift2.3)
+- Swift 2.3: use the [Swift3 branch](https://github.com/groue/GRDB.swift/tree/Swift3)
+- Master branch is currently using Swift2.3
+
+Proper Swift2.3 and Swift3 releases will ship as soon as I have dealt with Cocoapods.
 
 Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
