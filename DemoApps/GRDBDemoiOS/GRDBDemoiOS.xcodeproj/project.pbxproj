@@ -28,6 +28,8 @@
 		568C7AE41CA6CEBE00796484 /* PersonEditionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568C7AE31CA6CEBE00796484 /* PersonEditionViewController.swift */; };
 		568C7AE61CA6F95300796484 /* DemoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568C7AE51CA6F95300796484 /* DemoViewController.swift */; };
 		568C7AE81CA6FB6600796484 /* SimplePersonsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568C7AE71CA6FB6600796484 /* SimplePersonsViewController.swift */; };
+		56BB80191D828F8300B719CF /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5624A6EB1D80B13400AD3DCE /* GRDB.framework */; };
+		56BB801A1D828F8300B719CF /* GRDB.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5624A6EB1D80B13400AD3DCE /* GRDB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -171,6 +173,20 @@
 			remoteGlobalIDString = 56E5D7C91B4D3FED00430942;
 			remoteInfo = GRDBiOS;
 		};
+		56BB80071D828F6A00B719CF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 568C7AC51CA6C6BF00796484 /* GRDB.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 5654909F1D5A4798005622CB;
+			remoteInfo = GRDBWatchOS;
+		};
+		56BB801B1D828F8300B719CF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 568C7AC51CA6C6BF00796484 /* GRDB.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 5654909F1D5A4798005622CB;
+			remoteInfo = GRDBWatchOS;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -203,6 +219,17 @@
 			dstSubfolderSpec = 10;
 			files = (
 				568C7ADB1CA6C6D100796484 /* GRDB.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		56BB801D1D828F8300B719CF /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				56BB801A1D828F8300B719CF /* GRDB.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -241,6 +268,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				56BB80191D828F8300B719CF /* GRDB.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -376,10 +404,13 @@
 				5624A6AE1D80B13300AD3DCE /* Sources */,
 				5624A6AF1D80B13300AD3DCE /* Frameworks */,
 				5624A6B01D80B13300AD3DCE /* Resources */,
+				56BB801D1D828F8300B719CF /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				56BB80081D828F6A00B719CF /* PBXTargetDependency */,
+				56BB801C1D828F8300B719CF /* PBXTargetDependency */,
 			);
 			name = "GRDBDemoWatchOS Extension";
 			productName = "GRDBDemoWatchOS Extension";
@@ -414,19 +445,22 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0730;
-				LastUpgradeCheck = 0730;
+				LastUpgradeCheck = 0800;
 				ORGANIZATIONNAME = Pierlis;
 				TargetAttributes = {
 					5624A6A51D80B13300AD3DCE = {
 						CreatedOnToolsVersion = 7.3.1;
 						DevelopmentTeam = AMD8W895CT;
+						LastSwiftMigration = 0800;
 					};
 					5624A6B11D80B13300AD3DCE = {
 						CreatedOnToolsVersion = 7.3.1;
+						LastSwiftMigration = 0800;
 					};
 					568C7A951CA6C63100796484 = {
 						CreatedOnToolsVersion = 7.3;
 						DevelopmentTeam = AMD8W895CT;
+						LastSwiftMigration = 0800;
 					};
 				};
 			};
@@ -652,6 +686,16 @@
 			name = GRDBiOS;
 			targetProxy = 568C7ADC1CA6C6D100796484 /* PBXContainerItemProxy */;
 		};
+		56BB80081D828F6A00B719CF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GRDBWatchOS;
+			targetProxy = 56BB80071D828F6A00B719CF /* PBXContainerItemProxy */;
+		};
+		56BB801C1D828F8300B719CF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GRDBWatchOS;
+			targetProxy = 56BB801B1D828F8300B719CF /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
@@ -685,16 +729,17 @@
 		5624A6C21D80B13400AD3DCE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
 				IBSC_MODULE = GRDBDemoWatchOS_Extension;
 				INFOPLIST_FILE = GRDBDemoWatchOS/Info.plist;
 				PRODUCT_BUNDLE_IDENTIFIER = GRDB.GRDBDemoiOS.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 2.3;
 				TARGETED_DEVICE_FAMILY = 4;
 				WATCHOS_DEPLOYMENT_TARGET = 2.2;
 			};
@@ -703,16 +748,17 @@
 		5624A6C31D80B13400AD3DCE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
 				IBSC_MODULE = GRDBDemoWatchOS_Extension;
 				INFOPLIST_FILE = GRDBDemoWatchOS/Info.plist;
 				PRODUCT_BUNDLE_IDENTIFIER = GRDB.GRDBDemoiOS.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 2.3;
 				TARGETED_DEVICE_FAMILY = 4;
 				WATCHOS_DEPLOYMENT_TARGET = 2.2;
 			};
@@ -727,6 +773,7 @@
 				PRODUCT_NAME = "${TARGET_NAME}";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 2.3;
 				TARGETED_DEVICE_FAMILY = 4;
 				WATCHOS_DEPLOYMENT_TARGET = 2.2;
 			};
@@ -741,6 +788,7 @@
 				PRODUCT_NAME = "${TARGET_NAME}";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 2.3;
 				TARGETED_DEVICE_FAMILY = 4;
 				WATCHOS_DEPLOYMENT_TARGET = 2.2;
 			};
@@ -760,8 +808,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -805,8 +855,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -825,6 +877,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -832,32 +885,34 @@
 		568C7AA91CA6C63100796484 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
 				INFOPLIST_FILE = GRDBDemoiOS/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = GRDB.GRDBDemoiOS;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
+				SWIFT_VERSION = 2.3;
 			};
 			name = Debug;
 		};
 		568C7AAA1CA6C63100796484 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
 				INFOPLIST_FILE = GRDBDemoiOS/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = GRDB.GRDBDemoiOS;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
+				SWIFT_VERSION = 2.3;
 			};
 			name = Release;
 		};
@@ -871,6 +926,7 @@
 				5624A6C51D80B13400AD3DCE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		5624A6EE1D80B13400AD3DCE /* Build configuration list for PBXNativeTarget "GRDBDemoWatchOS" */ = {
 			isa = XCConfigurationList;
@@ -879,6 +935,7 @@
 				5624A6C31D80B13400AD3DCE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		568C7A911CA6C63100796484 /* Build configuration list for PBXProject "GRDBDemoiOS" */ = {
 			isa = XCConfigurationList;
