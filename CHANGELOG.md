@@ -1,7 +1,18 @@
 Release Notes
 =============
 
+## 0.80.2
+
+Released September 9, 2016
+
+**Fixed**
+
+- WatchOS framework
+
+
 ## 0.80.1
+
+Released September 8, 2016
 
 **Fixed**
 
