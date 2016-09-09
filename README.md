@@ -12,7 +12,7 @@ GRDB.swift [![Swift](https://img.shields.io/badge/swift-2.3-orange.svg?style=fla
 - Swift 3: use the [Swift3 branch](https://github.com/groue/GRDB.swift/tree/Swift3)
 - Master branch is currently using Swift 2.3
 
-Proper Swift2.3 and Swift3 releases will ship as soon as I have dealt with Cocoapods.
+Proper Swift 2.3 and Swift 3 releases will ship as soon as I have dealt with Cocoapods.
 
 Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
