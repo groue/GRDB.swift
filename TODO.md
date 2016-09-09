@@ -1,4 +1,3 @@
-- [ ] Fix slow compilation time of SQLTableBuilderTests.swift
 - [ ] @hdlj: Extensibility of the Query Interface
 - [ ] @hdlj: FetchedRecordsController throttling
 - [ ] @hdlj: Check RAM pressure
