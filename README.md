@@ -9,8 +9,8 @@ GRDB.swift [![Swift](https://img.shields.io/badge/swift-2.3-orange.svg?style=fla
 
 - Swift 2.2: use the [v0.80.1 version](https://github.com/groue/GRDB.swift/tree/v0.80.1)
 - Swift 2.3: use the [Swift2.3 branch](https://github.com/groue/GRDB.swift/tree/Swift2.3)
-- Swift 2.3: use the [Swift3 branch](https://github.com/groue/GRDB.swift/tree/Swift3)
-- Master branch is currently using Swift2.3
+- Swift 3: use the [Swift3 branch](https://github.com/groue/GRDB.swift/tree/Swift3)
+- Master branch is currently using Swift 2.3
 
 Proper Swift2.3 and Swift3 releases will ship as soon as I have dealt with Cocoapods.
 
