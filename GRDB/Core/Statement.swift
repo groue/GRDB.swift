@@ -208,15 +208,17 @@ public class Statement {
 ///         let moreThanThirtyCount = Int.fetchOne(statement, arguments: [30])!
 ///     }
 public final class SelectStatement : Statement {
-    /// A dictionary [tablename: Set<columnName>] of accessed columns
-    private(set) var readTables: [String: Set<String>]
+    /// A dictionary [tablename: Set<columnName>] of columns read by a statement
+    typealias ReadInfo = [String: Set<String>]
+    
+    private(set) var readInfo: ReadInfo
     
     init(database: Database, sql: String) throws {
-        self.readTables = [:]
+        self.readInfo = [:]
         let observer = StatementCompilationObserver(database)
         try super.init(database: database, sql: sql, observer: observer)
         Database.preconditionValidSelectStatement(sql: sql, observer: observer)
-        self.readTables = observer.readTables
+        self.readInfo = observer.readInfo
     }
     
     /// The number of columns in the resulting rows.

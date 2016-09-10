@@ -1149,7 +1149,7 @@ final class StatementCompilationObserver {
     let database: Database
     
     /// A dictionary [tablename: Set<columnName>] of accessed columns
-    var readTables: [String: Set<String>] = [:]
+    var readInfo: SelectStatement.ReadInfo = [:]
     
     /// What this statement does to the database
     var databaseEventKinds: [DatabaseEventKind] = []
@@ -1200,17 +1200,17 @@ final class StatementCompilationObserver {
     
     // Call this method between two calls to calling sqlite3_prepare_v2()
     func reset() {
-        readTables = [:]
+        readInfo = [:]
         databaseEventKinds = []
         invalidatesDatabaseSchemaCache = false
         savepointAction = nil
     }
     
     func insertRead(tableName: String, columnName: String) {
-        if readTables[tableName] != nil {
-           readTables[tableName]!.insert(columnName)
+        if readInfo[tableName] != nil {
+           readInfo[tableName]!.insert(columnName)
         } else {
-           readTables[tableName] = [columnName]
+           readInfo[tableName] = [columnName]
         }
     }
     
@@ -1444,14 +1444,10 @@ extension Database {
     /// The transaction observer is weakly referenced: it is not retained, and
     /// stops getting notifications after it is deallocated.
     ///
-    /// - parameters:
-    ///     - transactionObserver: A transaction observer.
-    ///     - filter: An optional database event filter. When nil (the default),
-    ///       all events are notified to the observer. When not nil, only events
-    ///       that pass the filter are notified.
-    public func add(transactionObserver: TransactionObserver, forDatabaseEvents filter: ((DatabaseEventKind) -> Bool)? = nil) {
+    /// - parameter transactionObserver: A transaction observer.
+    public func add(transactionObserver: TransactionObserver) {
         SchedulingWatchdog.preconditionValidQueue(self)
-        databaseEventObservers.append(DatabaseEventObserver(transactionObserver: transactionObserver, filter: filter))
+        databaseEventObservers.append(DatabaseEventObserver(transactionObserver: transactionObserver))
         if databaseEventObservers.count == 1 {
             installTransactionObserverHooks()
         }
@@ -1513,8 +1509,8 @@ extension Database {
     func updateStatementWillExecute(_ statement: UpdateStatement) {
         let databaseEventKinds = statement.databaseEventKinds
         statementEventObservers = databaseEventObservers.filter { databaseEventObserver in
-            guard let filter = databaseEventObserver.filter else { return true }
-            return databaseEventKinds.index(where: filter) != nil
+            guard let transactionObserver = databaseEventObserver.transactionObserver else { return true }
+            return databaseEventKinds.index(where: transactionObserver.observes) != nil
         }
     }
     
@@ -1729,6 +1725,10 @@ extension Database {
 /// Adopting types must be a class.
 public protocol TransactionObserver : class {
     
+    /// Filters database changes that should be notified the the
+    /// databaseDidChange(with:) method.
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool
+    
     /// Notifies a database change (insert, update, or delete).
     ///
     /// The change is pending until the end of the current transaction, notified
@@ -1803,10 +1803,8 @@ public protocol TransactionObserver : class {
 /// transaction observers.
 class DatabaseEventObserver {
     weak var transactionObserver: TransactionObserver?
-    let filter: ((DatabaseEventKind) -> Bool)?
-    init(transactionObserver: TransactionObserver, filter: ((DatabaseEventKind) -> Bool)?) {
+    init(transactionObserver: TransactionObserver) {
         self.transactionObserver = transactionObserver
-        self.filter = filter
     }
 }
 

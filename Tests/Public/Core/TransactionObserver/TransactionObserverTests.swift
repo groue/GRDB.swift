@@ -12,8 +12,10 @@ private class Observer : TransactionObserver {
     var events: [DatabaseEvent] = []
     var commitError: Error?
     var deinitBlock: (() -> ())?
+    var observesBlock: (DatabaseEventKind) -> Bool
     
-    init(deinitBlock: (() -> ())? = nil) {
+    init(observes observesBlock: @escaping (DatabaseEventKind) -> Bool = { _ in true }, deinitBlock: (() -> ())? = nil) {
+        self.observesBlock = observesBlock
         self.deinitBlock = deinitBlock
     }
     
@@ -47,6 +49,10 @@ private class Observer : TransactionObserver {
         preUpdateEvents.append(event.copy())
     }
     #endif
+    
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+        return observesBlock(eventKind)
+    }
     
     func databaseDidChange(with event: DatabaseEvent) {
         didChangeCount += 1
@@ -1171,8 +1177,8 @@ class TransactionObserverTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             
             do {
-                let observer = Observer()
-                dbQueue.add(transactionObserver: observer, forDatabaseEvents: { _ in return false })
+                let observer = Observer(observes: { _ in false })
+                dbQueue.add(transactionObserver: observer)
                 
                 try dbQueue.inTransaction { db in
                     let artist = Artist(name: "Gerhard Richter")
@@ -1190,8 +1196,8 @@ class TransactionObserverTests: GRDBTestCase {
             }
             
             do {
-                let observer = Observer()
-                dbQueue.add(transactionObserver: observer, forDatabaseEvents: { _ in return true })
+                let observer = Observer(observes: { _ in true })
+                dbQueue.add(transactionObserver: observer)
                 
                 try dbQueue.inTransaction { db in
                     let artist = Artist(name: "Gerhard Richter")
@@ -1209,9 +1215,8 @@ class TransactionObserverTests: GRDBTestCase {
             }
             
             do {
-                let observer = Observer()
-                dbQueue.add(transactionObserver: observer, forDatabaseEvents: { event in
-                    switch event {
+                let observer = Observer(observes: { eventKind in
+                    switch eventKind {
                     case .insert:
                         return true
                     case .update:
@@ -1220,6 +1225,7 @@ class TransactionObserverTests: GRDBTestCase {
                         return false
                     }
                 })
+                dbQueue.add(transactionObserver: observer)
                 
                 try dbQueue.inTransaction { db in
                     let artist = Artist(name: "Gerhard Richter")
@@ -1237,9 +1243,8 @@ class TransactionObserverTests: GRDBTestCase {
             }
             
             do {
-                let observer = Observer()
-                dbQueue.add(transactionObserver: observer, forDatabaseEvents: { event in
-                    switch event {
+                let observer = Observer(observes: { eventKind in
+                    switch eventKind {
                     case .insert:
                         return true
                     case .update:
@@ -1248,6 +1253,7 @@ class TransactionObserverTests: GRDBTestCase {
                         return false
                     }
                 })
+                dbQueue.add(transactionObserver: observer)
                 
                 try dbQueue.inTransaction { db in
                     let artist = Artist(name: "Gerhard Richter")

@@ -18,6 +18,10 @@ private class Observer : TransactionObserver {
     }
 #endif
     
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+        return true
+    }
+    
     func databaseDidChange(with event: DatabaseEvent) {
         events.append(event.copy())
     }

@@ -16,7 +16,7 @@ class StatementInformationTests : GRDBTestCase {
                 try db.execute("CREATE TABLE foo (id INTEGER)")
                 try db.execute("CREATE TABLE bar (id INTEGER, fooId INTEGER)")
                 let statement = try db.makeSelectStatement("SELECT * FROM FOO JOIN BAR ON fooId = foo.id")
-                XCTAssertEqual(statement.readTables, ["foo": Set(["id"]), "bar": Set(["id", "fooId"])])
+                XCTAssertEqual(statement.readInfo, ["foo": Set(["id"]), "bar": Set(["id", "fooId"])])
             }
         }
     }
