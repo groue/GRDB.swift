@@ -1,6 +1,286 @@
 Release Notes
 =============
 
+## Next Version
+
+**New**
+
+- Swift 2
+
+**Breaking Changes**
+
+- The Swift 3 *Grand Renaming* has impacted GRDB a lot.
+    
+    All enum cases now start with a lowercase letter.
+    
+    **Database Connections**
+    
+    ```diff
+     struct Configuration {
+    -    var fileAttributes: [String: AnyObject]?
+    +    var fileAttributes: [FileAttributeKey: Any]
+     }
+     class Database {
+    -    func selectStatement(sql: String) throws -> SelectStatement
+    -    func updateStatement(sql: String) throws -> SelectStatement
+    -    func addFunction(function: DatabaseFunction)
+    -    func addCollation(collation: DatabaseCollation)
+    -    func addTransactionObserver(transactionObserver: TransactionObserverType, forDatabaseEvents filter: ((DatabaseEventKind) -> Bool)? = nil)
+    -    func removeFunction(function: DatabaseFunction)
+    -    func removeCollation(collation: DatabaseCollation)
+    -    func removeTransactionObserver(transactionObserver: TransactionObserverType)
+    +    func makeSelectStatement(_ sql: String) throws -> SelectStatement
+    +    func makeUpdateStatement(_ sql: String) throws -> SelectStatement
+    +    func add(function: DatabaseFunction)
+    +    func add(collation: DatabaseCollation)
+    +    func add(transactionObserver: TransactionObserver, forDatabaseEvents filter: ((DatabaseEventKind) -> Bool)? = nil)
+    +    func remove(function: DatabaseFunction)
+    +    func remove(collation: DatabaseCollation)
+    +    func remove(transactionObserver: TransactionObserver)
+     }
+     class DatabasePool {
+    -    func addFunction(function: DatabaseFunction)
+    -    func addCollation(collation: DatabaseCollation)
+    -    func removeFunction(function: DatabaseFunction)
+    -    func removeCollation(collation: DatabaseCollation)
+    +    func add(function: DatabaseFunction)
+    +    func add(collation: DatabaseCollation)
+    +    func remove(function: DatabaseFunction)
+    +    func remove(collation: DatabaseCollation)
+    #if os(iOS)
+    -    func setupMemoryManagement(application application: UIApplication)
+    +    func setupMemoryManagement(in application: UIApplication) 
+    #endif
+     }
+     class DatabaseQueue {
+    -    func addFunction(function: DatabaseFunction)
+    -    func addCollation(collation: DatabaseCollation)
+    -    func removeFunction(function: DatabaseFunction)
+    -    func removeCollation(collation: DatabaseCollation)
+    +    func add(function: DatabaseFunction)
+    +    func add(collation: DatabaseCollation)
+    +    func remove(function: DatabaseFunction)
+    +    func remove(collation: DatabaseCollation)
+    #if os(iOS)
+    -    func setupMemoryManagement(application application: UIApplication)
+    +    func setupMemoryManagement(in application: UIApplication) 
+    #endif
+     }
+     protocol DatabaseReader {
+    -    func addFunction(function: DatabaseFunction)
+    -    func addCollation(collation: DatabaseCollation)
+    -    func removeFunction(function: DatabaseFunction)
+    -    func removeCollation(collation: DatabaseCollation)
+    +    func add(function: DatabaseFunction)
+    +    func add(collation: DatabaseCollation)
+    +    func remove(function: DatabaseFunction)
+    +    func remove(collation: DatabaseCollation)
+     }
+     protocol DatabaseWriter : DatabaseReader {
+    -    func addTransactionObserver(transactionObserver: TransactionObserverType, forDatabaseEvents filter: ((DatabaseEventKind) -> Bool)? = nil)
+    -    func removeTransactionObserver(transactionObserver: TransactionObserverType)
+    +    func add(transactionObserver: TransactionObserver, forDatabaseEvents filter: ((DatabaseEventKind) -> Bool)? = nil)
+    +    func remove(transactionObserver: TransactionObserver)
+     }
+    -protocol TransactionObserverType : class {
+    +protocol TransactionObserver : class {
+    -    func databaseDidChangeWithEvent(event: DatabaseEvent)
+    -    func databaseDidCommit(db: Database)
+    -    func databaseDidRollback(db: Database)
+    +    func databaseDidChange(with event: DatabaseEvent)
+    +    func databaseDidCommit(_ db: Database)
+    +    func databaseDidRollback(_ db: Database)
+     #if SQLITE_ENABLE_PREUPDATE_HOOK
+    -    func databaseWillChangeWithEvent(event: DatabasePreUpdateEvent)
+    +    func databaseWillChange(with event: DatabasePreUpdateEvent)
+     #endif
+     }
+    ```
+    
+    **Rows**
+    
+    ```diff
+     final class Row {
+    -    init?(_ dictionary: NSDictionary)
+    -    func toNSDictionary() -> NSDictionary
+    +    init?(_ dictionary: [AnyHashable: Any])
+     }
+    ```
+    
+    **Values**
+    
+    ```diff
+     struct DatabaseValue {
+    -    init?(object: AnyObject)
+    -    func toAnyObject() -> AnyObject
+    +    init?(value: Any)
+     }
+     protocol DatabaseValueConvertible {
+    -    static func fromDatabaseValue(databaseValue: DatabaseValue) -> DatabaseValue?
+    +    static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> DatabaseValue?
+     }
+    +extension Data : DatabaseValueConvertible
+    +extension Date : DatabaseValueConvertible
+    +extension URL : DatabaseValueConvertible
+    +extension UUID : DatabaseValueConvertible
+    ```
+    
+    **Built-in SQL Functions**
+    
+    ```diff
+     extension DatabaseFunction {
+    -static let capitalizedString: DatabaseFunction
+    -static let lowercaseString: DatabaseFunction
+    -static let uppercaseString: DatabaseFunction
+    -static let localizedCapitalizedString: DatabaseFunction
+    -static let localizedLowercaseString: DatabaseFunction
+    -static let localizedUppercaseString: DatabaseFunction
+    +static let capitalize: DatabaseFunction
+    +static let lowercase: DatabaseFunction
+    +static let uppercase: DatabaseFunction
+    +static let localizedCapitalize: DatabaseFunction
+    +static let localizedLowercase: DatabaseFunction
+    +static let localizedUppercase: DatabaseFunction
+     }
+    ```
+    
+    **Prepared Statements**
+    
+    ```diff
+     class Database {
+    -    func selectStatement(sql: String) throws -> SelectStatement
+    -    func updateStatement(sql: String) throws -> SelectStatement
+    +    func makeSelectStatement(_ sql: String) throws -> SelectStatement
+    +    func makeUpdateStatement(_ sql: String) throws -> SelectStatement
+     }
+     class Statement {
+    -    func validateArguments(arguments: StatementArguments) throws
+    +    func validate(arguments: StatementArguments) throws
+     }
+     struct StatementArguments {
+    -    init?(_ array: NSArray)
+    -    init?(_ dictionary: NSDictionary)
+    +    init?(_ array: [Any])
+    +    init?(_ dictionary: [AnyHashable: Any])
+     }
+    ```
+    
+    **Records**
+    
+    ```diff
+     protocol RowConvertible {
+    -    static func databaseTableName() -> String
+    -    init(_ row: Row)
+    +    class var databaseTableName: String
+    +    init(row: Row)
+     }
+     protocol MutablePersistable {
+    -    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?)
+    -    mutating func insert(db: Database) throws
+    -    func update(db: Database, columns: Set<String>) throws
+    -    mutating func save(db: Database) throws
+    -    func delete(db: Database) throws -> Bool
+    -    func exists(db: Database) -> Bool
+    +    mutating func didInsert(with rowID: Int64, for column: String?)
+    +    mutating func insert(_ db: Database) throws
+    +    func update(_ db: Database, columns: Set<String>) throws
+    +    mutating func save(_ db: Database) throws
+    +    @discardableResult func delete(_ db: Database) throws -> Bool
+    +    func exists(_ db: Database) -> Bool
+     }
+     protocol Persistable : MutablePersistable {
+    -    func didInsertWithRowID(rowID: Int64, forColumn column: String?)
+    -    func insert(db: Database) throws
+    -    func save(db: Database) throws
+    +    func didInsert(with rowID: Int64, for column: String?)
+    +    func insert(_ db: Database) throws
+    +    func save(_ db: Database) throws
+     }
+     protocol TableMapping {
+    -    static func databaseTableName() -> String
+    +    static var databaseTableName: String { get }
+     }
+    -public class Record : RowConvertible, TableMapping, Persistable {
+    +open class Record : RowConvertible, TableMapping, Persistable {
+    -    required init(_ row: Row)
+    -    class func databaseTableName() -> String
+    -    func awakeFromFetch(row row: Row)
+    -    func didInsertWithRowID(rowID: Int64, forColumn column: String?)
+    -    func update(db: Database, columns: Set<String>) throws
+    -    func insert(db: Database) throws
+    -    func save(db: Database) throws
+    -    func delete(db: Database) throws -> Bool
+    +    required init(row: Row)
+    +    class var databaseTableName: String
+    +    func awakeFromFetch(row: Row)
+    +    func didInsert(with rowID: Int64, for column: String?)
+    +    func update(_ db: Database, columns: Set<String>) throws
+    +    func insert(_ db: Database) throws
+    +    func save(_ db: Database) throws
+    +    @discardableResult func delete(_ db: Database) throws -> Bool
+     }
+    ```
+    
+    **Query Interface**
+    
+    ```diff
+     protocol FetchRequest {
+    -    func prepare(db: Database) throws -> (SelectStatement, RowAdapter?)
+    +    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?)
+     }
+    -struct SQLColumn {}
+    +struct Column {}
+     struct QueryInterfaceRequest<T> {
+    -    var distinct: QueryInterfaceRequest<T>
+    -    var exists: _SQLExpression
+    -    func reverse() -> QueryInterfaceRequest<T>
+    +    func distinct() -> QueryInterfaceRequest<T>
+    +    func exists() -> _SQLExpression
+    +    func reversed() -> QueryInterfaceRequest<T>
+     }
+     extension _SpecificSQLExpressible {
+    -    var capitalizedString: _SQLExpression
+    -    var lowercaseString: _SQLExpression
+    -    var uppercaseString: _SQLExpression
+    -    var localizedCapitalizedString: _SQLExpression
+    -    var localizedLowercaseString: _SQLExpression
+    -    var localizedUppercaseString: _SQLExpression
+    +    var capitalized: _SQLExpression
+    +    var lowercased: _SQLExpression
+    +    var uppercased: _SQLExpression
+    +    var localizedCapitalized: _SQLExpression
+    +    var localizedLowercased: _SQLExpression
+    +    var localizedUppercased: _SQLExpression
+     }
+    ```
+
+## 0.81.0
+
+Released September 10, 2016
+
+**New**
+
+- Swift 2.3
+
+
+## 0.80.2
+
+Released September 9, 2016
+
+**Fixed**
+
+- WatchOS framework
+
+
+## 0.80.1
+
+Released September 8, 2016
+
+**Fixed**
+
+- WatchOS framework is now available through CocoaPods.
+
+
 ## 0.80.0
 
 Released September 7, 2016
