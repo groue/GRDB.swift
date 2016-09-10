@@ -122,7 +122,7 @@ public final class Database {
         do {
             #if SQLITE_HAS_CODEC
                 if let passphrase = configuration.passphrase {
-                    try Database.setPassphrase(passphrase, forConnection: sqliteConnection)
+                    try Database.set(passphrase: passphrase, forConnection: sqliteConnection!)
                 }
             #endif
             
@@ -751,17 +751,21 @@ public func ==(lhs: DatabaseCollation, rhs: DatabaseCollation) -> Bool {
 
 #if SQLITE_HAS_CODEC
 extension Database {
-    private class func setPassphrase(passphrase: String, forConnection sqliteConnection: SQLiteConnection) throws {
+    fileprivate class func set(passphrase: String, forConnection sqliteConnection: SQLiteConnection) throws {
         let data = passphrase.data(using: .utf8)!
-        let code = sqlite3_key(sqliteConnection, data.bytes, Int32(data.length))
+        let code = data.withUnsafeBytes { bytes in
+            sqlite3_key(sqliteConnection, bytes, Int32(data.count))
+        }
         guard code == SQLITE_OK else {
             throw DatabaseError(code: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
         }
     }
 
-    func changePassphrase(passphrase: String) throws {
+    func change(passphrase: String) throws {
         let data = passphrase.data(using: .utf8)!
-        let code = sqlite3_rekey(sqliteConnection, data.bytes, Int32(data.length))
+        let code = data.withUnsafeBytes { bytes in
+            sqlite3_rekey(sqliteConnection, bytes, Int32(data.count))
+        }
         guard code == SQLITE_OK else {
             throw DatabaseError(code: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
         }

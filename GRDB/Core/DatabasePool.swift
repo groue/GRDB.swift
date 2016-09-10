@@ -213,7 +213,7 @@ public final class DatabasePool {
     
     let store: DatabaseStore    // Not private for tests that require syncing with the store
     fileprivate let writer: SerializedDatabase
-    private var readerConfig: Configuration
+    fileprivate var readerConfig: Configuration
     fileprivate let readerPool: Pool<SerializedDatabase>
     
     fileprivate var functions = Set<DatabaseFunction>()
@@ -236,10 +236,10 @@ public enum CheckpointMode: Int32 {
     extension DatabasePool {
         
         /// Changes the passphrase of an encrypted database
-        public func changePassphrase(passphrase: String) throws {
+        public func change(passphrase: String) throws {
             try readerPool.clear {
                 try writer.sync { db in
-                    try db.changePassphrase(passphrase)
+                    try db.change(passphrase: passphrase)
                 }
                 readerConfig.passphrase = passphrase
             }

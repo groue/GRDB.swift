@@ -3312,7 +3312,7 @@ let dbQueue = try DatabaseQueue(path: "...", configuration: configuration)
 **You can change the passphrase** of an already encrypted database:
 
 ```swift
-try dbQueue.changePassphrase("newSecret")
+try dbQueue.change(passphrase: "newSecret")
 ```
 
 Providing a passphrase won't encrypt a clear-text database that already exists, though. SQLCipher can't do that, and you will get an error instead: `SQLite error 26: file is encrypted or is not a database`.

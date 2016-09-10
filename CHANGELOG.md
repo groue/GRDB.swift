@@ -51,12 +51,17 @@ Release Notes
     -    func setupMemoryManagement(application application: UIApplication)
     +    func setupMemoryManagement(in application: UIApplication) 
     #endif
+    #if SQLITE_HAS_CODEC
+    -    func changePassphrase(passphrase: String) throws
+    +    func change(passphrase: String) throws
+    #endif
      }
      class DatabaseQueue {
     -    func addFunction(function: DatabaseFunction)
     -    func addCollation(collation: DatabaseCollation)
     -    func removeFunction(function: DatabaseFunction)
     -    func removeCollation(collation: DatabaseCollation)
+    
     +    func add(function: DatabaseFunction)
     +    func add(collation: DatabaseCollation)
     +    func remove(function: DatabaseFunction)
@@ -64,6 +69,10 @@ Release Notes
     #if os(iOS)
     -    func setupMemoryManagement(application application: UIApplication)
     +    func setupMemoryManagement(in application: UIApplication) 
+    #endif
+    #if SQLITE_HAS_CODEC
+    -    func changePassphrase(passphrase: String) throws
+    +    func change(passphrase: String) throws
     #endif
      }
      protocol DatabaseReader {
