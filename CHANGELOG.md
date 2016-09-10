@@ -21,32 +21,12 @@ Release Notes
     +    var fileAttributes: [FileAttributeKey: Any]
      }
      class Database {
-    -    func selectStatement(sql: String) throws -> SelectStatement
-    -    func updateStatement(sql: String) throws -> SelectStatement
-    -    func addFunction(function: DatabaseFunction)
-    -    func addCollation(collation: DatabaseCollation)
     -    func addTransactionObserver(transactionObserver: TransactionObserverType, forDatabaseEvents filter: ((DatabaseEventKind) -> Bool)? = nil)
-    -    func removeFunction(function: DatabaseFunction)
-    -    func removeCollation(collation: DatabaseCollation)
     -    func removeTransactionObserver(transactionObserver: TransactionObserverType)
-    +    func makeSelectStatement(_ sql: String) throws -> SelectStatement
-    +    func makeUpdateStatement(_ sql: String) throws -> SelectStatement
-    +    func add(function: DatabaseFunction)
-    +    func add(collation: DatabaseCollation)
     +    func add(transactionObserver: TransactionObserver, forDatabaseEvents filter: ((DatabaseEventKind) -> Bool)? = nil)
-    +    func remove(function: DatabaseFunction)
-    +    func remove(collation: DatabaseCollation)
     +    func remove(transactionObserver: TransactionObserver)
      }
      class DatabasePool {
-    -    func addFunction(function: DatabaseFunction)
-    -    func addCollation(collation: DatabaseCollation)
-    -    func removeFunction(function: DatabaseFunction)
-    -    func removeCollation(collation: DatabaseCollation)
-    +    func add(function: DatabaseFunction)
-    +    func add(collation: DatabaseCollation)
-    +    func remove(function: DatabaseFunction)
-    +    func remove(collation: DatabaseCollation)
     #if os(iOS)
     -    func setupMemoryManagement(application application: UIApplication)
     +    func setupMemoryManagement(in application: UIApplication) 
@@ -57,15 +37,6 @@ Release Notes
     #endif
      }
      class DatabaseQueue {
-    -    func addFunction(function: DatabaseFunction)
-    -    func addCollation(collation: DatabaseCollation)
-    -    func removeFunction(function: DatabaseFunction)
-    -    func removeCollation(collation: DatabaseCollation)
-    
-    +    func add(function: DatabaseFunction)
-    +    func add(collation: DatabaseCollation)
-    +    func remove(function: DatabaseFunction)
-    +    func remove(collation: DatabaseCollation)
     #if os(iOS)
     -    func setupMemoryManagement(application application: UIApplication)
     +    func setupMemoryManagement(in application: UIApplication) 
@@ -74,16 +45,6 @@ Release Notes
     -    func changePassphrase(passphrase: String) throws
     +    func change(passphrase: String) throws
     #endif
-     }
-     protocol DatabaseReader {
-    -    func addFunction(function: DatabaseFunction)
-    -    func addCollation(collation: DatabaseCollation)
-    -    func removeFunction(function: DatabaseFunction)
-    -    func removeCollation(collation: DatabaseCollation)
-    +    func add(function: DatabaseFunction)
-    +    func add(collation: DatabaseCollation)
-    +    func remove(function: DatabaseFunction)
-    +    func remove(collation: DatabaseCollation)
      }
      protocol DatabaseWriter : DatabaseReader {
     -    func addTransactionObserver(transactionObserver: TransactionObserverType, forDatabaseEvents filter: ((DatabaseEventKind) -> Bool)? = nil)
@@ -134,9 +95,33 @@ Release Notes
     +extension UUID : DatabaseValueConvertible
     ```
     
-    **Built-in SQL Functions**
+    **SQL Functions**
     
     ```diff
+     class Database {
+    -    func addFunction(function: DatabaseFunction)
+    -    func removeFunction(function: DatabaseFunction)
+    +    func add(function: DatabaseFunction)
+    +    func remove(function: DatabaseFunction)
+     }
+     class DatabasePool {
+    -    func addFunction(function: DatabaseFunction)
+    -    func removeFunction(function: DatabaseFunction)
+    +    func add(function: DatabaseFunction)
+    +    func remove(function: DatabaseFunction)
+     }
+     class DatabaseQueue {
+    -    func addFunction(function: DatabaseFunction)
+    -    func removeFunction(function: DatabaseFunction)
+    +    func add(function: DatabaseFunction)
+    +    func remove(function: DatabaseFunction)
+     }
+     protocol DatabaseReader {
+    -    func addFunction(function: DatabaseFunction)
+    -    func removeFunction(function: DatabaseFunction)
+    +    func add(function: DatabaseFunction)
+    +    func remove(function: DatabaseFunction)
+     }
      extension DatabaseFunction {
     -static let capitalizedString: DatabaseFunction
     -static let lowercaseString: DatabaseFunction
@@ -150,6 +135,36 @@ Release Notes
     +static let localizedCapitalize: DatabaseFunction
     +static let localizedLowercase: DatabaseFunction
     +static let localizedUppercase: DatabaseFunction
+     }
+    ```
+    
+    
+    **SQL Collations**
+    
+    ```diff
+     class Database {
+    -    func addCollation(collation: DatabaseCollation)
+    -    func removeCollation(collation: DatabaseCollation)
+    +    func add(collation: DatabaseCollation)
+    +    func remove(collation: DatabaseCollation)
+     }
+     class DatabasePool {
+    -    func addCollation(collation: DatabaseCollation)
+    -    func removeCollation(collation: DatabaseCollation)
+    +    func add(collation: DatabaseCollation)
+    +    func remove(collation: DatabaseCollation)
+     }
+     class DatabaseQueue {
+    -    func addCollation(collation: DatabaseCollation)
+    -    func removeCollation(collation: DatabaseCollation)
+    +    func add(collation: DatabaseCollation)
+    +    func remove(collation: DatabaseCollation)
+     }
+     protocol DatabaseReader {
+    -    func addCollation(collation: DatabaseCollation)
+    -    func removeCollation(collation: DatabaseCollation)
+    +    func add(collation: DatabaseCollation)
+    +    func remove(collation: DatabaseCollation)
      }
     ```
     
