@@ -46,33 +46,29 @@ class NumericOverflowTests: GRDBTestCase {
     }
     
     func testHighIntFromDoubleOverflows() {
-        #if arch(x86_64­) || arch(arm64­)
+        if Int64(Int.max) == Int64.max {
             // 64 bits Int
             XCTAssertEqual(Int64(Int.fromDatabaseValue(maxInt64ConvertibleDouble.databaseValue)!), 9223372036854774784)
             XCTAssertTrue(Int.fromDatabaseValue((minInt64NonConvertibleDouble).databaseValue) == nil)
-        #elseif arch(i386­) || arch(arm)
+        } else {
             // 32 bits Int
             XCTAssertEqual(Int.max, Int(Int32.max))
             XCTAssertEqual(Int.fromDatabaseValue(maxInt32ConvertibleDouble.databaseValue)!, Int.max)
             XCTAssertTrue(Int.fromDatabaseValue(minInt32NonConvertibleDouble.databaseValue) == nil)
-        #else
-            fatalError("Unknown architecture")
-        #endif
+        }
     }
     
     func testLowIntFromDoubleOverflows() {
-        #if arch(x86_64­) || arch(arm64­)
+        if Int64(Int.max) == Int64.max {
             // 64 bits Int
             XCTAssertEqual(Int.fromDatabaseValue(minInt64ConvertibleDouble.databaseValue)!, Int.min)
             XCTAssertTrue(Int.fromDatabaseValue(maxInt64NonConvertibleDouble.databaseValue) == nil)
-        #elseif arch(i386­) || arch(arm)
+        } else {
             // 32 bits Int
             XCTAssertEqual(Int.max, Int(Int32.max))
             XCTAssertEqual(Int.fromDatabaseValue(minInt32ConvertibleDouble.databaseValue)!, Int.min)
             XCTAssertTrue(Int.fromDatabaseValue(maxInt32NonConvertibleDouble.databaseValue) == nil)
-        #else
-            fatalError("Unknown architecture")
-        #endif
+        }
     }
     
 }
