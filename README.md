@@ -5,7 +5,7 @@ GRDB.swift [![Swift](https://img.shields.io/badge/swift-3-orange.svg?style=flat)
 
 **Latest release**: September 10, 2016 &bull; version 0.81.0 &bull; [CHANGELOG](CHANGELOG.md)
 
-**Requirements**: iOS 8.0+ / OSX 10.9+ / watchOS 2.0+ &bull; Xcode 8+ &bull; Swift 2.3
+**Requirements**: iOS 8.0+ / OSX 10.9+ / watchOS 2.0+ &bull; Xcode 8+ &bull; Swift 3
 
 - Swift 2.2: use the [version 0.80.2](https://github.com/groue/GRDB.swift/tree/v0.80.2)
 - Swift 2.3: use the [version 0.81.0](https://github.com/groue/GRDB.swift/tree/v0.81.0)
@@ -35,8 +35,8 @@ GRDB ships with a **low-level SQLite API**, and high-level tools that help deali
 - **Migrations**: transform your database as your application evolves
 - **Database Changes Observation**: perform post-commit and post-rollback actions
 - **Fetched Records Controller**: automated tracking of changes in a query results, and UITableView animations
-- **Encryption** with SQLCipher
-- **Support for custom SQLite builds**
+- **Encryption** with SQLCipher (:warning: not currently supported with Swift 3)
+- **Support for custom SQLite builds** (:warning: not currently supported with Swift 3)
 
 More than a set of tools that leverage SQLite abilities, GRDB is also:
 
@@ -209,6 +209,9 @@ Documentation
 
 GRDB requires Xcode 8 to be installed in the /Applications folder, with its regular name Xcode.
 
+> :warning: **Warning**: [SQLCipher](#encryption) and [custom SQLite builds](#custom-sqlite-builds) are currently not available in Swift 3.
+
+
 #### CocoaPods
 
 [CocoaPods](http://cocoapods.org/) is a dependency manager for Xcode projects.
@@ -228,8 +231,6 @@ use_frameworks!
 pod 'GRDB.swift', :git => 'git@github.com:groue/GRDB.swift', :branch => 'Swift3'
 ```
 
-> :point_up: **Note**: [SQLCipher](#encryption) and [custom SQLite builds](#custom-sqlite-builds) are not available via CocoaPods.
-
 
 #### Carthage
 
@@ -238,10 +239,8 @@ pod 'GRDB.swift', :git => 'git@github.com:groue/GRDB.swift', :branch => 'Swift3'
 To use GRDB.swift with Carthage, specify in your Cartfile:
 
 ```
-github "groue/GRDB.swift"
+github "groue/GRDB.swift" "Swift3"
 ```
-
-> :point_up: **Note**: [custom SQLite builds](#custom-sqlite-builds) are not available via Carthage.
 
 
 #### Manually
@@ -257,6 +256,8 @@ See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an example of such integration.
 #### Custom SQLite builds
 
 **By default, GRDB uses the SQLite library that ships with the operating system.** You can build GRDB with custom SQLite sources and options, through [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfalling/SQLiteLib). See [installation instructions](SQLiteCustom/README.md).
+
+> :warning: **Warning**: [custom SQLite builds](#custom-sqlite-builds) are currently not available in Swift 3.
 
 
 Database Connections
