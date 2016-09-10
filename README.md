@@ -257,7 +257,7 @@ See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an example of such integration.
 
 **By default, GRDB uses the SQLite library that ships with the operating system.** You can build GRDB with custom SQLite sources and options, through [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfalling/SQLiteLib). See [installation instructions](SQLiteCustom/README.md).
 
-> :warning: **Warning**: [custom SQLite builds](#custom-sqlite-builds) are currently not available in Swift 3.
+> :warning: **Warning**: custom SQLite builds are currently not available in Swift 3.
 
 
 Database Connections
