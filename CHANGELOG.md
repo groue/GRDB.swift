@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## 0.81.0
+
+Released September 10, 2016
+
+**New**
+
+- Swift 2.3
+
+
 ## 0.80.2
 
 Released September 9, 2016
