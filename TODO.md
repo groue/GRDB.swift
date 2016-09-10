@@ -7,9 +7,6 @@
     - DatabasePoolReadOnlyTests
     - DatabaseQueueConcurrencyTests
 - [ ] Swift3: check .autoreleaseWorkItem option in GCD Queue creation
-- [ ] Swift3: move database event filtering into the TransactionObserver protocol
-    - [X] implementation
-    - [ ] documentation
 - [ ] Fatal Error when MutablePersistable.update(_:columns:) is given columns that do not exist in the database.
 - [ ] @hdlj: Extensibility of the Query Interface
 - [ ] @hdlj: FetchedRecordsController throttling

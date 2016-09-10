@@ -27,10 +27,6 @@ Release Notes
     +    var fileAttributes: [FileAttributeKey: Any]
      }
      class Database {
-    -    func addTransactionObserver(transactionObserver: TransactionObserverType, forDatabaseEvents filter: ((DatabaseEventKind) -> Bool)? = nil)
-    -    func removeTransactionObserver(transactionObserver: TransactionObserverType)
-    +    func add(transactionObserver: TransactionObserver, forDatabaseEvents filter: ((DatabaseEventKind) -> Bool)? = nil)
-    +    func remove(transactionObserver: TransactionObserver)
     +    typealias BusyCallback = (_ numberOfTries: Int) -> Bool
     +    enum BusyMode {
     +        case immediateError
@@ -72,25 +68,6 @@ Release Notes
     -    func changePassphrase(passphrase: String) throws
     +    func change(passphrase: String) throws
     #endif
-     }
-     protocol DatabaseWriter : DatabaseReader {
-    -    func addTransactionObserver(transactionObserver: TransactionObserverType, forDatabaseEvents filter: ((DatabaseEventKind) -> Bool)? = nil)
-    -    func removeTransactionObserver(transactionObserver: TransactionObserverType)
-    +    func add(transactionObserver: TransactionObserver, forDatabaseEvents filter: ((DatabaseEventKind) -> Bool)? = nil)
-    +    func remove(transactionObserver: TransactionObserver)
-     }
-    -protocol TransactionObserverType : class {
-    +protocol TransactionObserver : class {
-    -    func databaseDidChangeWithEvent(event: DatabaseEvent)
-    -    func databaseDidCommit(db: Database)
-    -    func databaseDidRollback(db: Database)
-    +    func databaseDidChange(with event: DatabaseEvent)
-    +    func databaseDidCommit(_ db: Database)
-    +    func databaseDidRollback(_ db: Database)
-     #if SQLITE_ENABLE_PREUPDATE_HOOK
-    -    func databaseWillChangeWithEvent(event: DatabasePreUpdateEvent)
-    +    func databaseWillChange(with event: DatabasePreUpdateEvent)
-     #endif
      }
     ```
     
@@ -213,6 +190,39 @@ Release Notes
     -    init?(_ dictionary: NSDictionary)
     +    init?(_ array: [Any])
     +    init?(_ dictionary: [AnyHashable: Any])
+     }
+    ```
+    
+    **Transaction Observers**
+    
+    Database events filtering is now performed by transaction observers themselves.
+    
+    ```diff
+     class Database {
+    -    func addTransactionObserver(transactionObserver: TransactionObserverType, forDatabaseEvents filter: ((DatabaseEventKind) -> Bool)? = nil)
+    -    func removeTransactionObserver(transactionObserver: TransactionObserverType)
+    +    func add(transactionObserver: TransactionObserver)
+    +    func remove(transactionObserver: TransactionObserver)
+     }
+     protocol DatabaseWriter : DatabaseReader {
+    -    func addTransactionObserver(transactionObserver: TransactionObserverType, forDatabaseEvents filter: ((DatabaseEventKind) -> Bool)? = nil)
+    -    func removeTransactionObserver(transactionObserver: TransactionObserverType)
+    +    func add(transactionObserver: TransactionObserver)
+    +    func remove(transactionObserver: TransactionObserver)
+     }
+    -protocol TransactionObserverType : class {
+    +protocol TransactionObserver : class {
+    -    func databaseDidChangeWithEvent(event: DatabaseEvent)
+    -    func databaseDidCommit(db: Database)
+    -    func databaseDidRollback(db: Database)
+    +    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool
+    +    func databaseDidChange(with event: DatabaseEvent)
+    +    func databaseDidCommit(_ db: Database)
+    +    func databaseDidRollback(_ db: Database)
+     #if SQLITE_ENABLE_PREUPDATE_HOOK
+    -    func databaseWillChangeWithEvent(event: DatabasePreUpdateEvent)
+    +    func databaseWillChange(with event: DatabasePreUpdateEvent)
+     #endif
      }
     ```
     

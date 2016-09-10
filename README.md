@@ -2843,6 +2843,10 @@ The `TransactionObserver` protocol lets you **observe database changes**:
 
 ```swift
 public protocol TransactionObserver : class {
+    /// Filters database changes that should be notified the the
+    /// `databaseDidChange(with:)` method.
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool
+    
     /// Notifies a database change:
     /// - event.kind (insert, update, or delete)
     /// - event.tableName
@@ -2873,7 +2877,7 @@ dbQueue.add(transactionObserver: observer)
 
 Database holds weak references to its transaction observers: they are not retained, and stop getting notifications after they are deallocated.
 
-Unless specified otherwise (see below), **a transaction observer is notified of all database changes**: inserts, updates and deletes, including indirect ones triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
+**A transaction observer is notified of all database changes**: inserts, updates and deletes, including indirect ones triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
 
 Changes are not actually applied until `databaseDidCommit` is called. On the other side, `databaseDidRollback` confirms their invalidation:
 
@@ -2951,11 +2955,16 @@ At first sight, this looks somewhat redundant with the checks that observers can
 ```swift
 // BAD: An inefficient way to track the "persons" table:
 class PersonObserver: TransactionObserver {
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+        // Observe all events
+        return true
+    }
+    
     func databaseDidChange(with event: DatabaseEvent) {
         guard event.tableName == "persons" else {
             return
         }
-        // Process change to the "persons" table
+        // Process change
     }
 }
 ```
@@ -2964,26 +2973,29 @@ The `databaseDidChange` method is invoked for each insertion, deletion, and upda
 
 More, when you're interested in specific table columns, you're out of luck, because `databaseDidChange` does not know about columns: it just knows that a row has been inserted, deleted, or updated, without further detail.
 
-Instead, provide an event filter to the `add(transactionObserver:)` method, as below:
+Instead, filter events in the `observes(eventsOfKind:)` method, as below:
 
 ```swift
-// This observer will only be notified of changes to the "name" column
-// of the "persons" table.
-dbQueue.add(transactionObserver: observer, forDatabaseEvents: { event in
-    switch event {
-    case .Insert(let tableName):
-        return tableName == "persons"
-    case .Delete(let tableName):
-        return tableName == "persons"
-    case .Update(let tableName, let columnNames):
-        return tableName == "persons" && columnNames.contains("name")
+class PersonObserver: TransactionObserver {
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+        // Only observe changes to the "name" column of the "persons" table.
+        switch eventKind {
+        case .Insert(let tableName):
+            return tableName == "persons"
+        case .Delete(let tableName):
+            return tableName == "persons"
+        case .Update(let tableName, let columnNames):
+            return tableName == "persons" && columnNames.contains("name")
+        }
     }
-})
+    
+    func databaseDidChange(with event: DatabaseEvent) {
+        // Process change
+    }
+}
 ```
 
 This technique is *much more* efficient, because GRDB will apply the filter only once for each update statement, instead of once for each modified row.
-
-> :point_up: **Note**: avoid referring to the observer itself in the event filter closure, because the database would then keep a strong reference to the observer - this is usually undesired.
 
 
 ### Support for SQLite Pre-Update Hooks
