@@ -5,7 +5,7 @@ Release Notes
 
 **New**
 
-- Swift 2
+- Swift 3
 
 **Breaking Changes**
 
