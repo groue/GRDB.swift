@@ -255,26 +255,26 @@ Release Notes
     -struct SQLColumn {}
     +struct Column {}
      struct QueryInterfaceRequest<T> {
-    -    var distinct: QueryInterfaceRequest<T>
-    -    var exists: _SQLExpression
+    -    var distinct: QueryInterfaceRequest<T> { get }
+    -    var exists: _SQLExpression { get }
     -    func reverse() -> QueryInterfaceRequest<T>
     +    func distinct() -> QueryInterfaceRequest<T>
     +    func exists() -> _SQLExpression
     +    func reversed() -> QueryInterfaceRequest<T>
      }
      extension _SpecificSQLExpressible {
-    -    var capitalizedString: _SQLExpression
-    -    var lowercaseString: _SQLExpression
-    -    var uppercaseString: _SQLExpression
-    -    var localizedCapitalizedString: _SQLExpression
-    -    var localizedLowercaseString: _SQLExpression
-    -    var localizedUppercaseString: _SQLExpression
-    +    var capitalized: _SQLExpression
-    +    var lowercased: _SQLExpression
-    +    var uppercased: _SQLExpression
-    +    var localizedCapitalized: _SQLExpression
-    +    var localizedLowercased: _SQLExpression
-    +    var localizedUppercased: _SQLExpression
+    -    var capitalizedString: _SQLExpression { get }
+    -    var lowercaseString: _SQLExpression { get }
+    -    var uppercaseString: _SQLExpression { get }
+    -    var localizedCapitalizedString: _SQLExpression { get }
+    -    var localizedLowercaseString: _SQLExpression { get }
+    -    var localizedUppercaseString: _SQLExpression { get }
+    +    var capitalized: _SQLExpression { get }
+    +    var lowercased: _SQLExpression { get }
+    +    var uppercased: _SQLExpression { get }
+    +    var localizedCapitalized: _SQLExpression { get }
+    +    var localizedLowercased: _SQLExpression { get }
+    +    var localizedUppercased: _SQLExpression { get }
      }
     ```
 
