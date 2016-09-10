@@ -946,6 +946,13 @@
 		DC2393C81ABE35F8003FF113 /* GRDB-Bridging.h in Headers */ = {isa = PBXBuildFile; fileRef = DC2393C61ABE35F8003FF113 /* GRDB-Bridging.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		DC3773F919C8CBB3004FCF85 /* GRDB.h in Headers */ = {isa = PBXBuildFile; fileRef = DC3773F819C8CBB3004FCF85 /* GRDB.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		DC70AC991AC2331000371524 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DC37744219C8DC91004FCF85 /* libsqlite3.dylib */; };
+		EE578FFD1D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE578FFC1D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift */; };
+		EE578FFE1D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE578FFC1D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift */; };
+		EE578FFF1D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE578FFC1D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift */; };
+		EE5790001D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE578FFC1D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift */; };
+		EE5790011D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE578FFC1D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift */; };
+		EE5790021D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE578FFC1D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift */; };
+		EE5790031D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE578FFC1D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift */; };
 		EED476F21CFD17270026A4EC /* GRDBCustomSQLite-USER.h in Headers */ = {isa = PBXBuildFile; fileRef = EED476F11CFD16FF0026A4EC /* GRDBCustomSQLite-USER.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		EED476F31CFD172C0026A4EC /* GRDBCustomSQLite-USER.h in Headers */ = {isa = PBXBuildFile; fileRef = EED476F11CFD16FF0026A4EC /* GRDBCustomSQLite-USER.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F3BA800A1CFB286A003DC1BA /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238701B9C75030082EB20 /* Configuration.swift */; };
@@ -1619,6 +1626,7 @@
 		DC37740419C8CBB3004FCF85 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DC37744219C8DC91004FCF85 /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = usr/lib/libsqlite3.dylib; sourceTree = SDKROOT; };
 		DC37744719C8F50B004FCF85 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		EE578FFC1D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "GRDB-Swift2-ConversionHelper.swift"; sourceTree = "<group>"; };
 		EED476F11CFD16FF0026A4EC /* GRDBCustomSQLite-USER.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "GRDBCustomSQLite-USER.h"; path = "SQLiteCustom/GRDBCustomSQLite-USER.h"; sourceTree = "<group>"; };
 		F3BA7FEE1CFB23B7003DC1BA /* GRDB.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = GRDB.xcconfig; path = SQLiteCustom/GRDB.xcconfig; sourceTree = "<group>"; };
 		F3BA7FEF1CFB23BF003DC1BA /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; name = module.modulemap; path = SQLiteCustom/module.modulemap; sourceTree = "<group>"; };
@@ -2434,6 +2442,7 @@
 				DC3773F819C8CBB3004FCF85 /* GRDB.h */,
 				DC2393C61ABE35F8003FF113 /* GRDB-Bridging.h */,
 				DC3773F719C8CBB3004FCF85 /* Info.plist */,
+				EE578FFC1D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift */,
 			);
 			name = "Supporting Files";
 			path = ../Support;
@@ -3282,6 +3291,7 @@
 				560FC5391CB003810014AA8E /* DatabaseReader.swift in Sources */,
 				5657AAAB1D106E39006283EF /* NSDate.swift in Sources */,
 				560FC53A1CB003810014AA8E /* NSNull.swift in Sources */,
+				EE578FFE1D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift in Sources */,
 				560FC53B1CB003810014AA8E /* Database.swift in Sources */,
 				566AD8B31D5318F4002EC1A8 /* SQLTableBuilder.swift in Sources */,
 				560FC53C1CB003810014AA8E /* DatabaseQueue.swift in Sources */,
@@ -3419,6 +3429,7 @@
 				56F5ABDB1D814330001F60CB /* NSDate.swift in Sources */,
 				565490D71D5AE252005622CB /* Utils.swift in Sources */,
 				565490BF1D5AE236005622CB /* DatabaseValueConvertible.swift in Sources */,
+				EE5790031D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift in Sources */,
 				565490BB1D5AE236005622CB /* DatabaseReader.swift in Sources */,
 				565490C91D5AE252005622CB /* DatabaseCoder.swift in Sources */,
 				565490C31D5AE236005622CB /* RowAdapter.swift in Sources */,
@@ -3618,6 +3629,7 @@
 				56AFCA0F1CB1A8BB00F48B96 /* NSNull.swift in Sources */,
 				5657AAAE1D106E39006283EF /* NSDate.swift in Sources */,
 				56AFCA101CB1A8BB00F48B96 /* DatabaseQueue.swift in Sources */,
+				EE5790011D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift in Sources */,
 				56AFCA111CB1A8BB00F48B96 /* DatabaseError.swift in Sources */,
 				566AD8B61D5318F4002EC1A8 /* SQLTableBuilder.swift in Sources */,
 				56AFCA121CB1A8BB00F48B96 /* NSNumber.swift in Sources */,
@@ -3881,6 +3893,7 @@
 				5605F1661C672E4000235C62 /* NSNull.swift in Sources */,
 				5657AAAD1D106E39006283EF /* NSDate.swift in Sources */,
 				56A238841B9C75030082EB20 /* DatabaseQueue.swift in Sources */,
+				EE5790001D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift in Sources */,
 				56A238821B9C75030082EB20 /* DatabaseError.swift in Sources */,
 				566AD8B51D5318F4002EC1A8 /* SQLTableBuilder.swift in Sources */,
 				5605F1681C672E4000235C62 /* NSNumber.swift in Sources */,
@@ -4134,6 +4147,7 @@
 				563363C01C942C04000BE133 /* DatabaseReader.swift in Sources */,
 				5657AAAA1D106E39006283EF /* NSDate.swift in Sources */,
 				5605F1651C672E4000235C62 /* NSNull.swift in Sources */,
+				EE578FFD1D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift in Sources */,
 				56A2387D1B9C75030082EB20 /* Database.swift in Sources */,
 				566AD8B21D5318F4002EC1A8 /* SQLTableBuilder.swift in Sources */,
 				56A238831B9C75030082EB20 /* DatabaseQueue.swift in Sources */,
@@ -4189,6 +4203,7 @@
 				5657AAAF1D106E39006283EF /* NSDate.swift in Sources */,
 				F3BA80211CFB288C003DC1BA /* NSNull.swift in Sources */,
 				F3BA80141CFB2876003DC1BA /* DatabaseValueConvertible.swift in Sources */,
+				EE5790021D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift in Sources */,
 				566AD8B71D5318F4002EC1A8 /* SQLTableBuilder.swift in Sources */,
 				F3BA80121CFB2876003DC1BA /* DatabaseStore.swift in Sources */,
 				F3BA802C1CFB289B003DC1BA /* SQLCollation.swift in Sources */,
@@ -4347,6 +4362,7 @@
 				5657AAAC1D106E39006283EF /* NSDate.swift in Sources */,
 				F3BA807D1CFB2E61003DC1BA /* NSNull.swift in Sources */,
 				F3BA80701CFB2E55003DC1BA /* DatabaseValueConvertible.swift in Sources */,
+				EE578FFF1D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift in Sources */,
 				566AD8B41D5318F4002EC1A8 /* SQLTableBuilder.swift in Sources */,
 				F3BA806E1CFB2E55003DC1BA /* DatabaseStore.swift in Sources */,
 				F3BA80881CFB2E70003DC1BA /* SQLCollation.swift in Sources */,
