@@ -71,7 +71,7 @@ public struct Configuration {
     /// The default kind of transaction.
     ///
     /// Default: Immediate
-    public var defaultTransactionKind: TransactionKind = .immediate
+    public var defaultTransactionKind: Database.TransactionKind = .immediate
     
     
     // MARK: - Concurrency
@@ -79,7 +79,7 @@ public struct Configuration {
     /// The behavior in case of SQLITE_BUSY error. See https://www.sqlite.org/rescode.html#busy
     ///
     /// Default: immediateError
-    public var busyMode: BusyMode = .immediateError
+    public var busyMode: Database.BusyMode = .immediateError
     
     /// The maximum number of concurrent readers (applies to database
     /// pools only).
@@ -96,7 +96,7 @@ public struct Configuration {
     
     // MARK: - Not Public
     
-    var threadingMode: ThreadingMode = .SQLiteDefault
+    var threadingMode: Database.ThreadingMode = .`default`
     var SQLiteConnectionDidOpen: (() -> ())?
     var SQLiteConnectionWillClose: ((SQLiteConnection) -> ())?
     var SQLiteConnectionDidClose: (() -> ())?

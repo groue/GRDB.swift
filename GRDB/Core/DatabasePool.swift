@@ -128,7 +128,7 @@ public final class DatabasePool {
     /// more information.
     ///
     /// - parameter kind: The checkpoint mode (default passive)
-    public func checkpoint(_ kind: CheckpointMode = .passive) throws {
+    public func checkpoint(_ kind: Database.CheckpointMode = .passive) throws {
         try writer.sync { db in
             // TODO: read https://www.sqlite.org/c3ref/wal_checkpoint_v2.html and
             // check whether we need a busy handler on writer and/or readers
@@ -218,14 +218,6 @@ public final class DatabasePool {
     
     fileprivate var functions = Set<DatabaseFunction>()
     fileprivate var collations = Set<DatabaseCollation>()
-}
-
-/// The available [checkpoint modes](https://www.sqlite.org/c3ref/wal_checkpoint_v2.html).
-public enum CheckpointMode: Int32 {
-    case passive = 0    // SQLITE_CHECKPOINT_PASSIVE
-    case full = 1       // SQLITE_CHECKPOINT_FULL
-    case restart = 2    // SQLITE_CHECKPOINT_RESTART
-    case truncate = 3   // SQLITE_CHECKPOINT_TRUNCATE
 }
 
 
@@ -423,7 +415,7 @@ extension DatabasePool : DatabaseWriter {
     ///     - block: A block that executes SQL statements and return either
     ///       .commit or .rollback.
     /// - throws: The error thrown by the block.
-    public func writeInTransaction(_ kind: TransactionKind? = nil, _ block: (Database) throws -> TransactionCompletion) throws {
+    public func writeInTransaction(_ kind: Database.TransactionKind? = nil, _ block: (Database) throws -> Database.TransactionCompletion) throws {
         try writer.sync { db in
             try db.inTransaction(kind) {
                 try block(db)

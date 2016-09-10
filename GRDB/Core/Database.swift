@@ -40,6 +40,99 @@ public final class Database {
     // The Database class is not thread-safe. An instance should always be
     // used through a SerializedDatabase.
     
+    // MARK: - Database Types
+    
+    /// See BusyMode and https://www.sqlite.org/c3ref/busy_handler.html
+    public typealias BusyCallback = (_ numberOfTries: Int) -> Bool
+    
+    /// When there are several connections to a database, a connection may try
+    /// to access the database while it is locked by another connection.
+    ///
+    /// The BusyMode enum describes the behavior of GRDB when such a situation
+    /// occurs:
+    ///
+    /// - .immediateError: The SQLITE_BUSY error is immediately returned to the
+    ///   connection that tries to access the locked database.
+    ///
+    /// - .timeout: The SQLITE_BUSY error will be returned only if the database
+    ///   remains locked for more than the specified duration.
+    ///
+    /// - .callback: Perform your custom lock handling.
+    ///
+    /// To set the busy mode of a database, use Configuration:
+    ///
+    ///     let configuration = Configuration(busyMode: .timeout(1))
+    ///     let dbQueue = DatabaseQueue(path: "...", configuration: configuration)
+    ///
+    /// Relevant SQLite documentation:
+    ///
+    /// - https://www.sqlite.org/c3ref/busy_timeout.html
+    /// - https://www.sqlite.org/c3ref/busy_handler.html
+    /// - https://www.sqlite.org/lang_transaction.html
+    /// - https://www.sqlite.org/wal.html
+    public enum BusyMode {
+        /// The SQLITE_BUSY error is immediately returned to the connection that
+        /// tries to access the locked database.
+        case immediateError
+        
+        /// The SQLITE_BUSY error will be returned only if the database remains
+        /// locked for more than the specified duration.
+        case timeout(TimeInterval)
+        
+        /// A custom callback that is called when a database is locked.
+        /// See https://www.sqlite.org/c3ref/busy_handler.html
+        case callback(BusyCallback)
+    }
+    
+    /// The available [checkpoint modes](https://www.sqlite.org/c3ref/wal_checkpoint_v2.html).
+    public enum CheckpointMode: Int32 {
+        case passive = 0    // SQLITE_CHECKPOINT_PASSIVE
+        case full = 1       // SQLITE_CHECKPOINT_FULL
+        case restart = 2    // SQLITE_CHECKPOINT_RESTART
+        case truncate = 3   // SQLITE_CHECKPOINT_TRUNCATE
+    }
+    
+    /// An SQLite threading mode. See https://www.sqlite.org/threadsafe.html.
+    enum ThreadingMode {
+        case `default`
+        case multiThread
+        case serialized
+        
+        var SQLiteOpenFlags: Int32 {
+            switch self {
+            case .`default`:
+                return 0
+            case .multiThread:
+                return SQLITE_OPEN_NOMUTEX
+            case .serialized:
+                return SQLITE_OPEN_FULLMUTEX
+            }
+        }
+    }
+    
+    /// An SQLite transaction kind. See https://www.sqlite.org/lang_transaction.html
+    public enum TransactionKind {
+        case deferred
+        case immediate
+        case exclusive
+    }
+    
+    /// The end of a transaction: Commit, or Rollback
+    public enum TransactionCompletion {
+        case commit
+        case rollback
+    }
+    
+    /// The states that keep track of transaction completions in order to notify
+    /// transaction observers.
+    private enum TransactionState {
+        case waitForTransactionCompletion
+        case commit
+        case rollback
+        case rollbackFromTransactionObserver(Error)
+    }
+    
+    
     // MARK: - Database Information
     
     /// The database configuration
@@ -285,68 +378,6 @@ private func closeConnection(_ sqliteConnection: SQLiteConnection) {
             }
         }
     }
-}
-
-
-/// An SQLite threading mode. See https://www.sqlite.org/threadsafe.html.
-enum ThreadingMode {
-    case SQLiteDefault
-    case multiThread
-    case serialized
-    
-    var SQLiteOpenFlags: Int32 {
-        switch self {
-        case .SQLiteDefault:
-            return 0
-        case .multiThread:
-            return SQLITE_OPEN_NOMUTEX
-        case .serialized:
-            return SQLITE_OPEN_FULLMUTEX
-        }
-    }
-}
-
-
-/// See BusyMode and https://www.sqlite.org/c3ref/busy_handler.html
-public typealias BusyCallback = (_ numberOfTries: Int) -> Bool
-
-/// When there are several connections to a database, a connection may try to
-/// access the database while it is locked by another connection.
-///
-/// The BusyMode enum describes the behavior of GRDB when such a situation
-/// occurs:
-///
-/// - .immediateError: The SQLITE_BUSY error is immediately returned to the
-///   connection that tries to access the locked database.
-///
-/// - .timeout: The SQLITE_BUSY error will be returned only if the database
-///   remains locked for more than the specified duration.
-///
-/// - .callback: Perform your custom lock handling.
-///
-/// To set the busy mode of a database, use Configuration:
-///
-///     let configuration = Configuration(busyMode: .timeout(1))
-///     let dbQueue = DatabaseQueue(path: "...", configuration: configuration)
-///
-/// Relevant SQLite documentation:
-///
-/// - https://www.sqlite.org/c3ref/busy_timeout.html
-/// - https://www.sqlite.org/c3ref/busy_handler.html
-/// - https://www.sqlite.org/lang_transaction.html
-/// - https://www.sqlite.org/wal.html
-public enum BusyMode {
-    /// The SQLITE_BUSY error is immediately returned to the connection that
-    /// tries to access the locked database.
-    case immediateError
-    
-    /// The SQLITE_BUSY error will be returned only if the database remains
-    /// locked for more than the specified duration.
-    case timeout(TimeInterval)
-    
-    /// A custom callback that is called when a database is locked.
-    /// See https://www.sqlite.org/c3ref/busy_handler.html
-    case callback(BusyCallback)
 }
 
 
@@ -1691,29 +1722,6 @@ extension Database {
     }
 }
 
-
-/// An SQLite transaction kind. See https://www.sqlite.org/lang_transaction.html
-public enum TransactionKind {
-    case deferred
-    case immediate
-    case exclusive
-}
-
-
-/// The end of a transaction: Commit, or Rollback
-public enum TransactionCompletion {
-    case commit
-    case rollback
-}
-
-/// The states that keep track of transaction completions in order to notify
-/// transaction observers.
-private enum TransactionState {
-    case waitForTransactionCompletion
-    case commit
-    case rollback
-    case rollbackFromTransactionObserver(Error)
-}
 
 /// A transaction observer is notified of all changes and transactions committed
 /// or rollbacked on a database.

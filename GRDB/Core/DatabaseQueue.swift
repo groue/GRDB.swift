@@ -104,7 +104,7 @@ public final class DatabaseQueue {
     ///     - block: A block that executes SQL statements and return either
     ///       .commit or .rollback.
     /// - throws: The error thrown by the block.
-    public func inTransaction(_ kind: TransactionKind? = nil, _ block: (Database) throws -> TransactionCompletion) throws {
+    public func inTransaction(_ kind: Database.TransactionKind? = nil, _ block: (Database) throws -> Database.TransactionCompletion) throws {
         try serializedDatabase.sync { db in
             try db.inTransaction(kind) {
                 try block(db)

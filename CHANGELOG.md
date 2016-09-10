@@ -11,11 +11,17 @@ Release Notes
 
 - The Swift 3 *Grand Renaming* has impacted GRDB a lot.
     
-    All enum cases now start with a lowercase letter.
+    **General**
+    
+    - All enum cases now start with a lowercase letter.
     
     **Database Connections**
     
     ```diff
+    -enum BusyMode
+    -enum CheckpointMode
+    -enum TransactionKind
+    -enum TransactionCompletion
      struct Configuration {
     -    var fileAttributes: [String: AnyObject]?
     +    var fileAttributes: [FileAttributeKey: Any]
@@ -25,6 +31,27 @@ Release Notes
     -    func removeTransactionObserver(transactionObserver: TransactionObserverType)
     +    func add(transactionObserver: TransactionObserver, forDatabaseEvents filter: ((DatabaseEventKind) -> Bool)? = nil)
     +    func remove(transactionObserver: TransactionObserver)
+    +    typealias BusyCallback = (_ numberOfTries: Int) -> Bool
+    +    enum BusyMode {
+    +        case immediateError
+    +        case timeout(TimeInterval)
+    +        case callback(BusyCallback)
+    +    }
+    +    enum CheckpointMode: Int32 {
+    +        case passive
+    +        case full
+    +        case restart
+    +        case truncate
+    +    }
+    +    enum TransactionKind {
+    +        case deferred
+    +        case immediate
+    +        case exclusive
+    +    }
+    +    enum TransactionCompletion {
+    +        case commit
+    +        case rollback
+    +    }
      }
      class DatabasePool {
     #if os(iOS)

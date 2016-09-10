@@ -8,13 +8,13 @@ import XCTest
 #endif
 
 class ConcurrencyTests: GRDBTestCase {
-    var busyCallback: BusyCallback?
+    var busyCallback: Database.BusyCallback?
     
     override func setUp() {
         super.setUp()
         
         self.busyCallback = nil
-        let busyCallback: BusyCallback = { numberOfTries in
+        let busyCallback: Database.BusyCallback = { numberOfTries in
             if let busyCallback = self.busyCallback {
                 return busyCallback(numberOfTries)
             } else {
