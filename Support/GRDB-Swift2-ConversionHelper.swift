@@ -145,6 +145,15 @@ extension DatabaseReader {
 
 // Prepared Statements
 
+extension Database {
+    @available(*, unavailable, renamed:"makeSelectStatement(_:)")
+    func selectStatement(_ sql: String) throws -> SelectStatement { preconditionFailure() }
+    
+    @available(*, unavailable, renamed:"makeUpdateStatement(_:)")
+    func updateStatement(_ sql: String) throws -> UpdateStatement { preconditionFailure() }
+}
+
+
 extension Statement {
     @available(*, unavailable, renamed:"validate(arguments:)")
     public func validateArguments(_ arguments: StatementArguments) throws { }

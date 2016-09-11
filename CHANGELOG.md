@@ -18,6 +18,7 @@ Release Notes
     **Database Connections**
     
     ```diff
+    -typealias BusyCallback = (numberOfTries: Int) -> Bool
     -enum BusyMode
     -enum CheckpointMode
     -enum TransactionKind
