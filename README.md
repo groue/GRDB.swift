@@ -225,7 +225,7 @@ To use GRDB.swift with CocoaPods, specify in your Podfile:
 source 'https://github.com/CocoaPods/Specs.git'
 use_frameworks!
 
-pod 'GRDB.swift', :git => 'git@github.com:groue/GRDB.swift', :branch => 'Swift2.3'
+pod 'GRDB.swift', :git => 'https://github.com/groue/GRDB.swift.git', :branch => 'Swift2.3'
 ```
 
 > :point_up: **Note**: [SQLCipher](#encryption) and [custom SQLite builds](#custom-sqlite-builds) are not available via CocoaPods.
