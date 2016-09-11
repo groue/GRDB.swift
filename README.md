@@ -2979,11 +2979,11 @@ class PersonObserver: TransactionObserver {
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
         // Only observe changes to the "name" column of the "persons" table.
         switch eventKind {
-        case .Insert(let tableName):
+        case .insert(let tableName):
             return tableName == "persons"
-        case .Delete(let tableName):
+        case .delete(let tableName):
             return tableName == "persons"
-        case .Update(let tableName, let columnNames):
+        case .update(let tableName, let columnNames):
             return tableName == "persons" && columnNames.contains("name")
         }
     }
