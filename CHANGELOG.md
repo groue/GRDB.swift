@@ -1,7 +1,9 @@
 Release Notes
 =============
 
-## Next Version
+## 0.82.0
+
+Released September 11, 2016
 
 **New**
 
@@ -196,7 +198,7 @@ Release Notes
     
     **Transaction Observers**
     
-    Database events filtering is now performed by transaction observers themselves.
+    Database events filtering is now performed by transaction observers themselves, in the new `observes(eventsOfKind:)` method of the `TransactionObserver` protocol.
     
     ```diff
      class Database {
