@@ -95,7 +95,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         // Fetch items on the writing dispatch queue, so that the transaction
         // observer is added on the same serialized queue as transaction
         // callbacks.
-        databaseWriter.write { db in
+        databaseWriter.writeForIssue117 { db in
             let (statement, adapter) = try! request.prepare(db)
             let initialItems = Item<Record>.fetchAll(statement, adapter: adapter)
             fetchedItems = initialItems
@@ -237,7 +237,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         }
         
         let initialItems = fetchedItems
-        databaseWriter.write { db in
+        databaseWriter.writeForIssue117 { db in
             let fetchedChangesController = FetchedChangesController(
                 controller: self,
                 isSameItem: isSameItemFactory(db),
@@ -289,7 +289,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         }
         
         let initialItems = fetchedItems
-        databaseWriter.write { db in
+        databaseWriter.writeForIssue117 { db in
             let fetchedChangesController = FetchedChangesController(
                 controller: self,
                 fetchAlongside: fetchAlongside,
@@ -350,7 +350,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     fileprivate var request: FetchRequest {
         didSet {
             guard let observer = observer else { return }
-            databaseWriter.write { _ in
+            databaseWriter.writeForIssue117 { _ in
                 observer.performChangesChecking()
             }
         }
