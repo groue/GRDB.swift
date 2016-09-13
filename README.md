@@ -33,7 +33,7 @@ GRDB ships with a **low-level SQLite API**, and high-level tools that help deali
 - **WAL Mode Support**: that means extra performance for multi-threaded applications
 - **Migrations**: transform your database as your application evolves
 - **Database Changes Observation**: perform post-commit and post-rollback actions
-- **Fetched Records Controller**: automated tracking of changes in a query results, and UITableView animations (:warning: not currently supported with Swift 3)
+- **Fetched Records Controller**: automated tracking of changes in a query results, and UITableView animations
 - **Encryption** with SQLCipher (:warning: not currently supported with Swift 3)
 - **Support for custom SQLite builds** (:warning: not currently supported with Swift 3)
 
@@ -3017,8 +3017,6 @@ public protocol TransactionObserverType : class {
 
 
 ## FetchedRecordsController
-
-> :warning: **Warning**: FetchedRecordsController is currently not available in Swift 3 (see [issue 116](https://github.com/groue/GRDB.swift/issues/116)).
 
 **You use FetchedRecordsController to track changes in the results of an SQLite request.**
 

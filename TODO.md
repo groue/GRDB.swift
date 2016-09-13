@@ -1,7 +1,4 @@
-- [ ] Restore FetchedRecordsController
-- [ ] Restore SQLCipher
-- [ ] Restore custom builds (and update swiftlyfalling/SQLiteLib)
-- [ ] Restore dispatching tests in GRDBOSXTests (they are disabled in order to avoid linker errors)
+- [ ] Put back dispatching tests in GRDBOSXTests (they are disabled in order to avoid linker errors)
     - DatabasePoolReleaseMemoryTests
     - DatabasePoolSchemaCacheTests
     - DatabaseQueueReleaseMemoryTests
@@ -9,7 +6,7 @@
     - DatabasePoolConcurrencyTests
     - DatabasePoolReadOnlyTests
     - DatabaseQueueConcurrencyTests
-- [ ] Read about GCD Queue creation options, particularly .autoreleaseWorkItem
+- [ ] Swift3: check .autoreleaseWorkItem option in GCD Queue creation
 - [ ] Fatal Error when MutablePersistable.update(_:columns:) is given columns that do not exist in the database.
 - [ ] @hdlj: Extensibility of the Query Interface
 - [ ] @hdlj: FetchedRecordsController throttling
