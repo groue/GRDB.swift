@@ -633,9 +633,9 @@ Unlike row arrays that contain copies of the database rows, row sequences are cl
 **Read column values** by index or column name:
 
 ```swift
-let name: String = row.value(atIndex: 0)    // 0 is the leftmost column
-let name: String = row.value(named: "name") // Leftmost matching column - lookup is case-insensitive
-let name: String = row.value(nameColumn)    // Using query interface's SQLColumn
+let name: String = row.value(atIndex: 0)     // 0 is the leftmost column
+let name: String = row.value(named: "name")  // Leftmost matching column - lookup is case-insensitive
+let name: String = row.value(Column("name")) // Using query interface's Column
 ```
 
 Make sure to ask for an optional when the value may be NULL:
