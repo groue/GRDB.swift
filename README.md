@@ -48,7 +48,7 @@ For a general overview of how a protocol-oriented library impacts database acces
 
 ### The GRDB Advantage
 
-GRBD addresses your database needs, like other great Swift database libraries. like [FMDB](https://github.com/ccgus/fmdb), [SQLite.swift](http://github.com/stephencelis/SQLite.swift/pulls), [Core Data](core data swift), or [Realm](https://realm.io).
+GRBD addresses your database needs, like other great Swift database libraries: [FMDB](https://github.com/ccgus/fmdb), [SQLite.swift](http://github.com/stephencelis/SQLite.swift/pulls), [Core Data](core data swift), or [Realm](https://realm.io).
 
 **Indulge yourself and let GRDB run the extra mile for you:**
 
