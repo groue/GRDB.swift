@@ -46,6 +46,25 @@ More than a set of tools that leverage SQLite abilities, GRDB is also:
 For a general overview of how a protocol-oriented library impacts database accesses, have a look at [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3).
 
 
+### GRDB and Other Database Libraries
+
+There are already great Swift database libraries. To name a few: [FMDB](https://github.com/ccgus/fmdb), [SQLite.swift](http://github.com/stephencelis/SQLite.swift/pulls), [Core Data](core data swift), and [Realm](https://realm.io).
+
+GRBD addresses common needs, and brings improvements on a few points:
+
+1. **Great support for SQL**. SQLite.swift makes you feel dirty when you use raw SQL, and leaves you naked when dealing with the raw data contained in a database. *GRDB welcomes your SQL skills, and you will feel it.* See [SQL API](#sqlite-api).
+
+2. **Great error handling**. FMDB makes it easy to overlook errors. SQLite.swift treats your local database as if it was some poison downloaded from Internet. *GRDB won't let any error go, but doesn't pretend that you will handle errors that simply shouldn't happen.* See [error handling](#error-handling) for more information.
+
+3. **Great records**. Nobody wants to deal with raw SQL rows all day long. FMDB and SQLite.swift won't help you converting them to and from Swift structs or classes. FMDB has [marcoarment/FCModel](https://github.com/marcoarment/FCModel), but it relies on Key-Value-Observing - which does not fit very well with Swift. *GRDB provides ready-made Swift protocols that turn your structs and classes into records that you can fetch and store in the database.* See [records](#records) and the [query interface](#the-query-interface).
+
+4. **Threading Confidence**. Core Data is quite error-prone as soon as your application leaves the trivial zone. SQLite.swift is easy to misuse in a multi-threaded application. Realm prevents sharing records between threads. FMDB has no support for [WAL mode](https://www.sqlite.org/wal.html). *GRDB builds on top of protocol-oriented programming and immutability to provide a sane and efficient threading environment.* See [Four different ways to handle SQLite concurrency](https://medium.com/@gwendal.roue/four-different-ways-to-handle-sqlite-concurrency-db3bcc74d00e) and [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3)/
+
+5. **Performance**. GRDB [performs better](https://github.com/groue/GRDB.swift/wiki/Performance). And it supports SQLite [WAL mode](https://www.sqlite.org/wal.html) that brings extra performance to multi-threaded applications.
+
+6. **API Design**. Do you sometimes find that SQLite.swift is hard to remember and use correctly, or that FMDB is somewhat verbose? *Give GRDB a try.*
+
+
 ## Usage
 
 Open a [connection](#database-connections) to the database:
