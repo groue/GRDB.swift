@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## 0.82.1
+
+Released September 14, 2016
+
+**Fixed**
+
+- GRDB builds in the Release configuration (fix [#116](https://github.com/groue/GRDB.swift/issues/116), [#117](https://github.com/groue/GRDB.swift/issues/117), workaround [SR-2623](https://bugs.swift.org/browse/SR-2623))
+
+
 ## 0.82.0
 
 Released September 11, 2016

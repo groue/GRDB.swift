@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
 	s.name     = 'GRDB.swift'
-	s.version  = '0.82.0'
+	s.version  = '0.82.1'
 	
 	s.license  = { :type => 'MIT', :file => 'LICENSE' }
 	s.summary  = 'A Swift application toolkit for SQLite databases.'
@@ -17,6 +17,4 @@ Pod::Spec.new do |s|
 	s.module_map = 'Support/module.modulemap'
 	s.framework = 'Foundation'
 	s.library = 'sqlite3'
-	
-	s.pod_target_xcconfig = { 'SWIFT_VERSION' => '3.0' }
 end
