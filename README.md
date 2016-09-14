@@ -3523,6 +3523,19 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     }
     ```
 
+- The database can't guarantee that the code does what it says:
+
+    ```swift
+    // fatal error: table persons has no unique index on column email
+    try Person.deleteOne(db, key: ["email": "arthur@example.com"])
+    ```
+    
+    Solution: add a unique index to the persons.email column, or use the `deleteAll` method to make it clear that you may delete more than one row:
+    
+    ```swift
+    try Person.filter(Column("email") == "arthur@example.com").deleteAll(db)
+    ```
+
 - Database connections are not reentrant:
     
     ```swift
