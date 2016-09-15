@@ -71,3 +71,4 @@ Reading list:
 - [Writing High-Performance Swift Code](https://github.com/apple/swift/blob/master/docs/OptimizationTips.rst)
 - http://docs.diesel.rs/diesel/associations/index.html
 - http://cocoamine.net/blog/2015/09/07/contentless-fts4-for-large-immutable-documents/
+- https://discuss.zetetic.net/t/important-advisory-sqlcipher-with-xcode-8-and-ios-10/1688
