@@ -32,7 +32,7 @@ class SQLTableBuilderTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                if #available(iOS 8.2, *) {
+                if #available(iOS 8.2, OSX 10.10, *) {
                     try db.create(table: "test", temporary: true, ifNotExists: true, withoutRowID: true) { t in
                         t.column("id", .integer).primaryKey()
                     }

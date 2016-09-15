@@ -2017,7 +2017,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
             return impl.copy(self)
         }
         
-        private init(kind: Kind, initialRowID: Int64?, finalRowID: Int64?, impl: DatabasePreUpdateEventImpl) {
+        fileprivate init(kind: Kind, initialRowID: Int64?, finalRowID: Int64?, impl: DatabasePreUpdateEventImpl) {
             self.kind = kind
             self.initialRowID = (kind == .update || kind == .delete ) ? initialRowID : nil
             self.finalRowID = (kind == .update || kind == .insert ) ? finalRowID : nil
@@ -2061,11 +2061,11 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
     /// nor does it request other data via the sqlite3_preupdate_* APIs
     /// until asked.
     private struct MetalDatabasePreUpdateEventImpl : DatabasePreUpdateEventImpl {
-        private let connection: SQLiteConnection
-        private let kind: DatabasePreUpdateEvent.Kind
+        let connection: SQLiteConnection
+        let kind: DatabasePreUpdateEvent.Kind
         
-        private let databaseNameCString: UnsafePointer<Int8>?
-        private let tableNameCString: UnsafePointer<Int8>?
+        let databaseNameCString: UnsafePointer<Int8>?
+        let tableNameCString: UnsafePointer<Int8>?
         
         var databaseName: String { return String(cString: databaseNameCString!) }
         var tableName: String { return String(cString: tableNameCString!) }
@@ -2128,7 +2128,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
         private func getValue(_ connection: SQLiteConnection, column: CInt, sqlite_func: (_ connection: SQLiteConnection, _ column: CInt, _ value: inout SQLiteValue? ) -> CInt ) -> DatabaseValue?
         {
             var value : SQLiteValue? = nil
-            guard sqlite_func(connection: connection, column: column, value: &value) == SQLITE_OK else { return nil }
+            guard sqlite_func(connection, column, &value) == SQLITE_OK else { return nil }
             if let value = value {
                 return DatabaseValue(sqliteValue: value)
             }
@@ -2152,17 +2152,17 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
     
     /// Impl for DatabasePreUpdateEvent that contains copies of all event data.
     private struct CopiedDatabasePreUpdateEventImpl : DatabasePreUpdateEventImpl {
-        private let databaseName: String
-        private let tableName: String
-        private let columnsCount: CInt
-        private let depth: CInt
-        private let initialDatabaseValues: [DatabaseValue]?
-        private let finalDatabaseValues: [DatabaseValue]?
+        let databaseName: String
+        let tableName: String
+        let columnsCount: CInt
+        let depth: CInt
+        let initialDatabaseValues: [DatabaseValue]?
+        let finalDatabaseValues: [DatabaseValue]?
         
-        private func initialDatabaseValue(atIndex index: Int) -> DatabaseValue? { return initialDatabaseValues?[index] }
-        private func finalDatabaseValue(atIndex index: Int) -> DatabaseValue? { return finalDatabaseValues?[index] }
+        func initialDatabaseValue(atIndex index: Int) -> DatabaseValue? { return initialDatabaseValues?[index] }
+        func finalDatabaseValue(atIndex index: Int) -> DatabaseValue? { return finalDatabaseValues?[index] }
         
-        private func copy(_ event: DatabasePreUpdateEvent) -> DatabasePreUpdateEvent {
+        func copy(_ event: DatabasePreUpdateEvent) -> DatabasePreUpdateEvent {
             return event
         }
     }

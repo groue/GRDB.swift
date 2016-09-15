@@ -38,6 +38,7 @@ class DatabasePoolBackupTests: GRDBTestCase {
         }
     }
     
+    @available(OSX 10.10, *)
     func testConcurrentWriteDuringBackup() {
         assertNoError {
             let source = try makeDatabasePool(filename: "source.sqlite")

@@ -1,6 +1,17 @@
 Release Notes
 =============
 
+## Next Release
+
+**Fixed**
+
+- Restore support for SQLite [pre-update hooks](https://github.com/groue/GRDB.swift#support-for-sqlite-pre-update-hooks)
+
+**New**
+
+- Upgrade custom SQLite builds to [v3.14.1](http://www.sqlite.org/changes.html).
+
+
 ## 0.82.1
 
 Released September 14, 2016
