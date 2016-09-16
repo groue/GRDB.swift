@@ -2010,7 +2010,7 @@ SQLite let you specify conflict policies at two different places:
     // )
     try db.create(table: "persons") { t in
         t.column("id", .integer).primaryKey()
-        t.column("email", .text).unique(onConflict: .replace)
+        t.column("email", .text).unique(onConflict: .replace) // <--
     }
     
     // Despite the unique index on email, both inserts succeed.
