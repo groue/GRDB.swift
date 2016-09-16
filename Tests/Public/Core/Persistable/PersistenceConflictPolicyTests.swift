@@ -25,7 +25,7 @@ private struct MixedPolicy: MutablePersistable {
     var id: Int64?
     
     static let databaseTableName = "records"
-    static let persistenceConflictPolicy = PersistenceConflictPolicy(insertion: .fail, update: .rollback)
+    static let persistenceConflictPolicy = PersistenceConflictPolicy(insert: .fail, update: .rollback)
     
     var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id]
@@ -38,12 +38,13 @@ private struct MixedPolicy: MutablePersistable {
 
 private struct ReplacePolicy: MutablePersistable {
     var id: Int64?
+    var email: String
     
     static let databaseTableName = "records"
-    static let persistenceConflictPolicy = PersistenceConflictPolicy(insertion: .replace, update: .replace)
+    static let persistenceConflictPolicy = PersistenceConflictPolicy(insert: .replace, update: .replace)
     
     var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id]
+        return ["id": id, "email": email]
     }
     
     mutating func didInsert(with rowID: Int64, for column: String?) {
@@ -55,7 +56,7 @@ private struct IgnorePolicy: MutablePersistable {
     var id: Int64?
     
     static let databaseTableName = "records"
-    static let persistenceConflictPolicy = PersistenceConflictPolicy(insertion: .ignore, update: .ignore)
+    static let persistenceConflictPolicy = PersistenceConflictPolicy(insert: .ignore, update: .ignore)
     
     var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id]
@@ -70,7 +71,7 @@ private struct FailPolicy: MutablePersistable {
     var id: Int64?
     
     static let databaseTableName = "records"
-    static let persistenceConflictPolicy = PersistenceConflictPolicy(insertion: .fail, update: .fail)
+    static let persistenceConflictPolicy = PersistenceConflictPolicy(insert: .fail, update: .fail)
     
     var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id]
@@ -85,7 +86,7 @@ private struct AbortPolicy: MutablePersistable {
     var id: Int64?
     
     static let databaseTableName = "records"
-    static let persistenceConflictPolicy = PersistenceConflictPolicy(insertion: .abort, update: .abort)
+    static let persistenceConflictPolicy = PersistenceConflictPolicy(insert: .abort, update: .abort)
     
     var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id]
@@ -100,7 +101,7 @@ private struct RollbackPolicy: MutablePersistable {
     var id: Int64?
     
     static let databaseTableName = "records"
-    static let persistenceConflictPolicy = PersistenceConflictPolicy(insertion: .rollback, update: .rollback)
+    static let persistenceConflictPolicy = PersistenceConflictPolicy(insert: .rollback, update: .rollback)
     
     var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id]
@@ -112,6 +113,12 @@ private struct RollbackPolicy: MutablePersistable {
 }
 
 class PersistenceConflictPolicyTests: GRDBTestCase {
+    
+    func testPolicyDefaultArguments() {
+        let policy = PersistenceConflictPolicy()
+        XCTAssertEqual(policy.conflictResolutionForInsert, .abort)
+        XCTAssertEqual(policy.conflictResolutionForUpdate, .abort)
+    }
     
     func testDefaultPolicy() {
         assertNoError {
@@ -125,7 +132,7 @@ class PersistenceConflictPolicyTests: GRDBTestCase {
                 var record = DefaultPolicy(id: nil)
                 try record.insert(db)
                 XCTAssertTrue(self.lastSQLQuery.hasPrefix("INSERT INTO \"records\""))
-                XCTAssertTrue(record.id == 1)
+                XCTAssertEqual(record.id, 1)
                 
                 // Update
                 record = DefaultPolicy(id: 1)
@@ -147,7 +154,7 @@ class PersistenceConflictPolicyTests: GRDBTestCase {
                 var record = MixedPolicy(id: nil)
                 try record.insert(db)
                 XCTAssertTrue(self.lastSQLQuery.hasPrefix("INSERT OR FAIL INTO \"records\""))
-                XCTAssertTrue(record.id == 1)
+                XCTAssertEqual(record.id, 1)
                 
                 // Update
                 record = MixedPolicy(id: 1)
@@ -163,18 +170,35 @@ class PersistenceConflictPolicyTests: GRDBTestCase {
             try db.inDatabase { db in
                 try db.create(table: "records") { t in
                     t.column("id", .integer).primaryKey()
+                    t.column("email", .text).unique()
                 }
                 
                 // Insert
-                var record = ReplacePolicy(id: nil)
+                var record = ReplacePolicy(id: nil, email: "arthur@example.com")
                 try record.insert(db)
                 XCTAssertTrue(self.lastSQLQuery.hasPrefix("INSERT OR REPLACE INTO \"records\""))
-                XCTAssertTrue(record.id == nil)
+                XCTAssertEqual(record.id, 1)
+                
+                // Insert
+                record = ReplacePolicy(id: nil, email: "arthur@example.com")
+                try record.insert(db)
+                XCTAssertTrue(self.lastSQLQuery.hasPrefix("INSERT OR REPLACE INTO \"records\""))
+                XCTAssertEqual(record.id, 2)
+                XCTAssertTrue(ReplacePolicy.fetchCount(db) == 1)
                 
                 // Update
-                record = ReplacePolicy(id: 1)
+                record = ReplacePolicy(id: 2, email: "arthur@example.com")
                 try record.update(db)
                 XCTAssertTrue(self.lastSQLQuery.hasPrefix("UPDATE OR REPLACE \"records\""))
+                
+                // Update which replaces
+                record = ReplacePolicy(id: 3, email: "barbara@example.com")
+                try record.insert(db)
+                XCTAssertTrue(ReplacePolicy.fetchCount(db) == 2)
+                record.email = "arthur@example.com"
+                try record.update(db)
+                XCTAssertTrue(ReplacePolicy.fetchCount(db) == 1)
+                XCTAssertEqual(Int64.fetchOne(db, "SELECT id FROM records")!, 3)
             }
         }
     }
@@ -213,7 +237,7 @@ class PersistenceConflictPolicyTests: GRDBTestCase {
                 var record = FailPolicy(id: nil)
                 try record.insert(db)
                 XCTAssertTrue(self.lastSQLQuery.hasPrefix("INSERT OR FAIL INTO \"records\""))
-                XCTAssertTrue(record.id == 1)
+                XCTAssertEqual(record.id, 1)
                 
                 // Update
                 record = FailPolicy(id: 1)
@@ -235,7 +259,7 @@ class PersistenceConflictPolicyTests: GRDBTestCase {
                 var record = AbortPolicy(id: nil)
                 try record.insert(db)
                 XCTAssertTrue(self.lastSQLQuery.hasPrefix("INSERT INTO \"records\""))
-                XCTAssertTrue(record.id == 1)
+                XCTAssertEqual(record.id, 1)
                 
                 // Update
                 record = AbortPolicy(id: 1)
@@ -257,7 +281,7 @@ class PersistenceConflictPolicyTests: GRDBTestCase {
                 var record = RollbackPolicy(id: nil)
                 try record.insert(db)
                 XCTAssertTrue(self.lastSQLQuery.hasPrefix("INSERT OR ROLLBACK INTO \"records\""))
-                XCTAssertTrue(record.id == 1)
+                XCTAssertEqual(record.id, 1)
                 
                 // Update
                 record = RollbackPolicy(id: 1)

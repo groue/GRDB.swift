@@ -215,13 +215,12 @@ open class Record : RowConvertible, TableMapping, Persistable {
         // So let's provide our custom implementation of insert, which uses the
         // same persistentDictionary for both insertion, and change tracking.
         
-        let insertionConflictResolution = type(of: self).persistenceConflictPolicy.insertionConflictResolution
+        let conflictResolutionForInsert = type(of: self).persistenceConflictPolicy.conflictResolutionForInsert
         let dao = DAO(db, self)
         var persistentDictionary = dao.persistentDictionary
-        try dao.insertStatement(onConflict: insertionConflictResolution).execute()
+        try dao.insertStatement(onConflict: conflictResolutionForInsert).execute()
         
-        switch insertionConflictResolution {
-        case .abort, .fail, .rollback:
+        if !conflictResolutionForInsert.invalidatesLastInsertedRowID {
             let rowID = db.lastInsertedRowID
             let rowIDColumn = dao.primaryKey?.rowIDColumn
             didInsert(with: rowID, for: rowIDColumn)
@@ -239,9 +238,6 @@ open class Record : RowConvertible, TableMapping, Persistable {
                     }
                 }
             }
-        case .replace, .ignore:
-            // Statement may have succeeded without inserting any row
-            break
         }
         
         // Set hasPersistentChangedValues to false
@@ -274,7 +270,7 @@ open class Record : RowConvertible, TableMapping, Persistable {
         // So let's provide our custom implementation of insert, which uses the
         // same persistentDictionary for both update, and change tracking.
         let dao = DAO(db, self)
-        guard let statement = dao.updateStatement(columns: columns, onConflict: type(of: self).persistenceConflictPolicy.updateConflictResolution) else {
+        guard let statement = dao.updateStatement(columns: columns, onConflict: type(of: self).persistenceConflictPolicy.conflictResolutionForUpdate) else {
             // Nil primary key
             throw PersistenceError.recordNotFound(self)
         }

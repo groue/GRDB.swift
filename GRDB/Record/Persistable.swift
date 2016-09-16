@@ -44,15 +44,15 @@ private func databaseValues(for columns: [String], inDictionary dictionary: [Str
 /// See https://www.sqlite.org/lang_conflict.html
 public struct PersistenceConflictPolicy {
     /// The conflict resolution algorithm for insertions
-    public let insertionConflictResolution: SQLConflictResolution
+    public let conflictResolutionForInsert: SQLConflictResolution
     
     /// The conflict resolution algorithm for updates
-    public let updateConflictResolution: SQLConflictResolution
+    public let conflictResolutionForUpdate: SQLConflictResolution
     
     /// Creates a policy
-    public init(insertion: SQLConflictResolution, update: SQLConflictResolution) {
-        self.insertionConflictResolution = insertion
-        self.updateConflictResolution = update
+    public init(insert: SQLConflictResolution = .abort, update: SQLConflictResolution = .abort) {
+        self.conflictResolutionForInsert = insert
+        self.conflictResolutionForUpdate = update
     }
 }
 
@@ -67,13 +67,13 @@ public protocol MutablePersistable : TableMapping {
     /// The policy that handles SQLite conflicts when records are inserted
     /// or updated.
     ///
-    /// This property is optional: its default value specifies ABORT policy
-    /// for both insertions and updates, which has GRDB generate regular
+    /// This property is optional: its default value uses the ABORT policy
+    /// for both insertions and updates, and has GRDB generate regular
     /// INSERT and UPDATE queries.
     ///
-    /// If insertions are resolved with .replace or .ignore policies, the
+    /// If insertions are resolved with .ignore policy, the
     /// `didInsert(with:for:)` method is not called upon successful insertion,
-    /// even when there was no conflict, and a row was actually inserted.
+    /// even if a row was actually inserted without any conflict.
     ///
     /// See https://www.sqlite.org/lang_conflict.html
     static var persistenceConflictPolicy: PersistenceConflictPolicy { get }
@@ -207,7 +207,7 @@ public extension MutablePersistable {
     /// The default value specifies ABORT policy for both insertions and
     /// updates, which has GRDB generate regular INSERT and UPDATE queries.
     static var persistenceConflictPolicy: PersistenceConflictPolicy {
-        return PersistenceConflictPolicy(insertion: .abort, update: .abort)
+        return PersistenceConflictPolicy(insert: .abort, update: .abort)
     }
     
     /// Notifies the record that it was succesfully inserted.
@@ -319,16 +319,12 @@ public extension MutablePersistable {
     /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
     mutating func performInsert(_ db: Database) throws {
-        let insertionConflictResolution = type(of: self).persistenceConflictPolicy.insertionConflictResolution
+        let conflictResolutionForInsert = type(of: self).persistenceConflictPolicy.conflictResolutionForInsert
         let dao = DAO(db, self)
-        try dao.insertStatement(onConflict: insertionConflictResolution).execute()
+        try dao.insertStatement(onConflict: conflictResolutionForInsert).execute()
         
-        switch insertionConflictResolution {
-        case .abort, .fail, .rollback:
+        if !conflictResolutionForInsert.invalidatesLastInsertedRowID {
             didInsert(with: db.lastInsertedRowID, for: dao.primaryKey?.rowIDColumn)
-        case .replace, .ignore:
-            // Statement may have succeeded without inserting any row
-            break
         }
     }
     
@@ -346,7 +342,7 @@ public extension MutablePersistable {
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
     func performUpdate(_ db: Database, columns: Set<String>) throws {
-        guard let statement = DAO(db, self).updateStatement(columns: columns, onConflict: type(of: self).persistenceConflictPolicy.updateConflictResolution) else {
+        guard let statement = DAO(db, self).updateStatement(columns: columns, onConflict: type(of: self).persistenceConflictPolicy.conflictResolutionForUpdate) else {
             // Nil primary key
             throw PersistenceError.recordNotFound(self)
         }
@@ -418,6 +414,17 @@ public extension MutablePersistable {
     
 }
 
+extension SQLConflictResolution {
+    var invalidatesLastInsertedRowID: Bool {
+        switch self {
+        case .abort, .fail, .rollback, .replace:
+            return false
+        case .ignore:
+            // Statement may have succeeded without inserting any row
+            return true
+        }
+    }
+}
 
 // MARK: - Persistable
 
@@ -521,16 +528,12 @@ public extension Persistable {
     /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
     func performInsert(_ db: Database) throws {
-        let insertionConflictResolution = type(of: self).persistenceConflictPolicy.insertionConflictResolution
+        let conflictResolutionForInsert = type(of: self).persistenceConflictPolicy.conflictResolutionForInsert
         let dao = DAO(db, self)
-        try dao.insertStatement(onConflict: insertionConflictResolution).execute()
+        try dao.insertStatement(onConflict: conflictResolutionForInsert).execute()
         
-        switch insertionConflictResolution {
-        case .abort, .fail, .rollback:
+        if !conflictResolutionForInsert.invalidatesLastInsertedRowID {
             didInsert(with: db.lastInsertedRowID, for: dao.primaryKey?.rowIDColumn)
-        case .replace, .ignore:
-            // Statement may have succeeded without inserting any row
-            break
         }
     }
     
