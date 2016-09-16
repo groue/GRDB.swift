@@ -150,6 +150,26 @@ public struct DatabaseValue {
             fatalError("Unexpected SQLite value type: \(type)")
         }
     }
+
+    /// Returns a DatabaseValue initialized from a raw SQLite statement pointer.
+    init(sqliteStatement: SQLiteStatement, index: Int32) {
+        switch sqlite3_column_type(sqliteStatement, Int32(index)) {
+        case SQLITE_NULL:
+            storage = .null
+        case SQLITE_INTEGER:
+            storage = .int64(sqlite3_column_int64(sqliteStatement, Int32(index)))
+        case SQLITE_FLOAT:
+            storage = .double(sqlite3_column_double(sqliteStatement, Int32(index)))
+        case SQLITE_TEXT:
+            storage = .string(String(cString: sqlite3_column_text(sqliteStatement, Int32(index))))
+        case SQLITE_BLOB:
+            let bytes = unsafeBitCast(sqlite3_column_blob(sqliteStatement, Int32(index)), to: UnsafePointer<UInt8>.self)
+            let count = Int(sqlite3_column_bytes(sqliteStatement, Int32(index)))
+            storage = .blob(Data(bytes: bytes, count: count)) // copy bytes
+        case let type:
+            fatalError("Unexpected SQLite column type: \(type)")
+        }
+    }
 }
 
 
@@ -223,37 +243,7 @@ extension DatabaseValue : DatabaseValueConvertible {
     
     /// Returns *databaseValue*, or nil for NULL input.
     public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> DatabaseValue? {
-        // Follow protocol semantics: DatabaseValueConvertible types turn NULL
-        // into nil:
-        //
-        //     DatabaseValue.fetchOne(db, "SELECT NULL") // nil
-        return databaseValue.isNull ? nil : databaseValue
-    }
-}
-
-
-// MARK: - StatementColumnConvertible
-
-extension DatabaseValue : StatementColumnConvertible {
-    
-    /// Returns a DatabaseValue initialized from a raw SQLite statement pointer.
-    public init(sqliteStatement: SQLiteStatement, index: Int32) {
-        switch sqlite3_column_type(sqliteStatement, Int32(index)) {
-        case SQLITE_NULL:
-            storage = .null
-        case SQLITE_INTEGER:
-            storage = .int64(sqlite3_column_int64(sqliteStatement, Int32(index)))
-        case SQLITE_FLOAT:
-            storage = .double(sqlite3_column_double(sqliteStatement, Int32(index)))
-        case SQLITE_TEXT:
-            storage = .string(String(cString: sqlite3_column_text(sqliteStatement, Int32(index))))
-        case SQLITE_BLOB:
-            let bytes = unsafeBitCast(sqlite3_column_blob(sqliteStatement, Int32(index)), to: UnsafePointer<UInt8>.self)
-            let count = Int(sqlite3_column_bytes(sqliteStatement, Int32(index)))
-            storage = .blob(Data(bytes: bytes, count: count)) // copy bytes
-        case let type:
-            fatalError("Unexpected SQLite column type: \(type)")
-        }
+        return databaseValue
     }
 }
 

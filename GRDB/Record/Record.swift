@@ -170,7 +170,7 @@ open class Record : RowConvertible, TableMapping, Persistable {
             // Loop until we find a change, or exhaust columns:
             while let (column, newValue) = newValueIterator.next() {
                 let new = newValue?.databaseValue ?? .null
-                guard let old = oldRow?.databaseValue(named: column) else {
+                guard let oldRow = oldRow, let old: DatabaseValue = oldRow.value(named: column) else {
                     return (column: column, old: nil)
                 }
                 if new != old {

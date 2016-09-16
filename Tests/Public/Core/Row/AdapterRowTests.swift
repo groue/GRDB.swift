@@ -128,11 +128,11 @@ class AdapterRowTests: GRDBTestCase {
                 let adapter = ColumnMapping(["null": "basenull", "int64": "baseint64", "double": "basedouble", "string": "basestring", "blob": "baseblob"])
                 let row = Row.fetchOne(db, "SELECT NULL AS basenull, 'XXX' AS extra, 1 AS baseint64, 1.1 AS basedouble, 'foo' AS basestring, x'53514C697465' AS baseblob", adapter: adapter)!
                 
-                guard case .null = row.databaseValue(atIndex: 0).storage else { XCTFail(); return }
-                guard case .int64(let int64) = row.databaseValue(atIndex: 1).storage, int64 == 1 else { XCTFail(); return }
-                guard case .double(let double) = row.databaseValue(atIndex: 2).storage, double == 1.1 else { XCTFail(); return }
-                guard case .string(let string) = row.databaseValue(atIndex: 3).storage, string == "foo" else { XCTFail(); return }
-                guard case .blob(let data) = row.databaseValue(atIndex: 4).storage, data == "SQLite".data(using: .utf8) else { XCTFail(); return }
+                guard case .null = (row.value(atIndex: 0) as DatabaseValue).storage else { XCTFail(); return }
+                guard case .int64(let int64) = (row.value(atIndex: 1) as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
+                guard case .double(let double) = (row.value(atIndex: 2) as DatabaseValue).storage, double == 1.1 else { XCTFail(); return }
+                guard case .string(let string) = (row.value(atIndex: 3) as DatabaseValue).storage, string == "foo" else { XCTFail(); return }
+                guard case .blob(let data) = (row.value(atIndex: 4) as DatabaseValue).storage, data == "SQLite".data(using: .utf8) else { XCTFail(); return }
             }
         }
     }
@@ -144,11 +144,11 @@ class AdapterRowTests: GRDBTestCase {
                 let adapter = ColumnMapping(["null": "basenull", "int64": "baseint64", "double": "basedouble", "string": "basestring", "blob": "baseblob"])
                 let row = Row.fetchOne(db, "SELECT NULL AS basenull, 'XXX' AS extra, 1 AS baseint64, 1.1 AS basedouble, 'foo' AS basestring, x'53514C697465' AS baseblob", adapter: adapter)!
                 
-                guard case .null = row.databaseValue(named: "null")!.storage else { XCTFail(); return }
-                guard case .int64(let int64) = row.databaseValue(named: "int64")!.storage, int64 == 1 else { XCTFail(); return }
-                guard case .double(let double) = row.databaseValue(named: "double")!.storage, double == 1.1 else { XCTFail(); return }
-                guard case .string(let string) = row.databaseValue(named: "string")!.storage, string == "foo" else { XCTFail(); return }
-                guard case .blob(let data) = row.databaseValue(named: "blob")!.storage, data == "SQLite".data(using: .utf8) else { XCTFail(); return }
+                guard case .null = (row.value(named: "null") as DatabaseValue).storage else { XCTFail(); return }
+                guard case .int64(let int64) = (row.value(named: "int64") as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
+                guard case .double(let double) = (row.value(named: "double") as DatabaseValue).storage, double == 1.1 else { XCTFail(); return }
+                guard case .string(let string) = (row.value(named: "string") as DatabaseValue).storage, string == "foo" else { XCTFail(); return }
+                guard case .blob(let data) = (row.value(named: "blob") as DatabaseValue).storage, data == "SQLite".data(using: .utf8) else { XCTFail(); return }
             }
         }
     }
@@ -196,9 +196,9 @@ class AdapterRowTests: GRDBTestCase {
                 let adapter = ColumnMapping(["nAmE": "basenAmE"])
                 let row = Row.fetchOne(db, "SELECT 'foo' AS basenAmE, 'XXX' AS extra", adapter: adapter)!
                 
-                XCTAssertEqual(row.databaseValue(named: "name"), "foo".databaseValue)
-                XCTAssertEqual(row.databaseValue(named: "NAME"), "foo".databaseValue)
-                XCTAssertEqual(row.databaseValue(named: "NaMe"), "foo".databaseValue)
+                XCTAssertEqual(row.value(named: "name") as DatabaseValue, "foo".databaseValue)
+                XCTAssertEqual(row.value(named: "NAME") as DatabaseValue, "foo".databaseValue)
+                XCTAssertEqual(row.value(named: "NaMe") as DatabaseValue, "foo".databaseValue)
                 XCTAssertEqual(row.value(named: "name") as String, "foo")
                 XCTAssertEqual(row.value(named: "NAME") as String, "foo")
                 XCTAssertEqual(row.value(named: "NaMe") as String, "foo")
@@ -213,9 +213,9 @@ class AdapterRowTests: GRDBTestCase {
                 let adapter = ColumnMapping(["name": "basename", "NAME": "baseNAME"])
                 let row = Row.fetchOne(db, "SELECT 1 AS basename, 'XXX' AS extra, 2 AS baseNAME", adapter: adapter)!
 
-                XCTAssertEqual(row.databaseValue(named: "name"), 1.databaseValue)
-                XCTAssertEqual(row.databaseValue(named: "NAME"), 1.databaseValue)
-                XCTAssertEqual(row.databaseValue(named: "NaMe"), 1.databaseValue)
+                XCTAssertEqual(row.value(named: "name") as DatabaseValue, 1.databaseValue)
+                XCTAssertEqual(row.value(named: "NAME") as DatabaseValue, 1.databaseValue)
+                XCTAssertEqual(row.value(named: "NaMe") as DatabaseValue, 1.databaseValue)
                 XCTAssertEqual(row.value(named: "name") as Int, 1)
                 XCTAssertEqual(row.value(named: "NAME") as Int, 1)
                 XCTAssertEqual(row.value(named: "NaMe") as Int, 1)
@@ -230,7 +230,7 @@ class AdapterRowTests: GRDBTestCase {
                 let adapter = ColumnMapping(["name": "baseNaMe"])
                 let row = Row.fetchOne(db, "SELECT 1 AS basename, 2 AS baseNaMe, 3 AS BASENAME", adapter: adapter)!
                 
-                XCTAssertEqual(row.databaseValue(named: "name"), 1.databaseValue)
+                XCTAssertEqual(row.value(named: "name") as DatabaseValue, 1.databaseValue)
             }
         }
     }
@@ -244,8 +244,8 @@ class AdapterRowTests: GRDBTestCase {
                 
                 XCTAssertFalse(row.hasColumn("missing"))
                 XCTAssertFalse(row.hasColumn("missingInBaseRow"))
-                XCTAssertTrue(row.databaseValue(named: "missing") == nil)
-                XCTAssertTrue(row.databaseValue(named: "missingInBaseRow") == nil)
+                XCTAssertTrue(row.value(named: "missing") as DatabaseValue? == nil)
+                XCTAssertTrue(row.value(named: "missingInBaseRow") as DatabaseValue? == nil)
                 XCTAssertTrue(row.value(named: "missing") == nil)
                 XCTAssertTrue(row.value(named: "missingInBaseRow") == nil)
             }

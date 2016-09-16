@@ -811,7 +811,7 @@ private func databaseEventFilter(readInfo: SelectStatement.ReadInfo) -> (Databas
                     func changedValues(from oldRow: Row, to newRow: Row) -> [String: DatabaseValue] {
                         var changedValues: [String: DatabaseValue] = [:]
                         for (column, newValue) in newRow {
-                            let oldValue = oldRow.databaseValue(named: column)
+                            let oldValue: DatabaseValue? = oldRow.value(named: column)
                             if newValue != oldValue {
                                 changedValues[column] = oldValue
                             }
@@ -1026,7 +1026,7 @@ private func ==<T>(lhs: Item<T>, rhs: Item<T>) -> Bool {
 func makePrimaryKeyFunction(_ db: Database, tableName: String) throws -> (Row) -> [String: DatabaseValue] {
     let columns = try db.primaryKey(tableName)?.columns ?? []
     return { row in
-        return Dictionary<String, DatabaseValue>(keys: columns) { row.databaseValue(named: $0)! }
+        return Dictionary<String, DatabaseValue>(keys: columns) { row.value(named: $0) }
     }
 }
 

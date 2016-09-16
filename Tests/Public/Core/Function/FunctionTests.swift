@@ -66,7 +66,7 @@ class FunctionTests: GRDBTestCase {
             }
             dbQueue.add(function: fn)
             dbQueue.inDatabase { db in
-                XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT f()") == nil)
+                XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT f()")!.isNull)
             }
         }
     }

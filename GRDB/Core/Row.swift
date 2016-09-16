@@ -445,28 +445,6 @@ extension Row {
     public var databaseValues: LazyMapCollection<Row, DatabaseValue> {
         return lazy.map { $0.1 }
     }
-    
-    /// Returns the `DatabaseValue` at given index.
-    ///
-    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
-    /// righmost column.
-    public func databaseValue(atIndex index: Int) -> DatabaseValue {
-        GRDBPrecondition(index >= 0 && index < count, "row index out of range")
-        return impl.databaseValue(atUncheckedIndex: index)
-    }
-    
-    /// Returns the `DatabaseValue` at given column.
-    ///
-    /// Column name lookup is case-insensitive, and when several columns have
-    /// the same name, the leftmost column is considered.
-    ///
-    /// The result is nil if the row does not contain the column.
-    public func databaseValue(named columnName: String) -> DatabaseValue? {
-        guard let index = impl.index(ofColumn: columnName) else {
-            return nil
-        }
-        return impl.databaseValue(atUncheckedIndex: index)
-    }
 }
 
 extension Row {
