@@ -688,6 +688,13 @@ Generally speaking, you can extract the type you need, *provided it can be conve
     row.value(atIndex: 0) as Int  // fatal error: could not convert NULL to Int.
     ```
     
+    There is one exception, though: the [DatabaseValue](#databasevalue) type:
+    
+    ```swift
+    let row = Row.fetchOne(db, "SELECT NULL")!
+    row.value(atIndex: 0) as DatabaseValue // DatabaseValue.null
+    ```
+    
 - **Missing columns return nil.**
     
     ```swift
@@ -726,12 +733,14 @@ Generally speaking, you can extract the type you need, *provided it can be conve
 
 **DatabaseValue is an intermediate type between SQLite and your values, which gives information about the raw value stored in the database.**
 
+You get DatabaseValue just like other value types:
+
 ```swift
-let dbv: DatabaseValue = row.value(atIndex: 0)    // 0 is the leftmost column
-let dbv: DatabaseValue = row.value(named: "name") // leftmost matching column - lookup is case-insensitive
+let dbv: DatabaseValue = row.value(atIndex: 0)
+let dbv: DatabaseValue = row.value(named: "name")
 
 // Check for NULL:
-dbv.isNull    // Bool
+dbv.isNull // Bool
 
 // All the five storage classes supported by SQLite:
 switch dbv.storage {
@@ -743,7 +752,7 @@ case .blob(let data):       print("Data: \(data)")
 }
 ```
 
-You can extract [values](#values) (Bool, Int, String, Date, Swift enums, etc.) from DatabaseValue with the [DatabaseValueConvertible.fromDatabaseValue()](#custom-value-types) method:
+You can extract regular [values](#values) (Bool, Int, String, Date, Swift enums, etc.) from DatabaseValue with the [DatabaseValueConvertible.fromDatabaseValue()](#custom-value-types) method:
 
 ```swift
 let dbv: DatabaseValue = row.value(named: "bookCount")
