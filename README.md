@@ -2037,9 +2037,7 @@ SQLite let you specify conflict policies at two different places:
     try db.execute("INSERT OR REPLACE INTO persons (email) VALUES (?)", arguments: ["arthur@example.com"])
     ```
 
-Sometimes, conflict handling can not be defined at the table level (when you create rtree or fts virtual tables, for example). In this case, you have to handle them at the query level.
-
-The MutablePersistable and Persistable protocols provide an optional static property which defines conflict policies for the `insert()` and `update()` methods:
+When you want to handle conflicts at the query level, specify a custom `persistenceConflictPolicy` in your type that adopts the MutablePersistable or Persistable protocol. It will alter the INSERT and UPDATE queries run by the `insert`, `update` and `save` [persistence methods](#persistence-methods):
 
 ```swift
 public protocol MutablePersistable {
@@ -2051,11 +2049,7 @@ public protocol MutablePersistable {
     /// INSERT and UPDATE queries.
     static var persistenceConflictPolicy: PersistenceConflictPolicy { get }
 }
-```
 
-Have your custom persistable type define this property, and specify how conflicts should be handled:
-
-```swift
 struct Person : MutablePersistable {
     static let persistenceConflictPolicy = PersistenceConflictPolicy(
         insert: .replace,
