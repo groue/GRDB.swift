@@ -2059,9 +2059,10 @@ struct Person : MutablePersistable {
 try person.insert(db)
 ```
 
-> :point_up: **Note**: when you specify the `ignore` policy for insertions, the `didInsert(with:for:)` method is never called.
-
-> :point_up: **Note**: you should not specify the `ignore` policy at the table level, because the `didInsert(with:for:)` method will be called with some random id in case of failed insert. Use the persistenceConflictPolicy instead.
+> :point_up: **Note**: the `ignore` policy does not play well at all with the `didInsert(with:for:)` method. Choose your poison:
+>
+> - if you specify the `ignore` policy at the table level, don't implement the `didInsert(with:for:)` method: it would be called with some random id in case of failed insert.
+> - if you specify the `ignore` policy at the query level, the `didInsert(with:for:)` method is never called.
 
 
 ## Record Class
