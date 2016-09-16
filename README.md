@@ -2031,8 +2031,7 @@ SQLite let you specify conflict policies at two different places:
         t.column("email", .text)
     }
     
-    // Despite the unique index on email, both inserts succeed.
-    // The second insert replaces the first row:
+    // Again, despite the unique index on email, both inserts succeed.
     try db.execute("INSERT OR REPLACE INTO persons (email) VALUES (?)", arguments: ["arthur@example.com"])
     try db.execute("INSERT OR REPLACE INTO persons (email) VALUES (?)", arguments: ["arthur@example.com"])
     ```
