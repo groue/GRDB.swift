@@ -767,9 +767,9 @@ let date   = Date.fromDatabaseValue(dbv)       // Date?
 `fromDatabaseValue` returns nil for invalid conversions:
 
 ```swift
-let row = Row.fetchOne(db, "SELECT 'foo'")!
+let row = Row.fetchOne(db, "SELECT 'Mom’s birthday'")!
 let dbv: DatabaseValue = row.value(at: 0)
-let string = String.fromDatabaseValue(dbv) // "foo"
+let string = String.fromDatabaseValue(dbv) // "Mom’s birthday"
 let int    = Int.fromDatabaseValue(dbv)    // nil
 let date   = Date.fromDatabaseValue(dbv)   // nil
 ```
@@ -777,7 +777,6 @@ let date   = Date.fromDatabaseValue(dbv)   // nil
 This turns out useful when you have to process untrusted databases. Compare:
 
 ```swift
-let row = Row.fetchOne(db, "SELECT 'Mom’s birthday'")!
 let date: Date? = row.value(atIndex: 0)  // fatal error: could not convert "Mom’s birthday" to Date.
 let date = Date.fromDatabaseValue(row.value(atIndex: 0)) // nil
 ```
