@@ -17,7 +17,7 @@ class DatabaseValueTests: GRDBTestCase {
                 XCTAssertTrue((Row.fetchOne(db, "SELECT 1.0")!.value(atIndex: 0) as DatabaseValue).value() is Double)
                 XCTAssertTrue((Row.fetchOne(db, "SELECT 'foo'")!.value(atIndex: 0) as DatabaseValue).value() is String)
                 XCTAssertTrue((Row.fetchOne(db, "SELECT x'53514C697465'")!.value(atIndex: 0) as DatabaseValue).value() is NSData)
-                XCTAssertTrue((Row.fetchOne(db, "SELECT NULL")!.value(atIndex: 0) as DatabaseValue?) == nil)
+                XCTAssertTrue((Row.fetchOne(db, "SELECT NULL")!.value(atIndex: 0) as DatabaseValue).isNull)
             }
         }
     }
@@ -30,7 +30,7 @@ class DatabaseValueTests: GRDBTestCase {
                 XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT 1.0")!.value() is Double)
                 XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT 'foo'")!.value() is String)
                 XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT x'53514C697465'")!.value() is NSData)
-                XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT NULL") == nil)
+                XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT NULL")!.isNull)
             }
         }
     }

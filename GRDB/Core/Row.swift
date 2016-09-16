@@ -441,8 +441,7 @@ extension Row {
     /// righmost column.
     @warn_unused_result
     public func databaseValue(atIndex index: Int) -> DatabaseValue {
-        GRDBPrecondition(index >= 0 && index < count, "row index out of range")
-        return impl.databaseValue(atIndex: index)
+        return value(atIndex: index)
     }
     
     /// Returns the `DatabaseValue` at given column.
@@ -453,10 +452,7 @@ extension Row {
     /// The result is nil if the row does not contain the column.
     @warn_unused_result
     public func databaseValue(named columnName: String) -> DatabaseValue? {
-        guard let index = impl.indexOfColumn(named: columnName) else {
-            return nil
-        }
-        return impl.databaseValue(atIndex: index)
+        return value(named: columnName)
     }
 }
 
