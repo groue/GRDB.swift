@@ -1997,11 +1997,9 @@ Those conflicts normally end with an error. Yet SQLite let you alter the default
 
 The [five different policies](https://www.sqlite.org/lang_conflict.html) are: abort (the default), replace, rollback, fail, and ignore.
 
-**In the rest of this chapter, we'll suppose that you want to perform specific conflict handling.** You can skip this chapter otherwise.
+**SQLite let you specify conflict policies at two different places:**
 
-SQLite let you specify conflict policies at two different places:
-
-- At the table level:
+- At the table level
     
     ```swift
     // CREATE TABLE persons (
