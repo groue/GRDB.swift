@@ -1,6 +1,26 @@
 Release Notes
 =============
 
+## Next Release
+
+**New**
+
+- Upgrade custom SQLite builds to v3.14.1.
+
+**Fixed**
+
+- DatabaseValue.fromDatabaseValue returns `.Null` for NULL input, instead of nil (fixes [#119](https://github.com/groue/GRDB.swift/issues/119))
+
+**Breaking Change**
+
+- `Row.databaseValue(atIndex:)` and `Row.databaseValue(named:)` have been removed. Use `value(atIndex:)` and `value(named:)` instead:
+    
+    ```diff
+    -let dbv = row.databaseValue(atIndex: 0)
+    +let dbv: DatabaseValue = row.value(atIndex: 0)
+    ```
+    
+
 ## 0.81.0
 
 Released September 10, 2016
