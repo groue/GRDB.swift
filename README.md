@@ -774,6 +774,14 @@ let int    = Int.fromDatabaseValue(dbv)    // nil
 let date   = Date.fromDatabaseValue(dbv)   // nil
 ```
 
+This turns out useful when you have to process untrusted databases. Compare:
+
+```swift
+let row = Row.fetchOne(db, "SELECT 'Mom’s birthday'")!
+let date: Date? = row.value(atIndex: 0)  // fatal error: could not convert "Mom’s birthday" to Date.
+let date = Date.Date.fromDatabaseValue(row.value(atIndex: 0)) // nil
+```
+
 
 #### Rows as Dictionaries
 
@@ -3606,7 +3614,7 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
 - The code asks for a Date, when the database contains garbage:
     
     ```swift
-    // fatal error: could not convert "Mom's birthday" to Date.
+    // fatal error: could not convert "Mom’s birthday" to Date.
     let date: Date? = row.value(named: "date")
     ```
     
