@@ -434,26 +434,6 @@ extension Row {
     public var databaseValues: LazyMapCollection<Row, DatabaseValue> {
         return lazy.map { $0.1 }
     }
-    
-    /// Returns the `DatabaseValue` at given index.
-    ///
-    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
-    /// righmost column.
-    @warn_unused_result
-    public func databaseValue(atIndex index: Int) -> DatabaseValue {
-        return value(atIndex: index)
-    }
-    
-    /// Returns the `DatabaseValue` at given column.
-    ///
-    /// Column name lookup is case-insensitive, and when several columns have
-    /// the same name, the leftmost column is considered.
-    ///
-    /// The result is nil if the row does not contain the column.
-    @warn_unused_result
-    public func databaseValue(named columnName: String) -> DatabaseValue? {
-        return value(named: columnName)
-    }
 }
 
 extension Row {

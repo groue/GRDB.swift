@@ -79,7 +79,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 
                 let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
                 for (key, value) in record.persistentDictionary {
-                    if let dbv = row.databaseValue(named: key) {
+                    if let dbv: DatabaseValue = row.value(named: key) {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
@@ -116,7 +116,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 
                 let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
                 for (key, value) in record.persistentDictionary {
-                    if let dbv = row.databaseValue(named: key) {
+                    if let dbv: DatabaseValue = row.value(named: key) {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
@@ -170,7 +170,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 
                 let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
                 for (key, value) in record.persistentDictionary {
-                    if let dbv = row.databaseValue(named: key) {
+                    if let dbv: DatabaseValue = row.value(named: key) {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
@@ -225,7 +225,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 
                 let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
                 for (key, value) in record.persistentDictionary {
-                    if let dbv = row.databaseValue(named: key) {
+                    if let dbv: DatabaseValue = row.value(named: key) {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
@@ -247,7 +247,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 
                 let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
                 for (key, value) in record.persistentDictionary {
-                    if let dbv = row.databaseValue(named: key) {
+                    if let dbv: DatabaseValue = row.value(named: key) {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
@@ -268,7 +268,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 
                 let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
                 for (key, value) in record.persistentDictionary {
-                    if let dbv = row.databaseValue(named: key) {
+                    if let dbv: DatabaseValue = row.value(named: key) {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")

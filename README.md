@@ -238,7 +238,7 @@ pod 'GRDB.swift', :git => 'git@github.com:groue/GRDB.swift', :branch => 'Swift2.
 To use GRDB.swift with Carthage, specify in your Cartfile:
 
 ```
-github "groue/GRDB.swift"
+github "groue/GRDB.swift" "Swift2.3"
 ```
 
 > :point_up: **Note**: [custom SQLite builds](#custom-sqlite-builds) are not available via Carthage.
@@ -256,7 +256,7 @@ See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an example of such integration.
 
 #### Custom SQLite builds
 
-**By default, GRDB uses the SQLite library that ships with the operating system.** You can build GRDB with custom SQLite sources and options, through [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfalling/SQLiteLib). See [installation instructions](SQLiteCustom/README.md).
+**By default, GRDB uses the SQLite library that ships with the operating system.** You can build GRDB with custom SQLite sources and options, through [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfalling/SQLiteLib). The current SQLite version is 3.14.1. See [installation instructions](SQLiteCustom/README.md).
 
 
 Database Connections
@@ -729,8 +729,8 @@ Generally speaking, you can extract the type you need, *provided it can be conve
 **DatabaseValue is an intermediate type between SQLite and your values, which gives information about the raw value stored in the database.**
 
 ```swift
-let dbv = row.databaseValue(atIndex: 0)    // 0 is the leftmost column
-let dbv = row.databaseValue(named: "name") // leftmost matching column - lookup is case-insensitive
+let dbv: DatabaseValue = row.value(atIndex: 0)    // 0 is the leftmost column
+let dbv: DatabaseValue = row.value(named: "name") // leftmost matching column - lookup is case-insensitive
 
 // Check for NULL:
 dbv.isNull    // Bool
@@ -748,12 +748,12 @@ case .Blob(let data):       print("NSData: \(data)")
 You can extract [values](#values) (Bool, Int, String, NSDate, Swift enums, etc.) from DatabaseValue with the [DatabaseValueConvertible.fromDatabaseValue()](#custom-value-types) method:
 
 ```swift
-let dbv = row.databaseValue(named: "bookCount")
+let dbv: DatabaseValue = row.value(named: "bookCount")
 let bookCount   = Int.fromDatabaseValue(dbv)   // Int?
 let bookCount64 = Int64.fromDatabaseValue(dbv) // Int64?
 let hasBooks    = Bool.fromDatabaseValue(dbv)  // Bool?, false when 0
 
-let dbv = row.databaseValue(named: "date")
+let dbv: DatabaseValue = row.value(named: "date")
 let string = String.fromDatabaseValue(dbv)     // "2015-09-11 18:14:15.123"
 let date   = NSDate.fromDatabaseValue(dbv)     // NSDate?
 ```
@@ -762,7 +762,7 @@ let date   = NSDate.fromDatabaseValue(dbv)     // NSDate?
 
 ```swift
 let row = Row.fetchOne(db, "SELECT 'foo'")!
-let dbv = row.databaseValue(at: 0)
+let dbv: DatabaseValue = row.value(at: 0)
 let string = String.fromDatabaseValue(dbv) // "foo"
 let int    = Int.fromDatabaseValue(dbv)    // nil
 let date   = NSDate.fromDatabaseValue(dbv) // nil
@@ -794,7 +794,6 @@ Yet rows are not real dictionaries: they are ordered, and may contain duplicate 
 let row = Row.fetchOne(db, "SELECT 1 AS foo, 2 AS foo")!
 row.columnNames     // ["foo", "foo"]
 row.databaseValues  // [1, 2]
-row.databaseValue(named: "foo") // 1 (the value for the leftmost column "foo")
 for (columnName, databaseValue) in row { ... } // ("foo", 1), ("foo", 2)
 ```
 
@@ -909,7 +908,7 @@ for row in Row.fetch(db, "SELECT data, ...") {
     let data: NSData = row.value(named: "data")
     
     // This data is copied:
-    if let databaseValue = row.databaseValue(named: "data") {
+    if let dbv: DatabaseValue = row.value(named: "data") {
         let data: NSData = databaseValue.value()
     }
     
@@ -1093,7 +1092,7 @@ row.value(atIndex: 0) as String  // "Syrah"
 row.value(atIndex: 0) as Grape?  // fatal error: could not convert "Syrah" to Grape.
 row.value(atIndex: 0) as Grape   // fatal error: could not convert "Syrah" to Grape.
 
-let dbv = row.databaseValue(atIndex: 0)
+let dbv: DatabaseValue = row.value(atIndex: 0)
 String.fromDatabaseValue(dbv) // "Syrah"
 Grape.fromDatabaseValue(dbv)  // nil
 ```
@@ -3509,7 +3508,7 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     Solution: fix the contents of the database, or use [DatabaseValue](#databasevalue) to handle all possible cases:
     
     ```swift
-    let dbv = row.databaseValue(named: "date")
+    let dbv: DatabaseValue = row.value(named: "date")
     if dbv.isNull {
         // Handle NULL
     if let date = NSDate.fromDatabaseValue(dbv) {
@@ -3574,7 +3573,7 @@ if let arguments = StatementArguments(arguments) {
     for row in Row.fetchAll(statement) {
         
         // Database value may not be convertible to NSDate
-        let dbv = row.databaseValue(atIndex: 0)
+        let dbv: DatabaseValue = row.value(atIndex: 0)
         if let date = NSDate.fromDatabaseValue(dbv) {
             // use date
         }

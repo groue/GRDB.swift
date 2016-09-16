@@ -792,7 +792,7 @@ private func databaseEventFilter(observedTables: [String: Set<String>]) -> (Data
                     func changedValues(from oldRow: Row, to newRow: Row) -> [String: DatabaseValue] {
                         var changedValues: [String: DatabaseValue] = [:]
                         for (column, newValue) in newRow {
-                            let oldValue = oldRow.databaseValue(named: column)
+                            let oldValue: DatabaseValue? = oldRow.value(named: column)
                             if newValue != oldValue {
                                 changedValues[column] = oldValue
                             }
@@ -1007,7 +1007,7 @@ private func ==<T>(lhs: Item<T>, rhs: Item<T>) -> Bool {
 func makePrimaryKeyFunction(db: Database, tableName: String) throws -> (Row) -> [String: DatabaseValue] {
     let columns = try db.primaryKey(tableName)?.columns ?? []
     return { row in
-        return Dictionary<String, DatabaseValue>(keys: columns) { row.databaseValue(named: $0)! }
+        return Dictionary<String, DatabaseValue>(keys: columns) { row.value(named: $0) }
     }
 }
 

@@ -305,7 +305,7 @@ struct AdapterRowImpl : RowImpl {
     }
 
     func databaseValue(atIndex index: Int) -> DatabaseValue {
-        return baseRow.databaseValue(atIndex: concreteColumnMapping.baseColumIndex(adaptedIndex: index))
+        return baseRow.value(atIndex: concreteColumnMapping.baseColumIndex(adaptedIndex: index))
     }
 
     func dataNoCopy(atIndex index:Int) -> NSData? {
