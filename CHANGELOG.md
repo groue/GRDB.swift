@@ -1,7 +1,18 @@
 Release Notes
 =============
 
+## 0.84.0
+
+Released September 16, 2016
+
+**New**
+
+- The Persistable protocol has learned about conflict resolution, and can run `INSERT OR REPLACE` queries ([documentation](https://github.com/groue/GRDB.swift/tree/Issue118#conflict-resolution), fixes [#118](https://github.com/groue/GRDB.swift/issues/118)).
+
+
 ## 0.83.0
+
+Released September 16, 2016
 
 **New**
 
