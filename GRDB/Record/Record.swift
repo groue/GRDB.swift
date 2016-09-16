@@ -215,25 +215,33 @@ open class Record : RowConvertible, TableMapping, Persistable {
         // So let's provide our custom implementation of insert, which uses the
         // same persistentDictionary for both insertion, and change tracking.
         
+        let insertionConflictResolution = type(of: self).persistenceConflictPolicy.insertionConflictResolution
         let dao = DAO(db, self)
         var persistentDictionary = dao.persistentDictionary
-        try dao.insertStatement().execute()
-        let rowID = db.lastInsertedRowID
-        let rowIDColumn = dao.primaryKey?.rowIDColumn
-        didInsert(with: rowID, for: rowIDColumn)
+        try dao.insertStatement(onConflict: insertionConflictResolution).execute()
         
-        // Update persistentDictionary with inserted id, so that we can
-        // set hasPersistentChangedValues to false:
-        if let rowIDColumn = rowIDColumn {
-            if persistentDictionary[rowIDColumn] != nil {
-                persistentDictionary[rowIDColumn] = rowID
-            } else {
-                let rowIDColumn = rowIDColumn.lowercased()
-                for column in persistentDictionary.keys where column.lowercased() == rowIDColumn {
-                    persistentDictionary[column] = rowID
-                    break
+        switch insertionConflictResolution {
+        case .abort, .fail, .rollback:
+            let rowID = db.lastInsertedRowID
+            let rowIDColumn = dao.primaryKey?.rowIDColumn
+            didInsert(with: rowID, for: rowIDColumn)
+            
+            // Update persistentDictionary with inserted id, so that we can
+            // set hasPersistentChangedValues to false:
+            if let rowIDColumn = rowIDColumn {
+                if persistentDictionary[rowIDColumn] != nil {
+                    persistentDictionary[rowIDColumn] = rowID
+                } else {
+                    let rowIDColumn = rowIDColumn.lowercased()
+                    for column in persistentDictionary.keys where column.lowercased() == rowIDColumn {
+                        persistentDictionary[column] = rowID
+                        break
+                    }
                 }
             }
+        case .replace, .ignore:
+            // Statement may have succeeded without inserting any row
+            break
         }
         
         // Set hasPersistentChangedValues to false
@@ -266,7 +274,7 @@ open class Record : RowConvertible, TableMapping, Persistable {
         // So let's provide our custom implementation of insert, which uses the
         // same persistentDictionary for both update, and change tracking.
         let dao = DAO(db, self)
-        guard let statement = dao.updateStatement(columns: columns) else {
+        guard let statement = dao.updateStatement(columns: columns, onConflict: type(of: self).persistenceConflictPolicy.updateConflictResolution) else {
             // Nil primary key
             throw PersistenceError.recordNotFound(self)
         }

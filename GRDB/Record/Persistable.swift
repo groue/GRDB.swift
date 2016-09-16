@@ -36,6 +36,26 @@ private func databaseValues(for columns: [String], inDictionary dictionary: [Str
 
 // MARK: - MutablePersistable
 
+/// The MutablePersistable protocol uses this type in order to handle SQLite
+/// conflicts when records are inserted or updated.
+///
+/// See `MutablePersistable.persistenceConflictPolicy`.
+///
+/// See https://www.sqlite.org/lang_conflict.html
+public struct PersistenceConflictPolicy {
+    /// The conflict resolution algorithm for insertions
+    public let insertionConflictResolution: SQLConflictResolution
+    
+    /// The conflict resolution algorithm for updates
+    public let updateConflictResolution: SQLConflictResolution
+    
+    /// Creates a policy
+    public init(insertion: SQLConflictResolution, update: SQLConflictResolution) {
+        self.insertionConflictResolution = insertion
+        self.updateConflictResolution = update
+    }
+}
+
 /// Types that adopt MutablePersistable can be inserted, updated, and deleted.
 ///
 /// This protocol is intented for types that have an INTEGER PRIMARY KEY, and
@@ -44,6 +64,19 @@ private func databaseValues(for columns: [String], inDictionary dictionary: [Str
 ///
 /// The insert() and save() methods are mutating methods.
 public protocol MutablePersistable : TableMapping {
+    /// The policy that handles SQLite conflicts when records are inserted
+    /// or updated.
+    ///
+    /// This property is optional: its default value specifies ABORT policy
+    /// for both insertions and updates, which has GRDB generate regular
+    /// INSERT and UPDATE queries.
+    ///
+    /// If insertions are resolved with .replace or .ignore policies, the
+    /// `didInsert(with:for:)` method is not called upon successful insertion,
+    /// even when there was no conflict, and a row was actually inserted.
+    ///
+    /// See https://www.sqlite.org/lang_conflict.html
+    static var persistenceConflictPolicy: PersistenceConflictPolicy { get }
     
     /// Returns the values that should be stored in the database.
     ///
@@ -169,6 +202,13 @@ public protocol MutablePersistable : TableMapping {
 }
 
 public extension MutablePersistable {
+    /// Describes the conflict policy for insertions and updates.
+    ///
+    /// The default value specifies ABORT policy for both insertions and
+    /// updates, which has GRDB generate regular INSERT and UPDATE queries.
+    static var persistenceConflictPolicy: PersistenceConflictPolicy {
+        return PersistenceConflictPolicy(insertion: .abort, update: .abort)
+    }
     
     /// Notifies the record that it was succesfully inserted.
     ///
@@ -279,9 +319,17 @@ public extension MutablePersistable {
     /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
     mutating func performInsert(_ db: Database) throws {
+        let insertionConflictResolution = type(of: self).persistenceConflictPolicy.insertionConflictResolution
         let dao = DAO(db, self)
-        try dao.insertStatement().execute()
-        didInsert(with: db.lastInsertedRowID, for: dao.primaryKey?.rowIDColumn)
+        try dao.insertStatement(onConflict: insertionConflictResolution).execute()
+        
+        switch insertionConflictResolution {
+        case .abort, .fail, .rollback:
+            didInsert(with: db.lastInsertedRowID, for: dao.primaryKey?.rowIDColumn)
+        case .replace, .ignore:
+            // Statement may have succeeded without inserting any row
+            break
+        }
     }
     
     /// Don't invoke this method directly: it is an internal method for types
@@ -298,7 +346,7 @@ public extension MutablePersistable {
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
     func performUpdate(_ db: Database, columns: Set<String>) throws {
-        guard let statement = DAO(db, self).updateStatement(columns: columns) else {
+        guard let statement = DAO(db, self).updateStatement(columns: columns, onConflict: type(of: self).persistenceConflictPolicy.updateConflictResolution) else {
             // Nil primary key
             throw PersistenceError.recordNotFound(self)
         }
@@ -473,9 +521,17 @@ public extension Persistable {
     /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
     func performInsert(_ db: Database) throws {
+        let insertionConflictResolution = type(of: self).persistenceConflictPolicy.insertionConflictResolution
         let dao = DAO(db, self)
-        try dao.insertStatement().execute()
-        didInsert(with: db.lastInsertedRowID, for: dao.primaryKey?.rowIDColumn)
+        try dao.insertStatement(onConflict: insertionConflictResolution).execute()
+        
+        switch insertionConflictResolution {
+        case .abort, .fail, .rollback:
+            didInsert(with: db.lastInsertedRowID, for: dao.primaryKey?.rowIDColumn)
+        case .replace, .ignore:
+            // Statement may have succeeded without inserting any row
+            break
+        }
     }
     
     /// Don't invoke this method directly: it is an internal method for types
@@ -547,8 +603,9 @@ final class DAO {
         self.primaryKey = primaryKey
     }
     
-    func insertStatement() -> UpdateStatement {
+    func insertStatement(onConflict: SQLConflictResolution) -> UpdateStatement {
         let query = InsertQuery(
+            onConflict: onConflict,
             tableName: databaseTableName,
             insertedColumns: Array(persistentDictionary.keys))
         let statement = try! db.cachedUpdateStatement(query.sql)
@@ -557,7 +614,7 @@ final class DAO {
     }
     
     /// Returns nil if and only if primary key is nil
-    func updateStatement(columns: Set<String>) -> UpdateStatement? {
+    func updateStatement(columns: Set<String>, onConflict: SQLConflictResolution) -> UpdateStatement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey?.columns ?? []
         let primaryKeyValues = databaseValues(for: primaryKeyColumns, inDictionary: persistentDictionary)
@@ -589,6 +646,7 @@ final class DAO {
         let updatedValues = databaseValues(for: updatedColumns, inDictionary: persistentDictionary)
         
         let query = UpdateQuery(
+            onConflict: onConflict,
             tableName: databaseTableName,
             updatedColumns: updatedColumns,
             conditionColumns: primaryKeyColumns)
@@ -632,6 +690,7 @@ final class DAO {
 // MARK: - InsertQuery
 
 private struct InsertQuery {
+    let onConflict: SQLConflictResolution
     let tableName: String
     let insertedColumns: [String]
 }
@@ -642,6 +701,7 @@ extension InsertQuery : Hashable {
 
 private func == (lhs: InsertQuery, rhs: InsertQuery) -> Bool {
     if lhs.tableName != rhs.tableName { return false }
+    if lhs.onConflict != rhs.onConflict { return false }
     return lhs.insertedColumns == rhs.insertedColumns
 }
 
@@ -653,7 +713,13 @@ extension InsertQuery {
         }
         let columnsSQL = insertedColumns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", ")
         let valuesSQL = databaseQuestionMarks(count: insertedColumns.count)
-        let sql = "INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) VALUES (\(valuesSQL))"
+        let sql: String
+        switch onConflict {
+        case .abort:
+            sql = "INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) VALUES (\(valuesSQL))"
+        default:
+            sql = "INSERT OR \(onConflict.rawValue) INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) VALUES (\(valuesSQL))"
+        }
         InsertQuery.sqlCache.write { $0[self] = sql }
         return sql
     }
@@ -663,6 +729,7 @@ extension InsertQuery {
 // MARK: - UpdateQuery
 
 private struct UpdateQuery {
+    let onConflict: SQLConflictResolution
     let tableName: String
     let updatedColumns: [String]
     let conditionColumns: [String]
@@ -674,6 +741,7 @@ extension UpdateQuery : Hashable {
 
 private func == (lhs: UpdateQuery, rhs: UpdateQuery) -> Bool {
     if lhs.tableName != rhs.tableName { return false }
+    if lhs.onConflict != rhs.onConflict { return false }
     if lhs.updatedColumns != rhs.updatedColumns { return false }
     return lhs.conditionColumns == rhs.conditionColumns
 }
@@ -686,7 +754,13 @@ extension UpdateQuery {
         }
         let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: ", ")
         let whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: " AND ")
-        let sql = "UPDATE \(tableName.quotedDatabaseIdentifier) SET \(updateSQL) WHERE \(whereSQL)"
+        let sql: String
+        switch onConflict {
+        case .abort:
+            sql = "UPDATE \(tableName.quotedDatabaseIdentifier) SET \(updateSQL) WHERE \(whereSQL)"
+        default:
+            sql = "UPDATE OR \(onConflict.rawValue) \(tableName.quotedDatabaseIdentifier) SET \(updateSQL) WHERE \(whereSQL)"
+        }
         UpdateQuery.sqlCache.write { $0[self] = sql }
         return sql
     }
