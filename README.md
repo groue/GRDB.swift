@@ -691,7 +691,6 @@ Generally speaking, you can extract the type you need, *provided it can be conve
     There is one exception, though: the [DatabaseValue](#databasevalue) type:
     
     ```swift
-    let row = Row.fetchOne(db, "SELECT NULL")!
     row.value(atIndex: 0) as DatabaseValue // DatabaseValue.null
     ```
     
