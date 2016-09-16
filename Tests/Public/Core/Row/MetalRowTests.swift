@@ -142,11 +142,11 @@ class MetalRowTests: GRDBTestCase {
                 var rowFetched = false
                 for row in Row.fetch(db, "SELECT NULL, 1, 1.1, 'foo', x'53514C697465'") {
                     rowFetched = true
-                    guard case .Null = row.databaseValue(atIndex: 0).storage else { XCTFail(); return }
-                    guard case .Int64(let int64) = row.databaseValue(atIndex: 1).storage where int64 == 1 else { XCTFail(); return }
-                    guard case .Double(let double) = row.databaseValue(atIndex: 2).storage where double == 1.1 else { XCTFail(); return }
-                    guard case .String(let string) = row.databaseValue(atIndex: 3).storage where string == "foo" else { XCTFail(); return }
-                    guard case .Blob(let data) = row.databaseValue(atIndex: 4).storage where data == "SQLite".dataUsingEncoding(NSUTF8StringEncoding) else { XCTFail(); return }
+                    guard case .Null = (row.value(atIndex: 0) as DatabaseValue).storage else { XCTFail(); return }
+                    guard case .Int64(let int64) = (row.value(atIndex: 1) as DatabaseValue).storage where int64 == 1 else { XCTFail(); return }
+                    guard case .Double(let double) = (row.value(atIndex: 2) as DatabaseValue).storage where double == 1.1 else { XCTFail(); return }
+                    guard case .String(let string) = (row.value(atIndex: 3) as DatabaseValue).storage where string == "foo" else { XCTFail(); return }
+                    guard case .Blob(let data) = (row.value(atIndex: 4) as DatabaseValue).storage where data == "SQLite".dataUsingEncoding(NSUTF8StringEncoding) else { XCTFail(); return }
                 }
                 XCTAssertTrue(rowFetched)
             }
@@ -160,11 +160,11 @@ class MetalRowTests: GRDBTestCase {
                 var rowFetched = false
                 for row in Row.fetch(db, "SELECT NULL AS \"null\", 1 AS \"int64\", 1.1 AS \"double\", 'foo' AS \"string\", x'53514C697465' AS \"blob\"") {
                     rowFetched = true
-                    guard case .Null = row.databaseValue(named: "null")!.storage else { XCTFail(); return }
-                    guard case .Int64(let int64) = row.databaseValue(named: "int64")!.storage where int64 == 1 else { XCTFail(); return }
-                    guard case .Double(let double) = row.databaseValue(named: "double")!.storage where double == 1.1 else { XCTFail(); return }
-                    guard case .String(let string) = row.databaseValue(named: "string")!.storage where string == "foo" else { XCTFail(); return }
-                    guard case .Blob(let data) = row.databaseValue(named: "blob")!.storage where data == "SQLite".dataUsingEncoding(NSUTF8StringEncoding) else { XCTFail(); return }
+                    guard case .Null = (row.value(named: "null") as DatabaseValue).storage else { XCTFail(); return }
+                    guard case .Int64(let int64) = (row.value(named: "int64") as DatabaseValue).storage where int64 == 1 else { XCTFail(); return }
+                    guard case .Double(let double) = (row.value(named: "double") as DatabaseValue).storage where double == 1.1 else { XCTFail(); return }
+                    guard case .String(let string) = (row.value(named: "string") as DatabaseValue).storage where string == "foo" else { XCTFail(); return }
+                    guard case .Blob(let data) = (row.value(named: "blob") as DatabaseValue).storage where data == "SQLite".dataUsingEncoding(NSUTF8StringEncoding) else { XCTFail(); return }
                 }
                 XCTAssertTrue(rowFetched)
             }
@@ -226,9 +226,9 @@ class MetalRowTests: GRDBTestCase {
                 var rowFetched = false
                 for row in Row.fetch(db, "SELECT 'foo' AS nAmE") {
                     rowFetched = true
-                    XCTAssertEqual(row.databaseValue(named: "name"), "foo".databaseValue)
-                    XCTAssertEqual(row.databaseValue(named: "NAME"), "foo".databaseValue)
-                    XCTAssertEqual(row.databaseValue(named: "NaMe"), "foo".databaseValue)
+                    XCTAssertEqual(row.value(named: "name") as DatabaseValue, "foo".databaseValue)
+                    XCTAssertEqual(row.value(named: "NAME") as DatabaseValue, "foo".databaseValue)
+                    XCTAssertEqual(row.value(named: "NaMe") as DatabaseValue, "foo".databaseValue)
                     XCTAssertEqual(row.value(named: "name") as String, "foo")
                     XCTAssertEqual(row.value(named: "NAME") as String, "foo")
                     XCTAssertEqual(row.value(named: "NaMe") as String, "foo")
@@ -245,9 +245,9 @@ class MetalRowTests: GRDBTestCase {
                 var rowFetched = false
                 for row in Row.fetch(db, "SELECT 1 AS name, 2 AS NAME") {
                     rowFetched = true
-                    XCTAssertEqual(row.databaseValue(named: "name"), 1.databaseValue)
-                    XCTAssertEqual(row.databaseValue(named: "NAME"), 1.databaseValue)
-                    XCTAssertEqual(row.databaseValue(named: "NaMe"), 1.databaseValue)
+                    XCTAssertEqual(row.value(named: "name") as DatabaseValue, 1.databaseValue)
+                    XCTAssertEqual(row.value(named: "NAME") as DatabaseValue, 1.databaseValue)
+                    XCTAssertEqual(row.value(named: "NaMe") as DatabaseValue, 1.databaseValue)
                     XCTAssertEqual(row.value(named: "name") as Int, 1)
                     XCTAssertEqual(row.value(named: "NAME") as Int, 1)
                     XCTAssertEqual(row.value(named: "NaMe") as Int, 1)
@@ -265,7 +265,7 @@ class MetalRowTests: GRDBTestCase {
                 for row in Row.fetch(db, "SELECT 'foo' AS name") {
                     rowFetched = true
                     XCTAssertFalse(row.hasColumn("missing"))
-                    XCTAssertTrue(row.databaseValue(named: "missing") == nil)
+                    XCTAssertTrue(row.value(named: "missing") as DatabaseValue? == nil)
                     XCTAssertTrue(row.value(named: "missing") == nil)
                 }
                 XCTAssertTrue(rowFetched)

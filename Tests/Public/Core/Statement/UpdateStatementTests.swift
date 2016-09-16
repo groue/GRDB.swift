@@ -64,7 +64,7 @@ class UpdateStatementTests : GRDBTestCase {
                 XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
                 XCTAssertEqual(rows[0].value(named: "age") as Int, 41)
                 XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
-                XCTAssertTrue(rows[1].databaseValue(named: "age")!.isNull)
+                XCTAssertTrue((rows[1].value(named: "age") as DatabaseValue).isNull)
             }
         }
     }
@@ -94,7 +94,7 @@ class UpdateStatementTests : GRDBTestCase {
                 XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
                 XCTAssertEqual(rows[0].value(named: "age") as Int, 41)
                 XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
-                XCTAssertTrue(rows[1].databaseValue(named: "age")!.isNull)
+                XCTAssertTrue((rows[1].value(named: "age") as DatabaseValue).isNull)
             }
         }
     }
@@ -123,7 +123,7 @@ class UpdateStatementTests : GRDBTestCase {
                 XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
                 XCTAssertEqual(rows[0].value(named: "age") as Int, 41)
                 XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
-                XCTAssertTrue(rows[1].databaseValue(named: "age")!.isNull)
+                XCTAssertTrue((rows[1].value(named: "age") as DatabaseValue).isNull)
             }
         }
     }
@@ -153,7 +153,7 @@ class UpdateStatementTests : GRDBTestCase {
                 XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
                 XCTAssertEqual(rows[0].value(named: "age") as Int, 41)
                 XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
-                XCTAssertTrue(rows[1].databaseValue(named: "age")!.isNull)
+                XCTAssertTrue((rows[1].value(named: "age") as DatabaseValue).isNull)
             }
         }
     }

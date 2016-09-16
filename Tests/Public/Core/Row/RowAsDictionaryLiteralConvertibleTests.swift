@@ -117,11 +117,11 @@ class RowAsDictionaryLiteralConvertibleTests: GRDBTestCase {
             let stringIndex = row.startIndex.distanceTo(row.indexOf({ (column, value) in column == "string" })!)
             let blobIndex = row.startIndex.distanceTo(row.indexOf({ (column, value) in column == "blob" })!)
             
-            guard case .Null = row.databaseValue(atIndex: nullIndex).storage else { XCTFail(); return }
-            guard case .Int64(let int64) = row.databaseValue(atIndex: int64Index).storage where int64 == 1 else { XCTFail(); return }
-            guard case .Double(let double) = row.databaseValue(atIndex: doubleIndex).storage where double == 1.1 else { XCTFail(); return }
-            guard case .String(let string) = row.databaseValue(atIndex: stringIndex).storage where string == "foo" else { XCTFail(); return }
-            guard case .Blob(let data) = row.databaseValue(atIndex: blobIndex).storage where data == "SQLite".dataUsingEncoding(NSUTF8StringEncoding) else { XCTFail(); return }
+            guard case .Null = (row.value(atIndex: nullIndex) as DatabaseValue).storage else { XCTFail(); return }
+            guard case .Int64(let int64) = (row.value(atIndex: int64Index) as DatabaseValue).storage where int64 == 1 else { XCTFail(); return }
+            guard case .Double(let double) = (row.value(atIndex: doubleIndex) as DatabaseValue).storage where double == 1.1 else { XCTFail(); return }
+            guard case .String(let string) = (row.value(atIndex: stringIndex) as DatabaseValue).storage where string == "foo" else { XCTFail(); return }
+            guard case .Blob(let data) = (row.value(atIndex: blobIndex) as DatabaseValue).storage where data == "SQLite".dataUsingEncoding(NSUTF8StringEncoding) else { XCTFail(); return }
         }
     }
     
@@ -129,11 +129,11 @@ class RowAsDictionaryLiteralConvertibleTests: GRDBTestCase {
         assertNoError {
             let row: Row = ["null": nil, "int64": 1, "double": 1.1, "string": "foo", "blob": "SQLite".dataUsingEncoding(NSUTF8StringEncoding)]
 
-            guard case .Null = row.databaseValue(named: "null")!.storage else { XCTFail(); return }
-            guard case .Int64(let int64) = row.databaseValue(named: "int64")!.storage where int64 == 1 else { XCTFail(); return }
-            guard case .Double(let double) = row.databaseValue(named: "double")!.storage where double == 1.1 else { XCTFail(); return }
-            guard case .String(let string) = row.databaseValue(named: "string")!.storage where string == "foo" else { XCTFail(); return }
-            guard case .Blob(let data) = row.databaseValue(named: "blob")!.storage where data == "SQLite".dataUsingEncoding(NSUTF8StringEncoding) else { XCTFail(); return }
+            guard case .Null = (row.value(named: "null") as DatabaseValue).storage else { XCTFail(); return }
+            guard case .Int64(let int64) = (row.value(named: "int64") as DatabaseValue).storage where int64 == 1 else { XCTFail(); return }
+            guard case .Double(let double) = (row.value(named: "double") as DatabaseValue).storage where double == 1.1 else { XCTFail(); return }
+            guard case .String(let string) = (row.value(named: "string") as DatabaseValue).storage where string == "foo" else { XCTFail(); return }
+            guard case .Blob(let data) = (row.value(named: "blob") as DatabaseValue).storage where data == "SQLite".dataUsingEncoding(NSUTF8StringEncoding) else { XCTFail(); return }
         }
     }
     
@@ -154,9 +154,9 @@ class RowAsDictionaryLiteralConvertibleTests: GRDBTestCase {
     
     func testRowIsCaseInsensitive() {
         let row: Row = ["name": "foo"]
-        XCTAssertEqual(row.databaseValue(named: "name"), "foo".databaseValue)
-        XCTAssertEqual(row.databaseValue(named: "NAME"), "foo".databaseValue)
-        XCTAssertEqual(row.databaseValue(named: "NaMe"), "foo".databaseValue)
+        XCTAssertEqual(row.value(named: "name") as DatabaseValue, "foo".databaseValue)
+        XCTAssertEqual(row.value(named: "NAME") as DatabaseValue, "foo".databaseValue)
+        XCTAssertEqual(row.value(named: "NaMe") as DatabaseValue, "foo".databaseValue)
         XCTAssertEqual(row.value(named: "name") as String, "foo")
         XCTAssertEqual(row.value(named: "NAME") as String, "foo")
         XCTAssertEqual(row.value(named: "NaMe") as String, "foo")
@@ -165,7 +165,7 @@ class RowAsDictionaryLiteralConvertibleTests: GRDBTestCase {
     func testMissingColumn() {
         let row: Row = ["name": "foo"]
         XCTAssertFalse(row.hasColumn("missing"))
-        XCTAssertTrue(row.databaseValue(named: "missing") == nil)
+        XCTAssertTrue(row.value(named: "missing") as DatabaseValue? == nil)
         XCTAssertTrue(row.value(named: "missing") == nil)
     }
     
