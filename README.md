@@ -779,7 +779,7 @@ This turns out useful when you have to process untrusted databases. Compare:
 ```swift
 let row = Row.fetchOne(db, "SELECT 'Mom’s birthday'")!
 let date: Date? = row.value(atIndex: 0)  // fatal error: could not convert "Mom’s birthday" to Date.
-let date = Date.Date.fromDatabaseValue(row.value(atIndex: 0)) // nil
+let date = Date.fromDatabaseValue(row.value(atIndex: 0)) // nil
 ```
 
 
