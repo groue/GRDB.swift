@@ -1993,9 +1993,9 @@ struct Link : Persistable {
 
 **Insertions and updates can create conflicts**: for example, a query may attempt to insert a duplicate row that violates a unique index.
 
-Those conflicts normally end with an error. Yet SQLite let you alter the default behavior, and handle conflict with specific policies. For example, the `INSERT OR REPLACE` statement handles conflicts with the "replace" policy which replaces the conflicting row instead of throwing an error.
+Those conflicts normally end with an error. Yet SQLite let you alter the default behavior, and handle conflicts with specific policies. For example, the `INSERT OR REPLACE` statement handles conflicts with the "replace" policy which replaces the conflicting row instead of throwing an error.
 
-The [five different policies](https://www.sqlite.org/lang_conflict.html) are: abort (the default), rollback, fail, ignore, and replace.
+The [five different policies](https://www.sqlite.org/lang_conflict.html) are: abort (the default), replace, rollback, fail, and ignore.
 
 **In the rest of this chapter, we'll suppose that you want to perform specific conflict handling.** You can skip this chapter otherwise.
 
