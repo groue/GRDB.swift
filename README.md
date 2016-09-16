@@ -2054,11 +2054,7 @@ struct Person : MutablePersistable {
         insert: .replace,
         update: .replace)
 }
-```
 
-The `insert` and `update` arguments specify which conflict policy to use for, respectively, insertions and updates. In the example above, the persistence methods will run `INSERT OR REPLACE` and `UPDATE OR REPLACE` queries instead of `INSERT` and `UPDATE`:
-
-```swift
 // INSERT OR REPLACE INTO persons (...) VALUES (...)
 try person.insert(db)
 ```
