@@ -238,7 +238,7 @@ pod 'GRDB.swift'
 To use GRDB.swift with Carthage, specify in your Cartfile:
 
 ```
-github "groue/GRDB.swift" "Swift2.3"
+github "groue/GRDB.swift"
 ```
 
 
