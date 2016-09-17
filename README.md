@@ -707,10 +707,10 @@ Generally speaking, you can extract the type you need, *provided it can be conve
 - **Invalid conversions throw a fatal error.**
     
     ```swift
-    let row = Row.fetchOne(db, "SELECT 'foo'")!
-    row.value(atIndex: 0) as String // "foo"
-    row.value(atIndex: 0) as Date?  // fatal error: could not convert "foo" to Date.
-    row.value(atIndex: 0) as Date   // fatal error: could not convert "foo" to Date.
+    let row = Row.fetchOne(db, "SELECT 'Mom’s birthday'")!
+    row.value(atIndex: 0) as String // "Mom’s birthday"
+    row.value(atIndex: 0) as Date?  // fatal error: could not convert "Mom’s birthday" to Date.
+    row.value(atIndex: 0) as Date   // fatal error: could not convert "Mom’s birthday" to Date.
     ```
     
     This fatal error can be avoided with the [DatabaseValueConvertible.fromDatabaseValue()](#custom-value-types) method.
