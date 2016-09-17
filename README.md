@@ -1307,9 +1307,9 @@ let reverseString = DatabaseFunction(
     "reverseString",  // The name of the function
     argumentCount: 1, // Number of arguments
     pure: true,       // True means that the result only depends on input
-    function: { (databaseValues: [DatabaseValue]) in
+    function: { (values: [DatabaseValue]) in
         // Extract string value, if any...
-        guard let string = String.fromDatabaseValue(databaseValues[0]) else {
+        guard let string = String.fromDatabaseValue(values[0]) else {
             return nil
         }
         // ... and return reversed string:
@@ -1333,8 +1333,8 @@ SQLite has the opportunity to perform additional optimizations when functions ar
 When you don't provide any explicit *argumentCount*, the function can take any number of arguments:
 
 ```swift
-let averageOf = DatabaseFunction("averageOf", pure: true) { (databaseValues: [DatabaseValue]) in
-    let doubles = databaseValues.flatMap { Double.fromDatabaseValue($0) }
+let averageOf = DatabaseFunction("averageOf", pure: true) { (values: [DatabaseValue]) in
+    let doubles = values.flatMap { Double.fromDatabaseValue($0) }
     return doubles.reduce(0, +) / Double(doubles.count)
 }
 dbQueue.add(function: averageOf)
