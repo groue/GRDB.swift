@@ -274,9 +274,7 @@ Released September 11, 2016
     
     ```diff
      protocol RowConvertible {
-    -    static func databaseTableName() -> String
     -    init(_ row: Row)
-    +    class var databaseTableName: String
     +    init(row: Row)
      }
      protocol MutablePersistable {
