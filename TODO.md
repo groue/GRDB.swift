@@ -8,13 +8,10 @@
     - DatabasePoolConcurrencyTests
     - DatabasePoolReadOnlyTests
     - DatabaseQueueConcurrencyTests
-- [ ] Read about GCD Queue creation options, particularly .autoreleaseWorkItem
-- [ ] @hdlj: Extensibility of the Query Interface
-- [ ] @hdlj: FetchedRecordsController throttling
+- [ ] FetchedRecordsController throttling (suggested by @hdlj)
 - [ ] Test Row.value(SQLColumn)
-- [ ] Persistable partial update: allow models whose persistentDictionary only contains a subset of table columns (and count of default value)
 - [ ] What is the behavior inTransaction and inSavepoint behaviors in case of commit error? Code looks like we do not rollback, leaving the app in a weird state (out of Swift transaction block with a SQLite transaction that may still be opened).
-- [ ] GRDBCipher: remove limitations on iOS or OS X versions
+- [ ] GRDBCipher / custom SQLite builds: remove limitations on iOS or OS X versions
 - [ ] FetchedRecordsController: take inspiration from https://github.com/jflinter/Dwifft
 - [ ] File protection: Read https://github.com/ccgus/fmdb/issues/262 and understand https://lists.apple.com/archives/cocoa-dev/2012/Aug/msg00527.html
 - [ ] Support for resource values (see https://developer.apple.com/library/ios/qa/qa1719/_index.html)
@@ -29,7 +26,6 @@
     - [ ] MATCH https://www.sqlite.org/lang_expr.html
     - [ ] REGEXP https://www.sqlite.org/lang_expr.html
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
-- [ ] In-memory DatabasePool (https://www.sqlite.org/inmemorydb.html). Unfortunately, a shared cache is not enough. Since SQLite does not provide WAL mode for in-memory databases, it's easy to get "database is locked" errors. A WAL database on a RAM disk looks out of reach. Possible solution: have one writer that is exclusive with the readers.
 
 
 Not sure
@@ -38,7 +34,6 @@ Not sure
     - [ ] ... allowing non unique column names
 - [ ] Remove DatabaseValue.value()
     - [X] Don't talk about DatabaseValue.value() in README.md
-- [ ] Move Database Events filtering to the TransactionObserverType protocol
 - [ ] Support for NSColor/UIColor. Beware UIColor components can go beyond [0, 1.0] in iOS10.
 
 
