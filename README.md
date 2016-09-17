@@ -2239,7 +2239,7 @@ Please bear in mind that the query interface can not generate all possible SQL q
 
 ```swift
 try db.execute("CREATE TABLE wines (...)")
-let count = Wine.filter(sql: "color = ?", arguments: [Color.Red]).fetchCount(db)
+let count = Wine.filter(sql: "color = ?", arguments: [Color.red]).fetchCount(db)
 let wines = Wine.fetchAll(db, "SELECT * FROM wines WHERE origin = ? ORDER BY price", arguments: ["Burgundy"])
 try db.execute("DELETE FROM wines WHERE corked")
 ```
