@@ -1,4 +1,3 @@
-- [ ] Try TableMappingType.deleteAll(db)
 - [ ] Remove DatabaseWriter.writeForIssue117 when https://bugs.swift.org/browse/SR-2623 is fixed (remove `writeForIssue117`, use `write` instead, and build in Release configuration) 
 - [ ] Restore SQLCipher
 - [ ] Restore dispatching tests in GRDBOSXTests (they are disabled in order to avoid linker errors)
