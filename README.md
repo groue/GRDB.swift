@@ -1704,10 +1704,10 @@ try Person.deleteOne(db, key: ["email": "arthur@example.com"])
 try Country.deleteAll(db, keys: ["FR", "US"])
 ```
 
-Other deletions require an [SQL query](#executing-updates):
+For batch deletes, see the [query interface](#the-query-interface):
 
 ```swift
-try db.execute("DELETE FROM persons")
+try Person.filter(emailColumn == nil).deleteAll(db)
 ```
 
 
