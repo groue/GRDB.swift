@@ -2695,7 +2695,17 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Person.select(nameColumn.uppercased())
     ```
     
-    > :point_up: **Note**: When *comparing* strings, you'd rather use a [custom comparison function](#string-comparison).
+    > :point_up: **Note**: When *comparing* strings, you'd rather use a [custom comparison function](#string-comparison):
+    >
+    > ```swift
+    > let name: String = ...
+    >
+    > // Not recommended
+    > nameColumn.uppercased() == name.uppercased()
+    >
+    > // Better
+    > nameColumn.collating(.caseInsensitiveCompare) == name
+    > ```
 
 - Custom SQL functions
     
