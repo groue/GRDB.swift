@@ -720,8 +720,8 @@ Generally speaking, you can extract the type you need, *provided it can be conve
     GRDB will sometimes let those conversions go through:
     
     ```swift
-    for row in Row.fetch(db, "SELECT 'foo'") {
-        row.value(atIndex: 0) as Int   // 0
+    for row in Row.fetch(db, "SELECT '20 small cigars'") {
+        row.value(atIndex: 0) as Int   // 20
     }
     ```
     
