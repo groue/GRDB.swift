@@ -1100,10 +1100,7 @@ let row = Row.fetchOne(db, "SELECT 'syrah'")!
 row.value(atIndex: 0) as String  // "syrah"
 row.value(atIndex: 0) as Grape?  // fatal error: could not convert "syrah" to Grape.
 row.value(atIndex: 0) as Grape   // fatal error: could not convert "syrah" to Grape.
-
-let dbv: DatabaseValue = row.value(atIndex: 0)
-String.fromDatabaseValue(dbv) // "Syrah"
-Grape.fromDatabaseValue(dbv)  // nil
+Grape.fromDatabaseValue(row.value(atIndex: 0))  // nil
 ```
 
 
