@@ -274,4 +274,30 @@ class TableMappingQueryInterfaceRequestTests: GRDBTestCase {
             sql(dbQueue, Reader.limit(1, offset: 2).limit(3)),
             "SELECT * FROM \"readers\" LIMIT 3")
     }
+    
+    
+    // MARK: - Delete
+    
+    func testDelete() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            
+            try dbQueue.inDatabase { db in
+                try Reader.deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"readers\"")
+                
+                try Reader.filter(Col.age == 42).deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"readers\" WHERE (\"age\" = 42)")
+                
+                try Reader.filter(sql: "id = 1").deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"readers\" WHERE id = 1")
+                
+                try Reader.select(Col.name).deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"readers\"")
+                
+                try Reader.order(Col.name).deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"readers\"")
+            }
+        }
+    }
 }

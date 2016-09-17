@@ -319,6 +319,21 @@ extension TableMapping {
 }
 
 
+extension TableMapping {
+    
+    // MARK: Deleting
+    
+    /// Deletes all records; returns the number of deleted rows.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: The number of deleted rows
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    @discardableResult public static func deleteAll(_ db: Database) throws -> Int {
+        return try all().deleteAll(db)
+    }
+}
+
+
 extension RowConvertible where Self: TableMapping {
     
     // MARK: Fetching All

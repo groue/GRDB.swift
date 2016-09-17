@@ -1,6 +1,16 @@
 Release Notes
 =============
 
+## Next Version
+
+**New**
+
+- `TableMapping` protocol learned how to delete all records right from the adopting type:
+    
+    ```swift
+    try Person.deleteAll(db)
+    ```
+
 ## 0.84.0
 
 Released September 16, 2016
