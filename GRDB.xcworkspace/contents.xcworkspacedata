@@ -22,6 +22,9 @@
       <FileRef
          location = "group:UserDefaults.playground">
       </FileRef>
+      <FileRef
+         location = "group:MyPlayground.playground">
+      </FileRef>
    </Group>
    <FileRef
       location = "group:GRDB.xcodeproj">
