@@ -7,7 +7,7 @@
 /// https://github.com/groue/GRDB.swift/issues/55. To support this use case, a
 /// single dispatch queue can be temporarily shared by two or more connections.
 ///
-/// - SchedulingWatchdog.makeSerializedQueueAllowing(database:) creates a
+/// - SchedulingWatchdog.makeSerializedQueue(allowingDatabase:) creates a
 ///   dispatch queue that allows one database.
 ///
 ///   It does so by registering one instance of SchedulingWatchdog as a specific
@@ -27,7 +27,7 @@ final class SchedulingWatchdog {
         allowedDatabases = [database]
     }
     
-    static func makeSerializedQueueAllowing(database: Database) -> DispatchQueue {
+    static func makeSerializedQueue(allowingDatabase database: Database) -> DispatchQueue {
         let queue = DispatchQueue(label: "GRDB.SerializedDatabase")
         let watchdog = SchedulingWatchdog(allowedDatabase: database)
         queue.setSpecific(key: specificKey, value: watchdog)
