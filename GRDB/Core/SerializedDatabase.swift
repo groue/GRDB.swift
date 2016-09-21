@@ -73,19 +73,19 @@ final class SerializedDatabase {
         //          }
         //      }
         
-        if let watchdog = SchedulingWatchdog.current {
-            // Case 2 is forbidden.
-            GRDBPrecondition(!watchdog.allows(db), "Database methods are not reentrant.")
-            
-            // Case 3
-            return try queue.sync {
-                try SchedulingWatchdog.current!.allowing(databases: watchdog.allowedDatabases) {
-                    try block(db)
-                }
-            }
-        } else {
+        guard let watchdog = SchedulingWatchdog.current else {
             // Case 1
             return try queue.sync {
+                try block(db)
+            }
+        }
+        
+        // Case 2 is forbidden.
+        GRDBPrecondition(!watchdog.allows(db), "Database methods are not reentrant.")
+        
+        // Case 3
+        return try queue.sync {
+            try SchedulingWatchdog.current!.allowing(databases: watchdog.allowedDatabases) {
                 try block(db)
             }
         }
