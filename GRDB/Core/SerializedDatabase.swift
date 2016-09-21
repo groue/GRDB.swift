@@ -74,50 +74,17 @@ final class SerializedDatabase {
         //      }
         
         if let watchdog = SchedulingWatchdog.current {
-            // Case 2 or 3:
-            //
-            // 2. A database is invoked in a reentrant way:
-            //
-            //      dbQueue.inDatabase { db in
-            //          dbQueue.inDatabase { db in
-            //          }
-            //      }
-            //
-            // 3. A database in invoked from another database:
-            //
-            //      dbQueue1.inDatabase { db1 in
-            //          dbQueue2.inDatabase { db2 in
-            //          }
-            //      }
-            //
-            // 2 is forbidden.
+            // Case 2 is forbidden.
             GRDBPrecondition(!watchdog.allows(db), "Database methods are not reentrant.")
             
-            // Case 3:
-            //
-            // 3. A database in invoked from another database:
-            //
-            //      dbQueue1.inDatabase { db1 in
-            //          dbQueue2.inDatabase { db2 in
-            //          }
-            //      }
-            //
-            // Let's enter the new queue, and temporarily allow the
-            // currently allowed databases inside.
+            // Case 3
             return try queue.sync {
                 try SchedulingWatchdog.current!.allowing(databases: watchdog.allowedDatabases) {
                     try block(db)
                 }
             }
         } else {
-            // Case 1:
-            //
-            // 1. A database is invoked from some queue like the main queue:
-            //
-            //      dbQueue.inDatabase { db in
-            //      }
-            //
-            // Just dispatch block to queue:
+            // Case 1
             return try queue.sync {
                 try block(db)
             }
