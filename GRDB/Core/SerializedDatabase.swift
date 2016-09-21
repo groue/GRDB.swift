@@ -56,20 +56,20 @@ final class SerializedDatabase {
         //
         // 1. A database is invoked from some queue like the main queue:
         //
-        //      dbQueue.inDatabase { db in
+        //      dbQueue.inDatabase { db in       // <-- we're here
         //      }
         //
         // 2. A database is invoked in a reentrant way:
         //
         //      dbQueue.inDatabase { db in
-        //          dbQueue.inDatabase { db in
+        //          dbQueue.inDatabase { db in   // <-- we're here
         //          }
         //      }
         //
         // 3. A database in invoked from another database:
         //
         //      dbQueue1.inDatabase { db1 in
-        //          dbQueue2.inDatabase { db2 in
+        //          dbQueue2.inDatabase { db2 in // <-- we're here
         //          }
         //      }
         
