@@ -190,6 +190,11 @@ class PersistenceConflictPolicyTests: GRDBTestCase {
                     events = []
                     transactionEvents = []
                 }
+                
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                func databaseWillChange(with event: DatabasePreUpdateEvent) {
+                }
+                #endif
             }
             
             let dbQueue = try makeDatabaseQueue()
