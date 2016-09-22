@@ -24,6 +24,7 @@
     - [ ] LIKE https://www.sqlite.org/lang_expr.html
     - [ ] GLOB https://www.sqlite.org/lang_expr.html
     - [ ] MATCH https://www.sqlite.org/lang_expr.html
+    	FTSPattern.token("database") =~ Column("body")
     - [ ] REGEXP https://www.sqlite.org/lang_expr.html
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
 
