@@ -2076,7 +2076,7 @@ try person.insert(db)
 > - if you specify the `ignore` policy at the table level, don't implement the `didInsert` method: it will be called with some random id in case of failed insert.
 > - if you specify the `ignore` policy at the query level, the `didInsert` method is never called.
 >
-> :warning: **Warning**: [`ON CONFLICT REPLACE`](https://www.sqlite.org/lang_conflict.html) may delete rows so that inserts and updates can succeed. Those deletions are not reported to [transaction observers](#database-changes-observation).
+> :warning: **Warning**: [`ON CONFLICT REPLACE`](https://www.sqlite.org/lang_conflict.html) may delete rows so that inserts and updates can succeed. Those deletions are not reported to [transaction observers](#database-changes-observation) (this might change in a future release of SQLite).
 
 
 ## Record Class
@@ -2992,9 +2992,11 @@ dbQueue.add(transactionObserver: observer)
 
 Database holds weak references to its transaction observers: they are not retained, and stop getting notifications after they are deallocated.
 
-**A transaction observer is notified of all database changes**: inserts, updates and deletes, including indirect ones triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
+**A transaction observer is notified of all database changes**: inserts, updates and deletes. This includes indirect changes triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
 
-Changes are not actually applied until `databaseDidCommit` is called. On the other side, `databaseDidRollback` confirms their invalidation:
+> :point_up: **Note**: the changes that are not notified are changes to internal system tables (such as `sqlite_master`), changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables, and the deletion of duplicate rows triggered by [`ON CONFLICT REPLACE`](https://www.sqlite.org/lang_conflict.html) clauses (this last exception might change in a future release of SQLite).
+
+Notified changes are not actually written do disk until `databaseDidCommit` is called. On the other side, `databaseDidRollback` confirms their invalidation:
 
 ```swift
 try dbQueue.inTransaction { db in
@@ -3055,8 +3057,6 @@ do {
 > :point_up: **Note**: all callbacks are called in a protected dispatch queue, and serialized with all database updates.
 >
 > :point_up: **Note**: the databaseDidChange(with:) and databaseWillCommit() callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
->
-> :warning: **Warning**: [`ON CONFLICT REPLACE`](https://www.sqlite.org/lang_conflict.html) may delete rows so that inserts and updates can succeed. Those deletions are not reported to transaction observers.
 
 [FetchedRecordsController](#fetchedrecordscontroller) is based on the TransactionObserver protocol.
 
