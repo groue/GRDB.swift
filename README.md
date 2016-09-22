@@ -2074,7 +2074,7 @@ try person.insert(db)
 > - if you specify the `ignore` policy at the table level, don't implement the `didInsert` method: it will be called with some random id in case of failed insert.
 > - if you specify the `ignore` policy at the query level, the `didInsert` method is never called.
 >
-> :warning: **Warning**: the `REPLACE` conflict policy may delete rows so that inserts and updates can succeed. Those deletions are not reported to [transaction observers](#database-changes-observation).
+> :warning: **Warning**: [`ON CONFLICT REPLACE`](https://www.sqlite.org/lang_conflict.html) may delete rows so that inserts and updates can succeed. Those deletions are not reported to [transaction observers](#database-changes-observation).
 
 
 ## Record Class
@@ -3054,7 +3054,7 @@ do {
 >
 > :point_up: **Note**: the databaseDidChange(with:) and databaseWillCommit() callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
 >
-> :warning: **Warning**: the `REPLACE` conflict policy may delete rows so that inserts and updates can succeed. Those deletions are not reported to transaction observers.
+> :warning: **Warning**: [`ON CONFLICT REPLACE`](https://www.sqlite.org/lang_conflict.html) may delete rows so that inserts and updates can succeed. Those deletions are not reported to transaction observers.
 
 [FetchedRecordsController](#fetchedrecordscontroller) is based on the TransactionObserver protocol.
 
