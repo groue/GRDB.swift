@@ -845,6 +845,8 @@ GRDB ships with built-in support for the following value types:
     
 - **CoreGraphics**: CGFloat.
 
+- **[DatabaseValue](#databasevalue)**, the type which gives information about the raw value stored in the database.
+
 - Generally speaking, all types that adopt the [DatabaseValueConvertible](#custom-value-types) protocol.
 
 Values can be used as [statement arguments](#executing-updates):
