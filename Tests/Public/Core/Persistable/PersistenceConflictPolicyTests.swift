@@ -122,8 +122,8 @@ class PersistenceConflictPolicyTests: GRDBTestCase {
     
     func testDefaultPolicy() {
         assertNoError {
-            let db = try makeDatabaseQueue()
-            try db.inDatabase { db in
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
                 try db.create(table: "records") { t in
                     t.column("id", .integer).primaryKey()
                 }
@@ -144,8 +144,8 @@ class PersistenceConflictPolicyTests: GRDBTestCase {
     
     func testMixedPolicy() {
         assertNoError {
-            let db = try makeDatabaseQueue()
-            try db.inDatabase { db in
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
                 try db.create(table: "records") { t in
                     t.column("id", .integer).primaryKey()
                 }
@@ -166,8 +166,37 @@ class PersistenceConflictPolicyTests: GRDBTestCase {
     
     func testReplacePolicy() {
         assertNoError {
-            let db = try makeDatabaseQueue()
-            try db.inDatabase { db in
+            class Observer : TransactionObserver {
+                var transactionEvents: [DatabaseEvent] = []
+                var events: [DatabaseEvent] = []
+                
+                func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+                    return true
+                }
+                
+                func databaseDidChange(with event: DatabaseEvent) {
+                    transactionEvents.append(event.copy())
+                }
+                
+                func databaseWillCommit() throws {
+                }
+                
+                func databaseDidCommit(_ db: Database) {
+                    events = transactionEvents
+                    transactionEvents = []
+                }
+                
+                func databaseDidRollback(_ db: Database) {
+                    events = []
+                    transactionEvents = []
+                }
+            }
+            
+            let dbQueue = try makeDatabaseQueue()
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.inDatabase { db in
                 try db.create(table: "records") { t in
                     t.column("id", .integer).primaryKey()
                     t.column("email", .text).unique()
@@ -178,6 +207,9 @@ class PersistenceConflictPolicyTests: GRDBTestCase {
                 try record.insert(db)
                 XCTAssertTrue(self.lastSQLQuery.hasPrefix("INSERT OR REPLACE INTO \"records\""))
                 XCTAssertEqual(record.id, 1)
+                XCTAssertEqual(observer.events.count, 1)
+                XCTAssertEqual(observer.events[0].kind, .insert)
+                XCTAssertEqual(observer.events[0].rowID, 1)
                 
                 // Insert
                 record = ReplacePolicy(id: nil, email: "arthur@example.com")
@@ -185,28 +217,40 @@ class PersistenceConflictPolicyTests: GRDBTestCase {
                 XCTAssertTrue(self.lastSQLQuery.hasPrefix("INSERT OR REPLACE INTO \"records\""))
                 XCTAssertEqual(record.id, 2)
                 XCTAssertTrue(ReplacePolicy.fetchCount(db) == 1)
+                XCTAssertEqual(observer.events.count, 1)
+                XCTAssertEqual(observer.events[0].kind, .insert)
+                XCTAssertEqual(observer.events[0].rowID, 2)
                 
                 // Update
                 record = ReplacePolicy(id: 2, email: "arthur@example.com")
                 try record.update(db)
                 XCTAssertTrue(self.lastSQLQuery.hasPrefix("UPDATE OR REPLACE \"records\""))
+                XCTAssertEqual(observer.events.count, 1)
+                XCTAssertEqual(observer.events[0].kind, .update)
+                XCTAssertEqual(observer.events[0].rowID, 2)
                 
                 // Update which replaces
                 record = ReplacePolicy(id: 3, email: "barbara@example.com")
                 try record.insert(db)
                 XCTAssertTrue(ReplacePolicy.fetchCount(db) == 2)
+                XCTAssertEqual(observer.events.count, 1)
+                XCTAssertEqual(observer.events[0].kind, .insert)
+                XCTAssertEqual(observer.events[0].rowID, 3)
                 record.email = "arthur@example.com"
                 try record.update(db)
                 XCTAssertTrue(ReplacePolicy.fetchCount(db) == 1)
                 XCTAssertEqual(Int64.fetchOne(db, "SELECT id FROM records")!, 3)
+                XCTAssertEqual(observer.events.count, 1)
+                XCTAssertEqual(observer.events[0].kind, .update)
+                XCTAssertEqual(observer.events[0].rowID, 3)
             }
         }
     }
     
     func testIgnorePolicy() {
         assertNoError {
-            let db = try makeDatabaseQueue()
-            try db.inDatabase { db in
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
                 try db.create(table: "records") { t in
                     t.column("id", .integer).primaryKey()
                 }
@@ -227,8 +271,8 @@ class PersistenceConflictPolicyTests: GRDBTestCase {
     
     func testFailPolicy() {
         assertNoError {
-            let db = try makeDatabaseQueue()
-            try db.inDatabase { db in
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
                 try db.create(table: "records") { t in
                     t.column("id", .integer).primaryKey()
                 }
@@ -249,8 +293,8 @@ class PersistenceConflictPolicyTests: GRDBTestCase {
     
     func testAbortPolicy() {
         assertNoError {
-            let db = try makeDatabaseQueue()
-            try db.inDatabase { db in
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
                 try db.create(table: "records") { t in
                     t.column("id", .integer).primaryKey()
                 }
@@ -271,8 +315,8 @@ class PersistenceConflictPolicyTests: GRDBTestCase {
     
     func testRollbackPolicy() {
         assertNoError {
-            let db = try makeDatabaseQueue()
-            try db.inDatabase { db in
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
                 try db.create(table: "records") { t in
                     t.column("id", .integer).primaryKey()
                 }
@@ -290,5 +334,4 @@ class PersistenceConflictPolicyTests: GRDBTestCase {
             }
         }
     }
-    
 }

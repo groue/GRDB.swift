@@ -1,3 +1,4 @@
+- [ ] Documentation transaction observer limitations (https://www.sqlite.org/c3ref/update_hook.html) "In the current implementation, the update hook is not invoked when duplication rows are deleted because of an ON CONFLICT REPLACE clause. Nor is the update hook invoked when rows are deleted using the truncate optimization. The exceptions defined in this paragraph might change in a future release of SQLite."
 - [ ] Remove DatabaseWriter.writeForIssue117 when https://bugs.swift.org/browse/SR-2623 is fixed (remove `writeForIssue117`, use `write` instead, and build in Release configuration) 
 - [ ] Restore SQLCipher
 - [ ] Restore dispatching tests in GRDBOSXTests (they are disabled in order to avoid linker errors)
