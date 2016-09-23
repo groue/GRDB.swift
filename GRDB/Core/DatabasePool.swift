@@ -83,12 +83,12 @@ public final class DatabasePool {
         
         readerPool = Pool<SerializedDatabase>(maximumCount: configuration.maximumReaderCount)
         readerPool.makeElement = { [unowned self] in
-            let serializedDatabase = try! SerializedDatabase(
+            let reader = try! SerializedDatabase(
                 path: path,
                 configuration: self.readerConfig,
                 schemaCache: sharedSchemaCache)
             
-            serializedDatabase.sync { db in
+            reader.sync { db in
                 for function in self.functions {
                     db.add(function: function)
                 }
@@ -97,7 +97,7 @@ public final class DatabasePool {
                 }
             }
             
-            return serializedDatabase
+            return reader
         }
     }
     
