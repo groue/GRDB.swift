@@ -44,14 +44,14 @@ public final class DatabasePool {
         // Database Store
         store = try DatabaseStore(path: path, attributes: configuration.fileAttributes)
         
-        // Shared database schema cache
-        let databaseSchemaCache = SharedDatabaseSchemaCache()
+        // Writer and readers share the same database schema cache
+        let sharedSchemaCache = SharedDatabaseSchemaCache()
         
         // Writer
         writer = try SerializedDatabase(
             path: path,
             configuration: configuration,
-            schemaCache: databaseSchemaCache)
+            schemaCache: sharedSchemaCache)
         
         // Activate WAL Mode unless readonly
         if !configuration.readonly {
@@ -86,7 +86,7 @@ public final class DatabasePool {
             let serializedDatabase = try! SerializedDatabase(
                 path: path,
                 configuration: self.readerConfig,
-                schemaCache: databaseSchemaCache)
+                schemaCache: sharedSchemaCache)
             
             serializedDatabase.sync { db in
                 for function in self.functions {
