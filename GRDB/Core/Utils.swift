@@ -57,8 +57,8 @@ func GRDBPrecondition(@autoclosure condition: () -> Bool, @autoclosure _ message
 
 /// A function declared as rethrows that synchronously executes a throwing
 /// block in a dispatch_queue.
-func dispatchSync<T>(queue: dispatch_queue_t, _ block: () throws -> T) rethrows -> T {
-    func impl(queue: dispatch_queue_t, block: () throws -> T, onError: (ErrorType) throws -> ()) rethrows -> T {
+func dispatchSync<T>(queue: dispatch_queue_t, @noescape _ block: () throws -> T) rethrows -> T {
+    func impl(queue: dispatch_queue_t, @noescape block: () throws -> T, onError: (ErrorType) throws -> ()) rethrows -> T {
         var result: T? = nil
         var blockError: ErrorType? = nil
         dispatch_sync(queue) {
@@ -131,7 +131,7 @@ final class ReadWriteBox<T> {
         self.queue = dispatch_queue_create("GRDB.ReadWriteBox", DISPATCH_QUEUE_CONCURRENT)
     }
     
-    func read<U>(block: (T) -> U) -> U {
+    func read<U>(@noescape block: (T) -> U) -> U {
         var result: U? = nil
         dispatch_sync(queue) {
             result = block(self._value)
@@ -139,7 +139,7 @@ final class ReadWriteBox<T> {
         return result!
     }
     
-    func write(block: (inout T) -> Void) {
+    func write(@noescape block: (inout T) -> Void) {
         dispatch_barrier_sync(queue) {
             block(&self._value)
         }
@@ -215,7 +215,7 @@ final class Pool<T> {
     
     /// Performs a block on each pool element, available or not.
     /// The block is run is some arbitrary queue.
-    func forEach(block: (T) throws -> ()) rethrows {
+    func forEach(@noescape block: (T) throws -> ()) rethrows {
         try dispatchSync(queue) {
             for item in self.items {
                 try block(item.element)
@@ -230,7 +230,7 @@ final class Pool<T> {
     
     /// Empty the pool. Currently used items won't be reused.
     /// Eventual block is executed before any other element is dequeued.
-    func clear(block: () throws -> ()) rethrows {
+    func clear(@noescape block: () throws -> ()) rethrows {
         try dispatchSync(queue) {
             self.items = []
             try block()

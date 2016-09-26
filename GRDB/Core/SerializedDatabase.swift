@@ -51,7 +51,7 @@ final class SerializedDatabase {
     /// its result.
     ///
     /// This method is *not* reentrant.
-    func performSync<T>(block: (db: Database) throws -> T) rethrows -> T {
+    func performSync<T>(@noescape block: (db: Database) throws -> T) rethrows -> T {
         // Three diffent cases:
         //
         // 1. A database is invoked from some queue like the main queue:
@@ -106,7 +106,7 @@ final class SerializedDatabase {
             // currently allowed databases inside.
             //
             // The impl function helps us turn dispatch_sync into a rethrowing function
-            func impl(queue: dispatch_queue_t, db: Database, block: (db: Database) throws -> T, onError: (ErrorType) throws -> ()) rethrows -> T {
+            func impl(queue: dispatch_queue_t, db: Database, @noescape block: (db: Database) throws -> T, onError: (ErrorType) throws -> ()) rethrows -> T {
                 var result: T? = nil
                 var blockError: ErrorType? = nil
                 dispatch_sync(queue) {
@@ -141,7 +141,7 @@ final class SerializedDatabase {
             // Just dispatch block to queue:
             //
             // The impl function helps us turn dispatch_sync into a rethrowing function
-            func impl(queue: dispatch_queue_t, db: Database, block: (db: Database) throws -> T, onError: (ErrorType) throws -> ()) rethrows -> T {
+            func impl(queue: dispatch_queue_t, db: Database, @noescape block: (db: Database) throws -> T, onError: (ErrorType) throws -> ()) rethrows -> T {
                 var result: T? = nil
                 var blockError: ErrorType? = nil
                 dispatch_sync(queue) {
@@ -170,7 +170,7 @@ final class SerializedDatabase {
     /// Executes the block in the current queue.
     ///
     /// - precondition: the current dispatch queue is valid.
-    func perform<T>(block: (db: Database) throws -> T) rethrows -> T {
+    func perform<T>(@noescape block: (db: Database) throws -> T) rethrows -> T {
         preconditionValidQueue()
         return try block(db: db)
     }
