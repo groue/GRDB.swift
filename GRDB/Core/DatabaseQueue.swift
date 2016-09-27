@@ -79,7 +79,7 @@ public final class DatabaseQueue {
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    public func inDatabase<T>(block: (db: Database) throws -> T) rethrows -> T {
+    public func inDatabase<T>(@noescape block: (db: Database) throws -> T) rethrows -> T {
         return try serializedDatabase.performSync(block)
     }
     
@@ -104,7 +104,7 @@ public final class DatabaseQueue {
     ///     - block: A block that executes SQL statements and return either
     ///       .Commit or .Rollback.
     /// - throws: The error thrown by the block.
-    public func inTransaction(kind: TransactionKind? = nil, _ block: (db: Database) throws -> TransactionCompletion) throws {
+    public func inTransaction(kind: TransactionKind? = nil, @noescape _ block: (db: Database) throws -> TransactionCompletion) throws {
         try serializedDatabase.performSync { db in
             try db.inTransaction(kind) {
                 try block(db: db)
@@ -223,14 +223,14 @@ extension DatabaseQueue : DatabaseReader {
     /// Alias for inDatabase
     ///
     /// This method is part of the DatabaseReader protocol adoption.
-    public func read<T>(block: (db: Database) throws -> T) rethrows -> T {
+    public func read<T>(@noescape block: (db: Database) throws -> T) rethrows -> T {
         return try serializedDatabase.performSync(block)
     }
     
     /// Alias for inDatabase
     ///
     /// This method is part of the DatabaseReader protocol adoption.
-    public func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T {
+    public func nonIsolatedRead<T>(@noescape block: (db: Database) throws -> T) rethrows -> T {
         return try serializedDatabase.performSync(block)
     }
     
@@ -300,7 +300,7 @@ extension DatabaseQueue : DatabaseWriter {
     /// Alias for inDatabase
     ///
     /// This method is part of the DatabaseWriter protocol adoption.
-    public func write<T>(block: (db: Database) throws -> T) rethrows -> T {
+    public func write<T>(@noescape block: (db: Database) throws -> T) rethrows -> T {
         return try serializedDatabase.performSync(block)
     }
 

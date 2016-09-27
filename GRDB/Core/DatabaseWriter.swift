@@ -22,7 +22,7 @@ public protocol DatabaseWriter : DatabaseReader {
     ///
     /// The *block* argument is completely isolated. Eventual concurrent
     /// database updates are postponed until the block has executed.
-    func write<T>(block: (db: Database) throws -> T) rethrows -> T
+    func write<T>(@noescape block: (db: Database) throws -> T) rethrows -> T
     
     
     // MARK: - Reading from Database

@@ -282,7 +282,7 @@ extension DatabasePool : DatabaseReader {
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    public func read<T>(block: (db: Database) throws -> T) rethrows -> T {
+    public func read<T>(@noescape block: (db: Database) throws -> T) rethrows -> T {
         // The block isolation comes from the DEFERRED transaction.
         // See DatabasePoolTests.testReadMethodIsolationOfBlock().
         return try readerPool.get { reader in
@@ -317,7 +317,7 @@ extension DatabasePool : DatabaseReader {
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    public func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T {
+    public func nonIsolatedRead<T>(@noescape block: (db: Database) throws -> T) rethrows -> T {
         return try readerPool.get { reader in
             try reader.performSync { db in
                 try block(db: db)
@@ -401,7 +401,7 @@ extension DatabasePool : DatabaseWriter {
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    public func write<T>(block: (db: Database) throws -> T) rethrows -> T {
+    public func write<T>(@noescape block: (db: Database) throws -> T) rethrows -> T {
         return try writer.performSync(block)
     }
     
@@ -426,7 +426,7 @@ extension DatabasePool : DatabaseWriter {
     ///     - block: A block that executes SQL statements and return either
     ///       .Commit or .Rollback.
     /// - throws: The error thrown by the block.
-    public func writeInTransaction(kind: TransactionKind? = nil, _ block: (db: Database) throws -> TransactionCompletion) throws {
+    public func writeInTransaction(kind: TransactionKind? = nil, @noescape _ block: (db: Database) throws -> TransactionCompletion) throws {
         try writer.performSync { db in
             try db.inTransaction(kind) {
                 try block(db: db)
