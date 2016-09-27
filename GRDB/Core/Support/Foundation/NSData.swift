@@ -11,9 +11,9 @@ extension NSData : DatabaseValueConvertible {
     /// Returns an NSData initialized from *databaseValue*, if it contains
     /// a Blob.
     public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
-        if let data = Data.fromDatabaseValue(databaseValue) {
-            return self.init(data: data)
+        guard let data = Data.fromDatabaseValue(databaseValue) else {
+            return nil
         }
-        return nil
+        return cast(data)
     }
 }

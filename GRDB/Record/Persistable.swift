@@ -44,13 +44,13 @@ private func databaseValues(for columns: [String], inDictionary dictionary: [Str
 /// See https://www.sqlite.org/lang_conflict.html
 public struct PersistenceConflictPolicy {
     /// The conflict resolution algorithm for insertions
-    public let conflictResolutionForInsert: SQLConflictResolution
+    public let conflictResolutionForInsert: Database.ConflictResolution
     
     /// The conflict resolution algorithm for updates
-    public let conflictResolutionForUpdate: SQLConflictResolution
+    public let conflictResolutionForUpdate: Database.ConflictResolution
     
     /// Creates a policy
-    public init(insert: SQLConflictResolution = .abort, update: SQLConflictResolution = .abort) {
+    public init(insert: Database.ConflictResolution = .abort, update: Database.ConflictResolution = .abort) {
         self.conflictResolutionForInsert = insert
         self.conflictResolutionForUpdate = update
     }
@@ -414,7 +414,7 @@ public extension MutablePersistable {
     
 }
 
-extension SQLConflictResolution {
+extension Database.ConflictResolution {
     var invalidatesLastInsertedRowID: Bool {
         switch self {
         case .abort, .fail, .rollback, .replace:
@@ -606,7 +606,7 @@ final class DAO {
         self.primaryKey = primaryKey
     }
     
-    func insertStatement(onConflict: SQLConflictResolution) -> UpdateStatement {
+    func insertStatement(onConflict: Database.ConflictResolution) -> UpdateStatement {
         let query = InsertQuery(
             onConflict: onConflict,
             tableName: databaseTableName,
@@ -617,7 +617,7 @@ final class DAO {
     }
     
     /// Returns nil if and only if primary key is nil
-    func updateStatement(columns: Set<String>, onConflict: SQLConflictResolution) -> UpdateStatement? {
+    func updateStatement(columns: Set<String>, onConflict: Database.ConflictResolution) -> UpdateStatement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey?.columns ?? []
         let primaryKeyValues = databaseValues(for: primaryKeyColumns, inDictionary: persistentDictionary)
@@ -693,7 +693,7 @@ final class DAO {
 // MARK: - InsertQuery
 
 private struct InsertQuery {
-    let onConflict: SQLConflictResolution
+    let onConflict: Database.ConflictResolution
     let tableName: String
     let insertedColumns: [String]
 }
@@ -732,7 +732,7 @@ extension InsertQuery {
 // MARK: - UpdateQuery
 
 private struct UpdateQuery {
-    let onConflict: SQLConflictResolution
+    let onConflict: Database.ConflictResolution
     let tableName: String
     let updatedColumns: [String]
     let conditionColumns: [String]

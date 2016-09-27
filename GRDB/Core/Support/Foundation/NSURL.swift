@@ -14,6 +14,6 @@ extension NSURL : DatabaseValueConvertible {
         guard let url = URL.fromDatabaseValue(databaseValue) else {
             return nil
         }
-        return self.init(string: url.absoluteString)
+        return cast(url)
     }
 }

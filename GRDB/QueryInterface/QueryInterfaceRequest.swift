@@ -2,33 +2,33 @@
 ///
 /// See https://github.com/groue/GRDB.swift#the-query-interface
 public struct QueryInterfaceRequest<T> {
-    let query: _SQLSelectQuery
+    let query: QueryInterfaceSelectQueryDefinition
     
     /// Initializes a QueryInterfaceRequest based on table *tableName*.
     ///
     /// It represents the SQL query `SELECT * FROM tableName`.
     public init(tableName: String) {
-        self.init(query: _SQLSelectQuery(select: [_SQLResultColumn.star(nil)], from: .table(name: tableName, alias: nil)))
+        self.init(query: QueryInterfaceSelectQueryDefinition(select: [star], from: .table(name: tableName, alias: nil)))
     }
     
-    init(query: _SQLSelectQuery) {
+    init(query: QueryInterfaceSelectQueryDefinition) {
         self.query = query
     }
 }
 
 
-extension QueryInterfaceRequest : FetchRequest {
+extension QueryInterfaceRequest : SQLSelectQuery {
     
-    /// Returns a prepared statement that is ready to be executed.
+    /// This function is an implementation detail of the query interface.
+    /// Do not use it directly.
     ///
-    /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-        // TODO: split statement generation from arguments building
-        var arguments: StatementArguments? = StatementArguments()
-        let sql = query.sql(&arguments)
-        let statement = try db.makeSelectStatement(sql)
-        try statement.setArgumentsWithValidation(arguments!)
-        return (statement, nil)
+    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    ///
+    /// # Low Level Query Interface
+    ///
+    /// See SQLSelectQuery.selectQuerySQL(_)
+    public func selectQuerySQL(_ arguments: inout StatementArguments?) -> String {
+        return query.selectQuerySQL(&arguments)
     }
 }
 
@@ -87,12 +87,12 @@ extension QueryInterfaceRequest {
     // MARK: Request Derivation
     
     /// Returns a new QueryInterfaceRequest with a new net of selected columns.
-    public func select(_ selection: _SQLSelectable...) -> QueryInterfaceRequest<T> {
+    public func select(_ selection: SQLSelectable...) -> QueryInterfaceRequest<T> {
         return select(selection)
     }
     
     /// Returns a new QueryInterfaceRequest with a new net of selected columns.
-    public func select(_ selection: [_SQLSelectable]) -> QueryInterfaceRequest<T> {
+    public func select(_ selection: [SQLSelectable]) -> QueryInterfaceRequest<T> {
         var query = self.query
         query.selection = selection
         return QueryInterfaceRequest(query: query)
@@ -100,7 +100,7 @@ extension QueryInterfaceRequest {
     
     /// Returns a new QueryInterfaceRequest with a new net of selected columns.
     public func select(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<T> {
-        return select(_SQLExpression.sqlLiteral(sql, arguments))
+        return select(SQLExpressionLiteral(sql, arguments: arguments))
     }
     
     /// Returns a new QueryInterfaceRequest which returns distinct rows.
@@ -115,7 +115,7 @@ extension QueryInterfaceRequest {
     public func filter(_ predicate: SQLExpressible) -> QueryInterfaceRequest<T> {
         var query = self.query
         if let whereExpression = query.whereExpression {
-            query.whereExpression = .infixOperator("AND", whereExpression, predicate.sqlExpression)
+            query.whereExpression = whereExpression && predicate.sqlExpression
         } else {
             query.whereExpression = predicate.sqlExpression
         }
@@ -125,7 +125,7 @@ extension QueryInterfaceRequest {
     /// Returns a new QueryInterfaceRequest with the provided *predicate* added to the
     /// eventual set of already applied predicates.
     public func filter(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<T> {
-        return filter(_SQLExpression.sqlLiteral(sql, arguments))
+        return filter(SQLExpressionLiteral(sql, arguments: arguments))
     }
     
     /// Returns a new QueryInterfaceRequest grouped according to *expressions*.
@@ -142,7 +142,7 @@ extension QueryInterfaceRequest {
     
     /// Returns a new QueryInterfaceRequest with a new grouping.
     public func group(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<T> {
-        return group(_SQLExpression.sqlLiteral(sql, arguments))
+        return group(SQLExpressionLiteral(sql, arguments: arguments))
     }
     
     /// Returns a new QueryInterfaceRequest with the provided *predicate* added to the
@@ -160,18 +160,18 @@ extension QueryInterfaceRequest {
     /// Returns a new QueryInterfaceRequest with the provided *sql* added to
     /// the eventual set of already applied predicates.
     public func having(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<T> {
-        return having(_SQLExpression.sqlLiteral(sql, arguments))
+        return having(SQLExpressionLiteral(sql, arguments: arguments))
     }
     
     /// Returns a new QueryInterfaceRequest with the provided *orderings* added to
     /// the eventual set of already applied orderings.
-    public func order(_ orderings: _SQLOrderable...) -> QueryInterfaceRequest<T> {
+    public func order(_ orderings: SQLOrderingTerm...) -> QueryInterfaceRequest<T> {
         return order(orderings)
     }
     
     /// Returns a new QueryInterfaceRequest with the provided *orderings* added to
     /// the eventual set of already applied orderings.
-    public func order(_ orderings: [_SQLOrderable]) -> QueryInterfaceRequest<T> {
+    public func order(_ orderings: [SQLOrderingTerm]) -> QueryInterfaceRequest<T> {
         var query = self.query
         query.orderings = orderings
         return QueryInterfaceRequest(query: query)
@@ -180,7 +180,7 @@ extension QueryInterfaceRequest {
     /// Returns a new QueryInterfaceRequest with the provided *sql* added to the
     /// eventual set of already applied orderings.
     public func order(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<T> {
-        return order([_SQLExpression.sqlLiteral(sql, arguments)])
+        return order([SQLExpressionLiteral(sql, arguments: arguments)])
     }
     
     /// Returns a new QueryInterfaceRequest sorted in reversed order.
@@ -194,7 +194,7 @@ extension QueryInterfaceRequest {
     /// *offset*.
     public func limit(_ limit: Int, offset: Int? = nil) -> QueryInterfaceRequest<T> {
         var query = self.query
-        query.limit = _SQLLimit(limit: limit, offset: offset)
+        query.limit = SQLLimit(limit: limit, offset: offset)
         return QueryInterfaceRequest(query: query)
     }
 }
@@ -208,7 +208,7 @@ extension QueryInterfaceRequest {
     ///
     /// - parameter db: A database connection.
     public func fetchCount(_ db: Database) -> Int {
-        return Int.fetchOne(db, QueryInterfaceRequest(query: query.countQuery))!
+        return Int.fetchOne(db, query.countRequest)!
     }
 }
 
@@ -229,24 +229,6 @@ extension QueryInterfaceRequest {
 }
 
 
-extension QueryInterfaceRequest {
-    
-    // MARK: QueryInterfaceRequest as subquery
-    
-    /// Returns an SQL expression that checks the inclusion of a value in
-    /// the results of another request.
-    public func contains(_ element: SQLExpressible) -> _SQLExpression {
-        return .inSubQuery(query, element.sqlExpression)
-    }
-    
-    /// Returns an SQL expression that checks whether the receiver, as a
-    /// subquery, returns any row.
-    public func exists() -> _SQLExpression {
-        return .exists(query)
-    }
-}
-
-
 extension TableMapping {
     
     // MARK: Request Derivation
@@ -257,12 +239,12 @@ extension TableMapping {
     }
     
     /// Returns a QueryInterfaceRequest which selects *selection*.
-    public static func select(_ selection: _SQLSelectable...) -> QueryInterfaceRequest<Self> {
+    public static func select(_ selection: SQLSelectable...) -> QueryInterfaceRequest<Self> {
         return all().select(selection)
     }
     
     /// Returns a QueryInterfaceRequest which selects *selection*.
-    public static func select(_ selection: [_SQLSelectable]) -> QueryInterfaceRequest<Self> {
+    public static func select(_ selection: [SQLSelectable]) -> QueryInterfaceRequest<Self> {
         return all().select(selection)
     }
     
@@ -283,13 +265,13 @@ extension TableMapping {
     
     /// Returns a QueryInterfaceRequest sorted according to the
     /// provided *orderings*.
-    public static func order(_ orderings: _SQLOrderable...) -> QueryInterfaceRequest<Self> {
+    public static func order(_ orderings: SQLOrderingTerm...) -> QueryInterfaceRequest<Self> {
         return all().order(orderings)
     }
     
     /// Returns a QueryInterfaceRequest sorted according to the
     /// provided *orderings*.
-    public static func order(_ orderings: [_SQLOrderable]) -> QueryInterfaceRequest<Self> {
+    public static func order(_ orderings: [SQLOrderingTerm]) -> QueryInterfaceRequest<Self> {
         return all().order(orderings)
     }
     

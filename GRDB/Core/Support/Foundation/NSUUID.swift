@@ -1,7 +1,7 @@
 import Foundation
 
 /// NSUUID adopts DatabaseValueConvertible
-extension NSUUID: DatabaseValueConvertible {
+extension NSUUID : DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {

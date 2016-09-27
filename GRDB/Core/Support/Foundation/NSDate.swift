@@ -11,9 +11,9 @@ extension NSDate : DatabaseValueConvertible {
     
     /// Returns an NSDate initialized from *databaseValue*, if possible.
     public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
-        if let date = Date.fromDatabaseValue(databaseValue) {
-            return self.init(timeInterval: 0, since: date)
+        guard let date = Date.fromDatabaseValue(databaseValue) else {
+            return nil
         }
-        return nil
+        return cast(date)
     }
 }

@@ -1,27 +1,16 @@
 // MARK: - SQLExpressible
 
-/// This protocol is an implementation detail of the query interface.
-/// Do not use it directly.
-///
-/// See https://github.com/groue/GRDB.swift/#the-query-interface
-public protocol _SQLExpressible {
-    
-    /// This property is an implementation detail of the query interface.
-    /// Do not use it directly.
-    ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    var sqlExpression: _SQLExpression { get }
-}
-
 /// The protocol for all types that can be turned into an SQL expression.
 ///
 /// It is adopted by protocols like DatabaseValueConvertible, and types
 /// like Column.
 ///
-/// Do not declare adoption of SQLExpressible on any type: you would have to
-/// use semi-private APIs and types, whose name start with an underscore, that
-/// are subject to change as GRDB evolves.
-public protocol SQLExpressible : _SQLExpressible {
+/// See https://github.com/groue/GRDB.swift/#the-query-interface
+public protocol SQLExpressible {
+    /// Returns an SQLExpression
+    ///
+    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    var sqlExpression: SQLExpression { get }
 }
 
 
@@ -59,8 +48,12 @@ extension DatabaseValueConvertible {
     /// Do not use it directly.
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public var sqlExpression: _SQLExpression {
-        return .value(self)
+    ///
+    /// # Low Level Query Interface
+    ///
+    /// See SQLExpression.sqlExpression
+    public var sqlExpression: SQLExpression {
+        return databaseValue
     }
 }
 
@@ -414,27 +407,3 @@ extension Optional where Wrapped: DatabaseValueConvertible {
         return fetchAll(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
-
-
-extension DatabaseValueConvertible {
-    /// self as an SQL literal, with proper escaping
-    ///
-    ///     "'foo'".sqlLiteral // "'''foo'''"
-    var sqlLiteral: String {
-        // Slow but reliable implementation.
-        return escapingConnection.inDatabase { db in
-            _ = Row.fetch(db, "SELECT ?", arguments: [self]).makeIterator().next()
-            let index = lastEscapingSQL.index(lastEscapingSQL.startIndex, offsetBy: 7)
-            assert(lastEscapingSQL.substring(to: index) == "SELECT ")
-            return lastEscapingSQL.substring(from: index)
-        }
-    }
-}
-
-// Suport for DatabaseValueConvertible.sqlLiteral
-private var lastEscapingSQL: String = ""
-private let escapingConnection: DatabaseQueue = {
-    var configuration = Configuration()
-    configuration.trace = { lastEscapingSQL = $0 }
-    return DatabaseQueue(configuration: configuration)
-}()

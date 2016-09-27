@@ -5,11 +5,27 @@ Release Notes
 
 **New**
 
+- **Enhanced extensibility**. The low-level types that fuel the query interface [requests](https://github.com/groue/GRDB.swift/#requests) and [expressions][requests](https://github.com/groue/GRDB.swift/#expressions) have been refactored, have lost their underscore prefix, and are stabilizing. A new [GRDB Extension Guide](Documentation/ExtendingGRDB.md) covers common use cases for extending GRDB.
+
 - `TableMapping` protocol learned how to delete all records right from the adopting type:
     
     ```swift
     try Person.deleteAll(db)
     ```
+
+- Support for the `LIKE` operator (fixes [#133](https://github.com/groue/GRDB.swift/issues/133)):
+    
+    ```swift
+    // SELECT * FROM persons WHERE email LIKE '%@example.com'
+    Person.filter(Column("email").like("%@example.com")).fetchAll(db)
+    ```
+    
+- `Configuration.textEncoding` let you specify the [text encoding](https://www.sqlite.org/pragma.html#pragma_encoding) of a database.
+
+**Breaking Changes**
+
+- The SQLForeignKeyAction, SQLColumnType, SQLConflictResolution, and SQLCollation types have been renamed Database.ForeignKeyAction, Database.ColumnType, Database.ConflictResolution, and Database.CollationName.
+
 
 ## 0.84.0
 

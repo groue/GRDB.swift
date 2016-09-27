@@ -131,9 +131,9 @@ public class Statement {
         var valuesIterator = arguments.values.makeIterator()
         for (index, argumentName) in sqliteArgumentNames.enumerated() {
             if let argumentName = argumentName, let value = arguments.namedValues[argumentName] {
-                try! bind(databaseValue: value?.databaseValue ?? .null, at: index)
+                try! bind(databaseValue: value, at: index)
             } else if let value = valuesIterator.next() {
-                try! bind(databaseValue: value?.databaseValue ?? .null, at: index)
+                try! bind(databaseValue: value, at: index)
             } else {
                 try! bind(databaseValue: .null, at: index)
             }
@@ -462,7 +462,7 @@ public struct StatementArguments {
     /// - parameter sequence: A sequence of DatabaseValueConvertible values.
     /// - returns: A StatementArguments.
     public init<Sequence: Swift.Sequence>(_ sequence: Sequence) where Sequence.Iterator.Element == DatabaseValueConvertible? {
-        values = Array(sequence)
+        values = sequence.map { $0?.databaseValue ?? .null }
     }
     
     /// Initializes arguments from a sequence of optional values.
@@ -473,7 +473,7 @@ public struct StatementArguments {
     /// - parameter sequence: A sequence of DatabaseValueConvertible values.
     /// - returns: A StatementArguments.
     public init<Sequence: Swift.Sequence>(_ sequence: Sequence) where Sequence.Iterator.Element: DatabaseValueConvertible {
-        values = sequence.map { $0 }
+        values = sequence.map { $0.databaseValue }
     }
     
     /// Initializes arguments from [Any].
@@ -505,7 +505,7 @@ public struct StatementArguments {
     /// - parameter sequence: A sequence of (key, value) pairs
     /// - returns: A StatementArguments.
     public init(_ dictionary: [String: DatabaseValueConvertible?]) {
-        namedValues = dictionary
+        namedValues = Dictionary(keys: dictionary.keys) { dictionary[$0]!?.databaseValue ?? .null }
     }
     
     /// Initializes arguments from a sequence of (key, value) pairs, such as
@@ -517,7 +517,7 @@ public struct StatementArguments {
     /// - parameter sequence: A sequence of (key, value) pairs
     /// - returns: A StatementArguments.
     public init<Sequence: Swift.Sequence>(_ sequence: Sequence) where Sequence.Iterator.Element == (String, DatabaseValueConvertible?) {
-        namedValues = Dictionary(keyValueSequence: sequence)
+        namedValues = Dictionary(keyValueSequence: sequence.map { ($0, $1?.databaseValue ?? .null) })
     }
     
     /// Initializes arguments from [AnyHashable: Any].
@@ -544,8 +544,8 @@ public struct StatementArguments {
     
     // MARK: Not Public
     
-    var values: [DatabaseValueConvertible?] = []
-    var namedValues: [String: DatabaseValueConvertible?] = [:]
+    var values: [DatabaseValue] = []
+    var namedValues: [String: DatabaseValue] = [:]
     
     init() {
     }
@@ -554,18 +554,18 @@ public struct StatementArguments {
         let initialValuesCount = values.count
         let bindings = try statement.sqliteArgumentNames.map { argumentName -> DatabaseValue in
             if let argumentName = argumentName {
-                if let value = namedValues[argumentName] {
-                    return value?.databaseValue ?? .null
+                if let databaseValue = namedValues[argumentName] {
+                    return databaseValue
                 } else if values.isEmpty {
                     throw DatabaseError(code: SQLITE_MISUSE, message: "missing statement argument: \(argumentName)", sql: statement.sql, arguments: nil)
                 } else {
-                    return values.removeFirst()?.databaseValue ?? .null
+                    return values.removeFirst()
                 }
             } else {
                 if values.isEmpty {
                     throw DatabaseError(code: SQLITE_MISUSE, message: "wrong number of statement arguments: \(initialValuesCount)", sql: statement.sql, arguments: nil)
                 } else {
-                    return values.removeFirst()?.databaseValue ?? .null
+                    return values.removeFirst()
                 }
             }
         }
@@ -597,19 +597,9 @@ extension StatementArguments : ExpressibleByDictionaryLiteral {
 extension StatementArguments : CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
-        let valuesDescriptions = values.map { value -> String in
-            if let value = value {
-                return String(reflecting: value)
-            } else {
-                return "nil"
-            }
-        }
+        let valuesDescriptions = values.map { $0.description }
         let namedValuesDescriptions = namedValues.map { (key, value) -> String in
-            if let value = value {
-                return "\(key):\(String(reflecting: value))"
-            } else {
-                return "\(key):nil"
-            }
+            return "\(key):\(value))"
         }
         return "[" + (valuesDescriptions + namedValuesDescriptions).joined(separator: ", ") + "]"
     }

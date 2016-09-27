@@ -55,6 +55,11 @@ func GRDBPrecondition(_ condition: @autoclosure() -> Bool, _ message: @autoclosu
     }
 }
 
+// Workaround Swift inconvenience around factories methods of non-final classes
+func cast<T, U>(_ value: T) -> U? {
+    return value as? U
+}
+
 extension Array {
     /// Removes the first object that matches *predicate*.
     mutating func removeFirst(_ predicate: (Element) throws -> Bool) rethrows {

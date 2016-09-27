@@ -393,10 +393,10 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE \"age\"")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.age == false)),
-            "SELECT * FROM \"readers\" WHERE (NOT \"age\")")
+            "SELECT * FROM \"readers\" WHERE NOT \"age\"")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(false == Col.age)),
-            "SELECT * FROM \"readers\" WHERE (NOT \"age\")")
+            "SELECT * FROM \"readers\" WHERE NOT \"age\"")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(true == true)),
             "SELECT * FROM \"readers\" WHERE 1")
@@ -472,10 +472,10 @@ class SQLSupportTests: GRDBTestCase {
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.age != true)),
-            "SELECT * FROM \"readers\" WHERE (NOT \"age\")")
+            "SELECT * FROM \"readers\" WHERE NOT \"age\"")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(true != Col.age)),
-            "SELECT * FROM \"readers\" WHERE (NOT \"age\")")
+            "SELECT * FROM \"readers\" WHERE NOT \"age\"")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.age != false)),
             "SELECT * FROM \"readers\" WHERE \"age\"")
@@ -667,7 +667,7 @@ class SQLSupportTests: GRDBTestCase {
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(!Col.age)),
-            "SELECT * FROM \"readers\" WHERE (NOT \"age\")")
+            "SELECT * FROM \"readers\" WHERE NOT \"age\"")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.age && true)),
             "SELECT * FROM \"readers\" WHERE (\"age\" AND 1)")
@@ -689,6 +689,9 @@ class SQLSupportTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter((Col.age != nil || Col.name != nil) && Col.id != nil)),
             "SELECT * FROM \"readers\" WHERE (((\"age\" IS NOT NULL) OR (\"name\" IS NOT NULL)) AND (\"id\" IS NOT NULL))")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(!(Col.age > 18) && !(Col.name > "foo"))),
+            "SELECT * FROM \"readers\" WHERE (NOT (\"age\" > 18) AND NOT (\"name\" > 'foo'))")
     }
     
     
@@ -834,7 +837,7 @@ class SQLSupportTests: GRDBTestCase {
         optInt = 1
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(optInt ?? Col.age)),
-            "SELECT * FROM \"readers\" WHERE IFNULL(1, \"age\")")
+            "SELECT * FROM \"readers\" WHERE 1")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.age ?? Col.age)),
             "SELECT * FROM \"readers\" WHERE IFNULL(\"age\", \"age\")")
@@ -910,6 +913,17 @@ class SQLSupportTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.select(sum(Col.age / 2))),
             "SELECT SUM((\"age\" / 2)) FROM \"readers\"")
+    }
+    
+    
+    // MARK: - LIKE operator
+    
+    func testLikeOperator() {
+        let dbQueue = try! makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(Col.name.like("%foo"))),
+            "SELECT * FROM \"readers\" WHERE (\"name\" LIKE '%foo')")
     }
     
     

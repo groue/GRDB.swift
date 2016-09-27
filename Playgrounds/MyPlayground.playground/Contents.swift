@@ -2,14 +2,20 @@
 
 import GRDB
 
-let path = "/tmp/database.sqlite"
+
 var configuration = Configuration()
 configuration.trace = { print($0) }
-let dbQueue = try! DatabaseQueue(path: path, configuration: configuration)
+let dbQueue = DatabaseQueue(configuration: configuration)
 
 try! dbQueue.inDatabase { db in
-    try db.create(table: "persons", ifNotExists: true) { t in
+    try db.create(table: "persons") { t in
         t.column("id", .integer).primaryKey()
         t.column("name", .text)
     }
+    
+    try db.execute("INSERT INTO persons (name) VALUES (?)", arguments: ["Arthur"])
+    try db.execute("INSERT INTO persons (name) VALUES (?)", arguments: ["Barbara"])
+    
+    let names = String.fetchAll(db, "SELECT name FROM persons")
+    print(names)
 }

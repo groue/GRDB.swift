@@ -245,6 +245,18 @@ extension DatabaseValue : DatabaseValueConvertible {
     public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> DatabaseValue? {
         return databaseValue
     }
+    
+    /// This property is an implementation detail of the query interface.
+    /// Do not use it directly.
+    ///
+    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    ///
+    /// # Low Level Query Interface
+    ///
+    /// See SQLExpression.sqlExpression
+    public var sqlExpression: SQLExpression {
+        return self
+    }
 }
 
 

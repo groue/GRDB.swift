@@ -185,25 +185,25 @@ public typealias TransactionObserverType = TransactionObserver
 @available(*, unavailable, renamed:"Column")
 public typealias SQLColumn = Column
 
-extension _SpecificSQLExpressible {
+extension SQLSpecificExpressible {
     @available(*, unavailable, renamed:"capitalized")
-    public var capitalizedString: _SQLExpression { get { return capitalized } }
+    public var capitalizedString: SQLExpression { get { return capitalized } }
     
     @available(*, unavailable, renamed:"lowercased")
-    public var lowercaseString: _SQLExpression { get { return lowercased } }
+    public var lowercaseString: SQLExpression { get { return lowercased } }
     
     @available(*, unavailable, renamed:"uppercased")
-    public var uppercaseString: _SQLExpression { get { return uppercased } }
+    public var uppercaseString: SQLExpression { get { return uppercased } }
 }
 
 @available(iOS 9.0, OSX 10.11, *)
-extension _SpecificSQLExpressible {
+extension SQLSpecificExpressible {
     @available(*, unavailable, renamed:"localizedCapitalized")
-    public var localizedCapitalizedString: _SQLExpression { get { return localizedCapitalized } }
+    public var localizedCapitalizedString: SQLExpression { get { return localizedCapitalized } }
     
     @available(*, unavailable, renamed:"localizedLowercased")
-    public var localizedLowercaseString: _SQLExpression { get { return localizedLowercased } }
+    public var localizedLowercaseString: SQLExpression { get { return localizedLowercased } }
     
     @available(*, unavailable, renamed:"localizedUppercased")
-    public var localizedUppercaseString: _SQLExpression { get { return localizedUppercased } }
+    public var localizedUppercaseString: SQLExpression { get { return localizedUppercased } }
 }

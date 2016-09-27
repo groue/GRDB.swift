@@ -141,7 +141,7 @@ extension Database {
 ///
 /// See https://www.sqlite.org/lang_createtable.html
 public final class TableDefinition {
-    private typealias KeyConstraint = (columns: [String], conflictResolution: SQLConflictResolution?)
+    private typealias KeyConstraint = (columns: [String], conflictResolution: Database.ConflictResolution?)
     
     private let name: String
     private let temporary: Bool
@@ -150,8 +150,8 @@ public final class TableDefinition {
     private var columns: [ColumnDefinition] = []
     private var primaryKeyConstraint: KeyConstraint?
     private var uniqueKeyConstraints: [KeyConstraint] = []
-    private var foreignKeyConstraints: [(columns: [String], table: String, destinationColumns: [String]?, deleteAction: SQLForeignKeyAction?, updateAction: SQLForeignKeyAction?, deferred: Bool)] = []
-    private var checkConstraints: [_SQLExpression] = []
+    private var foreignKeyConstraints: [(columns: [String], table: String, destinationColumns: [String]?, deleteAction: Database.ForeignKeyAction?, updateAction: Database.ForeignKeyAction?, deferred: Bool)] = []
+    private var checkConstraints: [SQLExpression] = []
     
     init(name: String, temporary: Bool, ifNotExists: Bool, withoutRowID: Bool) {
         self.name = name
@@ -172,7 +172,7 @@ public final class TableDefinition {
     /// - parameter type: the column type.
     /// - returns: An ColumnDefinition that allows you to refine the
     ///   column definition.
-    @discardableResult public func column(_ name: String, _ type: SQLColumnType) -> ColumnDefinition {
+    @discardableResult public func column(_ name: String, _ type: Database.ColumnType) -> ColumnDefinition {
         let column = ColumnDefinition(name: name, type: type)
         columns.append(column)
         return column
@@ -192,7 +192,7 @@ public final class TableDefinition {
     /// - parameter columns: The primary key columns.
     /// - parameter conflitResolution: An optional conflict resolution
     ///   (see https://www.sqlite.org/lang_conflict.html).
-    public func primaryKey(_ columns: [String], onConflict conflictResolution: SQLConflictResolution? = nil) {
+    public func primaryKey(_ columns: [String], onConflict conflictResolution: Database.ConflictResolution? = nil) {
         guard primaryKeyConstraint == nil else {
             fatalError("can't define several primary keys")
         }
@@ -212,7 +212,7 @@ public final class TableDefinition {
     /// - parameter columns: The unique key columns.
     /// - parameter conflitResolution: An optional conflict resolution
     ///   (see https://www.sqlite.org/lang_conflict.html).
-    public func uniqueKey(_ columns: [String], onConflict conflictResolution: SQLConflictResolution? = nil) {
+    public func uniqueKey(_ columns: [String], onConflict conflictResolution: Database.ConflictResolution? = nil) {
         uniqueKeyConstraints.append((columns: columns, conflictResolution: conflictResolution))
     }
     
@@ -237,7 +237,7 @@ public final class TableDefinition {
     ///     - updateAction: Optional action when the referenced row is updated.
     ///     - deferred: If true, defines a deferred foreign key constraint.
     ///       See https://www.sqlite.org/foreignkeys.html#fk_deferred.
-    public func foreignKey(_ columns: [String], references table: String, columns destinationColumns: [String]? = nil, onDelete deleteAction: SQLForeignKeyAction? = nil, onUpdate updateAction: SQLForeignKeyAction? = nil, deferred: Bool = false) {
+    public func foreignKey(_ columns: [String], references table: String, columns destinationColumns: [String]? = nil, onDelete deleteAction: Database.ForeignKeyAction? = nil, onUpdate updateAction: Database.ForeignKeyAction? = nil, deferred: Bool = false) {
         foreignKeyConstraints.append((columns: columns, table: table, destinationColumns: destinationColumns, deleteAction: deleteAction, updateAction: updateAction, deferred: deferred))
     }
     
@@ -270,7 +270,7 @@ public final class TableDefinition {
     ///
     /// - parameter sql: An SQL snippet
     public func check(sql: String) {
-        checkConstraints.append(_SQLExpression.sqlLiteral(sql, nil))
+        checkConstraints.append(SQLExpressionLiteral(sql))
     }
     
     fileprivate func sql(_ db: Database) throws -> String {
@@ -351,8 +351,7 @@ public final class TableDefinition {
             for checkExpression in checkConstraints {
                 var chunks: [String] = []
                 chunks.append("CHECK")
-                var arguments: StatementArguments? = nil // nil so that checkExpression.sql(&arguments) embeds literals
-                chunks.append("(" + checkExpression.sql(&arguments) + ")")
+                chunks.append("(" + checkExpression.sql + ")")
                 items.append(chunks.joined(separator: " "))
             }
             
@@ -396,7 +395,7 @@ public final class TableAlteration {
     /// - parameter type: the column type.
     /// - returns: An ColumnDefinition that allows you to refine the
     ///   column definition.
-    @discardableResult public func add(column name: String, _ type: SQLColumnType) -> ColumnDefinition {
+    @discardableResult public func add(column name: String, _ type: Database.ColumnType) -> ColumnDefinition {
         let column = ColumnDefinition(name: name, type: type)
         addedColumns.append(column)
         return column
@@ -435,16 +434,16 @@ public final class TableAlteration {
 /// https://www.sqlite.org/lang_altertable.html
 public final class ColumnDefinition {
     fileprivate let name: String
-    private let type: SQLColumnType
-    fileprivate var primaryKey: (conflictResolution: SQLConflictResolution?, autoincrement: Bool)?
-    private var notNullConflictResolution: SQLConflictResolution?
-    private var uniqueConflictResolution: SQLConflictResolution?
-    private var checkConstraints: [_SQLExpression] = []
-    private var foreignKeyConstraints: [(table: String, column: String?, deleteAction: SQLForeignKeyAction?, updateAction: SQLForeignKeyAction?, deferred: Bool)] = []
-    private var defaultExpression: _SQLExpression?
+    private let type: Database.ColumnType
+    fileprivate var primaryKey: (conflictResolution: Database.ConflictResolution?, autoincrement: Bool)?
+    private var notNullConflictResolution: Database.ConflictResolution?
+    private var uniqueConflictResolution: Database.ConflictResolution?
+    private var checkConstraints: [SQLExpression] = []
+    private var foreignKeyConstraints: [(table: String, column: String?, deleteAction: Database.ForeignKeyAction?, updateAction: Database.ForeignKeyAction?, deferred: Bool)] = []
+    private var defaultExpression: SQLExpression?
     private var collationName: String?
     
-    init(name: String, type: SQLColumnType) {
+    init(name: String, type: Database.ColumnType) {
         self.name = name
         self.type = type
     }
@@ -463,7 +462,7 @@ public final class ColumnDefinition {
     ///       (see https://www.sqlite.org/lang_conflict.html).
     ///     - autoincrement: If true, the primary key is autoincremented.
     /// - returns: Self so that you can further refine the column definition.
-    @discardableResult public func primaryKey(onConflict conflictResolution: SQLConflictResolution? = nil, autoincrement: Bool = false) -> Self {
+    @discardableResult public func primaryKey(onConflict conflictResolution: Database.ConflictResolution? = nil, autoincrement: Bool = false) -> Self {
         primaryKey = (conflictResolution: conflictResolution, autoincrement: autoincrement)
         return self
     }
@@ -479,7 +478,7 @@ public final class ColumnDefinition {
     /// - parameter conflitResolution: An optional conflict resolution
     ///   (see https://www.sqlite.org/lang_conflict.html).
     /// - returns: Self so that you can further refine the column definition.
-    @discardableResult public func notNull(onConflict conflictResolution: SQLConflictResolution? = nil) -> Self {
+    @discardableResult public func notNull(onConflict conflictResolution: Database.ConflictResolution? = nil) -> Self {
         notNullConflictResolution = conflictResolution ?? .abort
         return self
     }
@@ -495,7 +494,7 @@ public final class ColumnDefinition {
     /// - parameter conflitResolution: An optional conflict resolution
     ///   (see https://www.sqlite.org/lang_conflict.html).
     /// - returns: Self so that you can further refine the column definition.
-    @discardableResult public func unique(onConflict conflictResolution: SQLConflictResolution? = nil) -> Self {
+    @discardableResult public func unique(onConflict conflictResolution: Database.ConflictResolution? = nil) -> Self {
         uniqueConflictResolution = conflictResolution ?? .abort
         return self
     }
@@ -527,7 +526,7 @@ public final class ColumnDefinition {
     /// - parameter sql: An SQL snippet.
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult public func check(sql: String) -> Self {
-        checkConstraints.append(_SQLExpression.sqlLiteral(sql, nil))
+        checkConstraints.append(SQLExpressionLiteral(sql))
         return self
     }
     
@@ -557,7 +556,7 @@ public final class ColumnDefinition {
     /// - parameter sql: An SQL snippet.
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult public func defaults(sql: String) -> Self {
-        defaultExpression = _SQLExpression.sqlLiteral(sql, nil)
+        defaultExpression = SQLExpressionLiteral(sql)
         return self
     }
     
@@ -569,9 +568,9 @@ public final class ColumnDefinition {
     ///
     /// See https://www.sqlite.org/datatype3.html#collation
     ///
-    /// - parameter collation: An SQLCollation.
+    /// - parameter collation: An Database.CollationName.
     /// - returns: Self so that you can further refine the column definition.
-    @discardableResult public func collate(_ collation: SQLCollation) -> Self {
+    @discardableResult public func collate(_ collation: Database.CollationName) -> Self {
         collationName = collation.rawValue
         return self
     }
@@ -608,7 +607,7 @@ public final class ColumnDefinition {
     ///     - deferred: If true, defines a deferred foreign key constraint.
     ///       See https://www.sqlite.org/foreignkeys.html#fk_deferred.
     /// - returns: Self so that you can further refine the column definition.
-    @discardableResult public func references(_ table: String, column: String? = nil, onDelete deleteAction: SQLForeignKeyAction? = nil, onUpdate updateAction: SQLForeignKeyAction? = nil, deferred: Bool = false) -> Self {
+    @discardableResult public func references(_ table: String, column: String? = nil, onDelete deleteAction: Database.ForeignKeyAction? = nil, onUpdate updateAction: Database.ForeignKeyAction? = nil, deferred: Bool = false) -> Self {
         foreignKeyConstraints.append((table: table, column: column, deleteAction: deleteAction, updateAction: updateAction, deferred: deferred))
         return self
     }
@@ -651,14 +650,12 @@ public final class ColumnDefinition {
         
         for checkConstraint in checkConstraints {
             chunks.append("CHECK")
-            var arguments: StatementArguments? = nil // nil so that checkConstraint.sql(&arguments) embeds literals
-            chunks.append("(" + checkConstraint.sql(&arguments) + ")")
+            chunks.append("(" + checkConstraint.sql + ")")
         }
         
         if let defaultExpression = defaultExpression {
-            var arguments: StatementArguments? = nil // nil so that defaultExpression.sql(&arguments) embeds literals
             chunks.append("DEFAULT")
-            chunks.append(defaultExpression.sql(&arguments))
+            chunks.append(defaultExpression.sql)
         }
         
         if let collationName = collationName {
@@ -700,7 +697,7 @@ private struct IndexDefinition {
     let columns: [String]
     let unique: Bool
     let ifNotExists: Bool
-    let condition: _SQLExpression?
+    let condition: SQLExpression?
     
     func sql() -> String {
         var chunks: [String] = []
@@ -717,58 +714,8 @@ private struct IndexDefinition {
         chunks.append("\(table.quotedDatabaseIdentifier)(\((columns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
         if let condition = condition {
             chunks.append("WHERE")
-            var arguments: StatementArguments? = nil // nil so that condition.sql(&arguments) embeds literals
-            chunks.append(condition.sql(&arguments))
+            chunks.append(condition.sql)
         }
         return chunks.joined(separator: " ")
     }
-}
-
-/// A built-in SQLite collation.
-///
-/// See https://www.sqlite.org/datatype3.html#collation
-public enum SQLCollation : String {
-    case binary = "BINARY"
-    case nocase = "NOCASE"
-    case rtrim = "RTRIM"
-}
-
-/// An SQLite conflict resolution.
-///
-/// See https://www.sqlite.org/lang_conflict.html.
-public enum SQLConflictResolution : String {
-    case rollback = "ROLLBACK"
-    case abort = "ABORT"
-    case fail = "FAIL"
-    case ignore = "IGNORE"
-    case replace = "REPLACE"
-}
-
-/// An SQL column type.
-///
-///     try db.create(table: "persons") { t in
-///         t.column("id", .integer).primaryKey()
-///         t.column("title", .text)
-///     }
-///
-/// See https://www.sqlite.org/datatype3.html
-public enum SQLColumnType : String {
-    case text = "TEXT"
-    case integer = "INTEGER"
-    case double = "DOUBLE"
-    case numeric = "NUMERIC"
-    case boolean = "BOOLEAN"
-    case blob = "BLOB"
-    case date = "DATE"
-    case datetime = "DATETIME"
-}
-
-/// A foreign key action.
-///
-/// See https://www.sqlite.org/foreignkeys.html
-public enum SQLForeignKeyAction : String {
-    case cascade = "CASCADE"
-    case restrict = "RESTRICT"
-    case setNull = "SET NULL"
-    case setDefault = "SET DEFAULT"
 }

@@ -11,20 +11,20 @@ import XCTest
 class SQLExpressionLiteralTests: GRDBTestCase {
 
     func testWithArguments() {
-        let expression = Column("foo").collating("NOCASE") == "'fooéı👨👨🏿🇫🇷🇨🇮'" && Column("baz") >= 1
+        let expression = Column("foo").collating(.nocase) == "'fooéı👨👨🏿🇫🇷🇨🇮'" && Column("baz") >= 1
         var arguments: StatementArguments? = StatementArguments()
-        let sql = expression.sql(&arguments)
+        let sql = expression.expressionSQL(&arguments)
         XCTAssertEqual(sql, "((\"foo\" = ? COLLATE NOCASE) AND (\"baz\" >= ?))")
         let values = arguments!.values
         XCTAssertEqual(values.count, 2)
-        XCTAssertEqual((values[0] as! String), "'fooéı👨👨🏿🇫🇷🇨🇮'")
-        XCTAssertEqual((values[1] as! Int), 1)
+        XCTAssertEqual(values[0], "'fooéı👨👨🏿🇫🇷🇨🇮'".databaseValue)
+        XCTAssertEqual(values[1], 1.databaseValue)
     }
     
     func testWithoutArguments() {
-        let expression = Column("foo").collating("NOCASE") == "'fooéı👨👨🏿🇫🇷🇨🇮'" && Column("baz") >= 1
+        let expression = Column("foo").collating(.nocase) == "'fooéı👨👨🏿🇫🇷🇨🇮'" && Column("baz") >= 1
         var arguments: StatementArguments? = nil
-        let sql = expression.sql(&arguments)
+        let sql = expression.expressionSQL(&arguments)
         XCTAssertEqual(sql, "((\"foo\" = '''fooéı👨👨🏿🇫🇷🇨🇮''' COLLATE NOCASE) AND (\"baz\" >= 1))")
     }
 }

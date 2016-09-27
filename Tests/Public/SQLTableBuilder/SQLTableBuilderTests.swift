@@ -180,7 +180,7 @@ class SQLTableBuilderTests: GRDBTestCase {
                         "\"a\" INTEGER DEFAULT 1, " +
                         "\"b\" INTEGER DEFAULT 1.0, " +
                         "\"c\" INTEGER DEFAULT '''fooéı👨👨🏿🇫🇷🇨🇮''', " +
-                        "\"d\" INTEGER DEFAULT x'666f6f', " +
+                        "\"d\" INTEGER DEFAULT X'666F6F', " +
                         "\"e\" INTEGER DEFAULT NULL" +
                         ")") as String)
                 

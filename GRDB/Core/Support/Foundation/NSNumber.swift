@@ -3,7 +3,7 @@ import Foundation
 private let integerRoundingBehavior = NSDecimalNumberHandler(roundingMode: .plain, scale: 0, raiseOnExactness: false, raiseOnOverflow: false, raiseOnUnderflow: false, raiseOnDivideByZero: false)
 
 /// NSNumber adopts DatabaseValueConvertible
-extension NSNumber: DatabaseValueConvertible {
+extension NSNumber : DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {

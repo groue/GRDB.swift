@@ -247,7 +247,7 @@ github "groue/GRDB.swift"
 1. Download a copy of GRDB.swift.
 2. Embed the `GRDB.xcodeproj` project in your own project.
 3. Add the `GRDBOSX`, `GRDBiOS`, or `GRDBWatchOS` target in the **Target Dependencies** section of the **Build Phases** tab of your application target.
-4. Add the the `GRDB.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your target.
+4. Add the `GRDB.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your target.
 
 See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an example of such integration.
 
@@ -336,8 +336,9 @@ If you do otherwise, you may well experience concurrency issues, and you don't w
 ```swift
 var config = Configuration()
 config.readonly = true
-config.foreignKeysEnabled = true // The default is already true
+config.foreignKeysEnabled = true // Default is already true
 config.trace = { print($0) }     // Prints all SQL statements
+config.textEncoding = .utf8      // Default is already UTF-8
 config.fileAttributes = [FileAttributeKey.protectionKey.rawValue: ...]  // Configure database protection
 
 let dbQueue = try DatabaseQueue(
@@ -415,8 +416,9 @@ See [Concurrency](#concurrency) for more information.
 ```swift
 var config = Configuration()
 config.readonly = true
-config.foreignKeysEnabled = true // The default is already true
+config.foreignKeysEnabled = true // Default is already true
 config.trace = { print($0) }     // Prints all SQL statements
+config.textEncoding = .utf8      // Default is already UTF-8
 config.fileAttributes = [FileAttributeKey.protectionKey.rawValue: ...]  // Configure database protection
 config.maximumReaderCount = 10   // The default is 5
 
@@ -888,7 +890,7 @@ class Link : Record {
     }
     
     override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["url": url, "verified": verified]
+        return ["url": url, "verified": isVerified]
     }
 }
 ```
