@@ -40,7 +40,7 @@ This guide is a step-by-step tour of GRDB extensibility, around a few topics:
 
 - **Extend the query interface requests**
     
-    You may need to extend the [query interface requests](../README.md#request) so that their SELECT queries could embed recursive clauses, table joins, etc.
+    You may need to extend the [query interface requests](../#request) so that their SELECT queries could embed recursive clauses, table joins, etc.
     
     Pull requests are welcome. Open issues if you have questions.
     
@@ -54,7 +54,7 @@ This guide is a step-by-step tour of GRDB extensibility, around a few topics:
 
 ## Add a Value Type
 
-**All value types adopt the [DatabaseValueConvertible protocol](../README.md#custom-value-types).**
+**All value types adopt the [DatabaseValueConvertible protocol](../#custom-value-types).**
 
 ```swift
 protocol DatabaseValueConvertible {
@@ -66,15 +66,15 @@ protocol DatabaseValueConvertible {
 }
 ```
 
-The `databaseValue` property returns [DatabaseValue](../README.md#databasevalue), a type that wraps the five values supported by SQLite: NULL, Int64, Double, String and Data. DatabaseValue has no public initializer: to create one, use `DatabaseValue.null`, or another type that already adopts the protocol: `1.databaseValue`, `"foo".databaseValue`, etc.
+The `databaseValue` property returns [DatabaseValue](../#databasevalue), a type that wraps the five values supported by SQLite: NULL, Int64, Double, String and Data. DatabaseValue has no public initializer: to create one, use `DatabaseValue.null`, or another type that already adopts the protocol: `1.databaseValue`, `"foo".databaseValue`, etc.
 
 The `fromDatabaseValue()` factory method returns an instance of your custom type if the databaseValue contains a suitable value. If the databaseValue does not contain a suitable value, such as "foo" for Date, the method returns nil.
 
 **What does the DatabaseValueConvertible protocol bring to a type like UIColor?**
 
-Well, you will be able to use UIColor like all other [value types](../README.md#values) (Bool, Int, String, Date, Swift enums, etc.):
+Well, you will be able to use UIColor like all other [value types](../#values) (Bool, Int, String, Date, Swift enums, etc.):
 
-- Use UIColor as [statement arguments](../README.md#executing-updates):
+- Use UIColor as [statement arguments](../#executing-updates):
     
     ```swift
     try db.execute(
@@ -82,7 +82,7 @@ Well, you will be able to use UIColor like all other [value types](../README.md#
         arguments: ["Shirt", UIColor.red])
     ```
     
-- UIColor can be [extracted from rows](../README.md#column-values):
+- UIColor can be [extracted from rows](../#column-values):
     
     ```swift
     for row in Row.fetch(db, "SELECT * FROM clothes") {
@@ -91,13 +91,13 @@ Well, you will be able to use UIColor like all other [value types](../README.md#
     }
     ```
     
-- UIColor can be [directly fetched](../README.md#value-queries):
+- UIColor can be [directly fetched](../#value-queries):
     
     ```swift
     let colors = UIColor.fetchAll(db, "SELECT DISTINCT color FROM clothes")  // [UIColor]
     ```
     
-- Use UIColor in [Records](../README.md#records):
+- Use UIColor in [Records](../#records):
     
     ```swift
     class ClothingItem : Record {
@@ -116,7 +116,7 @@ Well, you will be able to use UIColor like all other [value types](../README.md#
     }
     ```
     
-- Use UIColor in the [query interface](../README.md#the-query-interface):
+- Use UIColor in the [query interface](../#the-query-interface):
     
     ```swift
     let redClothes = ClothingItem.filter(colorColumn == UIColor.red).fetchAll(db)
@@ -220,9 +220,9 @@ The signature of the Swift `strftime` function is:
 func strftime(_ format: String, _ date: SQLSpecificExpressible) -> SQLExpression
 ```
 
-SQLSpecificExpressible and SQLExpression are types of the [query interface](../README.md#the-query-interface) that you do not usually see. We have moved down one floor, closer to the SQL guts of GRDB. We'll see more new types and protocols below.
+SQLSpecificExpressible and SQLExpression are types of the [query interface](../#the-query-interface) that you do not usually see. We have moved down one floor, closer to the SQL guts of GRDB. We'll see more new types and protocols below.
 
-The return value is SQLExpression. All GRDB functions and operators that build [query interface expressions](../README.md#expressions) return values of this type. It represents actual [SQLite expressions](https://www.sqlite.org/lang_expr.html).
+The return value is SQLExpression. All GRDB functions and operators that build [query interface expressions](../#expressions) return values of this type. It represents actual [SQLite expressions](https://www.sqlite.org/lang_expr.html).
 
 SQLExpression is a protocol, so that you can build your own [custom expressions](#add-a-new-kind-of-sqlite-expression). But GRDB ships with a variety of [built-in expressions](#built-in-expressions) that are ready-made, and here we'll use SQLExpressionFunction that is dedicated to function calls:
 
@@ -342,7 +342,7 @@ The Swift `~=` operator inverts the order of arguments, so this eventually gives
 func ~= (_ lhs: SQLExpressible, _ rhs: Column) -> SQLExpression
 ```
 
-SQLExpressible is the protocol for all types that can be turned into a SQL expression. This includes all expressions, and all [value types](../README.md#values) (including String, for our full-text pattern).
+SQLExpressible is the protocol for all types that can be turned into a SQL expression. This includes all expressions, and all [value types](../#values) (including String, for our full-text pattern).
 
 The final implementation follows:
 
@@ -382,7 +382,7 @@ This section of the documentation lists all built-in expressions. Adding a custo
 
 #### Column and DatabaseValue
 
-The [Column](../README.md#the-query-interface) type from the query interface, and [DatabaseValue](../README.md#databasevalue), the type that wraps the five values supported by SQLite (NULL, Int64, Double, String and Data) are expressions. They are rather trivial, and it is unlikely that you use them in your GRDB extensions.
+The [Column](../#the-query-interface) type from the query interface, and [DatabaseValue](../#databasevalue), the type that wraps the five values supported by SQLite (NULL, Int64, Double, String and Data) are expressions. They are rather trivial, and it is unlikely that you use them in your GRDB extensions.
 
 
 #### SQLExpressionLiteral
@@ -477,7 +477,7 @@ extension SQLFunctionName {
 
 #### The IN Operator
 
-Build a `value IN (...)` expression from any sequence of [values](../README.md#values):
+Build a `value IN (...)` expression from any sequence of [values](../#values):
 
 ```swift
 // SQLExpression: id IN (1, 2, 3)
@@ -487,7 +487,7 @@ Build a `value IN (...)` expression from any sequence of [values](../README.md#v
 ![1,2,3].contains(Column("id"))
 ```
 
-The most general way to generate an `IN` operator is from any value that adopts the [SQLCollection](#TODO) protocol, like the [query interface requests](../README.md#request):
+The most general way to generate an `IN` operator is from any value that adopts the [SQLCollection](#TODO) protocol, like the [query interface requests](../#request):
 
 ```swift
 let request = Person.select(Column("id"))
@@ -509,7 +509,7 @@ Build a `value BETWEEN min AND max` expression from Swift ranges:
 
 #### The EXISTS Operator
 
-Build a `EXISTS(...)` expression from any value that adopts the [SQLSelectQuery](#TODO) protocol, like the [query interface requests](../README.md#request):
+Build a `EXISTS(...)` expression from any value that adopts the [SQLSelectQuery](#TODO) protocol, like the [query interface requests](../#request):
 
 ```swift
 let request = Person.all()
@@ -567,9 +567,9 @@ The signature of the `cast` function is:
 func cast(_ value: SQLExpressible, as type: Database.ColumnType) -> SQLExpression
 ```
 
-Database.ColumnType is a String-based enumeration of all database column types (.integer, .text, .blob, etc.) You have already used if you have [created tables](../README.md#create-tables) using the query interface.
+Database.ColumnType is a String-based enumeration of all database column types (.integer, .text, .blob, etc.) You have already used if you have [created tables](../#create-tables) using the query interface.
 
-The return type SQLExpression is the type returned by all GRDB functions and operators that build [query interface expressions](../README.md#expressions).
+The return type SQLExpression is the type returned by all GRDB functions and operators that build [query interface expressions](../#expressions).
 
 SQLExpression is a protocol. But GRDB ships with a variety of [built-in expressions](#built-in-expressions) that are ready-made, so that you generally don't have to write your custom expression type. Here we need something new. So we'll use the most versatile of all, SQLExpressionLiteral:
 
@@ -601,7 +601,7 @@ func cast(_ value: SQLExpressible, as type: Database.ColumnType) -> SQLExpressio
 
 We haven't yet described the SQLExpressible type of the `value` argument:
 
-SQLExpressible is the protocol for all types that can be turned into a SQL expression. This includes all [value types](../README.md#values) (Bool, Int, String, Date, Swift enums, etc.):
+SQLExpressible is the protocol for all types that can be turned into a SQL expression. This includes all [value types](../#values) (Bool, Int, String, Date, Swift enums, etc.):
 
 ```swift
 cast("foo", as: .blob)          // SQLExpression: CAST('foo' AS BLOB)

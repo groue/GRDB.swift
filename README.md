@@ -189,6 +189,7 @@ Documentation
 - [FetchedRecordsController](#fetchedrecordscontroller): Automatic database changes tracking, plus UITableView animations.
 - [Encryption](#encryption): Encrypt your database with SQLCipher.
 - [Backup](#backup): Dump the content of a database to another.
+- [GRDB Extension Guide](Documentation/ExtendingGRDB.md): When a feature is lacking, extend GRDB right from your application.
 
 **Good to Know**
 
@@ -1234,6 +1235,8 @@ The `databaseValue` property returns [DatabaseValue](#databasevalue), a type tha
 
 The `fromDatabaseValue()` factory method returns an instance of your custom type if the databaseValue contains a suitable value. If the databaseValue does not contain a suitable value, such as "foo" for Date, the method returns nil.
 
+The [GRDB Extension Guide](Documentation/ExtendingGRDB.md) contains sample code that has UIColor adopt DatabaseValueConvertible.
+
 
 ## Prepared Statements
 
@@ -2261,6 +2264,7 @@ So don't miss the [SQL API](#sqlite-api).
 - [Fetching by Primary Key](#fetching-by-primary-key)
 - [Fetching Aggregated Values](#fetching-aggregated-values)
 - [Delete Requests](#delete-requests)
+- [GRDB Extension Guide](Documentation/ExtendingGRDB.md)
 
 
 ## Database Schema
@@ -2582,18 +2586,25 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     // SELECT * FROM persons WHERE (name IS NULL)
     Person.filter(nameColumn == nil)
     
-    // SELECT * FROM persons WHERE (age <> 18)
-    Person.filter(ageColumn != 18)
-    
-    // SELECT * FROM persons WHERE (age IS NOT 18)
-    Person.filter(ageColumn !== 18)
+    // SELECT * FROM persons WHERE (age === 18)
+    Person.filter(ageColumn === 18)
     
     // SELECT * FROM rectangles WHERE width < height
     Rectangle.filter(widthColumn < heightColumn)
     ```
     
     > :point_up: **Note**: SQLite string comparison, by default, is case-sensitive and not Unicode-aware. See [string comparison](#string-comparison) if you need more control.
+
+- `LIKE`
     
+    The SQLite LIKE operator is available as the `like` method:
+    
+    ```swift
+    // SELECT * FROM persons WHERE (email LIKE '%@example.com')
+    Person.filter(emailColumn.like("%@example.com"))
+    ```
+    
+    > :point_up: **Note**: the SQLite LIKE operator is case-unsensitive but not Unicode-aware. For example, the expression `'a' LIKE 'A'` is true but `'æ' LIKE 'Æ'` is false.
 
 - `*`, `/`, `+`, `-`
     
