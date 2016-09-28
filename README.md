@@ -339,7 +339,6 @@ var config = Configuration()
 config.readonly = true
 config.foreignKeysEnabled = true // Default is already true
 config.trace = { print($0) }     // Prints all SQL statements
-config.textEncoding = .utf8      // Default is already UTF-8
 config.fileAttributes = [FileAttributeKey.protectionKey.rawValue: ...]  // Configure database protection
 
 let dbQueue = try DatabaseQueue(
@@ -419,7 +418,6 @@ var config = Configuration()
 config.readonly = true
 config.foreignKeysEnabled = true // Default is already true
 config.trace = { print($0) }     // Prints all SQL statements
-config.textEncoding = .utf8      // Default is already UTF-8
 config.fileAttributes = [FileAttributeKey.protectionKey.rawValue: ...]  // Configure database protection
 config.maximumReaderCount = 10   // The default is 5
 

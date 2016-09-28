@@ -179,37 +179,6 @@ public final class Database {
         public static let datetime = ColumnType("DATETIME")
     }
     
-    /// A database text encoding
-    ///
-    /// See https://www.sqlite.org/pragma.html#pragma_encoding
-    public struct TextEncoding : RawRepresentable, Hashable {
-        public let rawValue: String
-        
-        public init(rawValue: String) {
-            self.rawValue = rawValue
-        }
-        
-        public init(_ rawValue: String) {
-            self.rawValue = rawValue
-        }
-        
-        public var hashValue: Int {
-            return rawValue.hashValue
-        }
-        
-        /// The `UTF-8` database encoding
-        public static let utf8 = TextEncoding("UTF-8")
-        
-        /// The `UTF-16` database encoding
-        public static let utf16 = TextEncoding("UTF-16")
-        
-        /// The `UTF-16le` database encoding
-        public static let utf16le = TextEncoding("UTF-16le")
-        
-        /// The `UTF-16be` database encoding
-        public static let utf16be = TextEncoding("UTF-16be")
-    }
-    
     
     /// A foreign key action.
     ///
@@ -341,7 +310,6 @@ public final class Database {
             throw DatabaseError(code: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
         }
         
-        let textEncoding: TextEncoding
         do {
             #if SQLITE_HAS_CODEC
                 if let passphrase = configuration.passphrase {
@@ -361,49 +329,10 @@ public final class Database {
                     throw DatabaseError(code: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
                 }
             }
-            
-            // Set database encoding, if not set yet
-            do {
-                // TODO: this would be much easier if we would disable SchedulingWatchDog
-                let code = sqlite3_exec(sqliteConnection, "PRAGMA encoding = '\(configuration.textEncoding.rawValue)'", nil, nil, nil)
-                guard code == SQLITE_OK else {
-                    throw DatabaseError(code: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
-                }
-            }
-            
-            // Read database encoding, and update configuration
-            do {
-                // TODO: this would be much easier if we would disable SchedulingWatchDog
-                var statement: SQLiteStatement? = nil
-                let code = sqlite3_prepare_v2(sqliteConnection, "PRAGMA encoding", -1, &statement, nil)
-                guard code == SQLITE_OK else {
-                    throw DatabaseError(code: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
-                }
-                defer {
-                    sqlite3_finalize(statement)
-                }
-                switch sqlite3_step(statement) {
-                case SQLITE_DONE:
-                    // Weird. Don't crash but log
-                    NSLog("GRDB could not read text encoding of database at path: %@", NSString(string: path))
-                    textEncoding = configuration.textEncoding
-                case SQLITE_ROW:
-                    textEncoding = TextEncoding(String(cString: sqlite3_column_text(statement, 0)!))
-                case let code:
-                    throw DatabaseError(code: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
-                }
-            }
         } catch {
             closeConnection(sqliteConnection!)
             throw error
         }
-        
-        // Store real textEncoding in configuration
-        if textEncoding != configuration.textEncoding {
-            NSLog("GRDB warning: text encoding of database at path %@ is %@, not %@", NSString(string: path), NSString(string: textEncoding.rawValue), NSString(string: configuration.textEncoding.rawValue))
-        }
-        var configuration = configuration
-        configuration.textEncoding = textEncoding
         
         self.configuration = configuration
         self.schemaCache = schemaCache

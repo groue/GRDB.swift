@@ -38,13 +38,6 @@ public struct Configuration {
     /// Default: nil
     public var trace: TraceFunction?
     
-    /// The text encoding used by the main database
-    ///
-    /// Default: UTF-8
-    ///
-    /// See https://www.sqlite.org/pragma.html#pragma_encoding
-    public var textEncoding: Database.TextEncoding = .utf8
-    
     
     // MARK: - Encryption
     

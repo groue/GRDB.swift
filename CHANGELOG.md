@@ -20,8 +20,6 @@ Release Notes
     Person.filter(Column("email").like("%@example.com")).fetchAll(db)
     ```
     
-- `Configuration.textEncoding` let you specify the [text encoding](https://www.sqlite.org/pragma.html#pragma_encoding) of a database.
-
 **Breaking Changes**
 
 - The SQLForeignKeyAction, SQLColumnType, SQLConflictResolution, and SQLCollation types have been renamed Database.ForeignKeyAction, Database.ColumnType, Database.ConflictResolution, and Database.CollationName.
