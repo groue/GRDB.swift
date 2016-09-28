@@ -1544,9 +1544,48 @@ For more information about row adapters, see the documentation of:
 
 ## Raw SQLite Pointers
 
-Not all SQLite APIs are exposed in GRDB.
+**If not all SQLite APIs are exposed in GRDB, you can still use the [SQLite C Interface](https://www.sqlite.org/c3ref/intro.html).**
 
-The `Database.sqliteConnection` and `Statement.sqliteStatement` properties provide the raw pointers that are suitable for [SQLite C API](https://www.sqlite.org/c3ref/funclist.html):
+The **setup** depends on the version of GRDB you are using.
+
+If you use a [custom SQLite build](#custom-sqlite-builds) or [SQLCipher](#encryption), then the C API is available right from the GRDB module:
+
+```swift
+// Just enough for custom SQLite builds and SQLCipher:
+import GRDB
+
+let sqliteVersion = String(cString: sqlite3_libversion())
+```
+
+Otherwise (the regular case), you have to:
+
+1. Link your application with the SQLite library that ships with your SDK: add `libsqlite3.tbd` to the **Linked Frameworks and Libraries** of the **General**  tab of your target.
+
+2. Import the SQLite module in the file that uses the SQLite C Interface. That module, unfortunately, changes name depending on your platform:
+    
+    ```swift
+    // Necessary unless you use a custom SQLite build, or SQLCipher:
+    import GRDB
+    #if os(OSX)
+        import SQLiteMacOSX
+    #elseif os(iOS)
+        #if (arch(i386) || arch(x86_64))
+            import SQLiteiPhoneSimulator
+        #else
+            import SQLiteiPhoneOS
+        #endif
+    #elseif os(watchOS)
+        #if (arch(i386) || arch(x86_64))
+            import SQLiteWatchSimulator
+        #else
+            import SQLiteWatchOS
+        #endif
+    #endif
+    
+    let sqliteVersion = String(cString: sqlite3_libversion())
+    ```
+
+The `Database.sqliteConnection` and `Statement.sqliteStatement` properties provide the raw pointers that are suitable for the [SQLite C functions](https://www.sqlite.org/c3ref/funclist.html):
 
 ```swift
 try dbQueue.inDatabase { db in
@@ -1563,35 +1602,27 @@ try dbQueue.inDatabase { db in
 >
 > - Those pointers are owned by GRDB: don't close connections or finalize statements created by GRDB.
 > - SQLite connections are opened in the "[multi-thread mode](https://www.sqlite.org/threadsafe.html)", which (oddly) means that **they are not thread-safe**. Make sure you touch raw databases and statements inside their dedicated dispatch queues.
+> - Use the raw SQLite C Interface at your own risk. GRDB won't prevent you from shooting yourself in the foot.
 
-Before jumping in the low-level wagon, here is a reminder of most SQLite APIs used by GRDB:
+Before jumping in the low-level wagon, here is the list of all SQLite APIs used by GRDB:
 
-- Connections & statements, obviously.
-- Errors (pervasive)
-    - [sqlite3_errmsg](https://www.sqlite.org/c3ref/errcode.html)
-    - [sqlite3_errcode](https://www.sqlite.org/c3ref/errcode.html)
-- Inserted Row IDs (`Database.lastInsertedRowID`).
-    - [sqlite3_last_insert_rowid](https://www.sqlite.org/c3ref/last_insert_rowid.html)
-- Changes count (`Database.changesCount` and `Database.totalChangesCount`).
-    - [sqlite3_changes](https://www.sqlite.org/c3ref/changes.html)
-    - [sqlite3_total_changes](https://www.sqlite.org/c3ref/total_changes.html)
-- Custom SQL functions (see [Custom SQL Functions](#custom-sql-functions))
-    - [sqlite3_create_function_v2](https://www.sqlite.org/c3ref/create_function.html)
-- Custom collations (see [String Comparison](#string-comparison))
-    - [sqlite3_create_collation_v2](https://www.sqlite.org/c3ref/create_collation.html)
-- Busy mode (see [Concurrency](#concurrency)).
-    - [sqlite3_busy_handler](https://www.sqlite.org/c3ref/busy_handler.html)
-    - [sqlite3_busy_timeout](https://www.sqlite.org/c3ref/busy_timeout.html)
-- Update, commit and rollback hooks (see [Database Changes Observation](#database-changes-observation)):
-    - [sqlite3_update_hook](https://www.sqlite.org/c3ref/update_hook.html)
-    - [sqlite3_commit_hook](https://www.sqlite.org/c3ref/commit_hook.html)
-    - [sqlite3_rollback_hook](https://www.sqlite.org/c3ref/commit_hook.html)
-- Backup (see [Backup](#backup)):
-    - [sqlite3_backup_init](https://www.sqlite.org/c3ref/backup_finish.html)
-    - [sqlite3_backup_step](https://www.sqlite.org/c3ref/backup_finish.html)
-    - [sqlite3_backup_finish](https://www.sqlite.org/c3ref/backup_finish.html)
-- Authorizations callbacks are *reserved* by GRDB:
-    - [sqlite3_set_authorizer](https://www.sqlite.org/c3ref/set_authorizer.html)
+- `sqlite3_backup_finish`, `sqlite3_backup_init`, `sqlite3_backup_step`: see [Backup](#backup)
+- `sqlite3_bind_blob`, `sqlite3_bind_double`, `sqlite3_bind_int64`, `sqlite3_bind_null`, `sqlite3_bind_parameter_count`, `sqlite3_bind_parameter_name`, `sqlite3_bind_text`, `sqlite3_clear_bindings`, `sqlite3_column_blob`, `sqlite3_column_bytes`, `sqlite3_column_count`, `sqlite3_column_double`, `sqlite3_column_int64`, `sqlite3_column_name`, `sqlite3_column_text`, `sqlite3_column_type`, `sqlite3_exec`, `sqlite3_finalize`, `sqlite3_prepare_v2`, `sqlite3_reset`, `sqlite3_step`: see [Executing Updates](#executing-updates), [Fetch Queries](#fetch-queries), [Prepared Statements](#prepared-statements), [Values](#values)
+- `sqlite3_busy_handler`, `sqlite3_busy_timeout`: see [Configuration.busyMode](http://cocoadocs.org/docsets/GRDB.swift/0.84.0/Structs/Configuration.html)
+- `sqlite3_changes`, `sqlite3_total_changes`: see [Database.changesCount and Database.totalChangesCount](http://cocoadocs.org/docsets/GRDB.swift/0.84.0/Classes/Database.html)
+- `sqlite3_close`, `sqlite3_close_v2`, `sqlite3_next_stmt`, `sqlite3_open_v2`: see [Database Connections](#database-connections)
+- `sqlite3_commit_hook`, `sqlite3_rollback_hook`, `sqlite3_update_hook`: see [Database Changes Observation](#database-changes-observation), [FetchedRecordsController](#fetchedrecordscontroller)
+- `sqlite3_create_collation_v2`: see [String Comparison](#string-comparison)
+- `sqlite3_create_function_v2`, `sqlite3_result_blob`, `sqlite3_result_double`, `sqlite3_result_error`, `sqlite3_result_error_code`, `sqlite3_result_int64`, `sqlite3_result_null`, `sqlite3_result_text`, `sqlite3_user_data`, `sqlite3_value_blob`, `sqlite3_value_bytes`, `sqlite3_value_double`, `sqlite3_value_int64`, `sqlite3_value_text`, `sqlite3_value_type`: see [Custom SQL Functions](#custom-sql-functions)
+- `sqlite3_db_release_memory`: see [Memory Management](#memory-management)
+- `sqlite3_errcode`, `sqlite3_errmsg`: see [Error Handling](#error-handling)
+- `sqlite3_key`, `sqlite3_rekey`: see [Encryption](#encryption)
+- `sqlite3_last_insert_rowid`: see [Executing Updates](#executing-updates)
+- `sqlite3_preupdate_count`, `sqlite3_preupdate_depth`, `sqlite3_preupdate_hook`, `sqlite3_preupdate_new`, `sqlite3_preupdate_old`: see [Support for SQLite Pre-Update Hooks](#support-for-sqlite-pre-update-hooks)
+- `sqlite3_set_authorizer`: **reserved by GRDB**
+- `sqlite3_sql`: see [Statement.sql](http://cocoadocs.org/docsets/GRDB.swift/0.84.0/Classes/Statement.html)
+- `sqlite3_trace`: see [Configuration.trace](http://cocoadocs.org/docsets/GRDB.swift/0.84.0/Structs/Configuration.html)
+- `sqlite3_wal_checkpoint_v2`: see [DatabasePool.checkpoint](http://cocoadocs.org/docsets/GRDB.swift/0.84.0/Classes/DatabasePool.html)
 
 
 Records
