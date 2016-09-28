@@ -25,26 +25,6 @@ func strftime(_ format: String, _ date: SQLSpecificExpressible) -> SQLExpression
 }
 
 
-// ROUND
-
-extension SQLFunctionName {
-    /// The `ROUND` SQL function
-    static let round = SQLFunctionName("ROUND")
-}
-
-extension SQLSpecificExpressible {
-    func rounded(decimals: Int = 0) -> SQLExpression {
-        if decimals == 0 {
-            // ROUND(value)
-            return SQLExpressionFunction(.round, arguments: self)
-        } else {
-            // ROUND(value, decimals)
-            return SQLExpressionFunction(.round, arguments: self, decimals)
-        }
-    }
-}
-
-
 // MATCH
 
 extension SQLBinaryOperator {
@@ -92,27 +72,6 @@ class ExtensibilityTests: GRDBTestCase {
                 let year = Int.fetchOne(db, request)
                 XCTAssertEqual(year, 1970)
                 XCTAssertEqual(self.lastSQLQuery, "SELECT STRFTIME('%Y', \"date\") FROM \"records\"")
-            }
-        }
-    }
-    
-    func testRound() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.create(table: "records") { t in
-                    t.column("double", .double)
-                }
-                struct Record : TableMapping {
-                    static let databaseTableName = "records"
-                }
-                
-                try db.execute("INSERT INTO records (double) VALUES (?)", arguments: [123])
-                
-                let request = Record.select(Column("double").rounded(decimals: -1))
-                let int = Int.fetchOne(db, request)!
-                XCTAssertEqual(int, 120)
-                XCTAssertEqual(self.lastSQLQuery, "SELECT ROUND(\"double\", -1) FROM \"records\"")
             }
         }
     }

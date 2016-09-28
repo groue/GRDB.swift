@@ -18,11 +18,10 @@ This guide is a step-by-step tour of GRDB extensibility, around a few topics:
 
 - **[Add an SQLite function or operator](#add-an-sqlite-function-or-operator)**
     
-    You'll learn how to add support for the [STRFTIME](https://www.sqlite.org/lang_datefunc.html) and [ROUND](https://www.sqlite.org/lang_corefunc.html#round) functions, and the [MATCH](https://www.sqlite.org/fts3.html#full_text_index_queries) full-text operator:
+    You'll learn how to add support for the [STRFTIME](https://www.sqlite.org/lang_datefunc.html) function, and the [MATCH](https://www.sqlite.org/fts3.html#full_text_index_queries) full-text operator:
     
     ```swift
     Books.select(strftime("%Y", Column("publishedDate")))    // <-- New! strftime function
-    Player.select(Column("score").rounded(decimals: -1))     // <-- New! rounded method
     Books.filter("\"Moby Dick\"" ~= Column("body"))          // <-- New! ~= operator
     ```
 
@@ -174,15 +173,13 @@ func cast<T, U>(_ value: T) -> U? {
 
 But you don't have to wait: you can extend GRDB and the query interface to add support for the missing syntax element (and eventually submit a pull request later).
 
-Let's remind our goal: we'll add the [STRFTIME](https://www.sqlite.org/lang_datefunc.html) and [ROUND](https://www.sqlite.org/lang_corefunc.html#round) functions, and the [MATCH](https://www.sqlite.org/fts3.html#full_text_index_queries) full-text operator.
+Let's remind our goal: we'll add the [STRFTIME](https://www.sqlite.org/lang_datefunc.html) function, and the [MATCH](https://www.sqlite.org/fts3.html#full_text_index_queries) full-text operator.
 
 Their SQL usage is the following:
 
 ```sql
 -- Publication years of books
 SELECT STRFTIME('%Y', publishedOn) FROM books;
--- Players' scores, rounded to the nearest ten
-SELECT ROUND(score, -1) FROM players;
 -- Books that talk about Moby Dick
 SELECT * FROM books WHERE body MATCH '"Moby Dick"';
 ```
@@ -191,15 +188,12 @@ Translated in the query interface, this gives:
 
 ```swift
 Books.select(strftime("%Y", Column("publishedDate")))
-Player.select(Column("score").rounded(decimals: -1))
 Books.filter("\"Moby Dick\"" ~= Column("body"))
 ```
 
 `strftime` is a top-level Swift function because this is how GRDB usually imports SQLite functions which do not have matching standard Swift counterpart, like AVG, LEGNTH, SUM. It helps the Swift code looking like SQL when it is relevant.
 
-Conversely, we expose the ROUND SQL function as the `rounded` Swift method. That's because `rounded` is the standard Swift method that rounds floating-point values.
-
-Last, we expose the MATCH SQL operator as the `~=` Swift operator, just because this is the standard Swift [pattern matching operator](https://developer.apple.com/library/content/documentation/Swift/Conceptual/Swift_Programming_Language/Patterns.html).
+Conversely, we expose the MATCH SQL operator as the `~=` Swift operator, just because this is the standard Swift [pattern matching operator](https://developer.apple.com/library/content/documentation/Swift/Conceptual/Swift_Programming_Language/Patterns.html).
 
 Whenever you import a SQL feature to Swift, you'll have to decide: should you preserve the SQL look and feel, or adopt a well-established swiftism? It's really up to you.
 
@@ -269,49 +263,6 @@ You may want to compare it to another protocol, SQLExpressible, which will be de
 > :point_up: **Note**: whenever you extend GRDB with a Swift function, method, or operator, you should generally make sure that its signature contains at least one GRDB-specific type. In the `strftime` function, it is the SQLSpecificExpressible protocol.
 
 
-### ROUND
-
-We want to expose the [ROUND](https://www.sqlite.org/lang_corefunc.html#round) SQLite function as a `rounded` Swift method:
-
-```swift
-// Players' scores, rounded to the nearest ten
-// SELECT ROUND(score, -1) FROM players
-Player.select(Column("score").rounded(decimals: -1))
-```
-
-Based on the implementation of the [`strftime`](#strftime) function above, we can write the `rounded` method straight away:
-
-```swift
-extension SQLFunctionName {
-    /// The `ROUND` SQL function
-    static let round = SQLFunctionName("ROUND")
-}
-
-extension SQLSpecificExpressible {
-    func rounded(decimals: Int = 0) -> SQLExpression {
-        if decimals == 0 {
-            // ROUND(value)
-            return SQLExpressionFunction(.round, arguments: self)
-        } else {
-            // ROUND(value, decimals)
-            return SQLExpressionFunction(.round, arguments: self, decimals)
-        }
-    }
-}
-```
-
-The `rounded` method is declared in an extension to the SQLSpecificExpressible protocol, because it should be available on all types that can be turned into a SQL expression, without messing with types that exist outside of GRDB such as Float and Double:
-
-```swift
-3.1416.rounded()                // 3
-3.1416.rounded(.up)             // 4
-3.1416.rounded(decimals: 1)     // Compiler error
-Column("score").rounded()       // SQLExpression: ROUND(score)
-```
-
-> :point_up: **Note**: whenever you extend GRDB with a Swift function, method, or operator, you should generally make sure that its signature contains at least one GRDB-specific type. In the `rounded` method, it is the extended SQLSpecificExpressible protocol.
-
-
 ### MATCH
 
 For the [MATCH](https://www.sqlite.org/fts3.html#full_text_index_queries) full-text operator, we want to use the ~= Swift operator:
@@ -334,7 +285,7 @@ struct SQLExpressionBinary : SQLExpression {
 }
 ```
 
-Now we have to find the signature of our Swift operator. The MATCH operator requires an indexed column on its left. Anything can go on its right, strings but also any SQL expression.
+Now we have to find the signature of our Swift operator. The MATCH operator requires an indexed column on its left. Anything can go on its right, string patterns but also any SQL expression (that eventually evaluates to a string pattern).
 
 The Swift `~=` operator reverses the left and right arguments, so this eventually gives the following signature:
 
@@ -375,7 +326,7 @@ Column("pattern") ~= Column("content") // SQL expression: content MATCH pattern
 
 When you extend GRDB with a new function, method, or operator that generates an [SQL expression](https://www.sqlite.org/lang_expr.html), you have to return a value the adopts the SQLExpression protocol.
 
-We have already seen in [our](#strftime) [previous](#round) [examples](#match) two concrete types that generate SQL function calls and binary operators: SQLExpressionFunction and SQLExpressionBinary.
+We have already seen in our [previous](#strftime) [examples](#match) two concrete types that generate SQL function calls and binary operators: SQLExpressionFunction and SQLExpressionBinary.
 
 This section of the documentation lists all built-in expressions. Adding a custom SQLExpression type will be documented [below](#add-a-new-kind-of-sqlite-expression).
 
