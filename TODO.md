@@ -1,3 +1,55 @@
+- [ ] Store dates as timestamp...
+    - Global config?
+    
+    - New enum case in DatabaseValue.Storage?
+        
+        ```swift
+        extension Date : DatabaseValueConvertible {
+            var databaseValue: DatabaseValue {
+                return DatabaseValue(date: self)
+            }
+        }
+        extension DatabaseValue {
+            func canonicalDatabaseValue(in database: Database) -> DatabaseValue {
+                switch storage {
+                case .date(let date):
+                    switch database.configuration.dateFormat {
+                        case .iso8691:
+                            return ...
+                        case .timestamp:
+                            return ...
+                    }
+                default:
+                    return self
+                }
+            }
+        }
+        ```
+        
+    - Rename DatabaseValueConvertible to Bindable?
+        
+        ```swift
+        protocol Bindable {
+            var databaseBinding: Binding { get }
+            static func fromDatabaseValue(...)
+        }
+        protocol Binding {
+            func databaseValue(in database: Database) -> DatabaseValue
+        }
+        extension Int : Binding { ... }
+        extension String : Binding { ... }
+        extension Date : Binding {
+            func databaseValue(in database: Database) -> DatabaseValue {
+                switch database.configuration.dateFormat {
+                    case .iso8691:
+                        return ...
+                    case .timestamp:
+                        return ...
+                }
+            }
+        }
+        ```
+        
 - [ ] ROUND function: read http://marc.info/?l=sqlite-users&m=130419182719263
 - [ ] Remove DatabaseWriter.writeForIssue117 when https://bugs.swift.org/browse/SR-2623 is fixed (remove `writeForIssue117`, use `write` instead, and build in Release configuration) 
 - [ ] Restore SQLCipher
