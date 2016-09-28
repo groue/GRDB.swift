@@ -14,7 +14,7 @@
                 switch storage {
                 case .date(let date):
                     switch database.configuration.dateFormat {
-                        case .iso8691:
+                        case .iso8601:
                             return ...
                         case .timestamp:
                             return ...
@@ -41,7 +41,7 @@
         extension Date : Binding {
             func databaseValue(in database: Database) -> DatabaseValue {
                 switch database.configuration.dateFormat {
-                    case .iso8691:
+                    case .iso8601:
                         return ...
                     case .timestamp:
                         return ...
