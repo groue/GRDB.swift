@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
 	s.name     = 'GRDB.swift'
-	s.version  = '0.84.0'
+	s.version  = '0.85.0'
 	
 	s.license  = { :type => 'MIT', :file => 'LICENSE' }
 	s.summary  = 'A Swift application toolkit for SQLite databases.'
