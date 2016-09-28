@@ -336,7 +336,7 @@ struct SQLExpressionBinary : SQLExpression {
 
 Now we have to find the signature of our Swift operator. The MATCH operator requires an indexed column on its left. Anything can go on its right, strings but also any SQL expression.
 
-The Swift `~=` operator inverts the order of arguments, so this eventually gives the following signature:
+The Swift `~=` operator reverses the left and right arguments, so this eventually gives the following signature:
 
 ```swift
 func ~= (_ lhs: SQLExpressible, _ rhs: Column) -> SQLExpression
