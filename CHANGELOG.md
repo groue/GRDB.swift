@@ -382,6 +382,15 @@ Released September 11, 2016
     ```
 
 
+## 0.81.2 (Swift 2.3)
+
+Released September 28, 2016
+
+**New**
+
+- Added missing `@noescape` qualifiers. Merged [#130](https://github.com/groue/GRDB.swift/pull/130) by [@swiftlyfalling](https://github.com/swiftlyfalling).
+
+
 ## 0.81.1 (Swift 2.3)
 
 Released September 16, 2016
