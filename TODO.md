@@ -6,7 +6,7 @@
         ```swift
         extension Date : DatabaseValueConvertible {
             var databaseValue: DatabaseValue {
-                return DatabaseValue(date: self)
+                return DatabaseValue(storage: .date(self))
             }
         }
         extension DatabaseValue {
