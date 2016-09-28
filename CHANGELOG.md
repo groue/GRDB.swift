@@ -5,7 +5,7 @@ Release Notes
 
 **New**
 
-- **Enhanced extensibility**. The low-level types that fuel the query interface [requests](https://github.com/groue/GRDB.swift/#requests) and [expressions](https://github.com/groue/GRDB.swift/#expressions) have been refactored, have lost their underscore prefix, and are stabilizing. A new [GRDB Extension Guide](Documentation/ExtendingGRDB.md) covers common use cases for extending GRDB.
+- **Enhanced extensibility**. The low-level types that fuel the query interface [requests](https://github.com/groue/GRDB.swift/#requests) and [expressions](https://github.com/groue/GRDB.swift/#expressions) have been refactored, have lost their underscore prefix, and are stabilizing. A new [GRDB Extension Guide](Documentation/ExtendingGRDB.md) covers common extension use cases.
 
 - `TableMapping` protocol learned how to delete all records right from the adopting type:
     
