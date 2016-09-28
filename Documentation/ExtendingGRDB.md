@@ -40,7 +40,7 @@ This guide is a step-by-step tour of GRDB extensibility, around a few topics:
 
 - **Extend the query interface requests**
     
-    You may need to extend the [query interface requests](../../../#request) so that their SELECT queries could embed recursive clauses, table joins, etc.
+    You may need to extend the [query interface requests](../../../#requests) so that their SELECT queries could embed recursive clauses, table joins, etc.
     
     Pull requests are welcome. Open issues if you have questions.
     
@@ -487,7 +487,7 @@ Build a `value IN (...)` expression from any sequence of [values](../../../#valu
 ![1,2,3].contains(Column("id"))
 ```
 
-The most general way to generate an `IN` operator is from any value that adopts the [SQLCollection](#TODO) protocol, like the [query interface requests](../../../#request):
+The most general way to generate an `IN` operator is from any value that adopts the [SQLCollection](#TODO) protocol, like the [query interface requests](../../../#requests):
 
 ```swift
 let request = Person.select(Column("id"))
@@ -509,7 +509,7 @@ Build a `value BETWEEN min AND max` expression from Swift ranges:
 
 #### The EXISTS Operator
 
-Build a `EXISTS(...)` expression from any value that adopts the [SQLSelectQuery](#TODO) protocol, like the [query interface requests](../../../#request):
+Build a `EXISTS(...)` expression from any value that adopts the [SQLSelectQuery](#TODO) protocol, like the [query interface requests](../../../#requests):
 
 ```swift
 let request = Person.all()
