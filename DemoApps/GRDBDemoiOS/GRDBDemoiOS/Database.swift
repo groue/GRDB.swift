@@ -4,14 +4,14 @@ import UIKit
 // The shared database queue
 var dbQueue: DatabaseQueue!
 
-func setupDatabase(_ application: UIApplication) {
+func setupDatabase(_ application: UIApplication) throws {
     
     // Connect to the database
     // See https://github.com/groue/GRDB.swift/#database-connections
     
     let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first! as NSString
     let databasePath = documentsPath.appendingPathComponent("db.sqlite")
-    dbQueue = try! DatabaseQueue(path: databasePath)
+    dbQueue = try DatabaseQueue(path: databasePath)
     
     
     // Be a nice iOS citizen, and don't consume too much memory
@@ -26,11 +26,18 @@ func setupDatabase(_ application: UIApplication) {
     var migrator = DatabaseMigrator()
     
     migrator.registerMigration("createPersons") { db in
-        // Compare person names in a localized case insensitive fashion
-        // See https://github.com/groue/GRDB.swift/#unicode
+        
+        // Create a table
+        // See https://github.com/groue/GRDB.swift#create-tables
+        
         try db.create(table: "persons") { t in
+            // An integer primary key auto-generates unique IDs
             t.column("id", .integer).primaryKey()
+            
+            // Sort person names in a localized case insensitive fashion by default
+            // See https://github.com/groue/GRDB.swift/#unicode
             t.column("name", .text).notNull().collate(.localizedCaseInsensitiveCompare)
+            
             t.column("score", .integer).notNull()
         }
     }
@@ -42,5 +49,5 @@ func setupDatabase(_ application: UIApplication) {
         }
     }
     
-    try! migrator.migrate(dbQueue)
+    try migrator.migrate(dbQueue)
 }
