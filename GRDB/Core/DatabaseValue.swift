@@ -194,32 +194,41 @@ extension DatabaseValue : Hashable {
             return data.hashValue
         }
     }
-}
-
-/// DatabaseValue adopts Equatable.
-public func ==(lhs: DatabaseValue, rhs: DatabaseValue) -> Bool {
-    switch (lhs.storage, rhs.storage) {
-    case (.null, .null):
-        return true
-    case (.int64(let lhs), .int64(let rhs)):
-        return lhs == rhs
-    case (.double(let lhs), .double(let rhs)):
-        return lhs == rhs
-    case (.int64(let lhs), .double(let rhs)):
-        return int64EqualDouble(lhs, rhs)
-    case (.double(let lhs), .int64(let rhs)):
-        return int64EqualDouble(rhs, lhs)
-    case (.string(let lhs), .string(let rhs)):
-        return lhs == rhs
-    case (.blob(let lhs), .blob(let rhs)):
-        return lhs == rhs
-    default:
-        return false
+    
+    /// Returns whether two DatabaseValues are equal.
+    ///
+    ///     1.databaseValue == "foo".databaseValue // false
+    ///     1.databaseValue == 1.databaseValue     // true
+    ///
+    /// When comparing integers and doubles, the result is true if and only
+    /// values are equal, and if converting one type to the other does
+    /// not lose information:
+    ///
+    ///     1.databaseValue == 1.0.databaseValue   // true
+    public static func ==(lhs: DatabaseValue, rhs: DatabaseValue) -> Bool {
+        switch (lhs.storage, rhs.storage) {
+        case (.null, .null):
+            return true
+        case (.int64(let lhs), .int64(let rhs)):
+            return lhs == rhs
+        case (.double(let lhs), .double(let rhs)):
+            return lhs == rhs
+        case (.int64(let lhs), .double(let rhs)):
+            return int64EqualDouble(lhs, rhs)
+        case (.double(let lhs), .int64(let rhs)):
+            return int64EqualDouble(rhs, lhs)
+        case (.string(let lhs), .string(let rhs)):
+            return lhs == rhs
+        case (.blob(let lhs), .blob(let rhs)):
+            return lhs == rhs
+        default:
+            return false
+        }
     }
 }
 
 /// Returns true if i and d hold exactly the same value, and if converting one
-/// type into the other does not lose any information.
+/// type to the other does not lose any information.
 private func int64EqualDouble(_ i: Int64, _ d: Double) -> Bool {
     // TODO: wait for https://github.com/apple/swift-evolution/blob/master/proposals/0080-failable-numeric-initializers.md
     // Bug: https://bugs.swift.org/browse/SR-1491

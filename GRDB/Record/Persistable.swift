@@ -700,12 +700,12 @@ private struct InsertQuery {
 
 extension InsertQuery : Hashable {
     var hashValue: Int { return tableName.hashValue }
-}
-
-private func == (lhs: InsertQuery, rhs: InsertQuery) -> Bool {
-    if lhs.tableName != rhs.tableName { return false }
-    if lhs.onConflict != rhs.onConflict { return false }
-    return lhs.insertedColumns == rhs.insertedColumns
+    
+    static func == (lhs: InsertQuery, rhs: InsertQuery) -> Bool {
+        if lhs.tableName != rhs.tableName { return false }
+        if lhs.onConflict != rhs.onConflict { return false }
+        return lhs.insertedColumns == rhs.insertedColumns
+    }
 }
 
 extension InsertQuery {
@@ -740,13 +740,13 @@ private struct UpdateQuery {
 
 extension UpdateQuery : Hashable {
     var hashValue: Int { return tableName.hashValue }
-}
-
-private func == (lhs: UpdateQuery, rhs: UpdateQuery) -> Bool {
-    if lhs.tableName != rhs.tableName { return false }
-    if lhs.onConflict != rhs.onConflict { return false }
-    if lhs.updatedColumns != rhs.updatedColumns { return false }
-    return lhs.conditionColumns == rhs.conditionColumns
+    
+    static func == (lhs: UpdateQuery, rhs: UpdateQuery) -> Bool {
+        if lhs.tableName != rhs.tableName { return false }
+        if lhs.onConflict != rhs.onConflict { return false }
+        if lhs.updatedColumns != rhs.updatedColumns { return false }
+        return lhs.conditionColumns == rhs.conditionColumns
+    }
 }
 
 extension UpdateQuery {

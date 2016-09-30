@@ -309,10 +309,10 @@ public struct SQLUnaryOperator : Hashable {
     public var hashValue: Int {
         return sql.hashValue
     }
-}
-
-public func ==(lhs: SQLUnaryOperator, rhs: SQLUnaryOperator) -> Bool {
-    return lhs.sql == rhs.sql
+    
+    public static func ==(lhs: SQLUnaryOperator, rhs: SQLUnaryOperator) -> Bool {
+        return lhs.sql == rhs.sql
+    }
 }
 
 /// This type is an implementation detail of the query interface.
@@ -397,10 +397,10 @@ public struct SQLBinaryOperator : Hashable {
         }
         return SQLBinaryOperator(negatedSQL, negated: sql)
     }
-}
-
-public func ==(lhs: SQLBinaryOperator, rhs: SQLBinaryOperator) -> Bool {
-    return lhs.sql == rhs.sql
+    
+    public static func ==(lhs: SQLBinaryOperator, rhs: SQLBinaryOperator) -> Bool {
+        return lhs.sql == rhs.sql
+    }
 }
 
 /// This type is an implementation detail of the query interface.
@@ -611,10 +611,10 @@ public struct SQLFunctionName : Hashable {
     public var hashValue: Int {
         return sql.hashValue
     }
-}
-
-public func ==(lhs: SQLFunctionName, rhs: SQLFunctionName) -> Bool {
-    return lhs.sql == rhs.sql
+    
+    public static func ==(lhs: SQLFunctionName, rhs: SQLFunctionName) -> Bool {
+        return lhs.sql == rhs.sql
+    }
 }
 
 /// This type is an implementation detail of the query interface.

@@ -787,11 +787,11 @@ extension DatabaseFunction : Hashable {
     public var hashValue: Int {
         return name.hashValue ^ argumentCount.hashValue
     }
-}
-
-/// Two functions are equal if they share the same name and argumentCount.
-public func ==(lhs: DatabaseFunction, rhs: DatabaseFunction) -> Bool {
-    return lhs.name == rhs.name && lhs.argumentCount == rhs.argumentCount
+    
+    /// Two functions are equal if they share the same name and argumentCount.
+    public static func ==(lhs: DatabaseFunction, rhs: DatabaseFunction) -> Bool {
+        return lhs.name == rhs.name && lhs.argumentCount == rhs.argumentCount
+    }
 }
 
 
@@ -869,12 +869,12 @@ extension DatabaseCollation : Hashable {
         // sqlite3_strnicmp SQLite function.
         return 0
     }
-}
-
-/// Two collations are equal if they share the same name (case insensitive)
-public func ==(lhs: DatabaseCollation, rhs: DatabaseCollation) -> Bool {
-    // See https://www.sqlite.org/c3ref/create_collation.html
-    return sqlite3_stricmp(lhs.name, lhs.name) == 0
+    
+    /// Two collations are equal if they share the same name (case insensitive)
+    public static func ==(lhs: DatabaseCollation, rhs: DatabaseCollation) -> Bool {
+        // See https://www.sqlite.org/c3ref/create_collation.html
+        return sqlite3_stricmp(lhs.name, lhs.name) == 0
+    }
 }
 
 

@@ -37,9 +37,10 @@ private struct CustomStruct: DatabaseValueConvertible {
         return CustomStruct(number: number)
     }
 }
-extension CustomStruct: Equatable { }
-private func ==(lhs: CustomStruct, rhs: CustomStruct) -> Bool {
-    return lhs.number == rhs.number
+extension CustomStruct: Equatable {
+    static func ==(lhs: CustomStruct, rhs: CustomStruct) -> Bool {
+        return lhs.number == rhs.number
+    }
 }
 
 class FetchRequestTests: GRDBTestCase {

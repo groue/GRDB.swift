@@ -782,46 +782,47 @@ extension Row : Collection {
 }
 
 
-extension Row : Equatable { }
-
-/// Returns true if and only if both rows have the same columns and values, in
-/// the same order. Columns are compared in a case-sensitive way.
-public func ==(lhs: Row, rhs: Row) -> Bool {
-    if lhs === rhs {
+extension Row : Equatable {
+    
+    /// Returns true if and only if both rows have the same columns and values,
+    /// in the same order. Columns are compared in a case-sensitive way.
+    public static func ==(lhs: Row, rhs: Row) -> Bool {
+        if lhs === rhs {
+            return true
+        }
+        
+        guard lhs.count == rhs.count else {
+            return false
+        }
+        
+        var liter = lhs.makeIterator()
+        var riter = rhs.makeIterator()
+        
+        while let (lcol, lval) = liter.next(), let (rcol, rval) = riter.next() {
+            guard lcol == rcol else {
+                return false
+            }
+            guard lval == rval else {
+                return false
+            }
+        }
+        
+        let lscopeNames = lhs.impl.scopeNames
+        let rscopeNames = rhs.impl.scopeNames
+        guard lscopeNames == rscopeNames else {
+            return false
+        }
+        
+        for name in lscopeNames {
+            let lscope = lhs.scoped(on: name)
+            let rscope = rhs.scoped(on: name)
+            guard lscope == rscope else {
+                return false
+            }
+        }
+        
         return true
     }
-    
-    guard lhs.count == rhs.count else {
-        return false
-    }
-    
-    var liter = lhs.makeIterator()
-    var riter = rhs.makeIterator()
-    
-    while let (lcol, lval) = liter.next(), let (rcol, rval) = riter.next() {
-        guard lcol == rcol else {
-            return false
-        }
-        guard lval == rval else {
-            return false
-        }
-    }
-    
-    let lscopeNames = lhs.impl.scopeNames
-    let rscopeNames = rhs.impl.scopeNames
-    guard lscopeNames == rscopeNames else {
-        return false
-    }
-    
-    for name in lscopeNames {
-        let lscope = lhs.scoped(on: name)
-        let rscope = rhs.scoped(on: name)
-        guard lscope == rscope else {
-            return false
-        }
-    }
-    
-    return true
 }
 
 /// Row adopts CustomStringConvertible.
@@ -843,15 +844,14 @@ extension Row: CustomStringConvertible {
 public struct RowIndex : Comparable {
     let index: Int
     init(_ index: Int) { self.index = index }
-}
-
-/// Equatable implementation for RowIndex
-public func ==(lhs: RowIndex, rhs: RowIndex) -> Bool {
-    return lhs.index == rhs.index
-}
-
-public func <(lhs: RowIndex, rhs: RowIndex) -> Bool {
-    return lhs.index < rhs.index
+    
+    public static func ==(lhs: RowIndex, rhs: RowIndex) -> Bool {
+        return lhs.index == rhs.index
+    }
+    
+    public static func <(lhs: RowIndex, rhs: RowIndex) -> Bool {
+        return lhs.index < rhs.index
+    }
 }
 
 
