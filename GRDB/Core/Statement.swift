@@ -244,7 +244,7 @@ public final class SelectStatement : Statement {
     }
     
     /// Creates a DatabaseSequence
-    func fetchSequence<Element>(arguments: StatementArguments? = nil, element: @escaping () -> Element) -> DatabaseSequence<Element> {
+    func fetchSequence<Element>(arguments: StatementArguments? = nil, _ element: @escaping () -> Element) -> DatabaseSequence<Element> {
         // Force arguments validity. See UpdateStatement.execute(), and Database.execute()
         try! prepare(withArguments: arguments)
         return DatabaseSequence(statement: self, element: element)
@@ -273,8 +273,7 @@ public struct DatabaseSequence<Element>: Sequence {
                     return element()
                 case let errorCode:
                     let statement = statementRef.takeUnretainedValue()
-                    try! { throw DatabaseError(code: errorCode, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments) }()
-                    preconditionFailure()
+                    throw DatabaseError(code: errorCode, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
                 }
             }
         }
@@ -305,10 +304,10 @@ public struct DatabaseSequence<Element>: Sequence {
 public final class DatabaseIterator<Element>: IteratorProtocol {
     private let statementRef: Unmanaged<SelectStatement>?
     private let sqliteStatement: SQLiteStatement?
-    private let element: ((SQLiteStatement, Unmanaged<SelectStatement>) -> Element?)?
+    private let element: ((SQLiteStatement, Unmanaged<SelectStatement>) throws -> Element?)?
     
     // Iterator takes ownership of statementRef
-    init(statementRef: Unmanaged<SelectStatement>, element: @escaping (SQLiteStatement, Unmanaged<SelectStatement>) -> Element?) {
+    init(statementRef: Unmanaged<SelectStatement>, element: @escaping (SQLiteStatement, Unmanaged<SelectStatement>) throws -> Element?) {
         self.statementRef = statementRef
         self.sqliteStatement = statementRef.takeUnretainedValue().sqliteStatement
         self.element = element
@@ -324,11 +323,13 @@ public final class DatabaseIterator<Element>: IteratorProtocol {
         statementRef?.release()
     }
     
+    public func step() throws -> Element? {
+        guard let element = element else { return nil }
+        return try element(sqliteStatement.unsafelyUnwrapped, statementRef.unsafelyUnwrapped)
+    }
+    
     public func next() -> Element? {
-        guard let element = element else {
-            return nil
-        }
-        return element(sqliteStatement.unsafelyUnwrapped, statementRef.unsafelyUnwrapped)
+        return try! step()
     }
 }
 
