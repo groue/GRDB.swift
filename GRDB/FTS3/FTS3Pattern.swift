@@ -1,4 +1,4 @@
-/// A match pattern for a FTS3 or FTS4 virtual table
+/// A full text pattern that can query FTS3 and FTS4 virtual tables.
 public struct FTS3Pattern {
     
     /// The raw pattern string. Guaranteed to be a valid FTS3/4 pattern.
@@ -7,20 +7,27 @@ public struct FTS3Pattern {
     /// Creates a pattern from a raw pattern string; throws DatabaseError on
     /// invalid syntax.
     ///
+    /// The pattern syntax is documented at https://www.sqlite.org/fts3.html#full_text_index_queries
+    ///
     ///     try FTS3Pattern(rawPattern: "and") // OK
     ///     try FTS3Pattern(rawPattern: "AND") // malformed MATCH expression: [AND]
     public init(rawPattern: String) throws {
+        // Correctness above all: use SQLite to validate the pattern.
+        //
         // Invalid patterns have SQLite return an error on the first
-        // call to sqlite3_step() on a statement that involves that pattern.
+        // call to sqlite3_step() on a statement that matches against
+        // that pattern.
         do {
             try DatabaseQueue().inDatabase { db in
                 try db.execute("CREATE VIRTUAL TABLE documents USING fts3()")
-                let statement = try db.makeSelectStatement("SELECT * FROM documents WHERE content MATCH ?")
-                try statement.fetchSequence(arguments: [rawPattern], element: {}).makeIterator().step()
+                try db.makeSelectStatement("SELECT * FROM documents WHERE content MATCH ?")
+                    .fetchSequence(arguments: [rawPattern], element: { /* void (ignored) sequence element */ })
+                    .makeIterator()
+                    .step() // <- invokes sqlite3_step(), throws on invalid pattern
             }
         } catch let error as DatabaseError {
-            // Hide private SQL and arguments from rethrown error
-            throw DatabaseError(code: error.code, message: error.message)
+            // Remove private SQL & arguments from the thrown error
+            throw DatabaseError(code: error.code, message: error.message, sql: nil, arguments: nil)
         }
         
         // Pattern is valid
@@ -32,11 +39,12 @@ public struct FTS3Pattern {
     ///
     ///     FTS3Pattern(matchingAnyTokenIn: "")        // nil
     ///     FTS3Pattern(matchingAnyTokenIn: "foo bar") // foo OR bar
-    ///
-    /// - parameter string: The tokenized string
-    /// - parameter tokenizer: The tokenizer to use
-    public init?(matchingAnyTokenIn string: String, tokenizer: String) {
-        let tokens = FTS3Pattern.tokens(in: string, tokenizer: tokenizer)
+    public init?(matchingAnyTokenIn string: String) {
+        // Tokenize with the simple tokenizer, because it does not lose
+        // information used by other tokenizers, and turns special syntax
+        // elements such as "AND" and "OR" into their neutral lowercase
+        // equivalents.
+        let tokens = FTS3Pattern.tokenize(string, tokenizer: "simple")
         let uniqueTokens = Set(tokens)
         guard !uniqueTokens.isEmpty else { return nil }
         try? self.init(rawPattern: uniqueTokens.joined(separator: " OR "))
@@ -47,11 +55,9 @@ public struct FTS3Pattern {
     ///
     ///     FTS3Pattern(matchingAllTokensIn: "")        // nil
     ///     FTS3Pattern(matchingAllTokensIn: "foo bar") // foo AND bar
-    ///
-    /// - parameter string: The tokenized string
-    /// - parameter tokenizer: The tokenizer to use
-    public init?(matchingAllTokensIn string: String, tokenizer: String) {
-        let tokens = FTS3Pattern.tokens(in: string, tokenizer: tokenizer)
+    public init?(matchingAllTokensIn string: String) {
+        // See init(matchingAnyTokenIn:) comment on the choice of the "simple" tokenizer
+        let tokens = FTS3Pattern.tokenize(string, tokenizer: "simple")
         let uniqueTokens = Set(tokens)
         guard !uniqueTokens.isEmpty else { return nil }
         try? self.init(rawPattern: uniqueTokens.joined(separator: " AND "))
@@ -62,18 +68,23 @@ public struct FTS3Pattern {
     ///
     ///     FTS3Pattern(matchingPhrase: "")        // nil
     ///     FTS3Pattern(matchingPhrase: "foo bar") // "foo bar"
-    ///
-    /// - parameter string: The tokenized string
-    /// - parameter tokenizer: The tokenizer to use
-    public init?(matchingPhrase string: String, tokenizer: String) {
-        let tokens = FTS3Pattern.tokens(in: string, tokenizer: tokenizer)
+    public init?(matchingPhrase string: String) {
+        // See init(matchingAnyTokenIn:) comment on the choice of the "simple" tokenizer
+        let tokens = FTS3Pattern.tokenize(string, tokenizer: "simple")
         guard !tokens.isEmpty else { return nil }
         try? self.init(rawPattern: "\"" + tokens.joined(separator: " ") + "\"")
     }
     
-    private static func tokens(in string: String, tokenizer: String) -> [String] {
+    /// Returns an array of tokens found in the string argument.
+    ///
+    ///     FTS3Pattern.tokenize("foo bar") // ["foo", "bar"]
+    ///
+    /// Tokens are extracted with the "simple" tokenizer.
+    ///
+    /// See https://www.sqlite.org/fts3.html#tokenizer
+    private static func tokenize(_ string: String, tokenizer: String) -> [String] {
         return DatabaseQueue().inDatabase { db in
-            try! db.execute("CREATE VIRTUAL TABLE tokens USING fts3tokenize(\(tokenizer.sqlExpression.sql))")
+            try! db.execute("CREATE VIRTUAL TABLE tokens USING fts3tokenize(\(tokenizer.sqlExpression.sql))")   // literal tokenizer required
             return String.fetchAll(db, "SELECT token FROM tokens WHERE input = ? ORDER BY position", arguments: [string])
         }
     }

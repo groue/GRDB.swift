@@ -210,13 +210,10 @@ extension DatabaseValue : SQLExpression {
             arguments!.values.append(self)
             return "?"
         } else {
-            // Slow but reliable implementation.
-            return DatabaseValue.quotingConnection.inDatabase { String.fetchOne($0, "SELECT QUOTE(?)", arguments: [self])! }
+            // Correctness above all: use SQLite to quote the value.
+            return DatabaseQueue().inDatabase { String.fetchOne($0, "SELECT QUOTE(?)", arguments: [self])! }
         }
     }
-    
-    // Support for DatabaseValue.expressionSQL(&nil)
-    private static let quotingConnection: DatabaseQueue = DatabaseQueue()
 }
 
 
