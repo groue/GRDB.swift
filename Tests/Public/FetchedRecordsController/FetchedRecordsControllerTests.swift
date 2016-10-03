@@ -68,7 +68,7 @@ private class Person : Record {
     }
 }
 
-struct Book : RowConvertible {
+private struct Book : RowConvertible {
     var id: Int64
     var authorID: Int64
     var title: String
