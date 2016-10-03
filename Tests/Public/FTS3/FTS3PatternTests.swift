@@ -7,7 +7,7 @@ import XCTest
     import GRDB
 #endif
 
-class FTS3Tests: GRDBTestCase {
+class FTS3PatternTests: GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
         try dbWriter.write { db in
