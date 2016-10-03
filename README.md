@@ -3028,11 +3028,11 @@ Ready?
 
 ### FTS3 and FTS4
 
-To create an FTS3/4 virtual table, [execute](#executing-updates) an SQL statement:
+To create an FTS3/4 virtual table, [execute](#executing-updates) an SQL statement (see [Creating and Destroying FTS Tables](https://www.sqlite.org/fts3.html#creating_and_destroying_fts_tables)):
 
 ```swift
 try dbQueue.inDatabase { db in
-    try db.execute("CREATE VIRTUAL TABLE documents USING FTS4(content TEXT)")
+    try db.execute("CREATE VIRTUAL TABLE documents USING FTS4(content)")
 }
 ```
 
@@ -3068,7 +3068,7 @@ The first initializer may throw a [DatabaseError](#databaseerror): it validates 
 
 ```swift
 let pattern = try FTS3Pattern(rawPattern: "sqlite AND database") // OK
-let pattern = try FTS3Pattern(rawPattern: "AND") // DatabaseError
+let pattern = try FTS3Pattern(rawPattern: "AND")                 // DatabaseError
 ```
 
 The three other initializers don't throw. They build a valid pattern from any string, including strings provided by users of your application. They let you find documents that match all given words, any given word, or a full phrase, depending on the needs of your application:
@@ -3086,8 +3086,8 @@ let pattern = FTS3Pattern(matchingPhrase: query)
 They return nil when no pattern could be built from the input string:
 
 ```swift
-let pattern = FTS3Pattern(matchingAnyTokenIn: "")    // nil
-let pattern = FTS3Pattern(matchingAnyTokenIn: " * ") // nil
+let pattern = FTS3Pattern(matchingAnyTokenIn: "")  // nil
+let pattern = FTS3Pattern(matchingAnyTokenIn: "*") // nil
 ```
 
 FTS3Pattern are regular [values](#values). You can use them as query arguments:
