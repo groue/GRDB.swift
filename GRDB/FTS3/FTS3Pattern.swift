@@ -77,11 +77,7 @@ public struct FTS3Pattern {
     
     /// Returns an array of tokens found in the string argument.
     ///
-    ///     FTS3Pattern.tokenize("foo bar") // ["foo", "bar"]
-    ///
-    /// Tokens are extracted with the "simple" tokenizer.
-    ///
-    /// See https://www.sqlite.org/fts3.html#tokenizer
+    ///     FTS3Pattern.tokenize("foo bar", tokenizer: "simple") // ["foo", "bar"]
     private static func tokenize(_ string: String, tokenizer: String) -> [String] {
         return DatabaseQueue().inDatabase { db in
             try! db.execute("CREATE VIRTUAL TABLE tokens USING fts3tokenize(\(tokenizer.sqlExpression.sql))")   // literal tokenizer required
