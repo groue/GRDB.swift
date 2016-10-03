@@ -1,3 +1,5 @@
+- [ ] FTS tests: "e+acute" vs "é"
+- [ ] FTS: deal with hidden docid. Select docid, * from..., didInsertWith... etc.
 - [ ] Store dates as timestamp (https://twitter.com/gloparco/status/780948021613912064, https://github.com/groue/GRDB.swift/issues/97)
     - Global config?
     
