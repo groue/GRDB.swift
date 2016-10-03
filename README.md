@@ -3036,14 +3036,7 @@ try dbQueue.inDatabase { db in
 }
 ```
 
-Insert documents:
-
-```swift
-try dbQueue.inDatabase { db in
-    let content = "Call me Ishmael. ..."
-    try db.execute("INSERT INTO documents (content) VALUES (?)", arguments: [content])
-}
-```
+Virtual tables are fed like other tables, using [SQL](#executing-updates), or [records](#records).
 
 To perform a full-text search, you use the MATCH operator. The value on the right is a *search pattern* that can perform various queries:
 
