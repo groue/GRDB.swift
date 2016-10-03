@@ -783,3 +783,11 @@ extension SQLSpecificExpressible {
         return SQLExpressionBinary(.like, self, pattern)
     }
 }
+
+
+// MARK: - Match Operator
+
+extension SQLBinaryOperator {
+    /// The `MATCH` binary operator
+    static let match = SQLBinaryOperator("MATCH")
+}

@@ -110,3 +110,8 @@ extension FTS3Pattern : DatabaseValueConvertible {
             .flatMap { try? FTS3Pattern(rawPattern: $0) }
     }
 }
+
+/// TODO
+public func ~= (_ lhs: FTS3Pattern, _ rhs: Column) -> SQLExpression {
+    return SQLExpressionBinary(.match, rhs, lhs)
+}
