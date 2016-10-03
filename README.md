@@ -35,6 +35,7 @@ GRDB ships with a **low-level SQLite API**, and high-level tools that help deali
 - **Database Changes Observation**: perform post-commit and post-rollback actions
 - **Fetched Records Controller**: automated tracking of changes in a query results, and UITableView animations
 - **Encryption** with SQLCipher (:warning: not currently supported with Swift 3)
+- **Full-Text Search**
 - **Support for custom SQLite builds**
 
 More than a set of tools that leverage SQLite abilities, GRDB is also:
@@ -185,6 +186,7 @@ Documentation
 **Application Tools**
 
 - [Migrations](#migrations): Transform your database as your application evolves.
+- [Full-Text Search](#full-text-search)
 - [Database Changes Observation](#database-changes-observation): Perform post-commit and post-rollback actions.
 - [FetchedRecordsController](#fetchedrecordscontroller): Automatic database changes tracking, plus UITableView animations.
 - [Encryption](#encryption): Encrypt your database with SQLCipher.
@@ -847,6 +849,8 @@ GRDB ships with built-in support for the following value types:
 - **CoreGraphics**: CGFloat.
 
 - **[DatabaseValue](#databasevalue)**, the type which gives information about the raw value stored in the database.
+
+- **[FTS3Pattern](#full-text-search)**, involved in full-text searches.
 
 - Generally speaking, all types that adopt the [DatabaseValueConvertible](#custom-value-types) protocol.
 
@@ -2624,17 +2628,6 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     
     > :point_up: **Note**: SQLite string comparison, by default, is case-sensitive and not Unicode-aware. See [string comparison](#string-comparison) if you need more control.
 
-- `LIKE`
-    
-    The SQLite LIKE operator is available as the `like` method:
-    
-    ```swift
-    // SELECT * FROM persons WHERE (email LIKE '%@example.com')
-    Person.filter(emailColumn.like("%@example.com"))
-    ```
-    
-    > :point_up: **Note**: the SQLite LIKE operator is case-unsensitive but not Unicode-aware. For example, the expression `'a' LIKE 'A'` is true but `'æ' LIKE 'Æ'` is false.
-
 - `*`, `/`, `+`, `-`
     
     SQLite arithmetic operators are derived from their Swift equivalent:
@@ -2701,6 +2694,28 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Person.filter(Book.filter(sql: "books.ownerId = persons.id").exists)
     ```
 
+- `LIKE`
+    
+    The SQLite LIKE operator is available as the `like` method:
+    
+    ```swift
+    // SELECT * FROM persons WHERE (email LIKE '%@example.com')
+    Person.filter(emailColumn.like("%@example.com"))
+    ```
+    
+    > :point_up: **Note**: the SQLite LIKE operator is case-unsensitive but not Unicode-aware. For example, the expression `'a' LIKE 'A'` is true but `'æ' LIKE 'Æ'` is false.
+
+- `MATCH`
+    
+    The SQLite MATCH operator is available with the `~=` Swift operator:
+    
+    ```swift
+    // SELECT * FROM documents WHERE content MATCH 'sqlite AND database'
+    let pattern = FTS3Pattern(matchingAllTokensIn: "SQLite database")
+    Document.filter(pattern ~= contentColumn)
+    ```
+    
+    The FTS3Pattern type is documented in [Full-Text Search](#full-text-search).
 
 ### SQL Functions
 
@@ -2928,6 +2943,7 @@ Application Tools
 On top of the APIs described above, GRDB provides a toolkit for applications. While none of those are mandatory, all of them help dealing with the database:
 
 - [Migrations](#migrations): Transform your database as your application evolves.
+- [Full-Text Search](#full-text-search)
 - [Database Changes Observation](#database-changes-observation): Perform post-commit and post-rollback actions.
 - [FetchedRecordsController](#fetchedrecordscontroller): Automatic database changes tracking, plus UITableView animations.
 - [Encryption](#encryption): Encrypt your database with SQLCipher.
@@ -2992,6 +3008,115 @@ migrator.registerMigrationWithDisabledForeignKeyChecks("AddNotNullCheckOnName") 
 ```
 
 While your migration code runs with disabled foreign key checks, those are re-enabled and checked at the end of the migration, regardless of eventual errors.
+
+
+## Full-Text Search
+
+Quoting [SQLite documentation](https://www.sqlite.org/fts3.html):
+
+> The most common (and effective) way to describe full-text searches is "what Google, Yahoo, and Bing do with documents placed on the World Wide Web".
+
+Well, GRDB aims at helping you providing this kind of service to the users of your application. The setup is not as trivial, though.
+
+This part of the documentation targets readers who have an idea of the full-text features of SQLite. If you know nothing yet, go Google for some information, and read the [SQLite full-text documentation](https://www.sqlite.org/fts3.html).
+
+Ready?
+
+- [FTS3 and FTS4](#fts3-and-fts4)
+- [FTS5](#fts5)
+
+
+### FTS3 and FTS4
+
+To create an FTS3/4 virtual table, [execute](#executing-updates) an SQL statement:
+
+```swift
+try dbQueue.inDatabase { db in
+    try db.execute("CREATE VIRTUAL TABLE documents USING FTS4(content TEXT)")
+}
+```
+
+Insert documents:
+
+```swift
+try dbQueue.inDatabase { db in
+    let content = "Call me Ishmael. ..."
+    try db.execute("INSERT INTO documents (content) VALUES (?)", arguments: [content])
+}
+```
+
+To perform a full-text search, you use the MATCH operator. The value on the right is a *search pattern* that can perform various queries:
+
+```sql
+-- All documents that contain "database"
+SELECT * FROM documents WHERE content MATCH 'database'
+-- All documents that contain a word starting with "data"
+SELECT * FROM documents WHERE content MATCH 'data*'
+-- All documents that contain "sqlite" and "database"
+SELECT * FROM documents WHERE content MATCH 'sqlite AND database'
+-- All documents that contain the "SQLite database" phrase:
+SELECT * FROM documents WHERE content MATCH '"SQLite database"'
+```
+
+Not all search patterns are valid: they must follow the [Full-Text Index Queries Grammar](https://www.sqlite.org/fts3.html#full_text_index_queries).
+
+GRDB provides the FTS3Pattern type which helps you building patterns that are valid for both FTS3 and FTS4 virtual tables:
+
+```swift
+struct FTS3Pattern {
+    init(rawPattern: String) throws
+    init?(matchingAnyTokenIn string: String)
+    init?(matchingAllTokensIn string: String)
+    init?(matchingPhrase string: String)
+}
+```
+
+The first initializer validates your raw patterns against the query grammar:
+
+```swift
+let pattern = try FTS3Pattern(rawPattern: "sqlite AND database") // OK
+let pattern = try FTS3Pattern(rawPattern: "AND") // DatabaseError
+```
+
+The three other initializers build a valid pattern from any string, including strings provided by users of your application. They let you find documents that match all given words, any given word, or a full phrase:
+
+```swift
+let query = "SQLite database"
+// Matches documents that contain "SQLite" or "database"
+let pattern = try FTS3Pattern(matchingAnyTokenIn: query)
+// Matches documents that contain "SQLite" and "database"
+let pattern = try FTS3Pattern(matchingAllTokensIn: query)
+// Matches documents that contain "SQLite database"
+let pattern = try FTS3Pattern(matchingPhrase: query)
+```
+
+They return nil when no pattern could be built from the input string:
+
+```swift
+let pattern = try FTS3Pattern(matchingAnyTokenIn: "")    // nil
+let pattern = try FTS3Pattern(matchingAnyTokenIn: " * ") // nil
+```
+
+FTS3Pattern are regular [values](#values). You can use them as query arguments:
+
+```swift
+let documents = Document.fetchAll(db,
+    "SELECT * FROM documents WHERE content MATCH ?",
+    arguments: [pattern])
+```
+
+Use them in the [query interface](#the-query-interface) with the `~=` operator:
+
+```swift
+let documents = Document.filter(pattern ~= Column("content").fetchAll(db)
+```
+
+
+### FTS5
+
+A [custom SQLite build](#custom-sqlite-builds) can activate the [FTS5](https://sqlite.org/fts5.html) full-text engine.
+
+GRDB provides no support for it at the present time. This may change in the future.
 
 
 ## Database Changes Observation
