@@ -3814,6 +3814,26 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     try Person.filter(Column("email") == "arthur@example.com").deleteAll(db)
     ```
 
+- A full-text search is performed with an invalid full-text pattern:
+    
+    ```swift
+    // fatal error: malformed MATCH expression
+    let pattern: String = ...
+    let documents = Document.fetchAll(db,
+        "SELECT * FROM documents WHERE content MATCH ?",
+        arguments: [pattern])
+    ```
+    
+    Solution: validate the search pattern with the [FTS3Pattern](#full-text-search) type:
+    
+    ```swift
+    if let pattern = FTS3Pattern(matchingAllTokensIn: ...) {
+        let documents = Document.fetchAll(db,
+            "SELECT * FROM documents WHERE content MATCH ?",
+            arguments: [pattern])
+    }
+    ```
+
 - Database connections are not reentrant:
     
     ```swift
