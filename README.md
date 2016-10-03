@@ -3075,7 +3075,7 @@ The three other initializers don't throw. They build a valid pattern from any st
 let query = "SQLite database"
 // Matches documents that contain "SQLite" or "database"
 let pattern = FTS3Pattern(matchingAnyTokenIn: query)
-// Matches documents that contain "SQLite" and "database"
+// Matches documents that contain both "SQLite" and "database"
 let pattern = FTS3Pattern(matchingAllTokensIn: query)
 // Matches documents that contain "SQLite database"
 let pattern = FTS3Pattern(matchingPhrase: query)
