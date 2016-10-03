@@ -27,9 +27,12 @@ class FTS3PatternTests: GRDBTestCase {
                 let validRawPatterns: [(String, Int)] = [
                     // Empty query
                     ("", 0),
+                    ("?!", 0),
                     // Token queries
                     ("Moby", 1),
                     ("écarlates", 1),
+                    ("\u{00E9}carlates", 1), // NFC
+                    ("\u{0065}\u{0301}carlates", 0), // NFD
                     ("fooéı👨👨🏿🇫🇷🇨🇮", 0),
                     // Prefix queries
                     ("*", 0),
@@ -72,10 +75,10 @@ class FTS3PatternTests: GRDBTestCase {
     }
     
     func testFTS3PatternWithAnyToken() {
-        let wrongInputs = ["", "*", "^", " ", "(", "()", "\""]
+        let wrongInputs = ["", "*", "^", " ", "(", "()", "\"", "?!"]
         for string in wrongInputs {
             if let pattern = FTS3Pattern(matchingAnyTokenIn: string) {
-                let rawPattern = String.fromDatabaseValue(pattern.databaseValue)
+                let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
                 XCTFail("Unexpected raw pattern \(String(reflecting: rawPattern)) from string \(String(reflecting: string))")
             }
         }
@@ -85,7 +88,9 @@ class FTS3PatternTests: GRDBTestCase {
             dbQueue.inDatabase { db in
                 // Couples (pattern, expected raw pattern, expected count of matching rows)
                 let cases = [
-                    ("Moby", "moby", 1),
+                    ("écarlates", "écarlates", 1),
+                    ("\u{00E9}carlates", "écarlates", 1), // NFC
+                    ("\u{0065}\u{0301}carlates", "écarlates", 0), // NFD
                     ("^Moby*", "moby", 1),
                     (" \t\nyears \t\nmonths \t\n", "years OR months", 2),
                     ("\"years months days\"", "years OR months OR days", 2),
@@ -93,7 +98,7 @@ class FTS3PatternTests: GRDBTestCase {
                 ]
                 for (string, expectedRawPattern, expectedCount) in cases {
                     if let pattern = FTS3Pattern(matchingAnyTokenIn: string) {
-                        let rawPattern = String.fromDatabaseValue(pattern.databaseValue)
+                        let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
                         XCTAssertEqual(rawPattern, expectedRawPattern)
                         let count = Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
                         XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
@@ -104,10 +109,10 @@ class FTS3PatternTests: GRDBTestCase {
     }
     
     func testFTS3PatternWithAllTokens() {
-        let wrongInputs = ["", "*", "^", " ", "(", "()", "\""]
+        let wrongInputs = ["", "*", "^", " ", "(", "()", "\"", "?!"]
         for string in wrongInputs {
             if let pattern = FTS3Pattern(matchingAllTokensIn: string) {
-                let rawPattern = String.fromDatabaseValue(pattern.databaseValue)
+                let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
                 XCTFail("Unexpected raw pattern \(String(reflecting: rawPattern)) from string \(String(reflecting: string))")
             }
         }
@@ -117,7 +122,9 @@ class FTS3PatternTests: GRDBTestCase {
             dbQueue.inDatabase { db in
                 // Couples (pattern, expected raw pattern, expected count of matching rows)
                 let cases = [
-                    ("Moby", "moby", 1),
+                    ("écarlates", "écarlates", 1),
+                    ("\u{00E9}carlates", "écarlates", 1), // NFC
+                    ("\u{0065}\u{0301}carlates", "écarlates", 0), // NFD
                     ("^Moby*", "moby", 1),
                     (" \t\nyears \t\nmonths \t\n", "years AND months", 1),
                     ("\"years months days\"", "years AND months AND days", 1),
@@ -125,7 +132,7 @@ class FTS3PatternTests: GRDBTestCase {
                     ]
                 for (string, expectedRawPattern, expectedCount) in cases {
                     if let pattern = FTS3Pattern(matchingAllTokensIn: string) {
-                        let rawPattern = String.fromDatabaseValue(pattern.databaseValue)
+                        let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
                         XCTAssertEqual(rawPattern, expectedRawPattern)
                         let count = Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
                         XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
@@ -136,10 +143,10 @@ class FTS3PatternTests: GRDBTestCase {
     }
     
     func testFTS3PatternWithPhrase() {
-        let wrongInputs = ["", "*", "^", " ", "(", "()", "\""]
+        let wrongInputs = ["", "*", "^", " ", "(", "()", "\"", "?!"]
         for string in wrongInputs {
             if let pattern = FTS3Pattern(matchingPhrase: string) {
-                let rawPattern = String.fromDatabaseValue(pattern.databaseValue)
+                let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
                 XCTFail("Unexpected raw pattern \(String(reflecting: rawPattern)) from string \(String(reflecting: string))")
             }
         }
@@ -149,7 +156,9 @@ class FTS3PatternTests: GRDBTestCase {
             dbQueue.inDatabase { db in
                 // Couples (pattern, expected raw pattern, expected count of matching rows)
                 let cases = [
-                    ("Moby", "\"moby\"", 1),
+                    ("écarlates", "\"écarlates\"", 1),
+                    ("\u{00E9}carlates", "\"écarlates\"", 1), // NFC
+                    ("\u{0065}\u{0301}carlates", "\"écarlates\"", 0), // NFD
                     ("^Moby*", "\"moby\"", 1),
                     (" \t\nyears \t\nmonths \t\n", "\"years months\"", 0),
                     ("\"years months days\"", "\"years months days\"", 0),
@@ -157,7 +166,7 @@ class FTS3PatternTests: GRDBTestCase {
                     ]
                 for (string, expectedRawPattern, expectedCount) in cases {
                     if let pattern = FTS3Pattern(matchingPhrase: string) {
-                        let rawPattern = String.fromDatabaseValue(pattern.databaseValue)
+                        let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
                         XCTAssertEqual(rawPattern, expectedRawPattern)
                         let count = Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
                         XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
