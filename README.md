@@ -3043,7 +3043,7 @@ To perform a full-text search, you use the MATCH operator. The value on the righ
 SELECT * FROM documents WHERE content MATCH 'database'
 -- All documents that contain a word starting with "data"
 SELECT * FROM documents WHERE content MATCH 'data*'
--- All documents that contain "sqlite" and "database"
+-- All documents that contain both "sqlite" and "database"
 SELECT * FROM documents WHERE content MATCH 'sqlite AND database'
 -- All documents that contain the "SQLite database" phrase:
 SELECT * FROM documents WHERE content MATCH '"SQLite database"'
