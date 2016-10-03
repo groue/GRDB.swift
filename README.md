@@ -3016,8 +3016,6 @@ Quoting [SQLite documentation](https://www.sqlite.org/fts3.html):
 
 > The most common (and effective) way to describe full-text searches is "what Google, Yahoo, and Bing do with documents placed on the World Wide Web".
 
-Well, GRDB aims at helping you providing this kind of service to the users of your application. The setup is not as trivial, though.
-
 This part of the documentation targets readers who have an idea of the full-text features of SQLite. If you know nothing yet, go Google for some information, and read the [SQLite full-text documentation](https://www.sqlite.org/fts3.html).
 
 Ready?
