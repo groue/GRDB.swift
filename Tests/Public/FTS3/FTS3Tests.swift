@@ -50,7 +50,7 @@ class FTS3Tests: GRDBTestCase {
                 ]
                 for (rawPattern, expectedCount) in validRawPatterns {
                     let pattern = try FTS3Pattern(rawPattern: rawPattern)
-                    let count = Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])
+                    let count = Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
                     XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
                 }
             }
@@ -67,6 +67,102 @@ class FTS3Tests: GRDBTestCase {
                 
             } catch {
                 XCTFail("Expected DatabaseError, not \(error)")
+            }
+        }
+    }
+    
+    func testFTS3PatternWithAnyToken() {
+        let wrongInputs = ["", "*", "^", " ", "(", "()", "\""]
+        for string in wrongInputs {
+            if let pattern = FTS3Pattern(matchingAnyTokenIn: string) {
+                let rawPattern = String.fromDatabaseValue(pattern.databaseValue)
+                XCTFail("Unexpected raw pattern \(String(reflecting: rawPattern)) from string \(String(reflecting: string))")
+            }
+        }
+        
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                // Couples (pattern, expected raw pattern, expected count of matching rows)
+                let cases = [
+                    ("Moby", "moby", 1),
+                    ("^Moby*", "moby", 1),
+                    (" \t\nyears \t\nmonths \t\n", "years OR months", 2),
+                    ("\"years months days\"", "years OR months OR days", 2),
+                    ("FOOÉı👨👨🏿🇫🇷🇨🇮", "fooÉı👨👨🏿🇫🇷🇨🇮", 0),
+                ]
+                for (string, expectedRawPattern, expectedCount) in cases {
+                    if let pattern = FTS3Pattern(matchingAnyTokenIn: string) {
+                        let rawPattern = String.fromDatabaseValue(pattern.databaseValue)
+                        XCTAssertEqual(rawPattern, expectedRawPattern)
+                        let count = Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
+                        XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
+                    }
+                }
+            }
+        }
+    }
+    
+    func testFTS3PatternWithAllTokens() {
+        let wrongInputs = ["", "*", "^", " ", "(", "()", "\""]
+        for string in wrongInputs {
+            if let pattern = FTS3Pattern(matchingAllTokensIn: string) {
+                let rawPattern = String.fromDatabaseValue(pattern.databaseValue)
+                XCTFail("Unexpected raw pattern \(String(reflecting: rawPattern)) from string \(String(reflecting: string))")
+            }
+        }
+        
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                // Couples (pattern, expected raw pattern, expected count of matching rows)
+                let cases = [
+                    ("Moby", "moby", 1),
+                    ("^Moby*", "moby", 1),
+                    (" \t\nyears \t\nmonths \t\n", "years AND months", 1),
+                    ("\"years months days\"", "years AND months AND days", 1),
+                    ("FOOÉı👨👨🏿🇫🇷🇨🇮", "fooÉı👨👨🏿🇫🇷🇨🇮", 0),
+                    ]
+                for (string, expectedRawPattern, expectedCount) in cases {
+                    if let pattern = FTS3Pattern(matchingAllTokensIn: string) {
+                        let rawPattern = String.fromDatabaseValue(pattern.databaseValue)
+                        XCTAssertEqual(rawPattern, expectedRawPattern)
+                        let count = Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
+                        XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
+                    }
+                }
+            }
+        }
+    }
+    
+    func testFTS3PatternWithPhrase() {
+        let wrongInputs = ["", "*", "^", " ", "(", "()", "\""]
+        for string in wrongInputs {
+            if let pattern = FTS3Pattern(matchingPhrase: string) {
+                let rawPattern = String.fromDatabaseValue(pattern.databaseValue)
+                XCTFail("Unexpected raw pattern \(String(reflecting: rawPattern)) from string \(String(reflecting: string))")
+            }
+        }
+        
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                // Couples (pattern, expected raw pattern, expected count of matching rows)
+                let cases = [
+                    ("Moby", "\"moby\"", 1),
+                    ("^Moby*", "\"moby\"", 1),
+                    (" \t\nyears \t\nmonths \t\n", "\"years months\"", 0),
+                    ("\"years months days\"", "\"years months days\"", 0),
+                    ("FOOÉı👨👨🏿🇫🇷🇨🇮", "\"fooÉı👨👨🏿🇫🇷🇨🇮\"", 0),
+                    ]
+                for (string, expectedRawPattern, expectedCount) in cases {
+                    if let pattern = FTS3Pattern(matchingPhrase: string) {
+                        let rawPattern = String.fromDatabaseValue(pattern.databaseValue)
+                        XCTAssertEqual(rawPattern, expectedRawPattern)
+                        let count = Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
+                        XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
+                    }
+                }
             }
         }
     }

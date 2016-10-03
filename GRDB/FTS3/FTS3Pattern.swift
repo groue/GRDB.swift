@@ -45,9 +45,8 @@ public struct FTS3Pattern {
         // elements such as "AND" and "OR" into their neutral lowercase
         // equivalents.
         let tokens = FTS3Pattern.tokenize(string, tokenizer: "simple")
-        let uniqueTokens = Set(tokens)
-        guard !uniqueTokens.isEmpty else { return nil }
-        try? self.init(rawPattern: uniqueTokens.joined(separator: " OR "))
+        guard !tokens.isEmpty else { return nil }
+        try? self.init(rawPattern: tokens.joined(separator: " OR "))
     }
     
     /// Creates a pattern that matches all tokens found in the input string;
@@ -58,9 +57,8 @@ public struct FTS3Pattern {
     public init?(matchingAllTokensIn string: String) {
         // See init(matchingAnyTokenIn:) comment on the choice of the "simple" tokenizer
         let tokens = FTS3Pattern.tokenize(string, tokenizer: "simple")
-        let uniqueTokens = Set(tokens)
-        guard !uniqueTokens.isEmpty else { return nil }
-        try? self.init(rawPattern: uniqueTokens.joined(separator: " AND "))
+        guard !tokens.isEmpty else { return nil }
+        try? self.init(rawPattern: tokens.joined(separator: " AND "))
     }
     
     /// Creates a pattern that matches a contiguous string; returns nil if no
