@@ -46,13 +46,27 @@ class FTS3Tests: GRDBTestCase {
                     // Logical queries
                     ("years NOT months", 1),
                     ("years AND months", 1),
-                    ("years OR months", 2)
+                    ("years OR months", 2),
                 ]
                 for (rawPattern, expectedCount) in validRawPatterns {
                     let pattern = try FTS3Pattern(rawPattern: rawPattern)
                     let count = Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])
                     XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
                 }
+            }
+        }
+    }
+    
+    func testInvalidFTS3Pattern() {
+        let invalidRawPatterns = ["NOT", "(", "AND", "OR", "\""]
+        for rawPattern in invalidRawPatterns {
+            do {
+                _ = try FTS3Pattern(rawPattern: rawPattern)
+                XCTFail("Expected pattern to be invalid: \(String(reflecting: rawPattern))")
+            } catch is DatabaseError {
+                
+            } catch {
+                XCTFail("Expected DatabaseError, not \(error)")
             }
         }
     }
