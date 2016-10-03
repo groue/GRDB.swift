@@ -3071,30 +3071,30 @@ struct FTS3Pattern {
 }
 ```
 
-The first initializer validates your raw patterns against the query grammar:
+The first initializer may throw a [DatabaseError](#databaseerror): it validates your raw patterns against the query grammar:
 
 ```swift
 let pattern = try FTS3Pattern(rawPattern: "sqlite AND database") // OK
 let pattern = try FTS3Pattern(rawPattern: "AND") // DatabaseError
 ```
 
-The three other initializers build a valid pattern from any string, including strings provided by users of your application. They let you find documents that match all given words, any given word, or a full phrase:
+The three other initializers don't throw. They build a valid pattern from any string, including strings provided by users of your application. They let you find documents that match all given words, any given word, or a full phrase, depending on the needs of your application:
 
 ```swift
 let query = "SQLite database"
 // Matches documents that contain "SQLite" or "database"
-let pattern = try FTS3Pattern(matchingAnyTokenIn: query)
+let pattern = FTS3Pattern(matchingAnyTokenIn: query)
 // Matches documents that contain "SQLite" and "database"
-let pattern = try FTS3Pattern(matchingAllTokensIn: query)
+let pattern = FTS3Pattern(matchingAllTokensIn: query)
 // Matches documents that contain "SQLite database"
-let pattern = try FTS3Pattern(matchingPhrase: query)
+let pattern = FTS3Pattern(matchingPhrase: query)
 ```
 
 They return nil when no pattern could be built from the input string:
 
 ```swift
-let pattern = try FTS3Pattern(matchingAnyTokenIn: "")    // nil
-let pattern = try FTS3Pattern(matchingAnyTokenIn: " * ") // nil
+let pattern = FTS3Pattern(matchingAnyTokenIn: "")    // nil
+let pattern = FTS3Pattern(matchingAnyTokenIn: " * ") // nil
 ```
 
 FTS3Pattern are regular [values](#values). You can use them as query arguments:
