@@ -1,13 +1,13 @@
-/// FTS3 lets you define "fts3" virtual tables.
+/// FTS4 lets you define "fts4" virtual tables.
 ///
-///     try db.create(virtualTable: "documents", using: FTS3()) { t in
+///     try db.create(virtualTable: "documents", using: FTS4()) { t in
 ///         t.column("content")
 ///     }
-public struct FTS3 : VirtualTableModule {
-    /// Creates a FTS3 module suitable for the Database
+public struct FTS4 : VirtualTableModule {
+    /// Creates a FTS4 module suitable for the Database
     /// `create(virtualTable:using:)` method.
     ///
-    ///     try db.create(virtualTable: "documents", using: FTS3()) { t in
+    ///     try db.create(virtualTable: "documents", using: FTS4()) { t in
     ///         t.column("content")
     ///     }
     public init() {
@@ -16,15 +16,15 @@ public struct FTS3 : VirtualTableModule {
     // MARK: - VirtualTableModule Adoption
     
     /// The virtual table module name
-    public let moduleName = "fts3"
+    public let moduleName = "fts4"
     
     /// Don't use this method.
-    public func makeTableDefinition() -> FTS3TableDefinition {
-        return FTS3TableDefinition()
+    public func makeTableDefinition() -> FTS4TableDefinition {
+        return FTS4TableDefinition()
     }
     
     /// Don't use this method.
-    public func moduleArguments(_ definition: FTS3TableDefinition) -> [String] {
+    public func moduleArguments(_ definition: FTS4TableDefinition) -> [String] {
         var arguments = definition.columns
         if let tokenizer = definition.tokenizer {
             if tokenizer.options.isEmpty {
@@ -37,27 +37,27 @@ public struct FTS3 : VirtualTableModule {
     }
 }
 
-/// The FTS3TableDefinition class lets you define columns of a FTS3 virtual table.
+/// The FTS4TableDefinition class lets you define columns of a FTS4 virtual table.
 ///
 /// You don't create instances of this class. Instead, you use the Database
 /// `create(virtualTable:using:)` method:
 ///
-///     try db.create(virtualTable: "documents", using: FTS3()) { t in // t is FTS3TableDefinition
+///     try db.create(virtualTable: "documents", using: FTS4()) { t in // t is FTS4TableDefinition
 ///         t.column("content")
 ///     }
-public final class FTS3TableDefinition : VirtualTableDefinition {
+public final class FTS4TableDefinition : VirtualTableDefinition {
     fileprivate var columns: [String] = []
     
     /// The virtual table tokenizer
     ///
-    ///     try db.create(virtualTable: "documents", using: FTS3()) { t in
+    ///     try db.create(virtualTable: "documents", using: FTS4()) { t in
     ///         t.tokenizer = .porter
     ///     }
     public var tokenizer: FTS3Tokenizer?
     
     /// Appends a table column.
     ///
-    ///     try db.create(virtualTable: "documents", using: FTS3()) { t in
+    ///     try db.create(virtualTable: "documents", using: FTS4()) { t in
     ///         t.column("content")
     ///     }
     ///
