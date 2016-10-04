@@ -1,7 +1,15 @@
 public struct FTS3 : VirtualTableModule {
     public let moduleName = "FTS3"
-    public typealias TableDefinition = FTS3TableDefinition
+    
     public init() {
+    }
+    
+    public func makeTableDefinition() -> FTS3TableDefinition {
+        return FTS3TableDefinition()
+    }
+    
+    public func moduleArguments(_ definition: FTS3TableDefinition) -> [String] {
+        return definition.columns
     }
 }
 
@@ -16,10 +24,7 @@ public struct FTS3 : VirtualTableModule {
 ///
 /// See https://www.sqlite.org/lang_createtable.html
 public final class FTS3TableDefinition : VirtualTableDefinition {
-    private var columns: [String] = []
-    
-    public init() {
-    }
+    fileprivate var columns: [String] = []
     
     /// Appends a table column.
     ///
@@ -35,9 +40,5 @@ public final class FTS3TableDefinition : VirtualTableDefinition {
     ///   column definition.
     public func column(_ name: String) {
         columns.append(name)
-    }
-    
-    public var moduleArguments: [String] {
-        return columns
     }
 }

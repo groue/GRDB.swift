@@ -1,12 +1,11 @@
 public protocol VirtualTableDefinition : class {
-    init()
-    var moduleArguments: [String] { get }
 }
 
 public protocol VirtualTableModule {
     associatedtype TableDefinition: VirtualTableDefinition
     var moduleName: String { get }
-    init()
+    func makeTableDefinition() -> TableDefinition
+    func moduleArguments(_ definition: TableDefinition) -> [String]
 }
 
 extension Database {
@@ -48,7 +47,7 @@ extension Database {
     ///     - body: A closure that defines table columns and constraints.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func create<Module: VirtualTableModule>(virtualTable name: String, ifNotExists: Bool = false, using module: Module, _ body: ((Module.TableDefinition) -> Void)? = nil) throws {
-        let definition = Module.TableDefinition()
+        let definition = module.makeTableDefinition()
         if let body = body {
             body(definition)
         }
@@ -60,7 +59,7 @@ extension Database {
         }
         chunks.append(name.quotedDatabaseIdentifier)
         chunks.append("USING")
-        let arguments = definition.moduleArguments
+        let arguments = module.moduleArguments(definition)
         if arguments.isEmpty {
             chunks.append(module.moduleName)
         } else {
