@@ -44,7 +44,7 @@ class FTS3RecordTests: GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
         try dbWriter.write { db in
-            try db.execute("CREATE VIRTUAL TABLE books USING fts4(title, author, body)")
+            try db.execute("CREATE VIRTUAL TABLE books USING fts3(title, author, body)")
         }
     }
     
