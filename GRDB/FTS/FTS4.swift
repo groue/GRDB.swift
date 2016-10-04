@@ -1,16 +1,46 @@
 /// FTS4 lets you define "fts4" virtual tables.
 ///
+///     // CREATE VIRTUAL TABLE documents USING fts4(content)
 ///     try db.create(virtualTable: "documents", using: FTS4()) { t in
 ///         t.column("content")
 ///     }
 public struct FTS4 : VirtualTableModule {
+    
+    /// TODO
+    public enum Storage {
+        case regular
+        case contentless
+        case externalContent(String)
+    }
+    
+    let storage: Storage
+
     /// Creates a FTS4 module suitable for the Database
     /// `create(virtualTable:using:)` method.
     ///
+    ///     // CREATE VIRTUAL TABLE documents USING fts4(content)
     ///     try db.create(virtualTable: "documents", using: FTS4()) { t in
     ///         t.column("content")
     ///     }
-    public init() {
+    ///
+    /// For contentless FTS4 table, and external content FTS4 table, provide a
+    /// storage argument:
+    ///
+    ///     // CREATE VIRTUAL TABLE documents USING fts4(content="", title, body)
+    ///     let fts4 = FTS4(storage: .contentless)
+    ///     try db.create(virtualTable: "documents", using: fts4) { t in
+    ///         t.column("title")
+    ///         t.column("body")
+    ///     }
+    ///
+    ///     // CREATE VIRTUAL TABLE documents USING fts4(content="source", title, body)
+    ///     // let fts4 = FTS4(storage: .externalContent("source"))
+    ///     try db.create(virtualTable: "documents", using: fts4) { t in
+    ///         t.column("title")
+    ///         t.column("body")
+    ///     }
+    public init(storage: Storage = .regular) {
+        self.storage = storage
     }
     
     // MARK: - VirtualTableModule Adoption
@@ -54,6 +84,21 @@ public final class FTS4TableDefinition : VirtualTableDefinition {
     ///         t.tokenizer = .porter
     ///     }
     public var tokenizer: FTS3Tokenizer?
+    
+    /// TODO
+    public var compress: String?
+    
+    /// TODO
+    public var uncompress: String?
+    
+    /// TODO
+    public var languageid
+    
+    /// TODO (as a column property)
+    public var notindexed
+    
+    /// TODO
+    public var prefix
     
     /// Appends a table column.
     ///

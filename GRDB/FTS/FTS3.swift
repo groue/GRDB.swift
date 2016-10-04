@@ -1,5 +1,6 @@
 /// FTS3 lets you define "fts3" virtual tables.
 ///
+///     // CREATE VIRTUAL TABLE documents USING fts3(content)
 ///     try db.create(virtualTable: "documents", using: FTS3()) { t in
 ///         t.column("content")
 ///     }
@@ -7,6 +8,7 @@ public struct FTS3 : VirtualTableModule {
     /// Creates a FTS3 module suitable for the Database
     /// `create(virtualTable:using:)` method.
     ///
+    ///     // CREATE VIRTUAL TABLE documents USING fts3(content)
     ///     try db.create(virtualTable: "documents", using: FTS3()) { t in
     ///         t.column("content")
     ///     }
