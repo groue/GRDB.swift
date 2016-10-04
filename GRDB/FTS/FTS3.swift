@@ -1,4 +1,4 @@
-/// FTS3 lets you define FTS3 virtual tables.
+/// FTS3 lets you define "fts3" virtual tables.
 ///
 ///     try db.create(virtualTable: "documents", using: FTS3()) { t in
 ///         t.column("content")
@@ -16,7 +16,7 @@ public struct FTS3 : VirtualTableModule {
     // MARK: - VirtualTableModule Adoption
     
     /// The virtual table module name
-    public let moduleName = "FTS3"
+    public let moduleName = "fts3"
     
     /// Don't use this method.
     public func makeTableDefinition() -> FTS3TableDefinition {

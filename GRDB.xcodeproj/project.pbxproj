@@ -589,13 +589,13 @@
 		5698AC4E1DA2D48A0056AF8C /* FTS3RecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC481DA2D48A0056AF8C /* FTS3RecordTests.swift */; };
 		5698AC4F1DA2D48A0056AF8C /* FTS3RecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC481DA2D48A0056AF8C /* FTS3RecordTests.swift */; };
 		5698AC501DA2D48A0056AF8C /* FTS3RecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC481DA2D48A0056AF8C /* FTS3RecordTests.swift */; };
-		5698AC701DA2FCAF0056AF8C /* FTS3Module.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC6F1DA2FCAF0056AF8C /* FTS3Module.swift */; };
-		5698AC711DA2FCAF0056AF8C /* FTS3Module.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC6F1DA2FCAF0056AF8C /* FTS3Module.swift */; };
-		5698AC721DA2FCAF0056AF8C /* FTS3Module.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC6F1DA2FCAF0056AF8C /* FTS3Module.swift */; };
-		5698AC731DA2FCAF0056AF8C /* FTS3Module.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC6F1DA2FCAF0056AF8C /* FTS3Module.swift */; };
-		5698AC741DA2FCAF0056AF8C /* FTS3Module.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC6F1DA2FCAF0056AF8C /* FTS3Module.swift */; };
-		5698AC751DA2FCAF0056AF8C /* FTS3Module.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC6F1DA2FCAF0056AF8C /* FTS3Module.swift */; };
-		5698AC761DA2FCAF0056AF8C /* FTS3Module.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC6F1DA2FCAF0056AF8C /* FTS3Module.swift */; };
+		5698AC701DA2FCAF0056AF8C /* FTS3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC6F1DA2FCAF0056AF8C /* FTS3.swift */; };
+		5698AC711DA2FCAF0056AF8C /* FTS3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC6F1DA2FCAF0056AF8C /* FTS3.swift */; };
+		5698AC721DA2FCAF0056AF8C /* FTS3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC6F1DA2FCAF0056AF8C /* FTS3.swift */; };
+		5698AC731DA2FCAF0056AF8C /* FTS3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC6F1DA2FCAF0056AF8C /* FTS3.swift */; };
+		5698AC741DA2FCAF0056AF8C /* FTS3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC6F1DA2FCAF0056AF8C /* FTS3.swift */; };
+		5698AC751DA2FCAF0056AF8C /* FTS3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC6F1DA2FCAF0056AF8C /* FTS3.swift */; };
+		5698AC761DA2FCAF0056AF8C /* FTS3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC6F1DA2FCAF0056AF8C /* FTS3.swift */; };
 		5698AC781DA37DCB0056AF8C /* VirtualTableDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC771DA37DCB0056AF8C /* VirtualTableDefinition.swift */; };
 		5698AC791DA37DCB0056AF8C /* VirtualTableDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC771DA37DCB0056AF8C /* VirtualTableDefinition.swift */; };
 		5698AC7A1DA37DCB0056AF8C /* VirtualTableDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC771DA37DCB0056AF8C /* VirtualTableDefinition.swift */; };
@@ -1634,7 +1634,7 @@
 		5698AC361D9E5A590056AF8C /* FTS3Pattern.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS3Pattern.swift; sourceTree = "<group>"; };
 		5698AC3F1DA2BED90056AF8C /* FTS3PatternTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS3PatternTests.swift; sourceTree = "<group>"; };
 		5698AC481DA2D48A0056AF8C /* FTS3RecordTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS3RecordTests.swift; sourceTree = "<group>"; };
-		5698AC6F1DA2FCAF0056AF8C /* FTS3Module.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS3Module.swift; sourceTree = "<group>"; };
+		5698AC6F1DA2FCAF0056AF8C /* FTS3.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS3.swift; sourceTree = "<group>"; };
 		5698AC771DA37DCB0056AF8C /* VirtualTableDefinition.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VirtualTableDefinition.swift; sourceTree = "<group>"; };
 		5698AC7F1DA380A20056AF8C /* VirtualTableBuilderTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VirtualTableBuilderTests.swift; sourceTree = "<group>"; };
 		5698AC881DA389380056AF8C /* FTS3TableBuilderTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS3TableBuilderTests.swift; sourceTree = "<group>"; };
@@ -2152,7 +2152,7 @@
 		5698AC291D9E5A480056AF8C /* FTS */ = {
 			isa = PBXGroup;
 			children = (
-				5698AC6F1DA2FCAF0056AF8C /* FTS3Module.swift */,
+				5698AC6F1DA2FCAF0056AF8C /* FTS3.swift */,
 				5698AC361D9E5A590056AF8C /* FTS3Pattern.swift */,
 				5671FC1F1DA3CAC9003BF4FF /* FTS3Tokenizer.swift */,
 			);
@@ -3427,7 +3427,7 @@
 				560FC5231CB003810014AA8E /* Configuration.swift in Sources */,
 				566475CD1D981D5E00FF74B8 /* SQLFunctions.swift in Sources */,
 				5698AC381D9E5A590056AF8C /* FTS3Pattern.swift in Sources */,
-				5698AC711DA2FCAF0056AF8C /* FTS3Module.swift in Sources */,
+				5698AC711DA2FCAF0056AF8C /* FTS3.swift in Sources */,
 				5664759B1D97D8A000FF74B8 /* SQLCollection.swift in Sources */,
 				567404891CEF84C8003ED5CC /* RowAdapter.swift in Sources */,
 				560FC5241CB003810014AA8E /* DatabaseWriter.swift in Sources */,
@@ -3626,7 +3626,7 @@
 				565490C61D5AE236005622CB /* Statement.swift in Sources */,
 				56F5ABD91D814330001F60CB /* Data.swift in Sources */,
 				565490D41D5AE252005622CB /* (null) in Sources */,
-				5698AC761DA2FCAF0056AF8C /* FTS3Module.swift in Sources */,
+				5698AC761DA2FCAF0056AF8C /* FTS3.swift in Sources */,
 				566475D21D981D5E00FF74B8 /* SQLFunctions.swift in Sources */,
 				565490B61D5AE236005622CB /* Configuration.swift in Sources */,
 				566475B81D9819D500FF74B8 /* SQLOrderingTerm.swift in Sources */,
@@ -3785,7 +3785,7 @@
 				56AFC9F81CB1A8BB00F48B96 /* Utils.swift in Sources */,
 				566475D01D981D5E00FF74B8 /* SQLFunctions.swift in Sources */,
 				5698AC3B1D9E5A590056AF8C /* FTS3Pattern.swift in Sources */,
-				5698AC741DA2FCAF0056AF8C /* FTS3Module.swift in Sources */,
+				5698AC741DA2FCAF0056AF8C /* FTS3.swift in Sources */,
 				5664759E1D97D8A000FF74B8 /* SQLCollection.swift in Sources */,
 				5674048B1CEF84C8003ED5CC /* RowAdapter.swift in Sources */,
 				56AFC9F91CB1A8BB00F48B96 /* DatabaseWriter.swift in Sources */,
@@ -4072,7 +4072,7 @@
 				563445061C4A7FD7003D3DC6 /* Utils.swift in Sources */,
 				566475CF1D981D5E00FF74B8 /* SQLFunctions.swift in Sources */,
 				5698AC3A1D9E5A590056AF8C /* FTS3Pattern.swift in Sources */,
-				5698AC731DA2FCAF0056AF8C /* FTS3Module.swift in Sources */,
+				5698AC731DA2FCAF0056AF8C /* FTS3.swift in Sources */,
 				5664759D1D97D8A000FF74B8 /* SQLCollection.swift in Sources */,
 				5674048A1CEF84C8003ED5CC /* RowAdapter.swift in Sources */,
 				563363C51C942C37000BE133 /* DatabaseWriter.swift in Sources */,
@@ -4349,7 +4349,7 @@
 				56A2387B1B9C75030082EB20 /* Configuration.swift in Sources */,
 				566475CC1D981D5E00FF74B8 /* SQLFunctions.swift in Sources */,
 				5698AC371D9E5A590056AF8C /* FTS3Pattern.swift in Sources */,
-				5698AC701DA2FCAF0056AF8C /* FTS3Module.swift in Sources */,
+				5698AC701DA2FCAF0056AF8C /* FTS3.swift in Sources */,
 				5664759A1D97D8A000FF74B8 /* SQLCollection.swift in Sources */,
 				567404881CEF84C8003ED5CC /* RowAdapter.swift in Sources */,
 				563363C41C942C37000BE133 /* DatabaseWriter.swift in Sources */,
@@ -4416,7 +4416,7 @@
 				F3BA80161CFB2876003DC1BA /* Row.swift in Sources */,
 				F3BA80101CFB2876003DC1BA /* DatabaseReader.swift in Sources */,
 				5698AC3C1D9E5A590056AF8C /* FTS3Pattern.swift in Sources */,
-				5698AC751DA2FCAF0056AF8C /* FTS3Module.swift in Sources */,
+				5698AC751DA2FCAF0056AF8C /* FTS3.swift in Sources */,
 				566475D11D981D5E00FF74B8 /* SQLFunctions.swift in Sources */,
 				5664759F1D97D8A000FF74B8 /* SQLCollection.swift in Sources */,
 				F3BA802B1CFB289B003DC1BA /* QueryInterfaceRequest.swift in Sources */,
@@ -4592,7 +4592,7 @@
 				F3BA80721CFB2E55003DC1BA /* Row.swift in Sources */,
 				F3BA806C1CFB2E55003DC1BA /* DatabaseReader.swift in Sources */,
 				5698AC391D9E5A590056AF8C /* FTS3Pattern.swift in Sources */,
-				5698AC721DA2FCAF0056AF8C /* FTS3Module.swift in Sources */,
+				5698AC721DA2FCAF0056AF8C /* FTS3.swift in Sources */,
 				566475CE1D981D5E00FF74B8 /* SQLFunctions.swift in Sources */,
 				5664759C1D97D8A000FF74B8 /* SQLCollection.swift in Sources */,
 				F3BA80871CFB2E70003DC1BA /* QueryInterfaceRequest.swift in Sources */,
