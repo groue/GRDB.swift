@@ -33,7 +33,7 @@ public struct FTS3Tokenizer {
             options.append("separators=" + separators.map { String($0) }.joined(separator: ""))
         }
         if let tokenCharacters = tokenCharacters {
-            // TODO: test "=" and "\"" as separators
+            // TODO: test "=" and "\"" as tokenCharacters
             options.append("tokenchars=" + tokenCharacters.map { String($0) }.joined(separator: ""))
         }
         return FTS3Tokenizer("unicode61", options: options)
