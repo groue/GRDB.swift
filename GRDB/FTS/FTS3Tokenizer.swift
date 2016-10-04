@@ -29,11 +29,11 @@ public struct FTS3Tokenizer {
             options.append("remove_diacritics=0")
         }
         if let separators = separators {
-            // TODO: test "=" and "\"" as separators
+            // TODO: test "=" and "\"", "(" and ")" as separators, with both FTS3Pattern(matchingAnyTokenIn:tokenizer:) and Database.create(virtualTable:using:)
             options.append("separators=" + separators.map { String($0) }.joined(separator: ""))
         }
         if let tokenCharacters = tokenCharacters {
-            // TODO: test "=" and "\"" as tokenCharacters
+            // TODO: test "=" and "\"", "(" and ")" as tokenCharacters, with both FTS3Pattern(matchingAnyTokenIn:tokenizer:) and Database.create(virtualTable:using:)
             options.append("tokenchars=" + tokenCharacters.map { String($0) }.joined(separator: ""))
         }
         return FTS3Tokenizer("unicode61", options: options)
