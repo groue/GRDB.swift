@@ -25,7 +25,15 @@ public struct FTS3 : VirtualTableModule {
     
     /// Don't use this method.
     public func moduleArguments(_ definition: FTS3TableDefinition) -> [String] {
-        return definition.columns
+        var arguments = definition.columns
+        if let tokenizer = definition.tokenizer {
+            if tokenizer.options.isEmpty {
+                arguments.append("tokenize=\(tokenizer.name)")
+            } else {
+                arguments.append("tokenize=\(tokenizer.name) " + tokenizer.options.map { "\"\($0)\"" as String }.joined(separator: " "))
+            }
+        }
+        return arguments
     }
 }
 
@@ -39,6 +47,7 @@ public struct FTS3 : VirtualTableModule {
 ///     }
 public final class FTS3TableDefinition : VirtualTableDefinition {
     fileprivate var columns: [String] = []
+    public var tokenizer: FTS3Tokenizer?
     
     /// Appends a table column.
     ///
