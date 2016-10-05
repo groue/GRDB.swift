@@ -83,4 +83,19 @@ class FTS3RecordTests: GRDBTestCase {
         }
     }
     
+    func testMatch() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                do {
+                    var book = Book(id: nil, title: "Moby Dick", author: "Herman Melville", body: "Call me Ishmael.")
+                    try book.insert(db)
+                }
+                
+                let pattern = FTS3Pattern(matchingAllTokensIn: "Herman Melville")!
+                let request = Book.filter(Column("books").match(pattern))
+                XCTAssertEqual(request.fetchCount(db), 1)
+            }
+        }
+    }
 }

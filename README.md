@@ -850,7 +850,7 @@ GRDB ships with built-in support for the following value types:
 
 - **[DatabaseValue](#databasevalue)**, the type which gives information about the raw value stored in the database.
 
-- **[FTS3Pattern](#full-text-search)**, involved in full-text searches.
+- **[FTS3Pattern](#fts3pattern)**, involved in full-text searches.
 
 - Generally speaking, all types that adopt the [DatabaseValueConvertible](#custom-value-types) protocol.
 
@@ -2707,15 +2707,16 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
 
 - `MATCH`
     
-    The SQLite MATCH operator is available with the `~=` Swift operator:
+    The SQLite MATCH operator is available with the `match` Swift method:
     
     ```swift
     // SELECT * FROM documents WHERE content MATCH 'sqlite AND database'
     let pattern = FTS3Pattern(matchingAllTokensIn: "SQLite database")
-    Document.filter(pattern ~= contentColumn)
+    Document.filter(contentColumn.match(pattern))
     ```
     
-    The FTS3Pattern type is documented in [Full-Text Search](#full-text-search).
+    See [FTS3Pattern](#fts3pattern) for more information.
+
 
 ### SQL Functions
 
@@ -3026,17 +3027,116 @@ Ready?
 
 ### FTS3 and FTS4
 
-To create an FTS3/4 virtual table, [execute](#executing-updates) an SQL statement (see [Creating and Destroying FTS Tables](https://www.sqlite.org/fts3.html#creating_and_destroying_fts_tables)):
+**Create FTS3 and FTS4 tables:**
 
 ```swift
-try dbQueue.inDatabase { db in
-    try db.execute("CREATE VIRTUAL TABLE documents USING FTS4(content)")
+// CREATE VIRTUAL TABLE documents USING fts3()
+try db.create(virtualTable: "documents", using: FTS3())
+
+// CREATE VIRTUAL TABLE documents USING fts4()
+try db.create(virtualTable: "documents", using: FTS4())
+```
+
+You can add columns, and specify a [tokenizer](#fts3tokenizer):
+
+```swift
+// CREATE VIRTUAL TABLE books USING fts4(
+//   author,
+//   title,
+//   body,
+//   tokenize=porter
+// )
+try db.create(virtualTable: "books", using: FTS4()) { t in
+    t.tokenizer = .porter
+    t.column("author")
+    t.column("title")
+    t.column("body")
 }
 ```
 
-Virtual tables are fed like other tables, using [SQL](#executing-updates), or [records](#records).
+FTS4 supports more [options](https://www.sqlite.org/fts3.html#fts4_options) than FTS3:
 
-To perform a full-text search, you use the MATCH operator. The value on the right is a *search pattern* that can perform various queries:
+```swift
+try db.create(virtualTable: "documents", using: FTS4()) { t in
+    t.content = ""
+    t.compress = "zip"
+    t.uncompress = "unzip"
+    t.languageid = "lid"
+    t.prefix = "2,4"
+    t.column("content")
+    t.column("extra").notIndexed()
+}
+```
+
+
+See [SQLite full-text documentation](https://www.sqlite.org/fts3.html) for more information.
+
+
+### FTS3Tokenizer
+
+SQLite ships with three built-in tokenizers: `simple`, `porter` and `unicode61` that use different algorithms to match queries with indexed content.
+
+**Depending on the tokenizer you choose, full-text searches won't return the same results.** See below some examples of matches:
+
+| content     | query      | simple | porter | unicode61 |
+| ----------- | ---------- | :----: | :----: | :-------: |
+| Foo         | Foo        |   X    |   X    |     X     |
+| Foo         | FOO        |   X    |   X    |     X     |
+| Jérôme      | Jérôme     |   X ¹  |   X ¹  |     X ¹   |
+| Jérôme      | JÉRÔME     |        |        |     X ¹   |
+| Jérôme      | Jerome     |        |        |     X     |
+| Database    | Databases  |        |   X    |           |
+| Frustration | Frustrated |        |   X    |           |
+
+¹ Matches may fail if content and query don't use the same [unicode normalization](https://en.wikipedia.org/wiki/Unicode_equivalence): "é" matches "é", but the NFC form "\u{00E9}" may not match its NFD "\u{0065}\u{0301}" equivalent. Switch generally uses NFC, but be careful with NFD inputs.
+
+- **simple**
+    
+    ```swift
+    try db.create(virtualTable: "books", using: FTS4()) { t in
+        t.tokenizer = .simple   // default
+    }
+    ```
+    
+    The default tokenizer is case-insensitive for ASCII characters. It matches "foo" with "FOO", but not "Jérôme" with "JÉRÔME".
+    
+    It does not provide stemming, and won't match "databases" with "database".
+    
+    It does not strip diacritics from latin script characters, and won't match "jérôme" with "jerome".
+    
+- **porter**
+    
+    ```swift
+    try db.create(virtualTable: "books", using: FTS4()) { t in
+        t.tokenizer = .porter
+    }
+    ```
+    
+    The porter tokenizer compares English words according to their roots: it matches "database" with "databases", and "frustration" with "frustrated".
+    
+    It does not strip diacritics from latin script characters, and won't match "jérôme" with "jerome".
+
+- **unicode61**
+    
+    ```swift
+    try db.create(virtualTable: "books", using: FTS4()) { t in
+        t.tokenizer = .unicode61()
+        t.tokenizer = .unicode61(removeDiacritics: false)
+    }
+    ```
+    
+    The unicode61 tokenizer is case-insensitive for unicode characters. It matches "Jérôme" with "JÉRÔME".
+    
+    It strips diacritics from latin script characters by default, and matches "jérôme" with "jerome". This behavior can be disabled, as in the example above.
+    
+    It does not provide stemming, and won't match "databases" with "database".
+
+See [SQLite tokenizers](https://www.sqlite.org/fts3.html#tokenizer) for more information.
+
+
+#### FTS3Pattern
+
+Full-text search is performed with the MATCH operator, which accepts a column on the left, and a *search pattern* on the right:
 
 ```sql
 -- All documents that contain "database"
@@ -3049,9 +3149,9 @@ SELECT * FROM documents WHERE content MATCH 'sqlite AND database'
 SELECT * FROM documents WHERE content MATCH '"SQLite database"'
 ```
 
-Not all search patterns are valid: they must follow the [Full-Text Index Queries Grammar](https://www.sqlite.org/fts3.html#full_text_index_queries).
+When querying FTS3 and FTS4 virtual tables, not all search patterns are valid: they must follow the [Full-Text Index Queries Grammar](https://www.sqlite.org/fts3.html#full_text_index_queries).
 
-GRDB provides the FTS3Pattern type which helps you building patterns that are valid for both FTS3 and FTS4 virtual tables:
+GRDB provides the FTS3Pattern type which helps you building **valid patterns**:
 
 ```swift
 struct FTS3Pattern {
@@ -3096,10 +3196,10 @@ let documents = Document.fetchAll(db,
     arguments: [pattern])
 ```
 
-Use them in the [query interface](#the-query-interface) with the `~=` operator:
+Use them in the [query interface](#the-query-interface) with the `match` method:
 
 ```swift
-let documents = Document.filter(pattern ~= Column("content").fetchAll(db)
+let documents = Document.filter(Column("content").match(pattern)).fetchAll(db)
 ```
 
 
@@ -3824,7 +3924,7 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
         arguments: [pattern])
     ```
     
-    Solution: validate the search pattern with the [FTS3Pattern](#full-text-search) type:
+    Solution: validate the search pattern with the [FTS3Pattern](#fts3pattern) type:
     
     ```swift
     if let pattern = FTS3Pattern(matchingAllTokensIn: ...) {

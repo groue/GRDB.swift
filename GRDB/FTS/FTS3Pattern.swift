@@ -131,8 +131,9 @@ extension FTS3Pattern : DatabaseValueConvertible {
     }
 }
 
-/// TODO
-// TODO: use match(pattern) function instead?
-public func ~= (_ lhs: FTS3Pattern, _ rhs: Column) -> SQLExpression {
-    return SQLExpressionBinary(.match, rhs, lhs)
+extension Column {
+    /// TODO
+    public func match(_ pattern: FTS3Pattern) -> SQLExpression {
+        return SQLExpressionBinary(.match, self, pattern)
+    }
 }
