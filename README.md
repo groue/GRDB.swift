@@ -3090,7 +3090,7 @@ SQLite ships with three built-in tokenizers: `simple`, `porter` and `unicode61` 
 | Database    | Databases  |        |   X    |           |
 | Frustration | Frustrated |        |   X    |           |
 
-¹ Matches may fail if content and query don't use the same [unicode normalization](https://en.wikipedia.org/wiki/Unicode_equivalence): "é" matches "é", but the NFC form "\u{00E9}" may not match its NFD "\u{0065}\u{0301}" equivalent. Switch generally uses NFC, but be careful with NFD inputs.
+¹ Matches may fail if content and query don't use the same [unicode normalization](https://en.wikipedia.org/wiki/Unicode_equivalence): "é" should match "é", but precisely speaking the NFC form "\u{00E9}" may not match its NFD "\u{0065}\u{0301}" equivalent. Swift generally uses NFC, so be careful with NFD inputs.
 
 - **simple**
     
