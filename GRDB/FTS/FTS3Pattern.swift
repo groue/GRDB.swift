@@ -40,18 +40,9 @@ public struct FTS3Pattern {
     ///     FTS3Pattern(matchingAnyTokenIn: "")        // nil
     ///     FTS3Pattern(matchingAnyTokenIn: "foo bar") // foo OR bar
     ///
-    /// The string is tokenized with the `simple` tokenizer unless specified
-    /// otherwise:
-    ///
-    ///     // frustration
-    ///     FTS3Pattern(matchingAnyTokenIn: "frustration")
-    ///     // frustrat
-    ///     FTS3Pattern(matchingAnyTokenIn: "frustration", tokenizer: .porter)
-    ///
     /// - parameter string: The string to turn into an FTS3 pattern
-    /// - parameter tokenizer: An FTS3Tokenizer - defaults "simple"
-    public init?(matchingAnyTokenIn string: String, tokenizer: FTS3Tokenizer = .simple) {
-        let tokens = FTS3Pattern.tokenize(string, tokenizer: tokenizer)
+    public init?(matchingAnyTokenIn string: String) {
+        let tokens = FTS3Pattern.tokenize(string, tokenizer: .simple)
         guard !tokens.isEmpty else { return nil }
         try? self.init(rawPattern: tokens.joined(separator: " OR "))
     }
@@ -62,18 +53,9 @@ public struct FTS3Pattern {
     ///     FTS3Pattern(matchingAllTokensIn: "")        // nil
     ///     FTS3Pattern(matchingAllTokensIn: "foo bar") // foo AND bar
     ///
-    /// The string is tokenized with the `simple` tokenizer unless specified
-    /// otherwise:
-    ///
-    ///     // frustration
-    ///     FTS3Pattern(matchingAllTokensIn: "frustration")
-    ///     // frustrat
-    ///     FTS3Pattern(matchingAllTokensIn: "frustration", tokenizer: .porter)
-    ///
     /// - parameter string: The string to turn into an FTS3 pattern
-    /// - parameter tokenizer: An FTS3Tokenizer - defaults "simple"
-    public init?(matchingAllTokensIn string: String, tokenizer: FTS3Tokenizer = .simple) {
-        let tokens = FTS3Pattern.tokenize(string, tokenizer: tokenizer)
+    public init?(matchingAllTokensIn string: String) {
+        let tokens = FTS3Pattern.tokenize(string, tokenizer: .simple)
         guard !tokens.isEmpty else { return nil }
         try? self.init(rawPattern: tokens.joined(separator: " AND "))
     }
@@ -84,18 +66,9 @@ public struct FTS3Pattern {
     ///     FTS3Pattern(matchingPhrase: "")        // nil
     ///     FTS3Pattern(matchingPhrase: "foo bar") // "foo bar"
     ///
-    /// The string is tokenized with the `simple` tokenizer unless specified
-    /// otherwise:
-    ///
-    ///     // "frustration"
-    ///     FTS3Pattern(matchingPhrase: "frustration")
-    ///     // "frustrat"
-    ///     FTS3Pattern(matchingPhrase: "frustration", tokenizer: .porter)
-    ///
     /// - parameter string: The string to turn into an FTS3 pattern
-    /// - parameter tokenizer: An FTS3Tokenizer - defaults "simple"
-    public init?(matchingPhrase string: String, tokenizer: FTS3Tokenizer = .simple) {
-        let tokens = FTS3Pattern.tokenize(string, tokenizer: tokenizer)
+    public init?(matchingPhrase string: String) {
+        let tokens = FTS3Pattern.tokenize(string, tokenizer: .simple)
         guard !tokens.isEmpty else { return nil }
         try? self.init(rawPattern: "\"" + tokens.joined(separator: " ") + "\"")
     }
