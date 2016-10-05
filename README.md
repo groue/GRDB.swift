@@ -3065,8 +3065,8 @@ try db.create(virtualTable: "documents", using: FTS4()) { t in
     t.uncompress = "unzip"
     t.languageid = "lid"
     t.prefix = "2,4"
+    t.column("uuid").notIndexed()
     t.column("content")
-    t.column("extra").notIndexed()
 }
 ```
 
