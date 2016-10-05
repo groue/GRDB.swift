@@ -40,8 +40,7 @@ class StatementArgumentsTests: GRDBTestCase {
                     // Missing arguments
                     try statement.validate(arguments: [])
                     XCTFail("Expected error")
-                } catch let error as DatabaseError {
-                    print(error)
+                } catch is DatabaseError {
                 } catch {
                     XCTFail("Unexpected error: \(error)")
                 }
@@ -50,8 +49,7 @@ class StatementArgumentsTests: GRDBTestCase {
                     // Two few arguments
                     try statement.validate(arguments: ["foo"])
                     XCTFail("Expected error")
-                } catch let error as DatabaseError {
-                    print(error)
+                } catch is DatabaseError {
                 } catch {
                     XCTFail("Unexpected error: \(error)")
                 }
@@ -60,8 +58,7 @@ class StatementArgumentsTests: GRDBTestCase {
                     // Two many arguments
                     try statement.validate(arguments: ["foo", 1, "bar"])
                     XCTFail("Expected error")
-                } catch let error as DatabaseError {
-                    print(error)
+                } catch is DatabaseError {
                 } catch {
                     XCTFail("Unexpected error: \(error)")
                 }
@@ -70,8 +67,7 @@ class StatementArgumentsTests: GRDBTestCase {
                     // Missing arguments
                     try statement.validate(arguments: [:])
                     XCTFail("Expected error")
-                } catch let error as DatabaseError {
-                    print(error)
+                } catch is DatabaseError {
                 } catch {
                     XCTFail("Unexpected error: \(error)")
                 }
@@ -80,8 +76,7 @@ class StatementArgumentsTests: GRDBTestCase {
                     // Unmappable arguments
                     try statement.validate(arguments: ["firstName": "foo", "age": 1])
                     XCTFail("Expected error")
-                } catch let error as DatabaseError {
-                    print(error)
+                } catch is DatabaseError {
                 } catch {
                     XCTFail("Unexpected error: \(error)")
                 }
@@ -164,8 +159,7 @@ class StatementArgumentsTests: GRDBTestCase {
                     // Missing arguments
                     try statement.validate(arguments: [])
                     XCTFail("Expected error")
-                } catch let error as DatabaseError {
-                    print(error)
+                } catch is DatabaseError {
                 } catch {
                     XCTFail("Unexpected error: \(error)")
                 }
@@ -174,8 +168,7 @@ class StatementArgumentsTests: GRDBTestCase {
                     // Missing arguments
                     try statement.validate(arguments: ["foo"])
                     XCTFail("Expected error")
-                } catch let error as DatabaseError {
-                    print(error)
+                } catch is DatabaseError {
                 } catch {
                     XCTFail("Unexpected error: \(error)")
                 }
@@ -184,8 +177,7 @@ class StatementArgumentsTests: GRDBTestCase {
                     // Too many arguments
                     try statement.validate(arguments: ["foo", 1, "baz"])
                     XCTFail("Expected error")
-                } catch let error as DatabaseError {
-                    print(error)
+                } catch is DatabaseError {
                 } catch {
                     XCTFail("Unexpected error: \(error)")
                 }
@@ -194,8 +186,7 @@ class StatementArgumentsTests: GRDBTestCase {
                     // Missing arguments
                     try statement.validate(arguments: [:])
                     XCTFail("Expected error")
-                } catch let error as DatabaseError {
-                    print(error)
+                } catch is DatabaseError {
                 } catch {
                     XCTFail("Unexpected error: \(error)")
                 }
@@ -204,8 +195,7 @@ class StatementArgumentsTests: GRDBTestCase {
                     // Missing arguments
                     try statement.validate(arguments: ["firstName": "foo"])
                     XCTFail("Expected error")
-                } catch let error as DatabaseError {
-                    print(error)
+                } catch is DatabaseError {
                 } catch {
                     XCTFail("Unexpected error: \(error)")
                 }
@@ -296,8 +286,7 @@ class StatementArgumentsTests: GRDBTestCase {
                     // Missing arguments
                     try statement.validate(arguments: [])
                     XCTFail("Expected error")
-                } catch let error as DatabaseError {
-                    print(error)
+                } catch is DatabaseError {
                 } catch {
                     XCTFail("Unexpected error: \(error)")
                 }
@@ -306,8 +295,7 @@ class StatementArgumentsTests: GRDBTestCase {
                     // Missing arguments
                     try statement.validate(arguments: ["foo"])
                     XCTFail("Expected error")
-                } catch let error as DatabaseError {
-                    print(error)
+                } catch is DatabaseError {
                 } catch {
                     XCTFail("Unexpected error: \(error)")
                 }
@@ -316,8 +304,7 @@ class StatementArgumentsTests: GRDBTestCase {
                     // Too many arguments
                     try statement.validate(arguments: ["foo", 1, "baz"])
                     XCTFail("Expected error")
-                } catch let error as DatabaseError {
-                    print(error)
+                } catch is DatabaseError {
                 } catch {
                     XCTFail("Unexpected error: \(error)")
                 }
@@ -326,8 +313,7 @@ class StatementArgumentsTests: GRDBTestCase {
                     // Missing arguments
                     try statement.validate(arguments: [:])
                     XCTFail("Expected error")
-                } catch let error as DatabaseError {
-                    print(error)
+                } catch is DatabaseError {
                 } catch {
                     XCTFail("Unexpected error: \(error)")
                 }
@@ -336,8 +322,7 @@ class StatementArgumentsTests: GRDBTestCase {
                     // Missing arguments
                     try statement.validate(arguments: ["name": "foo"])
                     XCTFail("Expected error")
-                } catch let error as DatabaseError {
-                    print(error)
+                } catch is DatabaseError {
                 } catch {
                     XCTFail("Unexpected error: \(error)")
                 }

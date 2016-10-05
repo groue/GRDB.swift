@@ -519,9 +519,6 @@ class AdapterRowTests: GRDBTestCase {
                 (row1.scoped(on: "sub"), row4.scoped(on: "sub"), true),
                 (row1.scoped(on: "sub"), row5.scoped(on: "sub"), false)]
             for (lrow, rrow, equal) in tests {
-                print(lrow)
-                print(rrow)
-                print(lrow == rrow)
                 if equal {
                     XCTAssertEqual(lrow, rrow)
                 } else {
