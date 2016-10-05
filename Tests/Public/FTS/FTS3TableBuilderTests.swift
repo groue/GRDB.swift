@@ -59,6 +59,8 @@ class FTS3TableBuilderTests: GRDBTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["Èèe"])!, 0)
                 try db.execute("DELETE FROM documents")
                 
+                // TODO: test NFKC and NFKD http://unicode.org/reports/tr15/
+                
                 // diacritics in latin characters (NFC-NFC)
                 try db.execute("INSERT INTO documents VALUES (?)", arguments: ["e\u{00E9}\u{00C9}"])
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\u{00C8}\u{00E8}e"])!, 0)
