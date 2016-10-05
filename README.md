@@ -3022,6 +3022,8 @@ This part of the documentation targets readers who have an idea of the full-text
 Ready?
 
 - [FTS3 and FTS4](#fts3-and-fts4)
+    - [FTS3Tokenizer](#fts3tokenizer)
+    - [FTS3Pattern](#fts3pattern)
 - [FTS5](#fts5)
 
 
@@ -3134,7 +3136,7 @@ SQLite ships with three built-in tokenizers: `simple`, `porter` and `unicode61` 
 See [SQLite tokenizers](https://www.sqlite.org/fts3.html#tokenizer) for more information.
 
 
-#### FTS3Pattern
+### FTS3Pattern
 
 Full-text search is performed with the MATCH operator, which accepts a column on the left, and a *search pattern* on the right:
 
