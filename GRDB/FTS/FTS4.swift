@@ -4,17 +4,10 @@
 ///     try db.create(virtualTable: "documents", using: FTS4()) { t in
 ///         t.column("content")
 ///     }
+///
+/// See https://www.sqlite.org/fts3.html
 public struct FTS4 : VirtualTableModule {
     
-    /// TODO
-    public enum Storage {
-        case regular
-        case contentless
-        case externalContent(String)
-    }
-    
-    let storage: Storage
-
     /// Creates a FTS4 module suitable for the Database
     /// `create(virtualTable:using:)` method.
     ///
@@ -23,24 +16,8 @@ public struct FTS4 : VirtualTableModule {
     ///         t.column("content")
     ///     }
     ///
-    /// For contentless FTS4 table, and external content FTS4 table, provide a
-    /// storage argument:
-    ///
-    ///     // CREATE VIRTUAL TABLE documents USING fts4(content="", title, body)
-    ///     let fts4 = FTS4(storage: .contentless)
-    ///     try db.create(virtualTable: "documents", using: fts4) { t in
-    ///         t.column("title")
-    ///         t.column("body")
-    ///     }
-    ///
-    ///     // CREATE VIRTUAL TABLE documents USING fts4(content="source", title, body)
-    ///     // let fts4 = FTS4(storage: .externalContent("source"))
-    ///     try db.create(virtualTable: "documents", using: fts4) { t in
-    ///         t.column("title")
-    ///         t.column("body")
-    ///     }
-    public init(storage: Storage = .regular) {
-        self.storage = storage
+    /// See https://www.sqlite.org/fts3.html
+    public init() {
     }
     
     // MARK: - VirtualTableModule Adoption
@@ -55,7 +32,15 @@ public struct FTS4 : VirtualTableModule {
     
     /// Don't use this method.
     public func moduleArguments(_ definition: FTS4TableDefinition) -> [String] {
-        var arguments = definition.columns
+        var arguments: [String] = []
+        
+        for column in definition.columns {
+            arguments.append(column.name)
+            if !column.isIndexed {
+                arguments.append("notindexed=\(column.name)")
+            }
+        }
+        
         if let tokenizer = definition.tokenizer {
             if tokenizer.options.isEmpty {
                 arguments.append("tokenize=\(tokenizer.name)")
@@ -63,6 +48,27 @@ public struct FTS4 : VirtualTableModule {
                 arguments.append("tokenize=\(tokenizer.name) " + tokenizer.options.map { "\"\($0)\"" as String }.joined(separator: " "))
             }
         }
+        
+        if let content = definition.content {
+            arguments.append("content=\"\(content)\"")
+        }
+        
+        if let compress = definition.compress {
+            arguments.append("compress=\"\(compress)\"")
+        }
+        
+        if let uncompress = definition.uncompress {
+            arguments.append("uncompress=\"\(uncompress)\"")
+        }
+        
+        if let languageid = definition.languageid {
+            arguments.append("languageid=\"\(languageid)\"")
+        }
+        
+        if let prefix = definition.prefix {
+            arguments.append("prefix=\"\(prefix)\"")
+        }
+        
         return arguments
     }
 }
@@ -75,30 +81,44 @@ public struct FTS4 : VirtualTableModule {
 ///     try db.create(virtualTable: "documents", using: FTS4()) { t in // t is FTS4TableDefinition
 ///         t.column("content")
 ///     }
+///
+/// See https://www.sqlite.org/fts3.html
 public final class FTS4TableDefinition : VirtualTableDefinition {
-    fileprivate var columns: [String] = []
+    fileprivate var columns: [FTS4ColumnDefinition] = []
     
     /// The virtual table tokenizer
     ///
     ///     try db.create(virtualTable: "documents", using: FTS4()) { t in
     ///         t.tokenizer = .porter
     ///     }
+    ///
+    /// See https://www.sqlite.org/fts3.html#creating_and_destroying_fts_tables
     public var tokenizer: FTS3Tokenizer?
     
-    /// TODO
+    /// The FTS4 `content` option
+    ///
+    /// See https://www.sqlite.org/fts3.html#the_content_option_
+    public var content: String?
+    
+    /// The FTS4 `compress` option
+    ///
+    /// See https://www.sqlite.org/fts3.html#the_compress_and_uncompress_options
     public var compress: String?
     
-    /// TODO
+    /// The FTS4 `uncompress` option
+    ///
+    /// See https://www.sqlite.org/fts3.html#the_compress_and_uncompress_options
     public var uncompress: String?
     
-    /// TODO
-    public var languageid
+    /// The FTS4 `languageid` option
+    ///
+    /// See https://www.sqlite.org/fts3.html#the_languageid_option
+    public var languageid: String?
     
-    /// TODO (as a column property)
-    public var notindexed
-    
-    /// TODO
-    public var prefix
+    /// The FTS4 `prefix` option
+    ///
+    /// See https://www.sqlite.org/fts3.html#the_prefix_option
+    public var prefix: String?
     
     /// Appends a table column.
     ///
@@ -107,7 +127,44 @@ public final class FTS4TableDefinition : VirtualTableDefinition {
     ///     }
     ///
     /// - parameter name: the column name.
-    public func column(_ name: String) {
-        columns.append(name)
+    @discardableResult public func column(_ name: String) -> FTS4ColumnDefinition {
+        let column = FTS4ColumnDefinition(name: name)
+        columns.append(column)
+        return column
+    }
+}
+
+/// The FTS4ColumnDefinition class lets you refine a column of an FTS4
+/// virtual table.
+///
+/// You get instances of this class when you create an FTS4 table:
+///
+///     try db.create(virtualTable: "persons", using: FTS4()) { t in
+///         t.column("content")      // ColumnDefinition
+///     }
+///
+/// See https://www.sqlite.org/fts3.html
+public final class FTS4ColumnDefinition {
+    fileprivate let name: String
+    fileprivate var isIndexed: Bool
+    
+    init(name: String) {
+        self.name = name
+        self.isIndexed = true
+    }
+    
+    /// Excludes the column from the full-text index.
+    ///
+    ///     try db.create(virtualTable: "persons", using: FTS4()) { t in
+    ///         t.column("a")
+    ///         t.column("b").notIndexed()
+    ///     }
+    ///
+    /// See https://www.sqlite.org/fts3.html#the_notindexed_option
+    ///
+    /// - returns: Self so that you can further refine the column definition.
+    @discardableResult public func notIndexed() -> Self {
+        self.isIndexed = false
+        return self
     }
 }
