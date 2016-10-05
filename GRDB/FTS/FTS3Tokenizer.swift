@@ -38,4 +38,20 @@ public struct FTS3Tokenizer {
         }
         return FTS3Tokenizer("unicode61", options: options)
     }
+    
+    /// Returns an array of tokens found in the string argument.
+    ///
+    ///     FTS3Tokenizer.simple.tokenize("foo bar") // ["foo", "bar"]
+    func tokenize(_ string: String) -> [String] {
+        return DatabaseQueue().inDatabase { db in
+            var tokenizerChunks: [String] = []
+            tokenizerChunks.append(name)
+            for option in options {
+                tokenizerChunks.append("\"\(option)\"")
+            }
+            let tokenizerSQL = tokenizerChunks.joined(separator: ", ")
+            try! db.execute("CREATE VIRTUAL TABLE tokens USING fts3tokenize(\(tokenizerSQL))")
+            return String.fetchAll(db, "SELECT token FROM tokens WHERE input = ? ORDER BY position", arguments: [string])
+        }
+    }
 }

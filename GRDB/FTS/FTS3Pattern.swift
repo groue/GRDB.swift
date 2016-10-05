@@ -42,7 +42,7 @@ public struct FTS3Pattern {
     ///
     /// - parameter string: The string to turn into an FTS3 pattern
     public init?(matchingAnyTokenIn string: String) {
-        let tokens = FTS3Pattern.tokenize(string, tokenizer: .simple)
+        let tokens = FTS3Tokenizer.simple.tokenize(string)
         guard !tokens.isEmpty else { return nil }
         try? self.init(rawPattern: tokens.joined(separator: " OR "))
     }
@@ -55,7 +55,7 @@ public struct FTS3Pattern {
     ///
     /// - parameter string: The string to turn into an FTS3 pattern
     public init?(matchingAllTokensIn string: String) {
-        let tokens = FTS3Pattern.tokenize(string, tokenizer: .simple)
+        let tokens = FTS3Tokenizer.simple.tokenize(string)
         guard !tokens.isEmpty else { return nil }
         try? self.init(rawPattern: tokens.joined(separator: " AND "))
     }
@@ -68,25 +68,9 @@ public struct FTS3Pattern {
     ///
     /// - parameter string: The string to turn into an FTS3 pattern
     public init?(matchingPhrase string: String) {
-        let tokens = FTS3Pattern.tokenize(string, tokenizer: .simple)
+        let tokens = FTS3Tokenizer.simple.tokenize(string)
         guard !tokens.isEmpty else { return nil }
         try? self.init(rawPattern: "\"" + tokens.joined(separator: " ") + "\"")
-    }
-    
-    /// Returns an array of tokens found in the string argument.
-    ///
-    ///     FTS3Pattern.tokenize("foo bar", tokenizer: .simple) // ["foo", "bar"]
-    private static func tokenize(_ string: String, tokenizer: FTS3Tokenizer) -> [String] {
-        return DatabaseQueue().inDatabase { db in
-            var tokenizerChunks: [String] = []
-            tokenizerChunks.append(tokenizer.name)
-            for option in tokenizer.options {
-                tokenizerChunks.append("\"\(option)\"")
-            }
-            let tokenizerSQL = tokenizerChunks.joined(separator: ", ")
-            try! db.execute("CREATE VIRTUAL TABLE tokens USING fts3tokenize(\(tokenizerSQL))")
-            return String.fetchAll(db, "SELECT token FROM tokens WHERE input = ? ORDER BY position", arguments: [string])
-        }
     }
 }
 
