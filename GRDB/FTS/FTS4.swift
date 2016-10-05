@@ -140,7 +140,7 @@ public final class FTS4TableDefinition : VirtualTableDefinition {
 /// You get instances of this class when you create an FTS4 table:
 ///
 ///     try db.create(virtualTable: "persons", using: FTS4()) { t in
-///         t.column("content")      // ColumnDefinition
+///         t.column("content")      // FTS4ColumnDefinition
 ///     }
 ///
 /// See https://www.sqlite.org/fts3.html

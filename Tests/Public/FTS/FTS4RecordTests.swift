@@ -78,7 +78,6 @@ class FTS4RecordTests: GRDBTestCase {
                 XCTAssertTrue(row.hasColumn("title"))
                 XCTAssertTrue(row.hasColumn("author"))
                 XCTAssertTrue(row.hasColumn("body"))
-                XCTAssertTrue(!row.hasColumn("docid"))
             }
         }
     }

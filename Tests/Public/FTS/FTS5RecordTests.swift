@@ -16,7 +16,7 @@ private struct Book {
 
 extension Book : RowConvertible {
     init(row: Row) {
-        id = row.value(named: "docid")
+        id = row.value(named: "rowid")
         title = row.value(named: "title")
         author = row.value(named: "author")
         body = row.value(named: "body")
@@ -28,7 +28,7 @@ extension Book : MutablePersistable {
     
     var persistentDictionary: [String: DatabaseValueConvertible?] {
         return [
-            "docid": id,
+            "rowid": id,
             "title": title,
             "author": author,
             "body": body,
@@ -40,11 +40,11 @@ extension Book : MutablePersistable {
     }
 }
 
-class FTS3RecordTests: GRDBTestCase {
+class FTS5RecordTests: GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
         try dbWriter.write { db in
-            try db.create(virtualTable: "books", using: FTS3()) { t in
+            try db.create(virtualTable: "books", using: FTS5()) { t in
                 t.column("title")
                 t.column("author")
                 t.column("body")
@@ -63,7 +63,7 @@ class FTS3RecordTests: GRDBTestCase {
         }
     }
     
-    func testDocIdIsNotSelectedByDefault() {
+    func testRowIdIsNotSelectedByDefault() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -91,7 +91,7 @@ class FTS3RecordTests: GRDBTestCase {
                     try book.insert(db)
                 }
                 
-                let pattern = FTS3Pattern(matchingAllTokensIn: "Herman Melville")!
+                let pattern = FTS5Pattern(matchingAllTokensIn: "Herman Melville")!
                 let request = Book.filter(Column("books").match(pattern))
                 XCTAssertEqual(request.fetchCount(db), 1)
             }

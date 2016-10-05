@@ -1,0 +1,144 @@
+#if SQLITE_ENABLE_FTS5
+    /// FTS5 lets you define "fts5" virtual tables.
+    ///
+    ///     // CREATE VIRTUAL TABLE documents USING fts5(content)
+    ///     try db.create(virtualTable: "documents", using: FTS5()) { t in
+    ///         t.column("content")
+    ///     }
+    ///
+    /// See https://www.sqlite.org/fts5.html
+    public struct FTS5 : VirtualTableModule {
+        
+        /// Creates a FTS5 module suitable for the Database
+        /// `create(virtualTable:using:)` method.
+        ///
+        ///     // CREATE VIRTUAL TABLE documents USING fts5(content)
+        ///     try db.create(virtualTable: "documents", using: FTS5()) { t in
+        ///         t.column("content")
+        ///     }
+        ///
+        /// See https://www.sqlite.org/fts5.html
+        public init() {
+        }
+        
+        // MARK: - VirtualTableModule Adoption
+        
+        /// The virtual table module name
+        public let moduleName = "fts5"
+        
+        /// Don't use this method.
+        public func makeTableDefinition() -> FTS5TableDefinition {
+            return FTS5TableDefinition()
+        }
+        
+        /// Don't use this method.
+        public func moduleArguments(_ definition: FTS5TableDefinition) -> [String] {
+            var arguments: [String] = []
+            
+            for column in definition.columns {
+                if column.isIndexed {
+                    arguments.append("\(column.name)")
+                } else {
+                    arguments.append("\(column.name) UNINDEXED")
+                }
+            }
+            
+            if let tokenizer = definition.tokenizer {
+                arguments.append("tokenize=\(tokenizer.components.joined(separator: " ").sqlExpression.sql)")
+            }
+            
+            if let content = definition.content {
+                arguments.append("content=\"\(content)\"")
+            }
+            
+            if let prefix = definition.prefix {
+                arguments.append("prefix=\"\(prefix)\"")
+            }
+            
+            return arguments
+        }
+    }
+    
+    /// The FTS5TableDefinition class lets you define columns of a FTS5 virtual table.
+    ///
+    /// You don't create instances of this class. Instead, you use the Database
+    /// `create(virtualTable:using:)` method:
+    ///
+    ///     try db.create(virtualTable: "documents", using: FTS5()) { t in // t is FTS5TableDefinition
+    ///         t.column("content")
+    ///     }
+    ///
+    /// See https://www.sqlite.org/fts5.html
+    public final class FTS5TableDefinition : VirtualTableDefinition {
+        fileprivate var columns: [FTS5ColumnDefinition] = []
+        
+        /// The virtual table tokenizer
+        ///
+        ///     try db.create(virtualTable: "documents", using: FTS5()) { t in
+        ///         t.tokenizer = .porter()
+        ///     }
+        ///
+        /// See https://www.sqlite.org/fts5.html#fts5_table_creation_and_initialization
+        public var tokenizer: FTS5Tokenizer?
+        
+        /// The FTS5 `content` option
+        ///
+        /// See https://www.sqlite.org/fts5.html#external_content_and_contentless_tables
+        public var content: String?
+        
+        /// The FTS5 `prefix` option
+        ///
+        /// See https://www.sqlite.org/fts5.html#prefix_indexes
+        public var prefix: String?
+        
+        /// TODO: columnsize, detail
+        
+        /// Appends a table column.
+        ///
+        ///     try db.create(virtualTable: "documents", using: FTS5()) { t in
+        ///         t.column("content")
+        ///     }
+        ///
+        /// - parameter name: the column name.
+        @discardableResult public func column(_ name: String) -> FTS5ColumnDefinition {
+            let column = FTS5ColumnDefinition(name: name)
+            columns.append(column)
+            return column
+        }
+    }
+    
+    /// The FTS5ColumnDefinition class lets you refine a column of an FTS5
+    /// virtual table.
+    ///
+    /// You get instances of this class when you create an FTS5 table:
+    ///
+    ///     try db.create(virtualTable: "persons", using: FTS5()) { t in
+    ///         t.column("content")      // FTS5ColumnDefinition
+    ///     }
+    ///
+    /// See https://www.sqlite.org/fts5.html
+    public final class FTS5ColumnDefinition {
+        fileprivate let name: String
+        fileprivate var isIndexed: Bool
+        
+        init(name: String) {
+            self.name = name
+            self.isIndexed = true
+        }
+        
+        /// Excludes the column from the full-text index.
+        ///
+        ///     try db.create(virtualTable: "persons", using: FTS5()) { t in
+        ///         t.column("a")
+        ///         t.column("b").notIndexed()
+        ///     }
+        ///
+        /// See https://www.sqlite.org/fts5.html#the_unindexed_column_option
+        ///
+        /// - returns: Self so that you can further refine the column definition.
+        @discardableResult public func notIndexed() -> Self {
+            self.isIndexed = false
+            return self
+        }
+    }
+#endif
