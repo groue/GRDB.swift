@@ -3043,7 +3043,7 @@ The choice of your engine depends:
     | 11: **Ranking** (sort results by relevance)                                   |  ¹   |  ¹   |  X   |
     | 12: **Snippets** (display a few words around a match)                         |  X   |  X   |  X   |
     | 13: **Stop words** (don't index, and don't match words like "and" and "the")  |      |      |      |
-    | 14: **Pinyin and Romaji** (have "romaji" match "ローマ字)")                       |      |      |      |
+    | 14: **Pinyin and Romaji** (have "romaji" match "ローマ字")                        |      |      |      |
     
     ¹ Requires extra setup (but at least SQLite documentation talks about it)
     
