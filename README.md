@@ -3027,13 +3027,13 @@ The choice of the engine needed by your application depends:
     
     | Full-Text Needs                                                               | FTS3 | FTS4 | FTS5 |
     | ----------------------------------------------------------------------------- | ---- | ---- | ---- |
-    | --- Queries                                                                   |      |      |      |
+    | :question: Queries                                                            |      |      |      |
     | 1: **Words searches** (documents that contain "database")                     |  X   |  X   |  X   |
     | 2: **Prefix searches** (documents that contain a word starting with "data")   |  X   |  X   |  X   |
     | 3: **Phrases searches** (documents that contain the phrase "SQLite database") |  X   |  X   |  X   |
     | 4: **Boolean searches** (documents that contain "SQLite" or "database")       |  X   |  X   |  X   |
     | 5: **Proximity search** (documents that contain "SQLite" near "database")     |  X   |  X   |  X   |
-    | --- Tokenization                                                              |      |      |      |
+    | :scissors: Tokenization                                                       |      |      |      |
     | 6: **Ascii case insensitivity** (have "DATABASE" match "database")            |  X   |  X   |  X   |
     | 7: **Unicode case insensitivity** (have "ÉLÉGANCE" match "élégance")          |  X   |  X   |  X   |
     | 8: **Diacritics insensitivity** (have "elegance" match "élégance")            |  X   |  X   |  X   |
@@ -3045,7 +3045,7 @@ The choice of the engine needed by your application depends:
     | 11: **Synonyms** (have "1st" match "first")                                   |      |      |      |
     | 12: **Pinyin and Romaji** (have "romaji" match "ローマ字")                        |      |      |      |
     | 10: **Stop words** (don't index, and don't match words like "and" and "the")  |      |      |      |
-    | --- Other                                                                     |      |      |      |
+    | :bowtie: Other                                                                |      |      |      |
     | 14: **Ranking** (sort results by relevance)                                   |  ¹   |  ¹   |  X   |
     | 15: **Snippets** (display a few words around a match)                         |  X   |  X   |  X   |
     
