@@ -850,7 +850,7 @@ GRDB ships with built-in support for the following value types:
 
 - **[DatabaseValue](#databasevalue)**, the type which gives information about the raw value stored in the database.
 
-- **[FTS3Pattern](#fts3pattern)**, involved in full-text searches.
+- **Full-Text Patterns**: [FTS3Pattern](#fts3pattern) and [FTS5Pattern](#fts5pattern).
 
 - Generally speaking, all types that adopt the [DatabaseValueConvertible](#custom-value-types) protocol.
 
@@ -2707,7 +2707,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
 
 - `MATCH`
     
-    The SQLite MATCH operator is available with the `match` Swift method:
+    The full-text MATCH operator is available with the `match` Swift method:
     
     ```swift
     // SELECT * FROM documents WHERE content MATCH 'sqlite AND database'
@@ -2715,7 +2715,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Document.filter(contentColumn.match(pattern))
     ```
     
-    See [FTS3Pattern](#fts3pattern) for more information.
+    [FTS3Pattern](#fts3pattern) targets FTS3 and FTS4 tables, while [FTS5Pattern](#fts5pattern) targets FTS5.
 
 
 ### SQL Functions
@@ -3021,15 +3021,15 @@ SQLite support three full-text engines: [FTS3, FTS4](https://www.sqlite.org/fts3
 
 Generally speaking, FTS5 is better than FTS4 which improves on FTS3, but this does not really tell which engine to choose.
 
-The choice of your engine depends:
+The choice of the engine needed by your application depends:
 
-- On the kind of queries you want to perform:
+- On the kind of queries performed by the application:
     
-    | full-text needs                                                               | FTS3 | FTS4 | FTS5 |
+    | Full-Text Needs                                                               | FTS3 | FTS4 | FTS5 |
     | ----------------------------------------------------------------------------- | ---- | ---- | ---- |
-    | 1: **words searches** (documents that contain "database")                     |  X   |  X   |  X   |
-    | 2: **prefix searches** (documents that contain a word starting with "data")   |  X   |  X   |  X   |
-    | 3: **phrases searches** (documents that contain the phrase "SQLite database") |  X   |  X   |  X   |
+    | 1: **Words searches** (documents that contain "database")                     |  X   |  X   |  X   |
+    | 2: **Prefix searches** (documents that contain a word starting with "data")   |  X   |  X   |  X   |
+    | 3: **Phrases searches** (documents that contain the phrase "SQLite database") |  X   |  X   |  X   |
     | 4: **Boolean searches** (documents that contain "SQLite" or "database")       |  X   |  X   |  X   |
     | 5: **Proximity search** (documents that contain "SQLite" near "database")     |  X   |  X   |  X   |
     | 6: **Ascii case insensitivity** (have "DATABASE" match "database")            |  X   |  X   |  X   |
@@ -3050,45 +3050,53 @@ The choice of your engine depends:
     
     For a full feature list, read the SQLite documentation. Some missing features can be achieved with extra application code.
     
-- On the desired speed versus disk space constraints. Roughly speaking, FTS4 and FTS5 are faster than FTS3, but use more space. FTS4 only supports content compression.
+- On the speed versus disk space constraints. Roughly speaking, FTS4 and FTS5 are faster than FTS3, but use more space. FTS4 only supports content compression.
 
 - On the location, in your database schema, of the indexed text. Only FTS4 and FTS5 support "contentless" and "external content" tables.
 
 - See [FST3 vs. FTS4](https://www.sqlite.org/fts3.html#differences_between_fts3_and_fts4) and [FTS5 vs. FTS3/4](https://www.sqlite.org/fts5.html#appendix_a) for more information.
 
-**In case you were still wondering, you can't really escape a reading of SQLite documentation: [FTS3 & FTS4](https://www.sqlite.org/fts3.html) and [FTS5](https://www.sqlite.org/fts5.html).**
+**In case you were still wondering, you do need to have a detailed reading of SQLite documentation: [FTS3 & FTS4](https://www.sqlite.org/fts3.html) and [FTS5](https://www.sqlite.org/fts5.html).**
 
 
 ### GRDB Full-Text Support
 
 GRDB will help you creating FTS tables, and converting user input into valid full-text queries.
 
-- [FTS3 and FTS4](#fts3-and-fts4)
+- FTS3 and FTS4
+    - [Create FTS3 and FTS4 Virtual Tables](#create-fts3-and-fts4-virtual-tables)
     - [FTS3Tokenizer](#fts3tokenizer)
     - [FTS3Pattern](#fts3pattern)
-- [FTS5](#fts5)
+- FTS5
+    - [Create FTS5 Virtual Tables](#create-fts5-virtual-tables)
+    - [FTS5Tokenizer](#fts5tokenizer)
+    - [FTS5Pattern](#fts5pattern)
 
 
-### FTS3 and FTS4
+### Create FTS3 and FTS4 Virtual Tables
 
-**Create FTS3 and FTS4 tables:**
+Create FTS3 and FTS4 virtual tables with the `create(virtualTable:using:)` method:
 
 ```swift
-// CREATE VIRTUAL TABLE documents USING fts3()
-try db.create(virtualTable: "documents", using: FTS3())
+// CREATE VIRTUAL TABLE documents USING fts3(content)
+try db.create(virtualTable: "documents", using: FTS3()) { t in
+    t.column("content")
+}
 
-// CREATE VIRTUAL TABLE documents USING fts4()
-try db.create(virtualTable: "documents", using: FTS4())
+// CREATE VIRTUAL TABLE documents USING fts4(content)
+try db.create(virtualTable: "documents", using: FTS4()) { t in
+    t.column("content")
+}
 ```
 
-You can add columns, and specify a [tokenizer](#fts3tokenizer):
+You can specify a [tokenizer](#fts3tokenizer):
 
 ```swift
 // CREATE VIRTUAL TABLE books USING fts4(
+//   tokenize=porter,
 //   author,
 //   title,
-//   body,
-//   tokenize=porter
+//   body
 // )
 try db.create(virtualTable: "books", using: FTS4()) { t in
     t.tokenizer = .porter
@@ -3098,7 +3106,7 @@ try db.create(virtualTable: "books", using: FTS4()) { t in
 }
 ```
 
-FTS4 supports more [options](https://www.sqlite.org/fts3.html#fts4_options) than FTS3:
+FTS4 supports [options](https://www.sqlite.org/fts3.html#fts4_options):
 
 ```swift
 try db.create(virtualTable: "documents", using: FTS4()) { t in
@@ -3112,13 +3120,12 @@ try db.create(virtualTable: "documents", using: FTS4()) { t in
 }
 ```
 
-
-See [SQLite full-text documentation](https://www.sqlite.org/fts3.html) for more information.
+See [SQLite documentation](https://www.sqlite.org/fts3.html) for more information.
 
 
 ### FTS3Tokenizer
 
-SQLite ships with three built-in tokenizers: `simple`, `porter` and `unicode61` that use different algorithms to match queries with indexed content.
+SQLite ships with three built-in FTS3/4 tokenizers: `simple`, `porter` and `unicode61` that use different algorithms to match queries with indexed content.
 
 **Depending on the tokenizer you choose, full-text searches won't return the same results.** See below some examples of matches:
 
@@ -3142,7 +3149,7 @@ SQLite ships with three built-in tokenizers: `simple`, `porter` and `unicode61` 
     }
     ```
     
-    The default tokenizer is case-insensitive for ASCII characters. It matches "foo" with "FOO", but not "Jérôme" with "JÉRÔME".
+    The default "simple" tokenizer is case-insensitive for ASCII characters. It matches "foo" with "FOO", but not "Jérôme" with "JÉRÔME".
     
     It does not provide stemming, and won't match "databases" with "database".
     
@@ -3156,7 +3163,7 @@ SQLite ships with three built-in tokenizers: `simple`, `porter` and `unicode61` 
     }
     ```
     
-    The porter tokenizer compares English words according to their roots: it matches "database" with "databases", and "frustration" with "frustrated".
+    The "porter" tokenizer compares English words according to their roots: it matches "database" with "databases", and "frustration" with "frustrated".
     
     It does not strip diacritics from latin script characters, and won't match "jérôme" with "jerome".
 
@@ -3169,7 +3176,7 @@ SQLite ships with three built-in tokenizers: `simple`, `porter` and `unicode61` 
     }
     ```
     
-    The unicode61 tokenizer is case-insensitive for unicode characters. It matches "Jérôme" with "JÉRÔME".
+    The "unicode61" tokenizer is case-insensitive for unicode characters. It matches "Jérôme" with "JÉRÔME".
     
     It strips diacritics from latin script characters by default, and matches "jérôme" with "jerome". This behavior can be disabled, as in the example above.
     
@@ -3180,7 +3187,7 @@ See [SQLite tokenizers](https://www.sqlite.org/fts3.html#tokenizer) for more inf
 
 ### FTS3Pattern
 
-Full-text search is performed with the MATCH operator, which accepts a column on the left, and a *search pattern* on the right:
+**Full-text search in FTS3 and FTS4 tables** is performed with the MATCH operator, which accepts a column on the left, and a *search pattern* on the right:
 
 ```sql
 -- All documents that contain "database"
@@ -3193,7 +3200,7 @@ SELECT * FROM documents WHERE content MATCH 'sqlite AND database'
 SELECT * FROM documents WHERE content MATCH '"SQLite database"'
 ```
 
-When querying FTS3 and FTS4 virtual tables, not all search patterns are valid: they must follow the [Full-Text Index Queries Grammar](https://www.sqlite.org/fts3.html#full_text_index_queries).
+**Not all search patterns are valid**: they must follow the [Full-Text Index Queries Grammar](https://www.sqlite.org/fts3.html#full_text_index_queries).
 
 GRDB provides the FTS3Pattern type which helps you building **valid patterns**:
 
@@ -3247,11 +3254,179 @@ let documents = Document.filter(Column("content").match(pattern)).fetchAll(db)
 ```
 
 
-### FTS5
+### Create FTS5 Virtual Tables
 
-A [custom SQLite build](#custom-sqlite-builds) can activate the [FTS5](https://sqlite.org/fts5.html) full-text engine.
+Create FTS5 virtual tables with the `create(virtualTable:using:)` method:
 
-GRDB provides no support for it at the present time. This may change in the future.
+```swift
+// CREATE VIRTUAL TABLE documents USING fts5(content)
+try db.create(virtualTable: "documents", using: FTS5()) { t in
+    t.column("content")
+}
+```
+
+You can specify a [tokenizer](#fts5tokenizer):
+
+```swift
+// CREATE VIRTUAL TABLE books USING fts5(
+//   tokenize='porter',
+//   author,
+//   title,
+//   body
+// )
+try db.create(virtualTable: "books", using: FTS5()) { t in
+    t.tokenizer = .porter()
+    t.column("author")
+    t.column("title")
+    t.column("body")
+}
+```
+
+FTS5 supports [options](https://www.sqlite.org/fts5.html#fts5_table_creation_and_initialization):
+
+```swift
+try db.create(virtualTable: "documents", using: FTS5()) { t in
+    t.content = ""
+    t.prefix = "2,4"
+    t.column("uuid").notIndexed()
+    t.column("content")
+}
+```
+
+See [SQLite documentation](https://www.sqlite.org/fts5.html) for more information.
+
+
+### FTS5Tokenizer
+
+SQLite ships with three built-in FTS5 tokenizers: `ascii`, `porter` and `unicode61` that use different algorithms to match queries with indexed content.
+
+**Depending on the tokenizer you choose, full-text searches won't return the same results.** See below some examples of matches:
+
+| content     | query      | ascii  | unicode61 | porter on ascii | porter on unicode61 |
+| ----------- | ---------- | :----: | :-------: | :-------------: | :-----------------: |
+| Foo         | Foo        |   X    |     X     |        X        |          X          |
+| Foo         | FOO        |   X    |     X     |        X        |          X          |
+| Jérôme      | Jérôme     |   X ¹  |     X ¹   |        X ¹      |          X ¹        |
+| Jérôme      | JÉRÔME     |        |     X ¹   |                 |          X ¹        |
+| Jérôme      | Jerome     |        |     X     |                 |          X ¹        |
+| Database    | Databases  |        |           |        X        |          X          |
+| Frustration | Frustrated |        |           |        X        |          X          |
+
+¹ Matches may fail if content and query don't use the same [unicode normalization](http://unicode.org/reports/tr15/): For "é" to match "é", they better have the same normalization. Precisely speaking the NFC "\u{00E9}" may not match its NFD "\u{0065}\u{0301}" equivalent. Swift generally uses NFC, so be careful with NFD inputs. Besides, if you want "fi" to match "ﬁ" (LATIN SMALL LIGATURE FI), then you need to normalize your indexed contents and inputs to NFKC or NFKD. See NSString properties decomposedStringWithCanonicalMapping, precomposedStringWithCanonicalMapping, etc.
+
+- **unicode61**
+    
+    ```swift
+    try db.create(virtualTable: "books", using: FTS4()) { t in
+        t.tokenizer = .unicode61()
+        t.tokenizer = .unicode61(removeDiacritics: false)
+    }
+    ```
+    
+    The default "unicode61" tokenizer is case-insensitive for unicode characters. It matches "Jérôme" with "JÉRÔME".
+    
+    It strips diacritics from latin script characters by default, and matches "jérôme" with "jerome". This behavior can be disabled, as in the example above.
+    
+    It does not provide stemming, and won't match "databases" with "database".
+
+- **ascii**
+    
+    ```swift
+    try db.create(virtualTable: "books", using: FTS5()) { t in
+        t.tokenizer = .ascii
+    }
+    ```
+    
+    The "ascii" tokenizer is case-insensitive for ASCII characters. It matches "foo" with "FOO", but not "Jérôme" with "JÉRÔME".
+    
+    It does not provide stemming, and won't match "databases" with "database".
+    
+    It does not strip diacritics from latin script characters, and won't match "jérôme" with "jerome".
+    
+- **porter**
+    
+    ```swift
+    try db.create(virtualTable: "books", using: FTS4()) { t in
+        t.tokenizer = .porter()       // porter wrapping unicode61 (the default)
+        t.tokenizer = .porter(.ascii) // porter wrapping ascii
+        t.tokenizer = .porter(.unicode61(removeDiacritics: false)) // porter wrapping unicode61 without diacritics stripping
+    }
+    ```
+    
+    The porter tokenizer is a wrapper tokenizer which compares English words according to their roots: it matches "database" with "databases", and "frustration" with "frustrated".
+    
+    It strips diacritics from latin script characters if it wraps unicode61, and does not if it wraps ascii (see the example above).
+
+See [SQLite tokenizers](https://www.sqlite.org/fts5.html#tokenizers) for more information.
+
+
+### FTS5Pattern
+
+**Full-text search in FTS5 tables** is performed with the MATCH operator, which accepts the name of a table on the left, and a *search pattern* on the right:
+
+```sql
+-- All documents that contain "database"
+SELECT * FROM documents WHERE documents MATCH 'database'
+-- All documents that contain a word starting with "data"
+SELECT * FROM documents WHERE documents MATCH 'data*'
+-- All documents that contain both "sqlite" and "database"
+SELECT * FROM documents WHERE documents MATCH 'sqlite AND database'
+-- All documents that contain the "SQLite database" phrase:
+SELECT * FROM documents WHERE documents MATCH '"SQLite database"'
+```
+
+**Not all search patterns are valid**: they must follow the [Full-Text Query Syntax](https://www.sqlite.org/fts5.html#full_text_query_syntax).
+
+GRDB provides the FTS5Pattern type which helps you building **valid patterns**:
+
+```swift
+struct FTS5Pattern {
+    init(rawPattern: String) throws
+    init?(matchingAnyTokenIn string: String)
+    init?(matchingAllTokensIn string: String)
+    init?(matchingPhrase string: String)
+}
+```
+
+The first initializer may throw a [DatabaseError](#databaseerror): it validates your raw patterns against the query grammar:
+
+```swift
+let pattern = try FTS5Pattern(rawPattern: "sqlite AND database") // OK
+let pattern = try FTS5Pattern(rawPattern: "AND")                 // DatabaseError
+```
+
+The three other initializers don't throw. They build a valid pattern from any string, including strings provided by users of your application. They let you find documents that match all given words, any given word, or a full phrase, depending on the needs of your application:
+
+```swift
+let query = "SQLite database"
+// Matches documents that contain "SQLite" or "database"
+let pattern = FTS5Pattern(matchingAnyTokenIn: query)
+// Matches documents that contain both "SQLite" and "database"
+let pattern = FTS5Pattern(matchingAllTokensIn: query)
+// Matches documents that contain "SQLite database"
+let pattern = FTS5Pattern(matchingPhrase: query)
+```
+
+They return nil when no pattern could be built from the input string:
+
+```swift
+let pattern = FTS5Pattern(matchingAnyTokenIn: "")  // nil
+let pattern = FTS5Pattern(matchingAnyTokenIn: "*") // nil
+```
+
+FTS5Pattern are regular [values](#values). You can use them as query arguments:
+
+```swift
+let documents = Document.fetchAll(db,
+    "SELECT * FROM documents WHERE content MATCH ?",
+    arguments: [pattern])
+```
+
+Use them in the [query interface](#the-query-interface) with the `match` method:
+
+```swift
+let documents = Document.filter(Column("documents").match(pattern)).fetchAll(db)
+```
 
 
 ## Database Changes Observation
@@ -3968,7 +4143,7 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
         arguments: [pattern])
     ```
     
-    Solution: validate the search pattern with the [FTS3Pattern](#fts3pattern) type:
+    Solution: validate the search pattern with the [FTS3Pattern](#fts3pattern) or [FTS5Pattern](#fts5pattern) type:
     
     ```swift
     if let pattern = FTS3Pattern(matchingAllTokensIn: ...) {
