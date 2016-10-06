@@ -19,7 +19,7 @@ public struct FTS5Pattern {
         do {
             try DatabaseQueue().inDatabase { db in
                 try db.execute("CREATE VIRTUAL TABLE documents USING fts5(content)")
-                try db.makeSelectStatement("SELECT * FROM documents WHERE content MATCH ?")
+                try db.makeSelectStatement("SELECT * FROM documents WHERE documents MATCH ?")
                     .fetchSequence(arguments: [rawPattern], element: { /* void (ignored) sequence element */ })
                     .makeIterator()
                     .step() // <- invokes sqlite3_step(), throws on invalid pattern
