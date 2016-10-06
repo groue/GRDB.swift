@@ -3139,7 +3139,7 @@ SQLite ships with three built-in FTS3/4 tokenizers: `simple`, `porter` and `unic
 | Database    | Databases  |        |   X    |           |
 | Frustration | Frustrated |        |   X    |           |
 
-¹ Matches may fail if content and query don't use the same [unicode normalization](http://unicode.org/reports/tr15/): For "é" to match "é", they better have the same normalization. Precisely speaking the NFC "\u{00E9}" may not match its NFD "\u{0065}\u{0301}" equivalent. Swift generally uses NFC, so be careful with NFD inputs. Besides, if you want "fi" to match "&#xfb01;" (LATIN SMALL LIGATURE FI), then you need to normalize your indexed contents and inputs to NFKC or NFKD. See NSString properties decomposedStringWithCanonicalMapping, precomposedStringWithCanonicalMapping, etc.
+¹ Matches may fail if content and query don't use the same [unicode normalization](http://unicode.org/reports/tr15/): For "é" to match "é", they better have the same normalization. Precisely speaking the NFC "\u{00E9}" may not match its NFD "\u{0065}\u{0301}" equivalent. Swift generally uses NFC, so be careful with NFD inputs. Besides, if you want "fi" to match "&#xfb01;" (LATIN SMALL LIGATURE FI), then you need to normalize your indexed contents and inputs to NFKC or NFKD. See NSString properties decomposedStringWithCanonicalMapping and decomposedStringWithCompatibilityMapping.
 
 - **simple**
     
@@ -3312,7 +3312,7 @@ SQLite ships with three built-in FTS5 tokenizers: `ascii`, `porter` and `unicode
 | Database    | Databases  |        |           |        X        |          X          |
 | Frustration | Frustrated |        |           |        X        |          X          |
 
-¹ Matches may fail if content and query don't use the same [unicode normalization](http://unicode.org/reports/tr15/): For "é" to match "é", they better have the same normalization. Precisely speaking the NFC "\u{00E9}" may not match its NFD "\u{0065}\u{0301}" equivalent. Swift generally uses NFC, so be careful with NFD inputs. Besides, if you want "fi" to match "&#xfb01;" (LATIN SMALL LIGATURE FI), then you need to normalize your indexed contents and inputs to NFKC or NFKD. See NSString properties decomposedStringWithCanonicalMapping, precomposedStringWithCanonicalMapping, etc.
+¹ Matches may fail if content and query don't use the same [unicode normalization](http://unicode.org/reports/tr15/): For "é" to match "é", they better have the same normalization. Precisely speaking the NFC "\u{00E9}" may not match its NFD "\u{0065}\u{0301}" equivalent. Swift generally uses NFC, so be careful with NFD inputs. Besides, if you want "fi" to match "&#xfb01;" (LATIN SMALL LIGATURE FI), then you need to normalize your indexed contents and inputs to NFKC or NFKD. See NSString properties decomposedStringWithCanonicalMapping and decomposedStringWithCompatibilityMapping.
 
 - **unicode61**
     
