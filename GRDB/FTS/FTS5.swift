@@ -35,6 +35,10 @@
         public func moduleArguments(_ definition: FTS5TableDefinition) -> [String] {
             var arguments: [String] = []
             
+            if definition.columns.isEmpty {
+                fatalError("FTS5 virtual table requires at least one column.")
+            }
+            
             for column in definition.columns {
                 if column.isIndexed {
                     arguments.append("\(column.name)")
