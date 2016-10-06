@@ -3028,7 +3028,7 @@ The choice of your engine depends:
     | full-text needs                                                               | FTS3 | FTS4 | FTS5 |
     | ----------------------------------------------------------------------------- | ---- | ---- | ---- |
     | 1: **words searches** (documents that contain "database")                     |  X   |  X   |  X   |
-    | 2: **prefix searches** (documents that a word starting with "data")           |  X   |  X   |  X   |
+    | 2: **prefix searches** (documents that contain a word starting with "data")   |  X   |  X   |  X   |
     | 3: **phrases searches** (documents that contain the phrase "SQLite database") |  X   |  X   |  X   |
     | 4: **Boolean searches** (documents that contain "SQLite" or "database")       |  X   |  X   |  X   |
     | 5: **Proximity search** (documents that contain "SQLite" near "database")     |  X   |  X   |  X   |
