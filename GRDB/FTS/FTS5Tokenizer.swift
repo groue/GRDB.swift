@@ -26,8 +26,12 @@ public struct FTS5Tokenizer {
     /// The "porter" tokenizer
     ///
     /// See https://www.sqlite.org/fts5.html#porter_tokenizer
-    public static func porter(base: FTS5Tokenizer = .unicode61()) -> FTS5Tokenizer {
-        return FTS5Tokenizer("porter", options: base.components)
+    public static func porter(wrapping base: FTS5Tokenizer? = nil) -> FTS5Tokenizer {
+        if let base = base {
+            return FTS5Tokenizer("porter", options: base.components)
+        } else {
+            return FTS5Tokenizer("porter")
+        }
     }
     
     /// An "unicode61" tokenizer
