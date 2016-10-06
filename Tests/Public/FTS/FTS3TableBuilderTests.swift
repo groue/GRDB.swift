@@ -59,51 +59,9 @@ class FTS3TableBuilderTests: GRDBTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["Èèe"])!, 0)
                 try db.execute("DELETE FROM documents")
                 
-                // TODO: test NFKC and NFKD http://unicode.org/reports/tr15/
-                
-                // diacritics in latin characters (NFC-NFC)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["e\u{00E9}\u{00C9}"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\u{00C8}\u{00E8}e"])!, 0)
-                try db.execute("DELETE FROM documents")
-                
-                // diacritics in latin characters (NFD-NFC)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["e\u{0065}\u{0301}\u{0045}\u{0300}"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\u{00C8}\u{00E8}e"])!, 0)
-                try db.execute("DELETE FROM documents")
-                
-                // diacritics in latin characters (NFC-NFD)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["e\u{00E9}\u{00C9}"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\u{0045}\u{0300}\u{0065}\u{0300}e"])!, 0)
-                try db.execute("DELETE FROM documents")
-                
-                // diacritics in latin characters (NFD-NFD)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["e\u{0065}\u{0301}\u{0045}\u{0300}"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\u{0045}\u{0300}\u{0065}\u{0300}e"])!, 0)
-                try db.execute("DELETE FROM documents")
-                
                 // unicode case
                 try db.execute("INSERT INTO documents VALUES (?)", arguments: ["jérôme"])
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["JÉRÔME"])!, 0)
-                try db.execute("DELETE FROM documents")
-                
-                // unicode case (NFC-NFC)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["j\u{00E9}rôme"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["J\u{00C9}RÔME"])!, 0)
-                try db.execute("DELETE FROM documents")
-                
-                // unicode case (NFD-NFC)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["j\u{0065}\u{0301}rôme"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["J\u{00C9}RÔME"])!, 0)
-                try db.execute("DELETE FROM documents")
-                
-                // unicode case (NFC-NFD)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["j\u{00E9}rôme"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["J\u{0045}\u{0301}RÔME"])!, 0)
-                try db.execute("DELETE FROM documents")
-                
-                // unicode case (NFD-NFD)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["j\u{0065}\u{0301}rôme"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["J\u{0045}\u{0301}RÔME"])!, 0)
                 try db.execute("DELETE FROM documents")
             }
         }
@@ -133,49 +91,9 @@ class FTS3TableBuilderTests: GRDBTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["Èèe"])!, 0)
                 try db.execute("DELETE FROM documents")
                 
-                // diacritics in latin characters (NFC-NFC)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["e\u{00E9}\u{00C9}"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\u{00C8}\u{00E8}e"])!, 0)
-                try db.execute("DELETE FROM documents")
-                
-                // diacritics in latin characters (NFD-NFC)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["e\u{0065}\u{0301}\u{0045}\u{0300}"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\u{00C8}\u{00E8}e"])!, 0)
-                try db.execute("DELETE FROM documents")
-                
-                // diacritics in latin characters (NFC-NFD)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["e\u{00E9}\u{00C9}"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\u{0045}\u{0300}\u{0065}\u{0300}e"])!, 0)
-                try db.execute("DELETE FROM documents")
-                
-                // diacritics in latin characters (NFD-NFD)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["e\u{0065}\u{0301}\u{0045}\u{0300}"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\u{0045}\u{0300}\u{0065}\u{0300}e"])!, 0)
-                try db.execute("DELETE FROM documents")
-                
                 // unicode case
                 try db.execute("INSERT INTO documents VALUES (?)", arguments: ["jérôme"])
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["JÉRÔME"])!, 0)
-                try db.execute("DELETE FROM documents")
-                
-                // unicode case (NFC-NFC)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["j\u{00E9}rôme"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["J\u{00C9}RÔME"])!, 0)
-                try db.execute("DELETE FROM documents")
-                
-                // unicode case (NFD-NFC)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["j\u{0065}\u{0301}rôme"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["J\u{00C9}RÔME"])!, 0)
-                try db.execute("DELETE FROM documents")
-                
-                // unicode case (NFC-NFD)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["j\u{00E9}rôme"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["J\u{0045}\u{0301}RÔME"])!, 0)
-                try db.execute("DELETE FROM documents")
-                
-                // unicode case (NFD-NFD)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["j\u{0065}\u{0301}rôme"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["J\u{0045}\u{0301}RÔME"])!, 0)
                 try db.execute("DELETE FROM documents")
             }
         }
@@ -205,49 +123,9 @@ class FTS3TableBuilderTests: GRDBTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["Èèe"])!, 1)
                 try db.execute("DELETE FROM documents")
                 
-                // diacritics in latin characters (NFC-NFC)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["e\u{00E9}\u{00C9}"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\u{00C8}\u{00E8}e"])!, 1)
-                try db.execute("DELETE FROM documents")
-                
-                // diacritics in latin characters (NFD-NFC)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["e\u{0065}\u{0301}\u{0045}\u{0300}"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\u{00C8}\u{00E8}e"])!, 1)
-                try db.execute("DELETE FROM documents")
-                
-                // diacritics in latin characters (NFC-NFD)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["e\u{00E9}\u{00C9}"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\u{0045}\u{0300}\u{0065}\u{0300}e"])!, 1)
-                try db.execute("DELETE FROM documents")
-                
-                // diacritics in latin characters (NFD-NFD)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["e\u{0065}\u{0301}\u{0045}\u{0300}"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\u{0045}\u{0300}\u{0065}\u{0300}e"])!, 1)
-                try db.execute("DELETE FROM documents")
-                
                 // unicode case
                 try db.execute("INSERT INTO documents VALUES (?)", arguments: ["jérôme"])
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["JÉRÔME"])!, 1)
-                try db.execute("DELETE FROM documents")
-                
-                // unicode case (NFC-NFC)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["j\u{00E9}rôme"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["J\u{00C9}RÔME"])!, 1)
-                try db.execute("DELETE FROM documents")
-                
-                // unicode case (NFD-NFC)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["j\u{0065}\u{0301}rôme"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["J\u{00C9}RÔME"])!, 1)
-                try db.execute("DELETE FROM documents")
-                
-                // unicode case (NFC-NFD)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["j\u{00E9}rôme"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["J\u{0045}\u{0301}RÔME"])!, 1)
-                try db.execute("DELETE FROM documents")
-                
-                // unicode case (NFD-NFD)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["j\u{0065}\u{0301}rôme"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["J\u{0045}\u{0301}RÔME"])!, 1)
                 try db.execute("DELETE FROM documents")
             }
         }
@@ -277,49 +155,9 @@ class FTS3TableBuilderTests: GRDBTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["Èèe"])!, 0)
                 try db.execute("DELETE FROM documents")
                 
-                // diacritics in latin characters (NFC-NFC)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["e\u{00E9}\u{00C9}"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\u{00C8}\u{00E8}e"])!, 0)
-                try db.execute("DELETE FROM documents")
-                
-                // diacritics in latin characters (NFD-NFC)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["e\u{0065}\u{0301}\u{0045}\u{0300}"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\u{00C8}\u{00E8}e"])!, 0)
-                try db.execute("DELETE FROM documents")
-                
-                // diacritics in latin characters (NFC-NFD)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["e\u{00E9}\u{00C9}"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\u{0045}\u{0300}\u{0065}\u{0300}e"])!, 0)
-                try db.execute("DELETE FROM documents")
-                
-                // diacritics in latin characters (NFD-NFD)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["e\u{0065}\u{0301}\u{0045}\u{0300}"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\u{0045}\u{0300}\u{0065}\u{0300}e"])!, 0)
-                try db.execute("DELETE FROM documents")
-                
                 // unicode case
                 try db.execute("INSERT INTO documents VALUES (?)", arguments: ["jérôme"])
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["JÉRÔME"])!, 1)
-                try db.execute("DELETE FROM documents")
-                
-                // unicode case (NFC-NFC)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["j\u{00E9}rôme"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["J\u{00C9}RÔME"])!, 1)
-                try db.execute("DELETE FROM documents")
-                
-                // unicode case (NFD-NFC)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["j\u{0065}\u{0301}rôme"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["J\u{00C9}RÔME"])!, 0) // surprising
-                try db.execute("DELETE FROM documents")
-                
-                // unicode case (NFC-NFD)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["j\u{00E9}rôme"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["J\u{0045}\u{0301}RÔME"])!, 0) // surprising
-                try db.execute("DELETE FROM documents")
-                
-                // unicode case (NFD-NFD)
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["j\u{0065}\u{0301}rôme"])
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["J\u{0045}\u{0301}RÔME"])!, 1)
                 try db.execute("DELETE FROM documents")
             }
         }
