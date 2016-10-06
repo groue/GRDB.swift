@@ -3023,15 +3023,17 @@ Generally speaking, FTS5 is better than FTS4 which improves on FTS3, but this do
 
 The choice of the engine needed by your application depends:
 
-- On the kind of queries performed by the application:
+- On the kind of full-text features needed by the application:
     
     | Full-Text Needs                                                               | FTS3 | FTS4 | FTS5 |
     | ----------------------------------------------------------------------------- | ---- | ---- | ---- |
+    | Queries                                                                       |      |      |      |
     | 1: **Words searches** (documents that contain "database")                     |  X   |  X   |  X   |
     | 2: **Prefix searches** (documents that contain a word starting with "data")   |  X   |  X   |  X   |
     | 3: **Phrases searches** (documents that contain the phrase "SQLite database") |  X   |  X   |  X   |
     | 4: **Boolean searches** (documents that contain "SQLite" or "database")       |  X   |  X   |  X   |
     | 5: **Proximity search** (documents that contain "SQLite" near "database")     |  X   |  X   |  X   |
+    | Tokenization                                                                  |      |      |      |
     | 6: **Ascii case insensitivity** (have "DATABASE" match "database")            |  X   |  X   |  X   |
     | 7: **Unicode case insensitivity** (have "ÉLÉGANCE" match "élégance")          |  X   |  X   |  X   |
     | 8: **Diacritics insensitivity** (have "elegance" match "élégance")            |  X   |  X   |  X   |
@@ -3039,12 +3041,13 @@ The choice of the engine needed by your application depends:
     | 9 and 6                                                                       |  X   |  X   |  X   |
     | 9 and 7                                                                       |      |      |  X   |
     | 9 and 8                                                                       |      |      |  X   |
-    | 10: **Spell checking** (have "alamaba" match "alabama")                       |      |  ¹   |  ?   |
-    | 11: **Ranking** (sort results by relevance)                                   |  ¹   |  ¹   |  X   |
-    | 12: **Snippets** (display a few words around a match)                         |  X   |  X   |  X   |
-    | 13: **Stop words** (don't index, and don't match words like "and" and "the")  |      |      |      |
-    | 14: **Synonyms** (have "1st" match "first")                                   |      |      |      |
-    | 15: **Pinyin and Romaji** (have "romaji" match "ローマ字")                        |      |      |      |
+    | 13: **Spell checking** (have "alamaba" match "alabama")                       |      |  ¹   |  ?   |
+    | 11: **Synonyms** (have "1st" match "first")                                   |      |      |      |
+    | 12: **Pinyin and Romaji** (have "romaji" match "ローマ字")                        |      |      |      |
+    | 10: **Stop words** (don't index, and don't match words like "and" and "the")  |      |      |      |
+    | Other                                                                         |      |      |      |
+    | 14: **Ranking** (sort results by relevance)                                   |  ¹   |  ¹   |  X   |
+    | 15: **Snippets** (display a few words around a match)                         |  X   |  X   |  X   |
     
     ¹ Requires extra setup (but at least SQLite documentation talks about it)
     
