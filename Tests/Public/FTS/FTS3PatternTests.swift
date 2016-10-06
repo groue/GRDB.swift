@@ -11,7 +11,11 @@ class FTS3PatternTests: GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
         try dbWriter.write { db in
-            try db.execute("CREATE VIRTUAL TABLE books USING fts4(title, author, body)")
+            try db.create(virtualTable: "books", using: FTS3()) { t in
+                t.column("title")
+                t.column("author")
+                t.column("body")
+            }
             try db.execute("INSERT INTO books (title, author, body) VALUES (?, ?, ?)", arguments: ["Moby Dick", "Herman Melville", "Call me Ishmael. Some years ago--never mind how long precisely--having little or no money in my purse, and nothing particular to interest me on shore, I thought I would sail about a little and see the watery part of the world."])
             try db.execute("INSERT INTO books (title, author, body) VALUES (?, ?, ?)", arguments: ["Red Mars", "Kim Stanley Robinson", "History is not evolution! It is a false analogy! Evolution is a matter of environment and chance, acting over millions of years. But history is a matter of environment and choice, acting within lifetimes, and sometimes within years, or months, or days! History is Lamarckian!"])
             try db.execute("INSERT INTO books (title, author, body) VALUES (?, ?, ?)", arguments: ["Querelle de Brest", "Jean Genet", "L’idée de mer évoque souvent l’idée de mer, de marins. Mer et marins ne se présentent pas alors avec la précision d’une image, le meurtre plutôt fait en nous l’émotion déferler par vagues."])
@@ -31,16 +35,10 @@ class FTS3PatternTests: GRDBTestCase {
                     // Token queries
                     ("Moby", 1),
                     ("écarlates", 1),
-                    ("\u{00E9}carlates", 1), // NFC
-                    ("\u{0065}\u{0301}carlates", 0), // NFD
                     ("fooéı👨👨🏿🇫🇷🇨🇮", 0),
                     // Prefix queries
                     ("*", 0),
                     ("Robin*", 1),
-                    // Document prefix queries
-                    ("^", 0),
-                    ("^Moby", 1),
-                    ("^Dick", 0),
                     // Phrase queries
                     ("\"foulent muscles\"", 1),
                     ("\"Kim Stan* Robin*\"", 1),
@@ -89,8 +87,6 @@ class FTS3PatternTests: GRDBTestCase {
                 // Couples (pattern, expected raw pattern, expected count of matching rows)
                 let cases = [
                     ("écarlates", "écarlates", 1),
-                    ("\u{00E9}carlates", "écarlates", 1), // NFC
-                    ("\u{0065}\u{0301}carlates", "écarlates", 0), // NFD
                     ("^Moby*", "moby", 1),
                     (" \t\nyears \t\nmonths \t\n", "years OR months", 2),
                     ("\"years months days\"", "years OR months OR days", 2),
@@ -123,11 +119,9 @@ class FTS3PatternTests: GRDBTestCase {
                 // Couples (pattern, expected raw pattern, expected count of matching rows)
                 let cases = [
                     ("écarlates", "écarlates", 1),
-                    ("\u{00E9}carlates", "écarlates", 1), // NFC
-                    ("\u{0065}\u{0301}carlates", "écarlates", 0), // NFD
                     ("^Moby*", "moby", 1),
-                    (" \t\nyears \t\nmonths \t\n", "years AND months", 1),
-                    ("\"years months days\"", "years AND months AND days", 1),
+                    (" \t\nyears \t\nmonths \t\n", "years months", 1),
+                    ("\"years months days\"", "years months days", 1),
                     ("FOOÉı👨👨🏿🇫🇷🇨🇮", "fooÉı👨👨🏿🇫🇷🇨🇮", 0),
                     ]
                 for (string, expectedRawPattern, expectedCount) in cases {
@@ -157,8 +151,6 @@ class FTS3PatternTests: GRDBTestCase {
                 // Couples (pattern, expected raw pattern, expected count of matching rows)
                 let cases = [
                     ("écarlates", "\"écarlates\"", 1),
-                    ("\u{00E9}carlates", "\"écarlates\"", 1), // NFC
-                    ("\u{0065}\u{0301}carlates", "\"écarlates\"", 0), // NFD
                     ("^Moby*", "\"moby\"", 1),
                     (" \t\nyears \t\nmonths \t\n", "\"years months\"", 0),
                     ("\"years months days\"", "\"years months days\"", 0),
