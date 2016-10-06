@@ -3017,9 +3017,50 @@ Quoting [SQLite documentation](https://www.sqlite.org/fts3.html):
 
 > The most common (and effective) way to describe full-text searches is "what Google, Yahoo, and Bing do with documents placed on the World Wide Web".
 
-This part of the documentation targets readers who have an idea of the full-text features of SQLite. If you know nothing yet, go Google for some information, and read the [SQLite full-text documentation](https://www.sqlite.org/fts3.html).
+SQLite support three full-text engines: [FTS3, FTS4](https://www.sqlite.org/fts3.html) and [FTS5](https://www.sqlite.org/fts5.html). GRDB supports FTS5 with a [custom SQLite build](#custom-sqlite-builds) that activates the `SQLITE_ENABLE_FTS5` compilation option.
 
-Ready?
+Generally speaking, FTS5 is better than FTS4 which improves on FTS3, but this does not really tell which engine to choose.
+
+The choice of your engine depends:
+
+- on the kind of queries you want to perform:
+
+    | full-text needs                                                               | FTS3 | FTS4 | FTS5 |
+    | ----------------------------------------------------------------------------- | ---- | ---- | ---- |
+    | 1: **words searches** (documents that contain "database")                     |  X   |  X   |  X   |
+    | 2: **prefix searches** (documents that a word starting with "data")           |  X   |  X   |  X   |
+    | 3: **phrases searches** (documents that contain the phrase "SQLite database") |  X   |  X   |  X   |
+    | 4: **Boolean searches** (documents that contain "SQLite" or "database")       |  X   |  X   |  X   |
+    | 5: **Proximity search** (documents that contain "SQLite" near "database")     |  X   |  X   |  X   |
+    | 6: **Ascii case insensitivity** (have "DATABASE" match "database")            |  X   |  X   |  X   |
+    | 7: **Unicode case insensitivity** (have "ÉLÉGANCE" match "élégance")          |  X   |  X   |  X   |
+    | 8: **Diacritics insensitivity** (have "elegance" match "élégance")            |  X   |  X   |  X   |
+    | 9: **Stemming for English text** (have "frustration" match "frustrated")      |  X   |  X   |  X   |
+    | 9 and 6                                                                       |  X   |  X   |  X   |
+    | 9 and 7                                                                       |      |      |  X   |
+    | 9 and 8                                                                       |      |      |  X   |
+    | 10: **Spell checking** (have "alamaba" match "alabama")                       |      |  ¹   |  ?   |
+    | 11: **Ranking** (sorting results by relevance)                                |  ¹   |  ¹   |  X   |
+    | 12: **Snippets** (displaying a few words around the match)                    |  X   |  X   |  X   |
+    | 13: **Stop words** (don't index, and don't match words like "and" and "the")  |      |      |      |
+    | 14: **Pinyin and Romaji** (have "romaji" match "ローマ字)")                       |      |      |      |
+    
+    ¹: requires non trivial extra setup (but SQLite documentation talks about it)
+    
+    Any feature that this is not listed or not checked in the above table may be possible, of course.
+    
+- on the desired speed versus disk space constraints. Roughly speaking, FTS4 and FTS5 use more space than FTS3. FTS4 only supports content compression.
+
+- on the location, in your database schema, of the indexed text. Only FTS4 and FTS5 support "contentless" and "external content" tables.
+
+- See [FST3 vs. FTS4](https://www.sqlite.org/fts3.html#differences_between_fts3_and_fts4) and [FTS5 vs. FTS3/4](https://www.sqlite.org/fts5.html#appendix_a) for more information.
+
+**In case you were still wondering, you can't really escape a reading of SQLite documentation: [FTS3 & FTS4](https://www.sqlite.org/fts3.html) and [FTS5](https://www.sqlite.org/fts5.html).**
+
+
+### GRDB Full-Text Support
+
+GRDB will help you creating FTS tables, and converting user input into valid full-text queries.
 
 - [FTS3 and FTS4](#fts3-and-fts4)
     - [FTS3Tokenizer](#fts3tokenizer)
