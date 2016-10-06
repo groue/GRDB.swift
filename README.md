@@ -3023,8 +3023,8 @@ Generally speaking, FTS5 is better than FTS4 which improves on FTS3, but this do
 
 The choice of your engine depends:
 
-- on the kind of queries you want to perform:
-
+- On the kind of queries you want to perform:
+    
     | full-text needs                                                               | FTS3 | FTS4 | FTS5 |
     | ----------------------------------------------------------------------------- | ---- | ---- | ---- |
     | 1: **words searches** (documents that contain "database")                     |  X   |  X   |  X   |
@@ -3049,9 +3049,9 @@ The choice of your engine depends:
     
     For a full feature list, read the SQLite documentation. Some missing features can be achieved with extra application code.
     
-- on the desired speed versus disk space constraints. Roughly speaking, FTS4 and FTS5 use more space than FTS3. FTS4 only supports content compression.
+- On the desired speed versus disk space constraints. Roughly speaking, FTS4 and FTS5 are faster than FTS3, but use more space. FTS4 only supports content compression.
 
-- on the location, in your database schema, of the indexed text. Only FTS4 and FTS5 support "contentless" and "external content" tables.
+- On the location, in your database schema, of the indexed text. Only FTS4 and FTS5 support "contentless" and "external content" tables.
 
 - See [FST3 vs. FTS4](https://www.sqlite.org/fts3.html#differences_between_fts3_and_fts4) and [FTS5 vs. FTS3/4](https://www.sqlite.org/fts5.html#appendix_a) for more information.
 
