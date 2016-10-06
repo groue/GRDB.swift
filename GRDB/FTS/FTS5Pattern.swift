@@ -41,6 +41,7 @@ public struct FTS5Pattern {
     ///
     /// - parameter string: The string to turn into an FTS5 pattern
     public init?(matchingAnyTokenIn string: String) {
+        // TODO: use an FTS5 tokenization API, if it exists
         let tokens = FTS3Tokenizer.simple.tokenize(string)
         guard !tokens.isEmpty else { return nil }
         try? self.init(rawPattern: tokens.joined(separator: " OR "))
@@ -54,6 +55,7 @@ public struct FTS5Pattern {
     ///
     /// - parameter string: The string to turn into an FTS5 pattern
     public init?(matchingAllTokensIn string: String) {
+        // TODO: use an FTS5 tokenization API, if it exists
         let tokens = FTS3Tokenizer.simple.tokenize(string)
         guard !tokens.isEmpty else { return nil }
         try? self.init(rawPattern: tokens.joined(separator: " AND "))
@@ -67,6 +69,7 @@ public struct FTS5Pattern {
     ///
     /// - parameter string: The string to turn into an FTS5 pattern
     public init?(matchingPhrase string: String) {
+        // TODO: use an FTS5 tokenization API, if it exists
         let tokens = FTS3Tokenizer.simple.tokenize(string)
         guard !tokens.isEmpty else { return nil }
         try? self.init(rawPattern: "\"" + tokens.joined(separator: " ") + "\"")
