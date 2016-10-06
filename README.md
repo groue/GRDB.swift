@@ -3037,10 +3037,10 @@ The choice of the engine needed by your application depends:
     | **Ascii case insensitivity** (have "DATABASE" match "database")            |  X   |  X   |  X   |
     | **Unicode case insensitivity** (have "ÉLÉGANCE" match "élégance")          |  X   |  X   |  X   |
     | **Latin diacritics insensitivity** (have "elegance" match "élégance")      |  X   |  X   |  X   |
-    | **Stemming for English text** (have "frustration" match "frustrated")      |  X   |  X   |  X   |
-    | **Stemming and Ascii case insensitivity**                                  |  X   |  X   |  X   |
-    | **Stemming and Unicode case insensitivity**                                |      |      |  X   |
-    | **Stemming and Latin diacritics insensitivity**                            |      |      |  X   |
+    | **English Stemming** (have "frustration" match "frustrated")               |  X   |  X   |  X   |
+    | **English Stemming and Ascii case insensitivity**                          |  X   |  X   |  X   |
+    | **English Stemming and Unicode case insensitivity**                        |      |      |  X   |
+    | **English Stemming and Latin diacritics insensitivity**                    |      |      |  X   |
     | **Spell checking** (have "alamaba" match "alabama")                        |      |  ¹   |  ?   |
     | **Synonyms** (have "1st" match "first")                                    |      |      |      |
     | **Pinyin and Romaji** (have "romaji" match "ローマ字")                         |      |      |      |
