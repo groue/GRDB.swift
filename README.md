@@ -3308,7 +3308,7 @@ SQLite ships with three built-in FTS5 tokenizers: `ascii`, `porter` and `unicode
 | Foo         | FOO        |   X    |     X     |        X        |          X          |
 | Jérôme      | Jérôme     |   X ¹  |     X ¹   |        X ¹      |          X ¹        |
 | Jérôme      | JÉRÔME     |        |     X ¹   |                 |          X ¹        |
-| Jérôme      | Jerome     |        |     X     |                 |          X ¹        |
+| Jérôme      | Jerome     |        |     X     |                 |          X          |
 | Database    | Databases  |        |           |        X        |          X          |
 | Frustration | Frustrated |        |           |        X        |          X          |
 
