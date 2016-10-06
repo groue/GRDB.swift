@@ -3040,14 +3040,14 @@ The choice of your engine depends:
     | 9 and 7                                                                       |      |      |  X   |
     | 9 and 8                                                                       |      |      |  X   |
     | 10: **Spell checking** (have "alamaba" match "alabama")                       |      |  ¹   |  ?   |
-    | 11: **Ranking** (sorting results by relevance)                                |  ¹   |  ¹   |  X   |
-    | 12: **Snippets** (displaying a few words around the match)                    |  X   |  X   |  X   |
+    | 11: **Ranking** (sort results by relevance)                                   |  ¹   |  ¹   |  X   |
+    | 12: **Snippets** (display a few words around a match)                         |  X   |  X   |  X   |
     | 13: **Stop words** (don't index, and don't match words like "and" and "the")  |      |      |      |
     | 14: **Pinyin and Romaji** (have "romaji" match "ローマ字)")                       |      |      |      |
     
-    ¹: requires non trivial extra setup (but SQLite documentation talks about it)
+    ¹ Requires extra setup (but at least SQLite documentation talks about it)
     
-    Any feature that this is not listed or not checked in the above table may be possible, of course.
+    For a full feature list, read the SQLite documentation. Some missing features can be achieved with extra application code.
     
 - on the desired speed versus disk space constraints. Roughly speaking, FTS4 and FTS5 use more space than FTS3. FTS4 only supports content compression.
 
