@@ -3090,7 +3090,7 @@ SQLite ships with three built-in tokenizers: `simple`, `porter` and `unicode61` 
 | Database    | Databases  |        |   X    |           |
 | Frustration | Frustrated |        |   X    |           |
 
-¹ Matches may fail if content and query don't use the same [unicode normalization](https://en.wikipedia.org/wiki/Unicode_equivalence): "é" should match "é", but precisely speaking the NFC form "\u{00E9}" may not match its NFD "\u{0065}\u{0301}" equivalent. Swift generally uses NFC, so be careful with NFD inputs.
+¹ Matches may fail if content and query don't use the same [unicode normalization](http://unicode.org/reports/tr15/): For "é" to match "é", they better have the same normalization. Precisely speaking the NFC "\u{00E9}" may not match its NFD "\u{0065}\u{0301}" equivalent. Swift generally uses NFC, so be careful with NFD inputs. Besides, if you want "fi" to match "ﬁ" (LATIN SMALL LIGATURE FI), then you need to normalize your indexed contents and inputs to NFKC or NFKD. See NSString properties decomposedStringWithCanonicalMapping, precomposedStringWithCanonicalMapping, etc.
 
 - **simple**
     
