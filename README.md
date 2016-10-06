@@ -3317,7 +3317,7 @@ SQLite ships with three built-in FTS5 tokenizers: `ascii`, `porter` and `unicode
 - **unicode61**
     
     ```swift
-    try db.create(virtualTable: "books", using: FTS4()) { t in
+    try db.create(virtualTable: "books", using: FTS5()) { t in
         t.tokenizer = .unicode61()
         t.tokenizer = .unicode61(removeDiacritics: false)
     }
@@ -3346,7 +3346,7 @@ SQLite ships with three built-in FTS5 tokenizers: `ascii`, `porter` and `unicode
 - **porter**
     
     ```swift
-    try db.create(virtualTable: "books", using: FTS4()) { t in
+    try db.create(virtualTable: "books", using: FTS5()) { t in
         t.tokenizer = .porter()       // porter wrapping unicode61 (the default)
         t.tokenizer = .porter(.ascii) // porter wrapping ascii
         t.tokenizer = .porter(.unicode61(removeDiacritics: false)) // porter wrapping unicode61 without diacritics stripping
