@@ -3059,21 +3059,16 @@ The choice of the engine needed by your application depends:
 
 - See [FST3 vs. FTS4](https://www.sqlite.org/fts3.html#differences_between_fts3_and_fts4) and [FTS5 vs. FTS3/4](https://www.sqlite.org/fts5.html#appendix_a) for more information.
 
-**In case you were still wondering, you do need to have a detailed reading of SQLite documentation: [FTS3 & FTS4](https://www.sqlite.org/fts3.html) and [FTS5](https://www.sqlite.org/fts5.html).**
+**In case you were still wondering, it is recommended to have a detailed reading of SQLite documentation: [FTS3 & FTS4](https://www.sqlite.org/fts3.html) and [FTS5](https://www.sqlite.org/fts5.html).**
 
 
 ### GRDB Full-Text Support
 
-GRDB will help you creating FTS tables, and converting user input into valid full-text queries.
+GRDB will help you creating FTS tables, and converting user input into valid full-text queries:
 
-- FTS3 and FTS4
-    - [Create FTS3 and FTS4 Virtual Tables](#create-fts3-and-fts4-virtual-tables): store your indexed text
-    - [FTS3Tokenizer](#fts3tokenizer): choose how queries should match indexed text
-    - [FTS3Pattern](#fts3pattern): build valid search patterns
-- FTS5
-    - [Create FTS5 Virtual Tables](#create-fts5-virtual-tables): store your indexed text
-    - [FTS5Tokenizer](#fts5tokenizer): choose how queries should match indexed text
-    - [FTS5Pattern](#fts5pattern): build valid search patterns
+- **Create full-text virtual tables**: store your indexed text ([FTS3/4](#create-fts3-and-fts4-virtual-tables), [FTS5](#create-fts5-virtual-tables))
+- **Tokenizers**: choose how queries should match indexed text ([FTS3/4](#fts3tokenizer), [FTS5](#fts5tokenizer))
+- **Patterns**: build valid search patterns ([FTS3/4](#fts3pattern), [FTS5](#fts5pattern))
 
 
 ### Create FTS3 and FTS4 Virtual Tables
