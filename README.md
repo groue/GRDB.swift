@@ -3067,13 +3067,13 @@ The choice of the engine needed by your application depends:
 GRDB will help you creating FTS tables, and converting user input into valid full-text queries.
 
 - FTS3 and FTS4
-    - [Create FTS3 and FTS4 Virtual Tables](#create-fts3-and-fts4-virtual-tables)
-    - [FTS3Tokenizer](#fts3tokenizer)
-    - [FTS3Pattern](#fts3pattern)
+    - [Create FTS3 and FTS4 Virtual Tables](#create-fts3-and-fts4-virtual-tables): store your indexed text
+    - [FTS3Tokenizer](#fts3tokenizer): choose how queries should match indexed text
+    - [FTS3Pattern](#fts3pattern): build valid search patterns
 - FTS5
-    - [Create FTS5 Virtual Tables](#create-fts5-virtual-tables)
-    - [FTS5Tokenizer](#fts5tokenizer)
-    - [FTS5Pattern](#fts5pattern)
+    - [Create FTS5 Virtual Tables](#create-fts5-virtual-tables): store your indexed text
+    - [FTS5Tokenizer](#fts5tokenizer): choose how queries should match indexed text
+    - [FTS5Pattern](#fts5pattern): build valid search patterns
 
 
 ### Create FTS3 and FTS4 Virtual Tables
@@ -3128,7 +3128,16 @@ See [SQLite documentation](https://www.sqlite.org/fts3.html) for more informatio
 
 ### FTS3Tokenizer
 
-SQLite ships with three built-in FTS3/4 tokenizers: `simple`, `porter` and `unicode61` that use different algorithms to match queries with indexed content.
+SQLite ships with three built-in FTS3/4 tokenizers: `simple`, `porter` and `unicode61` that use different algorithms to match queries with indexed content:
+
+```swift
+try db.create(virtualTable: "books", using: FTS4()) { t in
+    // Pick one:
+    t.tokenizer = .simple // default
+    t.tokenizer = .porter
+    t.tokenizer = .unicode61(...)
+}
+```
 
 **Depending on the tokenizer you choose, full-text searches won't return the same results.** See below some examples of matches:
 
@@ -3302,6 +3311,16 @@ See [SQLite documentation](https://www.sqlite.org/fts5.html) for more informatio
 ### FTS5Tokenizer
 
 SQLite ships with three built-in FTS5 tokenizers: `ascii`, `porter` and `unicode61` that use different algorithms to match queries with indexed content.
+
+```swift
+try db.create(virtualTable: "books", using: FTS5()) { t in
+    // Pick one:
+    t.tokenizer = .unicode61() // default
+    t.tokenizer = .unicode61(...)
+    t.tokenizer = .ascii
+    t.tokenizer = .porter(...)
+}
+```
 
 **Depending on the tokenizer you choose, full-text searches won't return the same results.** See below some examples of matches:
 
