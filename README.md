@@ -3027,25 +3027,25 @@ The choice of the engine needed by your application depends:
     
     | Full-Text Needs                                                            | FTS3 | FTS4 | FTS5 |
     | -------------------------------------------------------------------------- | ---- | ---- | ---- |
-    | :question: **Queries**                                                     |      |      |      |
+    | :question: Queries                                                         |      |      |      |
     | **Words searches** (documents that contain "database")                     |  X   |  X   |  X   |
     | **Prefix searches** (documents that contain a word starting with "data")   |  X   |  X   |  X   |
     | **Phrases searches** (documents that contain the phrase "SQLite database") |  X   |  X   |  X   |
     | **Boolean searches** (documents that contain "SQLite" or "database")       |  X   |  X   |  X   |
     | **Proximity search** (documents that contain "SQLite" near "database")     |  X   |  X   |  X   |
-    | :scissors: **Tokenization**                                                |      |      |      |
+    | :scissors: Tokenization                                                    |      |      |      |
     | **Ascii case insensitivity** (have "DATABASE" match "database")            |  X   |  X   |  X   |
     | **Unicode case insensitivity** (have "ÉLÉGANCE" match "élégance")          |  X   |  X   |  X   |
-    | **Diacritics insensitivity** (have "elegance" match "élégance")            |  X   |  X   |  X   |
+    | **Latin diacritics insensitivity** (have "elegance" match "élégance")      |  X   |  X   |  X   |
     | **Stemming for English text** (have "frustration" match "frustrated")      |  X   |  X   |  X   |
-    | Stemming and Ascii case insensitivity                                      |  X   |  X   |  X   |
-    | Stemming and Unicode case insensitivity                                    |      |      |  X   |
-    | Stemming and Diacritics insensitivity                                      |      |      |  X   |
+    | **Stemming and Ascii case insensitivity**                                  |  X   |  X   |  X   |
+    | **Stemming and Unicode case insensitivity**                                |      |      |  X   |
+    | **Stemming and Latin diacritics insensitivity**                            |      |      |  X   |
     | **Spell checking** (have "alamaba" match "alabama")                        |      |  ¹   |  ?   |
     | **Synonyms** (have "1st" match "first")                                    |      |      |      |
     | **Pinyin and Romaji** (have "romaji" match "ローマ字")                         |      |      |      |
     | **Stop words** (don't index, and don't match words like "and" and "the")   |      |      |      |
-    | :bowtie: **Other Features**                                                |      |      |      |
+    | :bowtie: Other Features                                                    |      |      |      |
     | **Ranking** (sort results by relevance)                                    |  ¹   |  ¹   |  X   |
     | **Snippets** (display a few words around a match)                          |  X   |  X   |  X   |
     
