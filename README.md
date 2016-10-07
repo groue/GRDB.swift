@@ -3587,7 +3587,7 @@ Generally speaking, matches may fail when content and query don't use the same [
 
 For example, for "aimé" to match "aimé", they better have the same normalization: the NFC "aim\u{00E9}" form may not match its NFD "aime\u{0301}" equivalent. Most strings that you get from Swift, UIKit and Cocoa use NFC, so be careful with NFD inputs (such as strings from the HFS+ file system, or strings that you can't trust like network inputs). Use [NSString.precomposedStringWithCanonicalMapping](https://developer.apple.com/reference/foundation/nsstring/1412645-precomposedstringwithcanonicalma) to turn a string into NFC.
 
-Besides, if you want "fi" to match the ligature "&#xfb01;" (U+FB01), then you need to normalize your indexed contents and inputs to NFKC or NFKD. Use [NSString.decomposedStringWithCanonicalMapping](https://developer.apple.com/reference/foundation/nsstring/1409474-decomposedstringwithcanonicalmap) to turn a string into NFKC.
+Besides, if you want "fi" to match the ligature "&#xfb01;" (U+FB01), then you need to normalize your indexed contents and inputs to NFKC or NFKD. Use [NSString.precomposedStringWithCompatibilityMapping](https://developer.apple.com/reference/foundation/nsstring/1412625-precomposedstringwithcompatibili) to turn a string into NFKC.
 
 Unicode normalization is not the end of the story, because it won't help "Encyclopaedia" match "Encyclopædia", "Mueller", "Müller", "Grossmann", "Großmann", or "Diyarbakır", "DIYARBAKIR".
 
