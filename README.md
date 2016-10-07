@@ -2474,7 +2474,7 @@ let idColumn = Column("id")
 let nameColumn = Column("name")
 ```
 
-You can now build requests with the following methods: `all`, `select`, `distinct`, `filter`, `group`, `having`, `order`, `reversed`, `limit`. All those methods return another request, which you can further refine by applying another method: `Person.select(...).filter(...).order(...)`.
+You can now build requests with the following methods: `all`, `select`, `distinct`, `filter`, `matching`, `group`, `having`, `order`, `reversed`, `limit`. All those methods return another request, which you can further refine by applying another method: `Person.select(...).filter(...).order(...)`.
 
 - `all()`: the request for all rows.
 
@@ -2508,6 +2508,14 @@ You can now build requests with the following methods: `all`, `select`, `distinc
     
     // SELECT * FROM persons WHERE (name IS NOT NULL) AND (height > 1.75)
     Person.filter(nameColumn != nil && heightColumn > 1.75)
+    ```
+
+- `matching(pattern)` performs [full-text Search](#full-text-search).
+    
+    ```swift
+    // SELECT * FROM documents WHERE documents MATCH 'sqlite AND database'
+    let pattern = FTS3Pattern(matchingAllTokensIn: "SQLite database")
+    Document.matching(pattern)
     ```
 
 - `group(expression, ...)` groups rows.
@@ -2577,7 +2585,7 @@ You can refine requests by chaining those methods:
 Person.order(nameColumn).filter(emailColumn != nil)
 ```
 
-The `select`, `order`, `group`, and `limit` methods ignore and replace previously applied selection, orderings, grouping, and limits. On the opposite, `filter`, and `having` methods extend the query:
+The `select`, `order`, `group`, and `limit` methods ignore and replace previously applied selection, orderings, grouping, and limits. On the opposite, `filter`, `matching`, and `having` methods extend the query:
 
 ```swift
 Person                          // SELECT * FROM persons
@@ -2707,15 +2715,29 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
 
 - `MATCH`
     
-    The full-text MATCH operator is available with the `match` Swift method:
+    The full-text MATCH operator is available through [FTS3Pattern](#fts3pattern) (for FTS3 and FTS4 tables) and [FTS5Pattern](#fts5pattern) (for FTS5):
+    
+    FTS3 and FTS4:
     
     ```swift
+    let pattern = FTS3Pattern(matchingAllTokensIn: "SQLite database")
+    
+    // SELECT * FROM documents WHERE documents MATCH 'sqlite AND database'
+    Document.matching(pattern)
+    //
     // SELECT * FROM documents WHERE content MATCH 'sqlite AND database'
     let pattern = FTS3Pattern(matchingAllTokensIn: "SQLite database")
     Document.filter(contentColumn.match(pattern))
     ```
     
-    [FTS3Pattern](#fts3pattern) targets FTS3 and FTS4 tables, while [FTS5Pattern](#fts5pattern) targets FTS5.
+    FTS5:
+    
+    ```swift
+    let pattern = FTS5Pattern(matchingAllTokensIn: "SQLite database")
+    
+    // SELECT * FROM documents WHERE documents MATCH 'sqlite AND database'
+    Document.matching(pattern)
+    ```
 
 
 ### SQL Functions
@@ -3256,9 +3278,13 @@ let documents = Document.fetchAll(db,
     arguments: [pattern])
 ```
 
-Use them in the [query interface](#the-query-interface) with the `match` method:
+Use them in the [query interface](#the-query-interface):
 
 ```swift
+// Search in all columns
+let documents = Document.matching(pattern).fetchAll(db)
+
+// Search in a specific column:
 let documents = Document.filter(Column("content").match(pattern)).fetchAll(db)
 ```
 
@@ -3448,10 +3474,10 @@ let documents = Document.fetchAll(db,
     arguments: [pattern])
 ```
 
-Use them in the [query interface](#the-query-interface) with the `match` method:
+Use them in the [query interface](#the-query-interface):
 
 ```swift
-let documents = Document.filter(Column("documents").match(pattern)).fetchAll(db)
+let documents = Document.matching(pattern).fetchAll(db)
 ```
 
 

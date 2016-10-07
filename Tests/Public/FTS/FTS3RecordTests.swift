@@ -92,8 +92,10 @@ class FTS3RecordTests: GRDBTestCase {
                 }
                 
                 let pattern = FTS3Pattern(matchingAllTokensIn: "Herman Melville")!
-                let request = Book.filter(Column("books").match(pattern))
-                XCTAssertEqual(request.fetchCount(db), 1)
+                XCTAssertEqual(Book.matching(pattern).fetchCount(db), 1)
+                XCTAssertEqual(Book.filter(Column("books").match(pattern)).fetchCount(db), 1)
+                XCTAssertEqual(Book.filter(Column("author").match(pattern)).fetchCount(db), 1)
+                XCTAssertEqual(Book.filter(Column("title").match(pattern)).fetchCount(db), 0)
             }
         }
     }

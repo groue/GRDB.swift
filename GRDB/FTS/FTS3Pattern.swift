@@ -88,6 +88,31 @@ extension FTS3Pattern : DatabaseValueConvertible {
     }
 }
 
+extension QueryInterfaceRequest {
+    
+    // MARK: Full Text Search
+    
+    /// TODO
+    public func matching(_ pattern: FTS3Pattern) -> QueryInterfaceRequest<T> {
+        switch query.source {
+        case .table(let name, let alias)?:
+            return filter(SQLExpressionBinary(.match, Column(alias ?? name), pattern))
+        default:
+            fatalError("fts3 match requires a table")
+        }
+    }
+}
+
+extension TableMapping {
+    
+    // MARK: Full Text Search
+    
+    /// TODO
+    public static func matching(_ pattern: FTS3Pattern) -> QueryInterfaceRequest<Self> {
+        return all().matching(pattern)
+    }
+}
+
 extension Column {
     /// TODO
     public func match(_ pattern: FTS3Pattern) -> SQLExpression {

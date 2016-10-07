@@ -92,8 +92,7 @@ class FTS5RecordTests: GRDBTestCase {
                 }
                 
                 let pattern = FTS5Pattern(matchingAllTokensIn: "Herman Melville")!
-                let request = Book.filter(Column("books").match(pattern))
-                XCTAssertEqual(request.fetchCount(db), 1)
+                XCTAssertEqual(Book.matching(pattern).fetchCount(db), 1)
             }
         }
     }

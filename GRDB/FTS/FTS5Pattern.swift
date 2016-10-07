@@ -101,9 +101,27 @@ extension FTS5Pattern : DatabaseValueConvertible {
     }
 }
 
-extension Column {
+extension QueryInterfaceRequest {
+    
+    // MARK: Full Text Search
+    
     /// TODO
-    public func match(_ pattern: FTS5Pattern) -> SQLExpression {
-        return SQLExpressionBinary(.match, self, pattern)
+    public func matching(_ pattern: FTS5Pattern) -> QueryInterfaceRequest<T> {
+        switch query.source {
+        case .table(let name, let alias)?:
+            return filter(SQLExpressionBinary(.match, Column(alias ?? name), pattern))
+        default:
+            fatalError("fts5 match requires a table")
+        }
+    }
+}
+
+extension TableMapping {
+    
+    // MARK: Full Text Search
+    
+    /// TODO
+    public static func matching(_ pattern: FTS5Pattern) -> QueryInterfaceRequest<Self> {
+        return all().matching(pattern)
     }
 }
