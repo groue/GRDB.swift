@@ -3116,7 +3116,7 @@ let books = Book.matching(pattern).fetchAll(db)
 - **Create full-text virtual tables**: store your indexed text ([FTS3/4](#create-fts3-and-fts4-virtual-tables), [FTS5](#create-fts5-virtual-tables))
 - **Tokenizers**: choose what "matching" means ([FTS3/4](#fts3tokenizer), [FTS5](#fts5tokenizer))
 - **Patterns**: build valid search patterns ([FTS3/4](#fts3pattern), [FTS5](#fts5pattern))
-- **[Unicode Full-Text Gotchas](#unicode-full-text-gotchas)**: unicorns do not exist
+- **[Unicode Full-Text Gotchas](#unicode-full-text-gotchas)**: unicorns don't exist
 
 
 ### Create FTS3 and FTS4 Virtual Tables
@@ -3512,9 +3512,9 @@ SQLite tokenizers for [FTS3, FTS4](#fts3tokenizer) and [FTS5](#fts5tokenizer) ar
 
 Generally speaking, matches may fail when content and query don't use the same [unicode normalization](http://unicode.org/reports/tr15/). SQLite actually exhibits inconsistent behavior in this regard.
 
-For example, for "aimé" to match "aimé", they better have the same normalization: the NFC "aim\u{00E9}" form may not match its NFD "aime\u{0301}" equivalent. Swift generally uses NFC, so be careful with NFD inputs.
+For example, for "aimé" to match "aimé", they better have the same normalization: the NFC "aim\u{00E9}" form may not match its NFD "aime\u{0301}" equivalent. Most strings that you get from Swift, UIKit and Cocoa use NFC, so be careful with NFD inputs (such as strings from the HFS+ file system, or strings that you can't trust like network inputs). Use NSString.precomposedStringWithCanonicalMapping to turn a string into NFC.
 
-Besides, if you want "fi" to match the ligature "&#xfb01;" (U+FB01), then you need to manually normalize your indexed contents and inputs to NFKC or NFKD. See NSString properties decomposedStringWithCanonicalMapping and decomposedStringWithCompatibilityMapping.
+Besides, if you want "fi" to match the ligature "&#xfb01;" (U+FB01), then you need to manually normalize your indexed contents and inputs to NFKC or NFKD. Use String.decomposedStringWithCanonicalMapping to turn a string into NFKC.
 
 Last, not all ligatures are decomposed by NFKC and NFKD forms: this prevents "æ" from matching match "ae". You'll again need manual string processing in order to provide such matching.
 
