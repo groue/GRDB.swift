@@ -67,7 +67,6 @@ class FTS3PatternTests: GRDBTestCase {
                 _ = try FTS3Pattern(rawPattern: rawPattern)
                 XCTFail("Expected pattern to be invalid: \(String(reflecting: rawPattern))")
             } catch is DatabaseError {
-                
             } catch {
                 XCTFail("Expected DatabaseError, not \(error)")
             }

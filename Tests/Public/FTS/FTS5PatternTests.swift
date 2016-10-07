@@ -49,7 +49,7 @@ class FTS5PatternTests: GRDBTestCase {
                     ("title:brest", 1)
                 ]
                 for (rawPattern, expectedCount) in validRawPatterns {
-                    let pattern = try FTS5Pattern(rawPattern: rawPattern)
+                    let pattern = try db.fts5Pattern(rawPattern: rawPattern, forTable: "books")
                     let count = Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
                     XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
                 }
@@ -58,15 +58,19 @@ class FTS5PatternTests: GRDBTestCase {
     }
     
     func testInvalidFTS5Pattern() {
-        let invalidRawPatterns = ["", "?!", "^", "^foo", "NOT", "(", "AND", "OR", "\""]
-        for rawPattern in invalidRawPatterns {
-            do {
-                _ = try FTS5Pattern(rawPattern: rawPattern)
-                XCTFail("Expected pattern to be invalid: \(String(reflecting: rawPattern))")
-            } catch is DatabaseError {
-                
-            } catch {
-                XCTFail("Expected DatabaseError, not \(error)")
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                let invalidRawPatterns = ["", "?!", "^", "^foo", "NOT", "(", "AND", "OR", "\"", "missing:foo"]
+                for rawPattern in invalidRawPatterns {
+                    do {
+                        _ = try db.fts5Pattern(rawPattern: rawPattern, forTable: "books")
+                        XCTFail("Expected pattern to be invalid: \(String(reflecting: rawPattern))")
+                    } catch is DatabaseError {
+                    } catch {
+                        XCTFail("Expected DatabaseError, not \(error)")
+                    }
+                }
             }
         }
     }

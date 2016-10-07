@@ -3220,11 +3220,13 @@ struct FTS3Pattern {
 }
 ```
 
-The first initializer may throw a [DatabaseError](#databaseerror): it validates your raw patterns against the query grammar:
+The first initializer validates your raw patterns against the query grammar, and may throw a [DatabaseError](#databaseerror):
 
 ```swift
-let pattern = try FTS3Pattern(rawPattern: "sqlite AND database") // OK
-let pattern = try FTS3Pattern(rawPattern: "AND")                 // DatabaseError
+// OK: FTS3Pattern
+let pattern = try FTS3Pattern(rawPattern: "sqlite AND database")
+// DatabaseError: malformed MATCH expression: [AND]
+let pattern = try FTS3Pattern(rawPattern: "AND")
 ```
 
 The three other initializers don't throw. They build a valid pattern from any string, including strings provided by users of your application. They let you find documents that match all given words, any given word, or a full phrase, depending on the needs of your application:
@@ -3397,22 +3399,29 @@ SELECT * FROM documents WHERE documents MATCH '"SQLite database"'
 GRDB provides the FTS5Pattern type which helps you building **valid patterns**:
 
 ```swift
+extension Database {
+    func fts5Pattern(rawPattern: String, forTable table: String) throws -> FTS5Pattern
+}
+
 struct FTS5Pattern {
-    init(rawPattern: String) throws
     init?(matchingAnyTokenIn string: String)
     init?(matchingAllTokensIn string: String)
     init?(matchingPhrase string: String)
 }
 ```
 
-The first initializer may throw a [DatabaseError](#databaseerror): it validates your raw patterns against the query grammar:
+The `Database.fts5Pattern(rawPattern:forTable:)` method validates your raw patterns against the query grammar and the columns of the targeted table, and may throw a [DatabaseError](#databaseerror):
 
 ```swift
-let pattern = try FTS5Pattern(rawPattern: "sqlite AND database") // OK
-let pattern = try FTS5Pattern(rawPattern: "AND")                 // DatabaseError
+// OK: FTS5Pattern
+try db.fts5Pattern(rawPattern: "sqlite", forTable: "books")
+// DatabaseError: syntax error near \"AND\"
+try db.fts5Pattern(rawPattern: "AND", forTable: "books")
+// DatabaseError: no such column: missing
+try db.fts5Pattern(rawPattern: "missing: sqlite", forTable: "books")
 ```
 
-The three other initializers don't throw. They build a valid pattern from any string, including strings provided by users of your application. They let you find documents that match all given words, any given word, or a full phrase, depending on the needs of your application:
+The FTS5Pattern initializers don't throw. They build a valid pattern from any string, including strings provided by users of your application. They let you find documents that match all given words, any given word, or a full phrase, depending on the needs of your application:
 
 ```swift
 let query = "SQLite database"
