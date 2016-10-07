@@ -3065,7 +3065,7 @@ Generally speaking, FTS5 is better than FTS4 which improves on FTS3. But this do
     | **Ranking** (sort results by relevance)                                    |  ¹   |  ¹   |  X   |
     | **Snippets** (display a few words around a match)                          |  X   |  X   |  X   |
     
-    ¹ Requires extra setup, possibly involving using the C language (but at least SQLite documentation talks about it).
+    ¹ Requires extra setup, possibly hard to implement (but at least SQLite documentation talks about it).
     
     For a full feature list, read the SQLite documentation. Some missing features can be achieved with extra application code.
     
