@@ -16,7 +16,7 @@ private struct Book {
 
 extension Book : RowConvertible {
     init(row: Row) {
-        id = row.value(named: "docid")
+        id = row.value(named: "rowid")
         title = row.value(named: "title")
         author = row.value(named: "author")
         body = row.value(named: "body")
@@ -28,7 +28,7 @@ extension Book : MutablePersistable {
     
     var persistentDictionary: [String: DatabaseValueConvertible?] {
         return [
-            "docid": id,
+            "rowid": id,
             "title": title,
             "author": author,
             "body": body,
@@ -63,7 +63,18 @@ class FTS3RecordTests: GRDBTestCase {
         }
     }
     
-    func testDocIdIsNotSelectedByDefault() {
+    func testUpdate() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                var book = Book(id: nil, title: "Moby Dick", author: "Herman Melville", body: "Call me Ishmael.")
+                try book.insert(db)
+                try book.update(db)
+            }
+        }
+    }
+    
+    func testRowIdIsSelectedByDefault() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -72,12 +83,30 @@ class FTS3RecordTests: GRDBTestCase {
                     try book.insert(db)
                 }
                 
-                let request = Book.all()
-                let row = Row.fetchOne(db, request)!
-                XCTAssertEqual(row.count, 3)
-                XCTAssertTrue(row.hasColumn("title"))
-                XCTAssertTrue(row.hasColumn("author"))
-                XCTAssertTrue(row.hasColumn("body"))
+                func assertBookIsComplete(_ book: Book) {
+                    XCTAssertEqual(book.id, 1)
+                    XCTAssertEqual(book.title, "Moby Dick")
+                    XCTAssertEqual(book.author, "Herman Melville")
+                    XCTAssertEqual(book.body, "Call me Ishmael.")
+                }
+                
+                for book in Book.fetch(db) {
+                    assertBookIsComplete(book)
+                }
+                
+                assertBookIsComplete(Book.fetchOne(db)!)
+                assertBookIsComplete(Book.fetchOne(db, key: 1)!)
+                assertBookIsComplete(Book.fetchOne(db, key: ["rowid": 1])!)
+                assertBookIsComplete(Book.fetchAll(db).first!)
+                assertBookIsComplete(Book.fetchAll(db, keys: [1]).first!)
+                assertBookIsComplete(Book.fetchAll(db, keys: [["rowid": 1]]).first!)
+                assertBookIsComplete(Book.all().fetchOne(db)!)
+                assertBookIsComplete(Book.filter(Column("rowid") == 1).fetchOne(db)!)
+                assertBookIsComplete(Book.filter(sql: "rowid = 1").fetchOne(db)!)
+                assertBookIsComplete(Book.order(Column("rowid")).fetchOne(db)!)
+                assertBookIsComplete(Book.order(sql: "rowid").fetchOne(db)!)
+                assertBookIsComplete(Book.limit(1).fetchOne(db)!)
+                assertBookIsComplete(Book.matching(FTS3Pattern(matchingAllTokensIn: "Herman Melville")!).fetchOne(db)!)
             }
         }
     }
