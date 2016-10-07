@@ -3099,7 +3099,7 @@ try db.create(virtualTable: "books", using: FTS4()) { t in
 }
 
 // Populate full-text table with SQL:
-try db.execute("INSERT INTO books (uuid, author, title, body) VALUES (?, ?, ?, ?),
+try db.execute("INSERT INTO books (uuid, author, title, body) VALUES (?, ?, ?, ?)",
     arguments: [...])
 
 // Populate full-text table with Records:
