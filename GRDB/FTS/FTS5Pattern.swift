@@ -16,17 +16,37 @@ public struct FTS5Pattern {
         // Invalid patterns have SQLite return an error on the first
         // call to sqlite3_step() on a statement that matches against
         // that pattern.
-        do {
-            try DatabaseQueue().inDatabase { db in
-                try db.execute("CREATE VIRTUAL TABLE documents USING fts5(content)")
-                try db.makeSelectStatement("SELECT * FROM documents WHERE documents MATCH ?")
-                    .fetchSequence(arguments: [rawPattern], element: { /* void (ignored) sequence element */ })
-                    .makeIterator()
-                    .step() // <- invokes sqlite3_step(), throws on invalid pattern
+        var requiredColumns: [String] = []
+        while true {
+            do {
+                try DatabaseQueue().inDatabase { db in
+                    try db.create(virtualTable: "documents", using: FTS5()) { t in
+                        if requiredColumns.isEmpty {
+                            t.column("content")
+                        } else {
+                            for column in requiredColumns {
+                                t.column(column)
+                            }
+                        }
+                    }
+                    try db.makeSelectStatement("SELECT * FROM documents WHERE documents MATCH ?")
+                        .fetchSequence(arguments: [rawPattern], element: { /* void (ignored) sequence element */ })
+                        .makeIterator()
+                        .step() // <- invokes sqlite3_step(), throws on invalid pattern
+                }
+                break
+            } catch let error as DatabaseError {
+                if let message = error.message, message.hasPrefix("no such column: ") {
+                    // Column is message suffix.
+                    let characters = message.characters
+                    let suffixIndex = characters.index(characters.startIndex, offsetBy: 16)
+                    let column = String(characters.suffix(from: suffixIndex))
+                    requiredColumns.append(column)
+                } else {
+                    // Remove private SQL & arguments from the thrown error
+                    throw DatabaseError(code: error.code, message: error.message, sql: nil, arguments: nil)
+                }
             }
-        } catch let error as DatabaseError {
-            // Remove private SQL & arguments from the thrown error
-            throw DatabaseError(code: error.code, message: error.message, sql: nil, arguments: nil)
         }
         
         // Pattern is valid

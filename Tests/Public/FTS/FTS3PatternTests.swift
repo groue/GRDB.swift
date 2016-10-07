@@ -48,6 +48,8 @@ class FTS3PatternTests: GRDBTestCase {
                     ("years NOT months", 1),
                     ("years AND months", 1),
                     ("years OR months", 2),
+                    // column queries
+                    ("title:brest", 1)
                 ]
                 for (rawPattern, expectedCount) in validRawPatterns {
                     let pattern = try FTS3Pattern(rawPattern: rawPattern)
