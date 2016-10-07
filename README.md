@@ -3512,11 +3512,13 @@ SQLite tokenizers for [FTS3, FTS4](#fts3tokenizer) and [FTS5](#fts5tokenizer) ar
 
 Generally speaking, matches may fail when content and query don't use the same [unicode normalization](http://unicode.org/reports/tr15/). SQLite actually exhibits inconsistent behavior in this regard.
 
-For example, for "aimé" to match "aimé", they better have the same normalization: the NFC "aim\u{00E9}" form may not match its NFD "aime\u{0301}" equivalent. Most strings that you get from Swift, UIKit and Cocoa use NFC, so be careful with NFD inputs (such as strings from the HFS+ file system, or strings that you can't trust like network inputs). Use NSString.precomposedStringWithCanonicalMapping to turn a string into NFC.
+For example, for "aimé" to match "aimé", they better have the same normalization: the NFC "aim\u{00E9}" form may not match its NFD "aime\u{0301}" equivalent. Most strings that you get from Swift, UIKit and Cocoa use NFC, so be careful with NFD inputs (such as strings from the HFS+ file system, or strings that you can't trust like network inputs). Use [NSString.precomposedStringWithCanonicalMapping](https://developer.apple.com/reference/foundation/nsstring/1412645-precomposedstringwithcanonicalma) to turn a string into NFC.
 
-Besides, if you want "fi" to match the ligature "&#xfb01;" (U+FB01), then you need to manually normalize your indexed contents and inputs to NFKC or NFKD. Use NSString.decomposedStringWithCanonicalMapping to turn a string into NFKC.
+Besides, if you want "fi" to match the ligature "&#xfb01;" (U+FB01), then you need to manually normalize your indexed contents and inputs to NFKC or NFKD. Use [NSString.decomposedStringWithCanonicalMapping](https://developer.apple.com/reference/foundation/nsstring/1409474-decomposedstringwithcanonicalmap) to turn a string into NFKC.
 
-Last, not all ligatures are decomposed by NFKC, and "ae" will never match "æ". You'll again need manual string processing in order to provide such matching.
+Last, not all ligatures are decomposed by NFKC, and "Encyclopaedia" will never match "Encyclopædia", nor "Grossmann" will do "Großmann". You'll again need manual string processing in order to provide such matching, such as [CFStringFold](https://developer.apple.com/reference/corefoundation/1542031-cfstringfold), plus some manual processing of cases not handled by Unicode.
+
+Happy indexing!
 
 
 ## Database Changes Observation
