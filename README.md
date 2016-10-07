@@ -3444,7 +3444,7 @@ FTS5Pattern are regular [values](#values). You can use them as query arguments:
 
 ```swift
 let documents = Document.fetchAll(db,
-    "SELECT * FROM documents WHERE content MATCH ?",
+    "SELECT * FROM documents WHERE documents MATCH ?",
     arguments: [pattern])
 ```
 
