@@ -3057,7 +3057,7 @@ The choice of the engine needed by your application depends:
 
 - On the location, in your database schema, of the indexed text. Only FTS4 and FTS5 support "contentless" and "external content" tables.
 
-- See [FST3 vs. FTS4](https://www.sqlite.org/fts3.html#differences_between_fts3_and_fts4) and [FTS5 vs. FTS3/4](https://www.sqlite.org/fts5.html#appendix_a) for more information.
+- See [FST3 vs. FTS4](https://www.sqlite.org/fts3.html#differences_between_fts3_and_fts4) and [FTS5 vs. FTS3/4](https://www.sqlite.org/fts5.html#appendix_a) for more differences.
 
 **In case you were still wondering, it is recommended to have a detailed reading of SQLite documentation: [FTS3 & FTS4](https://www.sqlite.org/fts3.html) and [FTS5](https://www.sqlite.org/fts5.html).**
 
