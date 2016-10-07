@@ -3039,13 +3039,13 @@ Quoting [SQLite documentation](https://www.sqlite.org/fts3.html):
 
 > The most common (and effective) way to describe full-text searches is "what Google, Yahoo, and Bing do with documents placed on the World Wide Web".
 
-SQLite support three full-text engines: [FTS3, FTS4](https://www.sqlite.org/fts3.html) and [FTS5](https://www.sqlite.org/fts5.html). GRDB supports FTS5 with a [custom SQLite build](#custom-sqlite-builds) that activates the `SQLITE_ENABLE_FTS5` compilation option.
+SQLite supports three full-text engines: [FTS3, FTS4](https://www.sqlite.org/fts3.html) and [FTS5](https://www.sqlite.org/fts5.html).
 
 Generally speaking, FTS5 is better than FTS4 which improves on FTS3, but this does not really tell which engine to choose.
 
-The choice of the engine needed by your application depends:
+The choice of the engine needed by your application depends on:
 
-- On the kind of full-text features needed by the application:
+- **The kind of full-text features needed by the application**:
     
     | Full-Text Needs                                                            | FTS3 | FTS4 | FTS5 |
     | -------------------------------------------------------------------------- | ---- | ---- | ---- |
@@ -3075,9 +3075,11 @@ The choice of the engine needed by your application depends:
     
     For a full feature list, read the SQLite documentation. Some missing features can be achieved with extra application code.
     
-- On the speed versus disk space constraints. Roughly speaking, FTS4 and FTS5 are faster than FTS3, but use more space. FTS4 only supports content compression.
+- **The speed versus disk space constraints.** Roughly speaking, FTS4 and FTS5 are faster than FTS3, but use more space. FTS4 only supports content compression.
 
-- On the location, in your database schema, of the indexed text. Only FTS4 and FTS5 support "contentless" and "external content" tables.
+- **The location of the indexed text in your database schema.** Only FTS4 and FTS5 support "contentless" and "external content" tables.
+
+- **The SQLite library integrated in your application.** The version of SQLite that ships with iOS, macOS and watchOS support FTS3 and FTS4 out of the box, but not FTS5. To use FTS5, you'll need a [custom SQLite build](#custom-sqlite-builds) that activates the `SQLITE_ENABLE_FTS5` compilation option.
 
 - See [FST3 vs. FTS4](https://www.sqlite.org/fts3.html#differences_between_fts3_and_fts4) and [FTS5 vs. FTS3/4](https://www.sqlite.org/fts5.html#appendix_a) for more differences.
 
