@@ -3086,7 +3086,36 @@ The choice of the engine needed by your application depends:
 
 ### GRDB Full-Text Support
 
-GRDB will help you creating FTS tables, and converting user input into valid full-text queries:
+GRDB helps you creating FTS tables, converting user input into valid full-text queries, and query your tables with or without SQL:
+
+```swift
+// Create full-text tables
+try db.create(virtualTable: "books", using: FTS4()) { t in
+    t.tokenizer = .porter
+    t.column("uuid").notIndexed()
+    t.column("author")
+    t.column("title")
+    t.column("body")
+}
+
+// Populate full-text table with SQL:
+try db.execute("INSERT INTO books (uuid, author, title, body) VALUES (?, ?, ?, ?),
+    arguments: [...])
+
+// Populate full-text table with Records:
+try Book(...).insert(db)
+
+// Build search patterns
+let pattern = FTS3Pattern(matchingPhrase: "Moby Dick")
+
+// Search by SQL
+let books = Book.fetchAll(db,
+    "SELECT * FROM books WHERE books MATCH ?",
+    arguments: [pattern])
+
+// Use the query interface
+let books = Book.matching(pattern).fetchAll(db)
+```
 
 - **Create full-text virtual tables**: store your indexed text ([FTS3/4](#create-fts3-and-fts4-virtual-tables), [FTS5](#create-fts5-virtual-tables))
 - **Tokenizers**: choose how queries should match indexed text ([FTS3/4](#fts3tokenizer), [FTS5](#fts5tokenizer))
