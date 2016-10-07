@@ -3042,7 +3042,7 @@ Generally speaking, FTS5 is better than FTS4 which improves on FTS3. But this do
 - **The kind of full-text features needed by the application**:
     
     | Full-Text Needs                                                            | FTS3 | FTS4 | FTS5 |
-    | -------------------------------------------------------------------------- | ---- | ---- | ---- |
+    | -------------------------------------------------------------------------- | :--: | :--: | :--: |
     | :question: Queries                                                         |      |      |      |
     | **Words searches** (documents that contain "database")                     |  X   |  X   |  X   |
     | **Prefix searches** (documents that contain a word starting with "data")   |  X   |  X   |  X   |
