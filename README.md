@@ -3589,7 +3589,7 @@ For example, for "aimé" to match "aimé", they better have the same normalizati
 
 Besides, if you want "fi" to match the ligature "&#xfb01;" (U+FB01), then you need to normalize your indexed contents and inputs to NFKC or NFKD. Use [NSString.decomposedStringWithCanonicalMapping](https://developer.apple.com/reference/foundation/nsstring/1409474-decomposedstringwithcanonicalmap) to turn a string into NFKC.
 
-Of course, not all ligatures are decomposed by NFKC, and "Encyclopaedia" will never match "Encyclopædia", nor "Grossmann" will do "Großmann". You'll again need string processing in order to provide such matching, with tools like [CFStringFold](https://developer.apple.com/reference/corefoundation/1542031-cfstringfold), plus some extra processing of cases not handled by Unicode, and a good regression test suite.
+Unicode normalization is not the end of the story, because it won't help "Encyclopaedia" match "Encyclopædia", "Mueller", "Müller", "Grossmann", "Großmann", or "Diyarbakır", "DIYARBAKIR".
 
 Happy indexing!
 
