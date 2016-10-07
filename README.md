@@ -4235,7 +4235,7 @@ do {
 
 They uncover programmer errors, false assumptions, and prevent misuses. Here are a few examples:
 
-- The code contains a wrong SQL query:
+- **The code contains an invalid SQL query:**
     
     ```swift
     // fatal error:
@@ -4252,7 +4252,7 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     
     If you do have to run untrusted SQL queries, jump to [untrusted databases](#how-to-deal-with-untrusted-inputs).
 
-- The code asks for a non-optional value, when the database contains NULL:
+- **The code asks for a non-optional value, when the database contains NULL:**
     
     ```swift
     // fatal error: could not convert NULL to String.
@@ -4265,7 +4265,7 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     let name: String? = row.value(named: "name")
     ```
 
-- The code asks for a Date, when the database contains garbage:
+- **The code asks for a Date, when the database contains garbage:**
     
     ```swift
     // fatal error: could not convert "Mom’s birthday" to Date.
@@ -4285,7 +4285,7 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     }
     ```
 
-- The database can't guarantee that the code does what it says:
+- **The database can't guarantee that the code does what it says:**
 
     ```swift
     // fatal error: table persons has no unique index on column email
@@ -4298,7 +4298,7 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     try Person.filter(Column("email") == "arthur@example.com").deleteAll(db)
     ```
 
-- A full-text search is performed with an invalid full-text pattern:
+- **A full-text search is performed with an invalid full-text pattern:**
     
     ```swift
     // fatal error: malformed MATCH expression
@@ -4318,7 +4318,7 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     }
     ```
 
-- Database connections are not reentrant:
+- **Database connections are not reentrant:**
     
     ```swift
     // fatal error: Database methods are not reentrant.
