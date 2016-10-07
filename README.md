@@ -3114,7 +3114,7 @@ let books = Book.matching(pattern).fetchAll(db)
 ```
 
 - **Create full-text virtual tables**: store your indexed text ([FTS3/4](#create-fts3-and-fts4-virtual-tables), [FTS5](#create-fts5-virtual-tables))
-- **Tokenizers**: choose how queries should match indexed text ([FTS3/4](#fts3tokenizer), [FTS5](#fts5tokenizer))
+- **Tokenizers**: choose what "matching" means ([FTS3/4](#fts3tokenizer), [FTS5](#fts5tokenizer))
 - **Patterns**: build valid search patterns ([FTS3/4](#fts3pattern), [FTS5](#fts5pattern))
 
 
