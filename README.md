@@ -2510,7 +2510,7 @@ You can now build requests with the following methods: `all`, `select`, `distinc
     Person.filter(nameColumn != nil && heightColumn > 1.75)
     ```
 
-- `matching(pattern)` performs [full-text Search](#full-text-search).
+- `matching(pattern)` performs [full-text search](#full-text-search).
     
     ```swift
     // SELECT * FROM documents WHERE documents MATCH 'sqlite AND database'
