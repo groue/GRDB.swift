@@ -138,7 +138,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
                     t.tokenizer = .unicode61(tokenCharacters: Set(".-".characters))
                     t.column("content")
                 }
-                XCTAssertTrue(sqlQueries.contains("CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='unicode61 tokenchars ''.-''')") || sqlQueries.contains("CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='unicode61 tokenchars ''-.''')"))
+                XCTAssertTrue(sqlQueries.contains("CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='unicode61 tokenchars ''-.''')"))
             }
         }
     }
@@ -180,6 +180,22 @@ class FTS5TableBuilderTests: GRDBTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["Melville"])!, 0)
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["title:Melville"])!, 0)
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["author:Melville"])!, 0)
+            }
+        }
+    }
+    
+    func testFTS5Options() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.create(virtualTable: "documents", using: FTS5()) { t in
+                    t.content = ""
+                    t.prefixes = [2, 4]
+                    t.columnSize = 0
+                    t.detail = "column"
+                    t.column("content")
+                }
+                XCTAssertTrue(sqlQueries.contains("CREATE VIRTUAL TABLE \"documents\" USING fts5(content, content='', prefix='2 4', columnSize=0, detail=column)"))
             }
         }
     }

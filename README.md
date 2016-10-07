@@ -3057,15 +3057,15 @@ Generally speaking, FTS5 is better than FTS4 which improves on FTS3. But this do
     | **English Stemming and Ascii case insensitivity**                          |  X   |  X   |  X   |
     | **English Stemming and Unicode case insensitivity**                        |      |      |  X   |
     | **English Stemming and Latin diacritics insensitivity**                    |      |      |  X   |
-    | **Spell checking** (have "alamaba" match "alabama")                        |      |  ¹   |  ?   |
-    | **Synonyms** (have "1st" match "first")                                    |      |      |      |
+    | **Spell checking** (have "alamaba" match "alabama")                        |      |  ¹   |  ¹   |
+    | **Synonyms** (have "1st" match "first")                                    |  ¹   |  ¹   |  ¹   |
     | **Pinyin and Romaji** (have "romaji" match "ローマ字")                         |      |      |      |
     | **Stop words** (don't index, and don't match words like "and" and "the")   |      |      |      |
     | :bowtie: Other Features                                                    |      |      |      |
     | **Ranking** (sort results by relevance)                                    |  ¹   |  ¹   |  X   |
     | **Snippets** (display a few words around a match)                          |  X   |  X   |  X   |
     
-    ¹ Requires extra setup (but at least SQLite documentation talks about it)
+    ¹ Requires extra setup, possibly involving using the C language (but at least SQLite documentation talks about it).
     
     For a full feature list, read the SQLite documentation. Some missing features can be achieved with extra application code.
     
@@ -3155,14 +3155,24 @@ try db.create(virtualTable: "books", using: FTS4()) { t in
 FTS4 supports [options](https://www.sqlite.org/fts3.html#fts4_options):
 
 ```swift
+// CREATE VIRTUAL TABLE books USING fts4(
+//   content,
+//   uuid,
+//   content="",
+//   compress=zip,
+//   uncompress=unzip,
+//   prefix="2,4",
+//   notindexed=uuid,
+//   languageid=lid
+// )
 try db.create(virtualTable: "documents", using: FTS4()) { t in
     t.content = ""
     t.compress = "zip"
     t.uncompress = "unzip"
-    t.languageid = "lid"
-    t.prefix = "2,4"
-    t.column("uuid").notIndexed()
+    t.prefixes = [2, 4]
     t.column("content")
+    t.column("uuid").notIndexed()
+    t.column("lid").asLanguageId()
 }
 ```
 
@@ -3346,11 +3356,21 @@ try db.create(virtualTable: "books", using: FTS5()) { t in
 FTS5 supports [options](https://www.sqlite.org/fts5.html#fts5_table_creation_and_initialization):
 
 ```swift
+// CREATE VIRTUAL TABLE books USING fts5(
+//   content,
+//   uuid UNINDEXED,
+//   content='',
+//   prefix='2 4',
+//   columnsize=0,
+//   detail=column
+// )
 try db.create(virtualTable: "documents", using: FTS5()) { t in
-    t.content = ""
-    t.prefix = "2,4"
-    t.column("uuid").notIndexed()
     t.column("content")
+    t.column("uuid").notIndexed()
+    t.content = ""
+    t.prefixes = [2, 4]
+    t.columnSize = 0
+    t.detail = "column"
 }
 ```
 

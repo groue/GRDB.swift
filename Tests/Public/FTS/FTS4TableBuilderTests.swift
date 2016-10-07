@@ -102,7 +102,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
                 try db.create(virtualTable: "documents", using: FTS4()) { t in
                     t.tokenizer = .unicode61(tokenCharacters: Set(".-".characters))
                 }
-                XCTAssertTrue(sqlQueries.contains("CREATE VIRTUAL TABLE \"documents\" USING fts4(tokenize=unicode61 \"tokenchars=.-\")") || sqlQueries.contains("CREATE VIRTUAL TABLE \"documents\" USING fts4(tokenize=unicode61 \"tokenchars=-.\")"))
+                XCTAssertTrue(sqlQueries.contains("CREATE VIRTUAL TABLE \"documents\" USING fts4(tokenize=unicode61 \"tokenchars=-.\")"))
             }
         }
     }
@@ -162,11 +162,13 @@ class FTS4TableBuilderTests: GRDBTestCase {
                     t.content = ""
                     t.compress = "zip"
                     t.uncompress = "unzip"
-                    t.languageid = "lid"
-                    t.prefix = "2,4"
+                    t.matchinfo = "fts3"
+                    t.prefixes = [2, 4]
                     t.column("content")
+                    t.column("lid").asLanguageId()
                 }
-                XCTAssertTrue(sqlQueries.contains("CREATE VIRTUAL TABLE \"documents\" USING fts4(content, content=\"\", compress=\"zip\", uncompress=\"unzip\", languageid=\"lid\", prefix=\"2,4\")"))
+                print(sqlQueries)
+                XCTAssertTrue(sqlQueries.contains("CREATE VIRTUAL TABLE \"documents\" USING fts4(content, languageid=\"lid\", content=\"\", compress=\"zip\", uncompress=\"unzip\", matchinfo=\"fts3\", prefix=\"2,4\")"))
                 
                 try db.execute("INSERT INTO documents (docid, content, lid) VALUES (?, ?, ?)", arguments: [1, "abc", 0])
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ? AND lid=0", arguments: ["abc"])!, 1)

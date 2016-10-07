@@ -31,11 +31,11 @@ public struct FTS3Tokenizer {
         }
         if let separators = separators {
             // TODO: test "=" and "\"", "(" and ")" as separators, with both FTS3Pattern(matchingAnyTokenIn:tokenizer:) and Database.create(virtualTable:using:)
-            options.append("separators=" + separators.map { String($0) }.joined(separator: ""))
+            options.append("separators=" + separators.sorted().map { String($0) }.joined(separator: ""))
         }
         if let tokenCharacters = tokenCharacters {
             // TODO: test "=" and "\"", "(" and ")" as tokenCharacters, with both FTS3Pattern(matchingAnyTokenIn:tokenizer:) and Database.create(virtualTable:using:)
-            options.append("tokenchars=" + tokenCharacters.map { String($0) }.joined(separator: ""))
+            options.append("tokenchars=" + tokenCharacters.sorted().map { String($0) }.joined(separator: ""))
         }
         return FTS3Tokenizer("unicode61", options: options)
     }

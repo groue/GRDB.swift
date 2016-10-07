@@ -52,11 +52,19 @@
             }
             
             if let content = definition.content {
-                arguments.append("content=\"\(content)\"")
+                arguments.append("content=\(content.sqlExpression.sql)")
             }
             
-            if let prefix = definition.prefix {
-                arguments.append("prefix=\"\(prefix)\"")
+            if let prefixes = definition.prefixes {
+                arguments.append("prefix=\(prefixes.map { "\($0)" }.joined(separator: " ").sqlExpression.sql)")
+            }
+            
+            if let columnSize = definition.columnSize {
+                arguments.append("columnSize=\(columnSize)")
+            }
+            
+            if let detail = definition.detail {
+                arguments.append("detail=\(detail)")
             }
             
             return arguments
@@ -90,10 +98,20 @@
         /// See https://www.sqlite.org/fts5.html#external_content_and_contentless_tables
         public var content: String?
         
-        /// The FTS5 `prefix` option
+        /// Support for the FTS5 `prefix` option
         ///
         /// See https://www.sqlite.org/fts5.html#prefix_indexes
-        public var prefix: String?
+        public var prefixes: Set<Int>?
+        
+        /// Support for the FTS5 `columnsize` option
+        ///
+        /// https://www.sqlite.org/fts5.html#the_columnsize_option
+        public var columnSize: Int?
+        
+        /// Support for the FTS5 `detail` option
+        ///
+        /// https://www.sqlite.org/fts5.html#the_detail_option
+        public var detail: String?
         
         /// TODO: columnsize, detail
         

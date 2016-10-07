@@ -35,9 +35,13 @@ public struct FTS4 : VirtualTableModule {
         var arguments: [String] = []
         
         for column in definition.columns {
-            arguments.append(column.name)
-            if !column.isIndexed {
-                arguments.append("notindexed=\(column.name)")
+            if column.isLanguageId {
+                arguments.append("languageid=\"\(column.name)\"")
+            } else {
+                arguments.append(column.name)
+                if !column.isIndexed {
+                    arguments.append("notindexed=\(column.name)")
+                }
             }
         }
         
@@ -61,12 +65,12 @@ public struct FTS4 : VirtualTableModule {
             arguments.append("uncompress=\"\(uncompress)\"")
         }
         
-        if let languageid = definition.languageid {
-            arguments.append("languageid=\"\(languageid)\"")
+        if let matchinfo = definition.matchinfo {
+            arguments.append("matchinfo=\"\(matchinfo)\"")
         }
         
-        if let prefix = definition.prefix {
-            arguments.append("prefix=\"\(prefix)\"")
+        if let prefixes = definition.prefixes {
+            arguments.append("prefix=\"\(prefixes.sorted().map { "\($0)" }.joined(separator: ","))\"")
         }
         
         return arguments
@@ -110,15 +114,21 @@ public final class FTS4TableDefinition : VirtualTableDefinition {
     /// See https://www.sqlite.org/fts3.html#the_compress_and_uncompress_options
     public var uncompress: String?
     
-    /// The FTS4 `languageid` option
+    /// The FTS4 `matchinfo` option
     ///
-    /// See https://www.sqlite.org/fts3.html#the_languageid_option
-    public var languageid: String?
+    /// See https://www.sqlite.org/fts3.html#the_matchinfo_option
+    public var matchinfo: String?
     
-    /// The FTS4 `prefix` option
+    /// Support for the FTS5 `prefix` option
+    ///
+    ///     // CREATE VIRTUAL TABLE documents USING FTS4(content, prefix='2 4');
+    ///     db.create(virtualTable: "documents", using:FTS4()) { t in
+    ///         t.prefixes = [2, 4]
+    ///         t.column("content")
+    ///     }
     ///
     /// See https://www.sqlite.org/fts3.html#the_prefix_option
-    public var prefix: String?
+    public var prefixes: Set<Int>?
     
     /// Appends a table column.
     ///
@@ -147,10 +157,12 @@ public final class FTS4TableDefinition : VirtualTableDefinition {
 public final class FTS4ColumnDefinition {
     fileprivate let name: String
     fileprivate var isIndexed: Bool
+    fileprivate var isLanguageId: Bool
     
     init(name: String) {
         self.name = name
         self.isIndexed = true
+        self.isLanguageId = false
     }
     
     /// Excludes the column from the full-text index.
@@ -165,6 +177,21 @@ public final class FTS4ColumnDefinition {
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult public func notIndexed() -> Self {
         self.isIndexed = false
+        return self
+    }
+    
+    /// Uses the column as the Int32 language id hidden column.
+    ///
+    ///     try db.create(virtualTable: "persons", using: FTS4()) { t in
+    ///         t.column("a")
+    ///         t.column("lid").asLanguageId()
+    ///     }
+    ///
+    /// See https://www.sqlite.org/fts3.html#the_languageid_option
+    ///
+    /// - returns: Self so that you can further refine the column definition.
+    @discardableResult public func asLanguageId() -> Self {
+        self.isLanguageId = true
         return self
     }
 }

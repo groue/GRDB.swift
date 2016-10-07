@@ -46,11 +46,11 @@ public struct FTS5Tokenizer {
         }
         if let separators = separators, !separators.isEmpty {
             // TODO: test "=" and "\"", "(" and ")" as separators, with both FTS3Pattern(matchingAnyTokenIn:tokenizer:) and Database.create(virtualTable:using:)
-            options.append(contentsOf: ["separators", separators.map { String($0) }.joined(separator: "").sqlExpression.sql])
+            options.append(contentsOf: ["separators", separators.sorted().map { String($0) }.joined(separator: "").sqlExpression.sql])
         }
         if let tokenCharacters = tokenCharacters, !tokenCharacters.isEmpty {
             // TODO: test "=" and "\"", "(" and ")" as tokenCharacters, with both FTS3Pattern(matchingAnyTokenIn:tokenizer:) and Database.create(virtualTable:using:)
-            options.append(contentsOf: ["tokenchars", tokenCharacters.map { String($0) }.joined(separator: "").sqlExpression.sql])
+            options.append(contentsOf: ["tokenchars", tokenCharacters.sorted().map { String($0) }.joined(separator: "").sqlExpression.sql])
         }
         return FTS5Tokenizer("unicode61", options: options)
     }

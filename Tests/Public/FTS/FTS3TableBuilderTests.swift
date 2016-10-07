@@ -102,7 +102,7 @@ class FTS3TableBuilderTests: GRDBTestCase {
                 try db.create(virtualTable: "documents", using: FTS3()) { t in
                     t.tokenizer = .unicode61(tokenCharacters: Set(".-".characters))
                 }
-                XCTAssertTrue(sqlQueries.contains("CREATE VIRTUAL TABLE \"documents\" USING fts3(tokenize=unicode61 \"tokenchars=.-\")") || sqlQueries.contains("CREATE VIRTUAL TABLE \"documents\" USING fts3(tokenize=unicode61 \"tokenchars=-.\")"))
+                XCTAssertTrue(sqlQueries.contains("CREATE VIRTUAL TABLE \"documents\" USING fts3(tokenize=unicode61 \"tokenchars=-.\")"))
             }
         }
     }
