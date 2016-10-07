@@ -989,7 +989,7 @@ Dates are stored using the format "YYYY-MM-DD HH:MM:SS.SSS" in the UTC time zone
 > :point_up: **Note**: this format was chosen because it is the only format that is:
 > 
 > - Comparable (`ORDER BY date` works)
-> - Comparable with the SQLite keyword NOW (`WHERE date > NOW` works)
+> - Comparable with the SQLite keyword CURRENT_TIMESTAMP (`WHERE date > CURRENT_TIMESTAMP` works)
 > - Able to feed [SQLite date & time functions](https://www.sqlite.org/lang_datefunc.html)
 > - Precise enough
 > 
