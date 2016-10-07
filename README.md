@@ -3113,10 +3113,25 @@ let books = Book.fetchAll(db,
 let books = Book.matching(pattern).fetchAll(db)
 ```
 
-- **Create full-text virtual tables**: store your indexed text ([FTS3/4](#create-fts3-and-fts4-virtual-tables), [FTS5](#create-fts5-virtual-tables))
-- **Tokenizers**: choose what "matching" means ([FTS3/4](#fts3tokenizer), [FTS5](#fts5tokenizer))
-- **Patterns**: build valid search patterns ([FTS3/4](#fts3pattern), [FTS5](#fts5pattern))
-- **[Unicode Full-Text Gotchas](#unicode-full-text-gotchas)**: unicorns don't exist
+- **Create full-text virtual tables** [FTS3/4](#create-fts3-and-fts4-virtual-tables) &bull; [FTS5](#create-fts5-virtual-tables)
+    
+    Store your indexed text.
+    
+- **Tokenizers**: [FTS3/4](#fts3tokenizer) &bull; [FTS5](#fts5tokenizer)
+    
+    Choose what "matching" means
+    
+- **Patterns**: [FTS3/4](#fts3pattern) &bull; [FTS5](#fts5pattern)
+    
+    Build valid search patterns
+    
+- **Sorting by Relevance**: [FTS5](#fts5-sorting-by-relevance)
+    
+    GRDB does not provide any ranking for FTS3 and FTS4. See SQLite's [Search Application Tips](https://www.sqlite.org/fts3.html#appendix_a) if you really need it.
+    
+- **[Unicode Full-Text Gotchas](#unicode-full-text-gotchas)**
+    
+    Unicorns don't exist.
 
 
 ### Create FTS3 and FTS4 Virtual Tables
@@ -3525,6 +3540,23 @@ Use them in the [query interface](#the-query-interface):
 ```swift
 let documents = Document.matching(pattern).fetchAll(db)
 ```
+
+### FTS5: Sorting by Relevance
+
+**FTS5 can sort results by relevance** (most to least relevant):
+
+```swift
+// SQL
+let documents = Document.fetchAll(db,
+    "SELECT * FROM documents WHERE documents MATCH ? ORDER BY rank",
+    arguments: [pattern])
+
+// Query Interface
+let documents = Document.matching(pattern).order(Column("rank")).fetchAll(db)
+```
+
+For more information about the ranking algorithm, as well as extra options, read [Sorting by Auxiliary Function Results](https://www.sqlite.org/fts5.html#sorting_by_auxiliary_function_results)
+
 
 ### Unicode Full-Text Gotchas
 
