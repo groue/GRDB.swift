@@ -3116,6 +3116,7 @@ let books = Book.matching(pattern).fetchAll(db)
 - **Create full-text virtual tables**: store your indexed text ([FTS3/4](#create-fts3-and-fts4-virtual-tables), [FTS5](#create-fts5-virtual-tables))
 - **Tokenizers**: choose what "matching" means ([FTS3/4](#fts3tokenizer), [FTS5](#fts5tokenizer))
 - **Patterns**: build valid search patterns ([FTS3/4](#fts3pattern), [FTS5](#fts5pattern))
+- **[Unicode Full-Text Gotchas](#unicode-full-text-gotchas)**: unicorns do not exist
 
 
 ### Create FTS3 and FTS4 Virtual Tables
@@ -3189,11 +3190,11 @@ try db.create(virtualTable: "books", using: FTS4()) { t in
 | Foo         | FOO        |   X    |   X    |     X     |
 | Jérôme      | Jérôme     |   X ¹  |   X ¹  |     X ¹   |
 | Jérôme      | JÉRÔME     |        |        |     X ¹   |
-| Jérôme      | Jerome     |        |        |     X     |
+| Jérôme      | Jerome     |        |        |     X ¹   |
 | Database    | Databases  |        |   X    |           |
 | Frustration | Frustrated |        |   X    |           |
 
-¹ Matches may fail if content and query don't use the same [unicode normalization](http://unicode.org/reports/tr15/): For "é" to match "é", they better have the same normalization. Precisely speaking the NFC "\u{00E9}" may not match its NFD "\u{0065}\u{0301}" equivalent. Swift generally uses NFC, so be careful with NFD inputs. Besides, if you want "fi" to match "&#xfb01;" (LATIN SMALL LIGATURE FI), then you need to normalize your indexed contents and inputs to NFKC or NFKD. See NSString properties decomposedStringWithCanonicalMapping and decomposedStringWithCompatibilityMapping.
+¹ Don't miss [Unicode Full-Text Gotchas](#unicode-full-text-gotchas)
 
 - **simple**
     
@@ -3378,11 +3379,11 @@ try db.create(virtualTable: "books", using: FTS5()) { t in
 | Foo         | FOO        |   X    |     X     |        X        |          X          |
 | Jérôme      | Jérôme     |   X ¹  |     X ¹   |        X ¹      |          X ¹        |
 | Jérôme      | JÉRÔME     |        |     X ¹   |                 |          X ¹        |
-| Jérôme      | Jerome     |        |     X     |                 |          X          |
+| Jérôme      | Jerome     |        |     X ¹   |                 |          X ¹        |
 | Database    | Databases  |        |           |        X        |          X          |
 | Frustration | Frustrated |        |           |        X        |          X          |
 
-¹ Matches may fail if content and query don't use the same [unicode normalization](http://unicode.org/reports/tr15/): For "é" to match "é", they better have the same normalization. Precisely speaking the NFC "\u{00E9}" may not match its NFD "\u{0065}\u{0301}" equivalent. Swift generally uses NFC, so be careful with NFD inputs. Besides, if you want "fi" to match "&#xfb01;" (LATIN SMALL LIGATURE FI), then you need to normalize your indexed contents and inputs to NFKC or NFKD. See NSString properties decomposedStringWithCanonicalMapping and decomposedStringWithCompatibilityMapping.
+¹ Don't miss [Unicode Full-Text Gotchas](#unicode-full-text-gotchas)
 
 - **unicode61**
     
@@ -3504,6 +3505,18 @@ Use them in the [query interface](#the-query-interface):
 ```swift
 let documents = Document.matching(pattern).fetchAll(db)
 ```
+
+### Unicode Full-Text Gotchas
+
+SQLite tokenizers for [FTS3, FTS4](#fts3tokenizer) and [FTS5](#fts5tokenizer) are generally unicode-aware, with a few caveats, and limitations.
+
+Generally speaking, matches may fail when content and query don't use the same [unicode normalization](http://unicode.org/reports/tr15/). SQLite actually exhibits inconsistent behavior in this regard.
+
+For example, for "aimé" to match "aimé", they better have the same normalization: the NFC "aim\u{00E9}" form may not match its NFD "aime\u{0301}" equivalent. Swift generally uses NFC, so be careful with NFD inputs.
+
+Besides, if you want "fi" to match the ligature "&#xfb01;" (U+FB01), then you need to manually normalize your indexed contents and inputs to NFKC or NFKD. See NSString properties decomposedStringWithCanonicalMapping and decomposedStringWithCompatibilityMapping.
+
+Last, not all ligatures are decomposed by NFKC and NFKD forms: this prevents "æ" from matching match "ae". You'll again need manual string processing in order to provide such matching.
 
 
 ## Database Changes Observation
