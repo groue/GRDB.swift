@@ -71,10 +71,10 @@ struct QueryInterfaceSelectQueryDefinition {
                 // > always refers the explicitly declared column and cannot be
                 // > used to retrieve the integer rowid value.
                 //
-                // Here we assume that _rowid_ is not a custom column.
-                // TODO: support for user-defined _rowid_ column.
+                // Here we assume that rowid is not a custom column.
+                // TODO: support for user-defined rowid column.
                 // TODO: support for WITHOUT ROWID tables.
-                orderings = [Column("_rowid_").desc]
+                orderings = [Column.rowID.desc]
             } else {
                 orderings = orderings.map { $0.reversed }
             }

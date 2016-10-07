@@ -236,7 +236,13 @@ extension TableMapping {
     
     /// Returns a QueryInterfaceRequest which fetches all rows in the table.
     public static func all() -> QueryInterfaceRequest<Self> {
-        return QueryInterfaceRequest(tableName: databaseTableName)
+        let selection: [SQLSelectable]
+        if selectsRowID {
+            selection = [star, Column.rowID]
+        } else {
+            selection = [star]
+        }
+        return QueryInterfaceRequest(query: QueryInterfaceSelectQueryDefinition(select: selection, from: .table(name: databaseTableName, alias: nil)))
     }
     
     /// Returns a QueryInterfaceRequest which selects *selection*.

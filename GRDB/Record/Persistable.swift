@@ -302,7 +302,7 @@ public extension MutablePersistable {
         let databaseTableName = type(of: self).databaseTableName
         
         // Update according to explicit primary key, or implicit rowid.
-        let primaryKey = try! db.primaryKey(databaseTableName) ?? PrimaryKeyInfo.rowID("rowid")
+        let primaryKey = try! db.primaryKey(databaseTableName) ?? PrimaryKeyInfo.hiddenRowID
         
         // We need a primary key value in the persistentDictionary
         let persistentDictionary = self.persistentDictionary
@@ -594,7 +594,7 @@ final class DAO {
     init(_ db: Database, _ record: MutablePersistable) {
         // Fail early if database table does not exist.
         let databaseTableName = type(of: record).databaseTableName
-        let primaryKey = try! db.primaryKey(databaseTableName) ?? PrimaryKeyInfo.rowID("rowid")
+        let primaryKey = try! db.primaryKey(databaseTableName) ?? PrimaryKeyInfo.hiddenRowID
         
         // Fail early if persistentDictionary is empty
         let persistentDictionary = record.persistentDictionary

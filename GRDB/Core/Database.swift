@@ -1100,15 +1100,20 @@ extension Database {
     /// if the columns are the primary key, or if there is a unique index on them.
     public func table<T: Sequence>(_ tableName: String, hasUniqueKey columns: T) throws -> Bool where T.Iterator.Element == String {
         let primaryKey = try self.primaryKey(tableName) // first, so that we fail early and consistently should the table not exist
-        let columns = Set(columns)
-        if indexes(on: tableName).contains(where: { index in index.isUnique && Set(index.columns) == columns }) {
+        let columns = Set(columns.map { $0.lowercased() })
+        if indexes(on: tableName).contains(where: { index in index.isUnique && Set(index.columns.map { $0.lowercased() }) == columns }) {
+            // There is an explicit unique index on the columns
             return true
         }
-        if columns.count == 1,
-            let rowIDColumnName = primaryKey?.rowIDColumn,
-            rowIDColumnName == columns.first!
-        {
-            return true
+        if let column = columns.first, columns.count == 1 {
+            if let rowIDColumnName = primaryKey?.rowIDColumn, rowIDColumnName.lowercased() == column {
+                // An explicit INTEGER PRIMARY KEY column is a unique key.
+                return true
+            }
+            if try primaryKey == nil && ["rowid", "oid", "_rowid_"].contains(column) && !self.columns(in: tableName).map({ $0.name.lowercased() }).contains(column) {
+                // A rowid, oid or _rowid_ column is a unique key when there is no explicit primary key and the column is not already used.
+                return true
+            }
         }
         return false
     }
@@ -1200,6 +1205,9 @@ public struct IndexInfo {
 ///     citizenshipsPk.rowIDColumn // nil
 public struct PrimaryKeyInfo {
     private enum Impl {
+        /// The hidden rowID.
+        case hiddenRowID
+        
         /// An INTEGER PRIMARY KEY column that aliases the Row ID.
         /// Associated string is the column name.
         case rowID(String)
@@ -1220,9 +1228,13 @@ public struct PrimaryKeyInfo {
         return PrimaryKeyInfo(impl: .regular(columns))
     }
     
+    static let hiddenRowID = PrimaryKeyInfo(impl: .hiddenRowID)
+    
     /// The columns in the primary key; this array is never empty.
     public var columns: [String] {
         switch impl {
+        case .hiddenRowID:
+            return [Column.rowID.name]
         case .rowID(let column):
             return [column]
         case .regular(let columns):
@@ -1233,6 +1245,8 @@ public struct PrimaryKeyInfo {
     /// When not nil, the name of the column that contains the INTEGER PRIMARY KEY.
     public var rowIDColumn: String? {
         switch impl {
+        case .hiddenRowID:
+            return nil
         case .rowID(let column):
             return column
         case .regular:

@@ -16,7 +16,7 @@ private struct Book {
 
 extension Book : RowConvertible {
     init(row: Row) {
-        id = row.value(named: "rowid")
+        id = row.value(Column.rowID)
         title = row.value(named: "title")
         author = row.value(named: "author")
         body = row.value(named: "body")
@@ -28,7 +28,7 @@ extension Book : MutablePersistable {
     
     var persistentDictionary: [String: DatabaseValueConvertible?] {
         return [
-            "rowid": id,
+            Column.rowID.name: id,
             "title": title,
             "author": author,
             "body": body,

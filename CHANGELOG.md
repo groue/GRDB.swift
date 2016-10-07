@@ -1,6 +1,29 @@
 Release Notes
 =============
 
+## Next Release
+
+**New**
+
+- `TableMapping.selectsRowID`: this optional static property allows records to fetch their hidden rowID column by default:
+    
+    ```swift
+    // SELECT *, rowid FROM books
+    Book.fetchAll(db)
+    ```
+    
+- `fetchOne(_:key:)`, `fetch(_:keys:)`, `fetchAll(_:keys:)`, `deleteOne(_:key:)`, `deleteAll(_:keys:)` now use the hidden `rowid` column when the table has no explicit primary key.
+    
+    ```swift
+    // DELETE FROM books WHERE rowid = 1
+    try Book.deleteOne(db, key: 1)
+    ```
+
+**Breaking Changes**
+
+- `Row.value(column:)` has been renamed `Row.value(_:)`
+
+
 ## 0.85.0
 
 Released September 28, 2016

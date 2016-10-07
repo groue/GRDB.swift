@@ -29,6 +29,13 @@
 public protocol TableMapping {
     /// The name of the database table
     static var databaseTableName: String { get }
+    
+    /// TODO
+    static var selectsRowID: Bool { get }
+}
+
+extension TableMapping {
+    public static var selectsRowID: Bool { return false }
 }
 
 extension RowConvertible where Self: TableMapping {
@@ -95,7 +102,7 @@ extension RowConvertible where Self: TableMapping {
         // Fail early if database table has not one column in its primary key
         let columns = primaryKey?.columns ?? []
         GRDBPrecondition(columns.count <= 1, "requires single column primary key in table: \(databaseTableName)")
-        let column = columns.first ?? "rowid"
+        let column = columns.first ?? Column.rowID.name
         
         let keys = Array(keys)
         switch keys.count {
@@ -104,14 +111,14 @@ extension RowConvertible where Self: TableMapping {
             return nil
         case 1:
             // SELECT * FROM table WHERE id = ?
-            let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(column.quotedDatabaseIdentifier) = ?"
+            let sql = "SELECT \(defaultSelection) FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(column.quotedDatabaseIdentifier) = ?"
             let statement = try db.makeSelectStatement(sql)
             statement.arguments = StatementArguments(keys)
             return statement
         case let count:
             // SELECT * FROM table WHERE id IN (?,?,?)
             let keysSQL = databaseQuestionMarks(count: count)
-            let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(column.quotedDatabaseIdentifier) IN (\(keysSQL))"
+            let sql = "SELECT \(defaultSelection) FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(column.quotedDatabaseIdentifier) IN (\(keysSQL))"
             let statement = try db.makeSelectStatement(sql)
             statement.arguments = StatementArguments(keys)
             return statement
@@ -167,7 +174,7 @@ extension TableMapping {
         // Fail early if database table has not one column in its primary key
         let columns = primaryKey?.columns ?? []
         GRDBPrecondition(columns.count <= 1, "requires single column primary key in table: \(databaseTableName)")
-        let column = columns.first ?? "rowid"
+        let column = columns.first ?? Column.rowID.name
         
         let keys = Array(keys)
         switch keys.count {
@@ -275,10 +282,18 @@ extension RowConvertible where Self: TableMapping {
         }
         
         let whereClause = whereClauses.joined(separator: " OR ")
-        let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(whereClause)"
+        let sql = "SELECT \(defaultSelection) FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(whereClause)"
         let statement = try! db.makeSelectStatement(sql)
         statement.arguments = StatementArguments(arguments)
         return statement
+    }
+    
+    fileprivate static var defaultSelection: String {
+        if selectsRowID {
+            return "*, rowid"
+        } else {
+            return "*"
+        }
     }
 }
 

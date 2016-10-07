@@ -188,6 +188,11 @@ extension Column : SQLExpression {
     }
 }
 
+extension Column {
+    /// The hidden rowID column
+    public static let rowID = Column("rowid")
+}
+
 
 // MARK: - DatabaseValue
 
