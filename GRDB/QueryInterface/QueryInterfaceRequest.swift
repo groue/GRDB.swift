@@ -8,6 +8,7 @@ public struct QueryInterfaceRequest<T> {
     ///
     /// It represents the SQL query `SELECT * FROM tableName`.
     public init(tableName: String) {
+        // TODO: make this initializer internal
         self.init(query: QueryInterfaceSelectQueryDefinition(select: [star], from: .table(name: tableName, alias: nil)))
     }
     
