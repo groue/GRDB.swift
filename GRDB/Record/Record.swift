@@ -222,7 +222,7 @@ open class Record : RowConvertible, TableMapping, Persistable {
         
         if !conflictResolutionForInsert.invalidatesLastInsertedRowID {
             let rowID = db.lastInsertedRowID
-            let rowIDColumn = dao.primaryKey?.rowIDColumn
+            let rowIDColumn = dao.primaryKey.rowIDColumn
             didInsert(with: rowID, for: rowIDColumn)
             
             // Update persistentDictionary with inserted id, so that we can

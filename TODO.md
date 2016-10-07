@@ -1,3 +1,4 @@
+- [ ] FTS: The didInsert(with:for:) column used to be nil when the rowid column was hidden. This has changed when the Persistable DAO started assuming a "rowid" primary key, in order to let records wrapping FTS3/4/5 tables "know" their primary key, and support updates and deletion. The problem is that the optional column argument of didInsert(with:for:) is never nil now, and the the "rowid" name may be already used by another column. Think about it.
 - [ ] FTS: deal with hidden docid. Select docid, * from..., didInsertWith... etc.
 - [ ] FTS: check https://www.sqlite.org/spellfix1.html
 - [ ] Store dates as timestamp (https://twitter.com/gloparco/status/780948021613912064, https://github.com/groue/GRDB.swift/issues/97)

@@ -300,10 +300,11 @@ public extension MutablePersistable {
     fileprivate func canUpdate(_ db: Database) -> Bool {
         // Fail early if database table does not exist.
         let databaseTableName = type(of: self).databaseTableName
-        guard let primaryKey = try! db.primaryKey(databaseTableName) else {
-            return false
-        }
         
+        // Update according to explicit primary key, or implicit rowid.
+        let primaryKey = try! db.primaryKey(databaseTableName) ?? PrimaryKeyInfo.rowID("rowid")
+        
+        // We need a primary key value in the persistentDictionary
         let persistentDictionary = self.persistentDictionary
         for column in primaryKey.columns where !databaseValue(for: column, inDictionary: persistentDictionary).isNull {
             return true
@@ -324,7 +325,7 @@ public extension MutablePersistable {
         try dao.insertStatement(onConflict: conflictResolutionForInsert).execute()
         
         if !conflictResolutionForInsert.invalidatesLastInsertedRowID {
-            didInsert(with: db.lastInsertedRowID, for: dao.primaryKey?.rowIDColumn)
+            didInsert(with: db.lastInsertedRowID, for: dao.primaryKey.rowIDColumn)
         }
     }
     
@@ -533,7 +534,7 @@ public extension Persistable {
         try dao.insertStatement(onConflict: conflictResolutionForInsert).execute()
         
         if !conflictResolutionForInsert.invalidatesLastInsertedRowID {
-            didInsert(with: db.lastInsertedRowID, for: dao.primaryKey?.rowIDColumn)
+            didInsert(with: db.lastInsertedRowID, for: dao.primaryKey.rowIDColumn)
         }
     }
     
@@ -588,12 +589,12 @@ final class DAO {
     let databaseTableName: String
     
     /// The table primary key
-    let primaryKey: PrimaryKeyInfo?
+    let primaryKey: PrimaryKeyInfo
     
     init(_ db: Database, _ record: MutablePersistable) {
         // Fail early if database table does not exist.
         let databaseTableName = type(of: record).databaseTableName
-        let primaryKey = try! db.primaryKey(databaseTableName)
+        let primaryKey = try! db.primaryKey(databaseTableName) ?? PrimaryKeyInfo.rowID("rowid")
         
         // Fail early if persistentDictionary is empty
         let persistentDictionary = record.persistentDictionary
@@ -619,7 +620,7 @@ final class DAO {
     /// Returns nil if and only if primary key is nil
     func updateStatement(columns: Set<String>, onConflict: Database.ConflictResolution) -> UpdateStatement? {
         // Fail early if primary key does not resolve to a database row.
-        let primaryKeyColumns = primaryKey?.columns ?? []
+        let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = databaseValues(for: primaryKeyColumns, inDictionary: persistentDictionary)
         guard primaryKeyValues.contains(where: { !$0.isNull }) else { return nil }
         
@@ -661,7 +662,7 @@ final class DAO {
     /// Returns nil if and only if primary key is nil
     func deleteStatement() -> UpdateStatement? {
         // Fail early if primary key does not resolve to a database row.
-        let primaryKeyColumns = primaryKey?.columns ?? []
+        let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = databaseValues(for: primaryKeyColumns, inDictionary: persistentDictionary)
         guard primaryKeyValues.contains(where: { !$0.isNull }) else { return nil }
         
@@ -676,7 +677,7 @@ final class DAO {
     /// Returns nil if and only if primary key is nil
     func existsStatement() -> SelectStatement? {
         // Fail early if primary key does not resolve to a database row.
-        let primaryKeyColumns = primaryKey?.columns ?? []
+        let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = databaseValues(for: primaryKeyColumns, inDictionary: persistentDictionary)
         guard primaryKeyValues.contains(where: { !$0.isNull }) else { return nil }
         
