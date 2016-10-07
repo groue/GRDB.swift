@@ -3035,15 +3035,9 @@ While your migration code runs with disabled foreign key checks, those are re-en
 
 ## Full-Text Search
 
-Quoting [SQLite documentation](https://www.sqlite.org/fts3.html):
+**SQLite supports three full-text engines: [FTS3, FTS4](https://www.sqlite.org/fts3.html) and [FTS5](https://www.sqlite.org/fts5.html).**
 
-> The most common (and effective) way to describe full-text searches is "what Google, Yahoo, and Bing do with documents placed on the World Wide Web".
-
-SQLite supports three full-text engines: [FTS3, FTS4](https://www.sqlite.org/fts3.html) and [FTS5](https://www.sqlite.org/fts5.html).
-
-Generally speaking, FTS5 is better than FTS4 which improves on FTS3, but this does not really tell which engine to choose.
-
-The choice of the engine needed by your application depends on:
+Generally speaking, FTS5 is better than FTS4 which improves on FTS3. But this does not really tell which engine to choose for your application. Instead, make your choice depend on:
 
 - **The kind of full-text features needed by the application**:
     
