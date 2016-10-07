@@ -2513,7 +2513,7 @@ You can now build requests with the following methods: `all`, `select`, `distinc
 - `matching(pattern)` performs [full-text search](#full-text-search).
     
     ```swift
-    // SELECT * FROM documents WHERE documents MATCH 'sqlite AND database'
+    // SELECT * FROM documents WHERE documents MATCH 'sqlite database'
     let pattern = FTS3Pattern(matchingAllTokensIn: "SQLite database")
     Document.matching(pattern)
     ```
@@ -2722,10 +2722,10 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     ```swift
     let pattern = FTS3Pattern(matchingAllTokensIn: "SQLite database")
     
-    // SELECT * FROM documents WHERE documents MATCH 'sqlite AND database'
+    // SELECT * FROM documents WHERE documents MATCH 'sqlite database'
     Document.matching(pattern)
     //
-    // SELECT * FROM documents WHERE content MATCH 'sqlite AND database'
+    // SELECT * FROM documents WHERE content MATCH 'sqlite database'
     let pattern = FTS3Pattern(matchingAllTokensIn: "SQLite database")
     Document.filter(contentColumn.match(pattern))
     ```
@@ -2735,7 +2735,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     ```swift
     let pattern = FTS5Pattern(matchingAllTokensIn: "SQLite database")
     
-    // SELECT * FROM documents WHERE documents MATCH 'sqlite AND database'
+    // SELECT * FROM documents WHERE documents MATCH 'sqlite database'
     Document.matching(pattern)
     ```
 
@@ -3253,7 +3253,7 @@ SELECT * FROM documents WHERE content MATCH 'database'
 -- All documents that contain a word starting with "data"
 SELECT * FROM documents WHERE content MATCH 'data*'
 -- All documents that contain both "sqlite" and "database"
-SELECT * FROM documents WHERE content MATCH 'sqlite AND database'
+SELECT * FROM documents WHERE content MATCH 'sqlite database'
 -- All documents that contain the "SQLite database" phrase:
 SELECT * FROM documents WHERE content MATCH '"SQLite database"'
 ```
@@ -3444,7 +3444,7 @@ SELECT * FROM documents WHERE documents MATCH 'database'
 -- All documents that contain a word starting with "data"
 SELECT * FROM documents WHERE documents MATCH 'data*'
 -- All documents that contain both "sqlite" and "database"
-SELECT * FROM documents WHERE documents MATCH 'sqlite AND database'
+SELECT * FROM documents WHERE documents MATCH 'sqlite database'
 -- All documents that contain the "SQLite database" phrase:
 SELECT * FROM documents WHERE documents MATCH '"SQLite database"'
 ```
