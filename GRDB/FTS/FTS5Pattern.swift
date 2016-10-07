@@ -45,7 +45,7 @@ public struct FTS5Pattern {
         try? self.init(rawPattern: "\"" + tokens.joined(separator: " ") + "\"")
     }
     
-    fileprivate init(rawPattern: String, allowedColumns: [String] = ["__grdb__"]) throws {
+    fileprivate init(rawPattern: String, allowedColumns: [String] = []) throws {
         // Correctness above all: use SQLite to validate the pattern.
         //
         // Invalid patterns have SQLite return an error on the first
@@ -54,8 +54,12 @@ public struct FTS5Pattern {
         do {
             try DatabaseQueue().inDatabase { db in
                 try db.create(virtualTable: "documents", using: FTS5()) { t in
-                    for column in allowedColumns {
-                        t.column(column)
+                    if allowedColumns.isEmpty {
+                        t.column("__grdb__")
+                    } else {
+                        for column in allowedColumns {
+                            t.column(column)
+                        }
                     }
                 }
                 try db.makeSelectStatement("SELECT * FROM documents WHERE documents MATCH ?")
@@ -80,9 +84,9 @@ extension Database {
     ///
     /// The pattern syntax is documented at https://www.sqlite.org/fts5.html#full_text_query_syntax
     ///
-    ///     try db.fts5Pattern(rawPattern: "and", forTable: "documents") // OK
-    ///     try db.fts5Pattern(rawPattern: "AND", forTable: "documents") // malformed MATCH expression: [AND]
-    public func fts5Pattern(rawPattern: String, forTable table: String) throws -> FTS5Pattern {
+    ///     try db.makeFTS5Pattern(rawPattern: "and", forTable: "documents") // OK
+    ///     try db.makeFTS5Pattern(rawPattern: "AND", forTable: "documents") // malformed MATCH expression: [AND]
+    public func makeFTS5Pattern(rawPattern: String, forTable table: String) throws -> FTS5Pattern {
         return try FTS5Pattern(rawPattern: rawPattern, allowedColumns: columns(in: table).map { $0.name })
     }
 }

@@ -3497,7 +3497,7 @@ GRDB provides the FTS5Pattern type which helps you building **valid patterns**:
 
 ```swift
 extension Database {
-    func fts5Pattern(rawPattern: String, forTable table: String) throws -> FTS5Pattern
+    func makeFTS5Pattern(rawPattern: String, forTable table: String) throws -> FTS5Pattern
 }
 
 struct FTS5Pattern {
@@ -3507,15 +3507,15 @@ struct FTS5Pattern {
 }
 ```
 
-The `Database.fts5Pattern(rawPattern:forTable:)` method validates your raw patterns against the query grammar and the columns of the targeted table, and may throw a [DatabaseError](#databaseerror):
+The `Database.makeFTS5Pattern(rawPattern:forTable:)` method validates your raw patterns against the query grammar and the columns of the targeted table, and may throw a [DatabaseError](#databaseerror):
 
 ```swift
 // OK: FTS5Pattern
-try db.fts5Pattern(rawPattern: "sqlite", forTable: "books")
+try db.makeFTS5Pattern(rawPattern: "sqlite", forTable: "books")
 // DatabaseError: syntax error near \"AND\"
-try db.fts5Pattern(rawPattern: "AND", forTable: "books")
+try db.makeFTS5Pattern(rawPattern: "AND", forTable: "books")
 // DatabaseError: no such column: missing
-try db.fts5Pattern(rawPattern: "missing: sqlite", forTable: "books")
+try db.makeFTS5Pattern(rawPattern: "missing: sqlite", forTable: "books")
 ```
 
 The FTS5Pattern initializers don't throw. They build a valid pattern from any string, **including strings provided by users of your application**. They let you find documents that match all given words, any given word, or a full phrase, depending on the needs of your application:

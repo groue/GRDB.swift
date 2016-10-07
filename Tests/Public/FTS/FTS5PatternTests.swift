@@ -49,7 +49,7 @@ class FTS5PatternTests: GRDBTestCase {
                     ("title:brest", 1)
                 ]
                 for (rawPattern, expectedCount) in validRawPatterns {
-                    let pattern = try db.fts5Pattern(rawPattern: rawPattern, forTable: "books")
+                    let pattern = try db.makeFTS5Pattern(rawPattern: rawPattern, forTable: "books")
                     let count = Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
                     XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
                 }
@@ -64,7 +64,7 @@ class FTS5PatternTests: GRDBTestCase {
                 let invalidRawPatterns = ["", "?!", "^", "^foo", "NOT", "(", "AND", "OR", "\"", "missing:foo"]
                 for rawPattern in invalidRawPatterns {
                     do {
-                        _ = try db.fts5Pattern(rawPattern: rawPattern, forTable: "books")
+                        _ = try db.makeFTS5Pattern(rawPattern: rawPattern, forTable: "books")
                         XCTFail("Expected pattern to be invalid: \(String(reflecting: rawPattern))")
                     } catch is DatabaseError {
                     } catch {
