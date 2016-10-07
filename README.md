@@ -3339,6 +3339,16 @@ let documents = Document.matching(pattern).fetchAll(db)
 let documents = Document.filter(Column("content").match(pattern)).fetchAll(db)
 ```
 
+> :warning: **Warning**: It is unsafe to provide a raw String as a search pattern, because an invalid one will crash your application. Prefer the safe FTS3Pattern initializers instead.
+>
+> ```swift
+> // Only use strings as a full-text search pattern if you are sure that you
+> // provide a valid one. A mistake will crash your application.
+> let documents = Document.fetchAll(db,
+>     "SELECT * FROM documents WHERE content MATCH ?",
+>     arguments: ["my pattern"]) // Dangerous: string pattern
+> ```
+
 
 ### Create FTS5 Virtual Tables
 
@@ -3540,6 +3550,17 @@ Use them in the [query interface](#the-query-interface):
 ```swift
 let documents = Document.matching(pattern).fetchAll(db)
 ```
+
+> :warning: **Warning**: It is unsafe to provide a raw String as a search pattern, because an invalid one will crash your application. Prefer the safe FTS5Pattern type instead.
+>
+> ```swift
+> // Only use strings as a full-text search pattern if you are sure that you
+> // provide a valid one. A mistake will crash your application.
+> let documents = Document.fetchAll(db,
+>     "SELECT * FROM documents WHERE documents MATCH ?",
+>     arguments: ["my pattern"]) // Dangerous: string pattern
+> ```
+
 
 ### FTS5: Sorting by Relevance
 
