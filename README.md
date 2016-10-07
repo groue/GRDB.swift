@@ -3514,9 +3514,9 @@ Generally speaking, matches may fail when content and query don't use the same [
 
 For example, for "aimé" to match "aimé", they better have the same normalization: the NFC "aim\u{00E9}" form may not match its NFD "aime\u{0301}" equivalent. Most strings that you get from Swift, UIKit and Cocoa use NFC, so be careful with NFD inputs (such as strings from the HFS+ file system, or strings that you can't trust like network inputs). Use NSString.precomposedStringWithCanonicalMapping to turn a string into NFC.
 
-Besides, if you want "fi" to match the ligature "&#xfb01;" (U+FB01), then you need to manually normalize your indexed contents and inputs to NFKC or NFKD. Use String.decomposedStringWithCanonicalMapping to turn a string into NFKC.
+Besides, if you want "fi" to match the ligature "&#xfb01;" (U+FB01), then you need to manually normalize your indexed contents and inputs to NFKC or NFKD. Use NSString.decomposedStringWithCanonicalMapping to turn a string into NFKC.
 
-Last, not all ligatures are decomposed by NFKC and NFKD forms: this prevents "æ" from matching match "ae". You'll again need manual string processing in order to provide such matching.
+Last, not all ligatures are decomposed by NFKC, and "ae" will never match "æ". You'll again need manual string processing in order to provide such matching.
 
 
 ## Database Changes Observation
