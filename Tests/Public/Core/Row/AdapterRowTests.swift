@@ -7,6 +7,12 @@ import XCTest
     import GRDB
 #endif
 
+private enum CustomValue : Int, DatabaseValueConvertible, Equatable {
+    case a = 0
+    case b = 1
+    case c = 2
+}
+
 class AdapterRowTests : RowTestCase {
     
     func testRowAsSequence() {
@@ -39,20 +45,20 @@ class AdapterRowTests : RowTestCase {
                 let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
                 let row = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
                 
-                // Raw Int64 extraction
+                // Raw extraction
                 assertRowRawValueEqual(row, index: 0, value: 0 as Int64)
                 assertRowRawValueEqual(row, index: 1, value: 1 as Int64)
                 assertRowRawValueEqual(row, index: 2, value: 2 as Int64)
                 
-                // Int
+                // DatabaseValueConvertible & StatementColumnConvertible
                 assertRowConvertedValueEqual(row, index: 0, value: 0 as Int)
                 assertRowConvertedValueEqual(row, index: 1, value: 1 as Int)
                 assertRowConvertedValueEqual(row, index: 2, value: 2 as Int)
                 
-                // Bool
-                assertRowConvertedValueEqual(row, index: 0, value: false)
-                assertRowConvertedValueEqual(row, index: 1, value: true)
-                assertRowConvertedValueEqual(row, index: 2, value: true)
+                // DatabaseValueConvertible
+                assertRowConvertedValueEqual(row, index: 0, value: CustomValue.a)
+                assertRowConvertedValueEqual(row, index: 1, value: CustomValue.b)
+                assertRowConvertedValueEqual(row, index: 2, value: CustomValue.c)
                 
                 // Expect fatal error:
                 //
@@ -69,20 +75,20 @@ class AdapterRowTests : RowTestCase {
                 let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
                 let row = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
                 
-                // Raw Int64 extraction
+                // Raw extraction
                 assertRowRawValueEqual(row, name: "a", value: 0 as Int64)
                 assertRowRawValueEqual(row, name: "b", value: 1 as Int64)
                 assertRowRawValueEqual(row, name: "c", value: 2 as Int64)
                 
-                // Int
+                // DatabaseValueConvertible & StatementColumnConvertible
                 assertRowConvertedValueEqual(row, name: "a", value: 0 as Int)
                 assertRowConvertedValueEqual(row, name: "b", value: 1 as Int)
                 assertRowConvertedValueEqual(row, name: "c", value: 2 as Int)
                 
-                // Bool
-                assertRowConvertedValueEqual(row, name: "a", value: false)
-                assertRowConvertedValueEqual(row, name: "b", value: true)
-                assertRowConvertedValueEqual(row, name: "c", value: true)
+                // DatabaseValueConvertible
+                assertRowConvertedValueEqual(row, name: "a", value: CustomValue.a)
+                assertRowConvertedValueEqual(row, name: "b", value: CustomValue.b)
+                assertRowConvertedValueEqual(row, name: "c", value: CustomValue.c)
             }
         }
     }
@@ -94,20 +100,20 @@ class AdapterRowTests : RowTestCase {
                 let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
                 let row = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
                 
-                // Raw Int64 extraction
+                // Raw extraction
                 assertRowRawValueEqual(row, column: Column("a"), value: 0 as Int64)
                 assertRowRawValueEqual(row, column: Column("b"), value: 1 as Int64)
                 assertRowRawValueEqual(row, column: Column("c"), value: 2 as Int64)
                 
-                // Int
+                // DatabaseValueConvertible & StatementColumnConvertible
                 assertRowConvertedValueEqual(row, column: Column("a"), value: 0 as Int)
                 assertRowConvertedValueEqual(row, column: Column("b"), value: 1 as Int)
                 assertRowConvertedValueEqual(row, column: Column("c"), value: 2 as Int)
                 
-                // Bool
-                assertRowConvertedValueEqual(row, column: Column("a"), value: false)
-                assertRowConvertedValueEqual(row, column: Column("b"), value: true)
-                assertRowConvertedValueEqual(row, column: Column("c"), value: true)
+                // DatabaseValueConvertible
+                assertRowConvertedValueEqual(row, column: Column("a"), value: CustomValue.a)
+                assertRowConvertedValueEqual(row, column: Column("b"), value: CustomValue.b)
+                assertRowConvertedValueEqual(row, column: Column("c"), value: CustomValue.c)
             }
         }
     }
