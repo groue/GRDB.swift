@@ -87,7 +87,7 @@ public struct FTS4 : VirtualTableModule {
 ///     }
 ///
 /// See https://www.sqlite.org/fts3.html
-public final class FTS4TableDefinition : VirtualTableDefinition {
+public final class FTS4TableDefinition {
     fileprivate var columns: [FTS4ColumnDefinition] = []
     
     /// The virtual table tokenizer

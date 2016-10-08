@@ -81,7 +81,7 @@
     ///     }
     ///
     /// See https://www.sqlite.org/fts5.html
-    public final class FTS5TableDefinition : VirtualTableDefinition {
+    public final class FTS5TableDefinition {
         fileprivate var columns: [FTS5ColumnDefinition] = []
         
         /// The virtual table tokenizer

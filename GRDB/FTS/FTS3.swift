@@ -47,7 +47,7 @@ public struct FTS3 : VirtualTableModule {
 ///     try db.create(virtualTable: "documents", using: FTS3()) { t in // t is FTS3TableDefinition
 ///         t.column("content")
 ///     }
-public final class FTS3TableDefinition : VirtualTableDefinition {
+public final class FTS3TableDefinition {
     fileprivate var columns: [String] = []
     
     /// The virtual table tokenizer

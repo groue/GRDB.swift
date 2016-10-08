@@ -603,21 +603,21 @@
 		5698AC741DA2FCAF0056AF8C /* FTS3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC6F1DA2FCAF0056AF8C /* FTS3.swift */; };
 		5698AC751DA2FCAF0056AF8C /* FTS3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC6F1DA2FCAF0056AF8C /* FTS3.swift */; };
 		5698AC761DA2FCAF0056AF8C /* FTS3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC6F1DA2FCAF0056AF8C /* FTS3.swift */; };
-		5698AC781DA37DCB0056AF8C /* VirtualTableDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC771DA37DCB0056AF8C /* VirtualTableDefinition.swift */; };
-		5698AC791DA37DCB0056AF8C /* VirtualTableDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC771DA37DCB0056AF8C /* VirtualTableDefinition.swift */; };
-		5698AC7A1DA37DCB0056AF8C /* VirtualTableDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC771DA37DCB0056AF8C /* VirtualTableDefinition.swift */; };
-		5698AC7B1DA37DCB0056AF8C /* VirtualTableDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC771DA37DCB0056AF8C /* VirtualTableDefinition.swift */; };
-		5698AC7C1DA37DCB0056AF8C /* VirtualTableDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC771DA37DCB0056AF8C /* VirtualTableDefinition.swift */; };
-		5698AC7D1DA37DCB0056AF8C /* VirtualTableDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC771DA37DCB0056AF8C /* VirtualTableDefinition.swift */; };
-		5698AC7E1DA37DCB0056AF8C /* VirtualTableDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC771DA37DCB0056AF8C /* VirtualTableDefinition.swift */; };
-		5698AC801DA380A20056AF8C /* VirtualTableBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC7F1DA380A20056AF8C /* VirtualTableBuilderTests.swift */; };
-		5698AC811DA380A20056AF8C /* VirtualTableBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC7F1DA380A20056AF8C /* VirtualTableBuilderTests.swift */; };
-		5698AC821DA380A20056AF8C /* VirtualTableBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC7F1DA380A20056AF8C /* VirtualTableBuilderTests.swift */; };
-		5698AC831DA380A20056AF8C /* VirtualTableBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC7F1DA380A20056AF8C /* VirtualTableBuilderTests.swift */; };
-		5698AC841DA380A20056AF8C /* VirtualTableBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC7F1DA380A20056AF8C /* VirtualTableBuilderTests.swift */; };
-		5698AC851DA380A20056AF8C /* VirtualTableBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC7F1DA380A20056AF8C /* VirtualTableBuilderTests.swift */; };
-		5698AC861DA380A20056AF8C /* VirtualTableBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC7F1DA380A20056AF8C /* VirtualTableBuilderTests.swift */; };
-		5698AC871DA380A20056AF8C /* VirtualTableBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC7F1DA380A20056AF8C /* VirtualTableBuilderTests.swift */; };
+		5698AC781DA37DCB0056AF8C /* VirtualTableModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC771DA37DCB0056AF8C /* VirtualTableModule.swift */; };
+		5698AC791DA37DCB0056AF8C /* VirtualTableModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC771DA37DCB0056AF8C /* VirtualTableModule.swift */; };
+		5698AC7A1DA37DCB0056AF8C /* VirtualTableModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC771DA37DCB0056AF8C /* VirtualTableModule.swift */; };
+		5698AC7B1DA37DCB0056AF8C /* VirtualTableModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC771DA37DCB0056AF8C /* VirtualTableModule.swift */; };
+		5698AC7C1DA37DCB0056AF8C /* VirtualTableModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC771DA37DCB0056AF8C /* VirtualTableModule.swift */; };
+		5698AC7D1DA37DCB0056AF8C /* VirtualTableModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC771DA37DCB0056AF8C /* VirtualTableModule.swift */; };
+		5698AC7E1DA37DCB0056AF8C /* VirtualTableModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC771DA37DCB0056AF8C /* VirtualTableModule.swift */; };
+		5698AC801DA380A20056AF8C /* VirtualTableModuleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC7F1DA380A20056AF8C /* VirtualTableModuleTests.swift */; };
+		5698AC811DA380A20056AF8C /* VirtualTableModuleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC7F1DA380A20056AF8C /* VirtualTableModuleTests.swift */; };
+		5698AC821DA380A20056AF8C /* VirtualTableModuleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC7F1DA380A20056AF8C /* VirtualTableModuleTests.swift */; };
+		5698AC831DA380A20056AF8C /* VirtualTableModuleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC7F1DA380A20056AF8C /* VirtualTableModuleTests.swift */; };
+		5698AC841DA380A20056AF8C /* VirtualTableModuleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC7F1DA380A20056AF8C /* VirtualTableModuleTests.swift */; };
+		5698AC851DA380A20056AF8C /* VirtualTableModuleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC7F1DA380A20056AF8C /* VirtualTableModuleTests.swift */; };
+		5698AC861DA380A20056AF8C /* VirtualTableModuleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC7F1DA380A20056AF8C /* VirtualTableModuleTests.swift */; };
+		5698AC871DA380A20056AF8C /* VirtualTableModuleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC7F1DA380A20056AF8C /* VirtualTableModuleTests.swift */; };
 		5698AC891DA389380056AF8C /* FTS3TableBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC881DA389380056AF8C /* FTS3TableBuilderTests.swift */; };
 		5698AC8A1DA389380056AF8C /* FTS3TableBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC881DA389380056AF8C /* FTS3TableBuilderTests.swift */; };
 		5698AC8B1DA389380056AF8C /* FTS3TableBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AC881DA389380056AF8C /* FTS3TableBuilderTests.swift */; };
@@ -1704,8 +1704,8 @@
 		5698AC3F1DA2BED90056AF8C /* FTS3PatternTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS3PatternTests.swift; sourceTree = "<group>"; };
 		5698AC481DA2D48A0056AF8C /* FTS3RecordTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS3RecordTests.swift; sourceTree = "<group>"; };
 		5698AC6F1DA2FCAF0056AF8C /* FTS3.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS3.swift; sourceTree = "<group>"; };
-		5698AC771DA37DCB0056AF8C /* VirtualTableDefinition.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VirtualTableDefinition.swift; sourceTree = "<group>"; };
-		5698AC7F1DA380A20056AF8C /* VirtualTableBuilderTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VirtualTableBuilderTests.swift; sourceTree = "<group>"; };
+		5698AC771DA37DCB0056AF8C /* VirtualTableModule.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VirtualTableModule.swift; sourceTree = "<group>"; };
+		5698AC7F1DA380A20056AF8C /* VirtualTableModuleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VirtualTableModuleTests.swift; sourceTree = "<group>"; };
 		5698AC881DA389380056AF8C /* FTS3TableBuilderTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS3TableBuilderTests.swift; sourceTree = "<group>"; };
 		5698AC941DA4B0430056AF8C /* FTS4RecordTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS4RecordTests.swift; sourceTree = "<group>"; };
 		5698AC951DA4B0430056AF8C /* FTS4TableBuilderTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS4TableBuilderTests.swift; sourceTree = "<group>"; };
@@ -2138,7 +2138,7 @@
 				566475C11D981C5D00FF74B8 /* SQLSelectQuery.swift */,
 				566475B91D981AD200FF74B8 /* SQLSpecificExpressible.swift */,
 				566AD8B11D5318F4002EC1A8 /* TableDefinition.swift */,
-				5698AC771DA37DCB0056AF8C /* VirtualTableDefinition.swift */,
+				5698AC771DA37DCB0056AF8C /* VirtualTableModule.swift */,
 				566475C91D981D5E00FF74B8 /* Support */,
 			);
 			path = QueryInterface;
@@ -2185,7 +2185,7 @@
 			isa = PBXGroup;
 			children = (
 				566AD8C51D531BE4002EC1A8 /* SQLTableBuilderTests.swift */,
-				5698AC7F1DA380A20056AF8C /* VirtualTableBuilderTests.swift */,
+				5698AC7F1DA380A20056AF8C /* VirtualTableModuleTests.swift */,
 			);
 			path = SQLTableBuilder;
 			sourceTree = "<group>";
@@ -3556,7 +3556,7 @@
 				5657AAAB1D106E39006283EF /* NSDate.swift in Sources */,
 				560FC53A1CB003810014AA8E /* NSNull.swift in Sources */,
 				EE578FFE1D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift in Sources */,
-				5698AC791DA37DCB0056AF8C /* VirtualTableDefinition.swift in Sources */,
+				5698AC791DA37DCB0056AF8C /* VirtualTableModule.swift in Sources */,
 				560FC53B1CB003810014AA8E /* Database.swift in Sources */,
 				566AD8B31D5318F4002EC1A8 /* TableDefinition.swift in Sources */,
 				566475AB1D9818B100FF74B8 /* GRDB-0-84-0-ConversionHelper.swift in Sources */,
@@ -3592,7 +3592,7 @@
 				560FC5671CB00B880014AA8E /* DictionaryRowTests.swift in Sources */,
 				56A8C2421D1918EE0096E9D4 /* UUIDTests.swift in Sources */,
 				560FC5681CB00B880014AA8E /* SelectStatementTests.swift in Sources */,
-				5698AC811DA380A20056AF8C /* VirtualTableBuilderTests.swift in Sources */,
+				5698AC811DA380A20056AF8C /* VirtualTableModuleTests.swift in Sources */,
 				560FC5691CB00B880014AA8E /* DatabaseCoderTests.swift in Sources */,
 				560FC56A1CB00B880014AA8E /* SQLSupportTests.swift in Sources */,
 				560FC56B1CB00B880014AA8E /* CollationTests.swift in Sources */,
@@ -3703,7 +3703,7 @@
 				565490D91D5AE252005622CB /* Migration.swift in Sources */,
 				565490D51D5AE252005622CB /* RawRepresentable.swift in Sources */,
 				565490C51D5AE236005622CB /* SerializedDatabase.swift in Sources */,
-				5698AC7E1DA37DCB0056AF8C /* VirtualTableDefinition.swift in Sources */,
+				5698AC7E1DA37DCB0056AF8C /* VirtualTableModule.swift in Sources */,
 				56F5ABDB1D814330001F60CB /* NSDate.swift in Sources */,
 				565490D71D5AE252005622CB /* Utils.swift in Sources */,
 				5698AC3D1D9E5A590056AF8C /* FTS3Pattern.swift in Sources */,
@@ -3789,7 +3789,7 @@
 				567156281CB16729007DC145 /* SQLSupportTests.swift in Sources */,
 				567156291CB16729007DC145 /* CollationTests.swift in Sources */,
 				5671562A1CB16729007DC145 /* UpdateStatementTests.swift in Sources */,
-				5698AC821DA380A20056AF8C /* VirtualTableBuilderTests.swift in Sources */,
+				5698AC821DA380A20056AF8C /* VirtualTableModuleTests.swift in Sources */,
 				5657AB481D108BA9006283EF /* NSNullTests.swift in Sources */,
 				5671562B1CB16729007DC145 /* DatabaseMigratorTests.swift in Sources */,
 				5671562D1CB16729007DC145 /* RecordAwakeFromFetchTests.swift in Sources */,
@@ -3930,7 +3930,7 @@
 				5657AAAE1D106E39006283EF /* NSDate.swift in Sources */,
 				56AFCA101CB1A8BB00F48B96 /* DatabaseQueue.swift in Sources */,
 				EE5790011D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift in Sources */,
-				5698AC7C1DA37DCB0056AF8C /* VirtualTableDefinition.swift in Sources */,
+				5698AC7C1DA37DCB0056AF8C /* VirtualTableModule.swift in Sources */,
 				56AFCA111CB1A8BB00F48B96 /* DatabaseError.swift in Sources */,
 				566AD8B61D5318F4002EC1A8 /* TableDefinition.swift in Sources */,
 				566475AE1D9818B100FF74B8 /* GRDB-0-84-0-ConversionHelper.swift in Sources */,
@@ -4009,7 +4009,7 @@
 				5698ACBB1DA6285E0056AF8C /* FTS3TokenizerTests.swift in Sources */,
 				56AFCA561CB1AA9900F48B96 /* DatabasePoolConcurrencyTests.swift in Sources */,
 				56AFCA571CB1AA9900F48B96 /* TransactionObserverTests.swift in Sources */,
-				5698AC851DA380A20056AF8C /* VirtualTableBuilderTests.swift in Sources */,
+				5698AC851DA380A20056AF8C /* VirtualTableModuleTests.swift in Sources */,
 				5698AC451DA2BED90056AF8C /* FTS3PatternTests.swift in Sources */,
 				56AF74701D41FB9C005E9FF3 /* DatabaseValueConvertibleEscapingTests.swift in Sources */,
 				5690C33C1D23E7D200E59934 /* DateTests.swift in Sources */,
@@ -4123,7 +4123,7 @@
 				5698ACBC1DA6285E0056AF8C /* FTS3TokenizerTests.swift in Sources */,
 				56AFCAAD1CB1ABC800F48B96 /* MappingTests.swift in Sources */,
 				5657AB441D108BA9006283EF /* NSDataTests.swift in Sources */,
-				5698AC861DA380A20056AF8C /* VirtualTableBuilderTests.swift in Sources */,
+				5698AC861DA380A20056AF8C /* VirtualTableModuleTests.swift in Sources */,
 				5698AC461DA2BED90056AF8C /* FTS3PatternTests.swift in Sources */,
 				56AF74711D41FB9C005E9FF3 /* DatabaseValueConvertibleEscapingTests.swift in Sources */,
 				56AFCAAE1CB1ABC800F48B96 /* RawRepresentableTests.swift in Sources */,
@@ -4229,7 +4229,7 @@
 				5657AAAD1D106E39006283EF /* NSDate.swift in Sources */,
 				56A238841B9C75030082EB20 /* DatabaseQueue.swift in Sources */,
 				EE5790001D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift in Sources */,
-				5698AC7B1DA37DCB0056AF8C /* VirtualTableDefinition.swift in Sources */,
+				5698AC7B1DA37DCB0056AF8C /* VirtualTableModule.swift in Sources */,
 				56A238821B9C75030082EB20 /* DatabaseError.swift in Sources */,
 				566AD8B51D5318F4002EC1A8 /* TableDefinition.swift in Sources */,
 				566475AD1D9818B100FF74B8 /* GRDB-0-84-0-ConversionHelper.swift in Sources */,
@@ -4279,7 +4279,7 @@
 				56B021CD1D8C0D3900B239BB /* PersistenceConflictPolicyTests.swift in Sources */,
 				569531271C9087B700CF1A2B /* DatabaseQueueSchemaCacheTests.swift in Sources */,
 				56B14E831D4DAE54000BF4A3 /* RowAsDictionaryLiteralConvertibleTests.swift in Sources */,
-				5698AC841DA380A20056AF8C /* VirtualTableBuilderTests.swift in Sources */,
+				5698AC841DA380A20056AF8C /* VirtualTableModuleTests.swift in Sources */,
 				566AD8CA1D531BEC002EC1A8 /* SQLTableBuilderTests.swift in Sources */,
 				56A238541B9C74A90082EB20 /* PrimaryKeyMultipleTests.swift in Sources */,
 				56FDECE31BB32DFD009AD709 /* MetalRowTests.swift in Sources */,
@@ -4449,7 +4449,7 @@
 				56D496681D813086008276D7 /* RowConvertible+QueryInterfaceRequestTests.swift in Sources */,
 				56D496B41D8133F8008276D7 /* DatabaseTests.swift in Sources */,
 				56D496951D81317B008276D7 /* MutablePersistableTests.swift in Sources */,
-				5698AC801DA380A20056AF8C /* VirtualTableBuilderTests.swift in Sources */,
+				5698AC801DA380A20056AF8C /* VirtualTableModuleTests.swift in Sources */,
 				56D496821D813131008276D7 /* TransactionObserverTests.swift in Sources */,
 				56D496941D81317B008276D7 /* DatabaseSchedulerTests.swift in Sources */,
 				56D496551D812F83008276D7 /* DataTests.swift in Sources */,
@@ -4518,7 +4518,7 @@
 				5657AAAA1D106E39006283EF /* NSDate.swift in Sources */,
 				5605F1651C672E4000235C62 /* NSNull.swift in Sources */,
 				EE578FFD1D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift in Sources */,
-				5698AC781DA37DCB0056AF8C /* VirtualTableDefinition.swift in Sources */,
+				5698AC781DA37DCB0056AF8C /* VirtualTableModule.swift in Sources */,
 				56A2387D1B9C75030082EB20 /* Database.swift in Sources */,
 				566AD8B21D5318F4002EC1A8 /* TableDefinition.swift in Sources */,
 				566475AA1D9818B100FF74B8 /* GRDB-0-84-0-ConversionHelper.swift in Sources */,
@@ -4589,7 +4589,7 @@
 				F3BA80211CFB288C003DC1BA /* NSNull.swift in Sources */,
 				F3BA80141CFB2876003DC1BA /* DatabaseValueConvertible.swift in Sources */,
 				EE5790021D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift in Sources */,
-				5698AC7D1DA37DCB0056AF8C /* VirtualTableDefinition.swift in Sources */,
+				5698AC7D1DA37DCB0056AF8C /* VirtualTableModule.swift in Sources */,
 				566AD8B71D5318F4002EC1A8 /* TableDefinition.swift in Sources */,
 				F3BA80121CFB2876003DC1BA /* DatabaseStore.swift in Sources */,
 				566475AF1D9818B100FF74B8 /* GRDB-0-84-0-ConversionHelper.swift in Sources */,
@@ -4639,7 +4639,7 @@
 				56B021D01D8C0D3900B239BB /* PersistenceConflictPolicyTests.swift in Sources */,
 				56B14E861D4DAE54000BF4A3 /* RowAsDictionaryLiteralConvertibleTests.swift in Sources */,
 				566AD8CD1D531BEE002EC1A8 /* SQLTableBuilderTests.swift in Sources */,
-				5698AC871DA380A20056AF8C /* VirtualTableBuilderTests.swift in Sources */,
+				5698AC871DA380A20056AF8C /* VirtualTableModuleTests.swift in Sources */,
 				F3BA80D11CFB2FF3003DC1BA /* MutablePersistableTests.swift in Sources */,
 				F3BA80CF1CFB2FEA003DC1BA /* DatabaseSchedulerTests.swift in Sources */,
 				F3BA80E71CFB3016003DC1BA /* DetachedRowTests.swift in Sources */,
@@ -4777,7 +4777,7 @@
 				F3BA807D1CFB2E61003DC1BA /* NSNull.swift in Sources */,
 				F3BA80701CFB2E55003DC1BA /* DatabaseValueConvertible.swift in Sources */,
 				EE578FFF1D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift in Sources */,
-				5698AC7A1DA37DCB0056AF8C /* VirtualTableDefinition.swift in Sources */,
+				5698AC7A1DA37DCB0056AF8C /* VirtualTableModule.swift in Sources */,
 				566AD8B41D5318F4002EC1A8 /* TableDefinition.swift in Sources */,
 				F3BA806E1CFB2E55003DC1BA /* DatabaseStore.swift in Sources */,
 				566475AC1D9818B100FF74B8 /* GRDB-0-84-0-ConversionHelper.swift in Sources */,
@@ -4889,7 +4889,7 @@
 				56B964D61DA521450002DA19 /* FTS5TableBuilderTests.swift in Sources */,
 				F3BA81331CFB3064003DC1BA /* RecordAwakeFromFetchTests.swift in Sources */,
 				F3BA812D1CFB3064003DC1BA /* MinimalPrimaryKeySingleTests.swift in Sources */,
-				5698AC831DA380A20056AF8C /* VirtualTableBuilderTests.swift in Sources */,
+				5698AC831DA380A20056AF8C /* VirtualTableModuleTests.swift in Sources */,
 				F3BA811B1CFB305F003DC1BA /* RowConvertible+QueryInterfaceRequestTests.swift in Sources */,
 				F3BA811A1CFB305F003DC1BA /* Record+QueryInterfaceRequestTests.swift in Sources */,
 				F3BA81111CFB3057003DC1BA /* StatementArguments+FoundationTests.swift in Sources */,

@@ -8,7 +8,7 @@ import XCTest
 #endif
 
 private struct FTS3TokenizeModule : VirtualTableModule {
-    let moduleName = "FTS3TOKENIZE"
+    let moduleName = "fts3tokenize"
     
     func makeTableDefinition() -> FTS3TokenizeTableDefinition {
         return FTS3TokenizeTableDefinition()
@@ -22,11 +22,11 @@ private struct FTS3TokenizeModule : VirtualTableModule {
     }
 }
 
-private final class FTS3TokenizeTableDefinition : VirtualTableDefinition {
+private final class FTS3TokenizeTableDefinition {
     var tokenizer: String?
 }
 
-class VirtualTableBuilderTests: GRDBTestCase {
+class VirtualTableModuleTests: GRDBTestCase {
     
     func testCustomVirtualTableModule() {
         assertNoError {
@@ -35,7 +35,7 @@ class VirtualTableBuilderTests: GRDBTestCase {
                 try db.create(virtualTable: "test", using: FTS3TokenizeModule()) { t in
                     t.tokenizer = "simple"
                 }
-                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"test\" USING FTS3TOKENIZE(simple)")
+                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"test\" USING fts3tokenize(simple)")
             }
         }
     }
