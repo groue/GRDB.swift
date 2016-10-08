@@ -23,6 +23,8 @@ Release Notes
         try Book.deleteOne(db, key: 1)
         ```
 
+- Upgrade custom SQLite builds to [v3.14.2](http://www.sqlite.org/changes.html).
+
 **Breaking Changes**
 
 - `Row.value(column:)` has been renamed `Row.value(_:)`
