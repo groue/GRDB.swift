@@ -7,6 +7,10 @@ import XCTest
     import GRDB
 #endif
 
+private struct Hacker : TableMapping {
+    static let databaseTableName = "hackers"
+}
+
 private struct Person : TableMapping {
     static let databaseTableName = "persons"
 }
@@ -20,8 +24,33 @@ class DeleteByKeyTests: GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
         try dbWriter.write { db in
+            try db.execute("CREATE TABLE hackers (name TEXT)")
             try db.execute("CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, email TEXT UNIQUE)")
             try db.execute("CREATE TABLE citizenships (personId INTEGER NOT NULL, countryIsoCode TEXT NOT NULL, PRIMARY KEY (personId, countryIsoCode))")
+        }
+    }
+    
+    func testHiddenRowID() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                var deleted = try Hacker.deleteOne(db, key: 1)
+                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"hackers\" WHERE \"rowid\" = 1")
+                XCTAssertFalse(deleted)
+                
+                try db.execute("INSERT INTO hackers (rowid, name) VALUES (?, ?)", arguments: [1, "Arthur"])
+                deleted = try Hacker.deleteOne(db, key: 1)
+                XCTAssertTrue(deleted)
+                XCTAssertEqual(Hacker.fetchCount(db), 0)
+                
+                try db.execute("INSERT INTO hackers (rowid, name) VALUES (?, ?)", arguments: [1, "Arthur"])
+                try db.execute("INSERT INTO hackers (rowid, name) VALUES (?, ?)", arguments: [2, "Barbara"])
+                try db.execute("INSERT INTO hackers (rowid, name) VALUES (?, ?)", arguments: [3, "Craig"])
+                let deletedCount = try Hacker.deleteAll(db, keys: [2, 3, 4])
+                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"hackers\" WHERE \"rowid\" IN (2,3,4)")
+                XCTAssertEqual(deletedCount, 2)
+                XCTAssertEqual(Hacker.fetchCount(db), 1)
+            }
         }
     }
     
