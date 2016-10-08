@@ -5023,7 +5023,6 @@ Sample Code
 - [GRDBDemoiOS](DemoApps/GRDBDemoiOS): A sample iOS application.
 - Check `GRDB.xcworkspace`: it contains GRDB-enabled playgrounds to play with.
 - How to synchronize a database table with a JSON payload: [JSONSynchronization.playground](Playgrounds/JSONSynchronization.playground/Contents.swift)
-- A class that behaves like NSUserDefaults, but backed by SQLite: [UserDefaults.playground](Playgrounds/UserDefaults.playground/Contents.swift)
 - How to notify view controllers of database changes: [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd)
 
 
