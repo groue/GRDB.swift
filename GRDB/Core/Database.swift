@@ -323,7 +323,6 @@ public final class Database {
             // So let's fail early if file is not a database, or encrypted with
             // another passphrase.
             do {
-                // TODO: this would be much easier if we would disable SchedulingWatchDog
                 let code = sqlite3_exec(sqliteConnection, "SELECT * FROM sqlite_master LIMIT 1", nil, nil, nil)
                 guard code == SQLITE_OK else {
                     throw DatabaseError(code: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
