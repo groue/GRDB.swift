@@ -131,10 +131,13 @@ class DatabaseValueTests: GRDBTestCase {
         let databaseValue_Null = DatabaseValue.null
         let databaseValue_Int64 = Int64(1).databaseValue
         let databaseValue_Double = Double(100000.1).databaseValue
-        // TODO: String & Blob
+        let databaseValue_String = "foo".databaseValue
+        let databaseValue_Data = "foo".data(using: .utf8)!.databaseValue
         
         XCTAssertEqual(databaseValue_Null.description, "NULL")
         XCTAssertEqual(databaseValue_Int64.description, "1")
         XCTAssertEqual(databaseValue_Double.description, "100000.1")
+        XCTAssertEqual(databaseValue_String.description, "'foo'")
+        XCTAssertEqual(databaseValue_Data.description, "X'666F6F'")
     }
 }
