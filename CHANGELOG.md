@@ -29,7 +29,7 @@ Released October 8, 2016
 
 **Breaking Changes**
 
-- `Row.value(column:)` has been renamed `Row.value(_:)`
+- `Row.value(column:)` has lost its parameter name: `row.value(Column("id"))`.
 - `QueryInterfaceRequest` has lost its public initializer.
 
 
