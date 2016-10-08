@@ -275,6 +275,6 @@ extension DatabaseValue : DatabaseValueConvertible {
 extension DatabaseValue : CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
-        return sqlExpression.sql
+        return sql
     }
 }
