@@ -30,7 +30,7 @@ class DeleteByKeyTests: GRDBTestCase {
         }
     }
     
-    func testHiddenRowID() {
+    func testImplicitRowIDPrimaryKey() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
