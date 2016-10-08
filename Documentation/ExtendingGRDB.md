@@ -18,11 +18,11 @@ This guide is a step-by-step tour of GRDB extensibility, around a few topics:
 
 - **[Add an SQLite function or operator](#add-an-sqlite-function-or-operator)**
     
-    You'll learn how to add support for the [STRFTIME](https://www.sqlite.org/lang_datefunc.html) function, and the [MATCH](https://www.sqlite.org/fts3.html#full_text_index_queries) full-text operator:
+    You'll learn how to add support for the [STRFTIME](https://www.sqlite.org/lang_datefunc.html) function, and the [GLOB](https://www.sqlite.org/lang_expr.html#like) operator:
     
     ```swift
     Books.select(strftime("%Y", Column("publishedDate")))    // <-- New! strftime function
-    Books.filter("\"Moby Dick\"" ~= Column("body"))          // <-- New! ~= operator
+    Books.filter(Column("body").glob("*Moby-Dick*"))         // <-- New! glob method
     ```
 
 - **[Add a new kind of SQLite expression](#add-a-new-kind-of-sqlite-expression)**
@@ -173,7 +173,7 @@ func cast<T, U>(_ value: T) -> U? {
 
 But you don't have to wait: you can extend GRDB and the query interface to add support for the missing syntax element (and eventually submit a pull request later).
 
-Let's remind our goal: we'll add the [STRFTIME](https://www.sqlite.org/lang_datefunc.html) function, and the [MATCH](https://www.sqlite.org/fts3.html#full_text_index_queries) full-text operator.
+Let's remind our goal: we'll add the [STRFTIME](https://www.sqlite.org/lang_datefunc.html) function, and the [GLOB](https://www.sqlite.org/lang_expr.html#like) operator.
 
 Their SQL usage is the following:
 
@@ -181,19 +181,19 @@ Their SQL usage is the following:
 -- Publication years of books
 SELECT STRFTIME('%Y', publishedOn) FROM books;
 -- Books that talk about Moby Dick
-SELECT * FROM books WHERE body MATCH '"Moby Dick"';
+SELECT * FROM books WHERE body GLOB '*Moby-Dick*';
 ```
 
 Translated in the query interface, this gives:
 
 ```swift
 Books.select(strftime("%Y", Column("publishedDate")))
-Books.filter("\"Moby Dick\"" ~= Column("body"))
+Books.filter(Column("body").glob("*Moby-Dick*"))
 ```
 
 `strftime` is a top-level Swift function because this is how GRDB usually imports SQLite functions which do not have matching standard Swift counterpart, like AVG, LEGNTH, SUM. It helps the Swift code looking like SQL when it is relevant.
 
-Conversely, we expose the MATCH SQL operator as the `~=` Swift operator, just because this is the standard Swift [pattern matching operator](https://developer.apple.com/library/content/documentation/Swift/Conceptual/Swift_Programming_Language/Patterns.html).
+In the same fashion, we expose the GLOB SQL operator as the `glob` Swift method, just because `value.glob(pattern)` reads like `value GLOB pattern`.
 
 Whenever you import a SQL feature to Swift, you'll have to decide: should you preserve the SQL look and feel, or adopt a well-established swiftism? It's really up to you.
 
@@ -263,14 +263,14 @@ You may want to compare it to another protocol, SQLExpressible, which will be de
 > :point_up: **Note**: whenever you extend GRDB with a Swift function, method, or operator, you should generally make sure that its signature contains at least one GRDB-specific type. In the `strftime` function, it is the SQLSpecificExpressible protocol.
 
 
-### MATCH
+### GLOB
 
-For the [MATCH](https://www.sqlite.org/fts3.html#full_text_index_queries) full-text operator, we want to use the ~= Swift operator:
+For the [GLOB](https://www.sqlite.org/lang_expr.html#like) operator, we want to define the glob Swift method:
 
 ```swift
 // Books that talk about Moby Dick
-// SELECT * FROM books WHERE body MATCH '"Moby Dick"'
-Books.filter("\"Moby Dick\"" ~= Column("body"))
+// SELECT * FROM books WHERE body GLOB '*Moby-Dick*'
+Books.filter(Column("body").glob("*Moby-Dick*"))
 ```
 
 This time we can't use the SQLExpressionFunction type, because it can't generate the SQL for a binary operator. Instead, we'll use another [built-in expression](#built-in-expressions), SQLExpressionBinary:
@@ -285,15 +285,37 @@ struct SQLExpressionBinary : SQLExpression {
 }
 ```
 
-Now we have to find the signature of our Swift operator. The MATCH operator requires an indexed column on its left. Anything can go on its right, string patterns but also any SQL expression (that eventually evaluates to a string pattern).
-
-The Swift `~=` operator reverses the left and right arguments, so this eventually gives the following signature:
+Now we have to find the signature of our Swift method. The GLOB operator accepts any value on both sides. However, what kind of Swift code should we accept?
 
 ```swift
-func ~= (_ lhs: SQLExpressible, _ rhs: Column) -> SQLExpression
+// 1) body GLOB '*Moby-Dick*' -- Yes, of course
+Column("body").glob("*Moby-Dick*")
+// 2) body GLOB pattern -- Sure, why not?
+Column("body").glob(Column("pattern"))
+// 3) 'Some Swift String' GLOB pattern - Not sure, but OK
+"Some Swift String".glob(Column("pattern"))
+// 4) 'Some Swift String' GLOB 'Another Swift String' -- NO
+"Some Swift String".glob("Another Swift String")
 ```
 
-SQLExpressible is the protocol for all types that can be turned into a SQL expression. This includes all expressions, and all [value types](../../../#values) (including String, for our full-text pattern).
+We don't want the form 4, because this is an unacceptable pollution of the Swift global namespace. A good GRDB extension limits its scope to database-related code.
+
+We thus have two overloaded definitions of the `glob` method:
+
+```swift
+extension SQLSpecificExpressible {
+    func glob(_ pattern: SQLExpressible) -> SQLExpression
+}
+extension SQLExpressible {
+    func glob(_ pattern: SQLSpecificExpressible) -> SQLExpression
+}
+```
+
+SQLExpressible is the protocol for all types that can be turned into a SQL expression. This includes all expressions, and all [value types](../../../#values) (including String).
+
+SQLSpecificExpressible is a sub protocol of SQLExpressible protocol, restricted to all types that can be turned into a SQL expression, but types like Int, Date, or String that exist outside of GRDB and the query interface.
+
+By extending both, we can define the GLOB operators for any pair that contains at least one type that is specific to GRDB - and leave the global Swift space clean.
 
 The final implementation follows:
 
@@ -301,32 +323,37 @@ The final implementation follows:
 // Add a SQLBinaryOperator just like we add NSNotification.Name since
 // the release of Swift 3.
 extension SQLBinaryOperator {
-    /// The `MATCH` binary operator
-    static let match = SQLBinaryOperator("MATCH")
+    /// The `GLOB` binary operator
+    static let glob = SQLBinaryOperator("GLOB")
 }
 
-func ~= (_ lhs: SQLExpressible, _ rhs: Column) -> SQLExpression {
-    return SQLExpressionBinary(.match, rhs, lhs)
+extension SQLSpecificExpressible {
+    /// Returns an SQL `GLOB` expression.
+    ///
+    ///     // body GLOB '*Moby-Dick*'
+    ///     Column("body").glob("*Moby-Dick*")
+    func glob(_ pattern: SQLExpressible) -> SQLExpression {
+        return SQLExpressionBinary(.glob, self, pattern)
+    }
+}
+
+extension SQLExpressible {
+    /// Returns an SQL `GLOB` expression.
+    ///
+    ///     // 'Some Swift String' GLOB pattern
+    ///     "Some Swift String".glob(Column("pattern"))
+    func glob(_ pattern: SQLSpecificExpressible) -> SQLExpression {
+        return SQLExpressionBinary(.glob, self, pattern)
+    }
 }
 ```
-
-Let's check a few usages of the ~= operator:
-
-```swift
-"pattern" ~= "content"                 // false (standard Swift ~= operator)
-"pattern" ~= Column("content")         // SQL expression: content MATCH 'pattern'
-Column("pattern") ~= "content"         // Compiler error
-Column("pattern") ~= Column("content") // SQL expression: content MATCH pattern
-```
-
-> :point_up: **Note**: whenever you extend GRDB with a Swift function, method, or operator, you should generally make sure that its signature contains at least one GRDB-specific type. In the `~=` operator, it is the Column type.
 
 
 ### Built-in Expressions
 
 When you extend GRDB with a new function, method, or operator that generates an [SQL expression](https://www.sqlite.org/lang_expr.html), you have to return a value the adopts the SQLExpression protocol.
 
-We have already seen in our [previous](#strftime) [examples](#match) two concrete types that generate SQL function calls and binary operators: SQLExpressionFunction and SQLExpressionBinary.
+We have already seen in our [previous](#strftime) [examples](#glob) two concrete types that generate SQL function calls and binary operators: SQLExpressionFunction and SQLExpressionBinary.
 
 This section of the documentation lists all built-in expressions. Adding a custom SQLExpression type will be documented [below](#add-a-new-kind-of-sqlite-expression).
 
@@ -396,8 +423,8 @@ You add missing SQLite binary operators by extending SQLBinaryOperator:
 
 ```swift
 extension SQLBinaryOperator {
-    /// The `MATCH` binary operator
-    static let match = SQLBinaryOperator("MATCH")
+    /// The `GLOB` binary operator
+    static let glob = SQLBinaryOperator("GLOB")
 }
 ```
 
