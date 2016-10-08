@@ -1884,6 +1884,16 @@ try Person.deleteOne(db, key: 1)
 try Country.deleteAll(db, keys: ["FR", "US"])
 ```
 
+When the table has no explicit primary key, GRDB uses the [hidden "rowid" column](#the-implicit-rowid-primary-key):
+
+```swift
+// SELECT * FROM documents WHERE rowid = 1
+Document.fetchOne(db, key: 1)            // Document?
+
+// DELETE FROM documents WHERE rowid = 1
+try Document.deleteOne(db, key: 1)
+```
+
 When given dictionaries, `fetchOne`, `deleteOne`, `fetchAll` and `deleteAll` accept any set of columns that uniquely identify rows. These are the primary key columns, or any columns involved in a unique index:
 
 ```swift
@@ -2985,6 +2995,13 @@ Country.fetchOne(db, key: "FR")          // Country?
 Country.fetchAll(db, keys: ["FR", "US"]) // [Country]
 ```
 
+When the table has no explicit primary key, GRDB uses the [hidden "rowid" column](#the-implicit-rowid-primary-key):
+
+```swift
+// SELECT * FROM documents WHERE rowid = 1
+Document.fetchOne(db, key: 1)            // Document?
+```
+
 For multiple-column primary keys, provide a dictionary:
 
 ```swift
@@ -3055,6 +3072,13 @@ try Country.deleteOne(db, key: "FR")
 
 // DELETE FROM countries WHERE isoCode IN ('FR', 'US')
 try Country.deleteAll(db, keys: ["FR", "US"])
+```
+
+When the table has no explicit primary key, GRDB uses the [hidden "rowid" column](#the-implicit-rowid-primary-key):
+
+```swift
+// DELETE FROM documents WHERE rowid = 1
+try Document.deleteOne(db, key: 1)
 ```
 
 For multiple-column primary keys, provide a dictionary:
