@@ -1,7 +1,9 @@
 Release Notes
 =============
 
-## Next Release
+## 0.86.0
+
+Released October 8, 2016
 
 **New**
 
@@ -9,7 +11,7 @@ Release Notes
 
 - **Improved support for the hidden "rowid" column**:
 
-    - `TableMapping.selectsRowID`: this optional static property allows records to fetch their hidden rowID column by default ([documentation](https://github.com/groue/GRDB.swift/tree/FTS#the-implicit-rowid-primary-key)):
+    - `TableMapping.selectsRowID`: this optional static property allows records to fetch their hidden rowID column ([documentation](https://github.com/groue/GRDB.swift/tree/FTS#the-implicit-rowid-primary-key)):
     
         ```swift
         // SELECT *, rowid FROM books
