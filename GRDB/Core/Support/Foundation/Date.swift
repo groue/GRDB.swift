@@ -1,21 +1,21 @@
 import Foundation
 
-/// Date is stored in the database using the format
+/// NSDate is stored in the database using the format
 /// "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone.
-extension Date : DatabaseValueConvertible {
+extension NSDate : DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return storageDateFormatter.string(from: self).databaseValue
+        return storageDateFormatter.string(from: self as Date).databaseValue
     }
     
     /// Returns a Date initialized from *databaseValue*, if possible.
-    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Date? {
+    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
         if let databaseDateComponents = DatabaseDateComponents.fromDatabaseValue(databaseValue) {
-            return fromDatabaseDateComponents(databaseDateComponents)
+            return cast(fromDatabaseDateComponents(databaseDateComponents))
         }
         if let julianDayNumber = Double.fromDatabaseValue(databaseValue) {
-            return fromJulianDayNumber(julianDayNumber)
+            return cast(fromJulianDayNumber(julianDayNumber))
         }
         return nil
     }
@@ -63,6 +63,10 @@ extension Date : DatabaseValueConvertible {
         return UTCCalendar.date(from: databaseDateComponents.dateComponents)!
     }
 }
+
+/// Date is stored in the database using the format
+/// "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone.
+extension Date : DatabaseValueConvertible { }
 
 /// The DatabaseDate date formatter for stored dates.
 private let storageDateFormatter: DateFormatter = {
