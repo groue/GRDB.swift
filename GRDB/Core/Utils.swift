@@ -88,20 +88,6 @@ extension Dictionary {
     }
 }
 
-extension Sequence where Iterator.Element: Equatable {
-    
-    /// Filter out elements contained in *removedElements*.
-    func removing<S : Sequence>(contentsOf elements: S) -> [Self.Iterator.Element] where S.Iterator.Element == Self.Iterator.Element {
-        return filter { element in !elements.contains(element) }
-    }
-}
-
-extension Sequence {
-    func all(predicate: (Self.Iterator.Element) throws -> Bool) rethrows -> Bool {
-        return try !contains { try !predicate($0) }
-    }
-}
-
 /// A ReadWriteBox grants multiple readers and single-writer guarantees on a value.
 final class ReadWriteBox<T> {
     var value: T {
