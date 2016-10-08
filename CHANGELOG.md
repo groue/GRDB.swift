@@ -5,24 +5,28 @@ Release Notes
 
 **New**
 
-- `TableMapping.selectsRowID`: this optional static property allows records to fetch their hidden rowID column by default ([documentation](https://github.com/groue/GRDB.swift/tree/FTS#the-implicit-rowid-primary-key)):
+- **Full-Text Search**. GRDB learned about FTS3, FTS4 and FTS5 full-text engines of SQLite ([documentation](https://github.com/groue/GRDB.swift/tree/FTS#full-text-search)).
+
+- **Improved support for the hidden "rowid" column**:
+
+    - `TableMapping.selectsRowID`: this optional static property allows records to fetch their hidden rowID column by default ([documentation](https://github.com/groue/GRDB.swift/tree/FTS#the-implicit-rowid-primary-key)):
     
-    ```swift
-    // SELECT *, rowid FROM books
-    Book.fetchAll(db)
-    ```
+        ```swift
+        // SELECT *, rowid FROM books
+        Book.fetchAll(db)
+        ```
     
-- `fetchOne(_:key:)`, `fetch(_:keys:)`, `fetchAll(_:keys:)`, `deleteOne(_:key:)`, `deleteAll(_:keys:)` now use the hidden `rowid` column when the table has no explicit primary key.
+    - `fetchOne(_:key:)`, `fetch(_:keys:)`, `fetchAll(_:keys:)`, `deleteOne(_:key:)`, `deleteAll(_:keys:)` now use the hidden `rowid` column when the table has no explicit primary key.
     
-    ```swift
-    // DELETE FROM books WHERE rowid = 1
-    try Book.deleteOne(db, key: 1)
-    ```
+        ```swift
+        // DELETE FROM books WHERE rowid = 1
+        try Book.deleteOne(db, key: 1)
+        ```
 
 **Breaking Changes**
 
 - `Row.value(column:)` has been renamed `Row.value(_:)`
-- `QueryInterfaceRequest` has no longer any public initializer.
+- `QueryInterfaceRequest` has lost its public initializer.
 
 
 ## 0.85.0
