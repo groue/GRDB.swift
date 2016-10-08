@@ -113,14 +113,26 @@ extension TableMapping {
     
     // MARK: Full Text Search
     
-    /// TODO
+    /// Returns a QueryInterfaceRequest with a matching predicate.
+    ///
+    ///     // SELECT * FROM books WHERE books MATCH '...'
+    ///     var request = Book.matching(pattern)
+    ///
+    /// If the `selectsRowID` type property is true, then the selection includes
+    /// the hidden "rowid" column:
+    ///
+    ///     // SELECT *, rowid FROM books WHERE books MATCH '...'
+    ///     var request = Book.matching(pattern)
     public static func matching(_ pattern: FTS3Pattern) -> QueryInterfaceRequest<Self> {
         return all().matching(pattern)
     }
 }
 
 extension Column {
-    /// TODO
+    /// A matching SQL expression with the `MATCH` SQL operator.
+    ///
+    ///     // content MATCH '...'
+    ///     Column("content") MATCH '...'
     public func match(_ pattern: FTS3Pattern) -> SQLExpression {
         return SQLExpressionBinary(.match, self, pattern)
     }
