@@ -6,6 +6,8 @@
 //
 // -----------------------------------------
 
+// #define SQLITE_ENABLE_PREUPDATE_HOOK
+// #define SQLITE_ENABLE_FTS5
 
 // -----------------------------------------
 //
