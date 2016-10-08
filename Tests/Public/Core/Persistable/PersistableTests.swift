@@ -308,8 +308,10 @@ class PersistableTests: GRDBTestCase {
                 let person2 = PersistablePersonClass(id: nil, name: "Barbara", age: 39)
                 try person2.insert(db)
                 
-                // TODO: test delete return value
-                try person1.delete(db)
+                var deleted = try person1.delete(db)
+                XCTAssertTrue(deleted)
+                deleted = try person1.delete(db)
+                XCTAssertFalse(deleted)
                 
                 let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
                 XCTAssertEqual(rows.count, 1)
@@ -460,8 +462,10 @@ class PersistableTests: GRDBTestCase {
                 let country2 = PersistableCountry(isoCode: "US", name: "United States")
                 try country2.insert(db)
                 
-                // TODO: test delete return value
-                try country1.delete(db)
+                var deleted = try country1.delete(db)
+                XCTAssertTrue(deleted)
+                deleted = try country1.delete(db)
+                XCTAssertFalse(deleted)
                 
                 let rows = Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
                 XCTAssertEqual(rows.count, 1)
@@ -674,8 +678,7 @@ class PersistableTests: GRDBTestCase {
                 XCTAssertEqual(rows[1].value(named: "isoCode") as String, "US")
                 XCTAssertEqual(rows[1].value(named: "name") as String, "United States")
                 
-                // TODO: test delete return value
-                _ = try country1.delete(db)
+                try country1.delete(db)
                 try country1.save(db)
                 
                 XCTAssertEqual(insertCount, 2)
@@ -722,13 +725,15 @@ class PersistableTests: GRDBTestCase {
                     willExists: { })
                 try country2.insert(db)
                 
-                // TODO: test delete return value
-                _ = try country1.delete(db)
+                var deleted = try country1.delete(db)
+                XCTAssertTrue(deleted)
+                deleted = try country1.delete(db)
+                XCTAssertFalse(deleted)
                 
                 XCTAssertEqual(insertCount, 1)
                 XCTAssertEqual(updateCount, 0)
                 XCTAssertEqual(saveCount, 0)
-                XCTAssertEqual(deleteCount, 1)
+                XCTAssertEqual(deleteCount, 2)
                 XCTAssertEqual(existsCount, 0)
                 
                 let rows = Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
@@ -765,8 +770,7 @@ class PersistableTests: GRDBTestCase {
                 XCTAssertEqual(deleteCount, 0)
                 XCTAssertEqual(existsCount, 1)
                 
-                // TODO: test delete return value
-                _ = try country.delete(db)
+                try country.delete(db)
                 
                 XCTAssertFalse(country.exists(db))
                 XCTAssertEqual(insertCount, 1)
