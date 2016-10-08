@@ -113,8 +113,6 @@
         /// https://www.sqlite.org/fts5.html#the_detail_option
         public var detail: String?
         
-        /// TODO: columnsize, detail
-        
         /// Appends a table column.
         ///
         ///     try db.create(virtualTable: "documents", using: FTS5()) { t in

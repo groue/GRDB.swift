@@ -93,12 +93,13 @@
     }
 
     extension FTS5Pattern : DatabaseValueConvertible {
-        /// TODO
+        /// Returns a value that can be stored in the database.
         public var databaseValue: DatabaseValue {
             return rawPattern.databaseValue
         }
         
-        /// TODO
+        /// Returns an FTS5Pattern initialized from *databaseValue*, if it
+        /// contains a suitable value.
         public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> FTS5Pattern? {
             return String
                 .fromDatabaseValue(databaseValue)
@@ -110,7 +111,12 @@
         
         // MARK: Full Text Search
         
-        /// TODO
+        /// Returns a new QueryInterfaceRequest with a matching predicate added
+        /// to the eventual set of already applied predicates.
+        ///
+        ///     // SELECT * FROM books WHERE books MATCH '...'
+        ///     var request = Book.all()
+        ///     request = request.matching(pattern)
         public func matching(_ pattern: FTS5Pattern) -> QueryInterfaceRequest<T> {
             switch query.source {
             case .table(let name, let alias)?:
@@ -125,7 +131,16 @@
         
         // MARK: Full Text Search
         
-        /// TODO
+        /// Returns a QueryInterfaceRequest with a matching predicate.
+        ///
+        ///     // SELECT * FROM books WHERE books MATCH '...'
+        ///     var request = Book.matching(pattern)
+        ///
+        /// If the `selectsRowID` type property is true, then the selection
+        /// includes the hidden "rowid" column:
+        ///
+        ///     // SELECT *, rowid FROM books WHERE books MATCH '...'
+        ///     var request = Book.matching(pattern)
         public static func matching(_ pattern: FTS5Pattern) -> QueryInterfaceRequest<Self> {
             return all().matching(pattern)
         }
