@@ -3278,6 +3278,10 @@ let books = Book.matching(pattern).fetchAll(db)
     
     GRDB does not provide any ranking for FTS3 and FTS4. See SQLite's [Search Application Tips](https://www.sqlite.org/fts3.html#appendix_a) if you really need it.
     
+- **Full-Text Records**
+    
+    You can define [record](#records) types around the full-text virtual tables. Since these tables don't have any explicit primary key, you'll need an [extra setup](#the-implicit-rowid-primary-key).
+    
 - **[Unicode Full-Text Gotchas](#unicode-full-text-gotchas)**
     
     Unicorns don't exist.

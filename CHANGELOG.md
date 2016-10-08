@@ -5,7 +5,7 @@ Release Notes
 
 **New**
 
-- `TableMapping.selectsRowID`: this optional static property allows records to fetch their hidden rowID column by default:
+- `TableMapping.selectsRowID`: this optional static property allows records to fetch their hidden rowID column by default ([documentation](https://github.com/groue/GRDB.swift/tree/FTS#the-implicit-rowid-primary-key)):
     
     ```swift
     // SELECT *, rowid FROM books
