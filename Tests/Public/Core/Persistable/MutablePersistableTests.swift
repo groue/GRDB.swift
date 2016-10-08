@@ -543,7 +543,7 @@ class MutablePersistableTests: GRDBTestCase {
                 XCTAssertEqual(rows[1].value(named: "rowID") as Int64, country2.rowID!)
                 XCTAssertEqual(rows[1].value(named: "name") as String, "United States")
                 
-                try country1.delete(db)
+                _ = try country1.delete(db)
                 try country1.save(db)
                 
                 XCTAssertEqual(insertCount, 2)
@@ -638,7 +638,7 @@ class MutablePersistableTests: GRDBTestCase {
                 XCTAssertEqual(deleteCount, 0)
                 XCTAssertEqual(existsCount, 1)
                 
-                try country.delete(db)
+                _ = try country.delete(db)
                 
                 XCTAssertFalse(country.exists(db))
                 XCTAssertEqual(insertCount, 1)

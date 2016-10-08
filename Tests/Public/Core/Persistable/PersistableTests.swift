@@ -678,7 +678,7 @@ class PersistableTests: GRDBTestCase {
                 XCTAssertEqual(rows[1].value(named: "isoCode") as String, "US")
                 XCTAssertEqual(rows[1].value(named: "name") as String, "United States")
                 
-                try country1.delete(db)
+                _ = try country1.delete(db)
                 try country1.save(db)
                 
                 XCTAssertEqual(insertCount, 2)
@@ -770,7 +770,7 @@ class PersistableTests: GRDBTestCase {
                 XCTAssertEqual(deleteCount, 0)
                 XCTAssertEqual(existsCount, 1)
                 
-                try country.delete(db)
+                _ = try country.delete(db)
                 
                 XCTAssertFalse(country.exists(db))
                 XCTAssertEqual(insertCount, 1)
