@@ -22,6 +22,7 @@ Release Notes
 **Breaking Changes**
 
 - `Row.value(column:)` has been renamed `Row.value(_:)`
+- `QueryInterfaceRequest` has no longer any public initializer.
 
 
 ## 0.85.0

@@ -4,14 +4,6 @@
 public struct QueryInterfaceRequest<T> {
     let query: QueryInterfaceSelectQueryDefinition
     
-    /// Initializes a QueryInterfaceRequest based on table *tableName*.
-    ///
-    /// It represents the SQL query `SELECT * FROM tableName`.
-    public init(tableName: String) {
-        // TODO: make this initializer internal
-        self.init(query: QueryInterfaceSelectQueryDefinition(select: [star], from: .table(name: tableName, alias: nil)))
-    }
-    
     init(query: QueryInterfaceSelectQueryDefinition) {
         self.query = query
     }

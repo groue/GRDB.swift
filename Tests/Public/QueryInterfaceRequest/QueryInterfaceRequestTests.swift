@@ -14,7 +14,10 @@ private struct Col {
     static let readerId = Column("readerId")
 }
 
-private let tableRequest = QueryInterfaceRequest<Void>(tableName: "readers")
+private struct Reader : TableMapping {
+    static let databaseTableName = "readers"
+}
+private let tableRequest = Reader.all()
 
 class QueryInterfaceRequestTests: GRDBTestCase {
 
