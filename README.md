@@ -1663,6 +1663,7 @@ Your custom structs and classes can adopt each protocol individually, and opt in
     - [Conflict Resolution](#conflict-resolution)
 - [Record Class](#record-class)
     - [Changes Tracking](#changes-tracking)
+- [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key)
 
 
 ### Inserting Records
@@ -1845,8 +1846,11 @@ Occasionnally, you'll want to write a complex SQL query that uses different colu
 ```swift
 public protocol TableMapping {
     static var databaseTableName: String { get }
+    static var selectsRowID: Bool { get }
 }
 ```
+
+The `databaseTableName` type property is the name of a database table. `selectsRowID` is optional, and documented in the [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key) chapter.
 
 **To use TableMapping**, subclass the [Record](#record-class) class, or adopt it explicitely. For example:
 
@@ -2256,6 +2260,123 @@ person.persistentChangedValues    // ["age": 35]
 ```
 
 For an efficient algorithm which synchronizes the content of a database table with a JSON payload, check [JSONSynchronization.playground](Playgrounds/JSONSynchronization.playground/Contents.swift).
+
+
+## The Implicit RowID Primary Key
+
+**All SQLite tables have a primary key.** Even when the primary key is not explicit:
+
+```swift
+// No explicit primary key
+try db.create(table: "events") { t in
+    t.column("message", .text)
+    t.column("date", .datetime)
+}
+
+// No way to define an explicit primary key
+try db.create(virtualTable: "books", using: FTS4()) { t in
+    t.column("title")
+    t.column("author")
+    t.column("body")
+}
+```
+
+The implicit primary key is stored in the hidden column `rowid`. Hidden means that `SELECT *` does not select it, and yet it can be selected and queried: `SELECT *, rowid ... WHERE rowid = 1`.
+
+**GRDB will automatically use this hidden column when your table has no explicit primary key:**
+
+```swift
+// SELECT * FROM events WHERE rowid = 1
+let event = Event.fetchOne(db, key: 1)
+
+// DELETE FROM books WHERE rowid = 1
+try Book.deleteOne(db, key: 1)
+```
+
+
+### Exposing the RowID Column
+
+**Your record types that wrap a table without any explicit primary key don't know about the hidden rowid unless you tell them about it.**
+
+Making a record type fully aware of its rowid is a four-step process:
+
+1. Have the `selectsRowID` static property from the [TableMapping](#tablemapping-protocol) protocol return true.
+    
+    ```swift
+    struct Event : TableMapping {
+        static let selectsRowID = true
+    }
+    
+    // When you subclass Record, you need an override:
+    class Book : Record {
+        override class var selectsRowID: Bool {
+            return true
+        }
+    }
+    ```
+    
+    GRDB will then select the `rowid` column by default:
+    
+    ```swift
+    // SELECT *, rowid FROM events
+    let events = Event.fetchAll(db)
+    ```
+
+2. Have `init(row:)` from the [RowConvertible](#rowconvertible-protocol) protocol consume the "rowid" column:
+    
+    ```swift
+    struct Event : RowConvertible {
+        var id: Int64?
+        
+        init(row: Row) {
+            self.id = row.value(named: "rowid")
+        }
+    }
+    ```
+    
+    If you prefer using the Column type from the [query interface](#the-query-interface), use the Column.rowID constant:
+    
+    ```swift
+    init(row: Row) {
+        self.id = row.value(Column.rowID)
+    }
+    ```
+    
+    Your fetched records will then know their ids:
+    
+    ```swift
+    let event = Event.fetchOne(db)!
+    event.id // some value
+    ```
+
+3. Include the rowid in your `persistentDictionary`, and keep it in the `didInsert(with:for:)` method (both from the [Persistable](#persistable-protocol) or MutablePersistable protocols):
+    
+    ```swift
+    struct Event : MutablePersistable {
+        var persistentDictionary: [String: DatabaseValueConvertible?] {
+            return [
+                "rowid": id,
+                "message": message,
+                "date": date,
+            ]
+        }
+        
+        mutating func didInsert(with rowID: Int64, for column: String?) {
+            id = rowID
+        }
+    }
+    ```
+    
+    You will then be able to track your record ids, update them, or check for their existence:
+    
+    ```swift
+    let event = Event(message: "foo", date: Date())
+    try event.insert(db)
+    event.id // some value
+    event.message = "bar"
+    try event.update(db)
+    event.exists(db) // true
+    ```
 
 
 The Query Interface
