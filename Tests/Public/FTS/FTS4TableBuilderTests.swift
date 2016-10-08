@@ -9,12 +9,24 @@ import XCTest
 
 class FTS4TableBuilderTests: GRDBTestCase {
     
+    override func setUp() {
+        super.setUp()
+        
+        self.dbConfiguration.trace = { (sql) in
+            // Ignore virtual table logs
+            if !sql.hasPrefix("--") {
+                self.sqlQueries.append(sql)
+                self.lastSQLQuery = sql
+            }
+        }
+    }
+    
     func testWithoutBody() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.create(virtualTable: "documents", using: FTS4())
-                XCTAssertTrue(sqlQueries.contains("CREATE VIRTUAL TABLE \"documents\" USING fts4"))
+                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"documents\" USING fts4")
                 
                 try db.execute("INSERT INTO documents VALUES (?)", arguments: ["abc"])
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["abc"])!, 1)
@@ -27,7 +39,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.create(virtualTable: "documents", ifNotExists: true, using: FTS4())
-                XCTAssertTrue(sqlQueries.contains("CREATE VIRTUAL TABLE IF NOT EXISTS \"documents\" USING fts4"))
+                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE IF NOT EXISTS \"documents\" USING fts4")
                 
                 try db.execute("INSERT INTO documents VALUES (?)", arguments: ["abc"])
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["abc"])!, 1)
@@ -42,7 +54,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
                 try db.create(virtualTable: "documents", using: FTS4()) { t in
                     t.tokenizer = .simple
                 }
-                XCTAssertTrue(sqlQueries.contains("CREATE VIRTUAL TABLE \"documents\" USING fts4(tokenize=simple)"))
+                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"documents\" USING fts4(tokenize=simple)")
             }
         }
     }
@@ -54,7 +66,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
                 try db.create(virtualTable: "documents", using: FTS4()) { t in
                     t.tokenizer = .porter
                 }
-                XCTAssertTrue(sqlQueries.contains("CREATE VIRTUAL TABLE \"documents\" USING fts4(tokenize=porter)"))
+                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"documents\" USING fts4(tokenize=porter)")
             }
         }
     }
@@ -66,7 +78,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
                 try db.create(virtualTable: "documents", using: FTS4()) { t in
                     t.tokenizer = .unicode61()
                 }
-                XCTAssertTrue(sqlQueries.contains("CREATE VIRTUAL TABLE \"documents\" USING fts4(tokenize=unicode61)"))
+                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"documents\" USING fts4(tokenize=unicode61)")
             }
         }
     }
@@ -78,7 +90,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
                 try db.create(virtualTable: "documents", using: FTS4()) { t in
                     t.tokenizer = .unicode61(removeDiacritics: false)
                 }
-                XCTAssertTrue(sqlQueries.contains("CREATE VIRTUAL TABLE \"documents\" USING fts4(tokenize=unicode61 \"remove_diacritics=0\")"))
+                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"documents\" USING fts4(tokenize=unicode61 \"remove_diacritics=0\")")
             }
         }
     }
@@ -90,7 +102,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
                 try db.create(virtualTable: "documents", using: FTS4()) { t in
                     t.tokenizer = .unicode61(separators: ["X"])
                 }
-                XCTAssertTrue(sqlQueries.contains("CREATE VIRTUAL TABLE \"documents\" USING fts4(tokenize=unicode61 \"separators=X\")"))
+                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"documents\" USING fts4(tokenize=unicode61 \"separators=X\")")
             }
         }
     }
@@ -102,7 +114,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
                 try db.create(virtualTable: "documents", using: FTS4()) { t in
                     t.tokenizer = .unicode61(tokenCharacters: Set(".-".characters))
                 }
-                XCTAssertTrue(sqlQueries.contains("CREATE VIRTUAL TABLE \"documents\" USING fts4(tokenize=unicode61 \"tokenchars=-.\")"))
+                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"documents\" USING fts4(tokenize=unicode61 \"tokenchars=-.\")")
             }
         }
     }
@@ -116,7 +128,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
                     t.column("title")
                     t.column("body")
                 }
-                XCTAssertTrue(sqlQueries.contains("CREATE VIRTUAL TABLE \"books\" USING fts4(author, title, body)"))
+                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"books\" USING fts4(author, title, body)")
                 
                 try db.execute("INSERT INTO books VALUES (?, ?, ?)", arguments: ["Melville", "Moby Dick", "Call me Ishmael."])
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["Melville"])!, 1)
@@ -137,7 +149,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
                     t.column("title")
                     t.column("body").notIndexed()
                 }
-                XCTAssertTrue(sqlQueries.contains("CREATE VIRTUAL TABLE \"books\" USING fts4(author, notindexed=author, title, body, notindexed=body)"))
+                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"books\" USING fts4(author, notindexed=author, title, body, notindexed=body)")
                 
                 try db.execute("INSERT INTO books VALUES (?, ?, ?)", arguments: ["Melville", "Moby Dick", "Call me Ishmael."])
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["Dick"])!, 1)
@@ -168,7 +180,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
                     t.column("lid").asLanguageId()
                 }
                 print(sqlQueries)
-                XCTAssertTrue(sqlQueries.contains("CREATE VIRTUAL TABLE \"documents\" USING fts4(content, languageid=\"lid\", content=\"\", compress=\"zip\", uncompress=\"unzip\", matchinfo=\"fts3\", prefix=\"2,4\")"))
+                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"documents\" USING fts4(content, languageid=\"lid\", content=\"\", compress=\"zip\", uncompress=\"unzip\", matchinfo=\"fts3\", prefix=\"2,4\")")
                 
                 try db.execute("INSERT INTO documents (docid, content, lid) VALUES (?, ?, ?)", arguments: [1, "abc", 0])
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ? AND lid=0", arguments: ["abc"])!, 1)

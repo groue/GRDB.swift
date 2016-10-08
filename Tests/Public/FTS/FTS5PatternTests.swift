@@ -123,8 +123,8 @@ class FTS5PatternTests: GRDBTestCase {
                 let cases = [
                     ("écarlates", "écarlates", 1),
                     ("^Moby*", "moby", 1),
-                    (" \t\nyears \t\nmonths \t\n", "years AND months", 1),
-                    ("\"years months days\"", "years AND months AND days", 1),
+                    (" \t\nyears \t\nmonths \t\n", "years months", 1),
+                    ("\"years months days\"", "years months days", 1),
                     ("FOOÉı👨👨🏿🇫🇷🇨🇮", "fooÉı👨👨🏿🇫🇷🇨🇮", 0),
                     ]
                 for (string, expectedRawPattern, expectedCount) in cases {

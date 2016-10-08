@@ -43,6 +43,18 @@ extension Book : MutablePersistable {
 
 class FTS4RecordTests: GRDBTestCase {
     
+    override func setUp() {
+        super.setUp()
+        
+        self.dbConfiguration.trace = { (sql) in
+            // Ignore virtual table logs
+            if !sql.hasPrefix("--") {
+                self.sqlQueries.append(sql)
+                self.lastSQLQuery = sql
+            }
+        }
+    }
+    
     override func setup(_ dbWriter: DatabaseWriter) throws {
         try dbWriter.write { db in
             try db.create(virtualTable: "books", using: FTS4()) { t in
@@ -86,6 +98,25 @@ class FTS4RecordTests: GRDBTestCase {
                 XCTAssertEqual(Book.filter(Column("books").match(pattern)).fetchCount(db), 1)
                 XCTAssertEqual(Book.filter(Column("author").match(pattern)).fetchCount(db), 1)
                 XCTAssertEqual(Book.filter(Column("title").match(pattern)).fetchCount(db), 0)
+            }
+        }
+    }
+    
+    func testFetchCount() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                do {
+                    var book = Book(id: nil, title: "Moby Dick", author: "Herman Melville", body: "Call me Ishmael.")
+                    try book.insert(db)
+                }
+                
+                let pattern = FTS3Pattern(matchingAllTokensIn: "Herman Melville")!
+                XCTAssertEqual(Book.matching(pattern).fetchCount(db), 1)
+                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"books\" WHERE (\"books\" MATCH 'herman melville')")
+                
+                XCTAssertEqual(Book.fetchCount(db), 1)
+                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"books\"")
             }
         }
     }

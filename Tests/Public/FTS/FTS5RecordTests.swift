@@ -43,6 +43,18 @@ extension Book : MutablePersistable {
 
 class FTS5RecordTests: GRDBTestCase {
     
+    override func setUp() {
+        super.setUp()
+        
+        self.dbConfiguration.trace = { (sql) in
+            // Ignore virtual table logs
+            if !sql.hasPrefix("--") {
+                self.sqlQueries.append(sql)
+                self.lastSQLQuery = sql
+            }
+        }
+    }
+    
     override func setup(_ dbWriter: DatabaseWriter) throws {
         try dbWriter.write { db in
             try db.create(virtualTable: "books", using: FTS5()) { t in
@@ -83,6 +95,25 @@ class FTS5RecordTests: GRDBTestCase {
                 
                 let pattern = FTS5Pattern(matchingAllTokensIn: "Herman Melville")!
                 XCTAssertEqual(Book.matching(pattern).fetchCount(db), 1)
+            }
+        }
+    }
+    
+    func testFetchCount() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                do {
+                    var book = Book(id: nil, title: "Moby Dick", author: "Herman Melville", body: "Call me Ishmael.")
+                    try book.insert(db)
+                }
+                
+                let pattern = FTS5Pattern(matchingAllTokensIn: "Herman Melville")!
+                XCTAssertEqual(Book.matching(pattern).fetchCount(db), 1)
+                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"books\" WHERE (\"books\" MATCH 'herman melville')")
+                
+                XCTAssertEqual(Book.fetchCount(db), 1)
+                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"books\"")
             }
         }
     }

@@ -22,14 +22,14 @@
         /// returns nil if no pattern could be built.
         ///
         ///     FTS5Pattern(matchingAllTokensIn: "")        // nil
-        ///     FTS5Pattern(matchingAllTokensIn: "foo bar") // foo AND bar
+        ///     FTS5Pattern(matchingAllTokensIn: "foo bar") // foo bar
         ///
         /// - parameter string: The string to turn into an FTS5 pattern
         public init?(matchingAllTokensIn string: String) {
             // TODO: use an FTS5 tokenization API, if it exists
             let tokens = FTS3Tokenizer.simple.tokenize(string)
             guard !tokens.isEmpty else { return nil }
-            try? self.init(rawPattern: tokens.joined(separator: " AND "))
+            try? self.init(rawPattern: tokens.joined(separator: " "))
         }
         
         /// Creates a pattern that matches a contiguous string; returns nil if no
