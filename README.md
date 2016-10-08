@@ -2283,7 +2283,7 @@ try db.create(virtualTable: "books", using: FTS4()) { t in
 
 The implicit primary key is stored in the hidden column `rowid`. Hidden means that `SELECT *` does not select it, and yet it can be selected and queried: `SELECT *, rowid ... WHERE rowid = 1`.
 
-**GRDB will automatically use this hidden column when your table has no explicit primary key:**
+When possible, GRDB will automatically use this hidden column:
 
 ```swift
 // SELECT * FROM events WHERE rowid = 1
@@ -2296,9 +2296,13 @@ try Book.deleteOne(db, key: 1)
 
 ### Exposing the RowID Column
 
-**Your record types that wrap a table without any explicit primary key don't know about the hidden rowid unless you tell them about it.**
+**Your record types that wrap a table without any explicit primary key don't know about the hidden rowid.**
 
-Making a record type fully aware of its rowid is a four-step process:
+Without primary key, records don't have any identity, and the [persistence method](#persistence-methods) can behave in undesired fashion: `update` throws errors, `save` always performs insertions and may break constraints, `exists` is always false.
+
+When SQLite won't let you provide an explicit primary key (as in [full-text](#full-text-search) tables, for example), you may want to make your record type fully aware of the hidden rowid column.
+
+This is a three-step process:
 
 1. Have the `selectsRowID` static property from the [TableMapping](#tablemapping-protocol) protocol return true.
     
