@@ -75,12 +75,13 @@ public struct FTS3Pattern {
 }
 
 extension FTS3Pattern : DatabaseValueConvertible {
-    /// TODO
+    /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
         return rawPattern.databaseValue
     }
     
-    /// TODO
+    /// Returns an FTS3Pattern initialized from *databaseValue*, if it contains
+    /// a suitable value.
     public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> FTS3Pattern? {
         return String
             .fromDatabaseValue(databaseValue)
@@ -92,7 +93,12 @@ extension QueryInterfaceRequest {
     
     // MARK: Full Text Search
     
-    /// TODO
+    /// Returns a new QueryInterfaceRequest with a matching predicate added
+    /// to the eventual set of already applied predicates.
+    ///
+    ///     // SELECT * FROM books WHERE books MATCH '...'
+    ///     var request = Book.all()
+    ///     request = request.matching(pattern)
     public func matching(_ pattern: FTS3Pattern) -> QueryInterfaceRequest<T> {
         switch query.source {
         case .table(let name, let alias)?:
