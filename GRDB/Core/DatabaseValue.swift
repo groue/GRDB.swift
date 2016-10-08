@@ -275,6 +275,17 @@ extension DatabaseValue : DatabaseValueConvertible {
 extension DatabaseValue : CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
-        return sql
+        switch storage {
+        case .null:
+            return "NULL"
+        case .int64(let int64):
+            return String(int64)
+        case .double(let double):
+            return String(double)
+        case .string(let string):
+            return String(reflecting: string)
+        case .blob(let data):
+            return data.description
+        }
     }
 }

@@ -25,7 +25,7 @@ class DatabaseErrorTests: GRDBTestCase {
                 XCTAssertEqual(error.code, 19) // SQLITE_CONSTRAINT
                 XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
                 XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
-                XCTAssertEqual(error.description.lowercased(), "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [1, 'bobby']: foreign key constraint failed")
+                XCTAssertEqual(error.description.lowercased(), "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [1, \"bobby\"]: foreign key constraint failed")
                 
                 XCTAssertEqual(sqlQueries.count, 2)
                 XCTAssertEqual(sqlQueries[0], "INSERT INTO pets (masterId, name) VALUES (1, 'Bobby')")
@@ -59,7 +59,7 @@ class DatabaseErrorTests: GRDBTestCase {
                 XCTAssertEqual(error.code, 19) // SQLITE_CONSTRAINT
                 XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
                 XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
-                XCTAssertEqual(error.description.lowercased(), "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [1, 'bobby']: foreign key constraint failed")
+                XCTAssertEqual(error.description.lowercased(), "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [1, \"bobby\"]: foreign key constraint failed")
             }
         }
     }
@@ -81,7 +81,7 @@ class DatabaseErrorTests: GRDBTestCase {
                     XCTAssertEqual(error.code, 19) // SQLITE_CONSTRAINT
                     XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
                     XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
-                    XCTAssertEqual(error.description.lowercased(), "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [1, 'bobby']: foreign key constraint failed")
+                    XCTAssertEqual(error.description.lowercased(), "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [1, \"bobby\"]: foreign key constraint failed")
                 }
             }
             
@@ -95,7 +95,7 @@ class DatabaseErrorTests: GRDBTestCase {
                     XCTAssertEqual(error.code, 19) // SQLITE_CONSTRAINT
                     XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
                     XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
-                    XCTAssertEqual(error.description.lowercased(), "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [1, 'bobby']: foreign key constraint failed")
+                    XCTAssertEqual(error.description.lowercased(), "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [1, \"bobby\"]: foreign key constraint failed")
                 }
             }
             
@@ -110,7 +110,7 @@ class DatabaseErrorTests: GRDBTestCase {
                     XCTAssertEqual(error.code, 19) // SQLITE_CONSTRAINT
                     XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
                     XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
-                    XCTAssertEqual(error.description.lowercased(), "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [1, 'bobby']: foreign key constraint failed")
+                    XCTAssertEqual(error.description.lowercased(), "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [1, \"bobby\"]: foreign key constraint failed")
                 }
             }
         }
