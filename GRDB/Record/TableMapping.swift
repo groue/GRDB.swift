@@ -30,11 +30,23 @@ public protocol TableMapping {
     /// The name of the database table
     static var databaseTableName: String { get }
     
-    /// TODO
+    /// This flag tells whether the hidden "rowid" column should be fetched
+    /// with other columns.
+    ///
+    /// Its default value is false:
+    ///
+    ///     // SELECT * FROM persons
+    ///     Person.fetchAll(db)
+    ///
+    /// When true, the rowid column is fetched:
+    ///
+    ///     // SELECT *, rowid FROM persons
+    ///     Person.fetchAll(db)
     static var selectsRowID: Bool { get }
 }
 
 extension TableMapping {
+    /// Default value: false.
     public static var selectsRowID: Bool { return false }
 }
 

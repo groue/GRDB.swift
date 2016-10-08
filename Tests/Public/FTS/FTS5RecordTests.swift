@@ -25,6 +25,7 @@ extension Book : RowConvertible {
 
 extension Book : MutablePersistable {
     static let databaseTableName = "books"
+    static let selectsRowID = true
     
     var persistentDictionary: [String: DatabaseValueConvertible?] {
         return [
@@ -52,32 +53,21 @@ class FTS5RecordTests: GRDBTestCase {
         }
     }
     
-    func testInsertionNotifiesRowId() {
+    // MARK: - Full Text
+    
+    func testRowIdIsSelectedByDefault() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 var book = Book(id: nil, title: "Moby Dick", author: "Herman Melville", body: "Call me Ishmael.")
                 try book.insert(db)
-                XCTAssertEqual(book.id, 1)
-            }
-        }
-    }
-    
-    func testRowIdIsNotSelectedByDefault() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                do {
-                    var book = Book(id: nil, title: "Moby Dick", author: "Herman Melville", body: "Call me Ishmael.")
-                    try book.insert(db)
-                }
+                XCTAssertTrue(book.id != nil)
                 
-                let request = Book.all()
-                let row = Row.fetchOne(db, request)!
-                XCTAssertEqual(row.count, 3)
-                XCTAssertTrue(row.hasColumn("title"))
-                XCTAssertTrue(row.hasColumn("author"))
-                XCTAssertTrue(row.hasColumn("body"))
+                let fetchedBook = Book.matching(FTS5Pattern(matchingAllTokensIn: "Herman Melville")!).fetchOne(db)!
+                XCTAssertEqual(fetchedBook.id, book.id)
+                XCTAssertEqual(fetchedBook.title, book.title)
+                XCTAssertEqual(fetchedBook.author, book.author)
+                XCTAssertEqual(fetchedBook.body, book.body)
             }
         }
     }

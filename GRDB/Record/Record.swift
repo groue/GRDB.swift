@@ -42,7 +42,7 @@ open class Record : RowConvertible, TableMapping, Persistable {
     
     // MARK: - Core methods
     
-    /// Returns the name of a database table.
+    /// The name of a database table.
     ///
     /// This table name is required by the insert, update, save, delete,
     /// and exists methods.
@@ -60,7 +60,24 @@ open class Record : RowConvertible, TableMapping, Persistable {
         fatalError("subclass must override")
     }
     
-    /// Returns the values that should be stored in the database.
+    /// This flag tells whether the hidden "rowid" column should be fetched
+    /// with other columns.
+    ///
+    /// Its default value is false:
+    ///
+    ///     // SELECT * FROM persons
+    ///     Person.fetchAll(db)
+    ///
+    /// When true, the rowid column is fetched:
+    ///
+    ///     // SELECT *, rowid FROM persons
+    ///     Person.fetchAll(db)
+    open class var selectsRowID: Bool {
+        return false
+    }
+    
+
+    /// The values that should be stored in the database.
     ///
     /// Keys of the returned dictionary must match the column names of the
     /// target database table (see Record.databaseTableName()).
