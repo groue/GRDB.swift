@@ -1,3 +1,4 @@
+- [ ] Row to dictionary conversion
 - [ ] FTS3Record.fetchCount(db)
 - [ ] FTS: check https://www.sqlite.org/spellfix1.html
 - [ ] Store dates as timestamp (https://twitter.com/gloparco/status/780948021613912064, https://github.com/groue/GRDB.swift/issues/97)
