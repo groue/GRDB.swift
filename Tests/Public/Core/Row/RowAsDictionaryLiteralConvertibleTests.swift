@@ -7,7 +7,7 @@ import XCTest
     import GRDB
 #endif
 
-class RowAsDictionaryLiteralConvertibleTests: GRDBTestCase {
+class RowAsDictionaryLiteralConvertibleTests : RowTestCase {
     
     func testRowAsSequence() {
         let row: Row = ["a": 0, "b": 1, "c": 2]
@@ -34,38 +34,19 @@ class RowAsDictionaryLiteralConvertibleTests: GRDBTestCase {
         let cIndex = row.distance(from: row.startIndex, to: row.index(where: { (column, value) in column == "c" })!)
         
         // Raw Int64 extraction
-        let value = row.value(atIndex: aIndex)
-        XCTAssertEqual(value as! Int64, 0)
+        assertRowRawValueEqual(row, index: aIndex, value: 0 as Int64)
+        assertRowRawValueEqual(row, index: bIndex, value: 1 as Int64)
+        assertRowRawValueEqual(row, index: cIndex, value: 2 as Int64)
         
-        // Int extraction, form 1
-        XCTAssertEqual(row.value(atIndex: aIndex) as Int, 0)
-        XCTAssertEqual(row.value(atIndex: bIndex) as Int, 1)
-        XCTAssertEqual(row.value(atIndex: cIndex) as Int, 2)
+        // Int
+        assertRowConvertedValueEqual(row, index: aIndex, value: 0 as Int)
+        assertRowConvertedValueEqual(row, index: bIndex, value: 1 as Int)
+        assertRowConvertedValueEqual(row, index: cIndex, value: 2 as Int)
         
-        // Int extraction, form 2
-        XCTAssertEqual(row.value(atIndex: aIndex)! as Int, 0)
-        XCTAssertEqual(row.value(atIndex: bIndex)! as Int, 1)
-        XCTAssertEqual(row.value(atIndex: cIndex)! as Int, 2)
-        
-        // Int? extraction
-        XCTAssertEqual((row.value(atIndex: aIndex) as Int?), 0)
-        XCTAssertEqual((row.value(atIndex: bIndex) as Int?), 1)
-        XCTAssertEqual((row.value(atIndex: cIndex) as Int?), 2)
-        
-        // Bool extraction, form 1
-        XCTAssertEqual(row.value(atIndex: aIndex) as Bool, false)
-        XCTAssertEqual(row.value(atIndex: bIndex) as Bool, true)
-        XCTAssertEqual(row.value(atIndex: cIndex) as Bool, true)
-        
-        // Bool extraction, form 2
-        XCTAssertEqual(row.value(atIndex: aIndex)! as Bool, false)
-        XCTAssertEqual(row.value(atIndex: bIndex)! as Bool, true)
-        XCTAssertEqual(row.value(atIndex: cIndex)! as Bool, true)
-        
-        // Bool? extraction
-        XCTAssertEqual((row.value(atIndex: aIndex) as Bool?), false)
-        XCTAssertEqual((row.value(atIndex: bIndex) as Bool?), true)
-        XCTAssertEqual((row.value(atIndex: cIndex) as Bool?), true)
+        // Bool
+        assertRowConvertedValueEqual(row, index: aIndex, value: false)
+        assertRowConvertedValueEqual(row, index: bIndex, value: true)
+        assertRowConvertedValueEqual(row, index: cIndex, value: true)
         
         // Expect fatal error:
         //
@@ -76,39 +57,39 @@ class RowAsDictionaryLiteralConvertibleTests: GRDBTestCase {
     func testRowValueNamed() {
         let row: Row = ["a": 0, "b": 1, "c": 2]
         
-        // Int extraction, form 1
-        XCTAssertEqual(row.value(named: "a") as Int, 0)
-        XCTAssertEqual(row.value(named: "b") as Int, 1)
-        XCTAssertEqual(row.value(named: "c") as Int, 2)
+        // Raw Int64 extraction
+        assertRowRawValueEqual(row, name: "a", value: 0 as Int64)
+        assertRowRawValueEqual(row, name: "b", value: 1 as Int64)
+        assertRowRawValueEqual(row, name: "c", value: 2 as Int64)
         
-        // Int extraction, form 2
-        XCTAssertEqual(row.value(named: "a")! as Int, 0)
-        XCTAssertEqual(row.value(named: "b")! as Int, 1)
-        XCTAssertEqual(row.value(named: "c")! as Int, 2)
+        // Int
+        assertRowConvertedValueEqual(row, name: "a", value: 0 as Int)
+        assertRowConvertedValueEqual(row, name: "b", value: 1 as Int)
+        assertRowConvertedValueEqual(row, name: "c", value: 2 as Int)
         
-        // Int? extraction
-        XCTAssertEqual((row.value(named: "a") as Int?)!, 0)
-        XCTAssertEqual((row.value(named: "b") as Int?)!, 1)
-        XCTAssertEqual((row.value(named: "c") as Int?)!, 2)
+        // Bool
+        assertRowConvertedValueEqual(row, name: "a", value: false)
+        assertRowConvertedValueEqual(row, name: "b", value: true)
+        assertRowConvertedValueEqual(row, name: "c", value: true)
+    }
+    
+    func testRowValueFromColumn() {
+        let row: Row = ["a": 0, "b": 1, "c": 2]
         
-        // Bool extraction, form 1
-        XCTAssertEqual(row.value(named: "a") as Bool, false)
-        XCTAssertEqual(row.value(named: "b") as Bool, true)
-        XCTAssertEqual(row.value(named: "c") as Bool, true)
+        // Raw Int64 extraction
+        assertRowRawValueEqual(row, column: Column("a"), value: 0 as Int64)
+        assertRowRawValueEqual(row, column: Column("b"), value: 1 as Int64)
+        assertRowRawValueEqual(row, column: Column("c"), value: 2 as Int64)
         
-        // Bool extraction, form 2
-        XCTAssertEqual(row.value(named: "a")! as Bool, false)
-        XCTAssertEqual(row.value(named: "b")! as Bool, true)
-        XCTAssertEqual(row.value(named: "c")! as Bool, true)
+        // Int
+        assertRowConvertedValueEqual(row, column: Column("a"), value: 0 as Int)
+        assertRowConvertedValueEqual(row, column: Column("b"), value: 1 as Int)
+        assertRowConvertedValueEqual(row, column: Column("c"), value: 2 as Int)
         
-        // Bool? extraction
-        XCTAssertEqual((row.value(named: "a") as Bool?)!, false)
-        XCTAssertEqual((row.value(named: "b") as Bool?)!, true)
-        XCTAssertEqual((row.value(named: "c") as Bool?)!, true)
-        
-        // Expect fatal error:
-        // row.value(named: "foo")
-        // row.value(named: "foo") as Int?
+        // Bool
+        assertRowConvertedValueEqual(row, column: Column("a"), value: false)
+        assertRowConvertedValueEqual(row, column: Column("b"), value: true)
+        assertRowConvertedValueEqual(row, column: Column("c"), value: true)
     }
     
     func testRowDatabaseValueAtIndex() {
