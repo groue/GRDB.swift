@@ -39,6 +39,10 @@ class AdapterRowTests: GRDBTestCase {
                 let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
                 let row = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
                 
+                // Raw Int64 extraction
+                let value = row.value(atIndex: 0)
+                XCTAssertEqual(value as! Int64, 0)
+                
                 // Int extraction, form 1
                 XCTAssertEqual(row.value(atIndex: 0) as Int, 0)
                 XCTAssertEqual(row.value(atIndex: 1) as Int, 1)

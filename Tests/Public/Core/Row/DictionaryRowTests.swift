@@ -34,6 +34,10 @@ class DictionaryRowTests: GRDBTestCase {
         let bIndex = dictionary.distance(from: dictionary.startIndex, to: dictionary.index(forKey: "b")!)
         let cIndex = dictionary.distance(from: dictionary.startIndex, to: dictionary.index(forKey: "c")!)
         
+        // Raw Int64 extraction
+        let value = row.value(atIndex: aIndex)
+        XCTAssertEqual(value as! Int64, 0)
+        
         // Int extraction, form 1
         XCTAssertEqual(row.value(atIndex: aIndex) as Int, 0)
         XCTAssertEqual(row.value(atIndex: bIndex) as Int, 1)

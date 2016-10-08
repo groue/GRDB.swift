@@ -33,6 +33,10 @@ class RowAsDictionaryLiteralConvertibleTests: GRDBTestCase {
         let bIndex = row.distance(from: row.startIndex, to: row.index(where: { (column, value) in column == "b" })!)
         let cIndex = row.distance(from: row.startIndex, to: row.index(where: { (column, value) in column == "c" })!)
         
+        // Raw Int64 extraction
+        let value = row.value(atIndex: aIndex)
+        XCTAssertEqual(value as! Int64, 0)
+        
         // Int extraction, form 1
         XCTAssertEqual(row.value(atIndex: aIndex) as Int, 0)
         XCTAssertEqual(row.value(atIndex: bIndex) as Int, 1)

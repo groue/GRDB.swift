@@ -46,6 +46,10 @@ class MetalRowTests: GRDBTestCase {
                 for row in Row.fetch(db, "SELECT * FROM ints") {
                     rowFetched = true
                     
+                    // Raw Int64 extraction
+                    let value = row.value(atIndex: 0)
+                    XCTAssertEqual(value as! Int64, 0)
+                    
                     // Int extraction, form 1
                     XCTAssertEqual(row.value(atIndex: 0) as Int, 0)
                     XCTAssertEqual(row.value(atIndex: 1) as Int, 1)
