@@ -118,6 +118,21 @@ class AdapterRowTests : RowTestCase {
         }
     }
     
+    func testDataNoCopy() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                let data = "foo".data(using: .utf8)!
+                let adapter = ColumnMapping(["a": "basea"])
+                let row = Row.fetchOne(db, "SELECT ? AS basea", arguments: [data], adapter: adapter)!
+
+                XCTAssertEqual(row.dataNoCopy(atIndex: 0), data)
+                XCTAssertEqual(row.dataNoCopy(named: "a"), data)
+                XCTAssertEqual(row.dataNoCopy(Column("a")), data)
+            }
+        }
+    }
+    
     func testRowDatabaseValueAtIndex() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()

@@ -122,6 +122,20 @@ class DetachedRowTests : RowTestCase {
         }
     }
     
+    func testDataNoCopy() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                let data = "foo".data(using: .utf8)!
+                let row = Row.fetchOne(db, "SELECT ? AS a", arguments: [data])!
+                
+                XCTAssertEqual(row.dataNoCopy(atIndex: 0), data)
+                XCTAssertEqual(row.dataNoCopy(named: "a"), data)
+                XCTAssertEqual(row.dataNoCopy(Column("a")), data)
+            }
+        }
+    }
+    
     func testRowDatabaseValueAtIndex() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()

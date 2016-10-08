@@ -99,6 +99,15 @@ class DictionaryRowTests : RowTestCase {
         assertRowConvertedValueEqual(row, column: Column("c"), value: CustomValue.c)
     }
     
+    func testDataNoCopy() {
+        let data = "foo".data(using: .utf8)!
+        let row = Row(["a": data])
+        
+        XCTAssertEqual(row.dataNoCopy(atIndex: 0), data)
+        XCTAssertEqual(row.dataNoCopy(named: "a"), data)
+        XCTAssertEqual(row.dataNoCopy(Column("a")), data)
+    }
+    
     func testRowDatabaseValueAtIndex() {
         assertNoError {
             let dictionary: [String: DatabaseValueConvertible?] = ["null": nil, "int64": 1, "double": 1.1, "string": "foo", "blob": "SQLite".data(using: .utf8)]

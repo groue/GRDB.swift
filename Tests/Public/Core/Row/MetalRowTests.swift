@@ -137,6 +137,24 @@ class MetalRowTests : RowTestCase {
         }
     }
     
+    func testDataNoCopy() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                let data = "foo".data(using: .utf8)!
+                var rowFetched = false
+                for row in Row.fetch(db, "SELECT ? AS a", arguments: [data]) {
+                    rowFetched = true
+                    
+                    XCTAssertEqual(row.dataNoCopy(atIndex: 0), data)
+                    XCTAssertEqual(row.dataNoCopy(named: "a"), data)
+                    XCTAssertEqual(row.dataNoCopy(Column("a")), data)
+                }
+                XCTAssertTrue(rowFetched)
+            }
+        }
+    }
+    
     func testRowDatabaseValueAtIndex() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
