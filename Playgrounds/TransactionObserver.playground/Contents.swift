@@ -32,6 +32,10 @@ try! migrator.migrate(dbQueue)
 class TableChangeObserver : NSObject, TransactionObserver {
     private var changedTableNames: Set<String> = []
     
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+        return true
+    }
+    
     func databaseDidChange(with event: DatabaseEvent) {
         changedTableNames.insert(event.tableName)
     }

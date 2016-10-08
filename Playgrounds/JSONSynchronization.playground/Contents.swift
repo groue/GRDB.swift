@@ -37,9 +37,9 @@ class Person : Record {
     var id: Int64?
     var name: String?
     
-    func update(from json: NSDictionary) {
-        id = (json["id"] as? NSNumber)?.int64Value
-        name = json["name"] as? String
+    func update(from json: [String: Any]) {
+        id = (json["id"] as! NSNumber).int64Value
+        name = (json["name"] as! String)
     }
     
     // Record overrides
@@ -67,15 +67,15 @@ class Person : Record {
 // Synchronizes the persons table with a JSON payload
 func synchronizePersons(with jsonString: String, in db: Database) throws {
     let jsonData = jsonString.data(using: .utf8)!
-    let json = try JSONSerialization.jsonObject(with: jsonData, options: []) as! NSDictionary
+    let json = try JSONSerialization.jsonObject(with: jsonData, options: []) as! [String: Any]
     
     // A support function that extracts an ID from a JSON person.
-    func jsonPersonId(_ jsonPerson: NSDictionary) -> Int64 {
+    func jsonPersonId(_ jsonPerson: [String: Any]) -> Int64 {
         return (jsonPerson["id"] as! NSNumber).int64Value
     }
     
     // Sort JSON persons by id:
-    let jsonPersons = (json["persons"] as! [NSDictionary]).sorted {
+    let jsonPersons = (json["persons"] as! [[String: Any]]).sorted {
         return jsonPersonId($0) < jsonPersonId($1)
     }
     
