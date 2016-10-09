@@ -28,17 +28,42 @@ private final class CustomTokenizer : FTS5CustomTokenizer {
 
 class FTS5CustomTokenizerTests: GRDBTestCase {
     
-    func testCustomTokenizer() {
+    func testDatabaseQueue() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
+            dbQueue.add(tokenizer: CustomTokenizer.self)
             try dbQueue.inDatabase { db in
-                try db.add(tokenizer: CustomTokenizer.self)
                 try db.create(virtualTable: "documents", using: FTS5()) { t in
                     t.tokenizer = CustomTokenizer.tokenizer(arguments: ["foo", "bar"])
                     t.column("content")
                 }
                 try db.execute("INSERT INTO documents VALUES (?)", arguments: ["foo bar"])
                 try db.execute("INSERT INTO documents VALUES (?)", arguments: ["foo"])
+                let countFoo = Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["foo"])
+                print(countFoo)
+                let countBar = Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["bar"])
+                print(countBar)
+            }
+        }
+    }
+    
+    func testDatabasePool() {
+        assertNoError {
+            let dbPool = try makeDatabaseQueue()
+            dbPool.add(tokenizer: CustomTokenizer.self)
+            try dbPool.write { db in
+                try db.create(virtualTable: "documents", using: FTS5()) { t in
+                    t.tokenizer = CustomTokenizer.tokenizer(arguments: ["foo", "bar"])
+                    t.column("content")
+                }
+                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["foo bar"])
+                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["foo"])
+                let countFoo = Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["foo"])
+                print(countFoo)
+                let countBar = Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["bar"])
+                print(countBar)
+            }
+            dbPool.read { db in
                 let countFoo = Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["foo"])
                 print(countFoo)
                 let countBar = Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["bar"])

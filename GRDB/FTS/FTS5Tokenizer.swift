@@ -122,9 +122,9 @@
             return try FTS5RegisteredTokenizer(xTokenizer: xTokenizerPointer.pointee, contextPointer: contextPointer, arguments: tokenizer.arguments)
         }
         
-        public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) throws {
+        public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) {
             guard let api = fts5api else {
-                throw DatabaseError(code: SQLITE_MISUSE, message: "FTS5 API not found")
+                fatalError("FTS5 is not enabled")
             }
             
             // Hides the generic Tokenizer type from the @convention(c) xCreate function.
@@ -187,7 +187,23 @@
                 )
             }
             guard code == SQLITE_OK else {
-                throw DatabaseError(code: code, message: lastErrorMessage)
+                fatalError(DatabaseError(code: code, message: lastErrorMessage).description)
+            }
+        }
+    }
+    
+    extension DatabaseQueue {
+        public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) {
+            inDatabase { db in
+                db.add(tokenizer: Tokenizer.self)
+            }
+        }
+    }
+    
+    extension DatabasePool {
+        public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) {
+            write { db in
+                db.add(tokenizer: Tokenizer.self)
             }
         }
     }
