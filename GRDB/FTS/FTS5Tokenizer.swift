@@ -2,7 +2,27 @@
     public typealias FTS5TokenCallback = @convention(c) (_ context: UnsafeMutableRawPointer?, _ flags: Int32, _ pToken: UnsafePointer<Int8>?, _ nToken: Int32, _ iStart: Int32, _ iEnd: Int32) -> Int32
     
     public protocol FTS5Tokenizer : class {
-        func tokenize(_ context: UnsafeMutableRawPointer?, _ flags: Int32, _ pText: UnsafePointer<Int8>?, _ nText: Int32, _ xToken: FTS5TokenCallback?) -> Int32
+        func tokenize(_ context: UnsafeMutableRawPointer?, _ flags: FTS5TokenizeFlags, _ pText: UnsafePointer<Int8>?, _ nText: Int32, _ xToken: FTS5TokenCallback?) -> Int32
+    }
+    
+    public struct FTS5TokenizeFlags : OptionSet {
+        public let rawValue: Int32
+        
+        public init(rawValue: Int32) {
+            self.rawValue = rawValue
+        }
+        
+        /// FTS5_TOKENIZE_QUERY
+        static let query = FTS5TokenizeFlags(rawValue: FTS5_TOKENIZE_QUERY)
+        
+        /// FTS5_TOKENIZE_PREFIX
+        static let prefix = FTS5TokenizeFlags(rawValue: FTS5_TOKENIZE_PREFIX)
+        
+        /// FTS5_TOKENIZE_DOCUMENT
+        static let document = FTS5TokenizeFlags(rawValue: FTS5_TOKENIZE_DOCUMENT)
+        
+        /// FTS5_TOKENIZE_AUX
+        static let aux = FTS5TokenizeFlags(rawValue: FTS5_TOKENIZE_AUX)
     }
     
     public protocol FTS5CustomTokenizer : FTS5Tokenizer {
@@ -70,11 +90,11 @@
                 }
             }
             
-            func tokenize(_ context: UnsafeMutableRawPointer?, _ flags: Int32, _ pText: UnsafePointer<Int8>?, _ nText: Int32, _ xToken: FTS5TokenCallback?) -> Int32 {
+            func tokenize(_ context: UnsafeMutableRawPointer?, _ flags: FTS5TokenizeFlags, _ pText: UnsafePointer<Int8>?, _ nText: Int32, _ xToken: FTS5TokenCallback?) -> Int32 {
                 guard let xTokenize = xTokenizer.xTokenize else {
                     return SQLITE_ERROR
                 }
-                return xTokenize(tokenizerPointer, context, flags, pText, nText, xToken)
+                return xTokenize(tokenizerPointer, context, flags.rawValue, pText, nText, xToken)
             }
         }
         
@@ -169,7 +189,7 @@
                     }
                     let object = Unmanaged<AnyObject>.fromOpaque(UnsafeMutableRawPointer(tokenizerPointer)).takeUnretainedValue()
                     let tokenizer = object as! FTS5Tokenizer
-                    return tokenizer.tokenize(context, flags, pText, nText, xToken)
+                    return tokenizer.tokenize(context, FTS5TokenizeFlags(rawValue: flags), pText, nText, xToken)
             })
             
             let contextPointer = Unmanaged.passRetained(context).toOpaque()

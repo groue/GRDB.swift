@@ -13,6 +13,7 @@ private final class CustomTokenizer : FTS5CustomTokenizer {
     let porter: FTS5Tokenizer
     
     init(db: Database, arguments: [String]) throws {
+        // TODO: test wrapped tokenizer options
         porter = try db.makeTokenizer(.porter())
         print(arguments)
     }
@@ -21,7 +22,7 @@ private final class CustomTokenizer : FTS5CustomTokenizer {
         print("CustomTokenizer deinit")
     }
     
-    func tokenize(_ context: UnsafeMutableRawPointer?, _ flags: Int32, _ pText: UnsafePointer<Int8>?, _ nText: Int32, _ xToken: FTS5TokenCallback?) -> Int32 {
+    func tokenize(_ context: UnsafeMutableRawPointer?, _ flags: FTS5TokenizeFlags, _ pText: UnsafePointer<Int8>?, _ nText: Int32, _ xToken: FTS5TokenCallback?) -> Int32 {
         return porter.tokenize(context, flags, pText, nText, xToken)
     }
 }
