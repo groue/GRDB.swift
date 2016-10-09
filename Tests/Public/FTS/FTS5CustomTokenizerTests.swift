@@ -1,4 +1,5 @@
 import XCTest
+import Foundation
 #if USING_SQLCIPHER
     import GRDBCipher
 #elseif USING_CUSTOMSQLITE
@@ -22,6 +23,7 @@ private final class StopWordsTokenizer : FTS5CustomTokenizer {
     }
     
     deinit {
+        // TODO: test
         print("StopWordsTokenizer deinit")
     }
     
@@ -60,9 +62,37 @@ private final class StopWordsTokenizer : FTS5CustomTokenizer {
     }
 }
 
+private final class NFKCTokenizer : FTS5CustomTokenizer {
+    static let name = "nfkc"
+    
+    let porter: FTS5Tokenizer
+    
+    init(db: Database, arguments: [String]) throws {
+        // TODO: find a way to provide any wrapped tokenizer
+        porter = try db.makeTokenizer(.porter())
+    }
+    
+    deinit {
+        // TODO: test
+        print("NFKCTokenizer deinit")
+    }
+    
+    func tokenize(_ context: UnsafeMutableRawPointer?, _ flags: FTS5TokenizeFlags, _ pText: UnsafePointer<Int8>?, _ nText: Int32, _ xToken: FTS5TokenCallback?) -> Int32 {
+        
+        guard let pText = pText, let text = String(bytesNoCopy: UnsafeMutableRawPointer(mutating: pText), length: Int(nText), encoding: .utf8, freeWhenDone: false) else {
+            return 0
+        }
+        
+        let nkfc = text.precomposedStringWithCompatibilityMapping
+        return nkfc.withCString { (cString: UnsafePointer<Int8>) in
+            porter.tokenize(context, flags, cString, Int32(nkfc.utf8.count), xToken)
+        }
+    }
+}
+
 class FTS5CustomTokenizerTests: GRDBTestCase {
     
-    func testDatabaseQueue() {
+    func testStopWordsDatabaseQueue() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             dbQueue.add(tokenizer: StopWordsTokenizer.self)
@@ -87,7 +117,7 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
         }
     }
     
-    func testDatabasePool() {
+    func testStopWordsDatabasePool() {
         assertNoError {
             let dbPool = try makeDatabaseQueue()
             dbPool.add(tokenizer: StopWordsTokenizer.self)
@@ -119,4 +149,38 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
             }
         }
     }
+    
+    func testNFKCTokenizer() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.add(tokenizer: NFKCTokenizer.self)
+            
+            try dbQueue.inDatabase { db in
+                try db.create(virtualTable: "nkfcDocuments", using: FTS5()) { t in
+                    t.tokenizer = NFKCTokenizer.tokenizer()
+                    t.column("content")
+                }
+                
+                try db.execute("INSERT INTO nkfcDocuments VALUES (?)", arguments: ["aimé\u{FB01}"])
+                
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM nkfcDocuments WHERE nkfcDocuments MATCH ?", arguments: ["aimé\u{FB01}"]), 1)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM nkfcDocuments WHERE nkfcDocuments MATCH ?", arguments: ["aimefi"]), 1)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM nkfcDocuments WHERE nkfcDocuments MATCH ?", arguments: ["aim\u{00E9}fi"]), 1)
+            }
+            
+            try dbQueue.inDatabase { db in
+                try db.create(virtualTable: "documents", using: FTS5()) { t in
+                    t.tokenizer = .porter()
+                    t.column("content")
+                }
+                
+                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["aimé\u{FB01}"])
+                
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimé\u{FB01}"]), 1)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimefi"]), 0)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aim\u{00E9}fi"]), 0)
+            }
+        }
+    }
+    
 }
