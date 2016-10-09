@@ -29,10 +29,10 @@ public struct FTS3 : VirtualTableModule {
     public func moduleArguments(_ definition: FTS3TableDefinition) -> [String] {
         var arguments = definition.columns
         if let tokenizer = definition.tokenizer {
-            if tokenizer.options.isEmpty {
+            if tokenizer.arguments.isEmpty {
                 arguments.append("tokenize=\(tokenizer.name)")
             } else {
-                arguments.append("tokenize=\(tokenizer.name) " + tokenizer.options.map { "\"\($0)\"" as String }.joined(separator: " "))
+                arguments.append("tokenize=\(tokenizer.name) " + tokenizer.arguments.map { "\"\($0)\"" as String }.joined(separator: " "))
             }
         }
         return arguments

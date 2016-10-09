@@ -46,10 +46,10 @@ public struct FTS4 : VirtualTableModule {
         }
         
         if let tokenizer = definition.tokenizer {
-            if tokenizer.options.isEmpty {
+            if tokenizer.arguments.isEmpty {
                 arguments.append("tokenize=\(tokenizer.name)")
             } else {
-                arguments.append("tokenize=\(tokenizer.name) " + tokenizer.options.map { "\"\($0)\"" as String }.joined(separator: " "))
+                arguments.append("tokenize=\(tokenizer.name) " + tokenizer.arguments.map { "\"\($0)\"" as String }.joined(separator: " "))
             }
         }
         

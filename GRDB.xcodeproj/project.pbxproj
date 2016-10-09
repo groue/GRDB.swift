@@ -658,6 +658,8 @@
 		5698ACE61DA93B7C0056AF8C /* ReferenceConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698ACE11DA93B7C0056AF8C /* ReferenceConvertible.swift */; };
 		5698ACE71DA93B7C0056AF8C /* ReferenceConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698ACE11DA93B7C0056AF8C /* ReferenceConvertible.swift */; };
 		5698ACE81DA93B7C0056AF8C /* ReferenceConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698ACE11DA93B7C0056AF8C /* ReferenceConvertible.swift */; };
+		5698AD011DAA8ACB0056AF8C /* FTS5CustomTokenizerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AD001DAA8ACA0056AF8C /* FTS5CustomTokenizerTests.swift */; };
+		5698AD021DAA8ACB0056AF8C /* FTS5CustomTokenizerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AD001DAA8ACA0056AF8C /* FTS5CustomTokenizerTests.swift */; };
 		569C1EB31CF07DDD0042627B /* DatabaseSchedulerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569C1EB11CF07DDD0042627B /* DatabaseSchedulerTests.swift */; };
 		569C1EB41CF07DDD0042627B /* DatabaseSchedulerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569C1EB11CF07DDD0042627B /* DatabaseSchedulerTests.swift */; };
 		569C1EB51CF07DDD0042627B /* DatabaseSchedulerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569C1EB11CF07DDD0042627B /* DatabaseSchedulerTests.swift */; };
@@ -1705,6 +1707,7 @@
 		5698ACCD1DA8C2620056AF8C /* PrimaryKeyHiddenRowIDTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrimaryKeyHiddenRowIDTests.swift; sourceTree = "<group>"; };
 		5698ACD61DA925420056AF8C /* RowTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowTestCase.swift; sourceTree = "<group>"; };
 		5698ACE11DA93B7C0056AF8C /* ReferenceConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReferenceConvertible.swift; sourceTree = "<group>"; };
+		5698AD001DAA8ACA0056AF8C /* FTS5CustomTokenizerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS5CustomTokenizerTests.swift; sourceTree = "<group>"; };
 		569C1EB11CF07DDD0042627B /* DatabaseSchedulerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseSchedulerTests.swift; sourceTree = "<group>"; };
 		56A238131B9C74A90082EB20 /* DatabaseTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseTests.swift; sourceTree = "<group>"; };
 		56A238141B9C74A90082EB20 /* InMemoryDatabaseTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InMemoryDatabaseTests.swift; sourceTree = "<group>"; };
@@ -2243,6 +2246,7 @@
 				5698ACB51DA6285E0056AF8C /* FTS3TokenizerTests.swift */,
 				5698AC941DA4B0430056AF8C /* FTS4RecordTests.swift */,
 				5698AC951DA4B0430056AF8C /* FTS4TableBuilderTests.swift */,
+				5698AD001DAA8ACA0056AF8C /* FTS5CustomTokenizerTests.swift */,
 				56B964C01DA521450002DA19 /* FTS5PatternTests.swift */,
 				56B964C11DA521450002DA19 /* FTS5RecordTests.swift */,
 				56B964C21DA521450002DA19 /* FTS5TableBuilderTests.swift */,
@@ -4649,6 +4653,7 @@
 				F3BA81041CFB3045003DC1BA /* FetchedRecordsControllerTests.swift in Sources */,
 				F3BA804D1CFB2B3B003DC1BA /* MappingTests.swift in Sources */,
 				F3BA80DC1CFB300E003DC1BA /* DatabaseValueConvertibleFetchTests.swift in Sources */,
+				5698AD021DAA8ACB0056AF8C /* FTS5CustomTokenizerTests.swift in Sources */,
 				56B964CA1DA521450002DA19 /* FTS5PatternTests.swift in Sources */,
 				5657AB551D108BA9006283EF /* NSNumberTests.swift in Sources */,
 				F3BA81291CFB3063003DC1BA /* RecordInitializersTests.swift in Sources */,
@@ -4884,6 +4889,7 @@
 				F3BA80CB1CFB2FD8003DC1BA /* DatabaseQueueFileAttributesTests.swift in Sources */,
 				F3BA80C91CFB2FD8003DC1BA /* DatabaseQueueBackupTests.swift in Sources */,
 				56AF746E1D41FB9C005E9FF3 /* DatabaseValueConvertibleEscapingTests.swift in Sources */,
+				5698AD011DAA8ACB0056AF8C /* FTS5CustomTokenizerTests.swift in Sources */,
 				F3BA80B51CFB2FCA003DC1BA /* InMemoryDatabaseTests.swift in Sources */,
 				56A4CDB31D4234B200B1A9B9 /* SQLExpressionLiteralTests.swift in Sources */,
 				F3BA80DF1CFB300F003DC1BA /* RawRepresentableTests.swift in Sources */,
