@@ -2466,9 +2466,9 @@ try db.create(table: "pointOfInterests") { t in
 }
 ```
 
-The `create(table:)` method covers nearly all SQLite table creation features.
+The `create(table:)` method covers nearly all SQLite table creation features. For virtual tables, see [Full-Text Search](#full-text-search), or use raw SQL.
 
-Relevant SQLite documentation:
+SQLite has many reference documents about table creation:
 
 - [CREATE TABLE](https://www.sqlite.org/lang_createtable.html)
 - [Datatypes In SQLite Version 3](https://www.sqlite.org/datatype3.html)
