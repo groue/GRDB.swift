@@ -91,7 +91,7 @@
         ///     }
         ///
         /// See https://www.sqlite.org/fts5.html#fts5_table_creation_and_initialization
-        public var tokenizer: FTS5Tokenizer?
+        public var tokenizer: FTS5TokenizerDefinition?
         
         /// The FTS5 `content` option
         ///

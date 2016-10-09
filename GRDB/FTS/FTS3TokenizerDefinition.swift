@@ -1,11 +1,11 @@
 /// An FTS3 tokenizer, suitable for FTS3 and FTS4 table definitions:
 ///
 ///     db.create(virtualTable: "books", using: FTS4()) { t in
-///         t.tokenizer = FTS3Tokenizer.simple
+///         t.tokenizer = FTS3TokenizerDefinition.simple
 ///     }
 ///
 /// See https://www.sqlite.org/fts3.html#tokenizer
-public struct FTS3Tokenizer {
+public struct FTS3TokenizerDefinition {
     let name: String
     let arguments: [String]
     
@@ -13,8 +13,8 @@ public struct FTS3Tokenizer {
     ///
     /// Unless you use a custom tokenizer, you don't need this constructor:
     ///
-    /// Use FTS3Tokenizer.simple, FTS3Tokenizer.porter, or
-    /// FTS3Tokenizer.unicode61() instead.
+    /// Use FTS3TokenizerDefinition.simple, FTS3TokenizerDefinition.porter, or
+    /// FTS3TokenizerDefinition.unicode61() instead.
     public init(_ name: String, arguments: [String] = []) {
         self.name = name
         self.arguments = arguments
@@ -27,7 +27,7 @@ public struct FTS3Tokenizer {
     ///     }
     ///
     /// See https://www.sqlite.org/fts3.html#tokenizer
-    public static let simple = FTS3Tokenizer("simple")
+    public static let simple = FTS3TokenizerDefinition("simple")
     
     /// The "porter" tokenizer.
     ///
@@ -36,7 +36,7 @@ public struct FTS3Tokenizer {
     ///     }
     ///
     /// See https://www.sqlite.org/fts3.html#tokenizer
-    public static let porter = FTS3Tokenizer("porter")
+    public static let porter = FTS3TokenizerDefinition("porter")
     
     /// The "unicode61" tokenizer.
     ///
@@ -53,7 +53,7 @@ public struct FTS3Tokenizer {
     ///       these characters as token characters.
     ///
     /// See https://www.sqlite.org/fts3.html#tokenizer
-    public static func unicode61(removeDiacritics: Bool = true, separators: Set<Character> = [], tokenCharacters: Set<Character> = []) -> FTS3Tokenizer {
+    public static func unicode61(removeDiacritics: Bool = true, separators: Set<Character> = [], tokenCharacters: Set<Character> = []) -> FTS3TokenizerDefinition {
         var arguments: [String] = []
         if !removeDiacritics {
             arguments.append("remove_diacritics=0")
@@ -66,12 +66,12 @@ public struct FTS3Tokenizer {
             // TODO: test "=" and "\"", "(" and ")" as tokenCharacters, with both FTS3Pattern(matchingAnyTokenIn:tokenizer:) and Database.create(virtualTable:using:)
             arguments.append("tokenchars=" + tokenCharacters.sorted().map { String($0) }.joined(separator: ""))
         }
-        return FTS3Tokenizer("unicode61", arguments: arguments)
+        return FTS3TokenizerDefinition("unicode61", arguments: arguments)
     }
     
     /// Returns an array of tokens found in the string argument.
     ///
-    ///     FTS3Tokenizer.simple.tokenize("foo bar") // ["foo", "bar"]
+    ///     FTS3TokenizerDefinition.simple.tokenize("foo bar") // ["foo", "bar"]
     func tokenize(_ string: String) -> [String] {
         return DatabaseQueue().inDatabase { db in
             var tokenizerChunks: [String] = []

@@ -7,14 +7,22 @@ import XCTest
     import GRDB
 #endif
 
-final class CustomTokenizer : FTS5TokenizerDefinition {
+private final class CustomTokenizer : FTS5CustomTokenizer {
+    static let name = "custom"
+    
+    let porter: FTS5Tokenizer
     
     init(db: Database, arguments: [String]) throws {
+        porter = try db.makeTokenizer(.porter())
         print(arguments)
     }
     
     deinit {
         print("CustomTokenizer deinit")
+    }
+    
+    func tokenize(_ context: UnsafeMutableRawPointer?, _ flags: Int32, _ pText: UnsafePointer<Int8>?, _ nText: Int32, _ xToken: FTS5TokenCallback?) -> Int32 {
+        return porter.tokenize(context, flags, pText, nText, xToken)
     }
 }
 
@@ -24,9 +32,9 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                try db.add(tokenizer: CustomTokenizer.self, name: "custom")
+                try db.add(tokenizer: CustomTokenizer.self)
                 try db.create(virtualTable: "documents", using: FTS5()) { t in
-                    t.tokenizer = FTS5Tokenizer("custom", arguments: ["foo", "bar"])
+                    t.tokenizer = CustomTokenizer.tokenizer(arguments: ["foo", "bar"])
                     t.column("content")
                 }
                 try db.execute("INSERT INTO documents VALUES (?)", arguments: ["foo bar"])

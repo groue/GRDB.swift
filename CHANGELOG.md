@@ -1,6 +1,14 @@
 Release Notes
 =============
 
+## Next Version
+
+**Breaking Changes**
+
+- `FTS3Tokenizer` has been renamed `FTS3TokenizerDefinition`
+- `FTS5Tokenizer` has been renamed `FTS5TokenizerDefinition`
+
+
 ## 0.86.0
 
 Released October 8, 2016

@@ -1,136 +1,80 @@
 #if SQLITE_ENABLE_FTS5
-    /// An FTS5 tokenizer, suitable for FTS5 table definitions:
-    ///
-    ///     db.create(virtualTable: "books", using: FTS5()) { t in
-    ///         t.tokenizer = FTS5Tokenizer.unicode61()
-    ///     }
-    ///
-    /// See https://www.sqlite.org/fts5.html#tokenizers
-    public struct FTS5Tokenizer {
-        let components: [String]
-        
-        private init(components: [String]) {
-            assert(!components.isEmpty)
-            self.components = components
-        }
-        
-        /// Creates an FTS5 tokenizer.
-        ///
-        /// Unless you use a custom tokenizer, you don't need this constructor:
-        ///
-        /// Use FTS5Tokenizer.ascii(), FTS5Tokenizer.porter(), or
-        /// FTS5Tokenizer.unicode61() instead.
-        public init(_ name: String, arguments: [String] = []) {
-            self.init(components: [name] + arguments)
-        }
-        
-        /// The "ascii" tokenizer
-        ///
-        ///     db.create(virtualTable: "books", using: FTS5()) { t in
-        ///         t.tokenizer = .ascii()
-        ///     }
-        ///
-        /// - parameters:
-        ///     - separators: Unless empty (the default), SQLite will consider
-        ///       these characters as token separators.
-        ///
-        /// See https://www.sqlite.org/fts5.html#ascii_tokenizer
-        public static func ascii(separators: Set<Character> = []) -> FTS5Tokenizer {
-            if separators.isEmpty {
-                return FTS5Tokenizer("ascii")
-            } else {
-                return FTS5Tokenizer("ascii", arguments: ["separators", separators.map { String($0) }.joined(separator: "").sqlExpression.sql])
-            }
-        }
-        
-        /// The "porter" tokenizer
-        ///
-        ///     db.create(virtualTable: "books", using: FTS5()) { t in
-        ///         t.tokenizer = .porter()
-        ///     }
-        ///
-        /// - parameters:
-        ///     - base: An eventual wrapping tokenizer which replaces the
-        //        default unicode61() base tokenizer.
-        ///
-        /// See https://www.sqlite.org/fts5.html#porter_tokenizer
-        public static func porter(wrapping base: FTS5Tokenizer? = nil) -> FTS5Tokenizer {
-            if let base = base {
-                return FTS5Tokenizer("porter", arguments: base.components)
-            } else {
-                return FTS5Tokenizer("porter")
-            }
-        }
-        
-        /// An "unicode61" tokenizer
-        ///
-        ///     db.create(virtualTable: "books", using: FTS5()) { t in
-        ///         t.tokenizer = .unicode61()
-        ///     }
-        ///
-        /// - parameters:
-        ///     - removeDiacritics: If true (the default), then SQLite will
-        ///       strip diacritics from latin characters.
-        ///     - separators: Unless empty (the default), SQLite will consider
-        ///       these characters as token separators.
-        ///     - tokenCharacters: Unless empty (the default), SQLite will
-        ///       consider these characters as token characters.
-        ///
-        /// See https://www.sqlite.org/fts5.html#unicode61_tokenizer
-        public static func unicode61(removeDiacritics: Bool = true, separators: Set<Character> = [], tokenCharacters: Set<Character> = []) -> FTS5Tokenizer {
-            var arguments: [String] = []
-            if !removeDiacritics {
-                arguments.append(contentsOf: ["remove_diacritics", "0"])
-            }
-            if !separators.isEmpty {
-                // TODO: test "=" and "\"", "(" and ")" as separators, with both FTS3Pattern(matchingAnyTokenIn:tokenizer:) and Database.create(virtualTable:using:)
-                arguments.append(contentsOf: ["separators", separators.sorted().map { String($0) }.joined(separator: "").sqlExpression.sql])
-            }
-            if !tokenCharacters.isEmpty {
-                // TODO: test "=" and "\"", "(" and ")" as tokenCharacters, with both FTS3Pattern(matchingAnyTokenIn:tokenizer:) and Database.create(virtualTable:using:)
-                arguments.append(contentsOf: ["tokenchars", tokenCharacters.sorted().map { String($0) }.joined(separator: "").sqlExpression.sql])
-            }
-            return FTS5Tokenizer("unicode61", arguments: arguments)
-        }
+    public typealias FTS5TokenCallback = @convention(c) (_ context: UnsafeMutableRawPointer?, _ flags: Int32, _ pToken: UnsafePointer<Int8>?, _ nToken: Int32, _ iStart: Int32, _ iEnd: Int32) -> Int32
+    
+    public protocol FTS5Tokenizer : class {
+        func tokenize(_ context: UnsafeMutableRawPointer?, _ flags: Int32, _ pText: UnsafePointer<Int8>?, _ nText: Int32, _ xToken: FTS5TokenCallback?) -> Int32
     }
     
-    public protocol FTS5TokenizerDefinition : class {
+    public protocol FTS5CustomTokenizer : FTS5Tokenizer {
+        static var name: String { get }
         init(db: Database, arguments: [String]) throws
+    }
+    
+    extension FTS5CustomTokenizer {
+        public static func tokenizer(arguments: [String] = []) -> FTS5TokenizerDefinition {
+            return FTS5TokenizerDefinition(name, arguments: arguments)
+        }
     }
     
     extension Database {
         
-        public struct FTS5TokenizerInfo {
-            let tokenizer: fts5_tokenizer
-            let userData: UnsafeRawPointer?
-        }
-        
-        public func fts5api() -> UnsafePointer<fts5_api>? {
-            return Data
-                .fetchOne(self, "SELECT fts5()")
-                .flatMap { data in
-                    guard data.count == MemoryLayout<UnsafePointer<fts5_api>>.size else { return nil }
-                    return data.withUnsafeBytes { (api: UnsafePointer<UnsafePointer<fts5_api>>) in api.pointee }
+        private final class FTS5RegisteredTokenizer : FTS5Tokenizer {
+            let xTokenizer: fts5_tokenizer
+            let tokenizerPointer: OpaquePointer
+            
+            init(xTokenizer: fts5_tokenizer, contextPointer: UnsafeMutableRawPointer?, arguments: [String]) throws {
+                guard let xCreate = xTokenizer.xCreate else {
+                    throw DatabaseError(code: SQLITE_ERROR, message: "nil fts5_tokenizer.xCreate")
+                }
+                
+                self.xTokenizer = xTokenizer
+                
+                var tokenizerPointer: OpaquePointer? = nil
+                let code: Int32
+                if let argument = arguments.first {
+                    // turn [String] into ContiguousArray<UnsafePointer<Int8>>
+                    func f<Result>(_ array: inout ContiguousArray<UnsafePointer<Int8>>, _ car: String, _ cdr: [String], _ body: (ContiguousArray<UnsafePointer<Int8>>) -> Result) -> Result {
+                        return car.withCString { cString in
+                            if let car = cdr.first {
+                                array.append(cString)
+                                return f(&array, car, Array(cdr.suffix(from: 1)), body)
+                            } else {
+                                return body(array)
+                            }
+                        }
+                    }
+                    var cStrings = ContiguousArray<UnsafePointer<Int8>>()
+                    code = f(&cStrings, argument, Array(arguments.suffix(from: 1))) { cStrings in
+                        cStrings.withUnsafeBufferPointer { azArg in
+                            xCreate(contextPointer, UnsafeMutablePointer(OpaquePointer(azArg.baseAddress!)), Int32(cStrings.count), &tokenizerPointer)
+                        }
+                    }
+                } else {
+                    code = xCreate(contextPointer, nil, 0, &tokenizerPointer)
+                }
+                
+                guard code == SQLITE_OK else {
+                    throw DatabaseError(code: code, message: "failed fts5_tokenizer.xCreate")
+                }
+                
+                if let tokenizerPointer = tokenizerPointer {
+                    self.tokenizerPointer = tokenizerPointer
+                } else {
+                    throw DatabaseError(code: code, message: "nil tokenizer")
+                }
             }
-        }
-        
-        public func fts5tokenizer(name: String) -> FTS5TokenizerInfo? {
-            return fts5api().flatMap { api in
-                let tokenizerPointer: UnsafeMutablePointer<fts5_tokenizer> = .allocate(capacity: 1)
-                defer { tokenizerPointer.deallocate(capacity: 1) }
-                
-                let userDataPointer: UnsafeMutablePointer<UnsafeMutableRawPointer?> = .allocate(capacity: 1)
-                defer { userDataPointer.deallocate(capacity: 1) }
-                
-                let code = api.pointee.xFindTokenizer!(
-                    UnsafeMutablePointer(mutating: api),
-                    name,
-                    userDataPointer,
-                    tokenizerPointer)
-                
-                guard code == SQLITE_OK else { return nil }
-                
-                return FTS5TokenizerInfo(tokenizer: tokenizerPointer.pointee, userData: userDataPointer.pointee.flatMap { UnsafeRawPointer($0) })
+            
+            deinit {
+                if let delete = xTokenizer.xDelete {
+                    delete(tokenizerPointer)
+                }
+            }
+            
+            func tokenize(_ context: UnsafeMutableRawPointer?, _ flags: Int32, _ pText: UnsafePointer<Int8>?, _ nText: Int32, _ xToken: FTS5TokenCallback?) -> Int32 {
+                guard let xTokenize = xTokenizer.xTokenize else {
+                    return SQLITE_ERROR
+                }
+                return xTokenize(tokenizerPointer, context, flags, pText, nText, xToken)
             }
         }
         
@@ -144,24 +88,63 @@
             }
         }
         
-        public func add<Tokenizer: FTS5TokenizerDefinition>(tokenizer: Tokenizer.Type, name: String) throws {
-            guard let api = fts5api() else {
+        private var fts5api: UnsafePointer<fts5_api>? {
+            return Data
+                .fetchOne(self, "SELECT fts5()")
+                .flatMap { data in
+                    guard data.count == MemoryLayout<UnsafePointer<fts5_api>>.size else { return nil }
+                    return data.withUnsafeBytes { (api: UnsafePointer<UnsafePointer<fts5_api>>) in api.pointee }
+            }
+        }
+        
+        public func makeTokenizer(_ tokenizer: FTS5TokenizerDefinition) throws -> FTS5Tokenizer {
+            guard let api = fts5api else {
                 throw DatabaseError(code: SQLITE_MISUSE, message: "FTS5 API not found")
             }
-            let context = FTS5TokenizerCreationContext(db: self, constructor: { (db, arguments, tokenizerHandle) in
-                guard let tokenizerHandle = tokenizerHandle else { return SQLITE_ERROR }
-                do {
-                    let tokenizer = try Tokenizer(db: db, arguments: arguments)
-                    let tokenizerPointer = OpaquePointer(Unmanaged.passRetained(tokenizer).toOpaque())
-                    tokenizerHandle.pointee = tokenizerPointer
-                    return SQLITE_OK
-                } catch let error as DatabaseError {
-                    return error.code
-                } catch {
-                    return SQLITE_ERROR
-                }
+            
+            let xTokenizerPointer: UnsafeMutablePointer<fts5_tokenizer> = .allocate(capacity: 1)
+            defer { xTokenizerPointer.deallocate(capacity: 1) }
+            
+            let contextHandle: UnsafeMutablePointer<UnsafeMutableRawPointer?> = .allocate(capacity: 1)
+            defer { contextHandle.deallocate(capacity: 1) }
+            
+            let code = api.pointee.xFindTokenizer!(
+                UnsafeMutablePointer(mutating: api),
+                tokenizer.name,
+                contextHandle,
+                xTokenizerPointer)
+            
+            guard code == SQLITE_OK else {
+                throw DatabaseError(code: code)
+            }
+            
+            let contextPointer = contextHandle.pointee
+            return try FTS5RegisteredTokenizer(xTokenizer: xTokenizerPointer.pointee, contextPointer: contextPointer, arguments: tokenizer.arguments)
+        }
+        
+        public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) throws {
+            guard let api = fts5api else {
+                throw DatabaseError(code: SQLITE_MISUSE, message: "FTS5 API not found")
+            }
+            
+            // Hides the generic Tokenizer type from the @convention(c) xCreate function.
+            let context = FTS5TokenizerCreationContext(
+                db: self,
+                constructor: { (db, arguments, tokenizerHandle) in
+                    guard let tokenizerHandle = tokenizerHandle else { return SQLITE_ERROR }
+                    do {
+                        let tokenizer = try Tokenizer(db: db, arguments: arguments)
+                        let tokenizerPointer = OpaquePointer(Unmanaged.passRetained(tokenizer).toOpaque())
+                        tokenizerHandle.pointee = tokenizerPointer
+                        return SQLITE_OK
+                    } catch let error as DatabaseError {
+                        return error.code
+                    } catch {
+                        return SQLITE_ERROR
+                    }
             })
-            var fts5tokenizer = fts5_tokenizer(
+            
+            var xTokenizer = fts5_tokenizer(
                 xCreate: { (contextPointer, azArg, nArg, tokenizerHandle) -> Int32 in
                     guard let contextPointer = contextPointer else { return SQLITE_ERROR }
                     let context = Unmanaged<FTS5TokenizerCreationContext>.fromOpaque(contextPointer).takeUnretainedValue()
@@ -180,16 +163,22 @@
                         Unmanaged<AnyObject>.fromOpaque(UnsafeMutableRawPointer(tokenizerPointer)).release()
                     }
                 },
-                xTokenize: { (a, b, c, d, e, f) -> Int32 in
-                    return 0
+                xTokenize: { (tokenizerPointer, context, flags, pText, nText, xToken) -> Int32 in
+                    guard let tokenizerPointer = tokenizerPointer else {
+                        return SQLITE_ERROR
+                    }
+                    let object = Unmanaged<AnyObject>.fromOpaque(UnsafeMutableRawPointer(tokenizerPointer)).takeUnretainedValue()
+                    let tokenizer = object as! FTS5Tokenizer
+                    return tokenizer.tokenize(context, flags, pText, nText, xToken)
             })
+            
             let contextPointer = Unmanaged.passRetained(context).toOpaque()
-            let code = withUnsafeMutablePointer(to: &fts5tokenizer) { fts5tokenizerPointer in
+            let code = withUnsafeMutablePointer(to: &xTokenizer) { xTokenizerPointer in
                 api.pointee.xCreateTokenizer(
                     UnsafeMutablePointer(mutating: api),
-                    name,
+                    Tokenizer.name,
                     contextPointer,
-                    fts5tokenizerPointer,
+                    xTokenizerPointer,
                     { contextPointer in
                         if let contextPointer = contextPointer {
                             Unmanaged<FTS5TokenizerCreationContext>.fromOpaque(contextPointer).release()
