@@ -68,20 +68,23 @@ public struct FTS3TokenizerRequest {
         }
         return FTS3TokenizerRequest("unicode61", arguments: arguments)
     }
+}
+
+extension Database {
     
     /// Returns an array of tokens found in the string argument.
     ///
-    ///     FTS3TokenizerRequest.simple.tokenize("foo bar") // ["foo", "bar"]
-    func tokenize(_ string: String) -> [String] {
-        return DatabaseQueue().inDatabase { db in
-            var tokenizerChunks: [String] = []
-            tokenizerChunks.append(name)
-            for option in arguments {
-                tokenizerChunks.append("\"\(option)\"")
-            }
-            let tokenizerSQL = tokenizerChunks.joined(separator: ", ")
-            try! db.execute("CREATE VIRTUAL TABLE tokens USING fts3tokenize(\(tokenizerSQL))")
-            return String.fetchAll(db, "SELECT token FROM tokens WHERE input = ? ORDER BY position", arguments: [string])
+    ///     try db.tokenize(string: "foo bar", with: .simple) // ["foo", "bar"]
+    public func tokenize(string: String, with tokenizer: FTS3TokenizerRequest) throws -> [String] {
+        var tokenizerChunks: [String] = []
+        tokenizerChunks.append(tokenizer.name)
+        for option in tokenizer.arguments {
+            tokenizerChunks.append("\"\(option)\"")
         }
+        let tokenizerSQL = tokenizerChunks.joined(separator: ", ")
+        try execute("CREATE VIRTUAL TABLE __fts3tokens USING fts3tokenize(\(tokenizerSQL))")
+        let strings = String.fetchAll(self, "SELECT token FROM __fts3tokens WHERE input = ? ORDER BY position", arguments: [string])
+        try execute("DROP TABLE __fts3tokens")
+        return strings
     }
 }
