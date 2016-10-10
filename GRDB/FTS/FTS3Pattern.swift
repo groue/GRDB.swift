@@ -42,7 +42,7 @@ public struct FTS3Pattern {
     ///
     /// - parameter string: The string to turn into an FTS3 pattern
     public init?(matchingAnyTokenIn string: String) {
-        let tokens = FTS3TokenizerRequest.simple.tokenize(string)
+        let tokens = FTS3TokenizerDescriptor.simple.tokenize(string)
         guard !tokens.isEmpty else { return nil }
         try? self.init(rawPattern: tokens.joined(separator: " OR "))
     }
@@ -55,7 +55,7 @@ public struct FTS3Pattern {
     ///
     /// - parameter string: The string to turn into an FTS3 pattern
     public init?(matchingAllTokensIn string: String) {
-        let tokens = FTS3TokenizerRequest.simple.tokenize(string)
+        let tokens = FTS3TokenizerDescriptor.simple.tokenize(string)
         guard !tokens.isEmpty else { return nil }
         try? self.init(rawPattern: tokens.joined(separator: " "))
     }
@@ -68,7 +68,7 @@ public struct FTS3Pattern {
     ///
     /// - parameter string: The string to turn into an FTS3 pattern
     public init?(matchingPhrase string: String) {
-        let tokens = FTS3TokenizerRequest.simple.tokenize(string)
+        let tokens = FTS3TokenizerDescriptor.simple.tokenize(string)
         guard !tokens.isEmpty else { return nil }
         try? self.init(rawPattern: "\"" + tokens.joined(separator: " ") + "\"")
     }

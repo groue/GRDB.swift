@@ -90,7 +90,7 @@
             }
         }
         
-        public func makeTokenizer(_ tokenizer: FTS5TokenizerRequest) throws -> FTS5Tokenizer {
+        public func makeTokenizer(_ tokenizer: FTS5TokenizerDescriptor) throws -> FTS5Tokenizer {
             guard let api = FTS5.api(self) else {
                 throw DatabaseError(code: SQLITE_MISUSE, message: "FTS5 API not found")
             }
@@ -123,8 +123,8 @@
         /// - parameter flags: Tokenization flags
         ///     - .document: Tokenize like a document being inserted into an FTS table.
         ///     - .query: Tokenize like the search pattern of the MATCH operator.
-        /// - parameter tokenizer: A FTS5TokenizerRequest such as .ascii()
-        public func tokenize(string: String, with tokenizer: FTS5TokenizerRequest, flags: FTS5TokenizeFlags) throws -> [String] {
+        /// - parameter tokenizer: A FTS5TokenizerDescriptor such as .ascii()
+        public func tokenize(string: String, with tokenizer: FTS5TokenizerDescriptor, flags: FTS5TokenizeFlags) throws -> [String] {
             let tokenizer = try makeTokenizer(tokenizer)
             
             return try ContiguousArray(string.utf8).withUnsafeBufferPointer { buffer -> [String] in

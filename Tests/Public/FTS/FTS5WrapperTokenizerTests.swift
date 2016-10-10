@@ -18,7 +18,7 @@ private final class StopWordsTokenizer : FTS5WrapperTokenizer {
         if arguments.isEmpty {
             wrappedTokenizer = try db.makeTokenizer(.unicode61())
         } else {
-            wrappedTokenizer = try db.makeTokenizer(FTS5TokenizerRequest(components: arguments))
+            wrappedTokenizer = try db.makeTokenizer(FTS5TokenizerDescriptor(components: arguments))
         }
         ignoredTokens = ["bar"]
     }
@@ -44,7 +44,7 @@ private final class NFKCTokenizer : FTS5WrapperTokenizer {
         if arguments.isEmpty {
             wrappedTokenizer = try db.makeTokenizer(.unicode61())
         } else {
-            wrappedTokenizer = try db.makeTokenizer(FTS5TokenizerRequest(components: arguments))
+            wrappedTokenizer = try db.makeTokenizer(FTS5TokenizerDescriptor(components: arguments))
         }
     }
     
@@ -68,7 +68,7 @@ private final class SynonymsTokenizer : FTS5WrapperTokenizer {
         if arguments.isEmpty {
             wrappedTokenizer = try db.makeTokenizer(.unicode61())
         } else {
-            wrappedTokenizer = try db.makeTokenizer(FTS5TokenizerRequest(components: arguments))
+            wrappedTokenizer = try db.makeTokenizer(FTS5TokenizerDescriptor(components: arguments))
         }
         synonyms = [["first", "1st"]]
     }
@@ -104,7 +104,7 @@ class FTS5WrapperTokenizerTests: GRDBTestCase {
             
             try dbQueue.inDatabase { db in
                 try db.create(virtualTable: "documents", using: FTS5()) { t in
-                    t.tokenizer = FTS5TokenizerRequest(name: StopWordsTokenizer.name)
+                    t.tokenizer = FTS5TokenizerDescriptor(name: StopWordsTokenizer.name)
                     t.column("content")
                 }
                 
@@ -128,7 +128,7 @@ class FTS5WrapperTokenizerTests: GRDBTestCase {
             
             try dbPool.write { db in
                 try db.create(virtualTable: "documents", using: FTS5()) { t in
-                    t.tokenizer = FTS5TokenizerRequest(name: StopWordsTokenizer.name)
+                    t.tokenizer = FTS5TokenizerDescriptor(name: StopWordsTokenizer.name)
                     t.column("content")
                 }
                 
@@ -178,7 +178,7 @@ class FTS5WrapperTokenizerTests: GRDBTestCase {
             // With NFKC conversion wrapping unicode61 (the default)
             try dbQueue.inDatabase { db in
                 try db.create(virtualTable: "documents", using: FTS5()) { t in
-                    t.tokenizer = FTS5TokenizerRequest(name: NFKCTokenizer.name)
+                    t.tokenizer = FTS5TokenizerDescriptor(name: NFKCTokenizer.name)
                     t.column("content")
                 }
                 
@@ -194,8 +194,8 @@ class FTS5WrapperTokenizerTests: GRDBTestCase {
             // With NFKC conversion wrapping ascii
             try dbQueue.inDatabase { db in
                 try db.create(virtualTable: "documents", using: FTS5()) { t in
-                    let ascii = FTS5TokenizerRequest.ascii()
-                    t.tokenizer = FTS5TokenizerRequest(name: NFKCTokenizer.name, arguments: ascii.components)
+                    let ascii = FTS5TokenizerDescriptor.ascii()
+                    t.tokenizer = FTS5TokenizerDescriptor(name: NFKCTokenizer.name, arguments: ascii.components)
                     t.column("content")
                 }
                 
@@ -217,7 +217,7 @@ class FTS5WrapperTokenizerTests: GRDBTestCase {
             
             try dbQueue.inDatabase { db in
                 try db.create(virtualTable: "documents", using: FTS5()) { t in
-                    t.tokenizer = FTS5TokenizerRequest(name: SynonymsTokenizer.name)
+                    t.tokenizer = FTS5TokenizerDescriptor(name: SynonymsTokenizer.name)
                     t.column("content")
                 }
                 
