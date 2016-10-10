@@ -86,7 +86,7 @@
             }
         }
         
-        public func makeTokenizer(_ tokenizer: FTS5TokenizerDefinition) throws -> FTS5Tokenizer {
+        public func makeTokenizer(_ tokenizer: FTS5TokenizerRequest) throws -> FTS5Tokenizer {
             guard let api = FTS5.api(self) else {
                 throw DatabaseError(code: SQLITE_MISUSE, message: "FTS5 API not found")
             }

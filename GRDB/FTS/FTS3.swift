@@ -56,7 +56,7 @@ public final class FTS3TableDefinition {
     ///         t.tokenizer = .porter
     ///     }
     /// See https://www.sqlite.org/fts3.html#creating_and_destroying_fts_tables
-    public var tokenizer: FTS3TokenizerDefinition?
+    public var tokenizer: FTS3TokenizerRequest?
     
     /// Appends a table column.
     ///

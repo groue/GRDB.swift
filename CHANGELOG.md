@@ -9,8 +9,8 @@ Release Notes
 
 **Breaking Changes**
 
-- `FTS3Tokenizer` has been renamed `FTS3TokenizerDefinition`
-- `FTS5Tokenizer` has been renamed `FTS5TokenizerDefinition`
+- `FTS3Tokenizer` has been renamed `FTS3TokenizerRequest`
+- `FTS5Tokenizer` has been renamed `FTS5TokenizerRequest`
 
 
 ## 0.86.0

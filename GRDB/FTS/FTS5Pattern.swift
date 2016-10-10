@@ -13,7 +13,7 @@
         /// - parameter string: The string to turn into an FTS5 pattern
         public init?(matchingAnyTokenIn string: String) {
             // TODO: use an FTS5 tokenization API, if it exists
-            let tokens = FTS3TokenizerDefinition.simple.tokenize(string)
+            let tokens = FTS3TokenizerRequest.simple.tokenize(string)
             guard !tokens.isEmpty else { return nil }
             try? self.init(rawPattern: tokens.joined(separator: " OR "))
         }
@@ -27,7 +27,7 @@
         /// - parameter string: The string to turn into an FTS5 pattern
         public init?(matchingAllTokensIn string: String) {
             // TODO: use an FTS5 tokenization API, if it exists
-            let tokens = FTS3TokenizerDefinition.simple.tokenize(string)
+            let tokens = FTS3TokenizerRequest.simple.tokenize(string)
             guard !tokens.isEmpty else { return nil }
             try? self.init(rawPattern: tokens.joined(separator: " "))
         }
@@ -41,7 +41,7 @@
         /// - parameter string: The string to turn into an FTS5 pattern
         public init?(matchingPhrase string: String) {
             // TODO: use an FTS5 tokenization API, if it exists
-            let tokens = FTS3TokenizerDefinition.simple.tokenize(string)
+            let tokens = FTS3TokenizerRequest.simple.tokenize(string)
             guard !tokens.isEmpty else { return nil }
             try? self.init(rawPattern: "\"" + tokens.joined(separator: " ") + "\"")
         }
