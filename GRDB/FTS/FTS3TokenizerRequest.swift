@@ -15,7 +15,7 @@ public struct FTS3TokenizerRequest {
     ///
     /// Use FTS3TokenizerRequest.simple, FTS3TokenizerRequest.porter, or
     /// FTS3TokenizerRequest.unicode61() instead.
-    public init(_ name: String, arguments: [String] = []) {
+    init(_ name: String, arguments: [String] = []) {
         self.name = name
         self.arguments = arguments
     }
