@@ -129,7 +129,7 @@ private final class SynonymsTokenizer : FTS5CustomTokenizer {
     }
 
     deinit {
-        // TODO: test taht deinit is called
+        // TODO: test that deinit is called
     }
 
     func tokenize(_ context: UnsafeMutableRawPointer?, _ flags: FTS5TokenizeFlags, _ pText: UnsafePointer<Int8>?, _ nText: Int32, _ xToken: FTS5TokenCallback?) -> Int32 {
