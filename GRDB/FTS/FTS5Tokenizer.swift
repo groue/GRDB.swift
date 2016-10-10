@@ -1,10 +1,6 @@
 #if SQLITE_ENABLE_FTS5
     public typealias FTS5TokenCallback = @convention(c) (_ context: UnsafeMutableRawPointer?, _ flags: Int32, _ pToken: UnsafePointer<Int8>?, _ nToken: Int32, _ iStart: Int32, _ iEnd: Int32) -> Int32
     
-    public protocol FTS5Tokenizer : class {
-        func tokenize(_ context: UnsafeMutableRawPointer?, _ flags: FTS5TokenizeFlags, _ pText: UnsafePointer<Int8>?, _ nText: Int32, _ xToken: FTS5TokenCallback?) -> Int32
-    }
-    
     public struct FTS5TokenizeFlags : OptionSet {
         public let rawValue: Int32
         
@@ -23,6 +19,10 @@
         
         /// FTS5_TOKENIZE_AUX
         static let aux = FTS5TokenizeFlags(rawValue: FTS5_TOKENIZE_AUX)
+    }
+    
+    public protocol FTS5Tokenizer : class {
+        func tokenize(_ context: UnsafeMutableRawPointer?, _ flags: FTS5TokenizeFlags, _ pText: UnsafePointer<Int8>?, _ nText: Int32, _ xToken: FTS5TokenCallback?) -> Int32
     }
     
     public protocol FTS5CustomTokenizer : FTS5Tokenizer {
