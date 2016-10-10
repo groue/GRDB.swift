@@ -1,4 +1,16 @@
-/// Support for Mustache rendering of ReferenceConvertible types.
+/// DatabaseValueConvertible is free for ReferenceConvertible types whose
+/// ReferenceType is itself DatabaseValueConvertible.
+///
+///     class FooReference { ... }
+///     struct Foo : ReferenceConvertible {
+///         typealias ReferenceType = FooReference
+///     }
+///
+///     // If the ReferenceType adopts DatabaseValueConvertible...
+///     extension FooReference : DatabaseValueConvertible { ... }
+///
+///     // ... then the ReferenceConvertible type can freely adopt DatabaseValueConvertible:
+///     extension Foo : DatabaseValueConvertible { /* empty */ }
 extension ReferenceConvertible where Self: DatabaseValueConvertible, Self.ReferenceType: DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.

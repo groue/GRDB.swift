@@ -1,18 +1,15 @@
 /// DatabaseValueConvertible is free for RawRepresentable types whose raw value
-/// is itself DatabaseValueConvertible:
+/// is itself DatabaseValueConvertible.
 ///
+///     // If the RawValue adopts DatabaseValueConvertible...
 ///     enum Color : Int {
 ///         case red
 ///         case white
 ///         case rose
 ///     }
 ///
-///     // Declare DatabaseValueConvertible adoption:
-///     extension Color : DatabaseValueConvertible { }
-///
-///     // Gain full GRDB.swift support:
-///     db.execute("INSERT INTO colors (color) VALUES (?)", [Color.red])
-///     let color: Color? = Color.fetchOne(db, "SELECT ...")
+///     // ... then the RawRepresentable type can freely adopt DatabaseValueConvertible:
+///     extension Color : DatabaseValueConvertible { /* empty */ }
 public extension RawRepresentable where Self: DatabaseValueConvertible, Self.RawValue: DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
