@@ -15,7 +15,11 @@ private final class StopWordsTokenizer : FTS5WrapperTokenizer {
     let ignoredTokens: [String]
     
     init(db: Database, arguments: [String]) throws {
-        wrappedTokenizer = try db.makeTokenizer(.unicode61())
+        if arguments.isEmpty {
+            wrappedTokenizer = try db.makeTokenizer(.unicode61())
+        } else {
+            wrappedTokenizer = try db.makeTokenizer(FTS5TokenizerDefinition(components: arguments))
+        }
         ignoredTokens = ["bar"]
     }
     
@@ -24,6 +28,7 @@ private final class StopWordsTokenizer : FTS5WrapperTokenizer {
     }
     
     func accept(token: String, flags: FTS5TokenFlags, notify: FTS5TokenNotifier) throws {
+        // Notify token unless ignored
         if !ignoredTokens.contains(token){
             try notify(token, flags)
         }
@@ -36,7 +41,11 @@ private final class NFKCTokenizer : FTS5WrapperTokenizer {
     let wrappedTokenizer: FTS5Tokenizer
     
     init(db: Database, arguments: [String]) throws {
-        wrappedTokenizer = try db.makeTokenizer(.unicode61())
+        if arguments.isEmpty {
+            wrappedTokenizer = try db.makeTokenizer(.unicode61())
+        } else {
+            wrappedTokenizer = try db.makeTokenizer(FTS5TokenizerDefinition(components: arguments))
+        }
     }
     
     func customizesWrappedTokenizer(flags: FTS5TokenizeFlags) -> Bool {
@@ -44,6 +53,7 @@ private final class NFKCTokenizer : FTS5WrapperTokenizer {
     }
     
     func accept(token: String, flags: FTS5TokenFlags, notify: FTS5TokenNotifier) throws {
+        // Convert token to NFKC
         try notify(token.precomposedStringWithCompatibilityMapping, flags)
     }
 }
@@ -55,7 +65,11 @@ private final class SynonymsTokenizer : FTS5WrapperTokenizer {
     let synonyms: [Set<String>]
 
     init(db: Database, arguments: [String]) throws {
-        wrappedTokenizer = try db.makeTokenizer(.unicode61())
+        if arguments.isEmpty {
+            wrappedTokenizer = try db.makeTokenizer(.unicode61())
+        } else {
+            wrappedTokenizer = try db.makeTokenizer(FTS5TokenizerDefinition(components: arguments))
+        }
         synonyms = [["first", "1st"]]
     }
     
@@ -68,10 +82,14 @@ private final class SynonymsTokenizer : FTS5WrapperTokenizer {
     func accept(token: String, flags: FTS5TokenFlags, notify: FTS5TokenNotifier) throws {
         if let synonyms = synonyms.first(where: { $0.contains(token) }) {
             for (index, synonym) in synonyms.enumerated() {
+                // Notify each synonym, and set the colocated flag for all but
+                // the first, as documented by
+                // https://www.sqlite.org/fts5.html#synonym_support
                 let synonymFlags = (index == 0) ? flags : flags.union(.colocated)
                 try notify(synonym, synonymFlags)
             }
         } else {
+            // Token has no synonym
             try notify(token, flags)
         }
     }
@@ -154,20 +172,41 @@ class FTS5WrapperTokenizerTests: GRDBTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimé\u{FB01}"]), 1)
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimefi"]), 0)
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aim\u{00E9}fi"]), 0)
+                
+                try db.drop(table: "documents")
             }
             
-            // With NFKC conversion
+            // With NFKC conversion wrapping unicode61 (the default)
             try dbQueue.inDatabase { db in
-                try db.create(virtualTable: "nkfcDocuments", using: FTS5()) { t in
+                try db.create(virtualTable: "documents", using: FTS5()) { t in
                     t.tokenizer = NFKCTokenizer.tokenizer()
                     t.column("content")
                 }
                 
-                try db.execute("INSERT INTO nkfcDocuments VALUES (?)", arguments: ["aimé\u{FB01}"]) // U+FB01: LATIN SMALL LIGATURE FI
+                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["aimé\u{FB01}"]) // U+FB01: LATIN SMALL LIGATURE FI
                 
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM nkfcDocuments WHERE nkfcDocuments MATCH ?", arguments: ["aimé\u{FB01}"]), 1)
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM nkfcDocuments WHERE nkfcDocuments MATCH ?", arguments: ["aimefi"]), 1)
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM nkfcDocuments WHERE nkfcDocuments MATCH ?", arguments: ["aim\u{00E9}fi"]), 1)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimé\u{FB01}"]), 1)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimefi"]), 1)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aim\u{00E9}fi"]), 1)
+                
+                try db.drop(table: "documents")
+            }
+            
+            // With NFKC conversion wrapping ascii
+            try dbQueue.inDatabase { db in
+                try db.create(virtualTable: "documents", using: FTS5()) { t in
+                    let ascii = FTS5TokenizerDefinition.ascii()
+                    t.tokenizer = NFKCTokenizer.tokenizer(arguments: ascii.components)
+                    t.column("content")
+                }
+                
+                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["aimé\u{FB01}"]) // U+FB01: LATIN SMALL LIGATURE FI
+                
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimé\u{FB01}"]), 1)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimefi"]), 0)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aim\u{00E9}fi"]), 1)
+                
+                try db.drop(table: "documents")
             }
         }
     }

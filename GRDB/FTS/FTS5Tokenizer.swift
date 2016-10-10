@@ -57,7 +57,7 @@
     
     extension FTS5CustomTokenizer {
         public static func tokenizer(arguments: [String] = []) -> FTS5TokenizerDefinition {
-            return FTS5TokenizerDefinition(name, arguments: arguments)
+            return FTS5TokenizerDefinition(components: [name] + arguments)
         }
     }
     

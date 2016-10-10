@@ -11,13 +11,15 @@ import Foundation
 // A custom tokenizer that ignores some tokens
 private final class StopWordsTokenizer : FTS5CustomTokenizer {
     static let name = "stopWords"
-    
-    let unicode61: FTS5Tokenizer
+    let wrappedTokenizer: FTS5Tokenizer
     let ignoredTokens: [String]
     
     init(db: Database, arguments: [String]) throws {
-        // TODO: test wrapped tokenizer options
-        unicode61 = try db.makeTokenizer(.unicode61())
+        if arguments.isEmpty {
+            wrappedTokenizer = try db.makeTokenizer(.unicode61())
+        } else {
+            wrappedTokenizer = try db.makeTokenizer(FTS5TokenizerDefinition(components: arguments))
+        }
         // TODO: find a way to provide stop words through arguments
         ignoredTokens = ["bar"]
     }
@@ -28,8 +30,8 @@ private final class StopWordsTokenizer : FTS5CustomTokenizer {
     
     func tokenize(_ context: UnsafeMutableRawPointer?, _ flags: FTS5TokenizeFlags, _ pText: UnsafePointer<Int8>?, _ nText: Int32, _ xToken: FTS5TokenCallback?) -> Int32 {
         
-        // The way we implement stop words is by letting unicode61 do its job
-        // but intercepting its tokens before they feed SQLite.
+        // The way we implement stop words is by letting wrappedTokenizer do its
+        // job but intercepting its tokens before they feed SQLite.
         //
         // The xToken callback is @convention(c). This requires a little setup
         // in order to transfer context.
@@ -40,8 +42,8 @@ private final class StopWordsTokenizer : FTS5CustomTokenizer {
         }
         var customContext = CustomContext(ignoredTokens: ignoredTokens, context: context!, xToken: xToken!)
         return withUnsafeMutablePointer(to: &customContext) { customContextPointer in
-            // Invoke unicode61, but intercept raw tokens
-            return unicode61.tokenize(customContextPointer, flags, pText, nText) { (customContextPointer, flags, pToken, nToken, iStart, iEnd) in
+            // Invoke wrappedTokenizer, but intercept raw tokens
+            return wrappedTokenizer.tokenize(customContextPointer, flags, pText, nText) { (customContextPointer, flags, pToken, nToken, iStart, iEnd) in
                 // Extract context
                 let customContext = customContextPointer!.assumingMemoryBound(to: CustomContext.self).pointee
                 
@@ -65,11 +67,14 @@ private final class StopWordsTokenizer : FTS5CustomTokenizer {
 // A custom tokenizer that converts tokens to NFKC so that "fi" can match "ﬁ" (U+FB01: LATIN SMALL LIGATURE FI)
 private final class NFKCTokenizer : FTS5CustomTokenizer {
     static let name = "nfkc"
-    
-    let unicode61: FTS5Tokenizer
+    let wrappedTokenizer: FTS5Tokenizer
     
     init(db: Database, arguments: [String]) throws {
-        unicode61 = try db.makeTokenizer(.unicode61())
+        if arguments.isEmpty {
+            wrappedTokenizer = try db.makeTokenizer(.unicode61())
+        } else {
+            wrappedTokenizer = try db.makeTokenizer(FTS5TokenizerDefinition(components: arguments))
+        }
     }
     
     deinit {
@@ -78,8 +83,8 @@ private final class NFKCTokenizer : FTS5CustomTokenizer {
     
     func tokenize(_ context: UnsafeMutableRawPointer?, _ flags: FTS5TokenizeFlags, _ pText: UnsafePointer<Int8>?, _ nText: Int32, _ xToken: FTS5TokenCallback?) -> Int32 {
         
-        // The way we implement NFKC conversion is by letting unicode61 do its
-        // job, but intercepting its tokens before they feed SQLite.
+        // The way we implement NFKC conversion is by letting wrappedTokenizer
+        // do its job, but intercepting its tokens before they feed SQLite.
         //
         // The xToken callback is @convention(c). This requires a little setup
         // in order to transfer context.
@@ -89,8 +94,8 @@ private final class NFKCTokenizer : FTS5CustomTokenizer {
         }
         var customContext = CustomContext(context: context!, xToken: xToken!)
         return withUnsafeMutablePointer(to: &customContext) { customContextPointer in
-            // Invoke unicode61, but intercept raw tokens
-            return unicode61.tokenize(customContextPointer, flags, pText, nText) { (customContextPointer, flags, pToken, nToken, iStart, iEnd) in
+            // Invoke wrappedTokenizer, but intercept raw tokens
+            return wrappedTokenizer.tokenize(customContextPointer, flags, pText, nText) { (customContextPointer, flags, pToken, nToken, iStart, iEnd) in
                 // Extract context
                 let customContext = customContextPointer!.assumingMemoryBound(to: CustomContext.self).pointee
                 
@@ -119,12 +124,15 @@ private final class NFKCTokenizer : FTS5CustomTokenizer {
 // A custom tokenizer that defines synonyms
 private final class SynonymsTokenizer : FTS5CustomTokenizer {
     static let name = "synonyms"
-
-    let unicode61: FTS5Tokenizer
+    let wrappedTokenizer: FTS5Tokenizer
     let synonyms: [Set<String>]
 
     init(db: Database, arguments: [String]) throws {
-        unicode61 = try db.makeTokenizer(.unicode61())
+        if arguments.isEmpty {
+            wrappedTokenizer = try db.makeTokenizer(.unicode61())
+        } else {
+            wrappedTokenizer = try db.makeTokenizer(FTS5TokenizerDefinition(components: arguments))
+        }
         synonyms = [["first", "1st"]]
     }
 
@@ -136,11 +144,11 @@ private final class SynonymsTokenizer : FTS5CustomTokenizer {
         // Don't look for synonyms when tokenizing queries, as advised by
         // https://www.sqlite.org/fts5.html#synonym_support
         if flags.contains(.query) {
-            return unicode61.tokenize(context, flags, pText, nText, xToken)
+            return wrappedTokenizer.tokenize(context, flags, pText, nText, xToken)
         }
         
-        // The way we implement synonyms support is by letting unicode61 do its
-        // job, but intercepting its tokens before they feed SQLite.
+        // The way we implement synonyms support is by letting wrappedTokenizer
+        // do its job, but intercepting its tokens before they feed SQLite.
         //
         // The xToken callback is @convention(c). This requires a little setup
         // in order to transfer context.
@@ -152,8 +160,8 @@ private final class SynonymsTokenizer : FTS5CustomTokenizer {
         var customContext = CustomContext(synonyms: synonyms, context: context!, xToken: xToken!)
 
         return withUnsafeMutablePointer(to: &customContext) { customContextPointer in
-            // Invoke unicode61, but intercept raw tokens
-            return unicode61.tokenize(customContextPointer, flags, pText, nText) { (customContextPointer, flags, pToken, nToken, iStart, iEnd) in
+            // Invoke wrappedTokenizer, but intercept raw tokens
+            return wrappedTokenizer.tokenize(customContextPointer, flags, pText, nText) { (customContextPointer, flags, pToken, nToken, iStart, iEnd) in
                 // Extract context
                 let customContext = customContextPointer!.assumingMemoryBound(to: CustomContext.self).pointee
                 
@@ -266,20 +274,41 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimé\u{FB01}"]), 1)
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimefi"]), 0)
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aim\u{00E9}fi"]), 0)
+                
+                try db.drop(table: "documents")
             }
             
-            // With NFKC conversion
+            // With NFKC conversion wrapping unicode61 (the default)
             try dbQueue.inDatabase { db in
-                try db.create(virtualTable: "nkfcDocuments", using: FTS5()) { t in
+                try db.create(virtualTable: "documents", using: FTS5()) { t in
                     t.tokenizer = NFKCTokenizer.tokenizer()
                     t.column("content")
                 }
                 
-                try db.execute("INSERT INTO nkfcDocuments VALUES (?)", arguments: ["aimé\u{FB01}"]) // U+FB01: LATIN SMALL LIGATURE FI
+                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["aimé\u{FB01}"]) // U+FB01: LATIN SMALL LIGATURE FI
                 
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM nkfcDocuments WHERE nkfcDocuments MATCH ?", arguments: ["aimé\u{FB01}"]), 1)
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM nkfcDocuments WHERE nkfcDocuments MATCH ?", arguments: ["aimefi"]), 1)
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM nkfcDocuments WHERE nkfcDocuments MATCH ?", arguments: ["aim\u{00E9}fi"]), 1)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimé\u{FB01}"]), 1)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimefi"]), 1)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aim\u{00E9}fi"]), 1)
+                
+                try db.drop(table: "documents")
+            }
+            
+            // With NFKC conversion wrapping ascii
+            try dbQueue.inDatabase { db in
+                try db.create(virtualTable: "documents", using: FTS5()) { t in
+                    let ascii = FTS5TokenizerDefinition.ascii()
+                    t.tokenizer = NFKCTokenizer.tokenizer(arguments: ascii.components)
+                    t.column("content")
+                }
+                
+                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["aimé\u{FB01}"]) // U+FB01: LATIN SMALL LIGATURE FI
+                
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimé\u{FB01}"]), 1)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimefi"]), 0)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aim\u{00E9}fi"]), 1)
+                
+                try db.drop(table: "documents")
             }
         }
     }

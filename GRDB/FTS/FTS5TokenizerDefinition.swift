@@ -7,9 +7,23 @@
     ///
     /// See https://www.sqlite.org/fts5.html#tokenizers
     public struct FTS5TokenizerDefinition {
-        let components: [String]
+        /// The tokenizer components
+        ///
+        ///     // ["unicode61"]
+        ///     FTS5TokenizerDefinition.unicode61().components
+        ///
+        ///     // ["unicode61", "remove_diacritics", "0"]
+        ///     FTS5TokenizerDefinition.unicode61(removeDiacritics: false)).components
+        public let components: [String]
         
-        var name: String {
+        /// The tokenizer name
+        ///
+        ///     // "unicode61"
+        ///     FTS5TokenizerDefinition.unicode61().name
+        ///
+        ///     // "unicode61"
+        ///     FTS5TokenizerDefinition.unicode61(removeDiacritics: false)).name
+        public var name: String {
             return components[0]
         }
         
@@ -17,19 +31,18 @@
             return Array(components.suffix(from: 1))
         }
         
-        private init(components: [String]) {
+        /// Creates an FTS5 tokenizer definition.
+        ///
+        ///     db.create(virtualTable: "books", using: FTS5()) { t in
+        ///         let tokenizer = FTS5TokenizerDefinition(components: ["porter", "unicode61", "remove_diacritics", "0"])
+        ///         t.tokenizer = tokenizer
+        ///     }
+        ///
+        /// - precondition: Components is not empty
+        public init(components: [String]) {
+            GRDBPrecondition(!components.isEmpty, "FTS5TokenizerDefinition requires at least one component")
             assert(!components.isEmpty)
             self.components = components
-        }
-        
-        /// Creates an FTS5 tokenizer.
-        ///
-        /// Unless you use a custom tokenizer, you don't need this constructor:
-        ///
-        /// Use FTS5Tokenizer.ascii(), FTS5Tokenizer.porter(), or
-        /// FTS5Tokenizer.unicode61() instead.
-        public init(_ name: String, arguments: [String] = []) {
-            self.init(components: [name] + arguments)
         }
         
         /// The "ascii" tokenizer
@@ -45,9 +58,9 @@
         /// See https://www.sqlite.org/fts5.html#ascii_tokenizer
         public static func ascii(separators: Set<Character> = []) -> FTS5TokenizerDefinition {
             if separators.isEmpty {
-                return FTS5TokenizerDefinition("ascii")
+                return FTS5TokenizerDefinition(components: ["ascii"])
             } else {
-                return FTS5TokenizerDefinition("ascii", arguments: ["separators", separators.map { String($0) }.joined(separator: "").sqlExpression.sql])
+                return FTS5TokenizerDefinition(components: ["ascii", "separators", separators.map { String($0) }.joined(separator: "").sqlExpression.sql])
             }
         }
         
@@ -64,9 +77,9 @@
         /// See https://www.sqlite.org/fts5.html#porter_tokenizer
         public static func porter(wrapping base: FTS5TokenizerDefinition? = nil) -> FTS5TokenizerDefinition {
             if let base = base {
-                return FTS5TokenizerDefinition("porter", arguments: base.components)
+                return FTS5TokenizerDefinition(components: ["porter"] + base.components)
             } else {
-                return FTS5TokenizerDefinition("porter")
+                return FTS5TokenizerDefinition(components: ["porter"])
             }
         }
         
@@ -86,19 +99,19 @@
         ///
         /// See https://www.sqlite.org/fts5.html#unicode61_tokenizer
         public static func unicode61(removeDiacritics: Bool = true, separators: Set<Character> = [], tokenCharacters: Set<Character> = []) -> FTS5TokenizerDefinition {
-            var arguments: [String] = []
+            var components: [String] = ["unicode61"]
             if !removeDiacritics {
-                arguments.append(contentsOf: ["remove_diacritics", "0"])
+                components.append(contentsOf: ["remove_diacritics", "0"])
             }
             if !separators.isEmpty {
                 // TODO: test "=" and "\"", "(" and ")" as separators, with both FTS3Pattern(matchingAnyTokenIn:tokenizer:) and Database.create(virtualTable:using:)
-                arguments.append(contentsOf: ["separators", separators.sorted().map { String($0) }.joined(separator: "").sqlExpression.sql])
+                components.append(contentsOf: ["separators", separators.sorted().map { String($0) }.joined(separator: "").sqlExpression.sql])
             }
             if !tokenCharacters.isEmpty {
                 // TODO: test "=" and "\"", "(" and ")" as tokenCharacters, with both FTS3Pattern(matchingAnyTokenIn:tokenizer:) and Database.create(virtualTable:using:)
-                arguments.append(contentsOf: ["tokenchars", tokenCharacters.sorted().map { String($0) }.joined(separator: "").sqlExpression.sql])
+                components.append(contentsOf: ["tokenchars", tokenCharacters.sorted().map { String($0) }.joined(separator: "").sqlExpression.sql])
             }
-            return FTS5TokenizerDefinition("unicode61", arguments: arguments)
+            return FTS5TokenizerDefinition(components: components)
         }
     }
 #endif
