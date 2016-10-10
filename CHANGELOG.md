@@ -3,6 +3,10 @@ Release Notes
 
 ## Next Version
 
+**New**
+
+- Support for custom full-text FTS5 tokenizers ([documentation](https://github.com/groue/GRDB.swift/tree/FTS#TODO))
+
 **Breaking Changes**
 
 - `FTS3Tokenizer` has been renamed `FTS3TokenizerDefinition`
