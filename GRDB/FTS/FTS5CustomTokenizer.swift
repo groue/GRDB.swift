@@ -5,7 +5,7 @@
     }
     
     extension Database {
-        private class FTS5TokenizerCreationContext {
+        private class FTS5TokenizerConstructor {
             let db: Database
             let constructor: (Database, [String], UnsafeMutablePointer<OpaquePointer?>?) -> Int32
             
@@ -20,14 +20,24 @@
                 fatalError("FTS5 is not enabled")
             }
             
-            // Hides the generic Tokenizer type from the @convention(c) xCreate function.
-            let context = FTS5TokenizerCreationContext(
+            // Swift won't let the @convention(c) xCreate() function below create
+            // an instance of the generic Tokenizer type.
+            //
+            // We thus hide the generic Tokenizer type inside a neutral type:
+            // FTS5TokenizerConstructor
+            let constructor = FTS5TokenizerConstructor(
                 db: self,
                 constructor: { (db, arguments, tokenizerHandle) in
-                    guard let tokenizerHandle = tokenizerHandle else { return SQLITE_ERROR }
+                    guard let tokenizerHandle = tokenizerHandle else {
+                        return SQLITE_ERROR
+                    }
                     do {
                         let tokenizer = try Tokenizer(db: db, arguments: arguments)
+                        
+                        // Tokenizer must remain alive until releaseTokenizer() is
+                        // called, as the xDelete member of xTokenizer
                         let tokenizerPointer = OpaquePointer(Unmanaged.passRetained(tokenizer).toOpaque())
+                        
                         tokenizerHandle.pointee = tokenizerPointer
                         return SQLITE_OK
                     } catch let error as DatabaseError {
@@ -37,10 +47,26 @@
                     }
             })
             
+            // Constructor must remain alive until releaseConstructor() is
+            // called, as the last argument of the xCreateTokenizer() function.
+            let constructorPointer = Unmanaged.passRetained(constructor).toOpaque()
+            
+            func releaseConstructor(constructorPointer: UnsafeMutableRawPointer?) {
+                guard let constructorPointer = constructorPointer else { return }
+                Unmanaged<AnyObject>.fromOpaque(constructorPointer).release()
+            }
+            
+            func releaseTokenizer(tokenizerPointer: OpaquePointer?) {
+                guard let tokenizerPointer = tokenizerPointer else { return }
+                Unmanaged<AnyObject>.fromOpaque(UnsafeMutableRawPointer(tokenizerPointer)).release()
+            }
+            
             var xTokenizer = fts5_tokenizer(
-                xCreate: { (contextPointer, azArg, nArg, tokenizerHandle) -> Int32 in
-                    guard let contextPointer = contextPointer else { return SQLITE_ERROR }
-                    let context = Unmanaged<FTS5TokenizerCreationContext>.fromOpaque(contextPointer).takeUnretainedValue()
+                xCreate: { (constructorPointer, azArg, nArg, tokenizerHandle) -> Int32 in
+                    guard let constructorPointer = constructorPointer else {
+                        return SQLITE_ERROR
+                    }
+                    let constructor = Unmanaged<FTS5TokenizerConstructor>.fromOpaque(constructorPointer).takeUnretainedValue()
                     var arguments: [String] = []
                     if let azArg = azArg {
                         for i in 0..<Int(nArg) {
@@ -49,35 +75,22 @@
                             }
                         }
                     }
-                    return context.constructor(context.db, arguments, tokenizerHandle)
+                    return constructor.constructor(constructor.db, arguments, tokenizerHandle)
                 },
-                xDelete: { tokenizerPointer in
-                    if let tokenizerPointer = tokenizerPointer {
-                        Unmanaged<AnyObject>.fromOpaque(UnsafeMutableRawPointer(tokenizerPointer)).release()
-                    }
-                },
+                xDelete: releaseTokenizer,
                 xTokenize: { (tokenizerPointer, context, flags, pText, nText, xToken) -> Int32 in
                     guard let tokenizerPointer = tokenizerPointer else {
                         return SQLITE_ERROR
                     }
                     let object = Unmanaged<AnyObject>.fromOpaque(UnsafeMutableRawPointer(tokenizerPointer)).takeUnretainedValue()
-                    let tokenizer = object as! FTS5Tokenizer
+                    guard let tokenizer = object as? FTS5Tokenizer else {
+                        return SQLITE_ERROR
+                    }
                     return tokenizer.tokenize(context, FTS5TokenizeFlags(rawValue: flags), pText, nText, xToken)
             })
             
-            let contextPointer = Unmanaged.passRetained(context).toOpaque()
             let code = withUnsafeMutablePointer(to: &xTokenizer) { xTokenizerPointer in
-                api.pointee.xCreateTokenizer(
-                    UnsafeMutablePointer(mutating: api),
-                    Tokenizer.name,
-                    contextPointer,
-                    xTokenizerPointer,
-                    { contextPointer in
-                        if let contextPointer = contextPointer {
-                            Unmanaged<FTS5TokenizerCreationContext>.fromOpaque(contextPointer).release()
-                        }
-                    }
-                )
+                api.pointee.xCreateTokenizer(UnsafeMutablePointer(mutating: api), Tokenizer.name, constructorPointer, xTokenizerPointer, releaseConstructor)
             }
             guard code == SQLITE_OK else {
                 fatalError(DatabaseError(code: code, message: lastErrorMessage).description)
