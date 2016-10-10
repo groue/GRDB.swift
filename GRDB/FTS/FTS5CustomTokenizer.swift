@@ -22,7 +22,7 @@
     
     extension FTS5CustomTokenizer {
         
-        /// Creates an FTS5 tokenizer definition.
+        /// Creates an FTS5 tokenizer descriptor.
         ///
         ///     class MyTokenizer : FTS5CustomTokenizer { ... }
         ///

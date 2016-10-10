@@ -31,7 +31,7 @@
             return Array(components.suffix(from: 1))
         }
         
-        /// Creates an FTS5 tokenizer definition.
+        /// Creates an FTS5 tokenizer descriptor.
         ///
         ///     db.create(virtualTable: "books", using: FTS5()) { t in
         ///         let tokenizer = FTS5TokenizerDescriptor(components: ["porter", "unicode61", "remove_diacritics", "0"])
