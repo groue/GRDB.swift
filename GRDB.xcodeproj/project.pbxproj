@@ -667,6 +667,20 @@
 		5698AD1A1DAAD17C0056AF8C /* FTS5Tokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AD151DAAD16F0056AF8C /* FTS5Tokenizer.swift */; };
 		5698AD1B1DAAD17D0056AF8C /* FTS5Tokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AD151DAAD16F0056AF8C /* FTS5Tokenizer.swift */; };
 		5698AD1C1DAAD17F0056AF8C /* FTS5Tokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AD151DAAD16F0056AF8C /* FTS5Tokenizer.swift */; };
+		5698AD211DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AD201DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift */; };
+		5698AD221DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AD201DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift */; };
+		5698AD231DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AD201DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift */; };
+		5698AD241DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AD201DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift */; };
+		5698AD251DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AD201DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift */; };
+		5698AD261DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AD201DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift */; };
+		5698AD271DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AD201DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift */; };
+		5698AD351DABAF4A0056AF8C /* FTS5CustomTokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AD341DABAF4A0056AF8C /* FTS5CustomTokenizer.swift */; };
+		5698AD361DABAF4A0056AF8C /* FTS5CustomTokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AD341DABAF4A0056AF8C /* FTS5CustomTokenizer.swift */; };
+		5698AD371DABAF4A0056AF8C /* FTS5CustomTokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AD341DABAF4A0056AF8C /* FTS5CustomTokenizer.swift */; };
+		5698AD381DABAF4A0056AF8C /* FTS5CustomTokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AD341DABAF4A0056AF8C /* FTS5CustomTokenizer.swift */; };
+		5698AD391DABAF4A0056AF8C /* FTS5CustomTokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AD341DABAF4A0056AF8C /* FTS5CustomTokenizer.swift */; };
+		5698AD3A1DABAF4A0056AF8C /* FTS5CustomTokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AD341DABAF4A0056AF8C /* FTS5CustomTokenizer.swift */; };
+		5698AD3B1DABAF4A0056AF8C /* FTS5CustomTokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AD341DABAF4A0056AF8C /* FTS5CustomTokenizer.swift */; };
 		569C1EB31CF07DDD0042627B /* DatabaseSchedulerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569C1EB11CF07DDD0042627B /* DatabaseSchedulerTests.swift */; };
 		569C1EB41CF07DDD0042627B /* DatabaseSchedulerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569C1EB11CF07DDD0042627B /* DatabaseSchedulerTests.swift */; };
 		569C1EB51CF07DDD0042627B /* DatabaseSchedulerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569C1EB11CF07DDD0042627B /* DatabaseSchedulerTests.swift */; };
@@ -1718,6 +1732,8 @@
 		5698ACE11DA93B7C0056AF8C /* ReferenceConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReferenceConvertible.swift; sourceTree = "<group>"; };
 		5698AD001DAA8ACA0056AF8C /* FTS5CustomTokenizerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS5CustomTokenizerTests.swift; sourceTree = "<group>"; };
 		5698AD151DAAD16F0056AF8C /* FTS5Tokenizer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS5Tokenizer.swift; sourceTree = "<group>"; };
+		5698AD201DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS5WrapperTokenizer.swift; sourceTree = "<group>"; };
+		5698AD341DABAF4A0056AF8C /* FTS5CustomTokenizer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS5CustomTokenizer.swift; sourceTree = "<group>"; };
 		569C1EB11CF07DDD0042627B /* DatabaseSchedulerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseSchedulerTests.swift; sourceTree = "<group>"; };
 		56A238131B9C74A90082EB20 /* DatabaseTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseTests.swift; sourceTree = "<group>"; };
 		56A238141B9C74A90082EB20 /* InMemoryDatabaseTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InMemoryDatabaseTests.swift; sourceTree = "<group>"; };
@@ -2242,9 +2258,11 @@
 				5671FC1F1DA3CAC9003BF4FF /* FTS3TokenizerDefinition.swift */,
 				563633981DA40F0100CB70CA /* FTS4.swift */,
 				56B9649C1DA51B4C0002DA19 /* FTS5.swift */,
+				5698AD341DABAF4A0056AF8C /* FTS5CustomTokenizer.swift */,
 				56B964B81DA51D0A0002DA19 /* FTS5Pattern.swift */,
-				56B964B01DA51D010002DA19 /* FTS5TokenizerDefinition.swift */,
 				5698AD151DAAD16F0056AF8C /* FTS5Tokenizer.swift */,
+				56B964B01DA51D010002DA19 /* FTS5TokenizerDefinition.swift */,
+				5698AD201DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift */,
 			);
 			path = FTS;
 			sourceTree = "<group>";
@@ -3522,6 +3540,7 @@
 				560FC51C1CB003810014AA8E /* QueryInterfaceRequest.swift in Sources */,
 				560FC51D1CB003810014AA8E /* SQLCollatedExpression.swift in Sources */,
 				566475D41D981D5E00FF74B8 /* SQLOperators.swift in Sources */,
+				5698AD361DABAF4A0056AF8C /* FTS5CustomTokenizer.swift in Sources */,
 				560FC51E1CB003810014AA8E /* Utils.swift in Sources */,
 				560FC51F1CB003810014AA8E /* CGFloat.swift in Sources */,
 				560FC5201CB003810014AA8E /* Date.swift in Sources */,
@@ -3567,6 +3586,7 @@
 				5698AC791DA37DCB0056AF8C /* VirtualTableModule.swift in Sources */,
 				560FC53B1CB003810014AA8E /* Database.swift in Sources */,
 				566AD8B31D5318F4002EC1A8 /* TableDefinition.swift in Sources */,
+				5698AD221DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */,
 				566475AB1D9818B100FF74B8 /* GRDB-0-84-0-ConversionHelper.swift in Sources */,
 				560FC53C1CB003810014AA8E /* DatabaseQueue.swift in Sources */,
 				560FC53D1CB003810014AA8E /* NSNumber.swift in Sources */,
@@ -3712,6 +3732,7 @@
 				565490C21D5AE236005622CB /* Row.swift in Sources */,
 				565490C71D5AE236005622CB /* StatementColumnConvertible.swift in Sources */,
 				565490D91D5AE252005622CB /* Migration.swift in Sources */,
+				5698AD271DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */,
 				565490D51D5AE252005622CB /* RawRepresentable.swift in Sources */,
 				565490C51D5AE236005622CB /* SerializedDatabase.swift in Sources */,
 				5698AC7E1DA37DCB0056AF8C /* VirtualTableModule.swift in Sources */,
@@ -3724,6 +3745,7 @@
 				565490BB1D5AE236005622CB /* DatabaseReader.swift in Sources */,
 				565490C91D5AE252005622CB /* DatabaseCoder.swift in Sources */,
 				565490C31D5AE236005622CB /* RowAdapter.swift in Sources */,
+				5698AD3B1DABAF4A0056AF8C /* FTS5CustomTokenizer.swift in Sources */,
 				565490DA1D5AE252005622CB /* QueryInterfaceRequest.swift in Sources */,
 				565490CA1D5AE252005622CB /* DatabaseDateComponents.swift in Sources */,
 				565490D01D5AE252005622CB /* NSString.swift in Sources */,
@@ -3896,6 +3918,7 @@
 				56AFC9F11CB1A8BB00F48B96 /* QueryInterfaceRequest.swift in Sources */,
 				56AFC9F21CB1A8BB00F48B96 /* SQLCollatedExpression.swift in Sources */,
 				566475D71D981D5E00FF74B8 /* SQLOperators.swift in Sources */,
+				5698AD391DABAF4A0056AF8C /* FTS5CustomTokenizer.swift in Sources */,
 				56AFC9F31CB1A8BB00F48B96 /* Database.swift in Sources */,
 				56AFC9F41CB1A8BB00F48B96 /* CGFloat.swift in Sources */,
 				56AFC9F51CB1A8BB00F48B96 /* Date.swift in Sources */,
@@ -3941,6 +3964,7 @@
 				5698AC7C1DA37DCB0056AF8C /* VirtualTableModule.swift in Sources */,
 				56AFCA111CB1A8BB00F48B96 /* DatabaseError.swift in Sources */,
 				566AD8B61D5318F4002EC1A8 /* TableDefinition.swift in Sources */,
+				5698AD251DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */,
 				566475AE1D9818B100FF74B8 /* GRDB-0-84-0-ConversionHelper.swift in Sources */,
 				56AFCA121CB1A8BB00F48B96 /* NSNumber.swift in Sources */,
 				56AFCA141CB1A8BB00F48B96 /* StandardLibrary.swift in Sources */,
@@ -4196,6 +4220,7 @@
 				56300B791C53F592005A543B /* QueryInterfaceRequest.swift in Sources */,
 				5605F18E1C6B1A8700235C62 /* SQLCollatedExpression.swift in Sources */,
 				566475D61D981D5E00FF74B8 /* SQLOperators.swift in Sources */,
+				5698AD381DABAF4A0056AF8C /* FTS5CustomTokenizer.swift in Sources */,
 				56A2387E1B9C75030082EB20 /* Database.swift in Sources */,
 				5605F15A1C672E4000235C62 /* CGFloat.swift in Sources */,
 				5605F1641C672E4000235C62 /* Date.swift in Sources */,
@@ -4241,6 +4266,7 @@
 				5698AC7B1DA37DCB0056AF8C /* VirtualTableModule.swift in Sources */,
 				56A238821B9C75030082EB20 /* DatabaseError.swift in Sources */,
 				566AD8B51D5318F4002EC1A8 /* TableDefinition.swift in Sources */,
+				5698AD241DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */,
 				566475AD1D9818B100FF74B8 /* GRDB-0-84-0-ConversionHelper.swift in Sources */,
 				5605F1681C672E4000235C62 /* NSNumber.swift in Sources */,
 				5605F1741C672E4000235C62 /* StandardLibrary.swift in Sources */,
@@ -4486,6 +4512,7 @@
 				56300B781C53F592005A543B /* QueryInterfaceRequest.swift in Sources */,
 				5605F18D1C6B1A8700235C62 /* SQLCollatedExpression.swift in Sources */,
 				566475D31D981D5E00FF74B8 /* SQLOperators.swift in Sources */,
+				5698AD351DABAF4A0056AF8C /* FTS5CustomTokenizer.swift in Sources */,
 				563445051C4A7FD7003D3DC6 /* Utils.swift in Sources */,
 				5605F1591C672E4000235C62 /* CGFloat.swift in Sources */,
 				5605F1631C672E4000235C62 /* Date.swift in Sources */,
@@ -4531,6 +4558,7 @@
 				5698AC781DA37DCB0056AF8C /* VirtualTableModule.swift in Sources */,
 				56A2387D1B9C75030082EB20 /* Database.swift in Sources */,
 				566AD8B21D5318F4002EC1A8 /* TableDefinition.swift in Sources */,
+				5698AD211DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */,
 				566475AA1D9818B100FF74B8 /* GRDB-0-84-0-ConversionHelper.swift in Sources */,
 				56A238831B9C75030082EB20 /* DatabaseQueue.swift in Sources */,
 				5605F1671C672E4000235C62 /* NSNumber.swift in Sources */,
@@ -4556,6 +4584,7 @@
 				56BB6EAE1D3009B100A1CA52 /* SchedulingWatchdog.swift in Sources */,
 				F3BA801A1CFB2876003DC1BA /* StatementColumnConvertible.swift in Sources */,
 				566475D81D981D5E00FF74B8 /* SQLOperators.swift in Sources */,
+				5698AD3A1DABAF4A0056AF8C /* FTS5CustomTokenizer.swift in Sources */,
 				F3BA80181CFB2876003DC1BA /* SerializedDatabase.swift in Sources */,
 				F3BA800D1CFB2871003DC1BA /* DatabasePool.swift in Sources */,
 				F3BA800B1CFB286D003DC1BA /* Database.swift in Sources */,
@@ -4601,6 +4630,7 @@
 				EE5790021D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift in Sources */,
 				5698AC7D1DA37DCB0056AF8C /* VirtualTableModule.swift in Sources */,
 				566AD8B71D5318F4002EC1A8 /* TableDefinition.swift in Sources */,
+				5698AD261DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */,
 				F3BA80121CFB2876003DC1BA /* DatabaseStore.swift in Sources */,
 				566475AF1D9818B100FF74B8 /* GRDB-0-84-0-ConversionHelper.swift in Sources */,
 				F3BA802C1CFB289B003DC1BA /* SQLCollatedExpression.swift in Sources */,
@@ -4746,6 +4776,7 @@
 				56BB6EAB1D3009B100A1CA52 /* SchedulingWatchdog.swift in Sources */,
 				F3BA80761CFB2E55003DC1BA /* StatementColumnConvertible.swift in Sources */,
 				566475D51D981D5E00FF74B8 /* SQLOperators.swift in Sources */,
+				5698AD371DABAF4A0056AF8C /* FTS5CustomTokenizer.swift in Sources */,
 				F3BA80741CFB2E55003DC1BA /* SerializedDatabase.swift in Sources */,
 				F3BA80691CFB2E55003DC1BA /* DatabasePool.swift in Sources */,
 				F3BA80671CFB2E55003DC1BA /* Database.swift in Sources */,
@@ -4791,6 +4822,7 @@
 				EE578FFF1D84B518004E0D9E /* GRDB-Swift2-ConversionHelper.swift in Sources */,
 				5698AC7A1DA37DCB0056AF8C /* VirtualTableModule.swift in Sources */,
 				566AD8B41D5318F4002EC1A8 /* TableDefinition.swift in Sources */,
+				5698AD231DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */,
 				F3BA806E1CFB2E55003DC1BA /* DatabaseStore.swift in Sources */,
 				566475AC1D9818B100FF74B8 /* GRDB-0-84-0-ConversionHelper.swift in Sources */,
 				F3BA80881CFB2E70003DC1BA /* SQLCollatedExpression.swift in Sources */,

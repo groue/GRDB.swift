@@ -69,6 +69,15 @@
             
             return arguments
         }
+        
+        static func api(_ db: Database) -> UnsafePointer<fts5_api>? {
+            return Data
+                .fetchOne(db, "SELECT fts5()")
+                .flatMap { data in
+                    guard data.count == MemoryLayout<UnsafePointer<fts5_api>>.size else { return nil }
+                    return data.withUnsafeBytes { (api: UnsafePointer<UnsafePointer<fts5_api>>) in api.pointee }
+            }
+        }
     }
     
     /// The FTS5TableDefinition class lets you define columns of a FTS5 virtual table.

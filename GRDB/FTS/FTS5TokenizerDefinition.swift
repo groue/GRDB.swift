@@ -23,7 +23,7 @@
         ///
         ///     // "unicode61"
         ///     FTS5TokenizerDefinition.unicode61(removeDiacritics: false)).name
-        public var name: String {
+        var name: String {
             return components[0]
         }
         
@@ -43,6 +43,17 @@
             GRDBPrecondition(!components.isEmpty, "FTS5TokenizerDefinition requires at least one component")
             assert(!components.isEmpty)
             self.components = components
+        }
+        
+        /// Creates an FTS5 tokenizer definition.
+        ///
+        ///     db.create(virtualTable: "books", using: FTS5()) { t in
+        ///         let tokenizer = FTS5TokenizerDefinition(name: "porter", arguments: ["unicode61", "remove_diacritics", "0"])
+        ///         t.tokenizer = tokenizer
+        ///     }
+        ///
+        public init(name: String, arguments: [String] = []) {
+            self.init(components: [name] + arguments)
         }
         
         /// The "ascii" tokenizer
