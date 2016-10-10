@@ -19,6 +19,31 @@
     public typealias FTS5WrapperTokenCallback = (_ token: String, _ flags: FTS5TokenFlags) throws -> ()
     
     /// The protocol for custom FTS5 tokenizers that wrap another tokenizer.
+    ///
+    /// Types that adopt FTS5WrapperTokenizer don't have to implement the
+    /// low-level FTS5Tokenizer.tokenize(context:flags:pText:nText:tokenCallback:).
+    ///
+    /// Instead, they process regular Swift strings.
+    ///
+    /// Here is the implementation for a trivial tokenizer that wraps the
+    /// built-in ascii tokenizer without any custom processing:
+    ///
+    ///     class TrivialAsciiTokenizer : FTS5WrapperTokenizer {
+    ///         static let name = "trivial"
+    ///         let wrappedTokenizer: FTS5Tokenizer
+    ///
+    ///         init(db: Database, arguments: [String]) throws {
+    ///             wrappedTokenizer = try db.makeTokenizer(.ascii())
+    ///         }
+    ///
+    ///         func customizesWrappedTokenizer(flags: FTS5TokenizeFlags) -> Bool {
+    ///             return true
+    ///         }
+    ///
+    ///         func accept(token: String, flags: FTS5TokenFlags, tokenCallback: FTS5WrapperTokenCallback) throws {
+    ///             try tokenCallback(token, flags)
+    ///         }
+    ///     }
     public protocol FTS5WrapperTokenizer : FTS5CustomTokenizer {
         /// The wrapped tokenizer
         var wrappedTokenizer: FTS5Tokenizer { get }
@@ -37,10 +62,12 @@
         ///
         ///     func accept(token: String, flags: FTS5TokenFlags, tokenCallback: FTS5WrapperTokenCallback) throws {
         ///         // pass through:
-        ///         tokenCallback(token, flags)
+        ///         try tokenCallback(token, flags)
         ///     }
         ///
-        /// Union flags with `.colocated` when your tokenizer produces synonyms
+        /// Errors thrown by `tokenCallback` must not be caught.
+        ///
+        /// Union `flags` with `.colocated` when your tokenizer produces synonyms
         /// (see https://www.sqlite.org/fts5.html#synonym_support):
         ///
         ///     func accept(token: String, flags: FTS5TokenFlags, tokenCallback: FTS5WrapperTokenCallback) throws {
