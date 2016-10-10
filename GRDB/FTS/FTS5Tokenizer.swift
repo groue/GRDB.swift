@@ -9,16 +9,16 @@
         }
         
         /// FTS5_TOKENIZE_QUERY
-        static let query = FTS5TokenizeFlags(rawValue: FTS5_TOKENIZE_QUERY)
+        public static let query = FTS5TokenizeFlags(rawValue: FTS5_TOKENIZE_QUERY)
         
         /// FTS5_TOKENIZE_PREFIX
-        static let prefix = FTS5TokenizeFlags(rawValue: FTS5_TOKENIZE_PREFIX)
+        public static let prefix = FTS5TokenizeFlags(rawValue: FTS5_TOKENIZE_PREFIX)
         
         /// FTS5_TOKENIZE_DOCUMENT
-        static let document = FTS5TokenizeFlags(rawValue: FTS5_TOKENIZE_DOCUMENT)
+        public static let document = FTS5TokenizeFlags(rawValue: FTS5_TOKENIZE_DOCUMENT)
         
         /// FTS5_TOKENIZE_AUX
-        static let aux = FTS5TokenizeFlags(rawValue: FTS5_TOKENIZE_AUX)
+        public static let aux = FTS5TokenizeFlags(rawValue: FTS5_TOKENIZE_AUX)
     }
     
     public protocol FTS5Tokenizer : class {
