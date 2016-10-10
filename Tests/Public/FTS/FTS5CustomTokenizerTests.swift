@@ -206,8 +206,7 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
             
             try dbQueue.inDatabase { db in
                 try db.create(virtualTable: "documents", using: FTS5()) { t in
-                    // TODO: improve this API
-                    t.tokenizer = FTS5TokenizerDescriptor(name: StopWordsTokenizer.name)
+                    t.tokenizer = StopWordsTokenizer.tokenizerDescriptor()
                     t.column("content")
                 }
                 
@@ -231,7 +230,7 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
             
             try dbPool.write { db in
                 try db.create(virtualTable: "documents", using: FTS5()) { t in
-                    t.tokenizer = FTS5TokenizerDescriptor(name: StopWordsTokenizer.name)
+                    t.tokenizer = StopWordsTokenizer.tokenizerDescriptor()
                     t.column("content")
                 }
                 
@@ -281,7 +280,7 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
             // With NFKC conversion wrapping unicode61 (the default)
             try dbQueue.inDatabase { db in
                 try db.create(virtualTable: "documents", using: FTS5()) { t in
-                    t.tokenizer = FTS5TokenizerDescriptor(name: NFKCTokenizer.name)
+                    t.tokenizer = NFKCTokenizer.tokenizerDescriptor()
                     t.column("content")
                 }
                 
@@ -298,7 +297,7 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.create(virtualTable: "documents", using: FTS5()) { t in
                     let ascii = FTS5TokenizerDescriptor.ascii()
-                    t.tokenizer = FTS5TokenizerDescriptor(name: NFKCTokenizer.name, arguments: ascii.components)
+                    t.tokenizer = NFKCTokenizer.tokenizerDescriptor(arguments: ascii.components)
                     t.column("content")
                 }
                 
@@ -320,7 +319,7 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
             
             try dbQueue.inDatabase { db in
                 try db.create(virtualTable: "documents", using: FTS5()) { t in
-                    t.tokenizer = FTS5TokenizerDescriptor(name: SynonymsTokenizer.name)
+                    t.tokenizer = SynonymsTokenizer.tokenizerDescriptor()
                     t.column("content")
                 }
                 

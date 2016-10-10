@@ -2,7 +2,7 @@
     /// An FTS5 tokenizer, suitable for FTS5 table definitions:
     ///
     ///     db.create(virtualTable: "books", using: FTS5()) { t in
-    ///         t.tokenizer = FTS5Tokenizer.unicode61()
+    ///         t.tokenizer = .unicode61() // FTS5TokenizerDescriptor
     ///     }
     ///
     /// See https://www.sqlite.org/fts5.html#tokenizers
@@ -43,17 +43,6 @@
             GRDBPrecondition(!components.isEmpty, "FTS5TokenizerDescriptor requires at least one component")
             assert(!components.isEmpty)
             self.components = components
-        }
-        
-        /// Creates an FTS5 tokenizer definition.
-        ///
-        ///     db.create(virtualTable: "books", using: FTS5()) { t in
-        ///         let tokenizer = FTS5TokenizerDescriptor(name: "porter", arguments: ["unicode61", "remove_diacritics", "0"])
-        ///         t.tokenizer = tokenizer
-        ///     }
-        ///
-        public init(name: String, arguments: [String] = []) {
-            self.init(components: [name] + arguments)
         }
         
         /// The "ascii" tokenizer

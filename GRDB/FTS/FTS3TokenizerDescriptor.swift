@@ -1,7 +1,7 @@
 /// An FTS3 tokenizer, suitable for FTS3 and FTS4 table definitions:
 ///
 ///     db.create(virtualTable: "books", using: FTS4()) { t in
-///         t.tokenizer = FTS3TokenizerDescriptor.simple
+///         t.tokenizer = .simple // FTS3TokenizerDescriptor
 ///     }
 ///
 /// See https://www.sqlite.org/fts3.html#tokenizer
@@ -9,12 +9,6 @@ public struct FTS3TokenizerDescriptor {
     let name: String
     let arguments: [String]
     
-    /// Creates an FTS3 tokenizer.
-    ///
-    /// Unless you use a custom tokenizer, you don't need this constructor:
-    ///
-    /// Use FTS3TokenizerDescriptor.simple, FTS3TokenizerDescriptor.porter, or
-    /// FTS3TokenizerDescriptor.unicode61() instead.
     init(_ name: String, arguments: [String] = []) {
         self.name = name
         self.arguments = arguments
