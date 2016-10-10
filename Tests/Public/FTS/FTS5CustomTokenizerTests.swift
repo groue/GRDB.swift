@@ -12,12 +12,12 @@ import Foundation
 private final class StopWordsTokenizer : FTS5CustomTokenizer {
     static let name = "stopWords"
     
-    let porter: FTS5Tokenizer
+    let unicode61: FTS5Tokenizer
     let ignoredTokens: [String]
     
     init(db: Database, arguments: [String]) throws {
         // TODO: test wrapped tokenizer options
-        porter = try db.makeTokenizer(.porter())
+        unicode61 = try db.makeTokenizer(.unicode61())
         // TODO: find a way to provide stop words through arguments
         ignoredTokens = ["bar"]
     }
@@ -28,8 +28,8 @@ private final class StopWordsTokenizer : FTS5CustomTokenizer {
     
     func tokenize(_ context: UnsafeMutableRawPointer?, _ flags: FTS5TokenizeFlags, _ pText: UnsafePointer<Int8>?, _ nText: Int32, _ xToken: FTS5TokenCallback?) -> Int32 {
         
-        // The way we implement stop words is by letting porter do its job, but
-        // intercepting its tokens before they feed SQLite.
+        // The way we implement stop words is by letting unicode61 do its job
+        // but intercepting its tokens before they feed SQLite.
         //
         // The xToken callback is @convention(c). This requires a little setup
         // in order to transfer context.
@@ -40,8 +40,8 @@ private final class StopWordsTokenizer : FTS5CustomTokenizer {
         }
         var customContext = CustomContext(ignoredTokens: ignoredTokens, context: context!, xToken: xToken!)
         return withUnsafeMutablePointer(to: &customContext) { customContextPointer in
-            // Invoke portern, but intercept raw tokens
-            return porter.tokenize(customContextPointer, flags, pText, nText) { (customContextPointer, flags, pToken, nToken, iStart, iEnd) in
+            // Invoke unicode61, but intercept raw tokens
+            return unicode61.tokenize(customContextPointer, flags, pText, nText) { (customContextPointer, flags, pToken, nToken, iStart, iEnd) in
                 // Extract context
                 let customContext = customContextPointer!.assumingMemoryBound(to: CustomContext.self).pointee
                 
@@ -176,7 +176,7 @@ private final class SynonymsTokenizer : FTS5CustomTokenizer {
                         let pToken = UnsafeMutableRawPointer(mutating: addr).assumingMemoryBound(to: Int8.self)
                         let nToken = Int32(buffer.count)
                         // Set FTS5_TOKEN_COLOCATED for all but first token
-                        let synonymFlags = (index == 0) ? flags : flags | 1 // FTS5_TOKEN_COLOCATED
+                        let synonymFlags = (index == 0) ? flags : flags | 1 // 1: FTS5_TOKEN_COLOCATED
                         return customContext.xToken(customContext.context, synonymFlags, pToken, nToken, iStart, iEnd)
                     }
                     if code != 0 { // SQLITE_OK
@@ -191,7 +191,7 @@ private final class SynonymsTokenizer : FTS5CustomTokenizer {
 
 class FTS5CustomTokenizerTests: GRDBTestCase {
     
-    func testStopWordsDatabaseQueue() {
+    func testStopWordsTokenizerDatabaseQueue() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             dbQueue.add(tokenizer: StopWordsTokenizer.self)
@@ -216,7 +216,7 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
         }
     }
     
-    func testStopWordsDatabasePool() {
+    func testStopWordsTokenizerDatabasePool() {
         assertNoError {
             let dbPool = try makeDatabaseQueue()
             dbPool.add(tokenizer: StopWordsTokenizer.self)
