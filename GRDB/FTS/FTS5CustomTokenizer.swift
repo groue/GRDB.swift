@@ -7,8 +7,6 @@
         
         /// Creates a custom tokenizer.
         ///
-        /// This constructor is called by SQLite.
-        ///
         /// The arguments parameter is an array of String built from the CREATE
         /// VIRTUAL TABLE statement. In the example below, the arguments will
         /// be `["arg1", "arg2"]`.
