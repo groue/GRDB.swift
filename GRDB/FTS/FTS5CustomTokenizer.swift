@@ -118,7 +118,7 @@
                 Unmanaged<AnyObject>.fromOpaque(UnsafeMutableRawPointer(tokenizerPointer)).release()
             }
             
-            func xTokenize(tokenizerPointer: OpaquePointer?, context: UnsafeMutableRawPointer?, flags: Int32, pText: UnsafePointer<Int8>?, nText: Int32, xToken: (@convention(c) (UnsafeMutableRawPointer?, Int32, UnsafePointer<Int8>?, Int32, Int32, Int32) -> Int32)?) -> Int32 {
+            func xTokenize(tokenizerPointer: OpaquePointer?, context: UnsafeMutableRawPointer?, flags: Int32, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: (@convention(c) (UnsafeMutableRawPointer?, Int32, UnsafePointer<Int8>?, Int32, Int32, Int32) -> Int32)?) -> Int32 {
                 guard let tokenizerPointer = tokenizerPointer else {
                     return SQLITE_ERROR
                 }
@@ -126,7 +126,7 @@
                 guard let tokenizer = object as? FTS5Tokenizer else {
                     return SQLITE_ERROR
                 }
-                return tokenizer.tokenize(context, FTS5TokenizeFlags(rawValue: flags), pText, nText, xToken)
+                return tokenizer.tokenize(context: context, flags: FTS5TokenizeFlags(rawValue: flags), pText: pText, nText: nText, tokenCallback: tokenCallback)
             }
             
             var xTokenizer = fts5_tokenizer(xCreate: xCreateTokenizer, xDelete: xDeleteTokenizer, xTokenize: xTokenize)

@@ -21,22 +21,22 @@
     private struct FTS5WrapperContext {
         let tokenizer: FTS5WrapperTokenizer
         let context: UnsafeMutableRawPointer?
-        let xToken: FTS5TokenCallback
+        let tokenCallback: FTS5TokenCallback
     }
     
     extension FTS5WrapperTokenizer {
-        public func tokenize(_ context: UnsafeMutableRawPointer?, _ flags: FTS5TokenizeFlags, _ pText: UnsafePointer<Int8>?, _ nText: Int32, _ xToken: FTS5TokenCallback?) -> Int32 {
+        public func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizeFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
             // Let wrappedTokenizer do the job unless we customize
             guard customizesWrappedTokenizer(flags: flags) else {
-                return wrappedTokenizer.tokenize(context, flags, pText, nText, xToken)
+                return wrappedTokenizer.tokenize(context: context, flags: flags, pText: pText, nText: nText, tokenCallback: tokenCallback)
             }
             
-            // The xToken callback is @convention(c). This requires a little setup
+            // `tokenCallback` is @convention(c). This requires a little setup
             // in order to transfer context.
-            var customContext = FTS5WrapperContext(tokenizer: self, context: context, xToken: xToken!)
+            var customContext = FTS5WrapperContext(tokenizer: self, context: context, tokenCallback: tokenCallback!)
             return withUnsafeMutablePointer(to: &customContext) { customContextPointer in
                 // Invoke wrappedTokenizer
-                return wrappedTokenizer.tokenize(customContextPointer, flags, pText, nText) { (customContextPointer, flags, pToken, nToken, iStart, iEnd) in
+                return wrappedTokenizer.tokenize(context: customContextPointer, flags: flags, pText: pText, nText: nText) { (customContextPointer, flags, pToken, nToken, iStart, iEnd) in
                     
                     // Extract token produced by wrapped tokenizer
                     guard let token = pToken.flatMap({ String(data: Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: $0), count: Int(nToken), deallocator: .none), encoding: .utf8) }) else {
@@ -47,7 +47,7 @@
                     let customContext = customContextPointer!.assumingMemoryBound(to: FTS5WrapperContext.self).pointee
                     let tokenizer = customContext.tokenizer
                     let context = customContext.context
-                    let xToken = customContext.xToken
+                    let tokenCallback = customContext.tokenCallback
                     
                     // Process token produced by wrapped tokenizer
                     do {
@@ -61,9 +61,9 @@
                                 let nToken = Int32(buffer.count)
                                 
                                 // Inject token into SQLite
-                                let code = xToken(context, flags.rawValue, pToken, nToken, iStart, iEnd)
+                                let code = tokenCallback(context, flags.rawValue, pToken, nToken, iStart, iEnd)
                                 guard code == SQLITE_OK else {
-                                    throw DatabaseError(code: code, message: "failed xToken")
+                                    throw DatabaseError(code: code, message: "token consumer failed")
                                 }
                             }
                         })

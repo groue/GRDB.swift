@@ -28,22 +28,22 @@ private final class StopWordsTokenizer : FTS5CustomTokenizer {
         // TODO: test that deinit is called
     }
     
-    func tokenize(_ context: UnsafeMutableRawPointer?, _ flags: FTS5TokenizeFlags, _ pText: UnsafePointer<Int8>?, _ nText: Int32, _ xToken: FTS5TokenCallback?) -> Int32 {
+    func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizeFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
         
         // The way we implement stop words is by letting wrappedTokenizer do its
         // job but intercepting its tokens before they feed SQLite.
         //
-        // The xToken callback is @convention(c). This requires a little setup
-        // in order to transfer context.
+        // `tokenCallback` is @convention(c). This requires a little setup in
+        // order to transfer context.
         struct CustomContext {
             let ignoredTokens: [String]
             let context: UnsafeMutableRawPointer
-            let xToken: FTS5TokenCallback
+            let tokenCallback: FTS5TokenCallback
         }
-        var customContext = CustomContext(ignoredTokens: ignoredTokens, context: context!, xToken: xToken!)
+        var customContext = CustomContext(ignoredTokens: ignoredTokens, context: context!, tokenCallback: tokenCallback!)
         return withUnsafeMutablePointer(to: &customContext) { customContextPointer in
             // Invoke wrappedTokenizer, but intercept raw tokens
-            return wrappedTokenizer.tokenize(customContextPointer, flags, pText, nText) { (customContextPointer, flags, pToken, nToken, iStart, iEnd) in
+            return wrappedTokenizer.tokenize(context: customContextPointer, flags: flags, pText: pText, nText: nText) { (customContextPointer, flags, pToken, nToken, iStart, iEnd) in
                 // Extract context
                 let customContext = customContextPointer!.assumingMemoryBound(to: CustomContext.self).pointee
                 
@@ -58,7 +58,7 @@ private final class StopWordsTokenizer : FTS5CustomTokenizer {
                 }
                 
                 // Notify token
-                return customContext.xToken(customContext.context, flags, pToken, nToken, iStart, iEnd)
+                return customContext.tokenCallback(customContext.context, flags, pToken, nToken, iStart, iEnd)
             }
         }
     }
@@ -81,21 +81,21 @@ private final class NFKCTokenizer : FTS5CustomTokenizer {
         // TODO: test that deinit is called
     }
     
-    func tokenize(_ context: UnsafeMutableRawPointer?, _ flags: FTS5TokenizeFlags, _ pText: UnsafePointer<Int8>?, _ nText: Int32, _ xToken: FTS5TokenCallback?) -> Int32 {
+    func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizeFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
         
         // The way we implement NFKC conversion is by letting wrappedTokenizer
         // do its job, but intercepting its tokens before they feed SQLite.
         //
-        // The xToken callback is @convention(c). This requires a little setup
-        // in order to transfer context.
+        // `tokenCallback` is @convention(c). This requires a little setup in
+        // order to transfer context.
         struct CustomContext {
             let context: UnsafeMutableRawPointer
-            let xToken: FTS5TokenCallback
+            let tokenCallback: FTS5TokenCallback
         }
-        var customContext = CustomContext(context: context!, xToken: xToken!)
+        var customContext = CustomContext(context: context!, tokenCallback: tokenCallback!)
         return withUnsafeMutablePointer(to: &customContext) { customContextPointer in
             // Invoke wrappedTokenizer, but intercept raw tokens
-            return wrappedTokenizer.tokenize(customContextPointer, flags, pText, nText) { (customContextPointer, flags, pToken, nToken, iStart, iEnd) in
+            return wrappedTokenizer.tokenize(context: customContextPointer, flags: flags, pText: pText, nText: nText) { (customContextPointer, flags, pToken, nToken, iStart, iEnd) in
                 // Extract context
                 let customContext = customContextPointer!.assumingMemoryBound(to: CustomContext.self).pointee
                 
@@ -114,7 +114,7 @@ private final class NFKCTokenizer : FTS5CustomTokenizer {
                     }
                     let pToken = UnsafeMutableRawPointer(mutating: addr).assumingMemoryBound(to: Int8.self)
                     let nToken = Int32(buffer.count)
-                    return customContext.xToken(customContext.context, flags, pToken, nToken, iStart, iEnd)
+                    return customContext.tokenCallback(customContext.context, flags, pToken, nToken, iStart, iEnd)
                 }
             }
         }
@@ -140,28 +140,28 @@ private final class SynonymsTokenizer : FTS5CustomTokenizer {
         // TODO: test that deinit is called
     }
 
-    func tokenize(_ context: UnsafeMutableRawPointer?, _ flags: FTS5TokenizeFlags, _ pText: UnsafePointer<Int8>?, _ nText: Int32, _ xToken: FTS5TokenCallback?) -> Int32 {
+    func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizeFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
         // Don't look for synonyms when tokenizing queries, as advised by
         // https://www.sqlite.org/fts5.html#synonym_support
         if flags.contains(.query) {
-            return wrappedTokenizer.tokenize(context, flags, pText, nText, xToken)
+            return wrappedTokenizer.tokenize(context: context, flags: flags, pText: pText, nText: nText, tokenCallback: tokenCallback)
         }
         
         // The way we implement synonyms support is by letting wrappedTokenizer
         // do its job, but intercepting its tokens before they feed SQLite.
         //
-        // The xToken callback is @convention(c). This requires a little setup
-        // in order to transfer context.
+        // `tokenCallback` is @convention(c). This requires a little setup in
+        // order to transfer context.
         struct CustomContext {
             let synonyms: [Set<String>]
             let context: UnsafeMutableRawPointer
-            let xToken: FTS5TokenCallback
+            let tokenCallback: FTS5TokenCallback
         }
-        var customContext = CustomContext(synonyms: synonyms, context: context!, xToken: xToken!)
+        var customContext = CustomContext(synonyms: synonyms, context: context!, tokenCallback: tokenCallback!)
 
         return withUnsafeMutablePointer(to: &customContext) { customContextPointer in
             // Invoke wrappedTokenizer, but intercept raw tokens
-            return wrappedTokenizer.tokenize(customContextPointer, flags, pText, nText) { (customContextPointer, flags, pToken, nToken, iStart, iEnd) in
+            return wrappedTokenizer.tokenize(context: customContextPointer, flags: flags, pText: pText, nText: nText) { (customContextPointer, flags, pToken, nToken, iStart, iEnd) in
                 // Extract context
                 let customContext = customContextPointer!.assumingMemoryBound(to: CustomContext.self).pointee
                 
@@ -172,7 +172,7 @@ private final class SynonymsTokenizer : FTS5CustomTokenizer {
                 
                 guard let synonyms = customContext.synonyms.first(where: { $0.contains(token) }) else {
                     // No synonym
-                    return customContext.xToken(customContext.context, flags, pToken, nToken, iStart, iEnd)
+                    return customContext.tokenCallback(customContext.context, flags, pToken, nToken, iStart, iEnd)
                 }
                 
                 // Notify each synonym
@@ -185,7 +185,7 @@ private final class SynonymsTokenizer : FTS5CustomTokenizer {
                         let nToken = Int32(buffer.count)
                         // Set FTS5_TOKEN_COLOCATED for all but first token
                         let synonymFlags = (index == 0) ? flags : flags | 1 // 1: FTS5_TOKEN_COLOCATED
-                        return customContext.xToken(customContext.context, synonymFlags, pToken, nToken, iStart, iEnd)
+                        return customContext.tokenCallback(customContext.context, synonymFlags, pToken, nToken, iStart, iEnd)
                     }
                     if code != 0 { // SQLITE_OK
                         return code

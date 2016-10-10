@@ -1,6 +1,12 @@
 #if SQLITE_ENABLE_FTS5
+    /// A low-level SQLite function that lets tokenizers notify tokens.
+    ///
+    /// See FTS5Tokenizer.tokenize(context:flags:pText:nText:tokenCallback:)
     public typealias FTS5TokenCallback = @convention(c) (_ context: UnsafeMutableRawPointer?, _ flags: Int32, _ pToken: UnsafePointer<Int8>?, _ nToken: Int32, _ iStart: Int32, _ iEnd: Int32) -> Int32
     
+    /// Flags that tells tokenizers how to tokenize text.
+    ///
+    /// See https://www.sqlite.org/fts5.html#custom_tokenizers
     public struct FTS5TokenizeFlags : OptionSet {
         public let rawValue: Int32
         
@@ -21,8 +27,23 @@
         public static let aux = FTS5TokenizeFlags(rawValue: FTS5_TOKENIZE_AUX)
     }
     
+    /// The protocol for FTS5 tokenizers
     public protocol FTS5Tokenizer : class {
-        func tokenize(_ context: UnsafeMutableRawPointer?, _ flags: FTS5TokenizeFlags, _ pText: UnsafePointer<Int8>?, _ nText: Int32, _ xToken: FTS5TokenCallback?) -> Int32
+        /// Tokenizes the text described by `pText` and `nText`, and
+        /// notifies found tokens to the `tokenCallback` function.
+        ///
+        /// It matches the `xTokenize` function documented at https://www.sqlite.org/fts5.html#custom_tokenizers
+        ///
+        /// - parameters:
+        ///     - context: An opaque pointer that is the first argument to
+        ///       the `tokenCallback` function
+        ///     - flags: Flags that tells how to tokenize the text.
+        ///     - pText: The tokenized text bytes. May or may not be
+        ///       nul-terminated.
+        ///     - nText: The number of bytes in the tokenized text.
+        ///     - tokenCallback: The function to call for each found token.
+        ///       It matches the `xToken` callback at https://www.sqlite.org/fts5.html#custom_tokenizers
+        func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizeFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32
     }
     
     private class TokenizeContext {
@@ -30,6 +51,10 @@
     }
     
     extension Database {
+        /// MARK: - FTS5 Tokenizers
+        
+        /// Private type that makes a pre-registered FTS5 tokenizer available
+        /// through the FTS5Tokenizer protocol.
         private final class FTS5RegisteredTokenizer : FTS5Tokenizer {
             let xTokenizer: fts5_tokenizer
             let tokenizerPointer: OpaquePointer
@@ -45,18 +70,18 @@
                 let code: Int32
                 if let argument = arguments.first {
                     // turn [String] into ContiguousArray<UnsafePointer<Int8>>
-                    func f<Result>(_ array: inout ContiguousArray<UnsafePointer<Int8>>, _ car: String, _ cdr: [String], _ body: (ContiguousArray<UnsafePointer<Int8>>) -> Result) -> Result {
+                    func convertArguments<Result>(_ array: inout ContiguousArray<UnsafePointer<Int8>>, _ car: String, _ cdr: [String], _ body: (ContiguousArray<UnsafePointer<Int8>>) -> Result) -> Result {
                         return car.withCString { cString in
                             if let car = cdr.first {
                                 array.append(cString)
-                                return f(&array, car, Array(cdr.suffix(from: 1)), body)
+                                return convertArguments(&array, car, Array(cdr.suffix(from: 1)), body)
                             } else {
                                 return body(array)
                             }
                         }
                     }
                     var cStrings = ContiguousArray<UnsafePointer<Int8>>()
-                    code = f(&cStrings, argument, Array(arguments.suffix(from: 1))) { cStrings in
+                    code = convertArguments(&cStrings, argument, Array(arguments.suffix(from: 1))) { cStrings in
                         cStrings.withUnsafeBufferPointer { azArg in
                             xCreate(contextPointer, UnsafeMutablePointer(OpaquePointer(azArg.baseAddress!)), Int32(cStrings.count), &tokenizerPointer)
                         }
@@ -82,15 +107,31 @@
                 }
             }
             
-            func tokenize(_ context: UnsafeMutableRawPointer?, _ flags: FTS5TokenizeFlags, _ pText: UnsafePointer<Int8>?, _ nText: Int32, _ xToken: FTS5TokenCallback?) -> Int32 {
+            func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizeFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
                 guard let xTokenize = xTokenizer.xTokenize else {
                     return SQLITE_ERROR
                 }
-                return xTokenize(tokenizerPointer, context, flags.rawValue, pText, nText, xToken)
+                return xTokenize(tokenizerPointer, context, flags.rawValue, pText, nText, tokenCallback)
             }
         }
         
-        public func makeTokenizer(_ tokenizer: FTS5TokenizerDescriptor) throws -> FTS5Tokenizer {
+        /// Creates an FTS5 tokenizer, given its descriptor.
+        ///
+        ///     let unicode61 = db.makeTokenizer(.unicode61())
+        ///
+        /// It is a programmer error to use the tokenizer outside of a protected
+        /// database queue, or after the database has been closed.
+        ///
+        /// Use this method when you implement a custom wrapper tokenizer:
+        ///
+        ///     final class MyTokenizer : FTS5WrapperTokenizer {
+        ///         var wrappedTokenizer: FTS5Tokenizer
+        ///
+        ///         init(db: Database, arguments: [String]) throws {
+        ///             wrappedTokenizer = try db.makeTokenizer(.unicode61())
+        ///         }
+        ///     }
+        public func makeTokenizer(_ descriptor: FTS5TokenizerDescriptor) throws -> FTS5Tokenizer {
             guard let api = FTS5.api(self) else {
                 throw DatabaseError(code: SQLITE_MISUSE, message: "FTS5 API not found")
             }
@@ -103,7 +144,7 @@
             
             let code = api.pointee.xFindTokenizer!(
                 UnsafeMutablePointer(mutating: api),
-                tokenizer.name,
+                descriptor.name,
                 contextHandle,
                 xTokenizerPointer)
             
@@ -112,7 +153,7 @@
             }
             
             let contextPointer = contextHandle.pointee
-            return try FTS5RegisteredTokenizer(xTokenizer: xTokenizerPointer.pointee, contextPointer: contextPointer, arguments: tokenizer.arguments)
+            return try FTS5RegisteredTokenizer(xTokenizer: xTokenizerPointer.pointee, contextPointer: contextPointer, arguments: descriptor.arguments)
         }
         
         /// Returns an array of tokens found in the string argument.
@@ -136,7 +177,7 @@
                 
                 var context = TokenizeContext()
                 try withUnsafeMutablePointer(to: &context) { contextPointer in
-                    let code = tokenizer.tokenize(UnsafeMutableRawPointer(contextPointer), flags, pText, nText, { (contextPointer, flags, pToken, nToken, iStart, iEnd) -> Int32 in
+                    let code = tokenizer.tokenize(context: UnsafeMutableRawPointer(contextPointer), flags: flags, pText: pText, nText: nText, tokenCallback: { (contextPointer, flags, pToken, nToken, iStart, iEnd) -> Int32 in
                         guard let contextPointer = contextPointer else { return SQLITE_ERROR }
                         
                         // Extract token
@@ -154,6 +195,5 @@
                 return context.tokens
             }
         }
-
     }
 #endif
