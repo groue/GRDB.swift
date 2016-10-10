@@ -12,7 +12,6 @@ import Foundation
 private final class StopWordsTokenizer : FTS5WrapperTokenizer {
     static let name = "stopWords"
     var wrappedTokenizer: FTS5Tokenizer
-    let ignoredTokens: [String]
     
     init(db: Database, arguments: [String]) throws {
         if arguments.isEmpty {
@@ -20,17 +19,20 @@ private final class StopWordsTokenizer : FTS5WrapperTokenizer {
         } else {
             wrappedTokenizer = try db.makeTokenizer(FTS5TokenizerDescriptor(components: arguments))
         }
-        ignoredTokens = ["bar"]
+    }
+    
+    func ignores(_ token: String) -> Bool {
+        return token == "bar"
     }
     
     func customizesWrappedTokenizer(flags: FTS5TokenizeFlags) -> Bool {
         return true
     }
     
-    func accept(token: String, flags: FTS5TokenFlags, notify: FTS5TokenNotifier) throws {
+    func accept(token: String, flags: FTS5TokenFlags, tokenCallback: FTS5WrapperTokenCallback) throws {
         // Notify token unless ignored
-        if !ignoredTokens.contains(token){
-            try notify(token, flags)
+        if !ignores(token){
+            try tokenCallback(token, flags)
         }
     }
 }
@@ -52,9 +54,9 @@ private final class NFKCTokenizer : FTS5WrapperTokenizer {
         return true
     }
     
-    func accept(token: String, flags: FTS5TokenFlags, notify: FTS5TokenNotifier) throws {
+    func accept(token: String, flags: FTS5TokenFlags, tokenCallback: FTS5WrapperTokenCallback) throws {
         // Convert token to NFKC
-        try notify(token.precomposedStringWithCompatibilityMapping, flags)
+        try tokenCallback(token.precomposedStringWithCompatibilityMapping, flags)
     }
 }
 
@@ -62,15 +64,18 @@ private final class NFKCTokenizer : FTS5WrapperTokenizer {
 private final class SynonymsTokenizer : FTS5WrapperTokenizer {
     static let name = "synonyms"
     let wrappedTokenizer: FTS5Tokenizer
-    let synonyms: [Set<String>]
-
+    
     init(db: Database, arguments: [String]) throws {
         if arguments.isEmpty {
             wrappedTokenizer = try db.makeTokenizer(.unicode61())
         } else {
             wrappedTokenizer = try db.makeTokenizer(FTS5TokenizerDescriptor(components: arguments))
         }
-        synonyms = [["first", "1st"]]
+    }
+    
+    func synonyms(for token: String) -> Set<String>? {
+        let synonyms: [Set<String>] = [["first", "1st"]]
+        return synonyms.first(where: { $0.contains(token) })
     }
     
     func customizesWrappedTokenizer(flags: FTS5TokenizeFlags) -> Bool {
@@ -79,18 +84,18 @@ private final class SynonymsTokenizer : FTS5WrapperTokenizer {
         return !flags.contains(.query)
     }
     
-    func accept(token: String, flags: FTS5TokenFlags, notify: FTS5TokenNotifier) throws {
-        if let synonyms = synonyms.first(where: { $0.contains(token) }) {
+    func accept(token: String, flags: FTS5TokenFlags, tokenCallback: FTS5WrapperTokenCallback) throws {
+        if let synonyms = synonyms(for: token) {
             for (index, synonym) in synonyms.enumerated() {
                 // Notify each synonym, and set the colocated flag for all but
                 // the first, as documented by
                 // https://www.sqlite.org/fts5.html#synonym_support
                 let synonymFlags = (index == 0) ? flags : flags.union(.colocated)
-                try notify(synonym, synonymFlags)
+                try tokenCallback(synonym, synonymFlags)
             }
         } else {
             // Token has no synonym
-            try notify(token, flags)
+            try tokenCallback(token, flags)
         }
     }
 }

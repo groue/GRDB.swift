@@ -4,7 +4,7 @@
     /// See FTS5Tokenizer.tokenize(context:flags:pText:nText:tokenCallback:)
     public typealias FTS5TokenCallback = @convention(c) (_ context: UnsafeMutableRawPointer?, _ flags: Int32, _ pToken: UnsafePointer<Int8>?, _ nToken: Int32, _ iStart: Int32, _ iEnd: Int32) -> Int32
     
-    /// Flags that tells tokenizers how to tokenize text.
+    /// Flags that indicate the reason why FTS5 is requesting tokenization.
     ///
     /// See https://www.sqlite.org/fts5.html#custom_tokenizers
     public struct FTS5TokenizeFlags : OptionSet {
@@ -37,7 +37,8 @@
         /// - parameters:
         ///     - context: An opaque pointer that is the first argument to
         ///       the `tokenCallback` function
-        ///     - flags: Flags that tells how to tokenize the text.
+        ///     - flags: Flags that indicate the reason why FTS5 is
+        ///       requesting tokenization.
         ///     - pText: The tokenized text bytes. May or may not be
         ///       nul-terminated.
         ///     - nText: The number of bytes in the tokenized text.
