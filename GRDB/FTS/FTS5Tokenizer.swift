@@ -1,5 +1,5 @@
 #if SQLITE_ENABLE_FTS5
-    /// A low-level SQLite function that lets tokenizers notify tokens.
+    /// A low-level SQLite function that lets FTS5Tokenizer notify tokens.
     ///
     /// See FTS5Tokenizer.tokenize(context:flags:pText:nText:tokenCallback:)
     public typealias FTS5TokenCallback = @convention(c) (_ context: UnsafeMutableRawPointer?, _ flags: Int32, _ pToken: UnsafePointer<Int8>?, _ nToken: Int32, _ iStart: Int32, _ iEnd: Int32) -> Int32

@@ -13,7 +13,7 @@
         public static let colocated = FTS5TokenFlags(rawValue: FTS5_TOKEN_COLOCATED)
     }
     
-    /// A function that lets tokenizers notify tokens.
+    /// A function that lets FTS5WrapperTokenizer notify tokens.
     public typealias FTS5WrapperTokenCallback = (_ token: String, _ flags: FTS5TokenFlags) throws -> ()
     
     /// The protocol for custom FTS5 tokenizers that wrap another tokenizer.
