@@ -1,6 +1,24 @@
 #if SQLITE_ENABLE_FTS5
+    /// The protocol for custom FTS5 tokenizers.
     public protocol FTS5CustomTokenizer : FTS5Tokenizer {
+        /// The name of the tokenizer; should uniquely identify your custom
+        /// tokenizer.
         static var name: String { get }
+        
+        /// Creates a custom tokenizer.
+        ///
+        /// This constructor is called by SQLite.
+        ///
+        /// The arguments parameter is an array of String built from the CREATE
+        /// VIRTUAL TABLE statement. In the example below, the arguments will
+        /// be `["arg1", "arg2"]`.
+        ///
+        ///     CREATE VIRTUAL TABLE documents USING fts5(
+        ///         tokenize='custom arg1 arg2'
+        ///     )
+        ///
+        /// - parameter db: A Database connection
+        /// - parameter arguments: An array of string arguments
         init(db: Database, arguments: [String]) throws
     }
     
@@ -21,6 +39,9 @@
     }
     
     extension Database {
+        
+        // MARK: - Custom FTS5 Tokenizers
+        
         private class FTS5TokenizerConstructor {
             let db: Database
             let constructor: (Database, [String], UnsafeMutablePointer<OpaquePointer?>?) -> Int32
@@ -31,6 +52,10 @@
             }
         }
         
+        /// Add a custom FTS5 tokenizer.
+        ///
+        ///     class MyTokenizer : FTS5CustomTokenizer { ... }
+        ///     db.add(tokenizer: MyTokenizer.self)
         public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) {
             guard let api = FTS5.api(self) else {
                 fatalError("FTS5 is not enabled")
@@ -115,6 +140,13 @@
     }
     
     extension DatabaseQueue {
+        
+        // MARK: - Custom FTS5 Tokenizers
+        
+        /// Add a custom FTS5 tokenizer.
+        ///
+        ///     class MyTokenizer : FTS5CustomTokenizer { ... }
+        ///     dbQueue.add(tokenizer: MyTokenizer.self)
         public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) {
             inDatabase { db in
                 db.add(tokenizer: Tokenizer.self)
@@ -123,6 +155,13 @@
     }
     
     extension DatabasePool {
+        
+        // MARK: - Custom FTS5 Tokenizers
+        
+        /// Add a custom FTS5 tokenizer.
+        ///
+        ///     class MyTokenizer : FTS5CustomTokenizer { ... }
+        ///     dbPool.add(tokenizer: MyTokenizer.self)
         public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) {
             write { db in
                 db.add(tokenizer: Tokenizer.self)
