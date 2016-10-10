@@ -14,6 +14,8 @@
     }
     
     /// A function that lets FTS5WrapperTokenizer notify tokens.
+    ///
+    /// See FTS5WrapperTokenizer.accept(token:flags:tokenCallback:)
     public typealias FTS5WrapperTokenCallback = (_ token: String, _ flags: FTS5TokenFlags) throws -> ()
     
     /// The protocol for custom FTS5 tokenizers that wrap another tokenizer.
