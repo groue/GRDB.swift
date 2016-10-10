@@ -30,13 +30,32 @@
         ///   requesting tokenization.
         func customizesWrappedTokenizer(flags: FTS5TokenizeFlags) -> Bool
         
-        /// Given a token produced by the wrapped tokenizer, notifies custom
+        /// Given a token produced by the wrapped tokenizer, notifies customized
         /// tokens to the `tokenCallback` function.
+        ///
+        /// For example:
+        ///
+        ///     func accept(token: String, flags: FTS5TokenFlags, tokenCallback: FTS5WrapperTokenCallback) throws {
+        ///         // pass through:
+        ///         tokenCallback(token, flags)
+        ///     }
+        ///
+        /// Union flags with `.colocated` when your tokenizer produces synonyms
+        /// (see https://www.sqlite.org/fts5.html#synonym_support):
+        ///
+        ///     func accept(token: String, flags: FTS5TokenFlags, tokenCallback: FTS5WrapperTokenCallback) throws {
+        ///         if token = "first" {
+        ///             tokenCallback("first", flags)
+        ///             tokenCallback("1st", flags.union(.colocated))
+        ///         } else {
+        ///             tokenCallback(token, flags)
+        ///         }
+        ///     }
         ///
         /// - parameters:
         ///     - token: A token produced by the wrapped tokenizer
         ///     - flags: Flags that tell SQLite how to register a token.
-        ///     - tokenCallback: The function to call for each found token.
+        ///     - tokenCallback: The function to call for each customized token.
         func accept(token: String, flags: FTS5TokenFlags, tokenCallback: FTS5WrapperTokenCallback) throws
     }
     
