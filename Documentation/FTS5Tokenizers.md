@@ -16,7 +16,7 @@ GRDB lets you define your own custom FST5 tokenizers, and extend SQLite built-in
 **Table of Contents**
 
 - [The Tokenizer Protocols](#the-tokenizer-protocols)
-- [Using A Custom Tokenizer](#using-a-custom-tokenizer)
+- [Using a Custom Tokenizer](#using-a-custom-tokenizer)
 - [FTS5Tokenizer](#fts5tokenizer)
 - [FTS5CustomTokenizer](#fts5customtokenizer)
 - [FTS5WrapperTokenizer](#fts5wrappertokenizer)
@@ -33,7 +33,7 @@ GRDB lets you define your own custom FST5 tokenizers, and extend SQLite built-in
         - [FTS5WrapperTokenizer](#fts5wrappertokenizer): the high-level protocol for custom tokenizers that post-processes the tokens produced by another FTS5Tokenizer.
 
 
-## Using A Custom Tokenizer
+## Using a Custom Tokenizer
 
 Once you have a type that implements FTS5CustomTokenizer or FTS5WrapperTokenizer, you register it into the database, and create full-text tables:
 
