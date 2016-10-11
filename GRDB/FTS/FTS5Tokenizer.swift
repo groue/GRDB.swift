@@ -47,6 +47,48 @@
         func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizeFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32
     }
     
+    extension FTS5Tokenizer {
+        
+        /// Returns an array of tokens found in the string argument.
+        ///
+        ///     let tokenizer = db.makeTokenizer(.ascii())
+        ///     try tokenizer.tokenize("foo bar", flags: .document) // ["foo", "bar"]
+        ///
+        /// - parameter string: The string to tokenize
+        /// - parameter flags: Tokenization flags
+        ///     - .document: Tokenize like a document being inserted into an FTS table.
+        ///     - .query: Tokenize like the search pattern of the MATCH operator.
+        /// - parameter tokenizer: A FTS5TokenizerDescriptor such as .ascii()
+        public func tokenize(_ string: String, flags: FTS5TokenizeFlags) throws -> [String] {
+            return try ContiguousArray(string.utf8).withUnsafeBufferPointer { buffer -> [String] in
+                guard let addr = buffer.baseAddress else {
+                    return []
+                }
+                let pText = UnsafeMutableRawPointer(mutating: addr).assumingMemoryBound(to: Int8.self)
+                let nText = Int32(buffer.count)
+                
+                var context = TokenizeContext()
+                try withUnsafeMutablePointer(to: &context) { contextPointer in
+                    let code = tokenize(context: UnsafeMutableRawPointer(contextPointer), flags: flags, pText: pText, nText: nText, tokenCallback: { (contextPointer, flags, pToken, nToken, iStart, iEnd) -> Int32 in
+                        guard let contextPointer = contextPointer else { return SQLITE_ERROR }
+                        
+                        // Extract token
+                        guard let token = pToken.flatMap({ String(data: Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: $0), count: Int(nToken), deallocator: .none), encoding: .utf8) }) else {
+                            return SQLITE_OK
+                        }
+                        
+                        contextPointer.assumingMemoryBound(to: TokenizeContext.self).pointee.tokens.append(token)
+                        return SQLITE_OK
+                    })
+                    if (code != SQLITE_OK) {
+                        throw DatabaseError(code: code)
+                    }
+                }
+                return context.tokens
+            }
+        }
+    }
+    
     private class TokenizeContext {
         var tokens: [String] = []
     }
@@ -155,46 +197,6 @@
             
             let contextPointer = contextHandle.pointee
             return try FTS5RegisteredTokenizer(xTokenizer: xTokenizerPointer.pointee, contextPointer: contextPointer, arguments: descriptor.arguments)
-        }
-        
-        /// Returns an array of tokens found in the string argument.
-        ///
-        ///     try db.tokenize(string: "foo bar", with: .ascii(), flags: .document) // ["foo", "bar"]
-        ///
-        /// - parameter string: The string to tokenize
-        /// - parameter flags: Tokenization flags
-        ///     - .document: Tokenize like a document being inserted into an FTS table.
-        ///     - .query: Tokenize like the search pattern of the MATCH operator.
-        /// - parameter tokenizer: A FTS5TokenizerDescriptor such as .ascii()
-        public func tokenize(string: String, with tokenizer: FTS5TokenizerDescriptor, flags: FTS5TokenizeFlags) throws -> [String] {
-            let tokenizer = try makeTokenizer(tokenizer)
-            
-            return try ContiguousArray(string.utf8).withUnsafeBufferPointer { buffer -> [String] in
-                guard let addr = buffer.baseAddress else {
-                    return []
-                }
-                let pText = UnsafeMutableRawPointer(mutating: addr).assumingMemoryBound(to: Int8.self)
-                let nText = Int32(buffer.count)
-                
-                var context = TokenizeContext()
-                try withUnsafeMutablePointer(to: &context) { contextPointer in
-                    let code = tokenizer.tokenize(context: UnsafeMutableRawPointer(contextPointer), flags: flags, pText: pText, nText: nText, tokenCallback: { (contextPointer, flags, pToken, nToken, iStart, iEnd) -> Int32 in
-                        guard let contextPointer = contextPointer else { return SQLITE_ERROR }
-                        
-                        // Extract token
-                        guard let token = pToken.flatMap({ String(data: Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: $0), count: Int(nToken), deallocator: .none), encoding: .utf8) }) else {
-                            return SQLITE_OK
-                        }
-                        
-                        contextPointer.assumingMemoryBound(to: TokenizeContext.self).pointee.tokens.append(token)
-                        return SQLITE_OK
-                    })
-                    if (code != SQLITE_OK) {
-                        throw DatabaseError(code: code)
-                    }
-                }
-                return context.tokens
-            }
         }
     }
 #endif
