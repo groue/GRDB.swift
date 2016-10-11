@@ -346,6 +346,21 @@ private final class LatinAsciiTokenizer : FTS5WrapperTokenizer {
 }
 ```
 
+Remember to register LatinAsciiTokenizer before using it:
+
+```swift
+dbQueue.add(tokenizer: MyTokenizer.self) // or dbPool.add
+
+dbQueue.inDatabase { db in
+    try db.create(virtualTable: "documents", using: FTS5()) { t in
+        t.tokenizer = LatinAsciiTokenizer.tokenizerDescriptor()
+        t.column("authors")
+        t.column("title")
+        t.column("body")
+    }
+}
+```
+
 
 ## Example: Stop Words
 
