@@ -36,7 +36,7 @@
     ///             wrappedTokenizer = try db.makeTokenizer(.ascii())
     ///         }
     ///
-    ///         func customizesWrappedTokenizer(flags: FTS5TokenizeFlags) -> Bool {
+    ///         func customizesTokenization(flags: FTS5TokenizationFlags) -> Bool {
     ///             return true
     ///         }
     ///
@@ -53,7 +53,7 @@
         ///
         /// - parameter flags: Flags that indicate the reason why FTS5 is
         ///   requesting tokenization.
-        func customizesWrappedTokenizer(flags: FTS5TokenizeFlags) -> Bool
+        func customizesTokenization(flags: FTS5TokenizationFlags) -> Bool
         
         /// Given a token produced by the wrapped tokenizer, notifies customized
         /// tokens to the `tokenCallback` function.
@@ -94,9 +94,9 @@
     
     extension FTS5WrapperTokenizer {
         /// Default implementation
-        public func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizeFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
+        public func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizationFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
             // Let wrappedTokenizer do the job unless we customize
-            guard customizesWrappedTokenizer(flags: flags) else {
+            guard customizesTokenization(flags: flags) else {
                 return wrappedTokenizer.tokenize(context: context, flags: flags, pText: pText, nText: nText, tokenCallback: tokenCallback)
             }
             

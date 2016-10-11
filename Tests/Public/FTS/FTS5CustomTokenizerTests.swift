@@ -28,7 +28,7 @@ private final class StopWordsTokenizer : FTS5CustomTokenizer {
         // TODO: test that deinit is called
     }
     
-    func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizeFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
+    func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizationFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
         
         // The way we implement stop words is by letting wrappedTokenizer do its
         // job but intercepting its tokens before they feed SQLite.
@@ -81,7 +81,7 @@ private final class NFKCTokenizer : FTS5CustomTokenizer {
         // TODO: test that deinit is called
     }
     
-    func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizeFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
+    func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizationFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
         
         // The way we implement NFKC conversion is by letting wrappedTokenizer
         // do its job, but intercepting its tokens before they feed SQLite.
@@ -140,7 +140,7 @@ private final class SynonymsTokenizer : FTS5CustomTokenizer {
         // TODO: test that deinit is called
     }
 
-    func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizeFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
+    func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizationFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
         // Don't look for synonyms when tokenizing queries, as advised by
         // https://www.sqlite.org/fts5.html#synonym_support
         if flags.contains(.query) {

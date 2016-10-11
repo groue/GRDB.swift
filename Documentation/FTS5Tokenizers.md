@@ -8,7 +8,7 @@ GRDB lets you define your own custom FST5 tokenizers, and extend SQLite built-in
 - Have "fi" match the ligature "&#xfb01;" (U+FB01)
 - Have "first" match "1st"
 - Have "Encyclopaedia" match "Encyclopædia"
-- Have "Mueller" match "Müller", and "Grossman" match "Großmann"
+- Have "Mueller" match "Müller", and "Grossmann" match "Großmann"
 - Have "romaji" match "ローマ字"
 - Have "pinyin" match "拼音"
 - Prevent "the" and other stop words from matching any document
@@ -58,14 +58,14 @@ It only requires a tokenization method that matches the `xTokenize` C function d
 
 ```swift
 protocol FTS5Tokenizer : class {
-    func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizeFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32
+    func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizationFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32
 }
 ```
 
 You can instantiate tokenizers with the Database.makeTokenizer() method:
 
 ```swift
-let ascii = db.makeTokenizer(.ascii()) // FTS5Tokenizer
+let ascii = try db.makeTokenizer(.ascii()) // FTS5Tokenizer
 ```
 
 Tokenizers can tokenize (and can produce different tokens depending on whether they are tokenizing a *document*, or a *query*):
@@ -134,12 +134,77 @@ final class BlackHoleTokenizer : FTS5CustomTokenizer {
     init(db: Database, arguments: [String]) throws {
     }
     
-    func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizeFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
+    func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizationFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
         return 0 // SQLITE_OK
     }
 }
 ```
 
+Since tokenization is hard, and pointers to bytes buffers uneasy to deal with, you may enjoy then [FTS5WrapperTokenizer](#fts5wrappertokenizer) protocol.
+
+
 ## FTS5WrapperTokenizer
+
+**FTS5WrapperTokenizer** is the low-level protocol for your custom tokenizers.
+
+With this protocol, a custom tokenizer post-processes the tokens produced by another tokenizer, the "wrapped tokenizer", and does not have to implement the dreadful low-level `tokenize(context:flags:pText:nText:tokenCallback:)` method.
+
+```swift
+protocol FTS5WrapperTokenizer : FTS5CustomTokenizer {
+    var wrappedTokenizer: FTS5Tokenizer { get }
+    func customizesTokenization(flags: FTS5TokenizationFlags) -> Bool
+    func accept(token: String, flags: FTS5TokenFlags, tokenCallback: FTS5WrapperTokenCallback) throws
+}
+```
+
+As all custom tokenizers, wrapper tokenizers must have a name:
+
+```swift
+final class MyTokenizer : FTS5WrapperTokenizer {
+    static let name = "custom"
+}
+```
+
+The `wrappedTokenizer` property is the wrapped tokenizer. You instantiate it in the initializer:
+
+```swift
+final class MyTokenizer : FTS5WrapperTokenizer {
+    let wrappedTokenizer: FTS5Tokenizer
+    
+    init(db: Database, arguments: [String]) throws {
+        // Wrap the unicode61 tokenizer
+        wrappedTokenizer = try db.makeTokenizer(.unicode61())
+    }
+}
+```
+
+Some wrapper tokenizers sometimes want to opt-out token customization (see [Synonyms](#synonyms)). Most of them return true from their customizesTokenization method:
+
+```swift
+final class MyTokenizer : FTS5WrapperTokenizer {
+    func customizesTokenization(flags: FTS5TokenizationFlags) -> Bool {
+        return true
+    }
+}
+```
+
+Finally, wrapper tokenizers can process tokens produced by their wrapped tokenizer. They can ignore tokens, modify tokens, and even notify several tokens to the FTS5 engine:
+
+```swift
+final class MyTokenizer : FTS5WrapperTokenizer {
+    func accept(token: String, flags: FTS5TokenFlags, tokenCallback: FTS5WrapperTokenCallback) throws {
+        // pass through
+        try tokenCallback(token, flags)
+    }
+}
+```
+
+When implementing the accept method, there are a few rules to observe:
+
+- Errors thrown by `tokenCallback` must not be caught.
+- The input `flags` should be given unmodified to the tokenCallback function, with one exception: [synonyms tokens](#synonyms).
+
+
+## Synonyms
 
 TODO

@@ -25,7 +25,7 @@ private final class StopWordsTokenizer : FTS5WrapperTokenizer {
         return token == "bar"
     }
     
-    func customizesWrappedTokenizer(flags: FTS5TokenizeFlags) -> Bool {
+    func customizesTokenization(flags: FTS5TokenizationFlags) -> Bool {
         return true
     }
     
@@ -50,7 +50,7 @@ private final class NFKCTokenizer : FTS5WrapperTokenizer {
         }
     }
     
-    func customizesWrappedTokenizer(flags: FTS5TokenizeFlags) -> Bool {
+    func customizesTokenization(flags: FTS5TokenizationFlags) -> Bool {
         return true
     }
     
@@ -78,7 +78,7 @@ private final class SynonymsTokenizer : FTS5WrapperTokenizer {
         return synonyms.first(where: { $0.contains(token) })
     }
     
-    func customizesWrappedTokenizer(flags: FTS5TokenizeFlags) -> Bool {
+    func customizesTokenization(flags: FTS5TokenizationFlags) -> Bool {
         // Don't look for synonyms when tokenizing queries, as advised by
         // https://www.sqlite.org/fts5.html#synonym_support
         return !flags.contains(.query)
