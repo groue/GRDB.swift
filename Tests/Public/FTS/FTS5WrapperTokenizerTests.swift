@@ -197,7 +197,7 @@ class FTS5WrapperTokenizerTests: GRDBTestCase {
         }
     }
     
-    func testSynonymTokenizer() {
+    func testSynonymsTokenizer() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             dbQueue.add(tokenizer: SynonymsTokenizer.self)

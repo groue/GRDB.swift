@@ -24,6 +24,7 @@ GRDB lets you define your own custom FST5 tokenizers, and extend SQLite built-in
 - [Example: Latin Script](#example-latin-script)
 - [Example: Stop Words](#example-stop-words)
 
+
 ## The Tokenizer Protocols
 
 - [FTS5Tokenizer](#fts5tokenizer): the protocol for all FTS5 tokenizers, including the [built-in tokenizers](https://www.sqlite.org/fts5.html#tokenizers) `ascii`, `unicode61`, and `porter`.
@@ -39,28 +40,33 @@ For scripts such as Chinese or Japanese that FTS5 can't tokenize out of the box,
 
 ## Using a Custom Tokenizer
 
-Once you have a custom tokenizer type that adopts [FTS5CustomTokenizer](#fts5customtokenizer) or [FTS5WrapperTokenizer](#fts5wrappertokenizer), you register it into the database, and create full-text tables:
+Once you have a custom tokenizer type that adopts [FTS5CustomTokenizer](#fts5customtokenizer) or [FTS5WrapperTokenizer](#fts5wrappertokenizer), it can fuel the FTS5 engine.
+
+**Register the custom tokenizer into the database:**
 
 ```swift
 class MyTokenizer : FTS5CustomTokenizer { ... }
 
 dbQueue.add(tokenizer: MyTokenizer.self) // or dbPool.add
+```
 
-dbQueue.inDatabase { db in
-    try db.create(virtualTable: "documents", using: FTS5()) { t in
-        t.tokenizer = MyTokenizer.tokenizerDescriptor()
-        t.column("authors")
-        t.column("title")
-        t.column("body")
-    }
+**Create [full-text tables](../../../#create-fts5-virtual-tables) that use the custom tokenizer:**
+
+```swift
+try db.create(virtualTable: "documents", using: FTS5()) { t in
+    t.tokenizer = MyTokenizer.tokenizerDescriptor()
+    t.column("content")
 }
 ```
 
-And then the full-text table can be fed and queried in [a regular way](../../../#full-text-search):
+The full-text table can be fed and queried in [a regular way](../../../#full-text-search):
 
 ```swift
-try Document(...).insert(db)
-let documents = Document.matching(...).fetchAll(db)
+try db.execute("INSERT INTO documents VALUES (?)", arguments: ["..."])
+try Document(content: "...").insert(db)
+
+let pattern = FTS5Pattern(matchingAnyTokenIn:"...")
+let documents = Document.matching(pattern).fetchAll(db)
 ```
 
 
@@ -80,12 +86,6 @@ You can instantiate tokenizers with the Database.makeTokenizer() method:
 
 ```swift
 let ascii = try db.makeTokenizer(.ascii()) // FTS5Tokenizer
-```
-
-Tokenizers can tokenize (and can produce different tokens depending on whether they are tokenizing a *document*, or a *query*):
-
-```swift
-let tokens = try ascii.tokenize("foo bar", for: .query) // ["foo", "bar"]
 ```
 
 

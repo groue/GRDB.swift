@@ -46,20 +46,25 @@
         func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: @escaping FTS5TokenCallback) -> Int32
     }
     
+    private class TokenizeContext {
+        var tokens: [(String, FTS5TokenFlags)] = []
+    }
+    
     extension FTS5Tokenizer {
         
-        /// Returns an array of tokens found in the string argument.
+        /// Tokenizes the string argument into an array of
+        /// (String, FTS5TokenFlags) pairs.
         ///
         ///     let tokenizer = try db.makeTokenizer(.ascii())
-        ///     try tokenizer.tokenize("foo bar", for: .document) // ["foo", "bar"]
+        ///     try tokenizer.tokenize("foo bar", for: .document) // [("foo", flags), ("bar", flags)]
         ///
         /// - parameter string: The string to tokenize
         /// - parameter tokenization: The reason why tokenization is requested:
         ///     - .document: Tokenize like a document being inserted into an FTS table.
         ///     - .query: Tokenize like the search pattern of the MATCH operator.
         /// - parameter tokenizer: A FTS5TokenizerDescriptor such as .ascii()
-        public func tokenize(_ string: String, for tokenization: FTS5Tokenization) throws -> [String] {
-            return try ContiguousArray(string.utf8).withUnsafeBufferPointer { buffer -> [String] in
+        func tokenize(_ string: String, for tokenization: FTS5Tokenization) throws -> [(String, FTS5TokenFlags)] {
+            return try ContiguousArray(string.utf8).withUnsafeBufferPointer { buffer -> [(String, FTS5TokenFlags)] in
                 guard let addr = buffer.baseAddress else {
                     return []
                 }
@@ -76,7 +81,9 @@
                             return SQLITE_OK
                         }
                         
-                        contextPointer.assumingMemoryBound(to: TokenizeContext.self).pointee.tokens.append(token)
+                        let context = contextPointer.assumingMemoryBound(to: TokenizeContext.self).pointee
+                        context.tokens.append((token, FTS5TokenFlags(rawValue: flags)))
+                        
                         return SQLITE_OK
                     })
                     if (code != SQLITE_OK) {
@@ -86,10 +93,16 @@
                 return context.tokens
             }
         }
-    }
-    
-    private class TokenizeContext {
-        var tokens: [String] = []
+        
+        func nonSynonymTokens(in string: String, for tokenization: FTS5Tokenization) throws -> [String] {
+            var tokens: [String] = []
+            for (token, flags) in try tokenize(string, for: tokenization) {
+                if !flags.contains(.colocated) {
+                    tokens.append(token)
+                }
+            }
+            return tokens
+        }
     }
     
     extension Database {
