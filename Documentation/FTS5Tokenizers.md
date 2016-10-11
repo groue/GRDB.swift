@@ -54,7 +54,7 @@ dbQueue.inDatabase { db in
 }
 ```
 
-And then the full-text table can be fed and queried in a regular way:
+And then the full-text table can be fed and queried in [a regular way](../../../#full-text-search):
 
 ```swift
 try Document(...).insert(db)
