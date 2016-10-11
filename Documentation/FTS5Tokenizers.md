@@ -292,9 +292,7 @@ private final class SynonymsTokenizer : FTS5WrapperTokenizer {
         }
         
         for (index, synonym) in synonyms.enumerated() {
-            // Notify each synonym, and set the colocated flag for all but
-            // the first, as documented by
-            // https://www.sqlite.org/fts5.html#synonym_support
+            // Notify each synonym, and set the colocated flag for all but the first
             let synonymFlags = (index == 0) ? flags : flags.union(.colocated)
             try tokenCallback(synonym, synonymFlags)
         }
