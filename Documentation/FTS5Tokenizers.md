@@ -194,7 +194,7 @@ final class MyTokenizer : FTS5WrapperTokenizer {
 }
 ```
 
-Wrapper tokenizers process tokens produced by their wrapped tokenizer in their `accept(token:flags:forTokenization:tokenCallback)` method.
+Wrapper tokenizers process tokens produced by their wrapped tokenizer in their `accept(token:flags:forTokenization:tokenCallback:)` method.
 
 They can ignore tokens, modify tokens, and even notify several tokens to the FTS5 engine (see [synonyms](#synonyms)).
 
