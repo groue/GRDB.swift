@@ -339,7 +339,6 @@ private final class LatinAsciiTokenizer : FTS5WrapperTokenizer {
     }
     
     func accept(token: String, flags: FTS5TokenFlags, forTokenization tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
-        // Convert token to Latin-ASCII and lowercase
         if let token = token.applyingTransform(StringTransform("Latin-ASCII; Lower"), reverse: false) {
             try tokenCallback(token, flags)
         }
