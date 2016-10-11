@@ -26,7 +26,7 @@ GRDB lets you define your own custom FST5 tokenizers, and extend SQLite built-in
 
 ## The Tokenizer Protocols
 
-- [FTS5Tokenizer](#fts5tokenizer): the protocol for all FTS5 tokenizers, including built-in tokenizers such as `ascii`, `unicode61`, and `porter`.
+- [FTS5Tokenizer](#fts5tokenizer): the protocol for all FTS5 tokenizers, including [built-in tokenizers](https://www.sqlite.org/fts5.html#tokenizers) such as `ascii`, `unicode61`, and `porter`.
     
     - [FTS5CustomTokenizer](#fts5customtokenizer): the low-level protocol for all custom tokenizers, close to the FTS5 metal.
     
