@@ -145,7 +145,7 @@ Since tokenization is hard, and pointers to bytes buffers uneasy to deal with, y
 
 ## FTS5WrapperTokenizer
 
-**FTS5WrapperTokenizer** is the low-level protocol for your custom tokenizers.
+**FTS5WrapperTokenizer** is the high-level protocol for your custom tokenizers.
 
 With this protocol, a custom tokenizer post-processes the tokens produced by another tokenizer, the "wrapped tokenizer", and does not have to implement the dreadful low-level `tokenize(context:flags:pText:nText:tokenCallback:)` method.
 
