@@ -220,7 +220,7 @@ When implementing the accept method, there are a two rules to observe:
 
 The wrapped tokenizer can be hard-coded, or provided through arguments.
 
-For example, your custom tokenizer can wrap `unicode61`, unless arguments say otherwise (in a fashion similar to the [porter](https://www.sqlite.org/fts5.html#porter_tokenizer) tokenizer):
+For example, your custom tokenizer can wrap [unicode61](https://www.sqlite.org/fts5.html#unicode61_tokenizer), unless arguments say otherwise (in a fashion similar to the [porter](https://www.sqlite.org/fts5.html#porter_tokenizer) tokenizer):
 
 ```swift
 final class MyTokenizer : FTS5WrapperTokenizer {
