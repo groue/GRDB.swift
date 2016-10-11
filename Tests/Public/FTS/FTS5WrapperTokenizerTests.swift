@@ -33,22 +33,27 @@ private final class StopWordsTokenizer : FTS5WrapperTokenizer {
     }
 }
 
-// A custom wrapper tokenizer that converts tokens to NFKC so that "fi" can match "ﬁ" (U+FB01: LATIN SMALL LIGATURE FI)
-private final class NFKCTokenizer : FTS5WrapperTokenizer {
-    static let name = "nfkc"
+// A custom wrapper tokenizer that converts tokens to LatinAscii so that "fi" can match "ﬁ" (U+FB01: LATIN SMALL LIGATURE FI), "ß", "ss", and "æ", "ae".
+private final class LatinAsciiTokenizer : FTS5WrapperTokenizer {
+    static let name = "latinascii"
     let wrappedTokenizer: FTS5Tokenizer
     
     init(db: Database, arguments: [String]) throws {
-        if arguments.isEmpty {
-            wrappedTokenizer = try db.makeTokenizer(.unicode61())
-        } else {
-            wrappedTokenizer = try db.makeTokenizer(FTS5TokenizerDescriptor(components: arguments))
-        }
+        wrappedTokenizer = try db.makeTokenizer(.unicode61())
     }
     
     func accept(token: String, flags: FTS5TokenFlags, forTokenization tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
-        // Convert token to NFKC
-        try tokenCallback(token.precomposedStringWithCompatibilityMapping, flags)
+        // Convert token to Latin-ASCII and lowercase
+        if #available(iOS 9.0, OSX 10.11, *) {
+            if let token = token.applyingTransform(StringTransform("Latin-ASCII; Lower"), reverse: false) {
+                try tokenCallback(token, flags)
+            }
+        } else {
+            if let token = CFStringCreateMutableCopy(kCFAllocatorDefault, 0, token as CFString) {
+                CFStringTransform(token, nil, "Latin-ASCII; Lower" as CFString, false)
+                try tokenCallback(token as String, flags)
+            }
+        }
     }
 }
 
@@ -153,56 +158,39 @@ class FTS5WrapperTokenizerTests: GRDBTestCase {
         }
     }
     
-    func testNFKCTokenizer() {
+    func testLatinAsciiTokenizer() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.add(tokenizer: NFKCTokenizer.self)
+            dbQueue.add(tokenizer: LatinAsciiTokenizer.self)
             
-            // Without NFKC conversion
+            // Without Latin ASCII conversion
             try dbQueue.inDatabase { db in
                 try db.create(virtualTable: "documents", using: FTS5()) { t in
                     t.tokenizer = .unicode61()
                     t.column("content")
                 }
                 
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["aimé\u{FB01}"]) // U+FB01: LATIN SMALL LIGATURE FI
+                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["aimé \u{FB01}délité Encyclopædia Großmann Diyarbakır"])
                 
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimé\u{FB01}"]), 1)
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimefi"]), 0)
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aim\u{00E9}fi"]), 0)
-                
-                try db.drop(table: "documents")
-            }
-            
-            // With NFKC conversion wrapping unicode61 (the default)
-            try dbQueue.inDatabase { db in
-                try db.create(virtualTable: "documents", using: FTS5()) { t in
-                    t.tokenizer = NFKCTokenizer.tokenizerDescriptor()
-                    t.column("content")
-                }
-                
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["aimé\u{FB01}"]) // U+FB01: LATIN SMALL LIGATURE FI
-                
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimé\u{FB01}"]), 1)
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimefi"]), 1)
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aim\u{00E9}fi"]), 1)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimé \u{FB01}délité Encyclopædia Großmann Diyarbakır"]), 1)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aime fidelite encyclopaedia grossmann diyarbakir"]), 0)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aime\u{0301} \u{FB01}de\u{0301}lite\u{0301} Encyclopædia Großmann Diyarbakır"]), 1)
                 
                 try db.drop(table: "documents")
             }
             
-            // With NFKC conversion wrapping ascii
+            // With Latin ASCII conversion
             try dbQueue.inDatabase { db in
                 try db.create(virtualTable: "documents", using: FTS5()) { t in
-                    let ascii = FTS5TokenizerDescriptor.ascii()
-                    t.tokenizer = NFKCTokenizer.tokenizerDescriptor(arguments: ascii.components)
+                    t.tokenizer = LatinAsciiTokenizer.tokenizerDescriptor()
                     t.column("content")
                 }
                 
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["aimé\u{FB01}"]) // U+FB01: LATIN SMALL LIGATURE FI
+                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["aimé \u{FB01}délité Encyclopædia Großmann Diyarbakır"]) // U+FB01: LATIN SMALL LIGATURE FI
                 
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimé\u{FB01}"]), 1)
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimefi"]), 0)
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aim\u{00E9}fi"]), 1)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimé \u{FB01}délité Encyclopædia Großmann Diyarbakır"]), 1)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aime fidelite encyclopaedia grossmann diyarbakir"]), 1)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aime\u{0301} \u{FB01}de\u{0301}lite\u{0301} Encyclopædia Großmann Diyarbakır"]), 1)
                 
                 try db.drop(table: "documents")
             }
