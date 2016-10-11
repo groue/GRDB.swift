@@ -152,7 +152,7 @@ final class BlackHoleTokenizer : FTS5CustomTokenizer {
 }
 ```
 
-Since tokenization is hard, and pointers to bytes buffers uneasy to deal with, you may enjoy then [FTS5WrapperTokenizer](#fts5wrappertokenizer) protocol.
+Since tokenization is hard, and pointers to bytes buffers uneasy to deal with, you may enjoy the [FTS5WrapperTokenizer](#fts5wrappertokenizer) protocol.
 
 
 ## FTS5WrapperTokenizer
