@@ -327,7 +327,7 @@ Custom FTS5 tokenizers let you provide fuzzy latin matching: we'll wrap the buil
 
 After "Grossmann", "Großmann", and "GROSSMANN" have all been turned into "grossmann", they match much more easily, don't they?
 
-This transformation is provided by the [String.applyingFunction](https://developer.apple.com/reference/swift/string/1643133-applyingtransform) (or [CFStringTransform](https://developer.apple.com/reference/corefoundation/1542411-cfstringtransform) for older systems). The custom tokenizer adopts the high-level [FTS5WrapperTokenizer](#fts5wrappertokenizer) protocol:
+This transformation is provided by the [String.applyingFunction](https://developer.apple.com/reference/swift/string/1643133-applyingtransform) (before iOS 9.0 and macOS 10.11, you will need [CFStringTransform](https://developer.apple.com/reference/corefoundation/1542411-cfstringtransform) instead). The custom tokenizer adopts the high-level [FTS5WrapperTokenizer](#fts5wrappertokenizer) protocol:
 
 ```swift
 private final class LatinAsciiTokenizer : FTS5WrapperTokenizer {
@@ -340,15 +340,8 @@ private final class LatinAsciiTokenizer : FTS5WrapperTokenizer {
     
     func accept(token: String, flags: FTS5TokenFlags, forTokenization tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
         // Convert token to Latin-ASCII and lowercase
-        if #available(iOS 9.0, OSX 10.11, *) {
-            if let token = token.applyingTransform(StringTransform("Latin-ASCII; Lower"), reverse: false) {
-                try tokenCallback(token, flags)
-            }
-        } else {
-            if let token = CFStringCreateMutableCopy(kCFAllocatorDefault, 0, token as CFString) {
-                CFStringTransform(token, nil, "Latin-ASCII; Lower" as CFString, false)
-                try tokenCallback(token as String, flags)
-            }
+        if let token = token.applyingTransform(StringTransform("Latin-ASCII; Lower"), reverse: false) {
+            try tokenCallback(token, flags)
         }
     }
 }
