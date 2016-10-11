@@ -211,7 +211,7 @@ final class MyTokenizer : FTS5WrapperTokenizer {
 }
 ```
 
-When implementing the accept method, there are a few rules to observe:
+When implementing the accept method, there are a two rules to observe:
 
 - Errors thrown by `tokenCallback` must not be caught.
 - The input `flags` should be given unmodified to the tokenCallback function, with one exception: [synonyms tokens](#synonyms).
@@ -221,7 +221,7 @@ When implementing the accept method, there are a few rules to observe:
 
 The wrapped tokenizer can be hard-coded, or provided through arguments.
 
-For example, your custom tokenizer can wrap `unicode61`, unless arguments say otherwise (in a fashion similar to the [porter](https://www.sqlite.org/fts5.html#porter_tokenizer) tokenizer:
+For example, your custom tokenizer can wrap `unicode61`, unless arguments say otherwise (in a fashion similar to the [porter](https://www.sqlite.org/fts5.html#porter_tokenizer) tokenizer):
 
 ```swift
 final class MyTokenizer : FTS5WrapperTokenizer {
@@ -229,7 +229,8 @@ final class MyTokenizer : FTS5WrapperTokenizer {
         if arguments.isEmpty {
             wrappedTokenizer = try db.makeTokenizer(.unicode61())
         } else {
-            wrappedTokenizer = try db.makeTokenizer(FTS5TokenizerDescriptor(components: arguments))
+            let descriptor = FTS5TokenizerDescriptor(components: arguments)
+            wrappedTokenizer = try db.makeTokenizer(descriptor)
         }
     }
 }
