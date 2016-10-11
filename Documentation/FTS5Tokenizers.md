@@ -72,7 +72,7 @@ let documents = Document.matching(pattern).fetchAll(db)
 
 ## FTS5Tokenizer
 
-**FST5Tokenizer** is the protocol for all FTS5 tokenizers: your custom ones, and also built-in tokenizers such as `ascii`, `unicode61`, and `porter`.
+**FST5Tokenizer** is the protocol for all FTS5 tokenizers.
 
 It only requires a tokenization method that matches the `xTokenize` C function documented at https://www.sqlite.org/fts5.html#custom_tokenizers. We'll discuss it more when describing custom tokenizers.
 
@@ -82,7 +82,7 @@ protocol FTS5Tokenizer : class {
 }
 ```
 
-You can instantiate tokenizers with the Database.makeTokenizer() method:
+You can instantiate tokenizers, including [built-in tokenizers](https://www.sqlite.org/fts5.html#tokenizers), with the `Database.makeTokenizer()` method:
 
 ```swift
 let ascii = try db.makeTokenizer(.ascii()) // FTS5Tokenizer
@@ -108,7 +108,7 @@ final class MyTokenizer : FTS5CustomTokenizer {
 }
 ```
 
-SQLite instantiates tokenizers when it needs tokens. The arguments parameter of the initializer is an array of strings, which your custom tokenizer can use, or not. In the example below, the arguments will be `["arg1", "arg2"]`.
+SQLite instantiates tokenizers when it needs tokens. The arguments parameter of the `init(db:arguments:)` initializer is an array of strings, which your custom tokenizer can use for its own purposes. In the example below, the arguments will be `["arg1", "arg2"]`.
 
 ```swift
 // CREATE VIRTUAL TABLE documents USING fts5(
@@ -123,7 +123,7 @@ try db.create(virtualTable: "documents", using: FTS5()) { t in
 }
 ```
 
-FTS5CustomTokenizer inherits from [FTS5Tokenizer](#fts5tokenizer), and performs its tokenization job in its `tokenize(context:tokenization:pText:nText:tokenCallback:)` method. This low-level method matches the `xTokenize` function documented at https://www.sqlite.org/fts5.html#custom_tokenizers.
+FTS5CustomTokenizer inherits from [FTS5Tokenizer](#fts5tokenizer), and performs tokenization with its `tokenize(context:tokenization:pText:nText:tokenCallback:)` method. This low-level method matches the `xTokenize` function documented at https://www.sqlite.org/fts5.html#custom_tokenizers.
 
 This method arguments are:
 
@@ -138,21 +138,6 @@ This method arguments are:
     - `nToken`: The number of bytes in the token
     - `iStart`: Byte offset of token within input text
     - `iEnd`: Byte offset of end of token within input text
-
-As an example, let's write a custom tokenizer that ignores arguments, and produces no token at all:
-
-```swift
-final class BlackHoleTokenizer : FTS5CustomTokenizer {
-    static let name = "blackhole"
-    
-    init(db: Database, arguments: [String]) throws {
-    }
-    
-    func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
-        return 0 // SQLITE_OK
-    }
-}
-```
 
 Since tokenization is hard, and pointers to bytes buffers uneasy to deal with, you may enjoy the [FTS5WrapperTokenizer](#fts5wrappertokenizer) protocol.
 
