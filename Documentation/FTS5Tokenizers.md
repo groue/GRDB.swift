@@ -252,7 +252,7 @@ try db.create(virtualTable: "documents", using: FTS5()) { t in
 ```
 
 
-### Example: Synonyms
+## Example: Synonyms
 
 **FTS5 lets tokenizers produce synonyms**, so that, for example, "first" can match "1st".
 
