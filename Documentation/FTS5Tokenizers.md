@@ -13,6 +13,16 @@ GRDB lets you define your own custom FST5 tokenizers, and extend SQLite built-in
 - Have "pinyin" match "拼音"
 - Prevent "the" and other stop words from matching any document
 
+**Table of Contents**
+
+- [The Tokenizer Protocols](#the-tokenizer-protocols)
+- [Using A Custom Tokenizer](#using-a-custom-tokenizer)
+- [FTS5Tokenizer](#fts5tokenizer)
+- [FTS5CustomTokenizer](#fts5customtokenizer)
+- [FTS5WrapperTokenizer](#fts5wrappertokenizer)
+    - [Choosing the Wrapped Tokenizer](#choosing-the-wrapped-tokenizer)
+    - [Synonyms](#synonyms)
+
 
 ## The Tokenizer Protocols
 
@@ -205,6 +215,41 @@ When implementing the accept method, there are a few rules to observe:
 - The input `flags` should be given unmodified to the tokenCallback function, with one exception: [synonyms tokens](#synonyms).
 
 
-## Synonyms
+### Choosing the Wrapped Tokenizer
+
+The wrapped tokenizer can be hard-coded, or provided through arguments.
+
+For example, your custom tokenizer can wrap `unicode61`, unless arguments say otherwise (in a fashion similar to the [porter](https://www.sqlite.org/fts5.html#porter_tokenizer) tokenizer:
+
+```swift
+final class MyTokenizer : FTS5WrapperTokenizer {
+    init(db: Database, arguments: [String]) throws {
+        if arguments.isEmpty {
+            wrappedTokenizer = try db.makeTokenizer(.unicode61())
+        } else {
+            wrappedTokenizer = try db.makeTokenizer(FTS5TokenizerDescriptor(components: arguments))
+        }
+    }
+}
+```
+
+Arguments are provided when the virtual table is created:
+
+```swift
+try db.create(virtualTable: "documents", using: FTS5()) { t in
+    // Wraps the default unicode61
+    t.tokenizer = MyTokenizer.tokenizerDescriptor()
+}
+
+try db.create(virtualTable: "documents", using: FTS5()) { t in
+    // Wraps ascii
+    let ascii = FTS5TokenizerDescriptor.ascii()
+    t.tokenizer = MyTokenizer.tokenizerDescriptor(arguments: ascii.components)
+    t.column("content")
+}
+```
+
+
+### Synonyms
 
 TODO
