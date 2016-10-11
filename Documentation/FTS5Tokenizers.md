@@ -164,7 +164,11 @@ With this protocol, a custom tokenizer post-processes the tokens produced by ano
 ```swift
 protocol FTS5WrapperTokenizer : FTS5CustomTokenizer {
     var wrappedTokenizer: FTS5Tokenizer { get }
-    func accept(token: String, flags: FTS5TokenFlags, forTokenization tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws
+    func accept(
+        token: String,
+        flags: FTS5TokenFlags,
+        forTokenization tokenization: FTS5Tokenization,
+        tokenCallback: FTS5WrapperTokenCallback) throws
 }
 ```
 
@@ -189,7 +193,13 @@ final class MyTokenizer : FTS5WrapperTokenizer {
 }
 ```
 
-Wrapper tokenizers process tokens produced by their wrapped tokenizer in their `accept(token:flags:forTokenization:tokenCallback)` method. They can ignore tokens, modify tokens, and even notify several tokens to the FTS5 engine:
+Wrapper tokenizers process tokens produced by their wrapped tokenizer in their `accept(token:flags:forTokenization:tokenCallback)` method.
+
+They can ignore tokens, modify tokens, and even notify several tokens to the FTS5 engine.
+
+The tokenization parameter allows tokenizers to produce different tokens depending on whether it is a *document*, or a *query*, that is tokenized.
+
+For example:
 
 ```swift
 final class MyTokenizer : FTS5WrapperTokenizer {
