@@ -224,6 +224,8 @@ For example, your custom tokenizer can wrap `unicode61`, unless arguments say ot
 
 ```swift
 final class MyTokenizer : FTS5WrapperTokenizer {
+    static let name = "custom"
+    
     init(db: Database, arguments: [String]) throws {
         if arguments.isEmpty {
             wrappedTokenizer = try db.makeTokenizer(.unicode61())
