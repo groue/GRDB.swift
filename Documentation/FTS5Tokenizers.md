@@ -184,14 +184,14 @@ Wrapper tokenizers have to implement the `accept(token:flags:forTokenization:tok
 
 The token argument is a token produced by the wrapped tokenizer, ready to be ignored, modified, or multiplied into several [synonyms](#synonyms).
 
-The flags and tokenization parameter are involved in synonyms; we'll ignore them for now.
+The tokenization parameter tells the reason why tokens are produced, if FTS5 is tokenizing a document, or a search pattern. Some tokenizers may produce different tokens depending on this parameter.
 
 Finally, the tokenCallback is a function you call to output a custom token.
 
 There are a two rules to observe when implementing the accept method:
 
 1. Errors thrown by the tokenCallback function must not be caught.
-2. The input `flags` should be given unmodified to the tokenCallback function along with the custom token, unless you union it with the `.colocated` flag when the tokenizer produces [synonyms](#synonyms).
+2. The flags parameter should be given unmodified to the tokenCallback function along with the custom token, unless you union it with the `.colocated` flag when the tokenizer produces [synonyms](#synonyms).
 
 For example, a custom tokenizer that simply passes tokens through gives:
 
