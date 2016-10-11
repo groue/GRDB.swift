@@ -32,6 +32,8 @@ GRDB lets you define your own custom FST5 tokenizers, and extend SQLite built-in
     
         - [FTS5WrapperTokenizer](#fts5wrappertokenizer): the high-level protocol for custom tokenizers that post-processes the tokens produced by another FTS5Tokenizer.
 
+Your custom tokenizers that process latin scripts will likely adopt the high-level [FTS5WrapperTokenizer](#fts5wrappertokenizer). For non-latin scripts such as Chinese or Japanese that FTS5 does not support out of the box, you'll need to go low-level with [FTS5CustomTokenizer](#fts5customtokenizer).
+
 
 ## Using a Custom Tokenizer
 
