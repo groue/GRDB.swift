@@ -29,13 +29,9 @@ GRDB lets you define your own custom FST5 tokenizers, and extend SQLite built-in
 
 - [FTS5Tokenizer](#fts5tokenizer): the protocol for all FTS5 tokenizers, including the [built-in tokenizers](https://www.sqlite.org/fts5.html#tokenizers) `ascii`, `unicode61`, and `porter`.
     
-    - [FTS5CustomTokenizer](#fts5customtokenizer): the low-level protocol for all custom tokenizers, close to the FTS5 metal.
+    - [FTS5CustomTokenizer](#fts5customtokenizer): the low-level protocol that grants custom tokenizers access to the raw [FTS5 C API](https://www.sqlite.org/fts5.html#custom_tokenizers).
     
         - [FTS5WrapperTokenizer](#fts5wrappertokenizer): the high-level protocol for custom tokenizers that post-processes the tokens produced by another FTS5Tokenizer.
-
-There are two protocols for custom FTS5 tokenizers: the low-level [FTS5CustomTokenizer](#fts5customtokenizer) that grants access to the raw [FTS5 C API](https://www.sqlite.org/fts5.html#custom_tokenizers), and the high-level [FTS5WrapperTokenizer](#fts5wrappertokenizer) which lets you manipulate Swift strings.
-
-For scripts such as Chinese or Japanese that FTS5 can't tokenize out of the box, you'll need to go low-level.
 
 
 ## Using a Custom Tokenizer
