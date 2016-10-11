@@ -9,8 +9,7 @@ GRDB lets you define your own custom FST5 tokenizers, and extend SQLite built-in
 - Have "first" match "1st"
 - Have "Encyclopaedia" match "Encyclopædia"
 - Have "Mueller" match "Müller", and "Grossmann" match "Großmann"
-- Have "romaji" match "ローマ字"
-- Have "pinyin" match "拼音"
+- Have "romaji" match "ローマ字", and "pinyin" match "拼音"
 - Prevent "the" and other stop words from matching any document
 
 **Table of Contents**
@@ -32,7 +31,9 @@ GRDB lets you define your own custom FST5 tokenizers, and extend SQLite built-in
     
         - [FTS5WrapperTokenizer](#fts5wrappertokenizer): the high-level protocol for custom tokenizers that post-processes the tokens produced by another FTS5Tokenizer.
 
-For scripts such as Chinese or Japanese that FTS5 can't tokenize out of the box, you'll need to go low-level with [FTS5CustomTokenizer](#fts5customtokenizer). Otherwise your custom tokenizers will likely adopt the high-level [FTS5WrapperTokenizer](#fts5wrappertokenizer). 
+There are two protocols for custom FTS5 tokenizers: the low-level [FTS5CustomTokenizer](#fts5customtokenizer) that grants access to the raw [FTS5 C API](https://www.sqlite.org/fts5.html#custom_tokenizers), and the high-level [FTS5WrapperTokenizer](#fts5wrappertokenizer) which lets you manipulate Swift strings.
+
+For scripts such as Chinese or Japanese that FTS5 can't tokenize out of the box, you'll need to go low-level.
 
 
 ## Using a Custom Tokenizer
