@@ -238,11 +238,17 @@ final class MyTokenizer : FTS5WrapperTokenizer {
 Arguments are provided when the virtual table is created:
 
 ```swift
+// CREATE VIRTUAL TABLE documents USING fts5(
+//     tokenize='custom'
+// )
 try db.create(virtualTable: "documents", using: FTS5()) { t in
     // Wraps the default unicode61
     t.tokenizer = MyTokenizer.tokenizerDescriptor()
 }
 
+// CREATE VIRTUAL TABLE documents USING fts5(
+//     tokenize='custom ascii'
+// )
 try db.create(virtualTable: "documents", using: FTS5()) { t in
     // Wraps ascii
     let ascii = FTS5TokenizerDescriptor.ascii()
