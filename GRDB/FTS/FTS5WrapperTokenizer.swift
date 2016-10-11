@@ -81,14 +81,14 @@
     
     extension FTS5WrapperTokenizer {
         /// Default implementation
-        public func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
+        public func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: @escaping FTS5TokenCallback) -> Int32 {
             // `tokenCallback` is @convention(c). This requires a little setup
             // in order to transfer context.
             var customContext = FTS5WrapperContext(
                 tokenizer: self,
                 context: context,
                 tokenization: tokenization,
-                tokenCallback: tokenCallback!)
+                tokenCallback: tokenCallback)
             return withUnsafeMutablePointer(to: &customContext) { customContextPointer in
                 // Invoke wrappedTokenizer
                 return wrappedTokenizer.tokenize(context: customContextPointer, tokenization: tokenization, pText: pText, nText: nText) { (customContextPointer, tokenFlags, pToken, nToken, iStart, iEnd) in

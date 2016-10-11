@@ -43,7 +43,7 @@
         ///     - nText: The number of bytes in the tokenized text.
         ///     - tokenCallback: The function to call for each found token.
         ///       It matches the `xToken` callback at https://www.sqlite.org/fts5.html#custom_tokenizers
-        func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32
+        func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: @escaping FTS5TokenCallback) -> Int32
     }
     
     extension FTS5Tokenizer {
@@ -149,7 +149,7 @@
                 }
             }
             
-            func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
+            func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: @escaping FTS5TokenCallback) -> Int32 {
                 guard let xTokenize = xTokenizer.xTokenize else {
                     return SQLITE_ERROR
                 }

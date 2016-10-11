@@ -124,7 +124,7 @@
                 guard let tokenizer = object as? FTS5Tokenizer else {
                     return SQLITE_ERROR
                 }
-                return tokenizer.tokenize(context: context, tokenization: FTS5Tokenization(rawValue: flags), pText: pText, nText: nText, tokenCallback: tokenCallback)
+                return tokenizer.tokenize(context: context, tokenization: FTS5Tokenization(rawValue: flags), pText: pText, nText: nText, tokenCallback: tokenCallback!)
             }
             
             var xTokenizer = fts5_tokenizer(xCreate: xCreateTokenizer, xDelete: xDeleteTokenizer, xTokenize: xTokenize)
