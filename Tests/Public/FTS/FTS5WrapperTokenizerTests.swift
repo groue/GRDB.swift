@@ -71,7 +71,7 @@ private final class SynonymsTokenizer : FTS5WrapperTokenizer {
     }
     
     func accept(token: String, flags: FTS5TokenFlags, forTokenization tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
-        guard !tokenization.contains(.query) else {
+        if tokenization.contains(.query) {
             // Don't look for synonyms when tokenizing queries, as advised by
             // https://www.sqlite.org/fts5.html#synonym_support
             try tokenCallback(token, flags)
