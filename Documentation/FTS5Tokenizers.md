@@ -38,7 +38,7 @@ For scripts such as Chinese or Japanese that FTS5 can't tokenize out of the box,
 
 ## Using a Custom Tokenizer
 
-Once you have a type that implements FTS5CustomTokenizer or FTS5WrapperTokenizer, you register it into the database, and create full-text tables:
+Once you have a custom tokenizer type that adopts [FTS5CustomTokenizer](#fts5customtokenizer) or [FTS5WrapperTokenizer](#fts5wrappertokenizer), you register it into the database, and create full-text tables:
 
 ```swift
 class MyTokenizer : FTS5CustomTokenizer { ... }
