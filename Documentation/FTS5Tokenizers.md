@@ -180,13 +180,20 @@ final class MyTokenizer : FTS5WrapperTokenizer {
 }
 ```
 
-Wrapper tokenizers process tokens produced by their wrapped tokenizer in their `accept(token:flags:forTokenization:tokenCallback:)` method.
+Wrapper tokenizers have to implement the `accept(token:flags:forTokenization:tokenCallback:)` method.
 
-They can ignore tokens, modify tokens, and even notify several tokens to the FTS5 engine (see [synonyms](#synonyms)).
+The token argument is a token produced by the wrapped tokenizer, ready to be ignored, modified, or multiplied into several [synonyms](#synonyms).
 
-The tokenization parameter allows tokenizers to produce different tokens depending on whether it is a *document*, or a *query*, that is tokenized.
+The flags and tokenization parameter are involved in synonyms; we'll ignore them for now.
 
-For example:
+Finally, the tokenCallback is a function you call to output a custom token.
+
+There are a two rules to observe when implementing the accept method:
+
+1. Errors thrown by the tokenCallback function must not be caught.
+2. The input `flags` should be given unmodified to the tokenCallback function along with the custom token, unless you union it with the `.colocated` flag when the tokenizer produces [synonyms](#synonyms).
+
+For example, a custom tokenizer that simply passes tokens through gives:
 
 ```swift
 final class MyTokenizer : FTS5WrapperTokenizer {
@@ -196,11 +203,6 @@ final class MyTokenizer : FTS5WrapperTokenizer {
     }
 }
 ```
-
-When implementing the accept method, there are a two rules to observe:
-
-1. Errors thrown by the tokenCallback function must not be caught.
-2. The input `flags` should be given unmodified to the tokenCallback function, unless you union it with the `.colocated` flag when the tokenizer produces [synonyms](#synonyms).
 
 
 ### Choosing the Wrapped Tokenizer
