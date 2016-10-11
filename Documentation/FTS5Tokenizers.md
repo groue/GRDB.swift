@@ -256,7 +256,7 @@ try db.create(virtualTable: "documents", using: FTS5()) { t in
 
 **FTS5 lets tokenizers produce synonyms**, so that, for example, "first" can match "1st".
 
-The topic of synonyms is documented at https://www.sqlite.org/fts5.html#synonym_support, which describes several methods. You should read this, and pick the method you prefer.
+The topic of synonyms is documented at https://www.sqlite.org/fts5.html#synonym_support, which describes several methods. You should carefully read this documentation, and pick the method you prefer.
 
 In the example below, we'll pick method (3), and implement a tokenizer that adds multiple synonyms for a single term to the FTS index. Using this method, when tokenizing document text, the tokenizer provides multiple synonyms for each token. So that when a document such as "I won first place" is tokenized, entries are added to the FTS index for "i", "won", "first", "1st" and "place".
 
