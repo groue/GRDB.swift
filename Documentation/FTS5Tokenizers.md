@@ -239,15 +239,18 @@ Arguments are provided when the virtual table is created:
 
 ```swift
 // CREATE VIRTUAL TABLE documents USING fts5(
-//     tokenize='custom'
+//     tokenize='custom',
+//     content
 // )
 try db.create(virtualTable: "documents", using: FTS5()) { t in
     // Wraps the default unicode61
     t.tokenizer = MyTokenizer.tokenizerDescriptor()
+    t.column("content")
 }
 
 // CREATE VIRTUAL TABLE documents USING fts5(
 //     tokenize='custom ascii'
+//     content
 // )
 try db.create(virtualTable: "documents", using: FTS5()) { t in
     // Wraps ascii
