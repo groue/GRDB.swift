@@ -70,7 +70,7 @@ It only requires a tokenization method that matches the `xTokenize` C function d
 
 ```swift
 protocol FTS5Tokenizer : class {
-    func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizationFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32
+    func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32
 }
 ```
 
@@ -83,7 +83,7 @@ let ascii = try db.makeTokenizer(.ascii()) // FTS5Tokenizer
 Tokenizers can tokenize (and can produce different tokens depending on whether they are tokenizing a *document*, or a *query*):
 
 ```swift
-let tokens = try ascii.tokenize("foo bar", flags: .query) // ["foo", "bar"]
+let tokens = try ascii.tokenize("foo bar", for: .query) // ["foo", "bar"]
 ```
 
 
@@ -121,12 +121,12 @@ try db.create(virtualTable: "documents", using: FTS5()) { t in
 }
 ```
 
-FTS5CustomTokenizer inherits from [FTS5Tokenizer](#fts5tokenizer), and performs its tokenization job in its `tokenize(context:flags:pText:nText:tokenCallback:)` method. This low-level method matches the `xTokenize` function documented at https://www.sqlite.org/fts5.html#custom_tokenizers.
+FTS5CustomTokenizer inherits from [FTS5Tokenizer](#fts5tokenizer), and performs its tokenization job in its `tokenize(context:tokenization:pText:nText:tokenCallback:)` method. This low-level method matches the `xTokenize` function documented at https://www.sqlite.org/fts5.html#custom_tokenizers.
 
 This method arguments are:
 
 - `context`: An opaque pointer that is the first argument to the `tokenCallback` function
-- `flags`: Flags that indicate the reason why FTS5 is requesting tokenization.
+- `tokenization`: The reason why FTS5 is requesting tokenization.
 - `pText`: The tokenized text bytes. May or may not be nul-terminated.
 - `nText`: The number of bytes in the tokenized text.
 - `tokenCallback`: The function to call for each found token. It matches the `xToken` callback at https://www.sqlite.org/fts5.html#custom_tokenizers:
@@ -146,7 +146,7 @@ final class BlackHoleTokenizer : FTS5CustomTokenizer {
     init(db: Database, arguments: [String]) throws {
     }
     
-    func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizationFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
+    func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
         return 0 // SQLITE_OK
     }
 }
@@ -159,13 +159,12 @@ Since tokenization is hard, and pointers to bytes buffers uneasy to deal with, y
 
 **FTS5WrapperTokenizer** is the high-level protocol for your custom tokenizers.
 
-With this protocol, a custom tokenizer post-processes the tokens produced by another tokenizer, the "wrapped tokenizer", and does not have to implement the dreadful low-level `tokenize(context:flags:pText:nText:tokenCallback:)` method.
+With this protocol, a custom tokenizer post-processes the tokens produced by another tokenizer, the "wrapped tokenizer", and does not have to implement the dreadful low-level `tokenize(context:tokenization:pText:nText:tokenCallback:)` method.
 
 ```swift
 protocol FTS5WrapperTokenizer : FTS5CustomTokenizer {
     var wrappedTokenizer: FTS5Tokenizer { get }
-    func customizesTokenization(flags: FTS5TokenizationFlags) -> Bool
-    func accept(token: String, flags: FTS5TokenFlags, tokenCallback: FTS5WrapperTokenCallback) throws
+    func accept(token: String, flags: FTS5TokenFlags, forTokenization tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws
 }
 ```
 
@@ -190,21 +189,11 @@ final class MyTokenizer : FTS5WrapperTokenizer {
 }
 ```
 
-Some wrapper tokenizers sometimes want to opt-out token customization (see [Synonyms](#synonyms)). Most of them return true from their customizesTokenization method:
+Wrapper tokenizers process tokens produced by their wrapped tokenizer in their `accept(token:flags:forTokenization:tokenCallback)` method. They can ignore tokens, modify tokens, and even notify several tokens to the FTS5 engine:
 
 ```swift
 final class MyTokenizer : FTS5WrapperTokenizer {
-    func customizesTokenization(flags: FTS5TokenizationFlags) -> Bool {
-        return true
-    }
-}
-```
-
-Finally, wrapper tokenizers can process tokens produced by their wrapped tokenizer. They can ignore tokens, modify tokens, and even notify several tokens to the FTS5 engine:
-
-```swift
-final class MyTokenizer : FTS5WrapperTokenizer {
-    func accept(token: String, flags: FTS5TokenFlags, tokenCallback: FTS5WrapperTokenCallback) throws {
+    func accept(token: String, flags: FTS5TokenFlags, forTokenization tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
         // pass through
         try tokenCallback(token, flags)
     }
@@ -213,8 +202,8 @@ final class MyTokenizer : FTS5WrapperTokenizer {
 
 When implementing the accept method, there are a two rules to observe:
 
-- Errors thrown by `tokenCallback` must not be caught.
-- The input `flags` should be given unmodified to the tokenCallback function, with one exception: [synonyms tokens](#synonyms).
+1. Errors thrown by the tokenCallback function must not be caught.
+2. The input `flags` should be given unmodified to the tokenCallback function, unless you union it with the `.colocated` flag when the tokenizer produces [synonyms](#synonyms).
 
 
 ### Choosing the Wrapped Tokenizer
@@ -255,4 +244,51 @@ try db.create(virtualTable: "documents", using: FTS5()) { t in
 
 ### Synonyms
 
-TODO
+**FTS5 lets tokenizers produce synonyms**, so that, for example, "first" can match "1st".
+
+The topic of synonyms is documented at https://www.sqlite.org/fts5.html#synonym_support, which describes several methods. You should read this, and pick the method you prefer.
+
+In the example below, we'll pick method (3), and implement a tokenizer that adds multiple synonyms for a single term to the FTS index. Using this method, when tokenizing document text, the tokenizer provides multiple synonyms for each token. So that when a document such as "I won first place" is tokenized, entries are added to the FTS index for "i", "won", "first", "1st" and "place".
+
+We'll also take care of the SQLite advice:
+
+> When using methods (2) or (3), it is important that the tokenizer only provide synonyms when tokenizing document text or query text, not both. Doing so will not cause any errors, but is inefficient.
+
+```swift
+private final class SynonymsTokenizer : FTS5WrapperTokenizer {
+    static let name = "synonyms"
+    let wrappedTokenizer: FTS5Tokenizer
+    let synonyms: [Set<String>] = [["first", "1st"]]
+    
+    init(db: Database, arguments: [String]) throws {
+        wrappedTokenizer = try db.makeTokenizer(.unicode61())
+    }
+    
+    func synonyms(for token: String) -> Set<String>? {
+        return synonyms.first(where: { $0.contains(token) })
+    }
+    
+    func accept(token: String, flags: FTS5TokenFlags, forTokenization tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
+        guard !tokenization.contains(.query) else {
+            // Don't look for synonyms when tokenizing queries
+            try tokenCallback(token, flags)
+            return
+        }
+        
+        guard let synonyms = synonyms(for: token) else {
+            // Token has no synonym
+            try tokenCallback(token, flags)
+            return
+        }
+        
+        for (index, synonym) in synonyms.enumerated() {
+            // Notify each synonym, and set the colocated flag for all but
+            // the first, as documented by
+            // https://www.sqlite.org/fts5.html#synonym_support
+            let synonymFlags = (index == 0) ? flags : flags.union(.colocated)
+            try tokenCallback(synonym, synonymFlags)
+        }
+    }
+}
+
+```

@@ -28,7 +28,7 @@ private final class StopWordsTokenizer : FTS5CustomTokenizer {
         // TODO: test that deinit is called
     }
     
-    func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizationFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
+    func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
         
         // The way we implement stop words is by letting wrappedTokenizer do its
         // job but intercepting its tokens before they feed SQLite.
@@ -43,7 +43,7 @@ private final class StopWordsTokenizer : FTS5CustomTokenizer {
         var customContext = CustomContext(ignoredTokens: ignoredTokens, context: context!, tokenCallback: tokenCallback!)
         return withUnsafeMutablePointer(to: &customContext) { customContextPointer in
             // Invoke wrappedTokenizer, but intercept raw tokens
-            return wrappedTokenizer.tokenize(context: customContextPointer, flags: flags, pText: pText, nText: nText) { (customContextPointer, flags, pToken, nToken, iStart, iEnd) in
+            return wrappedTokenizer.tokenize(context: customContextPointer, tokenization: tokenization, pText: pText, nText: nText) { (customContextPointer, flags, pToken, nToken, iStart, iEnd) in
                 // Extract context
                 let customContext = customContextPointer!.assumingMemoryBound(to: CustomContext.self).pointee
                 
@@ -81,7 +81,7 @@ private final class NFKCTokenizer : FTS5CustomTokenizer {
         // TODO: test that deinit is called
     }
     
-    func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizationFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
+    func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
         
         // The way we implement NFKC conversion is by letting wrappedTokenizer
         // do its job, but intercepting its tokens before they feed SQLite.
@@ -95,7 +95,7 @@ private final class NFKCTokenizer : FTS5CustomTokenizer {
         var customContext = CustomContext(context: context!, tokenCallback: tokenCallback!)
         return withUnsafeMutablePointer(to: &customContext) { customContextPointer in
             // Invoke wrappedTokenizer, but intercept raw tokens
-            return wrappedTokenizer.tokenize(context: customContextPointer, flags: flags, pText: pText, nText: nText) { (customContextPointer, flags, pToken, nToken, iStart, iEnd) in
+            return wrappedTokenizer.tokenize(context: customContextPointer, tokenization: tokenization, pText: pText, nText: nText) { (customContextPointer, flags, pToken, nToken, iStart, iEnd) in
                 // Extract context
                 let customContext = customContextPointer!.assumingMemoryBound(to: CustomContext.self).pointee
                 
@@ -140,11 +140,11 @@ private final class SynonymsTokenizer : FTS5CustomTokenizer {
         // TODO: test that deinit is called
     }
 
-    func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizationFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
+    func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
         // Don't look for synonyms when tokenizing queries, as advised by
         // https://www.sqlite.org/fts5.html#synonym_support
-        if flags.contains(.query) {
-            return wrappedTokenizer.tokenize(context: context, flags: flags, pText: pText, nText: nText, tokenCallback: tokenCallback)
+        if tokenization.contains(.query) {
+            return wrappedTokenizer.tokenize(context: context, tokenization: tokenization, pText: pText, nText: nText, tokenCallback: tokenCallback)
         }
         
         // The way we implement synonyms support is by letting wrappedTokenizer
@@ -161,7 +161,7 @@ private final class SynonymsTokenizer : FTS5CustomTokenizer {
 
         return withUnsafeMutablePointer(to: &customContext) { customContextPointer in
             // Invoke wrappedTokenizer, but intercept raw tokens
-            return wrappedTokenizer.tokenize(context: customContextPointer, flags: flags, pText: pText, nText: nText) { (customContextPointer, flags, pToken, nToken, iStart, iEnd) in
+            return wrappedTokenizer.tokenize(context: customContextPointer, tokenization: tokenization, pText: pText, nText: nText) { (customContextPointer, flags, pToken, nToken, iStart, iEnd) in
                 // Extract context
                 let customContext = customContextPointer!.assumingMemoryBound(to: CustomContext.self).pointee
                 

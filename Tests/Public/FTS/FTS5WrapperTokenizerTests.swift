@@ -25,11 +25,7 @@ private final class StopWordsTokenizer : FTS5WrapperTokenizer {
         return token == "bar"
     }
     
-    func customizesTokenization(flags: FTS5TokenizationFlags) -> Bool {
-        return true
-    }
-    
-    func accept(token: String, flags: FTS5TokenFlags, tokenCallback: FTS5WrapperTokenCallback) throws {
+    func accept(token: String, flags: FTS5TokenFlags, forTokenization tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
         // Notify token unless ignored
         if !ignores(token){
             try tokenCallback(token, flags)
@@ -50,11 +46,7 @@ private final class NFKCTokenizer : FTS5WrapperTokenizer {
         }
     }
     
-    func customizesTokenization(flags: FTS5TokenizationFlags) -> Bool {
-        return true
-    }
-    
-    func accept(token: String, flags: FTS5TokenFlags, tokenCallback: FTS5WrapperTokenCallback) throws {
+    func accept(token: String, flags: FTS5TokenFlags, forTokenization tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
         // Convert token to NFKC
         try tokenCallback(token.precomposedStringWithCompatibilityMapping, flags)
     }
@@ -64,6 +56,7 @@ private final class NFKCTokenizer : FTS5WrapperTokenizer {
 private final class SynonymsTokenizer : FTS5WrapperTokenizer {
     static let name = "synonyms"
     let wrappedTokenizer: FTS5Tokenizer
+    let synonyms: [Set<String>] = [["first", "1st"]]
     
     init(db: Database, arguments: [String]) throws {
         if arguments.isEmpty {
@@ -74,28 +67,29 @@ private final class SynonymsTokenizer : FTS5WrapperTokenizer {
     }
     
     func synonyms(for token: String) -> Set<String>? {
-        let synonyms: [Set<String>] = [["first", "1st"]]
         return synonyms.first(where: { $0.contains(token) })
     }
     
-    func customizesTokenization(flags: FTS5TokenizationFlags) -> Bool {
-        // Don't look for synonyms when tokenizing queries, as advised by
-        // https://www.sqlite.org/fts5.html#synonym_support
-        return !flags.contains(.query)
-    }
-    
-    func accept(token: String, flags: FTS5TokenFlags, tokenCallback: FTS5WrapperTokenCallback) throws {
-        if let synonyms = synonyms(for: token) {
-            for (index, synonym) in synonyms.enumerated() {
-                // Notify each synonym, and set the colocated flag for all but
-                // the first, as documented by
-                // https://www.sqlite.org/fts5.html#synonym_support
-                let synonymFlags = (index == 0) ? flags : flags.union(.colocated)
-                try tokenCallback(synonym, synonymFlags)
-            }
-        } else {
+    func accept(token: String, flags: FTS5TokenFlags, forTokenization tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
+        guard !tokenization.contains(.query) else {
+            // Don't look for synonyms when tokenizing queries, as advised by
+            // https://www.sqlite.org/fts5.html#synonym_support
+            try tokenCallback(token, flags)
+            return
+        }
+        
+        guard let synonyms = synonyms(for: token) else {
             // Token has no synonym
             try tokenCallback(token, flags)
+            return
+        }
+        
+        for (index, synonym) in synonyms.enumerated() {
+            // Notify each synonym, and set the colocated flag for all but
+            // the first, as documented by
+            // https://www.sqlite.org/fts5.html#synonym_support
+            let synonymFlags = (index == 0) ? flags : flags.union(.colocated)
+            try tokenCallback(synonym, synonymFlags)
         }
     }
 }

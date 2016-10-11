@@ -4,10 +4,10 @@
     /// See FTS5Tokenizer.tokenize(context:flags:pText:nText:tokenCallback:)
     public typealias FTS5TokenCallback = @convention(c) (_ context: UnsafeMutableRawPointer?, _ flags: Int32, _ pToken: UnsafePointer<Int8>?, _ nToken: Int32, _ iStart: Int32, _ iEnd: Int32) -> Int32
     
-    /// Flags that indicate the reason why FTS5 is requesting tokenization.
+    /// The reason why FTS5 is requesting tokenization.
     ///
     /// See https://www.sqlite.org/fts5.html#custom_tokenizers
-    public struct FTS5TokenizationFlags : OptionSet {
+    public struct FTS5Tokenization : OptionSet {
         public let rawValue: Int32
         
         public init(rawValue: Int32) {
@@ -15,16 +15,16 @@
         }
         
         /// FTS5_TOKENIZE_QUERY
-        public static let query = FTS5TokenizationFlags(rawValue: FTS5_TOKENIZE_QUERY)
+        public static let query = FTS5Tokenization(rawValue: FTS5_TOKENIZE_QUERY)
         
         /// FTS5_TOKENIZE_PREFIX
-        public static let prefix = FTS5TokenizationFlags(rawValue: FTS5_TOKENIZE_PREFIX)
+        public static let prefix = FTS5Tokenization(rawValue: FTS5_TOKENIZE_PREFIX)
         
         /// FTS5_TOKENIZE_DOCUMENT
-        public static let document = FTS5TokenizationFlags(rawValue: FTS5_TOKENIZE_DOCUMENT)
+        public static let document = FTS5Tokenization(rawValue: FTS5_TOKENIZE_DOCUMENT)
         
         /// FTS5_TOKENIZE_AUX
-        public static let aux = FTS5TokenizationFlags(rawValue: FTS5_TOKENIZE_AUX)
+        public static let aux = FTS5Tokenization(rawValue: FTS5_TOKENIZE_AUX)
     }
     
     /// The protocol for FTS5 tokenizers
@@ -37,14 +37,13 @@
         /// - parameters:
         ///     - context: An opaque pointer that is the first argument to
         ///       the `tokenCallback` function
-        ///     - flags: Flags that indicate the reason why FTS5 is
-        ///       requesting tokenization.
+        ///     - tokenization: The reason why FTS5 is requesting tokenization.
         ///     - pText: The tokenized text bytes. May or may not be
         ///       nul-terminated.
         ///     - nText: The number of bytes in the tokenized text.
         ///     - tokenCallback: The function to call for each found token.
         ///       It matches the `xToken` callback at https://www.sqlite.org/fts5.html#custom_tokenizers
-        func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizationFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32
+        func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32
     }
     
     extension FTS5Tokenizer {
@@ -52,14 +51,14 @@
         /// Returns an array of tokens found in the string argument.
         ///
         ///     let tokenizer = try db.makeTokenizer(.ascii())
-        ///     try tokenizer.tokenize("foo bar", flags: .document) // ["foo", "bar"]
+        ///     try tokenizer.tokenize("foo bar", for: .document) // ["foo", "bar"]
         ///
         /// - parameter string: The string to tokenize
-        /// - parameter flags: Tokenization flags
+        /// - parameter tokenization: The reason why tokenization is requested:
         ///     - .document: Tokenize like a document being inserted into an FTS table.
         ///     - .query: Tokenize like the search pattern of the MATCH operator.
         /// - parameter tokenizer: A FTS5TokenizerDescriptor such as .ascii()
-        public func tokenize(_ string: String, flags: FTS5TokenizationFlags) throws -> [String] {
+        public func tokenize(_ string: String, for tokenization: FTS5Tokenization) throws -> [String] {
             return try ContiguousArray(string.utf8).withUnsafeBufferPointer { buffer -> [String] in
                 guard let addr = buffer.baseAddress else {
                     return []
@@ -69,7 +68,7 @@
                 
                 var context = TokenizeContext()
                 try withUnsafeMutablePointer(to: &context) { contextPointer in
-                    let code = tokenize(context: UnsafeMutableRawPointer(contextPointer), flags: flags, pText: pText, nText: nText, tokenCallback: { (contextPointer, flags, pToken, nToken, iStart, iEnd) -> Int32 in
+                    let code = tokenize(context: UnsafeMutableRawPointer(contextPointer), tokenization: tokenization, pText: pText, nText: nText, tokenCallback: { (contextPointer, flags, pToken, nToken, iStart, iEnd) -> Int32 in
                         guard let contextPointer = contextPointer else { return SQLITE_ERROR }
                         
                         // Extract token
@@ -150,11 +149,11 @@
                 }
             }
             
-            func tokenize(context: UnsafeMutableRawPointer?, flags: FTS5TokenizationFlags, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
+            func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32 {
                 guard let xTokenize = xTokenizer.xTokenize else {
                     return SQLITE_ERROR
                 }
-                return xTokenize(tokenizerPointer, context, flags.rawValue, pText, nText, tokenCallback)
+                return xTokenize(tokenizerPointer, context, tokenization.rawValue, pText, nText, tokenCallback)
             }
         }
         

@@ -13,7 +13,7 @@
         ///
         /// - parameter string: The string to turn into an FTS5 pattern
         public init?(matchingAnyTokenIn string: String) {
-            guard let tokens = try? DatabaseQueue().inDatabase({ db in try db.makeTokenizer(.ascii()).tokenize(string, flags: .query) }) else { return nil }
+            guard let tokens = try? DatabaseQueue().inDatabase({ db in try db.makeTokenizer(.ascii()).tokenize(string, for: .query) }) else { return nil }
             guard !tokens.isEmpty else { return nil }
             try? self.init(rawPattern: tokens.joined(separator: " OR "))
         }
@@ -26,7 +26,7 @@
         ///
         /// - parameter string: The string to turn into an FTS5 pattern
         public init?(matchingAllTokensIn string: String) {
-            guard let tokens = try? DatabaseQueue().inDatabase({ db in try db.makeTokenizer(.ascii()).tokenize(string, flags: .query) }) else { return nil }
+            guard let tokens = try? DatabaseQueue().inDatabase({ db in try db.makeTokenizer(.ascii()).tokenize(string, for: .query) }) else { return nil }
             guard !tokens.isEmpty else { return nil }
             try? self.init(rawPattern: tokens.joined(separator: " "))
         }
@@ -39,7 +39,7 @@
         ///
         /// - parameter string: The string to turn into an FTS5 pattern
         public init?(matchingPhrase string: String) {
-            guard let tokens = try? DatabaseQueue().inDatabase({ db in try db.makeTokenizer(.ascii()).tokenize(string, flags: .query) }) else { return nil }
+            guard let tokens = try? DatabaseQueue().inDatabase({ db in try db.makeTokenizer(.ascii()).tokenize(string, for: .query) }) else { return nil }
             guard !tokens.isEmpty else { return nil }
             try? self.init(rawPattern: "\"" + tokens.joined(separator: " ") + "\"")
         }
