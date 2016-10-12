@@ -46,7 +46,7 @@ However, none of those built-in tokenizers will match "first" with "1st", becaus
 
 Nor will they match "Grossmann" with "Großmann", because those strings make them all produce the different "grossmann" and "großmann" tokens.
 
-Custom tokenizers help dealing with these situations. We'll see how to tokenize both "Grossmann" and "Großmann" into "grossmann", so that they can match (see [Example: Latin Script](#example-latin-script)). We'll also see how to have "first" and "1st" emit *synonym tokens*, so that they can match, too (see [Example: Stop Words](#example-stop-words)).
+Custom tokenizers help dealing with these situations. We'll see how to tokenize both "Grossmann" and "Großmann" into "grossmann", so that they can match (see [Example: Latin Script](#example-latin-script)). We'll also see how to have "first" and "1st" emit *synonym tokens*, so that they can match, too (see [Example: Synonyms](#example-synonyms)).
 
 
 ## The Tokenizer Protocols
