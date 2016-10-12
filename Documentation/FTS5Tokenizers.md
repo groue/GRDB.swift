@@ -238,7 +238,7 @@ There are a two rules to observe when implementing the accept method:
 
 ### Choosing the Wrapped Tokenizer
 
-The wrapped tokenizer can be hard-coded, or provided through arguments.
+The wrapped tokenizer can be hard-coded, or chosen at runtime.
 
 For example, your custom tokenizer can wrap [unicode61](https://www.sqlite.org/fts5.html#unicode61_tokenizer), unless arguments say otherwise (in a fashion similar to the [porter](https://www.sqlite.org/fts5.html#porter_tokenizer) tokenizer):
 
