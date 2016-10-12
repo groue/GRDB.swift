@@ -99,7 +99,12 @@ It only requires a tokenization method that matches the low-level `xTokenize` C 
 
 ```swift
 protocol FTS5Tokenizer : class {
-    func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: FTS5TokenCallback?) -> Int32
+    func tokenize(
+        context: UnsafeMutableRawPointer?,
+        tokenization: FTS5Tokenization,
+        pText: UnsafePointer<Int8>?,
+        nText: Int32,
+        tokenCallback: FTS5TokenCallback?) -> Int32
 }
 ```
 
