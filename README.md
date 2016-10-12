@@ -3284,7 +3284,7 @@ let books = Book.matching(pattern).fetchAll(db)
     
 - **Full-Text Records**
     
-    You can define [record](#records) types around the full-text virtual tables. Since these tables don't have any explicit primary key, you'll need an [extra setup](#the-implicit-rowid-primary-key).
+    You can define [record](#records) types around the full-text virtual tables. Since these tables don't have any explicit primary key, you'll need an [extra setup](#the-implicit-rowid-primary-key) in order to expose the hidden "rowid" column.
     
 - **[Unicode Full-Text Gotchas](#unicode-full-text-gotchas)**
     
