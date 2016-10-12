@@ -27,17 +27,15 @@ GRDB lets you define your own custom FST5 tokenizers, and extend SQLite built-in
 
 ## Tokenizers and Full-Text Search
 
-**A Tokenizer splits text into tokens**. For example, a tokenizer will split "SQLite is a database engine" into the five tokens "SQLite", "is", "a", "database", and "engine".
+**A Tokenizer splits text into tokens**. For example, a tokenizer can split "SQLite is a database engine" into the five tokens "SQLite", "is", "a", "database", and "engine".
 
 FTS5 use tokenizers to tokenize both indexed documents and search patterns. **A match between a document and a search pattern happens when both produce *identical* tokens.**
 
-For example, the "SQLite database" query matches the document "SQLite is a database engine" because the tokens "SQLite" and "database" match. However, "sqlite database" will not match: "SQLite" and "sqlite" are not identical.
-
-Fortunately, SQLite [built-in tokenizers](https://www.sqlite.org/fts5.html#tokenizers) are not that bad. They produce tokens that match more easily:
+All SQLite [built-in tokenizers](https://www.sqlite.org/fts5.html#tokenizers) tokenize both "SQLite" and "sqlite" into the common lowercase token "sqlite". This is why they are case-insensitive. Generally speaking, different tokenizers achieve different matching by applying different transformations to the input text.
 
 - The [ascii](https://www.sqlite.org/fts5.html#ascii_tokenizer) tokenizer turns all ASCII characters to lowercase. "SQLite is a database engine" gives "sqlite", "is", "a", "database", and "engine". The query "SQLITE DATABASE" will match, because its tokens "sqlite" and "database" are found in the document.
 
-- The [unicode61](https://www.sqlite.org/fts5.html#unicode61_tokenizer) tokenizer remove diacritics from latin characters. Unlike the ascii tokenizer, it will match "Jérôme" with "Jerome", as both produce the identical "jerome" token.
+- The [unicode61](https://www.sqlite.org/fts5.html#unicode61_tokenizer) tokenizer remove diacritics from latin characters. Unlike the ascii tokenizer, it will match "Jérôme" with "Jerome", as both produce the same "jerome" token.
 
 - The [porter](https://www.sqlite.org/fts5.html#porter_tokenizer) tokenizer turns English words into their root: "database engine" gives the "databas" and "engin" tokens. The query "database engines" will match, because it produces the same tokens.
 
