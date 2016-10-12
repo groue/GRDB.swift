@@ -199,7 +199,7 @@ final class MyTokenizer : FTS5WrapperTokenizer {
 }
 ```
 
-The `wrappedTokenizer` property is the wrapped tokenizer. You instantiate it in the initializer:
+The `wrappedTokenizer` property is the mandatory wrapped tokenizer. You instantiate it once, in the initializer:
 
 ```swift
 final class MyTokenizer : FTS5WrapperTokenizer {
