@@ -174,7 +174,7 @@ protocol FTS5WrapperTokenizer : FTS5CustomTokenizer {
     func accept(
         token: String,
         flags: FTS5TokenFlags,
-        forTokenization tokenization: FTS5Tokenization,
+        for tokenization: FTS5Tokenization,
         tokenCallback: FTS5WrapperTokenCallback) throws
 }
 ```
@@ -200,7 +200,7 @@ final class MyTokenizer : FTS5WrapperTokenizer {
 }
 ```
 
-Wrapper tokenizers have to implement the `accept(token:flags:forTokenization:tokenCallback:)` method.
+Wrapper tokenizers have to implement the `accept(token:flags:for:tokenCallback:)` method.
 
 The token argument is a token produced by the wrapped tokenizer, ready to be ignored, modified, or multiplied into several [synonyms](#example-synonyms).
 
@@ -217,7 +217,7 @@ For example, a custom tokenizer that simply passes tokens through gives:
 
 ```swift
 final class MyTokenizer : FTS5WrapperTokenizer {
-    func accept(token: String, flags: FTS5TokenFlags, forTokenization tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
+    func accept(token: String, flags: FTS5TokenFlags, for tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
         // pass through
         try tokenCallback(token, flags)
     }
@@ -298,7 +298,7 @@ private final class SynonymsTokenizer : FTS5WrapperTokenizer {
         return synonyms.first(where: { $0.contains(token) })
     }
     
-    func accept(token: String, flags: FTS5TokenFlags, forTokenization tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
+    func accept(token: String, flags: FTS5TokenFlags, for tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
         if tokenization.contains(.query) {
             // Don't look for synonyms when tokenizing queries
             try tokenCallback(token, flags)
@@ -345,7 +345,7 @@ private final class LatinAsciiTokenizer : FTS5WrapperTokenizer {
         wrappedTokenizer = try db.makeTokenizer(.unicode61())
     }
     
-    func accept(token: String, flags: FTS5TokenFlags, forTokenization tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
+    func accept(token: String, flags: FTS5TokenFlags, for tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
         if let token = token.applyingTransform(StringTransform("Latin-ASCII; Lower"), reverse: false) {
             try tokenCallback(token, flags)
         }

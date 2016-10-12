@@ -25,7 +25,7 @@ private final class StopWordsTokenizer : FTS5WrapperTokenizer {
         return token == "bar"
     }
     
-    func accept(token: String, flags: FTS5TokenFlags, forTokenization tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
+    func accept(token: String, flags: FTS5TokenFlags, for tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
         // Notify token unless ignored
         if !ignores(token){
             try tokenCallback(token, flags)
@@ -42,7 +42,7 @@ private final class LatinAsciiTokenizer : FTS5WrapperTokenizer {
         wrappedTokenizer = try db.makeTokenizer(.unicode61())
     }
     
-    func accept(token: String, flags: FTS5TokenFlags, forTokenization tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
+    func accept(token: String, flags: FTS5TokenFlags, for tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
         // Convert token to Latin-ASCII and lowercase
         if #available(iOS 9.0, OSX 10.11, *) {
             if let token = token.applyingTransform(StringTransform("Latin-ASCII; Lower"), reverse: false) {
@@ -75,7 +75,7 @@ private final class SynonymsTokenizer : FTS5WrapperTokenizer {
         return synonyms.first(where: { $0.contains(token) })
     }
     
-    func accept(token: String, flags: FTS5TokenFlags, forTokenization tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
+    func accept(token: String, flags: FTS5TokenFlags, for tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
         if tokenization.contains(.query) {
             // Don't look for synonyms when tokenizing queries, as advised by
             // https://www.sqlite.org/fts5.html#synonym_support

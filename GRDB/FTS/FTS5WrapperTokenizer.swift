@@ -36,7 +36,7 @@
     ///             wrappedTokenizer = try db.makeTokenizer(.ascii())
     ///         }
     ///
-    ///         func accept(token: String, flags: FTS5TokenFlags, forTokenization tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
+    ///         func accept(token: String, flags: FTS5TokenFlags, for tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
     ///             try tokenCallback(token, flags)
     ///         }
     ///     }
@@ -49,7 +49,7 @@
         ///
         /// For example:
         ///
-        ///     func accept(token: String, flags: FTS5TokenFlags, forTokenization tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
+        ///     func accept(token: String, flags: FTS5TokenFlags, for tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
         ///         // pass through:
         ///         try tokenCallback(token, flags)
         ///     }
@@ -69,7 +69,7 @@
         ///     - flags: Flags that tell SQLite how to register a token.
         ///     - tokenization: The reason why FTS5 is requesting tokenization.
         ///     - tokenCallback: The function to call for each customized token.
-        func accept(token: String, flags: FTS5TokenFlags, forTokenization tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws
+        func accept(token: String, flags: FTS5TokenFlags, for tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws
     }
     
     private struct FTS5WrapperContext {
@@ -110,7 +110,7 @@
                         try tokenizer.accept(
                             token: token,
                             flags: FTS5TokenFlags(rawValue: tokenFlags),
-                            forTokenization: tokenization,
+                            for: tokenization,
                             tokenCallback: { (token, flags) in
                                 // Turn token into bytes
                                 return try ContiguousArray(token.utf8).withUnsafeBufferPointer { buffer in
