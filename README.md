@@ -3290,7 +3290,7 @@ let books = Book.matching(pattern).fetchAll(db)
     
     Unicorns don't exist.
 
-- **[Custom FTS5 Tokenizers](Documentation/FTS5Tokenizers.md)**
+- **Custom Tokenizers**: [FTS5](Documentation/FTS5Tokenizers.md)
     
     Custom tokenizers give extra full-text features such as synonyms, stop words, and avoid some [unicode gotchas](#unicode-full-text-gotchas).
 
