@@ -3217,6 +3217,7 @@ Generally speaking, FTS5 is better than FTS4 which improves on FTS3. But this do
     | **Snippets** (display a few words around a match)                          |  X   |  X   |  X   |
     
     ¹ Requires extra setup, possibly hard to implement.
+    
     ² Requires a [custom tokenizer](Documentation/FTS5Tokenizers.md).
     
     For a full feature list, read the SQLite documentation. Some missing features can be achieved with extra application code.
