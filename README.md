@@ -3634,7 +3634,7 @@ try db.create(virtualTable: "books", using: FTS5()) { t in
     
     It strips diacritics from latin script characters if it wraps unicode61, and does not if it wraps ascii (see the example above).
 
-See [SQLite tokenizers](https://www.sqlite.org/fts5.html#tokenizers) for more information.
+See [SQLite tokenizers](https://www.sqlite.org/fts5.html#tokenizers) for more information, and [custom FTS5 tokenizers](Documentation/FTS5Tokenizers.md) in order to add your own tokenizers.
 
 
 ### FTS5Pattern
