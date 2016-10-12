@@ -339,7 +339,7 @@ Custom FTS5 tokenizers let you provide fuzzy latin matching: we'll wrap the buil
 
 After "Grossmann", "Großmann", and "GROSSMANN" have all been turned into "grossmann", they match much more easily, don't they?
 
-This transformation is provided by the [String.applyingFunction](https://developer.apple.com/reference/swift/string/1643133-applyingtransform) (before iOS 9.0 and macOS 10.11, you will need [CFStringTransform](https://developer.apple.com/reference/corefoundation/1542411-cfstringtransform) instead). The custom tokenizer adopts the high-level [FTS5WrapperTokenizer](#fts5wrappertokenizer) protocol:
+This transformation is provided by the [String.applyingTransform](https://developer.apple.com/reference/swift/string/1643133-applyingtransform). The custom tokenizer adopts the [FTS5WrapperTokenizer](#fts5wrappertokenizer) protocol in order to post-process the tokens produced by unicode61:
 
 ```swift
 private final class LatinAsciiTokenizer : FTS5WrapperTokenizer {
@@ -357,6 +357,8 @@ private final class LatinAsciiTokenizer : FTS5WrapperTokenizer {
     }
 }
 ```
+
+> :point_up: **Note**: String.applyingTransform is not available before iOS 9.0 and macOS 10.11. Use the Core Foundation function [CFStringTransform](https://developer.apple.com/reference/corefoundation/1542411-cfstringtransform) instead.
 
 Remember to register LatinAsciiTokenizer before using it:
 
