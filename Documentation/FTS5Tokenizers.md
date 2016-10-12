@@ -30,7 +30,7 @@ GRDB lets you define your own custom FST5 tokenizers, and extend SQLite built-in
 
 **A Tokenizer splits text into tokens**. For example, a tokenizer will split "SQLite is a database engine" into the five tokens "SQLite", "is", "a", "database", and "engine".
 
-FTS5 use tokenizers to tokenize both indexed documents and search patterns. A match between a document and a search pattern happens when both produce **identical** tokens.
+FTS5 use tokenizers to tokenize both indexed documents and search patterns. **A match between a document and a search pattern happens when both produce *identical* tokens.**
 
 For example, the "SQLite database" query matches the document "SQLite is a database engine" because the tokens "SQLite" and "database" match. However, "sqlite database" will not match: "SQLite" and "sqlite" are not identical.
 
