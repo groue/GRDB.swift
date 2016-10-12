@@ -38,7 +38,7 @@ Fortunately, SQLite [built-in tokenizers](https://www.sqlite.org/fts5.html#token
 
 - The [ascii](https://www.sqlite.org/fts5.html#ascii_tokenizer) tokenizer turns all ASCII characters to lowercase. "SQLite is a database engine" gives "sqlite", "is", "a", "database", and "engine". The query "SQLITE DATABASE" will match, because its tokens "sqlite" and "database" are found in the document.
 
-- The [unicode61](https://www.sqlite.org/fts5.html#unicode61_tokenizer) tokenizer remove diacritics from latin characters: it will match "Jérôme" with "Jerome", as both produce the identical "jerome" token.
+- The [unicode61](https://www.sqlite.org/fts5.html#unicode61_tokenizer) tokenizer remove diacritics from latin characters. Unlike the ascii tokenizer, it will match "Jérôme" with "Jerome", as both produce the identical "jerome" token.
 
 - The [porter](https://www.sqlite.org/fts5.html#porter_tokenizer) tokenizer turns English words into their root: "database engine" gives the "databas" and "engin" tokens. The query "database engines" will match, because it produces the same tokens.
 
