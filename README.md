@@ -3292,7 +3292,7 @@ let books = Book.matching(pattern).fetchAll(db)
 
 - **[Custom FTS5 Tokenizers](Documentation/FTS5Tokenizers.md)**
     
-    Custom tokenizers give extra full-text features such as synonyms, stop words, and avoid some [unicode gotchas]((#unicode-full-text-gotchas).
+    Custom tokenizers give extra full-text features such as synonyms, stop words, and avoid some [unicode gotchas](#unicode-full-text-gotchas).
 
 
 ### Create FTS3 and FTS4 Virtual Tables
