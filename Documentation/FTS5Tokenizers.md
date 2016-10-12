@@ -238,7 +238,7 @@ Finally, the tokenCallback is a function you call to output a custom token.
 
 There are a two rules to observe when implementing the accept method:
 
-1. Errors thrown by the tokenCallback function must not be caught.
+1. Errors thrown by the tokenCallback function must not be caught (they notify that FTS5 requires the tokenization process to stop immediately).
 2. The flags parameter should be given unmodified to the tokenCallback function along with the custom token, unless you union it with the `.colocated` flag when the tokenizer produces [synonyms](#example-synonyms).
 
 
