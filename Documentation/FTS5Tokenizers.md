@@ -51,7 +51,7 @@ Custom tokenizers help dealing with these situations. We'll see how to match "Gr
 
 ## The Tokenizer Protocols
 
-- [FTS5Tokenizer](#fts5tokenizer): the protocol for all FTS5 tokenizers, including the [built-in tokenizers](https://www.sqlite.org/fts5.html#tokenizers) `ascii`, `unicode61`, and `porter`.
+- [FTS5Tokenizer](#fts5tokenizer): the protocol for all FTS5 tokenizers, including the [built-in tokenizers](https://www.sqlite.org/fts5.html#tokenizers) ascii, unicode61, and porter.
     
     - [FTS5CustomTokenizer](#fts5customtokenizer): the low-level protocol that grants custom tokenizers access to the raw [FTS5 C API](https://www.sqlite.org/fts5.html#custom_tokenizers).
     
@@ -94,7 +94,7 @@ let documents = Document.matching(pattern).fetchAll(db)
 
 **FST5Tokenizer** is the protocol for all FTS5 tokenizers.
 
-It only requires a tokenization method that matches the `xTokenize` C function documented at https://www.sqlite.org/fts5.html#custom_tokenizers. We'll discuss it more when describing custom tokenizers.
+It only requires a tokenization method that matches the low-level `xTokenize` C function documented at https://www.sqlite.org/fts5.html#custom_tokenizers. We'll discuss it more when describing custom tokenizers.
 
 ```swift
 protocol FTS5Tokenizer : class {
@@ -105,7 +105,7 @@ protocol FTS5Tokenizer : class {
 You can instantiate tokenizers, including [built-in tokenizers](https://www.sqlite.org/fts5.html#tokenizers), with the `Database.makeTokenizer()` method:
 
 ```swift
-let ascii = try db.makeTokenizer(.ascii()) // FTS5Tokenizer
+let ascii = try db.makeTokenizer(.unicode61()) // FTS5Tokenizer
 ```
 
 
@@ -143,7 +143,7 @@ try db.create(virtualTable: "documents", using: FTS5()) { t in
 }
 ```
 
-FTS5CustomTokenizer inherits from [FTS5Tokenizer](#fts5tokenizer), and performs tokenization with its `tokenize(context:tokenization:pText:nText:tokenCallback:)` method. This low-level method matches the `xTokenize` function documented at https://www.sqlite.org/fts5.html#custom_tokenizers.
+FTS5CustomTokenizer inherits from [FTS5Tokenizer](#fts5tokenizer), and performs tokenization with its `tokenize(context:tokenization:pText:nText:tokenCallback:)` method. This low-level method matches the `xTokenize` C function documented at https://www.sqlite.org/fts5.html#custom_tokenizers.
 
 This method arguments are:
 
@@ -164,9 +164,9 @@ Since tokenization is hard, and pointers to bytes buffers uneasy to deal with, y
 
 ## FTS5WrapperTokenizer
 
-**FTS5WrapperTokenizer** is the high-level protocol for your custom tokenizers.
+**FTS5WrapperTokenizer** is the high-level protocol for your custom tokenizers. It provides a default implementation for the low-level `tokenize(context:tokenization:pText:nText:tokenCallback:)` method, so that the adopting type does not have to deal with raw bytes buffers of the raw [FTS5 C API](https://www.sqlite.org/fts5.html#custom_tokenizers).
 
-With this protocol, a custom tokenizer post-processes the tokens produced by another tokenizer, the "wrapped tokenizer", and does not have to implement the dreadful low-level `tokenize(context:tokenization:pText:nText:tokenCallback:)` method.
+A FTS5WrapperTokenizer lets the hard tokenization job to another tokenizer, the "wrapped tokenizer", and post-processes the tokens produced by this wrapped tokenizer.
 
 ```swift
 protocol FTS5WrapperTokenizer : FTS5CustomTokenizer {
