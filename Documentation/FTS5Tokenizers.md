@@ -23,7 +23,6 @@ GRDB lets you define your own custom FST5 tokenizers, and extend SQLite built-in
     - [Choosing the Wrapped Tokenizer](#choosing-the-wrapped-tokenizer)
 - [Example: Synonyms](#example-synonyms)
 - [Example: Latin Script](#example-latin-script)
-- [Example: Stop Words](#example-stop-words)
 
 
 ## Tokenizers and Full-Text Search
@@ -374,8 +373,3 @@ dbQueue.inDatabase { db in
     }
 }
 ```
-
-
-## Example: Stop Words
-
-TODO
