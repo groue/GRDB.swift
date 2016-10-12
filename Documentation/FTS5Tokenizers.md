@@ -202,7 +202,7 @@ final class MyTokenizer : FTS5WrapperTokenizer {
 
 Wrapper tokenizers have to implement the `accept(token:flags:for:tokenCallback:)` method.
 
-For example, a custom tokenizer that simply passes tokens through gives:
+For example, a tokenizer that simply passes tokens through gives:
 
 ```swift
 final class MyTokenizer : FTS5WrapperTokenizer {
