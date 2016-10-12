@@ -98,6 +98,14 @@ let documents = Document.matching(pattern).fetchAll(db)
 It only requires a tokenization method that matches the low-level `xTokenize` C function documented at https://www.sqlite.org/fts5.html#custom_tokenizers. We'll discuss it more when describing custom tokenizers.
 
 ```swift
+typealias FTS5TokenCallback = @convention(c) (
+    _ context: UnsafeMutableRawPointer?,
+    _ flags: Int32,
+    _ pToken: UnsafePointer<Int8>?,
+    _ nToken: Int32,
+    _ iStart: Int32,
+    _ iEnd: Int32) -> Int32
+
 protocol FTS5Tokenizer : class {
     func tokenize(
         context: UnsafeMutableRawPointer?,
