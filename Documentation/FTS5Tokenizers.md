@@ -40,7 +40,7 @@ Fortunately, SQLite [built-in tokenizers](https://www.sqlite.org/fts5.html#token
 
 - The [unicode61](https://www.sqlite.org/fts5.html#unicode61_tokenizer) tokenizer remove diacritics from latin characters: it will match "Jérôme" with "Jerome", as both produce the identical "jerome" token.
 
-- The [porter](https://www.sqlite.org/fts5.html#porter_tokenizer) tokenizer turns English words into their root: "SQLite is a database engine" gives "sqlite", "is", "a", "databas", and "engin". The query "database engines" will match, because its tokens "databas" and "engin" are found in the document.
+- The [porter](https://www.sqlite.org/fts5.html#porter_tokenizer) tokenizer turns English words into their root: "database engine" gives the "databas" and "engin" tokens. The query "database engines" will match, because it produces the same tokens.
 
 However, built-in tokenizers don't match "first" with "1st", because they produce the different "first" and "1st" tokens.
 
