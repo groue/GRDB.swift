@@ -42,11 +42,11 @@ Fortunately, SQLite [built-in tokenizers](https://www.sqlite.org/fts5.html#token
 
 - The [porter](https://www.sqlite.org/fts5.html#porter_tokenizer) tokenizer turns English words into their root: "SQLite is a database engine" gives "sqlite", "is", "a", "databas", and "engin". The query "database engines" will match, because its tokens "databas" and "engin" are found in the document.
 
-However, none of those built-in tokenizers will match "first" with "1st", because those strings make them all produce the different "first" and "1st" tokens.
+However, built-in tokenizers don't match "first" with "1st", because they produce the different "first" and "1st" tokens.
 
-Nor will they match "Grossmann" with "Großmann", because those strings make them all produce the different "grossmann" and "großmann" tokens.
+Nor do they match "Grossmann" with "Großmann", because they produce the different "grossmann" and "großmann" tokens.
 
-Custom tokenizers help dealing with these situations. We'll see how to tokenize both "Grossmann" and "Großmann" into "grossmann", so that they can match (see [Example: Latin Script](#example-latin-script)). We'll also see how to have "first" and "1st" emit *synonym tokens*, so that they can match, too (see [Example: Synonyms](#example-synonyms)).
+Custom tokenizers help dealing with these situations. We'll see how to match "Grossmann" and "Großmann" by tokenizing them into "grossmann" (see [latin script](#example-latin-script)). We'll also see how to have "first" and "1st" emit *synonym tokens*, so that they can match too (see [synonyms](#example-synonyms)).
 
 
 ## The Tokenizer Protocols
