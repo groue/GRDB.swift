@@ -54,7 +54,7 @@ GRDB lets you use and define FTS5 tokenizers through three protocols:
 
 - [FTS5Tokenizer](#fts5tokenizer): the protocol for all FTS5 tokenizers, including the [built-in tokenizers](https://www.sqlite.org/fts5.html#tokenizers) ascii, unicode61, and porter.
     
-    - [FTS5CustomTokenizer](#fts5customtokenizer): the low-level protocol that grants custom tokenizers access to the raw [FTS5 C API](https://www.sqlite.org/fts5.html#custom_tokenizers).
+    - [FTS5CustomTokenizer](#fts5customtokenizer): the low-level protocol that lets custom tokenizers use the raw [FTS5 C API](https://www.sqlite.org/fts5.html#custom_tokenizers).
     
         - [FTS5WrapperTokenizer](#fts5wrappertokenizer): the high-level protocol for custom tokenizers that post-processes the tokens produced by another FTS5Tokenizer.
 
