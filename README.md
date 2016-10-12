@@ -3208,15 +3208,16 @@ Generally speaking, FTS5 is better than FTS4 which improves on FTS3. But this do
     | **English Stemming and Ascii case insensitivity**                          |  X   |  X   |  X   |
     | **English Stemming and Unicode case insensitivity**                        |      |      |  X   |
     | **English Stemming and Latin diacritics insensitivity**                    |      |      |  X   |
-    | **Spell checking** (have "alamaba" match "alabama")                        |      |  ¹   |  ¹   |
-    | **Synonyms** (have "1st" match "first")                                    |  ¹   |  ¹   |  ¹   |
-    | **Pinyin and Romaji** (have "romaji" match "ローマ字")                         |      |      |      |
-    | **Stop words** (don't index, and don't match words like "and" and "the")   |      |      |      |
+    | **Synonyms** (have "1st" match "first")                                    |  ¹   |  ¹   | X ²  |
+    | **Pinyin and Romaji** (have "romaji" match "ローマ字")                         |  ¹   |  ¹   | X ²  |
+    | **Stop words** (don't index, and don't match words like "and" and "the")   |  ¹   |  ¹   | X ²  |
+    | **Spell checking** (have "alamaba" match "alabama")                        |  ¹   |  ¹   |  ¹   |
     | :bowtie: Other Features                                                    |      |      |      |
     | **Ranking** (sort results by relevance)                                    |  ¹   |  ¹   |  X   |
     | **Snippets** (display a few words around a match)                          |  X   |  X   |  X   |
     
-    ¹ Requires extra setup, possibly hard to implement (but at least SQLite documentation talks about it).
+    ¹ Requires extra setup, possibly hard to implement.
+    ² Requires a [custom tokenizer](Documentation/FTS5Tokenizers.md).
     
     For a full feature list, read the SQLite documentation. Some missing features can be achieved with extra application code.
     
@@ -3233,7 +3234,7 @@ Generally speaking, FTS5 is better than FTS4 which improves on FTS3. But this do
 
 ### GRDB Full-Text Support
 
-GRDB helps you creating FTS tables, converting user input into valid full-text queries, and query your tables with or without SQL:
+GRDB helps you creating FTS tables, converting user input into valid full-text queries, query your tables with or without SQL, and define [custom FTS5 tokenizers](Documentation/FTS5Tokenizers.md):
 
 ```swift
 // Create full-text tables
@@ -3287,6 +3288,10 @@ let books = Book.matching(pattern).fetchAll(db)
 - **[Unicode Full-Text Gotchas](#unicode-full-text-gotchas)**
     
     Unicorns don't exist.
+
+- **[Custom FTS5 Tokenizers](Documentation/FTS5Tokenizers.md)**
+    
+    Custom tokenizers give extra full-text features such as synonyms, stop words, and avoid some [unicode gotchas]((#unicode-full-text-gotchas).
 
 
 ### Create FTS3 and FTS4 Virtual Tables
@@ -3736,15 +3741,17 @@ For more information about the ranking algorithm, as well as extra options, read
 
 ### Unicode Full-Text Gotchas
 
-SQLite tokenizers for [FTS3, FTS4](#fts3tokenizer) and [FTS5](#fts5tokenizer) are generally unicode-aware, with a few caveats, and limitations.
+The SQLite built-in tokenizers for [FTS3, FTS4](#fts3tokenizer) and [FTS5](#fts5tokenizer) are generally unicode-aware, with a few caveats, and limitations.
 
 Generally speaking, matches may fail when content and query don't use the same [unicode normalization](http://unicode.org/reports/tr15/). SQLite actually exhibits inconsistent behavior in this regard.
 
-For example, for "aimé" to match "aimé", they better have the same normalization: the NFC "aim\u{00E9}" form may not match its NFD "aime\u{0301}" equivalent. Most strings that you get from Swift, UIKit and Cocoa use NFC, so be careful with NFD inputs (such as strings from the HFS+ file system, or strings that you can't trust like network inputs). Use [NSString.precomposedStringWithCanonicalMapping](https://developer.apple.com/reference/foundation/nsstring/1412645-precomposedstringwithcanonicalma) to turn a string into NFC.
+For example, for "aimé" to match "aimé", they better have the same normalization: the NFC "aim\u{00E9}" form may not match its NFD "aime\u{0301}" equivalent. Most strings that you get from Swift, UIKit and Cocoa use NFC, so be careful with NFD inputs (such as strings from the HFS+ file system, or strings that you can't trust like network inputs). Use [String.precomposedStringWithCanonicalMapping](https://developer.apple.com/reference/swift/string/1407210-precomposedstringwithcanonicalma) to turn a string into NFC.
 
-Besides, if you want "fi" to match the ligature "&#xfb01;" (U+FB01), then you need to normalize your indexed contents and inputs to NFKC or NFKD. Use [NSString.precomposedStringWithCompatibilityMapping](https://developer.apple.com/reference/foundation/nsstring/1412625-precomposedstringwithcompatibili) to turn a string into NFKC.
+Besides, if you want "fi" to match the ligature "&#xfb01;" (U+FB01), then you need to normalize your indexed contents and inputs to NFKC or NFKD. Use [String.precomposedStringWithCompatibilityMapping](https://developer.apple.com/reference/swift/string/1407834-precomposedstringwithcompatibili) to turn a string into NFKC.
 
-Unicode normalization is not the end of the story, because it won't help "Encyclopaedia" match "Encyclopædia", "Mueller", "Müller", "Grossmann", "Großmann", or "Diyarbakır", "DIYARBAKIR".
+Unicode normalization is not the end of the story, because it won't help "Encyclopaedia" match "Encyclopædia", "Mueller", "Müller", "Grossmann", "Großmann", or "Diyarbakır", "DIYARBAKIR". The [String.applyingTransform](https://developer.apple.com/reference/swift/string/1643133-applyingtransform) method can help.
+
+GRDB lets you write [custom FTS5 tokenizers](Documentation/FTS5Tokenizers.md) that can transparently deal with all these issues. For FTS3 and FTS4, you'll need to pre-process your strings before injecting them in the full-text engine.
 
 Happy indexing!
 
