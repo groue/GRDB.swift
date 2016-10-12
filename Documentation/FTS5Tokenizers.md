@@ -14,6 +14,7 @@ GRDB lets you define your own custom FST5 tokenizers, and extend SQLite built-in
 
 **Table of Contents**
 
+- [Tokenizers and Full-Text Search](#tokenizers-and-full-text-search)
 - [The Tokenizer Protocols](#the-tokenizer-protocols)
 - [Using a Custom Tokenizer](#using-a-custom-tokenizer)
 - [FTS5Tokenizer](#fts5tokenizer)
@@ -23,6 +24,29 @@ GRDB lets you define your own custom FST5 tokenizers, and extend SQLite built-in
 - [Example: Synonyms](#example-synonyms)
 - [Example: Latin Script](#example-latin-script)
 - [Example: Stop Words](#example-stop-words)
+
+
+## Tokenizers and Full-Text Search
+
+**A Tokenizer splits text into tokens**. For example, a tokenizer will split "SQLite is a database engine" into the five tokens "SQLite", "is", "a", "database", and "engine".
+
+FTS5 use tokenizers to tokenize both indexed documents and search patterns. A match between a document and a search pattern happens when both produce **identical** tokens.
+
+For example, the "SQLite database" query matches the document "SQLite is a database engine" because the tokens "SQLite" and "database" match. However, "sqlite database" will not match: "SQLite" and "sqlite" are not identical.
+
+Fortunately, SQLite [built-in tokenizers](https://www.sqlite.org/fts5.html#tokenizers) are not that bad. They produce tokens that match more easily:
+
+- The [ascii](https://www.sqlite.org/fts5.html#ascii_tokenizer) tokenizer turns all ASCII characters to lowercase. "SQLite is a database engine" gives "sqlite", "is", "a", "database", and "engine". The query "SQLITE DATABASE" will match, because its tokens "sqlite" and "database" are found in the document.
+
+- The [unicode61](https://www.sqlite.org/fts5.html#unicode61_tokenizer) tokenizer remove diacritics from latin characters: it will match "Jérôme" with "Jerome", as both produce the identical "jerome" token.
+
+- The [porter](https://www.sqlite.org/fts5.html#porter_tokenizer) tokenizer turns English words into their root: "SQLite is a database engine" gives "sqlite", "is", "a", "databas", and "engin". The query "database engines" will match, because its tokens "databas" and "engin" are found in the document.
+
+However, none of those built-in tokenizers will match "first" with "1st", because those strings make them all produce the different "first" and "1st" tokens.
+
+Nor will they match "Grossmann" with "Großmann", because those strings make them all produce the different "grossmann" and "großmann" tokens.
+
+Custom tokenizers help dealing with these situations. We'll see how to tokenize both "Grossmann" and "Großmann" into "grossmann", so that they can match (see [Example: Latin Script](#example-latin-script)). We'll also see how to have "first" and "1st" emit *synonym tokens*, so that they can match, too (see [Example: Stop Words](#example-stop-words)).
 
 
 ## The Tokenizer Protocols
