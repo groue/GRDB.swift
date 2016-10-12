@@ -171,12 +171,12 @@ This method arguments are:
     - `iStart`: Byte offset of token within input text
     - `iEnd`: Byte offset of end of token within input text
 
-Since tokenization is hard, and pointers to bytes buffers uneasy to deal with, you may enjoy the [FTS5WrapperTokenizer](#fts5wrappertokenizer) protocol.
+Since tokenization is hard, and pointers to byte buffers uneasy to deal with, you may enjoy the [FTS5WrapperTokenizer](#fts5wrappertokenizer) protocol.
 
 
 ## FTS5WrapperTokenizer
 
-**FTS5WrapperTokenizer** is the high-level protocol for your custom tokenizers. It provides a default implementation for the low-level `tokenize(context:tokenization:pText:nText:tokenCallback:)` method, so that the adopting type does not have to deal with raw bytes buffers of the raw [FTS5 C API](https://www.sqlite.org/fts5.html#custom_tokenizers).
+**FTS5WrapperTokenizer** is the high-level protocol for your custom tokenizers. It provides a default implementation for the low-level `tokenize(context:tokenization:pText:nText:tokenCallback:)` method, so that the adopting type does not have to deal with raw byte buffers of the raw [FTS5 C API](https://www.sqlite.org/fts5.html#custom_tokenizers).
 
 A FTS5WrapperTokenizer lets the hard tokenization job to another tokenizer, the "wrapped tokenizer", and post-processes the tokens produced by this wrapped tokenizer.
 
