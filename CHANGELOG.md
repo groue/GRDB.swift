@@ -1,11 +1,13 @@
 Release Notes
 =============
 
-## Next Version
+## 0.87.0
+
+Released October 12, 2016
 
 **New**
 
-- Support for custom full-text FTS5 tokenizers ([documentation](https://github.com/groue/GRDB.swift/tree/FTS#TODO))
+- Support for custom full-text FTS5 tokenizers ([documentation](https://github.com/groue/GRDB.swift/blob/master/Documentation/FTS5Tokenizers.md))
 
 **Breaking Changes**
 
@@ -19,11 +21,11 @@ Released October 8, 2016
 
 **New**
 
-- **Full-Text Search**. GRDB learned about FTS3, FTS4 and FTS5 full-text engines of SQLite ([documentation](https://github.com/groue/GRDB.swift/tree/FTS#full-text-search)).
+- **Full-Text Search**. GRDB learned about FTS3, FTS4 and FTS5 full-text engines of SQLite ([documentation](https://github.com/groue/GRDB.swift#full-text-search)).
 
 - **Improved support for the hidden "rowid" column**:
 
-    - `TableMapping.selectsRowID`: this optional static property allows records to fetch their hidden rowID column ([documentation](https://github.com/groue/GRDB.swift/tree/FTS#the-implicit-rowid-primary-key)):
+    - `TableMapping.selectsRowID`: this optional static property allows records to fetch their hidden rowID column ([documentation](https://github.com/groue/GRDB.swift#the-implicit-rowid-primary-key)):
     
         ```swift
         // SELECT *, rowid FROM books
@@ -51,7 +53,7 @@ Released September 28, 2016
 
 **New**
 
-- **Enhanced extensibility**. The low-level types that fuel the query interface [requests](https://github.com/groue/GRDB.swift/#requests) and [expressions](https://github.com/groue/GRDB.swift/#expressions) have been refactored, have lost their underscore prefix, and are stabilizing. A new [GRDB Extension Guide](Documentation/ExtendingGRDB.md) covers common extension use cases.
+- **Enhanced extensibility**. The low-level types that fuel the query interface [requests](https://github.com/groue/GRDB.swift/#requests) and [expressions](https://github.com/groue/GRDB.swift/#expressions) have been refactored, have lost their underscore prefix, and are stabilizing. A new [GRDB Extension Guide](https://github.com/groue/GRDB.swift/blob/master/Documentation/ExtendingGRDB.md) covers common extension use cases.
 
 - `TableMapping` protocol learned how to delete all records right from the adopting type:
     
