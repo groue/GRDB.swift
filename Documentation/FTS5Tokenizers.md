@@ -345,7 +345,7 @@ Languages that use the [latin script](https://en.wikipedia.org/wiki/Latin_script
 
 Full-text search in such a corpus often needs input tolerance, so that "encyclopaedia" can match "Encyclopædia", "Grossmann", "Großmann", and "Jerome", "Jérôme".
 
-German has something specific in that both "Mueller" and "Muller" should match "Müller", when "Baur" should not match "Bauer" (only "ü" accepts both "u" and "ue"). A pull request that adds a chapter about German will be welcome.
+German has something specific in that both "Mueller" and "Muller" should match "Müller", when "Bauer" should not match "Baur" (only "ü" accepts both "u" and "ue"). A pull request that adds a chapter about German will be welcome.
 
 Custom FTS5 tokenizers let you provide fuzzy latin matching: we'll wrap the built-in [unicode61](https://www.sqlite.org/fts5.html#unicode61_tokenizer) tokenizer (the one that knows how to split text on spaces and punctuations), and transform its tokens into their bare lowercase ascii form.
 
