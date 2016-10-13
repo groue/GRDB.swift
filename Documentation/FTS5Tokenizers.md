@@ -251,6 +251,7 @@ For example, your custom tokenizer can wrap [unicode61](https://www.sqlite.org/f
 ```swift
 final class MyTokenizer : FTS5WrapperTokenizer {
     static let name = "custom"
+    let wrappedTokenizer: FTS5Tokenizer
     
     init(db: Database, arguments: [String]) throws {
         if arguments.isEmpty {
