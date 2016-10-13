@@ -348,11 +348,11 @@ Full-text search in such a corpus often needs input tolerance, so that "encyclop
 
 German has something specific in that both "Mueller" and "Muller" should match "Müller", when "Bauer" should not match "Baur" (only "ü" accepts both "u" and "ue"). A pull request that adds a chapter about German will be welcome.
 
-Custom FTS5 tokenizers let you provide fuzzy latin matching: we'll wrap the built-in [unicode61](https://www.sqlite.org/fts5.html#unicode61_tokenizer) tokenizer (the one that knows how to split text on spaces and punctuations), and transform its tokens into their bare lowercase ascii form.
+A custom FTS5 tokenizer lets you provide fuzzy latin matching: after "Grossmann", "Großmann", and "GROSSMANN" have all been turned into "grossmann", they will all match together.
 
-After "Grossmann", "Großmann", and "GROSSMANN" have all been turned into "grossmann", they match much more easily, don't they?
+We'll wrap the built-in [unicode61](https://www.sqlite.org/fts5.html#unicode61_tokenizer) tokenizer (the one that knows how to split text on spaces and punctuations), and transform its tokens into their bare lowercase ascii form.
 
-This transformation is provided by the [String.applyingTransform](https://developer.apple.com/reference/swift/string/1643133-applyingtransform) method. The custom tokenizer adopts the [FTS5WrapperTokenizer](#fts5wrappertokenizer) protocol in order to post-process the tokens produced by unicode61:
+The tokenizer wrapping is provided by the [FTS5WrapperTokenizer](#fts5wrappertokenizer) protocol. The string transformation is provided by the [String.applyingTransform](https://developer.apple.com/reference/swift/string/1643133-applyingtransform) method:
 
 ```swift
 private final class LatinAsciiTokenizer : FTS5WrapperTokenizer {
