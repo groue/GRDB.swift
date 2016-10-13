@@ -303,7 +303,7 @@ We'll also take care of the SQLite advice:
 > When using methods (2) or (3), it is important that the tokenizer only provide synonyms when tokenizing document text or query text, not both. Doing so will not cause any errors, but is inefficient.
 
 ```swift
-private final class SynonymsTokenizer : FTS5WrapperTokenizer {
+final class SynonymsTokenizer : FTS5WrapperTokenizer {
     static let name = "synonyms"
     let wrappedTokenizer: FTS5Tokenizer
     let synonyms: [Set<String>] = [["first", "1st"]]
@@ -355,7 +355,7 @@ We'll wrap the built-in [unicode61](https://www.sqlite.org/fts5.html#unicode61_t
 The tokenizer wrapping is provided by the [FTS5WrapperTokenizer](#fts5wrappertokenizer) protocol. The string transformation is provided by the [String.applyingTransform](https://developer.apple.com/reference/swift/string/1643133-applyingtransform) method:
 
 ```swift
-private final class LatinAsciiTokenizer : FTS5WrapperTokenizer {
+final class LatinAsciiTokenizer : FTS5WrapperTokenizer {
     static let name = "latinascii"
     let wrappedTokenizer: FTS5Tokenizer
     
