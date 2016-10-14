@@ -55,6 +55,10 @@
                 arguments.append("content=\(content.sqlExpression.sql)")
             }
             
+            if let contentRowID = definition.contentRowID {
+                arguments.append("content_rowid=\(contentRowID.sqlExpression.sql)")
+            }
+            
             if let prefixes = definition.prefixes {
                 arguments.append("prefix=\(prefixes.map { "\($0)" }.joined(separator: " ").sqlExpression.sql)")
             }
@@ -114,6 +118,11 @@
         ///
         /// See https://www.sqlite.org/fts5.html#external_content_and_contentless_tables
         public var content: String?
+        
+        /// The FTS5 `content_rowid` option
+        ///
+        /// See https://sqlite.org/fts5.html#external_content_tables
+        public var contentRowID: String?
         
         /// Support for the FTS5 `prefix` option
         ///
