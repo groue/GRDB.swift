@@ -61,10 +61,7 @@
                             }
                         }
                     }
-                    try db.makeSelectStatement("SELECT * FROM documents WHERE documents MATCH ?")
-                        .fetchSequence(arguments: [rawPattern], element: { /* void (ignored) sequence element */ })
-                        .makeIterator()
-                        .step() // <- invokes sqlite3_step(), throws on invalid pattern
+                    try db.execute("SELECT * FROM documents WHERE documents MATCH ?", arguments: [rawPattern])
                 }
             } catch let error as DatabaseError {
                 // Remove private SQL & arguments from the thrown error
