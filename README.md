@@ -3197,20 +3197,20 @@ try db.create(virtualTable: "books", using: FTS4()) { t in // or FTS3(), or FTS5
     t.column("body")
 }
 
-// Populate full-text table with SQL or records
+// Populate full-text table with records or SQL
+try Book(...).insert(db)
 try db.execute(
     "INSERT INTO books (uuid, author, title, body) VALUES (?, ?, ?, ?)",
     arguments: [...])
-try Book(...).insert(db)
 
 // Build search patterns
 let pattern = FTS3Pattern(matchingPhrase: "Moby-Dick")
 
-// Search with SQL or the query interface
+// Search with the query interface or SQL
+let books = Book.matching(pattern).fetchAll(db)
 let books = Book.fetchAll(db,
     "SELECT * FROM books WHERE books MATCH ?",
     arguments: [pattern])
-let books = Book.matching(pattern).fetchAll(db)
 ```
 
 - [Choosing the Full-Text Engine](#choosing-the-full-text-engine)
