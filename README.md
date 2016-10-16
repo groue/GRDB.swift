@@ -3415,22 +3415,17 @@ See [SQLite tokenizers](https://www.sqlite.org/fts3.html#tokenizer) for more inf
 
 ### FTS3Pattern
 
-**Full-text search in FTS3 and FTS4 tables** is performed with the MATCH operator, which accepts a column on the left, and a *search pattern* on the right:
+**Full-text search in FTS3 and FTS4 tables is performed with search patterns:**
 
-```sql
--- All documents that contain "database"
-SELECT * FROM documents WHERE content MATCH 'database'
--- All documents that contain a word starting with "data"
-SELECT * FROM documents WHERE content MATCH 'data*'
--- All documents that contain both "sqlite" and "database"
-SELECT * FROM documents WHERE content MATCH 'sqlite database'
--- All documents that contain the "SQLite database" phrase:
-SELECT * FROM documents WHERE content MATCH '"SQLite database"'
-```
+- `database` matches all documents that contain "database"
+- `data*` matches all documents that contain a word starting with "data"
+- `SQLite database` matches all documents that contain both "SQLite" and "database"
+- `SQLite OR database` matches all documents that contain "SQLite" or "database"
+- `"SQLite database"` matches all documents that contain the "SQLite database" phrase
 
 **Not all search patterns are valid**: they must follow the [Full-Text Index Queries Grammar](https://www.sqlite.org/fts3.html#full_text_index_queries).
 
-GRDB provides the FTS3Pattern type which helps you building **valid patterns**:
+The FTS3Pattern type helps you validating patterns, and building valid patterns from untrusted strings (such as strings typed by users):
 
 ```swift
 struct FTS3Pattern {
@@ -3638,22 +3633,17 @@ See [SQLite tokenizers](https://www.sqlite.org/fts5.html#tokenizers) for more in
 
 ### FTS5Pattern
 
-**Full-text search in FTS5 tables** is performed with the MATCH operator, which accepts the name of a table on the left, and a *search pattern* on the right:
+**Full-text search in FTS5 tables is performed with search patterns:**
 
-```sql
--- All documents that contain "database"
-SELECT * FROM documents WHERE documents MATCH 'database'
--- All documents that contain a word starting with "data"
-SELECT * FROM documents WHERE documents MATCH 'data*'
--- All documents that contain both "sqlite" and "database"
-SELECT * FROM documents WHERE documents MATCH 'sqlite database'
--- All documents that contain the "SQLite database" phrase:
-SELECT * FROM documents WHERE documents MATCH '"SQLite database"'
-```
+- `database` matches all documents that contain "database"
+- `data*` matches all documents that contain a word starting with "data"
+- `SQLite database` matches all documents that contain both "SQLite" and "database"
+- `SQLite OR database` matches all documents that contain "SQLite" or "database"
+- `"SQLite database"` matches all documents that contain the "SQLite database" phrase
 
 **Not all search patterns are valid**: they must follow the [Full-Text Query Syntax](https://www.sqlite.org/fts5.html#full_text_query_syntax).
 
-GRDB provides the FTS5Pattern type which helps you building **valid patterns**:
+The FTS5Pattern type helps you validating patterns, and building valid patterns from untrusted strings (such as strings typed by users):
 
 ```swift
 extension Database {
