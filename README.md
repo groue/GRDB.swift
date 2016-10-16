@@ -3189,8 +3189,6 @@ While your migration code runs with disabled foreign key checks, those are re-en
 
 **Full-Text Search is an efficient way to search a corpus of textual documents.**
 
-GRDB helps you creating and searching full-text tables.
-
 ```swift
 // Create full-text tables
 try db.create(virtualTable: "books", using: FTS4()) { t in // or FTS3(), or FTS5()
