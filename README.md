@@ -3193,9 +3193,7 @@ GRDB helps you creating and searching full-text tables.
 
 ```swift
 // Create full-text tables
-try db.create(virtualTable: "books", using: FTS4()) { t in
-    t.tokenizer = .porter
-    t.column("uuid").notIndexed()
+try db.create(virtualTable: "books", using: FTS4()) { t in // or FTS3(), or FTS5()
     t.column("author")
     t.column("title")
     t.column("body")
@@ -3224,7 +3222,7 @@ let books = Book.matching(pattern).fetchAll(db)
 - Sorting by Relevance: [FTS5](#fts5-sorting-by-relevance)
 - External Content Full-Text Tables: [FTS4, FTS5](#external-content-full-text-tables)
 - Full-Text Records: [FTS3, FTS4, FTS5](#full-text-records)
-- Unicode Full-Text Gotchas: [FTS3, FTS4, FTS5](#unicode-full-text-gotchas). Unicorns don't exist
+- Unicode Full-Text Gotchas: [FTS3, FTS4, FTS5](#unicode-full-text-gotchas). Unicorns don't exist.
 - Custom Tokenizers: [FTS5](Documentation/FTS5Tokenizers.md). Leverage extra full-text features such as synonyms or stop words. Avoid [unicode gotchas](#unicode-full-text-gotchas).
 
 
@@ -3506,7 +3504,9 @@ let documents = Document.filter(Column("content").match(pattern)).fetchAll(db)
 
 **FTS5 full-text tables store and index textual content.**
 
-Create tables with the `create(virtualTable:using:)` method:
+To use FTS5, you'll need a [custom SQLite build](#custom-sqlite-builds) that activates the `SQLITE_ENABLE_FTS5` compilation option.
+
+Create FTS5 tables with the `create(virtualTable:using:)` method:
 
 ```swift
 // CREATE VIRTUAL TABLE documents USING fts5(content)
