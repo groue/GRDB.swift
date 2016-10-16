@@ -3218,14 +3218,14 @@ let books = Book.matching(pattern).fetchAll(db)
 ```
 
 - [Choosing the Full-Text Engine](#choosing-the-full-text-engine)
-- Create Full-Text Virtual Tables ([FTS3/4](#create-fts3-and-fts4-virtual-tables) &bull; [FTS5](#create-fts5-virtual-tables))
-- Choosing a Tokenizer ([FTS3/4](#fts3tokenizer) &bull; [FTS5](#fts5tokenizer))
-- Search Patterns ([FTS3/4](#fts3pattern) &bull; [FTS5](#fts5pattern))
-- Sorting by Relevance ([FTS5](#fts5-sorting-by-relevance))
-- [External Content Full-Text Tables](#external-content-full-text-tables)
-- [Full-Text Records](#full-text-records)
-- [Unicode Full-Text Gotchas](#unicode-full-text-gotchas): unicorns don't exist
-- [Custom FTS5 Tokenizers](Documentation/FTS5Tokenizers.md)) give extra full-text features such as synonyms, stop words, and avoid some [unicode gotchas](#unicode-full-text-gotchas).
+- Create Full-Text Virtual Tables: [FTS3, FTS4](#create-fts3-and-fts4-virtual-tables), [FTS5](#create-fts5-virtual-tables)
+- Choosing a Tokenizer: [FTS3, FTS4](#fts3tokenizer), [FTS5](#fts5tokenizer)
+- Search Patterns: [FTS3, FTS4](#fts3pattern), [FTS5](#fts5pattern)
+- Sorting by Relevance: [FTS5](#fts5-sorting-by-relevance)
+- External Content Full-Text Tables: [FTS4, FTS5](#external-content-full-text-tables)
+- Full-Text Records: [FTS3, FTS4, FTS5](#full-text-records)
+- Unicode Full-Text Gotchas: [FTS3, FTS4, FTS5](#unicode-full-text-gotchas). Unicorns don't exist
+- Custom Tokenizers: [FTS5](Documentation/FTS5Tokenizers.md). Leverage extra full-text features such as synonyms or stop words. Avoid [unicode gotchas](#unicode-full-text-gotchas).
 
 
 ### Choosing the Full-Text Engine
