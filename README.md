@@ -3215,7 +3215,7 @@ let books = Book.fetchAll(db,
 
 - [Choosing the Full-Text Engine](#choosing-the-full-text-engine)
 - Create Full-Text Virtual Tables: [FTS3, FTS4](#create-fts3-and-fts4-virtual-tables), [FTS5](#create-fts5-virtual-tables)
-- Choosing a Tokenizer: [FTS3, FTS4](#fts3tokenizer), [FTS5](#fts5tokenizer)
+- Choosing a Tokenizer: [FTS3, FTS4](#fts3-and-fts4-tokenizers), [FTS5](#fts5-tokenizers)
 - Search Patterns: [FTS3, FTS4](#fts3pattern), [FTS5](#fts5pattern)
 - Sorting by Relevance: [FTS5](#fts5-sorting-by-relevance)
 - External Content Full-Text Tables: [FTS4, FTS5](#external-content-full-text-tables)
@@ -3293,7 +3293,7 @@ try db.create(virtualTable: "documents", using: FTS4()) { t in
 
 **All columns in a full-text table contain text.** If you need to index a table that contains other kinds of values, you need an ["external content" full-text table](#external-content-full-text-tables).
 
-You can specify a [tokenizer](#fts3tokenizer):
+You can specify a [tokenizer](#fts3-and-fts4-tokenizers):
 
 ```swift
 // CREATE VIRTUAL TABLE books USING fts4(
@@ -3340,7 +3340,7 @@ The `content` option is involved in "contentless" and "external content" full-te
 See [SQLite documentation](https://www.sqlite.org/fts3.html) for more information.
 
 
-### FTS3Tokenizer
+### FTS3 and FTS4 Tokenizers
 
 **A tokenizer defines what "matching" means.** Depending on the tokenizer you choose, full-text searches won't return the same results.
 
@@ -3515,7 +3515,7 @@ try db.create(virtualTable: "documents", using: FTS5()) { t in
 
 **All columns in a full-text table contain text.** If you need to index a table that contains other kinds of values, you need an ["external content" full-text table](#external-content-full-text-tables).
 
-You can specify a [tokenizer](#fts5tokenizer):
+You can specify a [tokenizer](#fts5-tokenizers):
 
 ```swift
 // CREATE VIRTUAL TABLE books USING fts5(
@@ -3560,7 +3560,7 @@ The `content` and `contentRowID` options are involved in "contentless" and "exte
 See [SQLite documentation](https://www.sqlite.org/fts5.html) for more information.
 
 
-### FTS5Tokenizer
+### FTS5 Tokenizers
 
 **A tokenizer defines what "matching" means.** Depending on the tokenizer you choose, full-text searches won't return the same results.
 
@@ -3785,7 +3785,7 @@ You will have to [expose this hidden column](#exposing-the-rowid-column) in orde
 
 ### Unicode Full-Text Gotchas
 
-The SQLite built-in tokenizers for [FTS3, FTS4](#fts3tokenizer) and [FTS5](#fts5tokenizer) are generally unicode-aware, with a few caveats, and limitations.
+The SQLite built-in tokenizers for [FTS3, FTS4](#fts3-and-fts4-tokenizers) and [FTS5](#fts5-tokenizers) are generally unicode-aware, with a few caveats, and limitations.
 
 Generally speaking, matches may fail when content and query don't use the same [unicode normalization](http://unicode.org/reports/tr15/). SQLite actually exhibits inconsistent behavior in this regard.
 
