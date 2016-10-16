@@ -3200,7 +3200,7 @@ try db.create(virtualTable: "books", using: FTS4()) { t in // or FTS3(), or FTS5
 // Populate full-text table with records or SQL
 try Book(...).insert(db)
 try db.execute(
-    "INSERT INTO books (uuid, author, title, body) VALUES (?, ?, ?, ?)",
+    "INSERT INTO books (author, title, body) VALUES (?, ?, ?)",
     arguments: [...])
 
 // Build search patterns
