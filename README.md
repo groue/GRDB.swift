@@ -3282,6 +3282,10 @@ let books = Book.matching(pattern).fetchAll(db)
 - **Sorting by Relevance**: [FTS5](#fts5-sorting-by-relevance)
     
     GRDB does not provide any ranking for FTS3 and FTS4. See SQLite's [Search Application Tips](https://www.sqlite.org/fts3.html#appendix_a) if you really need it.
+
+- **[External Content Full-Text Tables](#external-content-full-text-tables)**
+    
+    Index the text stored in a regular table.
     
 - **Full-Text Records**
     
@@ -3311,6 +3315,8 @@ try db.create(virtualTable: "documents", using: FTS4()) { t in
     t.column("content")
 }
 ```
+
+**All columns in a full-text table contain text.** If you need to index a table that contains other kinds of values, you need an ["external content" full-text table](#external-content-full-text-tables).
 
 You can specify a [tokenizer](#fts3tokenizer):
 
@@ -3352,6 +3358,9 @@ try db.create(virtualTable: "documents", using: FTS4()) { t in
     t.column("lid").asLanguageId()
 }
 ```
+
+The `content` option is involved in "contentless" and "external content" full-text tables. GRDB can help you defining full-text tables that automatically synchronize with their content table. See [External Content Full-Text Tables](#external-content-full-text-tables).
+
 
 See [SQLite documentation](https://www.sqlite.org/fts3.html) for more information.
 
@@ -3523,6 +3532,8 @@ try db.create(virtualTable: "documents", using: FTS5()) { t in
 }
 ```
 
+**All columns in a full-text table contain text.** If you need to index a table that contains other kinds of values, you need an ["external content" full-text table](#external-content-full-text-tables).
+
 You can specify a [tokenizer](#fts5tokenizer):
 
 ```swift
@@ -3546,7 +3557,8 @@ FTS5 supports [options](https://www.sqlite.org/fts5.html#fts5_table_creation_and
 // CREATE VIRTUAL TABLE books USING fts5(
 //   content,
 //   uuid UNINDEXED,
-//   content='',
+//   content='table',
+//   content_rowid='id',
 //   prefix='2 4',
 //   columnsize=0,
 //   detail=column
@@ -3554,12 +3566,15 @@ FTS5 supports [options](https://www.sqlite.org/fts5.html#fts5_table_creation_and
 try db.create(virtualTable: "documents", using: FTS5()) { t in
     t.column("content")
     t.column("uuid").notIndexed()
-    t.content = ""
+    t.content = "table"
+    t.contentRowID = "id"
     t.prefixes = [2, 4]
     t.columnSize = 0
     t.detail = "column"
 }
 ```
+
+The `content` and `contentRowID` options are involved in "contentless" and "external content" full-text tables. GRDB can help you defining full-text tables that automatically synchronize with their content table. See [External Content Full-Text Tables](#external-content-full-text-tables).
 
 See [SQLite documentation](https://www.sqlite.org/fts5.html) for more information.
 
@@ -3739,6 +3754,37 @@ let documents = Document.matching(pattern).order(Column("rank")).fetchAll(db)
 ```
 
 For more information about the ranking algorithm, as well as extra options, read [Sorting by Auxiliary Function Results](https://www.sqlite.org/fts5.html#sorting_by_auxiliary_function_results)
+
+
+### External Content Full-Text Tables
+
+**An external content table does not store the indexed text.** Instead, it indexes the text stored in another table.
+
+This is very handy when you want to index a table that can not be declared as a full-text table (because it contains non-textual values, for example). You just have to define an external content full-text table that refers to the regular table.
+
+The two tables must be kept up-to-date, so that the full-text index matches the content of the regular table. This synchronization happens automatically if you use the `synchronize(withTable:)` method in your full-text table definition:
+
+```swift
+// A regular table
+try db.create(table: "books") { t in
+    t.column("author", .text)
+    t.column("title", .text)
+    t.column("content", .text)
+    ...
+}
+
+// A full-text table synchronized with the regular table
+try db.create(virtualTable: "books_ft", using: FTS4()) { t in // or FTS5()
+    t.synchronize(withTable: "books")
+    t.column("author")
+    t.column("title")
+    t.column("content")
+}
+```
+
+The eventual content already present in the regular table is indexed, and every insert, update or delete that happens in the regular table is automatically applied to the full-text index by the mean of SQL triggers.
+
+For more information, see the SQLite documentation about external content tables: [FTS4](https://www.sqlite.org/fts3.html#_external_content_fts4_tables_), [FTS5](https://sqlite.org/fts5.html#external_content_tables).
 
 
 ### Unicode Full-Text Gotchas

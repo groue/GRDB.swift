@@ -12,19 +12,22 @@ Release Notes
     let documents = Document.matching(pattern).fetchAll(db)  // Empty array
     ```
 
-- Synchronization of a FTS4 or FTS5 full-text table with an external content table:
+- Synchronization of an FTS4 or FTS5 full-text table with an external content table ([documentation](https://github.com/groue/GRDB.swift#external-content-full-text-tables)):
     
     ```swift
     // A regular table
-    try db.create(table: "documents") { t in
-        t.column("id", .integer).primaryKey()
+    try db.create(table: "books") { t in
+        t.column("author", .text)
+        t.column("title", .text)
         t.column("content", .text)
         ...
     }
-    
+
     // A full-text table synchronized with the regular table
-    try db.create(virtualTable: "documents_ft", using: FTS4()) { t in
-        t.synchronize(withTable: "documents")
+    try db.create(virtualTable: "books_ft", using: FTS4()) { t in // or FTS5()
+        t.synchronize(withTable: "books")
+        t.column("author")
+        t.column("title")
         t.column("content")
     }
     ```
