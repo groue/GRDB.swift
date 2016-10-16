@@ -211,4 +211,40 @@ class FTS5TableBuilderTests: GRDBTestCase {
             }
         }
     }
+    
+    func testFTS5Synchronization() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.create(table: "documents") { t in
+                    t.column("id", .integer).primaryKey()
+                    t.column("content", .text)
+                }
+                try db.execute("INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
+                try db.create(virtualTable: "ft_documents", using: FTS5()) { t in
+                    t.synchronize(withTable: "documents")
+                    t.column("content")
+                }
+                
+                // Prepopulated
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["foo"])!, 1)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["bar"])!, 0)
+                
+                // Synchronized on update
+                try db.execute("UPDATE documents SET content = ?", arguments: ["bar"])
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["foo"])!, 0)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["bar"])!, 1)
+                
+                // Synchronized on insert
+                try db.execute("INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["foo"])!, 1)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["bar"])!, 1)
+                
+                // Synchronized on delete
+                try db.execute("DELETE FROM documents WHERE content = ?", arguments: ["foo"])
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["foo"])!, 0)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["bar"])!, 1)
+            }
+        }
+    }
 }

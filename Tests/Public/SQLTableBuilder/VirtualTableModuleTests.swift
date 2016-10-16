@@ -14,11 +14,14 @@ private struct FTS3TokenizeModule : VirtualTableModule {
         return FTS3TokenizeTableDefinition()
     }
     
-    func moduleArguments(_ definition: FTS3TokenizeTableDefinition) -> [String] {
+    func moduleArguments(for definition: FTS3TokenizeTableDefinition, in db: Database) -> [String] {
         guard let tokenizer = definition.tokenizer else {
             return []
         }
         return [tokenizer]
+    }
+    
+    func database(_ db: Database, didCreate tableName: String, using definition: FTS3TokenizeTableDefinition) throws {
     }
 }
 

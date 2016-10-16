@@ -12,6 +12,30 @@ Release Notes
     let documents = Document.matching(pattern).fetchAll(db)  // Empty array
     ```
 
+- Synchronization of a full-text table with an external content table:
+    
+    ```swift
+    try db.create(table: "documents") { t in
+        t.column("id", .integer).primaryKey()
+        t.column("content", .text)
+    }
+    
+    try db.create(virtualTable: "documents_ft", using: FTS5()) { t in
+        t.synchronize(withTable: "documents")
+        t.column("content")
+    }
+    ```
+
+**Breaking Change**
+
+- The `VirtualTableModule` protocol has been modified:
+    
+    ```diff
+     protocol VirtualTableModule {
+    -    func moduleArguments(_ definition: TableDefinition) -> [String]
+    +    func moduleArguments(for definition: TableDefinition, in db: Database) throws -> [String]
+    +    func database(_ db: Database, didCreate tableName: String, using definition: TableDefinition) throws
+    ```
 
 ## 0.87.0
 

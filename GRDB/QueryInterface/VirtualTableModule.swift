@@ -30,7 +30,11 @@ public protocol VirtualTableModule {
     func makeTableDefinition() -> TableDefinition
     
     /// Returns the module arguments for the `CREATE VIRTUAL TABLE` query.
-    func moduleArguments(_ definition: TableDefinition) -> [String]
+    func moduleArguments(for definition: TableDefinition, in db: Database) throws -> [String]
+    
+    /// Execute any relevant database statement after the virtual table has
+    /// been created.
+    func database(_ db: Database, didCreate tableName: String, using definition: TableDefinition) throws
 }
 
 extension Database {
@@ -88,20 +92,22 @@ extension Database {
     ///     - module: a VirtualTableModule
     ///     - body: An optional closure that defines the virtual table.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func create<Module: VirtualTableModule>(virtualTable name: String, ifNotExists: Bool = false, using module: Module, _ body: ((Module.TableDefinition) -> Void)? = nil) throws {
+    public func create<Module: VirtualTableModule>(virtualTable tableName: String, ifNotExists: Bool = false, using module: Module, _ body: ((Module.TableDefinition) -> Void)? = nil) throws {
+        // Define virtual table
         let definition = module.makeTableDefinition()
         if let body = body {
             body(definition)
         }
         
+        // Create virtual table
         var chunks: [String] = []
         chunks.append("CREATE VIRTUAL TABLE")
         if ifNotExists {
             chunks.append("IF NOT EXISTS")
         }
-        chunks.append(name.quotedDatabaseIdentifier)
+        chunks.append(tableName.quotedDatabaseIdentifier)
         chunks.append("USING")
-        let arguments = module.moduleArguments(definition)
+        let arguments = try module.moduleArguments(for: definition, in: self)
         if arguments.isEmpty {
             chunks.append(module.moduleName)
         } else {
@@ -109,5 +115,8 @@ extension Database {
         }
         let sql = chunks.joined(separator: " ")
         try execute(sql)
+        
+        // Post creation actions
+        try module.database(self, didCreate: tableName, using: definition)
     }
 }

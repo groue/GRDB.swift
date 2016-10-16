@@ -20,13 +20,17 @@ public struct FTS3 : VirtualTableModule {
     /// The virtual table module name
     public let moduleName = "fts3"
     
-    /// Don't use this method.
+    /// Reserved; part of the VirtualTableModule protocol.
+    ///
+    /// See Database.create(virtualTable:using:)
     public func makeTableDefinition() -> FTS3TableDefinition {
         return FTS3TableDefinition()
     }
     
-    /// Don't use this method.
-    public func moduleArguments(_ definition: FTS3TableDefinition) -> [String] {
+    /// Reserved; part of the VirtualTableModule protocol.
+    ///
+    /// See Database.create(virtualTable:using:)
+    public func moduleArguments(for definition: FTS3TableDefinition, in db: Database) -> [String] {
         var arguments = definition.columns
         if let tokenizer = definition.tokenizer {
             if tokenizer.arguments.isEmpty {
@@ -36,6 +40,12 @@ public struct FTS3 : VirtualTableModule {
             }
         }
         return arguments
+    }
+    
+    /// Reserved; part of the VirtualTableModule protocol.
+    ///
+    /// See Database.create(virtualTable:using:)
+    public func database(_ db: Database, didCreate tableName: String, using definition: FTS3TableDefinition) {
     }
 }
 
