@@ -3187,11 +3187,54 @@ While your migration code runs with disabled foreign key checks, those are re-en
 
 ## Full-Text Search
 
+**Full-Text Search is an efficient way to search a corpus of textual documents.**
+
+GRDB helps you creating and searching full-text tables.
+
+```swift
+// Create full-text tables
+try db.create(virtualTable: "books", using: FTS4()) { t in
+    t.tokenizer = .porter
+    t.column("uuid").notIndexed()
+    t.column("author")
+    t.column("title")
+    t.column("body")
+}
+
+// Populate full-text table with SQL or records
+try db.execute(
+    "INSERT INTO books (uuid, author, title, body) VALUES (?, ?, ?, ?)",
+    arguments: [...])
+try Book(...).insert(db)
+
+// Build search patterns
+let pattern = FTS3Pattern(matchingPhrase: "Moby-Dick")
+
+// Search with SQL or the query interface
+let books = Book.fetchAll(db,
+    "SELECT * FROM books WHERE books MATCH ?",
+    arguments: [pattern])
+let books = Book.matching(pattern).fetchAll(db)
+```
+
+- [Choosing the Full-Text Engine](#choosing-the-full-text-engine)
+- Create Full-Text Virtual Tables ([FTS3/4](#create-fts3-and-fts4-virtual-tables) &bull; [FTS5](#create-fts5-virtual-tables))
+- Choosing a Tokenizer ([FTS3/4](#fts3tokenizer) &bull; [FTS5](#fts5tokenizer))
+- Search Patterns ([FTS3/4](#fts3pattern) &bull; [FTS5](#fts5pattern))
+- Sorting by Relevance ([FTS5](#fts5-sorting-by-relevance))
+- [External Content Full-Text Tables](#external-content-full-text-tables)
+- [Full-Text Records](#full-text-records)
+- [Unicode Full-Text Gotchas](#unicode-full-text-gotchas): unicorns don't exist
+- [Custom FTS5 Tokenizers](Documentation/FTS5Tokenizers.md)) give extra full-text features such as synonyms, stop words, and avoid some [unicode gotchas](#unicode-full-text-gotchas).
+
+
+### Choosing the Full-Text Engine
+
 **SQLite supports three full-text engines: [FTS3, FTS4](https://www.sqlite.org/fts3.html) and [FTS5](https://www.sqlite.org/fts5.html).**
 
 Generally speaking, FTS5 is better than FTS4 which improves on FTS3. But this does not really tell which engine to choose for your application. Instead, make your choice depend on:
 
-- **The kind of full-text features needed by the application**:
+- **The full-text features needed by the application**:
     
     | Full-Text Needs                                                            | FTS3 | FTS4 | FTS5 |
     | -------------------------------------------------------------------------- | :--: | :--: | :--: |
@@ -3231,78 +3274,14 @@ Generally speaking, FTS5 is better than FTS4 which improves on FTS3. But this do
 
 - See [FST3 vs. FTS4](https://www.sqlite.org/fts3.html#differences_between_fts3_and_fts4) and [FTS5 vs. FTS3/4](https://www.sqlite.org/fts5.html#appendix_a) for more differences.
 
-**In case you were still wondering, it is recommended to have a detailed reading of SQLite documentation: [FTS3 & FTS4](https://www.sqlite.org/fts3.html) and [FTS5](https://www.sqlite.org/fts5.html).**
-
-
-### GRDB Full-Text Support
-
-GRDB helps you creating FTS tables, converting user input into valid full-text queries, query your tables with or without SQL, and define [custom FTS5 tokenizers](Documentation/FTS5Tokenizers.md):
-
-```swift
-// Create full-text tables
-try db.create(virtualTable: "books", using: FTS4()) { t in
-    t.tokenizer = .porter
-    t.column("uuid").notIndexed()
-    t.column("author")
-    t.column("title")
-    t.column("body")
-}
-
-// Populate full-text table with SQL:
-try db.execute("INSERT INTO books (uuid, author, title, body) VALUES (?, ?, ?, ?)",
-    arguments: [...])
-
-// Populate full-text table with Records:
-try Book(...).insert(db)
-
-// Build search patterns
-let pattern = FTS3Pattern(matchingPhrase: "Moby Dick")
-
-// Search by SQL
-let books = Book.fetchAll(db,
-    "SELECT * FROM books WHERE books MATCH ?",
-    arguments: [pattern])
-
-// Use the query interface
-let books = Book.matching(pattern).fetchAll(db)
-```
-
-- **Create full-text virtual tables** [FTS3/4](#create-fts3-and-fts4-virtual-tables) &bull; [FTS5](#create-fts5-virtual-tables)
-    
-    Store your indexed text.
-    
-- **Tokenizers**: [FTS3/4](#fts3tokenizer) &bull; [FTS5](#fts5tokenizer)
-    
-    Choose what "matching" means
-    
-- **Patterns**: [FTS3/4](#fts3pattern) &bull; [FTS5](#fts5pattern)
-    
-    Build valid search patterns
-    
-- **Sorting by Relevance**: [FTS5](#fts5-sorting-by-relevance)
-    
-    GRDB does not provide any ranking for FTS3 and FTS4. See SQLite's [Search Application Tips](https://www.sqlite.org/fts3.html#appendix_a) if you really need it.
-
-- **[External Content Full-Text Tables](#external-content-full-text-tables)**
-    
-    Index the text stored in a regular table.
-    
-- **Full-Text Records**
-    
-    You can define [record](#records) types around the full-text virtual tables. Since these tables don't have any explicit primary key, you'll need an [extra setup](#the-implicit-rowid-primary-key) in order to expose the hidden "rowid" column.
-    
-- **[Unicode Full-Text Gotchas](#unicode-full-text-gotchas)**
-    
-    Unicorns don't exist.
-
-- **Custom Tokenizers**: [FTS5](Documentation/FTS5Tokenizers.md)
-    
-    Custom tokenizers give extra full-text features such as synonyms, stop words, and avoid some [unicode gotchas](#unicode-full-text-gotchas).
+> :point_up: **Note**: In case you were still wondering, it is recommended to read the SQLite documentation: [FTS3 & FTS4](https://www.sqlite.org/fts3.html) and [FTS5](https://www.sqlite.org/fts5.html).
 
 
 ### Create FTS3 and FTS4 Virtual Tables
 
-Create FTS3 and FTS4 virtual tables with the `create(virtualTable:using:)` method:
+**FTS3 and FTS4 full-text tables store and index textual content.**
+
+Create tables with the `create(virtualTable:using:)` method:
 
 ```swift
 // CREATE VIRTUAL TABLE documents USING fts3(content)
@@ -3367,6 +3346,8 @@ See [SQLite documentation](https://www.sqlite.org/fts3.html) for more informatio
 
 ### FTS3Tokenizer
 
+**A tokenizer defines what "matching" means.** Depending on the tokenizer you choose, full-text searches won't return the same results.
+
 SQLite ships with three built-in FTS3/4 tokenizers: `simple`, `porter` and `unicode61` that use different algorithms to match queries with indexed content:
 
 ```swift
@@ -3378,7 +3359,7 @@ try db.create(virtualTable: "books", using: FTS4()) { t in
 }
 ```
 
-**Depending on the tokenizer you choose, full-text searches won't return the same results.** See below some examples of matches:
+See below some examples of matches:
 
 | content     | query      | simple | porter | unicode61 |
 | ----------- | ---------- | :----: | :----: | :-------: |
@@ -3523,7 +3504,9 @@ let documents = Document.filter(Column("content").match(pattern)).fetchAll(db)
 
 ### Create FTS5 Virtual Tables
 
-Create FTS5 virtual tables with the `create(virtualTable:using:)` method:
+**FTS5 full-text tables store and index textual content.**
+
+Create tables with the `create(virtualTable:using:)` method:
 
 ```swift
 // CREATE VIRTUAL TABLE documents USING fts5(content)
@@ -3581,6 +3564,8 @@ See [SQLite documentation](https://www.sqlite.org/fts5.html) for more informatio
 
 ### FTS5Tokenizer
 
+**A tokenizer defines what "matching" means.** Depending on the tokenizer you choose, full-text searches won't return the same results.
+
 SQLite ships with three built-in FTS5 tokenizers: `ascii`, `porter` and `unicode61` that use different algorithms to match queries with indexed content.
 
 ```swift
@@ -3593,7 +3578,7 @@ try db.create(virtualTable: "books", using: FTS5()) { t in
 }
 ```
 
-**Depending on the tokenizer you choose, full-text searches won't return the same results.** See below some examples of matches:
+See below some examples of matches:
 
 | content     | query      | ascii  | unicode61 | porter on ascii | porter on unicode61 |
 | ----------- | ---------- | :----: | :-------: | :-------------: | :-----------------: |
@@ -3755,6 +3740,8 @@ let documents = Document.matching(pattern).order(Column("rank")).fetchAll(db)
 
 For more information about the ranking algorithm, as well as extra options, read [Sorting by Auxiliary Function Results](https://www.sqlite.org/fts5.html#sorting_by_auxiliary_function_results)
 
+GRDB does not provide any ranking for FTS3 and FTS4. See SQLite's [Search Application Tips](https://www.sqlite.org/fts3.html#appendix_a) if you really need it.
+
 
 ### External Content Full-Text Tables
 
@@ -3787,6 +3774,15 @@ The eventual content already present in the regular table is indexed, and every 
 For more information, see the SQLite documentation about external content tables: [FTS4](https://www.sqlite.org/fts3.html#_external_content_fts4_tables_), [FTS5](https://sqlite.org/fts5.html#external_content_tables).
 
 See also [WWDC Companion](https://github.com/groue/WWDCCompanion), a sample app that uses external content tables to store, display, and let the user search the WWDC 2016 sessions.
+
+
+### Full-Text Records
+
+**You can define [record](#records) types around the full-text virtual tables.**
+
+However these tables don't have any explicit primary key. Instead, they use the [implicit rowid primary key](#the-implicit-rowid-primary-key): a special hidden column named `rowid`.
+
+You will have to [expose this hidden column](#exposing-the-rowid-column) in order to fetch, delete, and update full-text records by primary key.
 
 
 ### Unicode Full-Text Gotchas
