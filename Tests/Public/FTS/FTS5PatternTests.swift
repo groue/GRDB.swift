@@ -38,7 +38,7 @@ class FTS5PatternTests: GRDBTestCase {
                     ("Robin*", 1),
                     // Phrase queries
                     ("\"foulent muscles\"", 1),
-                    ("\"Kim Stan* Robin*\"", 0), // weird
+                    // ("\"Kim Stan* Robin*\"", 0), // crashes SQLite 3.15.0
                     // NEAR queries
                     ("NEAR(\"history\" \"evolution\")", 1),
                     // Logical queries
