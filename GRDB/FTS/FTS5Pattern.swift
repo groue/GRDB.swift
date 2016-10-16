@@ -112,10 +112,17 @@
         ///     // SELECT * FROM books WHERE books MATCH '...'
         ///     var request = Book.all()
         ///     request = request.matching(pattern)
-        public func matching(_ pattern: FTS5Pattern) -> QueryInterfaceRequest<T> {
+        ///
+        /// If the search pattern is nil, the request does not match any
+        /// database row.
+        public func matching(_ pattern: FTS5Pattern?) -> QueryInterfaceRequest<T> {
             switch query.source {
             case .table(let name, let alias)?:
-                return filter(SQLExpressionBinary(.match, Column(alias ?? name), pattern))
+                if let pattern = pattern {
+                    return filter(SQLExpressionBinary(.match, Column(alias ?? name), pattern))
+                } else {
+                    return filter(false)
+                }
             default:
                 fatalError("fts5 match requires a table")
             }
@@ -136,7 +143,10 @@
         ///
         ///     // SELECT *, rowid FROM books WHERE books MATCH '...'
         ///     var request = Book.matching(pattern)
-        public static func matching(_ pattern: FTS5Pattern) -> QueryInterfaceRequest<Self> {
+        ///
+        /// If the search pattern is nil, the request does not match any
+        /// database row.
+        public static func matching(_ pattern: FTS5Pattern?) -> QueryInterfaceRequest<Self> {
             return all().matching(pattern)
         }
     }

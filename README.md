@@ -2654,6 +2654,8 @@ You can now build requests with the following methods: `all`, `select`, `distinc
     let pattern = FTS3Pattern(matchingAllTokensIn: "SQLite database")
     Document.matching(pattern)
     ```
+    
+    When the pattern is nil, no row will match.
 
 - `group(expression, ...)` groups rows.
     
@@ -2861,9 +2863,8 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     
     // SELECT * FROM documents WHERE documents MATCH 'sqlite database'
     Document.matching(pattern)
-    //
+    
     // SELECT * FROM documents WHERE content MATCH 'sqlite database'
-    let pattern = FTS3Pattern(matchingAllTokensIn: "SQLite database")
     Document.filter(contentColumn.match(pattern))
     ```
     

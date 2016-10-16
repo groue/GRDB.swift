@@ -1,6 +1,18 @@
 Release Notes
 =============
 
+## Next Version
+
+**New**
+
+- Full-text matching methods accept nil search patterns:
+    
+    ```swift
+    let pattern = FTS3SearchPattern(matchingAllTokensIn: "") // nil
+    let documents = Document.matching(pattern).fetchAll(db)  // Empty array
+    ```
+
+
 ## 0.87.0
 
 Released October 12, 2016

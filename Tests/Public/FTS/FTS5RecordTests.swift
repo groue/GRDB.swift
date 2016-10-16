@@ -99,6 +99,22 @@ class FTS5RecordTests: GRDBTestCase {
         }
     }
     
+    func testMatchNil() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                do {
+                    var book = Book(id: nil, title: "Moby Dick", author: "Herman Melville", body: "Call me Ishmael.")
+                    try book.insert(db)
+                }
+                
+                let pattern = FTS5Pattern(matchingAllTokensIn: "")
+                XCTAssertTrue(pattern == nil)
+                XCTAssertEqual(Book.matching(pattern).fetchCount(db), 0)
+            }
+        }
+    }
+    
     func testFetchCount() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
