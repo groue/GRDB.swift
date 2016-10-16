@@ -1,7 +1,9 @@
 Release Notes
 =============
 
-## Next Version
+## 0.88.0
+
+Released October 16, 2016
 
 **New**
 
@@ -31,6 +33,9 @@ Release Notes
         t.column("content")
     }
     ```
+
+- Upgrade custom SQLite builds to [v3.15.0](http://www.sqlite.org/changes.html).
+
 
 **Breaking Change**
 
