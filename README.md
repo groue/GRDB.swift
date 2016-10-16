@@ -3786,6 +3786,8 @@ The eventual content already present in the regular table is indexed, and every 
 
 For more information, see the SQLite documentation about external content tables: [FTS4](https://www.sqlite.org/fts3.html#_external_content_fts4_tables_), [FTS5](https://sqlite.org/fts5.html#external_content_tables).
 
+See also [WWDC Companion](https://github.com/groue/WWDCCompanion), a sample app that uses external content tables to store, display, and let the user search the WWDC 2016 sessions.
+
 
 ### Unicode Full-Text Gotchas
 
@@ -5078,6 +5080,7 @@ Sample Code
 
 - The [Documentation](#documentation) is full of GRDB snippets.
 - [GRDBDemoiOS](DemoApps/GRDBDemoiOS): A sample iOS application.
+- [WWDC Companion](https://github.com/groue/WWDCCompanion): A sample iOS application.
 - Check `GRDB.xcworkspace`: it contains GRDB-enabled playgrounds to play with.
 - How to synchronize a database table with a JSON payload: [JSONSynchronization.playground](Playgrounds/JSONSynchronization.playground/Contents.swift)
 - How to notify view controllers of database changes: [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd)
