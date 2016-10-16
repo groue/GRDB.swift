@@ -46,6 +46,7 @@ Released October 16, 2016
     -    func moduleArguments(_ definition: TableDefinition) -> [String]
     +    func moduleArguments(for definition: TableDefinition, in db: Database) throws -> [String]
     +    func database(_ db: Database, didCreate tableName: String, using definition: TableDefinition) throws
+     }
     ```
 
 ## 0.87.0
