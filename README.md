@@ -2363,7 +2363,7 @@ This is a three-step process:
     event.id // some value
     ```
 
-3. Include the rowid in your `persistentDictionary`, and keep it in the `didInsert(with:for:)` method (both from the [Persistable](#persistable-protocol) or MutablePersistable protocols):
+3. Include the rowid in your `persistentDictionary`, and keep it in the `didInsert(with:for:)` method (both from the [Persistable and MutablePersistable](#persistable-protocol) protocols):
     
     ```swift
     struct Event : MutablePersistable {
