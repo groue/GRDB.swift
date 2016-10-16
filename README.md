@@ -3222,6 +3222,8 @@ let books = Book.fetchAll(db,
 - Full-Text Records: [FTS3, FTS4, FTS5](#full-text-records)
 - Unicode Full-Text Gotchas: [FTS3, FTS4, FTS5](#unicode-full-text-gotchas). Unicorns don't exist.
 - Custom Tokenizers: [FTS5](Documentation/FTS5Tokenizers.md). Leverage extra full-text features such as synonyms or stop words. Avoid [unicode gotchas](#unicode-full-text-gotchas).
+- Sample Code: [WWDC Companion](https://github.com/groue/WWDCCompanion), an iOS app that stores, displays, and lets the user search the WWDC 2016 sessions.
+
 
 
 ### Choosing the Full-Text Engine
