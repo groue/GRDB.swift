@@ -162,7 +162,7 @@
     public final class FTS5TableDefinition {
         enum ContentMode {
             case raw(content: String?, contentRowID: String?)
-            case synchronized(String)
+            case synchronized(contentTable: String)
         }
         
         fileprivate var columns: [FTS5ColumnDefinition] = []
@@ -235,18 +235,6 @@
             }
         }
         
-        /// Synchronizes the full-text table with the content of an external
-        /// table.
-        ///
-        /// The full-text table is initially populated with the existing
-        /// content in the external table. SQL triggers make sure that the
-        /// full-text table is kept up to date with the external table.
-        ///
-        /// See https://sqlite.org/fts5.html#external_content_tables
-        public func synchronize(withTable tableName: String) {
-            contentMode = .synchronized(tableName)
-        }
-        
         /// Support for the FTS5 `prefix` option
         ///
         /// See https://www.sqlite.org/fts5.html#prefix_indexes
@@ -273,6 +261,18 @@
             let column = FTS5ColumnDefinition(name: name)
             columns.append(column)
             return column
+        }
+        
+        /// Synchronizes the full-text table with the content of an external
+        /// table.
+        ///
+        /// The full-text table is initially populated with the existing
+        /// content in the external table. SQL triggers make sure that the
+        /// full-text table is kept up to date with the external table.
+        ///
+        /// See https://sqlite.org/fts5.html#external_content_tables
+        public func synchronize(withTable tableName: String) {
+            contentMode = .synchronized(contentTable: tableName)
         }
     }
     

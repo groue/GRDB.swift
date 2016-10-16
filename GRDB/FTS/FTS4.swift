@@ -57,8 +57,13 @@ public struct FTS4 : VirtualTableModule {
             }
         }
         
-        if let content = definition.content {
-            arguments.append("content=\"\(content)\"")
+        switch definition.contentMode {
+        case .raw(let content):
+            if let content = content {
+                arguments.append("content=\"\(content)\"")
+            }
+        case .synchronized(let contentTable):
+            arguments.append("content=\"\(contentTable)\"")
         }
         
         if let compress = definition.compress {
@@ -83,7 +88,52 @@ public struct FTS4 : VirtualTableModule {
     /// Reserved; part of the VirtualTableModule protocol.
     ///
     /// See Database.create(virtualTable:using:)
-    public func database(_ db: Database, didCreate tableName: String, using definition: FTS4TableDefinition) {
+    public func database(_ db: Database, didCreate tableName: String, using definition: FTS4TableDefinition) throws {
+        switch definition.contentMode {
+        case .raw:
+            break
+        case .synchronized(let contentTable):
+            // https://www.sqlite.org/fts3.html#_external_content_fts4_tables_
+            
+            let rowIDColumn = (try? db.primaryKey(contentTable))??.rowIDColumn ?? "rowid"
+            let ftsTable = tableName.quotedDatabaseIdentifier
+            let content = contentTable.quotedDatabaseIdentifier
+            let indexedColumns = definition.columns.map { $0.name }
+            
+            let ftsColumns = (["docid"] + indexedColumns)
+                .map { $0.quotedDatabaseIdentifier }
+                .joined(separator: ", ")
+            
+            let newContentColumns = ([rowIDColumn] + indexedColumns)
+                .map { "new.\($0.quotedDatabaseIdentifier)" }
+                .joined(separator: ", ")
+            
+            let oldRowID = "old.\(rowIDColumn.quotedDatabaseIdentifier)"
+            
+            try db.execute(
+                "CREATE TRIGGER \("__\(contentTable)_bu".quotedDatabaseIdentifier) BEFORE UPDATE ON \(content) BEGIN " +
+                    "DELETE FROM \(ftsTable) WHERE docid=\(oldRowID); " +
+                "END")
+            
+            try db.execute(
+                "CREATE TRIGGER \("__\(contentTable)_bd".quotedDatabaseIdentifier) BEFORE DELETE ON \(content) BEGIN " +
+                    "DELETE FROM \(ftsTable) WHERE docid=\(oldRowID); " +
+                "END")
+            
+            try db.execute(
+                "CREATE TRIGGER \("__\(contentTable)_au".quotedDatabaseIdentifier) AFTER UPDATE ON \(content) BEGIN " +
+                    "INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES(\(newContentColumns)); " +
+                "END")
+            
+            try db.execute(
+                "CREATE TRIGGER \("__\(contentTable)_ai".quotedDatabaseIdentifier) AFTER INSERT ON \(content) BEGIN " +
+                    "INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES(\(newContentColumns)); " +
+                "END")
+            
+            // https://www.sqlite.org/fts3.html#*fts4rebuidcmd
+            
+            try db.execute("INSERT INTO \(ftsTable)(\(ftsTable)) VALUES('rebuild')")
+        }
     }
 }
 
@@ -98,7 +148,13 @@ public struct FTS4 : VirtualTableModule {
 ///
 /// See https://www.sqlite.org/fts3.html
 public final class FTS4TableDefinition {
+    enum ContentMode {
+        case raw(content: String?)
+        case synchronized(contentTable: String)
+    }
+    
     fileprivate var columns: [FTS4ColumnDefinition] = []
+    fileprivate var contentMode: ContentMode = .raw(content: nil)
     
     /// The virtual table tokenizer
     ///
@@ -111,8 +167,27 @@ public final class FTS4TableDefinition {
     
     /// The FTS4 `content` option
     ///
+    /// When you want the full-text table to be synchronized with the
+    /// content of an external table, prefer the `synchronize(withTable:)`
+    /// method.
+    ///
+    /// Setting this property invalidates any synchronization previously
+    /// established with the `synchronize(withTable:)` method.
+    ///
     /// See https://www.sqlite.org/fts3.html#the_content_option_
-    public var content: String?
+    public var content: String? {
+        get {
+            switch contentMode {
+            case .raw(let content):
+                return content
+            case .synchronized(let contentTable):
+                return contentTable
+            }
+        }
+        set {
+            contentMode = .raw(content: newValue)
+        }
+    }
     
     /// The FTS4 `compress` option
     ///
@@ -151,6 +226,18 @@ public final class FTS4TableDefinition {
         let column = FTS4ColumnDefinition(name: name)
         columns.append(column)
         return column
+    }
+    
+    /// Synchronizes the full-text table with the content of an external
+    /// table.
+    ///
+    /// The full-text table is initially populated with the existing
+    /// content in the external table. SQL triggers make sure that the
+    /// full-text table is kept up to date with the external table.
+    ///
+    /// See https://sqlite.org/fts5.html#external_content_tables
+    public func synchronize(withTable tableName: String) {
+        contentMode = .synchronized(contentTable: tableName)
     }
 }
 

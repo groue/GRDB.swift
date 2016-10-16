@@ -12,15 +12,18 @@ Release Notes
     let documents = Document.matching(pattern).fetchAll(db)  // Empty array
     ```
 
-- Synchronization of a full-text table with an external content table:
+- Synchronization of a FTS4 or FTS5 full-text table with an external content table:
     
     ```swift
+    // A regular table
     try db.create(table: "documents") { t in
         t.column("id", .integer).primaryKey()
         t.column("content", .text)
+        ...
     }
     
-    try db.create(virtualTable: "documents_ft", using: FTS5()) { t in
+    // A full-text table synchronized with the regular table
+    try db.create(virtualTable: "documents_ft", using: FTS4()) { t in
         t.synchronize(withTable: "documents")
         t.column("content")
     }
