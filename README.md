@@ -2307,13 +2307,11 @@ try Book.deleteOne(db, key: 1)
 
 ### Exposing the RowID Column
 
-**Your record types that wrap a table without any explicit primary key don't know about the hidden rowid.**
+**A record type that wraps a table without any explicit primary key doesn't know about the hidden rowid column.**
 
-Without primary key, records don't have any identity, and the [persistence method](#persistence-methods) can behave in undesired fashion: `update` throws errors, `save` always performs insertions and may break constraints, `exists` is always false.
+Without primary key, records don't have any identity, and the [persistence method](#persistence-methods) can behave in undesired fashion: `update()` throws errors, `save()` always performs insertions and may break constraints, `exists()` is always false.
 
-When SQLite won't let you provide an explicit primary key (as in [full-text](#full-text-search) tables, for example), you may want to make your record type fully aware of the hidden rowid column.
-
-This is a three-step process:
+When SQLite won't let you provide an explicit primary key (as in [full-text](#full-text-search) tables, for example), you may want to make your record type fully aware of the hidden rowid column:
 
 1. Have the `selectsRowID` static property from the [TableMapping](#tablemapping-protocol) protocol be true.
     
@@ -2388,10 +2386,16 @@ This is a three-step process:
     
     ```swift
     let event = Event(message: "foo", date: Date())
+    
+    // Insertion sets the record id:
     try event.insert(db)
     event.id // some value
+    
+    // Record can be updated:
     event.message = "bar"
     try event.update(db)
+    
+    // Records knows if it exists:
     event.exists(db) // true
     ```
 
