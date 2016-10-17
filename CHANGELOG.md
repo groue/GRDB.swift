@@ -6,7 +6,7 @@ Release Notes
 **Fixed**
 
 - When `Database.create(virtualTable:using:)` throws, it is now guaranteed that the virtual table table is not created.
-- FetchedRecordsController learned about `TableMapping.selectsRowID`, and is now able to animate table views populated with [records without explicit primary key](https://github.com/groue/GRDB.swift#the-implicit-rowid-primary-key).
+- [FetchedRecordsController](https://github.com/groue/GRDB.swift#fetchedrecordscontroller) learned about `TableMapping.selectsRowID`, and is now able to animate table views populated with [records without explicit primary key](https://github.com/groue/GRDB.swift#the-implicit-rowid-primary-key).
 
 
 ## 0.89.0
@@ -15,7 +15,7 @@ Released October 17, 2016
 
 **Fixed**
 
-- FetchedRecordsController could miss database changes after its fetch request was modified. Now it properly updates the set of tracked columns and tables.
+- [FetchedRecordsController](https://github.com/groue/GRDB.swift#fetchedrecordscontroller) could miss database changes after its fetch request was modified. Now it properly updates the set of tracked columns and tables.
 
 **New**
 
