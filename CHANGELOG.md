@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Version
+
+**Fixed**
+
+- When `Database.create(virtualTable:using:)` throws because the virtual module throws in its `VirtualTableModule.database(_:didCreate:using:)` method, the virtual table is not created.
+
+
 ## 0.89.0
 
 Released October 17, 2016
