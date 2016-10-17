@@ -1,7 +1,13 @@
 Release Notes
 =============
 
-## Next Version
+## 0.89.0
+
+Released October 17, 2016
+
+**Fixed**
+
+- FetchedRecordsController could miss database changes after its fetch request was modified. Now it properly updates the set of tracked columns and tables.
 
 **New**
 
