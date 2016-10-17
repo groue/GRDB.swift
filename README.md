@@ -3725,7 +3725,7 @@ let documents = Document.fetchAll(db,
     arguments: [pattern])
 
 // Query Interface
-let documents = Document.matching(pattern).order(Column("rank")).fetchAll(db)
+let documents = Document.matching(pattern).order(Column.rank).fetchAll(db)
 ```
 
 For more information about the ranking algorithm, as well as extra options, read [Sorting by Auxiliary Function Results](https://www.sqlite.org/fts5.html#sorting_by_auxiliary_function_results)

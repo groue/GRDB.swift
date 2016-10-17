@@ -310,4 +310,9 @@
             return self
         }
     }
+    
+    extension Column {
+        /// The FTS5 rank column
+        public static let rank = Column("rank")
+    }
 #endif
