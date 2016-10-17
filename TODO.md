@@ -1,4 +1,4 @@
-- [ ] FTS5 trigger boilerplate for external content tables: https://github.com/groue/WWDCCompanion/blob/master/WWDCCompanion/Models/Database.swift
+- [ ] FetchedRecordsController compareRecordsByPrimaryKey: make it work with tables without explicit primary key
 - [ ] Row to dictionary conversion
 - [ ] FTS3Record.fetchCount(db)
 - [ ] FTS: check https://www.sqlite.org/spellfix1.html
