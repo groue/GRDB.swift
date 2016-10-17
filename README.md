@@ -4146,12 +4146,12 @@ controller.trackChanges(
 
 You can change a fetched records controller's fetch request or SQL query.
 
-The [notification callbacks](#the-changes-notifications) are notified of changes in the fetched records:
-
 ```swift
 controller.setRequest(Person.order(Column("name")))
 controller.setRequest(sql: "SELECT ...", arguments: ...)
 ```
+
+The [notification callbacks](#the-changes-notifications) are notified of eventual changes if the new request fetches a different set of records.
 
 > :point_up: **Note**: This behavior differs from Core Data's NSFetchedResultsController, which does not notify of record changes when the fetch request is replaced.
 
