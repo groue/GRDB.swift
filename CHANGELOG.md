@@ -5,7 +5,8 @@ Release Notes
 
 **Fixed**
 
-- When `Database.create(virtualTable:using:)` throws because the virtual module throws in its `VirtualTableModule.database(_:didCreate:using:)` method, the virtual table is not created.
+- When `Database.create(virtualTable:using:)` throws, it is now guaranteed that the virtual table table is not created.
+- FetchedRecordsController learned about `TableMapping.selectsRowID`, and is now able to animate table views populated with records without explicit primary key.
 
 
 ## 0.89.0
