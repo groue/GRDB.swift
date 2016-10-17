@@ -114,9 +114,11 @@ extension Database {
             chunks.append(module.moduleName + "(" + arguments.joined(separator: ", ") + ")")
         }
         let sql = chunks.joined(separator: " ")
-        try execute(sql)
         
-        // Post creation actions
-        try module.database(self, didCreate: tableName, using: definition)
+        try inSavepoint {
+            try execute(sql)
+            try module.database(self, didCreate: tableName, using: definition)
+            return .commit
+        }
     }
 }
