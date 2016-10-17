@@ -2613,7 +2613,7 @@ let nameColumn = Column("name")
 
 You can now build requests with the following methods: `all`, `none`, `select`, `distinct`, `filter`, `matching`, `group`, `having`, `order`, `reversed`, `limit`. All those methods return another request, which you can further refine by applying another method: `Person.select(...).filter(...).order(...)`.
 
-- `all()`, `none()`: the requests for all rows, or no rows
+- `all()`, `none()`: the requests for all rows, or no row.
 
     ```swift
     // SELECT * FROM persons
@@ -2630,7 +2630,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Person.select(max(ageColumn).aliased("maxAge"))
     ```
 
-- `distinct()` performs uniquing:
+- `distinct()` performs uniquing.
     
     ```swift
     // SELECT DISTINCT name FROM persons
