@@ -487,6 +487,18 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur", "Barbara"])
             XCTAssertEqual(recorder.recordsAfterChanges.count, 2)
             XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Arthur", "Barbara"])
+            
+            recorder.transactionExpectation = expectation(description: "expectation")
+            try dbQueue.inTransaction { db in
+                try db.execute("UPDATE PERSONS SET EMAIL = ? WHERE NAME = ?", arguments: ["barbara@example.com", "Barbara"])
+                return .commit
+            }
+            waitForExpectations(timeout: 1, handler: nil)
+            
+            XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
+            XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur", "Barbara"])
+            XCTAssertEqual(recorder.recordsAfterChanges.count, 2)
+            XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Arthur", "Barbara"])
         }
     }
     
