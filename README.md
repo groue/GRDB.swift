@@ -4027,12 +4027,12 @@ let controller = FetchedRecordsController<Person>(
     arguments: ["FR"])
 ```
 
-The fetch request can involve several database tables:
+The fetch request can involve several database tables. The fetched records controller will only track changes in the columns and tables used by the fetch requests.
 
 ```swift
 let controller = FetchedRecordsController<Person>(
     dbQueue,
-    sql: "SELECT persons.*, COUNT(books.id) AS bookCount " +
+    sql: "SELECT persons.name, COUNT(books.id) AS bookCount " +
          "FROM persons " +
          "LEFT JOIN books ON books.authorId = persons.id " +
          "GROUP BY persons.id " +
