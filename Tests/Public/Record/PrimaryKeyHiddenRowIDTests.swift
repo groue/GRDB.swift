@@ -640,4 +640,49 @@ class PrimaryKeyHiddenRowIDTests : GRDBTestCase {
             }
         }
     }
+    
+    
+    // MARK: - FetchedRecordsController
+    
+    func testFetchedRecordsController() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            let person = Person(name: "Arthur")
+            try dbQueue.inDatabase { db in
+                try person.insert(db)
+            }
+            
+            let expectation = self.expectation(description: "expectation")
+            let controller = FetchedRecordsController<Person>(dbQueue, request: Person.all(), compareRecordsByPrimaryKey: true)
+            #if os(iOS)
+                var update = false
+                controller.trackChanges(
+                    tableViewEvent: { (_, _, event) in
+                        switch event {
+                        case .update:
+                            update = true
+                        default:
+                            break
+                        }
+                    },
+                    recordsDidChange: { _ in
+                        expectation.fulfill()
+                })
+            #else
+                controller.trackChanges { _ in
+                    expectation.fulfill()
+                }
+            #endif
+            controller.performFetch()
+            try dbQueue.inDatabase { db in
+                person.name = "Barbara"
+                try person.update(db)
+            }
+            waitForExpectations(timeout: 1, handler: nil)
+            
+            #if os(iOS)
+                XCTAssertTrue(update)
+            #endif
+        }
+    }
 }
