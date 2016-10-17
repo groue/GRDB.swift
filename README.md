@@ -3219,16 +3219,16 @@ let books = Book.fetchAll(db,
     arguments: [pattern])
 ```
 
-- [Choosing the Full-Text Engine](#choosing-the-full-text-engine)
-- Create Full-Text Virtual Tables: [FTS3, FTS4](#create-fts3-and-fts4-virtual-tables), [FTS5](#create-fts5-virtual-tables)
-- Choosing a Tokenizer: [FTS3, FTS4](#fts3-and-fts4-tokenizers), [FTS5](#fts5-tokenizers)
-- Search Patterns: [FTS3, FTS4](#fts3pattern), [FTS5](#fts5pattern)
-- Sorting by Relevance: [FTS5](#fts5-sorting-by-relevance)
-- External Content Full-Text Tables: [FTS4, FTS5](#external-content-full-text-tables)
-- Full-Text Records: [FTS3, FTS4, FTS5](#full-text-records)
-- Unicode Full-Text Gotchas: [FTS3, FTS4, FTS5](#unicode-full-text-gotchas). Unicorns don't exist.
-- Custom Tokenizers: [FTS5](Documentation/FTS5Tokenizers.md). Leverage extra full-text features such as synonyms or stop words. Avoid [unicode gotchas](#unicode-full-text-gotchas).
-- Sample Code: [WWDC Companion](https://github.com/groue/WWDCCompanion), an iOS app that stores, displays, and lets the user search the WWDC 2016 sessions.
+- **[Choosing the Full-Text Engine](#choosing-the-full-text-engine)**
+- **Create Full-Text Virtual Tables**: [FTS3, FTS4](#create-fts3-and-fts4-virtual-tables), [FTS5](#create-fts5-virtual-tables)
+- **Choosing a Tokenizer**: [FTS3, FTS4](#fts3-and-fts4-tokenizers), [FTS5](#fts5-tokenizers)
+- **Search Patterns**: [FTS3, FTS4](#fts3pattern), [FTS5](#fts5pattern)
+- **Sorting by Relevance**: [FTS5](#fts5-sorting-by-relevance)
+- **External Content Full-Text Tables**: [FTS4, FTS5](#external-content-full-text-tables)
+- **Full-Text Record**s: [FTS3, FTS4, FTS5](#full-text-records)
+- **Unicode Full-Text Gotchas**: [FTS3, FTS4, FTS5](#unicode-full-text-gotchas). Unicorns don't exist.
+- **Custom Tokenizers**: [FTS5](Documentation/FTS5Tokenizers.md). Leverage extra full-text features such as synonyms or stop words. Avoid [unicode gotchas](#unicode-full-text-gotchas).
+- **Sample Code**: [WWDC Companion](https://github.com/groue/WWDCCompanion), an iOS app that stores, displays, and lets the user search the WWDC 2016 sessions.
 
 
 
