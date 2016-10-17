@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Version
+
+**New**
+
+- `TableMapping.none()`: a fetch request which fetches nothing.
+
+
 ## 0.88.0
 
 Released October 16, 2016

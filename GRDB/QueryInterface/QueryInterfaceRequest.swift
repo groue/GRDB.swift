@@ -30,7 +30,7 @@ extension QueryInterfaceRequest where T: RowConvertible {
     
     // MARK: Fetching Record and RowConvertible
     
-    /// Returns a sequence of values.
+    /// A sequence of fetched records.
     ///
     ///     let nameColumn = Column("name")
     ///     let request = Person.order(nameColumn)
@@ -51,7 +51,7 @@ extension QueryInterfaceRequest where T: RowConvertible {
         return T.fetch(db, self)
     }
     
-    /// Returns an array of values fetched from a fetch request.
+    /// An array of fetched records.
     ///
     ///     let nameColumn = Column("name")
     ///     let request = Person.order(nameColumn)
@@ -62,7 +62,7 @@ extension QueryInterfaceRequest where T: RowConvertible {
         return T.fetchAll(db, self)
     }
     
-    /// Returns a single value fetched from a fetch request.
+    /// The first fetched record.
     ///
     ///     let nameColumn = Column("name")
     ///     let request = Person.order(nameColumn)
@@ -79,7 +79,7 @@ extension QueryInterfaceRequest {
     
     // MARK: Request Derivation
     
-    /// Returns a new QueryInterfaceRequest with a new net of selected columns.
+    /// A new QueryInterfaceRequest with a new net of selected columns.
     ///
     ///     // SELECT id, email FROM persons
     ///     var request = Person.all()
@@ -95,7 +95,7 @@ extension QueryInterfaceRequest {
         return select(selection)
     }
     
-    /// Returns a new QueryInterfaceRequest with a new net of selected columns.
+    /// A new QueryInterfaceRequest with a new net of selected columns.
     ///
     ///     // SELECT id, email FROM persons
     ///     var request = Person.all()
@@ -113,7 +113,7 @@ extension QueryInterfaceRequest {
         return QueryInterfaceRequest(query: query)
     }
     
-    /// Returns a new QueryInterfaceRequest with a new net of selected columns.
+    /// A new QueryInterfaceRequest with a new net of selected columns.
     ///
     ///     // SELECT id, email FROM persons
     ///     var request = Person.all()
@@ -129,7 +129,7 @@ extension QueryInterfaceRequest {
         return select(SQLExpressionLiteral(sql, arguments: arguments))
     }
     
-    /// Returns a new QueryInterfaceRequest which returns distinct rows.
+    /// A new QueryInterfaceRequest which returns distinct rows.
     ///
     ///     // SELECT DISTINCT * FROM persons
     ///     var request = Person.all()
@@ -144,8 +144,8 @@ extension QueryInterfaceRequest {
         return QueryInterfaceRequest(query: query)
     }
     
-    /// Returns a new QueryInterfaceRequest with the provided *predicate* added
-    /// to the eventual set of already applied predicates.
+    /// A new QueryInterfaceRequest with the provided *predicate* added to the
+    /// eventual set of already applied predicates.
     ///
     ///     // SELECT * FROM persons WHERE email = 'arthur@example.com'
     ///     var request = Person.all()
@@ -160,8 +160,8 @@ extension QueryInterfaceRequest {
         return QueryInterfaceRequest(query: query)
     }
     
-    /// Returns a new QueryInterfaceRequest with the provided *predicate* added
-    /// to the eventual set of already applied predicates.
+    /// A new QueryInterfaceRequest with the provided *predicate* added to the
+    /// eventual set of already applied predicates.
     ///
     ///     // SELECT * FROM persons WHERE email = 'arthur@example.com'
     ///     var request = Person.all()
@@ -170,25 +170,25 @@ extension QueryInterfaceRequest {
         return filter(SQLExpressionLiteral(sql, arguments: arguments))
     }
     
-    /// Returns a new QueryInterfaceRequest grouped according to *expressions*.
+    /// A new QueryInterfaceRequest grouped according to *expressions*.
     public func group(_ expressions: SQLExpressible...) -> QueryInterfaceRequest<T> {
         return group(expressions)
     }
     
-    /// Returns a new QueryInterfaceRequest grouped according to *expressions*.
+    /// A new QueryInterfaceRequest grouped according to *expressions*.
     public func group(_ expressions: [SQLExpressible]) -> QueryInterfaceRequest<T> {
         var query = self.query
         query.groupByExpressions = expressions.map { $0.sqlExpression }
         return QueryInterfaceRequest(query: query)
     }
     
-    /// Returns a new QueryInterfaceRequest with a new grouping.
+    /// A new QueryInterfaceRequest with a new grouping.
     public func group(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<T> {
         return group(SQLExpressionLiteral(sql, arguments: arguments))
     }
     
-    /// Returns a new QueryInterfaceRequest with the provided *predicate* added
-    /// to the eventual set of already applied predicates.
+    /// A new QueryInterfaceRequest with the provided *predicate* added to the
+    /// eventual set of already applied predicates.
     public func having(_ predicate: SQLExpressible) -> QueryInterfaceRequest<T> {
         var query = self.query
         if let havingExpression = query.havingExpression {
@@ -199,14 +199,13 @@ extension QueryInterfaceRequest {
         return QueryInterfaceRequest(query: query)
     }
     
-    /// Returns a new QueryInterfaceRequest with the provided *sql* added to
-    /// the eventual set of already applied predicates.
+    /// A new QueryInterfaceRequest with the provided *sql* added to the
+    /// eventual set of already applied predicates.
     public func having(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<T> {
         return having(SQLExpressionLiteral(sql, arguments: arguments))
     }
     
-    /// Returns a new QueryInterfaceRequest with the provided *orderings* added
-    /// to the eventual set of already applied orderings.
+    /// A new QueryInterfaceRequest with the provided *orderings*.
     ///
     ///     // SELECT * FROM persons ORDER BY name
     ///     var request = Person.all()
@@ -222,8 +221,7 @@ extension QueryInterfaceRequest {
         return order(orderings)
     }
     
-    /// Returns a new QueryInterfaceRequest with the provided *orderings* added
-    /// to the eventual set of already applied orderings.
+    /// A new QueryInterfaceRequest with the provided *orderings*.
     ///
     ///     // SELECT * FROM persons ORDER BY name
     ///     var request = Person.all()
@@ -241,8 +239,7 @@ extension QueryInterfaceRequest {
         return QueryInterfaceRequest(query: query)
     }
     
-    /// Returns a new QueryInterfaceRequest with the provided *sql* added to the
-    /// eventual set of already applied orderings.
+    /// A new QueryInterfaceRequest with the provided *sql* used for sorting.
     ///
     ///     // SELECT * FROM persons ORDER BY name
     ///     var request = Person.all()
@@ -258,7 +255,7 @@ extension QueryInterfaceRequest {
         return order([SQLExpressionLiteral(sql, arguments: arguments)])
     }
     
-    /// Returns a new QueryInterfaceRequest sorted in reversed order.
+    /// A new QueryInterfaceRequest sorted in reversed order.
     ///
     ///     // SELECT * FROM persons ORDER BY name DESC
     ///     var request = Person.all().order(Column("name"))
@@ -269,8 +266,8 @@ extension QueryInterfaceRequest {
         return QueryInterfaceRequest(query: query)
     }
     
-    /// Returns a QueryInterfaceRequest which fetches *limit* rows, starting at
-    /// *offset*.
+    /// A QueryInterfaceRequest which fetches *limit* rows, starting
+    /// at *offset*.
     ///
     ///     // SELECT * FROM persons LIMIT 1
     ///     var request = Person.all()
@@ -287,7 +284,7 @@ extension QueryInterfaceRequest {
     
     // MARK: Counting
     
-    /// Returns the number of rows matched by the request.
+    /// The number of rows matched by the request.
     ///
     /// - parameter db: A database connection.
     public func fetchCount(_ db: Database) -> Int {
@@ -316,7 +313,7 @@ extension TableMapping {
     
     // MARK: Request Derivation
     
-    /// Returns a QueryInterfaceRequest which fetches all rows in the table.
+    /// Creates a QueryInterfaceRequest which fetches all records.
     ///
     ///     // SELECT * FROM persons
     ///     var request = Person.all()
@@ -336,7 +333,12 @@ extension TableMapping {
         return QueryInterfaceRequest(query: QueryInterfaceSelectQueryDefinition(select: selection, from: .table(name: databaseTableName, alias: nil)))
     }
     
-    /// Returns a QueryInterfaceRequest which selects *selection*.
+    /// Creates a QueryInterfaceRequest which fetches no record.
+    public static func none() -> QueryInterfaceRequest<Self> {
+        return filter(false)
+    }
+    
+    /// Creates a QueryInterfaceRequest which selects *selection*.
     ///
     ///     // SELECT id, email FROM persons
     ///     var request = Person.select(Column("id"), Column("email"))
@@ -344,7 +346,7 @@ extension TableMapping {
         return all().select(selection)
     }
     
-    /// Returns a QueryInterfaceRequest which selects *selection*.
+    /// Creates a QueryInterfaceRequest which selects *selection*.
     ///
     ///     // SELECT id, email FROM persons
     ///     var request = Person.select([Column("id"), Column("email")])
@@ -352,7 +354,7 @@ extension TableMapping {
         return all().select(selection)
     }
     
-    /// Returns a QueryInterfaceRequest which selects *sql*.
+    /// Creates a QueryInterfaceRequest which selects *sql*.
     ///
     ///     // SELECT id, email FROM persons
     ///     var request = Person.select(sql: "id, email")
@@ -360,7 +362,7 @@ extension TableMapping {
         return all().select(sql: sql, arguments: arguments)
     }
     
-    /// Returns a QueryInterfaceRequest with the provided *predicate*.
+    /// Creates a QueryInterfaceRequest with the provided *predicate*.
     ///
     ///     // SELECT * FROM persons WHERE email = 'arthur@example.com'
     ///     var request = Person.filter(Column("email") == "arthur@example.com")
@@ -374,7 +376,7 @@ extension TableMapping {
         return all().filter(predicate)
     }
     
-    /// Returns a QueryInterfaceRequest with the provided *predicate*.
+    /// Creates a QueryInterfaceRequest with the provided *predicate*.
     ///
     ///     // SELECT * FROM persons WHERE email = 'arthur@example.com'
     ///     var request = Person.filter(sql: "email = ?", arguments: ["arthur@example.com"])
@@ -388,7 +390,7 @@ extension TableMapping {
         return all().filter(sql: sql, arguments: arguments)
     }
     
-    /// Returns a QueryInterfaceRequest sorted according to the
+    /// Creates a QueryInterfaceRequest sorted according to the
     /// provided *orderings*.
     ///
     ///     // SELECT * FROM persons ORDER BY name
@@ -403,7 +405,7 @@ extension TableMapping {
         return all().order(orderings)
     }
     
-    /// Returns a QueryInterfaceRequest sorted according to the
+    /// Creates a QueryInterfaceRequest sorted according to the
     /// provided *orderings*.
     ///
     ///     // SELECT * FROM persons ORDER BY name
@@ -418,7 +420,7 @@ extension TableMapping {
         return all().order(orderings)
     }
     
-    /// Returns a QueryInterfaceRequest sorted according to *sql*.
+    /// Creates a QueryInterfaceRequest sorted according to *sql*.
     ///
     ///     // SELECT * FROM persons ORDER BY name
     ///     var request = Person.order(sql: "name")
@@ -432,7 +434,7 @@ extension TableMapping {
         return all().order(sql: sql, arguments: arguments)
     }
     
-    /// Returns a QueryInterfaceRequest which fetches *limit* rows, starting at
+    /// Creates a QueryInterfaceRequest which fetches *limit* rows, starting at
     /// *offset*.
     ///
     ///     // SELECT * FROM persons LIMIT 1
@@ -453,7 +455,7 @@ extension TableMapping {
     
     // MARK: Counting
     
-    /// Returns the number of records.
+    /// The number of records.
     ///
     /// - parameter db: A database connection.
     public static func fetchCount(_ db: Database) -> Int {
@@ -481,7 +483,7 @@ extension RowConvertible where Self: TableMapping {
     
     // MARK: Fetching All
     
-    /// Returns a sequence of all records fetched from the database.
+    /// A sequence of all records fetched from the database.
     ///
     ///     let persons = Person.fetch(db) // DatabaseSequence<Person>
     ///
@@ -500,7 +502,7 @@ extension RowConvertible where Self: TableMapping {
         return all().fetch(db)
     }
     
-    /// Returns an array of all records fetched from the database.
+    /// An array of all records fetched from the database.
     ///
     ///     let persons = Person.fetchAll(db) // [Person]
     ///
@@ -509,7 +511,7 @@ extension RowConvertible where Self: TableMapping {
         return all().fetchAll(db)
     }
     
-    /// Returns the first record fetched from a fetch request.
+    /// The first found record.
     ///
     ///     let person = Person.fetchOne(db) // Person?
     ///
