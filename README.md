@@ -1897,14 +1897,15 @@ try Document.deleteOne(db, key: 1)
 When given dictionaries, `fetchOne`, `deleteOne`, `fetchAll` and `deleteAll` accept any set of columns that uniquely identify rows. These are the primary key columns, or any columns involved in a unique index:
 
 ```swift
-// CREATE TABLE persons (
-//   id INTEGER PRIMARY KEY, -- unique id
-//   email TEXT UNIQUE,      -- unique email
-//   name TEXT               -- not unique
-// )
+try db.create(table: "persons") { t in
+    t.column("id", .integer).primaryKey() // unique id
+    t.column("email", .text).unique()     // unique email
+    t.columb("name", .text)               // not unique
+}
+
 Person.fetchOne(db, key: ["id": 1])                       // Person?
 Person.fetchOne(db, key: ["email": "arthur@example.com"]) // Person?
-Person.fetchOne(db, key: ["name": "Arthur"]) // fatal error: table persons has no unique index on column name.
+Person.fetchOne(db, key: ["name": "Arthur"]) // fatal error: table persons has no unique index on column `name`.
 ```
 
 
@@ -3100,14 +3101,15 @@ Person.deleteOne(db, key: ["email": "arthur@example.com"])
 When given dictionaries, `deleteOne` and `deleteAll` accept any set of columns that uniquely identify rows. These are the primary key columns, or any columns involved in a unique index:
 
 ```swift
-// CREATE TABLE persons (
-//   id INTEGER PRIMARY KEY, -- unique id
-//   email TEXT UNIQUE,      -- unique email
-//   name TEXT               -- not unique
-// )
+try db.create(table: "persons") { t in
+    t.column("id", .integer).primaryKey() // unique id
+    t.column("email", .text).unique()     // unique email
+    t.columb("name", .text)               // not unique
+}
+
 try Person.deleteOne(db, key: ["id": 1])
 try Person.deleteOne(db, key: ["email": "arthur@example.com"])
-try Person.deleteOne(db, key: ["name": "Arthur"]) // fatal error: table persons has no unique index on column name.
+try Person.deleteOne(db, key: ["name": "Arthur"]) // fatal error: table persons has no unique index on column `name`.
 ```
 
 
