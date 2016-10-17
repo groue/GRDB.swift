@@ -2342,7 +2342,7 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](#fu
         var id: Int64?
         
         init(row: Row) {
-            self.id = row.value(named: "rowid")
+            id = row.value(named: "rowid")
         }
     }
     ```
@@ -2351,7 +2351,7 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](#fu
     
     ```swift
     init(row: Row) {
-        self.id = row.value(Column.rowID)
+        id = row.value(Column.rowID)
     }
     ```
     
@@ -4208,13 +4208,21 @@ let controller = FetchedRecordsController<Person>(
 
 #### Typical Table View Updates
 
-You can use the `recordsWillChange` and `recordsDidChange` callbacks to bracket updates to a table view whose content is provided by the fetched records controller, as illustrated in the following example:
+When a change in the fetched records should just trigger a reloading of the whole table view, you can simply tell so:
+
+```swift
+controller.trackChanges { [unowned self] _ in
+    self.tableView.reloadData()
+}
+```
+
+For animated table view updates, use the `recordsWillChange` and `recordsDidChange` callbacks to bracket events provided by the fetched records controller, as illustrated in the following example:
 
 ```swift
 // Assume self has a tableView property, and a configureCell(_:atIndexPath:)
 // method which updates the contents of a given cell.
 
-self.controller.trackChanges(
+controller.trackChanges(
     // controller's records are about to change:
     recordsWillChange: { [unowned self] _ in
         self.tableView.beginUpdates()
