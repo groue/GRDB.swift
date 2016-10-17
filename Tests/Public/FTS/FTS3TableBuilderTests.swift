@@ -12,11 +12,10 @@ class FTS3TableBuilderTests: GRDBTestCase {
     override func setUp() {
         super.setUp()
         
-        self.dbConfiguration.trace = { (sql) in
+        dbConfiguration.trace = { [unowned self] sql in
             // Ignore virtual table logs
             if !sql.hasPrefix("--") {
                 self.sqlQueries.append(sql)
-                self.lastSQLQuery = sql
             }
         }
     }
@@ -26,7 +25,7 @@ class FTS3TableBuilderTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.create(virtualTable: "documents", using: FTS3())
-                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"documents\" USING fts3")
+                assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts3")
                 
                 try db.execute("INSERT INTO documents VALUES (?)", arguments: ["abc"])
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["abc"])!, 1)
@@ -39,7 +38,7 @@ class FTS3TableBuilderTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.create(virtualTable: "documents", ifNotExists: true, using: FTS3())
-                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE IF NOT EXISTS \"documents\" USING fts3")
+                assertDidExecute(sql: "CREATE VIRTUAL TABLE IF NOT EXISTS \"documents\" USING fts3")
                 
                 try db.execute("INSERT INTO documents VALUES (?)", arguments: ["abc"])
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["abc"])!, 1)
@@ -54,7 +53,7 @@ class FTS3TableBuilderTests: GRDBTestCase {
                 try db.create(virtualTable: "documents", using: FTS3()) { t in
                     t.tokenizer = .simple
                 }
-                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"documents\" USING fts3(tokenize=simple)")
+                assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts3(tokenize=simple)")
             }
         }
     }
@@ -66,7 +65,7 @@ class FTS3TableBuilderTests: GRDBTestCase {
                 try db.create(virtualTable: "documents", using: FTS3()) { t in
                     t.tokenizer = .porter
                 }
-                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"documents\" USING fts3(tokenize=porter)")
+                assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts3(tokenize=porter)")
             }
         }
     }
@@ -78,7 +77,7 @@ class FTS3TableBuilderTests: GRDBTestCase {
                 try db.create(virtualTable: "documents", using: FTS3()) { t in
                     t.tokenizer = .unicode61()
                 }
-                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"documents\" USING fts3(tokenize=unicode61)")
+                assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts3(tokenize=unicode61)")
             }
         }
     }
@@ -90,7 +89,7 @@ class FTS3TableBuilderTests: GRDBTestCase {
                 try db.create(virtualTable: "documents", using: FTS3()) { t in
                     t.tokenizer = .unicode61(removeDiacritics: false)
                 }
-                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"documents\" USING fts3(tokenize=unicode61 \"remove_diacritics=0\")")
+                assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts3(tokenize=unicode61 \"remove_diacritics=0\")")
             }
         }
     }
@@ -102,7 +101,7 @@ class FTS3TableBuilderTests: GRDBTestCase {
                 try db.create(virtualTable: "documents", using: FTS3()) { t in
                     t.tokenizer = .unicode61(separators: ["X"])
                 }
-                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"documents\" USING fts3(tokenize=unicode61 \"separators=X\")")
+                assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts3(tokenize=unicode61 \"separators=X\")")
             }
         }
     }
@@ -114,7 +113,7 @@ class FTS3TableBuilderTests: GRDBTestCase {
                 try db.create(virtualTable: "documents", using: FTS3()) { t in
                     t.tokenizer = .unicode61(tokenCharacters: Set(".-".characters))
                 }
-                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"documents\" USING fts3(tokenize=unicode61 \"tokenchars=-.\")")
+                assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts3(tokenize=unicode61 \"tokenchars=-.\")")
             }
         }
     }
@@ -128,7 +127,7 @@ class FTS3TableBuilderTests: GRDBTestCase {
                     t.column("title")
                     t.column("body")
                 }
-                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"books\" USING fts3(author, title, body)")
+                assertDidExecute(sql: "CREATE VIRTUAL TABLE \"books\" USING fts3(author, title, body)")
                 
                 try db.execute("INSERT INTO books VALUES (?, ?, ?)", arguments: ["Melville", "Moby Dick", "Call me Ishmael."])
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["Melville"])!, 1)

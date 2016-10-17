@@ -50,7 +50,9 @@ class GRDBTestCase: XCTestCase {
     var sqlQueries: [String]!   // TODO: protect against concurrent accesses
     
     // Populated by default configuration
-    var lastSQLQuery: String!   // TODO: protect against concurrent accesses
+    var lastSQLQuery: String! {
+        return sqlQueries.last!
+    }
     
     override func setUp() {
         super.setUp()
@@ -91,9 +93,9 @@ class GRDBTestCase: XCTestCase {
                 stmt = sqlite3_next_stmt(sqliteConnection, stmt)
             }
         }
-        dbConfiguration.trace = { (sql) in
+        
+        dbConfiguration.trace = { [unowned self] sql in
             self.sqlQueries.append(sql)
-            self.lastSQLQuery = sql
         }
         
         #if GRDBCIPHER_USE_ENCRYPTION
@@ -102,7 +104,6 @@ class GRDBTestCase: XCTestCase {
         #endif
         
         sqlQueries = []
-        lastSQLQuery = nil
     }
     
     override func tearDown() {
@@ -116,6 +117,10 @@ class GRDBTestCase: XCTestCase {
         } catch {
             XCTFail("unexpected error at \(file):\(line): \(error)")
         }
+    }
+    
+    func assertDidExecute(sql: String) {
+        XCTAssertTrue(sqlQueries.contains(sql), "Did not execute \(sql)")
     }
     
     func sql(_ databaseReader: DatabaseReader, _ request: FetchRequest) -> String {

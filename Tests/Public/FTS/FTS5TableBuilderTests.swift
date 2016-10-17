@@ -12,11 +12,10 @@ class FTS5TableBuilderTests: GRDBTestCase {
     override func setUp() {
         super.setUp()
         
-        self.dbConfiguration.trace = { (sql) in
+        dbConfiguration.trace = { [unowned self] sql in
             // Ignore virtual table logs
             if !sql.hasPrefix("--") {
                 self.sqlQueries.append(sql)
-                self.lastSQLQuery = sql
             }
         }
     }
@@ -28,7 +27,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
                 try db.create(virtualTable: "documents", using: FTS5()) { t in
                     t.column("content")
                 }
-                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"documents\" USING fts5(content)")
+                assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts5(content)")
                 
                 try db.execute("INSERT INTO documents VALUES (?)", arguments: ["abc"])
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["abc"])!, 1)
@@ -43,7 +42,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
                 try db.create(virtualTable: "documents", ifNotExists: true, using: FTS5()) { t in
                     t.column("content")
                 }
-                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE IF NOT EXISTS \"documents\" USING fts5(content)")
+                assertDidExecute(sql: "CREATE VIRTUAL TABLE IF NOT EXISTS \"documents\" USING fts5(content)")
                 
                 try db.execute("INSERT INTO documents VALUES (?)", arguments: ["abc"])
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["abc"])!, 1)
@@ -59,7 +58,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
                     t.tokenizer = .ascii()
                     t.column("content")
                 }
-                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='ascii')")
+                assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='ascii')")
             }
         }
     }
@@ -72,7 +71,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
                     t.tokenizer = .porter()
                     t.column("content")
                 }
-                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='porter')")
+                assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='porter')")
             }
         }
     }
@@ -85,7 +84,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
                     t.tokenizer = .porter(wrapping: .ascii())
                     t.column("content")
                 }
-                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='porter ascii')")
+                assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='porter ascii')")
             }
         }
     }
@@ -98,7 +97,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
                     t.tokenizer = .porter(wrapping: .unicode61())
                     t.column("content")
                 }
-                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='porter unicode61')")
+                assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='porter unicode61')")
             }
         }
     }
@@ -111,7 +110,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
                     t.tokenizer = .unicode61()
                     t.column("content")
                 }
-                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='unicode61')")
+                assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='unicode61')")
             }
         }
     }
@@ -124,7 +123,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
                     t.tokenizer = .unicode61(removeDiacritics: false)
                     t.column("content")
                 }
-                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='unicode61 remove_diacritics 0')")
+                assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='unicode61 remove_diacritics 0')")
             }
         }
     }
@@ -137,7 +136,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
                     t.tokenizer = .unicode61(separators: ["X"])
                     t.column("content")
                 }
-                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='unicode61 separators ''X''')")
+                assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='unicode61 separators ''X''')")
             }
         }
     }
@@ -150,7 +149,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
                     t.tokenizer = .unicode61(tokenCharacters: Set(".-".characters))
                     t.column("content")
                 }
-                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='unicode61 tokenchars ''-.''')")
+                assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='unicode61 tokenchars ''-.''')")
             }
         }
     }
@@ -164,7 +163,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
                     t.column("title")
                     t.column("body")
                 }
-                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"books\" USING fts5(author, title, body)")
+                assertDidExecute(sql: "CREATE VIRTUAL TABLE \"books\" USING fts5(author, title, body)")
                 
                 try db.execute("INSERT INTO books VALUES (?, ?, ?)", arguments: ["Melville", "Moby Dick", "Call me Ishmael."])
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["Melville"])!, 1)
@@ -183,7 +182,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
                     t.column("title")
                     t.column("body").notIndexed()
                 }
-                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"books\" USING fts5(author UNINDEXED, title, body UNINDEXED)")
+                assertDidExecute(sql: "CREATE VIRTUAL TABLE \"books\" USING fts5(author UNINDEXED, title, body UNINDEXED)")
                 
                 try db.execute("INSERT INTO books VALUES (?, ?, ?)", arguments: ["Melville", "Moby Dick", "Call me Ishmael."])
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["Dick"])!, 1)
@@ -207,7 +206,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
                     t.detail = "column"
                     t.column("content")
                 }
-                XCTAssertEqual(lastSQLQuery, "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, content='', prefix='2 4', columnSize=0, detail=column)")
+                assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, content='', prefix='2 4', columnSize=0, detail=column)")
             }
         }
     }

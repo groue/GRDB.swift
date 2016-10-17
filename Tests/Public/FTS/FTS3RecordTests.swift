@@ -46,11 +46,10 @@ class FTS3RecordTests: GRDBTestCase {
     override func setUp() {
         super.setUp()
         
-        self.dbConfiguration.trace = { (sql) in
+        dbConfiguration.trace = { [unowned self] sql in
             // Ignore virtual table logs
             if !sql.hasPrefix("--") {
                 self.sqlQueries.append(sql)
-                self.lastSQLQuery = sql
             }
         }
     }
