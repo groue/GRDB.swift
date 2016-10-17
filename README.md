@@ -2294,7 +2294,7 @@ try db.create(virtualTable: "books", using: FTS4()) { t in
 
 The implicit primary key is stored in the hidden column `rowid`. Hidden means that `SELECT *` does not select it, and yet it can be selected and queried: `SELECT *, rowid ... WHERE rowid = 1`.
 
-When possible, GRDB will automatically use this hidden column:
+Some GRDB methods will automatically use this hidden column when a table has no explicit primary key:
 
 ```swift
 // SELECT * FROM events WHERE rowid = 1
