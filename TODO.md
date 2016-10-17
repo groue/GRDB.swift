@@ -1,3 +1,4 @@
+- [ ] FetchedRecordsController compareRecordsByPrimaryKey: make it work with tables without explicit primary key
 - [ ] Row to dictionary conversion
 - [ ] FTS3Record.fetchCount(db)
 - [ ] FTS: check https://www.sqlite.org/spellfix1.html
