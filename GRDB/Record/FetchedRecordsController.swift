@@ -433,7 +433,7 @@ extension FetchedRecordsController where Record: TableMapping {
     public convenience init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue = .main, compareRecordsByPrimaryKey: Bool) {
         if compareRecordsByPrimaryKey {
             self.init(databaseWriter, request: request, queue: queue, isSameItemFactory: { db in
-                let comparator = try! makePrimaryKeyComparator(db, tableName: Record.databaseTableName)
+                let comparator = try! Record.primaryKeyComparator(db)
                 return { comparator($0.row, $1.row) }
             })
         } else {
@@ -1030,43 +1030,56 @@ private func ==<T>(lhs: Item<T>, rhs: Item<T>) -> Bool {
 
 // MARK: - Utils
 
-/// Returns a function that returns the primary key of a row
-///
-///     dbQueue.inDatabase { db in
-///         let primaryKey = makePrimaryKeyFunction(db, tableName: "persons")
-///         let row = Row.fetchOne(db, "SELECT * FROM persons")!
-///         primaryKey(row) // ["id": 1]
-///
-/// - throws: A DatabaseError if table does not exist.
-func makePrimaryKeyFunction(_ db: Database, tableName: String) throws -> (Row) -> [String: DatabaseValue] {
-    let columns = try db.primaryKey(tableName)?.columns ?? []
-    return { row in
-        return Dictionary<String, DatabaseValue>(keys: columns) { row.value(named: $0) }
+extension TableMapping {
+    /// Returns a function that returns the primary key of a row.
+    ///
+    /// If the table has no primary key, and selectsRowID is true, use the
+    /// "rowid" key.
+    ///
+    ///     dbQueue.inDatabase { db in
+    ///         let primaryKey = Person.primaryKeyFunction(db)
+    ///         let row = Row.fetchOne(db, "SELECT * FROM persons")!
+    ///         primaryKey(row) // ["id": 1]
+    ///     }
+    ///
+    /// - throws: A DatabaseError if table does not exist.
+    static func primaryKeyFunction(_ db: Database) throws -> (Row) -> [String: DatabaseValue] {
+        let columns: [String]
+        if let primaryKey = try db.primaryKey(databaseTableName) {
+            columns = primaryKey.columns
+        } else if selectsRowID {
+            columns = ["rowid"]
+        } else {
+            columns = []
+        }
+        return { row in
+            return Dictionary<String, DatabaseValue>(keys: columns) { row.value(named: $0) }
+        }
     }
-}
-
-/// Returns a function that returns true if and only if two rows have the
-/// same primary key and both primary keys contain at least one non-null
-/// value.
-///
-///     dbQueue.inDatabase { db in
-///         let comparator = makePrimaryKeyComparator(db, tableName: "persons")
-///         let row0 = Row(["id": nil, "name": "Unsaved"])
-///         let row1 = Row(["id": 1, "name": "Arthur"])
-///         let row2 = Row(["id": 1, "name": "Arthur"])
-///         let row3 = Row(["id": 2, "name": "Barbara"])
-///         comparator(row0, row0) // false
-///         comparator(row1, row2) // true
-///         comparator(row1, row3) // false
-///     }
-///
-/// - throws: A DatabaseError if table does not exist.
-func makePrimaryKeyComparator(_ db: Database, tableName: String) throws -> (Row, Row) -> Bool {
-    let primaryKey = try makePrimaryKeyFunction(db, tableName: tableName)
-    return { (lhs, rhs) in
-        let (lhs, rhs) = (primaryKey(lhs), primaryKey(rhs))
-        guard lhs.contains(where: { !$1.isNull }) else { return false }
-        guard rhs.contains(where: { !$1.isNull }) else { return false }
-        return lhs == rhs
+    
+    /// Returns a function that returns true if and only if two rows have the
+    /// same primary key and both primary keys contain at least one non-null
+    /// value.
+    ///
+    ///     dbQueue.inDatabase { db in
+    ///         let comparator = Person.primaryKeyComparator(db)
+    ///         let row0 = Row(["id": nil, "name": "Unsaved"])
+    ///         let row1 = Row(["id": 1, "name": "Arthur"])
+    ///         let row2 = Row(["id": 1, "name": "Arthur"])
+    ///         let row3 = Row(["id": 2, "name": "Barbara"])
+    ///         comparator(row0, row0) // false
+    ///         comparator(row1, row2) // true
+    ///         comparator(row1, row3) // false
+    ///     }
+    ///
+    /// - throws: A DatabaseError if table does not exist.
+    static func primaryKeyComparator(_ db: Database) throws -> (Row, Row) -> Bool {
+        let primaryKey = try primaryKeyFunction(db)
+        return { (lhs, rhs) in
+            let (lhs, rhs) = (primaryKey(lhs), primaryKey(rhs))
+            guard lhs.contains(where: { !$1.isNull }) else { return false }
+            guard rhs.contains(where: { !$1.isNull }) else { return false }
+            return lhs == rhs
+        }
     }
 }
