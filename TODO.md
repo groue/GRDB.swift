@@ -1,3 +1,4 @@
+- [ ] create(virtualTable:using:) should use a savepoint.
 - [ ] FTS5 trigger boilerplate for external content tables: https://github.com/groue/WWDCCompanion/blob/master/WWDCCompanion/Models/Database.swift
 - [ ] Row to dictionary conversion
 - [ ] FTS3Record.fetchCount(db)
