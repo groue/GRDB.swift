@@ -350,7 +350,22 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     fileprivate var request: FetchRequest {
         didSet {
             guard let observer = observer else { return }
-            databaseWriter.writeForIssue117 { _ in
+            
+            // If some changes are currently processed, make sure they are
+            // discarded. But preserve eventual changes processing.
+            let checkForChanges = observer.checkForChanges
+            observer.invalidate()
+            self.observer = nil
+            
+            // Replace observer so that it tracks a new set of columns,
+            // and notify eventual changes
+            let initialItems = fetchedItems
+            databaseWriter.writeForIssue117 { db in
+                let (statement, _) = try! request.prepare(db)
+                let observer = FetchedRecordsObserver(readInfo: statement.readInfo, checkForChanges: checkForChanges)
+                self.observer = observer
+                observer.items = initialItems
+                db.add(transactionObserver: observer)
                 observer.performChangesChecking()
             }
         }

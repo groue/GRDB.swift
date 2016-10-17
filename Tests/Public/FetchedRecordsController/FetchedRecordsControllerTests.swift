@@ -476,6 +476,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(recorder.recordsAfterChanges.count, 2)
             XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Arthur", "Barbara"])
             
+            recorder.transactionExpectation = expectation(description: "expectation")
             try dbQueue.inTransaction { db in
                 try db.execute("UPDATE persons SET email = ? WHERE name = ?", arguments: ["arthur@example.com", "Arthur"])
                 return .commit
