@@ -39,11 +39,13 @@ private class ChangesRecorder<Record: RowConvertible> {
 private class Person : Record {
     var id: Int64?
     let name: String
+    let email: String?
     let bookCount: Int?
     
-    init(id: Int64? = nil, name: String) {
+    init(id: Int64? = nil, name: String, email: String? = nil) {
         self.id = id
         self.name = name
+        self.email = email
         self.bookCount = nil
         super.init()
     }
@@ -51,6 +53,7 @@ private class Person : Record {
     required init(row: Row) {
         id = row.value(named: "id")
         name = row.value(named: "name")
+        email = row.value(named: "email")
         bookCount = row.value(named: "bookCount")
         super.init(row: row)
     }
@@ -60,7 +63,7 @@ private class Person : Record {
     }
     
     override var persistentDictionary: [String : DatabaseValueConvertible?] {
-        return ["id": id, "name": name]
+        return ["id": id, "name": name, "email": email]
     }
     
     override func didInsert(with rowID: Int64, for column: String?) {
@@ -87,7 +90,8 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             try db.execute(
                 "CREATE TABLE persons (" +
                     "id INTEGER PRIMARY KEY, " +
-                    "name TEXT" +
+                    "name TEXT," +
+                    "email TEXT" +
                 ")")
             try db.execute(
                 "CREATE TABLE books (" +
@@ -424,7 +428,8 @@ class FetchedRecordsControllerTests: GRDBTestCase {
     func testRequestChange() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")), compareRecordsByPrimaryKey: true)
+            let request = Person.select(Column("name")).order(Column("name"))
+            let controller = FetchedRecordsController<Person>(dbQueue, request: request, compareRecordsByPrimaryKey: true)
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
@@ -460,6 +465,27 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Barbara", "Arthur"])
             XCTAssertEqual(recorder.recordsAfterChanges.count, 1)
             XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Craig"])
+            
+            // Change request with a different set of tracked columns
+            recorder.transactionExpectation = expectation(description: "expectation")
+            controller.setRequest(Person.select(Column("name"), Column("email")).order(Column("name")))
+            waitForExpectations(timeout: 1, handler: nil)
+            
+            XCTAssertEqual(recorder.recordsBeforeChanges.count, 1)
+            XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Craig"])
+            XCTAssertEqual(recorder.recordsAfterChanges.count, 2)
+            XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Arthur", "Barbara"])
+            
+            try dbQueue.inTransaction { db in
+                try db.execute("UPDATE persons SET email = ? WHERE name = ?", arguments: ["arthur@example.com", "Arthur"])
+                return .commit
+            }
+            waitForExpectations(timeout: 1, handler: nil)
+            
+            XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
+            XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur", "Barbara"])
+            XCTAssertEqual(recorder.recordsAfterChanges.count, 2)
+            XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Arthur", "Barbara"])
         }
     }
     
