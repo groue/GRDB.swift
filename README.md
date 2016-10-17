@@ -4027,7 +4027,7 @@ let controller = FetchedRecordsController<Person>(
     arguments: ["FR"])
 ```
 
-The fetch request can involve several database tables. The fetched records controller will only track changes in the columns and tables used by the fetch requests.
+The fetch request can involve several database tables. The fetched records controller will only track changes in the columns and tables used by the fetch request.
 
 ```swift
 let controller = FetchedRecordsController<Person>(
