@@ -32,6 +32,10 @@
 		5605F1931C6B1A8700235C62 /* QueryInterfaceSelectQueryDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5605F18C1C6B1A8700235C62 /* QueryInterfaceSelectQueryDefinition.swift */; };
 		5605F1941C6B1A8700235C62 /* QueryInterfaceSelectQueryDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5605F18C1C6B1A8700235C62 /* QueryInterfaceSelectQueryDefinition.swift */; };
 		5606AF911C0ED37000D20487 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 56BB86301BA98AB0001F9168 /* libsqlite3.tbd */; };
+		56071A411DB54ED000CA6E47 /* FetchedRecordsControlleriOSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B15D0A1CD4C35100A24C8B /* FetchedRecordsControlleriOSTests.swift */; };
+		56071A4E1DB54ED200CA6E47 /* FetchedRecordsControlleriOSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B15D0A1CD4C35100A24C8B /* FetchedRecordsControlleriOSTests.swift */; };
+		56071A4F1DB54ED300CA6E47 /* FetchedRecordsControlleriOSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B15D0A1CD4C35100A24C8B /* FetchedRecordsControlleriOSTests.swift */; };
+		56071A501DB54ED300CA6E47 /* FetchedRecordsControlleriOSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B15D0A1CD4C35100A24C8B /* FetchedRecordsControlleriOSTests.swift */; };
 		5607EFD41BB827FD00605DE3 /* TransactionObserverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5607EFD21BB8254800605DE3 /* TransactionObserverTests.swift */; };
 		560A37A41C8F625000949E71 /* DatabasePool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560A37A31C8F625000949E71 /* DatabasePool.swift */; };
 		560A37A51C8F625000949E71 /* DatabasePool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560A37A31C8F625000949E71 /* DatabasePool.swift */; };
@@ -3669,6 +3673,7 @@
 				565049061CE32543000A97D8 /* FetchedRecordsControllerTests.swift in Sources */,
 				567156171CB142AA007DC145 /* ReadOnlyDatabaseTests.swift in Sources */,
 				560FC58D1CB00B880014AA8E /* Row+FoundationTests.swift in Sources */,
+				56071A4E1DB54ED200CA6E47 /* FetchedRecordsControlleriOSTests.swift in Sources */,
 				56A4CDB11D4234B200B1A9B9 /* SQLExpressionLiteralTests.swift in Sources */,
 				567156141CB141D0007DC145 /* InMemoryDatabaseTests.swift in Sources */,
 				560FC58E1CB00B880014AA8E /* PrimaryKeyRowIDTests.swift in Sources */,
@@ -3868,6 +3873,7 @@
 				56A8C2431D1918EE0096E9D4 /* NSUUIDTests.swift in Sources */,
 				5671564C1CB16729007DC145 /* InMemoryDatabaseTests.swift in Sources */,
 				56A4CDB21D4234B200B1A9B9 /* SQLExpressionLiteralTests.swift in Sources */,
+				56071A4F1DB54ED300CA6E47 /* FetchedRecordsControlleriOSTests.swift in Sources */,
 				5671564D1CB16729007DC145 /* PrimaryKeyRowIDTests.swift in Sources */,
 				5671564E1CB16729007DC145 /* DatabaseReaderTests.swift in Sources */,
 				5671564F1CB16729007DC145 /* RecordEditedTests.swift in Sources */,
@@ -4496,6 +4502,7 @@
 				56D4967F1D813131008276D7 /* StatementColumnConvertibleTests.swift in Sources */,
 				56D496971D81317B008276D7 /* DatabaseReaderTests.swift in Sources */,
 				56D496911D81316E008276D7 /* MetalRowTests.swift in Sources */,
+				56071A411DB54ED000CA6E47 /* FetchedRecordsControlleriOSTests.swift in Sources */,
 				56D496B91D81346F008276D7 /* DatabaseValueConvertibleEscapingTests.swift in Sources */,
 				56D496901D81316E008276D7 /* AdapterRowTests.swift in Sources */,
 				56D496721D81309E008276D7 /* PrimaryKeySingleWithReplaceConflictResolutionTests.swift in Sources */,
@@ -4858,6 +4865,7 @@
 				F3BA80E31CFB300F003DC1BA /* DatabaseValueConvertibleSubclassTests.swift in Sources */,
 				566AD8C91D531BEB002EC1A8 /* SQLTableBuilderTests.swift in Sources */,
 				F3BA81361CFB3064003DC1BA /* RecordFetchTests.swift in Sources */,
+				56071A501DB54ED300CA6E47 /* FetchedRecordsControlleriOSTests.swift in Sources */,
 				F3BA80AC1CFB2FA6003DC1BA /* DatabaseQueueSchemaCacheTests.swift in Sources */,
 				56A8C2461D1918EF0096E9D4 /* UUIDTests.swift in Sources */,
 				F3BA80F61CFB301E003DC1BA /* StatementColumnConvertibleFetchTests.swift in Sources */,
