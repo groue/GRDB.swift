@@ -2395,7 +2395,7 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](#fu
     event.message = "bar"
     try event.update(db)
     
-    // Records knows if it exists:
+    // Record knows if it exists:
     event.exists(db) // true
     ```
 
