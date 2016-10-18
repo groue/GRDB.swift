@@ -1,3 +1,5 @@
+import Foundation
+
 #if !USING_BUILTIN_SQLITE
     #if os(OSX)
         import SQLiteMacOSX
@@ -57,5 +59,23 @@ extension DatabaseError: CustomStringConvertible {
             description += ": \(message)"
         }
         return description
+    }
+}
+
+extension DatabaseError : CustomNSError {
+    
+    /// NSError bridging: the domain of the error.
+    public static var errorDomain: String {
+        return "GRDB.DatabaseError"
+    }
+    
+    /// NSError bridging: the error code within the given domain.
+    public var errorCode: Int {
+        return Int(code)
+    }
+    
+    /// NSError bridging: the user-info dictionary.
+    public var errorUserInfo: [String : Any] {
+        return [NSLocalizedDescriptionKey: description]
     }
 }
