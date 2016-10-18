@@ -1,6 +1,3 @@
-- [ ] FetchedRecordsController compareRecordsByPrimaryKey: make it work with tables without explicit primary key
-- [ ] Row to dictionary conversion
-- [ ] FTS3Record.fetchCount(db)
 - [ ] FTS: check https://www.sqlite.org/spellfix1.html
 - [ ] Store dates as timestamp (https://twitter.com/gloparco/status/780948021613912064, https://github.com/groue/GRDB.swift/issues/97)
     - Global config?
@@ -66,7 +63,6 @@
     - DatabasePoolReadOnlyTests
     - DatabaseQueueConcurrencyTests
 - [ ] FetchedRecordsController throttling (suggested by @hdlj)
-- [ ] Test Row.value(SQLColumn)
 - [ ] What is the behavior inTransaction and inSavepoint behaviors in case of commit error? Code looks like we do not rollback, leaving the app in a weird state (out of Swift transaction block with a SQLite transaction that may still be opened).
 - [ ] GRDBCipher / custom SQLite builds: remove limitations on iOS or OS X versions
 - [ ] FetchedRecordsController: take inspiration from https://github.com/jflinter/Dwifft
@@ -77,10 +73,7 @@
     - [ ] date functions
     - [ ] NOW
     - [ ] RANDOM() https://www.sqlite.org/lang_corefunc.html
-    - [ ] LIKE https://www.sqlite.org/lang_expr.html
     - [ ] GLOB https://www.sqlite.org/lang_expr.html
-    - [ ] MATCH https://www.sqlite.org/lang_expr.html
-    	FTSPattern.token("database") =~ Column("body")
     - [ ] REGEXP https://www.sqlite.org/lang_expr.html
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
 
