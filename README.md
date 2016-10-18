@@ -1900,7 +1900,7 @@ When given dictionaries, `fetchOne`, `deleteOne`, `fetchAll` and `deleteAll` acc
 try db.create(table: "persons") { t in
     t.column("id", .integer).primaryKey() // unique id
     t.column("email", .text).unique()     // unique email
-    t.columb("name", .text)               // not unique
+    t.column("name", .text)               // not unique
 }
 
 Person.fetchOne(db, key: ["id": 1])                       // Person?
@@ -3108,7 +3108,7 @@ When given dictionaries, `deleteOne` and `deleteAll` accept any set of columns t
 try db.create(table: "persons") { t in
     t.column("id", .integer).primaryKey() // unique id
     t.column("email", .text).unique()     // unique email
-    t.columb("name", .text)               // not unique
+    t.column("name", .text)               // not unique
 }
 
 try Person.deleteOne(db, key: ["id": 1])
