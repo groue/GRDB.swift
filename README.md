@@ -26,17 +26,17 @@ Follow [@groue](http://twitter.com/groue) on Twitter for release announcements a
 
 ## Features
 
-GRDB ships with a **low-level SQLite API**, and high-level tools that help dealing with databases:
+GRDB ships with a **[low-level SQLite API](#sqlite-api)**, and high-level tools that help dealing with databases:
 
-- **Records**: fetching and persistence methods for your custom structs and class hierarchies
-- **Query Interface**: a swift way to avoid the SQL language
-- **WAL Mode Support**: that means extra performance for multi-threaded applications
-- **Migrations**: transform your database as your application evolves
-- **Database Changes Observation**: perform post-commit and post-rollback actions
-- **Fetched Records Controller**: automated tracking of changes in a query results, and UITableView animations
-- **Encryption** with SQLCipher (:warning: not currently supported with Swift 3)
-- **Full-Text Search**: Perform efficient and customizable full-text searches.
-- **Support for custom SQLite builds**
+- **[Records](#records)**: fetching and persistence methods for your custom structs and class hierarchies
+- **[Query Interface](#the-query-interface)**: a swift way to avoid the SQL language
+- **[WAL Mode Support](#database-pools)**: that means extra performance for multi-threaded applications
+- **[Migrations](#migrations)**: transform your database as your application evolves
+- **[Database Changes Observation](#database-changes-observation)**: perform post-commit and post-rollback actions
+- **[Fetched Records Controller](#fetchedrecordscontroller)**: automated tracking of changes in a query results, and UITableView animations
+- **[Encryption](#encryption)** with SQLCipher (:warning: not currently supported with Swift 3)
+- **[Full-Text Search](#full-text-search)**: Perform efficient and customizable full-text searches.
+- **[Support for custom SQLite builds](#custom-sqlite-builds)**
 
 More than a set of tools that leverage SQLite abilities, GRDB is also:
 
@@ -353,7 +353,7 @@ See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.89.0/Structs/Confi
 
 ## Database Pools
 
-[Database Queues](#database-queues) are simple, but they prevent concurrent accesses: at every moment, there is no more than a single thread that is using the database.
+[Database Queues](#database-queues) prevent concurrent accesses: at every moment, there is no more than a single thread that is using the database.
 
 **A Database Pool can improve your application performance because it allows concurrent database accesses.**
 
