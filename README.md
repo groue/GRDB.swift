@@ -4291,7 +4291,7 @@ When you create a controller, you can give it a serial dispatch queue. The contr
 
 ## Encryption
 
-**GRDB can encrypt your database with [SQLCipher](http://sqlcipher.net).**
+**GRDB can encrypt your database with [SQLCipher](http://sqlcipher.net) v3.4.0.**
 
 This requires a manual installation of GRDB:
 
