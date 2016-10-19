@@ -11,11 +11,9 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
 
 **To install GRDB with a custom SQLite build:**
 
-1. Choose your [extra compilation options](https://www.sqlite.org/compile.html). For example, `SQLITE_ENABLE_FTS5` and `SQLITE_ENABLE_PREUPDATE_HOOK`.
+1. Download a copy of the GRDB.swift repository.
 
-2. Download a copy of the GRDB.swift repository.
-
-3. Checkout the latest GRDB.swift version and download SQLiteCustom sources:
+2. Checkout the latest GRDB.swift version and download SQLiteCustom sources:
     
     ```sh
     cd [GRDB.swift directory]
@@ -23,6 +21,8 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
     git submodule update --init SQLiteCustom/src
     ````
     
+3. Choose your [extra compilation options](https://www.sqlite.org/compile.html). For example, `SQLITE_ENABLE_FTS5` and `SQLITE_ENABLE_PREUPDATE_HOOK`.
+
 4. Create a folder named `GRDBCustomSQLite` somewhere in your project directory.
 
 5. Create four files in the `GRDBCustomSQLite` folder:
