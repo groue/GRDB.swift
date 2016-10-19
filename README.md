@@ -34,9 +34,9 @@ GRDB ships with a **[low-level SQLite API](#sqlite-api)**, and high-level tools 
 - **[Migrations](#migrations)**: transform your database as your application evolves
 - **[Database Changes Observation](#database-changes-observation)**: perform post-commit and post-rollback actions
 - **[Fetched Records Controller](#fetchedrecordscontroller)**: automated tracking of changes in a query results, and UITableView animations
-- **[Encryption](#encryption)** with SQLCipher (:warning: not currently supported with Swift 3)
+- **[Encryption](#encryption)** with SQLCipher
 - **[Full-Text Search](#full-text-search)**: Perform efficient and customizable full-text searches.
-- **[Support for custom SQLite builds](#custom-sqlite-builds)**
+- **[Support for custom SQLite builds](Documentation/CustomSQLiteBuilds.md)**
 
 More than a set of tools that leverage SQLite abilities, GRDB is also:
 
@@ -209,9 +209,11 @@ Documentation
 
 ### Installation
 
-GRDB requires Xcode 8 to be installed in the /Applications folder, with its regular name Xcode.
+**The installations procedure below have GRDB use the version of SQLite that ships with the target operating system.** They all require Xcode 8 to be installed in the /Applications folder, with its regular name Xcode.
 
-> :warning: **Warning**: [SQLCipher](#encryption) is currently not available in Swift 3.
+See [Encryption](#encryption) for the installation procedure of GRDB with SQLCipher.
+
+See [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) for the installation procedure of GRDB with a customized build of SQLite 3.15.0, through [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfalling/SQLiteLib).
 
 
 #### CocoaPods
@@ -247,10 +249,20 @@ github "groue/GRDB.swift"
 
 #### Manually
 
-1. Download a copy of GRDB.swift.
-2. Embed the `GRDB.xcodeproj` project in your own project.
-3. Add the `GRDBOSX`, `GRDBiOS`, or `GRDBWatchOS` target in the **Target Dependencies** section of the **Build Phases** tab of your application target.
-4. Add the `GRDB.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your target.
+1. Download a copy of the GRDB.swift repository.
+
+2. Checkout the latest GRDB.swift version:
+    
+    ```sh
+    cd [GRDB.swift directory]
+    git checkout v0.89.0
+    ````
+    
+3. Embed the `GRDB.xcodeproj` project in your own project.
+
+4. Add the `GRDBOSX`, `GRDBiOS`, or `GRDBWatchOS` target in the **Target Dependencies** section of the **Build Phases** tab of your application target.
+
+5. Add the `GRDB.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your target.
 
 See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an example of such integration.
 
@@ -1552,11 +1564,11 @@ For more information about row adapters, see the documentation of:
 
 The **setup** depends on the version of GRDB you are using.
 
-If you use a [custom SQLite build](#custom-sqlite-builds) or [SQLCipher](#encryption), then the C API is available right from the GRDB module:
+If you use a [custom SQLite build](Documentation/CustomSQLiteBuilds.md) or [SQLCipher](#encryption), then the C API is available right from the GRDB module:
 
 ```swift
-// Just enough for custom SQLite builds and SQLCipher:
-import GRDB
+// Just enough for SQLCipher and custom SQLite builds:
+import GRDBCipher // or import GRDBCustomSQLite
 
 let sqliteVersion = String(cString: sqlite3_libversion())
 ```
@@ -3274,7 +3286,7 @@ Generally speaking, FTS5 is better than FTS4 which improves on FTS3. But this do
 
 - **The location of the indexed text in your database schema.** Only FTS4 and FTS5 support "contentless" and "external content" tables.
 
-- **The SQLite library integrated in your application.** The version of SQLite that ships with iOS, macOS and watchOS support FTS3 and FTS4 out of the box, but not FTS5. To use FTS5, you'll need a [custom SQLite build](#custom-sqlite-builds) that activates the `SQLITE_ENABLE_FTS5` compilation option.
+- **The SQLite library integrated in your application.** The version of SQLite that ships with iOS, macOS and watchOS support FTS3 and FTS4 out of the box, but not FTS5. To use FTS5, you'll need a [custom SQLite build](Documentation/CustomSQLiteBuilds.md) that activates the `SQLITE_ENABLE_FTS5` compilation option.
 
 - See [FST3 vs. FTS4](https://www.sqlite.org/fts3.html#differences_between_fts3_and_fts4) and [FTS5 vs. FTS3/4](https://www.sqlite.org/fts5.html#appendix_a) for more differences.
 
@@ -3505,7 +3517,7 @@ let documents = Document.filter(Column("content").match(pattern)).fetchAll(db)
 
 **FTS5 full-text tables store and index textual content.**
 
-To use FTS5, you'll need a [custom SQLite build](#custom-sqlite-builds) that activates the `SQLITE_ENABLE_FTS5` compilation option.
+To use FTS5, you'll need a [custom SQLite build](Documentation/CustomSQLiteBuilds.md) that activates the `SQLITE_ENABLE_FTS5` compilation option.
 
 Create FTS5 tables with the `create(virtualTable:using:)` method:
 
@@ -3963,7 +3975,7 @@ This technique is *much more* efficient, because GRDB will apply the filter only
 
 ### Support for SQLite Pre-Update Hooks
 
-A [custom SQLite build](#custom-sqlite-builds) can activate [SQLite "preupdate hooks"](http://www.sqlite.org/sessions/c3ref/preupdate_count.html). In this case, TransactionObserverType gets an extra callback which lets you observe individual column values in the rows modified by a transaction:
+A [custom SQLite build](Documentation/CustomSQLiteBuilds.md) can activate [SQLite "preupdate hooks"](http://www.sqlite.org/sessions/c3ref/preupdate_count.html). In this case, TransactionObserverType gets an extra callback which lets you observe individual column values in the rows modified by a transaction:
 
 ```swift
 public protocol TransactionObserverType : class {
@@ -4281,7 +4293,23 @@ When you create a controller, you can give it a serial dispatch queue. The contr
 
 **GRDB can encrypt your database with [SQLCipher](http://sqlcipher.net).**
 
-In the [installation](#installation) phase, don't use the GRDB framework, and use the GRDBCipher framework instead. CocoaPods is not supported. The manual installation needs you to download the embedded copy of SQLCipher with the `git submodule update --init` command.
+This requires a manual installation of GRDB:
+
+1. Download a copy of the GRDB.swift repository.
+
+2. Checkout the latest GRDB.swift version and download SQLCipher sources:
+    
+    ```sh
+    cd [GRDB.swift directory]
+    git checkout v0.89.0
+    git submodule update --init SQLCipher/src
+    ````
+    
+3. Embed the `GRDB.xcodeproj` project in your own project.
+
+4. Add the `GRDBCipherOSX` or `GRDBCipheriOS` target in the **Target Dependencies** section of the **Build Phases** tab of your application target.
+
+5. Add the `GRDBCipher.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your target.
 
 **You create and open an encrypted database** by providing a passphrase to your [database connection](#database-connections):
 
