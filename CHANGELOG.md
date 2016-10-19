@@ -1,12 +1,15 @@
 Release Notes
 =============
 
-## Next Version
+## 0.89.1
+
+Released October 19, 2016
 
 **Fixed**
 
 - When `Database.create(virtualTable:using:)` throws, it is now guaranteed that the virtual table table is not created.
 - [FetchedRecordsController](https://github.com/groue/GRDB.swift#fetchedrecordscontroller) learned about `TableMapping.selectsRowID`, and is now able to animate table views populated with [records without explicit primary key](https://github.com/groue/GRDB.swift#the-implicit-rowid-primary-key).
+- Restored SQLCipher installation procedure
 
 
 ## 0.89.0
