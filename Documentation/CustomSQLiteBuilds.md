@@ -9,7 +9,7 @@ A custom SQLite build can activate extra SQLite features, and extra GRDB feature
 
 GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfalling/SQLiteLib), which uses the same SQLite configuration as the one used by Apple in its operating systems, and lets you add extra compilation options that leverage the features you need.
 
-To install GRDB with a custom SQLite build:
+**To install GRDB with a custom SQLite build:**
 
 1. Choose your [extra compilation options](https://www.sqlite.org/compile.html). For example, `SQLITE_ENABLE_FTS5` and `SQLITE_ENABLE_PREUPDATE_HOOK`.
 
