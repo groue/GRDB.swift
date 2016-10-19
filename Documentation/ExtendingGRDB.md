@@ -42,7 +42,10 @@ This guide is a step-by-step tour of GRDB extensibility, around a few topics:
     You may need to extend the [query interface requests](../../../#requests) so that their SELECT queries could embed recursive clauses, table joins, etc.
     
     Pull requests are welcome. Open issues if you have questions.
+
+- **[Add a custom FTS5 full-text tokenizer](FTS5Tokenizers.md)**
     
+    Custom tokenizers can leverage extra full-text features such as synonyms or stop words.
 
 - **Support a new kind of SQL query**
     
