@@ -34,8 +34,8 @@ GRDB ships with a **[low-level SQLite API](#sqlite-api)**, and high-level tools 
 - **[Migrations](#migrations)**: transform your database as your application evolves
 - **[Database Changes Observation](#database-changes-observation)**: perform post-commit and post-rollback actions
 - **[Fetched Records Controller](#fetchedrecordscontroller)**: automated tracking of changes in a query results, and UITableView animations
-- **[Encryption](#encryption)** with SQLCipher
 - **[Full-Text Search](#full-text-search)**: Perform efficient and customizable full-text searches.
+- **[Encryption](#encryption)** with SQLCipher
 - **[Support for custom SQLite builds](Documentation/CustomSQLiteBuilds.md)**
 
 More than a set of tools that leverage SQLite abilities, GRDB is also:
