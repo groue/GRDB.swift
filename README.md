@@ -5046,7 +5046,7 @@ FAQ
     ```swift
     var configuration = Configuration()
     configuration.readonly = true
-    let dbPath = Bundle.main.pathForResource("db", ofType: "sqlite")!
+    let dbPath = Bundle.main.path(forResource: "db", ofType: "sqlite")!
     let dbQueue = try DatabaseQueue(path: dbPath, configuration: configuration)
     ```
     
