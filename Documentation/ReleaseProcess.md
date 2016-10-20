@@ -16,13 +16,15 @@ To release a new GRDB version:
     - Build and run GRDBDemoWatchOS
     - `rm -rf Carthage; carthage build --no-skip-current`
     - `pod lib lint --allow-warnings`
-- Update version number and release date in:
-    - README.md
+- On https://github.com/groue/sqlcipher.git upgrade, update SQLCipher version in README.md
+- On https://github.com/swiftlyfalling/SQLiteLib upgrade, update SQLite version in README.md and Documentation/CustomSQLiteBuilds.md
+- Update GRDB version number and release date in:
     - CHANGELOG.md
     - Documentation/CustomSQLiteBuilds.md
     - Documentation/ExtendingGRDB.md
-    - Support/Info.plist
     - GRDB.swift.podspec
+    - README.md
+    - Support/Info.plist
 - Commit and tag
 - Push to the master branch
 - Push to the Swift3 branch
