@@ -220,13 +220,7 @@ See [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) for the installa
 
 [CocoaPods](http://cocoapods.org/) is a dependency manager for Xcode projects.
 
-Swift 3 requires CocoaPods 1.1+, currently in beta. Install Cocoapods beta with the following command:
-
-```sh
-gem install cocoapods --pre
-```
-
-To use GRDB.swift with CocoaPods, specify in your Podfile:
+GRDB requires CocoaPods 1.1+. Specify in your Podfile:
 
 ```ruby
 source 'https://github.com/CocoaPods/Specs.git'
