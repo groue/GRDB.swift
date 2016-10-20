@@ -20,6 +20,7 @@ To release a new GRDB version:
     - README.md
     - CHANGELOG.md
     - Documentation/CustomSQLiteBuilds.md
+    - Documentation/ExtendingGRDB.md
     - Support/Info.plist
     - GRDB.swift.podspec
 - Commit and tag
