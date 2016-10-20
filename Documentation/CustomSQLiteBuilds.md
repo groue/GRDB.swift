@@ -35,7 +35,7 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
         CUSTOM_SQLLIBRARY_CFLAGS = -DSQLITE_ENABLE_FTS5 -DSQLITE_ENABLE_PREUPDATE_HOOK
         ```
     
-    - `GRDBCustomSQLite-USER.xcconfig`: this file lets GRDB know about extra compilation flags.
+    - `GRDBCustomSQLite-USER.xcconfig`: this file lets GRDB know about extra compilation flags, and enables extra GRDB APis.
         
         ```xcconfig
         // As many -D options as there are custom SQLite compilation options
