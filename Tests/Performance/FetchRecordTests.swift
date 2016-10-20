@@ -10,25 +10,25 @@ private let expectedRowCount = 100_000
 class FetchRecordTests: XCTestCase {
 
     func testSQLite() {
-        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
-        var connection: OpaquePointer = nil
+        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
+        var connection: OpaquePointer? = nil
         sqlite3_open_v2(databasePath, &connection, 0x00000004 /*SQLITE_OPEN_CREATE*/ | 0x00000002 /*SQLITE_OPEN_READWRITE*/, nil)
         
-        self.measureBlock {
-            var statement: OpaquePointer = nil
+        measure {
+            var statement: OpaquePointer? = nil
             sqlite3_prepare_v2(connection, "SELECT * FROM items", -1, &statement, nil)
             
-            let columnNames = (Int32(0)..<10).map { String(cString: sqlite3_column_name(statement, $0))! }
-            let index0 = Int32(columnNames.indexOf("i0")!)
-            let index1 = Int32(columnNames.indexOf("i1")!)
-            let index2 = Int32(columnNames.indexOf("i2")!)
-            let index3 = Int32(columnNames.indexOf("i3")!)
-            let index4 = Int32(columnNames.indexOf("i4")!)
-            let index5 = Int32(columnNames.indexOf("i5")!)
-            let index6 = Int32(columnNames.indexOf("i6")!)
-            let index7 = Int32(columnNames.indexOf("i7")!)
-            let index8 = Int32(columnNames.indexOf("i8")!)
-            let index9 = Int32(columnNames.indexOf("i9")!)
+            let columnNames = (Int32(0)..<10).map { String(cString: sqlite3_column_name(statement, $0)) }
+            let index0 = Int32(columnNames.index(of: "i0")!)
+            let index1 = Int32(columnNames.index(of: "i1")!)
+            let index2 = Int32(columnNames.index(of: "i2")!)
+            let index3 = Int32(columnNames.index(of: "i3")!)
+            let index4 = Int32(columnNames.index(of: "i4")!)
+            let index5 = Int32(columnNames.index(of: "i5")!)
+            let index6 = Int32(columnNames.index(of: "i6")!)
+            let index7 = Int32(columnNames.index(of: "i7")!)
+            let index8 = Int32(columnNames.index(of: "i8")!)
+            let index9 = Int32(columnNames.index(of: "i9")!)
             
             var items = [Item]()
             loop: while true {
@@ -68,13 +68,13 @@ class FetchRecordTests: XCTestCase {
     func testFMDB() {
         // Here we test the loading of an array of Records.
         
-        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
-        let dbQueue = FMDatabaseQueue(path: databasePath)
+        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
+        let dbQueue = FMDatabaseQueue(path: databasePath)!
         
-        self.measureBlock {
+        measure {
             var items = [Item]()
             dbQueue.inDatabase { db in
-                if let rs = db.executeQuery("SELECT * FROM items", withArgumentsInArray: nil) {
+                if let rs = db!.executeQuery("SELECT * FROM items", withArgumentsIn: nil) {
                     while rs.next() {
                         let item = Item(dictionary: rs.resultDictionary())
                         items.append(item)
@@ -89,10 +89,10 @@ class FetchRecordTests: XCTestCase {
     }
 
     func testGRDB() {
-        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
+        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
         let dbQueue = try! DatabaseQueue(path: databasePath)
         
-        measureBlock {
+        measure {
             let items = dbQueue.inDatabase { db in
                 Item.fetchAll(db, "SELECT * FROM items")
             }
@@ -104,10 +104,10 @@ class FetchRecordTests: XCTestCase {
     }
 
     func testSQLiteSwift() {
-        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
+        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
         let db = try! Connection(databasePath)
         
-        self.measureBlock {
+        measure {
             var items = [Item]()
             for row in try! db.prepare(itemsTable) {
                 let item = Item(
@@ -131,39 +131,40 @@ class FetchRecordTests: XCTestCase {
     }
     
     func testCoreData() {
-        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceCoreDataTests", ofType: "sqlite")!
-        let modelURL = NSBundle(for: self.dynamicType).URLForResource("PerformanceModel", withExtension: "momd")!
-        let mom = NSManagedObjectModel(contentsOfURL: modelURL)!
+        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceCoreDataTests", ofType: "sqlite")!
+        let modelURL = Bundle(for: type(of: self)).url(forResource: "PerformanceModel", withExtension: "momd")!
+        let mom = NSManagedObjectModel(contentsOf: modelURL)!
         let psc = NSPersistentStoreCoordinator(managedObjectModel: mom)
-        try! psc.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: NSURL(fileURLWithPath: databasePath), options: nil)
-        let moc = NSManagedObjectContext(concurrencyType: .MainQueueConcurrencyType)
+        try! psc.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil, at: URL(fileURLWithPath: databasePath), options: nil)
+        let moc = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
         moc.persistentStoreCoordinator = psc
         
-        measureBlock {
-            let request = NSFetchRequest(entityName: "Item")
-            let items = try! moc.executeFetchRequest(request)
+        measure {
+            let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Item")
+            let items = try! moc.fetch(request)
             for item in items {
-                item.valueForKey("i0")
-                item.valueForKey("i1")
-                item.valueForKey("i2")
-                item.valueForKey("i3")
-                item.valueForKey("i4")
-                item.valueForKey("i5")
-                item.valueForKey("i6")
-                item.valueForKey("i7")
-                item.valueForKey("i8")
-                item.valueForKey("i9")
+                let item = item as AnyObject
+                item.value(forKey: "i0")
+                item.value(forKey: "i1")
+                item.value(forKey: "i2")
+                item.value(forKey: "i3")
+                item.value(forKey: "i4")
+                item.value(forKey: "i5")
+                item.value(forKey: "i6")
+                item.value(forKey: "i7")
+                item.value(forKey: "i8")
+                item.value(forKey: "i9")
             }
             XCTAssertEqual(items.count, expectedRowCount)
         }
     }
     
     func testRealm() {
-        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceRealmTests", ofType: "realm")!
-        let realm = try! Realm(path: databasePath)
+        let databaseURL = Bundle(for: type(of: self)).url(forResource: "PerformanceRealmTests", withExtension: "realm")!
+        let realm = try! Realm(fileURL: databaseURL)
         
-        measureBlock {
-            let items = realm.objects(RealmItem)
+        measure {
+            let items = realm.objects(RealmItem.self)
             var count = 0
             for item in items {
                 count += 1

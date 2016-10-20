@@ -8,25 +8,25 @@ private let expectedRowCount = 100_000
 class FetchNamedValuesTests: XCTestCase {
     
     func testFMDB() {
-        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
-        let dbQueue = FMDatabaseQueue(path: databasePath)
+        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
+        let dbQueue = FMDatabaseQueue(path: databasePath)!
         
-        self.measureBlock {
+        measure {
             var count = 0
             
             dbQueue.inDatabase { db in
-                if let rs = db.executeQuery("SELECT * FROM items", withArgumentsInArray: nil) {
+                if let rs = db!.executeQuery("SELECT * FROM items", withArgumentsIn: nil) {
                     while rs.next() {
-                        _ = rs.longForColumn("i0")
-                        _ = rs.longForColumn("i1")
-                        _ = rs.longForColumn("i2")
-                        _ = rs.longForColumn("i3")
-                        _ = rs.longForColumn("i4")
-                        _ = rs.longForColumn("i5")
-                        _ = rs.longForColumn("i6")
-                        _ = rs.longForColumn("i7")
-                        _ = rs.longForColumn("i8")
-                        _ = rs.longForColumn("i9")
+                        _ = rs.long(forColumn: "i0")
+                        _ = rs.long(forColumn: "i1")
+                        _ = rs.long(forColumn: "i2")
+                        _ = rs.long(forColumn: "i3")
+                        _ = rs.long(forColumn: "i4")
+                        _ = rs.long(forColumn: "i5")
+                        _ = rs.long(forColumn: "i6")
+                        _ = rs.long(forColumn: "i7")
+                        _ = rs.long(forColumn: "i8")
+                        _ = rs.long(forColumn: "i9")
                         
                         count += 1
                     }
@@ -38,10 +38,10 @@ class FetchNamedValuesTests: XCTestCase {
     }
     
     func testGRDB() {
-        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
+        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
         let dbQueue = try! DatabaseQueue(path: databasePath)
         
-        measureBlock {
+        measure {
             var count = 0
             
             dbQueue.inDatabase { db in
@@ -66,10 +66,10 @@ class FetchNamedValuesTests: XCTestCase {
     }
     
     func testSQLiteSwift() {
-        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
+        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
         let db = try! Connection(databasePath)
         
-        self.measureBlock {
+        measure {
             var count = 0
             
             for item in try! db.prepare(itemsTable) {

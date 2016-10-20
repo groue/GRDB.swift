@@ -8,7 +8,7 @@ private let insertedRowCount = 20_000
 class InsertNamedValuesTests: XCTestCase {
     
     func testFMDB() {
-        let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo.globallyUniqueString).sqlite"
+        let databaseFileName = "GRDBPerformanceTests-\(ProcessInfo.processInfo.globallyUniqueString).sqlite"
         let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
@@ -20,25 +20,25 @@ class InsertNamedValuesTests: XCTestCase {
             try! FileManager.default.removeItem(atPath: databasePath)
         }
         
-        measureBlock {
+        measure {
             _ = try? FileManager.default.removeItem(atPath: databasePath)
             
-            let dbQueue = FMDatabaseQueue(path: databasePath)
+            let dbQueue = FMDatabaseQueue(path: databasePath)!
             dbQueue.inDatabase { db in
-                db.executeStatements("CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)")
+                db!.executeStatements("CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)")
             }
             
             dbQueue.inTransaction { (db, rollback) -> Void in
-                db.setShouldCacheStatements(true)
+                db!.setShouldCacheStatements(true)
                 for i in 0..<insertedRowCount {
-                    db.executeUpdate("INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (:i0, :i1, :i2, :i3, :i4, :i5, :i6, :i7, :i8, :i9)", withParameterDictionary: ["i0": i, "i1": i, "i2": i, "i3": i, "i4": i, "i5": i, "i6": i, "i7": i, "i8": i, "i9": i])
+                    db!.executeUpdate("INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (:i0, :i1, :i2, :i3, :i4, :i5, :i6, :i7, :i8, :i9)", withParameterDictionary: ["i0": i, "i1": i, "i2": i, "i3": i, "i4": i, "i5": i, "i6": i, "i7": i, "i8": i, "i9": i])
                 }
             }
         }
     }
     
     func testGRDB() {
-        let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo.globallyUniqueString).sqlite"
+        let databaseFileName = "GRDBPerformanceTests-\(ProcessInfo.processInfo.globallyUniqueString).sqlite"
         let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
@@ -50,7 +50,7 @@ class InsertNamedValuesTests: XCTestCase {
             try! FileManager.default.removeItem(atPath: databasePath)
         }
         
-        measureBlock {
+        measure {
             _ = try? FileManager.default.removeItem(atPath: databasePath)
             
             let dbQueue = try! DatabaseQueue(path: databasePath)
@@ -69,7 +69,7 @@ class InsertNamedValuesTests: XCTestCase {
     }
     
     func testSQLiteSwift() {
-        let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo.globallyUniqueString).sqlite"
+        let databaseFileName = "GRDBPerformanceTests-\(ProcessInfo.processInfo.globallyUniqueString).sqlite"
         let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
@@ -81,7 +81,7 @@ class InsertNamedValuesTests: XCTestCase {
             try! FileManager.default.removeItem(atPath: databasePath)
         }
         
-        measureBlock {
+        measure {
             _ = try? FileManager.default.removeItem(atPath: databasePath)
             
             let db = try! Connection(databasePath)

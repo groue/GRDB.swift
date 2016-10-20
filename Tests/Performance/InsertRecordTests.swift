@@ -9,7 +9,7 @@ private let insertedRowCount = 20_000
 class InsertRecordTests: XCTestCase {
     
     func testGRDB() {
-        let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo.globallyUniqueString).sqlite"
+        let databaseFileName = "GRDBPerformanceTests-\(ProcessInfo.processInfo.globallyUniqueString).sqlite"
         let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
         _ = try? FileManager.default.removeItem(atPath: databasePath)
         defer {
@@ -22,7 +22,7 @@ class InsertRecordTests: XCTestCase {
             try! FileManager.default.removeItem(atPath: databasePath)
         }
         
-        measureBlock {
+        measure {
             _ = try? FileManager.default.removeItem(atPath: databasePath)
             
             let dbQueue = try! DatabaseQueue(path: databasePath)
@@ -40,43 +40,44 @@ class InsertRecordTests: XCTestCase {
     }
     
     func testCoreData() {
-        let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo.globallyUniqueString).sqlite"
+        let databaseFileName = "GRDBPerformanceTests-\(ProcessInfo.processInfo.globallyUniqueString).sqlite"
         let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
-        let modelURL = NSBundle(for: self.dynamicType).URLForResource("PerformanceModel", withExtension: "momd")!
-        let mom = NSManagedObjectModel(contentsOfURL: modelURL)!
+        let modelURL = Bundle(for: type(of: self)).url(forResource: "PerformanceModel", withExtension: "momd")!
+        let mom = NSManagedObjectModel(contentsOf: modelURL)!
         
-        measureBlock {
+        measure {
             let psc = NSPersistentStoreCoordinator(managedObjectModel: mom)
-            let store = try! psc.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: NSURL(fileURLWithPath: databasePath), options: nil)
-            let moc = NSManagedObjectContext(concurrencyType: .MainQueueConcurrencyType)
+            let store = try! psc.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil, at: URL(fileURLWithPath: databasePath), options: nil)
+            let moc = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
             moc.persistentStoreCoordinator = psc
             
             for i in 0..<insertedRowCount {
-                let item = NSEntityDescription.insertNewObjectForEntityForName("Item", inManagedObjectContext: moc)
-                item.setValue(NSNumber(integer: i), forKey: "i0")
-                item.setValue(NSNumber(integer: i), forKey: "i1")
-                item.setValue(NSNumber(integer: i), forKey: "i2")
-                item.setValue(NSNumber(integer: i), forKey: "i3")
-                item.setValue(NSNumber(integer: i), forKey: "i4")
-                item.setValue(NSNumber(integer: i), forKey: "i5")
-                item.setValue(NSNumber(integer: i), forKey: "i6")
-                item.setValue(NSNumber(integer: i), forKey: "i7")
-                item.setValue(NSNumber(integer: i), forKey: "i8")
-                item.setValue(NSNumber(integer: i), forKey: "i9")
+                let item = NSEntityDescription.insertNewObject(forEntityName: "Item", into: moc)
+                item.setValue(NSNumber(value: i), forKey: "i0")
+                item.setValue(NSNumber(value: i), forKey: "i1")
+                item.setValue(NSNumber(value: i), forKey: "i2")
+                item.setValue(NSNumber(value: i), forKey: "i3")
+                item.setValue(NSNumber(value: i), forKey: "i4")
+                item.setValue(NSNumber(value: i), forKey: "i5")
+                item.setValue(NSNumber(value: i), forKey: "i6")
+                item.setValue(NSNumber(value: i), forKey: "i7")
+                item.setValue(NSNumber(value: i), forKey: "i8")
+                item.setValue(NSNumber(value: i), forKey: "i9")
             }
             try! moc.save()
-            try! psc.removePersistentStore(store)
+            try! psc.remove(store)
             try! FileManager.default.removeItem(atPath: databasePath)
         }
     }
     
     func testRealm() {
-        let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo.globallyUniqueString).realm"
+        let databaseFileName = "GRDBPerformanceTests-\(ProcessInfo.processInfo.globallyUniqueString).realm"
         let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
+        let databaseURL = URL(fileURLWithPath: databasePath)
         
-        measureBlock {
+        measure {
             _ = try? FileManager.default.removeItem(atPath: databasePath)
-            let realm = try! Realm(path: databasePath)
+            let realm = try! Realm(fileURL: databaseURL)
             
             try! realm.write {
                 for i in 0..<insertedRowCount {

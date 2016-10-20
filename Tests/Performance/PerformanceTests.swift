@@ -74,18 +74,18 @@ class Item : Record {
 
 extension Item {
     
-    convenience init(dictionary: [NSObject: AnyObject]) {
+    convenience init(dictionary: [AnyHashable: Any]) {
         self.init(
-            i0: (dictionary["i0"] as! NSNumber).longValue,
-            i1: (dictionary["i1"] as! NSNumber).longValue,
-            i2: (dictionary["i2"] as! NSNumber).longValue,
-            i3: (dictionary["i3"] as! NSNumber).longValue,
-            i4: (dictionary["i4"] as! NSNumber).longValue,
-            i5: (dictionary["i5"] as! NSNumber).longValue,
-            i6: (dictionary["i6"] as! NSNumber).longValue,
-            i7: (dictionary["i7"] as! NSNumber).longValue,
-            i8: (dictionary["i8"] as! NSNumber).longValue,
-            i9: (dictionary["i9"] as! NSNumber).longValue)
+            i0: (dictionary["i0"] as! NSNumber).intValue,
+            i1: (dictionary["i1"] as! NSNumber).intValue,
+            i2: (dictionary["i2"] as! NSNumber).intValue,
+            i3: (dictionary["i3"] as! NSNumber).intValue,
+            i4: (dictionary["i4"] as! NSNumber).intValue,
+            i5: (dictionary["i5"] as! NSNumber).intValue,
+            i6: (dictionary["i6"] as! NSNumber).intValue,
+            i7: (dictionary["i7"] as! NSNumber).intValue,
+            i8: (dictionary["i8"] as! NSNumber).intValue,
+            i9: (dictionary["i9"] as! NSNumber).intValue)
     }
     
 }

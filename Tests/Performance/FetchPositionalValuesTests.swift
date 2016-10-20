@@ -8,13 +8,13 @@ private let expectedRowCount = 100_000
 class FetchPositionalValuesTests: XCTestCase {
     
     func testSQLite() {
-        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
-        var connection: OpaquePointer = nil
+        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
+        var connection: OpaquePointer? = nil
         sqlite3_open_v2(databasePath, &connection, 0x00000004 /*SQLITE_OPEN_CREATE*/ | 0x00000002 /*SQLITE_OPEN_READWRITE*/, nil)
         
-        self.measureBlock {
+        measure {
             var count = 0
-            var statement: OpaquePointer = nil
+            var statement: OpaquePointer? = nil
             sqlite3_prepare_v2(connection, "SELECT * FROM items", -1, &statement, nil)
             
             loop: while true {
@@ -49,25 +49,25 @@ class FetchPositionalValuesTests: XCTestCase {
     }
     
     func testFMDB() {
-        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
-        let dbQueue = FMDatabaseQueue(path: databasePath)
+        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
+        let dbQueue = FMDatabaseQueue(path: databasePath)!
         
-        self.measureBlock {
+        measure {
             var count = 0
             
             dbQueue.inDatabase { db in
-                if let rs = db.executeQuery("SELECT * FROM items", withArgumentsInArray: nil) {
+                if let rs = db!.executeQuery("SELECT * FROM items", withArgumentsIn: nil) {
                     while rs.next() {
-                        _ = rs.longForColumnIndex(0)
-                        _ = rs.longForColumnIndex(1)
-                        _ = rs.longForColumnIndex(2)
-                        _ = rs.longForColumnIndex(3)
-                        _ = rs.longForColumnIndex(4)
-                        _ = rs.longForColumnIndex(5)
-                        _ = rs.longForColumnIndex(6)
-                        _ = rs.longForColumnIndex(7)
-                        _ = rs.longForColumnIndex(8)
-                        _ = rs.longForColumnIndex(9)
+                        _ = rs.long(forColumnIndex: 0)
+                        _ = rs.long(forColumnIndex: 1)
+                        _ = rs.long(forColumnIndex: 2)
+                        _ = rs.long(forColumnIndex: 3)
+                        _ = rs.long(forColumnIndex: 4)
+                        _ = rs.long(forColumnIndex: 5)
+                        _ = rs.long(forColumnIndex: 6)
+                        _ = rs.long(forColumnIndex: 7)
+                        _ = rs.long(forColumnIndex: 8)
+                        _ = rs.long(forColumnIndex: 9)
                         
                         count += 1
                     }
@@ -79,10 +79,10 @@ class FetchPositionalValuesTests: XCTestCase {
     }
     
     func testGRDB() {
-        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
+        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
         let dbQueue = try! DatabaseQueue(path: databasePath)
         
-        measureBlock {
+        measure {
             var count = 0
             
             dbQueue.inDatabase { db in
@@ -107,10 +107,10 @@ class FetchPositionalValuesTests: XCTestCase {
     }
     
     func testSQLiteSwift() {
-        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
+        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
         let db = try! Connection(databasePath)
         
-        self.measureBlock {
+        measure {
             var count = 0
             
             for row in try! db.prepare("SELECT * FROM items") {
