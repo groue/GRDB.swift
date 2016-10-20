@@ -27,3 +27,5 @@ To release a new GRDB version:
 - Push to the master branch
 - Push to the Swift3 branch
 - `pod trunk push --allow-warnings`
+- Update http://github.com/groue/GRDBDemo
+- Update http://github.com/groue/WWDCCompanion
