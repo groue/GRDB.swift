@@ -261,11 +261,6 @@ github "groue/GRDB.swift"
 See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an example of such integration.
 
 
-#### Custom SQLite builds
-
-**By default, GRDB uses the SQLite library that ships with the operating system.** You can build GRDB with custom SQLite sources and options, through [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfalling/SQLiteLib). The current SQLite version is 3.15.0. See [installation instructions](SQLiteCustom/README.md).
-
-
 Database Connections
 ====================
 
