@@ -528,7 +528,7 @@ extension CountableRange where Bound: SQLExpressible {
     ///     // id BETWEEN 1 AND 9
     ///     (1..<10).contains(Column("id"))
     public func contains(_ element: SQLSpecificExpressible) -> SQLExpression {
-        return SQLExpressionBetween(element.sqlExpression, lowerBound.sqlExpression, upperBound.advanced(by: -1).sqlExpression)
+        return (element >= lowerBound) && (element < upperBound)
     }
 }
 
