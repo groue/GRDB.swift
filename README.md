@@ -2813,10 +2813,10 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Person.filter(![1, 2, 3].contains(idColumn))
     
     // SELECT * FROM persons WHERE age BETWEEN 0 AND 17
-    Person.filter((0..<18).contains(ageColumn))
-    
-    // SELECT * FROM persons WHERE age BETWEEN 0 AND 17
     Person.filter((0...17).contains(ageColumn))
+    
+    // SELECT * FROM persons WHERE (age >= 0) AND (age < 18)
+    Person.filter((0..<18).contains(ageColumn))
     
     // SELECT * FROM persons WHERE name BETWEEN 'A' AND 'z'
     Person.filter(("A"..."z").contains(nameColumn))
