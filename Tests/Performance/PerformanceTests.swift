@@ -76,16 +76,16 @@ extension Item {
     
     convenience init(dictionary: [AnyHashable: Any]) {
         self.init(
-            i0: (dictionary["i0"] as! NSNumber).intValue,
-            i1: (dictionary["i1"] as! NSNumber).intValue,
-            i2: (dictionary["i2"] as! NSNumber).intValue,
-            i3: (dictionary["i3"] as! NSNumber).intValue,
-            i4: (dictionary["i4"] as! NSNumber).intValue,
-            i5: (dictionary["i5"] as! NSNumber).intValue,
-            i6: (dictionary["i6"] as! NSNumber).intValue,
-            i7: (dictionary["i7"] as! NSNumber).intValue,
-            i8: (dictionary["i8"] as! NSNumber).intValue,
-            i9: (dictionary["i9"] as! NSNumber).intValue)
+            i0: dictionary["i0"] as! Int,
+            i1: dictionary["i1"] as! Int,
+            i2: dictionary["i2"] as! Int,
+            i3: dictionary["i3"] as! Int,
+            i4: dictionary["i4"] as! Int,
+            i5: dictionary["i5"] as! Int,
+            i6: dictionary["i6"] as! Int,
+            i7: dictionary["i7"] as! Int,
+            i8: dictionary["i8"] as! Int,
+            i9: dictionary["i9"] as! Int)
     }
     
 }
