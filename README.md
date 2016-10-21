@@ -3843,7 +3843,7 @@ Database holds weak references to its transaction observers: they are not retain
 
 > :point_up: **Note**: the changes that are not notified are changes to internal system tables (such as `sqlite_master`), changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables, and the deletion of duplicate rows triggered by [`ON CONFLICT REPLACE`](https://www.sqlite.org/lang_conflict.html) clauses (this last exception might change in a future release of SQLite).
 
-Notified changes are not actually written do disk until `databaseDidCommit` is called. On the other side, `databaseDidRollback` confirms their invalidation:
+Notified changes are not actually written to disk until `databaseDidCommit` is called. On the other side, `databaseDidRollback` confirms their invalidation:
 
 ```swift
 try dbQueue.inTransaction { db in
