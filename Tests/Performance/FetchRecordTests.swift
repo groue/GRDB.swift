@@ -144,16 +144,16 @@ class FetchRecordTests: XCTestCase {
             let items = try! moc.fetch(request)
             for item in items {
                 let item = item as AnyObject
-                item.value(forKey: "i0")
-                item.value(forKey: "i1")
-                item.value(forKey: "i2")
-                item.value(forKey: "i3")
-                item.value(forKey: "i4")
-                item.value(forKey: "i5")
-                item.value(forKey: "i6")
-                item.value(forKey: "i7")
-                item.value(forKey: "i8")
-                item.value(forKey: "i9")
+                _ = item.value(forKey: "i0")
+                _ = item.value(forKey: "i1")
+                _ = item.value(forKey: "i2")
+                _ = item.value(forKey: "i3")
+                _ = item.value(forKey: "i4")
+                _ = item.value(forKey: "i5")
+                _ = item.value(forKey: "i6")
+                _ = item.value(forKey: "i7")
+                _ = item.value(forKey: "i8")
+                _ = item.value(forKey: "i9")
             }
             XCTAssertEqual(items.count, expectedRowCount)
         }
