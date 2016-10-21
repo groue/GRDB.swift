@@ -100,7 +100,7 @@ class InsertNamedValuesTests: XCTestCase {
             
             try! db.transaction {
                 for i in 0..<insertedRowCount {
-                    try db.run(itemsTable.insert(
+                    _ = try db.run(itemsTable.insert(
                         i0Column <- i,
                         i1Column <- i,
                         i2Column <- i,

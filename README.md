@@ -213,7 +213,7 @@ Documentation
 
 See [Encryption](#encryption) for the installation procedure of GRDB with SQLCipher.
 
-See [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) for the installation procedure of GRDB with a customized build of SQLite 3.15.0, through [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfalling/SQLiteLib).
+See [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) for the installation procedure of GRDB with a customized build of SQLite 3.15.0.
 
 
 #### CocoaPods
@@ -259,11 +259,6 @@ github "groue/GRDB.swift"
 5. Add the `GRDB.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your target.
 
 See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an example of such integration.
-
-
-#### Custom SQLite builds
-
-**By default, GRDB uses the SQLite library that ships with the operating system.** You can build GRDB with custom SQLite sources and options, through [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfalling/SQLiteLib). The current SQLite version is 3.15.0. See [installation instructions](SQLiteCustom/README.md).
 
 
 Database Connections
@@ -2818,10 +2813,10 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Person.filter(![1, 2, 3].contains(idColumn))
     
     // SELECT * FROM persons WHERE age BETWEEN 0 AND 17
-    Person.filter((0..<18).contains(ageColumn))
-    
-    // SELECT * FROM persons WHERE age BETWEEN 0 AND 17
     Person.filter((0...17).contains(ageColumn))
+    
+    // SELECT * FROM persons WHERE (age >= 0) AND (age < 18)
+    Person.filter((0..<18).contains(ageColumn))
     
     // SELECT * FROM persons WHERE name BETWEEN 'A' AND 'z'
     Person.filter(("A"..."z").contains(nameColumn))

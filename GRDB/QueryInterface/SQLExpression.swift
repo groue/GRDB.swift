@@ -219,6 +219,29 @@ extension DatabaseValue : SQLExpression {
             return DatabaseQueue().inDatabase { String.fetchOne($0, "SELECT QUOTE(?)", arguments: [self])! }
         }
     }
+    
+    /// This property is an implementation detail of the query interface.
+    /// Do not use it directly.
+    ///
+    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    ///
+    /// # Low Level Query Interface
+    ///
+    /// See SQLExpression.negated
+    public var negated: SQLExpression {
+        switch storage {
+        case .null:
+            return SQLExpressionUnary(.not, self)
+        case .int64(let int64):
+            return (int64 == 0).databaseValue
+        case .double(let double):
+            return (double == 0.0).databaseValue
+        case .string:
+            return SQLExpressionUnary(.not, self)
+        case .blob:
+            return SQLExpressionUnary(.not, self)
+        }
+    }
 }
 
 

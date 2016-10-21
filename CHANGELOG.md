@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## Next Version
+
+**Fixed**
+
+- Query Interface: `CountableRange.contains()` no longer generates BETWEEN operator.
+    
+    For example, `1..<10.contains(Column("x"))` now generates `x >= 1 AND x < 10` instead of `x BETWEEN 1 AND 9`. This should better reflect the user intent whenever an Int range tests Double values.
+
+
 ## 0.89.1
 
 Released October 19, 2016

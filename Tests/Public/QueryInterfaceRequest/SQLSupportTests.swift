@@ -59,6 +59,11 @@ class SQLSupportTests: GRDBTestCase {
             sql(dbQueue, tableRequest.filter([Int]().contains(Col.id))),
             "SELECT * FROM \"readers\" WHERE 0")
         
+        // !emptyArray.contains(): 0
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(![Int]().contains(Col.id))),
+            "SELECT * FROM \"readers\" WHERE 1")
+        
         // Array.contains(): IN operator
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter([1,2,3].contains(Col.id))),
@@ -68,6 +73,16 @@ class SQLSupportTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter([Col.id].contains(Col.id))),
             "SELECT * FROM \"readers\" WHERE (\"id\" IN (\"id\"))")
+        
+        // EmptyCollection.contains(): 0
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(EmptyCollection<Int>().contains(Col.id))),
+            "SELECT * FROM \"readers\" WHERE 0")
+        
+        // !EmptyCollection.contains(): 1
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(!EmptyCollection<Int>().contains(Col.id))),
+            "SELECT * FROM \"readers\" WHERE 1")
         
         // Sequence.contains(): IN operator
         XCTAssertEqual(
@@ -89,37 +104,45 @@ class SQLSupportTests: GRDBTestCase {
             sql(dbQueue, tableRequest.filter(!(![1,2,3].contains(Col.id)))),
             "SELECT * FROM \"readers\" WHERE (\"id\" IN (1, 2, 3))")
         
-        // Range.contains(): BETWEEN operator
-        do {
-            let range = 1..<10
-            XCTAssertEqual(
-                sql(dbQueue, tableRequest.filter(range.contains(Col.id))),
-                "SELECT * FROM \"readers\" WHERE (\"id\" BETWEEN 1 AND 9)")
-        }
+        // CountableRange.contains(): min <= x < max
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter((1..<10).contains(Col.id))),
+            "SELECT * FROM \"readers\" WHERE ((\"id\" >= 1) AND (\"id\" < 10))")
         
-        // Range.contains(): BETWEEN operator
-        do {
-            let range = 1...10
-            XCTAssertEqual(
-                sql(dbQueue, tableRequest.filter(range.contains(Col.id))),
-                "SELECT * FROM \"readers\" WHERE (\"id\" BETWEEN 1 AND 10)")
-        }
+        // CountableClosedRange.contains(): BETWEEN operator
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter((1...10).contains(Col.id))),
+            "SELECT * FROM \"readers\" WHERE (\"id\" BETWEEN 1 AND 10)")
         
-        // ClosedInterval: BETWEEN operator
-        do {
-            let closedInterval = "A"..."z"
-            XCTAssertEqual(
-                sql(dbQueue, tableRequest.filter(closedInterval.contains(Col.name))),
-                "SELECT * FROM \"readers\" WHERE (\"name\" BETWEEN 'A' AND 'z')")
-        }
+        // !CountableClosedRange.contains(): BETWEEN operator
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(!(1...10).contains(Col.id))),
+            "SELECT * FROM \"readers\" WHERE (\"id\" NOT BETWEEN 1 AND 10)")
         
-        // HalfOpenInterval:  min <= x < max
-        do {
-            let halfOpenInterval = "A"..<"z"
-            XCTAssertEqual(
-                sql(dbQueue, tableRequest.filter(halfOpenInterval.contains(Col.name))),
-                "SELECT * FROM \"readers\" WHERE ((\"name\" >= 'A') AND (\"name\" < 'z'))")
-        }
+        // Range.contains(): min <= x < max
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter((1.1..<10.9).contains(Col.id))),
+            "SELECT * FROM \"readers\" WHERE ((\"id\" >= 1.1) AND (\"id\" < 10.9))")
+        
+        // Range.contains(): min <= x < max
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(("A"..<"z").contains(Col.name))),
+            "SELECT * FROM \"readers\" WHERE ((\"name\" >= 'A') AND (\"name\" < 'z'))")
+        
+        // ClosedRange.contains(): BETWEEN operator
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter((1.1...10.9).contains(Col.id))),
+            "SELECT * FROM \"readers\" WHERE (\"id\" BETWEEN 1.1 AND 10.9)")
+        
+        // ClosedRange.contains(): BETWEEN operator
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(("A"..."z").contains(Col.name))),
+            "SELECT * FROM \"readers\" WHERE (\"name\" BETWEEN 'A' AND 'z')")
+        
+        // !ClosedRange.contains(): NOT BETWEEN operator
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(!("A"..."z").contains(Col.name))),
+            "SELECT * FROM \"readers\" WHERE (\"name\" NOT BETWEEN 'A' AND 'z')")
         
         // Subquery
         XCTAssertEqual(
