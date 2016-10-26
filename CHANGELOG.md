@@ -1,7 +1,9 @@
 Release Notes
 =============
 
-## Next Version
+## 0.89.2
+
+Released October 26, 2016
 
 **Fixed**
 

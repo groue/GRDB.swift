@@ -3,7 +3,7 @@ GRDB.swift [![Swift](https://img.shields.io/badge/swift-3-orange.svg?style=flat)
 
 ### A Swift application toolkit for SQLite databases.
 
-**Latest release**: October 19, 2016 &bull; version 0.89.1 &bull; [CHANGELOG](CHANGELOG.md)
+**Latest release**: October 26, 2016 &bull; version 0.89.2 &bull; [CHANGELOG](CHANGELOG.md)
 
 **Requirements**: iOS 8.0+ / OSX 10.9+ / watchOS 2.0+ &bull; Xcode 8+ &bull; Swift 3
 
@@ -167,7 +167,7 @@ Documentation
 
 **Reference**
 
-- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.89.1/index.html) (on cocoadocs.org)
+- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.89.2/index.html) (on cocoadocs.org)
 
 **Getting Started**
 
@@ -249,7 +249,7 @@ github "groue/GRDB.swift"
     
     ```sh
     cd [GRDB.swift directory]
-    git checkout v0.89.1
+    git checkout v0.89.2
     ````
     
 3. Embed the `GRDB.xcodeproj` project in your own project.
@@ -349,7 +349,7 @@ let dbQueue = try DatabaseQueue(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.89.1/Structs/Configuration.html) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.89.2/Structs/Configuration.html) for more details.
 
 
 ## Database Pools
@@ -429,7 +429,7 @@ let dbPool = try DatabasePool(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.89.1/Structs/Configuration.html) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.89.2/Structs/Configuration.html) for more details.
 
 
 Database pools are more memory-hungry than database queues. See [Memory Management](#memory-management) for more information.
@@ -1541,10 +1541,10 @@ for person in Person.fetch(db, sql, adapter: adapter) {
 
 For more information about row adapters, see the documentation of:
 
-- [RowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.89.1/Protocols/RowAdapter.html): the protocol that lets you define your custom row adapters
-- [ColumnMapping](http://cocoadocs.org/docsets/GRDB.swift/0.89.1/Structs/ColumnMapping.html): a row adapter that renames row columns
-- [SuffixRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.89.1/Structs/SuffixRowAdapter.html): a row adapter that hides the first columns of a row
-- [ScopeAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.89.1/Structs/ScopeAdapter.html): the row adapter that groups several adapters together to define scopes
+- [RowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.89.2/Protocols/RowAdapter.html): the protocol that lets you define your custom row adapters
+- [ColumnMapping](http://cocoadocs.org/docsets/GRDB.swift/0.89.2/Structs/ColumnMapping.html): a row adapter that renames row columns
+- [SuffixRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.89.2/Structs/SuffixRowAdapter.html): a row adapter that hides the first columns of a row
+- [ScopeAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.89.2/Structs/ScopeAdapter.html): the row adapter that groups several adapters together to define scopes
 
 
 ## Raw SQLite Pointers
@@ -1613,8 +1613,8 @@ Before jumping in the low-level wagon, here is the list of all SQLite APIs used 
 
 - `sqlite3_backup_finish`, `sqlite3_backup_init`, `sqlite3_backup_step`: see [Backup](#backup)
 - `sqlite3_bind_blob`, `sqlite3_bind_double`, `sqlite3_bind_int64`, `sqlite3_bind_null`, `sqlite3_bind_parameter_count`, `sqlite3_bind_parameter_name`, `sqlite3_bind_text`, `sqlite3_clear_bindings`, `sqlite3_column_blob`, `sqlite3_column_bytes`, `sqlite3_column_count`, `sqlite3_column_double`, `sqlite3_column_int64`, `sqlite3_column_name`, `sqlite3_column_text`, `sqlite3_column_type`, `sqlite3_exec`, `sqlite3_finalize`, `sqlite3_prepare_v2`, `sqlite3_reset`, `sqlite3_step`: see [Executing Updates](#executing-updates), [Fetch Queries](#fetch-queries), [Prepared Statements](#prepared-statements), [Values](#values)
-- `sqlite3_busy_handler`, `sqlite3_busy_timeout`: see [Configuration.busyMode](http://cocoadocs.org/docsets/GRDB.swift/0.89.1/Structs/Configuration.html)
-- `sqlite3_changes`, `sqlite3_total_changes`: see [Database.changesCount and Database.totalChangesCount](http://cocoadocs.org/docsets/GRDB.swift/0.89.1/Classes/Database.html)
+- `sqlite3_busy_handler`, `sqlite3_busy_timeout`: see [Configuration.busyMode](http://cocoadocs.org/docsets/GRDB.swift/0.89.2/Structs/Configuration.html)
+- `sqlite3_changes`, `sqlite3_total_changes`: see [Database.changesCount and Database.totalChangesCount](http://cocoadocs.org/docsets/GRDB.swift/0.89.2/Classes/Database.html)
 - `sqlite3_close`, `sqlite3_close_v2`, `sqlite3_next_stmt`, `sqlite3_open_v2`: see [Database Connections](#database-connections)
 - `sqlite3_commit_hook`, `sqlite3_rollback_hook`, `sqlite3_update_hook`: see [Database Changes Observation](#database-changes-observation), [FetchedRecordsController](#fetchedrecordscontroller)
 - `sqlite3_create_collation_v2`: see [String Comparison](#string-comparison)
@@ -1625,9 +1625,9 @@ Before jumping in the low-level wagon, here is the list of all SQLite APIs used 
 - `sqlite3_last_insert_rowid`: see [Executing Updates](#executing-updates)
 - `sqlite3_preupdate_count`, `sqlite3_preupdate_depth`, `sqlite3_preupdate_hook`, `sqlite3_preupdate_new`, `sqlite3_preupdate_old`: see [Support for SQLite Pre-Update Hooks](#support-for-sqlite-pre-update-hooks)
 - `sqlite3_set_authorizer`: **reserved by GRDB**
-- `sqlite3_sql`: see [Statement.sql](http://cocoadocs.org/docsets/GRDB.swift/0.89.1/Classes/Statement.html)
-- `sqlite3_trace`: see [Configuration.trace](http://cocoadocs.org/docsets/GRDB.swift/0.89.1/Structs/Configuration.html)
-- `sqlite3_wal_checkpoint_v2`: see [DatabasePool.checkpoint](http://cocoadocs.org/docsets/GRDB.swift/0.89.1/Classes/DatabasePool.html)
+- `sqlite3_sql`: see [Statement.sql](http://cocoadocs.org/docsets/GRDB.swift/0.89.2/Classes/Statement.html)
+- `sqlite3_trace`: see [Configuration.trace](http://cocoadocs.org/docsets/GRDB.swift/0.89.2/Structs/Configuration.html)
+- `sqlite3_wal_checkpoint_v2`: see [DatabasePool.checkpoint](http://cocoadocs.org/docsets/GRDB.swift/0.89.2/Classes/DatabasePool.html)
 
 
 Records
@@ -4290,7 +4290,7 @@ This requires a manual installation of GRDB:
     
     ```sh
     cd [GRDB.swift directory]
-    git checkout v0.89.1
+    git checkout v0.89.2
     git submodule update --init SQLCipher/src
     ````
     
@@ -4773,7 +4773,7 @@ let count2 = dbQueue.inDatabase { db in
 
 SQLite concurrency is a wiiide topic.
 
-First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.89.1/Classes/DatabaseQueue.html) and [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.89.1/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.89.1/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.89.1/Protocols/DatabaseWriter.html) protocols, so that you can write code that targets both classes.
+First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.89.2/Classes/DatabaseQueue.html) and [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.89.2/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.89.2/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.89.2/Protocols/DatabaseWriter.html) protocols, so that you can write code that targets both classes.
 
 If the built-in queues and pools do not fit your needs, or if you can not guarantee that a single queue or pool is accessing your database file, you may have a look at:
 
