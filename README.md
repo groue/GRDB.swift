@@ -2625,6 +2625,8 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     // SELECT * FROM persons
     Person.all()
     ```
+    
+    The hidden `rowid` column can be selected as well [when you need it](#the-implicit-rowid-primary-key).
 
 - `select(expression, ...)` defines the selected columns.
     
