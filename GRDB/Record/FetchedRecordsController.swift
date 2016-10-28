@@ -88,7 +88,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         // If some changes are currently processed, make sure they are
         // discarded. But preserve eventual changes processing for future
         // changes.
-        let checkForChanges = observer?.checkForChanges
+        let fetchAndNotifyEventualChanges = observer?.fetchAndNotifyEventualChanges
         observer?.invalidate()
         observer = nil
         
@@ -101,8 +101,8 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             fetchedItems = initialItems
             isSameItem = isSameItemFactory(db)
             
-            if let checkForChanges = checkForChanges {
-                let observer = FetchedRecordsObserver(readInfo: statement.readInfo, checkForChanges: checkForChanges)
+            if let fetchAndNotifyEventualChanges = fetchAndNotifyEventualChanges {
+                let observer = FetchedRecordsObserver(readInfo: statement.readInfo, fetchAndNotifyEventualChanges: fetchAndNotifyEventualChanges)
                 self.observer = observer
                 observer.items = initialItems
                 db.add(transactionObserver: observer)
@@ -247,12 +247,12 @@ public final class FetchedRecordsController<Record: RowConvertible> {
                 recordsDidChange: recordsDidChange)
             
             // This closure erases the generic type T of data fetched alongside.
-            let checkForChanges = { (observer: FetchedRecordsObserver<Record>) -> () in
-                fetchedChangesController.checkForChanges(observer)
+            let fetchAndNotifyEventualChanges = { (observer: FetchedRecordsObserver<Record>) -> () in
+                fetchedChangesController.fetchAndNotifyEventualChanges(observer)
             }
 
             let (statement, _) = try! request.prepare(db)
-            let observer = FetchedRecordsObserver(readInfo: statement.readInfo, checkForChanges: checkForChanges)
+            let observer = FetchedRecordsObserver(readInfo: statement.readInfo, fetchAndNotifyEventualChanges: fetchAndNotifyEventualChanges)
             self.observer = observer
             if let initialItems = initialItems {
                 observer.items = initialItems
@@ -297,12 +297,12 @@ public final class FetchedRecordsController<Record: RowConvertible> {
                 recordsDidChange: recordsDidChange)
             
             // This closure erases the generic type T of data fetched alongside.
-            let checkForChanges = { (observer: FetchedRecordsObserver<Record>) -> () in
-                fetchedChangesController.checkForChanges(observer)
+            let fetchAndNotifyEventualChanges = { (observer: FetchedRecordsObserver<Record>) -> () in
+                fetchedChangesController.fetchAndNotifyEventualChanges(observer)
             }
 
             let (statement, _) = try! request.prepare(db)
-            let observer = FetchedRecordsObserver(readInfo: statement.readInfo, checkForChanges: checkForChanges)
+            let observer = FetchedRecordsObserver(readInfo: statement.readInfo, fetchAndNotifyEventualChanges: fetchAndNotifyEventualChanges)
             self.observer = observer
             if let initialItems = initialItems {
                 observer.items = initialItems
@@ -353,7 +353,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             
             // If some changes are currently processed, make sure they are
             // discarded. But preserve eventual changes processing.
-            let checkForChanges = observer.checkForChanges
+            let fetchAndNotifyEventualChanges = observer.fetchAndNotifyEventualChanges
             observer.invalidate()
             self.observer = nil
             
@@ -362,7 +362,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             let initialItems = fetchedItems
             databaseWriter.writeForIssue117 { db in
                 let (statement, _) = try! request.prepare(db)
-                let observer = FetchedRecordsObserver(readInfo: statement.readInfo, checkForChanges: checkForChanges)
+                let observer = FetchedRecordsObserver(readInfo: statement.readInfo, fetchAndNotifyEventualChanges: fetchAndNotifyEventualChanges)
                 self.observer = observer
                 observer.items = initialItems
                 db.add(transactionObserver: observer)
@@ -494,7 +494,7 @@ private class FetchedChangesController<Record: RowConvertible, T> {
     
     // Precondition: this method must be called from the database writer's
     // serialized dispatch queue.
-    func checkForChanges(_ observer: FetchedRecordsObserver<Record>) {
+    func fetchAndNotifyEventualChanges(_ observer: FetchedRecordsObserver<Record>) {
         // Observer invalidated?
         guard observer.isValid else { return }
         
@@ -618,15 +618,15 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     var items: [Item<Record>]!  // ought to be not nil when observer has started tracking transactions
     let queue: DispatchQueue // protects items
     let readInfo: SelectStatement.ReadInfo
-    var checkForChanges: (FetchedRecordsObserver<Record>) -> ()
+    var fetchAndNotifyEventualChanges: (FetchedRecordsObserver<Record>) -> ()
     
-    init(readInfo: SelectStatement.ReadInfo, checkForChanges: @escaping (FetchedRecordsObserver<Record>) -> ()) {
+    init(readInfo: SelectStatement.ReadInfo, fetchAndNotifyEventualChanges: @escaping (FetchedRecordsObserver<Record>) -> ()) {
         self.isValid = true
         self.items = nil
         self.needsComputeChanges = false
         self.queue = DispatchQueue(label: "GRDB.FetchedRecordsObserver")
         self.readInfo = readInfo
-        self.checkForChanges = checkForChanges
+        self.fetchAndNotifyEventualChanges = fetchAndNotifyEventualChanges
     }
     
     func invalidate() {
@@ -682,7 +682,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     // Precondition: this method must be called from the database writer's
     // serialized dispatch queue.
     func performChangesChecking() {
-        checkForChanges(self)
+        fetchAndNotifyEventualChanges(self)
     }
 }
 
