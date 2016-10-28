@@ -124,7 +124,8 @@
                 var tokenizerPointer: OpaquePointer? = nil
                 let code: Int32
                 if let argument = arguments.first {
-                    // turn [String] into ContiguousArray<UnsafePointer<Int8>>
+                    // Turn [String] into ContiguousArray<UnsafePointer<Int8>>
+                    // (for an alternative implementation see https://oleb.net/blog/2016/10/swift-array-of-c-strings/)
                     func convertArguments<Result>(_ array: inout ContiguousArray<UnsafePointer<Int8>>, _ car: String, _ cdr: [String], _ body: (ContiguousArray<UnsafePointer<Int8>>) -> Result) -> Result {
                         return car.withCString { cString in
                             if let car = cdr.first {
