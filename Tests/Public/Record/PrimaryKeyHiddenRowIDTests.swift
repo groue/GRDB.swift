@@ -653,8 +653,9 @@ class PrimaryKeyHiddenRowIDTests : GRDBTestCase {
             }
             
             let expectation = self.expectation(description: "expectation")
-            let controller = FetchedRecordsController<Person>(dbQueue, request: Person.all(), compareRecordsByPrimaryKey: true)
+            let controller: FetchedRecordsController<Person>
             #if os(iOS)
+                controller = FetchedRecordsController<Person>(dbQueue, request: Person.all(), compareRecordsByPrimaryKey: true)
                 var update = false
                 controller.trackChanges(
                     tableViewEvent: { (_, _, event) in
@@ -669,6 +670,7 @@ class PrimaryKeyHiddenRowIDTests : GRDBTestCase {
                         expectation.fulfill()
                 })
             #else
+                controller = FetchedRecordsController<Person>(dbQueue, request: Person.all())
                 controller.trackChanges { _ in
                     expectation.fulfill()
                 }

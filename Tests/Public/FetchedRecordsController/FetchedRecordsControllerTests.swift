@@ -174,7 +174,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             }
             
             let request = Person.all()
-            let controller = FetchedRecordsController<Person>(dbQueue, request: request, compareRecordsByPrimaryKey: true)
+            let controller = FetchedRecordsController<Person>(dbQueue, request: request)
             XCTAssertTrue(controller.fetchedRecords == nil)
             controller.performFetch()
             XCTAssertEqual(controller.fetchedRecords!.count, 1)
@@ -191,7 +191,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
     func testSimpleInsert() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("id")), compareRecordsByPrimaryKey: true)
+            let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("id")))
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
@@ -231,7 +231,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
     func testSimpleUpdate() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("id")), compareRecordsByPrimaryKey: true)
+            let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("id")))
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
@@ -289,7 +289,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
     func testSimpleDelete() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("id")), compareRecordsByPrimaryKey: true)
+            let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("id")))
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
@@ -337,7 +337,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
     func testSimpleMove() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")), compareRecordsByPrimaryKey: true)
+            let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")))
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
@@ -380,8 +380,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
                     "FROM persons " +
                     "LEFT JOIN books ON books.authorID = persons.id " +
                     "GROUP BY persons.id " +
-                    "ORDER BY persons.name"),
-                compareRecordsByPrimaryKey: true)
+                    "ORDER BY persons.name"))
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
@@ -429,7 +428,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             let request = Person.select(Column("name")).order(Column("name"))
-            let controller = FetchedRecordsController<Person>(dbQueue, request: request, compareRecordsByPrimaryKey: true)
+            let controller = FetchedRecordsController<Person>(dbQueue, request: request)
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
@@ -505,7 +504,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
     func testSetCallbacksAfterUpdate() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")), compareRecordsByPrimaryKey: true)
+            let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")))
             let recorder = ChangesRecorder<Person>()
             controller.performFetch()
             
@@ -532,7 +531,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
     func testTrailingClosureCallback() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")), compareRecordsByPrimaryKey: true)
+            let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")))
             var persons: [Person] = []
             controller.performFetch()
             
@@ -554,7 +553,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
     func testFetchAlongside() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("id")), compareRecordsByPrimaryKey: true)
+            let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("id")))
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
                 fetchAlongside: { db in Person.fetchCount(db) },

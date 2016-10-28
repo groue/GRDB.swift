@@ -10,6 +10,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     
     // MARK: - Initialization
     
+    #if os(iOS)
     /// Creates a fetched records controller initialized from a SQL query and
     /// its eventual arguments.
     ///
@@ -79,6 +80,55 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         self.isSameItemFactory = isSameItemFactory
         self.queue = queue
     }
+    #else
+    /// Creates a fetched records controller initialized from a SQL query and
+    /// its eventual arguments.
+    ///
+    ///     let controller = FetchedRecordsController<Wine>(
+    ///         dbQueue,
+    ///         sql: "SELECT * FROM wines WHERE color = ? ORDER BY name",
+    ///         arguments: [Color.red])
+    ///
+    /// - parameters:
+    ///     - databaseWriter: A DatabaseWriter (DatabaseQueue, or DatabasePool)
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
+    ///     - queue: Optional dispatch queue (defaults to the main queue)
+    ///
+    ///         The fetched records controller delegate will be notified of
+    ///         record changes in this queue. The controller itself must be used
+    ///         from this queue.
+    ///
+    ///         This dispatch queue must be serial.
+    public convenience init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: DispatchQueue = .main) {
+        self.init(databaseWriter, request: SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter), queue: queue)
+    }
+    
+    /// Creates a fetched records controller initialized from a fetch request
+    /// from the [Query Interface](https://github.com/groue/GRDB.swift#the-query-interface).
+    ///
+    ///     let request = Wine.order(Column("name"))
+    ///     let controller = FetchedRecordsController<Wine>(
+    ///         dbQueue,
+    ///         request: request)
+    ///
+    /// - parameters:
+    ///     - databaseWriter: A DatabaseWriter (DatabaseQueue, or DatabasePool)
+    ///     - request: A fetch request.
+    ///     - queue: Optional dispatch queue (defaults to the main queue)
+    ///
+    ///         The fetched records controller delegate will be notified of
+    ///         record changes in this queue. The controller itself must be used
+    ///         from this queue.
+    ///
+    ///         This dispatch queue must be serial.
+    public init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue = .main) {
+        self.request = request
+        self.databaseWriter = databaseWriter
+        self.queue = queue
+    }
+    #endif
     
     /// Executes the controller's fetch request.
     ///
@@ -99,7 +149,9 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             let (statement, adapter) = try! request.prepare(db)
             let initialItems = Item<Record>.fetchAll(statement, adapter: adapter)
             fetchedItems = initialItems
-            isSameItem = isSameItemFactory(db)
+            #if os(iOS)
+                isSameItem = isSameItemFactory(db)
+            #endif
             
             if let fetchAndNotifyEventualChanges = fetchAndNotifyEventualChanges {
                 let observer = FetchedRecordsObserver(readInfo: statement.readInfo, fetchAndNotifyEventualChanges: fetchAndNotifyEventualChanges)
@@ -337,6 +389,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     // The items
     fileprivate var fetchedItems: [Item<Record>]?
     
+    #if os(iOS)
     // The record comparator
     fileprivate var isSameItem: (Item<Record>, Item<Record>) -> Bool
     
@@ -345,6 +398,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     // performFetch(), to get primary key information and generate a primary
     // key comparator.
     private let isSameItemFactory: (Database) -> (Item<Record>, Item<Record>) -> Bool
+    #endif
     
     /// The request
     fileprivate var request: FetchRequest {
@@ -375,7 +429,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     private var observer: FetchedRecordsObserver<Record>?
 }
 
-
+#if os(iOS)
 extension FetchedRecordsController where Record: TableMapping {
     
     // MARK: - Initialization
@@ -441,6 +495,7 @@ extension FetchedRecordsController where Record: TableMapping {
         }
     }
 }
+#endif
 
 
 // MARK: - FetchedChangesController

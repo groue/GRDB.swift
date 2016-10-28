@@ -1,6 +1,11 @@
 Release Notes
 =============
 
+## Next Version
+
+- FetchedRecordsController no longer exposes record comparison options to platforms that don't support table views.
+
+
 ## 0.89.2
 
 Released October 26, 2016
