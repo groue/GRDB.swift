@@ -104,7 +104,7 @@
                 }
                 
                 let request = Person.all()
-                let controller = FetchedRecordsController<Person>(dbQueue, request: request)
+                let controller = FetchedRecordsController<Person>(dbQueue, request: request, compareRecordsByPrimaryKey: true)
                 XCTAssertTrue(controller.fetchedRecords == nil)
                 controller.performFetch()
                 XCTAssertEqual(controller.sections.count, 1)

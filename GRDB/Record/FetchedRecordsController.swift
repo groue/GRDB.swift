@@ -69,7 +69,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         if let isSameRecord = isSameRecord {
             self.init(databaseWriter, request: request, queue: queue, compareItemsFactory: { _ in { isSameRecord($0.record, $1.record) } })
         } else {
-            self.init(databaseWriter, request: request, queue: queue, compareItemsFactory: { _ in { $0.row == $1.row } })
+            self.init(databaseWriter, request: request, queue: queue, compareItemsFactory: { _ in { _ in false } })
         }
     }
     
