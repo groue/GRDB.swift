@@ -209,7 +209,7 @@ Documentation
 
 ### Installation
 
-**The installations procedure below have GRDB use the version of SQLite that ships with the target operating system.** They all require Xcode 8 to be installed in the /Applications folder, with its regular name Xcode.
+**The installation procedures below have GRDB use the version of SQLite that ships with the target operating system.** They all require Xcode to be installed in the /Applications folder, with its regular name Xcode.
 
 See [Encryption](#encryption) for the installation procedure of GRDB with SQLCipher.
 
