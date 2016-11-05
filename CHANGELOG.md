@@ -1,7 +1,9 @@
 Release Notes
 =============
 
-## Next Version
+## 0.90.0
+
+Released November 5, 2016
 
 **New**
 
@@ -9,7 +11,7 @@ Release Notes
 
 **Fixed**
 
-- FetchedRecordsController no longer exposes [record comparison options](https://github.com/groue/GRDB.swift#record-identity) to platforms that don't need them. The `isSameRecord` and `compareRecordsByPrimaryKey` parameters are now iOS only:
+- FetchedRecordsController no longer exposes record comparison options to platforms that don't need them. The `isSameRecord` and `compareRecordsByPrimaryKey` parameters are now [iOS only](https://github.com/groue/GRDB.swift#fetchedrecordscontroller-on-ios):
     
     ```swift
     // iOS only
