@@ -4001,8 +4001,9 @@ See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an sample app that uses FetchedRecor
 - [Responding to Changes](#responding-to-changes)
 - [The Changes Notifications](#the-changes-notifications)
 - [Modifying the Fetch Request](#modifying-the-fetch-request)
-- [Implementing the Table View Datasource Methods](#implementing-the-table-view-datasource methods)
-- [Implementing Table View Updates](#implementing-table-view-updates)
+- [FetchedRecordsController on iOS](#fetchedrecordscontroller-on-ios)
+    - [Implementing the Table View Datasource Methods](#implementing-the-table-view-datasource methods)
+    - [Implementing Table View Updates](#implementing-table-view-updates)
 - [FetchedRecordsController Concurrency](#fetchedrecordscontroller-concurrency)
 
 
@@ -4159,9 +4160,34 @@ The [notification callbacks](#the-changes-notifications) are notified of eventua
 > :point_up: **Note**: This behavior differs from Core Data's NSFetchedResultsController, which does not notify of record changes when the fetch request is replaced.
 
 
-### Implementing the Table View Datasource Methods
+### FetchedRecordsController on iOS
 
-On iOS, the table view data source asks the fetched records controller to provide relevant information:
+On iOS, FetchedRecordsController provides extra APIs that help feeding table views, and keeping them up-to-date with the database content.
+
+This require an extra step in the controller initialization, so that it can *identify* records.
+
+Records are usually identified by their primary key. When the record type adopts the [TableMapping](#tablemapping-protocol) protocol, such as [Record](#record-class) subclasses, you will generally use the `compareRecordsByPrimaryKey` initialization argument:
+
+```swift
+let controller = FetchedRecordsController<Person>(
+    dbQueue,
+    request: ...,
+    compareRecordsByPrimaryKey: true)
+```
+
+When the record type does not adopt the [TableMapping](#tablemapping-protocol) protocol, you have to be explicit:
+
+```swift
+let controller = FetchedRecordsController<Person>(
+    dbQueue,
+    request: ...,
+    isSameRecord: { (person1, person2) in person1.id == person2.id })
+```
+
+
+#### Implementing the Table View Datasource Methods
+
+The table view data source asks the fetched records controller to provide relevant information:
 
 ```swift
 func numberOfSections(in tableView: UITableView) -> Int {
@@ -4183,41 +4209,20 @@ func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> U
 > :point_up: **Note**: In its current state, FetchedRecordsController does not support grouping table view rows into custom sections: it generates a unique section.
 
 
-### Implementing Table View Updates
+#### Implementing Table View Updates
 
-On iOS, FetchedRecordsController can notify that the controller’s fetched records have been changed due to some add, remove, move, or update operations, and help your applying the changes in a UITableView.
-
-
-#### Record Identity
-
-Updates and moves are nicer to the eye when you perform table view animations. They require the controller to identify individual records in the fetched database rows. You must tell the controller how to do so:
-
-```swift
-let controller = FetchedRecordsController<Person>(
-    dbQueue,
-    request: ...,
-    isSameRecord: { (person1, person2) in person1.id == person2.id })
-```
-
-When the fetched type adopts the [TableMapping](#tablemapping-protocol) protocol, such as [Record](#record-class) subclasses, you can use the `compareRecordsByPrimaryKey` shortcut:
-
-```swift
-let controller = FetchedRecordsController<Person>(
-    dbQueue,
-    request: ...,
-    compareRecordsByPrimaryKey: true)
-```
-
-
-#### Typical Table View Updates
-
-When a change in the fetched records should just trigger a reloading of the whole table view, you can simply tell so:
+When changes in the fetched records should reload the whole table view, you can simply tell so:
 
 ```swift
 controller.trackChanges { [unowned self] _ in
     self.tableView.reloadData()
 }
 ```
+
+Yet, FetchedRecordsController can notify that the controller’s fetched records have been changed due to some add, remove, move, or update operations, and help applying animated changes to a UITableView.
+
+
+##### Typical Table View Updates
 
 For animated table view updates, use the `recordsWillChange` and `recordsDidChange` callbacks to bracket events provided by the fetched records controller, as illustrated in the following example:
 
