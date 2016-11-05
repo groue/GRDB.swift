@@ -178,7 +178,6 @@ extension SQLSpecificExpressible {
     }
 }
 
-@available(iOS 9.0, OSX 10.11, *)
 extension SQLSpecificExpressible {
     /// Returns an SQL expression that applies the Swift's built-in
     /// localizedCapitalized String property. It is NULL for non-String arguments.
@@ -186,6 +185,7 @@ extension SQLSpecificExpressible {
     ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn.localizedCapitalized)
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
+    @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
     public var localizedCapitalized: SQLExpression {
         return DatabaseFunction.localizedCapitalize.apply(sqlExpression)
     }
@@ -196,6 +196,7 @@ extension SQLSpecificExpressible {
     ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn.localizedLowercased)
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
+    @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
     public var localizedLowercased: SQLExpression {
         return DatabaseFunction.localizedLowercase.apply(sqlExpression)
     }
@@ -206,6 +207,7 @@ extension SQLSpecificExpressible {
     ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn.localizedUppercased)
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
+    @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
     public var localizedUppercased: SQLExpression {
         return DatabaseFunction.localizedUppercase.apply(sqlExpression)
     }
