@@ -3,7 +3,7 @@ Release Notes
 
 ## Next Version
 
-**Breaking Change**
+**Fixed**
 
 - FetchedRecordsController no longer exposes [record comparison options](https://github.com/groue/GRDB.swift#record-identity) to platforms that don't need them. The `isSameRecord` and `compareRecordsByPrimaryKey` parameters are now iOS only:
     
