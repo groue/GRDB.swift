@@ -422,7 +422,7 @@ public final class Database {
         add(function: .lowercase)
         add(function: .uppercase)
         
-        if #available(iOS 9.0, OSX 10.11, *) {
+        if #available(iOS 9.0, OSX 10.11, watchOS 3.0, *) {
             add(function: .localizedCapitalize)
             add(function: .localizedLowercase)
             add(function: .localizedUppercase)
