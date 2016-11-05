@@ -49,7 +49,7 @@
             }
         }
         ```
-        
+
 - [ ] ROUND function: read http://marc.info/?l=sqlite-users&m=130419182719263
 - [ ] Remove DatabaseWriter.writeForIssue117 when https://bugs.swift.org/browse/SR-2623 is fixed (remove `writeForIssue117`, use `write` instead, and build in Release configuration) 
 - [ ] Restore dispatching tests in GRDBOSXTests (they are disabled in order to avoid linker errors)
@@ -111,3 +111,4 @@ Reading list:
 - http://docs.diesel.rs/diesel/associations/index.html
 - http://cocoamine.net/blog/2015/09/07/contentless-fts4-for-large-immutable-documents/
 - https://discuss.zetetic.net/t/important-advisory-sqlcipher-with-xcode-8-and-ios-10/1688
+- pinyin: http://hustlzp.com/post/2016/02/ios-full-text-search-using-sqlite-fts4
