@@ -3,6 +3,10 @@ Release Notes
 
 ## Next Version
 
+**New**
+
+- Upgrade custom SQLite builds to [v3.15.1](http://www.sqlite.org/changes.html).
+
 **Fixed**
 
 - FetchedRecordsController no longer exposes [record comparison options](https://github.com/groue/GRDB.swift#record-identity) to platforms that don't need them. The `isSameRecord` and `compareRecordsByPrimaryKey` parameters are now iOS only:
