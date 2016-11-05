@@ -52,7 +52,6 @@
         
 - [ ] ROUND function: read http://marc.info/?l=sqlite-users&m=130419182719263
 - [ ] Remove DatabaseWriter.writeForIssue117 when https://bugs.swift.org/browse/SR-2623 is fixed (remove `writeForIssue117`, use `write` instead, and build in Release configuration) 
-- [ ] Restore SQLCipher
 - [ ] Restore dispatching tests in GRDBOSXTests (they are disabled in order to avoid linker errors)
     - DatabasePoolReleaseMemoryTests
     - DatabasePoolSchemaCacheTests
