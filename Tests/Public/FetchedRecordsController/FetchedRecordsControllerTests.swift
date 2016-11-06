@@ -87,23 +87,20 @@ class FetchedRecordsControllerTests: GRDBTestCase {
 
     override func setup(_ dbWriter: DatabaseWriter) throws {
         try dbWriter.write { db in
-            try db.execute(
-                "CREATE TABLE persons (" +
-                    "id INTEGER PRIMARY KEY, " +
-                    "name TEXT," +
-                    "email TEXT" +
-                ")")
-            try db.execute(
-                "CREATE TABLE books (" +
-                    "id INTEGER PRIMARY KEY, " +
-                    "authorId INTEGER NOT NULL REFERENCES persons(id) ON DELETE CASCADE ON UPDATE CASCADE," +
-                    "title TEXT" +
-                ")")
-            try db.execute(
-                "CREATE TABLE flowers (" +
-                    "id INTEGER PRIMARY KEY, " +
-                    "name TEXT" +
-                ")")
+            try db.create(table: "persons") { t in
+                t.column("id", .integer).primaryKey()
+                t.column("name", .text)
+                t.column("email", .text)
+            }
+            try db.create(table: "books") { t in
+                t.column("id", .integer).primaryKey()
+                t.column("authorId", .integer).notNull().references("persons", onDelete: .cascade, onUpdate: .cascade)
+                t.column("title", .text)
+            }
+            try db.create(table: "flowers") { t in
+                t.column("id", .integer).primaryKey()
+                t.column("name", .text)
+            }
         }
     }
     

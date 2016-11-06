@@ -76,22 +76,19 @@
         
         override func setup(_ dbWriter: DatabaseWriter) throws {
             try dbWriter.write { db in
-                try db.execute(
-                    "CREATE TABLE persons (" +
-                        "id INTEGER PRIMARY KEY, " +
-                        "name TEXT" +
-                    ")")
-                try db.execute(
-                    "CREATE TABLE books (" +
-                        "id INTEGER PRIMARY KEY, " +
-                        "ownerId INTEGER NOT NULL REFERENCES persons(id) ON DELETE CASCADE ON UPDATE CASCADE," +
-                        "title TEXT" +
-                    ")")
-                try db.execute(
-                    "CREATE TABLE flowers (" +
-                        "id INTEGER PRIMARY KEY, " +
-                        "name TEXT" +
-                    ")")
+                try db.create(table: "persons") { t in
+                    t.column("id", .integer).primaryKey()
+                    t.column("name", .text)
+                }
+                try db.create(table: "books") { t in
+                    t.column("id", .integer).primaryKey()
+                    t.column("ownerId", .integer).notNull().references("persons", onDelete: .cascade, onUpdate: .cascade)
+                    t.column("title", .text)
+                }
+                try db.create(table: "flowers") { t in
+                    t.column("id", .integer).primaryKey()
+                    t.column("name", .text)
+                }
             }
         }
         
@@ -115,6 +112,20 @@
                 XCTAssertEqual(controller.fetchedRecords![0].name, "Arthur")
                 XCTAssertEqual(controller.record(at: IndexPath(row: 0, section: 0)).name, "Arthur")
                 XCTAssertEqual(controller.indexPath(for: arthur), IndexPath(row: 0, section: 0))
+            }
+        }
+        
+        func testEmptyRequestGivesOneSection() {
+            assertNoError {
+                let dbQueue = try makeDatabaseQueue()
+                let request = Person.all()
+                let controller = FetchedRecordsController<Person>(dbQueue, request: request)
+                XCTAssertTrue(controller.fetchedRecords == nil)
+                controller.performFetch()
+                XCTAssertEqual(controller.fetchedRecords!.count, 0)
+                
+                // Just like NSFetchedResultsController
+                XCTAssertEqual(controller.sections.count, 1)
             }
         }
         
