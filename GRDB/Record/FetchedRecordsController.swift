@@ -793,6 +793,9 @@ private func databaseEventFilter(readInfo: SelectStatement.ReadInfo) -> (Databas
         ///
         /// You typically use the sections array when implementing
         /// UITableViewDataSource methods, such as `numberOfSectionsInTableView`.
+        ///
+        /// The sections array is never empty, even when there are no fetched
+        /// records. In this case, there is a single empty section.
         public var sections: [FetchedRecordsSectionInfo<Record>] {
             // We only support a single section so far.
             // We also return a single section when there are no fetched
