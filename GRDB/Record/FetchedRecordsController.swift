@@ -794,7 +794,9 @@ private func databaseEventFilter(readInfo: SelectStatement.ReadInfo) -> (Databas
         /// You typically use the sections array when implementing
         /// UITableViewDataSource methods, such as `numberOfSectionsInTableView`.
         public var sections: [FetchedRecordsSectionInfo<Record>] {
-            // We only support a single section
+            // We only support a single section so far.
+            // We also return a single section when there are no fetched
+            // records, just like NSFetchedResultsController.
             return [FetchedRecordsSectionInfo(controller: self)]
         }
     }
@@ -1055,14 +1057,18 @@ private func databaseEventFilter(readInfo: SelectStatement.ReadInfo) -> (Databas
         
         /// The number of records (rows) in the section.
         public var numberOfRecords: Int {
-            // We only support a single section
-            return controller.fetchedItems!.count
+            guard let items = controller.fetchedItems else {
+                fatalError("the performFetch() method must be called before accessing section contents")
+            }
+            return items.count
         }
         
         /// The array of records in the section.
         public var records: [Record] {
-            // We only support a single section
-            return controller.fetchedItems!.map { $0.record }
+            guard let items = controller.fetchedItems else {
+                fatalError("the performFetch() method must be called before accessing section contents")
+            }
+            return items.map { $0.record }
         }
     }
 #endif
