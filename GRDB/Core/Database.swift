@@ -893,6 +893,15 @@ extension Database {
     }
 
     func change(passphrase: String) throws {
+        // FIXME: sqlite3_rekey is discouraged.
+        //
+        // https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320
+        //
+        // > We (Zetetic) have been discouraging the use of sqlite3_rekey in
+        // > favor of attaching a new database with the desired encryption
+        // > options and using sqlcipher_export() to migrate the contents and
+        // > schema of the original db into the new one:
+        // > https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/
         let data = passphrase.data(using: .utf8)!
         let code = data.withUnsafeBytes { bytes in
             sqlite3_rekey(sqliteConnection, bytes, Int32(data.count))
