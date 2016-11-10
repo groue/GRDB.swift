@@ -387,11 +387,22 @@ public final class Database {
             return
         }
         let dbPointer = unsafeBitCast(self, to: UnsafeMutableRawPointer.self)
-        sqlite3_trace(sqliteConnection, { (dbPointer, sql) in
-            guard let sql = sql else { return }
-            let database = unsafeBitCast(dbPointer, to: Database.self)
-            database.configuration.trace!(String(cString: sql))
+        if #available(iOS 10.0, macOS 10.12, watchOS 3.0, *) {
+            sqlite3_trace_v2(sqliteConnection, UInt32(SQLITE_TRACE_STMT), { (_, dbPointer, p, x) in
+                if let p = p, let sql = sqlite3_expanded_sql(OpaquePointer(p)) {
+                    let database = unsafeBitCast(dbPointer, to: Database.self)
+                    database.configuration.trace!(String(cString: sql))
+                    sqlite3_free(sql)
+                }
+                return 0
             }, dbPointer)
+        } else {
+            sqlite3_trace(sqliteConnection, { (dbPointer, sql) in
+                guard let sql = sql else { return }
+                let database = unsafeBitCast(dbPointer, to: Database.self)
+                database.configuration.trace!(String(cString: sql))
+            }, dbPointer)
+        }
     }
     
     private func setupBusyMode() {
