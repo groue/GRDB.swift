@@ -223,7 +223,7 @@ public final class Database {
     
     /// The states that keep track of transaction completions in order to notify
     /// transaction observers.
-    private enum TransactionState {
+    fileprivate enum TransactionState {
         case waitForTransactionCompletion
         case commit
         case rollback
