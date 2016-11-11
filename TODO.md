@@ -1,3 +1,4 @@
+- [ ] Refactor Database notion of transaction/savepoints into a single type. Support INSERT OR ROLLBACK.
 - [ ] Attach databases (this could be the support for fetched records controller caches). Interesting question: what happens when one attaches a non-WAL db to a databasePool?
 - [ ] sqlite3_rekey is discouraged (https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320)
 - [ ] ROUND function: read http://marc.info/?l=sqlite-users&m=130419182719263
