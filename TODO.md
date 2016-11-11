@@ -1,3 +1,4 @@
+- [ ] Attach databases (this could be the support for fetched records controller caches). Interesting question: what happens when one attaches a non-WAL db to a databasePool?
 - [ ] sqlite3_rekey is discouraged (https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320)
 - [ ] fetchedRecordsController.sections.count should return the same result as NSFetchedResultsController when there is no result (1 when empty)
 - [ ] Store dates as timestamp (https://twitter.com/gloparco/status/780948021613912064, https://github.com/groue/GRDB.swift/issues/97)
