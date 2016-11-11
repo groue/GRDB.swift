@@ -1,58 +1,5 @@
 - [ ] Attach databases (this could be the support for fetched records controller caches). Interesting question: what happens when one attaches a non-WAL db to a databasePool?
 - [ ] sqlite3_rekey is discouraged (https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320)
-- [ ] fetchedRecordsController.sections.count should return the same result as NSFetchedResultsController when there is no result (1 when empty)
-- [ ] Store dates as timestamp (https://twitter.com/gloparco/status/780948021613912064, https://github.com/groue/GRDB.swift/issues/97)
-    - Global config?
-    
-    - New enum case in DatabaseValue.Storage?
-        
-        ```swift
-        extension Date : DatabaseValueConvertible {
-            var databaseValue: DatabaseValue {
-                return DatabaseValue(storage: .date(self))
-            }
-        }
-        extension DatabaseValue {
-            func canonicalDatabaseValue(in database: Database) -> DatabaseValue {
-                switch storage {
-                case .date(let date):
-                    switch database.configuration.dateFormat {
-                        case .iso8601:
-                            return ...
-                        case .timestamp:
-                            return ...
-                    }
-                default:
-                    return self
-                }
-            }
-        }
-        ```
-        
-    - Rename DatabaseValueConvertible to Bindable?
-        
-        ```swift
-        protocol Bindable {
-            var databaseBinding: Binding { get }
-            static func fromDatabaseValue(...)
-        }
-        protocol Binding {
-            func databaseValue(in database: Database) -> DatabaseValue
-        }
-        extension Int : Binding { ... }
-        extension String : Binding { ... }
-        extension Date : Binding {
-            func databaseValue(in database: Database) -> DatabaseValue {
-                switch database.configuration.dateFormat {
-                    case .iso8601:
-                        return ...
-                    case .timestamp:
-                        return ...
-                }
-            }
-        }
-        ```
-
 - [ ] ROUND function: read http://marc.info/?l=sqlite-users&m=130419182719263
 - [ ] Remove DatabaseWriter.writeForIssue117 when https://bugs.swift.org/browse/SR-2623 is fixed (remove `writeForIssue117`, use `write` instead, and build in Release configuration) 
 - [ ] Restore dispatching tests in GRDBOSXTests (they are disabled in order to avoid linker errors)
@@ -66,7 +13,6 @@
 - [ ] FetchedRecordsController throttling (suggested by @hdlj)
 - [ ] What is the behavior inTransaction and inSavepoint behaviors in case of commit error? Code looks like we do not rollback, leaving the app in a weird state (out of Swift transaction block with a SQLite transaction that may still be opened).
 - [ ] GRDBCipher / custom SQLite builds: remove limitations on iOS or OS X versions
-- [ ] FetchedRecordsController: take inspiration from https://github.com/jflinter/Dwifft
 - [ ] File protection: Read https://github.com/ccgus/fmdb/issues/262 and understand https://lists.apple.com/archives/cocoa-dev/2012/Aug/msg00527.html
 - [ ] Support for resource values (see https://developer.apple.com/library/ios/qa/qa1719/_index.html)
 - [ ] Query builder
@@ -86,7 +32,7 @@ Not sure
 - [ ] Remove DatabaseValue.value()
     - [X] Don't talk about DatabaseValue.value() in README.md
 - [ ] Support for NSColor/UIColor. Beware UIColor components can go beyond [0, 1.0] in iOS10.
-
+- [ ] Store dates as timestamp (https://twitter.com/gloparco/status/780948021613912064, https://github.com/groue/GRDB.swift/issues/97)
 
 Require changes in the Swift language:
 
@@ -115,3 +61,4 @@ Reading list:
 - http://cocoamine.net/blog/2015/09/07/contentless-fts4-for-large-immutable-documents/
 - https://discuss.zetetic.net/t/important-advisory-sqlcipher-with-xcode-8-and-ios-10/1688
 - pinyin: http://hustlzp.com/post/2016/02/ios-full-text-search-using-sqlite-fts4
+- https://github.com/jflinter/Dwifft (FetchedRecordsController)
