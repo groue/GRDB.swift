@@ -1,3 +1,4 @@
+- [ ] Swift 3.0.2 (Xcode 8.2): "Type inference will properly unwrap optionals when used with generics and implicitly-unwrapped optionals." Maybe this fixes `row.value(named: "foo") as? Int`?
 - [ ] Refactor Database notion of transaction/savepoints into a single type. Support INSERT OR ROLLBACK.
 - [ ] Attach databases (this could be the support for fetched records controller caches). Interesting question: what happens when one attaches a non-WAL db to a databasePool?
 - [ ] sqlite3_rekey is discouraged (https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320)
