@@ -4579,6 +4579,7 @@ let sql = "SELECT ..."
 // Some untrusted arguments for the query
 let arguments: [String: Any] = ...
 
+// Some untrusted iteration of database results:
 for row in Row.fetch(db, sql, arguments: StatementArguments(arguments)) {
     // Some untrusted database value:
     let date: Date? = row.value(atIndex: 0)
