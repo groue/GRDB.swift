@@ -4588,29 +4588,29 @@ for row in Row.fetch(db, sql, arguments: StatementArguments(arguments)) {
 
 It has several opportunities to throw fatal errors:
 
-- The sql string may contain invalid sql, or refer to non-existing tables or columns.
-- The dictionary may contain objects that can't be converted to database values.
-- The dictionary may miss values required by the statement.
-- SQLite may throw an error at each step of the results iteration.
-- The row may contain a non-null value that can't be turned into a date.
+- **Doubtful SQL**: The sql string may contain invalid sql, or refer to non-existing tables or columns.
+- **Doubtful arguments dictionary**: The dictionary may contain values that do not conform to the [DatabaseValueConvertible protocol](#values).
+- **Doubtful arguments fitting**: The dictionary may miss values required by the statement.
+- **Doubtful SQLite execution**: SQLite may throw an error at each step of the results iteration.
+- **Doubtful database content**: The row may contain a non-null value that can't be turned into a date.
 
 In such a situation where nothing can be trusted, you can still avoid fatal errors, but you have to expose and handle each failure point by going down one level in GRDB API:
 
 ```swift
-// The sql string may contain invalid sql, or refer to non-existing tables or columns.
+// Doubtful SQL
 let statement = try db.makeSelectStatement(sql)
 
-// The dictionary may contain objects that can't be converted to database values.
+// Doubtful arguments dictionary
 if let arguments = StatementArguments(arguments) {
     
-    // The dictionary may miss values required by the statement.
+    // Doubtful arguments fitting
     try statement.validate(arguments: arguments)
     statement.unsafeSetArguments(arguments)
     
-    // SQLite may throw an error at each step of the results iteration.
+    // Doubtful SQLite execution
     var iterator = Row.fetch(statement).makeIterator()
     while let row = try iterator.step() {
-        // The row may contain a non-null value that can't be turned into a date.
+        // Doubtful database content
         let dbv: DatabaseValue = row.value(atIndex: 0)
         if dbv.isNull {
             // Handle NULL
