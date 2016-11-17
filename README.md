@@ -4577,9 +4577,9 @@ Let's consider the code below:
 let sql = "SELECT ..."
 
 // Some untrusted arguments for the query
-let arguments: NSDictionary = ...
+let arguments: [String: Any] = ...
 
-for row in Row.fetchAll(db, sql, arguments: StatementArguments(arguments)) {
+for row in Row.fetch(db, sql, arguments: StatementArguments(arguments)) {
     // Some untrusted database value:
     let date: Date? = row.value(atIndex: 0)
 }
@@ -4590,28 +4590,33 @@ It has several opportunities to throw fatal errors:
 - The sql string may contain invalid sql, or refer to non-existing tables or columns.
 - The dictionary may contain objects that can't be converted to database values.
 - The dictionary may miss values required by the statement.
+- SQLite may throw an error at each step of the results iteration.
 - The row may contain a non-null value that can't be turned into a date.
 
 In such a situation where nothing can be trusted, you can still avoid fatal errors, but you have to expose and handle each failure point by going down one level in GRDB API:
 
 ```swift
-// SQL may be invalid
+// The sql string may contain invalid sql, or refer to non-existing tables or columns.
 let statement = try db.makeSelectStatement(sql)
 
-// NSDictionary arguments may contain invalid values or keys:
+// The dictionary may contain objects that can't be converted to database values.
 if let arguments = StatementArguments(arguments) {
     
-    // Arguments may not fit the statement
+    // The dictionary may miss values required by the statement.
     try statement.validate(arguments: arguments)
+    statement.unsafeSetArguments(arguments)
     
-    // OK we can fetch now
-    statement.unsafeSetArguments(arguments) // no need to check twice
-    for row in Row.fetchAll(statement) {
-        
-        // Database value may not be convertible to Date
+    // SQLite may throw an error at each step of the results iteration.
+    var iterator = Row.fetch(statement).makeIterator()
+    while let row = try iterator.step() {
+        // The row may contain a non-null value that can't be turned into a date.
         let dbv: DatabaseValue = row.value(atIndex: 0)
+        if dbv.isNull {
+            // Handle NULL
         if let date = Date.fromDatabaseValue(dbv) {
-            // use date
+            // Handle valid date
+        } else {
+            // Handle invalid date
         }
     }
 }
