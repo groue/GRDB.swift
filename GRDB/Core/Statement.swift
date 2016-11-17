@@ -323,11 +323,46 @@ public final class DatabaseIterator<Element>: IteratorProtocol {
         statementRef?.release()
     }
     
+    /// Advances to the next element and returns it, or `nil` if no next element
+    /// exists. This method is the throwing version of the `next` method.
+    ///
+    /// The following example shows how an iterator can be used explicitly to
+    /// emulate a `for`-`in` loop. First, retrieve a database sequence's
+    /// iterator, and then call the iterator's `next()` method until it
+    /// returns `nil`.
+    ///
+    ///     let rows = Row.fetch(db, "SELECT ...")
+    ///     var iterator = rows.makeIterator()
+    ///
+    ///     while let row = try iterator.step() {
+    ///         print(row)
+    ///     }
+    ///
+    /// - returns: The next element in the underlying sequence if a next element
+    ///   exists; otherwise, `nil`.
+    /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func step() throws -> Element? {
         guard let element = element else { return nil }
         return try element(sqliteStatement.unsafelyUnwrapped, statementRef.unsafelyUnwrapped)
     }
     
+    /// Advances to the next element and returns it, or `nil` if no next element
+    /// exists.
+    ///
+    /// The following example shows how an iterator can be used explicitly to
+    /// emulate a `for`-`in` loop. First, retrieve a database sequence's
+    /// iterator, and then call the iterator's `next()` method until it
+    /// returns `nil`.
+    ///
+    ///     let rows = Row.fetch(db, "SELECT ...")
+    ///     var iterator = rows.makeIterator()
+    ///
+    ///     while let row = iterator.next() {
+    ///         print(row)
+    ///     }
+    ///
+    /// - returns: The next element in the underlying sequence if a next element
+    ///   exists; otherwise, `nil`.
     public func next() -> Element? {
         return try! step()
     }
