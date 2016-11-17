@@ -4745,41 +4745,57 @@ dbQueue.setupMemoryManagement(in: UIApplication.sharedApplication())
 
 ## Concurrency
 
-**Concurrency with GRDB is easy: there are two rules to follow.**
-
-GRDB ships with support for two concurrency modes:
+GRDB ships with two concurrency modes:
 
 - [DatabaseQueue](#database-queues) opens a single database connection, and serializes all database accesses.
-- [DatabasePool](#database-pools) manages a pool of several database connections, serializes writes, and allows concurrent reads and writes.
+- [DatabasePool](#database-pools) manages a pool of several database connections, and allows concurrent reads and writes.
 
-**Rule 1: Your application should have a unique instance of DatabaseQueue or DatabasePool connected to a database file. You may experience concurrency trouble if you do otherwise.**
+Regardless of the concurrency mode you choose, GRDB provides you with guarantees, as long as you follow two rules.
 
-Now let's talk about the consistency of your data: you generally want to prevent your application threads from any conflict.
+- **Guarantee 1**: writes are always *serialized*. At every moment, there is no more than a single thread that is writing into the database.
 
-Since it is difficult to synchronize threads, both [DatabaseQueue](#database-queues) and [DatabasePool](#database-pools) offer methods that isolate your statements, and guarantee a stable database state regardless of parallel threads:
+- **Guarantee 2**: reads are always *isolated*. This means that you can perform subsequent reads without fearing eventual concurrent writes to mess with your application logic.
+    
+    ```swift
+    dbPool.read { db in // or dbQueue.inDatabase { ... }
+        // Guaranteed to be equal
+        let count1 = Person.fetchCount(db)
+        let count2 = Person.fetchCount(db)
+    }
+    ```
 
-```swift
-dbQueue.inDatabase { db in  // or dbPool.read, or dbPool.write
-    // Those two values are guaranteed to be equal:
-    let count1 = PointOfInterest.fetchCount(db)
-    let count2 = PointOfInterest.fetchCount(db)
-}
-```
+Those guarantees hold as long as you follow rules:
 
-Isolation is only guaranteed *inside* the closure argument of those methods. Two consecutive calls don't guarantee isolation:
+- **Rule 1**: Your application should have a unique instance of DatabaseQueue or DatabasePool connected to a database file.
+    
+    If there are several instances of database queues or pools that access the same database, you may face concurrency issues (see [advanced concurrency](#advanced-concurrency) below).
+    
+    It is thus recommended to open a single connection. See, for example, [DemoApps/GRDBDemoiOS/Database.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift) for a sample code that properly sets up a single database queue that is available throughout the application.
 
-```swift
-// Those two values may be different because some other thread may have inserted
-// or deleted a point of interest between the two statements:
-let count1 = dbQueue.inDatabase { db in
-    PointOfInterest.fetchCount(db)
-}
-let count2 = dbQueue.inDatabase { db in
-    PointOfInterest.fetchCount(db)
-}
-```
+- **Rule 2**: Group your related statements within the safe and isolated `inDatabase`, `inTransaction`, `read`, `write` and `writeInTransaction` methods.
 
-**Rule 2: Group your related statements within the safe and isolated `inDatabase`, `inTransaction`, `read`, `write` and `writeInTransaction` methods.**
+    ```swift
+    // SAFE
+    dbPool.read { db in  // or dbQueue.inDatabase { ... }
+        // Guaranteed to be equal:
+        let count1 = PointOfInterest.fetchCount(db)
+        let count2 = PointOfInterest.fetchCount(db)
+    }
+    ```
+
+    Isolation is only guaranteed *inside* the closure argument of those methods. Two consecutive calls don't guarantee isolation:
+
+    ```swift
+    // DANGEROUS
+    // Those two values may be different because some other thread may have
+    // inserted or deleted a record between the two statements:
+    let count1 = dbPool.read { db in
+        PointOfInterest.fetchCount(db)
+    }
+    let count2 = dbPool.read { db in
+        PointOfInterest.fetchCount(db)
+    }
+    ```
 
 
 ### Advanced Concurrency
