@@ -4710,17 +4710,9 @@ dbQueue.add(collation: collation) // Or dbPool.add(collation: ...)
 
 ## Memory Management
 
-**You can reclaim memory used by GRDB.**
+Both SQLite and GRDB use non-essential memory that help them perform better.
 
-The most obvious way is to release your [database queues](#database-queues) and [pools](#database-pools):
-
-```swift
-// Eventually release all memory, after all database accesses are completed:
-dbQueue = nil
-dbPool = nil
-```
-
-Yet both SQLite and GRDB use non-essential memory that help them perform better. You can claim this memory with the `releaseMemory` method:
+You can reclaim this memory with the `releaseMemory` method:
 
 ```swift
 // Release as much memory as possible.
