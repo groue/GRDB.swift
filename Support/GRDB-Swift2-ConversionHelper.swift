@@ -97,7 +97,7 @@ extension DatabaseFunction {
     public static let uppercaseString = uppercase
 }
 
-@available(iOS 9.0, OSX 10.11, *)
+@available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
 extension DatabaseFunction {
     @available(*, unavailable, renamed:"localizedCapitalize")
     public static let localizedCapitalizedString = localizedCapitalize
@@ -196,7 +196,7 @@ extension SQLSpecificExpressible {
     public var uppercaseString: SQLExpression { get { return uppercased } }
 }
 
-@available(iOS 9.0, OSX 10.11, *)
+@available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
 extension SQLSpecificExpressible {
     @available(*, unavailable, renamed:"localizedCapitalized")
     public var localizedCapitalizedString: SQLExpression { get { return localizedCapitalized } }
