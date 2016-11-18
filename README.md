@@ -4676,10 +4676,10 @@ A collation can be applied to a table column. All comparisons involving this col
 ```swift
 try db.create(table: "persons") { t in
     // Guarantees case-insensitive email unicity
-    t.column("email", .Text).unique().collate(.nocase)
+    t.column("email", .text).unique().collate(.nocase)
     
     // Sort names in a localized case insensitive way
-    t.column("name", .Text).collate(.localizedCaseInsensitiveCompare)
+    t.column("name", .text).collate(.localizedCaseInsensitiveCompare)
 }
 
 // Persons are sorted in a localized case insensitive way:
