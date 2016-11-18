@@ -1,6 +1,14 @@
 Release Notes
 =============
 
+## 0.90.1
+
+Released November 18, 2016
+
+**Fixed**
+
+- Fixed a couple Xcode 8.1 warnings
+
 ## 0.90.0
 
 Released November 5, 2016
