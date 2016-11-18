@@ -4588,29 +4588,29 @@ for row in Row.fetch(db, sql, arguments: StatementArguments(arguments)) {
 
 It has several opportunities to throw fatal errors:
 
-- **Doubtful SQL**: The sql string may contain invalid sql, or refer to non-existing tables or columns.
-- **Doubtful arguments dictionary**: The dictionary may contain values that do not conform to the [DatabaseValueConvertible protocol](#values).
-- **Doubtful arguments fitting**: The dictionary may miss values required by the statement.
-- **Doubtful SQLite execution**: SQLite may throw an error at each step of the results iteration.
-- **Doubtful database content**: The row may contain a non-null value that can't be turned into a date.
+- **Untrusted SQL**: The sql string may contain invalid sql, or refer to non-existing tables or columns.
+- **Untrusted arguments dictionary**: The dictionary may contain values that do not conform to the [DatabaseValueConvertible protocol](#values).
+- **Untrusted arguments fitting**: The dictionary may miss values required by the statement.
+- **Untrusted SQLite execution**: SQLite may throw an error at each step of the results iteration.
+- **Untrusted database content**: The row may contain a non-null value that can't be turned into a date.
 
 In such a situation where nothing can be trusted, you can still avoid fatal errors, but you have to expose and handle each failure point by going down one level in GRDB API:
 
 ```swift
-// Doubtful SQL
+// Untrusted SQL
 let statement = try db.makeSelectStatement(sql)
 
-// Doubtful arguments dictionary
+// Untrusted arguments dictionary
 if let arguments = StatementArguments(arguments) {
     
-    // Doubtful arguments fitting
+    // Untrusted arguments fitting
     try statement.validate(arguments: arguments)
     statement.unsafeSetArguments(arguments)
     
-    // Doubtful SQLite execution
+    // Untrusted SQLite execution
     var iterator = Row.fetch(statement).makeIterator()
     while let row = try iterator.step() {
-        // Doubtful database content
+        // Untrusted database content
         let dbv: DatabaseValue = row.value(atIndex: 0)
         if dbv.isNull {
             // Handle NULL
