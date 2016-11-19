@@ -113,7 +113,7 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
 
 7. Add the `GRDBCustomSQLite.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your **application target**.
 
-8. Add a Run Script phase for your target in the **Pre-actions** of the **Build** tab of your **application scheme**:
+8. Add a Run Script phase for your target in the **Pre-actions** section of the **Build** tab of your **application scheme**:
     
     ```sh
     source "${PROJECT_DIR}/GRDBCustomSQLite/GRDBCustomSQLite-INSTALL.sh"
