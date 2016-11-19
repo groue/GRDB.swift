@@ -207,7 +207,8 @@ Documentation
 [Sample Code](#sample-code)
 
 
-### Installation
+Installation
+============
 
 **The installation procedures below have GRDB use the version of SQLite that ships with the target operating system.**
 
@@ -216,7 +217,7 @@ See [Encryption](#encryption) for the installation procedure of GRDB with SQLCip
 See [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) for the installation procedure of GRDB with a customized build of SQLite 3.15.1.
 
 
-#### CocoaPods
+## CocoaPods
 
 [CocoaPods](http://cocoapods.org/) is a dependency manager for Xcode projects.
 
@@ -234,7 +235,7 @@ To use GRDB.swift with CocoaPods:
     ```
 
 
-#### Carthage
+## Carthage
 
 [Carthage](https://github.com/Carthage/Carthage) is a dependency manager for Xcode projects.
 
@@ -249,7 +250,7 @@ To use GRDB.swift with Carthage:
     ```
 
 
-#### Manually
+## Manually
 
 1. Make sure Xcode is installed in the /Applications folder, with its regular name Xcode.
 
