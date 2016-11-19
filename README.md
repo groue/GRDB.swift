@@ -209,7 +209,7 @@ Documentation
 
 ### Installation
 
-**The installation procedures below have GRDB use the version of SQLite that ships with the target operating system.** They all require Xcode to be installed in the /Applications folder, with its regular name Xcode.
+**The installation procedures below have GRDB use the version of SQLite that ships with the target operating system.**
 
 See [Encryption](#encryption) for the installation procedure of GRDB with SQLCipher.
 
@@ -220,43 +220,53 @@ See [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) for the installa
 
 [CocoaPods](http://cocoapods.org/) is a dependency manager for Xcode projects.
 
-GRDB requires CocoaPods 1.1+. Specify in your Podfile:
+To use GRDB.swift with CocoaPods:
 
-```ruby
-source 'https://github.com/CocoaPods/Specs.git'
-use_frameworks!
+1. Make sure Xcode is installed in the /Applications folder, with its regular name Xcode.
 
-pod 'GRDB.swift'
-```
+2. Install cocoapods version 1.1 or higher
+
+3. Specify in your Podfile:
+
+    ```ruby
+    use_frameworks!
+    pod 'GRDB.swift'
+    ```
 
 
 #### Carthage
 
-[Carthage](https://github.com/Carthage/Carthage) is another dependency manager for Xcode projects.
+[Carthage](https://github.com/Carthage/Carthage) is a dependency manager for Xcode projects.
 
-To use GRDB.swift with Carthage, specify in your Cartfile:
+To use GRDB.swift with Carthage:
 
-```
-github "groue/GRDB.swift"
-```
+1. Make sure Xcode is installed in the /Applications folder, with its regular name Xcode.
+
+2. Specify in your Cartfile:
+
+    ```
+    github "groue/GRDB.swift"
+    ```
 
 
 #### Manually
 
-1. Download a copy of the GRDB.swift repository.
+1. Make sure Xcode is installed in the /Applications folder, with its regular name Xcode.
 
-2. Checkout the latest GRDB.swift version:
+2. Download a copy of the GRDB.swift repository.
+
+3. Checkout the latest GRDB.swift version:
     
     ```sh
     cd [GRDB.swift directory]
     git checkout v0.90.1
     ````
     
-3. Embed the `GRDB.xcodeproj` project in your own project.
+4. Embed the `GRDB.xcodeproj` project in your own project.
 
-4. Add the `GRDBOSX`, `GRDBiOS`, or `GRDBWatchOS` target in the **Target Dependencies** section of the **Build Phases** tab of your application target.
+5. Add the `GRDBOSX`, `GRDBiOS`, or `GRDBWatchOS` target in the **Target Dependencies** section of the **Build Phases** tab of your application target.
 
-5. Add the `GRDB.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your target.
+6. Add the `GRDB.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your target.
 
 See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an example of such integration.
 
