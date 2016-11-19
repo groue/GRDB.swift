@@ -11,9 +11,7 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
 
 **To install GRDB with a custom SQLite build:**
 
-1. Download a copy of the GRDB.swift repository.
-
-2. Checkout the latest GRDB.swift version and download SQLite sources:
+1. Clone the GRDB.swift git repository, checkout the latest tagged version, and download SQLite sources:
     
     ```sh
     cd [GRDB.swift directory]
@@ -21,11 +19,11 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
     git submodule update --init SQLiteCustom/src
     ````
     
-3. Choose your [extra compilation options](https://www.sqlite.org/compile.html). For example, `SQLITE_ENABLE_FTS5` and `SQLITE_ENABLE_PREUPDATE_HOOK`.
+2. Choose your [extra compilation options](https://www.sqlite.org/compile.html). For example, `SQLITE_ENABLE_FTS5` and `SQLITE_ENABLE_PREUPDATE_HOOK`.
 
-4. Create a folder named `GRDBCustomSQLite` somewhere in your project directory.
+3. Create a folder named `GRDBCustomSQLite` somewhere in your project directory.
 
-5. Create four files in the `GRDBCustomSQLite` folder:
+4. Create four files in the `GRDBCustomSQLite` folder:
 
     - `SQLiteLib-USER.xcconfig`: this file sets the extra SQLite compilation flags.
         
@@ -109,13 +107,13 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
         
         Modify the top of `GRDBCustomSQLite-INSTALL.sh` file so that it contains correct paths.
 
-6. Embed the `GRDB.xcodeproj` project in your own project.
+5. Embed the `GRDB.xcodeproj` project in your own project.
 
-7. Add the `GRDBCustomSQLiteOSX` or `GRDBCustomSQLiteiOS` target in the **Target Dependencies** section of the **Build Phases** tab of your **application target**.
+6. Add the `GRDBCustomSQLiteOSX` or `GRDBCustomSQLiteiOS` target in the **Target Dependencies** section of the **Build Phases** tab of your **application target**.
 
-8. Add the `GRDBCustomSQLite.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your **application target**.
+7. Add the `GRDBCustomSQLite.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your **application target**.
 
-9. Add a Run Script phase for your target in the **Pre-actions** of the **Build** tab of your **application scheme**:
+8. Add a Run Script phase for your target in the **Pre-actions** of the **Build** tab of your **application scheme**:
     
     ```sh
     source "${PROJECT_DIR}/GRDBCustomSQLite/GRDBCustomSQLite-INSTALL.sh"
@@ -123,7 +121,7 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
     
     The path should be the path to your `GRDBCustomSQLite-INSTALL.sh` file.
 
-10. Check the "Shared" checkbox of your application scheme (this lets you commit the pre-action in your Version Control System).
+9. Check the "Shared" checkbox of your application scheme (this lets you commit the pre-action in your Version Control System).
 
 Now you can use GRDB with your custom SQLite build:
 

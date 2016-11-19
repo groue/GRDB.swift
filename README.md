@@ -253,20 +253,13 @@ To use GRDB.swift with Carthage:
 
 1. Make sure Xcode is installed in the /Applications folder, with its regular name Xcode.
 
-2. Download a copy of the GRDB.swift repository.
+2. [Download](https://github.com/groue/GRDB.swift/releases/tag/v0.90.1) a copy of the GRDB.swift, or clone its  repository and make sure you use the latest tagged version with the `git checkout v0.90.1` command.
 
-3. Checkout the latest GRDB.swift version:
-    
-    ```sh
-    cd [GRDB.swift directory]
-    git checkout v0.90.1
-    ````
-    
-4. Embed the `GRDB.xcodeproj` project in your own project.
+3. Embed the `GRDB.xcodeproj` project in your own project.
 
-5. Add the `GRDBOSX`, `GRDBiOS`, or `GRDBWatchOS` target in the **Target Dependencies** section of the **Build Phases** tab of your application target.
+4. Add the `GRDBOSX`, `GRDBiOS`, or `GRDBWatchOS` target in the **Target Dependencies** section of the **Build Phases** tab of your application target.
 
-6. Add the `GRDB.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your target.
+5. Add the `GRDB.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your target.
 
 See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an example of such integration.
 
@@ -4301,9 +4294,7 @@ When you create a controller, you can give it a serial dispatch queue. The contr
 
 This requires a manual installation of GRDB:
 
-1. Download a copy of the GRDB.swift repository.
-
-2. Checkout the latest GRDB.swift version and download SQLCipher sources:
+1. Clone the GRDB.swift git repository, checkout the latest tagged version, and download SQLCipher sources:
     
     ```sh
     cd [GRDB.swift directory]
@@ -4311,11 +4302,11 @@ This requires a manual installation of GRDB:
     git submodule update --init SQLCipher/src
     ````
     
-3. Embed the `GRDB.xcodeproj` project in your own project.
+2. Embed the `GRDB.xcodeproj` project in your own project.
 
-4. Add the `GRDBCipherOSX` or `GRDBCipheriOS` target in the **Target Dependencies** section of the **Build Phases** tab of your application target.
+3. Add the `GRDBCipherOSX` or `GRDBCipheriOS` target in the **Target Dependencies** section of the **Build Phases** tab of your application target.
 
-5. Add the `GRDBCipher.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your target.
+4. Add the `GRDBCipher.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your target.
 
 **You create and open an encrypted database** by providing a passphrase to your [database connection](#database-connections):
 
