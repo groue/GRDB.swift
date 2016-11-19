@@ -909,42 +909,25 @@ let link = Link.filter(urlColumn == url).fetchOne(db)
 
 ### Data (and Memory Savings)
 
-**Data** suits the BLOB SQLite columns. It can be stored and fetched from the database just like other [value types](#values).
-
-Yet, when extracting Data from a row, **you have the opportunity to save memory by not copying the data fetched by SQLite**, using the `dataNoCopy()` method:
+**Data** suits the BLOB SQLite columns. It can be stored and fetched from the database just like other [values](#values):
 
 ```swift
 for row in Row.fetch(db, "SELECT data, ...") {
-    let data = row.dataNoCopy(named: "data")     // Data?
-}
-```
-
-> :point_up: **Note**: the non-copied data does not live longer than the iteration step: make sure that you do not use it past this point.
-
-Compare with the **anti-patterns** below:
-
-```swift
-for row in Row.fetch(db, "SELECT data, ...") {
-    // This data is copied:
     let data: Data = row.value(named: "data")
-    
-    // This data is copied:
-    if let dbv: DatabaseValue = row.value(named: "data") {
-        let data: Data = dbv.value()
-    }
-    
-    // This data is copied:
-    let copiedRow = row.copy()
-    let data = copiedRow.dataNoCopy(named: "data")
-}
-
-// All rows have been copied when the loop begins:
-let rows = Row.fetchAll(db, "SELECT data, ...") // [Row]
-for row in rows {
-    // Too late to do the right thing:
-    let data = row.dataNoCopy(named: "data")
 }
 ```
+
+At each step of the request iteration, the `row.value` method creates *two copies* of the database bytes: one fetched by SQLite, and another, stored in the Swift Data value.
+
+**You have the opportunity to save memory** by not copying the data fetched by SQLite:
+
+```swift
+for row in Row.fetch(db, "SELECT data, ...") {
+    let data = row.dataNoCopy(named: "data") // Data?
+}
+```
+
+The non-copied data does not live longer than the iteration step: make sure that you do not use it past this point.
 
 
 ### Date and DateComponents
@@ -975,7 +958,7 @@ Here is the support provided by GRDB for the various [date formats](https://www.
 
 #### Date
 
-**Date** can be stored and fetched from the database just like other [value types](#values):
+**Date** can be stored and fetched from the database just like other [values](#values):
 
 ```swift
 try db.execute(
@@ -1003,7 +986,7 @@ DateComponents is indirectly supported, through the **DatabaseDateComponents** h
 
 DatabaseDateComponents reads date components from all [date formats supported by SQLite](https://www.sqlite.org/lang_datefunc.html), and stores them in the format of your choice, from HH:MM to YYYY-MM-DD HH:MM:SS.SSS.
 
-DatabaseDateComponents can be stored and fetched from the database just like other [value types](#values):
+DatabaseDateComponents can be stored and fetched from the database just like other [values](#values):
 
 ```swift
 let components = DateComponents()
@@ -1232,7 +1215,7 @@ public protocol DatabaseValueConvertible {
 }
 ```
 
-All types that adopt this protocol can be used like all other [value types](#values) (Bool, Int, String, Date, Swift enums, etc.)
+All types that adopt this protocol can be used like all other [values](#values) (Bool, Int, String, Date, Swift enums, etc.)
 
 The `databaseValue` property returns [DatabaseValue](#databasevalue), a type that wraps the five values supported by SQLite: NULL, Int64, Double, String and Data. DatabaseValue has no public initializer: to create one, use `DatabaseValue.null`, or another type that already adopts the protocol: `1.databaseValue`, `"foo".databaseValue`, etc.
 
