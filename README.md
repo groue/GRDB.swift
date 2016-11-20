@@ -250,7 +250,7 @@ See [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) for the installa
 
 1. Make sure Xcode is installed in the /Applications folder, with its regular name Xcode.
 
-2. [Download](https://github.com/groue/GRDB.swift/releases/tag/v0.90.1) a copy of the GRDB.swift, or clone its repository and make sure you use the latest tagged version with the `git checkout v0.90.1` command.
+2. [Download](https://github.com/groue/GRDB.swift/releases/tag/v0.90.1) a copy of GRDB.swift, or clone its repository and make sure you use the latest tagged version with the `git checkout v0.90.1` command.
 
 3. Embed the `GRDB.xcodeproj` project in your own project.
 
