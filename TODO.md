@@ -1,3 +1,4 @@
+- [ ] Documentation: A synthetic table of record methods
 - [ ] Swift 3.0.2 (Xcode 8.2): "Type inference will properly unwrap optionals when used with generics and implicitly-unwrapped optionals." Maybe this fixes `row.value(named: "foo") as? Int`?
 - [ ] Refactor Database notion of transaction/savepoints into a single type. Support INSERT OR ROLLBACK.
     - Since some statements may implicitly rollback transactions, we can not rely on explicit rollback statements to infer the transaction state. We can only rely on sqlite3_rollback_hook, assuming it is called even for implicit rollbacks (test with an INSERT OR ROLLBACK statement).
@@ -5,7 +6,6 @@
     - we'll have to deal with two input sources for dealing with transactions: statement compilation observation for savepoint statements, and transaction hooks for transaction statements. Tricky.
 - [ ] Attach databases (this could be the support for fetched records controller caches). Interesting question: what happens when one attaches a non-WAL db to a databasePool?
 - [ ] sqlite3_rekey is discouraged (https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320)
-- [ ] ROUND function: read http://marc.info/?l=sqlite-users&m=130419182719263
 - [ ] Remove DatabaseWriter.writeForIssue117 when https://bugs.swift.org/browse/SR-2623 is fixed (remove `writeForIssue117`, use `write` instead, and build in Release configuration) 
 - [ ] Restore dispatching tests in GRDBOSXTests (they are disabled in order to avoid linker errors)
     - DatabasePoolReleaseMemoryTests
@@ -23,7 +23,8 @@
 - [ ] Query builder
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
     - [ ] date functions
-    - [ ] NOW
+    - [ ] NOW/CURRENT_TIMESTAMP
+    - [ ] ROUND() http://marc.info/?l=sqlite-users&m=130419182719263
     - [ ] RANDOM() https://www.sqlite.org/lang_corefunc.html
     - [ ] GLOB https://www.sqlite.org/lang_expr.html
     - [ ] REGEXP https://www.sqlite.org/lang_expr.html
