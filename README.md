@@ -4774,7 +4774,7 @@ GRDB ships with two concurrency modes:
 - [DatabaseQueue](#database-queues) opens a single database connection, and serializes all database accesses.
 - [DatabasePool](#database-pools) manages a pool of several database connections, and allows concurrent reads and writes.
 
-Regardless of the concurrency mode you choose, GRDB provides you with guarantees, as long as you follow two rules.
+**Both foster application safety**: regardless of the concurrency mode you choose, GRDB provides you with guarantees, as long as you follow two rules.
 
 - **Guarantee 1**: writes are always *serialized*. At every moment, there is no more than a single thread that is writing into the database.
 
