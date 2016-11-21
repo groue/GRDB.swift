@@ -2038,7 +2038,7 @@ pointOfInterest.exists(db)                   // Bool
 
 - `delete` returns whether a database row was deleted or not.
 
-**All primary keys are supported**, including primary keys that span several columns.
+**All primary keys are supported**, including composite primary keys that span several columns, and the [implicit rowid primary key](#the-implicit-rowid-primary-key).
 
 
 ### Customizing the Persistence Methods
