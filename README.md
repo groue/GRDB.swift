@@ -1767,7 +1767,7 @@ This is the list of record methods, along with their required protocols. The [Re
 | `try record.update(db)` | [Persistable](#persistable-protocol) | |
 | `try record.update(db, columns: ...)` | [Persistable](#persistable-protocol) | |
 | **Checking Record Existence** | | |
-| `try record.exists(db)` | [Persistable](#persistable-protocol) | |
+| `record.exists(db)` | [Persistable](#persistable-protocol) | |
 | **Deleting Records** | | |
 | `try record.delete(db)` | [Persistable](#persistable-protocol) | |
 | `try Type.deleteOne(db, key: ...)` | [TableMapping](#tablemapping-protocol) | Requires a unique key <a href="#list-of-record-methods-1">¹</a> |
