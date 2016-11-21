@@ -4792,11 +4792,13 @@ Those guarantees hold as long as you follow rules:
 
 - **Rule 1**: Your application should have a unique instance of DatabaseQueue or DatabasePool connected to a database file.
     
-    If there are several instances of database queues or pools that access the same database, you may face concurrency issues (see [advanced concurrency](#advanced-concurrency) below).
+    This means that you should avoid opening a new connection each time you access the database. Instead, share a single connection.
     
-    It is thus recommended to open a single connection. See, for example, [DemoApps/GRDBDemoiOS/Database.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift) for a sample code that properly sets up a single database queue that is available throughout the application.
-
-- **Rule 2**: Group your related statements within the safe and isolated `inDatabase`, `inTransaction`, `read`, `write` and `writeInTransaction` methods.
+    See, for example, [DemoApps/GRDBDemoiOS/Database.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift) for a sample code that properly sets up a single database queue that is available throughout the application.
+    
+    If there are several instances of database queues or pools that access the same database, a multi-threaded application will eventually face "database is locked" errors, and even crashes. See [advanced concurrency](#advanced-concurrency).
+    
+- **Rule 2**: Group related statements within the a single call to the `inDatabase`, `inTransaction`, `read`, `write` and `writeInTransaction` methods.
 
     ```swift
     // SAFE
@@ -4806,13 +4808,13 @@ Those guarantees hold as long as you follow rules:
         let count2 = PointOfInterest.fetchCount(db)
     }
     ```
-
-    Isolation is only guaranteed *inside* the closure argument of those methods. Two consecutive calls don't guarantee isolation:
-
+    
+    Those methods isolate your groups of related statements against eventual database updates performed by other threads, and guarantee a consistent view of the database. This isolation is only guaranteed *inside* the closure argument of those methods. Two consecutive calls *do not* guarantee isolation:
+    
     ```swift
-    // DANGEROUS
+    // UNSAFE
     // Those two values may be different because some other thread may have
-    // inserted or deleted a record between the two statements:
+    // modified the database between the two statements:
     let count1 = dbPool.read { db in
         PointOfInterest.fetchCount(db)
     }
