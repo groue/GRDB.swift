@@ -4800,6 +4800,8 @@ Those guarantees hold as long as you follow rules:
     
 - **Rule 2**: Group related statements within the a single call to the `inDatabase`, `inTransaction`, `read`, `write` and `writeInTransaction` methods.
 
+    Those methods isolate your groups of related statements against eventual database updates performed by other threads, and guarantee a consistent view of the database. This isolation is only guaranteed *inside* the closure argument of those methods. Two consecutive calls *do not* guarantee isolation:
+    
     ```swift
     // SAFE
     dbPool.read { db in  // or dbQueue.inDatabase { ... }
@@ -4807,11 +4809,7 @@ Those guarantees hold as long as you follow rules:
         let count1 = PointOfInterest.fetchCount(db)
         let count2 = PointOfInterest.fetchCount(db)
     }
-    ```
     
-    Those methods isolate your groups of related statements against eventual database updates performed by other threads, and guarantee a consistent view of the database. This isolation is only guaranteed *inside* the closure argument of those methods. Two consecutive calls *do not* guarantee isolation:
-    
-    ```swift
     // UNSAFE
     // Those two values may be different because some other thread may have
     // modified the database between the two statements:
