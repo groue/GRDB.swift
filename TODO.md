@@ -67,4 +67,5 @@ Reading list:
 - http://cocoamine.net/blog/2015/09/07/contentless-fts4-for-large-immutable-documents/
 - https://discuss.zetetic.net/t/important-advisory-sqlcipher-with-xcode-8-and-ios-10/1688
 - pinyin: http://hustlzp.com/post/2016/02/ios-full-text-search-using-sqlite-fts4
-- https://github.com/jflinter/Dwifft (FetchedRecordsController)
+- FetchedRecordsController: https://github.com/jflinter/Dwifft
+- FetchedRecordsController: https://github.com/wokalski/Diff.swift (Faster)
