@@ -4312,11 +4312,30 @@ See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an sample app that uses FetchedRecor
 
 **A fetched records controller *can not* be used from any thread.**
 
-The database itself can be read and modified from [any thread](#database-connections), but fetched records controller methods like `performFetch` or `trackChanges` are constrained:
+When the database itself can be read and modified from [any thread](#database-connections), fetched records controllers **must** be used from the main thread. Record changes are also [notified](#the-changes-notifications) on the main thread.
 
-By default, they must be used from the main thread. Record changes are also [notified](#the-changes-notifications) on the main thread.
+**Change callbacks are invoked asynchronously.** This means that changes made from the main thread are *not* immediately notified. When you need to take immediate action, force the controller to refresh immediately with its `performFetch` method. In this case, changes callbacks are *not* called:
 
-When you create a controller, you can give it a serial dispatch queue. The controller must then be used from this queue, and record changes are notified on this queue as well.
+```swift
+// Change database on the main thread:
+try dbQueue.inDatabase { db in
+    try Person(...).insert(db)
+}
+// Here callbacks have not been called yet.
+// You can cancel them, and refresh records immediately:
+controller.performFetch()
+```
+
+> :point_up: **Note**: when the main thread does not fit your needs, give a serial dispatch queue to the controller initializer: the controller must then be used from this queue, and record changes are notified on this queue as well.
+>
+> ```swift
+> let myQueue = DispatchQueue()
+> let controller = FetchedRecordsController(dbQueue, request: ..., queue: myQueue)
+> myQueue.sync {
+>     controller.trackChanges { /* in myQueue */ }
+>     controller.performFetch()
+> }
+> ```
 
 
 ## Encryption
