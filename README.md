@@ -4261,8 +4261,8 @@ Yet, FetchedRecordsController can notify that the controller’s fetched records
 For animated table view updates, use the `recordsWillChange` and `recordsDidChange` callbacks to bracket events provided by the fetched records controller, as illustrated in the following example:
 
 ```swift
-// Assume self has a tableView property, and a configureCell(_:atIndexPath:)
-// method which updates the contents of a given cell.
+// Assume self has a tableView property, and a cell configuration
+// method named configure(_:at:).
 
 controller.trackChanges(
     // controller's records are about to change:
