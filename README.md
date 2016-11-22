@@ -4148,18 +4148,7 @@ controller.trackChanges { controller in
 }
 ```
 
-**Callbacks are invoked asynchronously.** This means that changes made from the main thread are *not* immediately notified:
-
-```swift
-// On the main thread
-try dbQueue.inDatabase { db in
-    try Person(...).insert(db)
-}
-// Here changes have not yet been notified.
-```
-
-When you need to take immediate action, force the controller to refresh immediately with its `performFetch` method. In this case, changes callbacks are *not* called.
-
+**Callbacks are invoked asynchronously.** See [FetchedRecordsController Concurrency](#fetchedrecordscontroller-concurrency) for more information.
 
 **Values fetched from inside callbacks may be inconsistent with the controller's records.** This is because after database has changed, and before the controller had the opportunity to invoke callbacks in the main thread, other database changes can happen.
 
