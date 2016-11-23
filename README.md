@@ -5158,7 +5158,7 @@ let x = dbQueue.inDatabase { db in
 
 ### Compilation takes a long time
     
-When your [record type](#records) is very long to compile, it is usually because its `persistentDictionary` property builds a long dictionary literal:
+When your [record type](#records) is very slow to compile, it is usually because its `persistentDictionary` property builds a long dictionary literal:
 
 ```swift
 var persistentDictionary: [String: DatabaseValueConvertible?] {
