@@ -1696,7 +1696,7 @@ person.name = "Arthur"
 try person.update(db)
 ```
 
-[Record](#record-class) subclasses track changes:
+[Record](#record-class) subclasses track changes, so that you can avoid useless updates:
 
 ```swift
 let person = Person.fetchOne(db, key: 1)!
