@@ -5170,9 +5170,9 @@ var persistentDictionary: [String: DatabaseValueConvertible?] {
 }
 ```
 
-Well, the Swift compiler finds it difficult to build such a dictionary.
+That's annoying, but the Swift compiler finds it difficult to compile such a dictionary. We can only hope that compiler improves over time.
 
-To fix this and speed up compilation, build your dictionary step by step:
+To speed up compilation, build your dictionary step by step:
 
 ```swift
 var persistentDictionary: [String: DatabaseValueConvertible?] {
