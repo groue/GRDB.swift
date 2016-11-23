@@ -297,18 +297,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
                 compareItems = compareItemsFactory(db)
             }
             
-            let fetchedChangesController = FetchedChangesController(
-                controller: self,
-                compareItems: compareItems!,
-                fetchAlongside: fetchAlongside,
-                recordsWillChange: recordsWillChange,
-                tableViewEvent: tableViewEvent,
-                recordsDidChange: recordsDidChange)
-            
-            // This closure erases the generic type T of data fetched alongside.
-            let fetchAndNotifyChanges = { (observer: FetchedRecordsObserver<Record>) -> () in
-                fetchedChangesController.fetchAndNotifyChanges(observer)
-            }
+            let fetchAndNotifyChanges = makeFetchAndNotifyChangesFunction(controller: self, fetchAlongside: fetchAlongside, compareItems: compareItems!, recordsWillChange: recordsWillChange, tableViewEvent: tableViewEvent, recordsDidChange: recordsDidChange)
 
             let (statement, _) = try! request.prepare(db)
             let observer = FetchedRecordsObserver(readInfo: statement.readInfo, fetchAndNotifyChanges: fetchAndNotifyChanges)
@@ -349,16 +338,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         
         let initialItems = fetchedItems
         databaseWriter.writeForIssue117 { db in
-            let fetchedChangesController = FetchedChangesController(
-                controller: self,
-                fetchAlongside: fetchAlongside,
-                recordsWillChange: recordsWillChange,
-                recordsDidChange: recordsDidChange)
-            
-            // This closure erases the generic type T of data fetched alongside.
-            let fetchAndNotifyChanges = { (observer: FetchedRecordsObserver<Record>) -> () in
-                fetchedChangesController.fetchAndNotifyChanges(observer)
-            }
+            let fetchAndNotifyChanges = makeFetchAndNotifyChangesFunction(controller: self, fetchAlongside: fetchAlongside, recordsWillChange: recordsWillChange, recordsDidChange: recordsDidChange)
 
             let (statement, _) = try! request.prepare(db)
             let observer = FetchedRecordsObserver(readInfo: statement.readInfo, fetchAndNotifyChanges: fetchAndNotifyChanges)
@@ -505,171 +485,6 @@ extension FetchedRecordsController where Record: TableMapping {
 #endif
 
 
-// MARK: - FetchedChangesController
-
-/// FetchedChangesController computes and notifies changes
-private class FetchedChangesController<Record: RowConvertible, T> {
-    // THIS WEAK REFERENCE MUST NEVER BECOME STRONG if we want to allow user
-    // callbacks to avoid retain cycle with unowned references:
-    //
-    //      controller.trackChanges { [unowned self] ... }
-    //
-    // Should controller become strong at any point before callbacks are
-    // called, such unowned reference would have an opportunity to crash.
-    weak var controller: FetchedRecordsController<Record>?
-    let fetchAlongside: (Database) -> T
-    let recordsWillChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())?
-    let recordsDidChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())?
-
-    #if os(iOS)
-    let compareItems: (Item<Record>, Item<Record>) -> Bool
-    var tableViewEvent: ((FetchedRecordsController<Record>, Record, TableViewEvent) -> ())?
-    
-    init(
-        controller: FetchedRecordsController<Record>,
-        compareItems: @escaping (Item<Record>, Item<Record>) -> Bool,
-        fetchAlongside: @escaping (Database) -> T,
-        recordsWillChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())?,
-        tableViewEvent: ((FetchedRecordsController<Record>, Record, TableViewEvent) -> ())?,
-        recordsDidChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())?)
-    {
-        self.controller = controller
-        self.compareItems = compareItems
-        self.fetchAlongside = fetchAlongside
-        self.recordsWillChange = recordsWillChange
-        self.tableViewEvent = tableViewEvent
-        self.recordsDidChange = recordsDidChange
-    }
-    #else
-    init(
-        controller: FetchedRecordsController<Record>,
-        fetchAlongside: @escaping (Database) -> T,
-        recordsWillChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())?,
-        recordsDidChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())?)
-    {
-        self.controller = controller
-        self.fetchAlongside = fetchAlongside
-        self.recordsWillChange = recordsWillChange
-        self.recordsDidChange = recordsDidChange
-    }
-    #endif
-    
-    // Precondition: this method must be called from the database writer's
-    // serialized dispatch queue.
-    func fetchAndNotifyChanges(_ observer: FetchedRecordsObserver<Record>) {
-        // Observer invalidated?
-        guard observer.isValid else { return }
-        
-        // Controller alive?
-        guard let request = controller?.request, let databaseWriter = controller?.databaseWriter else { return }
-        
-        // Fetch items.
-        //
-        // This method is called from the database writer's serialized queue, so
-        // that we can fetch items before other writes have the opportunity to
-        // modify the database.
-        //
-        // However, we don't have to block the writer queue for all the duration
-        // of the fetch. We just need to block the writer queue until we can
-        // perform a fetch in isolation. This is the role of the readFromWrite
-        // method (see below).
-        //
-        // However, our fetch will last for an unknown duration. And since we
-        // release the writer queue early, the next database modification will
-        // triggers this callback while our fetch is, maybe, still running. This
-        // next callback will also perform its own fetch, that will maybe end
-        // before our own fetch.
-        //
-        // We have to make sure that our fetch is processed *before* the next
-        // fetch: let's immediately dispatch the processing task in our
-        // serialized FIFO queue, but have it wait for our fetch to complete,
-        // with a semaphore:
-        let semaphore = DispatchSemaphore(value: 0)
-        var fetchedItems: [Item<Record>]! = nil
-        var fetchedAlongside: T! = nil
-        
-        databaseWriter.readFromWrite { db in
-            fetchedItems = Item<Record>.fetchAll(db, request)
-            fetchedAlongside = self.fetchAlongside(db)
-            
-            // Fetch is complete:
-            semaphore.signal()
-        }
-        
-        
-        // Process the fetched items
-        
-        observer.queue.async { [weak observer] in
-            // Wait for the fetch to complete:
-            _ = semaphore.wait(timeout: .distantFuture)
-            assert(fetchedItems != nil)
-            assert(fetchedAlongside != nil)
-            
-            // Observer invalidated?
-            guard let strongObserver = observer else { return }
-            guard strongObserver.isValid else { return }
-            
-            // Controller alive?
-            guard let controllerQueue = self.controller?.queue else { return }
-
-            // Changes?
-            #if os(iOS)
-                let tableViewChanges: [TableViewChange<Record>]?
-                if self.tableViewEvent != nil {
-                    // Compute table view changes
-                    let changes = self.computeTableViewChanges(from: strongObserver.items, to: fetchedItems)
-                    guard !changes.isEmpty else {
-                        return
-                    }
-                    tableViewChanges = changes
-                } else {
-                    // Look for a row difference
-                    guard fetchedItems.count != strongObserver.items.count || zip(fetchedItems, strongObserver.items).contains(where: { (fetchedItem, item) in fetchedItem.row != item.row }) else {
-                        return
-                    }
-                    tableViewChanges = nil
-                }
-            #else
-                // Look for a row difference
-                guard fetchedItems.count != strongObserver.items.count || zip(fetchedItems, strongObserver.items).contains(where: { (fetchedItem, item) in fetchedItem.row != item.row }) else {
-                    return
-                }
-            #endif
-            
-            // Ready for next check
-            strongObserver.items = fetchedItems
-            
-            controllerQueue.async {
-                // Observer invalidated?
-                guard let strongObserver = observer else { return }
-                guard strongObserver.isValid else { return }
-                
-                // Now we can retain controller.
-                guard let controller = self.controller else { return }
-                
-                if let recordsWillChange = self.recordsWillChange {
-                    recordsWillChange(controller, fetchedAlongside)
-                }
-                
-                controller.fetchedItems = fetchedItems
-                
-                #if os(iOS)
-                    if let tableViewEvent = self.tableViewEvent, let tableViewChanges = tableViewChanges {
-                        for change in tableViewChanges {
-                            tableViewEvent(controller, change.record, change.event)
-                        }
-                    }
-                #endif
-                
-                if let recordsDidChange = self.recordsDidChange {
-                    recordsDidChange(controller, fetchedAlongside)
-                }
-            }
-        }
-    }
-}
-
-
 // MARK: - FetchedRecordsObserver
 
 /// FetchedRecordsController adopts TransactionObserverType so that it can
@@ -760,7 +575,374 @@ private func databaseEventFilter(readInfo: SelectStatement.ReadInfo) -> (Databas
 }
 
 
-// MARK: UITableView Support
+// MARK: - Changes
+
+#if os(iOS)
+    fileprivate func makeFetchAndNotifyChangesFunction<Record, T>(
+        controller: FetchedRecordsController<Record>,
+        fetchAlongside: @escaping (Database) -> T,
+        compareItems: @escaping (Item<Record>, Item<Record>) -> Bool,
+        recordsWillChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())?,
+        tableViewEvent: ((FetchedRecordsController<Record>, Record, TableViewEvent) -> ())?,
+        recordsDidChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())?
+        ) -> (FetchedRecordsObserver<Record>) -> ()
+    {
+        // Make sure we keep a weak reference to the fetched records controller,
+        // so that the user can use unowned references in callbacks:
+        //
+        //      controller.trackChanges { [unowned self] ... }
+        //
+        // Should controller become strong at any point before callbacks are
+        // called, such unowned reference would have an opportunity to crash.
+        return { [weak controller] observer in
+            // Observer invalidated?
+            guard observer.isValid else { return }
+            
+            // Controller alive?
+            guard let request = controller?.request, let databaseWriter = controller?.databaseWriter else { return }
+            
+            // Fetch items.
+            //
+            // This method is called from the database writer's serialized queue, so
+            // that we can fetch items before other writes have the opportunity to
+            // modify the database.
+            //
+            // However, we don't have to block the writer queue for all the duration
+            // of the fetch. We just need to block the writer queue until we can
+            // perform a fetch in isolation. This is the role of the readFromWrite
+            // method (see below).
+            //
+            // However, our fetch will last for an unknown duration. And since we
+            // release the writer queue early, the next database modification will
+            // triggers this callback while our fetch is, maybe, still running. This
+            // next callback will also perform its own fetch, that will maybe end
+            // before our own fetch.
+            //
+            // We have to make sure that our fetch is processed *before* the next
+            // fetch: let's immediately dispatch the processing task in our
+            // serialized FIFO queue, but have it wait for our fetch to complete,
+            // with a semaphore:
+            let semaphore = DispatchSemaphore(value: 0)
+            var fetchedItems: [Item<Record>]! = nil
+            var fetchedAlongside: T! = nil
+            
+            databaseWriter.readFromWrite { db in
+                fetchedItems = Item<Record>.fetchAll(db, request)
+                fetchedAlongside = fetchAlongside(db)
+                
+                // Fetch is complete:
+                semaphore.signal()
+            }
+            
+            
+            // Process the fetched items
+            
+            observer.queue.async { [weak observer] in
+                // Wait for the fetch to complete:
+                _ = semaphore.wait(timeout: .distantFuture)
+                assert(fetchedItems != nil)
+                assert(fetchedAlongside != nil)
+                
+                // Observer invalidated?
+                guard let strongObserver = observer else { return }
+                guard strongObserver.isValid else { return }
+                
+                // Controller alive?
+                guard let controllerQueue = controller?.queue else { return }
+                
+                // Changes?
+                let tableViewChanges: [TableViewChange<Record>]?
+                if tableViewEvent != nil {
+                    // Compute table view changes
+                    let changes = computeTableViewChanges(from: strongObserver.items, to: fetchedItems, compareItems: compareItems)
+                    guard !changes.isEmpty else {
+                        // No change
+                        return
+                    }
+                    tableViewChanges = changes
+                } else {
+                    // Don't compute changes: just look for a row difference:
+                    guard fetchedItems.count != strongObserver.items.count || zip(fetchedItems, strongObserver.items).contains(where: { (fetchedItem, item) in fetchedItem.row != item.row }) else {
+                        // No change
+                        return
+                    }
+                    tableViewChanges = nil
+                }
+                
+                // Ready for next check
+                strongObserver.items = fetchedItems
+                
+                controllerQueue.async {
+                    // Observer invalidated?
+                    guard let strongObserver = observer else { return }
+                    guard strongObserver.isValid else { return }
+                    
+                    // Now we can retain controller.
+                    guard let strongController = controller else { return }
+                    
+                    if let recordsWillChange = recordsWillChange {
+                        recordsWillChange(strongController, fetchedAlongside)
+                    }
+                    
+                    strongController.fetchedItems = fetchedItems
+                    
+                    if let tableViewEvent = tableViewEvent, let tableViewChanges = tableViewChanges {
+                        for change in tableViewChanges {
+                            tableViewEvent(strongController, change.record, change.event)
+                        }
+                    }
+                    
+                    if let recordsDidChange = recordsDidChange {
+                        recordsDidChange(strongController, fetchedAlongside)
+                    }
+                }
+            }
+        }
+    }
+    
+    fileprivate func computeTableViewChanges<Record>(from s: [Item<Record>], to t: [Item<Record>], compareItems: (Item<Record>, Item<Record>) -> Bool) -> [TableViewChange<Record>] {
+        let m = s.count
+        let n = t.count
+        
+        // Fill first row and column of insertions and deletions.
+        
+        var d: [[[TableViewChange<Record>]]] = Array(repeating: Array(repeating: [], count: n + 1), count: m + 1)
+        
+        var changes = [TableViewChange<Record>]()
+        for (row, item) in s.enumerated() {
+            let deletion = TableViewChange.deletion(item: item, indexPath: IndexPath(row: row, section: 0))
+            changes.append(deletion)
+            d[row + 1][0] = changes
+        }
+        
+        changes.removeAll()
+        for (col, item) in t.enumerated() {
+            let insertion = TableViewChange.insertion(item: item, indexPath: IndexPath(row: col, section: 0))
+            changes.append(insertion)
+            d[0][col + 1] = changes
+        }
+        
+        if m == 0 || n == 0 {
+            // Pure deletions or insertions
+            return d[m][n]
+        }
+        
+        // Fill body of matrix.
+        for tx in 0..<n {
+            for sx in 0..<m {
+                if s[sx] == t[tx] {
+                    d[sx+1][tx+1] = d[sx][tx] // no operation
+                } else {
+                    var del = d[sx][tx+1]     // a deletion
+                    var ins = d[sx+1][tx]     // an insertion
+                    var sub = d[sx][tx]       // a substitution
+                    
+                    // Record operation.
+                    let minimumCount = min(del.count, ins.count, sub.count)
+                    if del.count == minimumCount {
+                        let deletion = TableViewChange.deletion(item: s[sx], indexPath: IndexPath(row: sx, section: 0))
+                        del.append(deletion)
+                        d[sx+1][tx+1] = del
+                    } else if ins.count == minimumCount {
+                        let insertion = TableViewChange.insertion(item: t[tx], indexPath: IndexPath(row: tx, section: 0))
+                        ins.append(insertion)
+                        d[sx+1][tx+1] = ins
+                    } else {
+                        let deletion = TableViewChange.deletion(item: s[sx], indexPath: IndexPath(row: sx, section: 0))
+                        let insertion = TableViewChange.insertion(item: t[tx], indexPath: IndexPath(row: tx, section: 0))
+                        sub.append(deletion)
+                        sub.append(insertion)
+                        d[sx+1][tx+1] = sub
+                    }
+                }
+            }
+        }
+        
+        /// Returns an array where deletion/insertion pairs of the same element are replaced by `.move` change.
+        func standardize(changes: [TableViewChange<Record>], compareItems: (Item<Record>, Item<Record>) -> Bool) -> [TableViewChange<Record>] {
+            
+            /// Returns a potential .move or .update if *change* has a matching change in *changes*:
+            /// If *change* is a deletion or an insertion, and there is a matching inverse
+            /// insertion/deletion with the same value in *changes*, a corresponding .move or .update is returned.
+            /// As a convenience, the index of the matched change is returned as well.
+            func merge(change: TableViewChange<Record>, in changes: [TableViewChange<Record>], compareItems: (Item<Record>, Item<Record>) -> Bool) -> (mergedChange: TableViewChange<Record>, mergedIndex: Int)? {
+                
+                /// Returns the changes between two rows: a dictionary [key: oldValue]
+                /// Precondition: both rows have the same columns
+                func changedValues(from oldRow: Row, to newRow: Row) -> [String: DatabaseValue] {
+                    var changedValues: [String: DatabaseValue] = [:]
+                    for (column, newValue) in newRow {
+                        let oldValue: DatabaseValue? = oldRow.value(named: column)
+                        if newValue != oldValue {
+                            changedValues[column] = oldValue
+                        }
+                    }
+                    return changedValues
+                }
+                
+                switch change {
+                case .insertion(let newItem, let newIndexPath):
+                    // Look for a matching deletion
+                    for (index, otherChange) in changes.enumerated() {
+                        guard case .deletion(let oldItem, let oldIndexPath) = otherChange else { continue }
+                        guard compareItems(oldItem, newItem) else { continue }
+                        let rowChanges = changedValues(from: oldItem.row, to: newItem.row)
+                        if oldIndexPath == newIndexPath {
+                            return (TableViewChange.update(item: newItem, indexPath: oldIndexPath, changes: rowChanges), index)
+                        } else {
+                            return (TableViewChange.move(item: newItem, indexPath: oldIndexPath, newIndexPath: newIndexPath, changes: rowChanges), index)
+                        }
+                    }
+                    return nil
+                    
+                case .deletion(let oldItem, let oldIndexPath):
+                    // Look for a matching insertion
+                    for (index, otherChange) in changes.enumerated() {
+                        guard case .insertion(let newItem, let newIndexPath) = otherChange else { continue }
+                        guard compareItems(oldItem, newItem) else { continue }
+                        let rowChanges = changedValues(from: oldItem.row, to: newItem.row)
+                        if oldIndexPath == newIndexPath {
+                            return (TableViewChange.update(item: newItem, indexPath: oldIndexPath, changes: rowChanges), index)
+                        } else {
+                            return (TableViewChange.move(item: newItem, indexPath: oldIndexPath, newIndexPath: newIndexPath, changes: rowChanges), index)
+                        }
+                    }
+                    return nil
+                    
+                default:
+                    return nil
+                }
+            }
+            
+            // Updates must be pushed at the end
+            var mergedChanges: [TableViewChange<Record>] = []
+            var updateChanges: [TableViewChange<Record>] = []
+            for change in changes {
+                if let (mergedChange, mergedIndex) = merge(change: change, in: mergedChanges, compareItems: compareItems) {
+                    mergedChanges.remove(at: mergedIndex)
+                    switch mergedChange {
+                    case .update:
+                        updateChanges.append(mergedChange)
+                    default:
+                        mergedChanges.append(mergedChange)
+                    }
+                } else {
+                    mergedChanges.append(change)
+                }
+            }
+            return mergedChanges + updateChanges
+        }
+        
+        return standardize(changes: d[m][n], compareItems: compareItems)
+    }
+
+#else
+    /// Returns a function that fetches and notify changes, and erases the type
+    /// of values that are fetched alongside tracked records.
+    fileprivate func makeFetchAndNotifyChangesFunction<Record, T>(
+        controller: FetchedRecordsController<Record>,
+        fetchAlongside: @escaping (Database) -> T,
+        recordsWillChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())?,
+        recordsDidChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())?
+        ) -> (FetchedRecordsObserver<Record>) -> ()
+    {
+        // Make sure we keep a weak reference to the fetched records controller,
+        // so that the user can use unowned references in callbacks:
+        //
+        //      controller.trackChanges { [unowned self] ... }
+        //
+        // Should controller become strong at any point before callbacks are
+        // called, such unowned reference would have an opportunity to crash.
+        return { [weak controller] observer in
+            // Observer invalidated?
+            guard observer.isValid else { return }
+            
+            // Controller alive?
+            guard let request = controller?.request, let databaseWriter = controller?.databaseWriter else { return }
+            
+            // Fetch items.
+            //
+            // This method is called from the database writer's serialized queue, so
+            // that we can fetch items before other writes have the opportunity to
+            // modify the database.
+            //
+            // However, we don't have to block the writer queue for all the duration
+            // of the fetch. We just need to block the writer queue until we can
+            // perform a fetch in isolation. This is the role of the readFromWrite
+            // method (see below).
+            //
+            // However, our fetch will last for an unknown duration. And since we
+            // release the writer queue early, the next database modification will
+            // triggers this callback while our fetch is, maybe, still running. This
+            // next callback will also perform its own fetch, that will maybe end
+            // before our own fetch.
+            //
+            // We have to make sure that our fetch is processed *before* the next
+            // fetch: let's immediately dispatch the processing task in our
+            // serialized FIFO queue, but have it wait for our fetch to complete,
+            // with a semaphore:
+            let semaphore = DispatchSemaphore(value: 0)
+            var fetchedItems: [Item<Record>]! = nil
+            var fetchedAlongside: T! = nil
+            
+            databaseWriter.readFromWrite { db in
+                fetchedItems = Item<Record>.fetchAll(db, request)
+                fetchedAlongside = fetchAlongside(db)
+                
+                // Fetch is complete:
+                semaphore.signal()
+            }
+            
+            
+            // Process the fetched items
+            
+            observer.queue.async { [weak observer] in
+                // Wait for the fetch to complete:
+                _ = semaphore.wait(timeout: .distantFuture)
+                assert(fetchedItems != nil)
+                assert(fetchedAlongside != nil)
+                
+                // Observer invalidated?
+                guard let strongObserver = observer else { return }
+                guard strongObserver.isValid else { return }
+                
+                // Controller alive?
+                guard let controllerQueue = controller?.queue else { return }
+                
+                // Changes?
+                guard fetchedItems.count != strongObserver.items.count || zip(fetchedItems, strongObserver.items).contains(where: { (fetchedItem, item) in fetchedItem.row != item.row }) else {
+                    // No change
+                    return
+                }
+                
+                // Ready for next check
+                strongObserver.items = fetchedItems
+                
+                controllerQueue.async {
+                    // Observer invalidated?
+                    guard let strongObserver = observer else { return }
+                    guard strongObserver.isValid else { return }
+                    
+                    // Now we can retain controller.
+                    guard let strongController = controller else { return }
+                    
+                    if let recordsWillChange = recordsWillChange {
+                        recordsWillChange(strongController, fetchedAlongside)
+                    }
+                    
+                    strongController.fetchedItems = fetchedItems
+                    
+                    if let recordsDidChange = recordsDidChange {
+                        recordsDidChange(strongController, fetchedAlongside)
+                    }
+                }
+            }
+        }
+    }
+#endif
+
+
+// MARK: - UITableView Support
 
 #if os(iOS)
     extension FetchedRecordsController {
@@ -810,145 +992,6 @@ private func databaseEventFilter(readInfo: SelectStatement.ReadInfo) -> (Databas
                 let compareItems = compareItems,
                 let index = fetchedItems.index(where: { compareItems($0, item) }) else { return nil }
             return IndexPath(row: index, section: 0)
-        }
-    }
-    
-    extension FetchedChangesController {
-        
-        fileprivate func computeTableViewChanges(from s: [Item<Record>], to t: [Item<Record>]) -> [TableViewChange<Record>] {
-            let m = s.count
-            let n = t.count
-            
-            // Fill first row and column of insertions and deletions.
-            
-            var d: [[[TableViewChange<Record>]]] = Array(repeating: Array(repeating: [], count: n + 1), count: m + 1)
-            
-            var changes = [TableViewChange<Record>]()
-            for (row, item) in s.enumerated() {
-                let deletion = TableViewChange.deletion(item: item, indexPath: IndexPath(row: row, section: 0))
-                changes.append(deletion)
-                d[row + 1][0] = changes
-            }
-            
-            changes.removeAll()
-            for (col, item) in t.enumerated() {
-                let insertion = TableViewChange.insertion(item: item, indexPath: IndexPath(row: col, section: 0))
-                changes.append(insertion)
-                d[0][col + 1] = changes
-            }
-            
-            if m == 0 || n == 0 {
-                // Pure deletions or insertions
-                return d[m][n]
-            }
-            
-            // Fill body of matrix.
-            for tx in 0..<n {
-                for sx in 0..<m {
-                    if s[sx] == t[tx] {
-                        d[sx+1][tx+1] = d[sx][tx] // no operation
-                    } else {
-                        var del = d[sx][tx+1]     // a deletion
-                        var ins = d[sx+1][tx]     // an insertion
-                        var sub = d[sx][tx]       // a substitution
-                        
-                        // Record operation.
-                        let minimumCount = min(del.count, ins.count, sub.count)
-                        if del.count == minimumCount {
-                            let deletion = TableViewChange.deletion(item: s[sx], indexPath: IndexPath(row: sx, section: 0))
-                            del.append(deletion)
-                            d[sx+1][tx+1] = del
-                        } else if ins.count == minimumCount {
-                            let insertion = TableViewChange.insertion(item: t[tx], indexPath: IndexPath(row: tx, section: 0))
-                            ins.append(insertion)
-                            d[sx+1][tx+1] = ins
-                        } else {
-                            let deletion = TableViewChange.deletion(item: s[sx], indexPath: IndexPath(row: sx, section: 0))
-                            let insertion = TableViewChange.insertion(item: t[tx], indexPath: IndexPath(row: tx, section: 0))
-                            sub.append(deletion)
-                            sub.append(insertion)
-                            d[sx+1][tx+1] = sub
-                        }
-                    }
-                }
-            }
-            
-            /// Returns an array where deletion/insertion pairs of the same element are replaced by `.move` change.
-            func standardize(changes: [TableViewChange<Record>]) -> [TableViewChange<Record>] {
-                
-                /// Returns a potential .move or .update if *change* has a matching change in *changes*:
-                /// If *change* is a deletion or an insertion, and there is a matching inverse
-                /// insertion/deletion with the same value in *changes*, a corresponding .move or .update is returned.
-                /// As a convenience, the index of the matched change is returned as well.
-                func merge(change: TableViewChange<Record>, in changes: [TableViewChange<Record>]) -> (mergedChange: TableViewChange<Record>, mergedIndex: Int)? {
-                    
-                    /// Returns the changes between two rows: a dictionary [key: oldValue]
-                    /// Precondition: both rows have the same columns
-                    func changedValues(from oldRow: Row, to newRow: Row) -> [String: DatabaseValue] {
-                        var changedValues: [String: DatabaseValue] = [:]
-                        for (column, newValue) in newRow {
-                            let oldValue: DatabaseValue? = oldRow.value(named: column)
-                            if newValue != oldValue {
-                                changedValues[column] = oldValue
-                            }
-                        }
-                        return changedValues
-                    }
-                    
-                    switch change {
-                    case .insertion(let newItem, let newIndexPath):
-                        // Look for a matching deletion
-                        for (index, otherChange) in changes.enumerated() {
-                            guard case .deletion(let oldItem, let oldIndexPath) = otherChange else { continue }
-                            guard compareItems(oldItem, newItem) else { continue }
-                            let rowChanges = changedValues(from: oldItem.row, to: newItem.row)
-                            if oldIndexPath == newIndexPath {
-                                return (TableViewChange.update(item: newItem, indexPath: oldIndexPath, changes: rowChanges), index)
-                            } else {
-                                return (TableViewChange.move(item: newItem, indexPath: oldIndexPath, newIndexPath: newIndexPath, changes: rowChanges), index)
-                            }
-                        }
-                        return nil
-                        
-                    case .deletion(let oldItem, let oldIndexPath):
-                        // Look for a matching insertion
-                        for (index, otherChange) in changes.enumerated() {
-                            guard case .insertion(let newItem, let newIndexPath) = otherChange else { continue }
-                            guard compareItems(oldItem, newItem) else { continue }
-                            let rowChanges = changedValues(from: oldItem.row, to: newItem.row)
-                            if oldIndexPath == newIndexPath {
-                                return (TableViewChange.update(item: newItem, indexPath: oldIndexPath, changes: rowChanges), index)
-                            } else {
-                                return (TableViewChange.move(item: newItem, indexPath: oldIndexPath, newIndexPath: newIndexPath, changes: rowChanges), index)
-                            }
-                        }
-                        return nil
-                        
-                    default:
-                        return nil
-                    }
-                }
-                
-                // Updates must be pushed at the end
-                var mergedChanges: [TableViewChange<Record>] = []
-                var updateChanges: [TableViewChange<Record>] = []
-                for change in changes {
-                    if let (mergedChange, mergedIndex) = merge(change: change, in: mergedChanges) {
-                        mergedChanges.remove(at: mergedIndex)
-                        switch mergedChange {
-                        case .update:
-                            updateChanges.append(mergedChange)
-                        default:
-                            mergedChanges.append(mergedChange)
-                        }
-                    } else {
-                        mergedChanges.append(change)
-                    }
-                }
-                return mergedChanges + updateChanges
-            }
-            
-            return standardize(changes: d[m][n])
         }
     }
     
