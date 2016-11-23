@@ -2403,25 +2403,25 @@ This is the list of record methods, along with their required protocols. The [Re
 | `try Type.deleteOne(db, key: ...)` | [TableMapping](#tablemapping-protocol) | Requires a unique key <a href="#list-of-record-methods-1">¹</a> |
 | `try Type.deleteAll(db)` | [TableMapping](#tablemapping-protocol) | |
 | `try Type.deleteAll(db, keys: ...)` | [TableMapping](#tablemapping-protocol) | Requires unique keys <a href="#list-of-record-methods-1">¹</a> |
-| `try Type.filter(...).deleteAll(db)` | [TableMapping](#tablemapping-protocol) | See [fetch requests](#requests) |
+| `try Type.filter(...).deleteAll(db)` | [TableMapping](#tablemapping-protocol) | See [requests](#requests) |
 | **Counting Records** | | |
 | `Type.fetchCount(db)` | [TableMapping](#tablemapping-protocol) | |
-| `Type.filter(...).fetchCount(db)` | [TableMapping](#tablemapping-protocol) | See [fetch requests](#requests) |
+| `Type.filter(...).fetchCount(db)` | [TableMapping](#tablemapping-protocol) | See [requests](#requests) |
 | **Fetching Record Sequences** | | |
 | `Type.fetch(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | |
 | `Type.fetch(db, keys: ...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | Requires unique keys <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetch(db, sql|statement|request)` | [RowConvertible](#rowconvertible-protocol) | See [prepared statements](#prepared-statements), [fetch requests](#requests) |
-| `Type.filter(...).fetch(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | See [fetch requests](#requests) |
+| `Type.fetch(db, sql|statement|request)` | [RowConvertible](#rowconvertible-protocol) | See [prepared statements](#prepared-statements), [requests](#requests) |
+| `Type.filter(...).fetch(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | See [requests](#requests) |
 | **Fetching Record Arrays** | | |
 | `Type.fetchAll(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | |
 | `Type.fetchAll(db, keys: ...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | Requires unique keys <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchAll(db, sql|statement|request)` | [RowConvertible](#rowconvertible-protocol) | See [prepared statements](#prepared-statements), [fetch requests](#requests) |
-| `Type.filter(...).fetchAll(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | See [fetch requests](#requests) |
+| `Type.fetchAll(db, sql|statement|request)` | [RowConvertible](#rowconvertible-protocol) | See [prepared statements](#prepared-statements), [requests](#requests) |
+| `Type.filter(...).fetchAll(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | See [requests](#requests) |
 | **Fetching Individual Records** | | |
 | `Type.fetchOne(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | |
 | `Type.fetchOne(db, key: ...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | Requires a unique key <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchOne(db, sql|statement|request)` | [RowConvertible](#rowconvertible-protocol) | See [prepared statements](#prepared-statements), [fetch requests](#requests) |
-| `Type.filter(...).fetchOne(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | See [fetch requests](#requests) |
+| `Type.fetchOne(db, sql|statement|request)` | [RowConvertible](#rowconvertible-protocol) | See [prepared statements](#prepared-statements), [requests](#requests) |
+| `Type.filter(...).fetchOne(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | See [requests](#requests) |
 | **Changes Tracking** | | |
 | `record.hasPersistentChangedValues` | [Record](#record-class) | |
 | `record.persistentChangedValues` | [Record](#record-class) | |
