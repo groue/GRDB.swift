@@ -2410,20 +2410,20 @@ This is the list of record methods, along with their required protocols. The [Re
 | **Fetching Record Sequences** | | |
 | `Type.fetch(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | |
 | `Type.fetch(db, keys: ...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetch(db, sql)` | [RowConvertible](#rowconvertible-protocol) | |
-| `Type.fetch(statement)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-3">³</a> |
+| `Type.fetch(db, sql)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-3">³</a> |
+| `Type.fetch(statement)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetch(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
 | **Fetching Record Arrays** | | |
 | `Type.fetchAll(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | |
 | `Type.fetchAll(db, keys: ...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchAll(db, sql)` | [RowConvertible](#rowconvertible-protocol) | |
-| `Type.fetchAll(statement)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-3">³</a> |
+| `Type.fetchAll(db, sql)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-3">³</a> |
+| `Type.fetchAll(statement)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetchAll(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
 | **Fetching Individual Records** | | |
 | `Type.fetchOne(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | |
 | `Type.fetchOne(db, key: ...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchOne(db, sql)` | [RowConvertible](#rowconvertible-protocol) | |
-| `Type.fetchOne(statement)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-3">³</a> |
+| `Type.fetchOne(db, sql)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-3">³</a> |
+| `Type.fetchOne(statement)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetchOne(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
 | **Changes Tracking** | | |
 | `record.hasPersistentChangedValues` | [Record](#record-class) | |
@@ -2444,11 +2444,17 @@ let persons = request.fetchAll(db)  // [Person]
 let count = request.fetchCount(db)  // Int
 ```
 
-<a name="list-of-record-methods-3">³</a> See [Prepared Statements](#prepared-statements):
+<a name="list-of-record-methods-3">³</a> See [SQL queries](#fetch-queries):
 
 ```swift
-let statement = try db.makeSelectStatement("SELECT * FROM persons")
-let persons = request.fetchAll(statement)  // [Person]
+let persons = request.fetchAll("SELECT * FROM persons WHERE id = ?", arguments: [1])  // [Person]
+```
+
+<a name="list-of-record-methods-4">⁴</a> See [Prepared Statements](#prepared-statements):
+
+```swift
+let statement = try db.makeSelectStatement("SELECT * FROM persons WHERE id = ?")
+let persons = request.fetchAll(statement, arguments: [1])  // [Person]
 ```
 
 The Query Interface
