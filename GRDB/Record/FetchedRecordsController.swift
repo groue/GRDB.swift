@@ -557,23 +557,6 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     }
 }
 
-private func databaseEventFilter(readInfo: SelectStatement.ReadInfo) -> (DatabaseEventKind) -> Bool {
-    return { kind in
-        switch kind {
-        case .delete(let tableName):
-            return readInfo[tableName] != nil
-        case .insert(let tableName):
-            return readInfo[tableName] != nil
-        case .update(let tableName, let updatedColumnNames):
-            if let observedColumnNames = readInfo[tableName] {
-                return !updatedColumnNames.isDisjoint(with: observedColumnNames)
-            } else {
-                return false
-            }
-        }
-    }
-}
-
 
 // MARK: - Changes
 
