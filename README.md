@@ -2389,8 +2389,8 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](#fu
 
 This is the list of record methods, along with their required protocols. The [Record Class](#record-class) adopts all these protocols.
 
-| Method | Protocols | Info |
-| ------ | --------- | ---- |
+| Method | Protocols | Notes |
+| ------ | --------- | :---: |
 | **Inserting and Updating Records** | | |
 | `try record.insert(db)` | [Persistable](#persistable-protocol) | |
 | `try record.save(db)` | [Persistable](#persistable-protocol) | |
@@ -2400,34 +2400,56 @@ This is the list of record methods, along with their required protocols. The [Re
 | `record.exists(db)` | [Persistable](#persistable-protocol) | |
 | **Deleting Records** | | |
 | `try record.delete(db)` | [Persistable](#persistable-protocol) | |
-| `try Type.deleteOne(db, key: ...)` | [TableMapping](#tablemapping-protocol) | Requires a unique key <a href="#list-of-record-methods-1">¹</a> |
+| `try Type.deleteOne(db, key: ...)` | [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
 | `try Type.deleteAll(db)` | [TableMapping](#tablemapping-protocol) | |
-| `try Type.deleteAll(db, keys: ...)` | [TableMapping](#tablemapping-protocol) | Requires unique keys <a href="#list-of-record-methods-1">¹</a> |
-| `try Type.filter(...).deleteAll(db)` | [TableMapping](#tablemapping-protocol) | See [requests](#requests) |
+| `try Type.deleteAll(db, keys: ...)` | [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
+| `try Type.filter(...).deleteAll(db)` | [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
 | **Counting Records** | | |
 | `Type.fetchCount(db)` | [TableMapping](#tablemapping-protocol) | |
-| `Type.filter(...).fetchCount(db)` | [TableMapping](#tablemapping-protocol) | See [requests](#requests) |
+| `Type.filter(...).fetchCount(db)` | [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
 | **Fetching Record Sequences** | | |
 | `Type.fetch(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | |
-| `Type.fetch(db, keys: ...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | Requires unique keys <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetch(db, sql|statement|request)` | [RowConvertible](#rowconvertible-protocol) | See [statements](#prepared-statements), [requests](#requests) |
-| `Type.filter(...).fetch(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | See [requests](#requests) |
+| `Type.fetch(db, keys: ...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.fetch(db, sql)` | [RowConvertible](#rowconvertible-protocol) | |
+| `Type.fetch(statement)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-3">³</a> |
+| `Type.filter(...).fetch(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
 | **Fetching Record Arrays** | | |
 | `Type.fetchAll(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | |
-| `Type.fetchAll(db, keys: ...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | Requires unique keys <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchAll(db, sql|statement|request)` | [RowConvertible](#rowconvertible-protocol) | See [statements](#prepared-statements), [requests](#requests) |
-| `Type.filter(...).fetchAll(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | See [requests](#requests) |
+| `Type.fetchAll(db, keys: ...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.fetchAll(db, sql)` | [RowConvertible](#rowconvertible-protocol) | |
+| `Type.fetchAll(statement)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-3">³</a> |
+| `Type.filter(...).fetchAll(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
 | **Fetching Individual Records** | | |
 | `Type.fetchOne(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | |
-| `Type.fetchOne(db, key: ...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | Requires a unique key <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchOne(db, sql|statement|request)` | [RowConvertible](#rowconvertible-protocol) | See [statements](#prepared-statements), [requests](#requests) |
-| `Type.filter(...).fetchOne(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | See [requests](#requests) |
+| `Type.fetchOne(db, key: ...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.fetchOne(db, sql)` | [RowConvertible](#rowconvertible-protocol) | |
+| `Type.fetchOne(statement)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-3">³</a> |
+| `Type.filter(...).fetchOne(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
 | **Changes Tracking** | | |
 | `record.hasPersistentChangedValues` | [Record](#record-class) | |
 | `record.persistentChangedValues` | [Record](#record-class) | |
 
-<a name="list-of-record-methods-1">¹</a> Unique keys are primary keys (single-column, composite, [implicit RowID](#the-implicit-rowid-primary-key)) and unique indexes.
+<a name="list-of-record-methods-1">¹</a> All unique keys are supported: primary keys (single-column, composite, [implicit RowID](#the-implicit-rowid-primary-key)) and unique indexes:
 
+```swift
+Person.fetchOne(db, key: 1)                               // Person?
+Person.fetchOne(db, key: ["email": "arthur@example.com"]) // Person?
+```
+
+<a name="list-of-record-methods-2">²</a> See [Fetch Requests](#requests):
+
+```swift
+let request = Person.filter(emailColumn != nil).order(nameColumn)
+let persons = request.fetchAll(db)  // [Person]
+let count = request.fetchCount(db)  // Int
+```
+
+<a name="list-of-record-methods-3">³</a> See [Prepared Statements](#prepared-statements):
+
+```swift
+let statement = try db.makeSelectStatement("SELECT * FROM persons")
+let persons = request.fetchAll(statement)  // [Person]
+```
 
 The Query Interface
 ===================
