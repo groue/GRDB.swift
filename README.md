@@ -5184,12 +5184,12 @@ var persistentDictionary: [String: DatabaseValueConvertible?] {
 }
 ```
 
-> :warning: **Warning**: it is important that you use the `updateValue` method, and not the subscript setter:
+> :point_up: **Note**: it is important that you use the `updateValue` method, and not the subscript setter:
 > 
 > ```swift
 > // GOOD
 > dict.updateValue(a, forKey: "a")
-> // BAD: when the value is nil, this does nothing and HGRD
+> // BAD: when the value is nil, this erases the key instead of setting it to nil.
 > dict["a"] = a
 > ```
 
