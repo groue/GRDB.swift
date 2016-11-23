@@ -2410,23 +2410,17 @@ This is the list of record methods, along with their required protocols. The [Re
 | **Fetching Record Sequences** | | |
 | `Type.fetch(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | |
 | `Type.fetch(db, keys: ...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | Requires unique keys <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetch(db, sql)` | [RowConvertible](#rowconvertible-protocol) | |
-| `Type.fetch(db, statement)` | [RowConvertible](#rowconvertible-protocol) | See [prepared statements](#prepared-statements) |
-| `Type.fetch(db, request)` | [RowConvertible](#rowconvertible-protocol) | See [fetch requests](#requests) |
+| `Type.fetch(db, sql|statement|request)` | [RowConvertible](#rowconvertible-protocol) | See [prepared statements](#prepared-statements), [fetch requests](#requests) |
 | `Type.filter(...).fetch(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | See [fetch requests](#requests) |
 | **Fetching Record Arrays** | | |
 | `Type.fetchAll(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | |
 | `Type.fetchAll(db, keys: ...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | Requires unique keys <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchAll(db, sql)` | [RowConvertible](#rowconvertible-protocol) | |
-| `Type.fetchAll(db, statement)` | [RowConvertible](#rowconvertible-protocol) | See [prepared statements](#prepared-statements) |
-| `Type.fetchAll(db, request)` | [RowConvertible](#rowconvertible-protocol) | See [fetch requests](#requests) |
+| `Type.fetchAll(db, sql|statement|request)` | [RowConvertible](#rowconvertible-protocol) | See [prepared statements](#prepared-statements), [fetch requests](#requests) |
 | `Type.filter(...).fetchAll(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | See [fetch requests](#requests) |
 | **Fetching Individual Records** | | |
 | `Type.fetchOne(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | |
 | `Type.fetchOne(db, key: ...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | Requires a unique key <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchOne(db, sql)` | [RowConvertible](#rowconvertible-protocol) | |
-| `Type.fetchOne(db, statement)` | [RowConvertible](#rowconvertible-protocol) | See [prepared statements](#prepared-statements) |
-| `Type.fetchOne(db, request)` | [RowConvertible](#rowconvertible-protocol) | See [fetch requests](#requests) |
+| `Type.fetchOne(db, sql|statement|request)` | [RowConvertible](#rowconvertible-protocol) | See [prepared statements](#prepared-statements), [fetch requests](#requests) |
 | `Type.filter(...).fetchOne(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | See [fetch requests](#requests) |
 | **Changes Tracking** | | |
 | `record.hasPersistentChangedValues` | [Record](#record-class) | |
