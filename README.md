@@ -778,7 +778,7 @@ let int    = Int.fromDatabaseValue(dbv)    // nil
 let date   = Date.fromDatabaseValue(dbv)   // nil
 ```
 
-This turns out useful when you have to process untrusted databases. Compare:
+This turns out useful when you process untrusted databases. Compare:
 
 ```swift
 let date: Date? = row.value(atIndex: 0)  // fatal error: could not convert "Mom’s birthday" to Date.
@@ -1545,7 +1545,7 @@ import GRDBCipher // or import GRDBCustomSQLite
 let sqliteVersion = String(cString: sqlite3_libversion())
 ```
 
-Otherwise (the regular case), you have to:
+Otherwise (the regular case):
 
 1. Link your application with the SQLite library that ships with your SDK: add `libsqlite3.tbd` to the **Linked Frameworks and Libraries** of the **General**  tab of your target.
 
@@ -1706,7 +1706,7 @@ if person.hasPersistentChangedValues {
 }
 ```
 
-For batch updates, you have to execute an [SQL query](#executing-updates):
+For batch updates, execute an [SQL query](#executing-updates):
 
 ```swift
 try db.execute("UPDATE persons SET synchronized = 1")
@@ -4194,7 +4194,7 @@ let controller = FetchedRecordsController<Person>(
     compareRecordsByPrimaryKey: true)
 ```
 
-When the record type does not adopt the [TableMapping](#tablemapping-protocol) protocol, you have to be explicit:
+When the record type does not adopt the [TableMapping](#tablemapping-protocol) protocol, be explicit:
 
 ```swift
 let controller = FetchedRecordsController<Person>(
@@ -4361,7 +4361,7 @@ try dbQueue.change(passphrase: "newSecret")
 
 Providing a passphrase won't encrypt a clear-text database that already exists, though. SQLCipher can't do that, and you will get an error instead: `SQLite error 26: file is encrypted or is not a database`.
 
-**To encrypt an existing clear-text database**, you have to create a new and empty encrypted database, and copy the content of the clear-text database in it. The technique to do that is [documented](https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/868/1) by SQLCipher. With GRDB, it gives:
+**To encrypt an existing clear-text database**, create a new and empty encrypted database, and copy the content of the clear-text database in it. The technique to do that is [documented](https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/868/1) by SQLCipher. With GRDB, it gives:
 
 ```swift
 // The clear-text database
@@ -4630,7 +4630,7 @@ It has several opportunities to throw fatal errors:
 - **Untrusted SQLite execution**: SQLite may throw an error at each step of the results iteration.
 - **Untrusted database content**: The row may contain a non-null value that can't be turned into a date.
 
-In such a situation where nothing can be trusted, you can still avoid fatal errors, but you have to expose and handle each failure point by going down one level in GRDB API:
+In such a situation where nothing can be trusted, you can still avoid fatal errors by exposing and handling each failure point, one level down in the GRDB API:
 
 ```swift
 // Untrusted SQL
