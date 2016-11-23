@@ -67,16 +67,16 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///         same identity. For example, they have the same id.
     public convenience init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue = .main, isSameRecord: ((Record, Record) -> Bool)? = nil) {
         if let isSameRecord = isSameRecord {
-            self.init(databaseWriter, request: request, queue: queue, compareItemsFactory: { _ in { isSameRecord($0.record, $1.record) } })
+            self.init(databaseWriter, request: request, queue: queue, identicalItemsFactory: { _ in { isSameRecord($0.record, $1.record) } })
         } else {
-            self.init(databaseWriter, request: request, queue: queue, compareItemsFactory: { _ in { _ in false } })
+            self.init(databaseWriter, request: request, queue: queue, identicalItemsFactory: { _ in { _ in false } })
         }
     }
     
-    fileprivate init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue, compareItemsFactory: @escaping (Database) -> (Item<Record>, Item<Record>) -> Bool) {
+    fileprivate init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue, identicalItemsFactory: @escaping (Database) -> ItemComparator<Record>) {
         self.request = request
         self.databaseWriter = databaseWriter
-        self.compareItemsFactory = compareItemsFactory
+        self.identicalItemsFactory = identicalItemsFactory
         self.queue = queue
     }
     #else
@@ -151,8 +151,8 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             
             #if os(iOS)
                 // Be ready for indexPath(for record: Record)
-                if compareItems == nil {
-                    compareItems = compareItemsFactory(db)
+                if identicalItems == nil {
+                    identicalItems = identicalItemsFactory(db)
                 }
             #endif
             
@@ -293,11 +293,11 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         
         let initialItems = fetchedItems
         databaseWriter.writeForIssue117 { db in
-            if compareItems == nil {
-                compareItems = compareItemsFactory(db)
+            if identicalItems == nil {
+                identicalItems = identicalItemsFactory(db)
             }
             
-            let fetchAndNotifyChanges = makeFetchAndNotifyChangesFunction(controller: self, fetchAlongside: fetchAlongside, compareItems: compareItems!, recordsWillChange: recordsWillChange, tableViewEvent: tableViewEvent, recordsDidChange: recordsDidChange)
+            let fetchAndNotifyChanges = makeFetchAndNotifyChangesFunction(controller: self, fetchAlongside: fetchAlongside, identicalItems: identicalItems!, recordsWillChange: recordsWillChange, tableViewEvent: tableViewEvent, recordsDidChange: recordsDidChange)
 
             let (statement, _) = try! request.prepare(db)
             let observer = FetchedRecordsObserver(readInfo: statement.readInfo, fetchAndNotifyChanges: fetchAndNotifyChanges)
@@ -378,13 +378,13 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     
     #if os(iOS)
     // The record comparator
-    fileprivate var compareItems: ((Item<Record>, Item<Record>) -> Bool)?
+    fileprivate var identicalItems: ItemComparator<Record>?
     
     // The record comparator builder. It helps us supporting types that adopt
     // MutablePersistable: we just have to wait for a database connection, in
     // performFetch(), to get primary key information and generate a primary
     // key comparator.
-    private let compareItemsFactory: (Database) -> (Item<Record>, Item<Record>) -> Bool
+    private let identicalItemsFactory: (Database) -> ItemComparator<Record>
     #endif
     
     /// The request
@@ -473,12 +473,12 @@ extension FetchedRecordsController where Record: TableMapping {
     ///         share the same identity if they share the same primay key.
     public convenience init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue = .main, compareRecordsByPrimaryKey: Bool) {
         if compareRecordsByPrimaryKey {
-            self.init(databaseWriter, request: request, queue: queue, compareItemsFactory: { db in
+            self.init(databaseWriter, request: request, queue: queue, identicalItemsFactory: { db in
                 let rowComparator = try! Record.primaryKeyRowComparator(db)
                 return { rowComparator($0.row, $1.row) }
             })
         } else {
-            self.init(databaseWriter, request: request, queue: queue, compareItemsFactory: { _ in { _ in false } })
+            self.init(databaseWriter, request: request, queue: queue, identicalItemsFactory: { _ in { _ in false } })
         }
     }
 }
@@ -581,7 +581,7 @@ private func databaseEventFilter(readInfo: SelectStatement.ReadInfo) -> (Databas
     fileprivate func makeFetchAndNotifyChangesFunction<Record, T>(
         controller: FetchedRecordsController<Record>,
         fetchAlongside: @escaping (Database) -> T,
-        compareItems: @escaping (Item<Record>, Item<Record>) -> Bool,
+        identicalItems: @escaping ItemComparator<Record>,
         recordsWillChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())?,
         tableViewEvent: ((FetchedRecordsController<Record>, Record, TableViewEvent) -> ())?,
         recordsDidChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())?
@@ -595,10 +595,10 @@ private func databaseEventFilter(readInfo: SelectStatement.ReadInfo) -> (Databas
         // Should controller become strong at any point before callbacks are
         // called, such unowned reference would have an opportunity to crash.
         return { [weak controller] observer in
-            // Observer invalidated?
+            // Return if observer has been invalidated
             guard observer.isValid else { return }
             
-            // Controller alive?
+            // Return if fetched records controller has been deallocated
             guard let request = controller?.request, let databaseWriter = controller?.databaseWriter else { return }
             
             // Fetch items.
@@ -643,64 +643,51 @@ private func databaseEventFilter(readInfo: SelectStatement.ReadInfo) -> (Databas
                 assert(fetchedItems != nil)
                 assert(fetchedAlongside != nil)
                 
-                // Observer invalidated?
+                // Return if observer has been invalidated
                 guard let strongObserver = observer else { return }
                 guard strongObserver.isValid else { return }
                 
-                // Controller alive?
-                guard let controllerQueue = controller?.queue else { return }
+                // Return if fetched records controller has been deallocated
+                guard let callbackQueue = controller?.queue else { return }
                 
-                // Changes?
-                let tableViewChanges: [TableViewChange<Record>]?
+                // Return if there is no change
+                let tableViewChanges: [TableViewChange<Record>]
                 if tableViewEvent != nil {
                     // Compute table view changes
-                    let changes = computeTableViewChanges(from: strongObserver.items, to: fetchedItems, compareItems: compareItems)
-                    guard !changes.isEmpty else {
-                        // No change
-                        return
-                    }
-                    tableViewChanges = changes
+                    tableViewChanges = computeTableViewChanges(from: strongObserver.items, to: fetchedItems, identicalItems: identicalItems)
+                    if tableViewChanges.isEmpty { return }
                 } else {
                     // Don't compute changes: just look for a row difference:
-                    guard fetchedItems.count != strongObserver.items.count || zip(fetchedItems, strongObserver.items).contains(where: { (fetchedItem, item) in fetchedItem.row != item.row }) else {
-                        // No change
-                        return
-                    }
-                    tableViewChanges = nil
+                    if identicalItemArrays(fetchedItems, strongObserver.items) { return }
+                    tableViewChanges = []
                 }
                 
                 // Ready for next check
                 strongObserver.items = fetchedItems
                 
-                controllerQueue.async {
-                    // Observer invalidated?
+                callbackQueue.async {
+                    // Return if observer has been invalidated
                     guard let strongObserver = observer else { return }
                     guard strongObserver.isValid else { return }
                     
-                    // Now we can retain controller.
+                    // Now we can retain controller
                     guard let strongController = controller else { return }
                     
-                    if let recordsWillChange = recordsWillChange {
-                        recordsWillChange(strongController, fetchedAlongside)
-                    }
-                    
+                    // Notify changes
+                    recordsWillChange?(strongController, fetchedAlongside)
                     strongController.fetchedItems = fetchedItems
-                    
-                    if let tableViewEvent = tableViewEvent, let tableViewChanges = tableViewChanges {
+                    if let tableViewEvent = tableViewEvent {
                         for change in tableViewChanges {
                             tableViewEvent(strongController, change.record, change.event)
                         }
                     }
-                    
-                    if let recordsDidChange = recordsDidChange {
-                        recordsDidChange(strongController, fetchedAlongside)
-                    }
+                    recordsDidChange?(strongController, fetchedAlongside)
                 }
             }
         }
     }
     
-    fileprivate func computeTableViewChanges<Record>(from s: [Item<Record>], to t: [Item<Record>], compareItems: (Item<Record>, Item<Record>) -> Bool) -> [TableViewChange<Record>] {
+    fileprivate func computeTableViewChanges<Record>(from s: [Item<Record>], to t: [Item<Record>], identicalItems: ItemComparator<Record>) -> [TableViewChange<Record>] {
         let m = s.count
         let n = t.count
         
@@ -759,13 +746,13 @@ private func databaseEventFilter(readInfo: SelectStatement.ReadInfo) -> (Databas
         }
         
         /// Returns an array where deletion/insertion pairs of the same element are replaced by `.move` change.
-        func standardize(changes: [TableViewChange<Record>], compareItems: (Item<Record>, Item<Record>) -> Bool) -> [TableViewChange<Record>] {
+        func standardize(changes: [TableViewChange<Record>], identicalItems: ItemComparator<Record>) -> [TableViewChange<Record>] {
             
             /// Returns a potential .move or .update if *change* has a matching change in *changes*:
             /// If *change* is a deletion or an insertion, and there is a matching inverse
             /// insertion/deletion with the same value in *changes*, a corresponding .move or .update is returned.
             /// As a convenience, the index of the matched change is returned as well.
-            func merge(change: TableViewChange<Record>, in changes: [TableViewChange<Record>], compareItems: (Item<Record>, Item<Record>) -> Bool) -> (mergedChange: TableViewChange<Record>, mergedIndex: Int)? {
+            func merge(change: TableViewChange<Record>, in changes: [TableViewChange<Record>], identicalItems: ItemComparator<Record>) -> (mergedChange: TableViewChange<Record>, mergedIndex: Int)? {
                 
                 /// Returns the changes between two rows: a dictionary [key: oldValue]
                 /// Precondition: both rows have the same columns
@@ -785,7 +772,7 @@ private func databaseEventFilter(readInfo: SelectStatement.ReadInfo) -> (Databas
                     // Look for a matching deletion
                     for (index, otherChange) in changes.enumerated() {
                         guard case .deletion(let oldItem, let oldIndexPath) = otherChange else { continue }
-                        guard compareItems(oldItem, newItem) else { continue }
+                        guard identicalItems(oldItem, newItem) else { continue }
                         let rowChanges = changedValues(from: oldItem.row, to: newItem.row)
                         if oldIndexPath == newIndexPath {
                             return (TableViewChange.update(item: newItem, indexPath: oldIndexPath, changes: rowChanges), index)
@@ -799,7 +786,7 @@ private func databaseEventFilter(readInfo: SelectStatement.ReadInfo) -> (Databas
                     // Look for a matching insertion
                     for (index, otherChange) in changes.enumerated() {
                         guard case .insertion(let newItem, let newIndexPath) = otherChange else { continue }
-                        guard compareItems(oldItem, newItem) else { continue }
+                        guard identicalItems(oldItem, newItem) else { continue }
                         let rowChanges = changedValues(from: oldItem.row, to: newItem.row)
                         if oldIndexPath == newIndexPath {
                             return (TableViewChange.update(item: newItem, indexPath: oldIndexPath, changes: rowChanges), index)
@@ -818,7 +805,7 @@ private func databaseEventFilter(readInfo: SelectStatement.ReadInfo) -> (Databas
             var mergedChanges: [TableViewChange<Record>] = []
             var updateChanges: [TableViewChange<Record>] = []
             for change in changes {
-                if let (mergedChange, mergedIndex) = merge(change: change, in: mergedChanges, compareItems: compareItems) {
+                if let (mergedChange, mergedIndex) = merge(change: change, in: mergedChanges, identicalItems: identicalItems) {
                     mergedChanges.remove(at: mergedIndex)
                     switch mergedChange {
                     case .update:
@@ -833,7 +820,7 @@ private func databaseEventFilter(readInfo: SelectStatement.ReadInfo) -> (Databas
             return mergedChanges + updateChanges
         }
         
-        return standardize(changes: d[m][n], compareItems: compareItems)
+        return standardize(changes: d[m][n], identicalItems: identicalItems)
     }
 
 #else
@@ -854,10 +841,10 @@ private func databaseEventFilter(readInfo: SelectStatement.ReadInfo) -> (Databas
         // Should controller become strong at any point before callbacks are
         // called, such unowned reference would have an opportunity to crash.
         return { [weak controller] observer in
-            // Observer invalidated?
+            // Return if observer has been invalidated
             guard observer.isValid else { return }
             
-            // Controller alive?
+            // Return if fetched records controller has been deallocated
             guard let request = controller?.request, let databaseWriter = controller?.databaseWriter else { return }
             
             // Fetch items.
@@ -902,49 +889,55 @@ private func databaseEventFilter(readInfo: SelectStatement.ReadInfo) -> (Databas
                 assert(fetchedItems != nil)
                 assert(fetchedAlongside != nil)
                 
-                // Observer invalidated?
+                // Return if observer has been invalidated
                 guard let strongObserver = observer else { return }
                 guard strongObserver.isValid else { return }
                 
-                // Controller alive?
-                guard let controllerQueue = controller?.queue else { return }
+                // Return if fetched records controller has been deallocated
+                guard let callbackQueue = controller?.queue else { return }
                 
-                // Changes?
-                guard fetchedItems.count != strongObserver.items.count || zip(fetchedItems, strongObserver.items).contains(where: { (fetchedItem, item) in fetchedItem.row != item.row }) else {
-                    // No change
-                    return
-                }
+                // Return if there is no change
+                if identicalItemArrays(fetchedItems, strongObserver.items) { return }
                 
                 // Ready for next check
                 strongObserver.items = fetchedItems
                 
-                controllerQueue.async {
-                    // Observer invalidated?
+                callbackQueue.async {
+                    // Return if observer has been invalidated
                     guard let strongObserver = observer else { return }
                     guard strongObserver.isValid else { return }
                     
-                    // Now we can retain controller.
+                    // Now we can retain controller
                     guard let strongController = controller else { return }
                     
-                    if let recordsWillChange = recordsWillChange {
-                        recordsWillChange(strongController, fetchedAlongside)
-                    }
-                    
+                    // Notify changes
+                    recordsWillChange?(strongController, fetchedAlongside)
                     strongController.fetchedItems = fetchedItems
-                    
-                    if let recordsDidChange = recordsDidChange {
-                        recordsDidChange(strongController, fetchedAlongside)
-                    }
+                    recordsDidChange?(strongController, fetchedAlongside)
                 }
             }
         }
     }
 #endif
 
+fileprivate func identicalItemArrays<Record>(_ lhs: [Item<Record>], _ rhs: [Item<Record>]) -> Bool {
+    guard lhs.count == rhs.count else {
+        return false
+    }
+    for (lhs, rhs) in zip(lhs, rhs) {
+        if lhs.row != rhs.row {
+            return false
+        }
+    }
+    return true
+}
+
 
 // MARK: - UITableView Support
 
 #if os(iOS)
+    fileprivate typealias ItemComparator<Record: RowConvertible> = (Item<Record>, Item<Record>) -> Bool
+    
     extension FetchedRecordsController {
         
         // MARK: - Accessing Records
@@ -989,8 +982,8 @@ private func databaseEventFilter(readInfo: SelectStatement.ReadInfo) -> (Databas
         public func indexPath(for record: Record) -> IndexPath? {
             let item = Item<Record>(row: Row(record.persistentDictionary))
             guard let fetchedItems = fetchedItems,
-                let compareItems = compareItems,
-                let index = fetchedItems.index(where: { compareItems($0, item) }) else { return nil }
+                let identicalItems = identicalItems,
+                let index = fetchedItems.index(where: { identicalItems($0, item) }) else { return nil }
             return IndexPath(row: index, section: 0)
         }
     }
