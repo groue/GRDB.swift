@@ -5162,7 +5162,7 @@ When your [record type](#records) is very slow to compile, it is usually because
 
 ```swift
 var persistentDictionary: [String: DatabaseValueConvertible?] {
-    // Many columns
+    // Long dictionary literals are slow to compile
     return [
         "a": a,
         "b": b,
