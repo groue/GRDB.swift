@@ -1851,20 +1851,17 @@ Adopting types can be fetched without SQL, using the [query interface](#the-quer
 let paris = PointOfInterest.filter(nameColumn == "Paris").fetchOne(db)
 ```
 
-You can also fetch and delete records according to their primary key:
+TableMapping can also fetch and delete records by primary key:
 
 ```swift
-// Fetch:
+// Fetch
 Person.fetchOne(db, key: 1)              // Person?
 Person.fetchAll(db, keys: [1, 2, 3])     // [Person]
 
 Country.fetchOne(db, key: "FR")          // Country?
 Country.fetchAll(db, keys: ["FR", "US"]) // [Country]
 
-// Use a dictionary for composite primary keys:
-Citizenship.fetchOne(db, key: ["personID": 1, "countryISOCode": "FR"]) // Citizenship?
-
-// Delete records:
+// Delete
 try Person.deleteOne(db, key: 1)
 try Country.deleteAll(db, keys: ["FR", "US"])
 ```
@@ -1879,18 +1876,14 @@ Document.fetchOne(db, key: 1)            // Document?
 try Document.deleteOne(db, key: 1)
 ```
 
-When given dictionaries, `fetchOne`, `deleteOne`, `fetchAll` and `deleteAll` accept any set of columns that uniquely identify rows. These are the primary key columns, or any columns involved in a unique index:
+For multiple-column primary keys and unique keys defined by unique indexes, provide a dictionary:
 
 ```swift
-try db.create(table: "persons") { t in
-    t.column("id", .integer).primaryKey() // unique id
-    t.column("email", .text).unique()     // unique email
-    t.column("name", .text)               // not unique
-}
+// SELECT * FROM citizenships WHERE personID = 1 AND countryISOCode = 'FR'
+Citizenship.fetchOne(db, key: ["personID": 1, "countryISOCode": "FR"]) // Citizenship?
 
-Person.fetchOne(db, key: ["id": 1])                       // Person?
-Person.fetchOne(db, key: ["email": "arthur@example.com"]) // Person?
-Person.fetchOne(db, key: ["name": "Arthur"]) // fatal error: table persons has no unique index on column `name`.
+// DELETE FROM persons WHERE email = 'arthur@example.com'
+Person.deleteOne(db, key: ["email": "arthur@example.com"])
 ```
 
 
@@ -2457,6 +2450,7 @@ let statement = try db.makeSelectStatement("SELECT * FROM persons WHERE id = ?")
 let persons = request.fetchAll(statement, arguments: [1])  // [Person]
 ```
 
+
 The Query Interface
 ===================
 
@@ -2493,7 +2487,7 @@ So don't miss the [SQL API](#sqlite-api).
     - [SQL Operators](#sql-operators)
     - [SQL Functions](#sql-functions)
 - [Fetching from Requests](#fetching-from-requests)
-- [Fetching by Primary Key](#fetching-by-primary-key)
+- [Fetching by Key](#fetching-by-key)
 - [Fetching Aggregated Values](#fetching-aggregated-values)
 - [Delete Requests](#delete-requests)
 - [GRDB Extension Guide](Documentation/ExtendingGRDB.md)
@@ -3044,7 +3038,7 @@ let maxHeight = row.value(atIndex: 1) as Double?
 ```
 
 
-## Fetching By Primary Key
+## Fetching By Key
 
 **Fetching records according to their primary key** is a very common task. It has a shortcut which accepts any single-column primary key:
 
@@ -3069,17 +3063,14 @@ When the table has no explicit primary key, GRDB uses the [hidden "rowid" column
 Document.fetchOne(db, key: 1)            // Document?
 ```
 
-For multiple-column primary keys, provide a dictionary:
+For multiple-column primary keys and unique keys defined by unique indexes, provide a dictionary:
 
 ```swift
 // SELECT * FROM citizenships WHERE personID = 1 AND countryISOCode = 'FR'
 Citizenship.fetchOne(db, key: ["personID": 1, "countryISOCode": "FR"]) // Citizenship?
-```
 
-You can generally use a dictionary for any **unique key** (primary key and columns involved in a unique index):
-
-```swift
-Person.fetchOne(db, key: ["email": "arthur@example.com"]) // Person?
+// SELECT * FROM persons WHERE email = 'arthur@example.com'
+Person.fetchOne(db, key: ["email": "arthur@example.com"])              // Person?
 ```
 
 
@@ -3148,31 +3139,14 @@ When the table has no explicit primary key, GRDB uses the [hidden "rowid" column
 try Document.deleteOne(db, key: 1)
 ```
 
-For multiple-column primary keys, provide a dictionary:
+For multiple-column primary keys and unique keys defined by unique indexes, provide a dictionary:
 
 ```swift
 // DELETE FROM citizenships WHERE personID = 1 AND countryISOCode = 'FR'
 try Citizenship.deleteOne(db, key: ["personID": 1, "countryISOCode": "FR"])
-```
 
-You can generally use a dictionary for any **unique key** (primary key and columns involved in a unique index):
-
-```swift
+// DELETE FROM persons WHERE email = 'arthur@example.com'
 Person.deleteOne(db, key: ["email": "arthur@example.com"])
-```
-
-When given dictionaries, `deleteOne` and `deleteAll` accept any set of columns that uniquely identify rows. These are the primary key columns, or any columns involved in a unique index:
-
-```swift
-try db.create(table: "persons") { t in
-    t.column("id", .integer).primaryKey() // unique id
-    t.column("email", .text).unique()     // unique email
-    t.column("name", .text)               // not unique
-}
-
-try Person.deleteOne(db, key: ["id": 1])
-try Person.deleteOne(db, key: ["email": "arthur@example.com"])
-try Person.deleteOne(db, key: ["name": "Arthur"]) // fatal error: table persons has no unique index on column `name`.
 ```
 
 
