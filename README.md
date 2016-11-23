@@ -5074,79 +5074,124 @@ for person in persons {
 FAQ
 ===
 
-- **How do I close a database connection?**
-    
-    The short answer is:
-    
-    ```swift
-    // Eventually close all database connections
-    dbQueue = nil
-    dbPool = nil
-    ```
-    
-    You do not explicitely close a database connection: it is managed by a [database queue](#database-queues) or [pool](#database-pools). The connection is closed when all usages of this connection are completed, and when its database queue or pool gets deallocated.
-    
-    Database accesses that run in background threads postpone the closing of connections.
-    
-    The `releaseMemory` method of DatabasePool ([documentation](#memory-management)) will actually close some connections, but the pool will open another connection as soon as you access the database again.
+- [How do I close a database connection?](#how-do-i-close-a-database-connection)
+- [How do I open a database stored as a resource of my application?](#how-do-i-open-a-database-stored-as-a-resource-of-my-application)
+- [Generic parameter 'T' could not be inferred](#generic-parameter-t-could-not-be-inferred)
+- [Compilation takes a long time](#compilation-takes-a-long-time) 
 
 
-- **How do I open a database stored as a resource of my application?**
+### How do I close a database connection?
     
-    If your application does not need to modify the database, open a read-only [connection](#database-connections) to your resource:
-    
-    ```swift
-    var configuration = Configuration()
-    configuration.readonly = true
-    let dbPath = Bundle.main.path(forResource: "db", ofType: "sqlite")!
-    let dbQueue = try DatabaseQueue(path: dbPath, configuration: configuration)
-    ```
-    
-    If the application should modify the database, you need to copy it to a place where it can be modified. For example, in the Documents folder. Only then, open a [connection](#database-connections):
-    
-    ```swift
-    let fm = FileManager.default
-    let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
-    let dbPath = (documentsPath as NSString).appendingPathComponent("db.sqlite")
-    if !fm.fileExists(atPath: dbPath) {
-        let dbResourcePath = Bundle.main.path(forResource: "db", ofType: "sqlite")!
-        try fm.copyItem(atPath: dbResourcePath, toPath: dbPath)
-    }
-    let dbQueue = try DatabaseQueue(path: dbPath)
-    ```
+The short answer is:
 
-- **Generic parameter 'T' could not be inferred**
+```swift
+// Eventually close all database connections
+dbQueue = nil
+dbPool = nil
+```
+
+You do not explicitely close a database connection: it is managed by a [database queue](#database-queues) or [pool](#database-pools). The connection is closed when all usages of this connection are completed, and when its database queue or pool gets deallocated.
+
+Database accesses that run in background threads postpone the closing of connections.
+
+The `releaseMemory` method of DatabasePool ([documentation](#memory-management)) will actually close some connections, but the pool will open another connection as soon as you access the database again.
+
+
+### How do I open a database stored as a resource of my application?
+
+If your application does not need to modify the database, open a read-only [connection](#database-connections) to your resource:
+
+```swift
+var configuration = Configuration()
+configuration.readonly = true
+let dbPath = Bundle.main.path(forResource: "db", ofType: "sqlite")!
+let dbQueue = try DatabaseQueue(path: dbPath, configuration: configuration)
+```
+
+If the application should modify the database, you need to copy it to a place where it can be modified. For example, in the Documents folder. Only then, open a [connection](#database-connections):
+
+```swift
+let fm = FileManager.default
+let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
+let dbPath = (documentsPath as NSString).appendingPathComponent("db.sqlite")
+if !fm.fileExists(atPath: dbPath) {
+    let dbResourcePath = Bundle.main.path(forResource: "db", ofType: "sqlite")!
+    try fm.copyItem(atPath: dbResourcePath, toPath: dbPath)
+}
+let dbQueue = try DatabaseQueue(path: dbPath)
+```
+
+
+### Generic parameter 'T' could not be inferred
     
-    You may get this error when using DatabaseQueue.inDatabase, DatabasePool.read, or DatabasePool.write:
+You may get this error when using DatabaseQueue.inDatabase, DatabasePool.read, or DatabasePool.write:
+
+```swift
+// Generic parameter 'T' could not be inferred
+let x = dbQueue.inDatabase { db in
+    let result = String.fetchOne(db, ...)
+    return result
+}
+```
+
+This is a Swift compiler issue (see [SR-1570](https://bugs.swift.org/browse/SR-1570)).
+
+The general workaround is to explicitly declare the type of the closure result:
+
+```swift
+// General Workaround
+let x = dbQueue.inDatabase { db -> String? in
+    let result = String.fetchOne(db, ...)
+    return result
+}
+```
+
+You can also, when possible, write a single-line closure:
+
+```swift
+// Single-line closure workaround:
+let x = dbQueue.inDatabase { db in
+    String.fetchOne(db, ...)
+}
+```
+
+
+### Compilation takes a long time
     
-    ```swift
-    // Generic parameter 'T' could not be inferred
-    let x = dbQueue.inDatabase { db in
-        let result = String.fetchOne(db, ...)
-        return result
-    }
-    ```
-    
-    This is a Swift compiler issue (see [SR-1570](https://bugs.swift.org/browse/SR-1570)).
-    
-    The general workaround is to explicitly declare the type of the closure result:
-    
-    ```swift
-    // General Workaround
-    let x = dbQueue.inDatabase { db -> String? in
-        let result = String.fetchOne(db, ...)
-        return result
-    }
-    ```
-    
-    You can also, when possible, write a single-line closure:
-    
-    ```swift
-    // Single-line closure workaround:
-    let x = dbQueue.inDatabase { db in
-        String.fetchOne(db, ...)
-    }
-    ```
+When your [record type](#records) is very long to compile, it is usually because its `persistentDictionary` property builds a long dictionary literal:
+
+```swift
+var persistentDictionary: [String: DatabaseValueConvertible?] {
+    // Many columns
+    return [
+        "a": a,
+        "b": b,
+        ...
+}
+```
+
+Well, the Swift compiler finds it difficult to build such a dictionary.
+
+To fix this and speed up compilation, build your dictionary step by step:
+
+```swift
+var persistentDictionary: [String: DatabaseValueConvertible?] {
+    var dict: [String: DatabaseValueConvertible?] = [:]
+    dict.updateValue(a, forKey: "a")
+    dict.updateValue(b, forKey: "b")
+    ...
+    return dict
+}
+```
+
+> :warning: **Warning**: it is important that you use the `updateValue` method, and not the subscript setter:
+> 
+> ```swift
+> // GOOD
+> dict.updateValue(a, forKey: "a")
+> // BAD: when the value is nil, this does nothing and HGRD
+> dict["a"] = a
+> ```
 
 
 Sample Code
