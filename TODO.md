@@ -1,5 +1,4 @@
 - [ ] DatabaseCursor: we need to be able to make fetch() reuse fetchCursor(). It's glaring in `public extension DatabaseValueConvertible where Self: StatementColumnConvertible {`
-- [ ] DatabaseCursor.map
 - [ ] Swift 3.0.2 (Xcode 8.2): "Type inference will properly unwrap optionals when used with generics and implicitly-unwrapped optionals." Maybe this fixes `row.value(named: "foo") as? Int`?
 - [ ] Refactor Database notion of transaction/savepoints into a single type. Support INSERT OR ROLLBACK.
     - Since some statements may implicitly rollback transactions, we can not rely on explicit rollback statements to infer the transaction state. We can only rely on sqlite3_rollback_hook, assuming it is called even for implicit rollbacks (test with an INSERT OR ROLLBACK statement).

@@ -302,13 +302,13 @@ public struct DatabaseSequence<Element>: Sequence {
 
 /// A cursor on a statement
 public final class DatabaseCursor<Element> {
-    private let statementRef: Unmanaged<SelectStatement>
+    fileprivate let statementRef: Unmanaged<SelectStatement>
     private let sqliteStatement: SQLiteStatement
     private let element: () throws -> Element?
     
     init(statement: SelectStatement, element: @escaping () throws -> Element?) {
         self.statementRef = Unmanaged.passRetained(statement)
-        self.sqliteStatement = statementRef.takeUnretainedValue().sqliteStatement
+        self.sqliteStatement = statement.sqliteStatement
         self.element = element
     }
     
@@ -345,6 +345,56 @@ public final class DatabaseCursor<Element> {
         }
     }
 }
+
+extension DatabaseCursor {
+    /// TODO
+    func enumerated() -> DatabaseCursor<(Int, Element)> {
+        var i = 0
+        return DatabaseCursor<(Int, Element)>(statement: statementRef.takeUnretainedValue()) {
+            guard let element = try self.step() else { return nil }
+            defer { i = i + 1 }
+            return (i, element)
+        }
+    }
+    
+    /// TODO
+    func filter(_ isIncluded: (Element) throws -> Bool) throws -> [Element] {
+        var result: [Element] = []
+        while let element = try step() {
+            if try isIncluded(element) {
+                result.append(element)
+            }
+        }
+        return result
+    }
+
+    /// TODO
+    func forEach(_ body: (Element) throws -> Void) throws {
+        while let element = try step() {
+            try body(element)
+        }
+    }
+
+    /// TODO
+    func map<T>(_ transform: (Element) throws -> T) throws -> [T] {
+        var result: [T] = []
+        while let element = try step() {
+            try result.append(transform(element))
+        }
+        return result
+    }
+    
+    /// TODO
+    func reduce<Result>(_ initialResult: Result, _ nextPartialResult: (Result, Element) throws -> Result) throws -> Result {
+        var result = initialResult
+        while let element = try step() {
+            result = try nextPartialResult(result, element)
+        }
+        return result
+    }
+
+}
+
 
 /// A iterator of elements fetched from the database.
 public final class DatabaseIterator<Element>: IteratorProtocol {
