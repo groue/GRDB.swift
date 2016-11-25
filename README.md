@@ -4817,12 +4817,8 @@ Those guarantees hold as long as you follow rules:
     // UNSAFE
     // Those two values may be different because some other thread may have
     // modified the database between the two statements:
-    let count1 = dbPool.read { db in
-        PointOfInterest.fetchCount(db)
-    }
-    let count2 = dbPool.read { db in
-        PointOfInterest.fetchCount(db)
-    }
+    let count1 = dbPool.read { db in PointOfInterest.fetchCount(db) }
+    let count2 = dbPool.read { db in PointOfInterest.fetchCount(db) }
     ```
 
 
