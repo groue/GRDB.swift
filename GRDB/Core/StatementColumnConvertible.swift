@@ -52,6 +52,26 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
     
     // MARK: Fetching From SelectStatement
     
+    /// TODO
+    public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
+        // We'll read from leftmost column at index 0, unless adapter mangle columns
+        let columnIndex: Int32
+        if let adapter = adapter {
+            let concreteAdapter = try! adapter.concreteRowAdapter(with: statement)
+            columnIndex = Int32(concreteAdapter.concreteColumnMapping.baseColumIndex(adaptedIndex: 0))
+        } else {
+            columnIndex = 0
+        }
+
+        let sqliteStatement = statement.sqliteStatement
+        return try statement.fetchCursor(arguments: arguments) {
+            guard sqlite3_column_type(sqliteStatement, columnIndex) != SQLITE_NULL else {
+                throw DatabaseError(code: SQLITE_ERROR, message: "could not convert database NULL value to \(Self.self)", sql: statement.sql, arguments: arguments)
+            }
+            return Self.init(sqliteStatement: sqliteStatement, index: columnIndex)
+        }
+    }
+    
     /// Returns a sequence of values fetched from a prepared statement.
     ///
     ///     let statement = db.makeSelectStatement("SELECT name FROM ...")
@@ -75,19 +95,21 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
     ///     - adapter: Optional RowAdapter
     /// - returns: A sequence of values.
     public static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Self> {
+        // We'll read from leftmost column at index 0, unless adapter mangle columns
+        let columnIndex: Int32
         if let adapter = adapter {
-            let row = try! Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
-            return statement.fetchSequence(arguments: arguments) {
-                row.value(atIndex: 0)
-            }
+            let concreteAdapter = try! adapter.concreteRowAdapter(with: statement)
+            columnIndex = Int32(concreteAdapter.concreteColumnMapping.baseColumIndex(adaptedIndex: 0))
         } else {
-            let sqliteStatement = statement.sqliteStatement
-            return statement.fetchSequence(arguments: arguments) {
-                guard sqlite3_column_type(sqliteStatement, 0) != SQLITE_NULL else {
-                    fatalError("could not convert database NULL value to \(Self.self)")
-                }
-                return Self.init(sqliteStatement: sqliteStatement, index: 0)
+            columnIndex = 0
+        }
+
+        let sqliteStatement = statement.sqliteStatement
+        return statement.fetchSequence(arguments: arguments) {
+            guard sqlite3_column_type(sqliteStatement, columnIndex) != SQLITE_NULL else {
+                fatalError("could not convert database NULL value to \(Self.self)")
             }
+            return Self.init(sqliteStatement: sqliteStatement, index: columnIndex)
         }
     }
     
@@ -145,6 +167,12 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     
     // MARK: Fetching From FetchRequest
     
+    /// TODO
+    public static func fetchCursor(_ db: Database, _ request: FetchRequest) throws -> DatabaseCursor<Self> {
+        let (statement, adapter) = try request.prepare(db)
+        return try fetchCursor(statement, adapter: adapter)
+    }
+    
     /// Returns a sequence of values fetched from a fetch request.
     ///
     ///     let nameColumn = Column("name")
@@ -199,6 +227,11 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
 extension DatabaseValueConvertible where Self: StatementColumnConvertible {
 
     // MARK: Fetching From SQL
+    
+    /// TODO
+    public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
+        return try fetchCursor(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
+    }
     
     /// Returns a sequence of values fetched from an SQL query.
     ///

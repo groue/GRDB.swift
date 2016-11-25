@@ -243,6 +243,17 @@ public final class SelectStatement : Statement {
         return columnIndexes[name.lowercased()]
     }
     
+    func fetchCursor<Element>(arguments: StatementArguments? = nil, element: @escaping () throws -> Element) throws -> DatabaseCursor<Element> {
+        // Check that cursor is built on a valid queue.
+        SchedulingWatchdog.preconditionValidQueue(database, "Database was not used on the correct thread. Create cursors in a protected dispatch queue.")
+        
+        // Force arguments validity. See UpdateStatement.execute(), and Database.execute()
+        try! prepare(withArguments: arguments)
+        
+        try reset()
+        return DatabaseCursor(statement: self, element: element)
+    }
+    
     /// Creates a DatabaseSequence
     func fetchSequence<Element>(arguments: StatementArguments? = nil, element: @escaping () -> Element) -> DatabaseSequence<Element> {
         // Force arguments validity. See UpdateStatement.execute(), and Database.execute()
@@ -264,18 +275,7 @@ public struct DatabaseSequence<Element>: Sequence {
             // Support multiple sequence iterations
             try statement.reset()
             
-            let statementRef = Unmanaged.passRetained(statement)
-            return DatabaseIterator(statementRef: statementRef) { (sqliteStatement, statementRef) in
-                switch sqlite3_step(sqliteStatement) {
-                case SQLITE_DONE:
-                    return nil
-                case SQLITE_ROW:
-                    return element()
-                case let errorCode:
-                    let statement = statementRef.takeUnretainedValue()
-                    throw DatabaseError(code: errorCode, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
-                }
-            }
+            return DatabaseIterator(cursor: DatabaseCursor(statement: statement, element: element))
         }
     }
     
@@ -286,7 +286,7 @@ public struct DatabaseSequence<Element>: Sequence {
         return DatabaseSequence() {
             // Check that iterator is built on a valid queue.
             SchedulingWatchdog.preconditionValidQueue(database, "Database was not used on the correct thread. Iterate sequences in a protected dispatch queue, or consider using an array returned by fetchAll() instead.")
-            return DatabaseIterator()
+            return DatabaseIterator(cursor: nil)
         }
     }
     
@@ -300,27 +300,20 @@ public struct DatabaseSequence<Element>: Sequence {
     }
 }
 
-/// A iterator of elements fetched from the database.
-public final class DatabaseIterator<Element>: IteratorProtocol {
-    private let statementRef: Unmanaged<SelectStatement>?
-    private let sqliteStatement: SQLiteStatement?
-    private let element: ((SQLiteStatement, Unmanaged<SelectStatement>) throws -> Element?)?
+/// A cursor on a statement
+public final class DatabaseCursor<Element> {
+    private let statementRef: Unmanaged<SelectStatement>
+    private let sqliteStatement: SQLiteStatement
+    private let element: () throws -> Element?
     
-    // Iterator takes ownership of statementRef
-    init(statementRef: Unmanaged<SelectStatement>, element: @escaping (SQLiteStatement, Unmanaged<SelectStatement>) throws -> Element?) {
-        self.statementRef = statementRef
+    init(statement: SelectStatement, element: @escaping () throws -> Element?) {
+        self.statementRef = Unmanaged.passRetained(statement)
         self.sqliteStatement = statementRef.takeUnretainedValue().sqliteStatement
         self.element = element
     }
     
-    init() {
-        self.statementRef = nil
-        self.sqliteStatement = nil
-        self.element = nil
-    }
-    
     deinit {
-        statementRef?.release()
+        statementRef.release()
     }
     
     /// Advances to the next element and returns it, or `nil` if no next element
@@ -331,10 +324,9 @@ public final class DatabaseIterator<Element>: IteratorProtocol {
     /// iterator, and then call the iterator's `next()` method until it
     /// returns `nil`.
     ///
-    ///     let rows = Row.fetch(db, "SELECT ...")
-    ///     var iterator = rows.makeIterator()
+    ///     let cursor = try Row.fetchCursor(db, "SELECT ...")
     ///
-    ///     while let row = try iterator.step() {
+    ///     while let row = try cursor.step() {
     ///         print(row)
     ///     }
     ///
@@ -342,8 +334,24 @@ public final class DatabaseIterator<Element>: IteratorProtocol {
     ///   exists; otherwise, `nil`.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func step() throws -> Element? {
-        guard let element = element else { return nil }
-        return try element(sqliteStatement.unsafelyUnwrapped, statementRef.unsafelyUnwrapped)
+        switch sqlite3_step(sqliteStatement) {
+        case SQLITE_DONE:
+            return nil
+        case SQLITE_ROW:
+            return try element()
+        case let errorCode:
+            let statement = statementRef.takeUnretainedValue()
+            throw DatabaseError(code: errorCode, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
+        }
+    }
+}
+
+/// A iterator of elements fetched from the database.
+public final class DatabaseIterator<Element>: IteratorProtocol {
+    let cursor: DatabaseCursor<Element>?
+    
+    init(cursor: DatabaseCursor<Element>?) {
+        self.cursor = cursor
     }
     
     /// Advances to the next element and returns it, or `nil` if no next element
@@ -364,7 +372,7 @@ public final class DatabaseIterator<Element>: IteratorProtocol {
     /// - returns: The next element in the underlying sequence if a next element
     ///   exists; otherwise, `nil`.
     public func next() -> Element? {
-        return try! step()
+        return try! cursor?.step()
     }
 }
 

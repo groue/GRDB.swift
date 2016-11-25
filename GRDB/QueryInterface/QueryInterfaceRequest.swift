@@ -30,6 +30,11 @@ extension QueryInterfaceRequest where T: RowConvertible {
     
     // MARK: Fetching Record and RowConvertible
     
+    /// TODO
+    public func fetchCursor(_ db: Database) throws -> DatabaseCursor<T> {
+        return try T.fetchCursor(db, self)
+    }
+    
     /// A sequence of fetched records.
     ///
     ///     let nameColumn = Column("name")
@@ -482,6 +487,11 @@ extension TableMapping {
 extension RowConvertible where Self: TableMapping {
     
     // MARK: Fetching All
+    
+    /// TODO
+    public static func fetchCursor(_ db: Database) throws -> DatabaseCursor<Self> {
+        return try all().fetchCursor(db)
+    }
     
     /// A sequence of all records fetched from the database.
     ///

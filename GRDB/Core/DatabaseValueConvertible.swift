@@ -1,3 +1,21 @@
+#if !USING_BUILTIN_SQLITE
+    #if os(OSX)
+        import SQLiteMacOSX
+    #elseif os(iOS)
+        #if (arch(i386) || arch(x86_64))
+            import SQLiteiPhoneSimulator
+        #else
+            import SQLiteiPhoneOS
+        #endif
+    #elseif os(watchOS)
+        #if (arch(i386) || arch(x86_64))
+            import SQLiteWatchSimulator
+        #else
+            import SQLiteWatchOS
+        #endif
+    #endif
+#endif
+
 // MARK: - SQLExpressible
 
 /// The protocol for all types that can be turned into an SQL expression.
@@ -76,6 +94,22 @@ public extension DatabaseValueConvertible {
     
     // MARK: Fetching From SelectStatement
     
+    /// TODO
+    public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
+        // Metal rows can be reused. And reusing them yields better performance.
+        let row = try Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
+        return try statement.fetchCursor(arguments: arguments) { () -> Self in
+            let dbv: DatabaseValue = row.value(atIndex: 0)
+            if dbv.isNull {
+                throw DatabaseError(code: SQLITE_ERROR, message: "could not convert database NULL value to \(Self.self)", sql: statement.sql, arguments: arguments)
+            } else if let value = Self.fromDatabaseValue(dbv) {
+                return value
+            } else {
+                throw DatabaseError(code: SQLITE_ERROR, message: "could not convert database value \(dbv) to \(Self.self)", sql: statement.sql, arguments: arguments)
+            }
+        }
+    }
+    
     /// Returns a sequence of values fetched from a prepared statement.
     ///
     ///     let statement = db.makeSelectStatement("SELECT name FROM ...")
@@ -149,6 +183,12 @@ extension DatabaseValueConvertible {
     
     // MARK: Fetching From FetchRequest
     
+    /// TODO
+    public static func fetchCursor(_ db: Database, _ request: FetchRequest) throws -> DatabaseCursor<Self> {
+        let (statement, adapter) = try request.prepare(db)
+        return try fetchCursor(statement, adapter: adapter)
+    }
+    
     /// Returns a sequence of values fetched from a fetch request.
     ///
     ///     let nameColumn = Column("name")
@@ -203,6 +243,11 @@ extension DatabaseValueConvertible {
 extension DatabaseValueConvertible {
 
     // MARK: Fetching From SQL
+    
+    /// TODO
+    public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
+        return try fetchCursor(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
+    }
     
     /// Returns a sequence of values fetched from an SQL query.
     ///
@@ -278,6 +323,21 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
     
     // MARK: Fetching From SelectStatement
     
+    /// TODO
+    public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Wrapped?> {
+        let row = try Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
+        return try statement.fetchCursor(arguments: arguments) { () -> Wrapped? in
+            let dbv: DatabaseValue = row.value(atIndex: 0)
+            if dbv.isNull {
+                return nil
+            } else if let value = Wrapped.fromDatabaseValue(dbv) {
+                return value
+            } else {
+                throw DatabaseError(code: SQLITE_ERROR, message: "could not convert database value \(dbv) to \(Wrapped.self)", sql: statement.sql, arguments: arguments)
+            }
+        }
+    }
+    
     /// Returns a sequence of optional values fetched from a prepared statement.
     ///
     ///     let statement = db.makeSelectStatement("SELECT name FROM ...")
@@ -327,6 +387,12 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     
     // MARK: Fetching From FetchRequest
     
+    /// TODO
+    public static func fetchCursor(_ db: Database, _ request: FetchRequest) throws -> DatabaseCursor<Wrapped?> {
+        let (statement, adapter) = try request.prepare(db)
+        return try fetchCursor(statement, adapter: adapter)
+    }
+    
     /// Returns a sequence of optional values fetched from a fetch request.
     ///
     ///     let nameColumn = Column("name")
@@ -366,6 +432,11 @@ extension Optional where Wrapped: DatabaseValueConvertible {
 extension Optional where Wrapped: DatabaseValueConvertible {
     
     // MARK: Fetching From SQL
+    
+    /// TODO
+    public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Wrapped?> {
+        return try fetchCursor(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
+    }
     
     /// Returns a sequence of optional values fetched from an SQL query.
     ///

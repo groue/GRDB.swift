@@ -44,6 +44,16 @@ extension RowConvertible {
     
     // MARK: Fetching From SelectStatement
     
+    /// TODO
+    public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
+        let row = try Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
+        return try statement.fetchCursor(arguments: arguments) {
+            var value = self.init(row: row)
+            value.awakeFromFetch(row: row)
+            return value
+        }
+    }
+    
     /// Returns a sequence of records fetched from a prepared statement.
     ///
     ///     let statement = db.makeSelectStatement("SELECT * FROM persons")
@@ -109,6 +119,12 @@ extension RowConvertible {
     
     // MARK: Fetching From FetchRequest
     
+    /// TODO
+    public static func fetchCursor(_ db: Database, _ request: FetchRequest) throws -> DatabaseCursor<Self> {
+        let (statement, adapter) = try request.prepare(db)
+        return try fetchCursor(statement, adapter: adapter)
+    }
+    
     /// Returns a sequence of records fetched from a fetch request.
     ///
     ///     let nameColumn = Column("firstName")
@@ -160,6 +176,11 @@ extension RowConvertible {
 extension RowConvertible {
     
     // MARK: Fetching From SQL
+    
+    /// TODO
+    public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
+        return try fetchCursor(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
+    }
     
     /// Returns a sequence of records fetched from an SQL query.
     ///

@@ -502,6 +502,13 @@ extension Row {
     
     // MARK: - Fetching From SelectStatement
     
+    /// TODO
+    public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Row> {
+        // Metal rows can be reused. And reusing them yields better performance.
+        let row = try Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
+        return try statement.fetchCursor(arguments: arguments) { row }
+    }
+    
     /// Returns a sequence of rows fetched from a prepared statement.
     ///
     ///     let statement = db.makeSelectStatement("SELECT ...")
@@ -599,6 +606,12 @@ extension Row {
     
     // MARK: - Fetching From FetchRequest
     
+    /// TODO
+    public static func fetchCursor(_ db: Database, _ request: FetchRequest) throws -> DatabaseCursor<Row> {
+        let (statement, adapter) = try request.prepare(db)
+        return try fetchCursor(statement, adapter: adapter)
+    }
+    
     /// Returns a sequence of rows fetched from a fetch request.
     ///
     ///     let idColumn = Column("id")
@@ -664,6 +677,11 @@ extension Row {
 extension Row {
     
     // MARK: - Fetching From SQL
+    
+    /// TODO
+    public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Row> {
+        return try fetchCursor(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
+    }
     
     /// Returns a sequence of rows fetched from an SQL query.
     ///

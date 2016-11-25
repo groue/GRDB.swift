@@ -54,6 +54,14 @@ extension RowConvertible where Self: TableMapping {
     
     // MARK: - Fetching by Single-Column Primary Key
     
+    /// TODO
+    public static func fetchCursor<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> DatabaseCursor<Self>? where Sequence.Iterator.Element: DatabaseValueConvertible {
+        guard let statement = try makeFetchByPrimaryKeyStatement(db, keys: keys) else {
+            return nil
+        }
+        return try fetchCursor(statement)
+    }
+    
     /// Returns a sequence of records, given their primary keys.
     ///
     ///     let persons = Person.fetch(db, keys: [1, 2, 3]) // DatabaseSequence<Person>
@@ -214,6 +222,14 @@ extension TableMapping {
 extension RowConvertible where Self: TableMapping {
 
     // MARK: - Fetching by Key
+    
+    /// TODO
+    public static func fetchCursor(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> DatabaseCursor<Self>? {
+        guard let statement = try makeFetchByKeyStatement(db, keys: keys) else {
+            return nil
+        }
+        return try fetchCursor(statement)
+    }
     
     /// Returns a sequence of records identified by the provided unique keys
     /// (primary key or any key with a unique index on it).
