@@ -361,4 +361,15 @@ class MetalRowTests : RowTestCase {
             }
         }
     }
+    
+    func testDatabaseSequenceMap() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                let sequence: DatabaseSequence<Row> = Row.fetch(db, "SELECT 1 UNION SELECT 2 UNION SELECT 3")
+                let values = sequence.map { $0.value(atIndex: 0) as Int }
+                XCTAssertEqual(values, [1, 2, 3])
+            }
+        }
+    }
 }
