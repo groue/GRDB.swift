@@ -65,7 +65,7 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
 
         let sqliteStatement = statement.sqliteStatement
         return try statement.fetchCursor(arguments: arguments) {
-            guard sqlite3_column_type(sqliteStatement, columnIndex) != SQLITE_NULL else {
+            if sqlite3_column_type(sqliteStatement, columnIndex) == SQLITE_NULL {
                 throw DatabaseError(code: SQLITE_ERROR, message: "could not convert database NULL value to \(Self.self)", sql: statement.sql, arguments: arguments)
             }
             return Self.init(sqliteStatement: sqliteStatement, index: columnIndex)
@@ -95,22 +95,7 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
     ///     - adapter: Optional RowAdapter
     /// - returns: A sequence of values.
     public static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Self> {
-        // We'll read from leftmost column at index 0, unless adapter mangle columns
-        let columnIndex: Int32
-        if let adapter = adapter {
-            let concreteAdapter = try! adapter.concreteRowAdapter(with: statement)
-            columnIndex = Int32(concreteAdapter.concreteColumnMapping.baseColumIndex(adaptedIndex: 0))
-        } else {
-            columnIndex = 0
-        }
-
-        let sqliteStatement = statement.sqliteStatement
-        return statement.fetchSequence(arguments: arguments) {
-            guard sqlite3_column_type(sqliteStatement, columnIndex) != SQLITE_NULL else {
-                fatalError("could not convert database NULL value to \(Self.self)")
-            }
-            return Self.init(sqliteStatement: sqliteStatement, index: columnIndex)
-        }
+        return statement.fetch { try fetchCursor(statement, arguments: arguments, adapter: adapter) }
     }
     
     /// Returns an array of values fetched from a prepared statement.
@@ -138,27 +123,23 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional value.
     public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Self? {
+        // We'll read from leftmost column at index 0, unless adapter mangle columns
+        let columnIndex: Int32
         if let adapter = adapter {
-            let row = try! Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
-            let sequence = statement.fetchSequence(arguments: arguments) {
-                row.value(atIndex: 0) as Self?
-            }
-            if let value = sequence.makeIterator().next() {
-                return value
-            }
-            return nil
+            let concreteAdapter = try! adapter.concreteRowAdapter(with: statement)
+            columnIndex = Int32(concreteAdapter.concreteColumnMapping.baseColumIndex(adaptedIndex: 0))
         } else {
-            let sqliteStatement = statement.sqliteStatement
-            let sequence = statement.fetchSequence(arguments: arguments) {
-                (sqlite3_column_type(sqliteStatement, 0) == SQLITE_NULL) ?
-                    (nil as Self?) :
-                    Self.init(sqliteStatement: sqliteStatement, index: 0)
-            }
-            if let value = sequence.makeIterator().next() {
-                return value
-            }
-            return nil
+            columnIndex = 0
         }
+        
+        let sqliteStatement = statement.sqliteStatement
+        let cursor = try! statement.fetchCursor(arguments: arguments) { () -> Self? in
+            if sqlite3_column_type(sqliteStatement, columnIndex) == SQLITE_NULL {
+                return nil
+            }
+            return Self.init(sqliteStatement: sqliteStatement, index: columnIndex)
+        }
+        return try! cursor.step() ?? nil
     }
 }
 

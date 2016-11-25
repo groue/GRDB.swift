@@ -544,11 +544,7 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: A sequence of rows.
     public static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Row> {
-        // Metal rows can be reused. And reusing them yields better performance.
-        let row = try! Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
-        return statement.fetchSequence(arguments: arguments) {
-            row
-        }
+        return statement.fetch { try fetchCursor(statement, arguments: arguments, adapter: adapter) }
     }
     
     /// Returns an array of rows fetched from a prepared statement.
@@ -562,20 +558,7 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of rows.
     public static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Row] {
-        let sqliteStatement = statement.sqliteStatement
-        let columnNames = statement.columnNames
-        let sequence: DatabaseSequence<Row>
-        if let adapter = adapter {
-            let concreteRowAdapter = try! adapter.concreteRowAdapter(with: statement)
-            sequence = statement.fetchSequence(arguments: arguments) {
-                Row(baseRow: Row(copiedFromSQLiteStatement: sqliteStatement, columnNames: columnNames), concreteRowAdapter: concreteRowAdapter)
-            }
-        } else {
-            sequence = statement.fetchSequence(arguments: arguments) {
-                Row(copiedFromSQLiteStatement: sqliteStatement, columnNames: columnNames)
-            }
-        }
-        return Array(sequence)
+        return try! fetchCursor(statement, arguments: arguments, adapter: adapter).map { $0.copy() }
     }
     
     /// Returns a single row fetched from a prepared statement.
@@ -589,15 +572,8 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional row.
     public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Row? {
-        let sqliteStatement = statement.sqliteStatement
-        let columnNames = statement.columnNames
-        let sequence = statement.fetchSequence(arguments: arguments) {
-            Row(copiedFromSQLiteStatement: sqliteStatement, columnNames: columnNames)
-        }
-        guard let row = sequence.makeIterator().next() else {
-            return nil
-        }
-        return try! row.adaptedRow(adapter: adapter, statement: statement)
+        let cursor = try! fetchCursor(statement, arguments: arguments, adapter: adapter)
+        return try! cursor.step().flatMap { $0.copy() }
     }
 }
 

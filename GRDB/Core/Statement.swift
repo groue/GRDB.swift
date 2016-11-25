@@ -243,9 +243,10 @@ public final class SelectStatement : Statement {
         return columnIndexes[name.lowercased()]
     }
     
+    /// Creates a DatabaseCursor
     func fetchCursor<Element>(arguments: StatementArguments? = nil, element: @escaping () throws -> Element) throws -> DatabaseCursor<Element> {
         // Check that cursor is built on a valid queue.
-        SchedulingWatchdog.preconditionValidQueue(database, "Database was not used on the correct thread. Create cursors in a protected dispatch queue.")
+        SchedulingWatchdog.preconditionValidQueue(database, "Database was not used on the correct thread.")
         
         // Force arguments validity. See UpdateStatement.execute(), and Database.execute()
         try! prepare(withArguments: arguments)
@@ -255,48 +256,37 @@ public final class SelectStatement : Statement {
     }
     
     /// Creates a DatabaseSequence
-    func fetchSequence<Element>(arguments: StatementArguments? = nil, element: @escaping () -> Element) -> DatabaseSequence<Element> {
-        // Force arguments validity. See UpdateStatement.execute(), and Database.execute()
-        try! prepare(withArguments: arguments)
-        return DatabaseSequence(statement: self, element: element)
+    func fetch<Element>(cursor: @escaping () throws -> DatabaseCursor<Element>) -> DatabaseSequence<Element> {
+        return DatabaseSequence(cursor: cursor)
     }
 }
 
 /// A sequence of elements fetched from the database.
 public struct DatabaseSequence<Element>: Sequence {
-    private let makeIteratorImpl: () throws -> DatabaseIterator<Element>
+    private let iterator: () -> DatabaseIterator<Element>
     
     // Statement sequence
-    fileprivate init(statement: SelectStatement, element: @escaping () -> Element) {
-        self.makeIteratorImpl = {
-            // Check that iterator is built on a valid queue.
-            SchedulingWatchdog.preconditionValidQueue(statement.database, "Database was not used on the correct thread. Iterate sequences in a protected dispatch queue, or consider using an array returned by fetchAll() instead.")
-            
-            // Support multiple sequence iterations
-            try statement.reset()
-            
-            return DatabaseIterator(cursor: DatabaseCursor(statement: statement, element: element))
-        }
+    init(cursor: @escaping () throws -> DatabaseCursor<Element>) {
+        self.init(iterator: { try! DatabaseIterator(cursor: cursor()) })
     }
     
     // Empty sequence
     static func makeEmptySequence(inDatabase database: Database) -> DatabaseSequence {
         // Empty sequence is just as strict as statement sequence, and requires
         // to be used on the database queue.
-        return DatabaseSequence() {
-            // Check that iterator is built on a valid queue.
-            SchedulingWatchdog.preconditionValidQueue(database, "Database was not used on the correct thread. Iterate sequences in a protected dispatch queue, or consider using an array returned by fetchAll() instead.")
+        return DatabaseSequence(iterator: {
+            SchedulingWatchdog.preconditionValidQueue(database, "Database was not used on the correct thread.")
             return DatabaseIterator(cursor: nil)
-        }
+        })
     }
     
-    private init(_ makeIteratorImpl: @escaping () throws -> DatabaseIterator<Element>) {
-        self.makeIteratorImpl = makeIteratorImpl
+    private init(iterator: @escaping () -> DatabaseIterator<Element>) {
+        self.iterator = iterator
     }
     
     /// Return a *iterator* over the elements of this *sequence*.
     public func makeIterator() -> DatabaseIterator<Element> {
-        return try! makeIteratorImpl()
+        return iterator()
     }
 }
 
@@ -392,7 +382,6 @@ extension DatabaseCursor {
         }
         return result
     }
-
 }
 
 

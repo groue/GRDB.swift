@@ -77,12 +77,7 @@ extension RowConvertible {
     ///     - adapter: Optional RowAdapter
     /// - returns: A sequence of records.
     public static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Self> {
-        let row = try! Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
-        return statement.fetchSequence(arguments: arguments) {
-            var value = self.init(row: row)
-            value.awakeFromFetch(row: row)
-            return value
-        }
+        return statement.fetch { try fetchCursor(statement, arguments: arguments, adapter: adapter) }
     }
     
     /// Returns an array of records fetched from a prepared statement.

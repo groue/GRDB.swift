@@ -100,9 +100,7 @@ public extension DatabaseValueConvertible {
         let row = try Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
         return try statement.fetchCursor(arguments: arguments) { () -> Self in
             let dbv: DatabaseValue = row.value(atIndex: 0)
-            if dbv.isNull {
-                throw DatabaseError(code: SQLITE_ERROR, message: "could not convert database NULL value to \(Self.self)", sql: statement.sql, arguments: arguments)
-            } else if let value = Self.fromDatabaseValue(dbv) {
+            if let value = Self.fromDatabaseValue(dbv) {
                 return value
             } else {
                 throw DatabaseError(code: SQLITE_ERROR, message: "could not convert database value \(dbv) to \(Self.self)", sql: statement.sql, arguments: arguments)
@@ -133,10 +131,7 @@ public extension DatabaseValueConvertible {
     ///     - adapter: Optional RowAdapter
     /// - returns: A sequence.
     public static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Self> {
-        let row = try! Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
-        return statement.fetchSequence(arguments: arguments) {
-            row.value(atIndex: 0)
-        }
+        return statement.fetch { try fetchCursor(statement, arguments: arguments, adapter: adapter) }
     }
     
     /// Returns an array of values fetched from a prepared statement.
@@ -167,14 +162,8 @@ public extension DatabaseValueConvertible {
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional value.
     public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Self? {
-        let row = try! Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
-        let sequence = statement.fetchSequence(arguments: arguments) {
-            row.value(atIndex: 0) as Self?
-        }
-        if let value = sequence.makeIterator().next() {
-            return value
-        }
-        return nil
+        let cursor = try! DatabaseValue.fetchCursor(statement, arguments: arguments, adapter: adapter)
+        return try! cursor.step().flatMap { Self.fromDatabaseValue($0) }
     }
 }
 
@@ -328,10 +317,10 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
         let row = try Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
         return try statement.fetchCursor(arguments: arguments) { () -> Wrapped? in
             let dbv: DatabaseValue = row.value(atIndex: 0)
-            if dbv.isNull {
-                return nil
-            } else if let value = Wrapped.fromDatabaseValue(dbv) {
+            if let value = Wrapped.fromDatabaseValue(dbv) {
                 return value
+            } else if dbv.isNull {
+                return nil
             } else {
                 throw DatabaseError(code: SQLITE_ERROR, message: "could not convert database value \(dbv) to \(Wrapped.self)", sql: statement.sql, arguments: arguments)
             }
@@ -361,10 +350,7 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
     ///     - adapter: Optional RowAdapter
     /// - returns: A sequence of optional values.
     public static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Wrapped?> {
-        let row = try! Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
-        return statement.fetchSequence(arguments: arguments) {
-            row.value(atIndex: 0) as Wrapped?
-        }
+        return statement.fetch { try fetchCursor(statement, arguments: arguments, adapter: adapter) }
     }
     
     /// Returns an array of optional values fetched from a prepared statement.
