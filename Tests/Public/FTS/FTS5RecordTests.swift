@@ -74,7 +74,7 @@ class FTS5RecordTests: GRDBTestCase {
                 try book.insert(db)
                 XCTAssertTrue(book.id != nil)
                 
-                let fetchedBook = Book.matching(FTS5Pattern(matchingAllTokensIn: "Herman Melville")!).fetchOne(db)!
+                let fetchedBook = try Book.matching(FTS5Pattern(matchingAllTokensIn: "Herman Melville")!).fetchOne(db)!
                 XCTAssertEqual(fetchedBook.id, book.id)
                 XCTAssertEqual(fetchedBook.title, book.title)
                 XCTAssertEqual(fetchedBook.author, book.author)
@@ -93,7 +93,7 @@ class FTS5RecordTests: GRDBTestCase {
                 }
                 
                 let pattern = FTS5Pattern(matchingAllTokensIn: "Herman Melville")!
-                XCTAssertEqual(Book.matching(pattern).fetchCount(db), 1)
+                XCTAssertEqual(try Book.matching(pattern).fetchCount(db), 1)
             }
         }
     }
@@ -109,7 +109,7 @@ class FTS5RecordTests: GRDBTestCase {
                 
                 let pattern = FTS5Pattern(matchingAllTokensIn: "")
                 XCTAssertTrue(pattern == nil)
-                XCTAssertEqual(Book.matching(pattern).fetchCount(db), 0)
+                XCTAssertEqual(try Book.matching(pattern).fetchCount(db), 0)
             }
         }
     }
@@ -124,10 +124,10 @@ class FTS5RecordTests: GRDBTestCase {
                 }
                 
                 let pattern = FTS5Pattern(matchingAllTokensIn: "Herman Melville")!
-                XCTAssertEqual(Book.matching(pattern).fetchCount(db), 1)
+                XCTAssertEqual(try Book.matching(pattern).fetchCount(db), 1)
                 XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"books\" WHERE (\"books\" MATCH 'herman melville')")
                 
-                XCTAssertEqual(Book.fetchCount(db), 1)
+                XCTAssertEqual(try Book.fetchCount(db), 1)
                 XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"books\"")
             }
         }

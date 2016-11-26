@@ -23,8 +23,8 @@ class DatabasePoolFunctionTests: GRDBTestCase {
                 try db.execute("CREATE TABLE items (text TEXT)")
                 try db.execute("INSERT INTO items (text) VALUES (function1('a'))")
             }
-            dbPool.read { db in
-                XCTAssertEqual(String.fetchOne(db, "SELECT function1(text) FROM items")!, "a")
+            try dbPool.read { db in
+                XCTAssertEqual(try String.fetchOne(db, "SELECT function1(text) FROM items")!, "a")
             }
             
             let function2 = DatabaseFunction("function2", argumentCount: 1, pure: true) { (databaseValues: [DatabaseValue]) in
@@ -32,8 +32,8 @@ class DatabasePoolFunctionTests: GRDBTestCase {
             }
             dbPool.add(function: function2)
             
-            dbPool.read { db in
-                XCTAssertTrue(String.fetchOne(db, "SELECT function2(text) FROM items") == "foo")
+            try dbPool.read { db in
+                XCTAssertTrue(try String.fetchOne(db, "SELECT function2(text) FROM items") == "foo")
             }
         }
     }

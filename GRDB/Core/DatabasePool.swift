@@ -260,13 +260,13 @@ extension DatabasePool : DatabaseReader {
     ///     dbPool.read { db in
     ///         // Those two values are guaranteed to be equal, even if the
     ///         // `wines` table is modified between the two requests:
-    ///         let count1 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
-    ///         let count2 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
     ///     }
     ///
     ///     dbPool.read { db in
     ///         // Now this value may be different:
-    ///         let count = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
     ///     }
     ///
     /// This method is *not* reentrant.
@@ -300,8 +300,8 @@ extension DatabasePool : DatabaseReader {
     ///     dbPool.nonIsolatedRead { db in
     ///         // Those two values may be different because some other thread
     ///         // may have inserted or deleted a wine between the two requests:
-    ///         let count1 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
-    ///         let count2 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
     ///     }
     ///
     /// This method is *not* reentrant.

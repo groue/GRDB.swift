@@ -77,7 +77,7 @@ extension RowConvertible where Self: TableMapping {
     
     /// Returns an array of records, given their primary keys.
     ///
-    ///     let persons = Person.fetchAll(db, keys: [1, 2, 3]) // [Person]
+    ///     let persons = try Person.fetchAll(db, keys: [1, 2, 3]) // [Person]
     ///
     /// The order of records in the returned array is undefined.
     ///
@@ -85,26 +85,28 @@ extension RowConvertible where Self: TableMapping {
     ///     - db: A database connection.
     ///     - keys: A sequence of primary keys.
     /// - returns: An array of records.
-    public static func fetchAll<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) -> [Self] where Sequence.Iterator.Element: DatabaseValueConvertible {
-        guard let statement = try! makeFetchByPrimaryKeyStatement(db, keys: keys) else {
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchAll<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> [Self] where Sequence.Iterator.Element: DatabaseValueConvertible {
+        guard let statement = try makeFetchByPrimaryKeyStatement(db, keys: keys) else {
             return []
         }
-        return fetchAll(statement)
+        return try fetchAll(statement)
     }
     
     /// Returns a single record given its primary key.
     ///
-    ///     let person = Person.fetchOne(db, key: 123) // Person?
+    ///     let person = try Person.fetchOne(db, key: 123) // Person?
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - key: A primary key value.
     /// - returns: An optional record.
-    public static func fetchOne<PrimaryKeyType: DatabaseValueConvertible>(_ db: Database, key: PrimaryKeyType?) -> Self? {
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchOne<PrimaryKeyType: DatabaseValueConvertible>(_ db: Database, key: PrimaryKeyType?) throws -> Self? {
         guard let key = key else {
             return nil
         }
-        return try! fetchOne(makeFetchByPrimaryKeyStatement(db, keys: [key])!)
+        return try fetchOne(makeFetchByPrimaryKeyStatement(db, keys: [key])!)
     }
     
     // Returns "SELECT * FROM table WHERE id IN (?,?,?)"
@@ -244,7 +246,7 @@ extension RowConvertible where Self: TableMapping {
     /// Returns an array of records identified by the provided unique keys
     /// (primary key or any key with a unique index on it).
     ///
-    ///     let persons = Person.fetchAll(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]]) // [Person]
+    ///     let persons = try Person.fetchAll(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]]) // [Person]
     ///
     /// The order of records in the returned array is undefined.
     ///
@@ -252,24 +254,26 @@ extension RowConvertible where Self: TableMapping {
     ///     - db: A database connection.
     ///     - keys: An array of key dictionaries.
     /// - returns: An array of records.
-    public static func fetchAll(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) -> [Self] {
-        guard let statement = try! makeFetchByKeyStatement(db, keys: keys) else {
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchAll(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> [Self] {
+        guard let statement = try makeFetchByKeyStatement(db, keys: keys) else {
             return []
         }
-        return fetchAll(statement)
+        return try fetchAll(statement)
     }
     
     /// Returns a single record identified by a unique key (the primary key or
     /// any key with a unique index on it).
     ///
-    ///     let person = Person.fetchOne(db, key: ["name": Arthur"]) // Person?
+    ///     let person = try Person.fetchOne(db, key: ["name": Arthur"]) // Person?
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - key: A dictionary of values.
     /// - returns: An optional record.
-    public static func fetchOne(_ db: Database, key: [String: DatabaseValueConvertible?]) -> Self? {
-        return try! fetchOne(makeFetchByKeyStatement(db, keys: [key])!)
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchOne(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Self? {
+        return try fetchOne(makeFetchByKeyStatement(db, keys: [key])!)
     }
     
     // Returns "SELECT * FROM table WHERE (a = ? AND b = ?) OR (a = ? AND b = ?) ...

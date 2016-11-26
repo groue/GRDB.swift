@@ -152,7 +152,7 @@ extension SQLSpecificExpressible {
     ///
     ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn.capitalized)
-    ///     let names = String.fetchAll(dbQueue, request)   // [String]
+    ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     public var capitalized: SQLExpression {
         return DatabaseFunction.capitalize.apply(sqlExpression)
     }
@@ -162,7 +162,7 @@ extension SQLSpecificExpressible {
     ///
     ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn.lowercased())
-    ///     let names = String.fetchAll(dbQueue, request)   // [String]
+    ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     public var lowercased: SQLExpression {
         return DatabaseFunction.lowercase.apply(sqlExpression)
     }
@@ -172,7 +172,7 @@ extension SQLSpecificExpressible {
     ///
     ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn.uppercased())
-    ///     let names = String.fetchAll(dbQueue, request)   // [String]
+    ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     public var uppercased: SQLExpression {
         return DatabaseFunction.uppercase.apply(sqlExpression)
     }
@@ -184,7 +184,7 @@ extension SQLSpecificExpressible {
     ///
     ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn.localizedCapitalized)
-    ///     let names = String.fetchAll(dbQueue, request)   // [String]
+    ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
     public var localizedCapitalized: SQLExpression {
         return DatabaseFunction.localizedCapitalize.apply(sqlExpression)
@@ -195,7 +195,7 @@ extension SQLSpecificExpressible {
     ///
     ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn.localizedLowercased)
-    ///     let names = String.fetchAll(dbQueue, request)   // [String]
+    ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
     public var localizedLowercased: SQLExpression {
         return DatabaseFunction.localizedLowercase.apply(sqlExpression)
@@ -206,7 +206,7 @@ extension SQLSpecificExpressible {
     ///
     ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn.localizedUppercased)
-    ///     let names = String.fetchAll(dbQueue, request)   // [String]
+    ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
     public var localizedUppercased: SQLExpression {
         return DatabaseFunction.localizedUppercase.apply(sqlExpression)

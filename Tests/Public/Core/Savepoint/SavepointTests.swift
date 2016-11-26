@@ -11,9 +11,9 @@ func insertItem(_ db: Database, name: String) throws {
     try db.execute("INSERT INTO items (name) VALUES (?)", arguments: [name])
 }
 
-func fetchAllItemNames(_ dbReader: DatabaseReader) -> [String] {
-    return dbReader.read { db in
-        String.fetchAll(db, "SELECT * FROM items ORDER BY name")
+func fetchAllItemNames(_ dbReader: DatabaseReader) throws -> [String] {
+    return try dbReader.read { db in
+        try String.fetchAll(db, "SELECT * FROM items ORDER BY name")
     }
 }
 
@@ -85,7 +85,7 @@ class SavepointTests: GRDBTestCase {
                 "RELEASE SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item3')"
                 ])
-            XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item2", "item3"])
+            XCTAssertEqual(try fetchAllItemNames(dbQueue), ["item1", "item2", "item3"])
             XCTAssertEqual(observer.allRecordedEvents.count, 3)
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 3)
@@ -117,7 +117,7 @@ class SavepointTests: GRDBTestCase {
                 "ROLLBACK TRANSACTION",
                 "INSERT INTO items (name) VALUES ('item3')"
                 ])
-            XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item3"])
+            XCTAssertEqual(try fetchAllItemNames(dbQueue), ["item1", "item3"])
             XCTAssertEqual(observer.allRecordedEvents.count, 2)
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 2)
@@ -160,7 +160,7 @@ class SavepointTests: GRDBTestCase {
                 "RELEASE SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item5')"
                 ])
-            XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item2", "item3", "item4", "item5"])
+            XCTAssertEqual(try fetchAllItemNames(dbQueue), ["item1", "item2", "item3", "item4", "item5"])
             XCTAssertEqual(observer.allRecordedEvents.count, 5)
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 5)
@@ -197,7 +197,7 @@ class SavepointTests: GRDBTestCase {
                 "ROLLBACK TRANSACTION",
                 "INSERT INTO items (name) VALUES ('item5')"
                 ])
-            XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item5"])
+            XCTAssertEqual(try fetchAllItemNames(dbQueue), ["item1", "item5"])
             XCTAssertEqual(observer.allRecordedEvents.count, 2)
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 2)
@@ -235,7 +235,7 @@ class SavepointTests: GRDBTestCase {
                 "RELEASE SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item5')"
                 ])
-            XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item2", "item4", "item5"])
+            XCTAssertEqual(try fetchAllItemNames(dbQueue), ["item1", "item2", "item4", "item5"])
             XCTAssertEqual(observer.allRecordedEvents.count, 4)
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 4)
@@ -273,7 +273,7 @@ class SavepointTests: GRDBTestCase {
                 "ROLLBACK TRANSACTION",
                 "INSERT INTO items (name) VALUES ('item5')"
                 ])
-            XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item5"])
+            XCTAssertEqual(try fetchAllItemNames(dbQueue), ["item1", "item5"])
             XCTAssertEqual(observer.allRecordedEvents.count, 2)
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 2)
@@ -307,7 +307,7 @@ class SavepointTests: GRDBTestCase {
                 "COMMIT TRANSACTION",
                 "INSERT INTO items (name) VALUES ('item3')"
                 ])
-            XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item2", "item3"])
+            XCTAssertEqual(try fetchAllItemNames(dbQueue), ["item1", "item2", "item3"])
             XCTAssertEqual(observer.allRecordedEvents.count, 3)
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 3)
@@ -339,7 +339,7 @@ class SavepointTests: GRDBTestCase {
                 "ROLLBACK TRANSACTION",
                 "INSERT INTO items (name) VALUES ('item3')"
                 ])
-            XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item3"])
+            XCTAssertEqual(try fetchAllItemNames(dbQueue), ["item1", "item3"])
             XCTAssertEqual(observer.allRecordedEvents.count, 3)
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 3)
@@ -381,7 +381,7 @@ class SavepointTests: GRDBTestCase {
                 "COMMIT TRANSACTION",
                 "INSERT INTO items (name) VALUES ('item5')"
                 ])
-            XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item2", "item3", "item4", "item5"])
+            XCTAssertEqual(try fetchAllItemNames(dbQueue), ["item1", "item2", "item3", "item4", "item5"])
             XCTAssertEqual(observer.allRecordedEvents.count, 5)
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 5)
@@ -418,7 +418,7 @@ class SavepointTests: GRDBTestCase {
                 "ROLLBACK TRANSACTION",
                 "INSERT INTO items (name) VALUES ('item5')"
                 ])
-            XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item5"])
+            XCTAssertEqual(try fetchAllItemNames(dbQueue), ["item1", "item5"])
             XCTAssertEqual(observer.allRecordedEvents.count, 5)
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 5)
@@ -456,7 +456,7 @@ class SavepointTests: GRDBTestCase {
                 "COMMIT TRANSACTION",
                 "INSERT INTO items (name) VALUES ('item5')"
                 ])
-            XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item2", "item4", "item5"])
+            XCTAssertEqual(try fetchAllItemNames(dbQueue), ["item1", "item2", "item4", "item5"])
             XCTAssertEqual(observer.allRecordedEvents.count, 4)
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 4)
@@ -494,7 +494,7 @@ class SavepointTests: GRDBTestCase {
                 "ROLLBACK TRANSACTION",
                 "INSERT INTO items (name) VALUES ('item5')"
                 ])
-            XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item5"])
+            XCTAssertEqual(try fetchAllItemNames(dbQueue), ["item1", "item5"])
             XCTAssertEqual(observer.allRecordedEvents.count, 4)
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 4)
@@ -522,7 +522,7 @@ class SavepointTests: GRDBTestCase {
                 
                 return .commit
             }
-            XCTAssertEqual(fetchAllItemNames(dbQueue), ["item2"])
+            XCTAssertEqual(try fetchAllItemNames(dbQueue), ["item2"])
             XCTAssertEqual(observer.allRecordedEvents.count, 1)
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 1)
@@ -553,7 +553,7 @@ class SavepointTests: GRDBTestCase {
                 
                 return .commit
             }
-            XCTAssertEqual(fetchAllItemNames(dbQueue), ["item2"])
+            XCTAssertEqual(try fetchAllItemNames(dbQueue), ["item2"])
             XCTAssertEqual(observer.allRecordedEvents.count, 1)
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 1)

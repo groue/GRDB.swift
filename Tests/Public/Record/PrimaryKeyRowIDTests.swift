@@ -89,7 +89,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 try record.insert(db)
                 XCTAssertTrue(record.id != nil)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
+                let row = try Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -110,7 +110,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 try record.insert(db)
                 XCTAssertTrue(record.id != nil)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
+                let row = try Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -132,7 +132,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 let record = Person(id: 123456, name: "Arthur")
                 try record.insert(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
+                let row = try Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -182,7 +182,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 try record.delete(db)
                 try record.insert(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
+                let row = try Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -236,7 +236,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 record.age = record.age! + 1
                 try record.update(db)
 
-                let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
+                let row = try Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -277,7 +277,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 try record.save(db)
                 XCTAssertTrue(record.id != nil)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
+                let row = try Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -296,7 +296,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 let record = Person(id: 123456, name: "Arthur")
                 try record.save(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
+                let row = try Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -319,7 +319,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 record.age = record.age! + 1
                 try record.save(db)   // Actual update
                 
-                let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
+                let row = try Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -340,7 +340,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 try record.delete(db)
                 try record.save(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
+                let row = try Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -386,7 +386,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 let deleted = try record.delete(db)
                 XCTAssertTrue(deleted)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])
+                let row = try Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])
                 XCTAssertTrue(row == nil)
             }
         }
@@ -452,18 +452,18 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 try record2.insert(db)
                 
                 do {
-                    let fetchedRecords = Person.fetchAll(db, keys: [])
+                    let fetchedRecords = try Person.fetchAll(db, keys: [])
                     XCTAssertEqual(fetchedRecords.count, 0)
                 }
                 
                 do {
-                    let fetchedRecords = Person.fetchAll(db, keys: [["id": record1.id], ["id": record2.id]])
+                    let fetchedRecords = try Person.fetchAll(db, keys: [["id": record1.id], ["id": record2.id]])
                     XCTAssertEqual(fetchedRecords.count, 2)
                     XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set([record1.id, record2.id]))
                 }
                 
                 do {
-                    let fetchedRecords = Person.fetchAll(db, keys: [["id": record1.id], ["id": nil]])
+                    let fetchedRecords = try Person.fetchAll(db, keys: [["id": record1.id], ["id": nil]])
                     XCTAssertEqual(fetchedRecords.count, 1)
                     XCTAssertEqual(fetchedRecords.first!.id, record1.id!)
                 }
@@ -478,7 +478,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 let record = Person(name: "Arthur")
                 try record.insert(db)
                 
-                let fetchedRecord = Person.fetchOne(db, key: ["id": record.id])!
+                let fetchedRecord = try Person.fetchOne(db, key: ["id": record.id])!
                 XCTAssertTrue(fetchedRecord.id == record.id)
                 XCTAssertTrue(fetchedRecord.name == record.name)
                 XCTAssertTrue(fetchedRecord.age == record.age)
@@ -528,13 +528,13 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 
                 do {
                     let ids: [Int64] = []
-                    let fetchedRecords = Person.fetchAll(db, keys: ids)
+                    let fetchedRecords = try Person.fetchAll(db, keys: ids)
                     XCTAssertEqual(fetchedRecords.count, 0)
                 }
                 
                 do {
                     let ids = [record1.id!, record2.id!]
-                    let fetchedRecords = Person.fetchAll(db, keys: ids)
+                    let fetchedRecords = try Person.fetchAll(db, keys: ids)
                     XCTAssertEqual(fetchedRecords.count, 2)
                     XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
                 }
@@ -551,12 +551,12 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 
                 do {
                     let id: Int64? = nil
-                    let fetchedRecord = Person.fetchOne(db, key: id)
+                    let fetchedRecord = try Person.fetchOne(db, key: id)
                     XCTAssertTrue(fetchedRecord == nil)
                 }
                 
                 do {
-                    let fetchedRecord = Person.fetchOne(db, key: record.id)!
+                    let fetchedRecord = try Person.fetchOne(db, key: record.id)!
                     XCTAssertTrue(fetchedRecord.id == record.id)
                     XCTAssertTrue(fetchedRecord.name == record.name)
                     XCTAssertTrue(fetchedRecord.age == record.age)

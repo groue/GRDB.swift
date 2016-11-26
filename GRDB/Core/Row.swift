@@ -69,7 +69,7 @@ public final class Row {
     /// a statement:
     ///
     ///     let rows = try Row.fetchCursor(db, "SELECT ...")
-    ///     let persons = Person.fetchAll(db, "SELECT ...")
+    ///     let persons = try Person.fetchAll(db, "SELECT ...")
     ///
     /// This row keeps an unmanaged reference to the statement, and a handle to
     /// the sqlite statement, so that we avoid many retain/release invocations.
@@ -484,7 +484,7 @@ extension Row {
     ///
     ///     // Fetch
     ///     let sql = "SELECT 'foo' AS foo, 'bar' AS bar"
-    ///     let row = Row.fetchOne(db, sql, adapter: adapter)!
+    ///     let row = try Row.fetchOne(db, sql, adapter: adapter)!
     ///
     ///     // Scoped rows:
     ///     if let fooRow = row.scoped(on: "foo") {
@@ -540,30 +540,31 @@ extension Row {
     /// Returns an array of rows fetched from a prepared statement.
     ///
     ///     let statement = try db.makeSelectStatement("SELECT ...")
-    ///     let rows = Row.fetchAll(statement)
+    ///     let rows = try Row.fetchAll(statement)
     ///
     /// - parameters:
     ///     - statement: The statement to run.
     ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of rows.
-    public static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Row] {
-        return try! fetchCursor(statement, arguments: arguments, adapter: adapter).map { $0.copy() }
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Row] {
+        return try fetchCursor(statement, arguments: arguments, adapter: adapter).map { $0.copy() }
     }
     
     /// Returns a single row fetched from a prepared statement.
     ///
     ///     let statement = try db.makeSelectStatement("SELECT ...")
-    ///     let row = Row.fetchOne(statement)
+    ///     let row = try Row.fetchOne(statement)
     ///
     /// - parameters:
     ///     - statement: The statement to run.
     ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional row.
-    public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Row? {
-        let rows = try! fetchCursor(statement, arguments: arguments, adapter: adapter)
-        return try! rows.next().flatMap { $0.copy() }
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Row? {
+        return try fetchCursor(statement, arguments: arguments, adapter: adapter).next().flatMap { $0.copy() }
     }
 }
 
@@ -611,12 +612,13 @@ extension Row {
     ///     let idColumn = Column("id")
     ///     let nameColumn = Column("name")
     ///     let request = Person.select(idColumn, nameColumn)
-    ///     let rows = Row.fetchAll(db, request)
+    ///     let rows = try Row.fetchAll(db, request)
     ///
     /// - parameter db: A database connection.
-    public static func fetchAll(_ db: Database, _ request: FetchRequest) -> [Row] {
-        let (statement, adapter) = try! request.prepare(db)
-        return fetchAll(statement, adapter: adapter)
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchAll(_ db: Database, _ request: FetchRequest) throws -> [Row] {
+        let (statement, adapter) = try request.prepare(db)
+        return try fetchAll(statement, adapter: adapter)
     }
     
     /// Returns a single row fetched from a fetch request.
@@ -624,12 +626,13 @@ extension Row {
     ///     let idColumn = Column("id")
     ///     let nameColumn = Column("name")
     ///     let request = Person.select(idColumn, nameColumn)
-    ///     let row = Row.fetchOne(db, request)
+    ///     let row = try Row.fetchOne(db, request)
     ///
     /// - parameter db: A database connection.
-    public static func fetchOne(_ db: Database, _ request: FetchRequest) -> Row? {
-        let (statement, adapter) = try! request.prepare(db)
-        return fetchOne(statement, adapter: adapter)
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchOne(_ db: Database, _ request: FetchRequest) throws -> Row? {
+        let (statement, adapter) = try request.prepare(db)
+        return try fetchOne(statement, adapter: adapter)
     }
 }
 
@@ -672,7 +675,7 @@ extension Row {
     
     /// Returns an array of rows fetched from an SQL query.
     ///
-    ///     let rows = Row.fetchAll(db, "SELECT ...")
+    ///     let rows = try Row.fetchAll(db, "SELECT ...")
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -680,13 +683,14 @@ extension Row {
     ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of rows.
-    public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Row] {
-        return fetchAll(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Row] {
+        return try fetchAll(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single row fetched from an SQL query.
     ///
-    ///     let row = Row.fetchOne(db, "SELECT ...")
+    ///     let row = try Row.fetchOne(db, "SELECT ...")
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -694,8 +698,9 @@ extension Row {
     ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional row.
-    public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Row? {
-        return fetchOne(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Row? {
+        return try fetchOne(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 

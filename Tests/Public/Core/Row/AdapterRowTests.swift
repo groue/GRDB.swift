@@ -18,9 +18,9 @@ class AdapterRowTests : RowTestCase {
     func testRowAsSequence() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
-                let row = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
+                let row = try Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
                 
                 var columnNames = [String]()
                 var ints = [Int]()
@@ -41,9 +41,9 @@ class AdapterRowTests : RowTestCase {
     func testRowValueAtIndex() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
-                let row = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
+                let row = try Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
                 
                 // Raw extraction
                 assertRowRawValueEqual(row, index: 0, value: 0 as Int64)
@@ -71,9 +71,9 @@ class AdapterRowTests : RowTestCase {
     func testRowValueNamed() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
-                let row = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
+                let row = try Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
                 
                 // Raw extraction
                 assertRowRawValueEqual(row, name: "a", value: 0 as Int64)
@@ -96,9 +96,9 @@ class AdapterRowTests : RowTestCase {
     func testRowValueFromColumn() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
-                let row = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
+                let row = try Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
                 
                 // Raw extraction
                 assertRowRawValueEqual(row, column: Column("a"), value: 0 as Int64)
@@ -121,10 +121,10 @@ class AdapterRowTests : RowTestCase {
     func testDataNoCopy() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let data = "foo".data(using: .utf8)!
                 let adapter = ColumnMapping(["a": "basea"])
-                let row = Row.fetchOne(db, "SELECT ? AS basea", arguments: [data], adapter: adapter)!
+                let row = try Row.fetchOne(db, "SELECT ? AS basea", arguments: [data], adapter: adapter)!
 
                 XCTAssertEqual(row.dataNoCopy(atIndex: 0), data)
                 XCTAssertEqual(row.dataNoCopy(named: "a"), data)
@@ -136,9 +136,9 @@ class AdapterRowTests : RowTestCase {
     func testRowDatabaseValueAtIndex() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let adapter = ColumnMapping(["null": "basenull", "int64": "baseint64", "double": "basedouble", "string": "basestring", "blob": "baseblob"])
-                let row = Row.fetchOne(db, "SELECT NULL AS basenull, 'XXX' AS extra, 1 AS baseint64, 1.1 AS basedouble, 'foo' AS basestring, x'53514C697465' AS baseblob", adapter: adapter)!
+                let row = try Row.fetchOne(db, "SELECT NULL AS basenull, 'XXX' AS extra, 1 AS baseint64, 1.1 AS basedouble, 'foo' AS basestring, x'53514C697465' AS baseblob", adapter: adapter)!
                 
                 guard case .null = (row.value(atIndex: 0) as DatabaseValue).storage else { XCTFail(); return }
                 guard case .int64(let int64) = (row.value(atIndex: 1) as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
@@ -152,9 +152,9 @@ class AdapterRowTests : RowTestCase {
     func testRowDatabaseValueNamed() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let adapter = ColumnMapping(["null": "basenull", "int64": "baseint64", "double": "basedouble", "string": "basestring", "blob": "baseblob"])
-                let row = Row.fetchOne(db, "SELECT NULL AS basenull, 'XXX' AS extra, 1 AS baseint64, 1.1 AS basedouble, 'foo' AS basestring, x'53514C697465' AS baseblob", adapter: adapter)!
+                let row = try Row.fetchOne(db, "SELECT NULL AS basenull, 'XXX' AS extra, 1 AS baseint64, 1.1 AS basedouble, 'foo' AS basestring, x'53514C697465' AS baseblob", adapter: adapter)!
                 
                 guard case .null = (row.value(named: "null") as DatabaseValue).storage else { XCTFail(); return }
                 guard case .int64(let int64) = (row.value(named: "int64") as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
@@ -168,9 +168,9 @@ class AdapterRowTests : RowTestCase {
     func testRowCount() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
-                let row = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
+                let row = try Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
                 
                 XCTAssertEqual(row.count, 3)
             }
@@ -180,9 +180,9 @@ class AdapterRowTests : RowTestCase {
     func testRowColumnNames() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
-                let row = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
+                let row = try Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
                 
                 XCTAssertEqual(Array(row.columnNames), ["a", "b", "c"])
             }
@@ -192,9 +192,9 @@ class AdapterRowTests : RowTestCase {
     func testRowDatabaseValues() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
-                let row = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
+                let row = try Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
                 
                 XCTAssertEqual(Array(row.databaseValues), [0.databaseValue, 1.databaseValue, 2.databaseValue])
             }
@@ -204,9 +204,9 @@ class AdapterRowTests : RowTestCase {
     func testRowIsCaseInsensitive() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let adapter = ColumnMapping(["nAmE": "basenAmE"])
-                let row = Row.fetchOne(db, "SELECT 'foo' AS basenAmE, 'XXX' AS extra", adapter: adapter)!
+                let row = try Row.fetchOne(db, "SELECT 'foo' AS basenAmE, 'XXX' AS extra", adapter: adapter)!
                 
                 XCTAssertEqual(row.value(named: "name") as DatabaseValue, "foo".databaseValue)
                 XCTAssertEqual(row.value(named: "NAME") as DatabaseValue, "foo".databaseValue)
@@ -221,9 +221,9 @@ class AdapterRowTests : RowTestCase {
     func testRowIsCaseInsensitiveAndReturnsLeftmostMatchingColumn() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let adapter = ColumnMapping(["name": "basename", "NAME": "baseNAME"])
-                let row = Row.fetchOne(db, "SELECT 1 AS basename, 'XXX' AS extra, 2 AS baseNAME", adapter: adapter)!
+                let row = try Row.fetchOne(db, "SELECT 1 AS basename, 'XXX' AS extra, 2 AS baseNAME", adapter: adapter)!
 
                 XCTAssertEqual(row.value(named: "name") as DatabaseValue, 1.databaseValue)
                 XCTAssertEqual(row.value(named: "NAME") as DatabaseValue, 1.databaseValue)
@@ -238,9 +238,9 @@ class AdapterRowTests : RowTestCase {
     func testRowAdapterIsCaseInsensitiveAndPicksLeftmostBaseColumn() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let adapter = ColumnMapping(["name": "baseNaMe"])
-                let row = Row.fetchOne(db, "SELECT 1 AS basename, 2 AS baseNaMe, 3 AS BASENAME", adapter: adapter)!
+                let row = try Row.fetchOne(db, "SELECT 1 AS basename, 2 AS baseNaMe, 3 AS BASENAME", adapter: adapter)!
                 
                 XCTAssertEqual(row.value(named: "name") as DatabaseValue, 1.databaseValue)
             }
@@ -250,9 +250,9 @@ class AdapterRowTests : RowTestCase {
     func testMissingColumn() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let adapter = ColumnMapping(["name": "name"])
-                let row = Row.fetchOne(db, "SELECT 1 AS name, 'foo' AS missing", adapter: adapter)!
+                let row = try Row.fetchOne(db, "SELECT 1 AS name, 'foo' AS missing", adapter: adapter)!
                 
                 XCTAssertFalse(row.hasColumn("missing"))
                 XCTAssertFalse(row.hasColumn("missingInBaseRow"))
@@ -267,9 +267,9 @@ class AdapterRowTests : RowTestCase {
     func testRowHasColumnIsCaseInsensitive() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let adapter = ColumnMapping(["nAmE": "basenAmE", "foo": "basefoo"])
-                let row = Row.fetchOne(db, "SELECT 'foo' AS basenAmE, 'XXX' AS extra, 1 AS basefoo", adapter: adapter)!
+                let row = try Row.fetchOne(db, "SELECT 'foo' AS basenAmE, 'XXX' AS extra, 1 AS basefoo", adapter: adapter)!
 
                 XCTAssertTrue(row.hasColumn("name"))
                 XCTAssertTrue(row.hasColumn("NAME"))
@@ -283,181 +283,191 @@ class AdapterRowTests : RowTestCase {
     }
     
     func testScopes() {
-        let dbQueue = DatabaseQueue()
-        dbQueue.inDatabase { db in
-            let adapter = ScopeAdapter([
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let adapter = ScopeAdapter([
                     "sub1": ColumnMapping(["id": "id1", "val": "val1"]),
                     "sub2": ColumnMapping(["id": "id2", "val": "val2"])])
-            let row = Row.fetchOne(db, "SELECT 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
-            
-            XCTAssertEqual(row.count, 4)
-            XCTAssertEqual(row.value(named: "id1") as Int, 1)
-            XCTAssertEqual(row.value(named: "val1") as String, "foo1")
-            XCTAssertEqual(row.value(named: "id2") as Int, 2)
-            XCTAssertEqual(row.value(named: "val2") as String, "foo2")
-            
-            if let scope = row.scoped(on: "sub1") {
-                XCTAssertEqual(scope.count, 2)
-                XCTAssertEqual(scope.value(named: "id") as Int, 1)
-                XCTAssertEqual(scope.value(named: "val") as String, "foo1")
-            } else {
-                XCTFail()
+                let row = try Row.fetchOne(db, "SELECT 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
+                
+                XCTAssertEqual(row.count, 4)
+                XCTAssertEqual(row.value(named: "id1") as Int, 1)
+                XCTAssertEqual(row.value(named: "val1") as String, "foo1")
+                XCTAssertEqual(row.value(named: "id2") as Int, 2)
+                XCTAssertEqual(row.value(named: "val2") as String, "foo2")
+                
+                if let scope = row.scoped(on: "sub1") {
+                    XCTAssertEqual(scope.count, 2)
+                    XCTAssertEqual(scope.value(named: "id") as Int, 1)
+                    XCTAssertEqual(scope.value(named: "val") as String, "foo1")
+                } else {
+                    XCTFail()
+                }
+                
+                if let scope = row.scoped(on: "sub2") {
+                    XCTAssertEqual(scope.count, 2)
+                    XCTAssertEqual(scope.value(named: "id") as Int, 2)
+                    XCTAssertEqual(scope.value(named: "val") as String, "foo2")
+                } else {
+                    XCTFail()
+                }
+                
+                XCTAssertTrue(row.scoped(on: "SUB1") == nil)     // case-insensitivity is not really required here, and case-sensitivity helps the implementation because it allows the use of a dictionary. So let's enforce this with a public test.
+                XCTAssertTrue(row.scoped(on: "missing") == nil)
             }
-            
-            if let scope = row.scoped(on: "sub2") {
-                XCTAssertEqual(scope.count, 2)
-                XCTAssertEqual(scope.value(named: "id") as Int, 2)
-                XCTAssertEqual(scope.value(named: "val") as String, "foo2")
-            } else {
-                XCTFail()
-            }
-            
-            XCTAssertTrue(row.scoped(on: "SUB1") == nil)     // case-insensitivity is not really required here, and case-sensitivity helps the implementation because it allows the use of a dictionary. So let's enforce this with a public test.
-            XCTAssertTrue(row.scoped(on: "missing") == nil)
         }
     }
     
     func testScopesWithMainMapping() {
-        let dbQueue = DatabaseQueue()
-        dbQueue.inDatabase { db in
-            let adapter = ColumnMapping(["id": "id0", "val": "val0"])
-                .addingScopes([
-                    "sub1": ColumnMapping(["id": "id1", "val": "val1"]),
-                    "sub2": ColumnMapping(["id": "id2", "val": "val2"])])
-            let row = Row.fetchOne(db, "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
-
-            XCTAssertEqual(row.count, 2)
-            XCTAssertEqual(row.value(named: "id") as Int, 0)
-            XCTAssertEqual(row.value(named: "val") as String, "foo0")
-
-            if let scope = row.scoped(on: "sub1") {
-                XCTAssertEqual(scope.count, 2)
-                XCTAssertEqual(scope.value(named: "id") as Int, 1)
-                XCTAssertEqual(scope.value(named: "val") as String, "foo1")
-            } else {
-                XCTFail()
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let adapter = ColumnMapping(["id": "id0", "val": "val0"])
+                    .addingScopes([
+                        "sub1": ColumnMapping(["id": "id1", "val": "val1"]),
+                        "sub2": ColumnMapping(["id": "id2", "val": "val2"])])
+                let row = try Row.fetchOne(db, "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
+                
+                XCTAssertEqual(row.count, 2)
+                XCTAssertEqual(row.value(named: "id") as Int, 0)
+                XCTAssertEqual(row.value(named: "val") as String, "foo0")
+                
+                if let scope = row.scoped(on: "sub1") {
+                    XCTAssertEqual(scope.count, 2)
+                    XCTAssertEqual(scope.value(named: "id") as Int, 1)
+                    XCTAssertEqual(scope.value(named: "val") as String, "foo1")
+                } else {
+                    XCTFail()
+                }
+                
+                if let scope = row.scoped(on: "sub2") {
+                    XCTAssertEqual(scope.count, 2)
+                    XCTAssertEqual(scope.value(named: "id") as Int, 2)
+                    XCTAssertEqual(scope.value(named: "val") as String, "foo2")
+                } else {
+                    XCTFail()
+                }
+                
+                XCTAssertTrue(row.scoped(on: "SUB1") == nil)     // case-insensitivity is not really required here, and case-sensitivity helps the implementation because it allows the use of a dictionary. So let's enforce this with a public test.
+                XCTAssertTrue(row.scoped(on: "missing") == nil)
             }
-            
-            if let scope = row.scoped(on: "sub2") {
-                XCTAssertEqual(scope.count, 2)
-                XCTAssertEqual(scope.value(named: "id") as Int, 2)
-                XCTAssertEqual(scope.value(named: "val") as String, "foo2")
-            } else {
-                XCTFail()
-            }
-            
-            XCTAssertTrue(row.scoped(on: "SUB1") == nil)     // case-insensitivity is not really required here, and case-sensitivity helps the implementation because it allows the use of a dictionary. So let's enforce this with a public test.
-            XCTAssertTrue(row.scoped(on: "missing") == nil)
         }
     }
     
     func testMergeScopes() {
-        let dbQueue = DatabaseQueue()
-        dbQueue.inDatabase { db in
-            let adapter0 = ColumnMapping(["id": "id0", "val": "val0"])
-            let adapter1 = ColumnMapping(["id": "id1", "val": "val1"])
-            let adapter2 = ColumnMapping(["id": "id2", "val": "val2"])
-            
-            let mainAdapter = ScopeAdapter(["sub0": adapter0, "sub1": adapter2])
-            let adapter = mainAdapter.addingScopes(["sub1": adapter1, "sub2": adapter2])
-            let row = Row.fetchOne(db, "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
-            
-            // sub0 is defined in the the first scoped adapter
-            if let scope = row.scoped(on: "sub0") {
-                XCTAssertEqual(scope.count, 2)
-                XCTAssertEqual(scope.value(named: "id") as Int, 0)
-                XCTAssertEqual(scope.value(named: "val") as String, "foo0")
-            } else {
-                XCTFail()
-            }
-            
-            // sub1 is defined in the the first scoped adapter, and then
-            // redefined in the second
-            if let scope = row.scoped(on: "sub1") {
-                XCTAssertEqual(scope.count, 2)
-                XCTAssertEqual(scope.value(named: "id") as Int, 1)
-                XCTAssertEqual(scope.value(named: "val") as String, "foo1")
-            } else {
-                XCTFail()
-            }
-            
-            // sub2 is defined in the the second scoped adapter
-            if let scope = row.scoped(on: "sub2") {
-                XCTAssertEqual(scope.count, 2)
-                XCTAssertEqual(scope.value(named: "id") as Int, 2)
-                XCTAssertEqual(scope.value(named: "val") as String, "foo2")
-            } else {
-                XCTFail()
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let adapter0 = ColumnMapping(["id": "id0", "val": "val0"])
+                let adapter1 = ColumnMapping(["id": "id1", "val": "val1"])
+                let adapter2 = ColumnMapping(["id": "id2", "val": "val2"])
+                
+                let mainAdapter = ScopeAdapter(["sub0": adapter0, "sub1": adapter2])
+                let adapter = mainAdapter.addingScopes(["sub1": adapter1, "sub2": adapter2])
+                let row = try Row.fetchOne(db, "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
+                
+                // sub0 is defined in the the first scoped adapter
+                if let scope = row.scoped(on: "sub0") {
+                    XCTAssertEqual(scope.count, 2)
+                    XCTAssertEqual(scope.value(named: "id") as Int, 0)
+                    XCTAssertEqual(scope.value(named: "val") as String, "foo0")
+                } else {
+                    XCTFail()
+                }
+                
+                // sub1 is defined in the the first scoped adapter, and then
+                // redefined in the second
+                if let scope = row.scoped(on: "sub1") {
+                    XCTAssertEqual(scope.count, 2)
+                    XCTAssertEqual(scope.value(named: "id") as Int, 1)
+                    XCTAssertEqual(scope.value(named: "val") as String, "foo1")
+                } else {
+                    XCTFail()
+                }
+                
+                // sub2 is defined in the the second scoped adapter
+                if let scope = row.scoped(on: "sub2") {
+                    XCTAssertEqual(scope.count, 2)
+                    XCTAssertEqual(scope.value(named: "id") as Int, 2)
+                    XCTAssertEqual(scope.value(named: "val") as String, "foo2")
+                } else {
+                    XCTFail()
+                }
             }
         }
     }
     
     func testThreeLevelScopes() {
-        let dbQueue = DatabaseQueue()
-        dbQueue.inDatabase { db in
-            let adapter = ColumnMapping(["id": "id0", "val": "val0"])
-                .addingScopes([
-                    "sub1": ColumnMapping(["id": "id1", "val": "val1"])
-                        .addingScopes([
-                            "sub2": ColumnMapping(["id": "id2", "val": "val2"])])])
-            let row = Row.fetchOne(db, "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
-            
-            XCTAssertEqual(row.count, 2)
-            XCTAssertEqual(row.value(named: "id") as Int, 0)
-            XCTAssertEqual(row.value(named: "val") as String, "foo0")
-            
-            if let scope = row.scoped(on: "sub1") {
-                XCTAssertEqual(scope.count, 2)
-                XCTAssertEqual(scope.value(named: "id") as Int, 1)
-                XCTAssertEqual(scope.value(named: "val") as String, "foo1")
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let adapter = ColumnMapping(["id": "id0", "val": "val0"])
+                    .addingScopes([
+                        "sub1": ColumnMapping(["id": "id1", "val": "val1"])
+                            .addingScopes([
+                                "sub2": ColumnMapping(["id": "id2", "val": "val2"])])])
+                let row = try Row.fetchOne(db, "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
                 
-                if let scope = scope.scoped(on: "sub2") {
+                XCTAssertEqual(row.count, 2)
+                XCTAssertEqual(row.value(named: "id") as Int, 0)
+                XCTAssertEqual(row.value(named: "val") as String, "foo0")
+                
+                if let scope = row.scoped(on: "sub1") {
                     XCTAssertEqual(scope.count, 2)
-                    XCTAssertEqual(scope.value(named: "id") as Int, 2)
-                    XCTAssertEqual(scope.value(named: "val") as String, "foo2")
+                    XCTAssertEqual(scope.value(named: "id") as Int, 1)
+                    XCTAssertEqual(scope.value(named: "val") as String, "foo1")
+                    
+                    if let scope = scope.scoped(on: "sub2") {
+                        XCTAssertEqual(scope.count, 2)
+                        XCTAssertEqual(scope.value(named: "id") as Int, 2)
+                        XCTAssertEqual(scope.value(named: "val") as String, "foo2")
+                    } else {
+                        XCTFail()
+                    }
                 } else {
                     XCTFail()
                 }
-            } else {
-                XCTFail()
+                
+                // sub2 is only defined in sub1
+                XCTAssertTrue(row.scoped(on: "sub2") == nil)
             }
-            
-            // sub2 is only defined in sub1
-            XCTAssertTrue(row.scoped(on: "sub2") == nil)
         }
     }
     
     func testSuffixAdapter() {
-        let dbQueue = DatabaseQueue()
-        dbQueue.inDatabase { db in
-            let adapter = ScopeAdapter([
-                "sub1": SuffixRowAdapter(fromIndex: 2)
-                    .addingScopes([
-                        "sub2": SuffixRowAdapter(fromIndex: 4)])])
-            let row = Row.fetchOne(db, "SELECT 0 AS id, 'foo0' AS val, 1 AS id, 'foo1' AS val, 2 as id, 'foo2' AS val", adapter: adapter)!
-            
-            XCTAssertEqual(row.count, 6)
-            XCTAssertEqual(row.value(named: "id") as Int, 0)
-            XCTAssertEqual(row.value(named: "val") as String, "foo0")
-            
-            if let scope = row.scoped(on: "sub1") {
-                XCTAssertEqual(scope.count, 4)
-                XCTAssertEqual(scope.value(named: "id") as Int, 1)
-                XCTAssertEqual(scope.value(named: "val") as String, "foo1")
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let adapter = ScopeAdapter([
+                    "sub1": SuffixRowAdapter(fromIndex: 2)
+                        .addingScopes([
+                            "sub2": SuffixRowAdapter(fromIndex: 4)])])
+                let row = try Row.fetchOne(db, "SELECT 0 AS id, 'foo0' AS val, 1 AS id, 'foo1' AS val, 2 as id, 'foo2' AS val", adapter: adapter)!
                 
-                if let scope = scope.scoped(on: "sub2") {
-                    XCTAssertEqual(scope.count, 2)
-                    XCTAssertEqual(scope.value(named: "id") as Int, 2)
-                    XCTAssertEqual(scope.value(named: "val") as String, "foo2")
+                XCTAssertEqual(row.count, 6)
+                XCTAssertEqual(row.value(named: "id") as Int, 0)
+                XCTAssertEqual(row.value(named: "val") as String, "foo0")
+                
+                if let scope = row.scoped(on: "sub1") {
+                    XCTAssertEqual(scope.count, 4)
+                    XCTAssertEqual(scope.value(named: "id") as Int, 1)
+                    XCTAssertEqual(scope.value(named: "val") as String, "foo1")
+                    
+                    if let scope = scope.scoped(on: "sub2") {
+                        XCTAssertEqual(scope.count, 2)
+                        XCTAssertEqual(scope.value(named: "id") as Int, 2)
+                        XCTAssertEqual(scope.value(named: "val") as String, "foo2")
+                    } else {
+                        XCTFail()
+                    }
                 } else {
                     XCTFail()
                 }
-            } else {
-                XCTFail()
+                
+                // sub2 is only defined in sub1
+                XCTAssertTrue(row.scoped(on: "sub2") == nil)
             }
-            
-            // sub2 is only defined in sub1
-            XCTAssertTrue(row.scoped(on: "sub2") == nil)
         }
     }
     
@@ -511,76 +521,82 @@ class AdapterRowTests : RowTestCase {
     }
     
     func testEqualityComparesScopes() {
-        let dbQueue = DatabaseQueue()
-        dbQueue.inDatabase { db in
-            let adapter1 = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
-                .addingScopes(["sub": ColumnMapping(["b": "baseb"])])
-            let adapter2 = ColumnMapping(["a": "basea", "b": "baseb2", "c": "basec"])
-            let adapter3 = ColumnMapping(["a": "basea", "b": "baseb2", "c": "basec"])
-                .addingScopes(["sub": ColumnMapping(["b": "baseb2"])])
-            let adapter4 = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
-                .addingScopes(["sub": ColumnMapping(["b": "baseb"]), "altSub": ColumnMapping(["a": "baseb2"])])
-            let adapter5 = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
-                .addingScopes(["sub": ColumnMapping(["b": "baseb", "c": "basec"])])
-            let row1 = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 1 AS baseb2, 2 as basec", adapter: adapter1)!
-            let row2 = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 1 AS baseb2, 2 as basec", adapter: adapter2)!
-            let row3 = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 1 AS baseb2, 2 as basec", adapter: adapter3)!
-            let row4 = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 1 AS baseb2, 2 as basec", adapter: adapter4)!
-            let row5 = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 1 AS baseb2, 2 as basec", adapter: adapter5)!
-            
-            let tests = [
-                (row1, row2, false),
-                (row1, row3, true),
-                (row1, row4, false),
-                (row1, row5, false),
-                (row1.scoped(on: "sub"), row3.scoped(on: "sub"), true),
-                (row1.scoped(on: "sub"), row4.scoped(on: "sub"), true),
-                (row1.scoped(on: "sub"), row5.scoped(on: "sub"), false)]
-            for (lrow, rrow, equal) in tests {
-                if equal {
-                    XCTAssertEqual(lrow, rrow)
-                } else {
-                    XCTAssertNotEqual(lrow, rrow)
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let adapter1 = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
+                    .addingScopes(["sub": ColumnMapping(["b": "baseb"])])
+                let adapter2 = ColumnMapping(["a": "basea", "b": "baseb2", "c": "basec"])
+                let adapter3 = ColumnMapping(["a": "basea", "b": "baseb2", "c": "basec"])
+                    .addingScopes(["sub": ColumnMapping(["b": "baseb2"])])
+                let adapter4 = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
+                    .addingScopes(["sub": ColumnMapping(["b": "baseb"]), "altSub": ColumnMapping(["a": "baseb2"])])
+                let adapter5 = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
+                    .addingScopes(["sub": ColumnMapping(["b": "baseb", "c": "basec"])])
+                let row1 = try Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 1 AS baseb2, 2 as basec", adapter: adapter1)!
+                let row2 = try Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 1 AS baseb2, 2 as basec", adapter: adapter2)!
+                let row3 = try Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 1 AS baseb2, 2 as basec", adapter: adapter3)!
+                let row4 = try Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 1 AS baseb2, 2 as basec", adapter: adapter4)!
+                let row5 = try Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 1 AS baseb2, 2 as basec", adapter: adapter5)!
+                
+                let tests = [
+                    (row1, row2, false),
+                    (row1, row3, true),
+                    (row1, row4, false),
+                    (row1, row5, false),
+                    (row1.scoped(on: "sub"), row3.scoped(on: "sub"), true),
+                    (row1.scoped(on: "sub"), row4.scoped(on: "sub"), true),
+                    (row1.scoped(on: "sub"), row5.scoped(on: "sub"), false)]
+                for (lrow, rrow, equal) in tests {
+                    if equal {
+                        XCTAssertEqual(lrow, rrow)
+                    } else {
+                        XCTAssertNotEqual(lrow, rrow)
+                    }
                 }
             }
         }
     }
     
     func testEqualityWithNonMappedRow() {
-        let dbQueue = DatabaseQueue()
-        dbQueue.inDatabase { db in
-            let adapter = ColumnMapping(["id": "baseid", "val": "baseval"])
-            let mappedRow1 = Row.fetchOne(db, "SELECT 1 AS baseid, 'XXX' AS extra, 'foo' AS baseval", adapter: adapter)!
-            let mappedRow2 = Row.fetchOne(db, "SELECT 'foo' AS baseval, 'XXX' AS extra, 1 AS baseid", adapter: adapter)!
-            let nonMappedRow1 = Row.fetchOne(db, "SELECT 1 AS id, 'foo' AS val")!
-            let nonMappedRow2 = Row.fetchOne(db, "SELECT 'foo' AS val, 1 AS id")!
-            
-            // All rows contain the same values. But they differ by column ordering.
-            XCTAssertEqual(Array(mappedRow1.columnNames), ["id", "val"])
-            XCTAssertEqual(Array(mappedRow2.columnNames), ["val", "id"])
-            XCTAssertEqual(Array(nonMappedRow1.columnNames), ["id", "val"])
-            XCTAssertEqual(Array(nonMappedRow2.columnNames), ["val", "id"])
-            
-            // Row equality takes ordering in account:
-            XCTAssertNotEqual(mappedRow1, mappedRow2)
-            XCTAssertEqual(mappedRow1, nonMappedRow1)
-            XCTAssertNotEqual(mappedRow1, nonMappedRow2)
-            XCTAssertNotEqual(mappedRow2, nonMappedRow1)
-            XCTAssertEqual(mappedRow2, nonMappedRow2)
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let adapter = ColumnMapping(["id": "baseid", "val": "baseval"])
+                let mappedRow1 = try Row.fetchOne(db, "SELECT 1 AS baseid, 'XXX' AS extra, 'foo' AS baseval", adapter: adapter)!
+                let mappedRow2 = try Row.fetchOne(db, "SELECT 'foo' AS baseval, 'XXX' AS extra, 1 AS baseid", adapter: adapter)!
+                let nonMappedRow1 = try Row.fetchOne(db, "SELECT 1 AS id, 'foo' AS val")!
+                let nonMappedRow2 = try Row.fetchOne(db, "SELECT 'foo' AS val, 1 AS id")!
+                
+                // All rows contain the same values. But they differ by column ordering.
+                XCTAssertEqual(Array(mappedRow1.columnNames), ["id", "val"])
+                XCTAssertEqual(Array(mappedRow2.columnNames), ["val", "id"])
+                XCTAssertEqual(Array(nonMappedRow1.columnNames), ["id", "val"])
+                XCTAssertEqual(Array(nonMappedRow2.columnNames), ["val", "id"])
+                
+                // Row equality takes ordering in account:
+                XCTAssertNotEqual(mappedRow1, mappedRow2)
+                XCTAssertEqual(mappedRow1, nonMappedRow1)
+                XCTAssertNotEqual(mappedRow1, nonMappedRow2)
+                XCTAssertNotEqual(mappedRow2, nonMappedRow1)
+                XCTAssertEqual(mappedRow2, nonMappedRow2)
+            }
         }
     }
     
     func testEmptyMapping() {
-        let dbQueue = DatabaseQueue()
-        dbQueue.inDatabase { db in
-            let adapter = ColumnMapping([:])
-            let row = Row.fetchOne(db, "SELECT 'foo' AS foo", adapter: adapter)!
-            
-            XCTAssertTrue(row.isEmpty)
-            XCTAssertEqual(row.count, 0)
-            XCTAssertEqual(Array(row.columnNames), [])
-            XCTAssertEqual(Array(row.databaseValues), [])
-            XCTAssertFalse(row.hasColumn("foo"))
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let adapter = ColumnMapping([:])
+                let row = try Row.fetchOne(db, "SELECT 'foo' AS foo", adapter: adapter)!
+                
+                XCTAssertTrue(row.isEmpty)
+                XCTAssertEqual(row.count, 0)
+                XCTAssertEqual(Array(row.columnNames), [])
+                XCTAssertEqual(Array(row.databaseValues), [])
+                XCTAssertFalse(row.hasColumn("foo"))
+            }
         }
     }
 }

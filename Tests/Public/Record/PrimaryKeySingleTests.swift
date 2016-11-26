@@ -77,7 +77,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record.insert(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
+                let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -114,7 +114,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 try record.delete(db)
                 try record.insert(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
+                let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -168,7 +168,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 record.name = "Carl"
                 try record.update(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
+                let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -223,7 +223,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record.save(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
+                let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -245,7 +245,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 record.name = "Carl"
                 try record.save(db)   // Actual update
                 
-                let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
+                let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -266,7 +266,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 try record.delete(db)
                 try record.save(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
+                let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -312,7 +312,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 let deleted = try record.delete(db)
                 XCTAssertTrue(deleted)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])
+                let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])
                 XCTAssertTrue(row == nil)
             }
         }
@@ -378,18 +378,18 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 try record2.insert(db)
                 
                 do {
-                    let fetchedRecords = Pet.fetchAll(db, keys: [])
+                    let fetchedRecords = try Pet.fetchAll(db, keys: [])
                     XCTAssertEqual(fetchedRecords.count, 0)
                 }
                 
                 do {
-                    let fetchedRecords = Pet.fetchAll(db, keys: [["UUID": record1.UUID], ["UUID": record2.UUID]])
+                    let fetchedRecords = try Pet.fetchAll(db, keys: [["UUID": record1.UUID], ["UUID": record2.UUID]])
                     XCTAssertEqual(fetchedRecords.count, 2)
                     XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set([record1.UUID!, record2.UUID!]))
                 }
                 
                 do {
-                    let fetchedRecords = Pet.fetchAll(db, keys: [["UUID": record1.UUID], ["UUID": nil]])
+                    let fetchedRecords = try Pet.fetchAll(db, keys: [["UUID": record1.UUID], ["UUID": nil]])
                     XCTAssertEqual(fetchedRecords.count, 1)
                     XCTAssertEqual(fetchedRecords.first!.UUID, record1.UUID!)
                 }
@@ -404,7 +404,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record.insert(db)
                 
-                let fetchedRecord = Pet.fetchOne(db, key: ["UUID": record.UUID])!
+                let fetchedRecord = try Pet.fetchOne(db, key: ["UUID": record.UUID])!
                 XCTAssertTrue(fetchedRecord.UUID == record.UUID)
                 XCTAssertTrue(fetchedRecord.name == record.name)
             }
@@ -452,13 +452,13 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 
                 do {
                     let UUIDs: [String] = []
-                    let fetchedRecords = Pet.fetchAll(db, keys: UUIDs)
+                    let fetchedRecords = try Pet.fetchAll(db, keys: UUIDs)
                     XCTAssertEqual(fetchedRecords.count, 0)
                 }
                 
                 do {
                     let UUIDs = [record1.UUID!, record2.UUID!]
-                    let fetchedRecords = Pet.fetchAll(db, keys: UUIDs)
+                    let fetchedRecords = try Pet.fetchAll(db, keys: UUIDs)
                     XCTAssertEqual(fetchedRecords.count, 2)
                     XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
                 }
@@ -475,12 +475,12 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 
                 do {
                     let id: String? = nil
-                    let fetchedRecord = Pet.fetchOne(db, key: id)
+                    let fetchedRecord = try Pet.fetchOne(db, key: id)
                     XCTAssertTrue(fetchedRecord == nil)
                 }
                 
                 do {
-                    let fetchedRecord = Pet.fetchOne(db, key: record.UUID)!
+                    let fetchedRecord = try Pet.fetchOne(db, key: record.UUID)!
                     XCTAssertTrue(fetchedRecord.UUID == record.UUID)
                     XCTAssertTrue(fetchedRecord.name == record.name)
                 }

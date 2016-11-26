@@ -153,7 +153,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (2)")
                 
                 let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                let array = FastWrappedInt.fetchAll(statement)
+                let array = try FastWrappedInt.fetchAll(statement)
                 
                 XCTAssertEqual(array.map { $0.int }, [1,2])
                 XCTAssertEqual(array.map { $0.fast }, [true, true])
@@ -170,7 +170,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (2)")
                 
                 let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                let array = FastWrappedInt.fetchAll(statement, adapter: SuffixRowAdapter(fromIndex: 1))
+                let array = try FastWrappedInt.fetchAll(statement, adapter: SuffixRowAdapter(fromIndex: 1))
                 
                 XCTAssertEqual(array.map { $0.int }, [-1,-2])
                 // NICE TO HAVE: make it fast, and the following test pass:
@@ -186,16 +186,16 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 try db.execute("CREATE TABLE ints (int Int)")
                 let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
                 
-                let nilBecauseMissingRow = FastWrappedInt.fetchOne(statement)
+                let nilBecauseMissingRow = try FastWrappedInt.fetchOne(statement)
                 XCTAssertTrue(nilBecauseMissingRow == nil)
                 
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                let nilBecauseMissingNULL = FastWrappedInt.fetchOne(statement)
+                let nilBecauseMissingNULL = try FastWrappedInt.fetchOne(statement)
                 XCTAssertTrue(nilBecauseMissingNULL == nil)
                 
                 try db.execute("DELETE FROM ints")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
-                let one = FastWrappedInt.fetchOne(statement)!
+                let one = try FastWrappedInt.fetchOne(statement)!
                 XCTAssertEqual(one.int, 1)
                 XCTAssertEqual(one.fast, true)
             }
@@ -209,16 +209,16 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 try db.execute("CREATE TABLE ints (int Int)")
                 let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
                 
-                let nilBecauseMissingRow = FastWrappedInt.fetchOne(statement, adapter: SuffixRowAdapter(fromIndex: 1))
+                let nilBecauseMissingRow = try FastWrappedInt.fetchOne(statement, adapter: SuffixRowAdapter(fromIndex: 1))
                 XCTAssertTrue(nilBecauseMissingRow == nil)
                 
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                let nilBecauseMissingNULL = FastWrappedInt.fetchOne(statement, adapter: SuffixRowAdapter(fromIndex: 1))
+                let nilBecauseMissingNULL = try FastWrappedInt.fetchOne(statement, adapter: SuffixRowAdapter(fromIndex: 1))
                 XCTAssertTrue(nilBecauseMissingNULL == nil)
                 
                 try db.execute("DELETE FROM ints")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
-                let one = FastWrappedInt.fetchOne(statement, adapter: SuffixRowAdapter(fromIndex: 1))!
+                let one = try FastWrappedInt.fetchOne(statement, adapter: SuffixRowAdapter(fromIndex: 1))!
                 XCTAssertEqual(one.int, -1)
                 // NICE TO HAVE: make it fast, and the following test pass:
 //                XCTAssertEqual(one.fast, true)
@@ -280,7 +280,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (2)")
                 
-                let array = FastWrappedInt.fetchAll(db, "SELECT int, -int FROM ints ORDER BY int")
+                let array = try FastWrappedInt.fetchAll(db, "SELECT int, -int FROM ints ORDER BY int")
                 
                 XCTAssertEqual(array.map { $0.int }, [1,2])
                 XCTAssertEqual(array.map { $0.fast }, [true, true])
@@ -296,7 +296,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (2)")
                 
-                let array = FastWrappedInt.fetchAll(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
+                let array = try FastWrappedInt.fetchAll(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
                 
                 XCTAssertEqual(array.map { $0.int }, [-1,-2])
                 // NICE TO HAVE: make it fast, and the following test pass:
@@ -311,16 +311,16 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 
-                let nilBecauseMissingRow = FastWrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int")
+                let nilBecauseMissingRow = try FastWrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int")
                 XCTAssertTrue(nilBecauseMissingRow == nil)
                 
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                let nilBecauseMissingNULL = FastWrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int")
+                let nilBecauseMissingNULL = try FastWrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int")
                 XCTAssertTrue(nilBecauseMissingNULL == nil)
                 
                 try db.execute("DELETE FROM ints")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
-                let one = FastWrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int")!
+                let one = try FastWrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int")!
                 XCTAssertEqual(one.int, 1)
                 XCTAssertEqual(one.fast, true)
             }
@@ -333,16 +333,16 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 
-                let nilBecauseMissingRow = FastWrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
+                let nilBecauseMissingRow = try FastWrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
                 XCTAssertTrue(nilBecauseMissingRow == nil)
                 
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                let nilBecauseMissingNULL = FastWrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
+                let nilBecauseMissingNULL = try FastWrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
                 XCTAssertTrue(nilBecauseMissingNULL == nil)
                 
                 try db.execute("DELETE FROM ints")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
-                let one = FastWrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))!
+                let one = try FastWrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))!
                 XCTAssertEqual(one.int, -1)
                 // NICE TO HAVE: make it fast, and the following test pass:
 //                XCTAssertEqual(one.fast, true)
@@ -391,16 +391,16 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                         return (statement, SuffixRowAdapter(fromIndex: 1))
                     }
                 }
-                let nilBecauseMissingRow = FastWrappedInt.fetchOne(db, Request())
+                let nilBecauseMissingRow = try FastWrappedInt.fetchOne(db, Request())
                 XCTAssertTrue(nilBecauseMissingRow == nil)
                 
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                let nilBecauseMissingNULL = FastWrappedInt.fetchOne(db, Request())
+                let nilBecauseMissingNULL = try FastWrappedInt.fetchOne(db, Request())
                 XCTAssertTrue(nilBecauseMissingNULL == nil)
                 
                 try db.execute("DELETE FROM ints")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
-                let one = FastWrappedInt.fetchOne(db, Request())!
+                let one = try FastWrappedInt.fetchOne(db, Request())!
                 XCTAssertEqual(one.int, -1)
                 // NICE TO HAVE: make it fast, and the following test pass:
 //                XCTAssertEqual(one.fast, true)
@@ -465,7 +465,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
                 
                 let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                let array = Optional<FastWrappedInt>.fetchAll(statement)
+                let array = try Optional<FastWrappedInt>.fetchAll(statement)
                 
                 XCTAssertEqual(array.count, 2)
                 XCTAssertTrue(array[0] == nil)
@@ -485,7 +485,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
                 
                 let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                let array = Optional<FastWrappedInt>.fetchAll(statement, adapter: SuffixRowAdapter(fromIndex: 1))
+                let array = try Optional<FastWrappedInt>.fetchAll(statement, adapter: SuffixRowAdapter(fromIndex: 1))
                 
                 XCTAssertEqual(array.count, 2)
                 XCTAssertTrue(array[0] == nil)
@@ -550,7 +550,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
                 
-                let array = Optional<FastWrappedInt>.fetchAll(db, "SELECT int, -int FROM ints ORDER BY int")
+                let array = try Optional<FastWrappedInt>.fetchAll(db, "SELECT int, -int FROM ints ORDER BY int")
                 
                 XCTAssertEqual(array.count, 2)
                 XCTAssertTrue(array[0] == nil)
@@ -569,7 +569,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
                 
-                let array = Optional<FastWrappedInt>.fetchAll(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
+                let array = try Optional<FastWrappedInt>.fetchAll(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
                 
                 XCTAssertEqual(array.count, 2)
                 XCTAssertTrue(array[0] == nil)
@@ -623,7 +623,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                         return (statement, SuffixRowAdapter(fromIndex: 1))
                     }
                 }
-                let array = Optional<FastWrappedInt>.fetchAll(db, Request())
+                let array = try Optional<FastWrappedInt>.fetchAll(db, Request())
                 
                 XCTAssertEqual(array.count, 2)
                 XCTAssertTrue(array[0] == nil)

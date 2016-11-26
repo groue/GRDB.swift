@@ -216,7 +216,7 @@ extension DatabaseValue : SQLExpression {
             return "?"
         } else {
             // Correctness above all: use SQLite to quote the value.
-            return DatabaseQueue().inDatabase { String.fetchOne($0, "SELECT QUOTE(?)", arguments: [self])! }
+            return DatabaseQueue().inDatabase { try! String.fetchOne($0, "SELECT QUOTE(?)", arguments: [self])! }
         }
     }
     

@@ -123,17 +123,17 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
             //                                      SELECT 1 FROM items WHERE id = 1
             
             let block1 = { () in
-                dbPool.read { db in
+                try! dbPool.read { db in
                     let stmt = try! db.cachedSelectStatement("SELECT * FROM items")
-                    XCTAssertEqual(Int.fetchOne(stmt)!, 1)
+                    XCTAssertEqual(try Int.fetchOne(stmt)!, 1)
                     s1.signal()
                 }
             }
             let block2 = { () in
-                dbPool.read { db in
+                try! dbPool.read { db in
                     _ = s1.wait(timeout: .distantFuture)
                     let stmt = try! db.cachedSelectStatement("SELECT * FROM items")
-                    XCTAssertEqual(Int.fetchOne(stmt)!, 1)
+                    XCTAssertEqual(try Int.fetchOne(stmt)!, 1)
                 }
             }
             let blocks = [block1, block2]

@@ -86,7 +86,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try record.insert(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
+                let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -123,7 +123,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
                 try record.delete(db)
                 try record.insert(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
+                let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -177,7 +177,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
                 record.native = false
                 try record.update(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
+                let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -232,7 +232,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try record.save(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
+                let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -254,7 +254,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
                 record.native = false
                 try record.save(db)   // Actual update
                 
-                let row = Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
+                let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -275,7 +275,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
                 try record.delete(db)
                 try record.save(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
+                let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -321,7 +321,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
                 let deleted = try record.delete(db)
                 XCTAssertTrue(deleted)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])
+                let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])
                 XCTAssertTrue(row == nil)
             }
         }
@@ -387,18 +387,18 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
                 try record2.insert(db)
                 
                 do {
-                    let fetchedRecords = Citizenship.fetchAll(db, keys: [])
+                    let fetchedRecords = try Citizenship.fetchAll(db, keys: [])
                     XCTAssertEqual(fetchedRecords.count, 0)
                 }
                 
                 do {
-                    let fetchedRecords = Citizenship.fetchAll(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": record2.personName, "countryName": record2.countryName]])
+                    let fetchedRecords = try Citizenship.fetchAll(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": record2.personName, "countryName": record2.countryName]])
                     XCTAssertEqual(fetchedRecords.count, 2)
                     XCTAssertEqual(Set(fetchedRecords.map { $0.personName }), Set([record1.personName, record2.personName]))
                 }
                 
                 do {
-                    let fetchedRecords = Citizenship.fetchAll(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": nil, "countryName": nil]])
+                    let fetchedRecords = try Citizenship.fetchAll(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": nil, "countryName": nil]])
                     XCTAssertEqual(fetchedRecords.count, 1)
                     XCTAssertEqual(fetchedRecords.first!.personName, record1.personName!)
                 }
@@ -413,7 +413,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try record.insert(db)
                 
-                let fetchedRecord = Citizenship.fetchOne(db, key: ["personName": record.personName, "countryName": record.countryName])!
+                let fetchedRecord = try Citizenship.fetchOne(db, key: ["personName": record.personName, "countryName": record.countryName])!
                 XCTAssertTrue(fetchedRecord.personName == record.personName)
                 XCTAssertTrue(fetchedRecord.countryName == record.countryName)
                 XCTAssertTrue(fetchedRecord.native == record.native)

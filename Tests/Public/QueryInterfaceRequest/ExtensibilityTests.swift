@@ -69,7 +69,7 @@ class ExtensibilityTests: GRDBTestCase {
                 try db.execute("INSERT INTO records (date) VALUES (?)", arguments: [date])
                 
                 let request = Record.select(strftime("%Y", Column("date")))
-                let year = Int.fetchOne(db, request)
+                let year = try Int.fetchOne(db, request)
                 XCTAssertEqual(year, 1970)
                 XCTAssertEqual(self.lastSQLQuery, "SELECT STRFTIME('%Y', \"date\") FROM \"records\"")
             }
@@ -90,7 +90,7 @@ class ExtensibilityTests: GRDBTestCase {
                 try db.execute("INSERT INTO records (content) VALUES (?)", arguments: ["bar"])
                 
                 let request = Record.filter("foo" ~= Column("content"))
-                let count = request.fetchCount(db)
+                let count = try request.fetchCount(db)
                 XCTAssertEqual(count, 2)
             }
         }
@@ -110,7 +110,7 @@ class ExtensibilityTests: GRDBTestCase {
                 try db.execute("INSERT INTO records (text) VALUES (?)", arguments: ["foo"])
                 
                 let request = Record.select(cast(Column("text"), as: .blob))
-                let dbv = DatabaseValue.fetchOne(db, request)!
+                let dbv = try DatabaseValue.fetchOne(db, request)!
                 switch dbv.storage {
                 case .blob:
                     break

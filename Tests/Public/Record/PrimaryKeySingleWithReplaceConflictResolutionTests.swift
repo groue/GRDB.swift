@@ -78,7 +78,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 record.label = "Home"
                 try record.insert(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
+                let row = try Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -101,7 +101,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 record.label = "Work"
                 try record.insert(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
+                let row = try Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -123,7 +123,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 try record.delete(db)
                 try record.insert(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
+                let row = try Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -163,7 +163,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 try record.insert(db)
                 try record.update(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
+                let row = try Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -220,7 +220,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 record.email = "me@domain.com"
                 try record.save(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
+                let row = try Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -241,7 +241,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 try record.insert(db)
                 try record.save(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
+                let row = try Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -263,7 +263,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 try record.delete(db)
                 try record.save(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
+                let row = try Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -300,7 +300,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 let deleted = try record.delete(db)
                 XCTAssertTrue(deleted)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])
+                let row = try Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])
                 XCTAssertTrue(row == nil)
             }
         }
@@ -371,18 +371,18 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 try record2.insert(db)
                 
                 do {
-                    let fetchedRecords = Email.fetchAll(db, keys: [])
+                    let fetchedRecords = try Email.fetchAll(db, keys: [])
                     XCTAssertEqual(fetchedRecords.count, 0)
                 }
                 
                 do {
-                    let fetchedRecords = Email.fetchAll(db, keys: [["email": record1.email], ["email": record2.email]])
+                    let fetchedRecords = try Email.fetchAll(db, keys: [["email": record1.email], ["email": record2.email]])
                     XCTAssertEqual(fetchedRecords.count, 2)
                     XCTAssertEqual(Set(fetchedRecords.map { $0.email }), Set([record1.email, record2.email]))
                 }
                 
                 do {
-                    let fetchedRecords = Email.fetchAll(db, keys: [["email": record1.email], ["email": nil]])
+                    let fetchedRecords = try Email.fetchAll(db, keys: [["email": record1.email], ["email": nil]])
                     XCTAssertEqual(fetchedRecords.count, 1)
                     XCTAssertEqual(fetchedRecords.first!.email, record1.email!)
                 }
@@ -398,7 +398,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 record.email = "me@domain.com"
                 try record.insert(db)
                 
-                let fetchedRecord = Email.fetchOne(db, key: ["email": record.email])!
+                let fetchedRecord = try Email.fetchOne(db, key: ["email": record.email])!
                 XCTAssertTrue(fetchedRecord.email == record.email)
             }
         }
@@ -449,13 +449,13 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 
                 do {
                     let emails: [String] = []
-                    let fetchedRecords = Email.fetchAll(db, keys: emails)
+                    let fetchedRecords = try Email.fetchAll(db, keys: emails)
                     XCTAssertEqual(fetchedRecords.count, 0)
                 }
                 
                 do {
                     let emails = [record1.email!, record2.email!]
-                    let fetchedRecords = Email.fetchAll(db, keys: emails)
+                    let fetchedRecords = try Email.fetchAll(db, keys: emails)
                     XCTAssertEqual(fetchedRecords.count, 2)
                     XCTAssertEqual(Set(fetchedRecords.map { $0.email }), Set(emails))
                 }
@@ -473,12 +473,12 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 
                 do {
                     let id: String? = nil
-                    let fetchedRecord = Email.fetchOne(db, key: id)
+                    let fetchedRecord = try Email.fetchOne(db, key: id)
                     XCTAssertTrue(fetchedRecord == nil)
                 }
                 
                 do {
-                    let fetchedRecord = Email.fetchOne(db, key: record.email)!
+                    let fetchedRecord = try Email.fetchOne(db, key: record.email)!
                     XCTAssertTrue(fetchedRecord.email == record.email)
                 }
             }

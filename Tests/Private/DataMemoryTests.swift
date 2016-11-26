@@ -61,7 +61,7 @@ class DataMemoryTests: GRDBTestCase {
                     }
                 }
                 
-                let row = Row.fetchOne(db, "SELECT * FROM datas")!
+                let row = try Row.fetchOne(db, "SELECT * FROM datas")!
                 let databaseValue = row.first!.1
                 switch databaseValue.storage {
                 case .blob(let data):

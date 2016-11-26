@@ -29,8 +29,8 @@ class DatabasePoolReadOnlyTests: GRDBTestCase {
             let dbPool = try makeDatabasePool(filename: databaseFileName)
             
             // Make sure the database is not in WAL mode
-            let mode = dbPool.read { db in
-                String.fetchOne(db, "PRAGMA journal_mode")!
+            let mode = try dbPool.read { db in
+                try String.fetchOne(db, "PRAGMA journal_mode")!
             }
             XCTAssertNotEqual(mode.lowercased(), "wal")
             

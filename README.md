@@ -91,8 +91,8 @@ dbQueue.inDatabase { db in
             row.value(named: "longitude"))
     }
 
-    let poiCount = Int.fetchOne(db, "SELECT COUNT(*) FROM pointOfInterests")! // Int
-    let poiTitles = String.fetchAll(db, "SELECT title FROM pointOfInterests") // [String]
+    let poiCount = try Int.fetchOne(db, "SELECT COUNT(*) FROM pointOfInterests")! // Int
+    let poiTitles = try String.fetchAll(db, "SELECT title FROM pointOfInterests") // [String]
 }
 
 // Extraction
@@ -517,7 +517,7 @@ You can fetch database rows, plain values, and custom models aka "records".
 **Rows** are the raw results of SQL queries:
 
 ```swift
-if let row = Row.fetchOne(db, "SELECT * FROM wines WHERE id = ?", arguments: [1]) {
+if let row = try Row.fetchOne(db, "SELECT * FROM wines WHERE id = ?", arguments: [1]) {
     let name: String = row.value(named: "name")
     let color: Color = row.value(named: "color")
     print(name, color)
@@ -580,13 +580,13 @@ Type.fetchOne(...)    // Type?
 - `fetchAll` returns an **array** that can be consumed on any thread. It contains copies of database values, and can take a lot of memory:
     
     ```swift
-    let persons = Person.fetchAll(db, "SELECT ...") // [Person]
+    let persons = try Person.fetchAll(db, "SELECT ...") // [Person]
     ```
 
 - `fetchOne` returns a **single optional value**, and consumes a single database row (if any).
     
     ```swift
-    let count = Int.fetchOne(db, "SELECT COUNT(*) ...") // Int?
+    let count = try Int.fetchOne(db, "SELECT COUNT(*) ...") // Int?
     ```
 
 
@@ -618,11 +618,11 @@ while let row = try rows.next() {
 Arguments are optional arrays or dictionaries that fill the positional `?` and colon-prefixed keys like `:name` in the query:
 
 ```swift
-let rows = Row.fetchAll(db,
+let rows = try Row.fetchAll(db,
     "SELECT * FROM persons WHERE name = ?",
     arguments: ["Arthur"])
 
-let rows = Row.fetchAll(db,
+let rows = try Row.fetchAll(db,
     "SELECT * FROM persons WHERE name = :name",
     arguments: ["name": "Arthur"])
 ```
@@ -691,7 +691,7 @@ Generally speaking, you can extract the type you need, *provided it can be conve
 - **NULL returns nil.**
 
     ```swift
-    let row = Row.fetchOne(db, "SELECT NULL")!
+    let row = try Row.fetchOne(db, "SELECT NULL")!
     row.value(atIndex: 0) as Int? // nil
     row.value(atIndex: 0) as Int  // fatal error: could not convert NULL to Int.
     ```
@@ -705,7 +705,7 @@ Generally speaking, you can extract the type you need, *provided it can be conve
 - **Missing columns return nil.**
     
     ```swift
-    let row = Row.fetchOne(db, "SELECT 'foo' AS foo")!
+    let row = try Row.fetchOne(db, "SELECT 'foo' AS foo")!
     row.value(named: "missing") as String? // nil
     row.value(named: "missing") as String  // fatal error: no such column: missing
     ```
@@ -715,7 +715,7 @@ Generally speaking, you can extract the type you need, *provided it can be conve
 - **Invalid conversions throw a fatal error.**
     
     ```swift
-    let row = Row.fetchOne(db, "SELECT 'Mom’s birthday'")!
+    let row = try Row.fetchOne(db, "SELECT 'Mom’s birthday'")!
     row.value(atIndex: 0) as String // "Mom’s birthday"
     row.value(atIndex: 0) as Date?  // fatal error: could not convert "Mom’s birthday" to Date.
     row.value(atIndex: 0) as Date   // fatal error: could not convert "Mom’s birthday" to Date.
@@ -776,7 +776,7 @@ let date   = Date.fromDatabaseValue(dbv)       // Date?
 `fromDatabaseValue` returns nil for invalid conversions:
 
 ```swift
-let row = Row.fetchOne(db, "SELECT 'Mom’s birthday'")!
+let row = try Row.fetchOne(db, "SELECT 'Mom’s birthday'")!
 let dbv: DatabaseValue = row.value(at: 0)
 let string = String.fromDatabaseValue(dbv) // "Mom’s birthday"
 let int    = Int.fromDatabaseValue(dbv)    // nil
@@ -813,7 +813,7 @@ let row = Row(nsDictionary) // nil if invalid NSDictionary
 Yet rows are not real dictionaries: they are ordered, and may contain duplicate keys:
 
 ```swift
-let row = Row.fetchOne(db, "SELECT 1 AS foo, 2 AS foo")!
+let row = try Row.fetchOne(db, "SELECT 1 AS foo, 2 AS foo")!
 row.columnNames     // ["foo", "foo"]
 row.databaseValues  // [1, 2]
 for (columnName, databaseValue) in row { ... } // ("foo", 1), ("foo", 2)
@@ -839,8 +839,8 @@ Optional<Int>.fetchAll(db, "SELECT ...", arguments: ...)    // [Int?]
 There are many supported value types (Bool, Int, String, Date, Swift enums, etc.). See [Values](#values) for more information:
 
 ```swift
-let count = Int.fetchOne(db, "SELECT COUNT(*) FROM persons")! // Int
-let urls = URL.fetchAll(db, "SELECT url FROM links")          // [URL]
+let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM persons")! // Int
+let urls = try URL.fetchAll(db, "SELECT url FROM links")          // [URL]
 ```
 
 
@@ -883,7 +883,7 @@ while let row = try rows.next() {
 Values can be [directly fetched](#value-queries):
 
 ```swift
-let urls = URL.fetchAll(db, "SELECT url FROM links")  // [URL]
+let urls = try URL.fetchAll(db, "SELECT url FROM links")  // [URL]
 ```
 
 Use values in [Records](#records):
@@ -1008,7 +1008,7 @@ try db.execute(
     arguments: [dbComponents, ...])
 
 // Read "1973-09-18"
-let row = Row.fetchOne(db, "SELECT birthDate ...")!
+let row = try Row.fetchOne(db, "SELECT birthDate ...")!
 let dbComponents: DatabaseDateComponents = row.value(named: "birthDate")
 dbComponents.format         // .YMD (the actual format found in the database)
 dbComponents.dateComponents // DateComponents
@@ -1094,7 +1094,7 @@ while let row = try rows.next() {
 **When a database value does not match any enum case**, you get a fatal error. This fatal error can be avoided with the [DatabaseValueConvertible.fromDatabaseValue()](#custom-value-types) method:
 
 ```swift
-let row = Row.fetchOne(db, "SELECT 'syrah'")!
+let row = try Row.fetchOne(db, "SELECT 'syrah'")!
 
 row.value(atIndex: 0) as String  // "syrah"
 row.value(atIndex: 0) as Grape?  // fatal error: could not convert "syrah" to Grape.
@@ -1265,15 +1265,15 @@ Select statements can be used wherever a raw SQL query string would fit (see [fe
 
 ```swift
 let rows = try Row.fetchCursor(selectStatement)
-let persons = Person.fetchAll(selectStatement)
-let person = Person.fetchOne(selectStatement)
+let persons = try Person.fetchAll(selectStatement)
+let person = try Person.fetchOne(selectStatement)
 ```
 
 You can set the arguments at the moment of the statement execution:
 
 ```swift
 try updateStatement.execute(arguments: ["name": "Arthur", "age": 41])
-let person = Person.fetchOne(selectStatement, arguments: ["Arthur"])
+let person = try Person.fetchOne(selectStatement, arguments: ["Arthur"])
 ```
 
 > :point_up: **Note**: a prepared statement that has failed can not be reused.
@@ -1438,7 +1438,7 @@ They basically help two incompatible row interfaces to work together. For exampl
 let adapter = ColumnMapping(["consumed": "produced"])
 
 // Fetch a column named 'produced', and apply adapter:
-let row = Row.fetchOne(db, "SELECT 'Hello' AS produced", adapter: adapter)!
+let row = try Row.fetchOne(db, "SELECT 'Hello' AS produced", adapter: adapter)!
 
 // The adapter in action:
 row.value(named: "consumed") // "Hello"
@@ -1496,7 +1496,7 @@ while let row = try rows.next() {
 > 
 > ```swift
 > let books = Book.fetchAll(db, "SELECT * FROM books")
-> let persons = Person.fetchAll(db, "SELECT * FROM persons")
+> let persons = try Person.fetchAll(db, "SELECT * FROM persons")
 > ```
 
 
@@ -1683,15 +1683,15 @@ Of course, you need to open a [database connection](#database-connections), and 
 
 ```swift
 class Person : Record { ... }
-let persons = Person.fetchAll(db, "SELECT ...", arguments: ...)
+let persons = try Person.fetchAll(db, "SELECT ...", arguments: ...)
 ```
 
 Add the [TableMapping](#tablemapping-protocol) protocol and you can stop writing SQL:
 
 ```swift
 let persons = Person.filter(emailColumn != nil).order(nameColumn).fetchAll(db)
-let person = Person.fetchOne(db, key: 1)
-let person = Person.fetchOne(db, key: ["email": "arthur@example.com"])
+let person = try Person.fetchOne(db, key: 1)
+let person = try Person.fetchOne(db, key: ["email": "arthur@example.com"])
 let countries = Country.fetchAll(db, keys: ["FR", "US"])
 ```
 
@@ -1703,7 +1703,7 @@ To learn more about querying records, check the [query interface](#the-query-int
 [Record](#record-class) subclasses and types that adopt the [Persistable](#persistable-protocol) protocol can be updated in the database:
 
 ```swift
-let person = Person.fetchOne(db, key: 1)!
+let person = try Person.fetchOne(db, key: 1)!
 person.name = "Arthur"
 try person.update(db)
 ```
@@ -1711,7 +1711,7 @@ try person.update(db)
 [Record](#record-class) subclasses track changes, so that you can avoid useless updates:
 
 ```swift
-let person = Person.fetchOne(db, key: 1)!
+let person = try Person.fetchOne(db, key: 1)!
 person.name = "Arthur"
 if person.hasPersistentChangedValues {
     try person.update(db)
@@ -1730,7 +1730,7 @@ try db.execute("UPDATE persons SET synchronized = 1")
 [Record](#record-class) subclasses and types that adopt the [Persistable](#persistable-protocol) protocol can be deleted from the database:
 
 ```swift
-let person = Person.fetchOne(db, key: 1)!
+let person = try Person.fetchOne(db, key: 1)!
 try person.delete(db)
 ```
 
@@ -2445,21 +2445,21 @@ Person.fetchOne(db, key: ["email": "arthur@example.com"]) // Person?
 
 ```swift
 let request = Person.filter(emailColumn != nil).order(nameColumn)
-let persons = request.fetchAll(db)  // [Person]
-let count = request.fetchCount(db)  // Int
+let persons = try request.fetchAll(db)  // [Person]
+let count = try request.fetchCount(db)  // Int
 ```
 
 <a name="list-of-record-methods-3">³</a> See [SQL queries](#fetch-queries):
 
 ```swift
-let persons = request.fetchAll("SELECT * FROM persons WHERE id = ?", arguments: [1])  // [Person]
+let persons = try request.fetchAll("SELECT * FROM persons WHERE id = ?", arguments: [1])  // [Person]
 ```
 
 <a name="list-of-record-methods-4">⁴</a> See [Prepared Statements](#prepared-statements):
 
 ```swift
 let statement = try db.makeSelectStatement("SELECT * FROM persons WHERE id = ?")
-let persons = request.fetchAll(statement, arguments: [1])  // [Person]
+let persons = try request.fetchAll(statement, arguments: [1])  // [Person]
 ```
 
 
@@ -2662,8 +2662,8 @@ Relevant SQLite documentation:
 
 ```swift
 let request = Person.filter(emailColumn != nil).order(nameColumn)
-let persons = request.fetchAll(db)  // [Person]
-let count = request.fetchCount(db)  // Int
+let persons = try request.fetchAll(db)  // [Person]
+let count = try request.fetchCount(db)  // Int
 ```
 
 All requests start from **a type** that adopts the `TableMapping` protocol, such as a `Record` subclass (see [Records](#records)):
@@ -3030,7 +3030,7 @@ See [fetching methods](#fetching-methods) for information about the `fetchCursor
 For example:
 
 ```swift
-let allPersons = Person.fetchAll(db)                            // [Person]
+let allPersons = try Person.fetchAll(db)                            // [Person]
 let arthur = Person.filter(nameColumn == "Arthur").fetchOne(db) // Person?
 ```
 
@@ -3040,11 +3040,11 @@ let arthur = Person.filter(nameColumn == "Arthur").fetchOne(db) // Person?
 ```swift
 // Double
 let request = Person.select(min(heightColumn))
-let minHeight = Double.fetchOne(db, request)
+let minHeight = try Double.fetchOne(db, request)
 
 // Row
 let request = Person.select(min(heightColumn), max(heightColumn))
-let row = Row.fetchOne(db, request)!
+let row = try Row.fetchOne(db, request)!
 let minHeight = row.value(atIndex: 0) as Double?
 let maxHeight = row.value(atIndex: 1) as Double?
 ```
@@ -3092,7 +3092,7 @@ Person.fetchOne(db, key: ["email": "arthur@example.com"])              // Person
 
 ```swift
 // SELECT COUNT(*) FROM persons
-let count = Person.fetchCount(db) // Int
+let count = try Person.fetchCount(db) // Int
 
 // SELECT COUNT(*) FROM persons WHERE email IS NOT NULL
 let count = Person.filter(emailColumn != nil).fetchCount(db)
@@ -3109,10 +3109,10 @@ let count = Person.select(nameColumn, ageColumn).distinct().fetchCount(db)
 
 ```swift
 let request = Person.select(min(heightColumn))
-let minHeight = Double.fetchOne(db, request)
+let minHeight = try Double.fetchOne(db, request)
 
 let request = Person.select(min(heightColumn), max(heightColumn))
-let row = Row.fetchOne(db, request)!
+let row = try Row.fetchOne(db, request)!
 let minHeight = row.value(atIndex: 0) as Double?
 let maxHeight = row.value(atIndex: 1) as Double?
 ```
@@ -4166,7 +4166,7 @@ To avoid inconsistencies, provide a `fetchAlongside` argument to the `trackChang
 controller.trackChanges(
     fetchAlongside: { db in
         // Fetch any extra value, for example the number of fetched records:
-        return Person.fetchCount(db)
+        return try Person.fetchCount(db)
     },
     recordsDidChange: { (controller, count) in
         // The extra value is the second argument.
@@ -4738,7 +4738,7 @@ If you can't or don't want to define the comparison behavior of a column (see wa
 
 ```swift
 let collation = DatabaseCollation.localizedCaseInsensitiveCompare
-let persons = Person.fetchAll(db,
+let persons = try Person.fetchAll(db,
     "SELECT * FROM persons ORDER BY name COLLATE \(collation.name))")
 let persons = Person.order(nameColumn.collating(collation)).fetchAll(db)
 ```
@@ -4797,8 +4797,8 @@ GRDB ships with two concurrency modes:
     ```swift
     dbPool.read { db in // or dbQueue.inDatabase { ... }
         // Guaranteed to be equal
-        let count1 = Person.fetchCount(db)
-        let count2 = Person.fetchCount(db)
+        let count1 = try Person.fetchCount(db)
+        let count2 = try Person.fetchCount(db)
     }
     ```
 
@@ -5041,7 +5041,7 @@ For example, when fetching values, prefer loading columns by index:
 
 ```swift
 // Strings & dictionaries
-let persons = Person.fetchAll(db)
+let persons = try Person.fetchAll(db)
 
 // Column indexes
 // SELECT id, name, email FROM persons
@@ -5134,7 +5134,7 @@ You may get this error when using DatabaseQueue.inDatabase, DatabasePool.read, o
 ```swift
 // Generic parameter 'T' could not be inferred
 let x = dbQueue.inDatabase { db in
-    let result = String.fetchOne(db, ...)
+    let result = try String.fetchOne(db, ...)
     return result
 }
 ```
@@ -5146,7 +5146,7 @@ The general workaround is to explicitly declare the type of the closure result:
 ```swift
 // General Workaround
 let x = dbQueue.inDatabase { db -> String? in
-    let result = String.fetchOne(db, ...)
+    let result = try String.fetchOne(db, ...)
     return result
 }
 ```

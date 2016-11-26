@@ -54,9 +54,8 @@ try! migrator.migrate(dbQueue)
 
 try! dbQueue.inDatabase { db in
     try db.execute("INSERT INTO events (date) VALUES (?)", arguments: [DatabaseTimestamp(NSDate())])
-    let row = Row.fetchOne(db, "SELECT * FROM events")!
+    let row = try Row.fetchOne(db, "SELECT * FROM events")!
     let timestamp: Double = row.value(named: "date")
     let date = (row.value(named: "date") as DatabaseTimestamp).date
     print("timestamp: \(timestamp)")
-    print("date: \(date)")
-}
+    print("date: \(date)"

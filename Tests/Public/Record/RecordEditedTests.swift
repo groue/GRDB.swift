@@ -172,12 +172,12 @@ class RecordEditedTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
-                let person = Person.fetchOne(db, "SELECT * FROM persons")!
+                let person = try Person.fetchOne(db, "SELECT * FROM persons")!
                 XCTAssertFalse(person.hasPersistentChangedValues)
             }
             try dbQueue.inDatabase { db in
                 try PersonWithModifiedCaseColumns(name: "Arthur", age: 41).insert(db)
-                let person = PersonWithModifiedCaseColumns.fetchOne(db, "SELECT * FROM persons")!
+                let person = try PersonWithModifiedCaseColumns.fetchOne(db, "SELECT * FROM persons")!
                 XCTAssertFalse(person.hasPersistentChangedValues)
             }
         }
@@ -191,7 +191,7 @@ class RecordEditedTests: GRDBTestCase {
                 try db.execute("INSERT INTO t (value) VALUES (1)")
                 
                 // Load a double...
-                let row1 = Row.fetchOne(db, "SELECT * FROM t")!
+                let row1 = try Row.fetchOne(db, "SELECT * FROM t")!
                 switch (row1.value(named: "value") as DatabaseValue).storage {
                 case .double(let double):
                     XCTAssertEqual(double, 1.0)
@@ -200,7 +200,7 @@ class RecordEditedTests: GRDBTestCase {
                 }
                 
                 // Compare to an Int
-                let record = IntegerPropertyOnRealAffinityColumn.fetchOne(db, "SELECT * FROM t")!
+                let record = try IntegerPropertyOnRealAffinityColumn.fetchOne(db, "SELECT * FROM t")!
                 let row2 = Row(record.persistentDictionary)
                 switch (row2.value(named: "value") as DatabaseValue).storage {
                 case .int64(let int64):
@@ -223,12 +223,12 @@ class RecordEditedTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
-                let person = Person.fetchOne(db, "SELECT *, 1 AS foo FROM persons")!
+                let person = try Person.fetchOne(db, "SELECT *, 1 AS foo FROM persons")!
                 XCTAssertFalse(person.hasPersistentChangedValues)
             }
             try dbQueue.inDatabase { db in
                 try PersonWithModifiedCaseColumns(name: "Arthur", age: 41).insert(db)
-                let person = PersonWithModifiedCaseColumns.fetchOne(db, "SELECT *, 1 AS foo FROM persons")!
+                let person = try PersonWithModifiedCaseColumns.fetchOne(db, "SELECT *, 1 AS foo FROM persons")!
                 XCTAssertFalse(person.hasPersistentChangedValues)
             }
         }
@@ -243,12 +243,12 @@ class RecordEditedTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
-                let person =  Person.fetchOne(db, "SELECT name FROM persons")!
+                let person = try Person.fetchOne(db, "SELECT name FROM persons")!
                 XCTAssertTrue(person.hasPersistentChangedValues)
             }
             try dbQueue.inDatabase { db in
                 try PersonWithModifiedCaseColumns(name: "Arthur", age: 41).insert(db)
-                let person =  PersonWithModifiedCaseColumns.fetchOne(db, "SELECT name FROM persons")!
+                let person = try PersonWithModifiedCaseColumns.fetchOne(db, "SELECT name FROM persons")!
                 XCTAssertTrue(person.hasPersistentChangedValues)
             }
         }
@@ -521,13 +521,13 @@ class RecordEditedTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
-                let person = Person.fetchOne(db, "SELECT * FROM persons")!
+                let person = try Person.fetchOne(db, "SELECT * FROM persons")!
                 let changes = person.persistentChangedValues
                 XCTAssertEqual(changes.count, 0)
             }
             try dbQueue.inDatabase { db in
                 try PersonWithModifiedCaseColumns(name: "Arthur", age: 41).insert(db)
-                let person = PersonWithModifiedCaseColumns.fetchOne(db, "SELECT * FROM persons")!
+                let person = try PersonWithModifiedCaseColumns.fetchOne(db, "SELECT * FROM persons")!
                 let changes = person.persistentChangedValues
                 XCTAssertEqual(changes.count, 0)
             }
@@ -543,7 +543,7 @@ class RecordEditedTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
-                let person =  Person.fetchOne(db, "SELECT name FROM persons")!
+                let person = try Person.fetchOne(db, "SELECT name FROM persons")!
                 let changes = person.persistentChangedValues
                 XCTAssertEqual(changes.count, 3)
                 for (column, old) in changes {
@@ -561,7 +561,7 @@ class RecordEditedTests: GRDBTestCase {
             }
             try dbQueue.inDatabase { db in
                 try PersonWithModifiedCaseColumns(name: "Arthur", age: 41).insert(db)
-                let person =  PersonWithModifiedCaseColumns.fetchOne(db, "SELECT name FROM persons")!
+                let person = try PersonWithModifiedCaseColumns.fetchOne(db, "SELECT name FROM persons")!
                 let changes = person.persistentChangedValues
                 XCTAssertEqual(changes.count, 3)
                 for (column, old) in changes {

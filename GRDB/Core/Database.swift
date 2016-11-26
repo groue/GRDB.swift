@@ -489,8 +489,8 @@ extension Database {
     /// Returns a new prepared statement that can be reused.
     ///
     ///     let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM persons WHERE age > ?")
-    ///     let moreThanTwentyCount = Int.fetchOne(statement, arguments: [20])!
-    ///     let moreThanThirtyCount = Int.fetchOne(statement, arguments: [30])!
+    ///     let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
+    ///     let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
     ///
     /// - parameter sql: An SQL query.
     /// - returns: A SelectStatement.
@@ -502,8 +502,8 @@ extension Database {
     /// Returns a prepared statement that can be reused.
     ///
     ///     let statement = try db.cachedSelectStatement("SELECT COUNT(*) FROM persons WHERE age > ?")
-    ///     let moreThanTwentyCount = Int.fetchOne(statement, arguments: [20])!
-    ///     let moreThanThirtyCount = Int.fetchOne(statement, arguments: [30])!
+    ///     let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
+    ///     let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
     ///
     /// The returned statement may have already been used: it may or may not
     /// contain values for its eventual arguments.

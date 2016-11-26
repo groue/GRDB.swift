@@ -83,10 +83,10 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
                 }
                 let block2 = { [weak dbQueue] () in
                     if let dbQueue = dbQueue {
-                        dbQueue.write { db in
+                        try! dbQueue.write { db in
                             s1.signal()
                             _ = s2.wait(timeout: .distantFuture)
-                            XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items"), 0)
+                            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items"), 0)
                         }
                     } else {
                         XCTFail("expect non nil dbQueue")

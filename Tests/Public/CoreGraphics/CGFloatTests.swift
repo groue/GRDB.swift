@@ -20,7 +20,7 @@ class CGFloatTests: GRDBTestCase {
                 let y: CGFloat? = nil
                 try db.execute("INSERT INTO points VALUES (?,?)", arguments: [x, y])
                 
-                let row = Row.fetchOne(db, "SELECT * FROM points")!
+                let row = try Row.fetchOne(db, "SELECT * FROM points")!
                 let fetchedX: CGFloat = row.value(named: "x")
                 let fetchedY: CGFloat? = row.value(named: "y")
                 XCTAssertEqual(x, fetchedX)

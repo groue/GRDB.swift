@@ -106,7 +106,7 @@ class RowConvertibleTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("INSERT INTO structs (firstName, lastName) VALUES (?, ?)", arguments: ["Arthur", "Martin"])
                 let statement = try db.makeSelectStatement("SELECT * FROM structs")
-                let ss = SimpleRowConvertible.fetchAll(statement)
+                let ss = try SimpleRowConvertible.fetchAll(statement)
                 let s = ss.first!
                 XCTAssertEqual(s.firstName, "Arthur")
                 XCTAssertEqual(s.lastName, "Martin")
@@ -124,7 +124,7 @@ class RowConvertibleTests: GRDBTestCase {
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
                 let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
                 let statement = try db.makeSelectStatement(sql)
-                let ss = Person.fetchAll(statement, arguments: arguments, adapter: adapter)
+                let ss = try Person.fetchAll(statement, arguments: arguments, adapter: adapter)
                 let s = ss.first!
                 XCTAssertEqual(s.firstName, "Stan")
                 XCTAssertEqual(s.lastName, "Laurel")
@@ -141,11 +141,11 @@ class RowConvertibleTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let statement = try db.makeSelectStatement("SELECT * FROM structs")
-                let missingS = SimpleRowConvertible.fetchOne(statement)
+                let missingS = try SimpleRowConvertible.fetchOne(statement)
                 XCTAssertTrue(missingS == nil)
                 
                 try db.execute("INSERT INTO structs (firstName, lastName) VALUES (?, ?)", arguments: ["Arthur", "Martin"])
-                let s = SimpleRowConvertible.fetchOne(statement)!
+                let s = try SimpleRowConvertible.fetchOne(statement)!
                 XCTAssertEqual(s.firstName, "Arthur")
                 XCTAssertEqual(s.lastName, "Martin")
                 XCTAssertTrue(s.fetched)
@@ -162,7 +162,7 @@ class RowConvertibleTests: GRDBTestCase {
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
                 let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
                 let statement = try db.makeSelectStatement(sql)
-                let s = Person.fetchOne(statement, arguments: arguments, adapter: adapter)!
+                let s = try Person.fetchOne(statement, arguments: arguments, adapter: adapter)!
                 XCTAssertEqual(s.firstName, "Stan")
                 XCTAssertEqual(s.lastName, "Laurel")
                 XCTAssertTrue(s.fetched)
@@ -212,7 +212,7 @@ class RowConvertibleTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("INSERT INTO structs (firstName, lastName) VALUES (?, ?)", arguments: ["Arthur", "Martin"])
-                let ss = SimpleRowConvertible.fetchAll(db, "SELECT * FROM structs")
+                let ss = try SimpleRowConvertible.fetchAll(db, "SELECT * FROM structs")
                 let s = ss.first!
                 XCTAssertEqual(s.firstName, "Arthur")
                 XCTAssertEqual(s.lastName, "Martin")
@@ -224,12 +224,12 @@ class RowConvertibleTests: GRDBTestCase {
     func testFetchAllFromSQLWithAdapter() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let adapter = ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"])
                     .addingScopes(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
                 let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
-                let ss = Person.fetchAll(db, sql, arguments: arguments, adapter: adapter)
+                let ss = try Person.fetchAll(db, sql, arguments: arguments, adapter: adapter)
                 let s = ss.first!
                 XCTAssertEqual(s.firstName, "Stan")
                 XCTAssertEqual(s.lastName, "Laurel")
@@ -245,11 +245,11 @@ class RowConvertibleTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                let missingS = SimpleRowConvertible.fetchOne(db, "SELECT * FROM structs")
+                let missingS = try SimpleRowConvertible.fetchOne(db, "SELECT * FROM structs")
                 XCTAssertTrue(missingS == nil)
                 
                 try db.execute("INSERT INTO structs (firstName, lastName) VALUES (?, ?)", arguments: ["Arthur", "Martin"])
-                let s = SimpleRowConvertible.fetchOne(db, "SELECT * FROM structs")!
+                let s = try SimpleRowConvertible.fetchOne(db, "SELECT * FROM structs")!
                 XCTAssertEqual(s.firstName, "Arthur")
                 XCTAssertEqual(s.lastName, "Martin")
                 XCTAssertTrue(s.fetched)
@@ -260,12 +260,12 @@ class RowConvertibleTests: GRDBTestCase {
     func testFetchOneFromSQLWithAdapter() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let adapter = ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"])
                     .addingScopes(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
                 let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
-                let s = Person.fetchOne(db, sql, arguments: arguments, adapter: adapter)!
+                let s = try Person.fetchOne(db, sql, arguments: arguments, adapter: adapter)!
                 XCTAssertEqual(s.firstName, "Stan")
                 XCTAssertEqual(s.lastName, "Laurel")
                 XCTAssertTrue(s.fetched)
@@ -307,7 +307,7 @@ class RowConvertibleTests: GRDBTestCase {
     func testFetchAllFromFetchRequest() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 struct Request : FetchRequest {
                     func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
                         let adapter = ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"])
@@ -320,7 +320,7 @@ class RowConvertibleTests: GRDBTestCase {
                         return (statement, adapter)
                     }
                 }
-                let ss = Person.fetchAll(db, Request())
+                let ss = try Person.fetchAll(db, Request())
                 let s = ss.first!
                 XCTAssertEqual(s.firstName, "Stan")
                 XCTAssertEqual(s.lastName, "Laurel")
@@ -335,7 +335,7 @@ class RowConvertibleTests: GRDBTestCase {
     func testFetchOneFromFetchRequest() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 struct Request : FetchRequest {
                     func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
                         let adapter = ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"])
@@ -348,7 +348,7 @@ class RowConvertibleTests: GRDBTestCase {
                         return (statement, adapter)
                     }
                 }
-                let s = Person.fetchOne(db, Request())!
+                let s = try Person.fetchOne(db, Request())!
                 XCTAssertEqual(s.firstName, "Stan")
                 XCTAssertEqual(s.lastName, "Laurel")
                 XCTAssertTrue(s.fetched)

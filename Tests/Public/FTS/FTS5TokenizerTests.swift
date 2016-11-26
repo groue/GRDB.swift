@@ -14,7 +14,7 @@ class FTS5TokenizerTests: GRDBTestCase {
         defer {
             try! db.execute("DELETE FROM documents")
         }
-        return Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: [query])! > 0
+        return try! Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: [query])! > 0
     }
     
     func testAsciiTokenizer() {

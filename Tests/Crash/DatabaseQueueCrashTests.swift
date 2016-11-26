@@ -52,7 +52,7 @@ class DatabaseQueueCrashTests: GRDBCrashTestCase {
             var rows: DatabaseSequence<Row>?
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT)")
-                rows = Row.fetch(db, "SELECT * FROM persons")
+                rows = try Row.fetch(db, "SELECT * FROM persons")
             }
             _ = rows!.makeIterator()
         }
@@ -63,7 +63,7 @@ class DatabaseQueueCrashTests: GRDBCrashTestCase {
             var iterator: DatabaseIterator<Row>?
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT)")
-                iterator = Row.fetch(db, "SELECT * FROM persons").makeIterator()
+                iterator = try Row.fetch(db, "SELECT * FROM persons").makeIterator()
             }
             _ = iterator!.next()
         }
@@ -101,7 +101,7 @@ class DatabaseQueueCrashTests: GRDBCrashTestCase {
             queue.addOperation(NSBlockOperation {
                 dbQueue2.inDatabase { db in
                     sleep(1)    // let other queue open transaction
-                    _ = Row.fetch(db, "SELECT * FROM stuffs")   // Crash expected
+                    _ = try Row.fetch(db, "SELECT * FROM stuffs")   // Crash expected
                 }
                 })
             

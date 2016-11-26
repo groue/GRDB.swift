@@ -74,7 +74,7 @@ class FTS3RecordTests: GRDBTestCase {
                 try book.insert(db)
                 XCTAssertTrue(book.id != nil)
                 
-                let fetchedBook = Book.matching(FTS3Pattern(matchingAllTokensIn: "Herman Melville")!).fetchOne(db)!
+                let fetchedBook = try Book.matching(FTS3Pattern(matchingAllTokensIn: "Herman Melville")!).fetchOne(db)!
                 XCTAssertEqual(fetchedBook.id, book.id)
                 XCTAssertEqual(fetchedBook.title, book.title)
                 XCTAssertEqual(fetchedBook.author, book.author)
@@ -93,10 +93,10 @@ class FTS3RecordTests: GRDBTestCase {
                 }
                 
                 let pattern = FTS3Pattern(matchingAllTokensIn: "Herman Melville")!
-                XCTAssertEqual(Book.matching(pattern).fetchCount(db), 1)
-                XCTAssertEqual(Book.filter(Column("books").match(pattern)).fetchCount(db), 1)
-                XCTAssertEqual(Book.filter(Column("author").match(pattern)).fetchCount(db), 1)
-                XCTAssertEqual(Book.filter(Column("title").match(pattern)).fetchCount(db), 0)
+                XCTAssertEqual(try Book.matching(pattern).fetchCount(db), 1)
+                XCTAssertEqual(try Book.filter(Column("books").match(pattern)).fetchCount(db), 1)
+                XCTAssertEqual(try Book.filter(Column("author").match(pattern)).fetchCount(db), 1)
+                XCTAssertEqual(try Book.filter(Column("title").match(pattern)).fetchCount(db), 0)
             }
         }
     }
@@ -112,10 +112,10 @@ class FTS3RecordTests: GRDBTestCase {
                 
                 let pattern = FTS3Pattern(matchingAllTokensIn: "")
                 XCTAssertTrue(pattern == nil)
-                XCTAssertEqual(Book.matching(pattern).fetchCount(db), 0)
-                XCTAssertEqual(Book.filter(Column("books").match(pattern)).fetchCount(db), 0)
-                XCTAssertEqual(Book.filter(Column("author").match(pattern)).fetchCount(db), 0)
-                XCTAssertEqual(Book.filter(Column("title").match(pattern)).fetchCount(db), 0)
+                XCTAssertEqual(try Book.matching(pattern).fetchCount(db), 0)
+                XCTAssertEqual(try Book.filter(Column("books").match(pattern)).fetchCount(db), 0)
+                XCTAssertEqual(try Book.filter(Column("author").match(pattern)).fetchCount(db), 0)
+                XCTAssertEqual(try Book.filter(Column("title").match(pattern)).fetchCount(db), 0)
             }
         }
     }
@@ -130,10 +130,10 @@ class FTS3RecordTests: GRDBTestCase {
                 }
                 
                 let pattern = FTS3Pattern(matchingAllTokensIn: "Herman Melville")!
-                XCTAssertEqual(Book.matching(pattern).fetchCount(db), 1)
+                XCTAssertEqual(try Book.matching(pattern).fetchCount(db), 1)
                 XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"books\" WHERE (\"books\" MATCH 'herman melville')")
                 
-                XCTAssertEqual(Book.fetchCount(db), 1)
+                XCTAssertEqual(try Book.fetchCount(db), 1)
                 XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"books\"")
             }
         }

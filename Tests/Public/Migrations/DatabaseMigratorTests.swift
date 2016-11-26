@@ -123,8 +123,8 @@ class DatabaseMigratorTests : GRDBTestCase {
                 XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
                 XCTAssertEqual(error.description.lowercased(), "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [123, \"bobby\"]: foreign key constraint failed")
 
-                let names = dbQueue.inDatabase { db in
-                    String.fetchAll(db, "SELECT name FROM persons")
+                let names = try dbQueue.inDatabase { db in
+                    try String.fetchAll(db, "SELECT name FROM persons")
                 }
                 XCTAssertEqual(names, ["Arthur"])
             }
@@ -176,9 +176,9 @@ class DatabaseMigratorTests : GRDBTestCase {
                 XCTAssertTrue(error.sql == nil)
                 XCTAssertEqual(error.description, "SQLite error 19: FOREIGN KEY constraint failed")
                 
-                dbQueue.inDatabase { db in
+                try dbQueue.inDatabase { db in
                     // Arthur inserted (migration 1), Barbara (migration 3) not inserted.
-                    var rows = Row.fetchAll(db, "SELECT * FROM persons")
+                    var rows = try Row.fetchAll(db, "SELECT * FROM persons")
                     XCTAssertEqual(rows.count, 1)
                     var row = rows.first!
                     XCTAssertEqual(row.value(named: "name") as String, "Arthur")
@@ -187,7 +187,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                     XCTAssertEqual(Array(row.columnNames), ["id", "name"])
                     
                     // Bobby inserted (migration 1), not deleted by migration 2.
-                    rows = Row.fetchAll(db, "SELECT * FROM pets")
+                    rows = try Row.fetchAll(db, "SELECT * FROM pets")
                     XCTAssertEqual(rows.count, 1)
                     row = rows.first!
                     XCTAssertEqual(row.value(named: "name") as String, "Bobby")

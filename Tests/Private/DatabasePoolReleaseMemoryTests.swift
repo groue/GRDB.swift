@@ -170,10 +170,10 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                 }
                 let block2 = { [weak dbPool] () in
                     if let dbPool = dbPool {
-                        dbPool.read { db in
+                        try! dbPool.read { db in
                             s1.signal()
                             _ = s2.wait(timeout: .distantFuture)
-                            XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items"), 0)
+                            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items"), 0)
                         }
                     } else {
                         XCTFail("expect non nil dbPool")

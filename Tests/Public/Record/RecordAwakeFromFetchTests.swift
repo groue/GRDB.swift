@@ -63,27 +63,13 @@ class RecordEventsTests: GRDBTestCase {
         XCTAssertEqual(record.awakeFromFetchCount, 0)
     }
     
-    func testAwakeFromFetchIsTriggeredByFetch() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                do {
-                    let record = EventRecorder()
-                    try record.insert(db)
-                    XCTAssertEqual(record.awakeFromFetchCount, 0)
-                }
-            }
-        }
-    }
-    func testAwakeFromFetchIsTriggeredByReload() {
+    func testAwakeFromFetchIsTriggeredFetch() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try EventRecorder().insert(db)
-                do {
-                    let record = EventRecorder.fetchOne(db, "SELECT * FROM eventRecorders")!
-                    XCTAssertEqual(record.awakeFromFetchCount, 1)
-                }
+                let record = try EventRecorder.fetchOne(db, "SELECT * FROM eventRecorders")!
+                XCTAssertEqual(record.awakeFromFetchCount, 1)
             }
         }
     }

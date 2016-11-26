@@ -186,8 +186,8 @@ class SQLTableBuilderTests: GRDBTestCase {
                 
                 // Sanity check
                 try db.execute("INSERT INTO test DEFAULT VALUES")
-                XCTAssertEqual(Int.fetchOne(db, "SELECT a FROM test")!, 1)
-                XCTAssertEqual(String.fetchOne(db, "SELECT c FROM test")!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
+                XCTAssertEqual(try Int.fetchOne(db, "SELECT a FROM test")!, 1)
+                XCTAssertEqual(try String.fetchOne(db, "SELECT c FROM test")!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
             }
         }
     }

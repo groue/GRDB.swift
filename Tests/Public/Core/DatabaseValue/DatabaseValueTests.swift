@@ -12,12 +12,12 @@ class DatabaseValueTests: GRDBTestCase {
     func testDatabaseValueAsDatabaseValueConvertible() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
-                XCTAssertTrue((Row.fetchOne(db, "SELECT 1")!.value(atIndex: 0) as DatabaseValue).value() is Int64)
-                XCTAssertTrue((Row.fetchOne(db, "SELECT 1.0")!.value(atIndex: 0) as DatabaseValue).value() is Double)
-                XCTAssertTrue((Row.fetchOne(db, "SELECT 'foo'")!.value(atIndex: 0) as DatabaseValue).value() is String)
-                XCTAssertTrue((Row.fetchOne(db, "SELECT x'53514C697465'")!.value(atIndex: 0) as DatabaseValue).value() is Data)
-                XCTAssertTrue((Row.fetchOne(db, "SELECT NULL")!.value(atIndex: 0) as DatabaseValue).isNull)
+            try dbQueue.inDatabase { db in
+                XCTAssertTrue((try Row.fetchOne(db, "SELECT 1")!.value(atIndex: 0) as DatabaseValue).value() is Int64)
+                XCTAssertTrue((try Row.fetchOne(db, "SELECT 1.0")!.value(atIndex: 0) as DatabaseValue).value() is Double)
+                XCTAssertTrue((try Row.fetchOne(db, "SELECT 'foo'")!.value(atIndex: 0) as DatabaseValue).value() is String)
+                XCTAssertTrue((try Row.fetchOne(db, "SELECT x'53514C697465'")!.value(atIndex: 0) as DatabaseValue).value() is Data)
+                XCTAssertTrue((try Row.fetchOne(db, "SELECT NULL")!.value(atIndex: 0) as DatabaseValue).isNull)
             }
         }
     }
@@ -25,12 +25,12 @@ class DatabaseValueTests: GRDBTestCase {
     func testDatabaseValueAsStatementColumnConvertible() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
-                XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT 1")!.value() is Int64)
-                XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT 1.0")!.value() is Double)
-                XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT 'foo'")!.value() is String)
-                XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT x'53514C697465'")!.value() is Data)
-                XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT NULL")!.isNull)
+            try dbQueue.inDatabase { db in
+                XCTAssertTrue(try DatabaseValue.fetchOne(db, "SELECT 1")!.value() is Int64)
+                XCTAssertTrue(try DatabaseValue.fetchOne(db, "SELECT 1.0")!.value() is Double)
+                XCTAssertTrue(try DatabaseValue.fetchOne(db, "SELECT 'foo'")!.value() is String)
+                XCTAssertTrue(try DatabaseValue.fetchOne(db, "SELECT x'53514C697465'")!.value() is Data)
+                XCTAssertTrue(try DatabaseValue.fetchOne(db, "SELECT NULL")!.isNull)
             }
         }
     }
@@ -42,7 +42,7 @@ class DatabaseValueTests: GRDBTestCase {
                 try db.execute("CREATE TABLE integers (integer INTEGER)")
                 try db.execute("INSERT INTO integers (integer) VALUES (1)")
                 let databaseValue: DatabaseValue = 1.databaseValue
-                let count = Int.fetchOne(db, "SELECT COUNT(*) FROM integers WHERE integer = ?", arguments: [databaseValue])!
+                let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM integers WHERE integer = ?", arguments: [databaseValue])!
                 XCTAssertEqual(count, 1)
             }
         }

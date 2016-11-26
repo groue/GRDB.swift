@@ -98,7 +98,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 
                 let selectStatement = try db.makeSelectStatement("SELECT * FROM persons WHERE firstName = ? AND age = ?")
                 selectStatement.arguments = arguments
-                let row = Row.fetchOne(selectStatement)!
+                let row = try Row.fetchOne(selectStatement)!
                 
                 XCTAssertEqual(row.value(named: "firstName") as String, name)
                 XCTAssertEqual(row.value(named: "age") as Int, age)
@@ -120,7 +120,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 
                 let selectStatement = try db.makeSelectStatement("SELECT * FROM persons WHERE firstName = ? AND age = ?")
                 selectStatement.unsafeSetArguments(arguments)
-                let row = Row.fetchOne(selectStatement)!
+                let row = try Row.fetchOne(selectStatement)!
                 
                 XCTAssertEqual(row.value(named: "firstName") as String, name)
                 XCTAssertEqual(row.value(named: "age") as Int, age)
@@ -217,7 +217,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 
                 let selectStatement = try db.makeSelectStatement("SELECT * FROM persons WHERE firstName = :name AND age = :age")
                 selectStatement.arguments = arguments
-                let row = Row.fetchOne(selectStatement)!
+                let row = try Row.fetchOne(selectStatement)!
                 
                 XCTAssertEqual(row.value(named: "firstName") as String, name)
                 XCTAssertEqual(row.value(named: "age") as Int, age)
@@ -239,7 +239,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 
                 let selectStatement = try db.makeSelectStatement("SELECT * FROM persons WHERE firstName = :name AND age = :age")
                 selectStatement.unsafeSetArguments(arguments)
-                let row = Row.fetchOne(selectStatement)!
+                let row = try Row.fetchOne(selectStatement)!
                 
                 XCTAssertEqual(row.value(named: "firstName") as String, name)
                 XCTAssertEqual(row.value(named: "age") as Int, age)
@@ -255,7 +255,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 
                 do {
                     try statement.execute(arguments: ["name": "foo", "age": 1])
-                    let row = Row.fetchOne(db, "SELECT * FROM persons")!
+                    let row = try Row.fetchOne(db, "SELECT * FROM persons")!
                     XCTAssertEqual(row.value(named: "firstName") as String, "foo")
                     XCTAssertEqual(row.value(named: "lastName") as String, "foo")
                     XCTAssertEqual(row.value(named: "age") as Int, 1)
@@ -345,7 +345,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 
                 let selectStatement = try db.makeSelectStatement("SELECT * FROM persons WHERE firstName = :name AND lastName = :name AND age = :age")
                 selectStatement.arguments = arguments
-                let row = Row.fetchOne(selectStatement)!
+                let row = try Row.fetchOne(selectStatement)!
                 
                 XCTAssertEqual(row.value(named: "firstName") as String, name)
                 XCTAssertEqual(row.value(named: "age") as Int, age)
@@ -367,7 +367,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 
                 let selectStatement = try db.makeSelectStatement("SELECT * FROM persons WHERE firstName = :name AND lastName = :name AND age = :age")
                 selectStatement.unsafeSetArguments(arguments)
-                let row = Row.fetchOne(selectStatement)!
+                let row = try Row.fetchOne(selectStatement)!
                 
                 XCTAssertEqual(row.value(named: "firstName") as String, name)
                 XCTAssertEqual(row.value(named: "age") as Int, age)

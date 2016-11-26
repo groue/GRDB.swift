@@ -102,14 +102,14 @@ try dbQueue.inDatabase { db in
 dbQueue.inDatabase { db in
     
     //: Fetch records from the database:
-    let allPersons = Person.fetchAll(db)
+    let allPersons = try Person.fetchAll(db)
 
     //: Fetch record by primary key:
-    let person = Person.fetchOne(db, key: arthur.id)!
+    let person = try Person.fetchOne(db, key: arthur.id)!
     person.fullName
 
     //: Fetch persons with an SQL query:
-    let millers = Person.fetchAll(db, "SELECT * FROM persons WHERE lastName = ?", arguments: ["Miller"])
+    let millers = try Person.fetchAll(db, "SELECT * FROM persons WHERE lastName = ?", arguments: ["Miller"])
     millers.first!.fullName
 
 
@@ -124,5 +124,4 @@ dbQueue.inDatabase { db in
     let personsSortedByName = Person.order(Col.firstName, Col.lastName).fetchAll(db)
 
     //: Filter
-    let streisands = Person.filter(Col.lastName == "Streisand").fetchAll(db)
-}
+    let streisands = Person.filter(Col.lastName == "Streisand").fet

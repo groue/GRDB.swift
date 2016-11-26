@@ -181,7 +181,7 @@ class RecordSubClassTests: GRDBTestCase {
                 try record.insert(db)
                 
                 do {
-                    let fetchedRecord = PersonWithOverrides.fetchOne(db, "SELECT *, 123 as extra FROM persons")!
+                    let fetchedRecord = try PersonWithOverrides.fetchOne(db, "SELECT *, 123 as extra FROM persons")!
                     XCTAssertTrue(fetchedRecord.id == record.id)
                     XCTAssertTrue(fetchedRecord.name == record.name)
                     XCTAssertTrue(fetchedRecord.age == record.age)
@@ -190,7 +190,7 @@ class RecordSubClassTests: GRDBTestCase {
                 }
                 
                 do {
-                    let fetchedRecord = MinimalPersonWithOverrides.fetchOne(db, "SELECT *, 123 as extra FROM persons")!
+                    let fetchedRecord = try MinimalPersonWithOverrides.fetchOne(db, "SELECT *, 123 as extra FROM persons")!
                     XCTAssertTrue(fetchedRecord.id == record.id)
                     XCTAssertTrue(fetchedRecord.name == record.name)
                     XCTAssertTrue(fetchedRecord.age == record.age)

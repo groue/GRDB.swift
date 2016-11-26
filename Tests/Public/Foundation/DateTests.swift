@@ -42,7 +42,7 @@ class DateTests : GRDBTestCase {
                 }
                 
                 do {
-                    let date = Date.fetchOne(db, "SELECT creationDate FROM dates")!
+                    let date = try Date.fetchOne(db, "SELECT creationDate FROM dates")!
                     // All components must be preserved, but nanosecond since ISO-8601 stores milliseconds.
                     XCTAssertEqual(calendar.component(.year, from: date), dateComponents.year)
                     XCTAssertEqual(calendar.component(.month, from: date), dateComponents.month)
@@ -72,7 +72,7 @@ class DateTests : GRDBTestCase {
                     "INSERT INTO dates (id, creationDate) VALUES (?,?)",
                     arguments: [3, Date().addingTimeInterval(1)])
                 
-                let ids = Int.fetchAll(db, "SELECT id FROM dates ORDER BY creationDate")
+                let ids = try Int.fetchAll(db, "SELECT id FROM dates ORDER BY creationDate")
                 XCTAssertEqual(ids, [1,2,3])
             }
         }
@@ -101,7 +101,7 @@ class DateTests : GRDBTestCase {
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["2015-07-22"])
-                let date = Date.fetchOne(db, "SELECT creationDate from dates")!
+                let date = try Date.fetchOne(db, "SELECT creationDate from dates")!
                 var calendar = Calendar(identifier: .gregorian)
                 calendar.timeZone = TimeZone(secondsFromGMT: 0)!
                 XCTAssertEqual(calendar.component(.year, from: date), 2015)
@@ -122,7 +122,7 @@ class DateTests : GRDBTestCase {
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["2015-07-22 01:02"])
-                let date = Date.fetchOne(db, "SELECT creationDate from dates")!
+                let date = try Date.fetchOne(db, "SELECT creationDate from dates")!
                 var calendar = Calendar(identifier: .gregorian)
                 calendar.timeZone = TimeZone(secondsFromGMT: 0)!
                 XCTAssertEqual(calendar.component(.year, from: date), 2015)
@@ -143,7 +143,7 @@ class DateTests : GRDBTestCase {
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["2015-07-22 01:02:03"])
-                let date = Date.fetchOne(db, "SELECT creationDate from dates")!
+                let date = try Date.fetchOne(db, "SELECT creationDate from dates")!
                 var calendar = Calendar(identifier: .gregorian)
                 calendar.timeZone = TimeZone(secondsFromGMT: 0)!
                 XCTAssertEqual(calendar.component(.year, from: date), 2015)
@@ -164,7 +164,7 @@ class DateTests : GRDBTestCase {
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["2015-07-22 01:02:03.00456"])
-                let date = Date.fetchOne(db, "SELECT creationDate from dates")!
+                let date = try Date.fetchOne(db, "SELECT creationDate from dates")!
                 var calendar = Calendar(identifier: .gregorian)
                 calendar.timeZone = TimeZone(secondsFromGMT: 0)!
                 XCTAssertEqual(calendar.component(.year, from: date), 2015)
@@ -187,10 +187,10 @@ class DateTests : GRDBTestCase {
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: [2_456_293.520833])
                 
-                let string = String.fetchOne(db, "SELECT datetime(creationDate) from dates")!
+                let string = try String.fetchOne(db, "SELECT datetime(creationDate) from dates")!
                 XCTAssertEqual(string, "2013-01-01 00:29:59")
                 
-                let date = Date.fetchOne(db, "SELECT creationDate from dates")!
+                let date = try Date.fetchOne(db, "SELECT creationDate from dates")!
                 var calendar = Calendar(identifier: .gregorian)
                 calendar.timeZone = TimeZone(secondsFromGMT: 0)!
                 XCTAssertEqual(calendar.component(.year, from: date), 2013)
@@ -210,7 +210,7 @@ class DateTests : GRDBTestCase {
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["2015-07-22T01:02"])
-                let date = Date.fetchOne(db, "SELECT creationDate from dates")!
+                let date = try Date.fetchOne(db, "SELECT creationDate from dates")!
                 var calendar = Calendar(identifier: .gregorian)
                 calendar.timeZone = TimeZone(secondsFromGMT: 0)!
                 XCTAssertEqual(calendar.component(.year, from: date), 2015)
@@ -231,7 +231,7 @@ class DateTests : GRDBTestCase {
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["2015-07-22T01:02:03"])
-                let date = Date.fetchOne(db, "SELECT creationDate from dates")!
+                let date = try Date.fetchOne(db, "SELECT creationDate from dates")!
                 var calendar = Calendar(identifier: .gregorian)
                 calendar.timeZone = TimeZone(secondsFromGMT: 0)!
                 XCTAssertEqual(calendar.component(.year, from: date), 2015)
@@ -252,7 +252,7 @@ class DateTests : GRDBTestCase {
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["2015-07-22T01:02:03.00456"])
-                let date = Date.fetchOne(db, "SELECT creationDate from dates")!
+                let date = try Date.fetchOne(db, "SELECT creationDate from dates")!
                 var calendar = Calendar(identifier: .gregorian)
                 calendar.timeZone = TimeZone(secondsFromGMT: 0)!
                 XCTAssertEqual(calendar.component(.year, from: date), 2015)

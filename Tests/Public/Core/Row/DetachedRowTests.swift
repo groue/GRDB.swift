@@ -21,7 +21,7 @@ class DetachedRowTests : RowTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
-                let row = Row.fetchOne(db, "SELECT * FROM ints")!
+                let row = try Row.fetchOne(db, "SELECT * FROM ints")!
                 
                 var columnNames = [String]()
                 var ints = [Int]()
@@ -45,7 +45,7 @@ class DetachedRowTests : RowTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
-                let row = Row.fetchOne(db, "SELECT * FROM ints")!
+                let row = try Row.fetchOne(db, "SELECT * FROM ints")!
                 
                 // Raw extraction
                 assertRowRawValueEqual(row, index: 0, value: 0 as Int64)
@@ -76,7 +76,7 @@ class DetachedRowTests : RowTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
-                let row = Row.fetchOne(db, "SELECT * FROM ints")!
+                let row = try Row.fetchOne(db, "SELECT * FROM ints")!
                 
                 // Raw extraction
                 assertRowRawValueEqual(row, name: "a", value: 0 as Int64)
@@ -102,7 +102,7 @@ class DetachedRowTests : RowTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
-                let row = Row.fetchOne(db, "SELECT * FROM ints")!
+                let row = try Row.fetchOne(db, "SELECT * FROM ints")!
                 
                 // Raw extraction
                 assertRowRawValueEqual(row, column: Column("a"), value: 0 as Int64)
@@ -125,9 +125,9 @@ class DetachedRowTests : RowTestCase {
     func testDataNoCopy() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let data = "foo".data(using: .utf8)!
-                let row = Row.fetchOne(db, "SELECT ? AS a", arguments: [data])!
+                let row = try Row.fetchOne(db, "SELECT ? AS a", arguments: [data])!
                 
                 XCTAssertEqual(row.dataNoCopy(atIndex: 0), data)
                 XCTAssertEqual(row.dataNoCopy(named: "a"), data)
@@ -139,8 +139,8 @@ class DetachedRowTests : RowTestCase {
     func testRowDatabaseValueAtIndex() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
-                let row = Row.fetchOne(db, "SELECT NULL, 1, 1.1, 'foo', x'53514C697465'")!
+            try dbQueue.inDatabase { db in
+                let row = try Row.fetchOne(db, "SELECT NULL, 1, 1.1, 'foo', x'53514C697465'")!
                 
                 guard case .null = (row.value(atIndex: 0) as DatabaseValue).storage else { XCTFail(); return }
                 guard case .int64(let int64) = (row.value(atIndex: 1) as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
@@ -154,8 +154,8 @@ class DetachedRowTests : RowTestCase {
     func testRowDatabaseValueNamed() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
-                let row = Row.fetchOne(db, "SELECT NULL AS \"null\", 1 AS \"int64\", 1.1 AS \"double\", 'foo' AS \"string\", x'53514C697465' AS \"blob\"")!
+            try dbQueue.inDatabase { db in
+                let row = try Row.fetchOne(db, "SELECT NULL AS \"null\", 1 AS \"int64\", 1.1 AS \"double\", 'foo' AS \"string\", x'53514C697465' AS \"blob\"")!
                 
                 guard case .null = (row.value(named: "null") as DatabaseValue).storage else { XCTFail(); return }
                 guard case .int64(let int64) = (row.value(named: "int64") as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
@@ -172,7 +172,7 @@ class DetachedRowTests : RowTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
-                let row = Row.fetchOne(db, "SELECT * FROM ints")!
+                let row = try Row.fetchOne(db, "SELECT * FROM ints")!
                 
                 XCTAssertEqual(row.count, 3)
             }
@@ -185,7 +185,7 @@ class DetachedRowTests : RowTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
-                let row = Row.fetchOne(db, "SELECT a, b, c FROM ints")!
+                let row = try Row.fetchOne(db, "SELECT a, b, c FROM ints")!
                 
                 XCTAssertEqual(Array(row.columnNames), ["a", "b", "c"])
             }
@@ -198,7 +198,7 @@ class DetachedRowTests : RowTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
-                let row = Row.fetchOne(db, "SELECT a, b, c FROM ints")!
+                let row = try Row.fetchOne(db, "SELECT a, b, c FROM ints")!
                 
                 XCTAssertEqual(Array(row.databaseValues), [0.databaseValue, 1.databaseValue, 2.databaseValue])
             }
@@ -208,8 +208,8 @@ class DetachedRowTests : RowTestCase {
     func testRowIsCaseInsensitive() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
-                let row = Row.fetchOne(db, "SELECT 'foo' AS nAmE")!
+            try dbQueue.inDatabase { db in
+                let row = try Row.fetchOne(db, "SELECT 'foo' AS nAmE")!
                 XCTAssertEqual(row.value(named: "name") as DatabaseValue, "foo".databaseValue)
                 XCTAssertEqual(row.value(named: "NAME") as DatabaseValue, "foo".databaseValue)
                 XCTAssertEqual(row.value(named: "NaMe") as DatabaseValue, "foo".databaseValue)
@@ -223,8 +223,8 @@ class DetachedRowTests : RowTestCase {
     func testRowIsCaseInsensitiveAndReturnsLeftmostMatchingColumn() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
-                let row = Row.fetchOne(db, "SELECT 1 AS name, 2 AS NAME")!
+            try dbQueue.inDatabase { db in
+                let row = try Row.fetchOne(db, "SELECT 1 AS name, 2 AS NAME")!
                 XCTAssertEqual(row.value(named: "name") as DatabaseValue, 1.databaseValue)
                 XCTAssertEqual(row.value(named: "NAME") as DatabaseValue, 1.databaseValue)
                 XCTAssertEqual(row.value(named: "NaMe") as DatabaseValue, 1.databaseValue)
@@ -238,8 +238,8 @@ class DetachedRowTests : RowTestCase {
     func testMissingColumn() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
-                let row = Row.fetchOne(db, "SELECT 'foo' AS name")!
+            try dbQueue.inDatabase { db in
+                let row = try Row.fetchOne(db, "SELECT 'foo' AS name")!
                 
                 XCTAssertFalse(row.hasColumn("missing"))
                 XCTAssertTrue(row.value(named: "missing") as DatabaseValue? == nil)
@@ -251,8 +251,8 @@ class DetachedRowTests : RowTestCase {
     func testRowHasColumnIsCaseInsensitive() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
-                let row = Row.fetchOne(db, "SELECT 'foo' AS nAmE, 1 AS foo")!
+            try dbQueue.inDatabase { db in
+                let row = try Row.fetchOne(db, "SELECT 'foo' AS nAmE, 1 AS foo")!
                 XCTAssertTrue(row.hasColumn("name"))
                 XCTAssertTrue(row.hasColumn("NAME"))
                 XCTAssertTrue(row.hasColumn("Name"))
@@ -265,20 +265,22 @@ class DetachedRowTests : RowTestCase {
     }
     
     func testVariants() {
-        let dbQueue = DatabaseQueue()
-        dbQueue.inDatabase { db in
-            let row = Row.fetchOne(db, "SELECT 'foo' AS nAmE, 1 AS foo")!
-            XCTAssertTrue(row.scoped(on: "missing") == nil)
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let row = try Row.fetchOne(db, "SELECT 'foo' AS nAmE, 1 AS foo")!
+                XCTAssertTrue(row.scoped(on: "missing") == nil)
+            }
         }
     }
     
     func testCopy() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
-                let row = Row.fetchOne(db, "SELECT * FROM ints")!
+                let row = try Row.fetchOne(db, "SELECT * FROM ints")!
                 
                 let copiedRow = row.copy()
                 XCTAssertEqual(copiedRow.count, 3)
@@ -291,11 +293,11 @@ class DetachedRowTests : RowTestCase {
     
     func testEqualityWithCopy() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
-                let row = Row.fetchOne(db, "SELECT * FROM ints")!
+                let row = try Row.fetchOne(db, "SELECT * FROM ints")!
                 
                 let copiedRow = row.copy()
                 XCTAssertEqual(row, copiedRow)

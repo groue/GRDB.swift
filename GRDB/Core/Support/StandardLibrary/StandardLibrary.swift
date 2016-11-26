@@ -326,7 +326,7 @@ extension DatabaseFunction {
     ///
     ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn.capitalized)
-    ///     let names = String.fetchAll(dbQueue, request)   // [String]
+    ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     public static let capitalize = DatabaseFunction("swiftCapitalizedString", argumentCount: 1, pure: true) { databaseValues in
         guard let string = String.fromDatabaseValue(databaseValues[0]) else {
             return nil
@@ -345,7 +345,7 @@ extension DatabaseFunction {
     ///
     ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn.lowercased())
-    ///     let names = String.fetchAll(dbQueue, request)   // [String]
+    ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     public static let lowercase = DatabaseFunction("swiftLowercaseString", argumentCount: 1, pure: true) { databaseValues in
         guard let string = String.fromDatabaseValue(databaseValues[0]) else {
             return nil
@@ -364,7 +364,7 @@ extension DatabaseFunction {
     ///
     ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn.uppercased())
-    ///     let names = String.fetchAll(dbQueue, request)   // [String]
+    ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     public static let uppercase = DatabaseFunction("swiftUppercaseString", argumentCount: 1, pure: true) { databaseValues in
         guard let string = String.fromDatabaseValue(databaseValues[0]) else {
             return nil
@@ -385,7 +385,7 @@ extension DatabaseFunction {
     ///
     ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn.localizedCapitalized)
-    ///     let names = String.fetchAll(dbQueue, request)   // [String]
+    ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
     public static let localizedCapitalize = DatabaseFunction("swiftLocalizedCapitalizedString", argumentCount: 1, pure: true) { databaseValues in
         guard let string = String.fromDatabaseValue(databaseValues[0]) else {
@@ -405,7 +405,7 @@ extension DatabaseFunction {
     ///
     ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn.localizedLowercased)
-    ///     let names = String.fetchAll(dbQueue, request)   // [String]
+    ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
     public static let localizedLowercase = DatabaseFunction("swiftLocalizedLowercaseString", argumentCount: 1, pure: true) { databaseValues in
         guard let string = String.fromDatabaseValue(databaseValues[0]) else {
@@ -425,7 +425,7 @@ extension DatabaseFunction {
     ///
     ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn.localizedUppercased)
-    ///     let names = String.fetchAll(dbQueue, request)   // [String]
+    ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
     public static let localizedUppercase = DatabaseFunction("swiftLocalizedUppercaseString", argumentCount: 1, pure: true) { databaseValues in
         guard let string = String.fromDatabaseValue(databaseValues[0]) else {

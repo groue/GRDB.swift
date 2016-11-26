@@ -19,6 +19,7 @@ Release Notes
 - `Database.tableExists(_:)` can now throw database errors.
 - `Database.indexes(on:)` can now throw database errors.
 - `Persistable.exists(_:)` can now throw database errors.
+- `fetchAll` and `fetchOne` can now throw database errors.
 - The `fetch` method have been removed, along with `DatabaseSequence` and `DatabaseIterator`.
     
     ```swift

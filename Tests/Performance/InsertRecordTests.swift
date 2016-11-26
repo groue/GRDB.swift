@@ -15,9 +15,9 @@ class InsertRecordTests: XCTestCase {
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
             dbQueue.inDatabase { db in
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, insertedRowCount)
-                XCTAssertEqual(Int.fetchOne(db, "SELECT MIN(i0) FROM items")!, 0)
-                XCTAssertEqual(Int.fetchOne(db, "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
+                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, insertedRowCount)
+                XCTAssertEqual(try Int.fetchOne(db, "SELECT MIN(i0) FROM items")!, 0)
+                XCTAssertEqual(try Int.fetchOne(db, "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
             }
             try! FileManager.default.removeItem(atPath: databasePath)
         }

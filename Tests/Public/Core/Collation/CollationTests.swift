@@ -24,19 +24,19 @@ class CollationTests: GRDBTestCase {
                 try db.execute("INSERT INTO strings VALUES (8, 'z')")
                 
                 XCTAssertEqual(
-                    Int.fetchAll(db, "SELECT id FROM strings ORDER BY name COLLATE \(DatabaseCollation.unicodeCompare.name), id"),
+                    try Int.fetchAll(db, "SELECT id FROM strings ORDER BY name COLLATE \(DatabaseCollation.unicodeCompare.name), id"),
                     [1,3,2,6,7,4,5,8])
                 XCTAssertEqual(
-                    Int.fetchAll(db, "SELECT id FROM strings ORDER BY name COLLATE \(DatabaseCollation.caseInsensitiveCompare.name), id"),
+                    try Int.fetchAll(db, "SELECT id FROM strings ORDER BY name COLLATE \(DatabaseCollation.caseInsensitiveCompare.name), id"),
                     [1,3,2,4,6,5,7,8])
                 XCTAssertEqual(
-                    Int.fetchAll(db, "SELECT id FROM strings ORDER BY name COLLATE \(DatabaseCollation.localizedCaseInsensitiveCompare.name), id"),
+                    try Int.fetchAll(db, "SELECT id FROM strings ORDER BY name COLLATE \(DatabaseCollation.localizedCaseInsensitiveCompare.name), id"),
                     [1,3,2,4,6,5,7,8])
                 XCTAssertEqual(
-                    Int.fetchAll(db, "SELECT id FROM strings ORDER BY name COLLATE \(DatabaseCollation.localizedCompare.name), id"),
+                    try Int.fetchAll(db, "SELECT id FROM strings ORDER BY name COLLATE \(DatabaseCollation.localizedCompare.name), id"),
                     [1,3,2,4,6,5,8,7])
                 XCTAssertEqual(
-                    Int.fetchAll(db, "SELECT id FROM strings ORDER BY name COLLATE \(DatabaseCollation.localizedStandardCompare.name), id"),
+                    try Int.fetchAll(db, "SELECT id FROM strings ORDER BY name COLLATE \(DatabaseCollation.localizedStandardCompare.name), id"),
                     [1,2,3,4,6,5,8,7])
             }
         }
@@ -70,7 +70,7 @@ class CollationTests: GRDBTestCase {
                 try db.execute("INSERT INTO strings VALUES (8, 'cc')")
                 try db.execute("INSERT INTO strings VALUES (9, 'ccc')")
                 
-                let ids = Int.fetchAll(db, "SELECT id FROM strings ORDER BY NAME")
+                let ids = try Int.fetchAll(db, "SELECT id FROM strings ORDER BY NAME")
                 XCTAssertEqual(ids, [1,4,7,2,5,8,3,6,9])
             }
         }

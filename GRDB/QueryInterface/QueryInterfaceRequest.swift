@@ -55,22 +55,24 @@ extension QueryInterfaceRequest where T: RowConvertible {
     ///
     ///     let nameColumn = Column("name")
     ///     let request = Person.order(nameColumn)
-    ///     let persons = request.fetchAll(db) // [Person]
+    ///     let persons = try request.fetchAll(db) // [Person]
     ///
     /// - parameter db: A database connection.
-    public func fetchAll(_ db: Database) -> [T] {
-        return T.fetchAll(db, self)
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchAll(_ db: Database) throws -> [T] {
+        return try T.fetchAll(db, self)
     }
     
     /// The first fetched record.
     ///
     ///     let nameColumn = Column("name")
     ///     let request = Person.order(nameColumn)
-    ///     let person = request.fetchOne(db) // Person?
+    ///     let person = try request.fetchOne(db) // Person?
     ///
     /// - parameter db: A database connection.
-    public func fetchOne(_ db: Database) -> T? {
-        return T.fetchOne(db, self)
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchOne(_ db: Database) throws -> T? {
+        return try T.fetchOne(db, self)
     }
 }
 
@@ -287,8 +289,8 @@ extension QueryInterfaceRequest {
     /// The number of rows matched by the request.
     ///
     /// - parameter db: A database connection.
-    public func fetchCount(_ db: Database) -> Int {
-        return Int.fetchOne(db, query.countRequest)!
+    public func fetchCount(_ db: Database) throws -> Int {
+        return try Int.fetchOne(db, query.countRequest)!
     }
 }
 
@@ -458,8 +460,8 @@ extension TableMapping {
     /// The number of records.
     ///
     /// - parameter db: A database connection.
-    public static func fetchCount(_ db: Database) -> Int {
-        return all().fetchCount(db)
+    public static func fetchCount(_ db: Database) throws -> Int {
+        return try all().fetchCount(db)
     }
 }
 
@@ -506,19 +508,21 @@ extension RowConvertible where Self: TableMapping {
     
     /// An array of all records fetched from the database.
     ///
-    ///     let persons = Person.fetchAll(db) // [Person]
+    ///     let persons = try Person.fetchAll(db) // [Person]
     ///
     /// - parameter db: A database connection.
-    public static func fetchAll(_ db: Database) -> [Self] {
-        return all().fetchAll(db)
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchAll(_ db: Database) throws -> [Self] {
+        return try all().fetchAll(db)
     }
     
     /// The first found record.
     ///
-    ///     let person = Person.fetchOne(db) // Person?
+    ///     let person = try Person.fetchOne(db) // Person?
     ///
     /// - parameter db: A database connection.
-    public static func fetchOne(_ db: Database) -> Self? {
-        return all().fetchOne(db)
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchOne(_ db: Database) throws -> Self? {
+        return try all().fetchOne(db)
     }
 }

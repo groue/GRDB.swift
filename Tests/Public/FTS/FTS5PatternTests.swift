@@ -50,7 +50,7 @@ class FTS5PatternTests: GRDBTestCase {
                 ]
                 for (rawPattern, expectedCount) in validRawPatterns {
                     let pattern = try db.makeFTS5Pattern(rawPattern: rawPattern, forTable: "books")
-                    let count = Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
+                    let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
                     XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
                 }
             }
@@ -86,7 +86,7 @@ class FTS5PatternTests: GRDBTestCase {
         
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 // Couples (pattern, expected raw pattern, expected count of matching rows)
                 let cases = [
                     ("écarlates", "écarlates", 1),
@@ -99,7 +99,7 @@ class FTS5PatternTests: GRDBTestCase {
                     if let pattern = FTS5Pattern(matchingAnyTokenIn: string) {
                         let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
                         XCTAssertEqual(rawPattern, expectedRawPattern)
-                        let count = Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
+                        let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
                         XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
                     }
                 }
@@ -118,7 +118,7 @@ class FTS5PatternTests: GRDBTestCase {
         
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 // Couples (pattern, expected raw pattern, expected count of matching rows)
                 let cases = [
                     ("écarlates", "écarlates", 1),
@@ -131,7 +131,7 @@ class FTS5PatternTests: GRDBTestCase {
                     if let pattern = FTS5Pattern(matchingAllTokensIn: string) {
                         let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
                         XCTAssertEqual(rawPattern, expectedRawPattern)
-                        let count = Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
+                        let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
                         XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
                     }
                 }
@@ -150,7 +150,7 @@ class FTS5PatternTests: GRDBTestCase {
         
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 // Couples (pattern, expected raw pattern, expected count of matching rows)
                 let cases = [
                     ("écarlates", "\"écarlates\"", 1),
@@ -163,7 +163,7 @@ class FTS5PatternTests: GRDBTestCase {
                     if let pattern = FTS5Pattern(matchingPhrase: string) {
                         let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
                         XCTAssertEqual(rawPattern, expectedRawPattern)
-                        let count = Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
+                        let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
                         XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
                     }
                 }

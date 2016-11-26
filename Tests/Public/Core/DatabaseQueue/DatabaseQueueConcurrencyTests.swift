@@ -33,8 +33,8 @@ class ConcurrencyTests: GRDBTestCase {
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
                 try db.execute("INSERT INTO items (id) VALUES (NULL)")
             }
-            let id = dbQueue.inDatabase { db in
-                Int.fetchOne(db, "SELECT id FROM items")!
+            let id = try dbQueue.inDatabase { db in
+                try Int.fetchOne(db, "SELECT id FROM items")!
             }
             XCTAssertEqual(id, 1)
         }
@@ -355,12 +355,12 @@ class ConcurrencyTests: GRDBTestCase {
             var rows1: [Row]?
             var rows2: [Row]?
             queue.async(group: group) {
-                dbQueue2.inDatabase { db in
+                try! dbQueue2.inDatabase { db in
                     _ = s1.wait(timeout: .distantFuture)
-                    rows1 = Row.fetchAll(db, "SELECT * FROM stuffs")
+                    rows1 = try Row.fetchAll(db, "SELECT * FROM stuffs")
                     s2.signal()
                     _ = s3.wait(timeout: .distantFuture)
-                    rows2 = Row.fetchAll(db, "SELECT * FROM stuffs")
+                    rows2 = try Row.fetchAll(db, "SELECT * FROM stuffs")
                 }
             }
             
@@ -438,7 +438,7 @@ class ConcurrencyTests: GRDBTestCase {
                 do {
                     _ = s1.wait(timeout: .distantFuture)
                     try dbQueue2.inTransaction(.deferred) { db in
-                        _ = Row.fetchAll(db, "SELECT * FROM stuffs")
+                        _ = try Row.fetchAll(db, "SELECT * FROM stuffs")
                         s2.signal()
                         usleep(100_000) // 0.1s
                         return .commit

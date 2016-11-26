@@ -75,7 +75,7 @@ public struct FTS3TokenizerDescriptor {
             }
             let tokenizerSQL = tokenizerChunks.joined(separator: ", ")
             try! db.execute("CREATE VIRTUAL TABLE tokens USING fts3tokenize(\(tokenizerSQL))")
-            return String.fetchAll(db, "SELECT token FROM tokens WHERE input = ? ORDER BY position", arguments: [string])
+            return try! String.fetchAll(db, "SELECT token FROM tokens WHERE input = ? ORDER BY position", arguments: [string])
         }
     }
 }

@@ -73,7 +73,7 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 record.UUID = "theUUID"
                 try record.insert(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
+                let row = try Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
                 for (key, value) in record.persistentDictionary {
                     if let dbv: DatabaseValue = row.value(named: key) {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -112,7 +112,7 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 try record.delete(db)
                 try record.insert(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
+                let row = try Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
                 for (key, value) in record.persistentDictionary {
                     if let dbv: DatabaseValue = row.value(named: key) {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -152,7 +152,7 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 try record.insert(db)
                 try record.update(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
+                let row = try Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
                 for (key, value) in record.persistentDictionary {
                     if let dbv: DatabaseValue = row.value(named: key) {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -209,7 +209,7 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 record.UUID = "theUUID"
                 try record.save(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
+                let row = try Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -230,7 +230,7 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 try record.insert(db)
                 try record.save(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
+                let row = try Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -252,7 +252,7 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 try record.delete(db)
                 try record.save(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
+                let row = try Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
                 for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
@@ -289,7 +289,7 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 let deleted = try record.delete(db)
                 XCTAssertTrue(deleted)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])
+                let row = try Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])
                 XCTAssertTrue(row == nil)
             }
         }
@@ -360,18 +360,18 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 try record2.insert(db)
                 
                 do {
-                    let fetchedRecords = MinimalSingle.fetchAll(db, keys: [])
+                    let fetchedRecords = try MinimalSingle.fetchAll(db, keys: [])
                     XCTAssertEqual(fetchedRecords.count, 0)
                 }
                 
                 do {
-                    let fetchedRecords = MinimalSingle.fetchAll(db, keys: [["UUID": record1.UUID], ["UUID": record2.UUID]])
+                    let fetchedRecords = try MinimalSingle.fetchAll(db, keys: [["UUID": record1.UUID], ["UUID": record2.UUID]])
                     XCTAssertEqual(fetchedRecords.count, 2)
                     XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set([record1.UUID!, record2.UUID!]))
                 }
                 
                 do {
-                    let fetchedRecords = MinimalSingle.fetchAll(db, keys: [["UUID": record1.UUID], ["UUID": nil]])
+                    let fetchedRecords = try MinimalSingle.fetchAll(db, keys: [["UUID": record1.UUID], ["UUID": nil]])
                     XCTAssertEqual(fetchedRecords.count, 1)
                     XCTAssertEqual(fetchedRecords.first!.UUID, record1.UUID!)
                 }
@@ -387,7 +387,7 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 record.UUID = "theUUID"
                 try record.insert(db)
                 
-                let fetchedRecord = MinimalSingle.fetchOne(db, key: ["UUID": record.UUID])!
+                let fetchedRecord = try MinimalSingle.fetchOne(db, key: ["UUID": record.UUID])!
                 XCTAssertTrue(fetchedRecord.UUID == record.UUID)
             }
         }
@@ -438,13 +438,13 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 
                 do {
                     let UUIDs: [String] = []
-                    let fetchedRecords = MinimalSingle.fetchAll(db, keys: UUIDs)
+                    let fetchedRecords = try MinimalSingle.fetchAll(db, keys: UUIDs)
                     XCTAssertEqual(fetchedRecords.count, 0)
                 }
                 
                 do {
                     let UUIDs = [record1.UUID!, record2.UUID!]
-                    let fetchedRecords = MinimalSingle.fetchAll(db, keys: UUIDs)
+                    let fetchedRecords = try MinimalSingle.fetchAll(db, keys: UUIDs)
                     XCTAssertEqual(fetchedRecords.count, 2)
                     XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
                 }
@@ -462,12 +462,12 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 
                 do {
                     let id: String? = nil
-                    let fetchedRecord = MinimalSingle.fetchOne(db, key: id)
+                    let fetchedRecord = try MinimalSingle.fetchOne(db, key: id)
                     XCTAssertTrue(fetchedRecord == nil)
                 }
                 
                 do {
-                    let fetchedRecord = MinimalSingle.fetchOne(db, key: record.UUID)!
+                    let fetchedRecord = try MinimalSingle.fetchOne(db, key: record.UUID)!
                     XCTAssertTrue(fetchedRecord.UUID == record.UUID)
                 }
             }

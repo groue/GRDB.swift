@@ -78,7 +78,7 @@ class RowConvertibleQueryInterfaceRequestTests: GRDBTestCase {
                 let request = Reader.all()
                 
                 do {
-                    let readers = request.fetchAll(db)
+                    let readers = try request.fetchAll(db)
                     XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
                     XCTAssertEqual(readers.count, 2)
                     XCTAssertEqual(readers[0].id!, arthur.id!)
@@ -90,7 +90,7 @@ class RowConvertibleQueryInterfaceRequestTests: GRDBTestCase {
                 }
                 
                 do {
-                    let reader = request.fetchOne(db)!
+                    let reader = try request.fetchOne(db)!
                     XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
                     XCTAssertEqual(reader.id!, arthur.id!)
                     XCTAssertEqual(reader.name, arthur.name)
@@ -116,7 +116,7 @@ class RowConvertibleQueryInterfaceRequestTests: GRDBTestCase {
                 try barbara.insert(db)
                 
                 do {
-                    let readers = Reader.fetchAll(db)
+                    let readers = try Reader.fetchAll(db)
                     XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
                     XCTAssertEqual(readers.count, 2)
                     XCTAssertEqual(readers[0].id!, arthur.id!)
@@ -128,7 +128,7 @@ class RowConvertibleQueryInterfaceRequestTests: GRDBTestCase {
                 }
                 
                 do {
-                    let reader = Reader.fetchOne(db)!
+                    let reader = try Reader.fetchOne(db)!
                     XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
                     XCTAssertEqual(reader.id!, arthur.id!)
                     XCTAssertEqual(reader.name, arthur.name)
@@ -157,7 +157,7 @@ class RowConvertibleQueryInterfaceRequestTests: GRDBTestCase {
                 let request = Reader.all()
                 
                 do {
-                    let readers = AltReader.fetchAll(db, request)
+                    let readers = try AltReader.fetchAll(db, request)
                     XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
                     XCTAssertEqual(readers.count, 2)
                     XCTAssertEqual(readers[0].id!, arthur.id!)
@@ -169,7 +169,7 @@ class RowConvertibleQueryInterfaceRequestTests: GRDBTestCase {
                 }
                 
                 do {
-                    let reader = AltReader.fetchOne(db, request)!
+                    let reader = try AltReader.fetchOne(db, request)!
                     XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
                     XCTAssertEqual(reader.id!, arthur.id!)
                     XCTAssertEqual(reader.name, arthur.name)

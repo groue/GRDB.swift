@@ -49,8 +49,8 @@ dbQueue.inDatabase { db in
         print("Fetched", title, favorite, coordinate)
     }
     
-    let poiCount = Int.fetchOne(db, "SELECT COUNT(*) FROM pointOfInterests")! // Int
-    let poiTitles = String.fetchAll(db, "SELECT title FROM pointOfInterests") // [String]
+    let poiCount = try Int.fetchOne(db, "SELECT COUNT(*) FROM pointOfInterests")! // Int
+    let poiTitles = try String.fetchAll(db, "SELECT title FROM pointOfInterests") // [String]
 }
 
 
@@ -124,5 +124,4 @@ try dbQueue.inDatabase { db in
     let favoritePois = PointOfInterest                                 // [PointOfInterest]
         .filter(favorite)
         .order(title)
-        .fetchAll(db)
-}
+        .fetchAl

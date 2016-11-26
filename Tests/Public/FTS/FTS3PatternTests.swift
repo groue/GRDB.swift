@@ -53,7 +53,7 @@ class FTS3PatternTests: GRDBTestCase {
                 ]
                 for (rawPattern, expectedCount) in validRawPatterns {
                     let pattern = try FTS3Pattern(rawPattern: rawPattern)
-                    let count = Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
+                    let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
                     XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
                 }
             }
@@ -84,7 +84,7 @@ class FTS3PatternTests: GRDBTestCase {
         
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 // Couples (pattern, expected raw pattern, expected count of matching rows)
                 let cases = [
                     ("écarlates", "écarlates", 1),
@@ -97,7 +97,7 @@ class FTS3PatternTests: GRDBTestCase {
                     if let pattern = FTS3Pattern(matchingAnyTokenIn: string) {
                         let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
                         XCTAssertEqual(rawPattern, expectedRawPattern)
-                        let count = Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
+                        let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
                         XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
                     }
                 }
@@ -116,7 +116,7 @@ class FTS3PatternTests: GRDBTestCase {
         
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 // Couples (pattern, expected raw pattern, expected count of matching rows)
                 let cases = [
                     ("écarlates", "écarlates", 1),
@@ -129,7 +129,7 @@ class FTS3PatternTests: GRDBTestCase {
                     if let pattern = FTS3Pattern(matchingAllTokensIn: string) {
                         let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
                         XCTAssertEqual(rawPattern, expectedRawPattern)
-                        let count = Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
+                        let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
                         XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
                     }
                 }
@@ -148,7 +148,7 @@ class FTS3PatternTests: GRDBTestCase {
         
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 // Couples (pattern, expected raw pattern, expected count of matching rows)
                 let cases = [
                     ("écarlates", "\"écarlates\"", 1),
@@ -161,7 +161,7 @@ class FTS3PatternTests: GRDBTestCase {
                     if let pattern = FTS3Pattern(matchingPhrase: string) {
                         let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
                         XCTAssertEqual(rawPattern, expectedRawPattern)
-                        let count = Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
+                        let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
                         XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
                     }
                 }

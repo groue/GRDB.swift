@@ -16,8 +16,8 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
                 try db.execute("INSERT INTO items (id) VALUES (NULL)")
             }
-            let id = dbPool.read { db in
-                Int.fetchOne(db, "SELECT id FROM items")!
+            let id = try dbPool.read { db in
+                try Int.fetchOne(db, "SELECT id FROM items")!
             }
             XCTAssertEqual(id, 1)
         }
@@ -34,8 +34,8 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             }
             do {
                 let dbPool = try makeDatabasePool(filename: "test.sqlite")
-                let id = dbPool.read { db in
-                    Int.fetchOne(db, "SELECT id FROM items")!
+                let id = try dbPool.read { db in
+                    try Int.fetchOne(db, "SELECT id FROM items")!
                 }
                 XCTAssertEqual(id, 1)
             }
@@ -219,11 +219,11 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             // COMMIT
             
             let block1 = { () in
-                dbPool.read { db in
-                    XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
+                try! dbPool.read { db in
+                    XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
                     s1.signal()
                     _ = s2.wait(timeout: .distantFuture)
-                    XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
+                    XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
                 }
             }
             let block2 = { () in
@@ -290,15 +290,15 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 }
             }
             let block2 = { () in
-                dbPool.read { db in
+                try! dbPool.read { db in
                     _ = s1.wait(timeout: .distantFuture)
-                    XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
+                    XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
                     s2.signal()
                     _ = s3.wait(timeout: .distantFuture)
-                    XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
+                    XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
                     s4.signal()
                     _ = s5.wait(timeout: .distantFuture)
-                    XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
+                    XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
                 }
             }
             let blocks = [block1, block2]
@@ -338,7 +338,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                     _ = s2.wait(timeout: .distantFuture)
                     XCTAssertTrue(try cursor.next() != nil)
                     XCTAssertTrue(try cursor.next() == nil)
-                    XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
+                    XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
                 }
             }
             let block2 = { () in
@@ -428,11 +428,11 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             // SELECT COUNT(*) FROM items -> 1
             
             let block1 = { () in
-                dbPool.nonIsolatedRead { db in
-                    XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
+                try! dbPool.nonIsolatedRead { db in
+                    XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
                     s1.signal()
                     _ = s2.wait(timeout: .distantFuture)
-                    XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
+                    XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
                 }
             }
             let block2 = { () in
@@ -470,8 +470,8 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             try dbPool.write { db in
                 try db.execute("CREATE VIRTUAL TABLE search  USING fts3(title, tokenize = unicode61)")
             }
-            dbPool.read { db in
-                _ = Row.fetchAll(db, "SELECT * FROM search")
+            try dbPool.read { db in
+                _ = try Row.fetchAll(db, "SELECT * FROM search")
             }
         }
     }

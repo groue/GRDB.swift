@@ -38,46 +38,48 @@ class TableMappingQueryInterfaceRequestTests: GRDBTestCase {
     // MARK: - Count
     
     func testFetchCount() {
-        let dbQueue = try! makeDatabaseQueue()
-        dbQueue.inDatabase { db in
-            XCTAssertEqual(Reader.fetchCount(db), 0)
-            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
-            
-            XCTAssertEqual(Reader.all().reversed().fetchCount(db), 0)
-            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
-            
-            XCTAssertEqual(Reader.order(Col.name).fetchCount(db), 0)
-            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
-            
-            XCTAssertEqual(Reader.limit(10).fetchCount(db), 0)
-            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT * FROM \"readers\" LIMIT 10)")
-            
-            XCTAssertEqual(Reader.filter(Col.age == 42).fetchCount(db), 0)
-            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\" WHERE (\"age\" = 42)")
-            
-            XCTAssertEqual(Reader.all().distinct().fetchCount(db), 0)
-            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT * FROM \"readers\")")
-            
-            XCTAssertEqual(Reader.select(Col.name).fetchCount(db), 0)
-            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
-            
-            XCTAssertEqual(Reader.select(Col.name).distinct().fetchCount(db), 0)
-            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"name\") FROM \"readers\"")
-            
-            XCTAssertEqual(Reader.select(Col.age * 2).distinct().fetchCount(db), 0)
-            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT (\"age\" * 2)) FROM \"readers\"")
-            
-            XCTAssertEqual(Reader.select((Col.age * 2).aliased("ignored")).distinct().fetchCount(db), 0)
-            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT (\"age\" * 2)) FROM \"readers\"")
-            
-            XCTAssertEqual(Reader.select(Col.name, Col.age).fetchCount(db), 0)
-            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
-            
-            XCTAssertEqual(Reader.select(Col.name, Col.age).distinct().fetchCount(db), 0)
-            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT \"name\", \"age\" FROM \"readers\")")
-            
-            XCTAssertEqual(Reader.select(max(Col.age)).group(Col.name).fetchCount(db), 0)
-            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT MAX(\"age\") FROM \"readers\" GROUP BY \"name\")")
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                XCTAssertEqual(try Reader.fetchCount(db), 0)
+                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+                
+                XCTAssertEqual(try Reader.all().reversed().fetchCount(db), 0)
+                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+                
+                XCTAssertEqual(try Reader.order(Col.name).fetchCount(db), 0)
+                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+                
+                XCTAssertEqual(try Reader.limit(10).fetchCount(db), 0)
+                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT * FROM \"readers\" LIMIT 10)")
+                
+                XCTAssertEqual(try Reader.filter(Col.age == 42).fetchCount(db), 0)
+                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\" WHERE (\"age\" = 42)")
+                
+                XCTAssertEqual(try Reader.all().distinct().fetchCount(db), 0)
+                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT * FROM \"readers\")")
+                
+                XCTAssertEqual(try Reader.select(Col.name).fetchCount(db), 0)
+                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+                
+                XCTAssertEqual(try Reader.select(Col.name).distinct().fetchCount(db), 0)
+                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"name\") FROM \"readers\"")
+                
+                XCTAssertEqual(try Reader.select(Col.age * 2).distinct().fetchCount(db), 0)
+                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT (\"age\" * 2)) FROM \"readers\"")
+                
+                XCTAssertEqual(try Reader.select((Col.age * 2).aliased("ignored")).distinct().fetchCount(db), 0)
+                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT (\"age\" * 2)) FROM \"readers\"")
+                
+                XCTAssertEqual(try Reader.select(Col.name, Col.age).fetchCount(db), 0)
+                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+                
+                XCTAssertEqual(try Reader.select(Col.name, Col.age).distinct().fetchCount(db), 0)
+                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT \"name\", \"age\" FROM \"readers\")")
+                
+                XCTAssertEqual(try Reader.select(max(Col.age)).group(Col.name).fetchCount(db), 0)
+                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT MAX(\"age\") FROM \"readers\" GROUP BY \"name\")")
+            }
         }
     }
     
@@ -92,7 +94,7 @@ class TableMappingQueryInterfaceRequestTests: GRDBTestCase {
                 try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
                 
                 let request = Reader.select(sql: "name, id - 1")
-                let rows = Row.fetchAll(db, request)
+                let rows = try Row.fetchAll(db, request)
                 XCTAssertEqual(lastSQLQuery, "SELECT name, id - 1 FROM \"readers\"")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0].value(atIndex: 0) as String, "Arthur")
@@ -111,7 +113,7 @@ class TableMappingQueryInterfaceRequestTests: GRDBTestCase {
                 try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
                 
                 let request = Reader.select(sql: "name, id - ?", arguments: [1])
-                let rows = Row.fetchAll(db, request)
+                let rows = try Row.fetchAll(db, request)
                 XCTAssertEqual(lastSQLQuery, "SELECT name, id - 1 FROM \"readers\"")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0].value(atIndex: 0) as String, "Arthur")
@@ -130,7 +132,7 @@ class TableMappingQueryInterfaceRequestTests: GRDBTestCase {
                 try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
                 
                 let request = Reader.select(sql: "name, id - :n", arguments: ["n": 1])
-                let rows = Row.fetchAll(db, request)
+                let rows = try Row.fetchAll(db, request)
                 XCTAssertEqual(lastSQLQuery, "SELECT name, id - 1 FROM \"readers\"")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0].value(atIndex: 0) as String, "Arthur")
@@ -149,7 +151,7 @@ class TableMappingQueryInterfaceRequestTests: GRDBTestCase {
                 try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
                 
                 let request = Reader.select(Col.name, Col.id - 1)
-                let rows = Row.fetchAll(db, request)
+                let rows = try Row.fetchAll(db, request)
                 XCTAssertEqual(lastSQLQuery, "SELECT \"name\", (\"id\" - 1) FROM \"readers\"")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0].value(atIndex: 0) as String, "Arthur")

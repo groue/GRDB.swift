@@ -553,7 +553,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("id")))
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
-                fetchAlongside: { db in Person.fetchCount(db) },
+                fetchAlongside: { db in try Person.fetchCount(db) },
                 recordsWillChange: { (controller, count) in recorder.controllerWillChange(controller, count: count) },
                 recordsDidChange: { (controller, count) in recorder.controllerDidChange(controller, count: count) })
             controller.performFetch()
@@ -598,7 +598,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
 private func synchronizePersons(_ db: Database, _ newPersons: [Person]) throws {
     // Sort new persons and database persons by id:
     let newPersons = newPersons.sorted { $0.id! < $1.id! }
-    let databasePersons = Person.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+    let databasePersons = try Person.fetchAll(db, "SELECT * FROM persons ORDER BY id")
     
     // Now that both lists are sorted by id, we can compare them with
     // the sortedMerge() function.

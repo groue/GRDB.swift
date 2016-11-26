@@ -67,8 +67,8 @@ class DatabaseSchedulerTests: GRDBTestCase {
                     }
                 }
             }
-            let count = dbQueue2.inDatabase { db2 in
-                Int.fetchOne(db2, "SELECT COUNT(*) FROM items")!
+            let count = try dbQueue2.inDatabase { db2 in
+                try Int.fetchOne(db2, "SELECT COUNT(*) FROM items")!
             }
             XCTAssertEqual(count, 1)
         }
@@ -89,8 +89,8 @@ class DatabaseSchedulerTests: GRDBTestCase {
                     }
                 }
             }
-            let count = dbQueue2.inDatabase { db2 in
-                Int.fetchOne(db2, "SELECT COUNT(*) FROM items")!
+            let count = try dbQueue2.inDatabase { db2 in
+                try Int.fetchOne(db2, "SELECT COUNT(*) FROM items")!
             }
             XCTAssertEqual(count, 1)
         }
@@ -111,8 +111,8 @@ class DatabaseSchedulerTests: GRDBTestCase {
                     }
                 }
             }
-            let count = dbPool2.read { db2 in
-                Int.fetchOne(db2, "SELECT COUNT(*) FROM items")!
+            let count = try dbPool2.read { db2 in
+                try Int.fetchOne(db2, "SELECT COUNT(*) FROM items")!
             }
             XCTAssertEqual(count, 1)
         }
@@ -133,8 +133,8 @@ class DatabaseSchedulerTests: GRDBTestCase {
                     }
                 }
             }
-            let count = dbPool2.write { db2 in
-                Int.fetchOne(db2, "SELECT COUNT(*) FROM items")!
+            let count = try dbPool2.write { db2 in
+                try Int.fetchOne(db2, "SELECT COUNT(*) FROM items")!
             }
             XCTAssertEqual(count, 1)
         }

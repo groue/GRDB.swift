@@ -115,7 +115,7 @@ class MutablePersistableTests: GRDBTestCase {
                 var person = MutablePersistablePerson(id: nil, name: "Arthur", age: 24)
                 try person.insert(db)
                 
-                let rows = Row.fetchAll(db, "SELECT * FROM persons")
+                let rows = try Row.fetchAll(db, "SELECT * FROM persons")
                 XCTAssertEqual(rows.count, 1)
                 XCTAssertEqual(rows[0].value(named: "id") as Int64, person.id!)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
@@ -139,7 +139,7 @@ class MutablePersistableTests: GRDBTestCase {
                     "UPDATE \"persons\" SET \"name\"='Craig', \"age\"=24 WHERE \"id\"=1"
                     ].contains(self.lastSQLQuery))
                 
-                let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+                let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "Craig")
@@ -163,7 +163,7 @@ class MutablePersistableTests: GRDBTestCase {
                     try person1.update(db, columns: [String]())
                     XCTAssertEqual(self.lastSQLQuery, "UPDATE \"persons\" SET \"id\"=1 WHERE \"id\"=1")
                     
-                    let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+                    let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
                     XCTAssertEqual(rows.count, 2)
                     XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
                     XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
@@ -179,7 +179,7 @@ class MutablePersistableTests: GRDBTestCase {
                     try person1.update(db, columns: [Column("name")])
                     XCTAssertEqual(self.lastSQLQuery, "UPDATE \"persons\" SET \"name\"='Craig' WHERE \"id\"=1")
                     
-                    let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+                    let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
                     XCTAssertEqual(rows.count, 2)
                     XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
                     XCTAssertEqual(rows[0].value(named: "name") as String, "Craig")
@@ -194,7 +194,7 @@ class MutablePersistableTests: GRDBTestCase {
                     try person1.update(db, columns: ["AgE"])    // case insensitivity
                     XCTAssertEqual(self.lastSQLQuery, "UPDATE \"persons\" SET \"AgE\"=25 WHERE \"id\"=1")
                     
-                    let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+                    let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
                     XCTAssertEqual(rows.count, 2)
                     XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
                     XCTAssertEqual(rows[0].value(named: "name") as String, "Craig")
@@ -214,7 +214,7 @@ class MutablePersistableTests: GRDBTestCase {
                 var person1 = MutablePersistablePerson(id: nil, name: "Arthur", age: 24)
                 try person1.save(db)
                 
-                var rows = Row.fetchAll(db, "SELECT * FROM persons")
+                var rows = try Row.fetchAll(db, "SELECT * FROM persons")
                 XCTAssertEqual(rows.count, 1)
                 XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
@@ -225,7 +225,7 @@ class MutablePersistableTests: GRDBTestCase {
                 person1.name = "Craig"
                 try person1.save(db)
                 
-                rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+                rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "Craig")
@@ -235,7 +235,7 @@ class MutablePersistableTests: GRDBTestCase {
                 try person1.delete(db)
                 try person1.save(db)
                 
-                rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+                rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "Craig")
@@ -259,7 +259,7 @@ class MutablePersistableTests: GRDBTestCase {
                 deleted = try person1.delete(db)
                 XCTAssertFalse(deleted)
                 
-                let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+                let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
                 XCTAssertEqual(rows.count, 1)
                 XCTAssertEqual(rows[0].value(named: "id") as Int64, person2.id!)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "Barbara")
@@ -291,7 +291,7 @@ class MutablePersistableTests: GRDBTestCase {
                 var country = MutablePersistableCountry(rowID: nil, isoCode: "FR", name: "France")
                 try country.insert(db)
                 
-                let rows = Row.fetchAll(db, "SELECT rowID, * FROM countries")
+                let rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries")
                 XCTAssertEqual(rows.count, 1)
                 XCTAssertEqual(rows[0].value(named: "rowID") as Int64, country.rowID!)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "France")
@@ -312,7 +312,7 @@ class MutablePersistableTests: GRDBTestCase {
                 try country1.update(db)
                 XCTAssertEqual(self.lastSQLQuery, "UPDATE \"countries\" SET \"name\"='France Métropolitaine' WHERE \"isoCode\"='FR'")
                 
-                let rows = Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
+                let rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0].value(named: "rowID") as Int64, country1.rowID!)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "France Métropolitaine")
@@ -329,7 +329,7 @@ class MutablePersistableTests: GRDBTestCase {
                 var country1 = MutablePersistableCountry(rowID: nil, isoCode: "FR", name: "France")
                 try country1.save(db)
                 
-                var rows = Row.fetchAll(db, "SELECT rowID, * FROM countries")
+                var rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries")
                 XCTAssertEqual(rows.count, 1)
                 XCTAssertEqual(rows[0].value(named: "rowID") as Int64, country1.rowID!)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "France")
@@ -340,7 +340,7 @@ class MutablePersistableTests: GRDBTestCase {
                 country1.name = "France Métropolitaine"
                 try country1.save(db)
                 
-                rows = Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
+                rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0].value(named: "rowID") as Int64, country1.rowID!)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "France Métropolitaine")
@@ -350,7 +350,7 @@ class MutablePersistableTests: GRDBTestCase {
                 try country1.delete(db)
                 try country1.save(db)
                 
-                rows = Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
+                rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0].value(named: "rowID") as Int64, country2.rowID!)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "United States")
@@ -374,7 +374,7 @@ class MutablePersistableTests: GRDBTestCase {
                 deleted = try country1.delete(db)
                 XCTAssertFalse(deleted)
                 
-                let rows = Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
+                let rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
                 XCTAssertEqual(rows.count, 1)
                 XCTAssertEqual(rows[0].value(named: "rowID") as Int64, country2.rowID!)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "United States")
@@ -425,7 +425,7 @@ class MutablePersistableTests: GRDBTestCase {
                 XCTAssertEqual(deleteCount, 0)
                 XCTAssertEqual(existsCount, 0)
                 
-                let rows = Row.fetchAll(db, "SELECT rowID, * FROM countries")
+                let rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries")
                 XCTAssertEqual(rows.count, 1)
                 XCTAssertEqual(rows[0].value(named: "rowID") as Int64, country.rowID!)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "France")
@@ -473,7 +473,7 @@ class MutablePersistableTests: GRDBTestCase {
                 XCTAssertEqual(deleteCount, 0)
                 XCTAssertEqual(existsCount, 0)
                 
-                let rows = Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
+                let rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0].value(named: "rowID") as Int64, country1.rowID!)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "France Métropolitaine")
@@ -509,7 +509,7 @@ class MutablePersistableTests: GRDBTestCase {
                 XCTAssertEqual(deleteCount, 0)
                 XCTAssertEqual(existsCount, 0)
                 
-                var rows = Row.fetchAll(db, "SELECT rowID, * FROM countries")
+                var rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries")
                 XCTAssertEqual(rows.count, 1)
                 XCTAssertEqual(rows[0].value(named: "rowID") as Int64, country1.rowID!)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "France")
@@ -534,7 +534,7 @@ class MutablePersistableTests: GRDBTestCase {
                 XCTAssertEqual(deleteCount, 0)
                 XCTAssertEqual(existsCount, 0)
                 
-                rows = Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
+                rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0].value(named: "rowID") as Int64, country1.rowID!)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "France Métropolitaine")
@@ -550,7 +550,7 @@ class MutablePersistableTests: GRDBTestCase {
                 XCTAssertEqual(deleteCount, 1)
                 XCTAssertEqual(existsCount, 0)
                 
-                rows = Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
+                rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0].value(named: "rowID") as Int64, country2.rowID!)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "United States")
@@ -601,7 +601,7 @@ class MutablePersistableTests: GRDBTestCase {
                 XCTAssertEqual(deleteCount, 2)
                 XCTAssertEqual(existsCount, 0)
                 
-                let rows = Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
+                let rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
                 XCTAssertEqual(rows.count, 1)
                 XCTAssertEqual(rows[0].value(named: "rowID") as Int64, country2.rowID!)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "United States")

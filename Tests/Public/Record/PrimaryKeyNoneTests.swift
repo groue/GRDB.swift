@@ -69,7 +69,7 @@ class PrimaryKeyNoneTests: GRDBTestCase {
                 XCTAssertTrue(record.insertedRowIDColumn == nil)
                 try record.insert(db)
                 
-                let names = String.fetchAll(db, "SELECT name FROM items")
+                let names = try String.fetchAll(db, "SELECT name FROM items")
                 XCTAssertEqual(names, ["Table", "Table"])
             }
         }
@@ -86,7 +86,7 @@ class PrimaryKeyNoneTests: GRDBTestCase {
                 try record.save(db)
                 try record.save(db)
                 
-                let names = String.fetchAll(db, "SELECT name FROM items")
+                let names = try String.fetchAll(db, "SELECT name FROM items")
                 XCTAssertEqual(names, ["Table", "Table"])
             }
         }
@@ -102,7 +102,7 @@ class PrimaryKeyNoneTests: GRDBTestCase {
                 let record = Item(email: "item@example.com")
                 try record.insert(db)
                 
-                let fetchedRecord = Item.fetchOne(db, key: ["email": record.email])!
+                let fetchedRecord = try Item.fetchOne(db, key: ["email": record.email])!
                 XCTAssertTrue(fetchedRecord.email == record.email)
             }
         }
@@ -153,13 +153,13 @@ class PrimaryKeyNoneTests: GRDBTestCase {
                 
                 do {
                     let ids: [Int64] = []
-                    let fetchedRecords = Item.fetchAll(db, keys: ids)
+                    let fetchedRecords = try Item.fetchAll(db, keys: ids)
                     XCTAssertEqual(fetchedRecords.count, 0)
                 }
                 
                 do {
                     let ids = [id1, id2]
-                    let fetchedRecords = Item.fetchAll(db, keys: ids)
+                    let fetchedRecords = try Item.fetchAll(db, keys: ids)
                     XCTAssertEqual(fetchedRecords.count, 2)
                     XCTAssertEqual(Set(fetchedRecords.map { $0.name! }), Set([record1, record2].map { $0.name! }))
                 }
@@ -177,12 +177,12 @@ class PrimaryKeyNoneTests: GRDBTestCase {
                 
                 do {
                     let id: Int64? = nil
-                    let fetchedRecord = Item.fetchOne(db, key: id)
+                    let fetchedRecord = try Item.fetchOne(db, key: id)
                     XCTAssertTrue(fetchedRecord == nil)
                 }
                 
                 do {
-                    let fetchedRecord = Item.fetchOne(db, key: id)!
+                    let fetchedRecord = try Item.fetchOne(db, key: id)!
                     XCTAssertTrue(fetchedRecord.name == record.name)
                 }
             }

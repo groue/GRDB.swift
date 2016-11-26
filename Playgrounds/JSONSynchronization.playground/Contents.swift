@@ -80,7 +80,7 @@ func synchronizePersons(with jsonString: String, in db: Database) throws {
     }
     
     // Sort database persons by id:
-    let persons = Person.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+    let persons = try Person.fetchAll(db, "SELECT * FROM persons ORDER BY id")
     
     // Now that both lists are sorted by id, we can compare them with
     // the sortedMerge() function (see https://gist.github.com/groue/7e8510849ded36f7d770).
@@ -147,5 +147,4 @@ do {
         // INSERT INTO "persons" ("id","name") VALUES (4,'Daniel')
         try synchronizePersons(with: jsonString, in: db)
         return .commit
-    }
-}
+    

@@ -224,7 +224,7 @@ public struct SuffixRowAdapter : RowAdapter {
 ///
 ///     // Fetch
 ///     let sql = "SELECT 'foo' AS foo, 'bar' AS bar"
-///     let row = Row.fetchOne(db, sql, adapter: adapter)!
+///     let row = try Row.fetchOne(db, sql, adapter: adapter)!
 ///
 ///     // Scoped rows:
 ///     if let fooRow = row.scoped(on: "foo") {

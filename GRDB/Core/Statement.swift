@@ -204,8 +204,8 @@ public class Statement {
 ///
 ///     dbQueue.inDatabase { db in
 ///         let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM persons WHERE age > ?")
-///         let moreThanTwentyCount = Int.fetchOne(statement, arguments: [20])!
-///         let moreThanThirtyCount = Int.fetchOne(statement, arguments: [30])!
+///         let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
+///         let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
 ///     }
 public final class SelectStatement : Statement {
     /// A dictionary [tablename: Set<columnName>] of columns read by a statement

@@ -277,7 +277,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///       removed, moved, or updated.
     ///     - recordsDidChange: Invoked after records have been updated.
     public func trackChanges<T>(
-        fetchAlongside: @escaping (Database) -> T,
+        fetchAlongside: @escaping (Database) throws -> T,
         recordsWillChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())? = nil,
         tableViewEvent: ((FetchedRecordsController<Record>, Record, TableViewEvent) -> ())? = nil,
         recordsDidChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())? = nil)
@@ -323,7 +323,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///     - recordsWillChange: Invoked before records are updated.
     ///     - recordsDidChange: Invoked after records have been updated.
     public func trackChanges<T>(
-        fetchAlongside: @escaping (Database) -> T,
+        fetchAlongside: @escaping (Database) throws -> T,
         recordsWillChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())? = nil,
         recordsDidChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())? = nil)
     {
@@ -564,7 +564,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
 #if os(iOS)
     fileprivate func makeFetchAndNotifyChangesFunction<Record, T>(
         controller: FetchedRecordsController<Record>,
-        fetchAlongside: @escaping (Database) -> T,
+        fetchAlongside: @escaping (Database) throws -> T,
         identicalItems: @escaping ItemComparator<Record>,
         recordsWillChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())?,
         tableViewEvent: ((FetchedRecordsController<Record>, Record, TableViewEvent) -> ())?,
@@ -613,7 +613,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             databaseWriter.readFromWrite { db in
                 // TODO: handle errors
                 fetchedItems = try! Array(Item<Record>.fetchCursor(db, request))
-                fetchedAlongside = fetchAlongside(db)
+                fetchedAlongside = try! fetchAlongside(db)
                 
                 // Fetch is complete:
                 semaphore.signal()
@@ -813,7 +813,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     /// of values that are fetched alongside tracked records.
     fileprivate func makeFetchAndNotifyChangesFunction<Record, T>(
         controller: FetchedRecordsController<Record>,
-        fetchAlongside: @escaping (Database) -> T,
+        fetchAlongside: @escaping (Database) throws -> T,
         recordsWillChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())?,
         recordsDidChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())?
         ) -> (FetchedRecordsObserver<Record>) -> ()
@@ -860,7 +860,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             databaseWriter.readFromWrite { db in
                 // TODO: handle errors
                 fetchedItems = try! Array(Item<Record>.fetchCursor(db, request))
-                fetchedAlongside = fetchAlongside(db)
+                fetchedAlongside = try! fetchAlongside(db)
                 
                 // Fetch is complete:
                 semaphore.signal()
@@ -1125,7 +1125,7 @@ extension TableMapping {
     ///
     ///     dbQueue.inDatabase { db in
     ///         let primaryKey = Person.primaryKeyFunction(db)
-    ///         let row = Row.fetchOne(db, "SELECT * FROM persons")!
+    ///         let row = try Row.fetchOne(db, "SELECT * FROM persons")!
     ///         primaryKey(row) // ["id": 1]
     ///     }
     ///

@@ -44,13 +44,13 @@ public protocol DatabaseReader : class {
     ///     reader.read { db in
     ///         // Those two values are guaranteed to be equal, even if the
     ///         // `wines` table is modified between the two requests:
-    ///         let count1 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
-    ///         let count2 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
     ///     }
     ///
     ///     reader.read { db in
     ///         // Now this value may be different:
-    ///         let count = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
     ///     }
     ///
     /// - parameter block: A block that accesses the database.
@@ -75,8 +75,8 @@ public protocol DatabaseReader : class {
     ///     reader.nonIsolatedRead { db in
     ///         // Those two ints may be different:
     ///         let sql = "SELECT ..."
-    ///         let int1 = Int.fetchOne(db, sql)
-    ///         let int2 = Int.fetchOne(db, sql)
+    ///         let int1 = try Int.fetchOne(db, sql)
+    ///         let int2 = try Int.fetchOne(db, sql)
     ///     }
     func nonIsolatedRead<T>(_ block: (Database) throws -> T) rethrows -> T
     

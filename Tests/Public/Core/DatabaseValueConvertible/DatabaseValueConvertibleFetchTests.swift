@@ -73,7 +73,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (2)")
                 
                 let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                let array = WrappedInt.fetchAll(statement)
+                let array = try WrappedInt.fetchAll(statement)
                 
                 XCTAssertEqual(array.map { $0.int }, [1,2])
             }
@@ -89,7 +89,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (2)")
                 
                 let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                let array = WrappedInt.fetchAll(statement, adapter: SuffixRowAdapter(fromIndex: 1))
+                let array = try WrappedInt.fetchAll(statement, adapter: SuffixRowAdapter(fromIndex: 1))
                 
                 XCTAssertEqual(array.map { $0.int }, [-1,-2])
             }
@@ -103,16 +103,16 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 try db.execute("CREATE TABLE ints (int Int)")
                 let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
                 
-                let nilBecauseMissingRow = WrappedInt.fetchOne(statement)
+                let nilBecauseMissingRow = try WrappedInt.fetchOne(statement)
                 XCTAssertTrue(nilBecauseMissingRow == nil)
                 
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                let nilBecauseMissingNULL = WrappedInt.fetchOne(statement)
+                let nilBecauseMissingNULL = try WrappedInt.fetchOne(statement)
                 XCTAssertTrue(nilBecauseMissingNULL == nil)
                 
                 try db.execute("DELETE FROM ints")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
-                let one = WrappedInt.fetchOne(statement)!
+                let one = try WrappedInt.fetchOne(statement)!
                 XCTAssertEqual(one.int, 1)
             }
         }
@@ -125,16 +125,16 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 try db.execute("CREATE TABLE ints (int Int)")
                 let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
                 
-                let nilBecauseMissingRow = WrappedInt.fetchOne(statement, adapter: SuffixRowAdapter(fromIndex: 1))
+                let nilBecauseMissingRow = try WrappedInt.fetchOne(statement, adapter: SuffixRowAdapter(fromIndex: 1))
                 XCTAssertTrue(nilBecauseMissingRow == nil)
                 
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                let nilBecauseMissingNULL = WrappedInt.fetchOne(statement, adapter: SuffixRowAdapter(fromIndex: 1))
+                let nilBecauseMissingNULL = try WrappedInt.fetchOne(statement, adapter: SuffixRowAdapter(fromIndex: 1))
                 XCTAssertTrue(nilBecauseMissingNULL == nil)
                 
                 try db.execute("DELETE FROM ints")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
-                let one = WrappedInt.fetchOne(statement, adapter: SuffixRowAdapter(fromIndex: 1))!
+                let one = try WrappedInt.fetchOne(statement, adapter: SuffixRowAdapter(fromIndex: 1))!
                 XCTAssertEqual(one.int, -1)
             }
         }
@@ -184,7 +184,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (2)")
                 
-                let array = WrappedInt.fetchAll(db, "SELECT int, -int FROM ints ORDER BY int")
+                let array = try WrappedInt.fetchAll(db, "SELECT int, -int FROM ints ORDER BY int")
                 
                 XCTAssertEqual(array.map { $0.int }, [1,2])
             }
@@ -199,7 +199,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (2)")
                 
-                let array = WrappedInt.fetchAll(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
+                let array = try WrappedInt.fetchAll(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
                 
                 XCTAssertEqual(array.map { $0.int }, [-1,-2])
             }
@@ -212,16 +212,16 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 
-                let nilBecauseMissingRow = WrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int")
+                let nilBecauseMissingRow = try WrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int")
                 XCTAssertTrue(nilBecauseMissingRow == nil)
                 
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                let nilBecauseMissingNULL = WrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int")
+                let nilBecauseMissingNULL = try WrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int")
                 XCTAssertTrue(nilBecauseMissingNULL == nil)
                 
                 try db.execute("DELETE FROM ints")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
-                let one = WrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int")!
+                let one = try WrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int")!
                 XCTAssertEqual(one.int, 1)
             }
         }
@@ -233,16 +233,16 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 
-                let nilBecauseMissingRow = WrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
+                let nilBecauseMissingRow = try WrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
                 XCTAssertTrue(nilBecauseMissingRow == nil)
                 
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                let nilBecauseMissingNULL = WrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
+                let nilBecauseMissingNULL = try WrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
                 XCTAssertTrue(nilBecauseMissingNULL == nil)
                 
                 try db.execute("DELETE FROM ints")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
-                let one = WrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))!
+                let one = try WrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))!
                 XCTAssertEqual(one.int, -1)
             }
         }
@@ -286,7 +286,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                         return (statement, SuffixRowAdapter(fromIndex: 1))
                     }
                 }
-                let array = WrappedInt.fetchAll(db, Request())
+                let array = try WrappedInt.fetchAll(db, Request())
                 
                 XCTAssertEqual(array.map { $0.int }, [-1,-2])
             }
@@ -305,16 +305,16 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                         return (statement, SuffixRowAdapter(fromIndex: 1))
                     }
                 }
-                let nilBecauseMissingRow = WrappedInt.fetchOne(db, Request())
+                let nilBecauseMissingRow = try WrappedInt.fetchOne(db, Request())
                 XCTAssertTrue(nilBecauseMissingRow == nil)
                 
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                let nilBecauseMissingNULL = WrappedInt.fetchOne(db, Request())
+                let nilBecauseMissingNULL = try WrappedInt.fetchOne(db, Request())
                 XCTAssertTrue(nilBecauseMissingNULL == nil)
                 
                 try db.execute("DELETE FROM ints")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
-                let one = WrappedInt.fetchOne(db, Request())!
+                let one = try WrappedInt.fetchOne(db, Request())!
                 XCTAssertEqual(one.int, -1)
             }
         }
@@ -367,7 +367,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
                 
                 let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                let array = Optional<WrappedInt>.fetchAll(statement)
+                let array = try Optional<WrappedInt>.fetchAll(statement)
                 
                 let ints = array.map { $0?.int }
                 XCTAssertEqual(ints.count, 2)
@@ -386,7 +386,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
                 
                 let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                let array = Optional<WrappedInt>.fetchAll(statement, adapter: SuffixRowAdapter(fromIndex: 1))
+                let array = try Optional<WrappedInt>.fetchAll(statement, adapter: SuffixRowAdapter(fromIndex: 1))
                 
                 let ints = array.map { $0?.int }
                 XCTAssertEqual(ints.count, 2)
@@ -440,7 +440,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
                 
-                let array = Optional<WrappedInt>.fetchAll(db, "SELECT int, -int FROM ints ORDER BY int")
+                let array = try Optional<WrappedInt>.fetchAll(db, "SELECT int, -int FROM ints ORDER BY int")
                 
                 let ints = array.map { $0?.int }
                 XCTAssertEqual(ints.count, 2)
@@ -458,7 +458,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
                 
-                let array = Optional<WrappedInt>.fetchAll(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
+                let array = try Optional<WrappedInt>.fetchAll(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
                 
                 let ints = array.map { $0?.int }
                 XCTAssertEqual(ints.count, 2)
@@ -506,7 +506,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                         return (statement, SuffixRowAdapter(fromIndex: 1))
                     }
                 }
-                let array = Optional<WrappedInt>.fetchAll(db, Request())
+                let array = try Optional<WrappedInt>.fetchAll(db, Request())
                 
                 let ints = array.map { $0?.int }
                 XCTAssertEqual(ints.count, 2)

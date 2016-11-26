@@ -33,8 +33,8 @@ class UpdateStatementTests : GRDBTestCase {
                 try db.makeUpdateStatement("INSERT INTO persons (name) VALUES ('Daniel');\n \t").execute()
                 return .commit
             }
-            dbQueue.inDatabase { db in
-                let names = String.fetchAll(db, "SELECT name FROM persons ORDER BY name")
+            try dbQueue.inDatabase { db in
+                let names = try String.fetchAll(db, "SELECT name FROM persons ORDER BY name")
                 XCTAssertEqual(names, ["Arthur", "Barbara", "Craig", "Daniel"])
             }
         }
@@ -58,8 +58,8 @@ class UpdateStatementTests : GRDBTestCase {
                 return .commit
             }
             
-            dbQueue.inDatabase { db in
-                let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
+            try dbQueue.inDatabase { db in
+                let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
                 XCTAssertEqual(rows[0].value(named: "age") as Int, 41)
@@ -88,8 +88,8 @@ class UpdateStatementTests : GRDBTestCase {
                 return .commit
             }
             
-            dbQueue.inDatabase { db in
-                let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
+            try dbQueue.inDatabase { db in
+                let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
                 XCTAssertEqual(rows[0].value(named: "age") as Int, 41)
@@ -117,8 +117,8 @@ class UpdateStatementTests : GRDBTestCase {
                 return .commit
             }
             
-            dbQueue.inDatabase { db in
-                let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
+            try dbQueue.inDatabase { db in
+                let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
                 XCTAssertEqual(rows[0].value(named: "age") as Int, 41)
@@ -147,8 +147,8 @@ class UpdateStatementTests : GRDBTestCase {
                 return .commit
             }
             
-            dbQueue.inDatabase { db in
-                let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
+            try dbQueue.inDatabase { db in
+                let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
                 XCTAssertEqual(rows[0].value(named: "age") as Int, 41)
@@ -210,7 +210,7 @@ class UpdateStatementTests : GRDBTestCase {
                     "INSERT INTO persons (name, age) VALUES ('Arthur', :age1);" +
                     "INSERT INTO persons (name, age) VALUES ('Arthur', :age2);",
                     arguments: ["age1": 41, "age2": 32])
-                XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [32, 41])
+                XCTAssertEqual(try Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [32, 41])
                 return .rollback
             }
             
@@ -219,7 +219,7 @@ class UpdateStatementTests : GRDBTestCase {
                     "INSERT INTO persons (name, age) VALUES ('Arthur', :age1);" +
                     "INSERT INTO persons (name, age) VALUES ('Arthur', :age2);",
                     arguments: [41, 32])
-                XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [32, 41])
+                XCTAssertEqual(try Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [32, 41])
                 return .rollback
             }
         }
@@ -233,7 +233,7 @@ class UpdateStatementTests : GRDBTestCase {
                     "INSERT INTO persons (name, age) VALUES ('Arthur', :age);" +
                     "INSERT INTO persons (name, age) VALUES ('Arthur', :age);",
                     arguments: ["age": 41])
-                XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons"), [41, 41])
+                XCTAssertEqual(try Int.fetchAll(db, "SELECT age FROM persons"), [41, 41])
                 return .rollback
             }
             
@@ -246,7 +246,7 @@ class UpdateStatementTests : GRDBTestCase {
 //                    "INSERT INTO persons (name, age) VALUES ('Arthur', :age);" +
 //                    "INSERT INTO persons (name, age) VALUES ('Arthur', :age);",
 //                    arguments: [41])
-//                XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons"), [41, 41])
+//                XCTAssertEqual(try Int.fetchAll(db, "SELECT age FROM persons"), [41, 41])
 //                return .rollback
 //            }
         }
@@ -260,7 +260,7 @@ class UpdateStatementTests : GRDBTestCase {
                     "INSERT INTO persons (name, age) VALUES ('Arthur', ?);" +
                     "INSERT INTO persons (name, age) VALUES ('Arthur', ?);",
                     arguments: [41, 32])
-                XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [32, 41])
+                XCTAssertEqual(try Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [32, 41])
                 return .rollback
             }
         }

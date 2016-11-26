@@ -17,7 +17,7 @@ class StatementColumnConvertibleCrashTests: GRDBCrashTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
                 
                 let statement = try db.makeSelectStatement("SELECT int FROM ints ORDER BY int")
-                let sequence = Int.fetch(statement)
+                let sequence = try Int.fetch(statement)
                 for _ in sequence { }
             }
         }
@@ -31,7 +31,7 @@ class StatementColumnConvertibleCrashTests: GRDBCrashTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
                 
                 let statement = try db.makeSelectStatement("SELECT int FROM ints ORDER BY int")
-                _ = Int.fetchAll(statement)
+                _ = try Int.fetchAll(statement)
             }
         }
     }
@@ -43,7 +43,7 @@ class StatementColumnConvertibleCrashTests: GRDBCrashTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
                 
-                let sequence = Int.fetch(db, "SELECT int FROM ints ORDER BY int")
+                let sequence = try Int.fetch(db, "SELECT int FROM ints ORDER BY int")
                 for _ in sequence { }
             }
         }
@@ -56,7 +56,7 @@ class StatementColumnConvertibleCrashTests: GRDBCrashTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
                 
-                _ = Int.fetchAll(db, "SELECT int FROM ints ORDER BY int")
+                _ = try Int.fetchAll(db, "SELECT int FROM ints ORDER BY int")
             }
         }
     }
