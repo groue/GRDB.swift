@@ -133,7 +133,7 @@
         
         static func api(_ db: Database) -> UnsafePointer<fts5_api>? {
             do {
-                return try Data.fetchCursor(db, "SELECT fts5()").step().flatMap { data in
+                return try Data.fetchCursor(db, "SELECT fts5()").next().flatMap { data in
                     guard data.count == MemoryLayout<UnsafePointer<fts5_api>>.size else {
                         return nil
                     }

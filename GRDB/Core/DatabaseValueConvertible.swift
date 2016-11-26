@@ -163,7 +163,7 @@ public extension DatabaseValueConvertible {
     /// - returns: An optional value.
     public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Self? {
         let cursor = try! DatabaseValue.fetchCursor(statement, arguments: arguments, adapter: adapter)
-        return try! cursor.step().flatMap { Self.fromDatabaseValue($0) }
+        return try! cursor.next().flatMap { Self.fromDatabaseValue($0) }
     }
 }
 

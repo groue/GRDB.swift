@@ -311,10 +311,10 @@ public final class DatabaseCursor<Element> {
     /// exists. Once nil has been returned, all subsequent calls return nil.
     ///
     ///     let cursor = try Row.fetchCursor(db, "SELECT ...")
-    ///     while let row = try cursor.step() {
+    ///     while let row = try cursor.next() {
     ///         print(row)
     ///     }
-    public func step() throws -> Element? {
+    public func next() throws -> Element? {
         if done {
             return nil
         }
@@ -337,7 +337,7 @@ extension DatabaseCursor {
     public func enumerated() -> DatabaseCursor<(Int, Element)> {
         var i = 0
         return DatabaseCursor<(Int, Element)>(statement: statementRef.takeUnretainedValue()) {
-            guard let element = try self.step() else { return nil }
+            guard let element = try self.next() else { return nil }
             defer { i = i + 1 }
             return (i, element)
         }
@@ -346,7 +346,7 @@ extension DatabaseCursor {
     /// TODO
     public func filter(_ isIncluded: (Element) throws -> Bool) throws -> [Element] {
         var result: [Element] = []
-        while let element = try step() {
+        while let element = try next() {
             if try isIncluded(element) {
                 result.append(element)
             }
@@ -356,7 +356,7 @@ extension DatabaseCursor {
 
     /// TODO
     public func forEach(_ body: (Element) throws -> Void) throws {
-        while let element = try step() {
+        while let element = try next() {
             try body(element)
         }
     }
@@ -364,7 +364,7 @@ extension DatabaseCursor {
     /// TODO
     public func map<T>(_ transform: (Element) throws -> T) throws -> [T] {
         var result: [T] = []
-        while let element = try step() {
+        while let element = try next() {
             try result.append(transform(element))
         }
         return result
@@ -373,7 +373,7 @@ extension DatabaseCursor {
     /// TODO
     public func reduce<Result>(_ initialResult: Result, _ nextPartialResult: (Result, Element) throws -> Result) throws -> Result {
         var result = initialResult
-        while let element = try step() {
+        while let element = try next() {
             result = try nextPartialResult(result, element)
         }
         return result
@@ -392,7 +392,7 @@ public final class DatabaseIterator<Element>: IteratorProtocol {
     /// Advances to the next element and returns it, or `nil` if no next element
     /// exists. Once nil has been returned, all subsequent calls return nil.
     public func next() -> Element? {
-        return try! cursor?.step()
+        return try! cursor?.next()
     }
 }
 

@@ -139,7 +139,7 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
             }
             return Self.init(sqliteStatement: sqliteStatement, index: columnIndex)
         }
-        return try! cursor.step() ?? nil
+        return try! cursor.next() ?? nil
     }
 }
 

@@ -573,7 +573,7 @@ extension Row {
     /// - returns: An optional row.
     public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Row? {
         let cursor = try! fetchCursor(statement, arguments: arguments, adapter: adapter)
-        return try! cursor.step().flatMap { $0.copy() }
+        return try! cursor.next().flatMap { $0.copy() }
     }
 }
 
