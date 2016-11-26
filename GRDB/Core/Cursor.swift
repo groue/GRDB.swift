@@ -25,6 +25,38 @@ extension Cursor {
     }
     
     /// TODO
+    public func flatMap<ElementOfResult>(_ transform: (Element) throws -> ElementOfResult?) throws -> [ElementOfResult] {
+        var result: [ElementOfResult] = []
+        while let element = try next() {
+            if let x = try transform(element) {
+                result.append(x)
+            }
+        }
+        return result
+    }
+    
+    /// TODO
+    public func flatMap<SegmentOfResult : Sequence>(_ transform: (Element) throws -> SegmentOfResult) throws -> [SegmentOfResult.Iterator.Element] {
+        var result: [SegmentOfResult.Iterator.Element] = []
+        while let element = try next() {
+            try result.append(contentsOf: transform(element))
+        }
+        return result
+    }
+    
+    /// TODO
+    public func flatMap<SegmentOfResult : Cursor>(_ transform: (Element) throws -> SegmentOfResult) throws -> [SegmentOfResult.Element] {
+        var result: [SegmentOfResult.Element] = []
+        while let element1 = try next() {
+            let cursor = try transform(element1)
+            while let element2 = try cursor.next() {
+                result.append(element2)
+            }
+        }
+        return result
+    }
+    
+    /// TODO
     public func forEach(_ body: (Element) throws -> Void) throws {
         while let element = try next() {
             try body(element)
@@ -46,6 +78,21 @@ extension Cursor {
         var result = initialResult
         while let element = try next() {
             result = try nextPartialResult(result, element)
+        }
+        return result
+    }
+}
+
+extension Sequence {
+    
+    /// TODO
+    public func flatMap<SegmentOfResult : Cursor>(_ transform: (Iterator.Element) throws -> SegmentOfResult) throws -> [SegmentOfResult.Element] {
+        var result: [SegmentOfResult.Element] = []
+        for element1 in self {
+            let cursor = try transform(element1)
+            while let element2 = try cursor.next() {
+                result.append(element2)
+            }
         }
         return result
     }

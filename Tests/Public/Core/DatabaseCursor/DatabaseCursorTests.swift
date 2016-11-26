@@ -63,6 +63,54 @@ class DatabaseCursorTests: GRDBTestCase {
         }
     }
     
+    func testFlatMapOfSequence() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let cursor = try Int.fetchCursor(db, "SELECT 1 AS i UNION SELECT 2 ORDER BY i")
+                let ints = try cursor.flatMap { AnySequence([$0, $0 + 1]) }
+                XCTAssertEqual(ints, [1, 2, 2, 3])
+            }
+        }
+    }
+    
+    func testFlatMapOfCursor() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let cursor = try Int.fetchCursor(db, "SELECT 1 AS i UNION SELECT 2 ORDER BY i")
+                let ints = try cursor.flatMap {
+                    try Int.fetchCursor(db, "SELECT ? AS i UNION SELECT ?+1 ORDER BY i", arguments: [$0, $0])
+                }
+                XCTAssertEqual(ints, [1, 2, 2, 3])
+            }
+        }
+    }
+    
+    func testSequenceFlatMapOfCursor() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let sequence = AnySequence([1, 2])
+                let ints = try sequence.flatMap {
+                    try Int.fetchCursor(db, "SELECT ? AS i UNION SELECT ?+1 ORDER BY i", arguments: [$0, $0])
+                }
+                XCTAssertEqual(ints, [1, 2, 2, 3])
+            }
+        }
+    }
+    
+    func testFlatMapOfOptional() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let cursor = try DatabaseValue.fetchCursor(db, "SELECT 'foo' UNION SELECT 1")
+                let ints = try cursor.flatMap(Int.fromDatabaseValue)
+                XCTAssertEqual(ints, [1])
+            }
+        }
+    }
+    
     func testForEach() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
