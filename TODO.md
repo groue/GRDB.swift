@@ -1,3 +1,7 @@
+- DatabaseCursor: test that Document.fetchAll(db,
+    "SELECT * FROM documents WHERE content MATCH ?",
+    arguments: ["AND"]) throws a catchable error
+- DatabaseCursor: test that Row.fetchAll(db, "SELECT * FROM boooks") throws a catchable error
 - DatabaseCursor: test errors while iterating a cursor with failed conversion (null in DatabaseCursor<Int>, and "Mom’s birthday" in DatabaseCursor<Date?>)
 - DatabaseCursor: consider making Persistable.exists() throwable
 - DatabaseCursor/FetchedRecordsController: handle fetch errors
