@@ -427,7 +427,7 @@ class PrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 }
                 
                 do {
-                    let cursor = try Person.fetchCursor(db, keys: [["id": record1.id], ["id": record2.id]])!
+                    let cursor = try Person.fetchCursor(db, keys: [["rowid": record1.id], ["rowid": record2.id]])!
                     let fetchedRecords = try [cursor.next()!, cursor.next()!]
                     XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set([record1.id, record2.id]))
                     XCTAssertTrue(try cursor.next() == nil) // end
@@ -435,7 +435,7 @@ class PrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 }
                 
                 do {
-                    let cursor = try Person.fetchCursor(db, keys: [["id": record1.id], ["id": nil]])!
+                    let cursor = try Person.fetchCursor(db, keys: [["rowid": record1.id], ["rowid": nil]])!
                     let fetchedRecord = try cursor.next()!
                     XCTAssertEqual(fetchedRecord.id!, record1.id!)
                     XCTAssertTrue(try cursor.next() == nil) // end
