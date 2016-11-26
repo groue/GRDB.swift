@@ -145,8 +145,9 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         // observer is added on the same serialized queue as transaction
         // callbacks.
         databaseWriter.writeForIssue117 { db in
+            // TODO: handle errors
             let (statement, adapter) = try! request.prepare(db)
-            let initialItems = Item<Record>.fetchAll(statement, adapter: adapter)
+            let initialItems = try! Item<Record>.fetchCursor(statement, adapter: adapter).map { $0 }
             fetchedItems = initialItems
             
             #if os(iOS)
@@ -610,7 +611,8 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             var fetchedAlongside: T! = nil
             
             databaseWriter.readFromWrite { db in
-                fetchedItems = Item<Record>.fetchAll(db, request)
+                // TODO: handle errors
+                fetchedItems = try! Item<Record>.fetchCursor(db, request).map { $0 }
                 fetchedAlongside = fetchAlongside(db)
                 
                 // Fetch is complete:
@@ -856,7 +858,8 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             var fetchedAlongside: T! = nil
             
             databaseWriter.readFromWrite { db in
-                fetchedItems = Item<Record>.fetchAll(db, request)
+                // TODO: handle errors
+                fetchedItems = try Item<Record>.fetchCursor(db, request).map { $0 }
                 fetchedAlongside = fetchAlongside(db)
                 
                 // Fetch is complete:

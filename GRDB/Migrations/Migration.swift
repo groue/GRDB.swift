@@ -39,7 +39,7 @@ struct Migration {
     
     func run(_ db: Database) throws {
         if #available(iOS 8.2, OSX 10.10, *) {
-            if disabledForeignKeyChecks && Bool.fetchOne(db, "PRAGMA foreign_keys")! {
+            if try disabledForeignKeyChecks && (Bool.fetchCursor(db, "PRAGMA foreign_keys").next() ?? false) {
                 try runWithDisabledForeignKeys(db)
             } else {
                 try runWithoutDisabledForeignKeys(db)
@@ -80,7 +80,7 @@ struct Migration {
             // > 10. If foreign key constraints were originally enabled then run PRAGMA
             // > foreign_key_check to verify that the schema change did not break any foreign key
             // > constraints.
-            if Row.fetchOne(db, "PRAGMA foreign_key_check") != nil {
+            if try Row.fetchCursor(db, "PRAGMA foreign_key_check").next() != nil {
                 // https://www.sqlite.org/pragma.html#pragma_foreign_key_check
                 //
                 // PRAGMA foreign_key_check does not return an error,
