@@ -32,7 +32,6 @@ extension QueryInterfaceRequest where T: RowConvertible {
     
     /// TODO
     public func fetchCursor(_ db: Database) throws -> DatabaseCursor<T> {
-        // TODO: test
         return try T.fetchCursor(db, self)
     }
     
@@ -491,7 +490,6 @@ extension RowConvertible where Self: TableMapping {
     
     /// TODO
     public static func fetchCursor(_ db: Database) throws -> DatabaseCursor<Self> {
-        // TODO: test
         return try all().fetchCursor(db)
     }
     

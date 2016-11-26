@@ -94,6 +94,13 @@ class RecordQueryInterfaceRequestTests: GRDBTestCase {
                     XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
                     XCTAssertEqual(names, [arthur.name, barbara.name])
                 }
+                
+                do {
+                    let cursor = try request.fetchCursor(db)
+                    let names = try cursor.map { $0.name }
+                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
+                    XCTAssertEqual(names, [arthur.name, barbara.name])
+                }
             }
         }
     }
