@@ -20,17 +20,34 @@ class DatabaseCursorTests: GRDBTestCase {
                 }
                 do {
                     let cursor = try Int.fetchCursor(db, "SELECT 1")
-                    XCTAssert(try cursor.next() == 1)
+                    XCTAssertEqual(try cursor.next()!,  1)
                     XCTAssert(try cursor.next() == nil) // end
                     XCTAssert(try cursor.next() == nil) // past the end
                 }
                 do {
                     let cursor = try Int.fetchCursor(db, "SELECT 1 AS i UNION SELECT 2 ORDER BY i")
-                    XCTAssert(try cursor.next() == 1)
-                    XCTAssert(try cursor.next() == 2)
+                    XCTAssertEqual(try cursor.next()!, 1)
+                    XCTAssertEqual(try cursor.next()!, 2)
                     XCTAssert(try cursor.next() == nil) // end
                     XCTAssert(try cursor.next() == nil) // past the end
                 }
+            }
+        }
+    }
+    
+    func testEnumerated() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let cursor = try String.fetchCursor(db, "SELECT 'bar' AS v UNION SELECT 'foo' ORDER BY v")
+                let enumerated = cursor.enumerated()
+                var (n, v) = try enumerated.next()!
+                XCTAssertEqual(n, 0)
+                XCTAssertEqual(v, "bar")
+                (n, v) = try enumerated.next()!
+                XCTAssertEqual(n, 1)
+                XCTAssertEqual(v, "foo")
+                XCTAssert(try enumerated.next() == nil) // end
             }
         }
     }

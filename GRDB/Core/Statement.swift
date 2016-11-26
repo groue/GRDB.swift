@@ -286,7 +286,7 @@ public struct DatabaseSequence<Element>: Sequence {
 }
 
 /// A cursor on a statement
-public final class DatabaseCursor<Element> {
+public final class DatabaseCursor<Element> : Cursor {
     fileprivate let statementRef: Unmanaged<SelectStatement>
     private let sqliteStatement: SQLiteStatement
     private let element: () throws -> Element?
@@ -326,58 +326,6 @@ public final class DatabaseCursor<Element> {
         }
     }
 }
-
-extension DatabaseCursor {
-    
-    /// TODO
-    public func filter(_ isIncluded: (Element) throws -> Bool) throws -> [Element] {
-        var result: [Element] = []
-        while let element = try next() {
-            if try isIncluded(element) {
-                result.append(element)
-            }
-        }
-        return result
-    }
-
-    /// TODO
-    public func forEach(_ body: (Element) throws -> Void) throws {
-        while let element = try next() {
-            try body(element)
-        }
-    }
-
-    /// TODO
-    public func map<T>(_ transform: (Element) throws -> T) throws -> [T] {
-        // TODO: cursors should have an underestimatedCount
-        var result: [T] = []
-        while let element = try next() {
-            try result.append(transform(element))
-        }
-        return result
-    }
-    
-    /// TODO
-    public func reduce<Result>(_ initialResult: Result, _ nextPartialResult: (Result, Element) throws -> Result) throws -> Result {
-        var result = initialResult
-        while let element = try next() {
-            result = try nextPartialResult(result, element)
-        }
-        return result
-    }
-}
-
-extension Array {
-    /// TODO
-    public init<Cursor : DatabaseCursor<Element>>(_ cursor: Cursor) throws {
-        // TODO: cursors should have an underestimatedCount
-        self.init()
-        while let element = try cursor.next() {
-            append(element)
-        }
-    }
-}
-
 
 /// A iterator of elements fetched from the database.
 public final class DatabaseIterator<Element>: IteratorProtocol {
