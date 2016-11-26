@@ -359,37 +359,6 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
         }
     }
     
-    func testFetchSequenceWithKeys() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record1 = Email()
-                record1.email = "me@domain.com"
-                try record1.insert(db)
-                let record2 = Email()
-                record2.email = "you@domain.com"
-                try record2.insert(db)
-                
-                do {
-                    let fetchedRecords = Array(Email.fetch(db, keys: []))
-                    XCTAssertEqual(fetchedRecords.count, 0)
-                }
-                
-                do {
-                    let fetchedRecords = Array(Email.fetch(db, keys: [["email": record1.email], ["email": record2.email]]))
-                    XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.email }), Set([record1.email, record2.email]))
-                }
-                
-                do {
-                    let fetchedRecords = Array(Email.fetch(db, keys: [["email": record1.email], ["email": nil]]))
-                    XCTAssertEqual(fetchedRecords.count, 1)
-                    XCTAssertEqual(fetchedRecords.first!.email, record1.email!)
-                }
-            }
-        }
-    }
-    
     func testFetchAllWithKeys() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
@@ -462,33 +431,6 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                     XCTAssertEqual(Set(fetchedRecords.map { $0.email! }), Set(emails))
                     XCTAssertTrue(try cursor.next() == nil) // end
                     XCTAssertTrue(try cursor.next() == nil) // safety
-                }
-            }
-        }
-    }
-    
-    func testFetchSequenceWithPrimaryKeys() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record1 = Email()
-                record1.email = "me@domain.com"
-                try record1.insert(db)
-                let record2 = Email()
-                record2.email = "you@domain.com"
-                try record2.insert(db)
-                
-                do {
-                    let emails: [String] = []
-                    let fetchedRecords = Array(Email.fetch(db, keys: emails))
-                    XCTAssertEqual(fetchedRecords.count, 0)
-                }
-                
-                do {
-                    let emails = [record1.email!, record2.email!]
-                    let fetchedRecords = Array(Email.fetch(db, keys: emails))
-                    XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.email }), Set(emails))
                 }
             }
         }

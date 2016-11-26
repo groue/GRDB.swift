@@ -140,33 +140,6 @@ class PrimaryKeyNoneTests: GRDBTestCase {
         }
     }
     
-    func testFetchSequenceWithPrimaryKeys() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record1 = Item(name: "Table")
-                try record1.insert(db)
-                let id1 = db.lastInsertedRowID
-                let record2 = Item(name: "Chair")
-                try record2.insert(db)
-                let id2 = db.lastInsertedRowID
-                
-                do {
-                    let ids: [Int64] = []
-                    let fetchedRecords = Array(Item.fetch(db, keys: ids))
-                    XCTAssertEqual(fetchedRecords.count, 0)
-                }
-                
-                do {
-                    let ids = [id1, id2]
-                    let fetchedRecords = Array(Item.fetch(db, keys: ids))
-                    XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.name! }), Set([record1, record2].map { $0.name! }))
-                }
-            }
-        }
-    }
-    
     func testFetchAllWithPrimaryKeys() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()

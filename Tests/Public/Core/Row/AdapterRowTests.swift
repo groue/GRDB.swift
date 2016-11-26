@@ -462,44 +462,50 @@ class AdapterRowTests : RowTestCase {
     }
     
     func testCopy() {
-        let dbQueue = DatabaseQueue()
-        dbQueue.inDatabase { db in
-            let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
-                .addingScopes(["sub": ColumnMapping(["a": "baseb"])])
-            var copiedRow: Row? = nil
-            for baseRow in Row.fetch(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter) {
-                copiedRow = baseRow.copy()
-            }
-            
-            if let copiedRow = copiedRow {
-                XCTAssertEqual(copiedRow.count, 3)
-                XCTAssertEqual(copiedRow.value(named: "a") as Int, 0)
-                XCTAssertEqual(copiedRow.value(named: "b") as Int, 1)
-                XCTAssertEqual(copiedRow.value(named: "c") as Int, 2)
-                if let scope = copiedRow.scoped(on: "sub") {
-                    XCTAssertEqual(scope.count, 1)
-                    XCTAssertEqual(scope.value(named: "a") as Int, 1)
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
+                    .addingScopes(["sub": ColumnMapping(["a": "baseb"])])
+                var copiedRow: Row? = nil
+                let baseRows = try Row.fetchCursor(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)
+                while let baseRow = try baseRows.next() {
+                    copiedRow = baseRow.copy()
                 }
-            } else {
-                XCTFail()
+                
+                if let copiedRow = copiedRow {
+                    XCTAssertEqual(copiedRow.count, 3)
+                    XCTAssertEqual(copiedRow.value(named: "a") as Int, 0)
+                    XCTAssertEqual(copiedRow.value(named: "b") as Int, 1)
+                    XCTAssertEqual(copiedRow.value(named: "c") as Int, 2)
+                    if let scope = copiedRow.scoped(on: "sub") {
+                        XCTAssertEqual(scope.count, 1)
+                        XCTAssertEqual(scope.value(named: "a") as Int, 1)
+                    }
+                } else {
+                    XCTFail()
+                }
             }
         }
     }
     
     func testEqualityWithCopy() {
-        let dbQueue = DatabaseQueue()
-        dbQueue.inDatabase { db in
-            let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
-            var row: Row? = nil
-            for baseRow in Row.fetch(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter) {
-                row = baseRow.copy()
-                XCTAssertEqual(row, baseRow)
-            }
-            if let row = row {
-                let copiedRow = row.copy()
-                XCTAssertEqual(row, copiedRow)
-            } else {
-                XCTFail()
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
+                var row: Row? = nil
+                let baseRows = try Row.fetchCursor(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)
+                while let baseRow = try baseRows.next() {
+                    row = baseRow.copy()
+                    XCTAssertEqual(row, baseRow)
+                }
+                if let row = row {
+                    let copiedRow = row.copy()
+                    XCTAssertEqual(row, copiedRow)
+                } else {
+                    XCTFail()
+                }
             }
         }
     }

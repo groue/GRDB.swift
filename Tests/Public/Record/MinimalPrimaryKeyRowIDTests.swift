@@ -352,35 +352,6 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
         }
     }
     
-    func testFetchSequenceWithKeys() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record1 = MinimalRowID()
-                try record1.insert(db)
-                let record2 = MinimalRowID()
-                try record2.insert(db)
-                
-                do {
-                    let fetchedRecords = Array(MinimalRowID.fetch(db, keys: []))
-                    XCTAssertEqual(fetchedRecords.count, 0)
-                }
-                
-                do {
-                    let fetchedRecords = Array(MinimalRowID.fetch(db, keys: [["id": record1.id], ["id": record2.id]]))
-                    XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set([record1.id, record2.id]))
-                }
-                
-                do {
-                    let fetchedRecords = Array(MinimalRowID.fetch(db, keys: [["id": record1.id], ["id": nil]]))
-                    XCTAssertEqual(fetchedRecords.count, 1)
-                    XCTAssertEqual(fetchedRecords.first!.id, record1.id!)
-                }
-            }
-        }
-    }
-    
     func testFetchAllWithKeys() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
@@ -448,31 +419,6 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
                     XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
                     XCTAssertTrue(try cursor.next() == nil) // end
                     XCTAssertTrue(try cursor.next() == nil) // safety
-                }
-            }
-        }
-    }
-    
-    func testFetchSequenceWithPrimaryKeys() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record1 = MinimalRowID()
-                try record1.insert(db)
-                let record2 = MinimalRowID()
-                try record2.insert(db)
-                
-                do {
-                    let ids: [Int64] = []
-                    let fetchedRecords = Array(MinimalRowID.fetch(db, keys: ids))
-                    XCTAssertEqual(fetchedRecords.count, 0)
-                }
-                
-                do {
-                    let ids = [record1.id!, record2.id!]
-                    let fetchedRecords = Array(MinimalRowID.fetch(db, keys: ids))
-                    XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
                 }
             }
         }

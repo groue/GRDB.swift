@@ -22,7 +22,8 @@ class MetalRowTests : RowTestCase {
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
                 var rowFetched = false
-                for row in Row.fetch(db, "SELECT * FROM ints") {
+                let rows = try Row.fetchCursor(db, "SELECT * FROM ints")
+                while let row = try rows.next() {
                     rowFetched = true
                     var columnNames = [String]()
                     var ints = [Int]()
@@ -49,7 +50,8 @@ class MetalRowTests : RowTestCase {
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
                 var rowFetched = false
-                for row in Row.fetch(db, "SELECT * FROM ints") {
+                let rows = try Row.fetchCursor(db, "SELECT * FROM ints")
+                while let row = try rows.next() {
                     rowFetched = true
                     
                     // Raw extraction
@@ -84,7 +86,8 @@ class MetalRowTests : RowTestCase {
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
                 var rowFetched = false
-                for row in Row.fetch(db, "SELECT * FROM ints") {
+                let rows = try Row.fetchCursor(db, "SELECT * FROM ints")
+                while let row = try rows.next() {
                     rowFetched = true
                     
                     // Raw extraction
@@ -114,7 +117,8 @@ class MetalRowTests : RowTestCase {
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
                 var rowFetched = false
-                for row in Row.fetch(db, "SELECT * FROM ints") {
+                let rows = try Row.fetchCursor(db, "SELECT * FROM ints")
+                while let row = try rows.next() {
                     rowFetched = true
                     
                     // Raw extraction
@@ -140,10 +144,11 @@ class MetalRowTests : RowTestCase {
     func testDataNoCopy() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let data = "foo".data(using: .utf8)!
                 var rowFetched = false
-                for row in Row.fetch(db, "SELECT ? AS a", arguments: [data]) {
+                let rows = try Row.fetchCursor(db, "SELECT ? AS a", arguments: [data])
+                while let row = try rows.next() {
                     rowFetched = true
                     
                     XCTAssertEqual(row.dataNoCopy(atIndex: 0), data)
@@ -158,9 +163,10 @@ class MetalRowTests : RowTestCase {
     func testRowDatabaseValueAtIndex() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 var rowFetched = false
-                for row in Row.fetch(db, "SELECT NULL, 1, 1.1, 'foo', x'53514C697465'") {
+                let rows = try Row.fetchCursor(db, "SELECT NULL, 1, 1.1, 'foo', x'53514C697465'")
+                while let row = try rows.next() {
                     rowFetched = true
                     guard case .null = (row.value(atIndex: 0) as DatabaseValue).storage else { XCTFail(); return }
                     guard case .int64(let int64) = (row.value(atIndex: 1) as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
@@ -176,9 +182,10 @@ class MetalRowTests : RowTestCase {
     func testRowDatabaseValueNamed() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 var rowFetched = false
-                for row in Row.fetch(db, "SELECT NULL AS \"null\", 1 AS \"int64\", 1.1 AS \"double\", 'foo' AS \"string\", x'53514C697465' AS \"blob\"") {
+                let rows = try Row.fetchCursor(db, "SELECT NULL AS \"null\", 1 AS \"int64\", 1.1 AS \"double\", 'foo' AS \"string\", x'53514C697465' AS \"blob\"")
+                while let row = try rows.next() {
                     rowFetched = true
                     guard case .null = (row.value(named: "null") as DatabaseValue).storage else { XCTFail(); return }
                     guard case .int64(let int64) = (row.value(named: "int64") as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
@@ -198,7 +205,8 @@ class MetalRowTests : RowTestCase {
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
                 var rowFetched = false
-                for row in Row.fetch(db, "SELECT * FROM ints") {
+                let rows = try Row.fetchCursor(db, "SELECT * FROM ints")
+                while let row = try rows.next() {
                     rowFetched = true
                     XCTAssertEqual(row.count, 3)
                 }
@@ -214,7 +222,8 @@ class MetalRowTests : RowTestCase {
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
                 var rowFetched = false
-                for row in Row.fetch(db, "SELECT a, b, c FROM ints") {
+                let rows = try Row.fetchCursor(db, "SELECT a, b, c FROM ints")
+                while let row = try rows.next() {
                     rowFetched = true
                     XCTAssertEqual(Array(row.columnNames), ["a", "b", "c"])
                 }
@@ -230,7 +239,8 @@ class MetalRowTests : RowTestCase {
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
                 var rowFetched = false
-                for row in Row.fetch(db, "SELECT a, b, c FROM ints") {
+                let rows = try Row.fetchCursor(db, "SELECT a, b, c FROM ints")
+                while let row = try rows.next() {
                     rowFetched = true
                     XCTAssertEqual(Array(row.databaseValues), [0.databaseValue, 1.databaseValue, 2.databaseValue])
                 }
@@ -242,9 +252,10 @@ class MetalRowTests : RowTestCase {
     func testRowIsCaseInsensitive() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 var rowFetched = false
-                for row in Row.fetch(db, "SELECT 'foo' AS nAmE") {
+                let rows = try Row.fetchCursor(db, "SELECT 'foo' AS nAmE")
+                while let row = try rows.next() {
                     rowFetched = true
                     XCTAssertEqual(row.value(named: "name") as DatabaseValue, "foo".databaseValue)
                     XCTAssertEqual(row.value(named: "NAME") as DatabaseValue, "foo".databaseValue)
@@ -261,9 +272,10 @@ class MetalRowTests : RowTestCase {
     func testRowIsCaseInsensitiveAndReturnsLeftmostMatchingColumn() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 var rowFetched = false
-                for row in Row.fetch(db, "SELECT 1 AS name, 2 AS NAME") {
+                let rows = try Row.fetchCursor(db, "SELECT 1 AS name, 2 AS NAME")
+                while let row = try rows.next() {
                     rowFetched = true
                     XCTAssertEqual(row.value(named: "name") as DatabaseValue, 1.databaseValue)
                     XCTAssertEqual(row.value(named: "NAME") as DatabaseValue, 1.databaseValue)
@@ -280,9 +292,10 @@ class MetalRowTests : RowTestCase {
     func testMissingColumn() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 var rowFetched = false
-                for row in Row.fetch(db, "SELECT 'foo' AS name") {
+                let rows = try Row.fetchCursor(db, "SELECT 'foo' AS name")
+                while let row = try rows.next() {
                     rowFetched = true
                     XCTAssertFalse(row.hasColumn("missing"))
                     XCTAssertTrue(row.value(named: "missing") as DatabaseValue? == nil)
@@ -296,9 +309,10 @@ class MetalRowTests : RowTestCase {
     func testRowHasColumnIsCaseInsensitive() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 var rowFetched = false
-                for row in Row.fetch(db, "SELECT 'foo' AS nAmE, 1 AS foo") {
+                let rows = try Row.fetchCursor(db, "SELECT 'foo' AS nAmE, 1 AS foo")
+                while let row = try rows.next() {
                     rowFetched = true
                     XCTAssertTrue(row.hasColumn("name"))
                     XCTAssertTrue(row.hasColumn("NAME"))
@@ -314,25 +328,29 @@ class MetalRowTests : RowTestCase {
     }
     
     func testVariants() {
-        let dbQueue = DatabaseQueue()
-        dbQueue.inDatabase { db in
-            var rowFetched = false
-            for row in Row.fetch(db, "SELECT 'foo' AS nAmE, 1 AS foo") {
-                rowFetched = true
-                XCTAssertTrue(row.scoped(on: "missing") == nil)
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                var rowFetched = false
+                let rows = try Row.fetchCursor(db, "SELECT 'foo' AS nAmE, 1 AS foo")
+                while let row = try rows.next() {
+                    rowFetched = true
+                    XCTAssertTrue(row.scoped(on: "missing") == nil)
+                }
+                XCTAssertTrue(rowFetched)
             }
-            XCTAssertTrue(rowFetched)
         }
     }
     
     func testCopy() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
                 var rowFetched = false
-                for row in Row.fetch(db, "SELECT * FROM ints") {
+                let rows = try Row.fetchCursor(db, "SELECT * FROM ints")
+                while let row = try rows.next() {
                     rowFetched = true
                     let copiedRow = row.copy()
                     XCTAssertEqual(copiedRow.count, 3)
@@ -347,12 +365,13 @@ class MetalRowTests : RowTestCase {
     
     func testEqualityWithCopy() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
                 var rowFetched = false
-                for row in Row.fetch(db, "SELECT * FROM ints") {
+                let rows = try Row.fetchCursor(db, "SELECT * FROM ints")
+                while let row = try rows.next() {
                     rowFetched = true
                     let copiedRow = row.copy()
                     XCTAssertEqual(row, copiedRow)
@@ -362,12 +381,12 @@ class MetalRowTests : RowTestCase {
         }
     }
     
-    func testDatabaseSequenceMap() {
+    func testDatabaseCursorMap() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
-                let sequence: DatabaseSequence<Row> = Row.fetch(db, "SELECT 1 UNION SELECT 2 UNION SELECT 3")
-                let values = sequence.map { $0.value(atIndex: 0) as Int }
+            try dbQueue.inDatabase { db in
+                let cursor = try Row.fetchCursor(db, "SELECT 1 UNION SELECT 2 UNION SELECT 3")
+                let values = try cursor.map { $0.value(atIndex: 0) as Int }
                 XCTAssertEqual(values, [1, 2, 3])
             }
         }

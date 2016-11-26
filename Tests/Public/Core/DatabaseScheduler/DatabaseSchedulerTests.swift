@@ -61,7 +61,8 @@ class DatabaseSchedulerTests: GRDBTestCase {
                 try db1.execute("INSERT INTO items (id) VALUES (NULL)")
                 try dbQueue2.inDatabase { db2 in
                     try db2.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-                    for row in Row.fetch(db1, "SELECT * FROM items") {
+                    let rows = try Row.fetchCursor(db1, "SELECT * FROM items")
+                    while let row = try rows.next() {
                         try db2.execute("INSERT INTO items (id) VALUES (?)", arguments: [row.value(named: "id")])
                     }
                 }
@@ -82,7 +83,8 @@ class DatabaseSchedulerTests: GRDBTestCase {
                 try db1.execute("INSERT INTO items (id) VALUES (NULL)")
                 try dbQueue2.inDatabase { db2 in
                     try db2.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-                    for row in Row.fetch(db1, "SELECT * FROM items") {
+                    let rows = try Row.fetchCursor(db1, "SELECT * FROM items")
+                    while let row = try rows.next() {
                         try db2.execute("INSERT INTO items (id) VALUES (?)", arguments: [row.value(named: "id")])
                     }
                 }
@@ -103,7 +105,8 @@ class DatabaseSchedulerTests: GRDBTestCase {
                 try db1.execute("INSERT INTO items (id) VALUES (NULL)")
                 try dbPool2.write { db2 in
                     try db2.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-                    for row in Row.fetch(db1, "SELECT * FROM items") {
+                    let rows = try Row.fetchCursor(db1, "SELECT * FROM items")
+                    while let row = try rows.next() {
                         try db2.execute("INSERT INTO items (id) VALUES (?)", arguments: [row.value(named: "id")])
                     }
                 }
@@ -124,7 +127,8 @@ class DatabaseSchedulerTests: GRDBTestCase {
                 try db1.execute("INSERT INTO items (id) VALUES (NULL)")
                 try dbPool2.write { db2 in
                     try db2.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-                    for row in Row.fetch(db1, "SELECT * FROM items") {
+                    let rows = try Row.fetchCursor(db1, "SELECT * FROM items")
+                    while let row = try rows.next() {
                         try db2.execute("INSERT INTO items (id) VALUES (?)", arguments: [row.value(named: "id")])
                     }
                 }

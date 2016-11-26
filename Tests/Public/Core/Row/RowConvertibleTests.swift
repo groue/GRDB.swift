@@ -100,42 +100,6 @@ class RowConvertibleTests: GRDBTestCase {
         }
     }
     
-    func testFetchSequenceFromStatement() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("INSERT INTO structs (firstName, lastName) VALUES (?, ?)", arguments: ["Arthur", "Martin"])
-                let statement = try db.makeSelectStatement("SELECT * FROM structs")
-                let ss = SimpleRowConvertible.fetch(statement)
-                let s = Array(ss).first!
-                XCTAssertEqual(s.firstName, "Arthur")
-                XCTAssertEqual(s.lastName, "Martin")
-                XCTAssertTrue(s.fetched)
-            }
-        }
-    }
-    
-    func testFetchSequenceFromStatementWithAdapter() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let adapter = ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"])
-                    .addingScopes(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
-                let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
-                let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
-                let statement = try db.makeSelectStatement(sql)
-                let ss = Person.fetch(statement, arguments: arguments, adapter: adapter)
-                let s = Array(ss).first!
-                XCTAssertEqual(s.firstName, "Stan")
-                XCTAssertEqual(s.lastName, "Laurel")
-                XCTAssertTrue(s.fetched)
-                XCTAssertEqual(s.bestFriend!.firstName, "Oliver")
-                XCTAssertEqual(s.bestFriend!.lastName, "Hardy")
-                XCTAssertTrue(s.bestFriend!.fetched)
-            }
-        }
-    }
-    
     func testFetchAllFromStatement() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
@@ -243,40 +207,6 @@ class RowConvertibleTests: GRDBTestCase {
         }
     }
     
-    func testFetchSequenceFromSQL() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("INSERT INTO structs (firstName, lastName) VALUES (?, ?)", arguments: ["Arthur", "Martin"])
-                let ss = SimpleRowConvertible.fetch(db, "SELECT * FROM structs")
-                let s = Array(ss).first!
-                XCTAssertEqual(s.firstName, "Arthur")
-                XCTAssertEqual(s.lastName, "Martin")
-                XCTAssertTrue(s.fetched)
-            }
-        }
-    }
-    
-    func testFetchSequenceFromSQLWithAdapter() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
-                let adapter = ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"])
-                    .addingScopes(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
-                let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
-                let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
-                let ss = Person.fetch(db, sql, arguments: arguments, adapter: adapter)
-                let s = Array(ss).first!
-                XCTAssertEqual(s.firstName, "Stan")
-                XCTAssertEqual(s.lastName, "Laurel")
-                XCTAssertTrue(s.fetched)
-                XCTAssertEqual(s.bestFriend!.firstName, "Oliver")
-                XCTAssertEqual(s.bestFriend!.lastName, "Hardy")
-                XCTAssertTrue(s.bestFriend!.fetched)
-            }
-        }
-    }
-    
     func testFetchAllFromSQL() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
@@ -364,34 +294,6 @@ class RowConvertibleTests: GRDBTestCase {
                 }
                 let cursor = try Person.fetchCursor(db, Request())
                 let s = try cursor.next()!
-                XCTAssertEqual(s.firstName, "Stan")
-                XCTAssertEqual(s.lastName, "Laurel")
-                XCTAssertTrue(s.fetched)
-                XCTAssertEqual(s.bestFriend!.firstName, "Oliver")
-                XCTAssertEqual(s.bestFriend!.lastName, "Hardy")
-                XCTAssertTrue(s.bestFriend!.fetched)
-            }
-        }
-    }
-    
-    func testFetchSequenceFromFetchRequest() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
-                struct Request : FetchRequest {
-                    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-                        let adapter = ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"])
-                            .addingScopes(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
-                        let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
-                        let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
-                        
-                        let statement = try db.makeSelectStatement(sql)
-                        statement.arguments = arguments
-                        return (statement, adapter)
-                    }
-                }
-                let ss = Person.fetch(db, Request())
-                let s = Array(ss).first!
                 XCTAssertEqual(s.firstName, "Stan")
                 XCTAssertEqual(s.lastName, "Laurel")
                 XCTAssertTrue(s.fetched)

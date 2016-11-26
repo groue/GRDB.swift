@@ -65,7 +65,8 @@ public protocol DatabaseReader : class {
     ///
     ///     reader.nonIsolatedRead { db in
     ///         // no external update can mess with this iteration:
-    ///         for row in Row.fetch(db, ...) { ... }
+    ///         let rows = try Row.fetchCursor(db, ...)
+    ///         while let row = try rows.next() { ... }
     ///     }
     ///
     /// However, there is no guarantee that consecutive statements have the

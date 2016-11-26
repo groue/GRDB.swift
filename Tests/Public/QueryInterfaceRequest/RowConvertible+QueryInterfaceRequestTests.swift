@@ -98,7 +98,7 @@ class RowConvertibleQueryInterfaceRequestTests: GRDBTestCase {
                 }
                 
                 do {
-                    let names = request.fetch(db).map { $0.name }
+                    let names = try request.fetchCursor(db).map { $0.name }
                     XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
                     XCTAssertEqual(names, [arthur.name, barbara.name])
                 }
@@ -133,12 +133,6 @@ class RowConvertibleQueryInterfaceRequestTests: GRDBTestCase {
                     XCTAssertEqual(reader.id!, arthur.id!)
                     XCTAssertEqual(reader.name, arthur.name)
                     XCTAssertEqual(reader.age, arthur.age)
-                }
-                
-                do {
-                    let names = Reader.fetch(db).map { $0.name }
-                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
-                    XCTAssertEqual(names, [arthur.name, barbara.name])
                 }
                 
                 do {
@@ -183,7 +177,7 @@ class RowConvertibleQueryInterfaceRequestTests: GRDBTestCase {
                 }
                 
                 do {
-                    let names = AltReader.fetch(db, request).map { $0.name }
+                    let names = try AltReader.fetchCursor(db, request).map { $0.name }
                     XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
                     XCTAssertEqual(names, [arthur.name, barbara.name])
                 }

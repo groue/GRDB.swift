@@ -159,13 +159,13 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
                 }
                 let block2 = { [weak dbQueue] () in
                     weak var connection: Database? = nil
-                    var iterator: DatabaseIterator<Int>? = nil
+                    var cursor: DatabaseCursor<Int>? = nil
                     do {
                         if let dbQueue = dbQueue {
-                            dbQueue.write { db in
+                            try! dbQueue.write { db in
                                 connection = db
-                                iterator = Int.fetch(db, "SELECT id FROM items").makeIterator()
-                                XCTAssertTrue(iterator!.next() != nil)
+                                cursor = try Int.fetchCursor(db, "SELECT id FROM items")
+                                XCTAssertTrue(try cursor!.next() != nil)
                                 s1.signal()
                             }
                         } else {
@@ -175,9 +175,9 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
                     _ = s2.wait(timeout: .distantFuture)
                     do {
                         XCTAssertTrue(dbQueue == nil)
-                        XCTAssertTrue(iterator!.next() != nil)
-                        XCTAssertTrue(iterator!.next() == nil)
-                        iterator = nil
+                        XCTAssertTrue(try! cursor!.next() != nil)
+                        XCTAssertTrue(try! cursor!.next() == nil)
+                        cursor = nil
                         XCTAssertTrue(connection == nil)
                     }
                 }

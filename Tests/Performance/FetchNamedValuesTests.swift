@@ -44,8 +44,9 @@ class FetchNamedValuesTests: XCTestCase {
         measure {
             var count = 0
             
-            dbQueue.inDatabase { db in
-                for row in Row.fetch(db, "SELECT * FROM items") {
+            try! dbQueue.inDatabase { db in
+                let rows = try Row.fetchCursor(db, "SELECT * FROM items")
+                while let row = try rows.next() {
                     _ = row.value(named: "i0") as Int
                     _ = row.value(named: "i1") as Int
                     _ = row.value(named: "i2") as Int

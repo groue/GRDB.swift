@@ -234,8 +234,8 @@ class DatabaseTests : GRDBTestCase {
                 
                 var names: [String?] = []
                 var ages: [Int?] = []
-                let rows = Row.fetch(db, "SELECT * FROM persons ORDER BY name")
-                for row in rows {
+                let rows = try Row.fetchCursor(db, "SELECT * FROM persons ORDER BY name")
+                while let row = try rows.next() {
                     // The tested function:
                     let name: String? = row.value(atIndex: 0)
                     let age: Int? = row.value(atIndex: 1)
@@ -261,8 +261,8 @@ class DatabaseTests : GRDBTestCase {
                 
                 var names: [String?] = []
                 var ages: [Int?] = []
-                let rows = Row.fetch(db, "SELECT * FROM persons ORDER BY name")
-                for row in rows {
+                let rows = try Row.fetchCursor(db, "SELECT * FROM persons ORDER BY name")
+                while let row = try rows.next() {
                     // The tested function:
                     let name: String? = row.value(named: "name")
                     let age: Int? = row.value(named: "age")
@@ -274,50 +274,6 @@ class DatabaseTests : GRDBTestCase {
                 XCTAssertEqual(names[1]!, "Barbara")
                 XCTAssertEqual(ages[0]!, 41)
                 XCTAssertNil(ages[1])
-            }
-        }
-    }
-    
-    func testRowSequenceCanBeIteratedTwice() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inTransaction { db in
-                try db.execute("CREATE TABLE persons (name TEXT)")
-                try db.execute("INSERT INTO persons (name) VALUES (:name)", arguments: ["name": "Arthur"])
-                try db.execute("INSERT INTO persons (name) VALUES (:name)", arguments: ["name": "Barbara"])
-                
-                let rows = Row.fetch(db, "SELECT * FROM persons ORDER BY name")
-                var names1: [String?] = rows.map { $0.value(named: "name") as String? }
-                var names2: [String?] = rows.map { $0.value(named: "name") as String? }
-                
-                XCTAssertEqual(names1[0]!, "Arthur")
-                XCTAssertEqual(names1[1]!, "Barbara")
-                XCTAssertEqual(names2[0]!, "Arthur")
-                XCTAssertEqual(names2[1]!, "Barbara")
-                
-                return .commit
-            }
-        }
-    }
-    
-    func testValueSequenceCanBeIteratedTwice() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inTransaction { db in
-                try db.execute("CREATE TABLE persons (name TEXT)")
-                try db.execute("INSERT INTO persons (name) VALUES (:name)", arguments: ["name": "Arthur"])
-                try db.execute("INSERT INTO persons (name) VALUES (:name)", arguments: ["name": "Barbara"])
-                
-                let nameSequence = String.fetch(db, "SELECT name FROM persons ORDER BY name")
-                var names1 = Array(nameSequence)
-                var names2 = Array(nameSequence)
-                
-                XCTAssertEqual(names1[0], "Arthur")
-                XCTAssertEqual(names1[1], "Barbara")
-                XCTAssertEqual(names2[0], "Arthur")
-                XCTAssertEqual(names2[1], "Barbara")
-                
-                return .commit
             }
         }
     }

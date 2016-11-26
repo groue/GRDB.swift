@@ -47,25 +47,25 @@ class DatabasePoolReadOnlyTests: GRDBTestCase {
             // end
             
             let block1 = { () in
-                dbPool.read { db in
-                    let iterator = Row.fetch(db, "SELECT * FROM items").makeIterator()
-                    XCTAssertTrue(iterator.next() != nil)
+                try! dbPool.read { db in
+                    let cursor = try Row.fetchCursor(db, "SELECT * FROM items")
+                    XCTAssertTrue(try cursor.next() != nil)
                     s1.signal()
                     _ = s2.wait(timeout: .distantFuture)
-                    XCTAssertTrue(iterator.next() != nil)
-                    XCTAssertTrue(iterator.next() != nil)
-                    XCTAssertTrue(iterator.next() == nil)
+                    XCTAssertTrue(try cursor.next() != nil)
+                    XCTAssertTrue(try cursor.next() != nil)
+                    XCTAssertTrue(try cursor.next() == nil)
                 }
             }
             let block2 = { () in
-                dbPool.read { db in
-                    let iterator = Row.fetch(db, "SELECT * FROM items").makeIterator()
-                    XCTAssertTrue(iterator.next() != nil)
+                try! dbPool.read { db in
+                    let cursor = try Row.fetchCursor(db, "SELECT * FROM items")
+                    XCTAssertTrue(try cursor.next() != nil)
                     _ = s1.wait(timeout: .distantFuture)
-                    XCTAssertTrue(iterator.next() != nil)
+                    XCTAssertTrue(try cursor.next() != nil)
                     s2.signal()
-                    XCTAssertTrue(iterator.next() != nil)
-                    XCTAssertTrue(iterator.next() == nil)
+                    XCTAssertTrue(try cursor.next() != nil)
+                    XCTAssertTrue(try cursor.next() == nil)
                 }
             }
             let blocks = [block1, block2]

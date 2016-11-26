@@ -37,16 +37,16 @@ public protocol SQLExpressible {
 /// Types that adopt DatabaseValueConvertible can be initialized from
 /// database values.
 ///
-/// The protocol comes with built-in methods that allow to fetch sequences,
+/// The protocol comes with built-in methods that allow to fetch cursors,
 /// arrays, or single values:
 ///
-///     String.fetch(db, "SELECT name FROM ...", arguments:...)    // DatabaseSequence<String?>
-///     String.fetchAll(db, "SELECT name FROM ...", arguments:...) // [String?]
-///     String.fetchOne(db, "SELECT name FROM ...", arguments:...) // String?
+///     String.fetchCursor(db, "SELECT name FROM ...", arguments:...) // DatabaseCursor<String>
+///     String.fetchAll(db, "SELECT name FROM ...", arguments:...)    // [String]
+///     String.fetchOne(db, "SELECT name FROM ...", arguments:...)    // String?
 ///
-///     let statement = db.makeSelectStatement("SELECT name FROM ...")
-///     String.fetch(statement, arguments:...)           // DatabaseSequence<String?>
-///     String.fetchAll(statement, arguments:...)        // [String?]
+///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
+///     String.fetchCursor(statement, arguments:...)     // DatabaseCursor<String>
+///     String.fetchAll(statement, arguments:...)        // [String]
 ///     String.fetchOne(statement, arguments:...)        // String?
 ///
 /// DatabaseValueConvertible is adopted by Bool, Int, String, etc.
@@ -77,14 +77,14 @@ extension DatabaseValueConvertible {
 
 
 /// DatabaseValueConvertible comes with built-in methods that allow to fetch
-/// sequences, arrays, or single values:
+/// cursors, arrays, or single values:
 ///
-///     String.fetch(db, "SELECT name FROM ...", arguments:...)    // DatabaseSequence<String>
-///     String.fetchAll(db, "SELECT name FROM ...", arguments:...) // [String]
-///     String.fetchOne(db, "SELECT name FROM ...", arguments:...) // String
+///     String.fetchCursor(db, "SELECT name FROM ...", arguments:...) // DatabaseCursor<String>
+///     String.fetchAll(db, "SELECT name FROM ...", arguments:...)    // [String]
+///     String.fetchOne(db, "SELECT name FROM ...", arguments:...)    // String?
 ///
-///     let statement = db.makeSelectStatement("SELECT name FROM ...")
-///     String.fetch(statement, arguments:...)           // DatabaseSequence<String>
+///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
+///     String.fetchCursor(statement, arguments:...)     // DatabaseCursor<String>
 ///     String.fetchAll(statement, arguments:...)        // [String]
 ///     String.fetchOne(statement, arguments:...)        // String
 ///
@@ -94,7 +94,25 @@ public extension DatabaseValueConvertible {
     
     // MARK: Fetching From SelectStatement
     
-    /// TODO
+    /// Returns a cursor over values fetched from a prepared statement.
+    ///
+    ///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
+    ///     let names = try String.fetchCursor(statement) // DatabaseCursor<String>
+    ///     while let name = try names.next() { // String
+    ///         ...
+    ///     }
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
+    ///
+    /// The cursor must be iterated in a protected dispath queue.
+    ///
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
+    /// - returns: A cursor over fetched values.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
         // Metal rows can be reused. And reusing them yields better performance.
         let row = try Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
@@ -108,35 +126,9 @@ public extension DatabaseValueConvertible {
         }
     }
     
-    /// Returns a sequence of values fetched from a prepared statement.
-    ///
-    ///     let statement = db.makeSelectStatement("SELECT name FROM ...")
-    ///     let names = String.fetch(statement) // DatabaseSequence<String>
-    ///
-    /// The returned sequence can be consumed several times, but it may yield
-    /// different results, should database changes have occurred between two
-    /// generations:
-    ///
-    ///     let names = String.fetch(statement)
-    ///     Array(names) // Arthur, Barbara
-    ///     db.execute("DELETE ...")
-    ///     Array(names) // Arthur
-    ///
-    /// If the database is modified while the sequence is iterating, the
-    /// remaining elements are undefined.
-    ///
-    /// - parameters:
-    ///     - statement: The statement to run.
-    ///     - arguments: Optional statement arguments.
-    ///     - adapter: Optional RowAdapter
-    /// - returns: A sequence.
-    public static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Self> {
-        return DatabaseSequence { try fetchCursor(statement, arguments: arguments, adapter: adapter) }
-    }
-    
     /// Returns an array of values fetched from a prepared statement.
     ///
-    ///     let statement = db.makeSelectStatement("SELECT name FROM ...")
+    ///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
     ///     let names = String.fetchAll(statement)  // [String]
     ///
     /// - parameters:
@@ -153,7 +145,7 @@ public extension DatabaseValueConvertible {
     /// The result is nil if the query returns no row, or if no value can be
     /// extracted from the first row.
     ///
-    ///     let statement = db.makeSelectStatement("SELECT name FROM ...")
+    ///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
     ///     let name = String.fetchOne(statement)   // String?
     ///
     /// - parameters:
@@ -172,32 +164,28 @@ extension DatabaseValueConvertible {
     
     // MARK: Fetching From FetchRequest
     
-    /// TODO
-    public static func fetchCursor(_ db: Database, _ request: FetchRequest) throws -> DatabaseCursor<Self> {
-        let (statement, adapter) = try request.prepare(db)
-        return try fetchCursor(statement, adapter: adapter)
-    }
-    
-    /// Returns a sequence of values fetched from a fetch request.
+    /// Returns a cursor over values fetched from a fetch request.
     ///
     ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn)
-    ///     let names = String.fetch(db, request) // DatabaseSequence<String>
+    ///     let names = try String.fetchCursor(db, request) // DatabaseCursor<String>
+    ///     for let name = try names.next() { // String
+    ///         ...
+    ///     }
     ///
-    /// The returned sequence can be consumed several times, but it may yield
-    /// different results, should database changes have occurred between two
-    /// generations:
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
     ///
-    ///     let names = String.fetch(db, request)
-    ///     Array(names) // Arthur, Barbara
-    ///     db.execute("DELETE ...")
-    ///     Array(names) // Arthur
+    /// The cursor must be iterated in a protected dispath queue.
     ///
-    /// If the database is modified while the sequence is iterating, the
-    /// remaining elements are undefined.
-    public static func fetch(_ db: Database, _ request: FetchRequest) -> DatabaseSequence<Self> {
-        let (statement, adapter) = try! request.prepare(db)
-        return fetch(statement, adapter: adapter)
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - request: A fetch request.
+    /// - returns: A cursor over fetched values.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchCursor(_ db: Database, _ request: FetchRequest) throws -> DatabaseCursor<Self> {
+        let (statement, adapter) = try request.prepare(db)
+        return try fetchCursor(statement, adapter: adapter)
     }
     
     /// Returns an array of values fetched from a fetch request.
@@ -233,35 +221,27 @@ extension DatabaseValueConvertible {
 
     // MARK: Fetching From SQL
     
-    /// TODO
-    public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
-        return try fetchCursor(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
-    }
-    
-    /// Returns a sequence of values fetched from an SQL query.
+    /// Returns a cursor over values fetched from an SQL query.
     ///
-    ///     let names = String.fetch(db, "SELECT name FROM ...") // DatabaseSequence<String>
+    ///     let names = try String.fetchCursor(db, "SELECT name FROM ...") // DatabaseCursor<String>
+    ///     while let name = try name.next() { // String
+    ///         ...
+    ///     }
     ///
-    /// The returned sequence can be consumed several times, but it may yield
-    /// different results, should database changes have occurred between two
-    /// generations:
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
     ///
-    ///     let names = String.fetch(db, "SELECT name FROM ...")
-    ///     Array(names) // Arthur, Barbara
-    ///     execute("DELETE ...")
-    ///     Array(names) // Arthur
-    ///
-    /// If the database is modified while the sequence is iterating, the
-    /// remaining elements are undefined.
+    /// The cursor must be iterated in a protected dispath queue.
     ///
     /// - parameters:
-    ///     - db: A Database.
+    ///     - db: A database connection.
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter
-    /// - returns: A sequence.
-    public static func fetch(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Self> {
-        return fetch(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
+    /// - returns: A cursor over fetched values.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
+        return try fetchCursor(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of values fetched from an SQL query.
@@ -297,22 +277,40 @@ extension DatabaseValueConvertible {
 }
 
 
-/// Swift's Optional comes with built-in methods that allow to fetch sequences
+/// Swift's Optional comes with built-in methods that allow to fetch cursors
 /// and arrays of optional DatabaseValueConvertible:
 ///
-///     Optional<String>.fetch(db, "SELECT name FROM ...", arguments:...)    // DatabaseSequence<String?>
-///     Optional<String>.fetchAll(db, "SELECT name FROM ...", arguments:...) // [String?]
+///     Optional<String>.fetchCursor(db, "SELECT name FROM ...", arguments:...) // DatabaseCursor<String?>
+///     Optional<String>.fetchAll(db, "SELECT name FROM ...", arguments:...)    // [String?]
 ///
-///     let statement = db.makeSelectStatement("SELECT name FROM ...")
-///     Optional<String>.fetch(statement, arguments:...)           // DatabaseSequence<String?>
-///     Optional<String>.fetchAll(statement, arguments:...)        // [String?]
+///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
+///     Optional<String>.fetchCursor(statement, arguments:...) // DatabaseCursor<String?>
+///     Optional<String>.fetchAll(statement, arguments:...)    // [String?]
 ///
 /// DatabaseValueConvertible is adopted by Bool, Int, String, etc.
-public extension Optional where Wrapped: DatabaseValueConvertible {
+extension Optional where Wrapped: DatabaseValueConvertible {
     
     // MARK: Fetching From SelectStatement
     
-    /// TODO
+    /// Returns a cursor over optional values fetched from a prepared statement.
+    ///
+    ///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
+    ///     let names = try Optional<String>.fetchCursor(statement) // DatabaseCursor<String?>
+    ///     while let name = try names.next() { // String?
+    ///         ...
+    ///     }
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
+    ///
+    /// The cursor must be iterated in a protected dispath queue.
+    ///
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
+    /// - returns: A cursor over fetched optional values.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Wrapped?> {
         let row = try Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
         return try statement.fetchCursor(arguments: arguments) { () -> Wrapped? in
@@ -327,35 +325,9 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
         }
     }
     
-    /// Returns a sequence of optional values fetched from a prepared statement.
-    ///
-    ///     let statement = db.makeSelectStatement("SELECT name FROM ...")
-    ///     let names = Optional<String>.fetch(statement) // DatabaseSequence<String?>
-    ///
-    /// The returned sequence can be consumed several times, but it may yield
-    /// different results, should database changes have occurred between two
-    /// generations:
-    ///
-    ///     let names = Optional<String>.fetch(statement)
-    ///     Array(names) // Arthur, Barbara
-    ///     db.execute("DELETE ...")
-    ///     Array(names) // Arthur
-    ///
-    /// If the database is modified while the sequence is iterating, the
-    /// remaining elements are undefined.
-    ///
-    /// - parameters:
-    ///     - statement: The statement to run.
-    ///     - arguments: Optional statement arguments.
-    ///     - adapter: Optional RowAdapter
-    /// - returns: A sequence of optional values.
-    public static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Wrapped?> {
-        return DatabaseSequence { try fetchCursor(statement, arguments: arguments, adapter: adapter) }
-    }
-    
     /// Returns an array of optional values fetched from a prepared statement.
     ///
-    ///     let statement = db.makeSelectStatement("SELECT name FROM ...")
+    ///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
     ///     let names = Optional<String>.fetchAll(statement)  // [String?]
     ///
     /// - parameters:
@@ -373,32 +345,28 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     
     // MARK: Fetching From FetchRequest
     
-    /// TODO
-    public static func fetchCursor(_ db: Database, _ request: FetchRequest) throws -> DatabaseCursor<Wrapped?> {
-        let (statement, adapter) = try request.prepare(db)
-        return try fetchCursor(statement, adapter: adapter)
-    }
-    
-    /// Returns a sequence of optional values fetched from a fetch request.
+    /// Returns a cursor over optional values fetched from a fetch request.
     ///
     ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn)
-    ///     let names = Optional<String>.fetch(db, request) // DatabaseSequence<String?>
+    ///     let names = try Optional<String>.fetchCursor(db, request) // DatabaseCursor<String?>
+    ///     while let name = try names.next() { // String?
+    ///         ...
+    ///     }
     ///
-    /// The returned sequence can be consumed several times, but it may yield
-    /// different results, should database changes have occurred between two
-    /// generations:
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
     ///
-    ///     let names = Optional<String>.fetch(db, request)
-    ///     Array(names) // Arthur, Barbara
-    ///     db.execute("DELETE ...")
-    ///     Array(names) // Arthur
+    /// The cursor must be iterated in a protected dispath queue.
     ///
-    /// If the database is modified while the sequence is iterating, the
-    /// remaining elements are undefined.
-    public static func fetch(_ db: Database, _ request: FetchRequest) -> DatabaseSequence<Wrapped?> {
-        let (statement, adapter) = try! request.prepare(db)
-        return fetch(statement, adapter: adapter)
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - requet: A fetch request.
+    /// - returns: A cursor over fetched optional values.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchCursor(_ db: Database, _ request: FetchRequest) throws -> DatabaseCursor<Wrapped?> {
+        let (statement, adapter) = try request.prepare(db)
+        return try fetchCursor(statement, adapter: adapter)
     }
     
     /// Returns an array of optional values fetched from a fetch request.
@@ -419,35 +387,27 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     
     // MARK: Fetching From SQL
     
-    /// TODO
-    public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Wrapped?> {
-        return try fetchCursor(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
-    }
-    
-    /// Returns a sequence of optional values fetched from an SQL query.
+    /// Returns a cursor over optional values fetched from an SQL query.
     ///
-    ///     let names = Optional<String>.fetch(db, "SELECT name FROM ...") // DatabaseSequence<String?>
+    ///     let names = try Optional<String>.fetchCursor(db, "SELECT name FROM ...") // DatabaseCursor<String?>
+    ///     while let name = try names.next() { // String?
+    ///         ...
+    ///     }
     ///
-    /// The returned sequence can be consumed several times, but it may yield
-    /// different results, should database changes have occurred between two
-    /// generations:
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
     ///
-    ///     let names = Optional<String>.fetch(db, "SELECT name FROM ...")
-    ///     Array(names) // Arthur, Barbara
-    ///     db.execute("DELETE ...")
-    ///     Array(names) // Arthur
-    ///
-    /// If the database is modified while the sequence is iterating, the
-    /// remaining elements are undefined.
+    /// The cursor must be iterated in a protected dispath queue.
     ///
     /// - parameters:
-    ///     - db: A Database.
+    ///     - db: A database connection.
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter
-    /// - returns: A sequence of optional values.
-    public static func fetch(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Wrapped?> {
-        return fetch(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
+    /// - returns: A cursor over fetched optional values.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Wrapped?> {
+        return try fetchCursor(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of optional values fetched from an SQL query.

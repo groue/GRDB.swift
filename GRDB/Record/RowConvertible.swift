@@ -3,17 +3,17 @@
 ///     let row = Row.fetchOne(db, "SELECT ...")!
 ///     let person = Person(row)
 ///
-/// The protocol comes with built-in methods that allow to fetch sequences,
+/// The protocol comes with built-in methods that allow to fetch cursors,
 /// arrays, or single values:
 ///
-///     Person.fetch(db, "SELECT ...", arguments:...)    // DatabaseSequence<Person>
-///     Person.fetchAll(db, "SELECT ...", arguments:...) // [Person]
-///     Person.fetchOne(db, "SELECT ...", arguments:...) // Person?
+///     Person.fetchCursor(db, "SELECT ...", arguments:...) // DatabaseCursor<Person>
+///     Person.fetchAll(db, "SELECT ...", arguments:...)    // [Person]
+///     Person.fetchOne(db, "SELECT ...", arguments:...)    // Person?
 ///
-///     let statement = db.makeSelectStatement("SELECT ...")
-///     Person.fetch(statement, arguments:...)           // DatabaseSequence<Person>
-///     Person.fetchAll(statement, arguments:...)        // [Person]
-///     Person.fetchOne(statement, arguments:...)        // Person?
+///     let statement = try db.makeSelectStatement("SELECT ...")
+///     Person.fetchCursor(statement, arguments:...)        // DatabaseCursor<Person>
+///     Person.fetchAll(statement, arguments:...)           // [Person]
+///     Person.fetchOne(statement, arguments:...)           // Person?
 ///
 /// RowConvertible is adopted by Record.
 public protocol RowConvertible {
@@ -44,7 +44,25 @@ extension RowConvertible {
     
     // MARK: Fetching From SelectStatement
     
-    /// TODO
+    /// A cursor over records fetched from a prepared statement.
+    ///
+    ///     let statement = try db.makeSelectStatement("SELECT * FROM persons")
+    ///     let persons = try Person.fetchCursor(statement) // DatabaseCursor<Person>
+    ///     while let person = try persons.next() {  // Person
+    ///         ...
+    ///     }
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
+    ///
+    /// The cursor must be iterated in a protected dispath queue.
+    ///
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
+    /// - returns: A cursor over fetched records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
         let row = try Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
         return try statement.fetchCursor(arguments: arguments) {
@@ -54,35 +72,9 @@ extension RowConvertible {
         }
     }
     
-    /// Returns a sequence of records fetched from a prepared statement.
-    ///
-    ///     let statement = db.makeSelectStatement("SELECT * FROM persons")
-    ///     let persons = Person.fetch(statement) // DatabaseSequence<Person>
-    ///
-    /// The returned sequence can be consumed several times, but it may yield
-    /// different results, should database changes have occurred between two
-    /// generations:
-    ///
-    ///     let persons = Person.fetch(statement)
-    ///     Array(persons).count // 3
-    ///     db.execute("DELETE ...")
-    ///     Array(persons).count // 2
-    ///
-    /// If the database is modified while the sequence is iterating, the
-    /// remaining elements are undefined.
-    ///
-    /// - parameters:
-    ///     - statement: The statement to run.
-    ///     - arguments: Optional statement arguments.
-    ///     - adapter: Optional RowAdapter
-    /// - returns: A sequence of records.
-    public static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Self> {
-        return DatabaseSequence { try fetchCursor(statement, arguments: arguments, adapter: adapter) }
-    }
-    
     /// Returns an array of records fetched from a prepared statement.
     ///
-    ///     let statement = db.makeSelectStatement("SELECT * FROM persons")
+    ///     let statement = try db.makeSelectStatement("SELECT * FROM persons")
     ///     let persons = Person.fetchAll(statement) // [Person]
     ///
     /// - parameters:
@@ -96,7 +88,7 @@ extension RowConvertible {
     
     /// Returns a single record fetched from a prepared statement.
     ///
-    ///     let statement = db.makeSelectStatement("SELECT * FROM persons")
+    ///     let statement = try db.makeSelectStatement("SELECT * FROM persons")
     ///     let person = Person.fetchOne(statement) // Person?
     ///
     /// - parameters:
@@ -114,32 +106,28 @@ extension RowConvertible {
     
     // MARK: Fetching From FetchRequest
     
-    /// TODO
-    public static func fetchCursor(_ db: Database, _ request: FetchRequest) throws -> DatabaseCursor<Self> {
-        let (statement, adapter) = try request.prepare(db)
-        return try fetchCursor(statement, adapter: adapter)
-    }
-    
-    /// Returns a sequence of records fetched from a fetch request.
+    /// Returns a cursor over records fetched from a fetch request.
     ///
     ///     let nameColumn = Column("firstName")
     ///     let request = Person.order(nameColumn)
-    ///     let identities = Identity.fetch(db, request) // DatabaseSequence<Identity>
+    ///     let identities = try Identity.fetchCursor(db, request) // DatabaseCursor<Identity>
+    ///     while let identity = try identities.next() { // Identity
+    ///         ...
+    ///     }
     ///
-    /// The returned sequence can be consumed several times, but it may yield
-    /// different results, should database changes have occurred between two
-    /// generations:
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
     ///
-    ///     let identities = Identity.fetch(db, request)
-    ///     Array(identities).count // 3
-    ///     db.execute("DELETE ...")
-    ///     Array(identities).count // 2
+    /// The cursor must be iterated in a protected dispath queue.
     ///
-    /// If the database is modified while the sequence is iterating, the
-    /// remaining elements are undefined.
-    public static func fetch(_ db: Database, _ request: FetchRequest) -> DatabaseSequence<Self> {
-        let (statement, adapter) = try! request.prepare(db)
-        return fetch(statement, adapter: adapter)
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - request: A fetch request.
+    /// - returns: A cursor over fetched records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchCursor(_ db: Database, _ request: FetchRequest) throws -> DatabaseCursor<Self> {
+        let (statement, adapter) = try request.prepare(db)
+        return try fetchCursor(statement, adapter: adapter)
     }
     
     /// Returns an array of records fetched from a fetch request.
@@ -172,35 +160,27 @@ extension RowConvertible {
     
     // MARK: Fetching From SQL
     
-    /// TODO
-    public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
-        return try fetchCursor(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
-    }
-    
-    /// Returns a sequence of records fetched from an SQL query.
+    /// Returns a cursor over records fetched from an SQL query.
     ///
-    ///     let persons = Person.fetch(db, "SELECT * FROM persons") // DatabaseSequence<Person>
+    ///     let persons = try Person.fetchCursor(db, "SELECT * FROM persons") // DatabaseCursor<Person>
+    ///     while let person = try persons.next() { // Person
+    ///         ...
+    ///     }
     ///
-    /// The returned sequence can be consumed several times, but it may yield
-    /// different results, should database changes have occurred between two
-    /// generations:
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
     ///
-    ///     let persons = Person.fetch(db, "SELECT * FROM persons")
-    ///     Array(persons).count // 3
-    ///     db.execute("DELETE ...")
-    ///     Array(persons).count // 2
-    ///
-    /// If the database is modified while the sequence is iterating, the
-    /// remaining elements are undefined.
+    /// The cursor must be iterated in a protected dispath queue.
     ///
     /// - parameters:
-    ///     - db: A Database.
+    ///     - db: A database connection.
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter
-    /// - returns: A sequence of records.
-    public static func fetch(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Self> {
-        return fetch(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
+    /// - returns: A cursor over fetched records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
+        return try fetchCursor(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of records fetched from an SQL query.

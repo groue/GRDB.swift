@@ -54,29 +54,25 @@ extension RowConvertible where Self: TableMapping {
     
     // MARK: - Fetching by Single-Column Primary Key
     
-    /// TODO
+    /// Returns a cursor over records, given their primary keys.
+    ///
+    ///     let persons = try Person.fetchCursor(db, keys: [1, 2, 3]) // DatabaseCursor<Person>
+    ///     while let person = try persons.next() {
+    ///         ...
+    ///     }
+    ///
+    /// Records are iterated in unspecified order.
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - keys: A sequence of primary keys.
+    /// - returns: A cursor over fetched records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> DatabaseCursor<Self>? where Sequence.Iterator.Element: DatabaseValueConvertible {
         guard let statement = try makeFetchByPrimaryKeyStatement(db, keys: keys) else {
             return nil
         }
         return try fetchCursor(statement)
-    }
-    
-    /// Returns a sequence of records, given their primary keys.
-    ///
-    ///     let persons = Person.fetch(db, keys: [1, 2, 3]) // DatabaseSequence<Person>
-    ///
-    /// The order of records in the returned sequence is undefined.
-    ///
-    /// - parameters:
-    ///     - db: A Database.
-    ///     - keys: A sequence of primary keys.
-    /// - returns: A sequence of records.
-    public static func fetch<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) -> DatabaseSequence<Self> where Sequence.Iterator.Element: DatabaseValueConvertible {
-        guard let statement = try! makeFetchByPrimaryKeyStatement(db, keys: keys) else {
-            return DatabaseSequence.makeEmptySequence(inDatabase: db)
-        }
-        return fetch(statement)
     }
     
     /// Returns an array of records, given their primary keys.
@@ -223,30 +219,26 @@ extension RowConvertible where Self: TableMapping {
 
     // MARK: - Fetching by Key
     
-    /// TODO
+    /// Returns a cursor over records identified by the provided unique keys
+    /// (primary key or any key with a unique index on it).
+    ///
+    ///     let persons = try Person.fetchCursor(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]]) // DatabaseCursor<Person>
+    ///     while let person = try persons.next() { // Person
+    ///         ...
+    ///     }
+    ///
+    /// Records are iterated in unspecified order.
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - keys: An array of key dictionaries.
+    /// - returns: A cursor over fetched records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> DatabaseCursor<Self>? {
         guard let statement = try makeFetchByKeyStatement(db, keys: keys) else {
             return nil
         }
         return try fetchCursor(statement)
-    }
-    
-    /// Returns a sequence of records identified by the provided unique keys
-    /// (primary key or any key with a unique index on it).
-    ///
-    ///     let persons = Person.fetch(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]]) // DatabaseSequence<Person>
-    ///
-    /// The order of records in the returned sequence is undefined.
-    ///
-    /// - parameters:
-    ///     - db: A Database.
-    ///     - keys: An array of key dictionaries.
-    /// - returns: A sequence of records.
-    public static func fetch(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) -> DatabaseSequence<Self> {
-        guard let statement = try! makeFetchByKeyStatement(db, keys: keys) else {
-            return DatabaseSequence.makeEmptySequence(inDatabase: db)
-        }
-        return fetch(statement)
     }
     
     /// Returns an array of records identified by the provided unique keys

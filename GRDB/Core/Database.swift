@@ -657,7 +657,7 @@ extension Database {
             throw error
         }
         
-        // Force arguments validity. See UpdateStatement.execute(), and SelectStatement.fetchSequence()
+        // Force arguments validity. See UpdateStatement.execute(), and SelectStatement.fetchCursor()
         try! validateRemainingArguments()
     }
 }

@@ -5,27 +5,38 @@ Release Notes
 
 **New**
 
-- `DatabaseCursor` allows processing errors that happen when reading from the database. Compare:
+- `DatabaseCursor` is the new way to efficiently iterate database results:
     
     ```swift
-    // May crash in case of I/O error, for example:
-    for person in Person.fetch(db) {
-        ...
-    }
-    
-    // Cursor expose all database errors:
-    let cursor = try Person.fetchCursor(db)
-    while person = try cursor.next() {
+    let persons = try Person.fetchCursor(db) // DatabaseCursor<Person>
+    while person = try persons.next() {      // Person
         ...
     }
     ```
 
-**Breaking Change**
+**Breaking Changes**
 
-- The throwing `step()` method of DatabaseIterator has been removed. Use DatabaseCursor instead.
 - `Database.tableExists(_:)` can now throw database errors.
 - `Database.indexes(on:)` can now throw database errors.
 - `Persistable.exists(_:)` can now throw database errors.
+- The `fetch` method have been removed, along with `DatabaseSequence` and `DatabaseIterator`.
+    
+    ```swift
+    // No longer supported:
+    for person in Person.fetch(db) {
+        ...
+    }
+    
+    // Write instead:
+    let persons = try Person.fetchCursor(db)
+    while person = try persons.next() {
+        ...
+    }
+    ```
+
+```diff
+TODO
+```
 
 
 ## 0.90.1

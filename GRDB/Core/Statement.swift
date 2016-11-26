@@ -203,7 +203,7 @@ public class Statement {
 /// You create SelectStatement with the Database.makeSelectStatement() method:
 ///
 ///     dbQueue.inDatabase { db in
-///         let statement = db.makeSelectStatement("SELECT COUNT(*) FROM persons WHERE age > ?")
+///         let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM persons WHERE age > ?")
 ///         let moreThanTwentyCount = Int.fetchOne(statement, arguments: [20])!
 ///         let moreThanThirtyCount = Int.fetchOne(statement, arguments: [30])!
 ///     }
@@ -249,6 +249,7 @@ public final class SelectStatement : Statement {
         SchedulingWatchdog.preconditionValidQueue(database, "Database was not used on the correct thread.")
         
         // Force arguments validity. See UpdateStatement.execute(), and Database.execute()
+        // TODO: throws SQL_MISUSE?
         try! prepare(withArguments: arguments)
         
         try reset()
@@ -256,58 +257,26 @@ public final class SelectStatement : Statement {
     }
 }
 
-/// A sequence of elements fetched from the database.
-public struct DatabaseSequence<Element>: Sequence {
-    private let iterator: () -> DatabaseIterator<Element>
-    
-    // Statement sequence
-    init(cursor: @escaping () throws -> DatabaseCursor<Element>) {
-        self.init(iterator: { try! DatabaseIterator(cursor: cursor()) })
-    }
-    
-    // Empty sequence
-    static func makeEmptySequence(inDatabase database: Database) -> DatabaseSequence {
-        // Empty sequence is just as strict as statement sequence, and requires
-        // to be used on the database queue.
-        return DatabaseSequence(iterator: {
-            SchedulingWatchdog.preconditionValidQueue(database, "Database was not used on the correct thread.")
-            return DatabaseIterator(cursor: nil)
-        })
-    }
-    
-    private init(iterator: @escaping () -> DatabaseIterator<Element>) {
-        self.iterator = iterator
-    }
-    
-    /// Return a *iterator* over the elements of this *sequence*.
-    public func makeIterator() -> DatabaseIterator<Element> {
-        return iterator()
-    }
-}
-
 /// A cursor on a statement
 public final class DatabaseCursor<Element> : Cursor {
-    fileprivate let statementRef: Unmanaged<SelectStatement>
+    fileprivate let statement: SelectStatement
     private let sqliteStatement: SQLiteStatement
     private let element: () throws -> Element?
     private var done = false
     
     init(statement: SelectStatement, element: @escaping () throws -> Element?) {
-        self.statementRef = Unmanaged.passRetained(statement)
+        self.statement = statement
         self.sqliteStatement = statement.sqliteStatement
         self.element = element
-    }
-    
-    deinit {
-        statementRef.release()
     }
     
     /// Advances to the next element and returns it, or `nil` if no next element
     /// exists. Once nil has been returned, all subsequent calls return nil.
     ///
-    ///     let cursor = try Row.fetchCursor(db, "SELECT ...")
-    ///     while let row = try cursor.next() {
-    ///         print(row)
+    ///     let rows = try Row.fetchCursor(db, "SELECT ...") // DatabaseCursor<Row>
+    ///     while let row = try rows.next() { // Row
+    ///         let id: Int64 = row.value(atIndex: 0)
+    ///         let name: String = row.value(atIndex: 1)
     ///     }
     public func next() throws -> Element? {
         if done {
@@ -321,24 +290,8 @@ public final class DatabaseCursor<Element> : Cursor {
         case SQLITE_ROW:
             return try element()
         case let errorCode:
-            let statement = statementRef.takeUnretainedValue()
             throw DatabaseError(code: errorCode, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
         }
-    }
-}
-
-/// A iterator of elements fetched from the database.
-public final class DatabaseIterator<Element>: IteratorProtocol {
-    let cursor: DatabaseCursor<Element>?
-    
-    init(cursor: DatabaseCursor<Element>?) {
-        self.cursor = cursor
-    }
-    
-    /// Advances to the next element and returns it, or `nil` if no next element
-    /// exists. Once nil has been returned, all subsequent calls return nil.
-    public func next() -> Element? {
-        return try! cursor?.next()
     }
 }
 
@@ -387,7 +340,7 @@ public final class UpdateStatement : Statement {
     public func execute(arguments: StatementArguments? = nil) throws {
         SchedulingWatchdog.preconditionValidQueue(database)
         
-        // Force arguments validity. See SelectStatement.fetchSequence(), and Database.execute()
+        // Force arguments validity. See SelectStatement.fetchCursor(), and Database.execute()
         try! prepare(withArguments: arguments)
         try! reset()
         

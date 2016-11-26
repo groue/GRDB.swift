@@ -445,35 +445,6 @@ class PrimaryKeyHiddenRowIDTests : GRDBTestCase {
         }
     }
     
-    func testFetchSequenceWithKeys() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record1 = Person(name: "Arthur")
-                try record1.insert(db)
-                let record2 = Person(name: "Barbara")
-                try record2.insert(db)
-                
-                do {
-                    let fetchedRecords = Array(Person.fetch(db, keys: []))
-                    XCTAssertEqual(fetchedRecords.count, 0)
-                }
-                
-                do {
-                    let fetchedRecords = Array(Person.fetch(db, keys: [["rowid": record1.id], ["rowid": record2.id]]))
-                    XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set([record1.id, record2.id]))
-                }
-                
-                do {
-                    let fetchedRecords = Array(Person.fetch(db, keys: [["rowid": record1.id], ["rowid": nil]]))
-                    XCTAssertEqual(fetchedRecords.count, 1)
-                    XCTAssertEqual(fetchedRecords.first!.id, record1.id!)
-                }
-            }
-        }
-    }
-    
     func testFetchAllWithKeys() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
@@ -544,31 +515,6 @@ class PrimaryKeyHiddenRowIDTests : GRDBTestCase {
                     XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
                     XCTAssertTrue(try cursor.next() == nil) // end
                     XCTAssertTrue(try cursor.next() == nil) // safety
-                }
-            }
-        }
-    }
-    
-    func testFetchSequenceWithPrimaryKeys() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record1 = Person(name: "Arthur")
-                try record1.insert(db)
-                let record2 = Person(name: "Barbara")
-                try record2.insert(db)
-                
-                do {
-                    let ids: [Int64] = []
-                    let fetchedRecords = Array(Person.fetch(db, keys: ids))
-                    XCTAssertEqual(fetchedRecords.count, 0)
-                }
-                
-                do {
-                    let ids = [record1.id!, record2.id!]
-                    let fetchedRecords = Array(Person.fetch(db, keys: ids))
-                    XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
                 }
             }
         }
@@ -681,7 +627,8 @@ class PrimaryKeyHiddenRowIDTests : GRDBTestCase {
                     try record.insert(db)
                 }
                 
-                for record in Person.fetch(db) {
+                let records = try Person.fetchCursor(db)
+                while let record = try records.next() {
                     XCTAssert(record.id != nil)
                 }
                 

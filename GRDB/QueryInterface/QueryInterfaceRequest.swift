@@ -30,30 +30,25 @@ extension QueryInterfaceRequest where T: RowConvertible {
     
     // MARK: Fetching Record and RowConvertible
     
-    /// TODO
-    public func fetchCursor(_ db: Database) throws -> DatabaseCursor<T> {
-        return try T.fetchCursor(db, self)
-    }
-    
-    /// A sequence of fetched records.
+    /// A cursor over fetched records.
     ///
     ///     let nameColumn = Column("name")
     ///     let request = Person.order(nameColumn)
-    ///     let persons = request.fetch(db) // DatabaseSequence<Person>
+    ///     let persons = try request.fetchCursor(db) // DatabaseCursor<Person>
+    ///     while let person = try persons.next() {   // Person
+    ///         ...
+    ///     }
     ///
-    /// The returned sequence can be consumed several times, but it may yield
-    /// different results, should database changes have occurred between two
-    /// generations:
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
     ///
-    ///     let persons = request.fetch(db)
-    ///     Array(persons).count // 3
-    ///     db.execute("DELETE ...")
-    ///     Array(persons).count // 2
+    /// The cursor must be iterated in a protected dispath queue.
     ///
-    /// If the database is modified while the sequence is iterating, the
-    /// remaining elements are undefined.
-    public func fetch(_ db: Database) -> DatabaseSequence<T> {
-        return T.fetch(db, self)
+    /// - parameter db: A database connection.
+    /// - returns: A cursor over fetched records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchCursor(_ db: Database) throws -> DatabaseCursor<T> {
+        return try T.fetchCursor(db, self)
     }
     
     /// An array of fetched records.
@@ -488,28 +483,25 @@ extension RowConvertible where Self: TableMapping {
     
     // MARK: Fetching All
     
-    /// TODO
+    /// A cursor over all records fetched from the database.
+    ///
+    ///     let persons = try Person.fetchCursor(db) // DatabaseCursor<Person>
+    ///     while let person = try persons.next() {  // Person
+    ///         ...
+    ///     }
+    ///
+    /// Records are iterated in the natural ordering of the table.
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
+    ///
+    /// The cursor must be iterated in a protected dispath queue.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A cursor over fetched records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ db: Database) throws -> DatabaseCursor<Self> {
         return try all().fetchCursor(db)
-    }
-    
-    /// A sequence of all records fetched from the database.
-    ///
-    ///     let persons = Person.fetch(db) // DatabaseSequence<Person>
-    ///
-    /// The returned sequence can be consumed several times, but it may yield
-    /// different results, should database changes have occurred between two
-    /// generations:
-    ///
-    ///     let persons = Person.fetch(db)
-    ///     Array(persons).count // 3
-    ///     db.execute("DELETE ...")
-    ///     Array(persons).count // 2
-    ///
-    /// If the database is modified while the sequence is iterating, the
-    /// remaining elements are undefined.
-    public static func fetch(_ db: Database) -> DatabaseSequence<Self> {
-        return all().fetch(db)
     }
     
     /// An array of all records fetched from the database.

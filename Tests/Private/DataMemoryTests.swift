@@ -37,7 +37,8 @@ class DataMemoryTests: GRDBTestCase {
                 let data = "foo".data(using: .utf8)
                 try db.execute("INSERT INTO datas (data) VALUES (?)", arguments: [data])
                 
-                for row in Row.fetch(db, "SELECT * FROM datas") {
+                let rows = try Row.fetchCursor(db, "SELECT * FROM datas")
+                while let row = try rows.next() {
                     let sqliteStatement = row.sqliteStatement
                     let sqliteBytes = sqlite3_column_blob(sqliteStatement, 0)
                     

@@ -348,37 +348,6 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
         }
     }
     
-    func testFetchSequenceWithKeys() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record1 = MinimalSingle()
-                record1.UUID = "theUUID1"
-                try record1.insert(db)
-                let record2 = MinimalSingle()
-                record2.UUID = "theUUID2"
-                try record2.insert(db)
-                
-                do {
-                    let fetchedRecords = Array(MinimalSingle.fetch(db, keys: []))
-                    XCTAssertEqual(fetchedRecords.count, 0)
-                }
-                
-                do {
-                    let fetchedRecords = Array(MinimalSingle.fetch(db, keys: [["UUID": record1.UUID], ["UUID": record2.UUID]]))
-                    XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set([record1.UUID!, record2.UUID!]))
-                }
-                
-                do {
-                    let fetchedRecords = Array(MinimalSingle.fetch(db, keys: [["UUID": record1.UUID], ["UUID": nil]]))
-                    XCTAssertEqual(fetchedRecords.count, 1)
-                    XCTAssertEqual(fetchedRecords.first!.UUID, record1.UUID!)
-                }
-            }
-        }
-    }
-    
     func testFetchAllWithKeys() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
@@ -451,33 +420,6 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                     XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
                     XCTAssertTrue(try cursor.next() == nil) // end
                     XCTAssertTrue(try cursor.next() == nil) // safety
-                }
-            }
-        }
-    }
-    
-    func testFetchSequenceWithPrimaryKeys() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record1 = MinimalSingle()
-                record1.UUID = "theUUID1"
-                try record1.insert(db)
-                let record2 = MinimalSingle()
-                record2.UUID = "theUUID2"
-                try record2.insert(db)
-                
-                do {
-                    let UUIDs: [String] = []
-                    let fetchedRecords = Array(MinimalSingle.fetch(db, keys: UUIDs))
-                    XCTAssertEqual(fetchedRecords.count, 0)
-                }
-                
-                do {
-                    let UUIDs = [record1.UUID!, record2.UUID!]
-                    let fetchedRecords = Array(MinimalSingle.fetch(db, keys: UUIDs))
-                    XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
                 }
             }
         }

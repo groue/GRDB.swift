@@ -62,27 +62,32 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
     func testRowExtraction() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
-                for row in Row.fetch(db, "SELECT NULL") {
+            try dbQueue.inDatabase { db in
+                var rows = try Row.fetchCursor(db, "SELECT NULL")
+                while let row = try rows.next() {
                     let one: FastWrappedInt? = row.value(atIndex: 0)
                     XCTAssertTrue(one == nil)
                 }
-                for row in Row.fetch(db, "SELECT 1") {
+                rows = try Row.fetchCursor(db, "SELECT 1")
+                while let row = try rows.next() {
                     let one: FastWrappedInt? = row.value(atIndex: 0)
                     XCTAssertEqual(one!.int, 1)
                     XCTAssertEqual(one!.fast, true)
                 }
-                for row in Row.fetch(db, "SELECT 1 AS int") {
+                rows = try Row.fetchCursor(db, "SELECT 1 AS int")
+                while let row = try rows.next() {
                     let one: FastWrappedInt? = row.value(named: "int")
                     XCTAssertEqual(one!.int, 1)
                     XCTAssertEqual(one!.fast, true)
                 }
-                for row in Row.fetch(db, "SELECT 1") {
+                rows = try Row.fetchCursor(db, "SELECT 1")
+                while let row = try rows.next() {
                     let one: FastWrappedInt = row.value(atIndex: 0)
                     XCTAssertEqual(one.int, 1)
                     XCTAssertEqual(one.fast, true)
                 }
-                for row in Row.fetch(db, "SELECT 1 AS int") {
+                rows = try Row.fetchCursor(db, "SELECT 1 AS int")
+                while let row = try rows.next() {
                     let one: FastWrappedInt = row.value(named: "int")
                     XCTAssertEqual(one.int, 1)
                     XCTAssertEqual(one.fast, true)
@@ -135,41 +140,6 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 
                 XCTAssertTrue(try cursor.next() == nil)
                 XCTAssertTrue(try cursor.next() == nil) // safety
-            }
-        }
-    }
-    
-    func testFetchSequenceFromStatement() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (2)")
-                
-                let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                let sequence = FastWrappedInt.fetch(statement)
-                
-                XCTAssertEqual(Array(sequence).map { $0.int }, [1,2])
-                XCTAssertEqual(Array(sequence).map { $0.fast }, [true, true])
-            }
-        }
-    }
-    
-    func testFetchSequenceFromStatementWithAdapter() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (2)")
-                
-                let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                let sequence = FastWrappedInt.fetch(statement, adapter: SuffixRowAdapter(fromIndex: 1))
-                
-                XCTAssertEqual(Array(sequence).map { $0.int }, [-1,-2])
-                // NICE TO HAVE: make it fast, and the following test pass:
-//                XCTAssertEqual(Array(sequence).map { $0.fast }, [true, true])
             }
         }
     }
@@ -302,39 +272,6 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    func testFetchSequenceFromSQL() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (2)")
-                
-                let sequence = FastWrappedInt.fetch(db, "SELECT int, -int FROM ints ORDER BY int")
-                
-                XCTAssertEqual(Array(sequence).map { $0.int }, [1,2])
-                XCTAssertEqual(Array(sequence).map { $0.fast }, [true, true])
-            }
-        }
-    }
-    
-    func testFetchSequenceFromSQLWithAdapter() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (2)")
-                
-                let sequence = FastWrappedInt.fetch(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
-                
-                XCTAssertEqual(Array(sequence).map { $0.int }, [-1,-2])
-                // NICE TO HAVE: make it fast, and the following test pass:
-//                XCTAssertEqual(Array(sequence).map { $0.fast }, [true, true])
-            }
-        }
-    }
-    
     func testFetchAllFromSQL() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
@@ -442,52 +379,6 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    func testFetchSequenceFromFetchRequest() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (2)")
-                
-                struct Request : FetchRequest {
-                    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-                        let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                        return (statement, SuffixRowAdapter(fromIndex: 1))
-                    }
-                }
-                let sequence = FastWrappedInt.fetch(db, Request())
-                
-                XCTAssertEqual(Array(sequence).map { $0.int }, [-1,-2])
-                // NICE TO HAVE: make it fast, and the following test pass:
-//                XCTAssertEqual(Array(sequence).map { $0.fast }, [true, true])
-            }
-        }
-    }
-    
-    func testFetchAllFromFetchRequest() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (2)")
-                
-                struct Request : FetchRequest {
-                    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-                        let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                        return (statement, SuffixRowAdapter(fromIndex: 1))
-                    }
-                }
-                let array = FastWrappedInt.fetchAll(db, Request())
-                
-                XCTAssertEqual(array.map { $0.int }, [-1,-2])
-                // NICE TO HAVE: make it fast, and the following test pass:
-//                XCTAssertEqual(array.map { $0.fast }, [true, true])
-            }
-        }
-    }
-    
     func testFetchOneFromFetchRequest() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
@@ -561,48 +452,6 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 
                 XCTAssertTrue(try cursor.next() == nil)
                 XCTAssertTrue(try cursor.next() == nil) // safety
-            }
-        }
-    }
-    
-    func testOptionalFetchSequenceFromStatement() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                
-                let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                let sequence = Optional<FastWrappedInt>.fetch(statement)
-                
-                let ints = Array(sequence)
-                XCTAssertEqual(ints.count, 2)
-                XCTAssertTrue(ints[0] == nil)
-                XCTAssertEqual(ints[1]!.int, 1)
-                // TODO: uncomment when we have a workaround for rdar://22852669
-//                XCTAssertEqual(ints[1]!.fast, true)
-            }
-        }
-    }
-    
-    func testOptionalFetchSequenceFromStatementWithAdapter() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                
-                let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                let sequence = Optional<FastWrappedInt>.fetch(statement, adapter: SuffixRowAdapter(fromIndex: 1))
-                
-                let ints = Array(sequence)
-                XCTAssertEqual(ints.count, 2)
-                XCTAssertTrue(ints[0] == nil)
-                XCTAssertEqual(ints[1]!.int, -1)
-                // TODO: uncomment when we have a workaround for rdar://22852669
-//                XCTAssertEqual(ints[1]!.fast, true)
             }
         }
     }
@@ -693,46 +542,6 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    func testOptionalFetchSequenceFromSQL() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                
-                let sequence = Optional<FastWrappedInt>.fetch(db, "SELECT int, -int FROM ints ORDER BY int")
-                
-                let ints = Array(sequence)
-                XCTAssertEqual(ints.count, 2)
-                XCTAssertTrue(ints[0] == nil)
-                XCTAssertEqual(ints[1]!.int, 1)
-                // TODO: uncomment when we have a workaround for rdar://22852669
-//                XCTAssertEqual(ints[1]!.fast, true)
-            }
-        }
-    }
-    
-    func testOptionalFetchSequenceFromSQLWithAdapter() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                
-                let sequence = Optional<FastWrappedInt>.fetch(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
-                
-                let ints = Array(sequence)
-                XCTAssertEqual(ints.count, 2)
-                XCTAssertTrue(ints[0] == nil)
-                XCTAssertEqual(ints[1]!.int, -1)
-                // TODO: uncomment when we have a workaround for rdar://22852669
-//                XCTAssertEqual(ints[1]!.fast, true)
-            }
-        }
-    }
-    
     func testOptionalFetchAllFromSQL() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
@@ -796,32 +605,6 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 
                 XCTAssertTrue(try cursor.next() == nil)
                 XCTAssertTrue(try cursor.next() == nil) // safety
-            }
-        }
-    }
-    
-    func testOptionalFetchSequenceFromFetchRequest() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                
-                struct Request : FetchRequest {
-                    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-                        let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                        return (statement, SuffixRowAdapter(fromIndex: 1))
-                    }
-                }
-                let sequence = Optional<FastWrappedInt>.fetch(db, Request())
-                
-                let ints = Array(sequence)
-                XCTAssertEqual(ints.count, 2)
-                XCTAssertTrue(ints[0] == nil)
-                XCTAssertEqual(ints[1]!.int, -1)
-                // TODO: uncomment when we have a workaround for rdar://22852669
-//                XCTAssertEqual(ints[1]!.fast, true)
             }
         }
     }

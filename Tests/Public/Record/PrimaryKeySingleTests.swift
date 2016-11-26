@@ -368,35 +368,6 @@ class PrimaryKeySingleTests: GRDBTestCase {
         }
     }
     
-    func testFetchSequenceWithKeys() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record1 = Pet(UUID: "BobbyUUID", name: "Bobby")
-                try record1.insert(db)
-                let record2 = Pet(UUID: "CainUUID", name: "Cain")
-                try record2.insert(db)
-                
-                do {
-                    let fetchedRecords = Array(Pet.fetch(db, keys: []))
-                    XCTAssertEqual(fetchedRecords.count, 0)
-                }
-                
-                do {
-                    let fetchedRecords = Array(Pet.fetch(db, keys: [["UUID": record1.UUID], ["UUID": record2.UUID]]))
-                    XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set([record1.UUID!, record2.UUID!]))
-                }
-                
-                do {
-                    let fetchedRecords = Array(Pet.fetch(db, keys: [["UUID": record1.UUID], ["UUID": nil]]))
-                    XCTAssertEqual(fetchedRecords.count, 1)
-                    XCTAssertEqual(fetchedRecords.first!.UUID, record1.UUID!)
-                }
-            }
-        }
-    }
-    
     func testFetchAllWithKeys() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
@@ -465,31 +436,6 @@ class PrimaryKeySingleTests: GRDBTestCase {
                     XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
                     XCTAssertTrue(try cursor.next() == nil) // end
                     XCTAssertTrue(try cursor.next() == nil) // safety
-                }
-            }
-        }
-    }
-    
-    func testFetchSequenceWithPrimaryKeys() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record1 = Pet(UUID: "BobbyUUID", name: "Bobby")
-                try record1.insert(db)
-                let record2 = Pet(UUID: "CainUUID", name: "Cain")
-                try record2.insert(db)
-                
-                do {
-                    let UUIDs: [String] = []
-                    let fetchedRecords = Array(Pet.fetch(db, keys: UUIDs))
-                    XCTAssertEqual(fetchedRecords.count, 0)
-                }
-                
-                do {
-                    let UUIDs = [record1.UUID!, record2.UUID!]
-                    let fetchedRecords = Array(Pet.fetch(db, keys: UUIDs))
-                    XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
                 }
             }
         }

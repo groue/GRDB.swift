@@ -377,35 +377,6 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
         }
     }
     
-    func testFetchSequenceWithKeys() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record1 = Citizenship(personName: "Arthur", countryName: "France", native: true)
-                try record1.insert(db)
-                let record2 = Citizenship(personName: "Barbara", countryName: "France", native: false)
-                try record2.insert(db)
-                
-                do {
-                    let fetchedRecords = Array(Citizenship.fetch(db, keys: []))
-                    XCTAssertEqual(fetchedRecords.count, 0)
-                }
-                
-                do {
-                    let fetchedRecords = Array(Citizenship.fetch(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": record2.personName, "countryName": record2.countryName]]))
-                    XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.personName }), Set([record1.personName, record2.personName]))
-                }
-                
-                do {
-                    let fetchedRecords = Array(Citizenship.fetch(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": nil, "countryName": nil]]))
-                    XCTAssertEqual(fetchedRecords.count, 1)
-                    XCTAssertEqual(fetchedRecords.first!.personName, record1.personName!)
-                }
-            }
-        }
-    }
-    
     func testFetchAllWithKeys() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()

@@ -73,7 +73,8 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                 
                 do {
                     var names: [String] = []
-                    for row in Row.fetch(db, tableRequest) {
+                    let rows = try Row.fetchCursor(db, tableRequest)
+                    while let row = try rows.next() {
                         names.append(row.value(named: "name"))
                     }
                     XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")

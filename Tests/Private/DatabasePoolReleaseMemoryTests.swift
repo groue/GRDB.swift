@@ -91,24 +91,24 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             // end                      end                     releaseMemory
             
             let block1 = { () in
-                dbPool.read { db in
-                    let iterator = Row.fetch(db, "SELECT * FROM items").makeIterator()
-                    XCTAssertTrue(iterator.next() != nil)
+                try! dbPool.read { db in
+                    let cursor = try Row.fetchCursor(db, "SELECT * FROM items")
+                    XCTAssertTrue(try cursor.next() != nil)
                     s1.signal()
                     _ = s2.wait(timeout: .distantFuture)
-                    XCTAssertTrue(iterator.next() != nil)
+                    XCTAssertTrue(try cursor.next() != nil)
                     s3.signal()
-                    XCTAssertTrue(iterator.next() == nil)
+                    XCTAssertTrue(try cursor.next() == nil)
                 }
             }
             let block2 = { () in
                 _ = s1.wait(timeout: .distantFuture)
-                dbPool.read { db in
-                    let iterator = Row.fetch(db, "SELECT * FROM items").makeIterator()
-                    XCTAssertTrue(iterator.next() != nil)
+                try! dbPool.read { db in
+                    let cursor = try Row.fetchCursor(db, "SELECT * FROM items")
+                    XCTAssertTrue(try cursor.next() != nil)
                     s2.signal()
-                    XCTAssertTrue(iterator.next() != nil)
-                    XCTAssertTrue(iterator.next() == nil)
+                    XCTAssertTrue(try cursor.next() != nil)
+                    XCTAssertTrue(try cursor.next() == nil)
                 }
             }
             let block3 = { () in
@@ -246,13 +246,13 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                 }
                 let block2 = { [weak dbPool] () in
                     weak var connection: Database? = nil
-                    var iterator: DatabaseIterator<Int>? = nil
+                    var cursor: DatabaseCursor<Int>? = nil
                     do {
                         if let dbPool = dbPool {
-                            dbPool.write { db in
+                            try! dbPool.write { db in
                                 connection = db
-                                iterator = Int.fetch(db, "SELECT id FROM items").makeIterator()
-                                XCTAssertTrue(iterator!.next() != nil)
+                                cursor = try Int.fetchCursor(db, "SELECT id FROM items")
+                                XCTAssertTrue(try cursor!.next() != nil)
                                 s1.signal()
                             }
                         } else {
@@ -262,9 +262,9 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                     _ = s2.wait(timeout: .distantFuture)
                     do {
                         XCTAssertTrue(dbPool == nil)
-                        XCTAssertTrue(iterator!.next() != nil)
-                        XCTAssertTrue(iterator!.next() == nil)
-                        iterator = nil
+                        XCTAssertTrue(try! cursor!.next() != nil)
+                        XCTAssertTrue(try! cursor!.next() == nil)
+                        cursor = nil
                         XCTAssertTrue(connection == nil)
                     }
                 }

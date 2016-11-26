@@ -82,7 +82,8 @@ try dbQueue.inDatabase { db in
 
 ```swift
 dbQueue.inDatabase { db in
-    for row in Row.fetch(db, "SELECT * FROM pointOfInterests") {
+    let rows = try Row.fetchCursor(db, "SELECT * FROM pointOfInterests")
+    while let row = try rows.next() {
         let title: String = row.value(named: "title")
         let isFavorite: Bool = row.value(named: "favorite")
         let coordinate = CLLocationCoordinate2DMake(
@@ -527,7 +528,8 @@ if let row = Row.fetchOne(db, "SELECT * FROM wines WHERE id = ?", arguments: [1]
 **Values** are the Bool, Int, String, Date, Swift enums, etc. stored in row columns:
 
 ```swift
-for url in URL.fetch(db, "SELECT url FROM wines") {
+let urls = try URL.fetchCursor(db, "SELECT url FROM wines")
+while let url = try urls.next() {
     print(url)
 }
 ```
@@ -547,32 +549,33 @@ let wines = Wine.fetchAll(db, "SELECT * FROM wines")
 
 ### Fetching Methods
 
-**Throughout GRDB**, you can always fetch *sequences*, *arrays*, or *single values* of any fetchable type (database [row](#row-queries), simple [value](#value-queries), or custom [record](#records)):
+**Throughout GRDB**, you can always fetch *cursors*, *arrays*, or *single values* of any fetchable type (database [row](#row-queries), simple [value](#value-queries), or custom [record](#records)):
 
 ```swift
-Type.fetch(...)    // DatabaseSequence<Type>
-Type.fetchAll(...) // [Type]
-Type.fetchOne(...) // Type?
+Type.fetchCursor(...) // DatabaseCursor<Type>
+Type.fetchAll(...)    // [Type]
+Type.fetchOne(...)    // Type?
 ```
 
-- `fetch` returns a **sequence** that is memory efficient, but must be consumed in a protected dispatch queue (you'll get a fatal error if you do otherwise).
+- `fetchCursor` returns a **cursor** that is memory efficient, but must be consumed in a protected dispatch queue.
     
     ```swift
-    for row in Row.fetch(db, "SELECT ...") { // DatabaseSequence<Row>
+    let rows = try Row.fetchCursor(db, "SELECT ...") // DatabaseCursor<Row>
+    while let row = try rows.next() {
         ...
     }
     ```
     
-    Don't modify the database during a sequence iteration:
+    Don't modify the database during a cursor iteration:
     
     ```swift
     // Undefined behavior
-    for row in Row.fetch(db, "SELECT * FROM persons") {
+    while let row = try rows.next() {
         try db.execute("DELETE FROM persons ...")
     }
     ```
     
-    A sequence fetches a new set of results each time it is iterated.
+    Cursors share some traits with Swift sequences and iterators, and implement methods like enumerated, filter, map, etc.
     
 - `fetchAll` returns an **array** that can be consumed on any thread. It contains copies of database values, and can take a lot of memory:
     
@@ -597,14 +600,15 @@ Type.fetchOne(...) // Type?
 
 #### Fetching Rows
 
-Fetch **sequences** of rows, **arrays**, or **single** rows (see [fetching methods](#fetching-methods)):
+Fetch **cursors** of rows, **arrays**, or **single** rows (see [fetching methods](#fetching-methods)):
 
 ```swift
-Row.fetch(db, "SELECT ...", arguments: ...)     // DatabaseSequence<Row>
-Row.fetchAll(db, "SELECT ...", arguments: ...)  // [Row]
-Row.fetchOne(db, "SELECT ...", arguments: ...)  // Row?
+Row.fetchCursor(db, "SELECT ...", arguments: ...) // DatabaseCursor<Row>
+Row.fetchAll(db, "SELECT ...", arguments: ...)    // [Row]
+Row.fetchOne(db, "SELECT ...", arguments: ...)    // Row?
 
-for row in Row.fetch(db, "SELECT * FROM wines") {
+let rows = try Row.fetchCursor(db, "SELECT * FROM wines")
+while let row = try rows.next() {
     let name: String = row.value(named: "name")
     let color: Color = row.value(named: "color")
     print(name, color)
@@ -625,11 +629,11 @@ let rows = Row.fetchAll(db,
 
 See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.).
 
-Unlike row arrays that contain copies of the database rows, row sequences are close to the SQLite metal, and require a little care:
+Unlike row arrays that contain copies of the database rows, row cursors are close to the SQLite metal, and require a little care:
 
-> :point_up: **Don't turn a row sequence into an array** with `Array(rowSequence)` or `rowSequence.filter { ... }`: you would not get the distinct rows you expect. To get an array, use `Row.fetchAll(...)`.
+> :point_up: **Don't turn a row cursor into an array** with `Array(rowCursor)` or `rowCursor.filter { ... }`: you would not get the distinct rows you expect. To get an array, use `Row.fetchAll(...)`.
 > 
-> :point_up: **Make sure you copy a row** whenever you extract it from a sequence for later use: `row.copy()`.
+> :point_up: **Make sure you copy a row** whenever you extract it from a cursor for later use: `row.copy()`.
 
 
 #### Column Values
@@ -724,7 +728,8 @@ Generally speaking, you can extract the type you need, *provided it can be conve
     GRDB will sometimes let those conversions go through:
     
     ```swift
-    for row in Row.fetch(db, "SELECT '20 small cigars'") {
+    let rows = try Row.fetchCursor(db, "SELECT '20 small cigars'")
+    while let row = try rows.next() {
         row.value(atIndex: 0) as Int   // 20
     }
     ```
@@ -817,16 +822,16 @@ for (columnName, databaseValue) in row { ... } // ("foo", 1), ("foo", 2)
 
 ### Value Queries
 
-Instead of rows, you can directly fetch **[values](#values)**. Like rows, fetch them as **sequences**, **arrays**, or **single** values (see [fetching methods](#fetching-methods)). Values are extracted from the leftmost column of the SQL queries:
+Instead of rows, you can directly fetch **[values](#values)**. Like rows, fetch them as **cursors**, **arrays**, or **single** values (see [fetching methods](#fetching-methods)). Values are extracted from the leftmost column of the SQL queries:
 
 ```swift
-Int.fetch(db, "SELECT ...", arguments: ...)     // DatabaseSequence<Int>
-Int.fetchAll(db, "SELECT ...", arguments: ...)  // [Int]
-Int.fetchOne(db, "SELECT ...", arguments: ...)  // Int?
+Int.fetchCursor(db, "SELECT ...", arguments: ...) // DatabaseCursor<Int>
+Int.fetchAll(db, "SELECT ...", arguments: ...)    // [Int]
+Int.fetchOne(db, "SELECT ...", arguments: ...)    // Int?
 
 // When database may contain NULL:
-Optional<Int>.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Int?>
-Optional<Int>.fetchAll(db, "SELECT ...", arguments: ...) // [Int?]
+Optional<Int>.fetchCursor(db, "SELECT ...", arguments: ...) // DatabaseCursor<Int?>
+Optional<Int>.fetchAll(db, "SELECT ...", arguments: ...)    // [Int?]
 ```
 
 `fetchOne` returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
@@ -868,7 +873,8 @@ try db.execute(
 Values can be [extracted from rows](#column-values):
 
 ```swift
-for row in Row.fetch(db, "SELECT * FROM links") {
+let rows = try Row.fetchCursor(db, "SELECT * FROM links")
+while let row = try rows.next() {
     let url: URL = row.value(named: "url")
     let verified: Bool = row.value(named: "verified")
 }
@@ -912,7 +918,8 @@ let link = Link.filter(urlColumn == url).fetchOne(db)
 **Data** suits the BLOB SQLite columns. It can be stored and fetched from the database just like other [values](#values):
 
 ```swift
-for row in Row.fetch(db, "SELECT data, ...") {
+let rows = try Row.fetchCursor(db, "SELECT data, ...")
+while let row = try rows.next() {
     let data: Data = row.value(named: "data")
 }
 ```
@@ -922,7 +929,7 @@ At each step of the request iteration, the `row.value` method creates *two copie
 **You have the opportunity to save memory** by not copying the data fetched by SQLite:
 
 ```swift
-for row in Row.fetch(db, "SELECT data, ...") {
+while let row = try rows.next() {
     let data = row.dataNoCopy(named: "data") // Data?
 }
 ```
@@ -1077,7 +1084,8 @@ try db.execute(
     arguments: [Grape.merlot, Color.red])
 
 // Read
-for rows in Row.fetch(db, "SELECT * FROM wines") {
+let rows = try Row.fetchCursor(db, "SELECT * FROM wines")
+while let row = try rows.next() {
     let grape: Grape = row.value(named: "grape")
     let color: Color = row.value(named: "color")
 }
@@ -1256,7 +1264,7 @@ try updateStatement.execute()
 Select statements can be used wherever a raw SQL query string would fit (see [fetch queries](#fetch-queries)):
 
 ```swift
-for row in Row.fetch(selectStatement) { ... }
+let rows = try Row.fetchCursor(selectStatement)
 let persons = Person.fetchAll(selectStatement)
 let person = Person.fetchOne(selectStatement)
 ```
@@ -1362,13 +1370,13 @@ try db.create(table: "persons") { t in
 
 // <Row type:"table" name:"persons" tbl_name:"persons" rootpage:2
 //      sql:"CREATE TABLE persons(id INTEGER PRIMARY KEY, name TEXT)">
-for row in Row.fetch(db, "SELECT * FROM sqlite_master") {
+for row in Row.fetchAll(db, "SELECT * FROM sqlite_master") {
     print(row)
 }
 
 // <Row cid:0 name:"id" type:"INTEGER" notnull:0 dflt_value:NULL pk:1>
 // <Row cid:1 name:"name" type:"TEXT" notnull:0 dflt_value:NULL pk:0>
-for row in Row.fetch(db, "PRAGMA table_info('persons')") {
+for row in Row.fetchAll(db, "PRAGMA table_info('persons')") {
     print(row)
 }
 ```
@@ -1458,7 +1466,8 @@ let adapter = ScopeAdapter(["author": authorMapping])
 Use the `Row.scoped(on:)` method to access the "author" scope:
 
 ```swift
-for row in Row.fetch(db, sql, adapter: adapter) {
+let rows = try Row.fetchCursor(db, sql, adapter: adapter)
+while let row = try rows.next() {
     // The fetched row, without adaptation:
     row.value(named: "id")          // 1
     row.value(named: "title")       // Moby-Dick
@@ -1476,7 +1485,8 @@ for row in Row.fetch(db, sql, adapter: adapter) {
 > :bowtie: **Tip**: now that we have nice "id" and "name" columns, we can leverage [RowConvertible](#rowconvertible-protocol) types such as [Record](#record-class) subclasses. For example, assuming the Book type consumes the "author" scope in its row initializer and builds a Person from it, the same row can be consumed by both the Book and Person types:
 > 
 > ```swift
-> for book in Book.fetch(db, sql, adapter: adapter) {
+> let books = try Book.fetchCursor(db, sql, adapter: adapter)
+> while let book = try books.next() {
 >     book.title        // Moby-Dick
 >     book.author?.name // Melville
 > }
@@ -1502,7 +1512,8 @@ let mainAdapter = ColumnMapping(["id": "mainID", "name": "mainName"])
 let bestFriendAdapter = ColumnMapping(["id": "friendID", "name": "friendName"])
 let adapter = mainAdapter.addingScopes(["bestFriend": bestFriendAdapter])
 
-for row in Row.fetch(db, sql, adapter: adapter) {
+let rows = try Row.fetchCursor(db, sql, adapter: adapter)
+while let row = try rows.next() {
     // The fetched row, adapted with mainAdapter:
     row.value(named: "id")   // 1
     row.value(named: "name") // Arthur
@@ -1515,7 +1526,8 @@ for row in Row.fetch(db, sql, adapter: adapter) {
 }
 
 // Assuming Person.init(row:) consumes the "bestFriend" scope:
-for person in Person.fetch(db, sql, adapter: adapter) {
+let persons = try Person.fetchCursor(db, sql, adapter: adapter)
+while let person = try persons.next() {
     person.name             // Arthur
     person.bestFriend?.name // Barbara
 }
@@ -1797,12 +1809,12 @@ See [column values](#column-values) for more information about the `row.value()`
 RowConvertible allows adopting types to be fetched from SQL queries:
 
 ```swift
-PointOfInterest.fetch(db, "SELECT ...", arguments:...)    // DatabaseSequence<PointOfInterest>
-PointOfInterest.fetchAll(db, "SELECT ...", arguments:...) // [PointOfInterest]
-PointOfInterest.fetchOne(db, "SELECT ...", arguments:...) // PointOfInterest?
+PointOfInterest.fetchCursor(db, "SELECT ...", arguments:...) // DatabaseCursor<PointOfInterest>
+PointOfInterest.fetchAll(db, "SELECT ...", arguments:...)    // [PointOfInterest]
+PointOfInterest.fetchOne(db, "SELECT ...", arguments:...)    // PointOfInterest?
 ```
 
-See [fetching methods](#fetching-methods) for information about the `fetch`, `fetchAll` and `fetchOne` methods. See [fetching rows](#fetching-rows) for more information about the query arguments.
+See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll` and `fetchOne` methods. See [fetching rows](#fetching-rows) for more information about the query arguments.
 
 
 ### RowConvertible and Row Adapters
@@ -2400,7 +2412,7 @@ This is the list of record methods, along with their required protocols. The [Re
 | **Counting Records** | | |
 | `Type.fetchCount(db)` | [TableMapping](#tablemapping-protocol) | |
 | `Type.filter(...).fetchCount(db)` | [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
-| **Fetching Record Sequences** | | |
+| **Fetching Record Cursors** | | |
 | `Type.fetch(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | |
 | `Type.fetch(db, keys: ...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
 | `Type.fetch(db, sql)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-3">³</a> |
@@ -3008,12 +3020,12 @@ Once you have a request, you can fetch the records at the origin of the request:
 let request = Person.filter(...)... // QueryInterfaceRequest<Person>
 
 // Fetch persons:
-request.fetch(db)    // DatabaseSequence<Person>
-request.fetchAll(db) // [Person]
-request.fetchOne(db) // Person?
+request.fetchCursor(db) // DatabaseCursor<Person>
+request.fetchAll(db)    // [Person]
+request.fetchOne(db)    // Person?
 ```
 
-See [fetching methods](#fetching-methods) for information about the `fetch`, `fetchAll` and `fetchOne` methods.
+See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll` and `fetchOne` methods.
 
 For example:
 
@@ -4614,9 +4626,9 @@ let sql = "SELECT ..."
 
 // Some untrusted arguments for the query
 let arguments: [String: Any] = ...
+let rows = try Row.fetchCursor(db, sql, arguments: StatementArguments(arguments))
 
-// Some untrusted iteration of database results:
-for row in Row.fetch(db, sql, arguments: StatementArguments(arguments)) {
+while let row = try rows.next() {
     // Some untrusted database value:
     let date: Date? = row.value(atIndex: 0)
 }
@@ -4627,7 +4639,6 @@ It has several opportunities to throw fatal errors:
 - **Untrusted SQL**: The sql string may contain invalid sql, or refer to non-existing tables or columns.
 - **Untrusted arguments dictionary**: The dictionary may contain values that do not conform to the [DatabaseValueConvertible protocol](#values).
 - **Untrusted arguments fitting**: The dictionary may miss values required by the statement.
-- **Untrusted SQLite execution**: SQLite may throw an error at each step of the results iteration.
 - **Untrusted database content**: The row may contain a non-null value that can't be turned into a date.
 
 In such a situation where nothing can be trusted, you can still avoid fatal errors by exposing and handling each failure point, one level down in the GRDB API:
@@ -4643,9 +4654,8 @@ if let arguments = StatementArguments(arguments) {
     try statement.validate(arguments: arguments)
     statement.unsafeSetArguments(arguments)
     
-    // Untrusted SQLite execution
-    var iterator = Row.fetch(statement).makeIterator()
-    while let row = try iterator.step() {
+    var cursor = try Row.fetchCursor(statement)
+    while let row = try iterator.next() {
         // Untrusted database content
         let dbv: DatabaseValue = row.value(atIndex: 0)
         if dbv.isNull {
@@ -4935,13 +4945,13 @@ let hallOfFame = Person.order(scoreColumn.desc).limit(5).fetchAll(db)
 
 **Don't copy values unless necessary**
 
-Particularly: the Array returned by the `fetchAll` method, and the sequence returned by `fetch` aren't the same:
+Particularly: the Array returned by the `fetchAll` method, and the cursor returned by `fetchCursor` aren't the same:
 
-`fetchAll` copies all values from the database into memory, when `fetch` iterates database results as they are generated by SQLite, taking profit from SQLite efficiency.
+`fetchAll` copies all values from the database into memory, when `fetchCursor` iterates database results as they are generated by SQLite, taking profit from SQLite efficiency.
 
-You should only load arrays if you need to keep them for later use (such as iterating their contents in the main thread). Otherwise, use `fetch`.
+You should only load arrays if you need to keep them for later use (such as iterating their contents in the main thread). Otherwise, use `fetchCursor`.
 
-See [fetching methods](#fetching-methods) for more information about `fetchAll` and `fetch`. See also the [Row.dataNoCopy](#data-and-memory-savings) method.
+See [fetching methods](#fetching-methods) for more information about `fetchAll` and `fetchCursor`. See also the [Row.dataNoCopy](#data-and-memory-savings) method.
 
 
 **Don't update rows unless necessary**
@@ -5031,14 +5041,13 @@ For example, when fetching values, prefer loading columns by index:
 
 ```swift
 // Strings & dictionaries
-for person in Person.fetch(db) {
-    ...
-}
+let persons = Person.fetchAll(db)
 
 // Column indexes
 // SELECT id, name, email FROM persons
 let request = Person.select(idColumn, nameColumn, emailColumn)
-for row in Row.fetch(db, request) {
+let rows = try Row.fetchCursor(db, request)
+while let row = try rows.next() {
     let id: Int64 = row.value(atIndex: 0)
     let name: String = row.value(atIndex: 1)
     let email: String = row.value(atIndex: 2)
