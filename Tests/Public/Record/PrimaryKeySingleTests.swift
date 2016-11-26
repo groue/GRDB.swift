@@ -335,7 +335,40 @@ class PrimaryKeySingleTests: GRDBTestCase {
     
     // MARK: - Fetch With Key
     
-    func testFetchWithKeys() {
+    func testFetchCursorWithKeys() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let record1 = Pet(UUID: "BobbyUUID", name: "Bobby")
+                try record1.insert(db)
+                let record2 = Pet(UUID: "CainUUID", name: "Cain")
+                try record2.insert(db)
+                
+                do {
+                    let cursor = try Pet.fetchCursor(db, keys: [])
+                    XCTAssertTrue(cursor == nil)
+                }
+                
+                do {
+                    let cursor = try Pet.fetchCursor(db, keys: [["UUID": record1.UUID], ["UUID": record2.UUID]])!
+                    let fetchedRecords = try [cursor.next()!, cursor.next()!]
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set([record1.UUID!, record2.UUID!]))
+                    XCTAssertTrue(try cursor.next() == nil) // end
+                    XCTAssertTrue(try cursor.next() == nil) // safety
+                }
+                
+                do {
+                    let cursor = try Pet.fetchCursor(db, keys: [["UUID": record1.UUID], ["UUID": nil]])!
+                    let fetchedRecord = try cursor.next()!
+                    XCTAssertEqual(fetchedRecord.UUID!, record1.UUID!)
+                    XCTAssertTrue(try cursor.next() == nil) // end
+                    XCTAssertTrue(try cursor.next() == nil) // safety
+                }
+            }
+        }
+    }
+    
+    func testFetchSequenceWithKeys() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -410,7 +443,34 @@ class PrimaryKeySingleTests: GRDBTestCase {
     
     // MARK: - Fetch With Primary Key
     
-    func testFetchWithPrimaryKeys() {
+    func testFetchCursorWithPrimaryKeys() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let record1 = Pet(UUID: "BobbyUUID", name: "Bobby")
+                try record1.insert(db)
+                let record2 = Pet(UUID: "CainUUID", name: "Cain")
+                try record2.insert(db)
+                
+                do {
+                    let UUIDs: [String] = []
+                    let cursor = try Pet.fetchCursor(db, keys: UUIDs)
+                    XCTAssertTrue(cursor == nil)
+                }
+                
+                do {
+                    let UUIDs = [record1.UUID!, record2.UUID!]
+                    let cursor = try Pet.fetchCursor(db, keys: UUIDs)!
+                    let fetchedRecords = try [cursor.next()!, cursor.next()!]
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
+                    XCTAssertTrue(try cursor.next() == nil) // end
+                    XCTAssertTrue(try cursor.next() == nil) // safety
+                }
+            }
+        }
+    }
+    
+    func testFetchSequenceWithPrimaryKeys() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in

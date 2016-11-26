@@ -324,7 +324,42 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     // MARK: - Fetch With Key
     
-    func testFetchWithKeys() {
+    func testFetchCursorWithKeys() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let record1 = Email()
+                record1.email = "me@domain.com"
+                try record1.insert(db)
+                let record2 = Email()
+                record2.email = "you@domain.com"
+                try record2.insert(db)
+                
+                do {
+                    let cursor = try Email.fetchCursor(db, keys: [])
+                    XCTAssertTrue(cursor == nil)
+                }
+                
+                do {
+                    let cursor = try Email.fetchCursor(db, keys: [["email": record1.email], ["email": record2.email]])!
+                    let fetchedRecords = try [cursor.next()!, cursor.next()!]
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.email }), Set([record1.email, record2.email]))
+                    XCTAssertTrue(try cursor.next() == nil) // end
+                    XCTAssertTrue(try cursor.next() == nil) // safety
+                }
+                
+                do {
+                    let cursor = try Email.fetchCursor(db, keys: [["email": record1.email], ["email": nil]])!
+                    let fetchedRecord = try cursor.next()!
+                    XCTAssertEqual(fetchedRecord.email, record1.email)
+                    XCTAssertTrue(try cursor.next() == nil) // end
+                    XCTAssertTrue(try cursor.next() == nil) // safety
+                }
+            }
+        }
+    }
+    
+    func testFetchSequenceWithKeys() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -403,7 +438,36 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     // MARK: - Fetch With Primary Key
     
-    func testFetchWithPrimaryKeys() {
+    func testFetchCursorWithPrimaryKeys() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let record1 = Email()
+                record1.email = "me@domain.com"
+                try record1.insert(db)
+                let record2 = Email()
+                record2.email = "you@domain.com"
+                try record2.insert(db)
+                
+                do {
+                    let emails: [String] = []
+                    let cursor = try Email.fetchCursor(db, keys: emails)
+                    XCTAssertTrue(cursor == nil)
+                }
+                
+                do {
+                    let emails = [record1.email!, record2.email!]
+                    let cursor = try Email.fetchCursor(db, keys: emails)!
+                    let fetchedRecords = try [cursor.next()!, cursor.next()!]
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.email! }), Set(emails))
+                    XCTAssertTrue(try cursor.next() == nil) // end
+                    XCTAssertTrue(try cursor.next() == nil) // safety
+                }
+            }
+        }
+    }
+    
+    func testFetchSequenceWithPrimaryKeys() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in

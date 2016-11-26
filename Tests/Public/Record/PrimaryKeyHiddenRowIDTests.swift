@@ -412,7 +412,40 @@ class PrimaryKeyHiddenRowIDTests : GRDBTestCase {
     
     // MARK: - Fetch With Key
     
-    func testFetchWithKeys() {
+    func testFetchCursorWithKeys() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let record1 = Person(name: "Arthur")
+                try record1.insert(db)
+                let record2 = Person(name: "Barbara")
+                try record2.insert(db)
+                
+                do {
+                    let cursor = try Person.fetchCursor(db, keys: [])
+                    XCTAssertTrue(cursor == nil)
+                }
+                
+                do {
+                    let cursor = try Person.fetchCursor(db, keys: [["id": record1.id], ["id": record2.id]])!
+                    let fetchedRecords = try [cursor.next()!, cursor.next()!]
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set([record1.id, record2.id]))
+                    XCTAssertTrue(try cursor.next() == nil) // end
+                    XCTAssertTrue(try cursor.next() == nil) // safety
+                }
+                
+                do {
+                    let cursor = try Person.fetchCursor(db, keys: [["id": record1.id], ["id": nil]])!
+                    let fetchedRecord = try cursor.next()!
+                    XCTAssertEqual(fetchedRecord.id!, record1.id!)
+                    XCTAssertTrue(try cursor.next() == nil) // end
+                    XCTAssertTrue(try cursor.next() == nil) // safety
+                }
+            }
+        }
+    }
+    
+    func testFetchSequenceWithKeys() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -489,7 +522,34 @@ class PrimaryKeyHiddenRowIDTests : GRDBTestCase {
     
     // MARK: - Fetch With Primary Key
     
-    func testFetchWithPrimaryKeys() {
+    func testFetchCursorWithPrimaryKeys() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let record1 = Person(name: "Arthur")
+                try record1.insert(db)
+                let record2 = Person(name: "Barbara")
+                try record2.insert(db)
+                
+                do {
+                    let ids: [Int64] = []
+                    let cursor = try Person.fetchCursor(db, keys: ids)
+                    XCTAssertTrue(cursor == nil)
+                }
+                
+                do {
+                    let ids = [record1.id!, record2.id!]
+                    let cursor = try Person.fetchCursor(db, keys: ids)!
+                    let fetchedRecords = try [cursor.next()!, cursor.next()!]
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
+                    XCTAssertTrue(try cursor.next() == nil) // end
+                    XCTAssertTrue(try cursor.next() == nil) // safety
+                }
+            }
+        }
+    }
+    
+    func testFetchSequenceWithPrimaryKeys() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in

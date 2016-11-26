@@ -111,7 +111,36 @@ class PrimaryKeyNoneTests: GRDBTestCase {
     
     // MARK: - Fetch With Primary Key
     
-    func testFetchWithPrimaryKeys() {
+    func testFetchCursorWithPrimaryKeys() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let record1 = Item(name: "Table")
+                try record1.insert(db)
+                let id1 = db.lastInsertedRowID
+                let record2 = Item(name: "Chair")
+                try record2.insert(db)
+                let id2 = db.lastInsertedRowID
+                
+                do {
+                    let ids: [Int64] = []
+                    let cursor = try Item.fetchCursor(db, keys: ids)
+                    XCTAssertTrue(cursor == nil)
+                }
+                
+                do {
+                    let ids = [id1, id2]
+                    let cursor = try Item.fetchCursor(db, keys: ids)!
+                    let fetchedRecords = try [cursor.next()!, cursor.next()!]
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.name! }), Set([record1, record2].map { $0.name! }))
+                    XCTAssertTrue(try cursor.next() == nil) // end
+                    XCTAssertTrue(try cursor.next() == nil) // safety
+                }
+            }
+        }
+    }
+    
+    func testFetchSequenceWithPrimaryKeys() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in

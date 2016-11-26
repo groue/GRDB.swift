@@ -344,7 +344,40 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     
     // MARK: - Fetch With Key
     
-    func testFetchWithKeys() {
+    func testFetchCursorWithKeys() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let record1 = Citizenship(personName: "Arthur", countryName: "France", native: true)
+                try record1.insert(db)
+                let record2 = Citizenship(personName: "Barbara", countryName: "France", native: false)
+                try record2.insert(db)
+                
+                do {
+                    let cursor = try Citizenship.fetchCursor(db, keys: [])
+                    XCTAssertTrue(cursor == nil)
+                }
+                
+                do {
+                    let cursor = try Citizenship.fetchCursor(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": record2.personName, "countryName": record2.countryName]])!
+                    let fetchedRecords = try [cursor.next()!, cursor.next()!]
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.personName }), Set([record1.personName, record2.personName]))
+                    XCTAssertTrue(try cursor.next() == nil) // end
+                    XCTAssertTrue(try cursor.next() == nil) // safety
+                }
+                
+                do {
+                    let cursor = try Citizenship.fetchCursor(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": nil, "countryName": nil]])!
+                    let fetchedRecord = try cursor.next()!
+                    XCTAssertEqual(fetchedRecord.personName, record1.personName)
+                    XCTAssertTrue(try cursor.next() == nil) // end
+                    XCTAssertTrue(try cursor.next() == nil) // safety
+                }
+            }
+        }
+    }
+    
+    func testFetchSequenceWithKeys() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
