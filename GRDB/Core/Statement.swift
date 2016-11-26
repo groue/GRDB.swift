@@ -328,15 +328,6 @@ public final class DatabaseCursor<Element> {
 }
 
 extension DatabaseCursor {
-    /// TODO
-    public func enumerated() -> DatabaseCursor<(Int, Element)> {
-        var i = 0
-        return DatabaseCursor<(Int, Element)>(statement: statementRef.takeUnretainedValue()) {
-            guard let element = try self.next() else { return nil }
-            defer { i = i + 1 }
-            return (i, element)
-        }
-    }
     
     /// TODO
     public func filter(_ isIncluded: (Element) throws -> Bool) throws -> [Element] {
