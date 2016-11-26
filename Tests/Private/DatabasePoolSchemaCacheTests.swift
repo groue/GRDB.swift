@@ -25,7 +25,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
                 XCTAssertTrue(db.schemaCache.indexes(on: "items") == nil)
             }
             
-            dbPool.read { db in
+            try dbPool.read { db in
                 // Assert that a reader cache is empty
                 XCTAssertTrue(db.schemaCache.primaryKey("items") == nil)
                 XCTAssertTrue(db.schemaCache.columns(in: "items") == nil)
@@ -81,7 +81,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
                 XCTAssertTrue(db.schemaCache.indexes(on: "items") == nil)
             }
             
-            dbPool.read { db in
+            try dbPool.read { db in
                 // Assert that a reader cache is empty
                 XCTAssertTrue(db.schemaCache.primaryKey("items") == nil)
                 XCTAssertTrue(db.schemaCache.columns(in: "items") == nil)

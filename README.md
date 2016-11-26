@@ -96,8 +96,8 @@ dbQueue.inDatabase { db in
 }
 
 // Extraction
-let poiCount = dbQueue.inDatabase { db in
-    Int.fetchOne(db, "SELECT COUNT(*) FROM pointOfInterests")!
+let poiCount = try dbQueue.inDatabase { db in
+    try Int.fetchOne(db, "SELECT COUNT(*) FROM pointOfInterests")!
 }
 ```
 
@@ -128,7 +128,7 @@ try dbQueue.inDatabase { db in
     try berlin.update(db)
     
     // Fetch [PointOfInterest] from SQL
-    let pois = PointOfInterest.fetchAll(db, "SELECT * FROM pointOfInterests")
+    let pois = try PointOfInterest.fetchAll(db, "SELECT * FROM pointOfInterests")
 }
 ```
 
@@ -145,15 +145,15 @@ dbQueue.inDatabase { db in
     }
     
     // PointOfInterest?
-    let paris = PointOfInterest.fetchOne(db, key: 1)
+    let paris = try PointOfInterest.fetchOne(db, key: 1)
     
     // PointOfInterest?
     let titleColumn = Column("title")
-    let berlin = PointOfInterest.filter(titleColumn == "Berlin").fetchOne(db)
+    let berlin = try PointOfInterest.filter(titleColumn == "Berlin").fetchOne(db)
     
     // [PointOfInterest]
     let favoriteColumn = Column("favorite")
-    let favoritePois = PointOfInterest
+    let favoritePois = try PointOfInterest
         .filter(favoriteColumn)
         .order(titleColumn)
         .fetchAll(db)
@@ -312,7 +312,7 @@ try dbQueue.inDatabase { db in
 
 // Wrap database statements in a transaction:
 try dbQueue.inTransaction { db in
-    if let poi = PointOfInterest.fetchOne(db, key: 1) {
+    if let poi = try PointOfInterest.fetchOne(db, key: 1) {
         try poi.delete(db)
     }
     return .commit
@@ -320,13 +320,13 @@ try dbQueue.inTransaction { db in
 
 // Read values:
 dbQueue.inDatabase { db in
-    let pois = PointOfInterest.fetchAll(db)
-    let poiCount = PointOfInterest.fetchCount(db)
+    let pois = try PointOfInterest.fetchAll(db)
+    let poiCount = try PointOfInterest.fetchCount(db)
 }
 
 // Extract a value from the database:
-let poiCount = dbQueue.inDatabase { db in
-    PointOfInterest.fetchCount(db)
+let poiCount = try dbQueue.inDatabase { db in
+    try PointOfInterest.fetchCount(db)
 }
 ```
 
@@ -380,21 +380,21 @@ try dbPool.write { db in
 
 // Wrap database statements in a transaction:
 try dbPool.writeInTransaction { db in
-    if let poi = PointOfInterest.fetchOne(db, key: 1) {
+    if let poi = try PointOfInterest.fetchOne(db, key: 1) {
         try poi.delete(db)
     }
     return .commit
 }
 
 // Read values:
-dbPool.read { db in
-    let pois = PointOfInterest.fetchAll(db)
-    let poiCount = PointOfInterest.fetchCount(db)
+try dbPool.read { db in
+    let pois = try PointOfInterest.fetchAll(db)
+    let poiCount = try PointOfInterest.fetchCount(db)
 }
 
 // Extract a value from the database:
-let poiCount = dbPool.read { db in
-    PointOfInterest.fetchCount(db)
+let poiCount = try dbPool.read { db in
+    try PointOfInterest.fetchCount(db)
 }
 ```
 
@@ -538,7 +538,7 @@ while let url = try urls.next() {
 **Records** are your application objects that can initialize themselves from rows:
 
 ```swift
-let wines = Wine.fetchAll(db, "SELECT * FROM wines")
+let wines = try Wine.fetchAll(db, "SELECT * FROM wines")
 ```
 
 - [Fetching Methods](#fetching-methods)
@@ -552,9 +552,9 @@ let wines = Wine.fetchAll(db, "SELECT * FROM wines")
 **Throughout GRDB**, you can always fetch *cursors*, *arrays*, or *single values* of any fetchable type (database [row](#row-queries), simple [value](#value-queries), or custom [record](#records)):
 
 ```swift
-Type.fetchCursor(...) // DatabaseCursor<Type>
-Type.fetchAll(...)    // [Type]
-Type.fetchOne(...)    // Type?
+try Type.fetchCursor(...) // DatabaseCursor<Type>
+try Type.fetchAll(...)    // [Type]
+try Type.fetchOne(...)    // Type?
 ```
 
 - `fetchCursor` returns a **cursor** that is memory efficient, but must be consumed in a protected dispatch queue.
@@ -603,9 +603,9 @@ Type.fetchOne(...)    // Type?
 Fetch **cursors** of rows, **arrays**, or **single** rows (see [fetching methods](#fetching-methods)):
 
 ```swift
-Row.fetchCursor(db, "SELECT ...", arguments: ...) // DatabaseCursor<Row>
-Row.fetchAll(db, "SELECT ...", arguments: ...)    // [Row]
-Row.fetchOne(db, "SELECT ...", arguments: ...)    // Row?
+try Row.fetchCursor(db, "SELECT ...", arguments: ...) // DatabaseCursor<Row>
+try Row.fetchAll(db, "SELECT ...", arguments: ...)    // [Row]
+try Row.fetchOne(db, "SELECT ...", arguments: ...)    // Row?
 
 let rows = try Row.fetchCursor(db, "SELECT * FROM wines")
 while let row = try rows.next() {
@@ -825,13 +825,13 @@ for (columnName, databaseValue) in row { ... } // ("foo", 1), ("foo", 2)
 Instead of rows, you can directly fetch **[values](#values)**. Like rows, fetch them as **cursors**, **arrays**, or **single** values (see [fetching methods](#fetching-methods)). Values are extracted from the leftmost column of the SQL queries:
 
 ```swift
-Int.fetchCursor(db, "SELECT ...", arguments: ...) // DatabaseCursor<Int>
-Int.fetchAll(db, "SELECT ...", arguments: ...)    // [Int]
-Int.fetchOne(db, "SELECT ...", arguments: ...)    // Int?
+try Int.fetchCursor(db, "SELECT ...", arguments: ...) // DatabaseCursor<Int>
+try Int.fetchAll(db, "SELECT ...", arguments: ...)    // [Int]
+try Int.fetchOne(db, "SELECT ...", arguments: ...)    // Int?
 
 // When database may contain NULL:
-Optional<Int>.fetchCursor(db, "SELECT ...", arguments: ...) // DatabaseCursor<Int?>
-Optional<Int>.fetchAll(db, "SELECT ...", arguments: ...)    // [Int?]
+try Optional<Int>.fetchCursor(db, "SELECT ...", arguments: ...) // DatabaseCursor<Int?>
+try Optional<Int>.fetchAll(db, "SELECT ...", arguments: ...)    // [Int?]
 ```
 
 `fetchOne` returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
@@ -909,7 +909,7 @@ Use values in the [query interface](#the-query-interface):
 
 ```swift
 let url: URL = ...
-let link = Link.filter(urlColumn == url).fetchOne(db)
+let link = try Link.filter(urlColumn == url).fetchOne(db)
 ```
 
 
@@ -1034,7 +1034,7 @@ This means that computations will not be exact:
 ```swift
 try db.execute("INSERT INTO transfers (amount) VALUES (0.1)")
 try db.execute("INSERT INTO transfers (amount) VALUES (0.2)")
-let sum = NSDecimalNumber.fetchOne(db, "SELECT SUM(amount) FROM transfers")!
+let sum = try NSDecimalNumber.fetchOne(db, "SELECT SUM(amount) FROM transfers")!
 
 // Yikes! 0.3000000000000000512
 print(sum)
@@ -1051,7 +1051,7 @@ let integerAmount = amount.multiplying(byPowerOf10: 2).int64Value // 100
 try db.execute("INSERT INTO transfers (amount) VALUES (?)", arguments: [integerAmount])
 
 // Read
-let integerAmount = Int64.fetchOne(db, "SELECT SUM(amount) FROM transfers")!    // 100
+let integerAmount = try Int64.fetchOne(db, "SELECT SUM(amount) FROM transfers")!    // 100
 let amount = NSDecimalNumber(value: integerAmount).multiplying(byPowerOf10: -2) // 0.1
 ```
 
@@ -1318,9 +1318,9 @@ let reverseString = DatabaseFunction(
     })
 dbQueue.add(function: reverseString)   // Or dbPool.add(function: ...)
 
-dbQueue.inDatabase { db in
+try dbQueue.inDatabase { db in
     // "oof"
-    String.fetchOne(db, "SELECT reverseString('foo')")!
+    try String.fetchOne(db, "SELECT reverseString('foo')")!
 }
 ```
 
@@ -1340,9 +1340,9 @@ let averageOf = DatabaseFunction("averageOf", pure: true) { (values: [DatabaseVa
 }
 dbQueue.add(function: averageOf)
 
-dbQueue.inDatabase { db in
+try dbQueue.inDatabase { db in
     // 2.0
-    Double.fetchOne(db, "SELECT averageOf(1, 2, 3)")!
+    try Double.fetchOne(db, "SELECT averageOf(1, 2, 3)")!
 }
 ```
 
@@ -1370,13 +1370,13 @@ try db.create(table: "persons") { t in
 
 // <Row type:"table" name:"persons" tbl_name:"persons" rootpage:2
 //      sql:"CREATE TABLE persons(id INTEGER PRIMARY KEY, name TEXT)">
-for row in Row.fetchAll(db, "SELECT * FROM sqlite_master") {
+for row in try Row.fetchAll(db, "SELECT * FROM sqlite_master") {
     print(row)
 }
 
 // <Row cid:0 name:"id" type:"INTEGER" notnull:0 dflt_value:NULL pk:1>
 // <Row cid:1 name:"name" type:"TEXT" notnull:0 dflt_value:NULL pk:0>
-for row in Row.fetchAll(db, "PRAGMA table_info('persons')") {
+for row in try Row.fetchAll(db, "PRAGMA table_info('persons')") {
     print(row)
 }
 ```
@@ -1495,7 +1495,7 @@ while let row = try rows.next() {
 > And Person and Book can still be fetched without row adapters:
 > 
 > ```swift
-> let books = Book.fetchAll(db, "SELECT * FROM books")
+> let books = try Book.fetchAll(db, "SELECT * FROM books")
 > let persons = try Person.fetchAll(db, "SELECT * FROM persons")
 > ```
 
@@ -1631,7 +1631,7 @@ Records
 **On top of the [SQLite API](#sqlite-api), GRDB provides protocols and a class** that help manipulating database rows as regular objects named "records":
 
 ```swift
-if let poi = PointOfInterest.fetchOne(db, key: 1) {
+if let poi = try PointOfInterest.fetchOne(db, key: 1) {
     poi.isFavorite = true
     try poi.update(db)
 }
@@ -1689,10 +1689,10 @@ let persons = try Person.fetchAll(db, "SELECT ...", arguments: ...)
 Add the [TableMapping](#tablemapping-protocol) protocol and you can stop writing SQL:
 
 ```swift
-let persons = Person.filter(emailColumn != nil).order(nameColumn).fetchAll(db)
+let persons = try Person.filter(emailColumn != nil).order(nameColumn).fetchAll(db)
 let person = try Person.fetchOne(db, key: 1)
 let person = try Person.fetchOne(db, key: ["email": "arthur@example.com"])
-let countries = Country.fetchAll(db, keys: ["FR", "US"])
+let countries = try Country.fetchAll(db, keys: ["FR", "US"])
 ```
 
 To learn more about querying records, check the [query interface](#the-query-interface).
@@ -1754,7 +1754,7 @@ try Person.filter(emailColumn == nil).deleteAll(db)
 [Record](#record-class) subclasses and types that adopt the [TableMapping](#tablemapping-protocol) protocol can be counted:
 
 ```swift
-let personWithEmailCount = Person.filter(emailColumn != nil).fetchCount(db)  // Int
+let personWithEmailCount = try Person.filter(emailColumn != nil).fetchCount(db)  // Int
 ```
 
 
@@ -1809,9 +1809,9 @@ See [column values](#column-values) for more information about the `row.value()`
 RowConvertible allows adopting types to be fetched from SQL queries:
 
 ```swift
-PointOfInterest.fetchCursor(db, "SELECT ...", arguments:...) // DatabaseCursor<PointOfInterest>
-PointOfInterest.fetchAll(db, "SELECT ...", arguments:...)    // [PointOfInterest]
-PointOfInterest.fetchOne(db, "SELECT ...", arguments:...)    // PointOfInterest?
+try PointOfInterest.fetchCursor(db, "SELECT ...", arguments:...) // DatabaseCursor<PointOfInterest>
+try PointOfInterest.fetchAll(db, "SELECT ...", arguments:...)    // [PointOfInterest]
+try PointOfInterest.fetchOne(db, "SELECT ...", arguments:...)    // PointOfInterest?
 ```
 
 See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll` and `fetchOne` methods. See [fetching rows](#fetching-rows) for more information about the query arguments.
@@ -1860,18 +1860,18 @@ extension PointOfInterest : TableMapping {
 Adopting types can be fetched without SQL, using the [query interface](#the-query-interface):
 
 ```swift
-let paris = PointOfInterest.filter(nameColumn == "Paris").fetchOne(db)
+let paris = try PointOfInterest.filter(nameColumn == "Paris").fetchOne(db)
 ```
 
 TableMapping can also fetch and delete records by primary key:
 
 ```swift
 // Fetch
-Person.fetchOne(db, key: 1)              // Person?
-Person.fetchAll(db, keys: [1, 2, 3])     // [Person]
+try Person.fetchOne(db, key: 1)              // Person?
+try Person.fetchAll(db, keys: [1, 2, 3])     // [Person]
 
-Country.fetchOne(db, key: "FR")          // Country?
-Country.fetchAll(db, keys: ["FR", "US"]) // [Country]
+try Country.fetchOne(db, key: "FR")          // Country?
+try Country.fetchAll(db, keys: ["FR", "US"]) // [Country]
 
 // Delete
 try Person.deleteOne(db, key: 1)
@@ -1882,7 +1882,7 @@ When the table has no explicit primary key, GRDB uses the [hidden "rowid" column
 
 ```swift
 // SELECT * FROM documents WHERE rowid = 1
-Document.fetchOne(db, key: 1)            // Document?
+try Document.fetchOne(db, key: 1)            // Document?
 
 // DELETE FROM documents WHERE rowid = 1
 try Document.deleteOne(db, key: 1)
@@ -1892,10 +1892,10 @@ For multiple-column primary keys and unique keys defined by unique indexes, prov
 
 ```swift
 // SELECT * FROM citizenships WHERE personID = 1 AND countryISOCode = 'FR'
-Citizenship.fetchOne(db, key: ["personID": 1, "countryISOCode": "FR"]) // Citizenship?
+try Citizenship.fetchOne(db, key: ["personID": 1, "countryISOCode": "FR"]) // Citizenship?
 
 // DELETE FROM persons WHERE email = 'arthur@example.com'
-Person.deleteOne(db, key: ["email": "arthur@example.com"])
+try Person.deleteOne(db, key: ["email": "arthur@example.com"])
 ```
 
 
@@ -2201,20 +2201,20 @@ try poi.insert(db)
 
 ```swift
 // Using the query interface
-let pois = PointOfInterest.order(titleColumn).fetchAll(db)
+let pois = try PointOfInterest.order(titleColumn).fetchAll(db)
 
 // By key
-let poi = PointOfInterest.fetchOne(db, key: 1)
+let poi = try PointOfInterest.fetchOne(db, key: 1)
 
 // Using SQL
-let pois = PointOfInterest.fetchAll(db, "SELECT ...", arguments: ...)
+let pois = try PointOfInterest.fetchAll(db, "SELECT ...", arguments: ...)
 ```
 
 
 **Update records** (see [persistence methods](#persistence-methods)):
 
 ```swift
-let poi = PointOfInterest.fetchOne(db, key: 1)!
+let poi = try PointOfInterest.fetchOne(db, key: 1)!
 poi.coordinate = ...
 try poi.update(db)
 ```
@@ -2223,7 +2223,7 @@ try poi.update(db)
 **Delete records** (see [persistence methods](#persistence-methods)):
 
 ```swift
-let poi = PointOfInterest.fetchOne(db, key: 1)!
+let poi = try PointOfInterest.fetchOne(db, key: 1)!
 try poi.delete(db)
 ```
 
@@ -2288,7 +2288,7 @@ Some GRDB methods will automatically use this hidden column when a table has no 
 
 ```swift
 // SELECT * FROM events WHERE rowid = 1
-let event = Event.fetchOne(db, key: 1)
+let event = try Event.fetchOne(db, key: 1)
 
 // DELETE FROM books WHERE rowid = 1
 try Book.deleteOne(db, key: 1)
@@ -2322,7 +2322,7 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](#fu
     
     ```swift
     // SELECT *, rowid FROM events
-    let events = Event.fetchAll(db)
+    let events = try Event.fetchAll(db)
     ```
 
 2. Have `init(row:)` from the [RowConvertible](#rowconvertible-protocol) protocol consume the "rowid" column:
@@ -2348,7 +2348,7 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](#fu
     Your fetched records will then know their ids:
     
     ```swift
-    let event = Event.fetchOne(db)!
+    let event = try Event.fetchOne(db)!
     event.id // some value
     ```
 
@@ -2437,8 +2437,8 @@ This is the list of record methods, along with their required protocols. The [Re
 <a name="list-of-record-methods-1">¹</a> All unique keys are supported: primary keys (single-column, composite, [implicit RowID](#the-implicit-rowid-primary-key)) and unique indexes:
 
 ```swift
-Person.fetchOne(db, key: 1)                               // Person?
-Person.fetchOne(db, key: ["email": "arthur@example.com"]) // Person?
+try Person.fetchOne(db, key: 1)                               // Person?
+try Person.fetchOne(db, key: ["email": "arthur@example.com"]) // Person?
 ```
 
 <a name="list-of-record-methods-2">²</a> See [Fetch Requests](#requests):
@@ -2473,10 +2473,10 @@ The Query Interface
 try db.create(table: "wines") { t in ... }
 
 // Fetch
-let wines = Wine.filter(origin == "Burgundy").order(price).fetchAll(db)
+let wines = try Wine.filter(origin == "Burgundy").order(price).fetchAll(db)
 
 // Count
-let count = Wine.filter(color == Color.red).fetchCount(db)
+let count = try Wine.filter(color == Color.red).fetchCount(db)
 
 // Delete
 try Wine.filter(corked == true).deleteAll(db)
@@ -2486,8 +2486,8 @@ Please bear in mind that the query interface can not generate all possible SQL q
 
 ```swift
 try db.execute("CREATE TABLE wines (...)")
-let count = Wine.filter(sql: "color = ?", arguments: [Color.red]).fetchCount(db)
-let wines = Wine.fetchAll(db, "SELECT * FROM wines WHERE origin = ? ORDER BY price", arguments: ["Burgundy"])
+let count = try Wine.filter(sql: "color = ?", arguments: [Color.red]).fetchCount(db)
+let wines = try Wine.fetchAll(db, "SELECT * FROM wines WHERE origin = ? ORDER BY price", arguments: ["Burgundy"])
 try db.execute("DELETE FROM wines WHERE corked")
 ```
 
@@ -3020,9 +3020,9 @@ Once you have a request, you can fetch the records at the origin of the request:
 let request = Person.filter(...)... // QueryInterfaceRequest<Person>
 
 // Fetch persons:
-request.fetchCursor(db) // DatabaseCursor<Person>
-request.fetchAll(db)    // [Person]
-request.fetchOne(db)    // Person?
+try request.fetchCursor(db) // DatabaseCursor<Person>
+try request.fetchAll(db)    // [Person]
+try request.fetchOne(db)    // Person?
 ```
 
 See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll` and `fetchOne` methods.
@@ -3031,7 +3031,7 @@ For example:
 
 ```swift
 let allPersons = try Person.fetchAll(db)                            // [Person]
-let arthur = Person.filter(nameColumn == "Arthur").fetchOne(db) // Person?
+let arthur = try Person.filter(nameColumn == "Arthur").fetchOne(db) // Person?
 ```
 
 
@@ -3056,33 +3056,33 @@ let maxHeight = row.value(atIndex: 1) as Double?
 
 ```swift
 // SELECT * FROM persons WHERE id = 1
-Person.fetchOne(db, key: 1)              // Person?
+try Person.fetchOne(db, key: 1)              // Person?
 
 // SELECT * FROM persons WHERE id IN (1, 2, 3)
-Person.fetchAll(db, keys: [1, 2, 3])     // [Person]
+try Person.fetchAll(db, keys: [1, 2, 3])     // [Person]
 
 // SELECT * FROM persons WHERE isoCode = 'FR'
-Country.fetchOne(db, key: "FR")          // Country?
+try Country.fetchOne(db, key: "FR")          // Country?
 
 // SELECT * FROM countries WHERE isoCode IN ('FR', 'US')
-Country.fetchAll(db, keys: ["FR", "US"]) // [Country]
+try Country.fetchAll(db, keys: ["FR", "US"]) // [Country]
 ```
 
 When the table has no explicit primary key, GRDB uses the [hidden "rowid" column](#the-implicit-rowid-primary-key):
 
 ```swift
 // SELECT * FROM documents WHERE rowid = 1
-Document.fetchOne(db, key: 1)            // Document?
+try Document.fetchOne(db, key: 1)            // Document?
 ```
 
 For multiple-column primary keys and unique keys defined by unique indexes, provide a dictionary:
 
 ```swift
 // SELECT * FROM citizenships WHERE personID = 1 AND countryISOCode = 'FR'
-Citizenship.fetchOne(db, key: ["personID": 1, "countryISOCode": "FR"]) // Citizenship?
+try Citizenship.fetchOne(db, key: ["personID": 1, "countryISOCode": "FR"]) // Citizenship?
 
 // SELECT * FROM persons WHERE email = 'arthur@example.com'
-Person.fetchOne(db, key: ["email": "arthur@example.com"])              // Person?
+try Person.fetchOne(db, key: ["email": "arthur@example.com"])              // Person?
 ```
 
 
@@ -3095,13 +3095,13 @@ Person.fetchOne(db, key: ["email": "arthur@example.com"])              // Person
 let count = try Person.fetchCount(db) // Int
 
 // SELECT COUNT(*) FROM persons WHERE email IS NOT NULL
-let count = Person.filter(emailColumn != nil).fetchCount(db)
+let count = try Person.filter(emailColumn != nil).fetchCount(db)
 
 // SELECT COUNT(DISTINCT name) FROM persons
-let count = Person.select(nameColumn).distinct().fetchCount(db)
+let count = try Person.select(nameColumn).distinct().fetchCount(db)
 
 // SELECT COUNT(*) FROM (SELECT DISTINCT name, age FROM persons)
-let count = Person.select(nameColumn, ageColumn).distinct().fetchCount(db)
+let count = try Person.select(nameColumn, ageColumn).distinct().fetchCount(db)
 ```
 
 
@@ -3258,8 +3258,8 @@ try db.execute(
 let pattern = FTS3Pattern(matchingPhrase: "Moby-Dick")
 
 // Search with the query interface or SQL
-let books = Book.matching(pattern).fetchAll(db)
-let books = Book.fetchAll(db,
+let books = try Book.matching(pattern).fetchAll(db)
+let books = try Book.fetchAll(db,
     "SELECT * FROM books WHERE books MATCH ?",
     arguments: [pattern])
 ```
@@ -3520,7 +3520,7 @@ let pattern = FTS3Pattern(matchingAnyTokenIn: "*") // nil
 FTS3Pattern are regular [values](#values). You can use them as query arguments:
 
 ```swift
-let documents = Document.fetchAll(db,
+let documents = try Document.fetchAll(db,
     "SELECT * FROM documents WHERE content MATCH ?",
     arguments: [pattern])
 ```
@@ -3529,10 +3529,10 @@ Use them in the [query interface](#the-query-interface):
 
 ```swift
 // Search in all columns
-let documents = Document.matching(pattern).fetchAll(db)
+let documents = try Document.matching(pattern).fetchAll(db)
 
 // Search in a specific column:
-let documents = Document.filter(Column("content").match(pattern)).fetchAll(db)
+let documents = try Document.filter(Column("content").match(pattern)).fetchAll(db)
 ```
 
 > :warning: **Warning**: It is unsafe to provide a raw String as a search pattern, because an invalid one will crash your application. Prefer the safe FTS3Pattern initializers instead.
@@ -3540,7 +3540,7 @@ let documents = Document.filter(Column("content").match(pattern)).fetchAll(db)
 > ```swift
 > // Only use strings as a full-text search pattern if you are sure that you
 > // provide a valid one. A mistake will crash your application.
-> let documents = Document.fetchAll(db,
+> let documents = try Document.fetchAll(db,
 >     "SELECT * FROM documents WHERE content MATCH ?",
 >     arguments: ["my pattern"]) // Dangerous: string pattern
 > ```
@@ -3743,7 +3743,7 @@ let pattern = FTS5Pattern(matchingAnyTokenIn: "*") // nil
 FTS5Pattern are regular [values](#values). You can use them as query arguments:
 
 ```swift
-let documents = Document.fetchAll(db,
+let documents = try Document.fetchAll(db,
     "SELECT * FROM documents WHERE documents MATCH ?",
     arguments: [pattern])
 ```
@@ -3751,7 +3751,7 @@ let documents = Document.fetchAll(db,
 Use them in the [query interface](#the-query-interface):
 
 ```swift
-let documents = Document.matching(pattern).fetchAll(db)
+let documents = try Document.matching(pattern).fetchAll(db)
 ```
 
 > :warning: **Warning**: It is unsafe to provide a raw String as a search pattern, because an invalid one will crash your application. Prefer the safe FTS5Pattern type instead.
@@ -3759,7 +3759,7 @@ let documents = Document.matching(pattern).fetchAll(db)
 > ```swift
 > // Only use strings as a full-text search pattern if you are sure that you
 > // provide a valid one. A mistake will crash your application.
-> let documents = Document.fetchAll(db,
+> let documents = try Document.fetchAll(db,
 >     "SELECT * FROM documents WHERE documents MATCH ?",
 >     arguments: ["my pattern"]) // Dangerous: string pattern
 > ```
@@ -3771,12 +3771,12 @@ let documents = Document.matching(pattern).fetchAll(db)
 
 ```swift
 // SQL
-let documents = Document.fetchAll(db,
+let documents = try Document.fetchAll(db,
     "SELECT * FROM documents WHERE documents MATCH ? ORDER BY rank",
     arguments: [pattern])
 
 // Query Interface
-let documents = Document.matching(pattern).order(Column.rank).fetchAll(db)
+let documents = try Document.matching(pattern).order(Column.rank).fetchAll(db)
 ```
 
 For more information about the ranking algorithm, as well as extra options, read [Sorting by Auxiliary Function Results](https://www.sqlite.org/fts5.html#sorting_by_auxiliary_function_results)
@@ -4519,23 +4519,6 @@ do {
 
 They uncover programmer errors, false assumptions, and prevent misuses. Here are a few examples:
 
-- **The code contains an invalid SQL query:**
-    
-    ```swift
-    // fatal error:
-    // SQLite error 1 with statement `SELECT * FROM boooks`:
-    // no such table: boooks
-    Row.fetchAll(db, "SELECT * FROM boooks")
-    ```
-    
-    Solution: fix the SQL query:
-    
-    ```swift
-    Row.fetchAll(db, "SELECT * FROM books")
-    ```
-    
-    If you do have to run untrusted SQL queries, jump to [untrusted databases](#how-to-deal-with-untrusted-inputs).
-
 - **The code asks for a non-optional value, when the database contains NULL:**
     
     ```swift
@@ -4580,26 +4563,6 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     
     ```swift
     try Person.filter(Column("email") == "arthur@example.com").deleteAll(db)
-    ```
-
-- **A full-text search is performed with an invalid full-text pattern:**
-    
-    ```swift
-    // fatal error: malformed MATCH expression
-    let pattern: String = ...
-    let documents = Document.fetchAll(db,
-        "SELECT * FROM documents WHERE content MATCH ?",
-        arguments: [pattern])
-    ```
-    
-    Solution: validate the search pattern with the [FTS3Pattern](#fts3pattern) or [FTS5Pattern](#fts5pattern) type:
-    
-    ```swift
-    if let pattern = FTS3Pattern(matchingAllTokensIn: ...) {
-        let documents = Document.fetchAll(db,
-            "SELECT * FROM documents WHERE content MATCH ?",
-            arguments: [pattern])
-    }
     ```
 
 - **Database connections are not reentrant:**
@@ -4685,7 +4648,7 @@ The `UPPER` and `LOWER` built-in SQLite functions are not unicode-aware:
 
 ```swift
 // "JéRôME"
-String.fetchOne(db, "SELECT UPPER('Jérôme')")
+try String.fetchOne(db, "SELECT UPPER('Jérôme')")
 ```
 
 GRDB extends SQLite with [SQL functions](#custom-sql-functions) that call the Swift built-in string functions `capitalized`, `lowercased`, `uppercased`, `localizedCapitalized`, `localizedLowercased` and `localizedUppercased`:
@@ -4693,7 +4656,7 @@ GRDB extends SQLite with [SQL functions](#custom-sql-functions) that call the Sw
 ```swift
 // "JÉRÔME"
 let uppercase = DatabaseFunction.uppercase
-String.fetchOne(db, "SELECT \(uppercased.name)('Jérôme')")
+try String.fetchOne(db, "SELECT \(uppercased.name)('Jérôme')")
 ```
 
 Those unicode-aware string functions are also readily available in the [query interface](#sql-functions):
@@ -4729,7 +4692,7 @@ try db.create(table: "persons") { t in
 }
 
 // Persons are sorted in a localized case insensitive way:
-let persons = Person.order(nameColumn).fetchAll(db)
+let persons = try Person.order(nameColumn).fetchAll(db)
 ```
 
 > :warning: **Warning**: SQLite *requires* host applications to provide the definition of any collation other than binary, nocase and rtrim. When a database file has to be shared or migrated to another SQLite library of platform (such as the Android version of your application), make sure you provide a compatible collation.
@@ -4740,7 +4703,7 @@ If you can't or don't want to define the comparison behavior of a column (see wa
 let collation = DatabaseCollation.localizedCaseInsensitiveCompare
 let persons = try Person.fetchAll(db,
     "SELECT * FROM persons ORDER BY name COLLATE \(collation.name))")
-let persons = Person.order(nameColumn.collating(collation)).fetchAll(db)
+let persons = try Person.order(nameColumn.collating(collation)).fetchAll(db)
 ```
 
 
@@ -4795,7 +4758,7 @@ GRDB ships with two concurrency modes:
 - **Guarantee 2**: reads are always *isolated*. This means that you can perform subsequent reads without fearing eventual concurrent writes to mess with your application logic.
     
     ```swift
-    dbPool.read { db in // or dbQueue.inDatabase { ... }
+    try dbPool.read { db in // or dbQueue.inDatabase { ... }
         // Guaranteed to be equal
         let count1 = try Person.fetchCount(db)
         let count2 = try Person.fetchCount(db)
@@ -4818,17 +4781,17 @@ Those guarantees hold as long as you follow rules:
     
     ```swift
     // SAFE
-    dbPool.read { db in  // or dbQueue.inDatabase { ... }
+    try dbPool.read { db in  // or dbQueue.inDatabase { ... }
         // Guaranteed to be equal:
-        let count1 = PointOfInterest.fetchCount(db)
-        let count2 = PointOfInterest.fetchCount(db)
+        let count1 = try PointOfInterest.fetchCount(db)
+        let count2 = try PointOfInterest.fetchCount(db)
     }
     
     // UNSAFE
     // Those two values may be different because some other thread may have
     // modified the database between the two statements:
-    let count1 = dbPool.read { db in PointOfInterest.fetchCount(db) }
-    let count2 = dbPool.read { db in PointOfInterest.fetchCount(db) }
+    let count1 = try dbPool.read { db in try PointOfInterest.fetchCount(db) }
+    let count2 = try dbPool.read { db in try PointOfInterest.fetchCount(db) }
     ```
 
 
@@ -4920,10 +4883,10 @@ Obviously, no code is faster than any code.
 
 ```swift
 // SELECT * FROM persons
-Person.fetchAll(db)
+try Person.fetchAll(db)
 
 // SELECT id, name FROM persons
-Person.select(idColumn, nameColumn).fetchAll(db)
+try Person.select(idColumn, nameColumn).fetchAll(db)
 ```
 
 If your Person type can't be built without other columns (it has non-optional properties for other columns), *do define and use a different type*.
@@ -4935,11 +4898,11 @@ Use [fetchOne](#fetching-methods) when you need a single value, and otherwise li
 
 ```swift
 // Wrong way: this code may discard hundreds of useless database rows
-let persons = Person.order(scoreColumn.desc).fetchAll(db)
+let persons = try Person.order(scoreColumn.desc).fetchAll(db)
 let hallOfFame = persons.prefix(5)
 
 // Better way
-let hallOfFame = Person.order(scoreColumn.desc).limit(5).fetchAll(db)
+let hallOfFame = try Person.order(scoreColumn.desc).limit(5).fetchAll(db)
 ```
 
 
@@ -4983,10 +4946,10 @@ The following code is inefficient. It is an example of the [N+1 problem](http://
 
 ```swift
 // SELECT * FROM authors
-let authors = Author.fetchAll(db)
+let authors = try Author.fetchAll(db)
 for author in authors {
     // SELECT COUNT(*) FROM books WHERE authorId = ...
-    author.bookCount = Book.filter(authorIdColumn == author.id).fetchCount(db)
+    author.bookCount = try Book.filter(authorIdColumn == author.id).fetchCount(db)
 }
 ```
 
@@ -4997,7 +4960,7 @@ let sql = "SELECT authors.*, COUNT(books.id) AS bookCount " +
           "FROM authors " +
           "LEFT JOIN books ON books.authorId = authors.id " +
           "GROUP BY authors.id"
-let authors = Author.fetchAll(db, sql)
+let authors = try Author.fetchAll(db, sql)
 ```
 
 In the example above, consider extending your Author with an extra bookCount property, or define and use a different type.
@@ -5145,7 +5108,7 @@ The general workaround is to explicitly declare the type of the closure result:
 
 ```swift
 // General Workaround
-let x = dbQueue.inDatabase { db -> String? in
+let string = dbQueue.inDatabase { db -> String? in
     let result = try String.fetchOne(db, ...)
     return result
 }
@@ -5155,8 +5118,8 @@ You can also, when possible, write a single-line closure:
 
 ```swift
 // Single-line closure workaround:
-let x = dbQueue.inDatabase { db in
-    String.fetchOne(db, ...)
+let string = try dbQueue.inDatabase { db in
+    try String.fetchOne(db, ...)
 }
 ```
 

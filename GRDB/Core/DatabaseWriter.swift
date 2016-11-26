@@ -54,7 +54,7 @@ public protocol DatabaseWriter : DatabaseReader {
     /// DatabaseQueue.readFromWrite simply runs *block* synchronously, and
     /// returns when the block has completed. In the example above, the
     /// insertion is run after the select.
-    func readFromWrite(_ block: @escaping (Database) -> Void)
+    func readFromWrite(_ block: @escaping (Database) -> Void) throws
 }
 
 extension DatabaseWriter {

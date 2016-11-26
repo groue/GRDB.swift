@@ -55,7 +55,7 @@ public protocol DatabaseReader : class {
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    func read<T>(_ block: (Database) throws -> T) rethrows -> T
+    func read<T>(_ block: (Database) throws -> T) throws -> T
     
     /// Synchronously executes a read-only block that takes a database
     /// connection, and returns its result.
@@ -78,7 +78,7 @@ public protocol DatabaseReader : class {
     ///         let int1 = try Int.fetchOne(db, sql)
     ///         let int2 = try Int.fetchOne(db, sql)
     ///     }
-    func nonIsolatedRead<T>(_ block: (Database) throws -> T) rethrows -> T
+    func nonIsolatedRead<T>(_ block: (Database) throws -> T) throws -> T
     
     
     // MARK: - Functions

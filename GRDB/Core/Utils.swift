@@ -154,12 +154,12 @@ final class ReadWriteBox<T> {
 ///     got 1
 ///     got 3
 final class Pool<T> {
-    var makeElement: (() -> T)?
+    var makeElement: (() throws -> T)?
     private var items: [PoolItem<T>] = []
     private let queue: DispatchQueue         // protects items
     private let semaphore: DispatchSemaphore // limits the number of elements
     
-    init(maximumCount: Int, makeElement: (() -> T)? = nil) {
+    init(maximumCount: Int, makeElement: (() throws -> T)? = nil) {
         GRDBPrecondition(maximumCount > 0, "Pool size must be at least 1")
         self.makeElement = makeElement
         self.queue = DispatchQueue(label: "GRDB.Pool")
@@ -168,15 +168,15 @@ final class Pool<T> {
     
     /// Returns a tuple (element, releaseElement())
     /// Client MUST call releaseElement() after the element has been used.
-    func get() -> (T, () -> ()) {
-        let item = lockItem()
+    func get() throws -> (T, () -> ()) {
+        let item = try lockItem()
         return (item.element, { self.unlockItem(item) })
     }
     
     /// Performs a synchronous block with an element. The element turns
     /// available after the block has executed.
-    func get<U>(block: (T) throws -> U) rethrows -> U {
-        let (element, release) = get()
+    func get<U>(block: (T) throws -> U) throws -> U {
+        let (element, release) = try get()
         defer { release() }
         return try block(element)
     }
@@ -205,15 +205,15 @@ final class Pool<T> {
         }
     }
     
-    private func lockItem() -> PoolItem<T> {
+    private func lockItem() throws -> PoolItem<T> {
         var item: PoolItem<T>! = nil
         _ = semaphore.wait(timeout: .distantFuture)
-        queue.sync {
+        try queue.sync {
             if let availableItem = self.items.first(where: { $0.available }) {
                 item = availableItem
                 item.available = false
             } else {
-                item = PoolItem(element: self.makeElement!(), available: false)
+                item = try PoolItem(element: self.makeElement!(), available: false)
                 self.items.append(item)
             }
         }

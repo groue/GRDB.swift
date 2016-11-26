@@ -83,7 +83,7 @@ public final class DatabasePool {
         
         readerPool = Pool<SerializedDatabase>(maximumCount: configuration.maximumReaderCount)
         readerPool.makeElement = { [unowned self] in
-            let reader = try! SerializedDatabase(
+            let reader = try SerializedDatabase(
                 path: path,
                 configuration: self.readerConfig,
                 schemaCache: sharedSchemaCache)
@@ -273,7 +273,7 @@ extension DatabasePool : DatabaseReader {
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    public func read<T>(_ block: (Database) throws -> T) rethrows -> T {
+    public func read<T>(_ block: (Database) throws -> T) throws -> T {
         // The block isolation comes from the DEFERRED transaction.
         // See DatabasePoolTests.testReadMethodIsolationOfBlock().
         return try readerPool.get { reader in
@@ -308,7 +308,7 @@ extension DatabasePool : DatabaseReader {
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    public func nonIsolatedRead<T>(_ block: (Database) throws -> T) rethrows -> T {
+    public func nonIsolatedRead<T>(_ block: (Database) throws -> T) throws -> T {
         return try readerPool.get { reader in
             try reader.sync { db in
                 try block(db)
@@ -449,11 +449,11 @@ extension DatabasePool : DatabaseWriter {
     ///
     /// The database pool releases the writing dispatch queue early, before the
     /// block has finished.
-    public func readFromWrite(_ block: @escaping (Database) -> Void) {
+    public func readFromWrite(_ block: @escaping (Database) -> Void) throws {
         writer.preconditionValidQueue()
         
         let semaphore = DispatchSemaphore(value: 0)
-        readerPool.get { reader in
+        try readerPool.get { reader in
             reader.async { db in
                 // Assume COMMIT DEFERRED TRANSACTION does not throw error.
                 try! db.inTransaction(.deferred) {

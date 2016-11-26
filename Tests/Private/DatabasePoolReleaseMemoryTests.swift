@@ -38,7 +38,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                     try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
                 }
                 // Reader connection
-                dbPool.read { _ in }
+                try dbPool.read { _ in }
             }
             
             // One reader, one writer
