@@ -128,17 +128,3 @@ extension Array {
         }
     }
 }
-
-public struct CursorIterator<Element> : IteratorProtocol {
-    private var element: () -> Element?
-    
-    /// TODO
-    public init<C : Cursor>(_ cursor: C) where C.Element == Element {
-        element = { try! cursor.next() }
-    }
-    
-    /// TODO
-    public mutating func next() -> Element? {
-        return element()
-    }
-}
