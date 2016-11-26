@@ -1,3 +1,4 @@
+- DatabaseCursor: test errors while iterating a cursor with failed conversion (null in DatabaseCursor<Int>, and "Mom’s birthday" in DatabaseCursor<Date?>)
 - DatabaseCursor: consider making Persistable.exists() throwable
 - DatabaseCursor/FetchedRecordsController: handle fetch errors
 - DatabaseCursor/FetchedRecordsController: along throwable fetchAlongside closure
