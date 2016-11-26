@@ -295,6 +295,7 @@ public final class DatabaseCursor<Element> {
     fileprivate let statementRef: Unmanaged<SelectStatement>
     private let sqliteStatement: SQLiteStatement
     private let element: () throws -> Element?
+    private var done = false
     
     init(statement: SelectStatement, element: @escaping () throws -> Element?) {
         self.statementRef = Unmanaged.passRetained(statement)
@@ -307,25 +308,20 @@ public final class DatabaseCursor<Element> {
     }
     
     /// Advances to the next element and returns it, or `nil` if no next element
-    /// exists. This method is the throwing version of the `next` method.
-    ///
-    /// The following example shows how an iterator can be used explicitly to
-    /// emulate a `for`-`in` loop. First, retrieve a database sequence's
-    /// iterator, and then call the iterator's `next()` method until it
-    /// returns `nil`.
+    /// exists. Once nil has been returned, all subsequent calls return nil.
     ///
     ///     let cursor = try Row.fetchCursor(db, "SELECT ...")
-    ///
     ///     while let row = try cursor.step() {
     ///         print(row)
     ///     }
-    ///
-    /// - returns: The next element in the underlying sequence if a next element
-    ///   exists; otherwise, `nil`.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func step() throws -> Element? {
+        if done {
+            return nil
+        }
+        
         switch sqlite3_step(sqliteStatement) {
         case SQLITE_DONE:
+            done = true
             return nil
         case SQLITE_ROW:
             return try element()
@@ -338,7 +334,7 @@ public final class DatabaseCursor<Element> {
 
 extension DatabaseCursor {
     /// TODO
-    func enumerated() -> DatabaseCursor<(Int, Element)> {
+    public func enumerated() -> DatabaseCursor<(Int, Element)> {
         var i = 0
         return DatabaseCursor<(Int, Element)>(statement: statementRef.takeUnretainedValue()) {
             guard let element = try self.step() else { return nil }
@@ -348,7 +344,7 @@ extension DatabaseCursor {
     }
     
     /// TODO
-    func filter(_ isIncluded: (Element) throws -> Bool) throws -> [Element] {
+    public func filter(_ isIncluded: (Element) throws -> Bool) throws -> [Element] {
         var result: [Element] = []
         while let element = try step() {
             if try isIncluded(element) {
@@ -359,14 +355,14 @@ extension DatabaseCursor {
     }
 
     /// TODO
-    func forEach(_ body: (Element) throws -> Void) throws {
+    public func forEach(_ body: (Element) throws -> Void) throws {
         while let element = try step() {
             try body(element)
         }
     }
 
     /// TODO
-    func map<T>(_ transform: (Element) throws -> T) throws -> [T] {
+    public func map<T>(_ transform: (Element) throws -> T) throws -> [T] {
         var result: [T] = []
         while let element = try step() {
             try result.append(transform(element))
@@ -375,7 +371,7 @@ extension DatabaseCursor {
     }
     
     /// TODO
-    func reduce<Result>(_ initialResult: Result, _ nextPartialResult: (Result, Element) throws -> Result) throws -> Result {
+    public func reduce<Result>(_ initialResult: Result, _ nextPartialResult: (Result, Element) throws -> Result) throws -> Result {
         var result = initialResult
         while let element = try step() {
             result = try nextPartialResult(result, element)
@@ -394,22 +390,7 @@ public final class DatabaseIterator<Element>: IteratorProtocol {
     }
     
     /// Advances to the next element and returns it, or `nil` if no next element
-    /// exists.
-    ///
-    /// The following example shows how an iterator can be used explicitly to
-    /// emulate a `for`-`in` loop. First, retrieve a database sequence's
-    /// iterator, and then call the iterator's `next()` method until it
-    /// returns `nil`.
-    ///
-    ///     let rows = Row.fetch(db, "SELECT ...")
-    ///     var iterator = rows.makeIterator()
-    ///
-    ///     while let row = iterator.next() {
-    ///         print(row)
-    ///     }
-    ///
-    /// - returns: The next element in the underlying sequence if a next element
-    ///   exists; otherwise, `nil`.
+    /// exists. Once nil has been returned, all subsequent calls return nil.
     public func next() -> Element? {
         return try! cursor?.step()
     }
