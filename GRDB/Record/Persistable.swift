@@ -343,7 +343,7 @@ public extension MutablePersistable {
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
     func performUpdate(_ db: Database, columns: Set<String>) throws {
-        guard let statement = DAO(db, self).updateStatement(columns: columns, onConflict: type(of: self).persistenceConflictPolicy.conflictResolutionForUpdate) else {
+        guard let statement = try DAO(db, self).updateStatement(columns: columns, onConflict: type(of: self).persistenceConflictPolicy.conflictResolutionForUpdate) else {
             // Nil primary key
             throw PersistenceError.recordNotFound(self)
         }
@@ -390,7 +390,7 @@ public extension MutablePersistable {
     /// their implementation of delete(). They should not provide their own
     /// implementation of performDelete().
     func performDelete(_ db: Database) throws -> Bool {
-        guard let statement = DAO(db, self).deleteStatement() else {
+        guard let statement = try DAO(db, self).deleteStatement() else {
             // Nil primary key
             return false
         }
@@ -406,11 +406,12 @@ public extension MutablePersistable {
     /// their implementation of exists(). They should not provide their own
     /// implementation of performExists().
     func performExists(_ db: Database) -> Bool {
-        guard let statement = DAO(db, self).existsStatement() else {
+        // TODO: handle errors
+        guard let statement = try! DAO(db, self).existsStatement() else {
             // Nil primary key
             return false
         }
-        return Row.fetchOne(statement) != nil
+        return try! Row.fetchCursor(statement).next() != nil
     }
     
 }
@@ -607,18 +608,18 @@ final class DAO {
         self.primaryKey = primaryKey
     }
     
-    func insertStatement(onConflict: Database.ConflictResolution) -> UpdateStatement {
+    func insertStatement(onConflict: Database.ConflictResolution) throws -> UpdateStatement {
         let query = InsertQuery(
             onConflict: onConflict,
             tableName: databaseTableName,
             insertedColumns: Array(persistentDictionary.keys))
-        let statement = try! db.cachedUpdateStatement(query.sql)
+        let statement = try db.cachedUpdateStatement(query.sql)
         statement.unsafeSetArguments(StatementArguments(persistentDictionary.values))
         return statement
     }
     
     /// Returns nil if and only if primary key is nil
-    func updateStatement(columns: Set<String>, onConflict: Database.ConflictResolution) -> UpdateStatement? {
+    func updateStatement(columns: Set<String>, onConflict: Database.ConflictResolution) throws -> UpdateStatement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = databaseValues(for: primaryKeyColumns, inDictionary: persistentDictionary)
@@ -654,13 +655,13 @@ final class DAO {
             tableName: databaseTableName,
             updatedColumns: updatedColumns,
             conditionColumns: primaryKeyColumns)
-        let statement = try! db.cachedUpdateStatement(query.sql)
+        let statement = try db.cachedUpdateStatement(query.sql)
         statement.unsafeSetArguments(StatementArguments(updatedValues + primaryKeyValues))
         return statement
     }
     
     /// Returns nil if and only if primary key is nil
-    func deleteStatement() -> UpdateStatement? {
+    func deleteStatement() throws -> UpdateStatement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = databaseValues(for: primaryKeyColumns, inDictionary: persistentDictionary)
@@ -669,13 +670,13 @@ final class DAO {
         let query = DeleteQuery(
             tableName: databaseTableName,
             conditionColumns: primaryKeyColumns)
-        let statement = try! db.cachedUpdateStatement(query.sql)
+        let statement = try db.cachedUpdateStatement(query.sql)
         statement.unsafeSetArguments(StatementArguments(primaryKeyValues))
         return statement
     }
     
     /// Returns nil if and only if primary key is nil
-    func existsStatement() -> SelectStatement? {
+    func existsStatement() throws -> SelectStatement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = databaseValues(for: primaryKeyColumns, inDictionary: persistentDictionary)
@@ -684,7 +685,7 @@ final class DAO {
         let query = ExistsQuery(
             tableName: databaseTableName,
             conditionColumns: primaryKeyColumns)
-        let statement = try! db.cachedSelectStatement(query.sql)
+        let statement = try db.cachedSelectStatement(query.sql)
         statement.unsafeSetArguments(StatementArguments(primaryKeyValues))
         return statement
     }
