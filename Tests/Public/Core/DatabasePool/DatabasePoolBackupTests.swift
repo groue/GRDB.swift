@@ -32,8 +32,8 @@ class DatabasePoolBackupTests: GRDBTestCase {
             
             try source.backup(to: destination)
             
-            destination.read { db in
-                XCTAssertFalse(db.tableExists("items"))
+            try destination.read { db in
+                XCTAssertFalse(try db.tableExists("items"))
             }
         }
     }

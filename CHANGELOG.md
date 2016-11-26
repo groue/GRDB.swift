@@ -5,7 +5,7 @@ Release Notes
 
 **New**
 
-- `DatabaseCursor` allows processing errors when reading from the database. Compare:
+- `DatabaseCursor` allows processing errors that happen when reading from the database. Compare:
     
     ```swift
     // May crash in case of I/O error, for example:
@@ -15,14 +15,16 @@ Release Notes
     
     // Cursor expose all database errors:
     let cursor = try Person.fetchCursor(db)
-    while person = try cursor.step() {
+    while person = try cursor.next() {
         ...
     }
     ```
 
 **Breaking Change**
 
-- the throwing `step()` method of DatabaseIterator has been removed. Use cursors instead.
+- The throwing `step()` method of DatabaseIterator has been removed. Use DatabaseCursor instead.
+- `Database.tableExists(_:)` can now throw database errors.
+- `Database.indexes(on:)` can now throw database errors.
 
 
 ## 0.90.1

@@ -936,13 +936,13 @@ extension Database {
     }
     
     /// Returns whether a table exists.
-    public func tableExists(_ tableName: String) -> Bool {
+    public func tableExists(_ tableName: String) throws -> Bool {
         SchedulingWatchdog.preconditionValidQueue(self)
         
         // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)
-        return Row.fetchOne(self,
-            "SELECT * FROM (SELECT sql, type, name FROM sqlite_master UNION SELECT sql, type, name FROM sqlite_temp_master) WHERE type = 'table' AND LOWER(name) = ?",
-            arguments: [tableName.lowercased()]) != nil
+        return try Row
+            .fetchCursor(self, "SELECT 1 FROM (SELECT sql, type, name FROM sqlite_master UNION SELECT sql, type, name FROM sqlite_temp_master) WHERE type = 'table' AND LOWER(name) = ?", arguments: [tableName.lowercased()])
+            .next() != nil
     }
     
     /// The primary key for table named `tableName`; nil if table has no
@@ -1064,11 +1064,11 @@ extension Database {
         if #available(iOS 8.2, OSX 10.10, *) { } else {
             // Work around a bug in SQLite where PRAGMA table_info would
             // return a result even after the table was deleted.
-            if !tableExists(tableName) {
+            if try !tableExists(tableName) {
                 throw DatabaseError(message: "no such table: \(tableName)")
             }
         }
-        let columns = ColumnInfo.fetchAll(self, "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))")
+        let columns = try ColumnInfo.fetchCursor(self, "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))").map { $0 }
         guard columns.count > 0 else {
             throw DatabaseError(message: "no such table: \(tableName)")
         }
@@ -1085,15 +1085,15 @@ extension Database {
     ///
     /// If you want to know if a set of columns uniquely identify a row, prefer
     /// table(_:hasUniqueKey:) instead.
-    public func indexes(on tableName: String) -> [IndexInfo] {
+    public func indexes(on tableName: String) throws -> [IndexInfo] {
         if let indexes = schemaCache.indexes(on: tableName) {
             return indexes
         }
         
-        let indexes = Row.fetch(self, "PRAGMA index_list(\(tableName.quotedDatabaseIdentifier))").map { row -> IndexInfo in
+        let indexes = try Row.fetchCursor(self, "PRAGMA index_list(\(tableName.quotedDatabaseIdentifier))").map { row -> IndexInfo in
             let indexName: String = row.value(atIndex: 1)
             let unique: Bool = row.value(atIndex: 2)
-            let columns = Row.fetch(self, "PRAGMA index_info(\(indexName.quotedDatabaseIdentifier))")
+            let columns = try Row.fetchCursor(self, "PRAGMA index_info(\(indexName.quotedDatabaseIdentifier))")
                 .map { ($0.value(atIndex: 0) as Int, $0.value(atIndex: 2) as String) }
                 .sorted { $0.0 < $1.0 }
                 .map { $0.1 }
@@ -1109,7 +1109,7 @@ extension Database {
     public func table<T: Sequence>(_ tableName: String, hasUniqueKey columns: T) throws -> Bool where T.Iterator.Element == String {
         let primaryKey = try self.primaryKey(tableName) // first, so that we fail early and consistently should the table not exist
         let columns = Set(columns.map { $0.lowercased() })
-        if indexes(on: tableName).contains(where: { index in index.isUnique && Set(index.columns.map { $0.lowercased() }) == columns }) {
+        if try indexes(on: tableName).contains(where: { index in index.isUnique && Set(index.columns.map { $0.lowercased() }) == columns }) {
             // There is an explicit unique index on the columns
             return true
         }

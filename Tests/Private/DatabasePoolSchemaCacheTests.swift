@@ -45,7 +45,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
                 XCTAssertEqual(columns[2].name, "foo")
                 XCTAssertEqual(columns[3].name, "bar")
                 
-                let indexes = db.indexes(on: "items")
+                let indexes = try db.indexes(on: "items")
                 XCTAssertEqual(indexes.count, 2)
                 for index in indexes {
                     switch index.name {

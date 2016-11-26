@@ -423,12 +423,12 @@ class SQLTableBuilderTests: GRDBTestCase {
                 try db.create(table: "test") { t in
                     t.column("a", .text)
                 }
-                XCTAssertTrue(db.tableExists("test"))
+                XCTAssertTrue(try db.tableExists("test"))
                 
                 try db.rename(table: "test", to: "foo")
                 XCTAssertEqual(self.lastSQLQuery, "ALTER TABLE \"test\" RENAME TO \"foo\"")
-                XCTAssertFalse(db.tableExists("test"))
-                XCTAssertTrue(db.tableExists("foo"))
+                XCTAssertFalse(try db.tableExists("test"))
+                XCTAssertTrue(try db.tableExists("foo"))
             }
         }
     }
@@ -461,11 +461,11 @@ class SQLTableBuilderTests: GRDBTestCase {
                     t.column("id", .integer).primaryKey()
                     t.column("name", .text)
                 }
-                XCTAssertTrue(db.tableExists("test"))
+                XCTAssertTrue(try db.tableExists("test"))
                 
                 try db.drop(table: "test")
                 XCTAssertEqual(self.lastSQLQuery, "DROP TABLE \"test\"")
-                XCTAssertFalse(db.tableExists("test"))
+                XCTAssertFalse(try db.tableExists("test"))
             }
         }
     }
@@ -487,7 +487,7 @@ class SQLTableBuilderTests: GRDBTestCase {
                 XCTAssertEqual(self.lastSQLQuery, "CREATE UNIQUE INDEX IF NOT EXISTS \"test_on_a_b\" ON \"test\"(\"a\", \"b\") WHERE (\"a\" = 1)")
                 
                 // Sanity check
-                XCTAssertEqual(Set(db.indexes(on: "test").map { $0.name }), ["test_on_a", "test_on_a_b"])
+                XCTAssertEqual(try Set(db.indexes(on: "test").map { $0.name }), ["test_on_a", "test_on_a_b"])
             }
         }
     }
@@ -506,7 +506,7 @@ class SQLTableBuilderTests: GRDBTestCase {
                 XCTAssertEqual(self.lastSQLQuery, "DROP INDEX \"test_on_name\"")
                 
                 // Sanity check
-                XCTAssertTrue(db.indexes(on: "test").isEmpty)
+                XCTAssertTrue(try db.indexes(on: "test").isEmpty)
             }
         }
     }

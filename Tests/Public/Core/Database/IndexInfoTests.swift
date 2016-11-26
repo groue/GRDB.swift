@@ -15,7 +15,7 @@ class IndexInfoTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 do {
                     try db.execute("CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, email TEXT UNIQUE)")
-                    let indexes = db.indexes(on: "persons")
+                    let indexes = try db.indexes(on: "persons")
                     
                     XCTAssertEqual(indexes.count, 1)
                     XCTAssertEqual(indexes[0].name, "sqlite_autoindex_persons_1")
@@ -26,7 +26,7 @@ class IndexInfoTests: GRDBTestCase {
                 do {
                     try db.execute("CREATE TABLE citizenships (year INTEGER, personId INTEGER NOT NULL, countryIsoCode TEXT NOT NULL, PRIMARY KEY (personId, countryIsoCode))")
                     try db.execute("CREATE INDEX citizenshipsOnYear ON citizenships(year)")
-                    let indexes = db.indexes(on: "citizenships")
+                    let indexes = try db.indexes(on: "citizenships")
                     
                     XCTAssertEqual(indexes.count, 2)
                     if let i = indexes.index(where: { $0.columns == ["year"] }) {

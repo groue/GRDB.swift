@@ -174,8 +174,8 @@ class UpdateStatementTests : GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE wines (name TEXT, color INT); CREATE TABLE books (name TEXT, age INT)")
-                XCTAssertTrue(db.tableExists("wines"))
-                XCTAssertTrue(db.tableExists("books"))
+                XCTAssertTrue(try db.tableExists("wines"))
+                XCTAssertTrue(try db.tableExists("books"))
             }
         }
     }
@@ -185,8 +185,8 @@ class UpdateStatementTests : GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE wines (name TEXT, color INT); CREATE TABLE books (name TEXT, age INT)\n \t")
-                XCTAssertTrue(db.tableExists("wines"))
-                XCTAssertTrue(db.tableExists("books"))
+                XCTAssertTrue(try db.tableExists("wines"))
+                XCTAssertTrue(try db.tableExists("books"))
             }
         }
     }
@@ -196,8 +196,8 @@ class UpdateStatementTests : GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE wines (name TEXT, color INT); CREATE TABLE books (name TEXT, age INT);\n \t")
-                XCTAssertTrue(db.tableExists("wines"))
-                XCTAssertTrue(db.tableExists("books"))
+                XCTAssertTrue(try db.tableExists("wines"))
+                XCTAssertTrue(try db.tableExists("books"))
             }
         }
     }

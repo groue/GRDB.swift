@@ -32,8 +32,8 @@ class DatabaseQueueBackupTests: GRDBTestCase {
             
             try source.backup(to: destination)
             
-            destination.inDatabase { db in
-                XCTAssertFalse(db.tableExists("items"))
+            try destination.inDatabase { db in
+                XCTAssertFalse(try db.tableExists("items"))
             }
         }
     }

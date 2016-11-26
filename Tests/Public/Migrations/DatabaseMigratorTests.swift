@@ -33,9 +33,9 @@ class DatabaseMigratorTests : GRDBTestCase {
             }
             
             try migrator.migrate(dbQueue)
-            dbQueue.inDatabase { db in
-                XCTAssertTrue(db.tableExists("persons"))
-                XCTAssertTrue(db.tableExists("pets"))
+            try dbQueue.inDatabase { db in
+                XCTAssertTrue(try db.tableExists("persons"))
+                XCTAssertTrue(try db.tableExists("pets"))
             }
             
             migrator.registerMigration("destroyPersons") { db in
@@ -43,9 +43,9 @@ class DatabaseMigratorTests : GRDBTestCase {
             }
             
             try migrator.migrate(dbQueue)
-            dbQueue.inDatabase { db in
-                XCTAssertTrue(db.tableExists("persons"))
-                XCTAssertFalse(db.tableExists("pets"))
+            try dbQueue.inDatabase { db in
+                XCTAssertTrue(try db.tableExists("persons"))
+                XCTAssertFalse(try db.tableExists("pets"))
             }
         }
     }
@@ -74,9 +74,9 @@ class DatabaseMigratorTests : GRDBTestCase {
             }
             
             try migrator.migrate(dbPool)
-            dbPool.read { db in
-                XCTAssertTrue(db.tableExists("persons"))
-                XCTAssertTrue(db.tableExists("pets"))
+            try dbPool.read { db in
+                XCTAssertTrue(try db.tableExists("persons"))
+                XCTAssertTrue(try db.tableExists("pets"))
             }
             
             migrator.registerMigration("destroyPersons") { db in
@@ -84,9 +84,9 @@ class DatabaseMigratorTests : GRDBTestCase {
             }
             
             try migrator.migrate(dbPool)
-            dbPool.read { db in
-                XCTAssertTrue(db.tableExists("persons"))
-                XCTAssertFalse(db.tableExists("pets"))
+            try dbPool.read { db in
+                XCTAssertTrue(try db.tableExists("persons"))
+                XCTAssertFalse(try db.tableExists("pets"))
             }
         }
     }

@@ -13,13 +13,13 @@ class DatabaseTests : GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                XCTAssertFalse(db.tableExists("persons"))
+                XCTAssertFalse(try db.tableExists("persons"))
                 try db.execute(
                     "CREATE TABLE persons (" +
                         "id INTEGER PRIMARY KEY, " +
                         "name TEXT, " +
                         "age INT)")
-                XCTAssertTrue(db.tableExists("persons"))
+                XCTAssertTrue(try db.tableExists("persons"))
             }
         }
     }
@@ -28,13 +28,13 @@ class DatabaseTests : GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                XCTAssertFalse(db.tableExists("persons"))
+                XCTAssertFalse(try db.tableExists("persons"))
                 try db.execute(
                     "CREATE TEMPORARY TABLE persons (" +
                         "id INTEGER PRIMARY KEY, " +
                         "name TEXT, " +
                     "age INT)")
-                XCTAssertTrue(db.tableExists("persons"))
+                XCTAssertTrue(try db.tableExists("persons"))
             }
         }
     }
@@ -43,13 +43,13 @@ class DatabaseTests : GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                XCTAssertFalse(db.tableExists("persons"))
-                XCTAssertFalse(db.tableExists("pets"))
+                XCTAssertFalse(try db.tableExists("persons"))
+                XCTAssertFalse(try db.tableExists("pets"))
                 try db.execute(
                     "CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, age INT);" +
                     "CREATE TABLE pets (id INTEGER PRIMARY KEY, name TEXT, age INT);")
-                XCTAssertTrue(db.tableExists("persons"))
-                XCTAssertTrue(db.tableExists("pets"))
+                XCTAssertTrue(try db.tableExists("persons"))
+                XCTAssertTrue(try db.tableExists("pets"))
             }
         }
     }

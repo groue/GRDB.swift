@@ -58,7 +58,7 @@ class VirtualTableModuleTests: GRDBTestCase {
                     t.tokenizer = "simple"
                 }
                 assertDidExecute(sql: "CREATE VIRTUAL TABLE \"test\" USING fts3tokenize(simple)")
-                XCTAssertTrue(db.tableExists("test"))
+                XCTAssertTrue(try db.tableExists("test"))
             }
         }
     }
@@ -76,7 +76,7 @@ class VirtualTableModuleTests: GRDBTestCase {
                     XCTAssertEqual(error.code, 123)
                 }
                 assertDidExecute(sql: "CREATE VIRTUAL TABLE \"test\" USING fts3tokenize(simple)")
-                XCTAssertFalse(db.tableExists("test"))
+                XCTAssertFalse(try db.tableExists("test"))
             }
         }
     }
