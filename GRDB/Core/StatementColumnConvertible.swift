@@ -54,10 +54,10 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
     
     /// TODO
     public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
-        // We'll read from leftmost column at index 0, unless adapter mangle columns
+        // We'll read from leftmost column at index 0, unless adapter mangles columns
         let columnIndex: Int32
         if let adapter = adapter {
-            let concreteAdapter = try! adapter.concreteRowAdapter(with: statement)
+            let concreteAdapter = try adapter.concreteRowAdapter(with: statement)
             columnIndex = Int32(concreteAdapter.concreteColumnMapping.baseColumIndex(adaptedIndex: 0))
         } else {
             columnIndex = 0
@@ -95,7 +95,7 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
     ///     - adapter: Optional RowAdapter
     /// - returns: A sequence of values.
     public static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Self> {
-        return statement.fetch { try fetchCursor(statement, arguments: arguments, adapter: adapter) }
+        return DatabaseSequence { try fetchCursor(statement, arguments: arguments, adapter: adapter) }
     }
     
     /// Returns an array of values fetched from a prepared statement.
@@ -109,7 +109,7 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of values.
     public static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Self] {
-        return Array(fetch(statement, arguments: arguments, adapter: adapter))
+        return try! Array(fetchCursor(statement, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single value fetched from a prepared statement.
@@ -123,7 +123,7 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional value.
     public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Self? {
-        // We'll read from leftmost column at index 0, unless adapter mangle columns
+        // We'll read from leftmost column at index 0, unless adapter mangles columns
         let columnIndex: Int32
         if let adapter = adapter {
             let concreteAdapter = try! adapter.concreteRowAdapter(with: statement)

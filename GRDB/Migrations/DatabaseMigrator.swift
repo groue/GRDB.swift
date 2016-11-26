@@ -114,7 +114,7 @@ public struct DatabaseMigrator {
     }
     
     private func runMigrations(_ db: Database) throws {
-        let appliedIdentifiers = try String.fetchCursor(db, "SELECT identifier FROM grdb_migrations").map { $0 }
+        let appliedIdentifiers = try Array(String.fetchCursor(db, "SELECT identifier FROM grdb_migrations"))
         for migration in migrations where !appliedIdentifiers.contains(migration.identifier) {
             try migration.run(db)
         }

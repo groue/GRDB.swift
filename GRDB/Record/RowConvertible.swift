@@ -77,7 +77,7 @@ extension RowConvertible {
     ///     - adapter: Optional RowAdapter
     /// - returns: A sequence of records.
     public static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Self> {
-        return statement.fetch { try fetchCursor(statement, arguments: arguments, adapter: adapter) }
+        return DatabaseSequence { try fetchCursor(statement, arguments: arguments, adapter: adapter) }
     }
     
     /// Returns an array of records fetched from a prepared statement.
@@ -91,7 +91,7 @@ extension RowConvertible {
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of records.
     public static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Self] {
-        return Array(fetch(statement, arguments: arguments, adapter: adapter))
+        return try! Array(fetchCursor(statement, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single record fetched from a prepared statement.
@@ -105,7 +105,7 @@ extension RowConvertible {
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional record.
     public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Self? {
-        return fetch(statement, arguments: arguments, adapter: adapter).makeIterator().next()
+        return try! fetchCursor(statement, arguments: arguments, adapter: adapter).next()
     }
 }
 

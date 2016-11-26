@@ -544,7 +544,7 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: A sequence of rows.
     public static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Row> {
-        return statement.fetch { try fetchCursor(statement, arguments: arguments, adapter: adapter) }
+        return DatabaseSequence { try fetchCursor(statement, arguments: arguments, adapter: adapter) }
     }
     
     /// Returns an array of rows fetched from a prepared statement.

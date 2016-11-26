@@ -254,11 +254,6 @@ public final class SelectStatement : Statement {
         try reset()
         return DatabaseCursor(statement: self, element: element)
     }
-    
-    /// Creates a DatabaseSequence
-    func fetch<Element>(cursor: @escaping () throws -> DatabaseCursor<Element>) -> DatabaseSequence<Element> {
-        return DatabaseSequence(cursor: cursor)
-    }
 }
 
 /// A sequence of elements fetched from the database.
@@ -363,6 +358,7 @@ extension DatabaseCursor {
 
     /// TODO
     public func map<T>(_ transform: (Element) throws -> T) throws -> [T] {
+        // TODO: cursors should have an underestimatedCount
         var result: [T] = []
         while let element = try next() {
             try result.append(transform(element))
@@ -377,6 +373,17 @@ extension DatabaseCursor {
             result = try nextPartialResult(result, element)
         }
         return result
+    }
+}
+
+extension Array {
+    /// TODO
+    public init<Cursor : DatabaseCursor<Element>>(_ cursor: Cursor) throws {
+        // TODO: cursors should have an underestimatedCount
+        self.init()
+        while let element = try cursor.next() {
+            append(element)
+        }
     }
 }
 

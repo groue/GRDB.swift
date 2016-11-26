@@ -131,7 +131,7 @@ public extension DatabaseValueConvertible {
     ///     - adapter: Optional RowAdapter
     /// - returns: A sequence.
     public static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Self> {
-        return statement.fetch { try fetchCursor(statement, arguments: arguments, adapter: adapter) }
+        return DatabaseSequence { try fetchCursor(statement, arguments: arguments, adapter: adapter) }
     }
     
     /// Returns an array of values fetched from a prepared statement.
@@ -145,7 +145,7 @@ public extension DatabaseValueConvertible {
     ///     - adapter: Optional RowAdapter
     /// - returns: An array.
     public static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Self] {
-        return Array(fetch(statement, arguments: arguments, adapter: adapter))
+        return try! Array(fetchCursor(statement, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single value fetched from a prepared statement.
@@ -350,7 +350,7 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
     ///     - adapter: Optional RowAdapter
     /// - returns: A sequence of optional values.
     public static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Wrapped?> {
-        return statement.fetch { try fetchCursor(statement, arguments: arguments, adapter: adapter) }
+        return DatabaseSequence { try fetchCursor(statement, arguments: arguments, adapter: adapter) }
     }
     
     /// Returns an array of optional values fetched from a prepared statement.
@@ -364,7 +364,7 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of optional values.
     public static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Wrapped?] {
-        return Array(fetch(statement, arguments: arguments, adapter: adapter))
+        return try! Array(fetchCursor(statement, arguments: arguments, adapter: adapter))
     }
 }
 
