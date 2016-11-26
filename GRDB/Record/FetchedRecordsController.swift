@@ -859,7 +859,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             
             databaseWriter.readFromWrite { db in
                 // TODO: handle errors
-                fetchedItems = try Array(Item<Record>.fetchCursor(db, request))
+                fetchedItems = try! Array(Item<Record>.fetchCursor(db, request))
                 fetchedAlongside = fetchAlongside(db)
                 
                 // Fetch is complete:
