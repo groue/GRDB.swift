@@ -26,7 +26,45 @@ private struct WrappedInt: DatabaseValueConvertible {
 
 class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     
-    func testFetchFromStatement() {
+    func testFetchCursorFromStatement() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (int Int)")
+                try db.execute("INSERT INTO ints (int) VALUES (1)")
+                try db.execute("INSERT INTO ints (int) VALUES (2)")
+                
+                let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
+                let cursor = try WrappedInt.fetchCursor(statement)
+                
+                XCTAssertEqual(try cursor.next()!.int, 1)
+                XCTAssertEqual(try cursor.next()!.int, 2)
+                XCTAssertTrue(try cursor.next() == nil)
+                XCTAssertTrue(try cursor.next() == nil) // safety
+            }
+        }
+    }
+    
+    func testFetchCursorFromStatementWithAdapter() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (int Int)")
+                try db.execute("INSERT INTO ints (int) VALUES (1)")
+                try db.execute("INSERT INTO ints (int) VALUES (2)")
+                
+                let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
+                let cursor = try WrappedInt.fetchCursor(statement, adapter: SuffixRowAdapter(fromIndex: 1))
+                
+                XCTAssertEqual(try cursor.next()!.int, -1)
+                XCTAssertEqual(try cursor.next()!.int, -2)
+                XCTAssertTrue(try cursor.next() == nil)
+                XCTAssertTrue(try cursor.next() == nil) // safety
+            }
+        }
+    }
+    
+    func testFetchSequenceFromStatement() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -42,7 +80,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    func testFetchFromStatementWithAdapter() {
+    func testFetchSequenceFromStatementWithAdapter() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -134,7 +172,43 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    func testFetchFromSQL() {
+    func testFetchCursorFromSQL() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (int Int)")
+                try db.execute("INSERT INTO ints (int) VALUES (1)")
+                try db.execute("INSERT INTO ints (int) VALUES (2)")
+                
+                let cursor = try WrappedInt.fetchCursor(db, "SELECT int, -int FROM ints ORDER BY int")
+                
+                XCTAssertEqual(try cursor.next()!.int, 1)
+                XCTAssertEqual(try cursor.next()!.int, 2)
+                XCTAssertTrue(try cursor.next() == nil)
+                XCTAssertTrue(try cursor.next() == nil) // safety
+            }
+        }
+    }
+    
+    func testFetchCursorFromSQLWithAdapter() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (int Int)")
+                try db.execute("INSERT INTO ints (int) VALUES (1)")
+                try db.execute("INSERT INTO ints (int) VALUES (2)")
+                
+                let cursor = try WrappedInt.fetchCursor(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
+                
+                XCTAssertEqual(try cursor.next()!.int, -1)
+                XCTAssertEqual(try cursor.next()!.int, -2)
+                XCTAssertTrue(try cursor.next() == nil)
+                XCTAssertTrue(try cursor.next() == nil) // safety
+            }
+        }
+    }
+    
+    func testFetchSequenceFromSQL() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -149,7 +223,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    func testFetchFromSQLWithAdapter() {
+    func testFetchSequenceFromSQLWithAdapter() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -236,7 +310,138 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    func testOptionalFetchFromStatement() {
+    func testFetchCursorFromFetchRequest() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (int Int)")
+                try db.execute("INSERT INTO ints (int) VALUES (1)")
+                try db.execute("INSERT INTO ints (int) VALUES (2)")
+                
+                struct Request : FetchRequest {
+                    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
+                        let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
+                        return (statement, SuffixRowAdapter(fromIndex: 1))
+                    }
+                }
+                let cursor = try WrappedInt.fetchCursor(db, Request())
+                
+                XCTAssertEqual(try cursor.next()!.int, -1)
+                XCTAssertEqual(try cursor.next()!.int, -2)
+                XCTAssertTrue(try cursor.next() == nil)
+                XCTAssertTrue(try cursor.next() == nil) // safety
+            }
+        }
+    }
+    
+    func testFetchSequenceFromFetchRequest() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (int Int)")
+                try db.execute("INSERT INTO ints (int) VALUES (1)")
+                try db.execute("INSERT INTO ints (int) VALUES (2)")
+                
+                struct Request : FetchRequest {
+                    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
+                        let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
+                        return (statement, SuffixRowAdapter(fromIndex: 1))
+                    }
+                }
+                let sequence = WrappedInt.fetch(db, Request())
+                
+                XCTAssertEqual(sequence.map { $0.int }, [-1,-2])
+            }
+        }
+    }
+    
+    func testFetchAllFromFetchRequest() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (int Int)")
+                try db.execute("INSERT INTO ints (int) VALUES (1)")
+                try db.execute("INSERT INTO ints (int) VALUES (2)")
+                
+                struct Request : FetchRequest {
+                    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
+                        let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
+                        return (statement, SuffixRowAdapter(fromIndex: 1))
+                    }
+                }
+                let array = WrappedInt.fetchAll(db, Request())
+                
+                XCTAssertEqual(array.map { $0.int }, [-1,-2])
+            }
+        }
+    }
+    
+    func testFetchOneFromFetchRequest() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (int Int)")
+                
+                struct Request : FetchRequest {
+                    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
+                        let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
+                        return (statement, SuffixRowAdapter(fromIndex: 1))
+                    }
+                }
+                let nilBecauseMissingRow = WrappedInt.fetchOne(db, Request())
+                XCTAssertTrue(nilBecauseMissingRow == nil)
+                
+                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
+                let nilBecauseMissingNULL = WrappedInt.fetchOne(db, Request())
+                XCTAssertTrue(nilBecauseMissingNULL == nil)
+                
+                try db.execute("DELETE FROM ints")
+                try db.execute("INSERT INTO ints (int) VALUES (1)")
+                let one = WrappedInt.fetchOne(db, Request())!
+                XCTAssertEqual(one.int, -1)
+            }
+        }
+    }
+    
+    func testOptionalFetchCursorFromStatement() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (int Int)")
+                try db.execute("INSERT INTO ints (int) VALUES (1)")
+                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
+                
+                let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
+                let cursor = try Optional<WrappedInt>.fetchCursor(statement)
+                
+                XCTAssertTrue(try cursor.next()! == nil)
+                XCTAssertEqual(try cursor.next()!!.int, 1)
+                XCTAssertTrue(try cursor.next() == nil)
+                XCTAssertTrue(try cursor.next() == nil) // safety
+            }
+        }
+    }
+    
+    func testOptionalFetchCursorFromStatementWithAdapter() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (int Int)")
+                try db.execute("INSERT INTO ints (int) VALUES (1)")
+                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
+                
+                let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
+                let cursor = try Optional<WrappedInt>.fetchCursor(statement, adapter: SuffixRowAdapter(fromIndex: 1))
+                
+                XCTAssertTrue(try cursor.next()! == nil)
+                XCTAssertEqual(try cursor.next()!!.int, -1)
+                XCTAssertTrue(try cursor.next() == nil)
+                XCTAssertTrue(try cursor.next() == nil) // safety
+            }
+        }
+    }
+    
+    func testOptionalFetchSequenceFromStatement() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -255,7 +460,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    func testOptionalFetchFromStatementWithAdapter() {
+    func testOptionalFetchSequenceFromStatementWithAdapter() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -312,7 +517,43 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    func testOptionalFetchFromSQL() {
+    func testOptionalFetchCursorFromSQL() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (int Int)")
+                try db.execute("INSERT INTO ints (int) VALUES (1)")
+                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
+                
+                let cursor = try Optional<WrappedInt>.fetchCursor(db, "SELECT int, -int FROM ints ORDER BY int")
+                
+                XCTAssertTrue(try cursor.next()! == nil)
+                XCTAssertEqual(try cursor.next()!!.int, 1)
+                XCTAssertTrue(try cursor.next() == nil)
+                XCTAssertTrue(try cursor.next() == nil) // safety
+            }
+        }
+    }
+    
+    func testOptionalFetchCursorFromSQLWithAdapter() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (int Int)")
+                try db.execute("INSERT INTO ints (int) VALUES (1)")
+                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
+                
+                let cursor = try Optional<WrappedInt>.fetchCursor(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
+                
+                XCTAssertTrue(try cursor.next()! == nil)
+                XCTAssertEqual(try cursor.next()!!.int, -1)
+                XCTAssertTrue(try cursor.next() == nil)
+                XCTAssertTrue(try cursor.next() == nil) // safety
+            }
+        }
+    }
+    
+    func testOptionalFetchSequenceFromSQL() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -330,7 +571,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    func testOptionalFetchFromSQLWithAdapter() {
+    func testOptionalFetchSequenceFromSQLWithAdapter() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -375,6 +616,78 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
                 
                 let array = Optional<WrappedInt>.fetchAll(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
+                
+                let ints = array.map { $0?.int }
+                XCTAssertEqual(ints.count, 2)
+                XCTAssertTrue(ints[0] == nil)
+                XCTAssertEqual(ints[1]!, -1)
+            }
+        }
+    }
+    
+    func testOptionalFetchCursorFromFetchRequest() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (int Int)")
+                try db.execute("INSERT INTO ints (int) VALUES (1)")
+                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
+                
+                struct Request : FetchRequest {
+                    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
+                        let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
+                        return (statement, SuffixRowAdapter(fromIndex: 1))
+                    }
+                }
+                let cursor = try Optional<WrappedInt>.fetchCursor(db, Request())
+                
+                XCTAssertTrue(try cursor.next()! == nil)
+                XCTAssertEqual(try cursor.next()!!.int, -1)
+                XCTAssertTrue(try cursor.next() == nil)
+                XCTAssertTrue(try cursor.next() == nil) // safety
+            }
+        }
+    }
+    
+    func testOptionalFetchSequenceFromFetchRequest() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (int Int)")
+                try db.execute("INSERT INTO ints (int) VALUES (1)")
+                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
+                
+                struct Request : FetchRequest {
+                    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
+                        let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
+                        return (statement, SuffixRowAdapter(fromIndex: 1))
+                    }
+                }
+                let sequence = Optional<WrappedInt>.fetch(db, Request())
+                
+                let ints = sequence.map { $0?.int }
+                XCTAssertEqual(ints.count, 2)
+                XCTAssertTrue(ints[0] == nil)
+                XCTAssertEqual(ints[1]!, -1)
+            }
+        }
+    }
+    
+    func testOptionalFetchAllFromFetchRequest() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (int Int)")
+                try db.execute("INSERT INTO ints (int) VALUES (1)")
+                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
+                
+                struct Request : FetchRequest {
+                    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
+                        let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
+                        return (statement, SuffixRowAdapter(fromIndex: 1))
+                    }
+                }
+                let array = Optional<WrappedInt>.fetchAll(db, Request())
                 
                 let ints = array.map { $0?.int }
                 XCTAssertEqual(ints.count, 2)
