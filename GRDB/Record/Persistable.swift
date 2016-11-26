@@ -198,7 +198,8 @@ public protocol MutablePersistable : TableMapping {
     ///
     /// - parameter db: A database connection.
     /// - returns: Whether the primary key matches a row in the database.
-    func exists(_ db: Database) -> Bool
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    func exists(_ db: Database) throws -> Bool
 }
 
 public extension MutablePersistable {
@@ -290,8 +291,8 @@ public extension MutablePersistable {
     /// the database.
     ///
     /// The default implementation for exists() invokes performExists().
-    func exists(_ db: Database) -> Bool {
-        return performExists(db)
+    func exists(_ db: Database) throws -> Bool {
+        return try performExists(db)
     }
     
     
@@ -405,13 +406,12 @@ public extension MutablePersistable {
     /// that adopt MutablePersistable can invoke performExists() in
     /// their implementation of exists(). They should not provide their own
     /// implementation of performExists().
-    func performExists(_ db: Database) -> Bool {
-        // TODO: handle errors
-        guard let statement = try! DAO(db, self).existsStatement() else {
+    func performExists(_ db: Database) throws -> Bool {
+        guard let statement = try DAO(db, self).existsStatement() else {
             // Nil primary key
             return false
         }
-        return try! Row.fetchCursor(statement).next() != nil
+        return try Row.fetchCursor(statement).next() != nil
     }
     
 }

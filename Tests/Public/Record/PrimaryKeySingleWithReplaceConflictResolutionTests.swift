@@ -549,10 +549,10 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     func testExistsWithNotNilPrimaryKeyThatDoesNotMatchAnyRowReturnsFalse() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let record = Email()
                 record.email = "me@domain.com"
-                XCTAssertFalse(record.exists(db))
+                XCTAssertFalse(try record.exists(db))
             }
         }
     }
@@ -564,7 +564,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 let record = Email()
                 record.email = "me@domain.com"
                 try record.insert(db)
-                XCTAssertTrue(record.exists(db))
+                XCTAssertTrue(try record.exists(db))
             }
         }
     }
@@ -577,7 +577,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 record.email = "me@domain.com"
                 try record.insert(db)
                 try record.delete(db)
-                XCTAssertFalse(record.exists(db))
+                XCTAssertFalse(try record.exists(db))
             }
         }
     }

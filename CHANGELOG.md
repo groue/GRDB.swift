@@ -25,6 +25,7 @@ Release Notes
 - The throwing `step()` method of DatabaseIterator has been removed. Use DatabaseCursor instead.
 - `Database.tableExists(_:)` can now throw database errors.
 - `Database.indexes(on:)` can now throw database errors.
+- `Persistable.exists(_:)` can now throw database errors.
 
 
 ## 0.90.1

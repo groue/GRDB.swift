@@ -456,9 +456,9 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     func testExistsWithNilPrimaryKeyReturnsFalse() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let record = Citizenship(personName: nil, countryName: nil, native: true)
-                XCTAssertFalse(record.exists(db))
+                XCTAssertFalse(try record.exists(db))
             }
         }
     }
@@ -466,9 +466,9 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     func testExistsWithNotNilPrimaryKeyThatDoesNotMatchAnyRowReturnsFalse() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
-                XCTAssertFalse(record.exists(db))
+                XCTAssertFalse(try record.exists(db))
             }
         }
     }
@@ -479,7 +479,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try record.insert(db)
-                XCTAssertTrue(record.exists(db))
+                XCTAssertTrue(try record.exists(db))
             }
         }
     }
@@ -491,7 +491,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try record.insert(db)
                 try record.delete(db)
-                XCTAssertFalse(record.exists(db))
+                XCTAssertFalse(try record.exists(db))
             }
         }
     }

@@ -530,10 +530,10 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     func testExistsWithNotNilPrimaryKeyThatDoesNotMatchAnyRowReturnsFalse() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let record = MinimalRowID()
                 record.id = 123456
-                XCTAssertFalse(record.exists(db))
+                XCTAssertFalse(try record.exists(db))
             }
         }
     }
@@ -544,7 +544,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let record = MinimalRowID()
                 try record.insert(db)
-                XCTAssertTrue(record.exists(db))
+                XCTAssertTrue(try record.exists(db))
             }
         }
     }
@@ -556,7 +556,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 let record = MinimalRowID()
                 try record.insert(db)
                 try record.delete(db)
-                XCTAssertFalse(record.exists(db))
+                XCTAssertFalse(try record.exists(db))
             }
         }
     }

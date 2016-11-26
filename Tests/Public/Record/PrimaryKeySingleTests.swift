@@ -548,9 +548,9 @@ class PrimaryKeySingleTests: GRDBTestCase {
     func testExistsWithNilPrimaryKeyReturnsFalse() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let record = Pet(UUID: nil, name: "Bobby")
-                XCTAssertFalse(record.exists(db))
+                XCTAssertFalse(try record.exists(db))
             }
         }
     }
@@ -558,9 +558,9 @@ class PrimaryKeySingleTests: GRDBTestCase {
     func testExistsWithNotNilPrimaryKeyThatDoesNotMatchAnyRowReturnsFalse() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
-                XCTAssertFalse(record.exists(db))
+                XCTAssertFalse(try record.exists(db))
             }
         }
     }
@@ -571,7 +571,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record.insert(db)
-                XCTAssertTrue(record.exists(db))
+                XCTAssertTrue(try record.exists(db))
             }
         }
     }
@@ -583,7 +583,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record.insert(db)
                 try record.delete(db)
-                XCTAssertFalse(record.exists(db))
+                XCTAssertFalse(try record.exists(db))
             }
         }
     }

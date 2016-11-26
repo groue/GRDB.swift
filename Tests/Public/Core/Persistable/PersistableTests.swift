@@ -86,9 +86,9 @@ private struct PersistableCustomizedCountry : Persistable {
         return try performDelete(db)
     }
     
-    func exists(_ db: Database) -> Bool {
+    func exists(_ db: Database) throws -> Bool {
         willExists()
-        return performExists(db)
+        return try performExists(db)
     }
 }
 
@@ -327,11 +327,10 @@ class PersistableTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let person = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
                 try person.insert(db)
-                XCTAssertTrue(person.exists(db))
+                XCTAssertTrue(try person.exists(db))
                 
                 try person.delete(db)
-                
-                XCTAssertFalse(person.exists(db))
+                XCTAssertFalse(try person.exists(db))
             }
         }
     }
@@ -481,11 +480,10 @@ class PersistableTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let country = PersistableCountry(isoCode: "FR", name: "France")
                 try country.insert(db)
-                XCTAssertTrue(country.exists(db))
+                XCTAssertTrue(try country.exists(db))
                 
                 try country.delete(db)
-                
-                XCTAssertFalse(country.exists(db))
+                XCTAssertFalse(try country.exists(db))
             }
         }
     }
@@ -763,7 +761,7 @@ class PersistableTests: GRDBTestCase {
                     willExists: { existsCount += 1 })
                 try country.insert(db)
                 
-                XCTAssertTrue(country.exists(db))
+                XCTAssertTrue(try country.exists(db))
                 XCTAssertEqual(insertCount, 1)
                 XCTAssertEqual(updateCount, 0)
                 XCTAssertEqual(saveCount, 0)
@@ -772,7 +770,7 @@ class PersistableTests: GRDBTestCase {
                 
                 _ = try country.delete(db)
                 
-                XCTAssertFalse(country.exists(db))
+                XCTAssertFalse(try country.exists(db))
                 XCTAssertEqual(insertCount, 1)
                 XCTAssertEqual(updateCount, 0)
                 XCTAssertEqual(saveCount, 0)

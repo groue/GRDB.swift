@@ -626,9 +626,9 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
     func testExistsWithNilPrimaryKeyReturnsFalse() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let record = Person(id: nil, name: "Arthur")
-                XCTAssertFalse(record.exists(db))
+                XCTAssertFalse(try record.exists(db))
             }
         }
     }
@@ -636,9 +636,9 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
     func testExistsWithNotNilPrimaryKeyThatDoesNotMatchAnyRowReturnsFalse() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db in
                 let record = Person(id: 123456, name: "Arthur")
-                XCTAssertFalse(record.exists(db))
+                XCTAssertFalse(try record.exists(db))
             }
         }
     }
@@ -649,7 +649,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let record = Person(name: "Arthur")
                 try record.insert(db)
-                XCTAssertTrue(record.exists(db))
+                XCTAssertTrue(try record.exists(db))
             }
         }
     }
@@ -661,7 +661,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 let record = Person(name: "Arthur")
                 try record.insert(db)
                 try record.delete(db)
-                XCTAssertFalse(record.exists(db))
+                XCTAssertFalse(try record.exists(db))
             }
         }
     }
