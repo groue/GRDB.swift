@@ -67,16 +67,16 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///         same identity. For example, they have the same id.
     public convenience init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue = .main, isSameRecord: ((Record, Record) -> Bool)? = nil) {
         if let isSameRecord = isSameRecord {
-            self.init(databaseWriter, request: request, queue: queue, identicalItemsFactory: { _ in { isSameRecord($0.record, $1.record) } })
+            self.init(databaseWriter, request: request, queue: queue, itemsAreIdenticalFactory: { _ in { isSameRecord($0.record, $1.record) } })
         } else {
-            self.init(databaseWriter, request: request, queue: queue, identicalItemsFactory: { _ in { _ in false } })
+            self.init(databaseWriter, request: request, queue: queue, itemsAreIdenticalFactory: { _ in { _ in false } })
         }
     }
     
-    fileprivate init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue, identicalItemsFactory: @escaping (Database) -> ItemComparator<Record>) {
+    fileprivate init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue, itemsAreIdenticalFactory: @escaping (Database) -> ItemComparator<Record>) {
         self.request = request
         self.databaseWriter = databaseWriter
-        self.identicalItemsFactory = identicalItemsFactory
+        self.itemsAreIdenticalFactory = itemsAreIdenticalFactory
         self.queue = queue
     }
     #else
@@ -152,8 +152,8 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             
             #if os(iOS)
                 // Be ready for indexPath(for record: Record)
-                if identicalItems == nil {
-                    identicalItems = identicalItemsFactory(db)
+                if itemsAreIdentical == nil {
+                    itemsAreIdentical = itemsAreIdenticalFactory(db)
                 }
             #endif
             
@@ -294,11 +294,11 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         
         let initialItems = fetchedItems
         databaseWriter.write { db in
-            if identicalItems == nil {
-                identicalItems = identicalItemsFactory(db)
+            if itemsAreIdentical == nil {
+                itemsAreIdentical = itemsAreIdenticalFactory(db)
             }
             
-            let fetchAndNotifyChanges = makeFetchAndNotifyChangesFunction(controller: self, fetchAlongside: fetchAlongside, identicalItems: identicalItems!, recordsWillChange: recordsWillChange, tableViewEvent: tableViewEvent, recordsDidChange: recordsDidChange)
+            let fetchAndNotifyChanges = makeFetchAndNotifyChangesFunction(controller: self, fetchAlongside: fetchAlongside, itemsAreIdentical: itemsAreIdentical!, recordsWillChange: recordsWillChange, tableViewEvent: tableViewEvent, recordsDidChange: recordsDidChange)
 
             let (statement, _) = try! request.prepare(db)
             let observer = FetchedRecordsObserver(selectionInfo: statement.selectionInfo, fetchAndNotifyChanges: fetchAndNotifyChanges)
@@ -379,13 +379,13 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     
     #if os(iOS)
     // The record comparator
-    fileprivate var identicalItems: ItemComparator<Record>?
+    fileprivate var itemsAreIdentical: ItemComparator<Record>?
     
     // The record comparator builder. It helps us supporting types that adopt
     // MutablePersistable: we just have to wait for a database connection, in
     // performFetch(), to get primary key information and generate a primary
     // key comparator.
-    private let identicalItemsFactory: (Database) -> ItemComparator<Record>
+    private let itemsAreIdenticalFactory: (Database) -> ItemComparator<Record>
     #endif
     
     /// The request
@@ -474,12 +474,12 @@ extension FetchedRecordsController where Record: TableMapping {
     ///         share the same identity if they share the same primay key.
     public convenience init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue = .main, compareRecordsByPrimaryKey: Bool) {
         if compareRecordsByPrimaryKey {
-            self.init(databaseWriter, request: request, queue: queue, identicalItemsFactory: { db in
+            self.init(databaseWriter, request: request, queue: queue, itemsAreIdenticalFactory: { db in
                 let rowComparator = try! Record.primaryKeyRowComparator(db)
                 return { rowComparator($0.row, $1.row) }
             })
         } else {
-            self.init(databaseWriter, request: request, queue: queue, identicalItemsFactory: { _ in { _ in false } })
+            self.init(databaseWriter, request: request, queue: queue, itemsAreIdenticalFactory: { _ in { _ in false } })
         }
     }
 }
@@ -561,7 +561,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     fileprivate func makeFetchAndNotifyChangesFunction<Record, T>(
         controller: FetchedRecordsController<Record>,
         fetchAlongside: @escaping (Database) throws -> T,
-        identicalItems: @escaping ItemComparator<Record>,
+        itemsAreIdentical: @escaping ItemComparator<Record>,
         recordsWillChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())?,
         tableViewEvent: ((FetchedRecordsController<Record>, Record, TableViewEvent) -> ())?,
         recordsDidChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())?
@@ -635,7 +635,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
                 let tableViewChanges: [TableViewChange<Record>]
                 if tableViewEvent != nil {
                     // Compute table view changes
-                    tableViewChanges = computeTableViewChanges(from: strongObserver.items, to: fetchedItems, identicalItems: identicalItems)
+                    tableViewChanges = computeTableViewChanges(from: strongObserver.items, to: fetchedItems, itemsAreIdentical: itemsAreIdentical)
                     if tableViewChanges.isEmpty { return }
                 } else {
                     // Don't compute changes: just look for a row difference:
@@ -668,7 +668,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
         }
     }
     
-    fileprivate func computeTableViewChanges<Record>(from s: [Item<Record>], to t: [Item<Record>], identicalItems: ItemComparator<Record>) -> [TableViewChange<Record>] {
+    fileprivate func computeTableViewChanges<Record>(from s: [Item<Record>], to t: [Item<Record>], itemsAreIdentical: ItemComparator<Record>) -> [TableViewChange<Record>] {
         let m = s.count
         let n = t.count
         
@@ -727,13 +727,13 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
         }
         
         /// Returns an array where deletion/insertion pairs of the same element are replaced by `.move` change.
-        func standardize(changes: [TableViewChange<Record>], identicalItems: ItemComparator<Record>) -> [TableViewChange<Record>] {
+        func standardize(changes: [TableViewChange<Record>], itemsAreIdentical: ItemComparator<Record>) -> [TableViewChange<Record>] {
             
             /// Returns a potential .move or .update if *change* has a matching change in *changes*:
             /// If *change* is a deletion or an insertion, and there is a matching inverse
             /// insertion/deletion with the same value in *changes*, a corresponding .move or .update is returned.
             /// As a convenience, the index of the matched change is returned as well.
-            func merge(change: TableViewChange<Record>, in changes: [TableViewChange<Record>], identicalItems: ItemComparator<Record>) -> (mergedChange: TableViewChange<Record>, mergedIndex: Int)? {
+            func merge(change: TableViewChange<Record>, in changes: [TableViewChange<Record>], itemsAreIdentical: ItemComparator<Record>) -> (mergedChange: TableViewChange<Record>, mergedIndex: Int)? {
                 
                 /// Returns the changes between two rows: a dictionary [key: oldValue]
                 /// Precondition: both rows have the same columns
@@ -753,7 +753,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
                     // Look for a matching deletion
                     for (index, otherChange) in changes.enumerated() {
                         guard case .deletion(let oldItem, let oldIndexPath) = otherChange else { continue }
-                        guard identicalItems(oldItem, newItem) else { continue }
+                        guard itemsAreIdentical(oldItem, newItem) else { continue }
                         let rowChanges = changedValues(from: oldItem.row, to: newItem.row)
                         if oldIndexPath == newIndexPath {
                             return (TableViewChange.update(item: newItem, indexPath: oldIndexPath, changes: rowChanges), index)
@@ -767,7 +767,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
                     // Look for a matching insertion
                     for (index, otherChange) in changes.enumerated() {
                         guard case .insertion(let newItem, let newIndexPath) = otherChange else { continue }
-                        guard identicalItems(oldItem, newItem) else { continue }
+                        guard itemsAreIdentical(oldItem, newItem) else { continue }
                         let rowChanges = changedValues(from: oldItem.row, to: newItem.row)
                         if oldIndexPath == newIndexPath {
                             return (TableViewChange.update(item: newItem, indexPath: oldIndexPath, changes: rowChanges), index)
@@ -786,7 +786,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             var mergedChanges: [TableViewChange<Record>] = []
             var updateChanges: [TableViewChange<Record>] = []
             for change in changes {
-                if let (mergedChange, mergedIndex) = merge(change: change, in: mergedChanges, identicalItems: identicalItems) {
+                if let (mergedChange, mergedIndex) = merge(change: change, in: mergedChanges, itemsAreIdentical: itemsAreIdentical) {
                     mergedChanges.remove(at: mergedIndex)
                     switch mergedChange {
                     case .update:
@@ -801,7 +801,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             return mergedChanges + updateChanges
         }
         
-        return standardize(changes: d[m][n], identicalItems: identicalItems)
+        return standardize(changes: d[m][n], itemsAreIdentical: itemsAreIdentical)
     }
 
 #else
@@ -964,8 +964,8 @@ fileprivate func identicalItemArrays<Record>(_ lhs: [Item<Record>], _ rhs: [Item
         public func indexPath(for record: Record) -> IndexPath? {
             let item = Item<Record>(row: Row(record.persistentDictionary))
             guard let fetchedItems = fetchedItems,
-                let identicalItems = identicalItems,
-                let index = fetchedItems.index(where: { identicalItems($0, item) }) else { return nil }
+                let itemsAreIdentical = itemsAreIdentical,
+                let index = fetchedItems.index(where: { itemsAreIdentical($0, item) }) else { return nil }
             return IndexPath(row: index, section: 0)
         }
     }
