@@ -298,12 +298,12 @@ public extension MutablePersistable {
     
     // MARK: - CRUD Internals
     
-    fileprivate func canUpdate(_ db: Database) -> Bool {
+    fileprivate func canUpdate(_ db: Database) throws -> Bool {
         // Fail early if database table does not exist.
         let databaseTableName = type(of: self).databaseTableName
         
         // Update according to explicit primary key, or implicit rowid.
-        let primaryKey = try! db.primaryKey(databaseTableName) ?? PrimaryKeyInfo.hiddenRowID
+        let primaryKey = try db.primaryKey(databaseTableName) ?? PrimaryKeyInfo.hiddenRowID
         
         // We need a primary key value in the persistentDictionary
         let persistentDictionary = self.persistentDictionary
@@ -322,7 +322,7 @@ public extension MutablePersistable {
     /// implementation of performInsert().
     mutating func performInsert(_ db: Database) throws {
         let conflictResolutionForInsert = type(of: self).persistenceConflictPolicy.conflictResolutionForInsert
-        let dao = DAO(db, self)
+        let dao = try DAO(db, self)
         try dao.insertStatement(onConflict: conflictResolutionForInsert).execute()
         
         if !conflictResolutionForInsert.invalidatesLastInsertedRowID {
@@ -368,7 +368,7 @@ public extension MutablePersistable {
         // that override insert or save have opportunity to perform their
         // custom job.
         
-        if canUpdate(db) {
+        if try canUpdate(db) {
             do {
                 try update(db)
             } catch PersistenceError.recordNotFound {
@@ -531,7 +531,7 @@ public extension Persistable {
     /// implementation of performInsert().
     func performInsert(_ db: Database) throws {
         let conflictResolutionForInsert = type(of: self).persistenceConflictPolicy.conflictResolutionForInsert
-        let dao = DAO(db, self)
+        let dao = try DAO(db, self)
         try dao.insertStatement(onConflict: conflictResolutionForInsert).execute()
         
         if !conflictResolutionForInsert.invalidatesLastInsertedRowID {
@@ -552,7 +552,7 @@ public extension Persistable {
         // Make sure we call self.insert and self.update so that classes that
         // override insert or save have opportunity to perform their custom job.
         
-        if canUpdate(db) {
+        if try canUpdate(db) {
             do {
                 try update(db)
             } catch PersistenceError.recordNotFound {
@@ -592,10 +592,10 @@ final class DAO {
     /// The table primary key
     let primaryKey: PrimaryKeyInfo
     
-    init(_ db: Database, _ record: MutablePersistable) {
+    init(_ db: Database, _ record: MutablePersistable) throws {
         // Fail early if database table does not exist.
         let databaseTableName = type(of: record).databaseTableName
-        let primaryKey = try! db.primaryKey(databaseTableName) ?? PrimaryKeyInfo.hiddenRowID
+        let primaryKey = try db.primaryKey(databaseTableName) ?? PrimaryKeyInfo.hiddenRowID
         
         // Fail early if persistentDictionary is empty
         let persistentDictionary = record.persistentDictionary

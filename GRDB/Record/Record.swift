@@ -233,7 +233,7 @@ open class Record : RowConvertible, TableMapping, Persistable {
         // same persistentDictionary for both insertion, and change tracking.
         
         let conflictResolutionForInsert = type(of: self).persistenceConflictPolicy.conflictResolutionForInsert
-        let dao = DAO(db, self)
+        let dao = try DAO(db, self)
         var persistentDictionary = dao.persistentDictionary
         try dao.insertStatement(onConflict: conflictResolutionForInsert).execute()
         
@@ -286,7 +286,7 @@ open class Record : RowConvertible, TableMapping, Persistable {
         //
         // So let's provide our custom implementation of insert, which uses the
         // same persistentDictionary for both update, and change tracking.
-        let dao = DAO(db, self)
+        let dao = try DAO(db, self)
         guard let statement = try dao.updateStatement(columns: columns, onConflict: type(of: self).persistenceConflictPolicy.conflictResolutionForUpdate) else {
             // Nil primary key
             throw PersistenceError.recordNotFound(self)
