@@ -158,7 +158,7 @@ extension TableMapping {
     ///     - keys: A sequence of primary keys.
     /// - returns: The number of deleted rows
     @discardableResult public static func deleteAll<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> Int where Sequence.Iterator.Element: DatabaseValueConvertible {
-        guard let statement = try! makeDeleteByPrimaryKeyStatement(db, keys: keys) else {
+        guard let statement = try makeDeleteByPrimaryKeyStatement(db, keys: keys) else {
             return 0
         }
         try statement.execute()
@@ -307,7 +307,7 @@ extension RowConvertible where Self: TableMapping {
         
         let whereClause = whereClauses.joined(separator: " OR ")
         let sql = "SELECT \(defaultSelection) FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(whereClause)"
-        let statement = try! db.makeSelectStatement(sql)
+        let statement = try db.makeSelectStatement(sql)
         statement.arguments = StatementArguments(arguments)
         return statement
     }
@@ -387,7 +387,7 @@ extension TableMapping {
         
         let whereClause = whereClauses.joined(separator: " OR ")
         let sql = "DELETE FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(whereClause)"
-        let statement = try! db.makeUpdateStatement(sql)
+        let statement = try db.makeUpdateStatement(sql)
         statement.arguments = StatementArguments(arguments)
         return statement
     }
