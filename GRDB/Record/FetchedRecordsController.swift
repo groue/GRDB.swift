@@ -857,7 +857,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             var fetchedItems: [Item<Record>]! = nil
             var fetchedAlongside: T! = nil
             
-            databaseWriter.readFromWrite { db in
+            try! databaseWriter.readFromWrite { db in
                 // TODO: handle errors
                 fetchedItems = try! Array(Item<Record>.fetchCursor(db, request))
                 fetchedAlongside = try! fetchAlongside(db)
