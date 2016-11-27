@@ -115,7 +115,7 @@ public struct DatabaseValue {
     ///
     /// - returns: A *Value*.
     public func value<Value: DatabaseValueConvertible>() -> Value {
-        guard let value = Value.fromDatabaseValue(self) as Value? else {
+        guard let value = Value.fromDatabaseValue(self) else {
             fatalError("could not convert database value \(self) to \(Value.self)")
         }
         return value
