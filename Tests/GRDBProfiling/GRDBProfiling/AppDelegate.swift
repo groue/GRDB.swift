@@ -24,13 +24,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func fetchPositionalValues() {
-        let databasePath = Bundle(for: self.dynamicType).path(forResource: "ProfilingDatabase", ofType: "sqlite")!
+        let databasePath = Bundle(for: type(of: self)).path(forResource: "ProfilingDatabase", ofType: "sqlite")!
         let dbQueue = try! DatabaseQueue(path: databasePath)
         
         var count = 0
         
         dbQueue.inDatabase { db in
-            for row in Row.fetch(db, "SELECT * FROM items") {
+            let rows = try! Row.fetchCursor(db, "SELECT * FROM items")
+            while let row = try! rows.next() {
                 let _: Int = row.value(atIndex: 0)
                 let _: Int = row.value(atIndex: 1)
                 let _: Int = row.value(atIndex: 2)
@@ -50,13 +51,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func fetchNamedValues() {
-        let databasePath = Bundle(for: self.dynamicType).path(forResource: "ProfilingDatabase", ofType: "sqlite")!
+        let databasePath = Bundle(for: type(of: self)).path(forResource: "ProfilingDatabase", ofType: "sqlite")!
         let dbQueue = try! DatabaseQueue(path: databasePath)
         
         var count = 0
         
         dbQueue.inDatabase { db in
-            for row in Row.fetch(db, "SELECT * FROM items") {
+            let rows = try! Row.fetchCursor(db, "SELECT * FROM items")
+            while let row = try! rows.next() {
                 let _: Int = row.value(named: "i0")
                 let _: Int = row.value(named: "i1")
                 let _: Int = row.value(named: "i2")
@@ -76,10 +78,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func fetchRecords() {
-        let databasePath = Bundle(for: self.dynamicType).path(forResource: "ProfilingDatabase", ofType: "sqlite")!
+        let databasePath = Bundle(for: type(of: self)).path(forResource: "ProfilingDatabase", ofType: "sqlite")!
         let dbQueue = try! DatabaseQueue(path: databasePath)
         let items = dbQueue.inDatabase { db in
-            Item.fetchAll(db)
+            try! Item.fetchAll(db)
         }
         assert(items.count == expectedRowCount)
         assert(items[0].i0 == 0)
@@ -93,9 +95,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
             dbQueue.inDatabase { db in
-                assert(Int.fetchOne(db, "SELECT COUNT(*) FROM items")! == insertedRowCount)
-                assert(Int.fetchOne(db, "SELECT MIN(i0) FROM items")! == 0)
-                assert(Int.fetchOne(db, "SELECT MAX(i9) FROM items")! == insertedRowCount - 1)
+                assert(try! Int.fetchOne(db, "SELECT COUNT(*) FROM items")! == insertedRowCount)
+                assert(try! Int.fetchOne(db, "SELECT MIN(i0) FROM items")! == 0)
+                assert(try! Int.fetchOne(db, "SELECT MAX(i9) FROM items")! == insertedRowCount - 1)
             }
             try! FileManager.default.removeItem(atPath: databasePath)
         }
@@ -122,9 +124,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
             dbQueue.inDatabase { db in
-                assert(Int.fetchOne(db, "SELECT COUNT(*) FROM items")! == insertedRowCount)
-                assert(Int.fetchOne(db, "SELECT MIN(i0) FROM items")! == 0)
-                assert(Int.fetchOne(db, "SELECT MAX(i9) FROM items")! == insertedRowCount - 1)
+                assert(try! Int.fetchOne(db, "SELECT COUNT(*) FROM items")! == insertedRowCount)
+                assert(try! Int.fetchOne(db, "SELECT MIN(i0) FROM items")! == 0)
+                assert(try! Int.fetchOne(db, "SELECT MAX(i9) FROM items")! == insertedRowCount - 1)
             }
             try! FileManager.default.removeItem(atPath: databasePath)
         }
@@ -152,9 +154,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
             dbQueue.inDatabase { db in
-                assert(Int.fetchOne(db, "SELECT COUNT(*) FROM items")! == insertedRowCount)
-                assert(Int.fetchOne(db, "SELECT MIN(i0) FROM items")! == 0)
-                assert(Int.fetchOne(db, "SELECT MAX(i9) FROM items")! == insertedRowCount - 1)
+                assert(try! Int.fetchOne(db, "SELECT COUNT(*) FROM items")! == insertedRowCount)
+                assert(try! Int.fetchOne(db, "SELECT MIN(i0) FROM items")! == 0)
+                assert(try! Int.fetchOne(db, "SELECT MAX(i9) FROM items")! == insertedRowCount - 1)
             }
             try! FileManager.default.removeItem(atPath: databasePath)
         }
