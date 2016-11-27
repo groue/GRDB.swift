@@ -128,7 +128,7 @@ struct QueryInterfaceSelectQueryDefinition {
         }
     }
     
-    func makeDeleteStatement(_ db: Database) -> UpdateStatement {
+    func makeDeleteStatement(_ db: Database) throws -> UpdateStatement {
         guard groupByExpressions.isEmpty else {
             fatalError("Can't delete query with GROUP BY expression")
         }
@@ -152,7 +152,7 @@ struct QueryInterfaceSelectQueryDefinition {
             sql += " WHERE " + whereExpression.expressionSQL(&arguments)
         }
         
-        let statement = try! db.makeUpdateStatement(sql)
+        let statement = try db.makeUpdateStatement(sql)
         statement.arguments = arguments!
         return statement
     }
