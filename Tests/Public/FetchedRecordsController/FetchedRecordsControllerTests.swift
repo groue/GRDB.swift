@@ -118,7 +118,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             }
             
             let controller = FetchedRecordsController<Book>(dbQueue, sql: "SELECT * FROM books WHERE authorID = ?", arguments: [authorId])
-            controller.performFetch()
+            try controller.performFetch()
             XCTAssertEqual(controller.fetchedRecords!.count, 1)
             XCTAssertEqual(controller.fetchedRecords![0].title, "Don Quixote")
         }
@@ -139,7 +139,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             
             let adapter = ColumnMapping(["id": "_id", "authorId": "_authorId", "title": "_title"])
             let controller = FetchedRecordsController<Book>(dbQueue, sql: "SELECT id AS _id, authorId AS _authorId, title AS _title FROM books WHERE authorID = ?", arguments: [authorId], adapter: adapter)
-            controller.performFetch()
+            try controller.performFetch()
             XCTAssertEqual(controller.fetchedRecords!.count, 1)
             XCTAssertEqual(controller.fetchedRecords![0].title, "Don Quixote")
         }
@@ -155,7 +155,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             
             let request = Person.order(Column("name"))
             let controller = FetchedRecordsController<Person>(dbQueue, request: request)
-            controller.performFetch()
+            try controller.performFetch()
             XCTAssertEqual(controller.fetchedRecords!.count, 2)
             XCTAssertEqual(controller.fetchedRecords![0].name, "Cervantes")
             XCTAssertEqual(controller.fetchedRecords![1].name, "Plato")
@@ -173,7 +173,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             let request = Person.all()
             let controller = FetchedRecordsController<Person>(dbQueue, request: request)
             XCTAssertTrue(controller.fetchedRecords == nil)
-            controller.performFetch()
+            try controller.performFetch()
             XCTAssertEqual(controller.fetchedRecords!.count, 1)
             XCTAssertEqual(controller.fetchedRecords![0].name, "Arthur")
         }
@@ -193,7 +193,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
                 recordsDidChange: { recorder.controllerDidChange($0) })
-            controller.performFetch()
+            try controller.performFetch()
             
             // First insert
             recorder.transactionExpectation = expectation(description: "expectation")
@@ -233,7 +233,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
                 recordsDidChange: { recorder.controllerDidChange($0) })
-            controller.performFetch()
+            try controller.performFetch()
             
             // Insert
             recorder.transactionExpectation = expectation(description: "expectation")
@@ -291,7 +291,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
                 recordsDidChange: { recorder.controllerDidChange($0) })
-            controller.performFetch()
+            try controller.performFetch()
             
             // Insert
             recorder.transactionExpectation = expectation(description: "expectation")
@@ -339,7 +339,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
                 recordsDidChange: { recorder.controllerDidChange($0) })
-            controller.performFetch()
+            try controller.performFetch()
             
             // Insert
             recorder.transactionExpectation = expectation(description: "expectation")
@@ -382,7 +382,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
                 recordsDidChange: { recorder.controllerDidChange($0) })
-            controller.performFetch()
+            try controller.performFetch()
             
             // Insert
             recorder.transactionExpectation = expectation(description: "expectation")
@@ -430,7 +430,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
                 recordsDidChange: { recorder.controllerDidChange($0) })
-            controller.performFetch()
+            try controller.performFetch()
             
             // Insert
             recorder.transactionExpectation = expectation(description: "expectation")
@@ -503,7 +503,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")))
             let recorder = ChangesRecorder<Person>()
-            controller.performFetch()
+            try controller.performFetch()
             
             // Insert
             try dbQueue.inTransaction { db in
@@ -530,7 +530,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")))
             var persons: [Person] = []
-            controller.performFetch()
+            try controller.performFetch()
             
             let expectation = self.expectation(description: "expectation")
             controller.trackChanges {
@@ -556,7 +556,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
                 fetchAlongside: { db in try Person.fetchCount(db) },
                 recordsWillChange: { (controller, count) in recorder.controllerWillChange(controller, count: count) },
                 recordsDidChange: { (controller, count) in recorder.controllerDidChange(controller, count: count) })
-            controller.performFetch()
+            try controller.performFetch()
             
             // First insert
             recorder.transactionExpectation = expectation(description: "expectation")

@@ -8,8 +8,8 @@ class InterfaceController: WKInterfaceController {
     override func awake(withContext context: Any?) {
         super.awake(withContext: context)
         
-        let persons = dbQueue.inDatabase { db in
-            Person.order(Column("name")).fetchAll(db)
+        let persons = try! dbQueue.inDatabase { db in
+            try Person.order(Column("name")).fetchAll(db)
         }
         
         table.setNumberOfRows(persons.count, withRowType: "Person")

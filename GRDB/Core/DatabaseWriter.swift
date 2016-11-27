@@ -81,15 +81,3 @@ extension DatabaseWriter {
         }
     }
 }
-
-extension DatabaseWriter {
-    // Addresses https://github.com/groue/GRDB.swift/issues/117 and
-    // https://bugs.swift.org/browse/SR-2623
-    //
-    // This method allows avoiding calling the regular rethrowing `write(_:)`
-    // method from a property of type DatabaseWriter, and crashing the Swift 3
-    // compiler of Xcode 8 GM Version 8.0 (8A218a)
-    func writeForIssue117(_ block: (Database) -> Void) -> Void {
-        write(block)
-    }
-}

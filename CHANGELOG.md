@@ -21,6 +21,7 @@ Release Notes
 - `Persistable.exists(_:)` can now throw database errors.
 - `DatabasePool.read(_:)` `DatabasePool.nonIsolatedRead(_:)` can now throw database errors.
 - `fetchAll` and `fetchOne` can now throw database errors.
+- `FetchedRecordsController.performFetch()` can now throw database errors.
 - The `fetch` method have been removed, along with `DatabaseSequence` and `DatabaseIterator`.
     
     ```swift

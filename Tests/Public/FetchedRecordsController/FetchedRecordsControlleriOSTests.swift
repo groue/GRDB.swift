@@ -103,7 +103,7 @@
                 let request = Person.all()
                 let controller = FetchedRecordsController<Person>(dbQueue, request: request, compareRecordsByPrimaryKey: true)
                 XCTAssertTrue(controller.fetchedRecords == nil)
-                controller.performFetch()
+                try controller.performFetch()
                 XCTAssertEqual(controller.sections.count, 1)
                 XCTAssertEqual(controller.sections[0].numberOfRecords, 1)
                 XCTAssertEqual(controller.sections[0].records.count, 1)
@@ -121,7 +121,7 @@
                 let request = Person.all()
                 let controller = FetchedRecordsController<Person>(dbQueue, request: request)
                 XCTAssertTrue(controller.fetchedRecords == nil)
-                controller.performFetch()
+                try controller.performFetch()
                 XCTAssertEqual(controller.fetchedRecords!.count, 0)
                 
                 // Just like NSFetchedResultsController
@@ -144,7 +144,7 @@
                     recordsWillChange: { recorder.controllerWillChange($0) },
                     tableViewEvent: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
                     recordsDidChange: { recorder.controllerDidChange($0) })
-                controller.performFetch()
+                try controller.performFetch()
                 
                 // First insert
                 recorder.transactionExpectation = expectation(description: "expectation")
@@ -204,7 +204,7 @@
                     recordsWillChange: { recorder.controllerWillChange($0) },
                     tableViewEvent: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
                     recordsDidChange: { recorder.controllerDidChange($0) })
-                controller.performFetch()
+                try controller.performFetch()
                 
                 // Insert
                 recorder.transactionExpectation = expectation(description: "expectation")
@@ -283,7 +283,7 @@
                     recordsWillChange: { recorder.controllerWillChange($0) },
                     tableViewEvent: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
                     recordsDidChange: { recorder.controllerDidChange($0) })
-                controller.performFetch()
+                try controller.performFetch()
                 
                 // Insert
                 recorder.transactionExpectation = expectation(description: "expectation")
@@ -350,7 +350,7 @@
                     recordsWillChange: { recorder.controllerWillChange($0) },
                     tableViewEvent: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
                     recordsDidChange: { recorder.controllerDidChange($0) })
-                controller.performFetch()
+                try controller.performFetch()
                 
                 // Insert
                 recorder.transactionExpectation = expectation(description: "expectation")
@@ -406,7 +406,7 @@
                     recordsWillChange: { recorder.controllerWillChange($0) },
                     tableViewEvent: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
                     recordsDidChange: { recorder.controllerDidChange($0) })
-                controller.performFetch()
+                try controller.performFetch()
                 
                 // Insert
                 recorder.transactionExpectation = expectation(description: "expectation")
@@ -454,7 +454,7 @@
                     recordsWillChange: { recorder.controllerWillChange($0) },
                     tableViewEvent: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
                     recordsDidChange: { recorder.controllerDidChange($0) })
-                controller.performFetch()
+                try controller.performFetch()
                 
                 enum EventTest {
                     case I(String, Int) // insert string at index
@@ -587,7 +587,7 @@
                     recordsWillChange: { recorder.controllerWillChange($0) },
                     tableViewEvent: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
                     recordsDidChange: { recorder.controllerDidChange($0) })
-                controller.performFetch()
+                try controller.performFetch()
                 
                 // Insert
                 recorder.transactionExpectation = expectation(description: "expectation")
@@ -658,7 +658,7 @@
                 let dbQueue = try makeDatabaseQueue()
                 let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")), compareRecordsByPrimaryKey: true)
                 let recorder = ChangesRecorder<Person>()
-                controller.performFetch()
+                try controller.performFetch()
                 
                 // Insert
                 try dbQueue.inTransaction { db in
@@ -695,7 +695,7 @@
                 let dbQueue = try makeDatabaseQueue()
                 let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")), compareRecordsByPrimaryKey: true)
                 var persons: [Person] = []
-                controller.performFetch()
+                try controller.performFetch()
                 
                 let expectation = self.expectation(description: "expectation")
                 controller.trackChanges {

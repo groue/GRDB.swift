@@ -13,7 +13,6 @@
     - we'll have to deal with two input sources for dealing with transactions: statement compilation observation for savepoint statements, and transaction hooks for transaction statements. Tricky.
 - [ ] Attach databases (this could be the support for fetched records controller caches). Interesting question: what happens when one attaches a non-WAL db to a databasePool?
 - [ ] sqlite3_rekey is discouraged (https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320)
-- [ ] Remove DatabaseWriter.writeForIssue117 when https://bugs.swift.org/browse/SR-2623 is fixed (remove `writeForIssue117`, use `write` instead, and build in Release configuration) 
 - [ ] Restore dispatching tests in GRDBOSXTests (they are disabled in order to avoid linker errors)
     - DatabasePoolReleaseMemoryTests
     - DatabasePoolSchemaCacheTests

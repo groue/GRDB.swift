@@ -682,7 +682,7 @@ class PrimaryKeyHiddenRowIDTests : GRDBTestCase {
                     expectation.fulfill()
                 }
             #endif
-            controller.performFetch()
+            try controller.performFetch()
             try dbQueue.inDatabase { db in
                 person.name = "Barbara"
                 try person.update(db)

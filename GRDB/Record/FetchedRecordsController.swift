@@ -133,7 +133,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///
     /// After executing this method, you can access the the fetched objects with
     /// the property fetchedRecords.
-    public func performFetch() {
+    public func performFetch() throws {
         // If some changes are currently processed, make sure they are
         // discarded. But preserve eventual changes processing for future
         // changes.
@@ -144,10 +144,10 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         // Fetch items on the writing dispatch queue, so that the transaction
         // observer is added on the same serialized queue as transaction
         // callbacks.
-        databaseWriter.writeForIssue117 { db in
+        try databaseWriter.write { db in
             // TODO: handle errors
-            let (statement, adapter) = try! request.prepare(db)
-            let initialItems = try! Array(Item<Record>.fetchCursor(statement, adapter: adapter))
+            let (statement, adapter) = try request.prepare(db)
+            let initialItems = try Array(Item<Record>.fetchCursor(statement, adapter: adapter))
             fetchedItems = initialItems
             
             #if os(iOS)
@@ -293,7 +293,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         }
         
         let initialItems = fetchedItems
-        databaseWriter.writeForIssue117 { db in
+        databaseWriter.write { db in
             if identicalItems == nil {
                 identicalItems = identicalItemsFactory(db)
             }
@@ -338,7 +338,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         }
         
         let initialItems = fetchedItems
-        databaseWriter.writeForIssue117 { db in
+        databaseWriter.write { db in
             let fetchAndNotifyChanges = makeFetchAndNotifyChangesFunction(controller: self, fetchAlongside: fetchAlongside, recordsWillChange: recordsWillChange, recordsDidChange: recordsDidChange)
 
             let (statement, _) = try! request.prepare(db)
@@ -402,7 +402,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             // Replace observer so that it tracks a new set of columns,
             // and notify eventual changes
             let initialItems = fetchedItems
-            databaseWriter.writeForIssue117 { db in
+            databaseWriter.write { db in
                 let (statement, _) = try! request.prepare(db)
                 let observer = FetchedRecordsObserver(readInfo: statement.readInfo, fetchAndNotifyChanges: fetchAndNotifyChanges)
                 self.observer = observer
