@@ -1,11 +1,6 @@
-- DatabaseCursor: test that Document.fetchAll(db,
-    "SELECT * FROM documents WHERE content MATCH ?",
-    arguments: ["AND"]) throws a catchable error
-- DatabaseCursor: test that Row.fetchAll(db, "SELECT * FROM boooks") throws a catchable error
-- DatabaseCursor: test errors while iterating a cursor with failed conversion (null in DatabaseCursor<Int>, and "Mom’s birthday" in DatabaseCursor<Date?>)
-- DatabaseCursor: consider making Persistable.exists() throwable
-- DatabaseCursor/FetchedRecordsController: handle fetch errors
-- DatabaseCursor/FetchedRecordsController: along throwable fetchAlongside closure
+- [ ] Explain that RowConvertible.init() does not throw because it would prevent FetchedRecordsController from lazily instantiating records as they are needed by the table view.
+- [ ] DatabaseCursor: test that Row.fetchAll(db, "SELECT * FROM boooks") throws a catchable error
+- [ ] DatabaseCursor/FetchedRecordsController: handle fetch errors
 - [ ] Swift 3.0.2 (Xcode 8.2): "Type inference will properly unwrap optionals when used with generics and implicitly-unwrapped optionals." Maybe this fixes `row.value(named: "foo") as? Int`?
 - [ ] Refactor Database notion of transaction/savepoints into a single type. Support INSERT OR ROLLBACK.
     - Since some statements may implicitly rollback transactions, we can not rely on explicit rollback statements to infer the transaction state. We can only rely on sqlite3_rollback_hook, assuming it is called even for implicit rollbacks (test with an INSERT OR ROLLBACK statement).
