@@ -1272,7 +1272,7 @@ final class StatementCompilationObserver {
     let database: Database
     
     /// A dictionary [tablename: Set<columnName>] of accessed columns
-    var readInfo: SelectStatement.ReadInfo = [:]
+    var selectionInfo = SelectStatement.SelectionInfo()
     
     /// What this statement does to the database
     var databaseEventKinds: [DatabaseEventKind] = []
@@ -1299,7 +1299,7 @@ final class StatementCompilationObserver {
                 observer.invalidatesDatabaseSchemaCache = true
             case SQLITE_READ:
                 let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
-                observer.insertRead(tableName: String(cString: CString1!), columnName: String(cString: CString2!))
+                observer.selectionInfo.insert(column: String(cString: CString2!), ofTable: String(cString: CString1!))
             case SQLITE_INSERT:
                 let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
                 observer.databaseEventKinds.append(.insert(tableName: String(cString: CString1!)))
@@ -1323,18 +1323,10 @@ final class StatementCompilationObserver {
     
     // Call this method between two calls to calling sqlite3_prepare_v2()
     func reset() {
-        readInfo = [:]
+        selectionInfo = SelectStatement.SelectionInfo()
         databaseEventKinds = []
         invalidatesDatabaseSchemaCache = false
         savepointAction = nil
-    }
-    
-    func insertRead(tableName: String, columnName: String) {
-        if readInfo[tableName] != nil {
-           readInfo[tableName]!.insert(columnName)
-        } else {
-           readInfo[tableName] = [columnName]
-        }
     }
     
     func insertUpdateEventKind(tableName: String, columnName: String) {

@@ -13,10 +13,13 @@ class StatementInformationTests : GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE foo (id INTEGER)")
+                try db.execute("CREATE TABLE foo (id INTEGER, name TEXT)")
                 try db.execute("CREATE TABLE bar (id INTEGER, fooId INTEGER)")
-                let statement = try db.makeSelectStatement("SELECT * FROM FOO JOIN BAR ON fooId = foo.id")
-                XCTAssertEqual(statement.readInfo, ["foo": Set(["id"]), "bar": Set(["id", "fooId"])])
+                let statement = try db.makeSelectStatement("SELECT foo.name FROM FOO JOIN BAR ON fooId = foo.id")
+                XCTAssertTrue(statement.selectionInfo.contains(anyColumnIn: ["id"], from: "foo"))
+                XCTAssertTrue(statement.selectionInfo.contains(anyColumnIn: ["name"], from: "foo"))
+                XCTAssertFalse(statement.selectionInfo.contains(anyColumnIn: ["id"], from: "bar"))
+                XCTAssertTrue(statement.selectionInfo.contains(anyColumnIn: ["fooId"], from: "bar"))
             }
         }
     }

@@ -158,7 +158,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             #endif
             
             if let fetchAndNotifyChanges = fetchAndNotifyChanges {
-                let observer = FetchedRecordsObserver(readInfo: statement.readInfo, fetchAndNotifyChanges: fetchAndNotifyChanges)
+                let observer = FetchedRecordsObserver(selectionInfo: statement.selectionInfo, fetchAndNotifyChanges: fetchAndNotifyChanges)
                 self.observer = observer
                 observer.items = initialItems
                 db.add(transactionObserver: observer)
@@ -301,7 +301,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             let fetchAndNotifyChanges = makeFetchAndNotifyChangesFunction(controller: self, fetchAlongside: fetchAlongside, identicalItems: identicalItems!, recordsWillChange: recordsWillChange, tableViewEvent: tableViewEvent, recordsDidChange: recordsDidChange)
 
             let (statement, _) = try! request.prepare(db)
-            let observer = FetchedRecordsObserver(readInfo: statement.readInfo, fetchAndNotifyChanges: fetchAndNotifyChanges)
+            let observer = FetchedRecordsObserver(selectionInfo: statement.selectionInfo, fetchAndNotifyChanges: fetchAndNotifyChanges)
             self.observer = observer
             if let initialItems = initialItems {
                 observer.items = initialItems
@@ -342,7 +342,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             let fetchAndNotifyChanges = makeFetchAndNotifyChangesFunction(controller: self, fetchAlongside: fetchAlongside, recordsWillChange: recordsWillChange, recordsDidChange: recordsDidChange)
 
             let (statement, _) = try! request.prepare(db)
-            let observer = FetchedRecordsObserver(readInfo: statement.readInfo, fetchAndNotifyChanges: fetchAndNotifyChanges)
+            let observer = FetchedRecordsObserver(selectionInfo: statement.selectionInfo, fetchAndNotifyChanges: fetchAndNotifyChanges)
             self.observer = observer
             if let initialItems = initialItems {
                 observer.items = initialItems
@@ -404,7 +404,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             let initialItems = fetchedItems
             databaseWriter.write { db in
                 let (statement, _) = try! request.prepare(db)
-                let observer = FetchedRecordsObserver(readInfo: statement.readInfo, fetchAndNotifyChanges: fetchAndNotifyChanges)
+                let observer = FetchedRecordsObserver(selectionInfo: statement.selectionInfo, fetchAndNotifyChanges: fetchAndNotifyChanges)
                 self.observer = observer
                 observer.items = initialItems
                 db.add(transactionObserver: observer)
@@ -495,15 +495,15 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     var needsComputeChanges: Bool
     var items: [Item<Record>]!  // ought to be not nil when observer has started tracking transactions
     let queue: DispatchQueue // protects items
-    let readInfo: SelectStatement.ReadInfo
+    let selectionInfo: SelectStatement.SelectionInfo
     var fetchAndNotifyChanges: (FetchedRecordsObserver<Record>) -> ()
     
-    init(readInfo: SelectStatement.ReadInfo, fetchAndNotifyChanges: @escaping (FetchedRecordsObserver<Record>) -> ()) {
+    init(selectionInfo: SelectStatement.SelectionInfo, fetchAndNotifyChanges: @escaping (FetchedRecordsObserver<Record>) -> ()) {
         self.isValid = true
         self.items = nil
         self.needsComputeChanges = false
         self.queue = DispatchQueue(label: "GRDB.FetchedRecordsObserver")
-        self.readInfo = readInfo
+        self.selectionInfo = selectionInfo
         self.fetchAndNotifyChanges = fetchAndNotifyChanges
     }
     
@@ -514,15 +514,11 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
         switch eventKind {
         case .delete(let tableName):
-            return readInfo[tableName] != nil
+            return selectionInfo.contains(anyColumnFrom: tableName)
         case .insert(let tableName):
-            return readInfo[tableName] != nil
+            return selectionInfo.contains(anyColumnFrom: tableName)
         case .update(let tableName, let updatedColumnNames):
-            if let observedColumnNames = readInfo[tableName] {
-                return !updatedColumnNames.isDisjoint(with: observedColumnNames)
-            } else {
-                return false
-            }
+            return selectionInfo.contains(anyColumnIn: updatedColumnNames, from: tableName)
         }
     }
     

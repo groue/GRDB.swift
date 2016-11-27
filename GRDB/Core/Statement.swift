@@ -208,17 +208,14 @@ public class Statement {
 ///         let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
 ///     }
 public final class SelectStatement : Statement {
-    /// A dictionary [tablename: Set<columnName>] of columns read by a statement
-    typealias ReadInfo = [String: Set<String>]
-    
-    private(set) var readInfo: ReadInfo
+    private(set) var selectionInfo: SelectionInfo
     
     init(database: Database, sql: String) throws {
-        self.readInfo = [:]
+        self.selectionInfo = SelectionInfo()
         let observer = StatementCompilationObserver(database)
         try super.init(database: database, sql: sql, observer: observer)
         Database.preconditionValidSelectStatement(sql: sql, observer: observer)
-        self.readInfo = observer.readInfo
+        self.selectionInfo = observer.selectionInfo
     }
     
     /// The number of columns in the resulting rows.
@@ -254,6 +251,27 @@ public final class SelectStatement : Statement {
         
         try reset()
         return DatabaseCursor(statement: self, element: element)
+    }
+
+    /// Allows inspection of table and columns read by a SelectStatement
+    struct SelectionInfo {
+        mutating func insert(column: String, ofTable table: String) {
+            if selection[table] != nil {
+                selection[table]!.insert(column)
+            } else {
+                selection[table] = [column]
+            }
+        }
+        
+        func contains(anyColumnFrom table: String) -> Bool {
+            return selection.index(forKey: table) != nil
+        }
+        
+        func contains(anyColumnIn columns: Set<String>, from table: String) -> Bool {
+            return !(selection[table]?.isDisjoint(with: columns) ?? true)
+        }
+        
+        private var selection: [String: Set<String>] = [:]  // [TableName: Set<ColumnName>]
     }
 }
 
