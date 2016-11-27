@@ -157,7 +157,15 @@ public extension DatabaseValueConvertible {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self? {
         let cursor = try DatabaseValue.fetchCursor(statement, arguments: arguments, adapter: adapter)
-        return try cursor.next().flatMap { Self.fromDatabaseValue($0) }
+        return try cursor.next().flatMap { dbv in
+            if let value = Self.fromDatabaseValue(dbv) {
+                return value
+            } else if dbv.isNull {
+                return nil
+            } else {
+                throw DatabaseError(code: SQLITE_ERROR, message: "could not convert database value \(dbv) to \(Self.self)", sql: statement.sql, arguments: arguments)
+            }
+        }
     }
 }
 

@@ -134,7 +134,6 @@ class PrimaryKeyNoneTests: GRDBTestCase {
                     let fetchedRecords = try [cursor.next()!, cursor.next()!]
                     XCTAssertEqual(Set(fetchedRecords.map { $0.name! }), Set([record1, record2].map { $0.name! }))
                     XCTAssertTrue(try cursor.next() == nil) // end
-                    XCTAssertTrue(try cursor.next() == nil) // safety
                 }
             }
         }

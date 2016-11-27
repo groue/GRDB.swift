@@ -338,7 +338,6 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
                     let fetchedRecords = try [cursor.next()!, cursor.next()!]
                     XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set([record1.id, record2.id]))
                     XCTAssertTrue(try cursor.next() == nil) // end
-                    XCTAssertTrue(try cursor.next() == nil) // safety
                 }
                 
                 do {
@@ -346,7 +345,6 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
                     let fetchedRecord = try cursor.next()!
                     XCTAssertEqual(fetchedRecord.id!, record1.id!)
                     XCTAssertTrue(try cursor.next() == nil) // end
-                    XCTAssertTrue(try cursor.next() == nil) // safety
                 }
             }
         }
@@ -418,7 +416,6 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
                     let fetchedRecords = try [cursor.next()!, cursor.next()!]
                     XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
                     XCTAssertTrue(try cursor.next() == nil) // end
-                    XCTAssertTrue(try cursor.next() == nil) // safety
                 }
             }
         }

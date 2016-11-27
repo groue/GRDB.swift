@@ -385,7 +385,7 @@ class MetalRowTests : RowTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                let cursor = try Row.fetchCursor(db, "SELECT 1 UNION SELECT 2 UNION SELECT 3")
+                let cursor = try Row.fetchCursor(db, "SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3")
                 let values = try cursor.map { $0.value(atIndex: 0) as Int }
                 XCTAssertEqual(values, [1, 2, 3])
             }

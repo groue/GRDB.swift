@@ -363,7 +363,6 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
                     let fetchedRecords = try [cursor.next()!, cursor.next()!]
                     XCTAssertEqual(Set(fetchedRecords.map { $0.personName }), Set([record1.personName, record2.personName]))
                     XCTAssertTrue(try cursor.next() == nil) // end
-                    XCTAssertTrue(try cursor.next() == nil) // safety
                 }
                 
                 do {
@@ -371,7 +370,6 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
                     let fetchedRecord = try cursor.next()!
                     XCTAssertEqual(fetchedRecord.personName, record1.personName)
                     XCTAssertTrue(try cursor.next() == nil) // end
-                    XCTAssertTrue(try cursor.next() == nil) // safety
                 }
             }
         }

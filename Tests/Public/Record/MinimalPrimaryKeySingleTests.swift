@@ -334,7 +334,6 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                     let fetchedRecords = try [cursor.next()!, cursor.next()!]
                     XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set([record1.UUID!, record2.UUID!]))
                     XCTAssertTrue(try cursor.next() == nil) // end
-                    XCTAssertTrue(try cursor.next() == nil) // safety
                 }
                 
                 do {
@@ -342,7 +341,6 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                     let fetchedRecord = try cursor.next()!
                     XCTAssertEqual(fetchedRecord.UUID!, record1.UUID!)
                     XCTAssertTrue(try cursor.next() == nil) // end
-                    XCTAssertTrue(try cursor.next() == nil) // safety
                 }
             }
         }
@@ -419,7 +417,6 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                     let fetchedRecords = try [cursor.next()!, cursor.next()!]
                     XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
                     XCTAssertTrue(try cursor.next() == nil) // end
-                    XCTAssertTrue(try cursor.next() == nil) // safety
                 }
             }
         }

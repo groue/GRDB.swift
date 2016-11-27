@@ -345,7 +345,6 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                     let fetchedRecords = try [cursor.next()!, cursor.next()!]
                     XCTAssertEqual(Set(fetchedRecords.map { $0.email }), Set([record1.email, record2.email]))
                     XCTAssertTrue(try cursor.next() == nil) // end
-                    XCTAssertTrue(try cursor.next() == nil) // safety
                 }
                 
                 do {
@@ -353,7 +352,6 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                     let fetchedRecord = try cursor.next()!
                     XCTAssertEqual(fetchedRecord.email, record1.email)
                     XCTAssertTrue(try cursor.next() == nil) // end
-                    XCTAssertTrue(try cursor.next() == nil) // safety
                 }
             }
         }
@@ -430,7 +428,6 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                     let fetchedRecords = try [cursor.next()!, cursor.next()!]
                     XCTAssertEqual(Set(fetchedRecords.map { $0.email! }), Set(emails))
                     XCTAssertTrue(try cursor.next() == nil) // end
-                    XCTAssertTrue(try cursor.next() == nil) // safety
                 }
             }
         }

@@ -25,7 +25,7 @@ class DatabaseCursorTests: GRDBTestCase {
                     XCTAssert(try cursor.next() == nil) // past the end
                 }
                 do {
-                    let cursor = try Int.fetchCursor(db, "SELECT 1 AS i UNION SELECT 2 ORDER BY i")
+                    let cursor = try Int.fetchCursor(db, "SELECT 1 AS i UNION ALL SELECT 2 ORDER BY i")
                     XCTAssertEqual(try cursor.next()!, 1)
                     XCTAssertEqual(try cursor.next()!, 2)
                     XCTAssert(try cursor.next() == nil) // end
@@ -39,7 +39,7 @@ class DatabaseCursorTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                let cursor = try String.fetchCursor(db, "SELECT 'bar' AS v UNION SELECT 'foo' ORDER BY v")
+                let cursor = try String.fetchCursor(db, "SELECT 'bar' AS v UNION ALL SELECT 'foo' ORDER BY v")
                 let enumerated = cursor.enumerated()
                 var (n, v) = try enumerated.next()!
                 XCTAssertEqual(n, 0)
@@ -56,7 +56,7 @@ class DatabaseCursorTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                let cursor = try Int.fetchCursor(db, "SELECT 1 AS i UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 ORDER BY i")
+                let cursor = try Int.fetchCursor(db, "SELECT 1 AS i UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 ORDER BY i")
                 let odds = try cursor.filter { $0 % 2 == 1 }
                 XCTAssertEqual(odds, [1, 3])
             }
@@ -67,7 +67,7 @@ class DatabaseCursorTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                let cursor = try Int.fetchCursor(db, "SELECT 1 AS i UNION SELECT 2 ORDER BY i")
+                let cursor = try Int.fetchCursor(db, "SELECT 1 AS i UNION ALL SELECT 2 ORDER BY i")
                 let ints = try cursor.flatMap { AnySequence([$0, $0 + 1]) }
                 XCTAssertEqual(ints, [1, 2, 2, 3])
             }
@@ -78,9 +78,9 @@ class DatabaseCursorTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                let cursor = try Int.fetchCursor(db, "SELECT 1 AS i UNION SELECT 2 ORDER BY i")
+                let cursor = try Int.fetchCursor(db, "SELECT 1 AS i UNION ALL SELECT 2 ORDER BY i")
                 let ints = try cursor.flatMap {
-                    try Int.fetchCursor(db, "SELECT ? AS i UNION SELECT ?+1 ORDER BY i", arguments: [$0, $0])
+                    try Int.fetchCursor(db, "SELECT ? AS i UNION ALL SELECT ?+1 ORDER BY i", arguments: [$0, $0])
                 }
                 XCTAssertEqual(ints, [1, 2, 2, 3])
             }
@@ -93,7 +93,7 @@ class DatabaseCursorTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let sequence = AnySequence([1, 2])
                 let ints = try sequence.flatMap {
-                    try Int.fetchCursor(db, "SELECT ? AS i UNION SELECT ?+1 ORDER BY i", arguments: [$0, $0])
+                    try Int.fetchCursor(db, "SELECT ? AS i UNION ALL SELECT ?+1 ORDER BY i", arguments: [$0, $0])
                 }
                 XCTAssertEqual(ints, [1, 2, 2, 3])
             }
@@ -104,7 +104,7 @@ class DatabaseCursorTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                let cursor = try DatabaseValue.fetchCursor(db, "SELECT 'foo' UNION SELECT 1")
+                let cursor = try DatabaseValue.fetchCursor(db, "SELECT 'foo' UNION ALL SELECT 1")
                 let ints = try cursor.flatMap(Int.fromDatabaseValue)
                 XCTAssertEqual(ints, [1])
             }
@@ -115,7 +115,7 @@ class DatabaseCursorTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                let cursor = try Int.fetchCursor(db, "SELECT 1 AS i UNION SELECT 2 ORDER BY i")
+                let cursor = try Int.fetchCursor(db, "SELECT 1 AS i UNION ALL SELECT 2 ORDER BY i")
                 var ints: [Int] = []
                 try cursor.forEach { ints.append($0) }
                 XCTAssertEqual(ints, [1, 2])
@@ -127,7 +127,7 @@ class DatabaseCursorTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                let cursor = try Int.fetchCursor(db, "SELECT 1 AS i UNION SELECT 2 ORDER BY i")
+                let cursor = try Int.fetchCursor(db, "SELECT 1 AS i UNION ALL SELECT 2 ORDER BY i")
                 let squares = try cursor.map { $0 * $0 }
                 XCTAssertEqual(squares, [1, 4])
             }
@@ -138,7 +138,7 @@ class DatabaseCursorTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                let cursor = try Int.fetchCursor(db, "SELECT 1 AS i UNION SELECT 2 ORDER BY i")
+                let cursor = try Int.fetchCursor(db, "SELECT 1 AS i UNION ALL SELECT 2 ORDER BY i")
                 let squareSum = try cursor.reduce(0) { (acc, int) in acc + int * int }
                 XCTAssertEqual(squareSum, 5)
             }

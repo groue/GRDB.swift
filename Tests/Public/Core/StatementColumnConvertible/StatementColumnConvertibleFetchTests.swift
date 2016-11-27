@@ -51,6 +51,14 @@ private struct FastWrappedInt: DatabaseValueConvertible, StatementColumnConverti
     }
 }
 
+private struct Request : FetchRequest {
+    let statement: SelectStatement
+    let adapter: RowAdapter?
+    func prepare(_ db: Database) -> (SelectStatement, RowAdapter?) {
+        return (statement, adapter)
+    }
+}
+
 class StatementColumnConvertibleFetchTests: GRDBTestCase {
     
     func testSlowConversion() {
@@ -96,540 +104,502 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    func testFetchCursorFromStatement() {
+    // MARK: - StatementColumnConvertible.fetch
+    
+    func testFetchCursor() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (2)")
-                
-                let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                let cursor = try FastWrappedInt.fetchCursor(statement)
-                
-                var i = try cursor.next()!
-                XCTAssertEqual(i.int, 1)
-                XCTAssertTrue(i.fast)
-                i = try cursor.next()!
-                XCTAssertEqual(i.int, 2)
-                XCTAssertTrue(i.fast)
-                
-                XCTAssertTrue(try cursor.next() == nil)
-                XCTAssertTrue(try cursor.next() == nil) // safety
+                func test(_ cursor: DatabaseCursor<FastWrappedInt>) throws {
+                    var i = try cursor.next()!
+                    XCTAssertEqual(i.int, 1)
+                    XCTAssertTrue(i.fast)
+                    i = try cursor.next()!
+                    XCTAssertEqual(i.int, 2)
+                    XCTAssertTrue(i.fast)
+                    XCTAssertTrue(try cursor.next() == nil) // end
+                }
+                do {
+                    let sql = "SELECT 1 UNION ALL SELECT 2"
+                    let statement = try db.makeSelectStatement(sql)
+                    try test(FastWrappedInt.fetchCursor(db, sql))
+                    try test(FastWrappedInt.fetchCursor(statement))
+                    try test(FastWrappedInt.fetchCursor(db, Request(statement: statement, adapter: nil)))
+                }
+                do {
+                    let sql = "SELECT 0, 1 UNION ALL SELECT 0, 2"
+                    let statement = try db.makeSelectStatement(sql)
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(FastWrappedInt.fetchCursor(db, sql, adapter: adapter))
+                    try test(FastWrappedInt.fetchCursor(statement, adapter: adapter))
+                    try test(FastWrappedInt.fetchCursor(db, Request(statement: statement, adapter: adapter)))
+                }
             }
         }
     }
     
-    func testFetchCursorFromStatementWithAdapter() {
+    func testFetchCursorConversionFailure() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (2)")
-                
-                let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                let cursor = try FastWrappedInt.fetchCursor(statement, adapter: SuffixRowAdapter(fromIndex: 1))
-                
-                var i = try cursor.next()!
-                XCTAssertEqual(i.int, -1)
-                XCTAssertTrue(i.fast)
-                i = try cursor.next()!
-                XCTAssertEqual(i.int, -2)
-                XCTAssertTrue(i.fast)
-                
-                XCTAssertTrue(try cursor.next() == nil)
-                XCTAssertTrue(try cursor.next() == nil) // safety
+                func test(_ cursor: DatabaseCursor<FastWrappedInt>, sql: String) throws {
+                    var i = try cursor.next()!
+                    XCTAssertEqual(i.int, 1)
+                    XCTAssertTrue(i.fast)
+                    do {
+                        _ = try cursor.next()
+                        XCTFail()
+                    } catch let error as DatabaseError {
+                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.message, "could not convert database value NULL to \(FastWrappedInt.self)")
+                        XCTAssertEqual(error.sql!, sql)
+                        XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: could not convert database value NULL to \(FastWrappedInt.self)")
+                    }
+                    i = try cursor.next()!
+                    XCTAssertEqual(i.int, 0)    // SQLite conversion from 'foo' to 0
+                    XCTAssertTrue(i.fast)
+                    i = try cursor.next()!
+                    XCTAssertEqual(i.int, 2)
+                    XCTAssertTrue(i.fast)
+                    XCTAssertTrue(try cursor.next() == nil) // end
+                }
+                do {
+                    let sql = "SELECT 1 UNION ALL SELECT NULL UNION ALL SELECT 'foo' UNION ALL SELECT 2"
+                    let statement = try db.makeSelectStatement(sql)
+                    try test(FastWrappedInt.fetchCursor(db, sql), sql: sql)
+                    try test(FastWrappedInt.fetchCursor(statement), sql: sql)
+                    try test(FastWrappedInt.fetchCursor(db, Request(statement: statement, adapter: nil)), sql: sql)
+                }
+                do {
+                    let sql = "SELECT 0, 1 UNION ALL SELECT 0, NULL UNION ALL SELECT 0, 'foo' UNION ALL SELECT 0, 2"
+                    let statement = try db.makeSelectStatement(sql)
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(FastWrappedInt.fetchCursor(db, sql, adapter: adapter), sql: sql)
+                    try test(FastWrappedInt.fetchCursor(statement, adapter: adapter), sql: sql)
+                    try test(FastWrappedInt.fetchCursor(db, Request(statement: statement, adapter: adapter)), sql: sql)
+                }
             }
         }
     }
     
-    func testFetchAllFromStatement() {
+    func testFetchCursorSQLiteFailure() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
+            let customError = NSError(domain: "Custom", code: 0xDEAD)
+            dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (2)")
-                
-                let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                let array = try FastWrappedInt.fetchAll(statement)
-                
-                XCTAssertEqual(array.map { $0.int }, [1,2])
-                XCTAssertEqual(array.map { $0.fast }, [true, true])
-            }
-        }
-    }
-    
-    func testFetchAllFromStatementWithAdapter() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (2)")
-                
-                let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                let array = try FastWrappedInt.fetchAll(statement, adapter: SuffixRowAdapter(fromIndex: 1))
-                
-                XCTAssertEqual(array.map { $0.int }, [-1,-2])
-                // NICE TO HAVE: make it fast, and the following test pass:
-//                XCTAssertEqual(array.map { $0.fast }, [true, true])
-            }
-        }
-    }
-    
-    func testFetchOneFromStatement() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                
-                let nilBecauseMissingRow = try FastWrappedInt.fetchOne(statement)
-                XCTAssertTrue(nilBecauseMissingRow == nil)
-                
-                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                let nilBecauseMissingNULL = try FastWrappedInt.fetchOne(statement)
-                XCTAssertTrue(nilBecauseMissingNULL == nil)
-                
-                try db.execute("DELETE FROM ints")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                let one = try FastWrappedInt.fetchOne(statement)!
-                XCTAssertEqual(one.int, 1)
-                XCTAssertEqual(one.fast, true)
-            }
-        }
-    }
-    
-    func testFetchOneFromStatementWithAdapter() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                
-                let nilBecauseMissingRow = try FastWrappedInt.fetchOne(statement, adapter: SuffixRowAdapter(fromIndex: 1))
-                XCTAssertTrue(nilBecauseMissingRow == nil)
-                
-                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                let nilBecauseMissingNULL = try FastWrappedInt.fetchOne(statement, adapter: SuffixRowAdapter(fromIndex: 1))
-                XCTAssertTrue(nilBecauseMissingNULL == nil)
-                
-                try db.execute("DELETE FROM ints")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                let one = try FastWrappedInt.fetchOne(statement, adapter: SuffixRowAdapter(fromIndex: 1))!
-                XCTAssertEqual(one.int, -1)
-                // NICE TO HAVE: make it fast, and the following test pass:
-//                XCTAssertEqual(one.fast, true)
-            }
-        }
-    }
-    
-    func testFetchCursorFromSQL() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (2)")
-                
-                let cursor = try FastWrappedInt.fetchCursor(db, "SELECT int, -int FROM ints ORDER BY int")
-                
-                var i = try cursor.next()!
-                XCTAssertEqual(i.int, 1)
-                XCTAssertTrue(i.fast)
-                i = try cursor.next()!
-                XCTAssertEqual(i.int, 2)
-                XCTAssertTrue(i.fast)
-                
-                XCTAssertTrue(try cursor.next() == nil)
-                XCTAssertTrue(try cursor.next() == nil) // safety
-            }
-        }
-    }
-    
-    func testFetchCursorFromSQLWithAdapter() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (2)")
-                
-                let cursor = try FastWrappedInt.fetchCursor(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
-                
-                var i = try cursor.next()!
-                XCTAssertEqual(i.int, -1)
-                XCTAssertTrue(i.fast)
-                i = try cursor.next()!
-                XCTAssertEqual(i.int, -2)
-                XCTAssertTrue(i.fast)
-                
-                XCTAssertTrue(try cursor.next() == nil)
-                XCTAssertTrue(try cursor.next() == nil) // safety
-            }
-        }
-    }
-    
-    func testFetchAllFromSQL() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (2)")
-                
-                let array = try FastWrappedInt.fetchAll(db, "SELECT int, -int FROM ints ORDER BY int")
-                
-                XCTAssertEqual(array.map { $0.int }, [1,2])
-                XCTAssertEqual(array.map { $0.fast }, [true, true])
-            }
-        }
-    }
-    
-    func testFetchAllFromSQLWithAdapter() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (2)")
-                
-                let array = try FastWrappedInt.fetchAll(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
-                
-                XCTAssertEqual(array.map { $0.int }, [-1,-2])
-                // NICE TO HAVE: make it fast, and the following test pass:
-//                XCTAssertEqual(array.map { $0.fast }, [true, true])
-            }
-        }
-    }
-    
-    func testFetchOneFromSQL() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                
-                let nilBecauseMissingRow = try FastWrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int")
-                XCTAssertTrue(nilBecauseMissingRow == nil)
-                
-                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                let nilBecauseMissingNULL = try FastWrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int")
-                XCTAssertTrue(nilBecauseMissingNULL == nil)
-                
-                try db.execute("DELETE FROM ints")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                let one = try FastWrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int")!
-                XCTAssertEqual(one.int, 1)
-                XCTAssertEqual(one.fast, true)
-            }
-        }
-    }
-    
-    func testFetchOneFromSQLWithAdapter() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                
-                let nilBecauseMissingRow = try FastWrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
-                XCTAssertTrue(nilBecauseMissingRow == nil)
-                
-                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                let nilBecauseMissingNULL = try FastWrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
-                XCTAssertTrue(nilBecauseMissingNULL == nil)
-                
-                try db.execute("DELETE FROM ints")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                let one = try FastWrappedInt.fetchOne(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))!
-                XCTAssertEqual(one.int, -1)
-                // NICE TO HAVE: make it fast, and the following test pass:
-//                XCTAssertEqual(one.fast, true)
-            }
-        }
-    }
-    
-    func testFetchCursorFromFetchRequest() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (2)")
-                
-                struct Request : FetchRequest {
-                    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-                        let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                        return (statement, SuffixRowAdapter(fromIndex: 1))
+                func test(_ cursor: DatabaseCursor<FastWrappedInt>, sql: String) throws {
+                    XCTAssertEqual(try cursor.next()!.int, 1)
+                    do {
+                        _ = try cursor.next()
+                        XCTFail()
+                    } catch let error as DatabaseError {
+                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.message, "\(customError)")
+                        XCTAssertEqual(error.sql!, sql)
+                        XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: \(customError)")
+                    }
+                    do {
+                        _ = try cursor.next()
+                        XCTFail()
+                    } catch let error as DatabaseError {
+                        XCTAssertEqual(error.code, 21) // SQLITE_MISUSE
+                        XCTAssertEqual(error.message, "\(customError)")
+                        XCTAssertEqual(error.sql!, sql)
+                        XCTAssertEqual(error.description, "SQLite error 21 with statement `\(sql)`: \(customError)")
                     }
                 }
-                let cursor = try FastWrappedInt.fetchCursor(db, Request())
-                
-                var i = try cursor.next()!
-                XCTAssertEqual(i.int, -1)
-                XCTAssertTrue(i.fast)
-                i = try cursor.next()!
-                XCTAssertEqual(i.int, -2)
-                XCTAssertTrue(i.fast)
-                
-                XCTAssertTrue(try cursor.next() == nil)
-                XCTAssertTrue(try cursor.next() == nil) // safety
+                do {
+                    let sql = "SELECT 1 UNION ALL SELECT throw() UNION ALL SELECT 2"
+                    try test(FastWrappedInt.fetchCursor(db, sql), sql: sql)
+                    try test(FastWrappedInt.fetchCursor(db.makeSelectStatement(sql)), sql: sql)
+                    try test(FastWrappedInt.fetchCursor(db, Request(statement: db.makeSelectStatement(sql), adapter: nil)), sql: sql)
+                }
+                do {
+                    let sql = "SELECT 0, 1 UNION ALL SELECT 0, throw() UNION ALL SELECT 0, 2"
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(FastWrappedInt.fetchCursor(db, sql, adapter: adapter), sql: sql)
+                    try test(FastWrappedInt.fetchCursor(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(FastWrappedInt.fetchCursor(db, Request(statement: db.makeSelectStatement(sql), adapter: adapter)), sql: sql)
+                }
             }
         }
     }
     
-    func testFetchOneFromFetchRequest() {
+    func testFetchAll() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                
-                struct Request : FetchRequest {
-                    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-                        let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                        return (statement, SuffixRowAdapter(fromIndex: 1))
+                func test(_ array: [FastWrappedInt]) {
+                    XCTAssertEqual(array.map { $0.int }, [1,2])
+                    XCTAssertEqual(array.map { $0.fast }, [true, true])
+                }
+                do {
+                    let sql = "SELECT 1 UNION ALL SELECT 2"
+                    let statement = try db.makeSelectStatement(sql)
+                    try test(FastWrappedInt.fetchAll(db, sql))
+                    try test(FastWrappedInt.fetchAll(statement))
+                    try test(FastWrappedInt.fetchAll(db, Request(statement: statement, adapter: nil)))
+                }
+                do {
+                    let sql = "SELECT 0, 1 UNION ALL SELECT 0, 2"
+                    let statement = try db.makeSelectStatement(sql)
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(FastWrappedInt.fetchAll(db, sql, adapter: adapter))
+                    try test(FastWrappedInt.fetchAll(statement, adapter: adapter))
+                    try test(FastWrappedInt.fetchAll(db, Request(statement: statement, adapter: adapter)))
+                }
+            }
+        }
+    }
+    
+    func testFetchAllConversionFailure() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                func test(_ array: @autoclosure () throws -> [FastWrappedInt], sql: String) throws {
+                    do {
+                        _ = try array()
+                        XCTFail()
+                    } catch let error as DatabaseError {
+                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.message, "could not convert database value NULL to \(FastWrappedInt.self)")
+                        XCTAssertEqual(error.sql!, sql)
+                        XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: could not convert database value NULL to \(FastWrappedInt.self)")
                     }
                 }
-                let nilBecauseMissingRow = try FastWrappedInt.fetchOne(db, Request())
-                XCTAssertTrue(nilBecauseMissingRow == nil)
-                
-                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                let nilBecauseMissingNULL = try FastWrappedInt.fetchOne(db, Request())
-                XCTAssertTrue(nilBecauseMissingNULL == nil)
-                
-                try db.execute("DELETE FROM ints")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                let one = try FastWrappedInt.fetchOne(db, Request())!
-                XCTAssertEqual(one.int, -1)
-                // NICE TO HAVE: make it fast, and the following test pass:
-//                XCTAssertEqual(one.fast, true)
+                do {
+                    let sql = "SELECT 1 UNION ALL SELECT NULL UNION ALL SELECT 2"
+                    let statement = try db.makeSelectStatement(sql)
+                    try test(FastWrappedInt.fetchAll(db, sql), sql: sql)
+                    try test(FastWrappedInt.fetchAll(statement), sql: sql)
+                    try test(FastWrappedInt.fetchAll(db, Request(statement: statement, adapter: nil)), sql: sql)
+                }
+                do {
+                    let sql = "SELECT 0, 1 UNION ALL SELECT 0, NULL UNION ALL SELECT 0, 2"
+                    let statement = try db.makeSelectStatement(sql)
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(FastWrappedInt.fetchAll(db, sql, adapter: adapter), sql: sql)
+                    try test(FastWrappedInt.fetchAll(statement, adapter: adapter), sql: sql)
+                    try test(FastWrappedInt.fetchAll(db, Request(statement: statement, adapter: adapter)), sql: sql)
+                }
             }
         }
     }
     
-    func testOptionalFetchCursorFromStatement() {
+    func testFetchAllSQLiteFailure() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
+            let customError = NSError(domain: "Custom", code: 0xDEAD)
+            dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                
-                let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                let cursor = try Optional<FastWrappedInt>.fetchCursor(statement)
-                
-                var i = try cursor.next()!
-                XCTAssertTrue(i == nil)
-                i = try cursor.next()!
-                XCTAssertEqual(i!.int, 1)
-                // TODO: uncomment when we have a workaround for rdar://22852669
-//                XCTAssertTrue(i!.fast)
-                
-                XCTAssertTrue(try cursor.next() == nil)
-                XCTAssertTrue(try cursor.next() == nil) // safety
-            }
-        }
-    }
-    
-    func testOptionalFetchCursorFromStatementWithAdapter() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                
-                let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                let cursor = try Optional<FastWrappedInt>.fetchCursor(statement, adapter: SuffixRowAdapter(fromIndex: 1))
-                
-                var i = try cursor.next()!
-                XCTAssertTrue(i == nil)
-                i = try cursor.next()!
-                XCTAssertEqual(i!.int, -1)
-                // TODO: uncomment when we have a workaround for rdar://22852669
-//                XCTAssertTrue(i!.fast)
-                
-                XCTAssertTrue(try cursor.next() == nil)
-                XCTAssertTrue(try cursor.next() == nil) // safety
-            }
-        }
-    }
-    
-    func testOptionalFetchAllFromStatement() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                
-                let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                let array = try Optional<FastWrappedInt>.fetchAll(statement)
-                
-                XCTAssertEqual(array.count, 2)
-                XCTAssertTrue(array[0] == nil)
-                XCTAssertEqual(array[1]!.int, 1)
-                // TODO: uncomment when we have a workaround for rdar://22852669
-//                XCTAssertEqual(array[1]!.fast, true)
-            }
-        }
-    }
-    
-    func testOptionalFetchAllFromStatementWithAdapter() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                
-                let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                let array = try Optional<FastWrappedInt>.fetchAll(statement, adapter: SuffixRowAdapter(fromIndex: 1))
-                
-                XCTAssertEqual(array.count, 2)
-                XCTAssertTrue(array[0] == nil)
-                XCTAssertEqual(array[1]!.int, -1)
-                // TODO: uncomment when we have a workaround for rdar://22852669
-//                XCTAssertEqual(array[1]!.fast, true)
-            }
-        }
-    }
-    
-    func testOptionalFetchCursorFromSQL() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                
-                let cursor = try Optional<FastWrappedInt>.fetchCursor(db, "SELECT int, -int FROM ints ORDER BY int")
-                
-                var i = try cursor.next()!
-                XCTAssertTrue(i == nil)
-                i = try cursor.next()!
-                XCTAssertEqual(i!.int, 1)
-                // TODO: uncomment when we have a workaround for rdar://22852669
-//                XCTAssertTrue(i!.fast)
-                
-                XCTAssertTrue(try cursor.next() == nil)
-                XCTAssertTrue(try cursor.next() == nil) // safety
-            }
-        }
-    }
-    
-    func testOptionalFetchCursorFromSQLWithAdapter() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                
-                let cursor = try Optional<FastWrappedInt>.fetchCursor(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
-                
-                var i = try cursor.next()!
-                XCTAssertTrue(i == nil)
-                i = try cursor.next()!
-                XCTAssertEqual(i!.int, -1)
-                // TODO: uncomment when we have a workaround for rdar://22852669
-//                XCTAssertTrue(i!.fast)
-                
-                XCTAssertTrue(try cursor.next() == nil)
-                XCTAssertTrue(try cursor.next() == nil) // safety
-            }
-        }
-    }
-    
-    func testOptionalFetchAllFromSQL() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                
-                let array = try Optional<FastWrappedInt>.fetchAll(db, "SELECT int, -int FROM ints ORDER BY int")
-                
-                XCTAssertEqual(array.count, 2)
-                XCTAssertTrue(array[0] == nil)
-                XCTAssertEqual(array[1]!.int, 1)
-                // TODO: uncomment when we have a workaround for rdar://22852669
-//                XCTAssertEqual(array[1]!.fast, true)
-            }
-        }
-    }
-    
-    func testOptionalFetchAllFromSQLWithAdapter() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                
-                let array = try Optional<FastWrappedInt>.fetchAll(db, "SELECT int, -int FROM ints ORDER BY int", adapter: SuffixRowAdapter(fromIndex: 1))
-                
-                XCTAssertEqual(array.count, 2)
-                XCTAssertTrue(array[0] == nil)
-                XCTAssertEqual(array[1]!.int, -1)
-                // TODO: uncomment when we have a workaround for rdar://22852669
-//                XCTAssertEqual(array[1]!.fast, true)
-            }
-        }
-    }
-    
-    func testOptionalFetchCursorFromFetchRequest() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                
-                struct Request : FetchRequest {
-                    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-                        let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                        return (statement, SuffixRowAdapter(fromIndex: 1))
+                func test(_ array: @autoclosure () throws -> [FastWrappedInt], sql: String) throws {
+                    do {
+                        _ = try array()
+                        XCTFail()
+                    } catch let error as DatabaseError {
+                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.message, "\(customError)")
+                        XCTAssertEqual(error.sql!, sql)
+                        XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: \(customError)")
                     }
                 }
-                let cursor = try Optional<FastWrappedInt>.fetchCursor(db, Request())
-                
-                var i = try cursor.next()!
-                XCTAssertTrue(i == nil)
-                i = try cursor.next()!
-                XCTAssertEqual(i!.int, -1)
-                // TODO: uncomment when we have a workaround for rdar://22852669
-//                XCTAssertTrue(i!.fast)
-                
-                XCTAssertTrue(try cursor.next() == nil)
-                XCTAssertTrue(try cursor.next() == nil) // safety
+                do {
+                    let sql = "SELECT throw()"
+                    let statement = try db.makeSelectStatement(sql)
+                    try test(FastWrappedInt.fetchAll(db, sql), sql: sql)
+                    try test(FastWrappedInt.fetchAll(statement), sql: sql)
+                    try test(FastWrappedInt.fetchAll(db, Request(statement: statement, adapter: nil)), sql: sql)
+                }
+                do {
+                    let sql = "SELECT 0, throw()"
+                    let statement = try db.makeSelectStatement(sql)
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(FastWrappedInt.fetchAll(db, sql, adapter: adapter), sql: sql)
+                    try test(FastWrappedInt.fetchAll(statement, adapter: adapter), sql: sql)
+                    try test(FastWrappedInt.fetchAll(db, Request(statement: statement, adapter: adapter)), sql: sql)
+                }
             }
         }
     }
     
-    func testOptionalFetchAllFromFetchRequest() {
+    func testFetchOne() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
-                
-                struct Request : FetchRequest {
-                    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-                        let statement = try db.makeSelectStatement("SELECT int, -int FROM ints ORDER BY int")
-                        return (statement, SuffixRowAdapter(fromIndex: 1))
+                do {
+                    func test(_ nilBecauseMissingRow: FastWrappedInt?) {
+                        XCTAssertTrue(nilBecauseMissingRow == nil)
+                    }
+                    do {
+                        let sql = "SELECT 1 WHERE 0"
+                        let statement = try db.makeSelectStatement(sql)
+                        try test(FastWrappedInt.fetchOne(db, sql))
+                        try test(FastWrappedInt.fetchOne(statement))
+                        try test(FastWrappedInt.fetchOne(db, Request(statement: statement, adapter: nil)))
+                    }
+                    do {
+                        let sql = "SELECT 0, 1 WHERE 0"
+                        let statement = try db.makeSelectStatement(sql)
+                        let adapter = SuffixRowAdapter(fromIndex: 1)
+                        try test(FastWrappedInt.fetchOne(db, sql, adapter: adapter))
+                        try test(FastWrappedInt.fetchOne(statement, adapter: adapter))
+                        try test(FastWrappedInt.fetchOne(db, Request(statement: statement, adapter: adapter)))
                     }
                 }
-                let array = try Optional<FastWrappedInt>.fetchAll(db, Request())
-                
-                XCTAssertEqual(array.count, 2)
-                XCTAssertTrue(array[0] == nil)
-                XCTAssertEqual(array[1]!.int, -1)
-                // TODO: uncomment when we have a workaround for rdar://22852669
-//                XCTAssertEqual(array[1]!.fast, true)
+                do {
+                    func test(_ nilBecauseNull: FastWrappedInt?) {
+                        XCTAssertTrue(nilBecauseNull == nil)
+                    }
+                    do {
+                        let sql = "SELECT NULL"
+                        let statement = try db.makeSelectStatement(sql)
+                        try test(FastWrappedInt.fetchOne(db, sql))
+                        try test(FastWrappedInt.fetchOne(statement))
+                        try test(FastWrappedInt.fetchOne(db, Request(statement: statement, adapter: nil)))
+                    }
+                    do {
+                        let sql = "SELECT 0, NULL"
+                        let statement = try db.makeSelectStatement(sql)
+                        let adapter = SuffixRowAdapter(fromIndex: 1)
+                        try test(FastWrappedInt.fetchOne(db, sql, adapter: adapter))
+                        try test(FastWrappedInt.fetchOne(statement, adapter: adapter))
+                        try test(FastWrappedInt.fetchOne(db, Request(statement: statement, adapter: adapter)))
+                    }
+                }
+                do {
+                    func test(_ value: FastWrappedInt?) {
+                        XCTAssertEqual(value!.int, 1)
+                    }
+                    do {
+                        let sql = "SELECT 1"
+                        let statement = try db.makeSelectStatement(sql)
+                        try test(FastWrappedInt.fetchOne(db, sql))
+                        try test(FastWrappedInt.fetchOne(statement))
+                        try test(FastWrappedInt.fetchOne(db, Request(statement: statement, adapter: nil)))
+                    }
+                    do {
+                        let sql = "SELECT 0, 1"
+                        let statement = try db.makeSelectStatement(sql)
+                        let adapter = SuffixRowAdapter(fromIndex: 1)
+                        try test(FastWrappedInt.fetchOne(db, sql, adapter: adapter))
+                        try test(FastWrappedInt.fetchOne(statement, adapter: adapter))
+                        try test(FastWrappedInt.fetchOne(db, Request(statement: statement, adapter: adapter)))
+                    }
+                }
+            }
+        }
+    }
+    
+    func testFetchOneSQLiteFailure() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            let customError = NSError(domain: "Custom", code: 0xDEAD)
+            dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
+            try dbQueue.inDatabase { db in
+                func test(_ value: @autoclosure () throws -> FastWrappedInt?, sql: String) throws {
+                    do {
+                        _ = try value()
+                        XCTFail()
+                    } catch let error as DatabaseError {
+                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.message, "\(customError)")
+                        XCTAssertEqual(error.sql!, sql)
+                        XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: \(customError)")
+                    }
+                }
+                do {
+                    let sql = "SELECT throw()"
+                    let statement = try db.makeSelectStatement(sql)
+                    try test(FastWrappedInt.fetchOne(db, sql), sql: sql)
+                    try test(FastWrappedInt.fetchOne(statement), sql: sql)
+                    try test(FastWrappedInt.fetchOne(db, Request(statement: statement, adapter: nil)), sql: sql)
+                }
+                do {
+                    let sql = "SELECT 0, throw()"
+                    let statement = try db.makeSelectStatement(sql)
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(FastWrappedInt.fetchOne(db, sql, adapter: adapter), sql: sql)
+                    try test(FastWrappedInt.fetchOne(statement, adapter: adapter), sql: sql)
+                    try test(FastWrappedInt.fetchOne(db, Request(statement: statement, adapter: adapter)), sql: sql)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Optional<StatementColumnConvertible>.fetch
+    
+    func testOptionalFetchCursor() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                func test(_ cursor: DatabaseCursor<FastWrappedInt?>) throws {
+                    let i = try cursor.next()!
+                    XCTAssertEqual(i!.int, 1)
+                    // XCTAssertTrue(i!.fast) // TODO: uncomment when we have a workaround for rdar://22852669
+                    XCTAssertTrue(try cursor.next()! == nil)
+                    XCTAssertTrue(try cursor.next() == nil) // end
+                }
+                do {
+                    let sql = "SELECT 1 UNION ALL SELECT NULL"
+                    let statement = try db.makeSelectStatement(sql)
+                    try test(Optional<FastWrappedInt>.fetchCursor(db, sql))
+                    try test(Optional<FastWrappedInt>.fetchCursor(statement))
+                    try test(Optional<FastWrappedInt>.fetchCursor(db, Request(statement: statement, adapter: nil)))
+                }
+                do {
+                    let sql = "SELECT 0, 1 UNION ALL SELECT 0, NULL"
+                    let statement = try db.makeSelectStatement(sql)
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(Optional<FastWrappedInt>.fetchCursor(db, sql, adapter: adapter))
+                    try test(Optional<FastWrappedInt>.fetchCursor(statement, adapter: adapter))
+                    try test(Optional<FastWrappedInt>.fetchCursor(db, Request(statement: statement, adapter: adapter)))
+                }
+            }
+        }
+    }
+    
+    // TODO: this test will become invalid when we have a workaround for
+    // rdar://22852669, since there is can't be any conversion failure with
+    // the sqlite3_column_xxx function family.
+    func testOptionalFetchCursorConversionFailure() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                func test(_ cursor: DatabaseCursor<FastWrappedInt?>, sql: String) throws {
+                    var i = try cursor.next()!
+                    XCTAssertEqual(i!.int, 1)
+                    XCTAssertTrue(try cursor.next()! == nil)
+                    do {
+                        _ = try cursor.next()
+                        XCTFail()
+                    } catch let error as DatabaseError {
+                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.message, "could not convert database value \"foo\" to \(FastWrappedInt.self)")
+                        XCTAssertEqual(error.sql!, sql)
+                        XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: could not convert database value \"foo\" to \(FastWrappedInt.self)")
+                    }
+                    i = try cursor.next()!
+                    XCTAssertEqual(i!.int, 2)
+                    XCTAssertTrue(try cursor.next() == nil) // end
+                }
+                do {
+                    let sql = "SELECT 1 UNION ALL SELECT NULL UNION ALL SELECT 'foo' UNION ALL SELECT 2"
+                    let statement = try db.makeSelectStatement(sql)
+                    try test(Optional<FastWrappedInt>.fetchCursor(db, sql), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchCursor(statement), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchCursor(db, Request(statement: statement, adapter: nil)), sql: sql)
+                }
+                do {
+                    let sql = "SELECT 0, 1 UNION ALL SELECT 0, NULL UNION ALL SELECT 0, 'foo' UNION ALL SELECT 0, 2"
+                    let statement = try db.makeSelectStatement(sql)
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(Optional<FastWrappedInt>.fetchCursor(db, sql, adapter: adapter), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchCursor(statement, adapter: adapter), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchCursor(db, Request(statement: statement, adapter: adapter)), sql: sql)
+                }
+            }
+        }
+    }
+    
+    func testOptionalFetchAll() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                func test(_ array: [FastWrappedInt?]) {
+                    XCTAssertEqual(array.count, 2)
+                    XCTAssertEqual(array[0]!.int, 1)
+                    // XCTAssertTrue(array[0]!.fast) // TODO: uncomment when we have a workaround for rdar://22852669
+                    XCTAssertTrue(array[1] == nil)
+                }
+                do {
+                    let sql = "SELECT 1 UNION ALL SELECT NULL"
+                    let statement = try db.makeSelectStatement(sql)
+                    try test(Optional<FastWrappedInt>.fetchAll(db, sql))
+                    try test(Optional<FastWrappedInt>.fetchAll(statement))
+                    try test(Optional<FastWrappedInt>.fetchAll(db, Request(statement: statement, adapter: nil)))
+                }
+                do {
+                    let sql = "SELECT 0, 1 UNION ALL SELECT 0, NULL"
+                    let statement = try db.makeSelectStatement(sql)
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(Optional<FastWrappedInt>.fetchAll(db, sql, adapter: adapter))
+                    try test(Optional<FastWrappedInt>.fetchAll(statement, adapter: adapter))
+                    try test(Optional<FastWrappedInt>.fetchAll(db, Request(statement: statement, adapter: adapter)))
+                }
+            }
+        }
+    }
+    
+    // TODO: this test will become invalid when we have a workaround for
+    // rdar://22852669, since there is can't be any conversion failure with
+    // the sqlite3_column_xxx function family.
+    func testOptionalFetchAllConversionFailure() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                func test(_ array: @autoclosure () throws -> [FastWrappedInt?], sql: String) throws {
+                    do {
+                        _ = try array()
+                        XCTFail()
+                    } catch let error as DatabaseError {
+                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.message, "could not convert database value \"foo\" to \(FastWrappedInt.self)")
+                        XCTAssertEqual(error.sql!, sql)
+                        XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: could not convert database value \"foo\" to \(FastWrappedInt.self)")
+                    }
+                }
+                do {
+                    let sql = "SELECT 1 UNION ALL SELECT NULL UNION ALL SELECT 'foo' UNION ALL SELECT 2"
+                    let statement = try db.makeSelectStatement(sql)
+                    try test(Optional<FastWrappedInt>.fetchAll(db, sql), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchAll(statement), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchAll(db, Request(statement: statement, adapter: nil)), sql: sql)
+                }
+                do {
+                    let sql = "SELECT 0, 1 UNION ALL SELECT 0, NULL UNION ALL SELECT 0, 'foo' UNION ALL SELECT 0, 2"
+                    let statement = try db.makeSelectStatement(sql)
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(Optional<FastWrappedInt>.fetchAll(db, sql, adapter: adapter), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchAll(statement, adapter: adapter), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchAll(db, Request(statement: statement, adapter: adapter)), sql: sql)
+                }
+            }
+        }
+    }
+    
+    func testOptionalFetchAllSQLiteFailure() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            let customError = NSError(domain: "Custom", code: 0xDEAD)
+            dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
+            try dbQueue.inDatabase { db in
+                func test(_ array: @autoclosure () throws -> [FastWrappedInt?], sql: String) throws {
+                    do {
+                        _ = try array()
+                        XCTFail()
+                    } catch let error as DatabaseError {
+                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.message, "\(customError)")
+                        XCTAssertEqual(error.sql!, sql)
+                        XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: \(customError)")
+                    }
+                }
+                do {
+                    let sql = "SELECT throw()"
+                    let statement = try db.makeSelectStatement(sql)
+                    try test(Optional<FastWrappedInt>.fetchAll(db, sql), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchAll(statement), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchAll(db, Request(statement: statement, adapter: nil)), sql: sql)
+                }
+                do {
+                    let sql = "SELECT 0, throw()"
+                    let statement = try db.makeSelectStatement(sql)
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(Optional<FastWrappedInt>.fetchAll(db, sql, adapter: adapter), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchAll(statement, adapter: adapter), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchAll(db, Request(statement: statement, adapter: adapter)), sql: sql)
+                }
             }
         }
     }
