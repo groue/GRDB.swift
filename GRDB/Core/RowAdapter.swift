@@ -153,6 +153,12 @@ extension RowAdapter {
     }
 }
 
+extension RowAdapter {
+    func baseColumIndex(adaptedIndex index: Int, with statement: SelectStatement) throws -> Int {
+        return try concreteRowAdapter(with: statement).concreteColumnMapping.baseColumIndex(adaptedIndex: index)
+    }
+}
+
 /// ColumnMapping is a row adapter that maps column names.
 ///
 ///     let adapter = ColumnMapping(["foo": "bar"])

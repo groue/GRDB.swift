@@ -73,14 +73,7 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
         // We'll read from leftmost column at index 0, unless adapter mangles columns
-        let columnIndex: Int32
-        if let adapter = adapter {
-            let concreteAdapter = try adapter.concreteRowAdapter(with: statement)
-            columnIndex = Int32(concreteAdapter.concreteColumnMapping.baseColumIndex(adaptedIndex: 0))
-        } else {
-            columnIndex = 0
-        }
-
+        let columnIndex = try Int32(adapter?.baseColumIndex(adaptedIndex: 0, with: statement) ?? 0)
         let sqliteStatement = statement.sqliteStatement
         return try statement.fetchCursor(arguments: arguments) {
             if sqlite3_column_type(sqliteStatement, columnIndex) == SQLITE_NULL {
@@ -118,14 +111,7 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self? {
         // We'll read from leftmost column at index 0, unless adapter mangles columns
-        let columnIndex: Int32
-        if let adapter = adapter {
-            let concreteAdapter = try! adapter.concreteRowAdapter(with: statement)
-            columnIndex = Int32(concreteAdapter.concreteColumnMapping.baseColumIndex(adaptedIndex: 0))
-        } else {
-            columnIndex = 0
-        }
-        
+        let columnIndex = try Int32(adapter?.baseColumIndex(adaptedIndex: 0, with: statement) ?? 0)
         let sqliteStatement = statement.sqliteStatement
         let cursor = try statement.fetchCursor(arguments: arguments) { () -> Self? in
             if sqlite3_column_type(sqliteStatement, columnIndex) == SQLITE_NULL {
