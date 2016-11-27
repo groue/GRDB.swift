@@ -10,351 +10,266 @@ import XCTest
 private struct SimpleRowConvertible {
     var firstName: String
     var lastName: String
-    var fetched: Bool = false
+    var isFetched: Bool = false
 }
 
 extension SimpleRowConvertible : RowConvertible {
     init(row: Row) {
         firstName = row.value(named: "firstName")
         lastName = row.value(named: "lastName")
-        fetched = false
+        isFetched = false
     }
     
     mutating func awakeFromFetch(row: Row) {
-        fetched = true
+        isFetched = true
     }
 }
 
-private class Person : RowConvertible {
-    var firstName: String
-    var lastName: String
-    var bestFriend: Person?
-    var fetched: Bool = false
-
-    required init(row: Row) {
-        firstName = row.value(named: "firstName")
-        lastName = row.value(named: "lastName")
-        if let bestFriendRow = row.scoped(on: "bestFriend") {
-            bestFriend = Person(row: bestFriendRow)
-        }
-        fetched = false
-    }
-    
-    func awakeFromFetch(row: Row) {
-        fetched = true
-        if let bestFriend = bestFriend, let bestFriendRow = row.scoped(on: "bestFriend") {
-            bestFriend.awakeFromFetch(row: bestFriendRow)
-        }
+private struct Request : FetchRequest {
+    let statement: SelectStatement
+    let adapter: RowAdapter?
+    func prepare(_ db: Database) -> (SelectStatement, RowAdapter?) {
+        return (statement, adapter)
     }
 }
 
 class RowConvertibleTests: GRDBTestCase {
 
-    override func setup(_ dbWriter: DatabaseWriter) throws {
-        try dbWriter.write { db in
-            try db.execute("CREATE TABLE structs (firstName TEXT, lastName TEXT)")
-        }
-    }
-    
     func testRowInitializer() {
         let row = Row(["firstName": "Arthur", "lastName": "Martin"])
         let s = SimpleRowConvertible(row: row)
         XCTAssertEqual(s.firstName, "Arthur")
         XCTAssertEqual(s.lastName, "Martin")
-        XCTAssertFalse(s.fetched)
+        XCTAssertFalse(s.isFetched)
     }
     
-    func testFetchCursorFromStatement() {
+    func testFetchCursor() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                try db.execute("INSERT INTO structs (firstName, lastName) VALUES (?, ?)", arguments: ["Arthur", "Martin"])
-                let statement = try db.makeSelectStatement("SELECT * FROM structs")
-                let cursor = try SimpleRowConvertible.fetchCursor(statement)
-                let s = try cursor.next()!
-                XCTAssertEqual(s.firstName, "Arthur")
-                XCTAssertEqual(s.lastName, "Martin")
-                XCTAssertTrue(s.fetched)
+                func test(_ cursor: DatabaseCursor<SimpleRowConvertible>) throws {
+                    var record = try cursor.next()!
+                    XCTAssertEqual(record.firstName, "Arthur")
+                    XCTAssertEqual(record.lastName, "Martin")
+                    XCTAssertTrue(record.isFetched)
+                    record = try cursor.next()!
+                    XCTAssertEqual(record.firstName, "Barbara")
+                    XCTAssertEqual(record.lastName, "Gourde")
+                    XCTAssertTrue(record.isFetched)
+                    XCTAssertTrue(try cursor.next() == nil) // end
+                }
+                do {
+                    let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 'Barbara', 'Gourde'"
+                    let statement = try db.makeSelectStatement(sql)
+                    try test(SimpleRowConvertible.fetchCursor(db, sql))
+                    try test(SimpleRowConvertible.fetchCursor(statement))
+                    try test(SimpleRowConvertible.fetchCursor(db, Request(statement: statement, adapter: nil)))
+                }
+                do {
+                    let sql = "SELECT 0 AS firstName, 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 0, 'Barbara', 'Gourde'"
+                    let statement = try db.makeSelectStatement(sql)
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(SimpleRowConvertible.fetchCursor(db, sql, adapter: adapter))
+                    try test(SimpleRowConvertible.fetchCursor(statement, adapter: adapter))
+                    try test(SimpleRowConvertible.fetchCursor(db, Request(statement: statement, adapter: adapter)))
+                }
             }
         }
     }
     
-    func testFetchCursorFromStatementWithAdapter() {
+    func testFetchCursorSQLiteFailure() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
+            let customError = NSError(domain: "Custom", code: 0xDEAD)
+            dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
             try dbQueue.inDatabase { db in
-                let adapter = ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"])
-                    .addingScopes(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
-                let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
-                let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
-                let statement = try db.makeSelectStatement(sql)
-                let cursor = try Person.fetchCursor(statement, arguments: arguments, adapter: adapter)
-                let s = try cursor.next()!
-                XCTAssertEqual(s.firstName, "Stan")
-                XCTAssertEqual(s.lastName, "Laurel")
-                XCTAssertTrue(s.fetched)
-                XCTAssertEqual(s.bestFriend!.firstName, "Oliver")
-                XCTAssertEqual(s.bestFriend!.lastName, "Hardy")
-                XCTAssertTrue(s.bestFriend!.fetched)
-            }
-        }
-    }
-    
-    func testFetchAllFromStatement() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("INSERT INTO structs (firstName, lastName) VALUES (?, ?)", arguments: ["Arthur", "Martin"])
-                let statement = try db.makeSelectStatement("SELECT * FROM structs")
-                let ss = try SimpleRowConvertible.fetchAll(statement)
-                let s = ss.first!
-                XCTAssertEqual(s.firstName, "Arthur")
-                XCTAssertEqual(s.lastName, "Martin")
-                XCTAssertTrue(s.fetched)
-            }
-        }
-    }
-    
-    func testFetchAllFromStatementWithAdapter() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let adapter = ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"])
-                    .addingScopes(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
-                let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
-                let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
-                let statement = try db.makeSelectStatement(sql)
-                let ss = try Person.fetchAll(statement, arguments: arguments, adapter: adapter)
-                let s = ss.first!
-                XCTAssertEqual(s.firstName, "Stan")
-                XCTAssertEqual(s.lastName, "Laurel")
-                XCTAssertTrue(s.fetched)
-                XCTAssertEqual(s.bestFriend!.firstName, "Oliver")
-                XCTAssertEqual(s.bestFriend!.lastName, "Hardy")
-                XCTAssertTrue(s.bestFriend!.fetched)
-            }
-        }
-    }
-    
-    func testFetchOneFromStatement() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let statement = try db.makeSelectStatement("SELECT * FROM structs")
-                let missingS = try SimpleRowConvertible.fetchOne(statement)
-                XCTAssertTrue(missingS == nil)
-                
-                try db.execute("INSERT INTO structs (firstName, lastName) VALUES (?, ?)", arguments: ["Arthur", "Martin"])
-                let s = try SimpleRowConvertible.fetchOne(statement)!
-                XCTAssertEqual(s.firstName, "Arthur")
-                XCTAssertEqual(s.lastName, "Martin")
-                XCTAssertTrue(s.fetched)
-            }
-        }
-    }
-    
-    func testFetchOneFromStatementWithAdapter() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let adapter = ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"])
-                    .addingScopes(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
-                let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
-                let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
-                let statement = try db.makeSelectStatement(sql)
-                let s = try Person.fetchOne(statement, arguments: arguments, adapter: adapter)!
-                XCTAssertEqual(s.firstName, "Stan")
-                XCTAssertEqual(s.lastName, "Laurel")
-                XCTAssertTrue(s.fetched)
-                XCTAssertEqual(s.bestFriend!.firstName, "Oliver")
-                XCTAssertEqual(s.bestFriend!.lastName, "Hardy")
-                XCTAssertTrue(s.bestFriend!.fetched)
-            }
-        }
-    }
-    
-    func testFetchCursorFromSQL() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("INSERT INTO structs (firstName, lastName) VALUES (?, ?)", arguments: ["Arthur", "Martin"])
-                let cursor = try SimpleRowConvertible.fetchCursor(db, "SELECT * FROM structs")
-                let s = try cursor.next()!
-                XCTAssertEqual(s.firstName, "Arthur")
-                XCTAssertEqual(s.lastName, "Martin")
-                XCTAssertTrue(s.fetched)
-            }
-        }
-    }
-    
-    func testFetchCursorFromSQLWithAdapter() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let adapter = ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"])
-                    .addingScopes(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
-                let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
-                let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
-                let cursor = try Person.fetchCursor(db, sql, arguments: arguments, adapter: adapter)
-                let s = try cursor.next()!
-                XCTAssertEqual(s.firstName, "Stan")
-                XCTAssertEqual(s.lastName, "Laurel")
-                XCTAssertTrue(s.fetched)
-                XCTAssertEqual(s.bestFriend!.firstName, "Oliver")
-                XCTAssertEqual(s.bestFriend!.lastName, "Hardy")
-                XCTAssertTrue(s.bestFriend!.fetched)
-            }
-        }
-    }
-    
-    func testFetchAllFromSQL() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("INSERT INTO structs (firstName, lastName) VALUES (?, ?)", arguments: ["Arthur", "Martin"])
-                let ss = try SimpleRowConvertible.fetchAll(db, "SELECT * FROM structs")
-                let s = ss.first!
-                XCTAssertEqual(s.firstName, "Arthur")
-                XCTAssertEqual(s.lastName, "Martin")
-                XCTAssertTrue(s.fetched)
-            }
-        }
-    }
-    
-    func testFetchAllFromSQLWithAdapter() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let adapter = ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"])
-                    .addingScopes(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
-                let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
-                let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
-                let ss = try Person.fetchAll(db, sql, arguments: arguments, adapter: adapter)
-                let s = ss.first!
-                XCTAssertEqual(s.firstName, "Stan")
-                XCTAssertEqual(s.lastName, "Laurel")
-                XCTAssertTrue(s.fetched)
-                XCTAssertEqual(s.bestFriend!.firstName, "Oliver")
-                XCTAssertEqual(s.bestFriend!.lastName, "Hardy")
-                XCTAssertTrue(s.bestFriend!.fetched)
-            }
-        }
-    }
-    
-    func testFetchOneFromSQL() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let missingS = try SimpleRowConvertible.fetchOne(db, "SELECT * FROM structs")
-                XCTAssertTrue(missingS == nil)
-                
-                try db.execute("INSERT INTO structs (firstName, lastName) VALUES (?, ?)", arguments: ["Arthur", "Martin"])
-                let s = try SimpleRowConvertible.fetchOne(db, "SELECT * FROM structs")!
-                XCTAssertEqual(s.firstName, "Arthur")
-                XCTAssertEqual(s.lastName, "Martin")
-                XCTAssertTrue(s.fetched)
-            }
-        }
-    }
-    
-    func testFetchOneFromSQLWithAdapter() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let adapter = ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"])
-                    .addingScopes(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
-                let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
-                let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
-                let s = try Person.fetchOne(db, sql, arguments: arguments, adapter: adapter)!
-                XCTAssertEqual(s.firstName, "Stan")
-                XCTAssertEqual(s.lastName, "Laurel")
-                XCTAssertTrue(s.fetched)
-                XCTAssertEqual(s.bestFriend!.firstName, "Oliver")
-                XCTAssertEqual(s.bestFriend!.lastName, "Hardy")
-                XCTAssertTrue(s.bestFriend!.fetched)
-            }
-        }
-    }
-    
-    func testFetchCursorFromFetchRequest() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                struct Request : FetchRequest {
-                    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-                        let adapter = ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"])
-                            .addingScopes(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
-                        let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
-                        let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
-                        
-                        let statement = try db.makeSelectStatement(sql)
-                        statement.arguments = arguments
-                        return (statement, adapter)
+                func test(_ cursor: DatabaseCursor<SimpleRowConvertible>, sql: String) throws {
+                    let record = try cursor.next()!
+                    XCTAssertEqual(record.firstName, "Arthur")
+                    XCTAssertEqual(record.lastName, "Martin")
+                    XCTAssertTrue(record.isFetched)
+                    do {
+                        _ = try cursor.next()
+                        XCTFail()
+                    } catch let error as DatabaseError {
+                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.message, "\(customError)")
+                        XCTAssertEqual(error.sql!, sql)
+                        XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: \(customError)")
+                    }
+                    do {
+                        _ = try cursor.next()
+                        XCTFail()
+                    } catch let error as DatabaseError {
+                        XCTAssertEqual(error.code, 21) // SQLITE_MISUSE
+                        XCTAssertEqual(error.message, "\(customError)")
+                        XCTAssertEqual(error.sql!, sql)
+                        XCTAssertEqual(error.description, "SQLite error 21 with statement `\(sql)`: \(customError)")
                     }
                 }
-                let cursor = try Person.fetchCursor(db, Request())
-                let s = try cursor.next()!
-                XCTAssertEqual(s.firstName, "Stan")
-                XCTAssertEqual(s.lastName, "Laurel")
-                XCTAssertTrue(s.fetched)
-                XCTAssertEqual(s.bestFriend!.firstName, "Oliver")
-                XCTAssertEqual(s.bestFriend!.lastName, "Hardy")
-                XCTAssertTrue(s.bestFriend!.fetched)
+                do {
+                    let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT throw(), NULL"
+                    try test(SimpleRowConvertible.fetchCursor(db, sql), sql: sql)
+                    try test(SimpleRowConvertible.fetchCursor(db.makeSelectStatement(sql)), sql: sql)
+                    try test(SimpleRowConvertible.fetchCursor(db, Request(statement: db.makeSelectStatement(sql), adapter: nil)), sql: sql)
+                }
+                do {
+                    let sql = "SELECT 0 AS firstName, 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 0, throw(), NULL"
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(SimpleRowConvertible.fetchCursor(db, sql, adapter: adapter), sql: sql)
+                    try test(SimpleRowConvertible.fetchCursor(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(SimpleRowConvertible.fetchCursor(db, Request(statement: db.makeSelectStatement(sql), adapter: adapter)), sql: sql)
+                }
             }
         }
     }
     
-    func testFetchAllFromFetchRequest() {
+    func testFetchAll() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                struct Request : FetchRequest {
-                    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-                        let adapter = ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"])
-                            .addingScopes(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
-                        let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
-                        let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
-                        
-                        let statement = try db.makeSelectStatement(sql)
-                        statement.arguments = arguments
-                        return (statement, adapter)
-                    }
+                func test(_ array: [SimpleRowConvertible]) {
+                    XCTAssertEqual(array.map { $0.firstName }, ["Arthur", "Barbara"])
+                    XCTAssertEqual(array.map { $0.lastName }, ["Martin", "Gourde"])
+                    XCTAssertEqual(array.map { $0.isFetched }, [true, true])
                 }
-                let ss = try Person.fetchAll(db, Request())
-                let s = ss.first!
-                XCTAssertEqual(s.firstName, "Stan")
-                XCTAssertEqual(s.lastName, "Laurel")
-                XCTAssertTrue(s.fetched)
-                XCTAssertEqual(s.bestFriend!.firstName, "Oliver")
-                XCTAssertEqual(s.bestFriend!.lastName, "Hardy")
-                XCTAssertTrue(s.bestFriend!.fetched)
+                do {
+                    let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 'Barbara', 'Gourde'"
+                    let statement = try db.makeSelectStatement(sql)
+                    try test(SimpleRowConvertible.fetchAll(db, sql))
+                    try test(SimpleRowConvertible.fetchAll(statement))
+                    try test(SimpleRowConvertible.fetchAll(db, Request(statement: statement, adapter: nil)))
+                }
+                do {
+                    let sql = "SELECT 0 AS firstName, 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 0, 'Barbara', 'Gourde'"
+                    let statement = try db.makeSelectStatement(sql)
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(SimpleRowConvertible.fetchAll(db, sql, adapter: adapter))
+                    try test(SimpleRowConvertible.fetchAll(statement, adapter: adapter))
+                    try test(SimpleRowConvertible.fetchAll(db, Request(statement: statement, adapter: adapter)))
+                }
             }
         }
     }
-
-    func testFetchOneFromFetchRequest() {
+    
+    func testFetchAllSQLiteFailure() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            let customError = NSError(domain: "Custom", code: 0xDEAD)
+            dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
+            try dbQueue.inDatabase { db in
+                func test(_ array: @autoclosure () throws -> [SimpleRowConvertible], sql: String) throws {
+                    do {
+                        _ = try array()
+                        XCTFail()
+                    } catch let error as DatabaseError {
+                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.message, "\(customError)")
+                        XCTAssertEqual(error.sql!, sql)
+                        XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: \(customError)")
+                    }
+                }
+                do {
+                    let sql = "SELECT throw()"
+                    let statement = try db.makeSelectStatement(sql)
+                    try test(SimpleRowConvertible.fetchAll(db, sql), sql: sql)
+                    try test(SimpleRowConvertible.fetchAll(statement), sql: sql)
+                    try test(SimpleRowConvertible.fetchAll(db, Request(statement: statement, adapter: nil)), sql: sql)
+                }
+                do {
+                    let sql = "SELECT 0, throw()"
+                    let statement = try db.makeSelectStatement(sql)
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(SimpleRowConvertible.fetchAll(db, sql, adapter: adapter), sql: sql)
+                    try test(SimpleRowConvertible.fetchAll(statement, adapter: adapter), sql: sql)
+                    try test(SimpleRowConvertible.fetchAll(db, Request(statement: statement, adapter: adapter)), sql: sql)
+                }
+            }
+        }
+    }
+    
+    func testFetchOne() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                struct Request : FetchRequest {
-                    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-                        let adapter = ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"])
-                            .addingScopes(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
-                        let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
-                        let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
-
+                do {
+                    func test(_ nilBecauseMissingRow: SimpleRowConvertible?) {
+                        XCTAssertTrue(nilBecauseMissingRow == nil)
+                    }
+                    do {
+                        let sql = "SELECT 1 WHERE 0"
                         let statement = try db.makeSelectStatement(sql)
-                        statement.arguments = arguments
-                        return (statement, adapter)
+                        try test(SimpleRowConvertible.fetchOne(db, sql))
+                        try test(SimpleRowConvertible.fetchOne(statement))
+                        try test(SimpleRowConvertible.fetchOne(db, Request(statement: statement, adapter: nil)))
+                    }
+                    do {
+                        let sql = "SELECT 0, 1 WHERE 0"
+                        let statement = try db.makeSelectStatement(sql)
+                        let adapter = SuffixRowAdapter(fromIndex: 1)
+                        try test(SimpleRowConvertible.fetchOne(db, sql, adapter: adapter))
+                        try test(SimpleRowConvertible.fetchOne(statement, adapter: adapter))
+                        try test(SimpleRowConvertible.fetchOne(db, Request(statement: statement, adapter: adapter)))
                     }
                 }
-                let s = try Person.fetchOne(db, Request())!
-                XCTAssertEqual(s.firstName, "Stan")
-                XCTAssertEqual(s.lastName, "Laurel")
-                XCTAssertTrue(s.fetched)
-                XCTAssertEqual(s.bestFriend!.firstName, "Oliver")
-                XCTAssertEqual(s.bestFriend!.lastName, "Hardy")
-                XCTAssertTrue(s.bestFriend!.fetched)
+                do {
+                    func test(_ record: SimpleRowConvertible?) {
+                        XCTAssertEqual(record!.firstName, "Arthur")
+                        XCTAssertEqual(record!.lastName, "Martin")
+                        XCTAssertTrue(record!.isFetched)
+                    }
+                    do {
+                        let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName"
+                        let statement = try db.makeSelectStatement(sql)
+                        try test(SimpleRowConvertible.fetchOne(db, sql))
+                        try test(SimpleRowConvertible.fetchOne(statement))
+                        try test(SimpleRowConvertible.fetchOne(db, Request(statement: statement, adapter: nil)))
+                    }
+                    do {
+                        let sql = "SELECT 0 AS firstName, 'Arthur' AS firstName, 'Martin' AS lastName"
+                        let statement = try db.makeSelectStatement(sql)
+                        let adapter = SuffixRowAdapter(fromIndex: 1)
+                        try test(SimpleRowConvertible.fetchOne(db, sql, adapter: adapter))
+                        try test(SimpleRowConvertible.fetchOne(statement, adapter: adapter))
+                        try test(SimpleRowConvertible.fetchOne(db, Request(statement: statement, adapter: adapter)))
+                    }
+                }
+            }
+        }
+    }
+    
+    func testFetchOneSQLiteFailure() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            let customError = NSError(domain: "Custom", code: 0xDEAD)
+            dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
+            try dbQueue.inDatabase { db in
+                func test(_ value: @autoclosure () throws -> SimpleRowConvertible?, sql: String) throws {
+                    do {
+                        _ = try value()
+                        XCTFail()
+                    } catch let error as DatabaseError {
+                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.message, "\(customError)")
+                        XCTAssertEqual(error.sql!, sql)
+                        XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: \(customError)")
+                    }
+                }
+                do {
+                    let sql = "SELECT throw()"
+                    let statement = try db.makeSelectStatement(sql)
+                    try test(SimpleRowConvertible.fetchOne(db, sql), sql: sql)
+                    try test(SimpleRowConvertible.fetchOne(statement), sql: sql)
+                    try test(SimpleRowConvertible.fetchOne(db, Request(statement: statement, adapter: nil)), sql: sql)
+                }
+                do {
+                    let sql = "SELECT 0, throw()"
+                    let statement = try db.makeSelectStatement(sql)
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(SimpleRowConvertible.fetchOne(db, sql, adapter: adapter), sql: sql)
+                    try test(SimpleRowConvertible.fetchOne(statement, adapter: adapter), sql: sql)
+                    try test(SimpleRowConvertible.fetchOne(db, Request(statement: statement, adapter: adapter)), sql: sql)
+                }
             }
         }
     }
