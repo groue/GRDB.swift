@@ -26,10 +26,10 @@ extension SimpleRowConvertible : RowConvertible {
 }
 
 private struct Request : FetchRequest {
-    let statement: SelectStatement
+    let statement: () throws -> SelectStatement
     let adapter: RowAdapter?
-    func prepare(_ db: Database) -> (SelectStatement, RowAdapter?) {
-        return (statement, adapter)
+    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
+        return (try statement(), adapter)
     }
 }
 
@@ -63,7 +63,7 @@ class RowConvertibleTests: GRDBTestCase {
                     let statement = try db.makeSelectStatement(sql)
                     try test(SimpleRowConvertible.fetchCursor(db, sql))
                     try test(SimpleRowConvertible.fetchCursor(statement))
-                    try test(SimpleRowConvertible.fetchCursor(db, Request(statement: statement, adapter: nil)))
+                    try test(SimpleRowConvertible.fetchCursor(db, Request(statement: { statement }, adapter: nil)))
                 }
                 do {
                     let sql = "SELECT 0 AS firstName, 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 0, 'Barbara', 'Gourde'"
@@ -71,13 +71,13 @@ class RowConvertibleTests: GRDBTestCase {
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(SimpleRowConvertible.fetchCursor(db, sql, adapter: adapter))
                     try test(SimpleRowConvertible.fetchCursor(statement, adapter: adapter))
-                    try test(SimpleRowConvertible.fetchCursor(db, Request(statement: statement, adapter: adapter)))
+                    try test(SimpleRowConvertible.fetchCursor(db, Request(statement: { statement }, adapter: adapter)))
                 }
             }
         }
     }
     
-    func testFetchCursorSQLiteFailure() {
+    func testFetchCursorStepFailure() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             let customError = NSError(domain: "Custom", code: 0xDEAD)
@@ -111,14 +111,46 @@ class RowConvertibleTests: GRDBTestCase {
                     let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT throw(), NULL"
                     try test(SimpleRowConvertible.fetchCursor(db, sql), sql: sql)
                     try test(SimpleRowConvertible.fetchCursor(db.makeSelectStatement(sql)), sql: sql)
-                    try test(SimpleRowConvertible.fetchCursor(db, Request(statement: db.makeSelectStatement(sql), adapter: nil)), sql: sql)
+                    try test(SimpleRowConvertible.fetchCursor(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: nil)), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0 AS firstName, 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 0, throw(), NULL"
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(SimpleRowConvertible.fetchCursor(db, sql, adapter: adapter), sql: sql)
                     try test(SimpleRowConvertible.fetchCursor(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
-                    try test(SimpleRowConvertible.fetchCursor(db, Request(statement: db.makeSelectStatement(sql), adapter: adapter)), sql: sql)
+                    try test(SimpleRowConvertible.fetchCursor(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: adapter)), sql: sql)
+                }
+            }
+        }
+    }
+    
+    func testFetchCursorCompilationFailure() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                func test(_ cursor: @autoclosure () throws -> DatabaseCursor<SimpleRowConvertible>, sql: String) throws {
+                    do {
+                        _ = try cursor()
+                        XCTFail()
+                    } catch let error as DatabaseError {
+                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.message, "no such table: nonExistingTable")
+                        XCTAssertEqual(error.sql!, sql)
+                        XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: no such table: nonExistingTable")
+                    }
+                }
+                do {
+                    let sql = "SELECT * FROM nonExistingTable"
+                    try test(SimpleRowConvertible.fetchCursor(db, sql), sql: sql)
+                    try test(SimpleRowConvertible.fetchCursor(db.makeSelectStatement(sql)), sql: sql)
+                    try test(SimpleRowConvertible.fetchCursor(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: nil)), sql: sql)
+                }
+                do {
+                    let sql = "SELECT * FROM nonExistingTable"
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(SimpleRowConvertible.fetchCursor(db, sql, adapter: adapter), sql: sql)
+                    try test(SimpleRowConvertible.fetchCursor(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(SimpleRowConvertible.fetchCursor(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: adapter)), sql: sql)
                 }
             }
         }
@@ -138,7 +170,7 @@ class RowConvertibleTests: GRDBTestCase {
                     let statement = try db.makeSelectStatement(sql)
                     try test(SimpleRowConvertible.fetchAll(db, sql))
                     try test(SimpleRowConvertible.fetchAll(statement))
-                    try test(SimpleRowConvertible.fetchAll(db, Request(statement: statement, adapter: nil)))
+                    try test(SimpleRowConvertible.fetchAll(db, Request(statement: { statement }, adapter: nil)))
                 }
                 do {
                     let sql = "SELECT 0 AS firstName, 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 0, 'Barbara', 'Gourde'"
@@ -146,13 +178,13 @@ class RowConvertibleTests: GRDBTestCase {
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(SimpleRowConvertible.fetchAll(db, sql, adapter: adapter))
                     try test(SimpleRowConvertible.fetchAll(statement, adapter: adapter))
-                    try test(SimpleRowConvertible.fetchAll(db, Request(statement: statement, adapter: adapter)))
+                    try test(SimpleRowConvertible.fetchAll(db, Request(statement: { statement }, adapter: adapter)))
                 }
             }
         }
     }
     
-    func testFetchAllSQLiteFailure() {
+    func testFetchAllStepFailure() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             let customError = NSError(domain: "Custom", code: 0xDEAD)
@@ -174,7 +206,7 @@ class RowConvertibleTests: GRDBTestCase {
                     let statement = try db.makeSelectStatement(sql)
                     try test(SimpleRowConvertible.fetchAll(db, sql), sql: sql)
                     try test(SimpleRowConvertible.fetchAll(statement), sql: sql)
-                    try test(SimpleRowConvertible.fetchAll(db, Request(statement: statement, adapter: nil)), sql: sql)
+                    try test(SimpleRowConvertible.fetchAll(db, Request(statement: { statement }, adapter: nil)), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0, throw()"
@@ -182,7 +214,39 @@ class RowConvertibleTests: GRDBTestCase {
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(SimpleRowConvertible.fetchAll(db, sql, adapter: adapter), sql: sql)
                     try test(SimpleRowConvertible.fetchAll(statement, adapter: adapter), sql: sql)
-                    try test(SimpleRowConvertible.fetchAll(db, Request(statement: statement, adapter: adapter)), sql: sql)
+                    try test(SimpleRowConvertible.fetchAll(db, Request(statement: { statement }, adapter: adapter)), sql: sql)
+                }
+            }
+        }
+    }
+    
+    func testFetchAllCompilationFailure() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                func test(_ array: @autoclosure () throws -> [SimpleRowConvertible], sql: String) throws {
+                    do {
+                        _ = try array()
+                        XCTFail()
+                    } catch let error as DatabaseError {
+                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.message, "no such table: nonExistingTable")
+                        XCTAssertEqual(error.sql!, sql)
+                        XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: no such table: nonExistingTable")
+                    }
+                }
+                do {
+                    let sql = "SELECT * FROM nonExistingTable"
+                    try test(SimpleRowConvertible.fetchAll(db, sql), sql: sql)
+                    try test(SimpleRowConvertible.fetchAll(db.makeSelectStatement(sql)), sql: sql)
+                    try test(SimpleRowConvertible.fetchAll(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: nil)), sql: sql)
+                }
+                do {
+                    let sql = "SELECT * FROM nonExistingTable"
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(SimpleRowConvertible.fetchAll(db, sql, adapter: adapter), sql: sql)
+                    try test(SimpleRowConvertible.fetchAll(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(SimpleRowConvertible.fetchAll(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: adapter)), sql: sql)
                 }
             }
         }
@@ -201,7 +265,7 @@ class RowConvertibleTests: GRDBTestCase {
                         let statement = try db.makeSelectStatement(sql)
                         try test(SimpleRowConvertible.fetchOne(db, sql))
                         try test(SimpleRowConvertible.fetchOne(statement))
-                        try test(SimpleRowConvertible.fetchOne(db, Request(statement: statement, adapter: nil)))
+                        try test(SimpleRowConvertible.fetchOne(db, Request(statement: { statement }, adapter: nil)))
                     }
                     do {
                         let sql = "SELECT 0, 1 WHERE 0"
@@ -209,7 +273,7 @@ class RowConvertibleTests: GRDBTestCase {
                         let adapter = SuffixRowAdapter(fromIndex: 1)
                         try test(SimpleRowConvertible.fetchOne(db, sql, adapter: adapter))
                         try test(SimpleRowConvertible.fetchOne(statement, adapter: adapter))
-                        try test(SimpleRowConvertible.fetchOne(db, Request(statement: statement, adapter: adapter)))
+                        try test(SimpleRowConvertible.fetchOne(db, Request(statement: { statement }, adapter: adapter)))
                     }
                 }
                 do {
@@ -223,7 +287,7 @@ class RowConvertibleTests: GRDBTestCase {
                         let statement = try db.makeSelectStatement(sql)
                         try test(SimpleRowConvertible.fetchOne(db, sql))
                         try test(SimpleRowConvertible.fetchOne(statement))
-                        try test(SimpleRowConvertible.fetchOne(db, Request(statement: statement, adapter: nil)))
+                        try test(SimpleRowConvertible.fetchOne(db, Request(statement: { statement }, adapter: nil)))
                     }
                     do {
                         let sql = "SELECT 0 AS firstName, 'Arthur' AS firstName, 'Martin' AS lastName"
@@ -231,14 +295,14 @@ class RowConvertibleTests: GRDBTestCase {
                         let adapter = SuffixRowAdapter(fromIndex: 1)
                         try test(SimpleRowConvertible.fetchOne(db, sql, adapter: adapter))
                         try test(SimpleRowConvertible.fetchOne(statement, adapter: adapter))
-                        try test(SimpleRowConvertible.fetchOne(db, Request(statement: statement, adapter: adapter)))
+                        try test(SimpleRowConvertible.fetchOne(db, Request(statement: { statement }, adapter: adapter)))
                     }
                 }
             }
         }
     }
     
-    func testFetchOneSQLiteFailure() {
+    func testFetchOneStepFailure() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             let customError = NSError(domain: "Custom", code: 0xDEAD)
@@ -260,7 +324,7 @@ class RowConvertibleTests: GRDBTestCase {
                     let statement = try db.makeSelectStatement(sql)
                     try test(SimpleRowConvertible.fetchOne(db, sql), sql: sql)
                     try test(SimpleRowConvertible.fetchOne(statement), sql: sql)
-                    try test(SimpleRowConvertible.fetchOne(db, Request(statement: statement, adapter: nil)), sql: sql)
+                    try test(SimpleRowConvertible.fetchOne(db, Request(statement: { statement }, adapter: nil)), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0, throw()"
@@ -268,7 +332,39 @@ class RowConvertibleTests: GRDBTestCase {
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(SimpleRowConvertible.fetchOne(db, sql, adapter: adapter), sql: sql)
                     try test(SimpleRowConvertible.fetchOne(statement, adapter: adapter), sql: sql)
-                    try test(SimpleRowConvertible.fetchOne(db, Request(statement: statement, adapter: adapter)), sql: sql)
+                    try test(SimpleRowConvertible.fetchOne(db, Request(statement: { statement }, adapter: adapter)), sql: sql)
+                }
+            }
+        }
+    }
+    
+    func testFetchOneCompilationFailure() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                func test(_ value: @autoclosure () throws -> SimpleRowConvertible?, sql: String) throws {
+                    do {
+                        _ = try value()
+                        XCTFail()
+                    } catch let error as DatabaseError {
+                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.message, "no such table: nonExistingTable")
+                        XCTAssertEqual(error.sql!, sql)
+                        XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: no such table: nonExistingTable")
+                    }
+                }
+                do {
+                    let sql = "SELECT * FROM nonExistingTable"
+                    try test(SimpleRowConvertible.fetchOne(db, sql), sql: sql)
+                    try test(SimpleRowConvertible.fetchOne(db.makeSelectStatement(sql)), sql: sql)
+                    try test(SimpleRowConvertible.fetchOne(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: nil)), sql: sql)
+                }
+                do {
+                    let sql = "SELECT * FROM nonExistingTable"
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(SimpleRowConvertible.fetchOne(db, sql, adapter: adapter), sql: sql)
+                    try test(SimpleRowConvertible.fetchOne(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(SimpleRowConvertible.fetchOne(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: adapter)), sql: sql)
                 }
             }
         }

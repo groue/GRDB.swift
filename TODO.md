@@ -1,5 +1,4 @@
 - [ ] Explain that RowConvertible.init() does not throw because it would prevent FetchedRecordsController from lazily instantiating records as they are needed by the table view.
-- [ ] DatabaseCursor: test that Row.fetchAll(db, "SELECT * FROM boooks") throws a catchable error
 - [ ] DatabaseCursor/FetchedRecordsController: handle fetch errors
 - [ ] Swift 3.0.2 (Xcode 8.2): "Type inference will properly unwrap optionals when used with generics and implicitly-unwrapped optionals." Maybe this fixes `row.value(named: "foo") as? Int`?
 - [ ] Refactor Database notion of transaction/savepoints into a single type. Support INSERT OR ROLLBACK.

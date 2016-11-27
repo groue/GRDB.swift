@@ -52,10 +52,10 @@ private struct FastWrappedInt: DatabaseValueConvertible, StatementColumnConverti
 }
 
 private struct Request : FetchRequest {
-    let statement: SelectStatement
+    let statement: () throws -> SelectStatement
     let adapter: RowAdapter?
-    func prepare(_ db: Database) -> (SelectStatement, RowAdapter?) {
-        return (statement, adapter)
+    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
+        return (try statement(), adapter)
     }
 }
 
@@ -124,7 +124,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     let statement = try db.makeSelectStatement(sql)
                     try test(FastWrappedInt.fetchCursor(db, sql))
                     try test(FastWrappedInt.fetchCursor(statement))
-                    try test(FastWrappedInt.fetchCursor(db, Request(statement: statement, adapter: nil)))
+                    try test(FastWrappedInt.fetchCursor(db, Request(statement: { statement }, adapter: nil)))
                 }
                 do {
                     let sql = "SELECT 0, 1 UNION ALL SELECT 0, 2"
@@ -132,7 +132,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(FastWrappedInt.fetchCursor(db, sql, adapter: adapter))
                     try test(FastWrappedInt.fetchCursor(statement, adapter: adapter))
-                    try test(FastWrappedInt.fetchCursor(db, Request(statement: statement, adapter: adapter)))
+                    try test(FastWrappedInt.fetchCursor(db, Request(statement: { statement }, adapter: adapter)))
                 }
             }
         }
@@ -168,7 +168,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     let statement = try db.makeSelectStatement(sql)
                     try test(FastWrappedInt.fetchCursor(db, sql), sql: sql)
                     try test(FastWrappedInt.fetchCursor(statement), sql: sql)
-                    try test(FastWrappedInt.fetchCursor(db, Request(statement: statement, adapter: nil)), sql: sql)
+                    try test(FastWrappedInt.fetchCursor(db, Request(statement: { statement }, adapter: nil)), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0, 1 UNION ALL SELECT 0, NULL UNION ALL SELECT 0, 'foo' UNION ALL SELECT 0, 2"
@@ -176,13 +176,13 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(FastWrappedInt.fetchCursor(db, sql, adapter: adapter), sql: sql)
                     try test(FastWrappedInt.fetchCursor(statement, adapter: adapter), sql: sql)
-                    try test(FastWrappedInt.fetchCursor(db, Request(statement: statement, adapter: adapter)), sql: sql)
+                    try test(FastWrappedInt.fetchCursor(db, Request(statement: { statement }, adapter: adapter)), sql: sql)
                 }
             }
         }
     }
     
-    func testFetchCursorSQLiteFailure() {
+    func testFetchCursorStepFailure() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             let customError = NSError(domain: "Custom", code: 0xDEAD)
@@ -213,14 +213,46 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     let sql = "SELECT 1 UNION ALL SELECT throw() UNION ALL SELECT 2"
                     try test(FastWrappedInt.fetchCursor(db, sql), sql: sql)
                     try test(FastWrappedInt.fetchCursor(db.makeSelectStatement(sql)), sql: sql)
-                    try test(FastWrappedInt.fetchCursor(db, Request(statement: db.makeSelectStatement(sql), adapter: nil)), sql: sql)
+                    try test(FastWrappedInt.fetchCursor(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: nil)), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0, 1 UNION ALL SELECT 0, throw() UNION ALL SELECT 0, 2"
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(FastWrappedInt.fetchCursor(db, sql, adapter: adapter), sql: sql)
                     try test(FastWrappedInt.fetchCursor(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
-                    try test(FastWrappedInt.fetchCursor(db, Request(statement: db.makeSelectStatement(sql), adapter: adapter)), sql: sql)
+                    try test(FastWrappedInt.fetchCursor(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: adapter)), sql: sql)
+                }
+            }
+        }
+    }
+    
+    func testFetchCursorCompilationFailure() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                func test(_ cursor: @autoclosure () throws -> DatabaseCursor<FastWrappedInt>, sql: String) throws {
+                    do {
+                        _ = try cursor()
+                        XCTFail()
+                    } catch let error as DatabaseError {
+                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.message, "no such table: nonExistingTable")
+                        XCTAssertEqual(error.sql!, sql)
+                        XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: no such table: nonExistingTable")
+                    }
+                }
+                do {
+                    let sql = "SELECT * FROM nonExistingTable"
+                    try test(FastWrappedInt.fetchCursor(db, sql), sql: sql)
+                    try test(FastWrappedInt.fetchCursor(db.makeSelectStatement(sql)), sql: sql)
+                    try test(FastWrappedInt.fetchCursor(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: nil)), sql: sql)
+                }
+                do {
+                    let sql = "SELECT * FROM nonExistingTable"
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(FastWrappedInt.fetchCursor(db, sql, adapter: adapter), sql: sql)
+                    try test(FastWrappedInt.fetchCursor(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(FastWrappedInt.fetchCursor(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: adapter)), sql: sql)
                 }
             }
         }
@@ -239,7 +271,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     let statement = try db.makeSelectStatement(sql)
                     try test(FastWrappedInt.fetchAll(db, sql))
                     try test(FastWrappedInt.fetchAll(statement))
-                    try test(FastWrappedInt.fetchAll(db, Request(statement: statement, adapter: nil)))
+                    try test(FastWrappedInt.fetchAll(db, Request(statement: { statement }, adapter: nil)))
                 }
                 do {
                     let sql = "SELECT 0, 1 UNION ALL SELECT 0, 2"
@@ -247,7 +279,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(FastWrappedInt.fetchAll(db, sql, adapter: adapter))
                     try test(FastWrappedInt.fetchAll(statement, adapter: adapter))
-                    try test(FastWrappedInt.fetchAll(db, Request(statement: statement, adapter: adapter)))
+                    try test(FastWrappedInt.fetchAll(db, Request(statement: { statement }, adapter: adapter)))
                 }
             }
         }
@@ -273,7 +305,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     let statement = try db.makeSelectStatement(sql)
                     try test(FastWrappedInt.fetchAll(db, sql), sql: sql)
                     try test(FastWrappedInt.fetchAll(statement), sql: sql)
-                    try test(FastWrappedInt.fetchAll(db, Request(statement: statement, adapter: nil)), sql: sql)
+                    try test(FastWrappedInt.fetchAll(db, Request(statement: { statement }, adapter: nil)), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0, 1 UNION ALL SELECT 0, NULL UNION ALL SELECT 0, 2"
@@ -281,13 +313,13 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(FastWrappedInt.fetchAll(db, sql, adapter: adapter), sql: sql)
                     try test(FastWrappedInt.fetchAll(statement, adapter: adapter), sql: sql)
-                    try test(FastWrappedInt.fetchAll(db, Request(statement: statement, adapter: adapter)), sql: sql)
+                    try test(FastWrappedInt.fetchAll(db, Request(statement: { statement }, adapter: adapter)), sql: sql)
                 }
             }
         }
     }
     
-    func testFetchAllSQLiteFailure() {
+    func testFetchAllStepFailure() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             let customError = NSError(domain: "Custom", code: 0xDEAD)
@@ -309,7 +341,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     let statement = try db.makeSelectStatement(sql)
                     try test(FastWrappedInt.fetchAll(db, sql), sql: sql)
                     try test(FastWrappedInt.fetchAll(statement), sql: sql)
-                    try test(FastWrappedInt.fetchAll(db, Request(statement: statement, adapter: nil)), sql: sql)
+                    try test(FastWrappedInt.fetchAll(db, Request(statement: { statement }, adapter: nil)), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0, throw()"
@@ -317,7 +349,39 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(FastWrappedInt.fetchAll(db, sql, adapter: adapter), sql: sql)
                     try test(FastWrappedInt.fetchAll(statement, adapter: adapter), sql: sql)
-                    try test(FastWrappedInt.fetchAll(db, Request(statement: statement, adapter: adapter)), sql: sql)
+                    try test(FastWrappedInt.fetchAll(db, Request(statement: { statement }, adapter: adapter)), sql: sql)
+                }
+            }
+        }
+    }
+    
+    func testFetchAllCompilationFailure() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                func test(_ array: @autoclosure () throws -> [FastWrappedInt], sql: String) throws {
+                    do {
+                        _ = try array()
+                        XCTFail()
+                    } catch let error as DatabaseError {
+                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.message, "no such table: nonExistingTable")
+                        XCTAssertEqual(error.sql!, sql)
+                        XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: no such table: nonExistingTable")
+                    }
+                }
+                do {
+                    let sql = "SELECT * FROM nonExistingTable"
+                    try test(FastWrappedInt.fetchAll(db, sql), sql: sql)
+                    try test(FastWrappedInt.fetchAll(db.makeSelectStatement(sql)), sql: sql)
+                    try test(FastWrappedInt.fetchAll(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: nil)), sql: sql)
+                }
+                do {
+                    let sql = "SELECT * FROM nonExistingTable"
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(FastWrappedInt.fetchAll(db, sql, adapter: adapter), sql: sql)
+                    try test(FastWrappedInt.fetchAll(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(FastWrappedInt.fetchAll(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: adapter)), sql: sql)
                 }
             }
         }
@@ -336,7 +400,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                         let statement = try db.makeSelectStatement(sql)
                         try test(FastWrappedInt.fetchOne(db, sql))
                         try test(FastWrappedInt.fetchOne(statement))
-                        try test(FastWrappedInt.fetchOne(db, Request(statement: statement, adapter: nil)))
+                        try test(FastWrappedInt.fetchOne(db, Request(statement: { statement }, adapter: nil)))
                     }
                     do {
                         let sql = "SELECT 0, 1 WHERE 0"
@@ -344,7 +408,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                         let adapter = SuffixRowAdapter(fromIndex: 1)
                         try test(FastWrappedInt.fetchOne(db, sql, adapter: adapter))
                         try test(FastWrappedInt.fetchOne(statement, adapter: adapter))
-                        try test(FastWrappedInt.fetchOne(db, Request(statement: statement, adapter: adapter)))
+                        try test(FastWrappedInt.fetchOne(db, Request(statement: { statement }, adapter: adapter)))
                     }
                 }
                 do {
@@ -356,7 +420,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                         let statement = try db.makeSelectStatement(sql)
                         try test(FastWrappedInt.fetchOne(db, sql))
                         try test(FastWrappedInt.fetchOne(statement))
-                        try test(FastWrappedInt.fetchOne(db, Request(statement: statement, adapter: nil)))
+                        try test(FastWrappedInt.fetchOne(db, Request(statement: { statement }, adapter: nil)))
                     }
                     do {
                         let sql = "SELECT 0, NULL"
@@ -364,7 +428,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                         let adapter = SuffixRowAdapter(fromIndex: 1)
                         try test(FastWrappedInt.fetchOne(db, sql, adapter: adapter))
                         try test(FastWrappedInt.fetchOne(statement, adapter: adapter))
-                        try test(FastWrappedInt.fetchOne(db, Request(statement: statement, adapter: adapter)))
+                        try test(FastWrappedInt.fetchOne(db, Request(statement: { statement }, adapter: adapter)))
                     }
                 }
                 do {
@@ -376,7 +440,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                         let statement = try db.makeSelectStatement(sql)
                         try test(FastWrappedInt.fetchOne(db, sql))
                         try test(FastWrappedInt.fetchOne(statement))
-                        try test(FastWrappedInt.fetchOne(db, Request(statement: statement, adapter: nil)))
+                        try test(FastWrappedInt.fetchOne(db, Request(statement: { statement }, adapter: nil)))
                     }
                     do {
                         let sql = "SELECT 0, 1"
@@ -384,14 +448,14 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                         let adapter = SuffixRowAdapter(fromIndex: 1)
                         try test(FastWrappedInt.fetchOne(db, sql, adapter: adapter))
                         try test(FastWrappedInt.fetchOne(statement, adapter: adapter))
-                        try test(FastWrappedInt.fetchOne(db, Request(statement: statement, adapter: adapter)))
+                        try test(FastWrappedInt.fetchOne(db, Request(statement: { statement }, adapter: adapter)))
                     }
                 }
             }
         }
     }
     
-    func testFetchOneSQLiteFailure() {
+    func testFetchOneStepFailure() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             let customError = NSError(domain: "Custom", code: 0xDEAD)
@@ -413,7 +477,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     let statement = try db.makeSelectStatement(sql)
                     try test(FastWrappedInt.fetchOne(db, sql), sql: sql)
                     try test(FastWrappedInt.fetchOne(statement), sql: sql)
-                    try test(FastWrappedInt.fetchOne(db, Request(statement: statement, adapter: nil)), sql: sql)
+                    try test(FastWrappedInt.fetchOne(db, Request(statement: { statement }, adapter: nil)), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0, throw()"
@@ -421,7 +485,39 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(FastWrappedInt.fetchOne(db, sql, adapter: adapter), sql: sql)
                     try test(FastWrappedInt.fetchOne(statement, adapter: adapter), sql: sql)
-                    try test(FastWrappedInt.fetchOne(db, Request(statement: statement, adapter: adapter)), sql: sql)
+                    try test(FastWrappedInt.fetchOne(db, Request(statement: { statement }, adapter: adapter)), sql: sql)
+                }
+            }
+        }
+    }
+    
+    func testFetchOneCompilationFailure() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                func test(_ value: @autoclosure () throws -> FastWrappedInt?, sql: String) throws {
+                    do {
+                        _ = try value()
+                        XCTFail()
+                    } catch let error as DatabaseError {
+                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.message, "no such table: nonExistingTable")
+                        XCTAssertEqual(error.sql!, sql)
+                        XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: no such table: nonExistingTable")
+                    }
+                }
+                do {
+                    let sql = "SELECT * FROM nonExistingTable"
+                    try test(FastWrappedInt.fetchOne(db, sql), sql: sql)
+                    try test(FastWrappedInt.fetchOne(db.makeSelectStatement(sql)), sql: sql)
+                    try test(FastWrappedInt.fetchOne(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: nil)), sql: sql)
+                }
+                do {
+                    let sql = "SELECT * FROM nonExistingTable"
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(FastWrappedInt.fetchOne(db, sql, adapter: adapter), sql: sql)
+                    try test(FastWrappedInt.fetchOne(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(FastWrappedInt.fetchOne(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: adapter)), sql: sql)
                 }
             }
         }
@@ -445,7 +541,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     let statement = try db.makeSelectStatement(sql)
                     try test(Optional<FastWrappedInt>.fetchCursor(db, sql))
                     try test(Optional<FastWrappedInt>.fetchCursor(statement))
-                    try test(Optional<FastWrappedInt>.fetchCursor(db, Request(statement: statement, adapter: nil)))
+                    try test(Optional<FastWrappedInt>.fetchCursor(db, Request(statement: { statement }, adapter: nil)))
                 }
                 do {
                     let sql = "SELECT 0, 1 UNION ALL SELECT 0, NULL"
@@ -453,7 +549,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(Optional<FastWrappedInt>.fetchCursor(db, sql, adapter: adapter))
                     try test(Optional<FastWrappedInt>.fetchCursor(statement, adapter: adapter))
-                    try test(Optional<FastWrappedInt>.fetchCursor(db, Request(statement: statement, adapter: adapter)))
+                    try test(Optional<FastWrappedInt>.fetchCursor(db, Request(statement: { statement }, adapter: adapter)))
                 }
             }
         }
@@ -488,7 +584,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     let statement = try db.makeSelectStatement(sql)
                     try test(Optional<FastWrappedInt>.fetchCursor(db, sql), sql: sql)
                     try test(Optional<FastWrappedInt>.fetchCursor(statement), sql: sql)
-                    try test(Optional<FastWrappedInt>.fetchCursor(db, Request(statement: statement, adapter: nil)), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchCursor(db, Request(statement: { statement }, adapter: nil)), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0, 1 UNION ALL SELECT 0, NULL UNION ALL SELECT 0, 'foo' UNION ALL SELECT 0, 2"
@@ -496,7 +592,39 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(Optional<FastWrappedInt>.fetchCursor(db, sql, adapter: adapter), sql: sql)
                     try test(Optional<FastWrappedInt>.fetchCursor(statement, adapter: adapter), sql: sql)
-                    try test(Optional<FastWrappedInt>.fetchCursor(db, Request(statement: statement, adapter: adapter)), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchCursor(db, Request(statement: { statement }, adapter: adapter)), sql: sql)
+                }
+            }
+        }
+    }
+    
+    func testOptionalFetchCursorCompilationFailure() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                func test(_ cursor: @autoclosure () throws -> DatabaseCursor<FastWrappedInt?>, sql: String) throws {
+                    do {
+                        _ = try cursor()
+                        XCTFail()
+                    } catch let error as DatabaseError {
+                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.message, "no such table: nonExistingTable")
+                        XCTAssertEqual(error.sql!, sql)
+                        XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: no such table: nonExistingTable")
+                    }
+                }
+                do {
+                    let sql = "SELECT * FROM nonExistingTable"
+                    try test(Optional<FastWrappedInt>.fetchCursor(db, sql), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchCursor(db.makeSelectStatement(sql)), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchCursor(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: nil)), sql: sql)
+                }
+                do {
+                    let sql = "SELECT * FROM nonExistingTable"
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(Optional<FastWrappedInt>.fetchCursor(db, sql, adapter: adapter), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchCursor(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchCursor(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: adapter)), sql: sql)
                 }
             }
         }
@@ -517,7 +645,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     let statement = try db.makeSelectStatement(sql)
                     try test(Optional<FastWrappedInt>.fetchAll(db, sql))
                     try test(Optional<FastWrappedInt>.fetchAll(statement))
-                    try test(Optional<FastWrappedInt>.fetchAll(db, Request(statement: statement, adapter: nil)))
+                    try test(Optional<FastWrappedInt>.fetchAll(db, Request(statement: { statement }, adapter: nil)))
                 }
                 do {
                     let sql = "SELECT 0, 1 UNION ALL SELECT 0, NULL"
@@ -525,7 +653,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(Optional<FastWrappedInt>.fetchAll(db, sql, adapter: adapter))
                     try test(Optional<FastWrappedInt>.fetchAll(statement, adapter: adapter))
-                    try test(Optional<FastWrappedInt>.fetchAll(db, Request(statement: statement, adapter: adapter)))
+                    try test(Optional<FastWrappedInt>.fetchAll(db, Request(statement: { statement }, adapter: adapter)))
                 }
             }
         }
@@ -554,7 +682,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     let statement = try db.makeSelectStatement(sql)
                     try test(Optional<FastWrappedInt>.fetchAll(db, sql), sql: sql)
                     try test(Optional<FastWrappedInt>.fetchAll(statement), sql: sql)
-                    try test(Optional<FastWrappedInt>.fetchAll(db, Request(statement: statement, adapter: nil)), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchAll(db, Request(statement: { statement }, adapter: nil)), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0, 1 UNION ALL SELECT 0, NULL UNION ALL SELECT 0, 'foo' UNION ALL SELECT 0, 2"
@@ -562,13 +690,13 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(Optional<FastWrappedInt>.fetchAll(db, sql, adapter: adapter), sql: sql)
                     try test(Optional<FastWrappedInt>.fetchAll(statement, adapter: adapter), sql: sql)
-                    try test(Optional<FastWrappedInt>.fetchAll(db, Request(statement: statement, adapter: adapter)), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchAll(db, Request(statement: { statement }, adapter: adapter)), sql: sql)
                 }
             }
         }
     }
     
-    func testOptionalFetchAllSQLiteFailure() {
+    func testOptionalFetchAllStepFailure() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             let customError = NSError(domain: "Custom", code: 0xDEAD)
@@ -590,7 +718,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     let statement = try db.makeSelectStatement(sql)
                     try test(Optional<FastWrappedInt>.fetchAll(db, sql), sql: sql)
                     try test(Optional<FastWrappedInt>.fetchAll(statement), sql: sql)
-                    try test(Optional<FastWrappedInt>.fetchAll(db, Request(statement: statement, adapter: nil)), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchAll(db, Request(statement: { statement }, adapter: nil)), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0, throw()"
@@ -598,7 +726,39 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(Optional<FastWrappedInt>.fetchAll(db, sql, adapter: adapter), sql: sql)
                     try test(Optional<FastWrappedInt>.fetchAll(statement, adapter: adapter), sql: sql)
-                    try test(Optional<FastWrappedInt>.fetchAll(db, Request(statement: statement, adapter: adapter)), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchAll(db, Request(statement: { statement }, adapter: adapter)), sql: sql)
+                }
+            }
+        }
+    }
+    
+    func testOptionalFetchAllCompilationFailure() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                func test(_ array: @autoclosure () throws -> [FastWrappedInt?], sql: String) throws {
+                    do {
+                        _ = try array()
+                        XCTFail()
+                    } catch let error as DatabaseError {
+                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.message, "no such table: nonExistingTable")
+                        XCTAssertEqual(error.sql!, sql)
+                        XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: no such table: nonExistingTable")
+                    }
+                }
+                do {
+                    let sql = "SELECT * FROM nonExistingTable"
+                    try test(Optional<FastWrappedInt>.fetchAll(db, sql), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchAll(db.makeSelectStatement(sql)), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchAll(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: nil)), sql: sql)
+                }
+                do {
+                    let sql = "SELECT * FROM nonExistingTable"
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(Optional<FastWrappedInt>.fetchAll(db, sql, adapter: adapter), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchAll(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchAll(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: adapter)), sql: sql)
                 }
             }
         }
