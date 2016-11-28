@@ -56,7 +56,7 @@ public final class DatabasePool {
         // Activate WAL Mode unless readonly
         if !configuration.readonly {
             try writer.sync { db in
-                let journalMode = try String.fetchCursor(db, "PRAGMA journal_mode = WAL").next()
+                let journalMode = try String.fetchOne(db, "PRAGMA journal_mode = WAL")
                 guard journalMode == "wal" else {
                     throw DatabaseError(message: "could not activate WAL Mode at path: \(path)")
                 }

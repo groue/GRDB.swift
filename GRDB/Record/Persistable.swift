@@ -411,7 +411,7 @@ public extension MutablePersistable {
             // Nil primary key
             return false
         }
-        return try Row.fetchCursor(statement).next() != nil
+        return try Row.fetchOne(statement) != nil
     }
     
 }
