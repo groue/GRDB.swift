@@ -8,9 +8,6 @@
          location = "group:Tour.playground">
       </FileRef>
       <FileRef
-         location = "group:DatabaseTimestamp.playground">
-      </FileRef>
-      <FileRef
          location = "group:JSONSynchronization.playground">
       </FileRef>
       <FileRef

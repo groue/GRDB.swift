@@ -17,4 +17,5 @@ try! dbQueue.inDatabase { db in
     try db.execute("INSERT INTO persons (name) VALUES (?)", arguments: ["Barbara"])
     
     let names = try String.fetchAll(db, "SELECT name FROM persons")
-    print(names
+    print(names)
+}

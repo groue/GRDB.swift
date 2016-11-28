@@ -147,4 +147,5 @@ do {
         // INSERT INTO "persons" ("id","name") VALUES (4,'Daniel')
         try synchronizePersons(with: jsonString, in: db)
         return .commit
-    
+    }
+}

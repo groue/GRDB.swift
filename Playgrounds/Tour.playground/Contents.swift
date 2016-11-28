@@ -39,8 +39,9 @@ try dbQueue.inDatabase { db in
 
 //: Fetch database rows and values
 
-dbQueue.inDatabase { db in
-    for row in Row.fetchAll(db, "SELECT * FROM pointOfInterests") {
+try dbQueue.inDatabase { db in
+    let rows = try Row.fetchCursor(db, "SELECT * FROM pointOfInterests")
+    while let row = try rows.next() {
         let title: String = row.value(named: "title")
         let favorite: Bool = row.value(named: "favorite")
         let coordinate = CLLocationCoordinate2DMake(
@@ -111,7 +112,7 @@ try dbQueue.inDatabase { db in
     try berlin.update(db)
     
     // Fetch from SQL
-    let pois = PointOfInterest.fetchAll(db, "SELECT * FROM pointOfInterests") // [PointOfInterest]
+    let pois = try PointOfInterest.fetchAll(db, "SELECT * FROM pointOfInterests") // [PointOfInterest]
     
     
     //: Avoid SQL with the query interface:
@@ -119,9 +120,10 @@ try dbQueue.inDatabase { db in
     let title = Column("title")
     let favorite = Column("favorite")
     
-    berlin = PointOfInterest.filter(title == "Berlin").fetchOne(db)!   // PointOfInterest
-    let paris = PointOfInterest.fetchOne(db, key: 1)                   // PointOfInterest?
-    let favoritePois = PointOfInterest                                 // [PointOfInterest]
+    berlin = try PointOfInterest.filter(title == "Berlin").fetchOne(db)!   // PointOfInterest
+    let paris = try PointOfInterest.fetchOne(db, key: 1)                   // PointOfInterest?
+    let favoritePois = try PointOfInterest                                 // [PointOfInterest]
         .filter(favorite)
         .order(title)
-        .fetchAl
+        .fetchAll(db)
+}

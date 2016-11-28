@@ -99,7 +99,7 @@ try dbQueue.inDatabase { db in
 
 //: ## Fetching Records
 
-dbQueue.inDatabase { db in
+try dbQueue.inDatabase { db in
     
     //: Fetch records from the database:
     let allPersons = try Person.fetchAll(db)
@@ -121,7 +121,8 @@ dbQueue.inDatabase { db in
     }
 
     //: Sort
-    let personsSortedByName = Person.order(Col.firstName, Col.lastName).fetchAll(db)
+    let personsSortedByName = try Person.order(Col.firstName, Col.lastName).fetchAll(db)
 
     //: Filter
-    let streisands = Person.filter(Col.lastName == "Streisand").fet
+    let streisands = try Person.filter(Col.lastName == "Streisand").fetchAll(db)
+}
