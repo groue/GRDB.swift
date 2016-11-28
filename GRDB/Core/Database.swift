@@ -1090,10 +1090,10 @@ extension Database {
             return indexes
         }
         
-        let indexes = try Row.fetchCursor(self, "PRAGMA index_list(\(tableName.quotedDatabaseIdentifier))").map { row -> IndexInfo in
+        let indexes = try Row.fetchAll(self, "PRAGMA index_list(\(tableName.quotedDatabaseIdentifier))").map { row -> IndexInfo in
             let indexName: String = row.value(atIndex: 1)
             let unique: Bool = row.value(atIndex: 2)
-            let columns = try Row.fetchCursor(self, "PRAGMA index_info(\(indexName.quotedDatabaseIdentifier))")
+            let columns = try Row.fetchAll(self, "PRAGMA index_info(\(indexName.quotedDatabaseIdentifier))")
                 .map { ($0.value(atIndex: 0) as Int, $0.value(atIndex: 2) as String) }
                 .sorted { $0.0 < $1.0 }
                 .map { $0.1 }

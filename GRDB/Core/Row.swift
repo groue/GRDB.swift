@@ -549,7 +549,7 @@ extension Row {
     /// - returns: An array of rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Row] {
-        return try fetchCursor(statement, arguments: arguments, adapter: adapter).map { $0.copy() }
+        return try Array(fetchCursor(statement, arguments: arguments, adapter: adapter).map { $0.copy() })
     }
     
     /// Returns a single row fetched from a prepared statement.

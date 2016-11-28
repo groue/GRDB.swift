@@ -57,8 +57,10 @@ class DatabaseCursorTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let cursor = try Int.fetchCursor(db, "SELECT 1 AS i UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 ORDER BY i")
-                let odds = try cursor.filter { $0 % 2 == 1 }
-                XCTAssertEqual(odds, [1, 3])
+                let odds = cursor.filter { $0 % 2 == 1 }
+                XCTAssertEqual(try odds.next()!, 1)
+                XCTAssertEqual(try odds.next()!, 3)
+                XCTAssertTrue(try odds.next() == nil)
             }
         }
     }
@@ -68,8 +70,12 @@ class DatabaseCursorTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let cursor = try Int.fetchCursor(db, "SELECT 1 AS i UNION ALL SELECT 2 ORDER BY i")
-                let ints = try cursor.flatMap { AnySequence([$0, $0 + 1]) }
-                XCTAssertEqual(ints, [1, 2, 2, 3])
+                let ints = cursor.flatMap { AnySequence([$0, $0 + 1]) }
+                XCTAssertEqual(try ints.next()!, 1)
+                XCTAssertEqual(try ints.next()!, 2)
+                XCTAssertEqual(try ints.next()!, 2)
+                XCTAssertEqual(try ints.next()!, 3)
+                XCTAssertTrue(try ints.next() == nil)
             }
         }
     }
@@ -79,10 +85,14 @@ class DatabaseCursorTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let cursor = try Int.fetchCursor(db, "SELECT 1 AS i UNION ALL SELECT 2 ORDER BY i")
-                let ints = try cursor.flatMap {
+                let ints = cursor.flatMap {
                     try Int.fetchCursor(db, "SELECT ? AS i UNION ALL SELECT ?+1 ORDER BY i", arguments: [$0, $0])
                 }
-                XCTAssertEqual(ints, [1, 2, 2, 3])
+                XCTAssertEqual(try ints.next()!, 1)
+                XCTAssertEqual(try ints.next()!, 2)
+                XCTAssertEqual(try ints.next()!, 2)
+                XCTAssertEqual(try ints.next()!, 3)
+                XCTAssertTrue(try ints.next() == nil)
             }
         }
     }
@@ -92,10 +102,14 @@ class DatabaseCursorTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let sequence = AnySequence([1, 2])
-                let ints = try sequence.flatMap {
+                let ints = sequence.flatMap {
                     try Int.fetchCursor(db, "SELECT ? AS i UNION ALL SELECT ?+1 ORDER BY i", arguments: [$0, $0])
                 }
-                XCTAssertEqual(ints, [1, 2, 2, 3])
+                XCTAssertEqual(try ints.next()!, 1)
+                XCTAssertEqual(try ints.next()!, 2)
+                XCTAssertEqual(try ints.next()!, 2)
+                XCTAssertEqual(try ints.next()!, 3)
+                XCTAssertTrue(try ints.next() == nil)
             }
         }
     }
@@ -105,8 +119,9 @@ class DatabaseCursorTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let cursor = try DatabaseValue.fetchCursor(db, "SELECT 'foo' UNION ALL SELECT 1")
-                let ints = try cursor.flatMap(Int.fromDatabaseValue)
-                XCTAssertEqual(ints, [1])
+                let ints = cursor.flatMap(Int.fromDatabaseValue)
+                XCTAssertEqual(try ints.next()!, 1)
+                XCTAssertTrue(try ints.next() == nil)
             }
         }
     }
@@ -128,8 +143,10 @@ class DatabaseCursorTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let cursor = try Int.fetchCursor(db, "SELECT 1 AS i UNION ALL SELECT 2 ORDER BY i")
-                let squares = try cursor.map { $0 * $0 }
-                XCTAssertEqual(squares, [1, 4])
+                let squares = cursor.map { $0 * $0 }
+                XCTAssertEqual(try squares.next()!, 1)
+                XCTAssertEqual(try squares.next()!, 4)
+                XCTAssertTrue(try squares.next() == nil)
             }
         }
     }

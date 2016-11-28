@@ -386,8 +386,11 @@ class MetalRowTests : RowTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let cursor = try Row.fetchCursor(db, "SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3")
-                let values = try cursor.map { $0.value(atIndex: 0) as Int }
-                XCTAssertEqual(values, [1, 2, 3])
+                let values = cursor.map { $0.value(atIndex: 0) as Int }
+                XCTAssertEqual(try values.next()!, 1)
+                XCTAssertEqual(try values.next()!, 2)
+                XCTAssertEqual(try values.next()!, 3)
+                XCTAssertTrue(try values.next() == nil)
             }
         }
     }
