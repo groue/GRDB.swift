@@ -156,8 +156,10 @@ public extension DatabaseValueConvertible {
     /// - returns: An optional value.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self? {
-        let cursor = try DatabaseValue.fetchCursor(statement, arguments: arguments, adapter: adapter)
-        return try cursor.next().flatMap { dbv in
+        // Metal rows can be reused. And reusing them yields better performance.
+        let row = try Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
+        let cursor = try statement.fetchCursor(arguments: arguments) { () -> Self? in
+            let dbv: DatabaseValue = row.value(atIndex: 0)
             if let value = Self.fromDatabaseValue(dbv) {
                 return value
             } else if dbv.isNull {
@@ -166,6 +168,7 @@ public extension DatabaseValueConvertible {
                 throw DatabaseError(code: SQLITE_ERROR, message: "could not convert database value \(dbv) to \(Self.self)", sql: statement.sql, arguments: arguments)
             }
         }
+        return try cursor.next() ?? nil
     }
 }
 
