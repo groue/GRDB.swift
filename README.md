@@ -541,7 +541,7 @@ while let url = try urls.next() {
 let wines = try Wine.fetchAll(db, "SELECT * FROM wines")
 ```
 
-- [Fetching Methods](#fetching-methods)
+- [Fetching Methods](#fetching-methods) and [Cursors](#cursors)
 - [Row Queries](#row-queries)
 - [Value Queries](#value-queries)
 - [Records](#records)
@@ -557,7 +557,7 @@ try Type.fetchAll(...)    // [Type]
 try Type.fetchOne(...)    // Type?
 ```
 
-- `fetchCursor` returns a **cursor** that is memory efficient, but must be consumed in a protected dispatch queue.
+- `fetchCursor` returns a **cursor** over fetched values:
     
     ```swift
     let rows = try Row.fetchCursor(db, "SELECT ...") // DatabaseCursor<Row>
@@ -566,18 +566,9 @@ try Type.fetchOne(...)    // Type?
     }
     ```
     
-    Don't modify the database during a cursor iteration:
+    See [Cursors](#cursors) for more information.
     
-    ```swift
-    // Undefined behavior
-    while let row = try rows.next() {
-        try db.execute("DELETE FROM persons ...")
-    }
-    ```
-    
-    Cursors share some traits with Swift sequences and iterators, and implement methods like enumerated, filter, map, etc.
-    
-- `fetchAll` returns an **array** that can be consumed on any thread. It contains copies of database values, and can take a lot of memory:
+- `fetchAll` returns an **array**:
     
     ```swift
     let persons = try Person.fetchAll(db, "SELECT ...") // [Person]
@@ -588,6 +579,73 @@ try Type.fetchOne(...)    // Type?
     ```swift
     let count = try Int.fetchOne(db, "SELECT COUNT(*) ...") // Int?
     ```
+
+
+#### Cursors
+
+**Whenever you consume several rows from the database, you can fetch a Cursor, or an Array**.
+
+Array contains copies of database values, can take a lot of memory, but may be consumed on any thread. Conversely, cursors iterate over database results in a lazy fashion, don't consume much memory, and are generally more efficient. But they must be consumed in a protected dispatch queue:
+
+```swift
+let rows = try Row.fetchAll(db, "SELECT * FROM links")      // [Row]
+let urls = try URL.fetchAll(db, "SELECT url FROM links")    // [URL]
+let links = try Link.fetchAll(db, "SELECT * FROM links")    // [Link]
+
+let rows = try Row.fetchCursor(db, "SELECT * FROM links")   // DatabaseCursor<Row>
+let urls = try URL.fetchCursor(db, "SELECT url FROM links") // DatabaseCursor<URL>
+let links = try Link.fetchCursor(db, "SELECT * FROM links") // DatabaseCursor<Link>
+```
+
+
+The most common way to iterate over the elements of a cursor is to use a `while` loop:
+
+```swift
+let rows = try Row.fetchCursor(db, "SELECT * FROM links")
+while let row = try rows.next() {
+    let url: URL = row.value(named: "url")
+    print(url)
+}
+```
+
+Don't modify the database during a cursor iteration:
+
+```swift
+// Undefined behavior
+while let row = try rows.next() {
+    try db.execute("DELETE FROM persons ...")
+}
+```
+
+Cursors share traits with [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol) and [iterators](https://developer.apple.com/reference/swift/iteratorprotocol) from the Swift standard library. Differences are:
+
+- Cursor types are classes, and have a lifetime.
+- Cursors may throw errors.
+- Cursor can not be repeated.
+
+The protocol comes with default implementations for many operations similar
+to those defined by lazy sequences:
+
+```swift
+extension Cursor {
+    func contains(Element)
+    func contains(where: (Element) throws -> Bool)
+    func enumerated()
+    func filter((Element) throws -> Bool)
+    func first(where: (Element) throws -> Bool)
+    func flatMap<T>((Element) throws -> T?)
+    func flatMap((Element) throws -> Sequence)
+    func flatMap((Element) throws -> Cursor)
+    func forEach((Element) throws -> Void)
+    func joined()
+    func map<T>((Element) throws -> T)
+    func reduce(Result, (Result, Element) throws -> Result)
+}
+
+extension Sequence {
+    func flatMap((Iterator.Element) throws -> Cursor)
+}
+```
 
 
 ### Row Queries

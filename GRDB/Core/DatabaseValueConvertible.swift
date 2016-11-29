@@ -89,7 +89,7 @@ extension DatabaseValueConvertible {
 ///     try String.fetchOne(statement, arguments:...)    // String
 ///
 /// DatabaseValueConvertible is adopted by Bool, Int, String, etc.
-public extension DatabaseValueConvertible {
+extension DatabaseValueConvertible {
     
     
     // MARK: Fetching From SelectStatement

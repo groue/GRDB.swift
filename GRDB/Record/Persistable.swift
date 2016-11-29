@@ -186,7 +186,8 @@ public protocol MutablePersistable : TableMapping {
     /// - parameter db: A database connection.
     /// - returns: Whether a database row was deleted.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @discardableResult func delete(_ db: Database) throws -> Bool
+    @discardableResult
+    func delete(_ db: Database) throws -> Bool
     
     /// Returns true if and only if the primary key matches a row in
     /// the database.
@@ -202,19 +203,19 @@ public protocol MutablePersistable : TableMapping {
     func exists(_ db: Database) throws -> Bool
 }
 
-public extension MutablePersistable {
+extension MutablePersistable {
     /// Describes the conflict policy for insertions and updates.
     ///
     /// The default value specifies ABORT policy for both insertions and
     /// updates, which has GRDB generate regular INSERT and UPDATE queries.
-    static var persistenceConflictPolicy: PersistenceConflictPolicy {
+    public static var persistenceConflictPolicy: PersistenceConflictPolicy {
         return PersistenceConflictPolicy(insert: .abort, update: .abort)
     }
     
     /// Notifies the record that it was succesfully inserted.
     ///
     /// The default implementation does nothing.
-    mutating func didInsert(with rowID: Int64, for column: String?) {
+    public mutating func didInsert(with rowID: Int64, for column: String?) {
     }
     
     
@@ -223,7 +224,7 @@ public extension MutablePersistable {
     /// Executes an INSERT statement.
     ///
     /// The default implementation for insert() invokes performInsert().
-    mutating func insert(_ db: Database) throws {
+    public mutating func insert(_ db: Database) throws {
         try performInsert(db)
     }
     
@@ -234,7 +235,7 @@ public extension MutablePersistable {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
-    func update(_ db: Database, columns: Set<String>) throws {
+    public func update(_ db: Database, columns: Set<String>) throws {
         try performUpdate(db, columns: columns)
     }
     
@@ -245,7 +246,7 @@ public extension MutablePersistable {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
-    func update<Sequence: Swift.Sequence>(_ db: Database, columns: Sequence) throws where Sequence.Iterator.Element == Column {
+    public func update<Sequence: Swift.Sequence>(_ db: Database, columns: Sequence) throws where Sequence.Iterator.Element == Column {
         try update(db, columns: Set(columns.map { $0.name }))
     }
     
@@ -256,7 +257,7 @@ public extension MutablePersistable {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
-    func update<Sequence: Swift.Sequence>(_ db: Database, columns: Sequence) throws where Sequence.Iterator.Element == String {
+    public func update<Sequence: Swift.Sequence>(_ db: Database, columns: Sequence) throws where Sequence.Iterator.Element == String {
         try update(db, columns: Set(columns))
     }
     
@@ -266,7 +267,7 @@ public extension MutablePersistable {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
-    func update(_ db: Database) throws {
+    public func update(_ db: Database) throws {
         let databaseTableName = type(of: self).databaseTableName
         let columns = try db.columns(in: databaseTableName)
         try update(db, columns: Set(columns.map { $0.name }))
@@ -276,14 +277,15 @@ public extension MutablePersistable {
     /// the database.
     ///
     /// The default implementation for save() invokes performSave().
-    mutating func save(_ db: Database) throws {
+    public mutating func save(_ db: Database) throws {
         try performSave(db)
     }
     
     /// Executes a DELETE statement.
     ///
     /// The default implementation for delete() invokes performDelete().
-    @discardableResult func delete(_ db: Database) throws -> Bool {
+    @discardableResult
+    public func delete(_ db: Database) throws -> Bool {
         return try performDelete(db)
     }
     
@@ -291,7 +293,7 @@ public extension MutablePersistable {
     /// the database.
     ///
     /// The default implementation for exists() invokes performExists().
-    func exists(_ db: Database) throws -> Bool {
+    public func exists(_ db: Database) throws -> Bool {
         return try performExists(db)
     }
     
@@ -320,7 +322,7 @@ public extension MutablePersistable {
     /// that adopt MutablePersistable can invoke performInsert() in their
     /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
-    mutating func performInsert(_ db: Database) throws {
+    public mutating func performInsert(_ db: Database) throws {
         let conflictResolutionForInsert = type(of: self).persistenceConflictPolicy.conflictResolutionForInsert
         let dao = try DAO(db, self)
         try dao.insertStatement(onConflict: conflictResolutionForInsert).execute()
@@ -343,7 +345,7 @@ public extension MutablePersistable {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
-    func performUpdate(_ db: Database, columns: Set<String>) throws {
+    public func performUpdate(_ db: Database, columns: Set<String>) throws {
         guard let statement = try DAO(db, self).updateStatement(columns: columns, onConflict: type(of: self).persistenceConflictPolicy.conflictResolutionForUpdate) else {
             // Nil primary key
             throw PersistenceError.recordNotFound(self)
@@ -363,7 +365,7 @@ public extension MutablePersistable {
     /// implementation of performSave().
     ///
     /// This default implementation forwards the job to `update` or `insert`.
-    mutating func performSave(_ db: Database) throws {
+    public mutating func performSave(_ db: Database) throws {
         // Make sure we call self.insert and self.update so that classes
         // that override insert or save have opportunity to perform their
         // custom job.
@@ -390,7 +392,7 @@ public extension MutablePersistable {
     /// that adopt MutablePersistable can invoke performDelete() in
     /// their implementation of delete(). They should not provide their own
     /// implementation of performDelete().
-    func performDelete(_ db: Database) throws -> Bool {
+    public func performDelete(_ db: Database) throws -> Bool {
         guard let statement = try DAO(db, self).deleteStatement() else {
             // Nil primary key
             return false
@@ -406,7 +408,7 @@ public extension MutablePersistable {
     /// that adopt MutablePersistable can invoke performExists() in
     /// their implementation of exists(). They should not provide their own
     /// implementation of performExists().
-    func performExists(_ db: Database) throws -> Bool {
+    public func performExists(_ db: Database) throws -> Bool {
         guard let statement = try DAO(db, self).existsStatement() else {
             // Nil primary key
             return false
@@ -494,12 +496,12 @@ public protocol Persistable : MutablePersistable {
     func save(_ db: Database) throws
 }
 
-public extension Persistable {
+extension Persistable {
     
     /// Notifies the record that it was succesfully inserted.
     ///
     /// The default implementation does nothing.
-    func didInsert(with rowID: Int64, for column: String?) {
+    public func didInsert(with rowID: Int64, for column: String?) {
     }
     
     // MARK: - Immutable CRUD
@@ -507,7 +509,7 @@ public extension Persistable {
     /// Executes an INSERT statement.
     ///
     /// The default implementation for insert() invokes performInsert().
-    func insert(_ db: Database) throws {
+    public func insert(_ db: Database) throws {
         try performInsert(db)
     }
     
@@ -515,7 +517,7 @@ public extension Persistable {
     /// the database.
     ///
     /// The default implementation for save() invokes performSave().
-    func save(_ db: Database) throws {
+    public func save(_ db: Database) throws {
         try performSave(db)
     }
     
@@ -529,7 +531,7 @@ public extension Persistable {
     /// that adopt Persistable can invoke performInsert() in their
     /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
-    func performInsert(_ db: Database) throws {
+    public func performInsert(_ db: Database) throws {
         let conflictResolutionForInsert = type(of: self).persistenceConflictPolicy.conflictResolutionForInsert
         let dao = try DAO(db, self)
         try dao.insertStatement(onConflict: conflictResolutionForInsert).execute()
@@ -548,7 +550,7 @@ public extension Persistable {
     /// implementation of performSave().
     ///
     /// This default implementation forwards the job to `update` or `insert`.
-    func performSave(_ db: Database) throws {
+    public func performSave(_ db: Database) throws {
         // Make sure we call self.insert and self.update so that classes that
         // override insert or save have opportunity to perform their custom job.
         

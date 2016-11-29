@@ -222,7 +222,8 @@ public final class FTS4TableDefinition {
     ///     }
     ///
     /// - parameter name: the column name.
-    @discardableResult public func column(_ name: String) -> FTS4ColumnDefinition {
+    @discardableResult
+    public func column(_ name: String) -> FTS4ColumnDefinition {
         let column = FTS4ColumnDefinition(name: name)
         columns.append(column)
         return column
@@ -272,7 +273,8 @@ public final class FTS4ColumnDefinition {
     /// See https://www.sqlite.org/fts3.html#the_notindexed_option
     ///
     /// - returns: Self so that you can further refine the column definition.
-    @discardableResult public func notIndexed() -> Self {
+    @discardableResult
+    public func notIndexed() -> Self {
         self.isIndexed = false
         return self
     }
@@ -287,7 +289,8 @@ public final class FTS4ColumnDefinition {
     /// See https://www.sqlite.org/fts3.html#the_languageid_option
     ///
     /// - returns: Self so that you can further refine the column definition.
-    @discardableResult public func asLanguageId() -> Self {
+    @discardableResult
+    public func asLanguageId() -> Self {
         self.isLanguageId = true
         return self
     }

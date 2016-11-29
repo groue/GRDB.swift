@@ -157,7 +157,8 @@ extension TableMapping {
     ///     - db: A database connection.
     ///     - keys: A sequence of primary keys.
     /// - returns: The number of deleted rows
-    @discardableResult public static func deleteAll<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> Int where Sequence.Iterator.Element: DatabaseValueConvertible {
+    @discardableResult
+    public static func deleteAll<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> Int where Sequence.Iterator.Element: DatabaseValueConvertible {
         guard let statement = try makeDeleteByPrimaryKeyStatement(db, keys: keys) else {
             return 0
         }
@@ -174,7 +175,8 @@ extension TableMapping {
     ///     - db: A database connection.
     ///     - key: A primary key value.
     /// - returns: Whether a database row was deleted.
-    @discardableResult public static func deleteOne<PrimaryKeyType: DatabaseValueConvertible>(_ db: Database, key: PrimaryKeyType?) throws -> Bool {
+    @discardableResult
+    public static func deleteOne<PrimaryKeyType: DatabaseValueConvertible>(_ db: Database, key: PrimaryKeyType?) throws -> Bool {
         guard let key = key else {
             return false
         }
@@ -335,7 +337,8 @@ extension TableMapping {
     ///     - db: A database connection.
     ///     - keys: An array of key dictionaries.
     /// - returns: The number of deleted rows
-    @discardableResult public static func deleteAll(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> Int {
+    @discardableResult
+    public static func deleteAll(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> Int {
         guard let statement = try makeDeleteByKeyStatement(db, keys: keys) else {
             return 0
         }
@@ -352,7 +355,8 @@ extension TableMapping {
     ///     - db: A database connection.
     ///     - key: A dictionary of values.
     /// - returns: Whether a database row was deleted.
-    @discardableResult public static func deleteOne(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Bool {
+    @discardableResult
+    public static func deleteOne(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Bool {
         return try deleteAll(db, keys: [key]) > 0
     }
     

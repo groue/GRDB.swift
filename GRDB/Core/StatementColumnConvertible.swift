@@ -47,7 +47,7 @@ public protocol StatementColumnConvertible {
 /// database values.
 ///
 /// See DatabaseValueConvertible for more information.
-public extension DatabaseValueConvertible where Self: StatementColumnConvertible {
+extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     
     
     // MARK: Fetching From SelectStatement

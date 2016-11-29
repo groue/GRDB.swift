@@ -10,15 +10,15 @@
 ///
 ///     // ... then the RawRepresentable type can freely adopt DatabaseValueConvertible:
 ///     extension Color : DatabaseValueConvertible { /* empty */ }
-public extension RawRepresentable where Self: DatabaseValueConvertible, Self.RawValue: DatabaseValueConvertible {
+extension RawRepresentable where Self: DatabaseValueConvertible, Self.RawValue: DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
-    var databaseValue: DatabaseValue {
+    public var databaseValue: DatabaseValue {
         return rawValue.databaseValue
     }
     
     /// Returns a value initialized from *databaseValue*, if possible.
-    static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
+    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
         return RawValue.fromDatabaseValue(databaseValue).flatMap { self.init(rawValue: $0) }
     }
 }

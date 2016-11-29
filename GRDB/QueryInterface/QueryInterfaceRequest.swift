@@ -304,7 +304,8 @@ extension QueryInterfaceRequest {
     /// - parameter db: A database connection.
     /// - returns: The number of deleted rows
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @discardableResult public func deleteAll(_ db: Database) throws -> Int {
+    @discardableResult
+    public func deleteAll(_ db: Database) throws -> Int {
         try query.makeDeleteStatement(db).execute()
         return db.changesCount
     }
@@ -475,7 +476,8 @@ extension TableMapping {
     /// - parameter db: A database connection.
     /// - returns: The number of deleted rows
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @discardableResult public static func deleteAll(_ db: Database) throws -> Int {
+    @discardableResult
+    public static func deleteAll(_ db: Database) throws -> Int {
         return try all().deleteAll(db)
     }
 }

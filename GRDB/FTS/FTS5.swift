@@ -253,7 +253,8 @@
         ///     }
         ///
         /// - parameter name: the column name.
-        @discardableResult public func column(_ name: String) -> FTS5ColumnDefinition {
+        @discardableResult
+        public func column(_ name: String) -> FTS5ColumnDefinition {
             let column = FTS5ColumnDefinition(name: name)
             columns.append(column)
             return column
@@ -301,7 +302,8 @@
         /// See https://www.sqlite.org/fts5.html#the_unindexed_column_option
         ///
         /// - returns: Self so that you can further refine the column definition.
-        @discardableResult public func notIndexed() -> Self {
+        @discardableResult
+        public func notIndexed() -> Self {
             self.isIndexed = false
             return self
         }

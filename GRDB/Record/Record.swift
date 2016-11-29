@@ -329,7 +329,8 @@ open class Record : RowConvertible, TableMapping, Persistable {
     /// - parameter db: A database connection.
     /// - returns: Whether a database row was deleted.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @discardableResult open func delete(_ db: Database) throws -> Bool {
+    @discardableResult
+    open func delete(_ db: Database) throws -> Bool {
         defer {
             // Future calls to update() will throw NotFound. Make the user
             // a favor and make sure this error is thrown even if she checks the
