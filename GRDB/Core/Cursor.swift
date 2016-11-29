@@ -132,10 +132,8 @@ public final class FlattenCursor<Base: Cursor> : Cursor where Base.Element: Curs
     /// TODO
     public func next() throws -> Base.Element.Element? {
         while true {
-            if let inner = inner {
-                if let element = try inner.next() {
-                    return element
-                }
+            if let element = try inner?.next() {
+                return element
             }
             guard let inner = try base.next() else {
                 return nil
