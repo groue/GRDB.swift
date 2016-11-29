@@ -250,21 +250,21 @@ extension DatabasePool : DatabaseReader {
     /// Synchronously executes a read-only block in a protected dispatch queue,
     /// and returns its result. The block is wrapped in a deferred transaction.
     ///
-    ///     let persons = dbPool.read { db in
-    ///         Person.fetchAll(...)
+    ///     let persons = try dbPool.read { db in
+    ///         try Person.fetchAll(...)
     ///     }
     ///
     /// The block is completely isolated. Eventual concurrent database updates
     /// are *not visible* inside the block:
     ///
-    ///     dbPool.read { db in
+    ///     try dbPool.read { db in
     ///         // Those two values are guaranteed to be equal, even if the
     ///         // `wines` table is modified between the two requests:
     ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
     ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
     ///     }
     ///
-    ///     dbPool.read { db in
+    ///     try dbPool.read { db in
     ///         // Now this value may be different:
     ///         let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
     ///     }
@@ -272,7 +272,8 @@ extension DatabasePool : DatabaseReader {
     /// This method is *not* reentrant.
     ///
     /// - parameter block: A block that accesses the database.
-    /// - throws: The error thrown by the block.
+    /// - throws: The error thrown by the block, or any DatabaseError that would
+    ///   happen while establishing the read access to the database.
     public func read<T>(_ block: (Database) throws -> T) throws -> T {
         // The block isolation comes from the DEFERRED transaction.
         // See DatabasePoolTests.testReadMethodIsolationOfBlock().
@@ -291,13 +292,13 @@ extension DatabasePool : DatabaseReader {
     /// Synchronously executes a read-only block in a protected dispatch queue,
     /// and returns its result.
     ///
-    ///     let persons = dbPool.nonIsolatedRead { db in
-    ///         Person.fetchAll(...)
+    ///     let persons = try dbPool.nonIsolatedRead { db in
+    ///         try Person.fetchAll(...)
     ///     }
     ///
     /// The block is not isolated from eventual concurrent database updates:
     ///
-    ///     dbPool.nonIsolatedRead { db in
+    ///     try try dbPool.nonIsolatedRead { db in
     ///         // Those two values may be different because some other thread
     ///         // may have inserted or deleted a wine between the two requests:
     ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
@@ -307,7 +308,8 @@ extension DatabasePool : DatabaseReader {
     /// This method is *not* reentrant.
     ///
     /// - parameter block: A block that accesses the database.
-    /// - throws: The error thrown by the block.
+    /// - throws: The error thrown by the block, or any DatabaseError that would
+    ///   happen while establishing the read access to the database.
     public func nonIsolatedRead<T>(_ block: (Database) throws -> T) throws -> T {
         return try readerPool.get { reader in
             try reader.sync { db in
@@ -329,8 +331,8 @@ extension DatabasePool : DatabaseReader {
     ///         return int + 1
     ///     }
     ///     dbPool.add(function: fn)
-    ///     dbPool.read { db in
-    ///         Int.fetchOne(db, "SELECT succ(1)") // 2
+    ///     try dbPool.read { db in
+    ///         try Int.fetchOne(db, "SELECT succ(1)") // 2
     ///     }
     public func add(function: DatabaseFunction) {
         functions.update(with: function)
@@ -354,7 +356,7 @@ extension DatabasePool : DatabaseReader {
     ///         return (string1 as NSString).localizedStandardCompare(string2)
     ///     }
     ///     dbPool.add(collation: collation)
-    ///     dbPool.write { db in
+    ///     try dbPool.write { db in
     ///         try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
     ///     }
     public func add(collation: DatabaseCollation) {
@@ -382,8 +384,8 @@ extension DatabasePool : DatabaseWriter {
     /// Synchronously executes an update block in a protected dispatch queue,
     /// and returns its result.
     ///
-    ///     dbPool.write { db in
-    ///         db.execute(...)
+    ///     try dbPool.write { db in
+    ///         try db.execute(...)
     ///     }
     ///
     /// This method is *not* reentrant.
@@ -437,9 +439,9 @@ extension DatabasePool : DatabaseWriter {
     ///
     ///     try dbPool.write { db in
     ///         try db.execute("DELETE FROM persons")
-    ///         dbPool.readFromWrite { db in
+    ///         try dbPool.readFromWrite { db in
     ///             // Guaranteed to be zero
-    ///             Int.fetchOne(db, "SELECT COUNT(*) FROM persons")!
+    ///             try Int.fetchOne(db, "SELECT COUNT(*) FROM persons")!
     ///         }
     ///         try db.execute("INSERT INTO persons ...")
     ///     }

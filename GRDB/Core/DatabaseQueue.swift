@@ -71,8 +71,8 @@ public final class DatabaseQueue {
     /// Synchronously executes a block in a protected dispatch queue, and
     /// returns its result.
     ///
-    ///     let persons = dbQueue.inDatabase { db in
-    ///         Person.fetchAll(...)
+    ///     let persons = try dbQueue.inDatabase { db in
+    ///         try Person.fetchAll(...)
     ///     }
     ///
     /// This method is *not* reentrant.
@@ -247,8 +247,8 @@ extension DatabaseQueue : DatabaseReader {
     ///         return int + 1
     ///     }
     ///     dbQueue.add(function: fn)
-    ///     dbQueue.inDatabase { db in
-    ///         Int.fetchOne(db, "SELECT succ(1)") // 2
+    ///     try dbQueue.inDatabase { db in
+    ///         try Int.fetchOne(db, "SELECT succ(1)") // 2
     ///     }
     public func add(function: DatabaseFunction) {
         serializedDatabase.sync { db in

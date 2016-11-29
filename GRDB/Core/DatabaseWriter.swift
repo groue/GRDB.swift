@@ -38,9 +38,9 @@ public protocol DatabaseWriter : DatabaseReader {
     ///
     ///     try writer.write { db in
     ///         try db.execute("DELETE FROM persons")
-    ///         writer.readFromWrite { db in
+    ///         try writer.readFromWrite { db in
     ///             // Guaranteed to be zero
-    ///             Int.fetchOne(db, "SELECT COUNT(*) FROM persons")!
+    ///             try Int.fetchOne(db, "SELECT COUNT(*) FROM persons")!
     ///         }
     ///         try db.execute("INSERT INTO persons ...")
     ///     }

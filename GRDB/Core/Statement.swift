@@ -109,7 +109,11 @@ public class Statement {
     /// The statement arguments.
     public var arguments: StatementArguments {
         get { return _arguments }
-        set { try! setArgumentsWithValidation(newValue) }
+        set {
+            // Force arguments validity: it is a programmer error to provide
+            // arguments that do not match the statement.
+            try! setArgumentsWithValidation(newValue)
+        }
     }
     
     /// Throws a DatabaseError of code SQLITE_ERROR if arguments don't fill all
@@ -148,8 +152,8 @@ public class Statement {
         argumentsNeedValidation = false
         
         // Apply
-        try! reset()
-        try! clearBindings()
+        try reset()
+        try clearBindings()
         for (index, databaseValue) in bindings.enumerated() {
             try bind(databaseValue: databaseValue, at: index)
         }
@@ -202,7 +206,7 @@ public class Statement {
 ///
 /// You create SelectStatement with the Database.makeSelectStatement() method:
 ///
-///     dbQueue.inDatabase { db in
+///     try dbQueue.inDatabase { db in
 ///         let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM persons WHERE age > ?")
 ///         let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
 ///         let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
@@ -245,8 +249,8 @@ public final class SelectStatement : Statement {
         // Check that cursor is built on a valid queue.
         SchedulingWatchdog.preconditionValidQueue(database, "Database was not used on the correct thread.")
         
-        // Force arguments validity. See UpdateStatement.execute(), and Database.execute()
-        // TODO: throws SQL_MISUSE?
+        // Force arguments validity: it is a programmer error to provide
+        // arguments that do not match the statement.
         try! prepare(withArguments: arguments)
         
         try reset()
@@ -282,7 +286,8 @@ public final class DatabaseCursor<Element> : Cursor {
     private let element: () throws -> Element?
     private var done = false
     
-    init(statement: SelectStatement, element: @escaping () throws -> Element?) {
+    // Fileprivate so that only SelectStatement can instantiate a database cursor
+    fileprivate init(statement: SelectStatement, element: @escaping () throws -> Element?) {
         self.statement = statement
         self.sqliteStatement = statement.sqliteStatement
         self.element = element
@@ -358,9 +363,10 @@ public final class UpdateStatement : Statement {
     public func execute(arguments: StatementArguments? = nil) throws {
         SchedulingWatchdog.preconditionValidQueue(database)
         
-        // Force arguments validity. See SelectStatement.fetchCursor(), and Database.execute()
+        // Force arguments validity: it is a programmer error to provide
+        // arguments that do not match the statement.
         try! prepare(withArguments: arguments)
-        try! reset()
+        try reset()
         
         database.updateStatementWillExecute(self)
         

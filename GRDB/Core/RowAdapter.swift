@@ -42,7 +42,7 @@ public struct ConcreteColumnMapping {
     ///     }
     ///
     ///     // <Row foo:"foo" bar: "bar">
-    ///     Row.fetchOne(db, "SELECT NULL, 'foo', 'bar'", adapter: FooBarAdapter())
+    ///     try Row.fetchOne(db, "SELECT NULL, 'foo', 'bar'", adapter: FooBarAdapter())
     public init(columns: [(Int, String)]) {
         self.columns = columns
         self.lowercaseColumnIndexes = Dictionary(keyValueSequence: columns.enumerated().map { ($1.1.lowercased(), $0) }.reversed())
@@ -115,7 +115,7 @@ public protocol ConcreteRowAdapter {
 ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
 ///
 ///     // <Row baz:3>
-///     Row.fetchOne(db, sql, adapter: adapter)
+///     try Row.fetchOne(db, sql, adapter: adapter)
 public protocol RowAdapter {
     
     /// You never call this method directly. It is called for you whenever an
@@ -136,7 +136,7 @@ public protocol RowAdapter {
     ///     }
     ///
     ///     // <Row foo:1>
-    ///     Row.fetchOne(db, "SELECT 1, 2, 3", adapter: FirstColumnAdapter())
+    ///     try Row.fetchOne(db, "SELECT 1, 2, 3", adapter: FirstColumnAdapter())
     func concreteRowAdapter(with statement: SelectStatement) throws -> ConcreteRowAdapter
 }
 
@@ -165,7 +165,7 @@ extension RowAdapter {
 ///     let sql = "SELECT 'foo' AS foo, 'bar' AS bar, 'baz' AS baz"
 ///
 ///     // <Row foo:"bar">
-///     Row.fetchOne(db, sql, adapter: adapter)
+///     try Row.fetchOne(db, sql, adapter: adapter)
 public struct ColumnMapping : RowAdapter {
     /// The column names mapping, from adapted names to original names.
     let mapping: [String: String]
@@ -196,7 +196,7 @@ public struct ColumnMapping : RowAdapter {
 ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
 ///
 ///     // <Row baz:3>
-///     Row.fetchOne(db, sql, adapter: adapter)
+///     try Row.fetchOne(db, sql, adapter: adapter)
 public struct SuffixRowAdapter : RowAdapter {
     /// The suffix index
     let index: Int

@@ -33,8 +33,8 @@ typealias SQLiteValue = OpaquePointer
 ///     let dbQueue = DatabaseQueue(...)
 ///
 ///     // The Database is the `db` in the closure:
-///     dbQueue.inDatabase { db in
-///         db.execute(...)
+///     try dbQueue.inDatabase { db in
+///         try db.execute(...)
 ///     }
 public final class Database {
     // The Database class is not thread-safe. An instance should always be
@@ -657,8 +657,9 @@ extension Database {
             throw error
         }
         
-        // Force arguments validity. See UpdateStatement.execute(), and SelectStatement.fetchCursor()
-        try! validateRemainingArguments()
+        // Force arguments validity: it is a programmer error to provide
+        // arguments that do not match the statement.
+        try! validateRemainingArguments()   // throws if there are remaining arguments.
     }
 }
 
@@ -678,7 +679,7 @@ extension Database {
     ///         return int + 1
     ///     }
     ///     db.add(function: fn)
-    ///     Int.fetchOne(db, "SELECT succ(1)")! // 2
+    ///     try Int.fetchOne(db, "SELECT succ(1)")! // 2
     public func add(function: DatabaseFunction) {
         functions.update(with: function)
         let functionPointer = unsafeBitCast(function, to: UnsafeMutableRawPointer.self)
@@ -755,7 +756,7 @@ public final class DatabaseFunction {
     ///         return int + 1
     ///     }
     ///     db.add(function: fn)
-    ///     Int.fetchOne(db, "SELECT succ(1)")! // 2
+    ///     try Int.fetchOne(db, "SELECT succ(1)")! // 2
     ///
     /// - parameters:
     ///     - name: The function name.
@@ -940,9 +941,7 @@ extension Database {
         SchedulingWatchdog.preconditionValidQueue(self)
         
         // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)
-        return try Row
-            .fetchCursor(self, "SELECT 1 FROM (SELECT sql, type, name FROM sqlite_master UNION SELECT sql, type, name FROM sqlite_temp_master) WHERE type = 'table' AND LOWER(name) = ?", arguments: [tableName.lowercased()])
-            .next() != nil
+        return try Row.fetchOne(self, "SELECT 1 FROM (SELECT sql, type, name FROM sqlite_master UNION SELECT sql, type, name FROM sqlite_temp_master) WHERE type = 'table' AND LOWER(name) = ?", arguments: [tableName.lowercased()]) != nil
     }
     
     /// The primary key for table named `tableName`; nil if table has no

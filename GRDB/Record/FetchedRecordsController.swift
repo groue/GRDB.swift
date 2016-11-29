@@ -1119,8 +1119,8 @@ extension TableMapping {
     /// If the table has no primary key, and selectsRowID is true, use the
     /// "rowid" key.
     ///
-    ///     dbQueue.inDatabase { db in
-    ///         let primaryKey = Person.primaryKeyFunction(db)
+    ///     try dbQueue.inDatabase { db in
+    ///         let primaryKey = try Person.primaryKeyFunction(db)
     ///         let row = try Row.fetchOne(db, "SELECT * FROM persons")!
     ///         primaryKey(row) // ["id": 1]
     ///     }
@@ -1144,8 +1144,8 @@ extension TableMapping {
     /// same primary key and both primary keys contain at least one non-null
     /// value.
     ///
-    ///     dbQueue.inDatabase { db in
-    ///         let comparator = Person.primaryKeyRowComparator(db)
+    ///     try dbQueue.inDatabase { db in
+    ///         let comparator = try Person.primaryKeyRowComparator(db)
     ///         let row0 = Row(["id": nil, "name": "Unsaved"])
     ///         let row1 = Row(["id": 1, "name": "Arthur"])
     ///         let row2 = Row(["id": 1, "name": "Arthur"])

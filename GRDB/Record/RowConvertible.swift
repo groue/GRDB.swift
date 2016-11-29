@@ -6,14 +6,14 @@
 /// The protocol comes with built-in methods that allow to fetch cursors,
 /// arrays, or single values:
 ///
-///     Person.fetchCursor(db, "SELECT ...", arguments:...) // DatabaseCursor<Person>
-///     Person.fetchAll(db, "SELECT ...", arguments:...)    // [Person]
-///     Person.fetchOne(db, "SELECT ...", arguments:...)    // Person?
+///     try Person.fetchCursor(db, "SELECT ...", arguments:...) // DatabaseCursor<Person>
+///     try Person.fetchAll(db, "SELECT ...", arguments:...)    // [Person]
+///     try Person.fetchOne(db, "SELECT ...", arguments:...)    // Person?
 ///
 ///     let statement = try db.makeSelectStatement("SELECT ...")
-///     Person.fetchCursor(statement, arguments:...)        // DatabaseCursor<Person>
-///     Person.fetchAll(statement, arguments:...)           // [Person]
-///     Person.fetchOne(statement, arguments:...)           // Person?
+///     try Person.fetchCursor(statement, arguments:...) // DatabaseCursor<Person>
+///     try Person.fetchAll(statement, arguments:...)    // [Person]
+///     try Person.fetchOne(statement, arguments:...)    // Person?
 ///
 /// RowConvertible is adopted by Record.
 public protocol RowConvertible {
@@ -136,7 +136,7 @@ extension RowConvertible {
     ///
     ///     let nameColumn = Column("name")
     ///     let request = Person.order(nameColumn)
-    ///     let identities = Identity.fetchAll(db, request) // [Identity]
+    ///     let identities = try Identity.fetchAll(db, request) // [Identity]
     ///
     /// - parameter db: A database connection.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
@@ -149,7 +149,7 @@ extension RowConvertible {
     ///
     ///     let nameColumn = Column("name")
     ///     let request = Person.order(nameColumn)
-    ///     let identity = Identity.fetchOne(db, request) // Identity?
+    ///     let identity = try Identity.fetchOne(db, request) // Identity?
     ///
     /// - parameter db: A database connection.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.

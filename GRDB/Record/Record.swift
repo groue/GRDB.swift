@@ -66,12 +66,12 @@ open class Record : RowConvertible, TableMapping, Persistable {
     /// Its default value is false:
     ///
     ///     // SELECT * FROM persons
-    ///     Person.fetchAll(db)
+    ///     try Person.fetchAll(db)
     ///
     /// When true, the rowid column is fetched:
     ///
     ///     // SELECT *, rowid FROM persons
-    ///     Person.fetchAll(db)
+    ///     try Person.fetchAll(db)
     open class var selectsRowID: Bool {
         return false
     }

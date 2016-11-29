@@ -81,7 +81,7 @@ try dbQueue.inDatabase { db in
 [Fetch database rows and values](#fetch-queries):
 
 ```swift
-dbQueue.inDatabase { db in
+try dbQueue.inDatabase { db in
     let rows = try Row.fetchCursor(db, "SELECT * FROM pointOfInterests")
     while let row = try rows.next() {
         let title: String = row.value(named: "title")
@@ -135,7 +135,7 @@ try dbQueue.inDatabase { db in
 Avoid SQL with the [query interface](#the-query-interface):
 
 ```swift
-dbQueue.inDatabase { db in
+try dbQueue.inDatabase { db in
     try db.create(table: "pointOfInterests") { t in
         t.column("id", .integer).primaryKey()
         t.column("title", .text).notNull()
@@ -319,7 +319,7 @@ try dbQueue.inTransaction { db in
 }
 
 // Read values:
-dbQueue.inDatabase { db in
+try dbQueue.inDatabase { db in
     let pois = try PointOfInterest.fetchAll(db)
     let poiCount = try PointOfInterest.fetchCount(db)
 }
@@ -5096,7 +5096,7 @@ You may get this error when using DatabaseQueue.inDatabase, DatabasePool.read, o
 
 ```swift
 // Generic parameter 'T' could not be inferred
-let x = dbQueue.inDatabase { db in
+let x = try dbQueue.inDatabase { db in
     let result = try String.fetchOne(db, ...)
     return result
 }
@@ -5108,7 +5108,7 @@ The general workaround is to explicitly declare the type of the closure result:
 
 ```swift
 // General Workaround
-let string = dbQueue.inDatabase { db -> String? in
+let string = try dbQueue.inDatabase { db -> String? in
     let result = try String.fetchOne(db, ...)
     return result
 }

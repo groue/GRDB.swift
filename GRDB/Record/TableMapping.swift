@@ -22,8 +22,8 @@
 /// Types that adopt both TableMapping and RowConvertible are granted with
 /// built-in methods that allow to fetch instances identified by key:
 ///
-///     Person.fetchOne(db, key: 123)  // Person?
-///     Citizenship.fetchOne(db, key: ["personId": 12, "countryId": 45]) // Citizenship?
+///     try Person.fetchOne(db, key: 123)  // Person?
+///     try Citizenship.fetchOne(db, key: ["personId": 12, "countryId": 45]) // Citizenship?
 ///
 /// TableMapping is adopted by Record.
 public protocol TableMapping {
@@ -36,12 +36,12 @@ public protocol TableMapping {
     /// Its default value is false:
     ///
     ///     // SELECT * FROM persons
-    ///     Person.fetchAll(db)
+    ///     try Person.fetchAll(db)
     ///
     /// When true, the rowid column is fetched:
     ///
     ///     // SELECT *, rowid FROM persons
-    ///     Person.fetchAll(db)
+    ///     try Person.fetchAll(db)
     static var selectsRowID: Bool { get }
 }
 

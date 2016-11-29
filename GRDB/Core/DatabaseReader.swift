@@ -41,20 +41,21 @@ public protocol DatabaseReader : class {
     /// The *block* argument is completely isolated. Eventual concurrent
     /// database updates are *not visible* inside the block:
     ///
-    ///     reader.read { db in
+    ///     try reader.read { db in
     ///         // Those two values are guaranteed to be equal, even if the
     ///         // `wines` table is modified between the two requests:
     ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
     ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
     ///     }
     ///
-    ///     reader.read { db in
+    ///     try reader.read { db in
     ///         // Now this value may be different:
     ///         let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
     ///     }
     ///
     /// - parameter block: A block that accesses the database.
-    /// - throws: The error thrown by the block.
+    /// - throws: The error thrown by the block, or any DatabaseError that would
+    ///   happen while establishing the read access to the database.
     func read<T>(_ block: (Database) throws -> T) throws -> T
     
     /// Synchronously executes a read-only block that takes a database
@@ -63,7 +64,7 @@ public protocol DatabaseReader : class {
     /// Individual statements executed in the *block* argument are executed
     /// in isolation from eventual concurrent updates:
     ///
-    ///     reader.nonIsolatedRead { db in
+    ///     try reader.nonIsolatedRead { db in
     ///         // no external update can mess with this iteration:
     ///         let rows = try Row.fetchCursor(db, ...)
     ///         while let row = try rows.next() { ... }
@@ -72,12 +73,16 @@ public protocol DatabaseReader : class {
     /// However, there is no guarantee that consecutive statements have the
     /// same results:
     ///
-    ///     reader.nonIsolatedRead { db in
+    ///     try reader.nonIsolatedRead { db in
     ///         // Those two ints may be different:
     ///         let sql = "SELECT ..."
     ///         let int1 = try Int.fetchOne(db, sql)
     ///         let int2 = try Int.fetchOne(db, sql)
     ///     }
+    ///
+    /// - parameter block: A block that accesses the database.
+    /// - throws: The error thrown by the block, or any DatabaseError that would
+    ///   happen while establishing the read access to the database.
     func nonIsolatedRead<T>(_ block: (Database) throws -> T) throws -> T
     
     
@@ -93,7 +98,9 @@ public protocol DatabaseReader : class {
     ///         return int + 1
     ///     }
     ///     reader.add(function: fn)
-    ///     Int.fetchOne(reader, "SELECT succ(1)")! // 2
+    ///     try reader.read { db in
+    ///         try Int.fetchOne(db, "SELECT succ(1)")! // 2
+    ///     }
     func add(function: DatabaseFunction)
     
     /// Remove an SQL function.

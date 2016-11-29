@@ -40,14 +40,14 @@ public protocol SQLExpressible {
 /// The protocol comes with built-in methods that allow to fetch cursors,
 /// arrays, or single values:
 ///
-///     String.fetchCursor(db, "SELECT name FROM ...", arguments:...) // DatabaseCursor<String>
-///     String.fetchAll(db, "SELECT name FROM ...", arguments:...)    // [String]
-///     String.fetchOne(db, "SELECT name FROM ...", arguments:...)    // String?
+///     try String.fetchCursor(db, "SELECT name FROM ...", arguments:...) // DatabaseCursor<String>
+///     try String.fetchAll(db, "SELECT name FROM ...", arguments:...)    // [String]
+///     try String.fetchOne(db, "SELECT name FROM ...", arguments:...)    // String?
 ///
 ///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
-///     String.fetchCursor(statement, arguments:...)     // DatabaseCursor<String>
-///     String.fetchAll(statement, arguments:...)        // [String]
-///     String.fetchOne(statement, arguments:...)        // String?
+///     try String.fetchCursor(statement, arguments:...) // DatabaseCursor<String>
+///     try String.fetchAll(statement, arguments:...)    // [String]
+///     try String.fetchOne(statement, arguments:...)    // String?
 ///
 /// DatabaseValueConvertible is adopted by Bool, Int, String, etc.
 public protocol DatabaseValueConvertible : SQLExpressible {
@@ -79,14 +79,14 @@ extension DatabaseValueConvertible {
 /// DatabaseValueConvertible comes with built-in methods that allow to fetch
 /// cursors, arrays, or single values:
 ///
-///     String.fetchCursor(db, "SELECT name FROM ...", arguments:...) // DatabaseCursor<String>
-///     String.fetchAll(db, "SELECT name FROM ...", arguments:...)    // [String]
-///     String.fetchOne(db, "SELECT name FROM ...", arguments:...)    // String?
+///     try String.fetchCursor(db, "SELECT name FROM ...", arguments:...) // DatabaseCursor<String>
+///     try String.fetchAll(db, "SELECT name FROM ...", arguments:...)    // [String]
+///     try String.fetchOne(db, "SELECT name FROM ...", arguments:...)    // String?
 ///
 ///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
-///     String.fetchCursor(statement, arguments:...)     // DatabaseCursor<String>
-///     String.fetchAll(statement, arguments:...)        // [String]
-///     String.fetchOne(statement, arguments:...)        // String
+///     try String.fetchCursor(statement, arguments:...) // DatabaseCursor<String>
+///     try String.fetchAll(statement, arguments:...)    // [String]
+///     try String.fetchOne(statement, arguments:...)    // String
 ///
 /// DatabaseValueConvertible is adopted by Bool, Int, String, etc.
 public extension DatabaseValueConvertible {
@@ -297,12 +297,12 @@ extension DatabaseValueConvertible {
 /// Swift's Optional comes with built-in methods that allow to fetch cursors
 /// and arrays of optional DatabaseValueConvertible:
 ///
-///     Optional<String>.fetchCursor(db, "SELECT name FROM ...", arguments:...) // DatabaseCursor<String?>
-///     Optional<String>.fetchAll(db, "SELECT name FROM ...", arguments:...)    // [String?]
+///     try Optional<String>.fetchCursor(db, "SELECT name FROM ...", arguments:...) // DatabaseCursor<String?>
+///     try Optional<String>.fetchAll(db, "SELECT name FROM ...", arguments:...)    // [String?]
 ///
 ///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
-///     Optional<String>.fetchCursor(statement, arguments:...) // DatabaseCursor<String?>
-///     Optional<String>.fetchAll(statement, arguments:...)    // [String?]
+///     try Optional<String>.fetchCursor(statement, arguments:...) // DatabaseCursor<String?>
+///     try Optional<String>.fetchAll(statement, arguments:...)    // [String?]
 ///
 /// DatabaseValueConvertible is adopted by Bool, Int, String, etc.
 extension Optional where Wrapped: DatabaseValueConvertible {
@@ -345,7 +345,7 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     /// Returns an array of optional values fetched from a prepared statement.
     ///
     ///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
-    ///     let names = Optional<String>.fetchAll(statement)  // [String?]
+    ///     let names = try Optional<String>.fetchAll(statement)  // [String?]
     ///
     /// - parameters:
     ///     - statement: The statement to run.
@@ -391,7 +391,7 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     ///
     ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn)
-    ///     let names = Optional<String>.fetchAll(db, request)  // [String?]
+    ///     let names = try Optional<String>.fetchAll(db, request) // [String?]
     ///
     /// - parameter db: A database connection.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
