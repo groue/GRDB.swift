@@ -70,11 +70,6 @@ extension Cursor {
     }
     
     /// TODO
-    public var lazy: CursorLazySequence<Self> {
-        return CursorLazySequence(self)
-    }
-    
-    /// TODO
     public func map<T>(_ transform: @escaping (Element) throws -> T) -> MapCursor<Self, T> {
         return MapCursor(self, transform)
     }
@@ -87,25 +82,6 @@ extension Cursor {
         }
         return result
     }
-}
-
-/// TODO
-public final class CursorLazySequence<Base : Cursor> : LazySequenceProtocol, IteratorProtocol {
-    init(_ base: Base) {
-        self.base = base
-    }
-    
-    /// TODO
-    public func makeIterator() -> CursorLazySequence<Base> {
-        return self
-    }
-    
-    /// TODO
-    public func next() -> Base.Element? {
-        return try! base.next()
-    }
-    
-    private let base: Base
 }
 
 /// TODO
