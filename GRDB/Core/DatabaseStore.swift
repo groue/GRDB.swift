@@ -21,7 +21,7 @@ class DatabaseStore {
         let directoryPath = (path as NSString).deletingLastPathComponent
         
         // Apply file attributes on existing files
-        DatabaseStore.setFileAttributes(
+        try! DatabaseStore.setFileAttributes(
             directoryPath: directoryPath,
             databaseFileName: databaseFileName,
             attributes: attributes)
@@ -46,7 +46,7 @@ class DatabaseStore {
         // Configure dispatch source
         source.setEventHandler {
             // Directory has been modified: apply file attributes on unprocessed files
-            DatabaseStore.setFileAttributes(
+            try! DatabaseStore.setFileAttributes(
                 directoryPath: directoryPath,
                 databaseFileName: databaseFileName,
                 attributes: attributes)
@@ -63,7 +63,7 @@ class DatabaseStore {
         }
     }
     
-    private static func setFileAttributes(directoryPath: String, databaseFileName: String, attributes: [FileAttributeKey: Any]) {
+    private static func setFileAttributes(directoryPath: String, databaseFileName: String, attributes: [FileAttributeKey: Any]) throws {
         let fm = FileManager.default
         // TODO: handle symbolic links:
         //
@@ -72,14 +72,13 @@ class DatabaseStore {
         // > On unix, if a symlink to a database file is opened, then the
         // > corresponding journal files are based on the actual filename,
         // > not the symlink name.
-        let fileNames = try! fm.contentsOfDirectory(atPath: directoryPath).filter({ $0.hasPrefix(databaseFileName) })
+        let fileNames = try fm.contentsOfDirectory(atPath: directoryPath).filter({ $0.hasPrefix(databaseFileName) })
         for fileName in fileNames {
             do {
                 try fm.setAttributes(attributes, ofItemAtPath: (directoryPath as NSString).appendingPathComponent(fileName))
             } catch let error as NSError {
                 guard error.domain == NSCocoaErrorDomain && error.code == NSFileNoSuchFileError else {
-                    try! { throw error }()
-                    preconditionFailure()
+                    throw error
                 }
             }
         }
