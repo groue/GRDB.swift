@@ -663,7 +663,7 @@ See [Values](#values) for more information on supported arguments types (Bool, I
 
 Unlike row arrays that contain copies of the database rows, row cursors are close to the SQLite metal, and require a little care:
 
-> :point_up: **Don't turn a row cursor into an array**, with `Array(rowCursor)` for example: you would not get the distinct rows you expect. To get a row array, use `Row.fetchAll(...)`. Alternatively, make sure you copy a row whenever you extract it from a cursor for later use: `row.copy()`.
+> :point_up: **Don't turn a row cursor into an array**, with `Array(rowCursor)` for example: you would not get the distinct rows you expect. To get a row array, use `Row.fetchAll(...)`. Generally speaking, make sure you copy a row whenever you extract it from a cursor for later use: `row.copy()`.
 
 
 #### Column Values
@@ -837,7 +837,7 @@ for (columnName, databaseValue) in row {
 ```swift
 let row: Row = ["name": "foo", "date": nil]
 let row = Row(["name": "foo", "date": nil])
-let row = Row(nsDictionary) // nil if invalid NSDictionary
+let row = Row(/* [AnyHashable: Any] */) // nil if invalid dictionary
 ```
 
 Yet rows are not real dictionaries: they are ordered, and may contain duplicate keys:
@@ -1255,9 +1255,9 @@ public protocol DatabaseValueConvertible {
 
 All types that adopt this protocol can be used like all other [values](#values) (Bool, Int, String, Date, Swift enums, etc.)
 
-The `databaseValue` property returns [DatabaseValue](#databasevalue), a type that wraps the five values supported by SQLite: NULL, Int64, Double, String and Data. DatabaseValue has no public initializer: to create one, use `DatabaseValue.null`, or another type that already adopts the protocol: `1.databaseValue`, `"foo".databaseValue`, etc.
+The `databaseValue` property returns [DatabaseValue](#databasevalue), a type that wraps the five values supported by SQLite: NULL, Int64, Double, String and Data. Since DatabaseValue has no public initializer, use `DatabaseValue.null`, or another type that already adopts the protocol: `1.databaseValue`, `"foo".databaseValue`, etc. Conversion to DatabaseValue *must not* fail.
 
-The `fromDatabaseValue()` factory method returns an instance of your custom type if the databaseValue contains a suitable value. If the databaseValue does not contain a suitable value, such as "foo" for Date, the method returns nil.
+The `fromDatabaseValue()` factory method returns an instance of your custom type if the databaseValue contains a suitable value. If the databaseValue does not contain a suitable value, such as "foo" for Date, `fromDatabaseValue` *must* return nil (GRDB will interpret this nil result as a conversion error, and react accordingly).
 
 The [GRDB Extension Guide](Documentation/ExtendingGRDB.md) contains sample code that has UIColor adopt DatabaseValueConvertible.
 
@@ -1294,9 +1294,9 @@ try updateStatement.execute()
 Select statements can be used wherever a raw SQL query string would fit (see [fetch queries](#fetch-queries)):
 
 ```swift
-let rows = try Row.fetchCursor(selectStatement)
-let persons = try Person.fetchAll(selectStatement)
-let person = try Person.fetchOne(selectStatement)
+let rows = try Row.fetchCursor(selectStatement)    // DatabaseCursor<Row>
+let persons = try Person.fetchAll(selectStatement) // [Person]
+let person = try Person.fetchOne(selectStatement)  // Person?
 ```
 
 You can set the arguments at the moment of the statement execution:
@@ -1334,18 +1334,14 @@ let selectStatement = try db.cachedSelectStatement(selectSQL)
 A custom SQL function extends SQLite. It can be used in raw SQL queries. And when SQLite needs to evaluate it, it calls your custom code.
 
 ```swift
-let reverseString = DatabaseFunction(
-    "reverseString",  // The name of the function
-    argumentCount: 1, // Number of arguments
-    pure: true,       // True means that the result only depends on input
-    function: { (values: [DatabaseValue]) in
-        // Extract string value, if any...
-        guard let string = String.fromDatabaseValue(values[0]) else {
-            return nil
-        }
-        // ... and return reversed string:
-        return String(string.characters.reversed())
-    })
+let reverseString = DatabaseFunction("reverseString", argumentCount: 1, pure: true) { (values: [DatabaseValue]) in
+    // Extract string value, if any...
+    guard let string = String.fromDatabaseValue(values[0]) else {
+        return nil
+    }
+    // ... and return reversed string:
+    return String(string.characters.reversed())
+}
 dbQueue.add(function: reverseString)   // Or dbPool.add(function: ...)
 
 try dbQueue.inDatabase { db in
@@ -1373,6 +1369,27 @@ dbQueue.add(function: averageOf)
 try dbQueue.inDatabase { db in
     // 2.0
     try Double.fetchOne(db, "SELECT averageOf(1, 2, 3)")!
+}
+```
+
+
+**Functions can throw:**
+
+```swift
+let sqrt = DatabaseFunction("sqrt", argumentCount: 1, pure: true) { (values: [DatabaseValue]) in
+    guard let double = Double.fromDatabaseValue(values[0]) else {
+        return nil
+    }
+    guard double >= 0 else {
+        throw DatabaseError(message: "invalid negative number")
+    }
+    return sqrt(double)
+}
+dbQueue.add(function: sqrt)
+
+// SQLite error 1 with statement `SELECT sqrt(-1)`: invalid negative number
+try dbQueue.inDatabase { db in
+    try Double.fetchOne(db, "SELECT sqrt(-1)")!
 }
 ```
 
@@ -1713,19 +1730,19 @@ Of course, you need to open a [database connection](#database-connections), and 
 
 ```swift
 class Person : Record { ... }
-let persons = try Person.fetchAll(db, "SELECT ...", arguments: ...)
+let persons = try Person.fetchAll(db, "SELECT ...", arguments: ...) // [Person]
 ```
 
 Add the [TableMapping](#tablemapping-protocol) protocol and you can stop writing SQL:
 
 ```swift
-let persons = try Person.filter(emailColumn != nil).order(nameColumn).fetchAll(db)
-let person = try Person.fetchOne(db, key: 1)
-let person = try Person.fetchOne(db, key: ["email": "arthur@example.com"])
-let countries = try Country.fetchAll(db, keys: ["FR", "US"])
+let persons = try Person.filter(emailColumn != nil).order(nameColumn).fetchAll(db) // [Person]
+let person = try Person.fetchOne(db, key: 1)                                       // Person?
+let person = try Person.fetchOne(db, key: ["email": "arthur@example.com"])         // Person?
+let countries = try Country.fetchAll(db, keys: ["FR", "US"])                       // [Country]
 ```
 
-To learn more about querying records, check the [query interface](#the-query-interface).
+See [fetching methods](#fetching-methods), and the [query interface](#the-query-interface).
 
 
 ### Updating Records
@@ -2469,6 +2486,7 @@ This is the list of record methods, along with their required protocols. The [Re
 ```swift
 try Person.fetchOne(db, key: 1)                               // Person?
 try Person.fetchOne(db, key: ["email": "arthur@example.com"]) // Person?
+try Country.fetchAll(db, keys: ["FR", "US"])                  // [Country]
 ```
 
 <a name="list-of-record-methods-2">²</a> See [Fetch Requests](#requests):
@@ -3068,15 +3086,13 @@ let arthur = try Person.filter(nameColumn == "Arthur").fetchOne(db) // Person?
 **When the selected columns don't fit the source type**, change your target: any other type that adopts the [RowConvertible](#rowconvertible-protocol) protocol, plain [database rows](#fetching-rows), and even [values](#values):
 
 ```swift
-// Double
 let request = Person.select(min(heightColumn))
-let minHeight = try Double.fetchOne(db, request)
+let minHeight = try Double.fetchOne(db, request) // Double?
 
-// Row
 let request = Person.select(min(heightColumn), max(heightColumn))
 let row = try Row.fetchOne(db, request)!
-let minHeight = row.value(atIndex: 0) as Double?
-let maxHeight = row.value(atIndex: 1) as Double?
+let minHeight: Double? = row.value(atIndex: 0)
+let maxHeight: Double? = row.value(atIndex: 1)
 ```
 
 
@@ -3139,12 +3155,12 @@ let count = try Person.select(nameColumn, ageColumn).distinct().fetchCount(db)
 
 ```swift
 let request = Person.select(min(heightColumn))
-let minHeight = try Double.fetchOne(db, request)
+let minHeight = try Double.fetchOne(db, request) // Double?
 
 let request = Person.select(min(heightColumn), max(heightColumn))
 let row = try Row.fetchOne(db, request)!
-let minHeight = row.value(atIndex: 0) as Double?
-let maxHeight = row.value(atIndex: 1) as Double?
+let minHeight: Double? = row.value(atIndex: 0)
+let maxHeight: Double? = row.value(atIndex: 1)
 ```
 
 
@@ -3565,16 +3581,6 @@ let documents = try Document.matching(pattern).fetchAll(db)
 let documents = try Document.filter(Column("content").match(pattern)).fetchAll(db)
 ```
 
-> :warning: **Warning**: It is unsafe to provide a raw String as a search pattern, because an invalid one will crash your application. Prefer the safe FTS3Pattern initializers instead.
->
-> ```swift
-> // Only use strings as a full-text search pattern if you are sure that you
-> // provide a valid one. A mistake will crash your application.
-> let documents = try Document.fetchAll(db,
->     "SELECT * FROM documents WHERE content MATCH ?",
->     arguments: ["my pattern"]) // Dangerous: string pattern
-> ```
-
 
 ### Create FTS5 Virtual Tables
 
@@ -3783,16 +3789,6 @@ Use them in the [query interface](#the-query-interface):
 ```swift
 let documents = try Document.matching(pattern).fetchAll(db)
 ```
-
-> :warning: **Warning**: It is unsafe to provide a raw String as a search pattern, because an invalid one will crash your application. Prefer the safe FTS5Pattern type instead.
->
-> ```swift
-> // Only use strings as a full-text search pattern if you are sure that you
-> // provide a valid one. A mistake will crash your application.
-> let documents = try Document.fetchAll(db,
->     "SELECT * FROM documents WHERE documents MATCH ?",
->     arguments: ["my pattern"]) // Dangerous: string pattern
-> ```
 
 
 ### FTS5: Sorting by Relevance
@@ -4120,7 +4116,7 @@ After creating an instance, you invoke `performFetch()` to actually execute
 the fetch.
 
 ```swift
-controller.performFetch()
+try controller.performFetch()
 ```
 
 
@@ -4220,6 +4216,15 @@ The [notification callbacks](#the-changes-notifications) are notified of eventua
 
 > :point_up: **Note**: This behavior differs from Core Data's NSFetchedResultsController, which does not notify of record changes when the fetch request is replaced.
 
+**Change callbacks are invoked asynchronously.** This means that modifying the request from the main thread does *not* immediately triggers callbacks. When you need to take immediate action, force the controller to refresh immediately with its `performFetch` method. In this case, changes callbacks are *not* called:
+
+```swift
+// Change database on the main thread:
+controller.setRequest(Person.order(Column("name")))
+// Here callbacks have not been called yet.
+// You can cancel them, and refresh records immediately:
+try controller.performFetch()
+```
 
 ### FetchedRecordsController on iOS
 
@@ -4350,7 +4355,7 @@ try dbQueue.inDatabase { db in
 }
 // Here callbacks have not been called yet.
 // You can cancel them, and refresh records immediately:
-controller.performFetch()
+try controller.performFetch()
 ```
 
 > :point_up: **Note**: when the main thread does not fit your needs, give a serial dispatch queue to the controller initializer: the controller must then be used from this queue, and record changes are notified on this queue as well.
@@ -4358,9 +4363,9 @@ controller.performFetch()
 > ```swift
 > let myQueue = DispatchQueue()
 > let controller = FetchedRecordsController(dbQueue, request: ..., queue: myQueue)
-> myQueue.sync {
+> myQueue.async {
 >     controller.trackChanges { /* in myQueue */ }
->     controller.performFetch()
+>     try controller.performFetch()
 > }
 > ```
 
