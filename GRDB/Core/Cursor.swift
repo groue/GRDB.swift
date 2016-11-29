@@ -139,7 +139,7 @@ extension Cursor {
     /// Returns a cursor over the concatenated results of mapping transform
     /// over self.
     public func flatMap<SegmentOfResult : Sequence>(_ transform: @escaping (Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<Self, IteratorCursor<SegmentOfResult.Iterator>>> {
-        return flatMap { try IteratorCursor(transform($0).makeIterator()) }
+        return flatMap { try IteratorCursor(transform($0)) }
     }
     
     /// Returns a cursor over the concatenated results of mapping transform
@@ -189,6 +189,13 @@ extension Cursor where Element: Cursor {
     /// Returns the elements of this cursor of cursors, concatenated.
     public func joined() -> FlattenCursor<Self> {
         return FlattenCursor(self)
+    }
+}
+
+extension Cursor where Element: Sequence {
+    /// Returns the elements of this cursor of sequences, concatenated.
+    public func joined() -> FlattenCursor<MapCursor<Self, IteratorCursor<Self.Element.Iterator>>> {
+        return flatMap { $0 }
     }
 }
 
@@ -295,8 +302,15 @@ public final class MapCursor<Base : Cursor, Element> : Cursor {
 /// A Cursor whose elements are those of a sequence iterator.
 public final class IteratorCursor<Base : IteratorProtocol> : Cursor {
     // TODO: remove this type when `extension IteratorProtocol : Cursor { }` can be written
-    init(_ base: Base) {
+    
+    /// Creates a cursor from a sequence iterator.
+    public init(_ base: Base) {
         self.base = base
+    }
+    
+    /// Creates a cursor from a sequence.
+    public init<S : Sequence>(_ s: S) where S.Iterator == Base {
+        self.base = s.makeIterator()
     }
     
     /// Advances to the next element and returns it, or nil if no next
@@ -313,6 +327,6 @@ extension Sequence {
     /// Returns a cursor over the concatenated results of mapping transform
     /// over self.
     public func flatMap<SegmentOfResult : Cursor>(_ transform: @escaping (Iterator.Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<IteratorCursor<Self.Iterator>, SegmentOfResult>> {
-        return IteratorCursor(makeIterator()).flatMap(transform)
+        return IteratorCursor(self).flatMap(transform)
     }
 }
