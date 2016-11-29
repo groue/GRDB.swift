@@ -4619,7 +4619,6 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
 Let's consider the code below:
 
 ```swift
-// Some untrusted SQL query
 let sql = "SELECT ..."
 
 // Some untrusted arguments for the query
@@ -4632,23 +4631,17 @@ while let row = try rows.next() {
 }
 ```
 
-It has several opportunities to throw fatal errors:
+It has two opportunities to throw fatal errors:
 
-- **Untrusted SQL**: The sql string may contain invalid sql, or refer to non-existing tables or columns.
-- **Untrusted arguments dictionary**: The dictionary may contain values that do not conform to the [DatabaseValueConvertible protocol](#values).
-- **Untrusted arguments fitting**: The dictionary may miss values required by the statement.
+- **Untrusted arguments**: The dictionary may contain values that do not conform to the [DatabaseValueConvertible protocol](#values), or may miss keys required by the statement.
 - **Untrusted database content**: The row may contain a non-null value that can't be turned into a date.
 
 In such a situation where nothing can be trusted, you can still avoid fatal errors by exposing and handling each failure point, one level down in the GRDB API:
 
 ```swift
-// Untrusted SQL
-let statement = try db.makeSelectStatement(sql)
-
-// Untrusted arguments dictionary
+// Untrusted arguments
 if let arguments = StatementArguments(arguments) {
-    
-    // Untrusted arguments fitting
+    let statement = try db.makeSelectStatement(sql)
     try statement.validate(arguments: arguments)
     statement.unsafeSetArguments(arguments)
     
