@@ -147,7 +147,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         try databaseWriter.write { db in
             // TODO: handle errors
             let (statement, adapter) = try request.prepare(db)
-            let initialItems = try Array(Item<Record>.fetchCursor(statement, adapter: adapter))
+            let initialItems = try Item<Record>.fetchAll(statement, adapter: adapter)
             fetchedItems = initialItems
             
             #if os(iOS)
@@ -608,7 +608,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             
             try! databaseWriter.readFromWrite { db in
                 // TODO: handle errors
-                fetchedItems = try! Array(Item<Record>.fetchCursor(db, request))
+                fetchedItems = try! Item<Record>.fetchAll(db, request)
                 fetchedAlongside = try! fetchAlongside(db)
                 
                 // Fetch is complete:
@@ -855,7 +855,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             
             try! databaseWriter.readFromWrite { db in
                 // TODO: handle errors
-                fetchedItems = try! Array(Item<Record>.fetchCursor(db, request))
+                fetchedItems = try! Item<Record>.fetchAll(db, request)
                 fetchedAlongside = try! fetchAlongside(db)
                 
                 // Fetch is complete:

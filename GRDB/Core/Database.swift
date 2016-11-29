@@ -1067,7 +1067,7 @@ extension Database {
                 throw DatabaseError(message: "no such table: \(tableName)")
             }
         }
-        let columns = try Array(ColumnInfo.fetchCursor(self, "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))"))
+        let columns = try ColumnInfo.fetchAll(self, "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))")
         guard columns.count > 0 else {
             throw DatabaseError(message: "no such table: \(tableName)")
         }
