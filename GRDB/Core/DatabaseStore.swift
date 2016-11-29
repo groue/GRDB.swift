@@ -21,7 +21,7 @@ class DatabaseStore {
         let directoryPath = (path as NSString).deletingLastPathComponent
         
         // Apply file attributes on existing files
-        try! DatabaseStore.setFileAttributes(
+        try DatabaseStore.setFileAttributes(
             directoryPath: directoryPath,
             databaseFileName: databaseFileName,
             attributes: attributes)
