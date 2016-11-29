@@ -3,42 +3,249 @@ Release Notes
 
 ## Next version
 
-**New**
-
-- `DatabaseCursor` is the new way to efficiently iterate database results:
-    
-    ```swift
-    let persons = try Person.fetchCursor(db) // DatabaseCursor<Person>
-    while person = try persons.next() {      // Person
-        ...
-    }
-    ```
-
 **Breaking Changes**
 
-- `Database.tableExists(_:)` can now throw database errors.
-- `Database.indexes(on:)` can now throw database errors.
-- `Persistable.exists(_:)` can now throw database errors.
-- `DatabasePool.read(_:)` `DatabasePool.nonIsolatedRead(_:)` can now throw database errors.
-- `fetchAll` and `fetchOne` can now throw database errors.
-- `FetchedRecordsController.performFetch()` can now throw database errors.
-- The `fetch` method have been removed, along with `DatabaseSequence` and `DatabaseIterator`.
-    
-    ```swift
-    // No longer supported:
-    for person in Person.fetch(db) {
-        ...
-    }
-    
-    // Write instead:
-    let persons = try Person.fetchCursor(db)
-    while person = try persons.next() {
-        ...
-    }
-    ```
+Generally speaking, fetching methods can now throw errors. The `fetch` method have been removed, along with `DatabaseSequence` and `DatabaseIterator`, replaced by the `fetchCursor` method and the `DatabaseCursor` protocol:
+
+```swift
+// No longer supported
+let persons = Person.fetch(db) // DatabaseSequence<Person>
+for person in persons {        // Person
+    ...
+}
+
+// New
+let persons = try Person.fetchCursor(db) // DatabaseCursor<Person>
+while person = try persons.next() {      // Person
+    ...
+}
+```
+
+Many APIs were changed:
+
+### Database Connections
 
 ```diff
-TODO
+ final class Database {
+-    func tableExists(_ tableName: String) -> Bool
+-    func indexes(on tableName: String) -> [IndexInfo]
++    func tableExists(_ tableName: String) throws -> Bool
++    func indexes(on tableName: String) throws -> [IndexInfo]
+ }
+ 
+ final class DatabasePool {
+-    func read<T>(_ block: (Database) throws -> T) rethrows -> T
+-    func nonIsolatedRead<T>(_ block: (Database) throws -> T) rethrows -> T
+-    func readFromWrite(_ block: @escaping (Database) -> Void)
++    func read<T>(_ block: (Database) throws -> T) throws -> T
++    func nonIsolatedRead<T>(_ block: (Database) throws -> T) throws -> T
++    func readFromWrite(_ block: @escaping (Database) -> Void) throws
+ }
+ 
+ protocol DatabaseReader {
+-    func read<T>(_ block: (Database) throws -> T) rethrows -> T
+-    func nonIsolatedRead<T>(_ block: (Database) throws -> T) rethrows -> T
++    func read<T>(_ block: (Database) throws -> T) throws -> T
++    func nonIsolatedRead<T>(_ block: (Database) throws -> T) throws -> T
+ }
+ 
+ protocol DatabaseWriter {
+-    func readFromWrite(_ block: @escaping (Database) -> Void)
++    func readFromWrite(_ block: @escaping (Database) -> Void) throws
+ }
+```
+
+### Fetching Rows and Values
+
+```diff
+ final class Row {
+-    static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Row>
+-    static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Row]
+-    static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Row?
+-    static func fetch(_ db: Database, _ request: FetchRequest) -> DatabaseSequence<Row>
+-    static func fetchAll(_ db: Database, _ request: FetchRequest) -> [Row]
+-    static func fetchOne(_ db: Database, _ request: FetchRequest) -> Row?
+-    static func fetch(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Row>
+-    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Row]
+-    static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Row?
++    static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Row> {
++    static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Row] {
++    static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Row?
++    static func fetchCursor(_ db: Database, _ request: FetchRequest) throws -> DatabaseCursor<Row> {
++    static func fetchAll(_ db: Database, _ request: FetchRequest) throws -> [Row] {
++    static func fetchOne(_ db: Database, _ request: FetchRequest) throws -> Row?
++    static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Row> {
++    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Row] {
++    static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Row?
+ }
+ 
+ extension DatabaseValueConvertible {
+-    static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Self>
+-    static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Self]
+-    static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Self?
+-    static func fetch(_ db: Database, _ request: FetchRequest) -> DatabaseSequence<Self>
+-    static func fetchAll(_ db: Database, _ request: FetchRequest) -> [Self]
+-    static func fetchOne(_ db: Database, _ request: FetchRequest) -> Self?
+-    static func fetch(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Self>
+-    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Self]
+-    static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Self?
++    static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseCursor<Self>
++    static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Self]
++    static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self?
++    static func fetchCursor(_ db: Database, _ request: FetchRequest) throws -> DatabaseCursor<Self>
++    static func fetchAll(_ db: Database, _ request: FetchRequest) throws -> [Self]
++    static func fetchOne(_ db: Database, _ request: FetchRequest) throws -> Self?
++    static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self>
++    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Self]
++    static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self?
+ }
+ 
+ extension Optional where Wrapped: DatabaseValueConvertible {
+-    static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Wrapped?>
+-    static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Wrapped?]
+-    static func fetch(_ db: Database, _ request: FetchRequest) -> DatabaseSequence<Wrapped?>
+-    static func fetchAll(_ db: Database, _ request: FetchRequest) -> [Wrapped?]
+-    static func fetch(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Wrapped?>
+-    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Wrapped?]
++    static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Wrapped?>
++    static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Wrapped?]
++    static func fetchCursor(_ db: Database, _ request: FetchRequest) throws -> DatabaseCursor<Wrapped?>
++    static func fetchAll(_ db: Database, _ request: FetchRequest) throws -> [Wrapped?]
++    static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Wrapped?>
++    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Wrapped?]
+ }
+```
+
+### Records and the Query Interface
+
+```diff 
+ protocol MutablePersistable : TableMapping {
+-    func exists(_ db: Database) -> Bool
++    func exists(_ db: Database) throws -> Bool
+ }
+ 
+ extension MutablePersistable {
+-    func performExists(_ db: Database) -> Bool
++    func performExists(_ db: Database) throws -> Bool
+ }
+ 
+ struct QueryInterfaceRequest<T> {
+-    func fetch(_ db: Database) -> DatabaseSequence<T>
+-    func fetchAll(_ db: Database) -> [T]
+-    func fetchOne(_ db: Database) -> T?
+-    func fetchCount(_ db: Database) -> Int
++    func fetchCursor(_ db: Database) throws -> DatabaseCursor<T>
++    func fetchAll(_ db: Database) throws -> [T]
++    func fetchOne(_ db: Database) throws -> T?
++    func fetchCount(_ db: Database) throws -> Int
+ }
+ 
+ extension RowConvertible {
+-    static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Self>
+-    static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Self]
+-    static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Self?
+-    static func fetch(_ db: Database, _ request: FetchRequest) -> DatabaseSequence<Self>
+-    static func fetchAll(_ db: Database, _ request: FetchRequest) -> [Self]
+-    static func fetchOne(_ db: Database, _ request: FetchRequest) -> Self?
+-    static func fetch(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Self>
+-    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Self]
+-    static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Self?
++    static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
++    static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Self] {
++    static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self?
++    static func fetchCursor(_ db: Database, _ request: FetchRequest) throws -> DatabaseCursor<Self> {
++    static func fetchAll(_ db: Database, _ request: FetchRequest) throws -> [Self] {
++    static func fetchOne(_ db: Database, _ request: FetchRequest) throws -> Self?
++    static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
++    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Self] {
++    static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self?
+ }
+ 
+ extension RowConvertible where Self: TableMapping {
+-    static func fetch(_ db: Database) -> DatabaseSequence<Self>
+-    static func fetchAll(_ db: Database) -> [Self]
+-    static func fetchOne(_ db: Database) -> Self?
+-    static func fetch<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) -> DatabaseSequence<Self> where Sequence.Iterator.Element: DatabaseValueConvertible
+-    static func fetchAll<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) -> [Self] where Sequence.Iterator.Element: DatabaseValueConvertible
+-    static func fetchOne<PrimaryKeyType: DatabaseValueConvertible>(_ db: Database, key: PrimaryKeyType?) -> Self?
+-    static func fetch(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) -> DatabaseSequence<Self> 
+-    static func fetchAll(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) -> [Self]
+-    static func fetchOne(_ db: Database, key: [String: DatabaseValueConvertible?]) -> Self?
++    static func fetchCursor(_ db: Database) throws -> DatabaseCursor<Self>
++    static func fetchAll(_ db: Database) throws -> [Self]
++    static func fetchOne(_ db: Database) throws -> Self?
++    static func fetchCursor<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> DatabaseCursor<Self> where Sequence.Iterator.Element: DatabaseValueConvertible
++    static func fetchAll<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> [Self] where Sequence.Iterator.Element: DatabaseValueConvertible
++    static func fetchOne<PrimaryKeyType: DatabaseValueConvertible>(_ db: Database, key: PrimaryKeyType?) throws -> Self?
++    static func fetchCursor(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> DatabaseCursor<Self> 
++    static func fetchAll(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> [Self]
++    static func fetchOne(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Self?
+ }
+ 
+ extension TableMapping {
+-    static func fetchCount(_ db: Database) -> Int
++    static func fetchCount(_ db: Database) throws -> Int
+ }
+```
+
+### Cursors
+
+```diff
+-struct DatabaseSequence<Element>: Sequence
+-final class DatabaseIterator<Element>: IteratorProtocol
+
++extension Array {
++    init<C : Cursor>(_ cursor: C) throws where C.Element == Element
++}
+
++class AnyCursor<Element> : Cursor {
++    init<C : Cursor>(_ base: C) where C.Element == Element
++    init(_ body: @escaping () throws -> Element?)
++}
+
++protocol Cursor : class {
++    associatedtype Element
++    func next() throws -> Element?
++}
+
++extension Cursor {
++    func contains(where predicate: (Element) throws -> Bool) throws -> Bool
++    func enumerated() -> EnumeratedCursor<Self>
++    func filter(_ isIncluded: @escaping (Element) throws -> Bool) -> FilterCursor<Self>
++    func first(where predicate: (Element) throws -> Bool) throws -> Element?
++    func flatMap<ElementOfResult>(_ transform: @escaping (Element) throws -> ElementOfResult?) -> MapCursor<FilterCursor<MapCursor<Self, ElementOfResult?>>, ElementOfResult>
++    func flatMap<SegmentOfResult : Sequence>(_ transform: @escaping (Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<Self, IteratorCursor<SegmentOfResult.Iterator>>>
++    func flatMap<SegmentOfResult : Cursor>(_ transform: @escaping (Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<Self, SegmentOfResult>>
++    func forEach(_ body: (Element) throws -> Void) throws
++    func map<T>(_ transform: @escaping (Element) throws -> T) -> MapCursor<Self, T>
++    func reduce<Result>(_ initialResult: Result, _ nextPartialResult: (Result, Element) throws -> Result) throws -> Result
++}
+
++extension Cursor where Element: Equatable {
++    func contains(_ element: Element) throws -> Bool
++}
+
++extension Cursor where Element: Cursor {
++    func joined() -> FlattenCursor<Self>
++}
+
++extension Cursor where Element: Sequence {
++    func joined() -> FlattenCursor<MapCursor<Self, IteratorCursor<Self.Element.Iterator>>>
++}
+
++final class DatabaseCursor<Element> : Cursor
++final class EnumeratedCursor<Base : Cursor> : Cursor
++final class FilterCursor<Base : Cursor> : Cursor
++final class FlattenCursor<Base: Cursor> : Cursor where Base.Element: Cursor
++final class MapCursor<Base : Cursor, Element> : Cursor
++final class IteratorCursor<Base : IteratorProtocol> : Cursor {
++    init(_ base: Base)
++    init<S : Sequence>(_ s: S) where S.Iterator == Base
++}
+
++extension Sequence {
++    func flatMap<SegmentOfResult : Cursor>(_ transform: @escaping (Iterator.Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<IteratorCursor<Self.Iterator>, SegmentOfResult>>
++}
 ```
 
 
