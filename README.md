@@ -557,7 +557,7 @@ try Type.fetchAll(...)    // [Type]
 try Type.fetchOne(...)    // Type?
 ```
 
-- `fetchCursor` returns a **cursor** over fetched values:
+- `fetchCursor` returns a **[cursor](#cursors)** over fetched values:
     
     ```swift
     let rows = try Row.fetchCursor(db, "SELECT ...") // DatabaseCursor<Row>
@@ -565,8 +565,6 @@ try Type.fetchOne(...)    // Type?
         ...
     }
     ```
-    
-    See [Cursors](#cursors) for more information.
     
 - `fetchAll` returns an **array**:
     
@@ -585,16 +583,11 @@ try Type.fetchOne(...)    // Type?
 
 **Whenever you consume several rows from the database, you can fetch a Cursor, or an Array**.
 
-Array contains copies of database values, can take a lot of memory, but may be consumed on any thread. Conversely, cursors iterate over database results in a lazy fashion, don't consume much memory, and are generally more efficient. But they must be consumed in a protected dispatch queue:
+Array contains copies of database values and may be consumed on any thread. But they can take a lot of memory. Conversely, cursors iterate over database results in a lazy fashion, don't consume much memory, and are generally more efficient. But they must be consumed in a [protected dispatch queue](#database-connections):
 
 ```swift
-let rows = try Row.fetchAll(db, "SELECT * FROM links")      // [Row]
-let urls = try URL.fetchAll(db, "SELECT url FROM links")    // [URL]
-let links = try Link.fetchAll(db, "SELECT * FROM links")    // [Link]
-
-let rows = try Row.fetchCursor(db, "SELECT * FROM links")   // DatabaseCursor<Row>
-let urls = try URL.fetchCursor(db, "SELECT url FROM links") // DatabaseCursor<URL>
-let links = try Link.fetchCursor(db, "SELECT * FROM links") // DatabaseCursor<Link>
+let rows = try Row.fetchAll(db, "SELECT * FROM links")    // [Row]
+let rows = try Row.fetchCursor(db, "SELECT * FROM links") // DatabaseCursor<Row>
 ```
 
 
@@ -617,14 +610,9 @@ while let row = try rows.next() {
 }
 ```
 
-Cursors share traits with [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol) and [iterators](https://developer.apple.com/reference/swift/iteratorprotocol) from the Swift standard library. Differences are:
+Cursors share traits with [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol) and [iterators](https://developer.apple.com/reference/swift/iteratorprotocol) from the Swift standard library. Differences are that cursors may throw errors, and can not be repeated.
 
-- Cursor types are classes, and have a lifetime.
-- Cursors may throw errors.
-- Cursor can not be repeated.
-
-The protocol comes with default implementations for many operations similar
-to those defined by lazy sequences:
+The Cursor protocol comes with default implementations for many operations similar to those defined by lazy sequences:
 
 ```swift
 extension Cursor {
