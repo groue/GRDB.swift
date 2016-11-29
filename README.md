@@ -591,11 +591,20 @@ let rows = try Row.fetchCursor(db, "SELECT * FROM links") // DatabaseCursor<Row>
 ```
 
 
-The most common way to iterate over the elements of a cursor is to use a `while` loop:
+A common way to iterate over the elements of a cursor is to use a `while` loop:
 
 ```swift
 let rows = try Row.fetchCursor(db, "SELECT * FROM links")
 while let row = try rows.next() {
+    let url: URL = row.value(named: "url")
+    print(url)
+}
+```
+
+You can also use the `forEach` function:
+
+```swift
+try Row.fetchCursor(db, "SELECT * FROM links").forEach { row in
     let url: URL = row.value(named: "url")
     print(url)
 }
@@ -610,30 +619,7 @@ while let row = try rows.next() {
 }
 ```
 
-Cursors share traits with [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol) and [iterators](https://developer.apple.com/reference/swift/iteratorprotocol) from the Swift standard library. Differences are that cursors may throw errors, and can not be repeated.
-
-The Cursor protocol comes with default implementations for many operations similar to those defined by lazy sequences:
-
-```swift
-extension Cursor {
-    func contains(Element)
-    func contains(where: (Element) throws -> Bool)
-    func enumerated()
-    func filter((Element) throws -> Bool)
-    func first(where: (Element) throws -> Bool)
-    func flatMap<T>((Element) throws -> T?)
-    func flatMap((Element) throws -> Sequence)
-    func flatMap((Element) throws -> Cursor)
-    func forEach((Element) throws -> Void)
-    func joined()
-    func map<T>((Element) throws -> T)
-    func reduce(Result, (Result, Element) throws -> Result)
-}
-
-extension Sequence {
-    func flatMap((Iterator.Element) throws -> Cursor)
-}
-```
+Cursors come with default implementations for many operations similar to those defined by [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol): `contains`, `enumerated`, `filter`, `first`, `flatMap`, `forEach`, `joined`, `map`, `reduce`. Check the [Swift Standard Library documentation](https://developer.apple.com/reference/swift) for more information.
 
 
 ### Row Queries
@@ -677,9 +663,7 @@ See [Values](#values) for more information on supported arguments types (Bool, I
 
 Unlike row arrays that contain copies of the database rows, row cursors are close to the SQLite metal, and require a little care:
 
-> :point_up: **Don't turn a row cursor into an array** with `Array(rowCursor)` or `rowCursor.filter { ... }`: you would not get the distinct rows you expect. To get an array, use `Row.fetchAll(...)`.
-> 
-> :point_up: **Make sure you copy a row** whenever you extract it from a cursor for later use: `row.copy()`.
+> :point_up: **Don't turn a row cursor into an array**, with `Array(rowCursor)` for example: you would not get the distinct rows you expect. To get a row array, use `Row.fetchAll(...)`. Alternatively, make sure you copy a row whenever you extract it from a cursor for later use: `row.copy()`.
 
 
 #### Column Values
