@@ -1,3 +1,4 @@
+- [ ] Think about supporting Cursor's underestimatedCount, which could speed up Array(cursor)
 - [ ] Cursor.first(where:)
 - [ ] Cursor.contains(where:)
 - [ ] Cursor.contains(_:)
