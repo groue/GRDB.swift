@@ -4636,7 +4636,7 @@ It has two opportunities to throw fatal errors:
 - **Untrusted arguments**: The dictionary may contain values that do not conform to the [DatabaseValueConvertible protocol](#values), or may miss keys required by the statement.
 - **Untrusted database content**: The row may contain a non-null value that can't be turned into a date.
 
-In such a situation where nothing can be trusted, you can still avoid fatal errors by exposing and handling each failure point, one level down in the GRDB API:
+In such a situation, you can still avoid fatal errors by exposing and handling each failure point, one level down in the GRDB API:
 
 ```swift
 // Untrusted arguments
