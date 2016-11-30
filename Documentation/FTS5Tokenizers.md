@@ -85,7 +85,7 @@ try db.execute("INSERT INTO documents VALUES (?)", arguments: ["..."])
 try Document(content: "...").insert(db)
 
 let pattern = FTS5Pattern(matchingAnyTokenIn:"...")
-let documents = Document.matching(pattern).fetchAll(db)
+let documents = try Document.matching(pattern).fetchAll(db)
 ```
 
 
