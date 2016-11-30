@@ -10,7 +10,8 @@ This guide is a step-by-step tour of GRDB extensibility, around a few topics:
     You'll learn how to turn UIColor into a value type that you can store, fetch, and use in your records:
     
     ```swift
-    for row in Row.fetch(db, "SELECT name, color FROM clothes") {
+    let rows = try Row.fetchCursor(db, "SELECT name, color FROM clothes")
+    while let row = try rows.next() {
         let name: String = row.value(named: "name")
         let color: UIColor = row.value(named: "color")      // <-- New! UIColor as value
     }
@@ -32,7 +33,8 @@ This guide is a step-by-step tour of GRDB extensibility, around a few topics:
     ```swift
     let jsonString = Column("jsonString")
     let request = Books.select(cast(jsonString, as: .blob)) // <-- New! cast function
-    for row in Row.fetch(db, request) {
+    let rows = try Row.fetchCursor(db, request)
+    while let row = try rows.next() {
         let data = row.dataNoCopy(atIndex: 0)
     }
     ```
@@ -87,7 +89,8 @@ Well, you will be able to use UIColor like all other [value types](../../../#val
 - UIColor can be [extracted from rows](../../../#column-values):
     
     ```swift
-    for row in Row.fetch(db, "SELECT * FROM clothes") {
+    let rows = try Row.fetchCursor(db, "SELECT * FROM clothes")
+    while let row = try rows.next() {
         let name: String = row.value(named: "name")
         let color: UIColor = row.value(named: "color")
     }
@@ -96,7 +99,7 @@ Well, you will be able to use UIColor like all other [value types](../../../#val
 - UIColor can be [directly fetched](../../../#value-queries):
     
     ```swift
-    let colors = UIColor.fetchAll(db, "SELECT DISTINCT color FROM clothes")  // [UIColor]
+    let colors = try UIColor.fetchAll(db, "SELECT DISTINCT color FROM clothes")  // [UIColor]
     ```
     
 - Use UIColor in [Records](../../../#records):
@@ -121,7 +124,7 @@ Well, you will be able to use UIColor like all other [value types](../../../#val
 - Use UIColor in the [query interface](../../../#the-query-interface):
     
     ```swift
-    let redClothes = ClothingItem.filter(colorColumn == UIColor.red).fetchAll(db)
+    let redClothes = try ClothingItem.filter(colorColumn == UIColor.red).fetchAll(db)
     ```
 
 **Let's have UIColor adopt DatabaseValueConvertible**
@@ -537,7 +540,7 @@ We'll add below a Swift `cast` function:
 
 ```swift
 let request = Books.select(cast(Column("jsonString"), as: .blob))
-let jsonDatas = Data.fetchAll(db, request) // [Data]
+let jsonDatas = try Data.fetchAll(db, request) // [Data]
 ```
 
 `cast` is a top-level Swift function because this is how GRDB usually imports SQLite features which do not have matching standard Swift counterpart. It helps the Swift code looking like SQL when it is relevant. But YMMV.
