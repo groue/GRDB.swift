@@ -537,7 +537,7 @@ extension Row {
     public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Row> {
         // Metal rows can be reused. And reusing them yields better performance.
         let row = try Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
-        return try statement.fetchCursor(arguments: arguments) { row }
+        return statement.fetchCursor(arguments: arguments) { row }
     }
     
     /// Returns an array of rows fetched from a prepared statement.

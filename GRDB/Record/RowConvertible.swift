@@ -65,7 +65,7 @@ extension RowConvertible {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
         let row = try Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
-        return try statement.fetchCursor(arguments: arguments) {
+        return statement.fetchCursor(arguments: arguments) {
             var value = self.init(row: row)
             value.awakeFromFetch(row: row)
             return value
