@@ -5,7 +5,7 @@ Release Notes
 
 **Breaking Changes**
 
-Generally speaking, fetching methods can now throw errors. The `fetch` method have been removed, along with `DatabaseSequence` and `DatabaseIterator`, replaced by the `fetchCursor` method and the `DatabaseCursor` protocol:
+Generally speaking, fetching methods can now throw errors. The `fetch` method have been removed, along with `DatabaseSequence` and `DatabaseIterator`, replaced by the `fetchCursor` method and `DatabaseCursor` ([documentation](https://github.com/groue/GRDB.swift#fetching-methods)):
 
 ```swift
 // No longer supported
