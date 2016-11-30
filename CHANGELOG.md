@@ -118,7 +118,38 @@ Many APIs were changed:
 
 ### Records and the Query Interface
 
-```diff 
+```diff
+ final class FetchedRecordsController<Record: RowConvertible> {
+ #if os(iOS)
+-    init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: DispatchQueue = .main, isSameRecord: ((Record, Record) -> Bool)? = nil)
+-    init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue = .main, isSameRecord: ((Record, Record) -> Bool)? = nil)
+-    public func trackChanges<T>(fetchAlongside: @escaping (Database) -> T, recordsWillChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())? = nil, tableViewEvent: ((FetchedRecordsController<Record>, Record, TableViewEvent) -> ())? = nil, recordsDidChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())? = nil)
++    init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: DispatchQueue = .main, isSameRecord: ((Record, Record) -> Bool)? = nil) throws
++    init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue = .main, isSameRecord: ((Record, Record) -> Bool)? = nil) throws
++    public func trackChanges<T>(fetchAlongside: @escaping (Database) throws -> T, recordsWillChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())? = nil, tableViewEvent: ((FetchedRecordsController<Record>, Record, TableViewEvent) -> ())? = nil, recordsDidChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())? = nil)
+ #else
+-    init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: DispatchQueue = .main)
+-    init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue = .main)
+-    public func trackChanges<T>(fetchAlongside: @escaping (Database) -> T, recordsWillChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())? = nil, recordsDidChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())? = nil)
++    init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: DispatchQueue = .main) throws
++    init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue = .main) throws
++    public func trackChanges<T>(fetchAlongside: @escaping (Database) throws -> T, recordsWillChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())? = nil, recordsDidChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())? = nil)
+ #endif
+-    func setRequest(_ request: FetchRequest)
+-    func setRequest(sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) 
++    func setRequest(_ request: FetchRequest) throws
++    func setRequest(sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws
+ }
+ 
+ #if os(iOS)
+ extension FetchedRecordsController where Record: TableMapping {
+-    init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: DispatchQueue = .main, compareRecordsByPrimaryKey: Bool)
+-    init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue = .main, compareRecordsByPrimaryKey: Bool)
++    init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: DispatchQueue = .main, compareRecordsByPrimaryKey: Bool) throws
++    init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue = .main, compareRecordsByPrimaryKey: Bool) throws
+ }
+ #endif
+ 
  protocol MutablePersistable : TableMapping {
 -    func exists(_ db: Database) -> Bool
 +    func exists(_ db: Database) throws -> Bool

@@ -101,7 +101,7 @@
                 }
                 
                 let request = Person.all()
-                let controller = FetchedRecordsController<Person>(dbQueue, request: request, compareRecordsByPrimaryKey: true)
+                let controller = try FetchedRecordsController<Person>(dbQueue, request: request, compareRecordsByPrimaryKey: true)
                 XCTAssertTrue(controller.fetchedRecords == nil)
                 try controller.performFetch()
                 XCTAssertEqual(controller.sections.count, 1)
@@ -119,7 +119,7 @@
             assertNoError {
                 let dbQueue = try makeDatabaseQueue()
                 let request = Person.all()
-                let controller = FetchedRecordsController<Person>(dbQueue, request: request)
+                let controller = try FetchedRecordsController<Person>(dbQueue, request: request)
                 XCTAssertTrue(controller.fetchedRecords == nil)
                 try controller.performFetch()
                 XCTAssertEqual(controller.fetchedRecords!.count, 0)
@@ -138,7 +138,7 @@
         func testSimpleInsert() {
             assertNoError {
                 let dbQueue = try makeDatabaseQueue()
-                let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("id")), compareRecordsByPrimaryKey: true)
+                let controller = try FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("id")), compareRecordsByPrimaryKey: true)
                 let recorder = ChangesRecorder<Person>()
                 controller.trackChanges(
                     recordsWillChange: { recorder.controllerWillChange($0) },
@@ -198,7 +198,7 @@
         func testSimpleUpdate() {
             assertNoError {
                 let dbQueue = try makeDatabaseQueue()
-                let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("id")), compareRecordsByPrimaryKey: true)
+                let controller = try FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("id")), compareRecordsByPrimaryKey: true)
                 let recorder = ChangesRecorder<Person>()
                 controller.trackChanges(
                     recordsWillChange: { recorder.controllerWillChange($0) },
@@ -277,7 +277,7 @@
         func testSimpleDelete() {
             assertNoError {
                 let dbQueue = try makeDatabaseQueue()
-                let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("id")), compareRecordsByPrimaryKey: true)
+                let controller = try FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("id")), compareRecordsByPrimaryKey: true)
                 let recorder = ChangesRecorder<Person>()
                 controller.trackChanges(
                     recordsWillChange: { recorder.controllerWillChange($0) },
@@ -344,7 +344,7 @@
         func testSimpleMove() {
             assertNoError {
                 let dbQueue = try makeDatabaseQueue()
-                let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")), compareRecordsByPrimaryKey: true)
+                let controller = try FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")), compareRecordsByPrimaryKey: true)
                 let recorder = ChangesRecorder<Person>()
                 controller.trackChanges(
                     recordsWillChange: { recorder.controllerWillChange($0) },
@@ -393,7 +393,7 @@
         func testSideTableChange() {
             assertNoError {
                 let dbQueue = try makeDatabaseQueue()
-                let controller = FetchedRecordsController<Person>(
+                let controller = try FetchedRecordsController<Person>(
                     dbQueue,
                     sql: ("SELECT persons.*, COUNT(books.id) AS bookCount " +
                         "FROM persons " +
@@ -448,7 +448,7 @@
         func testComplexChanges() {
             assertNoError {
                 let dbQueue = try makeDatabaseQueue()
-                let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")), compareRecordsByPrimaryKey: true)
+                let controller = try FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")), compareRecordsByPrimaryKey: true)
                 let recorder = ChangesRecorder<Person>()
                 controller.trackChanges(
                     recordsWillChange: { recorder.controllerWillChange($0) },
@@ -581,7 +581,7 @@
         func testRequestChange() {
             assertNoError {
                 let dbQueue = try makeDatabaseQueue()
-                let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")), compareRecordsByPrimaryKey: true)
+                let controller = try FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")), compareRecordsByPrimaryKey: true)
                 let recorder = ChangesRecorder<Person>()
                 controller.trackChanges(
                     recordsWillChange: { recorder.controllerWillChange($0) },
@@ -601,7 +601,7 @@
                 
                 // Change request with FetchRequest
                 recorder.transactionExpectation = expectation(description: "expectation")
-                controller.setRequest(Person.order(Column("name").desc))
+                try controller.setRequest(Person.order(Column("name").desc))
                 waitForExpectations(timeout: 1, handler: nil)
                 
                 XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
@@ -622,7 +622,7 @@
                 
                 // Change request with SQL and arguments
                 recorder.transactionExpectation = expectation(description: "expectation")
-                controller.setRequest(sql: "SELECT ? AS id, ? AS name", arguments: [1, "Craig"])
+                try controller.setRequest(sql: "SELECT ? AS id, ? AS name", arguments: [1, "Craig"])
                 waitForExpectations(timeout: 1, handler: nil)
                 
                 XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
@@ -656,7 +656,7 @@
         func testSetCallbacksAfterUpdate() {
             assertNoError {
                 let dbQueue = try makeDatabaseQueue()
-                let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")), compareRecordsByPrimaryKey: true)
+                let controller = try FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")), compareRecordsByPrimaryKey: true)
                 let recorder = ChangesRecorder<Person>()
                 try controller.performFetch()
                 
@@ -693,7 +693,7 @@
         func testTrailingClosureCallback() {
             assertNoError {
                 let dbQueue = try makeDatabaseQueue()
-                let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")), compareRecordsByPrimaryKey: true)
+                let controller = try FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")), compareRecordsByPrimaryKey: true)
                 var persons: [Person] = []
                 try controller.performFetch()
                 
