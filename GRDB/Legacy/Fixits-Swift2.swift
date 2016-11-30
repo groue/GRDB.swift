@@ -1,5 +1,5 @@
 //
-//  GRDB-Swift2-ConversionHelper.swift
+//  Fixits-Swift2.swift
 //  GRDB
 //
 //  Created by Swiftlyfalling.
