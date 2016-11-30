@@ -7,13 +7,14 @@ To release a new GRDB version:
 
 - Tests
     - Run GRDBOX tests
-    - Run GRDBiOS tests
-    - Run GRDBCustomSQLiteOSX tests
-    - Run GRDBCustomSQLiteiOS tests
     - Run GRDBCipherOSX tests
+    - Run GRDBCustomSQLiteOSX tests
+    - Run GRDBiOS tests
     - Run GRDBCipheriOS tests
+    - Run GRDBCustomSQLiteiOS tests
     - Build and run GRDBDemoiOS
     - Build and run GRDBDemoWatchOS
+    - Check for performance regression with GRDBOSXPerformanceTests
     - `rm -rf Carthage; carthage build --no-skip-current`
     - `pod lib lint --allow-warnings`
 - On https://github.com/groue/sqlcipher.git upgrade, update SQLCipher version in README.md
