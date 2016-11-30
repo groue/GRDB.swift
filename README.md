@@ -1306,7 +1306,7 @@ try updateStatement.execute(arguments: ["name": "Arthur", "age": 41])
 let person = try Person.fetchOne(selectStatement, arguments: ["Arthur"])
 ```
 
-> :point_up: **Note**: a prepared statement that has failed can not be reused.
+> :point_up: **Note**: it is a programmer error to reuse a prepared statement that has failed: GRDB may crash if you do so.
 
 See [row queries](#row-queries), [value queries](#value-queries), and [Records](#records) for more information.
 
@@ -1322,9 +1322,11 @@ When the same query will be used several times in the lifetime of your applicati
 Instead, use the `cachedUpdateStatement` and `cachedSelectStatement` methods. GRDB does all the hard caching and [memory management](#memory-management) stuff for you:
 
 ```swift
-let updateStatement = try db.cachedUpdateStatement(updateSQL)
-let selectStatement = try db.cachedSelectStatement(selectSQL)
+let updateStatement = try db.cachedUpdateStatement(sql)
+let selectStatement = try db.cachedSelectStatement(sql)
 ```
+
+Should a cached prepared statement throw an error, don't reuse it (it is a programmer error). Instead, reload it from the cache.
 
 
 ## Custom SQL Functions

@@ -79,10 +79,14 @@ public class Statement {
         sqlite3_finalize(sqliteStatement)
     }
     
-    final func reset() throws {
+    final func reset() {
+        // It looks like sqlite3_reset() does not access the file system.
+        // This function call should thus succeed, unless a GRDB bug, or a
+        // programmer error (reusing a failed statement): there is no point
+        // throwing any error.
         let code = sqlite3_reset(sqliteStatement)
         guard code == SQLITE_OK else {
-            throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
+            fatalError(DatabaseError(code: code, message: database.lastErrorMessage, sql: sql).description)
         }
     }
     
@@ -128,18 +132,17 @@ public class Statement {
         _arguments = arguments
         argumentsNeedValidation = false
         
-        // Apply
-        try! reset()
-        try! clearBindings()
+        reset()
+        clearBindings()
         
         var valuesIterator = arguments.values.makeIterator()
         for (index, argumentName) in sqliteArgumentNames.enumerated() {
             if let argumentName = argumentName, let value = arguments.namedValues[argumentName] {
-                try! bind(databaseValue: value, at: index)
+                bind(databaseValue: value, at: index)
             } else if let value = valuesIterator.next() {
-                try! bind(databaseValue: value, at: index)
+                bind(databaseValue: value, at: index)
             } else {
-                try! bind(databaseValue: .null, at: index)
+                bind(databaseValue: .null, at: index)
             }
         }
     }
@@ -152,15 +155,15 @@ public class Statement {
         argumentsNeedValidation = false
         
         // Apply
-        try reset()
-        try clearBindings()
+        reset()
+        clearBindings()
         for (index, databaseValue) in bindings.enumerated() {
-            try bind(databaseValue: databaseValue, at: index)
+            bind(databaseValue: databaseValue, at: index)
         }
     }
     
     // 0-based index
-    private func bind(databaseValue: DatabaseValue, at index: Int) throws {
+    private func bind(databaseValue: DatabaseValue, at index: Int) {
         let code: Int32
         switch databaseValue.storage {
         case .null:
@@ -177,16 +180,21 @@ public class Statement {
             }
         }
         
+        // It looks like sqlite3_bind_xxx() functions do not access the file system.
+        // They should thus succeed, unless a GRDB bug: there is no point throwing any error.
         guard code == SQLITE_OK else {
-            throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
+            fatalError(DatabaseError(code: code, message: database.lastErrorMessage, sql: sql).description)
         }
     }
     
     // Don't make this one public unless we keep the arguments property in sync.
-    private func clearBindings() throws {
+    private func clearBindings() {
+        // It looks like sqlite3_clear_bindings() does not access the file system.
+        // This function call should thus succeed, unless a GRDB bug: there is
+        // no point throwing any error.
         let code = sqlite3_clear_bindings(sqliteStatement)
         guard code == SQLITE_OK else {
-            throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
+            fatalError(DatabaseError(code: code, message: database.lastErrorMessage, sql: sql).description)
         }
     }
 
@@ -253,7 +261,7 @@ public final class SelectStatement : Statement {
         // arguments that do not match the statement.
         try! prepare(withArguments: arguments)
         
-        try reset()
+        reset()
         return DatabaseCursor(statement: self, element: element)
     }
 
@@ -366,8 +374,8 @@ public final class UpdateStatement : Statement {
         // Force arguments validity: it is a programmer error to provide
         // arguments that do not match the statement.
         try! prepare(withArguments: arguments)
-        try reset()
         
+        reset()
         database.updateStatementWillExecute(self)
         
         switch sqlite3_step(sqliteStatement) {

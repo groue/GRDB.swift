@@ -338,18 +338,16 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 }
                 do {
                     let sql = "SELECT throw()"
-                    let statement = try db.makeSelectStatement(sql)
                     try test(FastWrappedInt.fetchAll(db, sql), sql: sql)
-                    try test(FastWrappedInt.fetchAll(statement), sql: sql)
-                    try test(FastWrappedInt.fetchAll(db, Request(statement: { statement }, adapter: nil)), sql: sql)
+                    try test(FastWrappedInt.fetchAll(db.makeSelectStatement(sql)), sql: sql)
+                    try test(FastWrappedInt.fetchAll(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: nil)), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0, throw()"
-                    let statement = try db.makeSelectStatement(sql)
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(FastWrappedInt.fetchAll(db, sql, adapter: adapter), sql: sql)
-                    try test(FastWrappedInt.fetchAll(statement, adapter: adapter), sql: sql)
-                    try test(FastWrappedInt.fetchAll(db, Request(statement: { statement }, adapter: adapter)), sql: sql)
+                    try test(FastWrappedInt.fetchAll(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(FastWrappedInt.fetchAll(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: adapter)), sql: sql)
                 }
             }
         }
@@ -474,18 +472,16 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 }
                 do {
                     let sql = "SELECT throw()"
-                    let statement = try db.makeSelectStatement(sql)
                     try test(FastWrappedInt.fetchOne(db, sql), sql: sql)
-                    try test(FastWrappedInt.fetchOne(statement), sql: sql)
-                    try test(FastWrappedInt.fetchOne(db, Request(statement: { statement }, adapter: nil)), sql: sql)
+                    try test(FastWrappedInt.fetchOne(db.makeSelectStatement(sql)), sql: sql)
+                    try test(FastWrappedInt.fetchOne(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: nil)), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0, throw()"
-                    let statement = try db.makeSelectStatement(sql)
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(FastWrappedInt.fetchOne(db, sql, adapter: adapter), sql: sql)
-                    try test(FastWrappedInt.fetchOne(statement, adapter: adapter), sql: sql)
-                    try test(FastWrappedInt.fetchOne(db, Request(statement: { statement }, adapter: adapter)), sql: sql)
+                    try test(FastWrappedInt.fetchOne(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(FastWrappedInt.fetchOne(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: adapter)), sql: sql)
                 }
             }
         }
@@ -715,18 +711,16 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 }
                 do {
                     let sql = "SELECT throw()"
-                    let statement = try db.makeSelectStatement(sql)
                     try test(Optional<FastWrappedInt>.fetchAll(db, sql), sql: sql)
-                    try test(Optional<FastWrappedInt>.fetchAll(statement), sql: sql)
-                    try test(Optional<FastWrappedInt>.fetchAll(db, Request(statement: { statement }, adapter: nil)), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchAll(db.makeSelectStatement(sql)), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchAll(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: nil)), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0, throw()"
-                    let statement = try db.makeSelectStatement(sql)
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(Optional<FastWrappedInt>.fetchAll(db, sql, adapter: adapter), sql: sql)
-                    try test(Optional<FastWrappedInt>.fetchAll(statement, adapter: adapter), sql: sql)
-                    try test(Optional<FastWrappedInt>.fetchAll(db, Request(statement: { statement }, adapter: adapter)), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchAll(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(Optional<FastWrappedInt>.fetchAll(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: adapter)), sql: sql)
                 }
             }
         }

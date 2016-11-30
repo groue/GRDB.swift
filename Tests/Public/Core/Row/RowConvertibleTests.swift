@@ -203,18 +203,16 @@ class RowConvertibleTests: GRDBTestCase {
                 }
                 do {
                     let sql = "SELECT throw()"
-                    let statement = try db.makeSelectStatement(sql)
                     try test(SimpleRowConvertible.fetchAll(db, sql), sql: sql)
-                    try test(SimpleRowConvertible.fetchAll(statement), sql: sql)
-                    try test(SimpleRowConvertible.fetchAll(db, Request(statement: { statement }, adapter: nil)), sql: sql)
+                    try test(SimpleRowConvertible.fetchAll(db.makeSelectStatement(sql)), sql: sql)
+                    try test(SimpleRowConvertible.fetchAll(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: nil)), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0, throw()"
-                    let statement = try db.makeSelectStatement(sql)
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(SimpleRowConvertible.fetchAll(db, sql, adapter: adapter), sql: sql)
-                    try test(SimpleRowConvertible.fetchAll(statement, adapter: adapter), sql: sql)
-                    try test(SimpleRowConvertible.fetchAll(db, Request(statement: { statement }, adapter: adapter)), sql: sql)
+                    try test(SimpleRowConvertible.fetchAll(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(SimpleRowConvertible.fetchAll(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: adapter)), sql: sql)
                 }
             }
         }
@@ -321,18 +319,16 @@ class RowConvertibleTests: GRDBTestCase {
                 }
                 do {
                     let sql = "SELECT throw()"
-                    let statement = try db.makeSelectStatement(sql)
                     try test(SimpleRowConvertible.fetchOne(db, sql), sql: sql)
-                    try test(SimpleRowConvertible.fetchOne(statement), sql: sql)
-                    try test(SimpleRowConvertible.fetchOne(db, Request(statement: { statement }, adapter: nil)), sql: sql)
+                    try test(SimpleRowConvertible.fetchOne(db.makeSelectStatement(sql)), sql: sql)
+                    try test(SimpleRowConvertible.fetchOne(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: nil)), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0, throw()"
-                    let statement = try db.makeSelectStatement(sql)
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(SimpleRowConvertible.fetchOne(db, sql, adapter: adapter), sql: sql)
-                    try test(SimpleRowConvertible.fetchOne(statement, adapter: adapter), sql: sql)
-                    try test(SimpleRowConvertible.fetchOne(db, Request(statement: { statement }, adapter: adapter)), sql: sql)
+                    try test(SimpleRowConvertible.fetchOne(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(SimpleRowConvertible.fetchOne(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: adapter)), sql: sql)
                 }
             }
         }

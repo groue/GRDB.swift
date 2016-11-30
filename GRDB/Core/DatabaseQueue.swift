@@ -36,6 +36,7 @@ public final class DatabaseQueue {
     /// - parameter configuration: A configuration.
     public init(configuration: Configuration = Configuration()) {
         store = nil
+        // Assume SQLite always succeeds creating an in-memory database
         serializedDatabase = try! SerializedDatabase(
             path: ":memory:",
             configuration: configuration,

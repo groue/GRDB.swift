@@ -718,6 +718,7 @@ extension Database {
             }, nil, nil, nil)
         
         guard code == SQLITE_OK else {
+            // Assume a GRDB bug: there is no point throwing any error.
             fatalError(DatabaseError(code: code, message: lastErrorMessage).description)
         }
     }
@@ -732,6 +733,7 @@ extension Database {
             SQLITE_UTF8 | function.eTextRep,
             nil, nil, nil, nil, nil)
         guard code == SQLITE_OK else {
+            // Assume a GRDB bug: there is no point throwing any error.
             fatalError(DatabaseError(code: code, message: lastErrorMessage).description)
         }
     }
@@ -820,6 +822,7 @@ extension Database {
                 return Int32(collation.function(length1, buffer1, length2, buffer2).rawValue)
             }, nil)
         guard code == SQLITE_OK else {
+            // Assume a GRDB bug: there is no point throwing any error.
             fatalError(DatabaseError(code: code, message: lastErrorMessage).description)
         }
     }

@@ -46,6 +46,7 @@ class DatabaseStore {
         // Configure dispatch source
         source.setEventHandler {
             // Directory has been modified: apply file attributes on unprocessed files
+            // TODO: handle error and don't crash
             try! DatabaseStore.setFileAttributes(
                 directoryPath: directoryPath,
                 databaseFileName: databaseFileName,

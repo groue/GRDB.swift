@@ -57,6 +57,7 @@ open class Record : RowConvertible, TableMapping, Persistable {
     ///
     /// - returns: The name of a database table.
     open class var databaseTableName: String {
+        // Programmer error
         fatalError("subclass must override")
     }
     

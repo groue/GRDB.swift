@@ -297,10 +297,12 @@ extension RowConvertible where Self: TableMapping {
             GRDBPrecondition(dictionary.count > 0, "Invalid empty key dictionary")
             let columns = dictionary.keys
             guard try db.table(databaseTableName, hasUniqueKey: columns) else {
+                let error = DatabaseError(code: SQLITE_MISUSE, message: "table \(databaseTableName) has no unique index on column(s) \(columns.joined(separator: ", "))")
                 if fatalErrorOnMissingUniqueIndex {
-                    fatalError("table \(databaseTableName) has no unique index on column(s) \(columns.joined(separator: ", "))")
+                    // Programmer error
+                    fatalError(error.description)
                 } else {
-                    throw DatabaseError(code: SQLITE_MISUSE, message: "table \(databaseTableName) has no unique index on column(s) \(columns.joined(separator: ", "))")
+                    throw error
                 }
             }
             arguments.append(contentsOf: dictionary.values)
@@ -379,10 +381,11 @@ extension TableMapping {
             GRDBPrecondition(dictionary.count > 0, "Invalid empty key dictionary")
             let columns = dictionary.keys
             guard try db.table(databaseTableName, hasUniqueKey: columns) else {
+                let error = DatabaseError(code: SQLITE_MISUSE, message: "table \(databaseTableName) has no unique index on column(s) \(columns.joined(separator: ", "))")
                 if fatalErrorOnMissingUniqueIndex {
-                    fatalError("table \(databaseTableName) has no unique index on column(s) \(columns.joined(separator: ", "))")
+                    fatalError(error.description)
                 } else {
-                    throw DatabaseError(code: SQLITE_MISUSE, message: "table \(databaseTableName) has no unique index on column(s) \(columns.joined(separator: ", "))")
+                    throw error
                 }
             }
             arguments.append(contentsOf: dictionary.values)

@@ -36,6 +36,7 @@
             var arguments: [String] = []
             
             if definition.columns.isEmpty {
+                // Programmer error
                 fatalError("FTS5 virtual table requires at least one column.")
             }
             

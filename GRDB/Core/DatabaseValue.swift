@@ -103,6 +103,7 @@ public struct DatabaseValue {
             return value
         }
         guard isNull else {
+            // Programmer error
             fatalError("could not convert database value \(self) to \(Value.self)")
         }
         return nil
@@ -116,6 +117,7 @@ public struct DatabaseValue {
     /// - returns: A *Value*.
     public func value<Value: DatabaseValueConvertible>() -> Value {
         guard let value = Value.fromDatabaseValue(self) else {
+            // Programmer error
             fatalError("could not convert database value \(self) to \(Value.self)")
         }
         return value
@@ -147,6 +149,7 @@ public struct DatabaseValue {
             let count = Int(sqlite3_value_bytes(sqliteValue))
             storage = .blob(Data(bytes: bytes, count: count)) // copy bytes
         case let type:
+            // Assume a GRDB bug: there is no point throwing any error.
             fatalError("Unexpected SQLite value type: \(type)")
         }
     }
@@ -167,6 +170,7 @@ public struct DatabaseValue {
             let count = Int(sqlite3_column_bytes(sqliteStatement, Int32(index)))
             storage = .blob(Data(bytes: bytes, count: count)) // copy bytes
         case let type:
+            // Assume a GRDB bug: there is no point throwing any error.
             fatalError("Unexpected SQLite column type: \(type)")
         }
     }

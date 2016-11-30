@@ -55,7 +55,7 @@ func GRDBPrecondition(_ condition: @autoclosure() -> Bool, _ message: @autoclosu
     }
 }
 
-// Workaround Swift inconvenience around factories methods of non-final classes
+// Workaround Swift inconvenience around factory methods of non-final classes
 func cast<T, U>(_ value: T) -> U? {
     return value as? U
 }

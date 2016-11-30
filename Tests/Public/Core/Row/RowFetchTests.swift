@@ -173,18 +173,16 @@ class RowFetchTests: GRDBTestCase {
                 }
                 do {
                     let sql = "SELECT throw()"
-                    let statement = try db.makeSelectStatement(sql)
                     try test(Row.fetchAll(db, sql), sql: sql)
-                    try test(Row.fetchAll(statement), sql: sql)
-                    try test(Row.fetchAll(db, Request(statement: { statement }, adapter: nil)), sql: sql)
+                    try test(Row.fetchAll(db.makeSelectStatement(sql)), sql: sql)
+                    try test(Row.fetchAll(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: nil)), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0, throw()"
-                    let statement = try db.makeSelectStatement(sql)
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(Row.fetchAll(db, sql, adapter: adapter), sql: sql)
-                    try test(Row.fetchAll(statement, adapter: adapter), sql: sql)
-                    try test(Row.fetchAll(db, Request(statement: { statement }, adapter: adapter)), sql: sql)
+                    try test(Row.fetchAll(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(Row.fetchAll(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: adapter)), sql: sql)
                 }
             }
         }
@@ -290,18 +288,16 @@ class RowFetchTests: GRDBTestCase {
                 }
                 do {
                     let sql = "SELECT throw()"
-                    let statement = try db.makeSelectStatement(sql)
                     try test(Row.fetchOne(db, sql), sql: sql)
-                    try test(Row.fetchOne(statement), sql: sql)
-                    try test(Row.fetchOne(db, Request(statement: { statement }, adapter: nil)), sql: sql)
+                    try test(Row.fetchOne(db.makeSelectStatement(sql)), sql: sql)
+                    try test(Row.fetchOne(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: nil)), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0, throw()"
-                    let statement = try db.makeSelectStatement(sql)
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(Row.fetchOne(db, sql, adapter: adapter), sql: sql)
-                    try test(Row.fetchOne(statement, adapter: adapter), sql: sql)
-                    try test(Row.fetchOne(db, Request(statement: { statement }, adapter: adapter)), sql: sql)
+                    try test(Row.fetchOne(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(Row.fetchOne(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: adapter)), sql: sql)
                 }
             }
         }

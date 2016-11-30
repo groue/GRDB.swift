@@ -216,6 +216,7 @@ extension DatabaseValue : SQLExpression {
             return "?"
         } else {
             // Correctness above all: use SQLite to quote the value.
+            // Assume that the Quote function always succeeds
             return DatabaseQueue().inDatabase { try! String.fetchOne($0, "SELECT QUOTE(?)", arguments: [self])! }
         }
     }
@@ -291,11 +292,13 @@ public struct SQLExpressionLiteral : SQLExpression {
     public func expressionSQL(_ arguments: inout StatementArguments?) -> String {
         if let literalArguments = self.arguments {
             guard arguments != nil else {
+                // GRDB limitation
                 fatalError("Not implemented")
             }
             arguments!.values.append(contentsOf: literalArguments.values)
             for (name, value) in literalArguments.namedValues {
                 guard arguments!.namedValues[name] == nil else {
+                    // Programmer error
                     fatalError("argument \(String(reflecting: name)) can't be reused")
                 }
                 arguments!.namedValues[name] = value

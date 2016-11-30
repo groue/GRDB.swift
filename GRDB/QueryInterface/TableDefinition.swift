@@ -195,6 +195,7 @@ public final class TableDefinition {
     ///   (see https://www.sqlite.org/lang_conflict.html).
     public func primaryKey(_ columns: [String], onConflict conflictResolution: Database.ConflictResolution? = nil) {
         guard primaryKeyConstraint == nil else {
+            // Programmer error
             fatalError("can't define several primary keys")
         }
         primaryKeyConstraint = (columns: columns, conflictResolution: conflictResolution)
@@ -333,6 +334,7 @@ public final class TableDefinition {
                 } else if let primaryKey = try db.primaryKey(table) {
                     chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKey.columns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
                 } else {
+                    // Programmer error
                     fatalError("explicit referenced column(s) required, since table \(table) has no primary key")
                 }
                 if let deleteAction = deleteAction {
@@ -684,6 +686,7 @@ public final class ColumnDefinition {
             } else if let primaryKey = try db.primaryKey(table) {
                 chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKey.columns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
             } else {
+                // Programmer error
                 fatalError("explicit referenced column required, since table \(table) has no primary key")
             }
             if let deleteAction = deleteAction {

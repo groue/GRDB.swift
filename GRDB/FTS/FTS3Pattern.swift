@@ -104,6 +104,7 @@ extension QueryInterfaceRequest {
         case .table(let name, let alias)?:
             return filter(SQLExpressionBinary(.match, Column(alias ?? name), pattern ?? DatabaseValue.null))
         default:
+            // Programmer error
             fatalError("fts3 match requires a table")
         }
     }

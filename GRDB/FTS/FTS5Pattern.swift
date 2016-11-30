@@ -124,6 +124,7 @@
                     return filter(false)
                 }
             default:
+                // Programmer error
                 fatalError("fts5 match requires a table")
             }
         }

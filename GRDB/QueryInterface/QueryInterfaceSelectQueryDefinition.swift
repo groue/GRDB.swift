@@ -130,14 +130,17 @@ struct QueryInterfaceSelectQueryDefinition {
     
     func makeDeleteStatement(_ db: Database) throws -> UpdateStatement {
         guard groupByExpressions.isEmpty else {
+            // Programmer error
             fatalError("Can't delete query with GROUP BY expression")
         }
         
         guard havingExpression == nil else {
+            // Programmer error
             fatalError("Can't delete query with GROUP BY expression")
         }
         
         guard limit == nil else {
+            // Programmer error
             fatalError("Can't delete query with limit")
         }
         

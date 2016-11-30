@@ -457,7 +457,8 @@ extension DatabasePool : DatabaseWriter {
         let semaphore = DispatchSemaphore(value: 0)
         try readerPool.get { reader in
             reader.async { db in
-                // Assume COMMIT DEFERRED TRANSACTION does not throw error.
+                // Assume deferred transactions are always possible in a read-only WAL database
+                // TODO: handle error 
                 try! db.inTransaction(.deferred) {
                     // Now we're isolated: release the writing queue
                     semaphore.signal()

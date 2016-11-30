@@ -56,6 +56,7 @@
         ///     db.add(tokenizer: MyTokenizer.self)
         public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) {
             guard let api = FTS5.api(self) else {
+                // Assume a GRDB bug or an SQLite miscompilation: there is no point throwing any error.
                 fatalError("FTS5 is not enabled")
             }
             
@@ -132,6 +133,7 @@
                 api.pointee.xCreateTokenizer(UnsafeMutablePointer(mutating: api), Tokenizer.name, constructorPointer, xTokenizerPointer, deleteConstructor)
             }
             guard code == SQLITE_OK else {
+                // Assume a GRDB bug: there is no point throwing any error.
                 fatalError(DatabaseError(code: code, message: lastErrorMessage).description)
             }
         }

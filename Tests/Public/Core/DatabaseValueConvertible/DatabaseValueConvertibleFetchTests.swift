@@ -265,18 +265,16 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 }
                 do {
                     let sql = "SELECT throw()"
-                    let statement = try db.makeSelectStatement(sql)
                     try test(WrappedInt.fetchAll(db, sql), sql: sql)
-                    try test(WrappedInt.fetchAll(statement), sql: sql)
-                    try test(WrappedInt.fetchAll(db, Request(statement: { statement }, adapter: nil)), sql: sql)
+                    try test(WrappedInt.fetchAll(db.makeSelectStatement(sql)), sql: sql)
+                    try test(WrappedInt.fetchAll(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: nil)), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0, throw()"
-                    let statement = try db.makeSelectStatement(sql)
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(WrappedInt.fetchAll(db, sql, adapter: adapter), sql: sql)
-                    try test(WrappedInt.fetchAll(statement, adapter: adapter), sql: sql)
-                    try test(WrappedInt.fetchAll(db, Request(statement: { statement }, adapter: adapter)), sql: sql)
+                    try test(WrappedInt.fetchAll(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(WrappedInt.fetchAll(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: adapter)), sql: sql)
                 }
             }
         }
@@ -435,18 +433,16 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 }
                 do {
                     let sql = "SELECT throw()"
-                    let statement = try db.makeSelectStatement(sql)
                     try test(WrappedInt.fetchOne(db, sql), sql: sql)
-                    try test(WrappedInt.fetchOne(statement), sql: sql)
-                    try test(WrappedInt.fetchOne(db, Request(statement: { statement }, adapter: nil)), sql: sql)
+                    try test(WrappedInt.fetchOne(db.makeSelectStatement(sql)), sql: sql)
+                    try test(WrappedInt.fetchOne(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: nil)), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0, throw()"
-                    let statement = try db.makeSelectStatement(sql)
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(WrappedInt.fetchOne(db, sql, adapter: adapter), sql: sql)
-                    try test(WrappedInt.fetchOne(statement, adapter: adapter), sql: sql)
-                    try test(WrappedInt.fetchOne(db, Request(statement: { statement }, adapter: adapter)), sql: sql)
+                    try test(WrappedInt.fetchOne(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(WrappedInt.fetchOne(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: adapter)), sql: sql)
                 }
             }
         }
@@ -709,18 +705,16 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 }
                 do {
                     let sql = "SELECT throw()"
-                    let statement = try db.makeSelectStatement(sql)
                     try test(Optional<WrappedInt>.fetchAll(db, sql), sql: sql)
-                    try test(Optional<WrappedInt>.fetchAll(statement), sql: sql)
-                    try test(Optional<WrappedInt>.fetchAll(db, Request(statement: { statement }, adapter: nil)), sql: sql)
+                    try test(Optional<WrappedInt>.fetchAll(db.makeSelectStatement(sql)), sql: sql)
+                    try test(Optional<WrappedInt>.fetchAll(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: nil)), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0, throw()"
-                    let statement = try db.makeSelectStatement(sql)
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(Optional<WrappedInt>.fetchAll(db, sql, adapter: adapter), sql: sql)
-                    try test(Optional<WrappedInt>.fetchAll(statement, adapter: adapter), sql: sql)
-                    try test(Optional<WrappedInt>.fetchAll(db, Request(statement: { statement }, adapter: adapter)), sql: sql)
+                    try test(Optional<WrappedInt>.fetchAll(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(Optional<WrappedInt>.fetchAll(db, Request(statement: { try db.makeSelectStatement(sql) }, adapter: adapter)), sql: sql)
                 }
             }
         }

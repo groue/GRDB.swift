@@ -48,6 +48,7 @@ extension NSNumber : DatabaseValueConvertible {
         case "B":
             return boolValue.databaseValue
         case let objCType:
+            // Assume a GRDB bug: there is no point throwing any error.
             fatalError("DatabaseValueConvertible: Unsupported NSNumber type: \(objCType)")
         }
     }

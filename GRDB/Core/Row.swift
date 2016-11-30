@@ -288,6 +288,7 @@ extension Row {
     /// SQLite value can not be converted to `Value`.
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value {
         guard let index = impl.index(ofColumn: columnName) else {
+            // Programmer error
             fatalError("no such column: \(columnName)")
         }
         return impl.databaseValue(atUncheckedIndex: index).value()
@@ -308,6 +309,7 @@ extension Row {
     /// (see https://www.sqlite.org/datatype3.html).
     public func value<Value: DatabaseValueConvertible & StatementColumnConvertible>(named columnName: String) -> Value {
         guard let index = impl.index(ofColumn: columnName) else {
+            // Programmer error
             fatalError("no such column: \(columnName)")
         }
         guard let sqliteStatement = sqliteStatement else {
@@ -460,6 +462,7 @@ extension Row {
     
     fileprivate static func statementColumnConvertible<Value: StatementColumnConvertible>(atUncheckedIndex index: Int, in sqliteStatement: SQLiteStatement) -> Value {
         guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
+            // Programmer error
             fatalError("could not convert database value NULL to \(Value.self)")
         }
         return Value.init(sqliteStatement: sqliteStatement, index: Int32(index))
@@ -1013,14 +1016,17 @@ private struct EmptyRowImpl : RowImpl {
     var count: Int { return 0 }
     
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
+        // Programmer error
         fatalError("row index out of range")
     }
     
     func dataNoCopy(atUncheckedIndex index:Int) -> Data? {
+        // Programmer error
         fatalError("row index out of range")
     }
     
     func columnName(atUncheckedIndex index: Int) -> String {
+        // Programmer error
         fatalError("row index out of range")
     }
     

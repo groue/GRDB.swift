@@ -300,6 +300,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             
             let fetchAndNotifyChanges = makeFetchAndNotifyChangesFunction(controller: self, fetchAlongside: fetchAlongside, itemsAreIdentical: itemsAreIdentical!, recordsWillChange: recordsWillChange, tableViewEvent: tableViewEvent, recordsDidChange: recordsDidChange)
 
+            // TODO: handle error and don't crash
             let (statement, _) = try! request.prepare(db)
             let observer = FetchedRecordsObserver(selectionInfo: statement.selectionInfo, fetchAndNotifyChanges: fetchAndNotifyChanges)
             self.observer = observer
@@ -341,6 +342,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         databaseWriter.write { db in
             let fetchAndNotifyChanges = makeFetchAndNotifyChangesFunction(controller: self, fetchAlongside: fetchAlongside, recordsWillChange: recordsWillChange, recordsDidChange: recordsDidChange)
 
+            // TODO: handle error and don't crash
             let (statement, _) = try! request.prepare(db)
             let observer = FetchedRecordsObserver(selectionInfo: statement.selectionInfo, fetchAndNotifyChanges: fetchAndNotifyChanges)
             self.observer = observer
@@ -403,6 +405,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             // and notify eventual changes
             let initialItems = fetchedItems
             databaseWriter.write { db in
+                // TODO: handle error and don't crash
                 let (statement, _) = try! request.prepare(db)
                 let observer = FetchedRecordsObserver(selectionInfo: statement.selectionInfo, fetchAndNotifyChanges: fetchAndNotifyChanges)
                 self.observer = observer
@@ -475,6 +478,7 @@ extension FetchedRecordsController where Record: TableMapping {
     public convenience init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue = .main, compareRecordsByPrimaryKey: Bool) {
         if compareRecordsByPrimaryKey {
             self.init(databaseWriter, request: request, queue: queue, itemsAreIdenticalFactory: { db in
+                // TODO: handle error and don't crash
                 let rowComparator = try! Record.primaryKeyRowComparator(db)
                 return { rowComparator($0.row, $1.row) }
             })
@@ -606,8 +610,9 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             var fetchedItems: [Item<Record>]! = nil
             var fetchedAlongside: T! = nil
             
+            // TODO: handle error and don't crash
             try! databaseWriter.readFromWrite { db in
-                // TODO: handle errors
+                // TODO: handle error and don't crash
                 fetchedItems = try! Item<Record>.fetchAll(db, request)
                 fetchedAlongside = try! fetchAlongside(db)
                 
@@ -853,8 +858,9 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             var fetchedItems: [Item<Record>]! = nil
             var fetchedAlongside: T! = nil
             
+            // TODO: handle error and don't crash
             try! databaseWriter.readFromWrite { db in
-                // TODO: handle errors
+                // TODO: handle error and don't crash
                 fetchedItems = try! Item<Record>.fetchAll(db, request)
                 fetchedAlongside = try! fetchAlongside(db)
                 
@@ -932,6 +938,7 @@ fileprivate func identicalItemArrays<Record>(_ lhs: [Item<Record>], _ rhs: [Item
         ///     records, a fatal error is raised.
         public func record(at indexPath: IndexPath) -> Record {
             guard let fetchedItems = fetchedItems else {
+                // Programmer error
                 fatalError("performFetch() has not been called.")
             }
             return fetchedItems[indexPath.row].record
@@ -1073,6 +1080,7 @@ fileprivate func identicalItemArrays<Record>(_ lhs: [Item<Record>], _ rhs: [Item
         /// The number of records (rows) in the section.
         public var numberOfRecords: Int {
             guard let items = controller.fetchedItems else {
+                // Programmer error
                 fatalError("the performFetch() method must be called before accessing section contents")
             }
             return items.count
@@ -1081,6 +1089,7 @@ fileprivate func identicalItemArrays<Record>(_ lhs: [Item<Record>], _ rhs: [Item
         /// The array of records in the section.
         public var records: [Record] {
             guard let items = controller.fetchedItems else {
+                // Programmer error
                 fatalError("the performFetch() method must be called before accessing section contents")
             }
             return items.map { $0.record }
