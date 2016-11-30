@@ -51,11 +51,11 @@ public final class Row {
         self.init(initDictionary)
     }
     
-    /// Returns a copy of the row.
+    /// Returns an immutable copy of the row.
     ///
-    /// Fetched rows are reused during the iteration of a query, for performance
-    /// reasons: make sure to make a copy of it whenever you want to keep a
-    /// specific one: `row.copy()`.
+    /// For performance reasons, rows fetched from a cursor are reused during
+    /// the iteration of a query: make sure to make a copy of it whenever you
+    /// want to keep a specific one: `row.copy()`.
     public func copy() -> Row {
         return impl.copy(self)
     }
@@ -535,7 +535,7 @@ extension Row {
     /// - returns: A cursor over fetched rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Row> {
-        // Metal rows can be reused. And reusing them yields better performance.
+        // Reuse a single mutable row for performance
         let row = try Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
         return statement.fetchCursor(arguments: arguments) { row }
     }
@@ -552,6 +552,7 @@ extension Row {
     /// - returns: An array of rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Row] {
+        // The cursor reuses a single mutable row. Return immutable copies.
         return try Array(fetchCursor(statement, arguments: arguments, adapter: adapter).map { $0.copy() })
     }
     
@@ -567,6 +568,7 @@ extension Row {
     /// - returns: An optional row.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Row? {
+        // The cursor reuses a single mutable row. Return an immutable copy.
         return try fetchCursor(statement, arguments: arguments, adapter: adapter).next().flatMap { $0.copy() }
     }
 }

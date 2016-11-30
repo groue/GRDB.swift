@@ -4,7 +4,7 @@
 ///     let person = Person(row)
 ///
 /// The protocol comes with built-in methods that allow to fetch cursors,
-/// arrays, or single values:
+/// arrays, or single records:
 ///
 ///     try Person.fetchCursor(db, "SELECT ...", arguments:...) // DatabaseCursor<Person>
 ///     try Person.fetchAll(db, "SELECT ...", arguments:...)    // [Person]
@@ -18,7 +18,7 @@
 /// RowConvertible is adopted by Record.
 public protocol RowConvertible {
     
-    /// Initializes a value from `row`.
+    /// Initializes a record from `row`.
     ///
     /// For performance reasons, the row argument may be reused during the
     /// iteration of a fetch query. If you want to keep the row for later use,
@@ -48,7 +48,7 @@ extension RowConvertible {
     ///
     ///     let statement = try db.makeSelectStatement("SELECT * FROM persons")
     ///     let persons = try Person.fetchCursor(statement) // DatabaseCursor<Person>
-    ///     while let person = try persons.next() {  // Person
+    ///     while let person = try persons.next() { // Person
     ///         ...
     ///     }
     ///
@@ -64,11 +64,14 @@ extension RowConvertible {
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
+        // Reuse a single mutable row for performance.
+        // It is the record's responsibility to copy the row if needed.
+        // See Record.awakeFromFetch(), for example.
         let row = try Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
         return statement.fetchCursor(arguments: arguments) {
-            var value = self.init(row: row)
-            value.awakeFromFetch(row: row)
-            return value
+            var record = self.init(row: row)
+            record.awakeFromFetch(row: row)
+            return record
         }
     }
     

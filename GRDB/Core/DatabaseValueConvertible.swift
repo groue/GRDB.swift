@@ -114,7 +114,7 @@ extension DatabaseValueConvertible {
     /// - returns: A cursor over fetched values.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
-        // Metal rows can be reused. And reusing them yields better performance.
+        // Reuse a single mutable row for performance
         let row = try Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
         return statement.fetchCursor(arguments: arguments) { () -> Self in
             let dbv: DatabaseValue = row.value(atIndex: 0)
@@ -156,7 +156,7 @@ extension DatabaseValueConvertible {
     /// - returns: An optional value.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self? {
-        // Metal rows can be reused. And reusing them yields better performance.
+        // Reuse a single mutable row for performance
         let row = try Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
         let cursor = statement.fetchCursor(arguments: arguments) { () -> Self? in
             let dbv: DatabaseValue = row.value(atIndex: 0)
@@ -329,6 +329,7 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     /// - returns: A cursor over fetched optional values.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Wrapped?> {
+        // Reuse a single mutable row for performance
         let row = try Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
         return statement.fetchCursor(arguments: arguments) { () -> Wrapped? in
             let dbv: DatabaseValue = row.value(atIndex: 0)
