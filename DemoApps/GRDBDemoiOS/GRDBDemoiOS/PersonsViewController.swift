@@ -13,7 +13,7 @@ class PersonsViewController: UITableViewController {
         ]
         
         let request = personsSortedByScore
-        personsController = FetchedRecordsController(dbQueue, request: request, compareRecordsByPrimaryKey: true)
+        personsController = try! FetchedRecordsController(dbQueue, request: request, compareRecordsByPrimaryKey: true)
         personsController.trackChanges(
             recordsWillChange: { [unowned self] _ in
                 self.tableView.beginUpdates()
@@ -164,12 +164,12 @@ extension PersonsViewController {
     
     @IBAction func sortByName() {
         setEditing(false, animated: true)
-        personsController.setRequest(personsSortedByName)
+        try! personsController.setRequest(personsSortedByName)
     }
     
     @IBAction func sortByScore() {
         setEditing(false, animated: true)
-        personsController.setRequest(personsSortedByScore)
+        try! personsController.setRequest(personsSortedByScore)
     }
     
     @IBAction func randomizeScores() {

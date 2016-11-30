@@ -1,13 +1,3 @@
-//
-//  GRDB-Swift2-ConversionHelper.swift
-//  GRDB
-//
-//  Created by Swiftlyfalling.
-//
-//  Provides automatic renaming Fix-Its for many of the Swift 2.x -> Swift 3 GRDB API changes.
-//  Consult the CHANGELOG.md and documentation for details on all of the changes.
-//
-
 import Foundation
 
 @available(*, unavailable, renamed:"Database.ForeignKeyAction")
