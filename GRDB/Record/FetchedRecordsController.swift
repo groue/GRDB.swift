@@ -217,27 +217,11 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         tableViewEvent: ((FetchedRecordsController<Record>, Record, TableViewEvent) -> ())? = nil,
         recordsDidChange: ((FetchedRecordsController<Record>) -> ())? = nil)
     {
-        let recordsWillChangeWithVoidAlongside: ((FetchedRecordsController<Record>, Void) -> ())?
-        if let recordsWillChange = recordsWillChange {
-            recordsWillChangeWithVoidAlongside = { (controller, _) in
-                recordsWillChange(controller)
-            }
-        } else {
-            recordsWillChangeWithVoidAlongside = nil
-        }
-        
-        let recordsDidChangeWithVoidAlongside: ((FetchedRecordsController<Record>, Void) -> ())?
-        if let recordsDidChange = recordsDidChange {
-            recordsDidChangeWithVoidAlongside = { (controller, _) in recordsDidChange(controller) }
-        } else {
-            recordsDidChangeWithVoidAlongside = nil
-        }
-        
         trackChanges(
             fetchAlongside: { _ in },
-            recordsWillChange: recordsWillChangeWithVoidAlongside,
+            recordsWillChange: recordsWillChange.flatMap { callback in { (controller, _) in callback(controller) } },
             tableViewEvent: tableViewEvent,
-            recordsDidChange: recordsDidChangeWithVoidAlongside)
+            recordsDidChange: recordsDidChange.flatMap { callback in { (controller, _) in callback(controller) } })
     }
     #else
     /// Registers changes notification callbacks.
@@ -249,24 +233,10 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         recordsWillChange: ((FetchedRecordsController<Record>) -> ())? = nil,
         recordsDidChange: ((FetchedRecordsController<Record>) -> ())? = nil)
     {
-        let recordsWillChangeWithVoidAlongside: ((FetchedRecordsController<Record>, Void) -> ())?
-        if let recordsWillChange = recordsWillChange {
-            recordsWillChangeWithVoidAlongside = { (controller, _) in recordsWillChange(controller) }
-        } else {
-            recordsWillChangeWithVoidAlongside = nil
-        }
-        
-        let recordsDidChangeWithVoidAlongside: ((FetchedRecordsController<Record>, Void) -> ())?
-        if let recordsDidChange = recordsDidChange {
-            recordsDidChangeWithVoidAlongside = { (controller, _) in recordsDidChange(controller) }
-        } else {
-            recordsDidChangeWithVoidAlongside = nil
-        }
-        
         trackChanges(
             fetchAlongside: { _ in },
-            recordsWillChange: recordsWillChangeWithVoidAlongside,
-            recordsDidChange: recordsDidChangeWithVoidAlongside)
+            recordsWillChange: recordsWillChange.flatMap { callback in { (controller, _) in callback(controller) } },
+            recordsDidChange: recordsDidChange.flatMap { callback in { (controller, _) in callback(controller) } })
     }
     #endif
     
