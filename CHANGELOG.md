@@ -91,8 +91,10 @@ Many APIs were changed:
 ```diff
  final class FetchedRecordsController<Record: RowConvertible> {
 -    init(...)
+-    func performFetch(...)
 -    func setRequest(...)
 +    init(...) throws
++    func performFetch(...) throws
 +    func setRequest(...) throws
  }
  
