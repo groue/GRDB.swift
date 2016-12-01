@@ -604,7 +604,7 @@ while let row = try rows.next() {
 You can also use the `forEach` method:
 
 ```swift
-try Row.fetchCursor(db, "SELECT * FROM links").forEach { row in
+try rows.forEach { row in
     let url: URL = row.value(named: "url")
     print(url)
 }
