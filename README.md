@@ -601,7 +601,7 @@ while let row = try rows.next() {
 }
 ```
 
-You can also use the `forEach` function:
+You can also use the `forEach` method:
 
 ```swift
 try Row.fetchCursor(db, "SELECT * FROM links").forEach { row in
@@ -615,7 +615,7 @@ Don't modify the database during a cursor iteration:
 ```swift
 // Undefined behavior
 while let row = try rows.next() {
-    try db.execute("DELETE FROM persons ...")
+    try db.execute("DELETE FROM link ...")
 }
 ```
 
