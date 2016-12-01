@@ -61,60 +61,27 @@ Many APIs were changed:
 
 ```diff
  final class Row {
--    static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Row>
--    static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Row]
--    static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Row?
--    static func fetch(_ db: Database, _ request: FetchRequest) -> DatabaseSequence<Row>
--    static func fetchAll(_ db: Database, _ request: FetchRequest) -> [Row]
--    static func fetchOne(_ db: Database, _ request: FetchRequest) -> Row?
--    static func fetch(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Row>
--    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Row]
--    static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Row?
-+    static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Row> {
-+    static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Row] {
-+    static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Row?
-+    static func fetchCursor(_ db: Database, _ request: FetchRequest) throws -> DatabaseCursor<Row> {
-+    static func fetchAll(_ db: Database, _ request: FetchRequest) throws -> [Row] {
-+    static func fetchOne(_ db: Database, _ request: FetchRequest) throws -> Row?
-+    static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Row> {
-+    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Row] {
-+    static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Row?
+-    static func fetch(...) -> DatabaseSequence<Row>
+-    static func fetchAll(...) -> [Row]
+-    static func fetchOne(...) -> Row?
++    static func fetchAll(...) throws -> [Row] {
++    static func fetchOne(...) throws -> Row?
  }
  
  extension DatabaseValueConvertible {
--    static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Self>
--    static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Self]
--    static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Self?
--    static func fetch(_ db: Database, _ request: FetchRequest) -> DatabaseSequence<Self>
--    static func fetchAll(_ db: Database, _ request: FetchRequest) -> [Self]
--    static func fetchOne(_ db: Database, _ request: FetchRequest) -> Self?
--    static func fetch(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Self>
--    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Self]
--    static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Self?
-+    static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseCursor<Self>
-+    static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Self]
-+    static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self?
-+    static func fetchCursor(_ db: Database, _ request: FetchRequest) throws -> DatabaseCursor<Self>
-+    static func fetchAll(_ db: Database, _ request: FetchRequest) throws -> [Self]
-+    static func fetchOne(_ db: Database, _ request: FetchRequest) throws -> Self?
-+    static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self>
-+    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Self]
-+    static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self?
+-    static func fetch(...) -> DatabaseSequence<Self>
+-    static func fetchAll(...) -> [Self]
+-    static func fetchOne(...) -> Self?
++    static func fetchCursor(...) -> DatabaseCursor<Self>
++    static func fetchAll(...) throws -> [Self]
++    static func fetchOne(...) throws -> Self?
  }
  
  extension Optional where Wrapped: DatabaseValueConvertible {
--    static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Wrapped?>
--    static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Wrapped?]
--    static func fetch(_ db: Database, _ request: FetchRequest) -> DatabaseSequence<Wrapped?>
--    static func fetchAll(_ db: Database, _ request: FetchRequest) -> [Wrapped?]
--    static func fetch(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Wrapped?>
--    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Wrapped?]
-+    static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Wrapped?>
-+    static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Wrapped?]
-+    static func fetchCursor(_ db: Database, _ request: FetchRequest) throws -> DatabaseCursor<Wrapped?>
-+    static func fetchAll(_ db: Database, _ request: FetchRequest) throws -> [Wrapped?]
-+    static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Wrapped?>
-+    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Wrapped?]
+-    static func fetch(...) -> DatabaseSequence<Wrapped?>
+-    static func fetchAll(...) -> [Wrapped?]
++    static func fetchCursor(...) throws -> DatabaseCursor<Wrapped?>
++    static func fetchAll(...) throws -> [Wrapped?]
  }
 ```
 
@@ -122,35 +89,13 @@ Many APIs were changed:
 
 ```diff
  final class FetchedRecordsController<Record: RowConvertible> {
- #if os(iOS)
--    init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: DispatchQueue = .main, isSameRecord: ((Record, Record) -> Bool)? = nil)
--    init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue = .main, isSameRecord: ((Record, Record) -> Bool)? = nil)
--    public func trackChanges<T>(fetchAlongside: @escaping (Database) -> T, recordsWillChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())? = nil, tableViewEvent: ((FetchedRecordsController<Record>, Record, TableViewEvent) -> ())? = nil, recordsDidChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())? = nil)
-+    init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: DispatchQueue = .main, isSameRecord: ((Record, Record) -> Bool)? = nil) throws
-+    init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue = .main, isSameRecord: ((Record, Record) -> Bool)? = nil) throws
-+    public func trackChanges<T>(fetchAlongside: @escaping (Database) throws -> T, recordsWillChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())? = nil, tableViewEvent: ((FetchedRecordsController<Record>, Record, TableViewEvent) -> ())? = nil, recordsDidChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())? = nil)
- #else
--    init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: DispatchQueue = .main)
--    init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue = .main)
--    public func trackChanges<T>(fetchAlongside: @escaping (Database) -> T, recordsWillChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())? = nil, recordsDidChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())? = nil)
-+    init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: DispatchQueue = .main) throws
-+    init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue = .main) throws
-+    public func trackChanges<T>(fetchAlongside: @escaping (Database) throws -> T, recordsWillChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())? = nil, recordsDidChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())? = nil)
- #endif
--    func setRequest(_ request: FetchRequest)
--    func setRequest(sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) 
-+    func setRequest(_ request: FetchRequest) throws
-+    func setRequest(sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws
+-    init(...)
+-    func trackChanges(...)
+-    func setRequest(...)
++    init(...) throws
++    func trackChanges(...) throws
++    func setRequest(...) throws
  }
- 
- #if os(iOS)
- extension FetchedRecordsController where Record: TableMapping {
--    init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: DispatchQueue = .main, compareRecordsByPrimaryKey: Bool)
--    init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue = .main, compareRecordsByPrimaryKey: Bool)
-+    init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: DispatchQueue = .main, compareRecordsByPrimaryKey: Bool) throws
-+    init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue = .main, compareRecordsByPrimaryKey: Bool) throws
- }
- #endif
  
  protocol MutablePersistable : TableMapping {
 -    func exists(_ db: Database) -> Bool
@@ -163,56 +108,23 @@ Many APIs were changed:
  }
  
  struct QueryInterfaceRequest<T> {
--    func fetch(_ db: Database) -> DatabaseSequence<T>
--    func fetchAll(_ db: Database) -> [T]
--    func fetchOne(_ db: Database) -> T?
--    func fetchCount(_ db: Database) -> Int
-+    func fetchCursor(_ db: Database) throws -> DatabaseCursor<T>
-+    func fetchAll(_ db: Database) throws -> [T]
-+    func fetchOne(_ db: Database) throws -> T?
-+    func fetchCount(_ db: Database) throws -> Int
+-    func fetch(...) -> DatabaseSequence<T>
+-    func fetchAll(...) -> [T]
+-    func fetchOne(...) -> T?
+-    func fetchCount(...) -> Int
++    func fetchCursor(...) throws -> DatabaseCursor<T>
++    func fetchAll(...) throws -> [T]
++    func fetchOne(...) throws -> T?
++    func fetchCount(...) throws -> Int
  }
  
  extension RowConvertible {
--    static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Self>
--    static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Self]
--    static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Self?
--    static func fetch(_ db: Database, _ request: FetchRequest) -> DatabaseSequence<Self>
--    static func fetchAll(_ db: Database, _ request: FetchRequest) -> [Self]
--    static func fetchOne(_ db: Database, _ request: FetchRequest) -> Self?
--    static func fetch(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Self>
--    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Self]
--    static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Self?
-+    static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
-+    static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Self] {
-+    static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self?
-+    static func fetchCursor(_ db: Database, _ request: FetchRequest) throws -> DatabaseCursor<Self> {
-+    static func fetchAll(_ db: Database, _ request: FetchRequest) throws -> [Self] {
-+    static func fetchOne(_ db: Database, _ request: FetchRequest) throws -> Self?
-+    static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
-+    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Self] {
-+    static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self?
- }
- 
- extension RowConvertible where Self: TableMapping {
--    static func fetch(_ db: Database) -> DatabaseSequence<Self>
--    static func fetchAll(_ db: Database) -> [Self]
--    static func fetchOne(_ db: Database) -> Self?
--    static func fetch<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) -> DatabaseSequence<Self> where Sequence.Iterator.Element: DatabaseValueConvertible
--    static func fetchAll<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) -> [Self] where Sequence.Iterator.Element: DatabaseValueConvertible
--    static func fetchOne<PrimaryKeyType: DatabaseValueConvertible>(_ db: Database, key: PrimaryKeyType?) -> Self?
--    static func fetch(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) -> DatabaseSequence<Self> 
--    static func fetchAll(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) -> [Self]
--    static func fetchOne(_ db: Database, key: [String: DatabaseValueConvertible?]) -> Self?
-+    static func fetchCursor(_ db: Database) throws -> DatabaseCursor<Self>
-+    static func fetchAll(_ db: Database) throws -> [Self]
-+    static func fetchOne(_ db: Database) throws -> Self?
-+    static func fetchCursor<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> DatabaseCursor<Self> where Sequence.Iterator.Element: DatabaseValueConvertible
-+    static func fetchAll<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> [Self] where Sequence.Iterator.Element: DatabaseValueConvertible
-+    static func fetchOne<PrimaryKeyType: DatabaseValueConvertible>(_ db: Database, key: PrimaryKeyType?) throws -> Self?
-+    static func fetchCursor(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> DatabaseCursor<Self> 
-+    static func fetchAll(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> [Self]
-+    static func fetchOne(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Self?
+-    static func fetch(...) -> DatabaseSequence<Self>
+-    static func fetchAll(...) -> [Self]
+-    static func fetchOne(...) -> Self?
++    static func fetchCursor(...) throws -> DatabaseCursor<Self> {
++    static func fetchAll(...) throws -> [Self] {
++    static func fetchOne(...) throws -> Self?
  }
  
  extension TableMapping {
