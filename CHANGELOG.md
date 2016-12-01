@@ -1,7 +1,13 @@
 Release Notes
 =============
 
-## Next Version
+## 0.92.0
+
+Released December 1, 2016
+
+**Fixed**
+
+- Fixed a bug in `DatabasePool.readFromCurrentState` where its block argument could see database changes that it should not have seen.
 
 **Breaking Change**
 
