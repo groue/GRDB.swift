@@ -64,6 +64,7 @@ Many APIs were changed:
 -    static func fetch(...) -> DatabaseSequence<Row>
 -    static func fetchAll(...) -> [Row]
 -    static func fetchOne(...) -> Row?
++    static func fetchCursor(...) -> DatabaseCursor<Row>
 +    static func fetchAll(...) throws -> [Row] {
 +    static func fetchOne(...) throws -> Row?
  }
