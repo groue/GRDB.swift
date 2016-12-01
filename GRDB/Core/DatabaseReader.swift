@@ -64,7 +64,7 @@ public protocol DatabaseReader : class {
     /// Individual statements executed in the *block* argument are executed
     /// in isolation from eventual concurrent updates:
     ///
-    ///     try reader.nonIsolatedRead { db in
+    ///     try reader.unsafeRead { db in
     ///         // no external update can mess with this iteration:
     ///         let rows = try Row.fetchCursor(db, ...)
     ///         while let row = try rows.next() { ... }
@@ -73,7 +73,7 @@ public protocol DatabaseReader : class {
     /// However, there is no guarantee that consecutive statements have the
     /// same results:
     ///
-    ///     try reader.nonIsolatedRead { db in
+    ///     try reader.unsafeRead { db in
     ///         // Those two ints may be different:
     ///         let sql = "SELECT ..."
     ///         let int1 = try Int.fetchOne(db, sql)
@@ -83,7 +83,7 @@ public protocol DatabaseReader : class {
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block, or any DatabaseError that would
     ///   happen while establishing the read access to the database.
-    func nonIsolatedRead<T>(_ block: (Database) throws -> T) throws -> T
+    func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T
     
     
     // MARK: - Functions
@@ -140,7 +140,7 @@ extension DatabaseReader {
     
     func backup(to writer: DatabaseWriter, afterBackupInit: (() -> ())?, afterBackupStep: (() -> ())?) throws {
         try read { dbFrom in
-            try writer.write { dbDest in
+            try writer.unsafeWrite { dbDest in  // Maybe unsafe? We don't know (didn't test) if readers can see a partial backup.
                 guard let backup = sqlite3_backup_init(dbDest.sqliteConnection, "main", dbFrom.sqliteConnection, "main") else {
                     throw DatabaseError(code: dbDest.lastErrorCode, message: dbDest.lastErrorMessage)
                 }

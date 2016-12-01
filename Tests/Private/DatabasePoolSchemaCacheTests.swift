@@ -18,7 +18,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
                 try db.execute("CREATE INDEX foobar ON items(foo, bar)")
             }
             
-            dbPool.write { db in
+            try dbPool.write { db in
                 // Assert that the writer cache is empty
                 XCTAssertTrue(db.schemaCache.primaryKey("items") == nil)
                 XCTAssertTrue(db.schemaCache.columns(in: "items") == nil)
@@ -64,7 +64,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
                 XCTAssertTrue(db.schemaCache.indexes(on: "items") != nil)
             }
             
-            dbPool.write { db in
+            try dbPool.write { db in
                 // Assert that writer cache is warmed
                 XCTAssertTrue(db.schemaCache.primaryKey("items") != nil)
                 XCTAssertTrue(db.schemaCache.columns(in: "items") != nil)

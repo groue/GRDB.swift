@@ -119,6 +119,7 @@ public final class DatabasePool {
         return store.path
     }
     
+    
     // MARK: - WAL Management
     
     /// Runs a WAL checkpoint
@@ -327,13 +328,13 @@ extension DatabasePool : DatabaseReader {
     /// Synchronously executes a read-only block in a protected dispatch queue,
     /// and returns its result.
     ///
-    ///     let persons = try dbPool.nonIsolatedRead { db in
+    ///     let persons = try dbPool.unsafeRead { db in
     ///         try Person.fetchAll(...)
     ///     }
     ///
     /// The block is not isolated from eventual concurrent database updates:
     ///
-    ///     try try dbPool.nonIsolatedRead { db in
+    ///     try dbPool.unsafeRead { db in
     ///         // Those two values may be different because some other thread
     ///         // may have inserted or deleted a wine between the two requests:
     ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
@@ -345,7 +346,7 @@ extension DatabasePool : DatabaseReader {
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block, or any DatabaseError that would
     ///   happen while establishing the read access to the database.
-    public func nonIsolatedRead<T>(_ block: (Database) throws -> T) throws -> T {
+    public func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T {
         return try readerPool.get { reader in
             try reader.sync { db in
                 try block(db)
@@ -419,15 +420,19 @@ extension DatabasePool : DatabaseWriter {
     /// Synchronously executes an update block in a protected dispatch queue,
     /// and returns its result.
     ///
-    ///     try dbPool.write { db in
+    ///     try dbPool.unsafeWrite { db in
     ///         try db.execute(...)
     ///     }
     ///
     /// This method is *not* reentrant.
     ///
+    /// - warning: As soon as you execute several update statements, readers may
+    ///   see the database in an inconsistent state. To preserve readers
+    ///   integrity, do not perform more than one database modification with
+    ///   this method, or use write() or writeInTransaction().
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    public func write<T>(_ block: (Database) throws -> T) rethrows -> T {
+    public func unsafeWrite<T>(_ block: (Database) throws -> T) rethrows -> T {
         return try writer.sync(block)
     }
     

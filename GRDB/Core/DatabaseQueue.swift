@@ -231,7 +231,7 @@ extension DatabaseQueue : DatabaseReader {
     /// Alias for inDatabase
     ///
     /// This method is part of the DatabaseReader protocol adoption.
-    public func nonIsolatedRead<T>(_ block: (Database) throws -> T) rethrows -> T {
+    public func unsafeRead<T>(_ block: (Database) throws -> T) rethrows -> T {
         return try serializedDatabase.sync(block)
     }
     
@@ -301,8 +301,15 @@ extension DatabaseQueue : DatabaseWriter {
     /// Alias for inDatabase
     ///
     /// This method is part of the DatabaseWriter protocol adoption.
-    public func write<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try serializedDatabase.sync(block)
+    public func unsafeWrite<T>(_ block: (Database) throws -> T) rethrows -> T {
+        return try inDatabase(block)
+    }
+    
+    /// Alias for inTransaction
+    ///
+    /// This method is part of the DatabaseWriter protocol adoption.
+    public func writeInTransaction(_ kind: Database.TransactionKind? = nil, _ block: (Database) throws -> Database.TransactionCompletion) throws {
+        try inTransaction(kind, block)
     }
 
     /// Synchronously executes *block*.

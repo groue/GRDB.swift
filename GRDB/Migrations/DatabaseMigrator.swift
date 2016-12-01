@@ -93,7 +93,7 @@ public struct DatabaseMigrator {
     ///   migrations should apply.
     /// - throws: An eventual error thrown by the registered migration blocks.
     public func migrate(_ db: DatabaseWriter) throws {
-        try db.write { db in
+        try db.unsafeWrite { db in  // Actually safe since all migrations run in transaction
             try setupMigrations(db)
             try runMigrations(db)
         }

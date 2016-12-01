@@ -6,6 +6,7 @@ Release Notes
 **Breaking Change**
 
 - `DatabaseWriter.readFromWrite` has been renamed `DatabaseWriter.readFromCurrentState`
+- `DatabaseReader.nonIsolatedRead` has been renamed `DatabaseReader.unsafeRead`
 
 
 ## 0.91.0
