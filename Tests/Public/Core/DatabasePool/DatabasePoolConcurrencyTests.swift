@@ -11,11 +11,11 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     
     func testDatabasePoolFundamental1() {
         // Constraint: the sum of values, the balance, must remain zero.
-        // DatabasePool aims at providing this guarantee, that is to say:
-        // no reader should ever see a non-zero balance.
         //
-        // This test shows that writes that are not wrapped in a transaction
-        // can not provide our guarantee.
+        // This test shows (if needed) that writes that are not wrapped in a
+        // transaction can not provide our guarantee, and that deferred
+        // transaction provide the immutable view of the database needed by
+        // dbPool.read().
         //
         // Reader                                   Writer
         // BEGIN DEFERRED TRANSACTION
@@ -76,14 +76,12 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
 
     func testDatabasePoolFundamental2() {
         // Constraint: the sum of values, the balance, must remain zero.
-        // DatabasePool aims at providing this guarantee, that is to say:
-        // no reader should ever see a non-zero balance.
         //
-        // This test shows that writes that happen in a transaction are not
-        // visible from the reader.
+        // This test shows that deferred transactions play well with concurrent
+        // immediate transactions.
         //
         // Reader                                   Writer
-        //                                          BEGIN DEFERRED TRANSACTION
+        //                                          BEGIN IMMEDIATE TRANSACTION
         let s1 = DispatchSemaphore(value: 0)
         // BEGIN DEFERRED TRANSACTION
         let s2 = DispatchSemaphore(value: 0)
@@ -146,16 +144,14 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     
     func testDatabasePoolFundamental3() {
         // Constraint: the sum of values, the balance, must remain zero.
-        // DatabasePool aims at providing this guarantee, that is to say:
-        // no reader should ever see a non-zero balance.
         //
-        // This test shows that writes that happen in a transaction are not
-        // visible from the reader.
+        // This test shows that deferred transactions play well with concurrent
+        // immediate transactions.
         //
         // Reader                                   Writer
         // BEGIN DEFERRED TRANSACTION
         let s1 = DispatchSemaphore(value: 0)
-        //                                          BEGIN DEFERRED TRANSACTION
+        //                                          BEGIN IMMEDIATE TRANSACTION
         //                                          INSERT INTO moves VALUES (1)
         let s2 = DispatchSemaphore(value: 0)
         // SELECT SUM(value) AS balance FROM moves
@@ -428,10 +424,10 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 try! dbPool.read { db in
                     s1.signal()
                     _ = s2.wait(timeout: .distantFuture)
-                    XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
+                    XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)  // Not a bug. The writer did not start a transaction.
                     s3.signal()
                     _ = s4.wait(timeout: .distantFuture)
-                    XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
+                    XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
                 }
             }
             let block2 = { () in
@@ -545,13 +541,13 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             let block2 = { () in
                 try! dbPool.read { db in
                     _ = s1.wait(timeout: .distantFuture)
-                    XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
+                    XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
                     s2.signal()
                     _ = s3.wait(timeout: .distantFuture)
-                    XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
+                    XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
                     s4.signal()
                     _ = s5.wait(timeout: .distantFuture)
-                    XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
+                    XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
                 }
             }
             let blocks = [block1, block2]

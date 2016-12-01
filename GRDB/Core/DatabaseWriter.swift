@@ -18,92 +18,13 @@ public protocol DatabaseWriter : DatabaseReader {
     // MARK: - Writing in Database
     
     /// Synchronously executes a block that takes a database connection, and
-    /// returns its result. The block may or may not be wrapped in a
-    /// transaction.
+    /// returns its result.
     ///
     /// Eventual concurrent database updates are postponed until the block
     /// has executed.
-    ///
-    /// Eventual concurrent readers are isolated and do not see partial changes:
-    ///
-    ///         writer.write { db in
-    ///             // Eventually preserve a zero balance
-    ///             try db.execute(db, "INSERT INTO credits ...", arguments: [amount])
-    ///             try db.execute(db, "INSERT INTO debits ...", arguments: [amount])
-    ///         }
-    ///
-    ///         writer.read { db in
-    ///             // Here the balance is guaranteed to be zero
-    ///         }
     ///
     /// This method is *not* reentrant.
-    func write<T>(_ block: (Database) throws -> T) throws -> T
-    
-    /// Synchronously executes a block in a protected dispatch queue, wrapped
-    /// inside a transaction.
-    ///
-    /// Eventual concurrent database updates are postponed until the block
-    /// has executed.
-    ///
-    /// If the block throws an error, the transaction is rollbacked and the
-    /// error is rethrown. If the block returns .rollback, the transaction is
-    /// also rollbacked, but no error is thrown.
-    ///
-    ///     try writer.writeInTransaction { db in
-    ///         db.execute(...)
-    ///         return .commit
-    ///     }
-    ///
-    /// Eventual concurrent readers are isolated and do not see partial changes:
-    ///
-    ///         writer.writeInTransaction { db in
-    ///             // Eventually preserve a zero balance
-    ///             try db.execute(db, "INSERT INTO credits ...", arguments: [amount])
-    ///             try db.execute(db, "INSERT INTO debits ...", arguments: [amount])
-    ///         }
-    ///
-    ///         writer.read { db in
-    ///             // Here the balance is guaranteed to be zero
-    ///         }
-    ///
-    /// This method is *not* reentrant.
-    ///
-    /// - parameters:
-    ///     - kind: The transaction type.
-    ///       See https://www.sqlite.org/lang_transaction.html for more information.
-    ///     - block: A block that executes SQL statements and return either
-    ///       .commit or .rollback.
-    /// - throws: The error thrown by the block.
-    func writeInTransaction(_ kind: Database.TransactionKind?, _ block: (Database) throws -> Database.TransactionCompletion) throws
-    
-    /// Synchronously executes a block that takes a database connection, without
-    /// opening any transaction, and returns its result.
-    ///
-    /// Eventual concurrent database updates are postponed until the block
-    /// has executed.
-    ///
-    /// - warning: This method poses a threat to concurrent reads if it modifies
-    ///   the database outside of a transaction. Readers may see the database
-    ///   in constant but inconsistent state:
-    ///
-    ///         writer.unsafeWrite { db in
-    ///             // Eventually preserve a zero balance
-    ///             try db.execute(db, "INSERT INTO credits ...", arguments: [amount])
-    ///             try db.execute(db, "INSERT INTO debits ...", arguments: [amount])
-    ///         }
-    ///
-    ///         writer.read { db in
-    ///             // Here the balance may not be zero
-    ///         }
-    ///
-    ///     To use this unsafe method safely, don't modify the database, or make
-    ///     sure you wrap in a transaction changes that must occur together:
-    ///
-    ///         // A safe usage of the unsafeWrite method
-    ///         writer.unsafeWrite { db in
-    ///             db.inTransaction { ... }
-    ///         }
-    func unsafeWrite<T>(_ block: (Database) throws -> T) rethrows -> T
+    func write<T>(_ block: (Database) throws -> T) rethrows -> T
     
     
     // MARK: - Reading from Database
@@ -122,10 +43,11 @@ public protocol DatabaseWriter : DatabaseReader {
     /// - When this method is called outside of any transaction, the current
     ///   state is the last committed state.
     ///
-    ///         TODO: THIS IS INACCURATE
-    ///
     ///         try writer.write { db in
-    ///             try db.execute("DELETE FROM persons")
+    ///             try db.inTransaction {
+    ///                 try db.execute("DELETE FROM persons")
+    ///                 return .commit
+    ///             }
     ///             try writer.readFromCurrentState { db in
     ///                 // Guaranteed to be zero
     ///                 try Int.fetchOne(db, "SELECT COUNT(*) FROM persons")!
@@ -170,6 +92,8 @@ public protocol DatabaseWriter : DatabaseReader {
     ///                 return .commit
     ///             }
     ///         }
+    ///
+    /// This method is *not* reentrant.
     func readFromCurrentState(_ block: @escaping (Database) -> Void) throws
 }
 
@@ -185,14 +109,14 @@ extension DatabaseWriter {
     ///
     /// - parameter transactionObserver: A transaction observer.
     public func add(transactionObserver: TransactionObserver) {
-        unsafeWrite { db in
+        write { db in
             db.add(transactionObserver: transactionObserver)
         }
     }
     
     /// Remove a transaction observer.
     public func remove(transactionObserver: TransactionObserver) {
-        unsafeWrite { db in
+        write { db in
             db.remove(transactionObserver: transactionObserver)
         }
     }

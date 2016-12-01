@@ -144,7 +144,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         // Fetch items on the writing dispatch queue, so that the transaction
         // observer is added on the same serialized queue as transaction
         // callbacks.
-        try databaseWriter.unsafeWrite { db in  // Actually safe since we do not modify the database
+        try databaseWriter.write { db in
             let initialItems = try Item<Record>.fetchAll(db, request)
             fetchedItems = initialItems
             if let fetchAndNotifyChanges = fetchAndNotifyChanges {
@@ -188,7 +188,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         // Replace observer so that it tracks a new set of columns,
         // and notify eventual changes
         let initialItems = fetchedItems
-        databaseWriter.unsafeWrite { db in  // Actually safe since we do not modify the database
+        databaseWriter.write { db in
             let observer = FetchedRecordsObserver(selectionInfo: self.request.selectionInfo, fetchAndNotifyChanges: fetchAndNotifyChanges)
             self.observer = observer
             observer.items = initialItems
@@ -271,7 +271,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         }
         
         let initialItems = fetchedItems
-        databaseWriter.unsafeWrite { db in  // Actually safe since we do not modify the database
+        databaseWriter.write { db in
             let fetchAndNotifyChanges = makeFetchAndNotifyChangesFunction(controller: self, fetchAlongside: fetchAlongside, itemsAreIdentical: itemsAreIdentical!, recordsWillChange: recordsWillChange, tableViewEvent: tableViewEvent, recordsDidChange: recordsDidChange)
             let observer = FetchedRecordsObserver(selectionInfo: request.selectionInfo, fetchAndNotifyChanges: fetchAndNotifyChanges)
             self.observer = observer

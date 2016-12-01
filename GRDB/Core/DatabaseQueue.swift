@@ -302,13 +302,6 @@ extension DatabaseQueue : DatabaseWriter {
     /// Alias for inDatabase
     ///
     /// This method is part of the DatabaseWriter protocol adoption.
-    public func unsafeWrite<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try inDatabase(block)
-    }
-    
-    /// Alias for inDatabase
-    ///
-    /// This method is part of the DatabaseWriter protocol adoption.
     public func write<T>(_ block: (Database) throws -> T) rethrows -> T {
         return try inDatabase(block)
     }

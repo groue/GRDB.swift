@@ -281,42 +281,7 @@ extension DatabasePool : DatabaseReader {
         return try readerPool.get { reader in
             try reader.sync { db in
                 var result: T? = nil
-                
-                // https://www.sqlite.org/isolation.html
-                //
-                // > In WAL mode, SQLite exhibits "snapshot isolation". When a
-                // > read transaction starts, that reader continues to see an
-                // > unchanging "snapshot" of the database file as it existed at
-                // > the moment in time when the read transaction started.
-                // > Any write transactions that commit while the read
-                // > transaction is active are still invisible to the read
-                // > transaction, because the reader is seeing a snapshot of
-                // > database file from a prior moment in time.
-                //
-                // This documentation is NOT accurate. SQLite actually defers
-                // isolation until the first SELECT:
-                //
-                //     Reader                       Writer
-                //     BEGIN DEFERRED TRANSACTION
-                //                                  UPDATE ... (1)
-                //     Here the change (1) is visible
-                //     SELECT ...
-                //                                  UPDATE ... (2)
-                //     Here the change (2) is not visible
-                //
-                // This is very dangerous, because our reader may see an
-                // inconsistent database state.
-                //
-                // Workaround: perform an initial read before letting GRDB user
-                // perform her own reads:
-                //
-                //     Reader                       Writer
-                //     BEGIN DEFERRED TRANSACTION
-                //     SELECT anything
-                //                                  UPDATE ...
-                //     Here the change is not visible by GRDB user
                 try db.inTransaction(.deferred) {
-                    try db.makeSelectStatement("SELECT rootpage FROM sqlite_master").fetchCursor { }.next() // doesn't work with cached statement
                     result = try block(db)
                     return .commit
                 }
@@ -328,17 +293,22 @@ extension DatabasePool : DatabaseReader {
     /// Synchronously executes a read-only block in a protected dispatch queue,
     /// and returns its result.
     ///
-    ///     let persons = try dbPool.unsafeRead { db in
-    ///         try Person.fetchAll(...)
-    ///     }
-    ///
-    /// The block is not isolated from eventual concurrent database updates:
+    /// The block argument is not isolated: eventual concurrent database updates
+    /// are visible inside the block:
     ///
     ///     try dbPool.unsafeRead { db in
     ///         // Those two values may be different because some other thread
     ///         // may have inserted or deleted a wine between the two requests:
     ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
     ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///     }
+    ///
+    /// Cursor iteration is safe, though:
+    ///
+    ///     try dbPool.unsafeRead { db in
+    ///         // No concurrent update can mess with this iteration:
+    ///         let rows = try Row.fetchCursor(db, "SELECT ...")
+    ///         while let row = try rows.next() { ... }
     ///     }
     ///
     /// This method is *not* reentrant.
@@ -417,64 +387,26 @@ extension DatabasePool : DatabaseWriter {
     
     // MARK: - Writing in Database
     
-    /// Synchronously executes a block in a protected dispatch queue, wrapped
-    /// inside a deferred transaction.
+    /// Synchronously executes an update block in a protected dispatch queue,
+    /// and returns its result.
     ///
     /// Eventual concurrent database updates are postponed until the block
     /// has executed.
     ///
-    /// Eventual concurrent readers do not see partial changes:
+    ///     try dbPool.write { db in
+    ///         try db.execute(...)
+    ///     }
     ///
-    ///         dbPool.write { db in
-    ///             // Eventually preserve a zero balance
-    ///             try db.execute(db, "INSERT INTO credits ...", arguments: [amount])
-    ///             try db.execute(db, "INSERT INTO debits ...", arguments: [amount])
-    ///         }
-    ///
-    ///         dbPool.read { db in
-    ///             // Here the balance is guaranteed to be zero
-    ///         }
+    /// To maintain database integrity, and preserve eventual concurrent reads
+    /// from seeing an inconsistent database state, prefer the
+    /// writeInTransaction method.
     ///
     /// This method is *not* reentrant.
-    public func write<T>(_ block: (Database) throws -> T) throws -> T {
-        var result: T! = nil
-        try writeInTransaction(.deferred) { db in
-            result = try block(db)
-            return .commit
-        }
-        return result!
-    }
-    
-    /// Synchronously executes a block that takes a database connection, without
-    /// opening any transaction, and returns its result.
     ///
-    /// Eventual concurrent database updates are postponed until the block
-    /// has executed.
-    ///
-    /// Eventual concurrent readers do not see partial changes:
-    ///
-    /// - warning: This method poses a threat to concurrent reads if it modifies
-    ///   the database outside of a transaction. Readers may see the database
-    ///   in an inconsistent state:
-    ///
-    ///         dbPool.unsafeWrite { db in
-    ///             // Eventually preserve a zero balance
-    ///             try db.execute(db, "INSERT INTO credits ...", arguments: [amount])
-    ///             try db.execute(db, "INSERT INTO debits ...", arguments: [amount])
-    ///         }
-    ///
-    ///         dbPool.read { db in
-    ///             // Here the balance may not be zero
-    ///         }
-    ///
-    ///     To use this unsafe method safely, don't modify the database, or make
-    ///     sure you wrap in a transaction changes that must occur together:
-    ///
-    ///         // A safe usage of the unsafeWrite method
-    ///         dbPool.unsafeWrite { db in
-    ///             db.inTransaction { ... }
-    ///         }
-    public func unsafeWrite<T>(_ block: (Database) throws -> T) rethrows -> T {
+    /// - parameters block: A block that executes SQL statements and return
+    ///   either .commit or .rollback.
+    /// - throws: The error thrown by the block.
+    public func write<T>(_ block: (Database) throws -> T) rethrows -> T {
         return try writer.sync(block)
     }
     
@@ -495,15 +427,15 @@ extension DatabasePool : DatabaseWriter {
     ///
     /// Eventual concurrent readers do not see partial changes:
     ///
-    ///         dbPool.writeInTransaction { db in
-    ///             // Eventually preserve a zero balance
-    ///             try db.execute(db, "INSERT INTO credits ...", arguments: [amount])
-    ///             try db.execute(db, "INSERT INTO debits ...", arguments: [amount])
-    ///         }
+    ///     dbPool.writeInTransaction { db in
+    ///         // Eventually preserve a zero balance
+    ///         try db.execute(db, "INSERT INTO credits ...", arguments: [amount])
+    ///         try db.execute(db, "INSERT INTO debits ...", arguments: [amount])
+    ///     }
     ///
-    ///         dbPool.read { db in
-    ///             // Here the balance is guaranteed to be zero
-    ///         }
+    ///     dbPool.read { db in
+    ///         // Here the balance is guaranteed to be zero
+    ///     }
     ///
     /// This method is *not* reentrant.
     ///
@@ -514,7 +446,8 @@ extension DatabasePool : DatabaseWriter {
     ///       for more information.
     ///     - block: A block that executes SQL statements and return either
     ///       .commit or .rollback.
-    /// - throws: The error thrown by the block.
+    /// - throws: The error thrown by the block, or any error establishing the
+    ///   transaction.
     public func writeInTransaction(_ kind: Database.TransactionKind? = nil, _ block: (Database) throws -> Database.TransactionCompletion) throws {
         try writer.sync { db in
             try db.inTransaction(kind) {
@@ -535,10 +468,11 @@ extension DatabasePool : DatabaseWriter {
     /// committed state at the moment this method is called. Eventual concurrent
     /// database updates are *not visible* inside the block.
     ///
-    ///         TODO: THIS IS INACCURATE
-    ///
     ///     try dbPool.write { db in
-    ///         try db.execute("DELETE FROM persons")
+    ///         try db.inTransaction {
+    ///             try db.execute("DELETE FROM persons")
+    ///             return .commit
+    ///         }
     ///         try dbPool.readFromCurrentState { db in
     ///             // Guaranteed to be zero
     ///             try Int.fetchOne(db, "SELECT COUNT(*) FROM persons")!
@@ -547,10 +481,7 @@ extension DatabasePool : DatabaseWriter {
     ///     }
     ///
     /// This method blocks the current thread until the isolation guarantee has
-    /// been established.
-    ///
-    /// The database pool releases the writing dispatch queue early, before the
-    /// block has finished.
+    /// been established, and before the block argument has run.
     public func readFromCurrentState(_ block: @escaping (Database) -> Void) throws {
         writer.preconditionValidQueue()
         
@@ -582,12 +513,12 @@ extension DatabasePool : DatabaseWriter {
                 // This is not the guarantee expected by this method: no change
                 // at all should be visible.
                 //
-                // Workaround: perform an initial read before letting GRDB user
-                // perform her own reads:
+                // Workaround: perform an initial read before releasing the
+                // writer queue:
                 //
                 //     Reader                       Writer
                 //     BEGIN DEFERRED TRANSACTION
-                //     SELECT anything
+                //     SELECT anything -- the work around
                 //                                  UPDATE ...
                 //     Here the change is not visible by GRDB user
                 try! db.inTransaction(.deferred) {  // Assume deferred transactions are always possible in a read-only WAL database

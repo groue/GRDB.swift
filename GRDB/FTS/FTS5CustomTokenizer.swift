@@ -163,7 +163,7 @@
         ///     class MyTokenizer : FTS5CustomTokenizer { ... }
         ///     dbPool.add(tokenizer: MyTokenizer.self)
         public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) {
-            unsafeWrite { db in // Actually safe since we do not modify the database
+            write { db in
                 db.add(tokenizer: Tokenizer.self)
             }
         }

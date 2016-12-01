@@ -65,10 +65,10 @@ public protocol DatabaseReader : class {
     /// are visible inside the block:
     ///
     ///     try reader.unsafeRead { db in
-    ///         // Those two ints may be different:
-    ///         let sql = "SELECT ..."
-    ///         let int1 = try Int.fetchOne(db, sql)
-    ///         let int2 = try Int.fetchOne(db, sql)
+    ///         // Those two values may be different because some other thread
+    ///         // may have inserted or deleted a wine between the two requests:
+    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
     ///     }
     ///
     /// Cursor iteration is safe, though:
@@ -139,7 +139,7 @@ extension DatabaseReader {
     
     func backup(to writer: DatabaseWriter, afterBackupInit: (() -> ())?, afterBackupStep: (() -> ())?) throws {
         try read { dbFrom in
-            try writer.unsafeWrite { dbDest in  // Maybe unsafe? We don't know (didn't test) if readers can see a partial backup.
+            try writer.write { dbDest in
                 guard let backup = sqlite3_backup_init(dbDest.sqliteConnection, "main", dbFrom.sqliteConnection, "main") else {
                     throw DatabaseError(code: dbDest.lastErrorCode, message: dbDest.lastErrorMessage)
                 }
