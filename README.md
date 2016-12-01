@@ -624,7 +624,7 @@ Cursors come with default implementations for many operations similar to those d
 ```swift
 // Enumerate all Github links
 try URL.fetchCursor(db, "SELECT url FROM links")
-    .filter { url.host == "github.com" }
+    .filter { url in url.host == "github.com" }
     .enumerated()
     .forEach { (index, url) in ... }
 ```
