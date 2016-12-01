@@ -253,6 +253,66 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             }
             
             // Block 1                      Block 2
+            // INSERT INTO items (id) VALUES (NULL)
+            // >
+            let s1 = DispatchSemaphore(value: 0)
+            //                              BEGIN DEFERRED TRANSACTION
+            //                              SELECT COUNT(*) FROM items -> 1
+            //                              <
+            let s2 = DispatchSemaphore(value: 0)
+            // INSERT INTO items (id) VALUES (NULL)
+            // >
+            let s3 = DispatchSemaphore(value: 0)
+            //                              SELECT COUNT(*) FROM items -> 1
+            //                              <
+            let s4 = DispatchSemaphore(value: 0)
+            // >
+            let s5 = DispatchSemaphore(value: 0)
+            //                              SELECT COUNT(*) FROM items -> 1
+            //                              COMMIT
+            
+            let block1 = { () in
+                do {
+                    try dbPool.write { db in
+                        try db.execute("INSERT INTO items (id) VALUES (NULL)")
+                        s1.signal()
+                        _ = s2.wait(timeout: .distantFuture)
+                        try db.execute("INSERT INTO items (id) VALUES (NULL)")
+                        s3.signal()
+                        _ = s4.wait(timeout: .distantFuture)
+                    }
+                    s5.signal()
+                } catch {
+                    XCTFail("error: \(error)")
+                }
+            }
+            let block2 = { () in
+                try! dbPool.read { db in
+                    _ = s1.wait(timeout: .distantFuture)
+                    XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
+                    s2.signal()
+                    _ = s3.wait(timeout: .distantFuture)
+                    XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
+                    s4.signal()
+                    _ = s5.wait(timeout: .distantFuture)
+                    XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
+                }
+            }
+            let blocks = [block1, block2]
+            DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
+                blocks[index]()
+            }
+        }
+    }
+    
+    func testReadBlockIsolationStartingWithWriteTransaction() {
+        assertNoError {
+            let dbPool = try makeDatabasePool()
+            try dbPool.write { db in
+                try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+            }
+            
+            // Block 1                      Block 2
             // BEGIN IMMEDIATE TRANSACTION
             // INSERT INTO items (id) VALUES (NULL)
             // >
@@ -451,6 +511,33 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
                 blocks[index]()
             }
+        }
+    }
+    
+    func testReadFromCurrentStateOutsideOfTransaction() {
+        assertNoError {
+            dbConfiguration.trace = { print($0) }
+            let dbPool = try makeDatabasePool()
+            try dbPool.write { db in
+                try db.create(table: "persons") { t in
+                    t.column("id", .integer).primaryKey()
+                }
+            }
+            
+            var i: Int! = nil
+            let s1 = DispatchSemaphore(value: 0)
+            let s2 = DispatchSemaphore(value: 0)
+            try dbPool.write { db in
+                try dbPool.readFromCurrentState { db in
+                    _ = s1.wait(timeout: .distantFuture)
+                    i = try! Int.fetchOne(db, "SELECT COUNT(*) FROM persons")!
+                    s2.signal()
+                }
+                try db.execute("INSERT INTO persons DEFAULT VALUES")
+                s1.signal()
+            }
+            _ = s2.wait(timeout: .distantFuture)
+            XCTAssertEqual(i, 0)
         }
     }
     
