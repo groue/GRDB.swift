@@ -88,7 +88,8 @@ public final class DatabaseQueue {
     /// inside a transaction.
     ///
     /// If the block throws an error, the transaction is rollbacked and the
-    /// error is rethrown.
+    /// error is rethrown. If the block returns .rollback, the transaction is
+    /// also rollbacked, but no error is thrown.
     ///
     ///     try dbQueue.inTransaction { db in
     ///         db.execute(...)
@@ -302,6 +303,13 @@ extension DatabaseQueue : DatabaseWriter {
     ///
     /// This method is part of the DatabaseWriter protocol adoption.
     public func unsafeWrite<T>(_ block: (Database) throws -> T) rethrows -> T {
+        return try inDatabase(block)
+    }
+    
+    /// Alias for inDatabase
+    ///
+    /// This method is part of the DatabaseWriter protocol adoption.
+    public func write<T>(_ block: (Database) throws -> T) rethrows -> T {
         return try inDatabase(block)
     }
     

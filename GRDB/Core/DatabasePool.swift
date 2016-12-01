@@ -417,21 +417,63 @@ extension DatabasePool : DatabaseWriter {
     
     // MARK: - Writing in Database
     
-    /// Synchronously executes an update block in a protected dispatch queue,
-    /// and returns its result.
+    /// Synchronously executes a block in a protected dispatch queue, wrapped
+    /// inside a deferred transaction.
     ///
-    ///     try dbPool.unsafeWrite { db in
-    ///         try db.execute(...)
-    ///     }
+    /// Eventual concurrent database updates are postponed until the block
+    /// has executed.
+    ///
+    /// Eventual concurrent readers do not see partial changes:
+    ///
+    ///         dbPool.write { db in
+    ///             // Eventually preserve a zero balance
+    ///             try db.execute(db, "INSERT INTO credits ...", arguments: [amount])
+    ///             try db.execute(db, "INSERT INTO debits ...", arguments: [amount])
+    ///         }
+    ///
+    ///         dbPool.read { db in
+    ///             // Here the balance is guaranteed to be zero
+    ///         }
     ///
     /// This method is *not* reentrant.
+    public func write<T>(_ block: (Database) throws -> T) throws -> T {
+        var result: T! = nil
+        try writeInTransaction(.deferred) { db in
+            result = try block(db)
+            return .commit
+        }
+        return result!
+    }
+    
+    /// Synchronously executes a block that takes a database connection, without
+    /// opening any transaction, and returns its result.
     ///
-    /// - warning: As soon as you execute several update statements, readers may
-    ///   see the database in an inconsistent state. To preserve readers
-    ///   integrity, do not perform more than one database modification with
-    ///   this method, or use write() or writeInTransaction().
-    /// - parameter block: A block that accesses the database.
-    /// - throws: The error thrown by the block.
+    /// Eventual concurrent database updates are postponed until the block
+    /// has executed.
+    ///
+    /// Eventual concurrent readers do not see partial changes:
+    ///
+    /// - warning: This method poses a threat to concurrent reads if it modifies
+    ///   the database outside of a transaction. Readers may see the database
+    ///   in an inconsistent state:
+    ///
+    ///         dbPool.unsafeWrite { db in
+    ///             // Eventually preserve a zero balance
+    ///             try db.execute(db, "INSERT INTO credits ...", arguments: [amount])
+    ///             try db.execute(db, "INSERT INTO debits ...", arguments: [amount])
+    ///         }
+    ///
+    ///         dbPool.read { db in
+    ///             // Here the balance may not be zero
+    ///         }
+    ///
+    ///     To use this unsafe method safely, don't modify the database, or make
+    ///     sure you wrap in a transaction changes that must occur together:
+    ///
+    ///         // A safe usage of the unsafeWrite method
+    ///         dbPool.unsafeWrite { db in
+    ///             db.inTransaction { ... }
+    ///         }
     public func unsafeWrite<T>(_ block: (Database) throws -> T) rethrows -> T {
         return try writer.sync(block)
     }
@@ -439,13 +481,29 @@ extension DatabasePool : DatabaseWriter {
     /// Synchronously executes a block in a protected dispatch queue, wrapped
     /// inside a transaction.
     ///
+    /// Eventual concurrent database updates are postponed until the block
+    /// has executed.
+    ///
     /// If the block throws an error, the transaction is rollbacked and the
-    /// error is rethrown.
+    /// error is rethrown. If the block returns .rollback, the transaction is
+    /// also rollbacked, but no error is thrown.
     ///
     ///     try dbPool.writeInTransaction { db in
     ///         db.execute(...)
     ///         return .commit
     ///     }
+    ///
+    /// Eventual concurrent readers do not see partial changes:
+    ///
+    ///         dbPool.writeInTransaction { db in
+    ///             // Eventually preserve a zero balance
+    ///             try db.execute(db, "INSERT INTO credits ...", arguments: [amount])
+    ///             try db.execute(db, "INSERT INTO debits ...", arguments: [amount])
+    ///         }
+    ///
+    ///         dbPool.read { db in
+    ///             // Here the balance is guaranteed to be zero
+    ///         }
     ///
     /// This method is *not* reentrant.
     ///
@@ -476,6 +534,8 @@ extension DatabasePool : DatabaseWriter {
     /// The *block* argument is guaranteed to see the database in the last
     /// committed state at the moment this method is called. Eventual concurrent
     /// database updates are *not visible* inside the block.
+    ///
+    ///         TODO: THIS IS INACCURATE
     ///
     ///     try dbPool.write { db in
     ///         try db.execute("DELETE FROM persons")

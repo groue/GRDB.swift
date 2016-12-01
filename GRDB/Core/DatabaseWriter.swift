@@ -18,23 +18,53 @@ public protocol DatabaseWriter : DatabaseReader {
     // MARK: - Writing in Database
     
     /// Synchronously executes a block that takes a database connection, and
-    /// returns its result.
+    /// returns its result. The block may or may not be wrapped in a
+    /// transaction.
     ///
-    /// The *block* argument is completely isolated. Eventual concurrent
-    /// database updates are postponed until the block has executed.
+    /// Eventual concurrent database updates are postponed until the block
+    /// has executed.
+    ///
+    /// Eventual concurrent readers are isolated and do not see partial changes:
+    ///
+    ///         writer.write { db in
+    ///             // Eventually preserve a zero balance
+    ///             try db.execute(db, "INSERT INTO credits ...", arguments: [amount])
+    ///             try db.execute(db, "INSERT INTO debits ...", arguments: [amount])
+    ///         }
+    ///
+    ///         writer.read { db in
+    ///             // Here the balance is guaranteed to be zero
+    ///         }
+    ///
+    /// This method is *not* reentrant.
     func write<T>(_ block: (Database) throws -> T) throws -> T
-    
     
     /// Synchronously executes a block in a protected dispatch queue, wrapped
     /// inside a transaction.
     ///
+    /// Eventual concurrent database updates are postponed until the block
+    /// has executed.
+    ///
     /// If the block throws an error, the transaction is rollbacked and the
-    /// error is rethrown.
+    /// error is rethrown. If the block returns .rollback, the transaction is
+    /// also rollbacked, but no error is thrown.
     ///
     ///     try writer.writeInTransaction { db in
     ///         db.execute(...)
     ///         return .commit
     ///     }
+    ///
+    /// Eventual concurrent readers are isolated and do not see partial changes:
+    ///
+    ///         writer.writeInTransaction { db in
+    ///             // Eventually preserve a zero balance
+    ///             try db.execute(db, "INSERT INTO credits ...", arguments: [amount])
+    ///             try db.execute(db, "INSERT INTO debits ...", arguments: [amount])
+    ///         }
+    ///
+    ///         writer.read { db in
+    ///             // Here the balance is guaranteed to be zero
+    ///         }
     ///
     /// This method is *not* reentrant.
     ///
@@ -46,26 +76,33 @@ public protocol DatabaseWriter : DatabaseReader {
     /// - throws: The error thrown by the block.
     func writeInTransaction(_ kind: Database.TransactionKind?, _ block: (Database) throws -> Database.TransactionCompletion) throws
     
-    /// Synchronously executes a block that takes a database connection, and
-    /// returns its result.
+    /// Synchronously executes a block that takes a database connection, without
+    /// opening any transaction, and returns its result.
     ///
-    /// The *block* argument is completely isolated: eventual concurrent
-    /// database updates are postponed until the block has executed.
+    /// Eventual concurrent database updates are postponed until the block
+    /// has executed.
     ///
-    /// However, this method poses a threat to concurrent reads if it modifies
-    /// the database. Readers may seen the database in a constant, but
-    /// inconsistent state:
+    /// - warning: This method poses a threat to concurrent reads if it modifies
+    ///   the database outside of a transaction. Readers may see the database
+    ///   in constant but inconsistent state:
     ///
-    ///     writer.unsafeWrite { db in
-    ///         // Preserve a zero balance
-    ///         try db.execute(db, "INSERT INTO credits ...", arguments: [amount])
-    ///         try db.execute(db, "INSERT INTO debits ...", arguments: [amount])
-    ///     }
+    ///         writer.unsafeWrite { db in
+    ///             // Eventually preserve a zero balance
+    ///             try db.execute(db, "INSERT INTO credits ...", arguments: [amount])
+    ///             try db.execute(db, "INSERT INTO debits ...", arguments: [amount])
+    ///         }
     ///
-    ///     writer.read { db in
-    ///         // Here the balance may not be zero
-    ///     }
+    ///         writer.read { db in
+    ///             // Here the balance may not be zero
+    ///         }
     ///
+    ///     To use this unsafe method safely, don't modify the database, or make
+    ///     sure you wrap in a transaction changes that must occur together:
+    ///
+    ///         // A safe usage of the unsafeWrite method
+    ///         writer.unsafeWrite { db in
+    ///             db.inTransaction { ... }
+    ///         }
     func unsafeWrite<T>(_ block: (Database) throws -> T) rethrows -> T
     
     
@@ -84,6 +121,8 @@ public protocol DatabaseWriter : DatabaseReader {
     ///
     /// - When this method is called outside of any transaction, the current
     ///   state is the last committed state.
+    ///
+    ///         TODO: THIS IS INACCURATE
     ///
     ///         try writer.write { db in
     ///             try db.execute("DELETE FROM persons")
@@ -132,30 +171,6 @@ public protocol DatabaseWriter : DatabaseReader {
     ///             }
     ///         }
     func readFromCurrentState(_ block: @escaping (Database) -> Void) throws
-}
-
-extension DatabaseWriter {
-    
-    /// Default implementation for DatabaseWriter.write(). Synchronously
-    /// executes an update block in a protected dispatch queue,
-    /// wrapped inside a deferred transaction, and returns its result.
-    ///
-    ///     try dbPool.write { db in
-    ///         try db.execute(...)
-    ///     }
-    ///
-    /// This method is *not* reentrant.
-    ///
-    /// - parameter block: A block that accesses the database.
-    /// - throws: The error thrown by the block.
-    public func write<T>(_ block: (Database) throws -> T) throws -> T {
-        var result: T! = nil
-        try writeInTransaction(.deferred) { db in
-            result = try block(db)
-            return .commit
-        }
-        return result!
-    }
 }
 
 extension DatabaseWriter {

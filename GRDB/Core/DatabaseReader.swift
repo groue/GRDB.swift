@@ -38,8 +38,8 @@ public protocol DatabaseReader : class {
     /// Synchronously executes a read-only block that takes a database
     /// connection, and returns its result.
     ///
-    /// The *block* argument is completely isolated. Eventual concurrent
-    /// database updates are *not visible* inside the block:
+    /// The block argument is isolated. Eventual concurrent database updates are
+    /// not visible inside the block:
     ///
     ///     try reader.read { db in
     ///         // Those two values are guaranteed to be equal, even if the
@@ -61,23 +61,22 @@ public protocol DatabaseReader : class {
     /// Synchronously executes a read-only block that takes a database
     /// connection, and returns its result.
     ///
-    /// Individual statements executed in the *block* argument are executed
-    /// in isolation from eventual concurrent updates:
-    ///
-    ///     try reader.unsafeRead { db in
-    ///         // no external update can mess with this iteration:
-    ///         let rows = try Row.fetchCursor(db, ...)
-    ///         while let row = try rows.next() { ... }
-    ///     }
-    ///
-    /// However, there is no guarantee that consecutive statements have the
-    /// same results:
+    /// The block argument is not isolated: eventual concurrent database updates
+    /// are visible inside the block:
     ///
     ///     try reader.unsafeRead { db in
     ///         // Those two ints may be different:
     ///         let sql = "SELECT ..."
     ///         let int1 = try Int.fetchOne(db, sql)
     ///         let int2 = try Int.fetchOne(db, sql)
+    ///     }
+    ///
+    /// Cursor iteration is safe, though:
+    ///
+    ///     try reader.unsafeRead { db in
+    ///         // No concurrent update can mess with this iteration:
+    ///         let rows = try Row.fetchCursor(db, "SELECT ...")
+    ///         while let row = try rows.next() { ... }
     ///     }
     ///
     /// - parameter block: A block that accesses the database.
