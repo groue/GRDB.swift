@@ -280,7 +280,42 @@ extension DatabasePool : DatabaseReader {
         return try readerPool.get { reader in
             try reader.sync { db in
                 var result: T? = nil
+                
+                // https://www.sqlite.org/isolation.html
+                //
+                // > In WAL mode, SQLite exhibits "snapshot isolation". When a
+                // > read transaction starts, that reader continues to see an
+                // > unchanging "snapshot" of the database file as it existed at
+                // > the moment in time when the read transaction started.
+                // > Any write transactions that commit while the read
+                // > transaction is active are still invisible to the read
+                // > transaction, because the reader is seeing a snapshot of
+                // > database file from a prior moment in time.
+                //
+                // This documentation is NOT accurate. SQLite actually defers
+                // isolation until the first SELECT:
+                //
+                //     Reader                       Writer
+                //     BEGIN DEFERRED TRANSACTION
+                //                                  UPDATE ... (1)
+                //     Here the change (1) is visible
+                //     SELECT ...
+                //                                  UPDATE ... (2)
+                //     Here the change (2) is not visible
+                //
+                // This is very dangerous, because our reader may see an
+                // inconsistent database state.
+                //
+                // Workaround: perform an initial read before letting GRDB user
+                // perform her own reads:
+                //
+                //     Reader                       Writer
+                //     BEGIN DEFERRED TRANSACTION
+                //     SELECT anything
+                //                                  UPDATE ...
+                //     Here the change is not visible by GRDB user
                 try db.inTransaction(.deferred) {
+                    try db.makeSelectStatement("SELECT rootpage FROM sqlite_master").fetchCursor { }.next() // doesn't work with cached statement
                     result = try block(db)
                     return .commit
                 }
@@ -457,11 +492,42 @@ extension DatabasePool : DatabaseWriter {
         let semaphore = DispatchSemaphore(value: 0)
         try readerPool.get { reader in
             reader.async { db in
-                // Assume deferred transactions are always possible in a read-only WAL database
-                // TODO: handle error 
-                try! db.inTransaction(.deferred) {
-                    // Now we're isolated: release the writing queue
-                    semaphore.signal()
+                // https://www.sqlite.org/isolation.html
+                //
+                // > In WAL mode, SQLite exhibits "snapshot isolation". When a
+                // > read transaction starts, that reader continues to see an
+                // > unchanging "snapshot" of the database file as it existed at
+                // > the moment in time when the read transaction started.
+                // > Any write transactions that commit while the read
+                // > transaction is active are still invisible to the read
+                // > transaction, because the reader is seeing a snapshot of
+                // > database file from a prior moment in time.
+                //
+                // This documentation is NOT accurate. SQLite actually defers
+                // isolation until the first SELECT:
+                //
+                //     Reader                       Writer
+                //     BEGIN DEFERRED TRANSACTION
+                //                                  UPDATE ... (1)
+                //     Here the change (1) is visible
+                //     SELECT ...
+                //                                  UPDATE ... (2)
+                //     Here the change (2) is not visible
+                //
+                // This is not the guarantee expected by this method: no change
+                // at all should be visible.
+                //
+                // Workaround: perform an initial read before letting GRDB user
+                // perform her own reads:
+                //
+                //     Reader                       Writer
+                //     BEGIN DEFERRED TRANSACTION
+                //     SELECT anything
+                //                                  UPDATE ...
+                //     Here the change is not visible by GRDB user
+                try! db.inTransaction(.deferred) {  // Assume deferred transactions are always possible in a read-only WAL database
+                    try db.makeSelectStatement("SELECT rootpage FROM sqlite_master").fetchCursor { }.next() // doesn't work with cached statement
+                    semaphore.signal() // We can release the writer queue now that we are isolated for good.
                     block(db)
                     return .commit
                 }
