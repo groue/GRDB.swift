@@ -619,7 +619,17 @@ while let row = try rows.next() {
 }
 ```
 
-Cursors come with default implementations for many operations similar to those defined by [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol): `contains`, `enumerated`, `filter`, `first`, `flatMap`, `forEach`, `joined`, `map`, `reduce`. Check the [Swift Standard Library documentation](https://developer.apple.com/reference/swift) for more information.
+Cursors come with default implementations for many operations similar to those defined by [lazy sequences of the Swift Standard Library](https://developer.apple.com/reference/swift/lazysequenceprotocol): `contains`, `enumerated`, `filter`, `first`, `flatMap`, `forEach`, `joined`, `map`, `reduce`:
+
+```swift
+// Enumerate all Github links
+try Row.fetchCursor(db, "SELECT * FROM links")
+    .filter { row in
+        let url = row.value(named: "url") as URL
+        return url.host == "github.com" }
+    .enumerated()
+    .forEach { (index, row) in ... }
+```
 
 
 ### Row Queries
