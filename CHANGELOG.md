@@ -107,16 +107,19 @@ Many APIs were changed:
 -    func performExists(_ db: Database) -> Bool
 +    func performExists(_ db: Database) throws -> Bool
  }
+
+ extension QueryInterfaceRequest {
+-    func fetchCount(...) -> Int
++    func fetchCount(...) throws -> Int
+ }
  
- struct QueryInterfaceRequest<T> {
+ extension QueryInterfaceRequest where T: RowConvertible {
 -    func fetch(...) -> DatabaseSequence<T>
 -    func fetchAll(...) -> [T]
 -    func fetchOne(...) -> T?
--    func fetchCount(...) -> Int
 +    func fetchCursor(...) throws -> DatabaseCursor<T>
 +    func fetchAll(...) throws -> [T]
 +    func fetchOne(...) throws -> T?
-+    func fetchCount(...) throws -> Int
  }
  
  extension RowConvertible {
