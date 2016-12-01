@@ -305,11 +305,11 @@ extension DatabaseQueue : DatabaseWriter {
         return try serializedDatabase.sync(block)
     }
 
-    /// Executes *block*.
+    /// Synchronously executes *block*.
     ///
     /// This method is part of the DatabaseWriter protocol adoption, and must
     /// be called from the protected database dispatch queue.
-    public func readFromWrite(_ block: @escaping (Database) -> Void) {
+    public func readFromCurrentState(_ block: @escaping (Database) -> Void) {
         serializedDatabase.execute(block)
     }
 }

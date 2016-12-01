@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Version
+
+**Breaking Change**
+
+- `DatabaseWriter.readFromWrite` has been renamed `DatabaseWriter.readFromCurrentState`
+
+
 ## 0.91.0
 
 Released November 30, 2016

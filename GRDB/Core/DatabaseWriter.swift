@@ -33,28 +33,61 @@ public protocol DatabaseWriter : DatabaseReader {
     /// This method must be called from a writing dispatch queue.
     ///
     /// The *block* argument is guaranteed to see the database in the state it
-    /// has at the moment this method is called. Eventual concurrent
+    /// has at the moment this method is called (see below). Eventual concurrent
     /// database updates are *not visible* inside the block.
     ///
-    ///     try writer.write { db in
-    ///         try db.execute("DELETE FROM persons")
-    ///         try writer.readFromWrite { db in
-    ///             // Guaranteed to be zero
-    ///             try Int.fetchOne(db, "SELECT COUNT(*) FROM persons")!
+    /// What is the "current state" of the database?
+    ///
+    /// - When this method is called outside of any transaction, the current
+    ///   state is the last committed state.
+    ///
+    ///         try writer.write { db in
+    ///             try db.execute("DELETE FROM persons")
+    ///             try writer.readFromCurrentState { db in
+    ///                 // Guaranteed to be zero
+    ///                 try Int.fetchOne(db, "SELECT COUNT(*) FROM persons")!
+    ///             }
+    ///             try db.execute("INSERT INTO persons ...")
     ///         }
-    ///         try db.execute("INSERT INTO persons ...")
-    ///     }
     ///
-    /// DatabasePool.readFromWrite runs *block* asynchronously in a concurrent
-    /// reader dispatch queue, and release the writing dispatch queue early,
-    /// before the block has finished. In the example above, the insertion runs
-    /// concurrently with the select (and yet the select is guaranteed not to
-    /// see the insertion).
+    /// - When this method is called inside an uncommitted transation, the
+    ///   current state depends on the caller:
     ///
-    /// DatabaseQueue.readFromWrite simply runs *block* synchronously, and
-    /// returns when the block has completed. In the example above, the
-    /// insertion is run after the select.
-    func readFromWrite(_ block: @escaping (Database) -> Void) throws
+    ///     DatabasePool.readFromCurrentState runs *block* asynchronously in a
+    ///     concurrent reader dispatch queue, and release the writing dispatch
+    ///     queue early, before the block has finished. In the example below,
+    ///     the insertion runs concurrently with the select, and the select sees
+    ///     the database in its last committed state.
+    ///
+    ///         try dbPool.write { db in
+    ///             try db.execute("DELETE FROM persons")
+    ///             db.inTransaction {
+    ///                 try db.execute("INSERT INTO persons ...")
+    ///                 try dbPool.readFromCurrentState { db in
+    ///                     // Zero
+    ///                     try Int.fetchOne(db, "SELECT COUNT(*) FROM persons")!
+    ///                 }
+    ///                 return .commit
+    ///             }
+    ///         }
+    ///
+    ///     DatabaseQueue.readFromCurrentState simply runs *block* synchronously,
+    ///     and returns when the block has completed. In the example below, the
+    ///     select sees the uncommitted state of the database, and the insertion
+    ///     is run after the select.
+    ///
+    ///         try dbQueue.write { db in
+    ///             try db.execute("DELETE FROM persons")
+    ///             db.inTransaction {
+    ///                 try db.execute("INSERT INTO persons ...")
+    ///                 try dbQueue.readFromCurrentState { db in
+    ///                     // One
+    ///                     try Int.fetchOne(db, "SELECT COUNT(*) FROM persons")!
+    ///                 }
+    ///                 return .commit
+    ///             }
+    ///         }
+    func readFromCurrentState(_ block: @escaping (Database) -> Void) throws
 }
 
 extension DatabaseWriter {

@@ -433,13 +433,13 @@ extension DatabasePool : DatabaseWriter {
     ///
     /// This method must be called from the writing dispatch queue.
     ///
-    /// The *block* argument is guaranteed to see the database in the state it
-    /// has at the moment this method is called. Eventual concurrent
+    /// The *block* argument is guaranteed to see the database in the last
+    /// committed state at the moment this method is called. Eventual concurrent
     /// database updates are *not visible* inside the block.
     ///
     ///     try dbPool.write { db in
     ///         try db.execute("DELETE FROM persons")
-    ///         try dbPool.readFromWrite { db in
+    ///         try dbPool.readFromCurrentState { db in
     ///             // Guaranteed to be zero
     ///             try Int.fetchOne(db, "SELECT COUNT(*) FROM persons")!
     ///         }
@@ -451,7 +451,7 @@ extension DatabasePool : DatabaseWriter {
     ///
     /// The database pool releases the writing dispatch queue early, before the
     /// block has finished.
-    public func readFromWrite(_ block: @escaping (Database) -> Void) throws {
+    public func readFromCurrentState(_ block: @escaping (Database) -> Void) throws {
         writer.preconditionValidQueue()
         
         let semaphore = DispatchSemaphore(value: 0)

@@ -538,31 +538,31 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             
             // Fetch items.
             //
-            // This method is called from the database writer's serialized queue, so
-            // that we can fetch items before other writes have the opportunity to
-            // modify the database.
+            // This method is called from the database writer's serialized
+            // queue, so that we can fetch items before other writes have the
+            // opportunity to modify the database.
             //
-            // However, we don't have to block the writer queue for all the duration
-            // of the fetch. We just need to block the writer queue until we can
-            // perform a fetch in isolation. This is the role of the readFromWrite
-            // method (see below).
+            // However, we don't have to block the writer queue for all the
+            // duration of the fetch. We just need to block the writer queue
+            // until we can perform a fetch in isolation. This is the role of
+            // the readFromCurrentState method (see below).
             //
-            // However, our fetch will last for an unknown duration. And since we
-            // release the writer queue early, the next database modification will
-            // triggers this callback while our fetch is, maybe, still running. This
-            // next callback will also perform its own fetch, that will maybe end
-            // before our own fetch.
+            // However, our fetch will last for an unknown duration. And since
+            // we release the writer queue early, the next database modification
+            // will triggers this callback while our fetch is, maybe, still
+            // running. This next callback will also perform its own fetch, that
+            // will maybe end before our own fetch.
             //
-            // We have to make sure that our fetch is processed *before* the next
-            // fetch: let's immediately dispatch the processing task in our
-            // serialized FIFO queue, but have it wait for our fetch to complete,
-            // with a semaphore:
+            // We have to make sure that our fetch is processed *before* the
+            // next fetch: let's immediately dispatch the processing task in our
+            // serialized FIFO queue, but have it wait for our fetch to
+            // complete, with a semaphore:
             let semaphore = DispatchSemaphore(value: 0)
             var fetchedItems: [Item<Record>]! = nil
             var fetchedAlongside: T! = nil
             
             // TODO: handle error and don't crash
-            try! databaseWriter.readFromWrite { db in
+            try! databaseWriter.readFromCurrentState { db in
                 // TODO: handle error and don't crash
                 fetchedItems = try! Item<Record>.fetchAll(db, request)
                 fetchedAlongside = try! fetchAlongside(db)
@@ -786,31 +786,31 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             
             // Fetch items.
             //
-            // This method is called from the database writer's serialized queue, so
-            // that we can fetch items before other writes have the opportunity to
-            // modify the database.
+            // This method is called from the database writer's serialized
+            // queue, so that we can fetch items before other writes have the
+            // opportunity to modify the database.
             //
-            // However, we don't have to block the writer queue for all the duration
-            // of the fetch. We just need to block the writer queue until we can
-            // perform a fetch in isolation. This is the role of the readFromWrite
-            // method (see below).
+            // However, we don't have to block the writer queue for all the
+            // duration of the fetch. We just need to block the writer queue
+            // until we can perform a fetch in isolation. This is the role of
+            // the readFromCurrentState method (see below).
             //
-            // However, our fetch will last for an unknown duration. And since we
-            // release the writer queue early, the next database modification will
-            // triggers this callback while our fetch is, maybe, still running. This
-            // next callback will also perform its own fetch, that will maybe end
-            // before our own fetch.
+            // However, our fetch will last for an unknown duration. And since
+            // we release the writer queue early, the next database modification
+            // will triggers this callback while our fetch is, maybe, still
+            // running. This next callback will also perform its own fetch, that
+            // will maybe end before our own fetch.
             //
-            // We have to make sure that our fetch is processed *before* the next
-            // fetch: let's immediately dispatch the processing task in our
-            // serialized FIFO queue, but have it wait for our fetch to complete,
-            // with a semaphore:
+            // We have to make sure that our fetch is processed *before* the
+            // next fetch: let's immediately dispatch the processing task in our
+            // serialized FIFO queue, but have it wait for our fetch to
+            // complete, with a semaphore:
             let semaphore = DispatchSemaphore(value: 0)
             var fetchedItems: [Item<Record>]! = nil
             var fetchedAlongside: T! = nil
             
             // TODO: handle error and don't crash
-            try! databaseWriter.readFromWrite { db in
+            try! databaseWriter.readFromCurrentState { db in
                 // TODO: handle error and don't crash
                 fetchedItems = try! Item<Record>.fetchAll(db, request)
                 fetchedAlongside = try! fetchAlongside(db)
