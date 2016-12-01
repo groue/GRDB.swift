@@ -623,12 +623,10 @@ Cursors come with default implementations for many operations similar to those d
 
 ```swift
 // Enumerate all Github links
-try Row.fetchCursor(db, "SELECT * FROM links")
-    .filter { row in
-        let url = row.value(named: "url") as URL
-        return url.host == "github.com" }
+try URL.fetchCursor(db, "SELECT url FROM links")
+    .filter { url.host == "github.com" }
     .enumerated()
-    .forEach { (index, row) in ... }
+    .forEach { (index, url) in ... }
 ```
 
 
