@@ -4877,7 +4877,7 @@ try dbPool.write { db in
     try Person(...).insert(db)
     
     // Read the number of persons. The writer queue is still locked :-(
-    let count = Person.fetchCount(db)
+    let count = try Person.fetchCount(db)
 }
 ```
 
@@ -4891,7 +4891,7 @@ try dbPool.write { db in
 }
 try dbPool.read { db in
     // Read some random value :-(
-    let count = Person.fetchCount(db)
+    let count = try Person.fetchCount(db)
 }
 
 The correct solution is the `readFromCurrentState` method, which must be called from within a write block:
@@ -4904,7 +4904,7 @@ try dbPool.write { db in
     
     try dbPool.readFromCurrentState { db
         // Read the number of persons. The writer queue has been unlocked :-)
-        let count = Person.fetchCount(db)
+        let count = try Person.fetchCount(db)
     }
 }
 ```
