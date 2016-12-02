@@ -4786,8 +4786,8 @@ dbQueue.setupMemoryManagement(in: UIApplication.sharedApplication())
 ## Concurrency
 
 - [Guarantees and Rules](#guarantees-and-rules)
-- [Advanced DatabasePool](advanced-databasepool)
-- [DatabaseWriter and DatabaseReader Protocols](databasewriter-and-databasereader-protocols)
+- [Advanced DatabasePool](#advanced-databasepool)
+- [DatabaseWriter and DatabaseReader Protocols](#databasewriter-and-databasereader-protocols)
 - [Dealing with External Connections](#dealing-with-external-connections)
 
 
