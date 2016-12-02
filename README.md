@@ -330,13 +330,10 @@ let poiCount = try dbQueue.inDatabase { db in
 }
 ```
 
-
-**Your application should create a single DatabaseQueue per database file.** See, for example, [DemoApps/GRDBDemoiOS/Database.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift) for a sample code that properly sets up a single database queue that is available throughout the application.
-
-If you do otherwise, you may well experience concurrency issues, and you don't want that. See [Concurrency](#concurrency) for more information.
+**A database queue needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency](#concurrency) chapter.
 
 
-**Configure database queues:**
+### DatabaseQueue Configuration
 
 ```swift
 var config = Configuration()
@@ -398,13 +395,7 @@ let poiCount = try dbPool.read { db in
 }
 ```
 
-
-**Your application should create a single DatabasePool per database file.**
-
-If you do otherwise, you may well experience concurrency issues, and you don't want that. See [Concurrency](#concurrency) for more information.
-
-
-**Database pools allows several threads to access the database at the same time:**
+Database pools allow several threads to access the database at the same time:
 
 - When you don't need to modify the database, prefer the `read` method, because several threads can perform reads in parallel.
 
@@ -412,10 +403,10 @@ If you do otherwise, you may well experience concurrency issues, and you don't w
 
 - Conversely, writes are serialized. They still can happen in parallel with reads, but GRDB makes sure that those parallel writes are not visible inside a `read` closure.
 
-See [Concurrency](#concurrency) for more information.
+**A database pool needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency](#concurrency) chapter.
 
 
-**Configure database pools:**
+### DatabasePool Configuration
 
 ```swift
 var config = Configuration()
