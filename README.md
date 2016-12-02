@@ -4869,7 +4869,7 @@ Those guarantees hold as long as you follow three rules:
 
 [DatabasePool](#database-pools) are very concurrent, since all reads can run in parallel, and can even run during write operations. But writes are still serialized: at any given point in time, there is no more than a single thread that is writing into the database.
 
-When your application modifies the database, and then read some values that depends on those modifications, you may want to avoid locking the writer queue longer than necessary:
+When your application modifies the database, and then reads some value that depends on those modifications, you may want to avoid locking the writer queue longer than necessary:
 
 ```swift
 try dbPool.write { db in
