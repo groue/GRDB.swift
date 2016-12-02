@@ -4793,7 +4793,7 @@ GRDB ships with two concurrency modes:
 - [DatabaseQueue](#database-queues) opens a single database connection, and serializes all database accesses.
 - [DatabasePool](#database-pools) manages a pool of several database connections, and allows concurrent reads and writes.
 
-**Both foster application safety**: regardless of the concurrency mode you choose, GRDB provides you with guarantees, as long as you follow two rules.
+**Both foster application safety**: regardless of the concurrency mode you choose, GRDB provides you with guarantees, as long as you follow three rules.
 
 - **Guarantee 1**: writes are always *serialized*. At every moment, there is no more than a single thread that is writing into the database.
 
@@ -4809,16 +4809,16 @@ GRDB ships with two concurrency modes:
 
 Those guarantees hold as long as you follow rules:
 
-- **Rule 1**: Your application should have a unique instance of DatabaseQueue or DatabasePool connected to a database file.
+- **Rule 1**: Have a unique instance of DatabaseQueue or DatabasePool connected to any database file.
     
-    This means that you should avoid opening a new connection each time you access the database. Instead, share a single connection.
+    This means that opening a new connection each time you access the database is probably a very bad idea. Do share a single connection instead.
     
     See, for example, [DemoApps/GRDBDemoiOS/Database.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift) for a sample code that properly sets up a single database queue that is available throughout the application.
     
     If there are several instances of database queues or pools that access the same database, a multi-threaded application will eventually face "database is locked" errors, and even crashes. See [advanced concurrency](#advanced-concurrency).
     
-- **Rule 2**: Group related statements within the a single call to the `inDatabase`, `inTransaction`, `read`, `write` and `writeInTransaction` methods.
-
+- **Rule 2**: Group related statements within the a single call to the `DatabaseQueue.inDatabase`, `DatabaseQueue.inTransaction`, `DatabasePool.read`, `DatabasePool.write` and `DatabasePool.writeInTransaction` methods.
+    
     Those methods isolate your groups of related statements against eventual database updates performed by other threads, and guarantee a consistent view of the database. This isolation is only guaranteed *inside* the closure argument of those methods. Two consecutive calls *do not* guarantee isolation:
     
     ```swift
@@ -4835,6 +4835,28 @@ Those guarantees hold as long as you follow rules:
     let count1 = try dbPool.read { db in try PointOfInterest.fetchCount(db) }
     let count2 = try dbPool.read { db in try PointOfInterest.fetchCount(db) }
     ```
+
+- **Rule 3**: When you perform several modifications of the database that temporarily put the database in an inconsistent state, group those modifications within a [transaction](#transactions-and-savepoints):
+    
+    ```swift
+    // SAFE
+    try dbPool.writeInTransaction { db in  // or dbQueue.inTransaction { ... }
+        try Credit(destinationAccout, amount).insert(db)
+        try Debit(sourceAccount, amount).insert(db)
+        return .commit
+    }
+    
+    // UNSAFE
+    try dbPool.write { db in  // or dbQueue.inDatabase { ... }
+        try Credit(destinationAccout, amount).insert(db)
+        try Debit(sourceAccount, amount).insert(db)
+    }
+    ```
+    
+    Transactions prevent two problems with the unsafe variant of the code above:
+    
+    1. Should the first statement succeed, and the second fail, the transaction is rollbacked, and the balance is preserved.
+    2. Without transaction, `DatabasePool.read { ... }` may see the first statement, but not the second, and access a database where the balance of accounts is not zero, and trigger any kind of bug. This behavior comes with SQLite WAL mode, and can't be addressed: *use [transactions](#transactions-and-savepoints)* in order to guarantee database consistency, that's what they are made for.
 
 
 ### Advanced Concurrency
