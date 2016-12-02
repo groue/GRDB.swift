@@ -407,7 +407,7 @@ Database pools allow several threads to access the database at the same time:
 
 **A database pool needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency](#concurrency) chapter.
 
-See [Advanced DatabasePool](advanced-databasepool) for more DatabasePool hotness.
+See [Advanced DatabasePool](#advanced-databasepool) for more DatabasePool hotness.
 
 For a sample code that sets up a database pool on iOS, see [DemoApps/GRDBDemoiOS/Database.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift), and replace DatabaseQueue with DatabasePool.
 
@@ -4887,7 +4887,7 @@ try dbPool.write { db in
 
 `readFromCurrentState` blocks the current thread until it can guarantee its closure argument an isolated access to the last committed state of the database. It then releases the current thread, and asynchronously executes the closure.
 
-This means that the closure code runs concurrently with updates performed after `readFromCurrentState`, and yet those updates are not visible from within the closure. In the example below, the count of persons is guaranteed to be zero, even though it it fetched concurrently with the person insertion (meaning that they may happen in any order):
+This means that the closure code runs concurrently with updates performed after `readFromCurrentState`, and yet those updates are not visible from within the closure. In the example below, the count of persons is guaranteed to be zero, even though it is fetched concurrently with the person insertion (meaning that they may happen in any order):
 
 ```swift
 try dbPool.write { db in
