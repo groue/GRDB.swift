@@ -61,7 +61,9 @@
                             }
                         }
                     }
-                    try db.execute("SELECT * FROM documents WHERE documents MATCH ?", arguments: [rawPattern])
+                    try db.makeSelectStatement("SELECT * FROM documents WHERE documents MATCH ?")
+                        .fetchCursor(arguments: [rawPattern])
+                        .next() // error on next() for invalid patterns
                 }
             } catch let error as DatabaseError {
                 // Remove private SQL & arguments from the thrown error

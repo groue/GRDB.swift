@@ -44,7 +44,6 @@ class DatabaseQueueTests: GRDBTestCase {
                 dbQueue.add(function: fn)
                 try dbQueue.inDatabase { db in
                     XCTAssertEqual(try Int.fetchOne(db, "SELECT succ(1)"), 2) // 2
-                    try db.execute("SELECT succ(1)")
                 }
                 dbQueue.remove(function: fn)
                 do {

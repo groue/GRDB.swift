@@ -165,7 +165,26 @@ class UpdateStatementTests : GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("SELECT 1")
+                let statement = try db.makeUpdateStatement("SELECT 1")
+                try statement.execute()
             }
+        }
+    }
+    
+    func testUpdateStatementAcceptsSelectQueriesAndConsumeAllRows() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            var index = 0
+            dbQueue.add(function: DatabaseFunction("seq", argumentCount: 0, pure: false) { _ in
+                defer { index += 1 }
+                return index
+            })
+            try dbQueue.inDatabase { db in
+                try db.execute("SELECT seq() UNION ALL SELECT seq() UNION ALL SELECT seq()")
+                let statement = try db.makeUpdateStatement("SELECT seq() UNION ALL SELECT seq() UNION ALL SELECT seq()")
+                try statement.execute()
+            }
+            XCTAssertEqual(index, 3 + 3)
         }
     }
     

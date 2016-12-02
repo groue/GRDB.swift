@@ -264,6 +264,11 @@ public final class SelectStatement : Statement {
         reset()
         return DatabaseCursor(statement: self, element: element)
     }
+    
+    /// Creates a cursor whose results are ignored
+    func fetchCursor(arguments: StatementArguments? = nil) -> DatabaseCursor<Void> {
+        return fetchCursor(arguments: arguments) { }
+    }
 
     /// Allows inspection of table and columns read by a SelectStatement
     struct SelectionInfo {
@@ -378,39 +383,34 @@ public final class UpdateStatement : Statement {
         reset()
         database.updateStatementWillExecute(self)
         
-        switch sqlite3_step(sqliteStatement) {
-        case SQLITE_DONE, SQLITE_ROW:
-            // When SQLITE_ROW, the statement did return a row. That's
-            // unexpected from an update statement.
-            //
-            // What are our options?
-            //
-            // 1. throw a DatabaseError.
-            // 2. raise a fatal error.
-            // 3. log a warning about the ignored row, and return successfully.
-            // 4. silently ignore the row, and return successfully.
-            //
-            // The problem with 1 is that this error is uneasy to understand.
-            // See https://github.com/groue/GRDB.swift/issues/15 where both the
-            // user and I were stupidly stuck in front of `PRAGMA journal_mode=WAL`.
-            //
-            // The problem with 2 is that the user would be forced to load a
-            // value he does not care about (even if he should, but we can't
-            // judge).
-            //
-            // The problem with 3 is that there is no way to avoid this warning.
-            //
-            // So let's just silently ignore the row, and behave just like
-            // SQLITE_DONE: this is a success.
-            database.updateStatementDidExecute(self)
-            
-        case let errorCode:
-            // Failure
-            //
-            // Let database rethrow eventual transaction observer error:
-            try database.updateStatementDidFail(self)
-            
-            throw DatabaseError(code: errorCode, message: database.lastErrorMessage, sql: sql, arguments: self.arguments) // Error uses self.arguments, not the optional arguments parameter.
+        while true {
+            switch sqlite3_step(sqliteStatement) {
+            case SQLITE_ROW:
+                // The statement did return a row, and the user ignores the
+                // content of this row:
+                //
+                //     try db.execute("SELECT ...")
+                //
+                // That's OK: maybe the selected rows perform side effects.
+                // For example:
+                //
+                //      try db.execute("SELECT sqlcipher_export(...)")
+                //
+                // It is thus important that we consume *all* rows.
+                break
+                
+            case SQLITE_DONE:
+                database.updateStatementDidExecute(self)
+                return
+                
+            case let errorCode:
+                // Failure
+                //
+                // Let database rethrow eventual transaction observer error:
+                try database.updateStatementDidFail(self)
+                
+                throw DatabaseError(code: errorCode, message: database.lastErrorMessage, sql: sql, arguments: self.arguments) // Error uses self.arguments, not the optional arguments parameter.
+            }
         }
     }
 }

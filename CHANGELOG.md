@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Version
+
+**Fixed**
+
+- `Database.execute(_:)` now iterates all rows of statements (and executes any side effect performed by the evaluation of each row).
+
+
 ## 0.92.0
 
 Released December 1, 2016
