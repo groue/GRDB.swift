@@ -272,7 +272,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         
         let initialItems = fetchedItems
         databaseWriter.write { db in
-            let fetchAndNotifyChanges = makeFetchAndNotifyChangesFunction(controller: self, fetchAlongside: fetchAlongside, itemsAreIdentical: itemsAreIdentical!, recordsWillChange: recordsWillChange, tableViewEvent: tableViewEvent, recordsDidChange: recordsDidChange)
+            let fetchAndNotifyChanges = makeFetchAndNotifyChangesFunction(controller: self, fetchAlongside: fetchAlongside, itemsAreIdentical: itemsAreIdentical, recordsWillChange: recordsWillChange, tableViewEvent: tableViewEvent, recordsDidChange: recordsDidChange)
             let observer = FetchedRecordsObserver(selectionInfo: request.selectionInfo, fetchAndNotifyChanges: fetchAndNotifyChanges)
             self.observer = observer
             if let initialItems = initialItems {
@@ -349,7 +349,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     
     #if os(iOS)
     // The record comparator
-    fileprivate var itemsAreIdentical: ItemComparator<Record>?
+    fileprivate var itemsAreIdentical: ItemComparator<Record>
     #endif
     
     // The request
@@ -921,9 +921,9 @@ fileprivate func identicalItemArrays<Record>(_ lhs: [Item<Record>], _ rhs: [Item
         ///   if record could not be found.
         public func indexPath(for record: Record) -> IndexPath? {
             let item = Item<Record>(row: Row(record.persistentDictionary))
-            guard let fetchedItems = fetchedItems,
-                let itemsAreIdentical = itemsAreIdentical,
-                let index = fetchedItems.index(where: { itemsAreIdentical($0, item) }) else { return nil }
+            guard let fetchedItems = fetchedItems, let index = fetchedItems.index(where: { itemsAreIdentical($0, item) }) else {
+                return nil
+            }
             return IndexPath(row: index, section: 0)
         }
     }

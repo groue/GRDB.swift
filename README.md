@@ -4233,7 +4233,7 @@ The [notification callbacks](#the-changes-notifications) are notified of eventua
 **Change callbacks are invoked asynchronously.** This means that modifying the request from the main thread does *not* immediately triggers callbacks. When you need to take immediate action, force the controller to refresh immediately with its `performFetch` method. In this case, changes callbacks are *not* called:
 
 ```swift
-// Change database on the main thread:
+// Change request on the main thread:
 controller.setRequest(Person.order(Column("name")))
 // Here callbacks have not been called yet.
 // You can cancel them, and refresh records immediately:
