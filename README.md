@@ -407,6 +407,8 @@ Database pools allow several threads to access the database at the same time:
 
 **A database pool needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency](#concurrency) chapter.
 
+See [Advanced DatabasePool](advanced-databasepool) for more DatabasePool hotness.
+
 For a sample code that sets up a database pool on iOS, see [DemoApps/GRDBDemoiOS/Database.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift), and replace DatabaseQueue with DatabasePool.
 
 
@@ -4783,6 +4785,14 @@ dbQueue.setupMemoryManagement(in: UIApplication.sharedApplication())
 
 ## Concurrency
 
+- [Guarantees and Rules](#guarantees-and-rules)
+- [Advanced DatabasePool](advanced-databasepool)
+- [DatabaseWriter and DatabaseReader Protocols](databasewriter-and-databasereader-protocols)
+- [Dealing with External Connections](#dealing-with-external-connections)
+
+
+### Guarantees and Rules
+
 GRDB ships with two concurrency modes:
 
 - [DatabaseQueue](#database-queues) opens a single database connection, and serializes all database accesses.
@@ -4855,20 +4865,70 @@ Those guarantees hold as long as you follow three rules:
     This behavior comes with SQLite WAL mode, and can't be addressed. Do use [transactions](#transactions-and-savepoints) in order to guarantee database consistency accross your application threads: that's what they are made for.
 
 
-### Advanced Concurrency
+### Advanced DatabasePool
 
-SQLite concurrency is a wiiide topic.
+Database pools provide the core [concurrency guarantees](#guarantees-and-rules) of GRDB through three methods:
 
-First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.92.1/Classes/DatabaseQueue.html) and [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.92.1/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.92.1/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.92.1/Protocols/DatabaseWriter.html) protocols, so that you can write code that targets both classes.
+```swift
+try dbPool.read { db in ... }
+try dbPool.write { db in ... }
+try dbPool.writeInTransaction { db in ... }
+```
 
-If the built-in queues and pools do not fit your needs, or if you can not guarantee that a single queue or pool is accessing your database file, you may have a look at:
+DatabasePool also gives the `readFromCurrentState` method, which must be called from within a write block:
 
-- General discussion about isolation in SQLite: https://www.sqlite.org/isolation.html
-- Types of locks and transactions: https://www.sqlite.org/lang_transaction.html
-- WAL journal mode: https://www.sqlite.org/wal.html
-- Busy handlers: https://www.sqlite.org/c3ref/busy_handler.html
+```swift
+try dbPool.write { db in
+    try dbPool.readFromCurrentState { db
+        // read something from the database
+    }
+}
+```
 
-See also [Transactions](#transactions-and-savepoints) for more precise handling of transactions, and [Configuration](GRDB/Core/Configuration.swift) for more precise handling of eventual SQLITE_BUSY errors.
+`readFromCurrentState` blocks the current thread until it can guarantee its closure argument an isolated access to the last committed state of the database. It then releases the current thread, and asynchronously executes the closure.
+
+This means that the closure code runs concurrently with updates performed after `readFromCurrentState`, and yet those updates are not visible from within the closure. In the example below, the count of persons is guaranteed to be zero, even though it it fetched concurrently with the person insertion (meaning that they may happen in any order):
+
+```swift
+try dbPool.write { db in
+    try db.inTransaction {
+        try Person.deleteAll(db)
+        return .commit
+    }
+    try dbPool.readFromCurrentState { db
+        // Guaranteed to be zero
+        let count = try Person.fetchCount(db)
+    }
+    try Person(...).insert(db)
+}
+```
+
+[Transaction Observers](#database-changes-observation) can use `readFromCurrentState` in order to process database changes without blocking other threads that want to write into the database.
+
+
+### DatabaseWriter and DatabaseReader Protocols
+
+Both DatabaseQueue and DatabasePool adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.92.1/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.92.1/Protocols/DatabaseWriter.html) protocols.
+
+Those protocols provide a unified API that lets you write safe concurrent code that targets both classes.
+
+
+### Dealing with External Connections
+
+The [first rule](#guarantees-and-rules) of GRDB is:
+
+- **Rule 1**: Have a unique instance of DatabaseQueue or DatabasePool connected to any database file.
+
+This means that dealing with external connections is not a focus of GRDB. [Guarantees](#guarantees-and-rules) of GRDB may or may not hold as soon as some external connection modifies a database.
+
+If you absolutely need multiple connections, then:
+
+- Reconsider your position
+- Read about [isolation in SQLite](https://www.sqlite.org/isolation.html)
+- Learn about [locks and transactions](https://www.sqlite.org/lang_transaction.html)
+- Become a master of the [WAL mode](https://www.sqlite.org/wal.html)
+- Prepare to setup a [busy handler](https://www.sqlite.org/c3ref/busy_handler.html) with [Configuration.busyMode](http://cocoadocs.org/docsets/GRDB.swift/0.92.1/Structs/Configuration.html)
+- [Ask questions](https://github.com/groue/GRDB.swift/issues)
 
 
 ## Performance
