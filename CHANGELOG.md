@@ -16,7 +16,7 @@ Released December 1, 2016
 
 **Fixed**
 
-- Fixed a bug in `DatabasePool.readFromCurrentState` where its block argument could see database changes that it should not have seen.
+- Fixed a bug in `DatabasePool.readFromCurrentState` where its block argument could see database changes that it should not have seen ([documentation](https://github.com/groue/GRDB.swift#advanced-databasepool)).
 
 **Breaking Change**
 
