@@ -4820,7 +4820,7 @@ Those guarantees hold as long as you follow three rules:
     
     See, for example, [DemoApps/GRDBDemoiOS/Database.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift) for a sample code that properly sets up a single database queue that is available throughout the application.
     
-    If there are several instances of database queues or pools that access the same database, a multi-threaded application will eventually face "database is locked" errors, and even crashes. See [advanced concurrency](#advanced-concurrency).
+    If there are several instances of database queues or pools that access the same database, a multi-threaded application will eventually face "database is locked" errors, and even crashes. See [Dealing with External Connections](#dealing-with-external-connections).
     
 - **Rule 2**: Group related statements within a single call to the `DatabaseQueue.inDatabase`, `DatabaseQueue.inTransaction`, `DatabasePool.read`, `DatabasePool.write` and `DatabasePool.writeInTransaction` methods.
     
