@@ -4893,6 +4893,7 @@ try dbPool.read { db in
     // Read some random value :-(
     let count = try Person.fetchCount(db)
 }
+```
 
 The correct solution is the `readFromCurrentState` method, which must be called from within a write block:
 
