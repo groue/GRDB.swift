@@ -469,10 +469,7 @@ extension DatabasePool : DatabaseWriter {
     /// database updates are *not visible* inside the block.
     ///
     ///     try dbPool.write { db in
-    ///         try db.inTransaction {
-    ///             try db.execute("DELETE FROM persons")
-    ///             return .commit
-    ///         }
+    ///         try db.execute("DELETE FROM persons")
     ///         try dbPool.readFromCurrentState { db in
     ///             // Guaranteed to be zero
     ///             try Int.fetchOne(db, "SELECT COUNT(*) FROM persons")!

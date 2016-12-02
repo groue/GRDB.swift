@@ -44,10 +44,7 @@ public protocol DatabaseWriter : DatabaseReader {
     ///   state is the last committed state.
     ///
     ///         try writer.write { db in
-    ///             try db.inTransaction {
-    ///                 try db.execute("DELETE FROM persons")
-    ///                 return .commit
-    ///             }
+    ///             try db.execute("DELETE FROM persons")
     ///             try writer.readFromCurrentState { db in
     ///                 // Guaranteed to be zero
     ///                 try Int.fetchOne(db, "SELECT COUNT(*) FROM persons")!

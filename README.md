@@ -4798,11 +4798,11 @@ GRDB ships with two concurrency modes:
 - [DatabaseQueue](#database-queues) opens a single database connection, and serializes all database accesses.
 - [DatabasePool](#database-pools) manages a pool of several database connections, and allows concurrent reads and writes.
 
-**Both foster application safety**: regardless of the concurrency mode you choose, GRDB provides you with guarantees, as long as you follow three rules.
+**Both foster application safety**: regardless of the concurrency mode you choose, GRDB provides you with the same guarantees, as long as you follow three rules.
 
 - **Guarantee 1**: writes are always *serialized*. At every moment, there is no more than a single thread that is writing into the database.
 
-- **Guarantee 2**: reads are always *isolated*. This means that you can perform subsequent reads without fearing eventual concurrent writes to mess with your application logic.
+- **Guarantee 2**: reads are always *isolated*. This means that you can perform subsequent reads without fearing eventual concurrent writes to mess with your application logic:
     
     ```swift
     try dbPool.read { db in // or dbQueue.inDatabase { ... }
@@ -4820,7 +4820,7 @@ Those guarantees hold as long as you follow three rules:
     
     See, for example, [DemoApps/GRDBDemoiOS/Database.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift) for a sample code that properly sets up a single database queue that is available throughout the application.
     
-    If there are several instances of database queues or pools that access the same database, a multi-threaded application will eventually face "database is locked" errors, and even crashes. See [Dealing with External Connections](#dealing-with-external-connections).
+    If there are several instances of database queues or pools that access the same database, a multi-threaded application will eventually face "database is locked" errors. See [Dealing with External Connections](#dealing-with-external-connections).
     
 - **Rule 2**: Group related statements within a single call to the `DatabaseQueue.inDatabase`, `DatabaseQueue.inTransaction`, `DatabasePool.read`, `DatabasePool.write` and `DatabasePool.writeInTransaction` methods.
     
@@ -4860,9 +4860,9 @@ Those guarantees hold as long as you follow three rules:
     
     At first sight, this rule may look like it does not concern concurrency.
     
-    It does: without transaction, `DatabasePool.read { ... }` may see the first statement, but not the second, and access a database where the balance of accounts is not zero, and trigger any kind of bug.
+    It does: without transaction, `DatabasePool.read { ... }` may see the first statement, but not the second, and access a database where the balance of accounts is not zero. A highly bug-prone situation.
     
-    This behavior comes with SQLite WAL mode, and can't be addressed. Do use [transactions](#transactions-and-savepoints) in order to guarantee database consistency accross your application threads: that's what they are made for.
+    So do use [transactions](#transactions-and-savepoints) in order to guarantee database consistency accross your application threads: that's what they are made for.
 
 
 ### Advanced DatabasePool
@@ -4887,14 +4887,11 @@ try dbPool.write { db in
 
 `readFromCurrentState` blocks the current thread until it can guarantee its closure argument an isolated access to the last committed state of the database. It then releases the current thread, and asynchronously executes the closure.
 
-This means that the closure code runs concurrently with updates performed after `readFromCurrentState`, and yet those updates are not visible from within the closure. In the example below, the count of persons is guaranteed to be zero, even though it is fetched concurrently with the person insertion (meaning that they may happen in any order):
+This means that the closure code runs concurrently with updates performed after `readFromCurrentState`, and yet those updates are not visible from within the closure. In the example below, the number of persons is guaranteed to be zero, even though it is fetched concurrently with the person insertion (meaning that they may happen in any order):
 
 ```swift
 try dbPool.write { db in
-    try db.inTransaction {
-        try Person.deleteAll(db)
-        return .commit
-    }
+    try Person.deleteAll(db)
     try dbPool.readFromCurrentState { db
         // Guaranteed to be zero
         let count = try Person.fetchCount(db)
@@ -4915,9 +4912,9 @@ Those protocols provide a unified API that lets you write safe concurrent code t
 
 ### Dealing with External Connections
 
-The [first rule](#guarantees-and-rules) of GRDB is:
+The first rule of GRDB is:
 
-- **Rule 1**: Have a unique instance of DatabaseQueue or DatabasePool connected to any database file.
+- **[Rule 1](#guarantees-and-rules)**: Have a unique instance of DatabaseQueue or DatabasePool connected to any database file.
 
 This means that dealing with external connections is not a focus of GRDB. [Guarantees](#guarantees-and-rules) of GRDB may or may not hold as soon as some external connection modifies a database.
 
