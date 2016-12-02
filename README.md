@@ -4867,40 +4867,67 @@ Those guarantees hold as long as you follow three rules:
 
 ### Advanced DatabasePool
 
-Database pools provide the core [concurrency guarantees](#guarantees-and-rules) of GRDB through three methods:
+[DatabasePool](#database-pools) are very concurrent, since all reads can run in parallel, and can even run during write operations. But writes are still serialized: at any given point in time, there is no more than a single thread that is writing into the database.
 
-```swift
-try dbPool.read { db in ... }
-try dbPool.write { db in ... }
-try dbPool.writeInTransaction { db in ... }
-```
-
-DatabasePool also gives the `readFromCurrentState` method, which must be called from within a write block:
+When your application modifies the database, and then read some values that depends on those modifications, you may want to avoid locking the writer queue longer than necessary:
 
 ```swift
 try dbPool.write { db in
-    try dbPool.readFromCurrentState { db
-        // read something from the database
-    }
+    // Increment the number of persons
+    try Person(...).insert(db)
+    
+    // Read the number of persons. The writer queue is still locked :-(
+    let count = Person.fetchCount(db)
 }
 ```
 
-`readFromCurrentState` blocks the current thread until it can guarantee its closure argument an isolated access to the last committed state of the database. It then releases the current thread, and asynchronously executes the closure.
-
-This means that the closure code runs concurrently with updates performed after `readFromCurrentState`, and yet those updates are not visible from within the closure. In the example below, the number of persons is guaranteed to be zero, even though it is fetched concurrently with the person insertion (meaning that they may happen in any order):
+A wrong solution is to chain a write then a read, as below. Don't do that, because another thread may modify the database in between, and make the read unreliable:
 
 ```swift
+// WRONG
 try dbPool.write { db in
-    try Person.deleteAll(db)
-    try dbPool.readFromCurrentState { db
-        // Guaranteed to be zero
-        let count = try Person.fetchCount(db)
-    }
+    // Increment the number of persons
     try Person(...).insert(db)
 }
+try dbPool.read { db in
+    // Read some random value :-(
+    let count = Person.fetchCount(db)
+}
+
+The correct solution is the `readFromCurrentState` method, which must be called from within a write block:
+
+```swift
+// CORRECT
+try dbPool.write { db in
+    // Increment the number of persons
+    try Person(...).insert(db)
+    
+    try dbPool.readFromCurrentState { db
+        // Read the number of persons. The writer queue has been unlocked :-)
+        let count = Person.fetchCount(db)
+    }
+}
 ```
 
-[Transaction Observers](#database-changes-observation) can use `readFromCurrentState` in order to process database changes without blocking other threads that want to write into the database.
+`readFromCurrentState` blocks until it can guarantee its closure argument an isolated access to the last committed state of the database. It then asynchronously executes the closure.
+
+The closure can run concurrently with eventual updates performed after `readFromCurrentState`: those updates won't be visible from within the closure. In the example below, the number of persons is guaranteed to be non-zero, even though it is fetched concurrently with the person deletion (meaning that they may happen in any order):
+
+```swift
+try dbPool.write { db in
+    // Increment the number of persons
+    try Person(...).insert(db)
+    
+    try dbPool.readFromCurrentState { db
+        // Guaranteed to be non-zero
+        let count = try Person.fetchCount(db)
+    }
+    
+    try Person.deleteAll(db)
+}
+```
+
+[Transaction Observers](#database-changes-observation) can also use `readFromCurrentState` in their `databaseDidCommit` method in order to process database changes without blocking other threads that want to write into the database.
 
 
 ### DatabaseWriter and DatabaseReader Protocols
