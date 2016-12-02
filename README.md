@@ -4157,6 +4157,8 @@ When you apply several changes to the database, you should group them in a singl
 An instance of FetchedRecordsController notifies that the controller’s fetched records have been changed by the mean of *callbacks*:
 
 ```swift
+let controller = try FetchedRecordsController(...)
+
 controller.trackChanges(
     // controller's records are about to change:
     recordsWillChange: { controller in ... },
@@ -4166,6 +4168,8 @@ controller.trackChanges(
     
     // controller's records have changed:
     recordsDidChange: { controller in ... })
+
+try controller.performFetch()
 ```
 
 See [Implementing Table View Updates](#implementing-table-view-updates) for more detail on table view updates on iOS.
@@ -4371,10 +4375,10 @@ try controller.performFetch()
 > :point_up: **Note**: when the main thread does not fit your needs, give a serial dispatch queue to the controller initializer: the controller must then be used from this queue, and record changes are notified on this queue as well.
 >
 > ```swift
-> let myQueue = DispatchQueue()
-> let controller = FetchedRecordsController(dbQueue, request: ..., queue: myQueue)
-> myQueue.async {
->     controller.trackChanges { /* in myQueue */ }
+> let queue = DispatchQueue()
+> queue.async {
+>     let controller = try FetchedRecordsController(..., queue: queue)
+>     controller.trackChanges { /* in queue */ }
 >     try controller.performFetch()
 > }
 > ```
