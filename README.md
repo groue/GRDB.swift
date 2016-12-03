@@ -4858,9 +4858,7 @@ Those guarantees hold as long as you follow three rules:
     }
     ```
     
-    At first sight, this rule may look like it does not concern concurrency.
-    
-    It does: without transaction, `DatabasePool.read { ... }` may see the first statement, but not the second, and access a database where the balance of accounts is not zero. A highly bug-prone situation.
+    Without transaction, `DatabasePool.read { ... }` may see the first statement, but not the second, and access a database where the balance of accounts is not zero. A highly bug-prone situation.
     
     So do use [transactions](#transactions-and-savepoints) in order to guarantee database consistency accross your application threads: that's what they are made for.
 
