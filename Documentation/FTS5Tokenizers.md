@@ -117,7 +117,7 @@ protocol FTS5Tokenizer : class {
 You can instantiate tokenizers, including [built-in tokenizers](https://www.sqlite.org/fts5.html#tokenizers), with the `Database.makeTokenizer()` method:
 
 ```swift
-let ascii = try db.makeTokenizer(.unicode61()) // FTS5Tokenizer
+let unicode61 = try db.makeTokenizer(.unicode61()) // FTS5Tokenizer
 ```
 
 
