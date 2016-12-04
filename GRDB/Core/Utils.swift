@@ -198,7 +198,7 @@ final class Pool<T> {
     
     /// Empty the pool. Currently used items won't be reused.
     /// Eventual block is executed before any other element is dequeued.
-    func clear(_ block: () throws -> ()) rethrows {
+    func clear(andThen block: () throws -> ()) rethrows {
         try queue.sync {
             items = []
             try block()

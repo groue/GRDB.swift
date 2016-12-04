@@ -230,12 +230,12 @@ public final class DatabasePool {
         
         /// Changes the passphrase of an encrypted database
         public func change(passphrase: String) throws {
-            try readerPool.clear {
+            try readerPool.clear(andThen: {
                 try writer.sync { db in
                     try db.change(passphrase: passphrase)
                 }
                 readerConfig.passphrase = passphrase
-            }
+            })
         }
     }
 #endif
