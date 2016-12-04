@@ -396,8 +396,13 @@ public final class UpdateStatement : Statement {
                 //
                 //      try db.execute("SELECT sqlcipher_export(...)")
                 //
+                // Or maybe the user doesn't know that the executed statement
+                // return rows (https://github.com/groue/GRDB.swift/issues/15);
+                //
+                //      try db.execute("PRAGMA journal_mode=WAL")
+                //
                 // It is thus important that we consume *all* rows.
-                break
+                continue
                 
             case SQLITE_DONE:
                 database.updateStatementDidExecute(self)
