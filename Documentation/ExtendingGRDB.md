@@ -471,7 +471,7 @@ Build a `value IN (...)` expression from any sequence of [values](../../../#valu
 ![1,2,3].contains(Column("id"))
 ```
 
-The most general way to generate an `IN` operator is from any value that adopts the [SQLCollection](http://cocoadocs.org/docsets/GRDB.swift/0.92.1/Protocols/SQLCollection.html) protocol, like the [query interface requests](../../../#requests):
+The most general way to generate an `IN` operator is from any value that adopts the [SQLCollection](http://cocoadocs.org/docsets/GRDB.swift/0.93.0/Protocols/SQLCollection.html) protocol, like the [query interface requests](../../../#requests):
 
 ```swift
 let request = Person.select(Column("id"))
@@ -493,7 +493,7 @@ Build a `value BETWEEN min AND max` expression from Swift ranges:
 
 #### The EXISTS Operator
 
-Build a `EXISTS(...)` expression from any value that adopts the [SQLSelectQuery](http://cocoadocs.org/docsets/GRDB.swift/0.92.1/Protocols/SQLSelectQuery.html) protocol, like the [query interface requests](../../../#requests):
+Build a `EXISTS(...)` expression from any value that adopts the [SQLSelectQuery](http://cocoadocs.org/docsets/GRDB.swift/0.93.0/Protocols/SQLSelectQuery.html) protocol, like the [query interface requests](../../../#requests):
 
 ```swift
 let request = Person.all()
@@ -505,7 +505,7 @@ request.exists()
 
 #### The COUNT Function
 
-Build a `COUNT(...)` expression from the [count](http://cocoadocs.org/docsets/GRDB.swift/0.92.1/Functions.html) and [count(distinct:)](http://cocoadocs.org/docsets/GRDB.swift/0.92.1/Functions.html) functions:
+Build a `COUNT(...)` expression from the [count](http://cocoadocs.org/docsets/GRDB.swift/0.93.0/Functions.html) and [count(distinct:)](http://cocoadocs.org/docsets/GRDB.swift/0.93.0/Functions.html) functions:
 
 ```swift
 // SQLExpression: COUNT(email)
@@ -596,4 +596,4 @@ You may want to compare it to another protocol, SQLSpecificExpressible, which ha
 
 > :point_up: **Note**: whenever you extend GRDB with a Swift function, method, or operator, you should generally make sure that its signature contains at least one GRDB-specific type. In the `cast` function, it is Database.ColumnType.
 
-**If SQLExpressionLiteral reveals too limited for your purpose**, you may have to implement a new type that adopts the [SQLExpression](http://cocoadocs.org/docsets/GRDB.swift/0.92.1/Protocols/SQLExpression.html) protocol.
+**If SQLExpressionLiteral reveals too limited for your purpose**, you may have to implement a new type that adopts the [SQLExpression](http://cocoadocs.org/docsets/GRDB.swift/0.93.0/Protocols/SQLExpression.html) protocol.

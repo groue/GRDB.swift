@@ -1,11 +1,13 @@
 Release Notes
 =============
 
-## Next Version
+## 0.93.0
+
+Released December 4, 2016
 
 **New**
 
-- Upgrade custom SQLite builds to [v3.15.2](http://www.sqlite.org/changes.html) (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling)).
+- Upgrade custom SQLite builds to [v3.15.2](http://www.sqlite.org/changes.html) (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib)).
 
 
 ## 0.92.1
@@ -242,7 +244,7 @@ Released November 5, 2016
 
 **New**
 
-- Upgrade custom SQLite builds to [v3.15.1](http://www.sqlite.org/changes.html) (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling)).
+- Upgrade custom SQLite builds to [v3.15.1](http://www.sqlite.org/changes.html) (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib)).
 
 **Fixed**
 
@@ -330,7 +332,7 @@ Released October 16, 2016
     }
     ```
 
-- Upgrade custom SQLite builds to [v3.15.0](http://www.sqlite.org/changes.html) (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling)).
+- Upgrade custom SQLite builds to [v3.15.0](http://www.sqlite.org/changes.html) (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib)).
 
 
 **Breaking Change**
