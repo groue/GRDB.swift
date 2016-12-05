@@ -4809,7 +4809,7 @@ GRDB ships with two concurrency modes:
     }
     ```
 
-- :bowtie: **Guarantee 3: reads don't fail**, unless [programmer mistakes](#error-handling) and very low-level issues such as a disk errors and unreadable database files.
+- :bowtie: **Guarantee 3: requests don't fail**, unless a database constraint violation, a [programmer mistake](#error-handling), or a very low-level issue such as a disk error or an unreadable database file. GRDB grants *correct* use of SQLite, and particularly avoids locking errors and other SQLite misuses.
 
 Those guarantees hold as long as you follow three rules:
 
