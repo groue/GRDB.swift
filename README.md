@@ -558,9 +558,6 @@ try Type.fetchOne(...)    // Type?
     
     ```swift
     let rows = try Row.fetchCursor(db, "SELECT ...") // DatabaseCursor<Row>
-    while let row = try rows.next() {
-        ...
-    }
     ```
     
 - `fetchAll` returns an **array**:
