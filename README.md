@@ -580,15 +580,15 @@ try Type.fetchOne(...)    // Type?
 Array contains copies of database values and may be consumed on any thread. But they can take a lot of memory. Conversely, cursors iterate over database results in a lazy fashion, don't consume much memory, and are generally more efficient. But they must be consumed in a [protected dispatch queue](#database-connections):
 
 ```swift
-let rows = try Row.fetchAll(db, "SELECT * FROM links")    // [Row]
-let rows = try Row.fetchCursor(db, "SELECT * FROM links") // DatabaseCursor<Row>
+let rows = try Row.fetchAll(db, "SELECT ...")    // [Row]
+let rows = try Row.fetchCursor(db, "SELECT ...") // DatabaseCursor<Row>
 ```
 
 
 A common way to iterate over the elements of a cursor is to use a `while` loop:
 
 ```swift
-let rows = try Row.fetchCursor(db, "SELECT * FROM links")
+let rows = try Row.fetchCursor(db, "SELECT ...")
 while let row = try rows.next() {
     let url: URL = row.value(named: "url")
     print(url)
@@ -604,12 +604,12 @@ try rows.forEach { row in
 }
 ```
 
-Don't modify the database during a cursor iteration:
+Don't modify the fetched results during a cursor iteration:
 
 ```swift
 // Undefined behavior
 while let row = try rows.next() {
-    try db.execute("DELETE FROM link ...")
+    try db.execute("DELETE ...")
 }
 ```
 
