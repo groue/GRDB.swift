@@ -4799,9 +4799,9 @@ GRDB ships with two concurrency modes:
 
 **Both foster application safety**: regardless of the concurrency mode you choose, GRDB provides you with the same guarantees, as long as you follow three rules.
 
-- **Guarantee 1**: writes are always *serialized*. At every moment, there is no more than a single thread that is writing into the database.
+- **Guarantee 1: writes are always serialized**. At every moment, there is no more than a single thread that is writing into the database.
 
-- **Guarantee 2**: reads are always *isolated*. This means that they are guaranteed an immutable view of the last committed state of the database, and that you can perform subsequent fetches without fearing eventual concurrent writes to mess with your application logic:
+- **Guarantee 2: reads are always isolated**. This means that they are guaranteed an immutable view of the last committed state of the database, and that you can perform subsequent fetches without fearing eventual concurrent writes to mess with your application logic:
     
     ```swift
     try dbPool.read { db in // or dbQueue.inDatabase { ... }
@@ -4811,7 +4811,7 @@ GRDB ships with two concurrency modes:
     }
     ```
 
-- **Guarantee 3**: [fetching methods](#fetching-methods) *don't fail*, unless [programmer mistakes](#error-handling) and very low-level issues such as a disk errors and unreadable database files.
+- **Guarantee 3: reads don't fail**, unless [programmer mistakes](#error-handling) and very low-level issues such as a disk errors and unreadable database files.
 
 Those guarantees hold as long as you follow three rules:
 
