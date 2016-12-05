@@ -4811,6 +4811,8 @@ GRDB ships with two concurrency modes:
     }
     ```
 
+- **Guarantee 3**: [fetching methods](#fetching-methods) *don't fail*, unless programming errors and very low-level issues such as a disk errors and unreachable or corrupted database files.
+
 Those guarantees hold as long as you follow three rules:
 
 - **Rule 1**: Have a unique instance of DatabaseQueue or DatabasePool connected to any database file.
