@@ -4835,10 +4835,33 @@ Those guarantees hold as long as you follow three rules:
     
     // UNSAFE CONCURRENCY
     // Those two values may be different because some other thread may have
-    // modified the database between the two statements:
+    // modified the database between the two blocks:
     let count1 = try dbPool.read { db in try PointOfInterest.fetchCount(db) }
     let count2 = try dbPool.read { db in try PointOfInterest.fetchCount(db) }
     ```
+    
+    In the same vein, when you fetch values that depends on some database updates, group them:
+    
+    ```swift
+    // SAFE CONCURRENCY
+    try dbPool.write { db in  // or dbQueue.inDatabase { ... }
+        // The count is guaranteed to be non-zero
+        try PointOfInterest(...).insert(db)
+        let count = try PointOfInterest.fetchCount(db)
+    }
+    
+    // UNSAFE CONCURRENCY
+    // The count may be zero because some other thread may have performed
+    // a deletion between the two blocks:
+    try dbPool.write { db in  // or dbQueue.inDatabase { ... }
+        try PointOfInterest(...).insert(db)
+    }
+    try dbPool.read { db in  // or dbQueue.inDatabase { ... }
+        let count = try PointOfInterest.fetchCount(db)
+    }
+    ```
+    
+    On that last example, see [Advanced DatabasePool](#advanced-databasepool) if you look after extra performance.
 
 - **Rule 3**: When you perform several modifications of the database that temporarily put the database in an inconsistent state, group those modifications within a [transaction](#transactions-and-savepoints):
     
