@@ -354,9 +354,7 @@ See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.93.0/Structs/Confi
 
 ## Database Pools
 
-[Database Queues](#database-queues) prevent concurrent accesses: at every moment, there is no more than a single thread that is using the database.
-
-**A Database Pool can improve your application performance because it allows concurrent database accesses.**
+**A Database Pool allows concurrent database accesses.**
 
 ```swift
 import GRDB
