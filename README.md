@@ -4799,9 +4799,9 @@ GRDB ships with two concurrency modes:
 
 **Both foster application safety**: regardless of the concurrency mode you choose, GRDB provides you with the same guarantees, as long as you follow three rules.
 
-- **Guarantee 1: writes are always serialized**. At every moment, there is no more than a single thread that is writing into the database.
+- :bowtie: **Guarantee 1: writes are always serialized**. At every moment, there is no more than a single thread that is writing into the database.
 
-- **Guarantee 2: reads are always isolated**. This means that they are guaranteed an immutable view of the last committed state of the database, and that you can perform subsequent fetches without fearing eventual concurrent writes to mess with your application logic:
+- :bowtie: **Guarantee 2: reads are always isolated**. This means that they are guaranteed an immutable view of the last committed state of the database, and that you can perform subsequent fetches without fearing eventual concurrent writes to mess with your application logic:
     
     ```swift
     try dbPool.read { db in // or dbQueue.inDatabase { ... }
@@ -4811,11 +4811,11 @@ GRDB ships with two concurrency modes:
     }
     ```
 
-- **Guarantee 3: reads don't fail**, unless [programmer mistakes](#error-handling) and very low-level issues such as a disk errors and unreadable database files.
+- :bowtie: **Guarantee 3: reads don't fail**, unless [programmer mistakes](#error-handling) and very low-level issues such as a disk errors and unreadable database files.
 
 Those guarantees hold as long as you follow three rules:
 
-- **Rule 1**: Have a unique instance of DatabaseQueue or DatabasePool connected to any database file.
+- :point_up: **Rule 1**: Have a unique instance of DatabaseQueue or DatabasePool connected to any database file.
     
     This means that opening a new connection each time you access the database is probably a very bad idea. Do share a single connection instead.
     
@@ -4823,7 +4823,7 @@ Those guarantees hold as long as you follow three rules:
     
     If there are several instances of database queues or pools that access the same database, a multi-threaded application will eventually face "database is locked" errors. See [Dealing with External Connections](#dealing-with-external-connections).
     
-- **Rule 2**: Group related statements within a single call to the `DatabaseQueue.inDatabase`, `DatabaseQueue.inTransaction`, `DatabasePool.read`, `DatabasePool.write` and `DatabasePool.writeInTransaction` methods.
+- :point_up: **Rule 2**: Group related statements within a single call to the `DatabaseQueue.inDatabase`, `DatabaseQueue.inTransaction`, `DatabasePool.read`, `DatabasePool.write` and `DatabasePool.writeInTransaction` methods.
     
     Those methods isolate your groups of related statements against eventual database updates performed by other threads, and guarantee a consistent view of the database. This isolation is only guaranteed *inside* the closure argument of those methods. Two consecutive calls *do not* guarantee isolation:
     
@@ -4861,7 +4861,7 @@ Those guarantees hold as long as you follow three rules:
     
     On that last example, see [Advanced DatabasePool](#advanced-databasepool) if you look after extra performance.
 
-- **Rule 3**: When you perform several modifications of the database that temporarily put the database in an inconsistent state, group those modifications within a [transaction](#transactions-and-savepoints):
+- :point_up: **Rule 3**: When you perform several modifications of the database that temporarily put the database in an inconsistent state, group those modifications within a [transaction](#transactions-and-savepoints):
     
     ```swift
     // SAFE CONCURRENCY
