@@ -4846,7 +4846,7 @@ Those guarantees hold as long as you follow three rules:
     
     ```swift
     // SAFE CONCURRENCY
-    try dbPool.write { db in  // or dbQueue.inDatabase { ... }
+    try dbPool.write { db in
         // The count is guaranteed to be non-zero
         try PointOfInterest(...).insert(db)
         let count = try PointOfInterest.fetchCount(db)
@@ -4855,12 +4855,8 @@ Those guarantees hold as long as you follow three rules:
     // UNSAFE CONCURRENCY
     // The count may be zero because some other thread may have performed
     // a deletion between the two blocks:
-    try dbPool.write { db in  // or dbQueue.inDatabase { ... }
-        try PointOfInterest(...).insert(db)
-    }
-    try dbPool.read { db in  // or dbQueue.inDatabase { ... }
-        let count = try PointOfInterest.fetchCount(db)
-    }
+    try dbPool.write { db in try PointOfInterest(...).insert(db) }
+    let count = try dbPool.read { db in try PointOfInterest.fetchCount(db) }
     ```
     
     On that last example, see [Advanced DatabasePool](#advanced-databasepool) if you look after extra performance.
