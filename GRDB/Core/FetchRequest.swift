@@ -65,7 +65,8 @@ public struct AnyTypedFetchRequest<T> : TypedFetchRequest {
     /// TODO
     public typealias FetchedType = T
     
-    init(untypedRequest request: FetchRequest) {
+    // Fileprivate so that eveyone uses FetchRequest.bound(to:) 
+    fileprivate init(untypedRequest request: FetchRequest) {
         self.request = request
     }
     

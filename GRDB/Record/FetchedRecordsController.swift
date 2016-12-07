@@ -145,7 +145,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         // observer is added on the same serialized queue as transaction
         // callbacks.
         try databaseWriter.write { db in
-            let initialItems = try Item<Record>.fetchAll(db, request)
+            let initialItems = try request.fetchAll(db)
             fetchedItems = initialItems
             if let fetchAndNotifyChanges = fetchAndNotifyChanges {
                 let observer = FetchedRecordsObserver(selectionInfo: request.selectionInfo, fetchAndNotifyChanges: fetchAndNotifyChanges)
@@ -353,13 +353,14 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     #endif
     
     // The request
-    fileprivate var request: ObservedRequest
+    fileprivate var request: ObservedRequest<Record>
     
     // The eventual current database observer
     private var observer: FetchedRecordsObserver<Record>?
 }
 
-fileprivate struct ObservedRequest : FetchRequest {
+fileprivate struct ObservedRequest<Record: RowConvertible> : TypedFetchRequest {
+    typealias FetchedType = Item<Record>
     let request: FetchRequest
     let selectionInfo: SelectStatement.SelectionInfo
     
@@ -564,7 +565,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             // TODO: handle error and don't crash
             try! databaseWriter.readFromCurrentState { db in
                 // TODO: handle error and don't crash
-                fetchedItems = try! Item<Record>.fetchAll(db, request)
+                fetchedItems = try! request.fetchAll(db)
                 fetchedAlongside = try! fetchAlongside(db)
                 
                 // Fetch is complete:
