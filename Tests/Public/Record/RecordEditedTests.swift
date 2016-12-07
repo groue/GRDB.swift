@@ -139,6 +139,14 @@ private class PersonWithModifiedCaseColumns: Record {
     }
 }
 
+private class PersonWrapper : RowConvertible {
+    let person: Person
+    
+    required init(row: Row) {
+        person = Person(row: row)
+    }
+}
+
 class RecordEditedTests: GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
@@ -798,4 +806,15 @@ class RecordEditedTests: GRDBTestCase {
         }
     }
     
+    func testChangesOfWrappedRecordAfterFullFetch() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try Person(name: "Arthur", age: 41).insert(db)
+                let personWrapper = try PersonWrapper.fetchOne(db, "SELECT * FROM persons")!
+                let changes = personWrapper.person.persistentChangedValues
+                XCTAssertEqual(changes.count, 0)
+            }
+        }
+    }
 }
