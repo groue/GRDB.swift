@@ -7,20 +7,30 @@ public protocol FetchRequest {
 }
 
 extension FetchRequest {
-    /// TODO
+    /// Returns a TypedFetchRequest bound to type T:
+    ///
+    ///     let request = Person
+    ///         .select(min(heightColumn))
+    ///         .bound(to: Double.self)
+    ///     let minHeight = try request.fetchOne(db)
     public func bound<T>(to type: T.Type) -> AnyTypedFetchRequest<T> {
-        return AnyTypedFetchRequest(untypedRequest: self)
+        return AnyTypedFetchRequest { try self.prepare($0) }
     }
 }
 
-/// TODO
+/// A type-erased FetchRequest.
+///
+/// An instance of AnyFetchRequest forwards its operations to an underlying
+/// fetch request, hiding its specifics.
 public struct AnyFetchRequest : FetchRequest {
-    /// TODO
-    public init<Request>(_ request: Request) where Request: FetchRequest {
+    /// Creates a new fetch request that wraps and forwards operations
+    /// to `request`.
+    public init(_ request: FetchRequest) {
         self._prepare = { try request.prepare($0) }
     }
     
-    /// TODO
+    /// Creates a new fetch request whose `prepare()` method wraps and forwards
+    /// operations the argument closure.
     public init(_ prepare: @escaping (Database) throws -> (SelectStatement, RowAdapter?)) {
         _prepare = prepare
     }
@@ -34,24 +44,28 @@ public struct AnyFetchRequest : FetchRequest {
     private let _prepare: (Database) throws -> (SelectStatement, RowAdapter?)
 }
 
-struct SQLFetchRequest : FetchRequest {
-    let sql: String
-    let arguments: StatementArguments?
-    let adapter: RowAdapter?
-    
+/// TODO
+public struct SQLFetchRequest : FetchRequest {
+    /// TODO
     init(sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) {
         self.sql = sql
         self.arguments = arguments
         self.adapter = adapter
     }
     
-    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
+    /// A tuple that contains a prepared statement that is ready to be
+    /// executed, and an eventual row adapter.
+    public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
         let statement = try db.makeSelectStatement(sql)
         if let arguments = arguments {
             try statement.setArgumentsWithValidation(arguments)
         }
         return (statement, adapter)
     }
+
+    private let sql: String
+    private let arguments: StatementArguments?
+    private let adapter: RowAdapter?
 }
 
 /// The protocol for all types that define a way to fetch values from
@@ -65,46 +79,24 @@ public struct AnyTypedFetchRequest<T> : TypedFetchRequest {
     /// TODO
     public typealias FetchedType = T
     
-    // Fileprivate so that eveyone uses FetchRequest.bound(to:) 
-    fileprivate init(untypedRequest request: FetchRequest) {
-        self.request = request
-    }
-    
     /// TODO
     public init<Request>(_ request: Request) where Request: TypedFetchRequest, Request.FetchedType == FetchedType {
-        self.request = request
+        self._prepare = { try request.prepare($0) }
+    }
+    
+    /// Creates a new fetch request whose `prepare()` method wraps and forwards
+    /// operations the argument closure.
+    public init(_ prepare: @escaping (Database) throws -> (SelectStatement, RowAdapter?)) {
+        _prepare = prepare
     }
     
     /// A tuple that contains a prepared statement that is ready to be
     /// executed, and an eventual row adapter.
     public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-        return try request.prepare(db)
+        return try _prepare(db)
     }
     
-    private let request : FetchRequest
-}
-
-struct SQLTypedFetchRequest<T> : TypedFetchRequest {
-    /// TODO
-    typealias FetchedType = T
-    
-    let sql: String
-    let arguments: StatementArguments?
-    let adapter: RowAdapter?
-    
-    init(sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) {
-        self.sql = sql
-        self.arguments = arguments
-        self.adapter = adapter
-    }
-    
-    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-        let statement = try db.makeSelectStatement(sql)
-        if let arguments = arguments {
-            try statement.setArgumentsWithValidation(arguments)
-        }
-        return (statement, adapter)
-    }
+    private let _prepare: (Database) throws -> (SelectStatement, RowAdapter?)
 }
 
 extension TypedFetchRequest where FetchedType: RowConvertible {
