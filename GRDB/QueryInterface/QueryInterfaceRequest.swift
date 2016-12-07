@@ -1,7 +1,9 @@
 /// A QueryInterfaceRequest describes an SQL query.
 ///
 /// See https://github.com/groue/GRDB.swift#the-query-interface
-public struct QueryInterfaceRequest<T> {
+public struct QueryInterfaceRequest<T> : TypedFetchRequest {
+    public typealias FetchedType = T
+    
     let query: QueryInterfaceSelectQueryDefinition
     
     init(query: QueryInterfaceSelectQueryDefinition) {
@@ -21,56 +23,6 @@ extension QueryInterfaceRequest : SQLSelectQuery {
     /// See SQLSelectQuery.selectQuerySQL(_)
     public func selectQuerySQL(_ arguments: inout StatementArguments?) -> String {
         return query.selectQuerySQL(&arguments)
-    }
-}
-
-extension QueryInterfaceRequest where T: RowConvertible {
-    
-    // MARK: Fetching Record and RowConvertible
-    
-    /// A cursor over fetched records.
-    ///
-    ///     let nameColumn = Column("name")
-    ///     let request = Person.order(nameColumn)
-    ///     let persons = try request.fetchCursor(db) // DatabaseCursor<Person>
-    ///     while let person = try persons.next() {   // Person
-    ///         ...
-    ///     }
-    ///
-    /// If the database is modified during the cursor iteration, the remaining
-    /// elements are undefined.
-    ///
-    /// The cursor must be iterated in a protected dispath queue.
-    ///
-    /// - parameter db: A database connection.
-    /// - returns: A cursor over fetched records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchCursor(_ db: Database) throws -> DatabaseCursor<T> {
-        return try T.fetchCursor(db, self)
-    }
-    
-    /// An array of fetched records.
-    ///
-    ///     let nameColumn = Column("name")
-    ///     let request = Person.order(nameColumn)
-    ///     let persons = try request.fetchAll(db) // [Person]
-    ///
-    /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchAll(_ db: Database) throws -> [T] {
-        return try T.fetchAll(db, self)
-    }
-    
-    /// The first fetched record.
-    ///
-    ///     let nameColumn = Column("name")
-    ///     let request = Person.order(nameColumn)
-    ///     let person = try request.fetchOne(db) // Person?
-    ///
-    /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchOne(_ db: Database) throws -> T? {
-        return try T.fetchOne(db, self)
     }
 }
 
@@ -286,7 +238,7 @@ extension QueryInterfaceRequest {
     ///
     /// - parameter db: A database connection.
     public func fetchCount(_ db: Database) throws -> Int {
-        return try Int.fetchOne(db, query.countRequest)!
+        return try query.countRequest.fetchOne(db)!
     }
 }
 

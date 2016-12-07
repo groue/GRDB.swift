@@ -91,7 +91,11 @@ struct QueryInterfaceSelectQueryDefinition {
     }
     
     /// Returns a fetch request that counts the number of rows matched by self.
-    var countRequest: FetchRequest {
+    var countRequest: AnyTypedFetchRequest<Int> {
+        return AnyTypedFetchRequest(untypedRequest: countQuery)
+    }
+    
+    private var countQuery: QueryInterfaceSelectQueryDefinition {
         guard groupByExpressions.isEmpty && limit == nil else {
             // SELECT ... GROUP BY ...
             // SELECT ... LIMIT ...
