@@ -1432,13 +1432,14 @@ for row in try Row.fetchAll(db, "PRAGMA table_info('persons')") {
 }
 ```
 
-GRDB provides four high-level methods as well:
+GRDB provides five high-level methods as well:
 
 ```swift
-try db.tableExists("persons") // Bool, true if the table exists
-try db.indexes(on: "persons") // [IndexInfo], the indexes defined on the table
+try db.tableExists("persons")     // Bool, true if the table exists
+try db.columnCount(in: "persons") // Int, the number of columns in table
+try db.indexes(on: "persons")     // [IndexInfo], the indexes defined on the table
 try db.table("persons", hasUniqueKey: ["email"]) // Bool, true if column(s) is a unique key
-try db.primaryKey("persons")  // PrimaryKeyInfo?
+try db.primaryKey("persons")      // PrimaryKeyInfo?
 ```
 
 Primary key is nil when table has no primary key:
