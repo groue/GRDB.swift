@@ -139,6 +139,10 @@ private class PersonWithModifiedCaseColumns: Record {
     }
 }
 
+// PersonWrapper does not call awakeFromFetch on the wrapped record.
+// It should, of course, since the wrapped record may do something in its
+// awakeFromFetch implementation. But here we test that overlooking
+// awakeFromFetch does not break changes tracking.
 private class PersonWrapper : RowConvertible {
     let person: Person
     
