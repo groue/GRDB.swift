@@ -577,7 +577,6 @@ extension Row {
     }
 }
 
-
 extension Row {
     
     // MARK: - Fetching From FetchRequest
@@ -644,7 +643,6 @@ extension Row {
         return try fetchOne(statement, adapter: adapter)
     }
 }
-
 
 extension Row {
     
@@ -762,7 +760,6 @@ extension Row : Collection {
         i = RowIndex(i.index + 1)
     }
 }
-
 
 extension Row : Equatable {
     

@@ -172,7 +172,6 @@ extension DatabaseValueConvertible {
     }
 }
 
-
 extension DatabaseValueConvertible {
     
     // MARK: Fetching From FetchRequest
@@ -230,7 +229,6 @@ extension DatabaseValueConvertible {
         return try fetchOne(statement, adapter: adapter)
     }
 }
-
 
 extension DatabaseValueConvertible {
 
@@ -359,7 +357,6 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     }
 }
 
-
 extension Optional where Wrapped: DatabaseValueConvertible {
     
     // MARK: Fetching From FetchRequest
@@ -401,7 +398,6 @@ extension Optional where Wrapped: DatabaseValueConvertible {
         return try fetchAll(statement, adapter: adapter)
     }
 }
-
 
 extension Optional where Wrapped: DatabaseValueConvertible {
     

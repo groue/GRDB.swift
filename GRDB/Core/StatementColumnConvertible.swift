@@ -123,7 +123,6 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     }
 }
 
-
 extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     
     // MARK: Fetching From FetchRequest
@@ -181,7 +180,6 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         return try fetchOne(statement, adapter: adapter)
     }
 }
-
 
 extension DatabaseValueConvertible where Self: StatementColumnConvertible {
 

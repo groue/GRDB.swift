@@ -9,7 +9,6 @@ public struct QueryInterfaceRequest<T> {
     }
 }
 
-
 extension QueryInterfaceRequest : SQLSelectQuery {
     
     /// This function is an implementation detail of the query interface.
@@ -24,7 +23,6 @@ extension QueryInterfaceRequest : SQLSelectQuery {
         return query.selectQuerySQL(&arguments)
     }
 }
-
 
 extension QueryInterfaceRequest where T: RowConvertible {
     
@@ -75,7 +73,6 @@ extension QueryInterfaceRequest where T: RowConvertible {
         return try T.fetchOne(db, self)
     }
 }
-
 
 extension QueryInterfaceRequest {
     
@@ -281,7 +278,6 @@ extension QueryInterfaceRequest {
     }
 }
 
-
 extension QueryInterfaceRequest {
     
     // MARK: Counting
@@ -293,7 +289,6 @@ extension QueryInterfaceRequest {
         return try Int.fetchOne(db, query.countRequest)!
     }
 }
-
 
 extension QueryInterfaceRequest {
     
@@ -310,7 +305,6 @@ extension QueryInterfaceRequest {
         return db.changesCount
     }
 }
-
 
 extension TableMapping {
     
@@ -450,81 +444,5 @@ extension TableMapping {
     ///     var request = Person.limit(1)
     public static func limit(_ limit: Int, offset: Int? = nil) -> QueryInterfaceRequest<Self> {
         return all().limit(limit, offset: offset)
-    }
-}
-
-
-extension TableMapping {
-    
-    // MARK: Counting
-    
-    /// The number of records.
-    ///
-    /// - parameter db: A database connection.
-    public static func fetchCount(_ db: Database) throws -> Int {
-        return try all().fetchCount(db)
-    }
-}
-
-
-extension TableMapping {
-    
-    // MARK: Deleting
-    
-    /// Deletes all records; returns the number of deleted rows.
-    ///
-    /// - parameter db: A database connection.
-    /// - returns: The number of deleted rows
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @discardableResult
-    public static func deleteAll(_ db: Database) throws -> Int {
-        return try all().deleteAll(db)
-    }
-}
-
-
-extension RowConvertible where Self: TableMapping {
-    
-    // MARK: Fetching All
-    
-    /// A cursor over all records fetched from the database.
-    ///
-    ///     let persons = try Person.fetchCursor(db) // DatabaseCursor<Person>
-    ///     while let person = try persons.next() {  // Person
-    ///         ...
-    ///     }
-    ///
-    /// Records are iterated in the natural ordering of the table.
-    ///
-    /// If the database is modified during the cursor iteration, the remaining
-    /// elements are undefined.
-    ///
-    /// The cursor must be iterated in a protected dispath queue.
-    ///
-    /// - parameter db: A database connection.
-    /// - returns: A cursor over fetched records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database) throws -> DatabaseCursor<Self> {
-        return try all().fetchCursor(db)
-    }
-    
-    /// An array of all records fetched from the database.
-    ///
-    ///     let persons = try Person.fetchAll(db) // [Person]
-    ///
-    /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll(_ db: Database) throws -> [Self] {
-        return try all().fetchAll(db)
-    }
-    
-    /// The first found record.
-    ///
-    ///     let person = try Person.fetchOne(db) // Person?
-    ///
-    /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne(_ db: Database) throws -> Self? {
-        return try all().fetchOne(db)
     }
 }

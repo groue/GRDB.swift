@@ -6,7 +6,6 @@ public protocol FetchRequest {
     func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?)
 }
 
-
 struct SQLFetchRequest : FetchRequest {
     let sql: String
     let arguments: StatementArguments?

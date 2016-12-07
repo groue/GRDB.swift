@@ -153,7 +153,6 @@ extension Database {
     func updateStatement(_ sql: String) throws -> UpdateStatement { preconditionFailure() }
 }
 
-
 extension Statement {
     @available(*, unavailable, renamed:"validate(arguments:)")
     public func validateArguments(_ arguments: StatementArguments) throws { }
