@@ -310,6 +310,10 @@ struct AdapterRowImpl : RowImpl {
         return concreteColumnMapping.count
     }
     
+    var isFetched: Bool {
+        return baseRow.isFetched
+    }
+    
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
         return baseRow.value(atIndex: concreteColumnMapping.baseColumIndex(adaptedIndex: index))
     }

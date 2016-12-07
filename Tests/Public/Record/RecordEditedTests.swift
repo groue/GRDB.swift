@@ -529,9 +529,26 @@ class RecordEditedTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
-                let person = try Person.fetchOne(db, "SELECT * FROM persons")!
-                let changes = person.persistentChangedValues
-                XCTAssertEqual(changes.count, 0)
+                do {
+                    let person = try Person.fetchOne(db, "SELECT * FROM persons")!
+                    let changes = person.persistentChangedValues
+                    XCTAssertEqual(changes.count, 0)
+                }
+                do {
+                    let persons = try Person.fetchAll(db, "SELECT * FROM persons")
+                    let changes = persons[0].persistentChangedValues
+                    XCTAssertEqual(changes.count, 0)
+                }
+                do {
+                    let persons = try Person.fetchCursor(db, "SELECT * FROM persons")
+                    let changes = try persons.next()!.persistentChangedValues
+                    XCTAssertEqual(changes.count, 0)
+                }
+                do {
+                    let person = try Person.fetchOne(db, "SELECT * FROM persons", adapter: SuffixRowAdapter(fromIndex: 0))!
+                    let changes = person.persistentChangedValues
+                    XCTAssertEqual(changes.count, 0)
+                }
             }
             try dbQueue.inDatabase { db in
                 try PersonWithModifiedCaseColumns(name: "Arthur", age: 41).insert(db)
@@ -811,9 +828,16 @@ class RecordEditedTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
-                let personWrapper = try PersonWrapper.fetchOne(db, "SELECT * FROM persons")!
-                let changes = personWrapper.person.persistentChangedValues
-                XCTAssertEqual(changes.count, 0)
+                do {
+                    let personWrapper = try PersonWrapper.fetchOne(db, "SELECT * FROM persons")!
+                    let changes = personWrapper.person.persistentChangedValues
+                    XCTAssertEqual(changes.count, 0)
+                }
+                do {
+                    let personWrapper = try PersonWrapper.fetchOne(db, "SELECT * FROM persons", adapter: SuffixRowAdapter(fromIndex: 0))!
+                    let changes = personWrapper.person.persistentChangedValues
+                    XCTAssertEqual(changes.count, 0)
+                }
             }
         }
     }

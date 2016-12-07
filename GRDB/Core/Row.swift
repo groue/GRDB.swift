@@ -65,6 +65,10 @@ public final class Row {
     
     let impl: RowImpl
     
+    var isFetched: Bool {
+        return impl.isFetched
+    }
+    
     /// Unless we are producing a row array, we use a single row when iterating
     /// a statement:
     ///
@@ -838,6 +842,7 @@ public struct RowIndex : Comparable {
 // The protocol for Row underlying implementation
 protocol RowImpl {
     var count: Int { get }
+    var isFetched: Bool { get }
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue
     func dataNoCopy(atUncheckedIndex index:Int) -> Data?
     func columnName(atUncheckedIndex index: Int) -> String
@@ -847,7 +852,6 @@ protocol RowImpl {
     func index(ofColumn name: String) -> Int?
     
     func scoped(on name: String) -> Row?
-    
     var scopeNames: Set<String> { get }
     
     // row.impl is guaranteed to be self.
@@ -865,6 +869,10 @@ private struct DictionaryRowImpl : RowImpl {
     
     var count: Int {
         return dictionary.count
+    }
+    
+    var isFetched: Bool {
+        return false
     }
     
     func dataNoCopy(atUncheckedIndex index:Int) -> Data? {
@@ -920,6 +928,10 @@ private struct StatementCopyRowImpl : RowImpl {
         return columnNames.count
     }
     
+    var isFetched: Bool {
+        return true
+    }
+    
     func dataNoCopy(atUncheckedIndex index:Int) -> Data? {
         return databaseValue(atUncheckedIndex: index).value()
     }
@@ -971,6 +983,10 @@ private struct StatementRowImpl : RowImpl {
         return Int(sqlite3_column_count(sqliteStatement))
     }
     
+    var isFetched: Bool {
+        return true
+    }
+    
     func dataNoCopy(atUncheckedIndex index:Int) -> Data? {
         guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
             return nil
@@ -1015,7 +1031,13 @@ private struct StatementRowImpl : RowImpl {
 
 /// See Row.init()
 private struct EmptyRowImpl : RowImpl {
-    var count: Int { return 0 }
+    var count: Int {
+        return 0
+    }
+    
+    var isFetched: Bool {
+        return false
+    }
     
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
         // Programmer error

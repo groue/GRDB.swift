@@ -20,6 +20,14 @@ open class Record : RowConvertible, TableMapping, Persistable {
     /// complete your initialization after being fetched, override
     /// awakeFromFetch(row:).
     required public init(row: Row) {
+        if row.isFetched {
+            // Take care of the hasPersistentChangedValues flag.
+            //
+            // Row may be a reused row which will turn invalid as soon as the
+            // SQLite statement is iterated. We need to store an
+            // immutable copy.
+            referenceRow = row.copy()
+        }
     }
     
     /// Do not call this method directly.
@@ -31,12 +39,6 @@ open class Record : RowConvertible, TableMapping, Persistable {
     ///
     /// *Important*: subclasses must invoke super's implementation.
     open func awakeFromFetch(row: Row) {
-        // Take care of the hasPersistentChangedValues flag. If the row does not
-        // contain all needed columns, the record turns edited.
-        //
-        // Row may be a reused row which will turn invalid as soon as the SQLite
-        // statement is iterated. We need to store an immutable and safe copy.
-        referenceRow = row.copy()
     }
     
     
