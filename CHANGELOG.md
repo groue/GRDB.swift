@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Version
+
+**Fixed**
+
+- Removed `Record.hasPersistentChangedValues` dependency on `awakeFromFetch()`. This makes it easier to wrap records in other RowConvertible types, since `awakeFromFetch()` can be overlooked without bad consequences on [changes tracking](https://github.com/groue/GRDB.swift#changes-tracking).
+
+
 ## 0.93.0
 
 Released December 4, 2016
