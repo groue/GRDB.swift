@@ -1029,7 +1029,14 @@ extension Database {
         return primaryKey
     }
     
-    /// The columns in table named `tableName`.
+    /// The number of columns in the table named `tableName`.
+    ///
+    /// - throws: A DatabaseError if table does not exist.
+    public func columnCount(in tableName: String) throws -> Int {
+        return try columns(in: tableName).count
+    }
+    
+    /// The columns in the table named `tableName`.
     ///
     /// - throws: A DatabaseError if table does not exist.
     func columns(in tableName: String) throws -> [ColumnInfo] {
