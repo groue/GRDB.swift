@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## 0.94.0
+
+Released December 7, 2016
+
+**New**
+
+- `Database.columnCount(in:)` returns the number of columns in a database table. This helps building [SuffixRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.94.0/Structs/SuffixRowAdapter.html) for joined requests.
+
+
 ## 0.93.1
 
 Released December 7, 2016
