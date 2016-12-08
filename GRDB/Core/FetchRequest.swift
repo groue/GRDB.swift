@@ -1,5 +1,8 @@
 /// The protocol for all types that define a way to fetch values from
 /// a database.
+///
+/// TODO: show Type.fetchAll(db, request)
+/// TODO: see also TypedFetchRequest
 public protocol FetchRequest {
     /// A tuple that contains a prepared statement that is ready to be
     /// executed, and an eventual row adapter.
@@ -46,7 +49,8 @@ public struct AnyFetchRequest : FetchRequest {
 
 /// TODO
 public struct SQLFetchRequest : FetchRequest {
-    /// TODO
+    /// Creates a fetch request from an SQL statement, optional arguments, and
+    /// optional row adapter.
     init(sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) {
         self.sql = sql
         self.arguments = arguments
@@ -70,16 +74,20 @@ public struct SQLFetchRequest : FetchRequest {
 
 /// The protocol for all types that define a way to fetch values from
 /// a database, with an attached type.
+///
+/// TODO: show request.fetchAll(db)
 public protocol TypedFetchRequest : FetchRequest {
+    /// The fetched type
     associatedtype FetchedType
 }
 
 /// TODO
 public struct AnyTypedFetchRequest<T> : TypedFetchRequest {
-    /// TODO
+    /// The fetched type
     public typealias FetchedType = T
     
-    /// TODO
+    /// Creates a new fetch request that wraps and forwards operations
+    /// to `request`.
     public init<Request>(_ request: Request) where Request: TypedFetchRequest, Request.FetchedType == FetchedType {
         self._prepare = { try request.prepare($0) }
     }

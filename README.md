@@ -2555,6 +2555,7 @@ So don't miss the [SQL API](#sqlite-api).
 - [Fetching by Key](#fetching-by-key)
 - [Fetching Aggregated Values](#fetching-aggregated-values)
 - [Delete Requests](#delete-requests)
+- [Request Protocols](#request-protocols)
 - [GRDB Extension Guide](Documentation/ExtendingGRDB.md)
 
 
@@ -3213,6 +3214,154 @@ Person.deleteOne(db, key: ["email": "arthur@example.com"])
 ```
 
 
+## Request Protocols
+
+Until now, we have seen fetch requests created from any type that adopts the [TableMapping](#tablemapping-protocol) protocol:
+
+```swift
+let request = Person.all()  // QueryInterfaceRequest<Person>
+```
+
+Those requests of type `QueryInterfaceRequest` can fetch, count, and delete records:
+
+```swift
+try request.fetchCursor(db) // DatabaseCursor<Person>
+try request.fetchAll()      // [Person]
+try request.fetchOne()      // Person?
+try request.fetchCount()    // Int
+try request.deleteAll()
+```
+
+**Whenever the query interface can not generate the SQL you need**, you can still build requests on top of the `FetchRequest` and `TypedFetchRequest` protocols. Those protocols can't count or delete, but they can fetch:
+
+```swift
+/// The protocol for all types that define a way to fetch values from
+/// a database.
+protocol FetchRequest {
+    /// A tuple that contains a prepared statement that is ready to be
+    /// executed, and an eventual row adapter.
+    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?)
+}
+
+/// The protocol for typed fetch requests.
+protocol TypedFetchRequest : FetchRequest {
+    /// The fetched type
+    associatedtype FetchedType
+}
+```
+
+FetchRequest can not fetch itself, but it can be consumed by fetchable types:
+
+```swift
+let request: FetchRequest = ...
+try Row.fetchCursor(db, request)   // DatabaseCursor<Row>
+try Person.fetchAll(db, request)   // [Person]
+try String.fetchOne(db, request)   // String?
+```
+
+TypedFetchRequest can fetch, just like [regular query interface requests](#requests):
+
+```swift
+let request = ...           // Some TypedFetchRequest with Person as FetchedType
+try request.fetchCursor(db) // DatabaseCursor<Person>
+try request.fetchAll()      // [Person]
+try request.fetchOne()      // Person?
+```
+
+You can turn fetch requests into typed fetch requests, or rebind the FetchType of typed fetch requests with the `bound(to:)` method:
+
+```swift
+extension FetchRequest {
+    /// Returns a TypedFetchRequest bound to type T:
+    func bound<T>(to type: T.Type) -> AnyTypedFetchRequest<T>
+}
+```
+
+To build such requests, you can create your own type that adopts the protocols, or use one of the four built-in concrete types: [QueryInterfaceRequest](#requests) that we already know, and SQLFetchRequest, AnyFetchRequest, AnyTypedFetchRequest:
+
+```swift
+struct SQLFetchRequest : FetchRequest {
+    /// Creates a fetch request from an SQL statement, optional arguments, and
+    /// optional row adapter.
+    init(sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil)
+}
+
+struct AnyFetchRequest : FetchRequest {
+    /// Creates a new fetch request that wraps and forwards operations
+    /// to `request`.
+    init(_ request: FetchRequest)
+    
+    /// Creates a new fetch request whose `prepare()` method wraps and forwards
+    /// operations the argument closure.
+    init(_ prepare: @escaping (Database) throws -> (SelectStatement, RowAdapter?))
+}
+
+struct AnyTypedFetchRequest<T> : TypedFetchRequest {
+    /// The fetched type
+    public typealias FetchedType = T
+    
+    /// Creates a new fetch request that wraps and forwards operations
+    /// to `request`.
+    public init<Request>(_ request: Request) where Request: TypedFetchRequest, Request.FetchedType == FetchedType
+    
+    /// Creates a new fetch request whose `prepare()` method wraps and forwards
+    /// operations the argument closure.
+    public init(_ prepare: @escaping (Database) throws -> (SelectStatement, RowAdapter?))
+}
+```
+
+For example, let's extend the Person type:
+
+```swift
+extension Person {
+    static func myCustomRequest() -> AnyTypedFetchRequest<Person> {
+        // Some custom SQL
+        let sqlRequest = SQLFetchRequest(sql: "SELECT * FROM persons")
+        return sqlRequest.bound(to: Person.self)
+    }
+}
+```
+
+You can now use the `myCustomRequest` method just like other [query interface requests](#requests):
+
+```swift
+try Person.myCustomRequest().fetchAll(db) // [Person]
+try Person.filter(...).fetchAll(db)       // [Person]
+```
+
+Another, more advanced example:
+
+```swift
+struct BookAuthorPair : RowConvertible {
+    let book: Book
+    let author: Author
+    
+    init(row: Row) {
+        book = Book(row: row.scoped(on: "book")!)
+        author = Author(row: row.scoped(on: "author")!)
+    }
+    
+    static func all() -> AnyTypedFetchRequest<BookAuthorPair> {
+        return AnyTypedFetchRequest { db in
+            let sql = "SELECT books.*, authors.* " +
+                      "FROM books " +
+                      "JOIN authors ON authors.id = books.authorID"
+            let adapter = try ScopeAdapter([
+                "book": SuffixRowAdapter(fromIndex: 0),
+                "author": SuffixRowAdapter(fromIndex: db.columnCount(in: "books"))])
+            let statement = try db.makeSelectStatement(sql)
+            return (statement, adapter)
+        }
+    }
+}
+
+for pair in try BookAuthorPair.all().fetchAll(db) {
+    print("\(pair.book.title) by \(pair.author.name)")
+}
+```
+
+
+[QueryInterfaceRequest](#requests) adopts TypedFetchRequest.
 
 Application Tools
 =================
