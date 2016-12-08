@@ -3268,7 +3268,7 @@ try request.fetchAll()      // [Person]
 try request.fetchOne()      // Person?
 ```
 
-You can turn fetch requests into typed fetch requests, or rebind the FetchType of typed fetch requests with the `bound(to:)` method:
+You can (re)bind fetch requests with the `bound(to:)` method:
 
 ```swift
 extension FetchRequest {
