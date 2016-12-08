@@ -213,6 +213,64 @@ extension TypedFetchRequest where FetchedType: DatabaseValueConvertible {
     }
 }
 
+extension TypedFetchRequest where FetchedType: DatabaseValueConvertible & StatementColumnConvertible {
+    
+    // MARK: Fetching From FetchRequest
+    
+    /// TODO
+    /// Returns a cursor over values fetched from a fetch request.
+    ///
+    ///     let nameColumn = Column("name")
+    ///     let request = Person.select(nameColumn)
+    ///     let names = try String.fetchCursor(db, request) // DatabaseCursor<String>
+    ///     while let name = try names.next() { // String
+    ///         ...
+    ///     }
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
+    ///
+    /// The cursor must be iterated in a protected dispath queue.
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - request: A fetch request.
+    /// - returns: A cursor over fetched values.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchCursor(_ db: Database) throws -> DatabaseCursor<FetchedType> {
+        return try FetchedType.fetchCursor(db, self)
+    }
+    
+    /// TODO
+    /// Returns an array of values fetched from a fetch request.
+    ///
+    ///     let nameColumn = Column("name")
+    ///     let request = Person.select(nameColumn)
+    ///     let names = try String.fetchAll(db, request)  // [String]
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchAll(_ db: Database) throws -> [FetchedType] {
+        return try FetchedType.fetchAll(db, self)
+    }
+    
+    /// TODO
+    /// Returns a single value fetched from a fetch request.
+    ///
+    /// The result is nil if the query returns no row, or if no value can be
+    /// extracted from the first row.
+    ///
+    ///     let nameColumn = Column("name")
+    ///     let request = Person.select(nameColumn)
+    ///     let name = try String.fetchOne(db, request)   // String?
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchOne(_ db: Database) throws -> FetchedType? {
+        return try FetchedType.fetchOne(db, self)
+    }
+}
+
 /// TODO
 public protocol OptionalProtocol {
     associatedtype Value
