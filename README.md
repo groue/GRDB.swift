@@ -1246,7 +1246,7 @@ dbQueue.inTransaction(.exclusive) { db in ... }
 Conversion to and from the database is based on the `DatabaseValueConvertible` protocol:
 
 ```swift
-public protocol DatabaseValueConvertible {
+protocol DatabaseValueConvertible {
     /// Returns a value that can be stored in the database.
     var databaseValue: DatabaseValue { get }
     
@@ -1824,7 +1824,7 @@ You can now jump to:
 **The RowConvertible protocol grants fetching methods to any type** that can be built from a database row:
 
 ```swift
-public protocol RowConvertible {
+protocol RowConvertible {
     /// Row initializer
     init(row: Row)
     
@@ -1893,7 +1893,7 @@ Occasionnally, you'll want to write a complex SQL query that uses different colu
 **Adopt the TableMapping protocol** on top of [RowConvertible](#rowconvertible-protocol), and you are granted with the full [query interface](#the-query-interface).
 
 ```swift
-public protocol TableMapping {
+protocol TableMapping {
     static var databaseTableName: String { get }
     static var selectsRowID: Bool { get }
 }
@@ -1956,7 +1956,7 @@ try Person.deleteOne(db, key: ["email": "arthur@example.com"])
 **GRDB provides two protocols that let adopting types store themselves in the database:**
 
 ```swift
-public protocol MutablePersistable : TableMapping {
+protocol MutablePersistable : TableMapping {
     /// The name of the database table (from TableMapping)
     static var databaseTableName: String { get }
     
@@ -1970,7 +1970,7 @@ public protocol MutablePersistable : TableMapping {
 ```
 
 ```swift
-public protocol Persistable : MutablePersistable {
+protocol Persistable : MutablePersistable {
     /// Non-mutating version of the optional didInsert(with:for:)
     func didInsert(with rowID: Int64, for column: String?)
 }
@@ -2146,7 +2146,7 @@ The [five different policies](https://www.sqlite.org/lang_conflict.html) are: ab
 When you want to handle conflicts at the query level, specify a custom `persistenceConflictPolicy` in your type that adopts the MutablePersistable or Persistable protocol. It will alter the INSERT and UPDATE queries run by the `insert`, `update` and `save` [persistence methods](#persistence-methods):
 
 ```swift
-public protocol MutablePersistable {
+protocol MutablePersistable {
     /// The policy that handles SQLite conflicts when records are inserted
     /// or updated.
     ///
@@ -3294,15 +3294,15 @@ struct AnyFetchRequest : FetchRequest {
 
 struct AnyTypedFetchRequest<T> : TypedFetchRequest {
     /// The fetched type
-    public typealias FetchedType = T
+    typealias FetchedType = T
     
     /// Creates a new fetch request that wraps and forwards operations
     /// to `request`.
-    public init<Request>(_ request: Request) where Request: TypedFetchRequest, Request.FetchedType == FetchedType
+    init<Request>(_ request: Request) where Request: TypedFetchRequest, Request.FetchedType == FetchedType
     
     /// Creates a new fetch request whose `prepare()` method wraps and forwards
     /// operations the argument closure.
-    public init(_ prepare: @escaping (Database) throws -> (SelectStatement, RowAdapter?))
+    init(_ prepare: @escaping (Database) throws -> (SelectStatement, RowAdapter?))
 }
 ```
 
@@ -4021,7 +4021,7 @@ Happy indexing!
 The `TransactionObserver` protocol lets you **observe database changes**:
 
 ```swift
-public protocol TransactionObserver : class {
+protocol TransactionObserver : class {
     /// Filters database changes that should be notified the the
     /// `databaseDidChange(with:)` method.
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool
@@ -4184,7 +4184,7 @@ This technique is *much more* efficient, because GRDB will apply the filter only
 A [custom SQLite build](Documentation/CustomSQLiteBuilds.md) can activate [SQLite "preupdate hooks"](http://www.sqlite.org/sessions/c3ref/preupdate_count.html). In this case, TransactionObserverType gets an extra callback which lets you observe individual column values in the rows modified by a transaction:
 
 ```swift
-public protocol TransactionObserverType : class {
+protocol TransactionObserverType : class {
     #if SQLITE_ENABLE_PREUPDATE_HOOK
     /// Notifies before a database change (insert, update, or delete)
     /// with change information (initial / final values for the row's
