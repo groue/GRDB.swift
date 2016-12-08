@@ -49,7 +49,7 @@ public struct AnyFetchRequest : FetchRequest {
 
 /// TODO
 public struct SQLFetchRequest : FetchRequest {
-    /// Creates a fetch request from an SQL statement, optional arguments, and
+    /// Creates a fetch request from an SQL string, optional arguments, and
     /// optional row adapter.
     public init(sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) {
         self.sql = sql
