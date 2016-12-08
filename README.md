@@ -3268,7 +3268,7 @@ try request.fetchAll()      // [Person]
 try request.fetchOne()      // Person?
 ```
 
-You can (re)bind fetch requests with the `bound(to:)` method:
+Bind fetch requests to a type T with the `bound(to:)` method:
 
 ```swift
 extension FetchRequest {
@@ -3277,7 +3277,7 @@ extension FetchRequest {
 }
 ```
 
-To build such requests, you can create your own type that adopts the protocols, or use one of the four built-in concrete types: [QueryInterfaceRequest](#requests) that we already know, and SQLFetchRequest, AnyFetchRequest, AnyTypedFetchRequest:
+**To build fetch requests**, you can create your own type that adopts the protocols, or use one of the four built-in concrete types: [QueryInterfaceRequest](#requests) that we already know, and SQLFetchRequest, AnyFetchRequest, AnyTypedFetchRequest:
 
 ```swift
 struct SQLFetchRequest : FetchRequest {
@@ -3326,7 +3326,6 @@ You can now use the `myCustomRequest` method just like other [query interface re
 
 ```swift
 try Person.myCustomRequest().fetchAll(db) // [Person]
-try Person.filter(...).fetchAll(db)       // [Person]
 ```
 
 Another, more advanced example:
