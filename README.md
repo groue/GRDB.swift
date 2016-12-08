@@ -2555,7 +2555,7 @@ So don't miss the [SQL API](#sqlite-api).
 - [Fetching by Key](#fetching-by-key)
 - [Fetching Aggregated Values](#fetching-aggregated-values)
 - [Delete Requests](#delete-requests)
-- [Request Protocols](#request-protocols)
+- [Custom Requests](#custom-requests)
 - [GRDB Extension Guide](Documentation/ExtendingGRDB.md)
 
 
@@ -3214,7 +3214,7 @@ Person.deleteOne(db, key: ["email": "arthur@example.com"])
 ```
 
 
-## Request Protocols
+## Custom Requests
 
 Until now, we have seen fetch requests created from any type that adopts the [TableMapping](#tablemapping-protocol) protocol:
 
@@ -3250,22 +3250,22 @@ protocol TypedRequest : Request {
 }
 ```
 
-Request can not fetch itself, because it doesn't know what to fetch. But it can be consumed by fetchable types:
+A Request doesn't know what to fetch, but it can be used by any fetchable type ([row](#fetching-rows), [value](#values), or [record](#records)):
 
 ```swift
 let request: Request = ...
-try Row.fetchCursor(db, request)   // DatabaseCursor<Row>
-try Person.fetchAll(db, request)   // [Person]
-try String.fetchOne(db, request)   // String?
+try Row.fetchCursor(db, request) // DatabaseCursor<Row>
+try Person.fetchAll(db, request) // [Person]
+try String.fetchOne(db, request) // String?
 ```
 
-TypedRequest knows what to fetch, and thus it can fetch (just like [regular query interface requests](#requests)):
+A TypedRequest improves over a plain Request because it knows what to fetch (just like [regular query interface requests](#requests)):
 
 ```swift
-let request = ...                  // Some TypedRequest that fetches Person
-try request.fetchCursor(db)        // DatabaseCursor<Person>
-try request.fetchAll()             // [Person]
-try request.fetchOne()             // Person?
+let request = ...                // Some TypedRequest that fetches Person
+try request.fetchCursor(db)      // DatabaseCursor<Person>
+try request.fetchAll()           // [Person]
+try request.fetchOne()           // Person?
 ```
 
 **To build fetch requests**, you can create your own type that adopts the protocols, or use one of the four built-in concrete types ([QueryInterfaceRequest](#requests), SQLRequest, AnyRequest, AnyTypedRequest):

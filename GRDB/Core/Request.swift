@@ -1,8 +1,5 @@
 /// The protocol for all types that define a way to fetch values from
 /// a database.
-///
-/// TODO: show Type.fetchAll(db, request)
-/// TODO: see also TypedRequest
 public protocol Request {
     /// A tuple that contains a prepared statement that is ready to be
     /// executed, and an eventual row adapter.
