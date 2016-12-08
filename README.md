@@ -3262,17 +3262,17 @@ try String.fetchOne(db, request)   // String?
 TypedFetchRequest can fetch, just like [regular query interface requests](#requests):
 
 ```swift
-let request = ...           // Some TypedFetchRequest with Person as FetchedType
-try request.fetchCursor(db) // DatabaseCursor<Person>
-try request.fetchAll()      // [Person]
-try request.fetchOne()      // Person?
+let request = ...                  // Some TypedFetchRequest with Person as FetchedType
+try request.fetchCursor(db)        // DatabaseCursor<Person>
+try request.fetchAll()             // [Person]
+try request.fetchOne()             // Person?
 ```
 
-**To build fetch requests**, you can create your own type that adopts the protocols, use one of the four built-in concrete types ([QueryInterfaceRequest](#requests), SQLFetchRequest, AnyFetchRequest, AnyTypedFetchRequest), or use the `bound(to:)` method:
+**To build fetch requests**, you can create your own type that adopts the protocols, use one of the four built-in concrete types ([QueryInterfaceRequest](#requests), SQLFetchRequest, AnyFetchRequest, AnyTypedFetchRequest):
 
 ```swift
 extension FetchRequest {
-    /// Returns a TypedFetchRequest bound to type T:
+    /// Turns any request into a TypedFetchRequest bound to type T:
     func bound<T>(to type: T.Type) -> AnyTypedFetchRequest<T>
 }
 
