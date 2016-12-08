@@ -1590,6 +1590,7 @@ For more information about row adapters, see the documentation of:
 
 - [RowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.94.0/Protocols/RowAdapter.html): the protocol that lets you define your custom row adapters
 - [ColumnMapping](http://cocoadocs.org/docsets/GRDB.swift/0.94.0/Structs/ColumnMapping.html): a row adapter that renames row columns
+- [RangeRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.94.0/Structs/SuffixRowAdapter.html): a row adapter that only exposes a range of columns
 - [SuffixRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.94.0/Structs/SuffixRowAdapter.html): a row adapter that hides the first columns of a row
 - [ScopeAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.94.0/Structs/ScopeAdapter.html): the row adapter that groups several adapters together to define scopes
 

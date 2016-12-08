@@ -217,6 +217,31 @@ public struct SuffixRowAdapter : RowAdapter {
     }
 }
 
+/// RangeRowAdapter is a row adapter that only exposes a range of columns.
+///
+///     let adapter = RangeRowAdapter(1..<3)
+///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz, 4 as qux"
+///
+///     // <Row bar:2 baz: 3>
+///     try Row.fetchOne(db, sql, adapter: adapter)
+public struct RangeRowAdapter : RowAdapter {
+    /// The range
+    let range: CountableRange<Int>
+    
+    /// Creates a RangeRowAdapter that only exposes a range of columns.
+    public init(_ range: CountableRange<Int>) {
+        GRDBPrecondition(range.lowerBound >= 0, "Negative column index is out of range")
+        self.range = range
+    }
+    
+    /// Part of the RowAdapter protocol
+    public func concreteRowAdapter(with statement: SelectStatement) throws -> ConcreteRowAdapter {
+        GRDBPrecondition(range.lowerBound <= statement.columnCount, "Column index is out of range")
+        GRDBPrecondition(range.upperBound <= statement.columnCount, "Column index is out of range")
+        return ConcreteColumnMapping(columns: statement.columnNames[range].enumerated().map { ($0 + range.lowerBound, $1) })
+    }
+}
+
 /// ScopeAdapter is a row adapter that lets you define scopes on rows.
 ///
 ///     // Two adapters

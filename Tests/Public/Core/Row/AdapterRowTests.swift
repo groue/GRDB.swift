@@ -439,25 +439,112 @@ class AdapterRowTests : RowTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
+                let sql = "SELECT 0 AS a0, 1 AS a1, 2 AS a2, 3 AS a3"
+                do {
+                    let row = try Row.fetchOne(db, sql, adapter: SuffixRowAdapter(fromIndex:0))!
+                    XCTAssertEqual(Array(row.columnNames), ["a0", "a1", "a2", "a3"])
+                    XCTAssertEqual(Array(row.databaseValues), [0.databaseValue, 1.databaseValue, 2.databaseValue, 3.databaseValue])
+                }
+                do {
+                    let row = try Row.fetchOne(db, sql, adapter: SuffixRowAdapter(fromIndex:1))!
+                    XCTAssertEqual(Array(row.columnNames), ["a1", "a2", "a3"])
+                    XCTAssertEqual(Array(row.databaseValues), [1.databaseValue, 2.databaseValue, 3.databaseValue])
+                }
+                do {
+                    let row = try Row.fetchOne(db, sql, adapter: SuffixRowAdapter(fromIndex:3))!
+                    XCTAssertEqual(Array(row.columnNames), ["a3"])
+                    XCTAssertEqual(Array(row.databaseValues), [3.databaseValue])
+                }
+                do {
+                    let row = try Row.fetchOne(db, sql, adapter: SuffixRowAdapter(fromIndex:4))!
+                    XCTAssertEqual(Array(row.columnNames), [])
+                    XCTAssertEqual(Array(row.databaseValues), [])
+                }
+            }
+        }
+    }
+    
+    func testSuffixAdapterIndexesAreIndependentFromScopes() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
                 let adapter = ScopeAdapter([
-                    "sub1": SuffixRowAdapter(fromIndex: 2)
+                    "sub1": SuffixRowAdapter(fromIndex: 1)
                         .addingScopes([
-                            "sub2": SuffixRowAdapter(fromIndex: 4)])])
-                let row = try Row.fetchOne(db, "SELECT 0 AS id, 'foo0' AS val, 1 AS id, 'foo1' AS val, 2 as id, 'foo2' AS val", adapter: adapter)!
-                
-                XCTAssertEqual(row.count, 6)
-                XCTAssertEqual(row.value(named: "id") as Int, 0)
-                XCTAssertEqual(row.value(named: "val") as String, "foo0")
+                            "sub2": SuffixRowAdapter(fromIndex: 1)])])
+                let row = try Row.fetchOne(db, "SELECT 0 AS a0, 1 AS a1, 2 AS a2, 3 AS a3", adapter: adapter)!
                 
                 if let scope = row.scoped(on: "sub1") {
-                    XCTAssertEqual(scope.count, 4)
-                    XCTAssertEqual(scope.value(named: "id") as Int, 1)
-                    XCTAssertEqual(scope.value(named: "val") as String, "foo1")
+                    XCTAssertEqual(Array(scope.columnNames), ["a1", "a2", "a3"])
+                    XCTAssertEqual(Array(scope.databaseValues), [1.databaseValue, 2.databaseValue, 3.databaseValue])
                     
                     if let scope = scope.scoped(on: "sub2") {
-                        XCTAssertEqual(scope.count, 2)
-                        XCTAssertEqual(scope.value(named: "id") as Int, 2)
-                        XCTAssertEqual(scope.value(named: "val") as String, "foo2")
+                        XCTAssertEqual(Array(scope.columnNames), ["a1", "a2", "a3"])
+                        XCTAssertEqual(Array(scope.databaseValues), [1.databaseValue, 2.databaseValue, 3.databaseValue])
+                    } else {
+                        XCTFail()
+                    }
+                } else {
+                    XCTFail()
+                }
+                
+                // sub2 is only defined in sub1
+                XCTAssertTrue(row.scoped(on: "sub2") == nil)
+            }
+        }
+    }
+    
+    func testRangeAdapter() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let sql = "SELECT 0 AS a0, 1 AS a1, 2 AS a2, 3 AS a3"
+                do {
+                    let row = try Row.fetchOne(db, sql, adapter: RangeRowAdapter(0..<0))!
+                    XCTAssertEqual(Array(row.columnNames), [])
+                    XCTAssertEqual(Array(row.databaseValues), [])
+                }
+                do {
+                    let row = try Row.fetchOne(db, sql, adapter: RangeRowAdapter(0..<1))!
+                    XCTAssertEqual(Array(row.columnNames), ["a0"])
+                    XCTAssertEqual(Array(row.databaseValues), [0.databaseValue])
+                }
+                do {
+                    let row = try Row.fetchOne(db, sql, adapter: RangeRowAdapter(1..<3))!
+                    XCTAssertEqual(Array(row.columnNames), ["a1", "a2"])
+                    XCTAssertEqual(Array(row.databaseValues), [1.databaseValue, 2.databaseValue])
+                }
+                do {
+                    let row = try Row.fetchOne(db, sql, adapter: RangeRowAdapter(0..<4))!
+                    XCTAssertEqual(Array(row.columnNames), ["a0", "a1", "a2", "a3"])
+                    XCTAssertEqual(Array(row.databaseValues), [0.databaseValue, 1.databaseValue, 2.databaseValue, 3.databaseValue])
+                }
+                do {
+                    let row = try Row.fetchOne(db, sql, adapter: RangeRowAdapter(4..<4))!
+                    XCTAssertEqual(Array(row.columnNames), [])
+                    XCTAssertEqual(Array(row.databaseValues), [])
+                }
+            }
+        }
+    }
+    
+    func testRangeAdapterIndexesAreIndependentFromScopes() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let adapter = ScopeAdapter([
+                    "sub1": RangeRowAdapter(1..<3)
+                        .addingScopes([
+                            "sub2": RangeRowAdapter(1..<3)])])
+                let row = try Row.fetchOne(db, "SELECT 0 AS a0, 1 AS a1, 2 AS a2, 3 AS a3", adapter: adapter)!
+                
+                if let scope = row.scoped(on: "sub1") {
+                    XCTAssertEqual(Array(scope.columnNames), ["a1", "a2"])
+                    XCTAssertEqual(Array(scope.databaseValues), [1.databaseValue, 2.databaseValue])
+                    
+                    if let scope = scope.scoped(on: "sub2") {
+                        XCTAssertEqual(Array(scope.columnNames), ["a1", "a2"])
+                        XCTAssertEqual(Array(scope.databaseValues), [1.databaseValue, 2.databaseValue])
                     } else {
                         XCTFail()
                     }
