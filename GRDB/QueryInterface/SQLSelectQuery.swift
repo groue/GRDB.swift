@@ -8,7 +8,7 @@
 /// # Low Level Query Interface
 ///
 /// SQLSelectQuery is the protocol for types that represent a full select query.
-public protocol SQLSelectQuery : FetchRequest, SQLCollection {
+public protocol SQLSelectQuery : Request, SQLCollection {
     
     /// This function is an implementation detail of the query interface.
     /// Do not use it directly.
@@ -59,7 +59,7 @@ extension SQLSelectQuery {
 }
 
 
-// MARK: - FetchRequest adoption
+// MARK: - Request adoption
 
 extension SQLSelectQuery {
     

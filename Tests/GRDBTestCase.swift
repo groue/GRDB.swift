@@ -123,7 +123,7 @@ class GRDBTestCase: XCTestCase {
         XCTAssertTrue(sqlQueries.contains(sql), "Did not execute \(sql)")
     }
     
-    func sql(_ databaseReader: DatabaseReader, _ request: FetchRequest) -> String {
+    func sql(_ databaseReader: DatabaseReader, _ request: Request) -> String {
         return try! databaseReader.read { db in
             _ = try Row.fetchOne(db, request)
             return lastSQLQuery

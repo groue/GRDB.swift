@@ -60,7 +60,7 @@ extension SQLSpecificExpressible {
 
 extension SQLSpecificExpressible {
     
-    /// Returns a value that can be used as an argument to FetchRequest.select()
+    /// Returns a value that can be used as an argument to QueryInterfaceRequest.select()
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public func aliased(_ alias: String) -> SQLSelectable {

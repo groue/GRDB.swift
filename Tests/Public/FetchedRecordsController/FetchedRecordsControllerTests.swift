@@ -145,7 +145,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         }
     }
     
-    func testControllerFromFetchRequest() {
+    func testControllerFromRequest() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -442,7 +442,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             }
             waitForExpectations(timeout: 1, handler: nil)
             
-            // Change request with FetchRequest
+            // Change request with Request
             recorder.transactionExpectation = expectation(description: "expectation")
             try controller.setRequest(Person.order(Column("name").desc))
             waitForExpectations(timeout: 1, handler: nil)

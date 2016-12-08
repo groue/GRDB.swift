@@ -38,7 +38,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///         This function should return true if the two records have the
     ///         same identity. For example, they have the same id.
     public convenience init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: DispatchQueue = .main, isSameRecord: ((Record, Record) -> Bool)? = nil) throws {
-        try self.init(databaseWriter, request: SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter), queue: queue, isSameRecord: isSameRecord)
+        try self.init(databaseWriter, request: SQLRequest(sql: sql, arguments: arguments, adapter: adapter), queue: queue, isSameRecord: isSameRecord)
     }
     
     /// Creates a fetched records controller initialized from a fetch request
@@ -65,7 +65,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///
     ///         This function should return true if the two records have the
     ///         same identity. For example, they have the same id.
-    public convenience init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue = .main, isSameRecord: ((Record, Record) -> Bool)? = nil) throws {
+    public convenience init(_ databaseWriter: DatabaseWriter, request: Request, queue: DispatchQueue = .main, isSameRecord: ((Record, Record) -> Bool)? = nil) throws {
         if let isSameRecord = isSameRecord {
             try self.init(databaseWriter, request: request, queue: queue, itemsAreIdentical: { isSameRecord($0.record, $1.record) })
         } else {
@@ -73,7 +73,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         }
     }
     
-    fileprivate init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue, itemsAreIdentical: @escaping ItemComparator<Record>) throws {
+    fileprivate init(_ databaseWriter: DatabaseWriter, request: Request, queue: DispatchQueue, itemsAreIdentical: @escaping ItemComparator<Record>) throws {
         self.request = try databaseWriter.read { db in try ObservedRequest(db, request: request) }
         self.databaseWriter = databaseWriter
         self.itemsAreIdentical = itemsAreIdentical
@@ -101,7 +101,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///
     ///         This dispatch queue must be serial.
     public convenience init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: DispatchQueue = .main) throws {
-        try self.init(databaseWriter, request: SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter), queue: queue)
+        try self.init(databaseWriter, request: SQLRequest(sql: sql, arguments: arguments, adapter: adapter), queue: queue)
     }
     
     /// Creates a fetched records controller initialized from a fetch request
@@ -122,7 +122,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///         from this queue.
     ///
     ///         This dispatch queue must be serial.
-    public init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue = .main) throws {
+    public init(_ databaseWriter: DatabaseWriter, request: Request, queue: DispatchQueue = .main) throws {
         self.request = try databaseWriter.read { db in try ObservedRequest(db, request: request) }
         self.databaseWriter = databaseWriter
         self.queue = queue
@@ -173,7 +173,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// Updates the fetch request, and notifies the delegate of changes in the
     /// fetched records if delegate is not nil, and performFetch() has been
     /// called.
-    public func setRequest(_ request: FetchRequest) throws {
+    public func setRequest(_ request: Request) throws {
         self.request = try databaseWriter.read { db in try ObservedRequest(db, request: request) }
         
         // No observer: don't look for changes
@@ -201,7 +201,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// fetched records if delegate is not nil, and performFetch() has been
     /// called.
     public func setRequest(sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
-        try setRequest(SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
+        try setRequest(SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     #if os(iOS)
@@ -359,12 +359,12 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     private var observer: FetchedRecordsObserver<Record>?
 }
 
-fileprivate struct ObservedRequest<Record: RowConvertible> : TypedFetchRequest {
-    typealias FetchedType = Item<Record>
-    let request: FetchRequest
+fileprivate struct ObservedRequest<Record: RowConvertible> : TypedRequest {
+    typealias Fetched = Item<Record>
+    let request: Request
     let selectionInfo: SelectStatement.SelectionInfo
     
-    init(_ db: Database, request: FetchRequest) throws {
+    init(_ db: Database, request: Request) throws {
         let (statement, _) = try request.prepare(db)
         self.request = request
         self.selectionInfo = statement.selectionInfo
@@ -405,7 +405,7 @@ extension FetchedRecordsController where Record: TableMapping {
     ///     - compareRecordsByPrimaryKey: A boolean that tells if two records
     ///         share the same identity if they share the same primay key.
     public convenience init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: DispatchQueue = .main, compareRecordsByPrimaryKey: Bool) throws {
-        try self.init(databaseWriter, request: SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter), queue: queue, compareRecordsByPrimaryKey: compareRecordsByPrimaryKey)
+        try self.init(databaseWriter, request: SQLRequest(sql: sql, arguments: arguments, adapter: adapter), queue: queue, compareRecordsByPrimaryKey: compareRecordsByPrimaryKey)
     }
     
     /// Creates a fetched records controller initialized from a fetch request.
@@ -430,7 +430,7 @@ extension FetchedRecordsController where Record: TableMapping {
     ///
     ///     - compareRecordsByPrimaryKey: A boolean that tells if two records
     ///         share the same identity if they share the same primay key.
-    public convenience init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue = .main, compareRecordsByPrimaryKey: Bool) throws {
+    public convenience init(_ databaseWriter: DatabaseWriter, request: Request, queue: DispatchQueue = .main, compareRecordsByPrimaryKey: Bool) throws {
         if compareRecordsByPrimaryKey {
             let rowComparator = try databaseWriter.read { db in try Record.primaryKeyRowComparator(db) }
             try self.init(databaseWriter, request: request, queue: queue, itemsAreIdentical: { rowComparator($0.row, $1.row) })

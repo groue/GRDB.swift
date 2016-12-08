@@ -91,7 +91,7 @@ struct QueryInterfaceSelectQueryDefinition {
     }
     
     /// Returns a fetch request that counts the number of rows matched by self.
-    var countRequest: AnyTypedFetchRequest<Int> {
+    var countRequest: AnyTypedRequest<Int> {
         return countQuery.bound(to: Int.self)
     }
     

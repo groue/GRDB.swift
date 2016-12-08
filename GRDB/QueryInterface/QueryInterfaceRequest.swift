@@ -1,8 +1,8 @@
 /// A QueryInterfaceRequest describes an SQL query.
 ///
 /// See https://github.com/groue/GRDB.swift#the-query-interface
-public struct QueryInterfaceRequest<T> : TypedFetchRequest {
-    public typealias FetchedType = T
+public struct QueryInterfaceRequest<T> : TypedRequest {
+    public typealias Fetched = T
     
     let query: QueryInterfaceSelectQueryDefinition
     

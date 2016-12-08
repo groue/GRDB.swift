@@ -7,13 +7,13 @@ import XCTest
     import GRDB
 #endif
 
-private struct FetchedType {
+private struct Fetched {
     var firstName: String
     var lastName: String
     var isFetched: Bool = false
 }
 
-extension FetchedType : RowConvertible {
+extension Fetched : RowConvertible {
     init(row: Row) {
         firstName = row.value(named: "firstName")
         lastName = row.value(named: "lastName")
@@ -29,7 +29,7 @@ class RowConvertibleTests: GRDBTestCase {
 
     func testRowInitializer() {
         let row = Row(["firstName": "Arthur", "lastName": "Martin"])
-        let s = FetchedType(row: row)
+        let s = Fetched(row: row)
         XCTAssertEqual(s.firstName, "Arthur")
         XCTAssertEqual(s.lastName, "Martin")
         XCTAssertFalse(s.isFetched)
@@ -39,7 +39,7 @@ class RowConvertibleTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                func test(_ cursor: DatabaseCursor<FetchedType>) throws {
+                func test(_ cursor: DatabaseCursor<Fetched>) throws {
                     var record = try cursor.next()!
                     XCTAssertEqual(record.firstName, "Arthur")
                     XCTAssertEqual(record.lastName, "Martin")
@@ -53,19 +53,19 @@ class RowConvertibleTests: GRDBTestCase {
                 do {
                     let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 'Barbara', 'Gourde'"
                     let statement = try db.makeSelectStatement(sql)
-                    try test(FetchedType.fetchCursor(db, sql))
-                    try test(FetchedType.fetchCursor(statement))
-                    try test(FetchedType.fetchCursor(db, SQLFetchRequest(sql: sql)))
-                    try test(SQLFetchRequest(sql: sql).bound(to: FetchedType.self).fetchCursor(db))
+                    try test(Fetched.fetchCursor(db, sql))
+                    try test(Fetched.fetchCursor(statement))
+                    try test(Fetched.fetchCursor(db, SQLRequest(sql: sql)))
+                    try test(SQLRequest(sql: sql).bound(to: Fetched.self).fetchCursor(db))
                 }
                 do {
                     let sql = "SELECT 0 AS firstName, 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 0, 'Barbara', 'Gourde'"
                     let statement = try db.makeSelectStatement(sql)
                     let adapter = SuffixRowAdapter(fromIndex: 1)
-                    try test(FetchedType.fetchCursor(db, sql, adapter: adapter))
-                    try test(FetchedType.fetchCursor(statement, adapter: adapter))
-                    try test(FetchedType.fetchCursor(db, SQLFetchRequest(sql: sql, adapter: adapter)))
-                    try test(SQLFetchRequest(sql: sql, adapter: adapter).bound(to: FetchedType.self).fetchCursor(db))
+                    try test(Fetched.fetchCursor(db, sql, adapter: adapter))
+                    try test(Fetched.fetchCursor(statement, adapter: adapter))
+                    try test(Fetched.fetchCursor(db, SQLRequest(sql: sql, adapter: adapter)))
+                    try test(SQLRequest(sql: sql, adapter: adapter).bound(to: Fetched.self).fetchCursor(db))
                 }
             }
         }
@@ -77,7 +77,7 @@ class RowConvertibleTests: GRDBTestCase {
             let customError = NSError(domain: "Custom", code: 0xDEAD)
             dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
             try dbQueue.inDatabase { db in
-                func test(_ cursor: DatabaseCursor<FetchedType>, sql: String) throws {
+                func test(_ cursor: DatabaseCursor<Fetched>, sql: String) throws {
                     let record = try cursor.next()!
                     XCTAssertEqual(record.firstName, "Arthur")
                     XCTAssertEqual(record.lastName, "Martin")
@@ -103,18 +103,18 @@ class RowConvertibleTests: GRDBTestCase {
                 }
                 do {
                     let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT throw(), NULL"
-                    try test(FetchedType.fetchCursor(db, sql), sql: sql)
-                    try test(FetchedType.fetchCursor(db.makeSelectStatement(sql)), sql: sql)
-                    try test(FetchedType.fetchCursor(db, SQLFetchRequest(sql: sql)), sql: sql)
-                    try test(SQLFetchRequest(sql: sql).bound(to: FetchedType.self).fetchCursor(db), sql: sql)
+                    try test(Fetched.fetchCursor(db, sql), sql: sql)
+                    try test(Fetched.fetchCursor(db.makeSelectStatement(sql)), sql: sql)
+                    try test(Fetched.fetchCursor(db, SQLRequest(sql: sql)), sql: sql)
+                    try test(SQLRequest(sql: sql).bound(to: Fetched.self).fetchCursor(db), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0 AS firstName, 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 0, throw(), NULL"
                     let adapter = SuffixRowAdapter(fromIndex: 1)
-                    try test(FetchedType.fetchCursor(db, sql, adapter: adapter), sql: sql)
-                    try test(FetchedType.fetchCursor(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
-                    try test(FetchedType.fetchCursor(db, SQLFetchRequest(sql: sql, adapter: adapter)), sql: sql)
-                    try test(SQLFetchRequest(sql: sql, adapter: adapter).bound(to: FetchedType.self).fetchCursor(db), sql: sql)
+                    try test(Fetched.fetchCursor(db, sql, adapter: adapter), sql: sql)
+                    try test(Fetched.fetchCursor(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(Fetched.fetchCursor(db, SQLRequest(sql: sql, adapter: adapter)), sql: sql)
+                    try test(SQLRequest(sql: sql, adapter: adapter).bound(to: Fetched.self).fetchCursor(db), sql: sql)
                 }
             }
         }
@@ -124,7 +124,7 @@ class RowConvertibleTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                func test(_ cursor: @autoclosure () throws -> DatabaseCursor<FetchedType>, sql: String) throws {
+                func test(_ cursor: @autoclosure () throws -> DatabaseCursor<Fetched>, sql: String) throws {
                     do {
                         _ = try cursor()
                         XCTFail()
@@ -137,18 +137,18 @@ class RowConvertibleTests: GRDBTestCase {
                 }
                 do {
                     let sql = "SELECT * FROM nonExistingTable"
-                    try test(FetchedType.fetchCursor(db, sql), sql: sql)
-                    try test(FetchedType.fetchCursor(db.makeSelectStatement(sql)), sql: sql)
-                    try test(FetchedType.fetchCursor(db, SQLFetchRequest(sql: sql)), sql: sql)
-                    try test(SQLFetchRequest(sql: sql).bound(to: FetchedType.self).fetchCursor(db), sql: sql)
+                    try test(Fetched.fetchCursor(db, sql), sql: sql)
+                    try test(Fetched.fetchCursor(db.makeSelectStatement(sql)), sql: sql)
+                    try test(Fetched.fetchCursor(db, SQLRequest(sql: sql)), sql: sql)
+                    try test(SQLRequest(sql: sql).bound(to: Fetched.self).fetchCursor(db), sql: sql)
                 }
                 do {
                     let sql = "SELECT * FROM nonExistingTable"
                     let adapter = SuffixRowAdapter(fromIndex: 1)
-                    try test(FetchedType.fetchCursor(db, sql, adapter: adapter), sql: sql)
-                    try test(FetchedType.fetchCursor(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
-                    try test(FetchedType.fetchCursor(db, SQLFetchRequest(sql: sql, adapter: adapter)), sql: sql)
-                    try test(SQLFetchRequest(sql: sql, adapter: adapter).bound(to: FetchedType.self).fetchCursor(db), sql: sql)
+                    try test(Fetched.fetchCursor(db, sql, adapter: adapter), sql: sql)
+                    try test(Fetched.fetchCursor(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(Fetched.fetchCursor(db, SQLRequest(sql: sql, adapter: adapter)), sql: sql)
+                    try test(SQLRequest(sql: sql, adapter: adapter).bound(to: Fetched.self).fetchCursor(db), sql: sql)
                 }
             }
         }
@@ -158,7 +158,7 @@ class RowConvertibleTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                func test(_ array: [FetchedType]) {
+                func test(_ array: [Fetched]) {
                     XCTAssertEqual(array.map { $0.firstName }, ["Arthur", "Barbara"])
                     XCTAssertEqual(array.map { $0.lastName }, ["Martin", "Gourde"])
                     XCTAssertEqual(array.map { $0.isFetched }, [true, true])
@@ -166,19 +166,19 @@ class RowConvertibleTests: GRDBTestCase {
                 do {
                     let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 'Barbara', 'Gourde'"
                     let statement = try db.makeSelectStatement(sql)
-                    try test(FetchedType.fetchAll(db, sql))
-                    try test(FetchedType.fetchAll(statement))
-                    try test(FetchedType.fetchAll(db, SQLFetchRequest(sql: sql)))
-                    try test(SQLFetchRequest(sql: sql).bound(to: FetchedType.self).fetchAll(db))
+                    try test(Fetched.fetchAll(db, sql))
+                    try test(Fetched.fetchAll(statement))
+                    try test(Fetched.fetchAll(db, SQLRequest(sql: sql)))
+                    try test(SQLRequest(sql: sql).bound(to: Fetched.self).fetchAll(db))
                 }
                 do {
                     let sql = "SELECT 0 AS firstName, 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 0, 'Barbara', 'Gourde'"
                     let statement = try db.makeSelectStatement(sql)
                     let adapter = SuffixRowAdapter(fromIndex: 1)
-                    try test(FetchedType.fetchAll(db, sql, adapter: adapter))
-                    try test(FetchedType.fetchAll(statement, adapter: adapter))
-                    try test(FetchedType.fetchAll(db, SQLFetchRequest(sql: sql, adapter: adapter)))
-                    try test(SQLFetchRequest(sql: sql, adapter: adapter).bound(to: FetchedType.self).fetchAll(db))
+                    try test(Fetched.fetchAll(db, sql, adapter: adapter))
+                    try test(Fetched.fetchAll(statement, adapter: adapter))
+                    try test(Fetched.fetchAll(db, SQLRequest(sql: sql, adapter: adapter)))
+                    try test(SQLRequest(sql: sql, adapter: adapter).bound(to: Fetched.self).fetchAll(db))
                 }
             }
         }
@@ -190,7 +190,7 @@ class RowConvertibleTests: GRDBTestCase {
             let customError = NSError(domain: "Custom", code: 0xDEAD)
             dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
             try dbQueue.inDatabase { db in
-                func test(_ array: @autoclosure () throws -> [FetchedType], sql: String) throws {
+                func test(_ array: @autoclosure () throws -> [Fetched], sql: String) throws {
                     do {
                         _ = try array()
                         XCTFail()
@@ -203,18 +203,18 @@ class RowConvertibleTests: GRDBTestCase {
                 }
                 do {
                     let sql = "SELECT throw()"
-                    try test(FetchedType.fetchAll(db, sql), sql: sql)
-                    try test(FetchedType.fetchAll(db.makeSelectStatement(sql)), sql: sql)
-                    try test(FetchedType.fetchAll(db, SQLFetchRequest(sql: sql)), sql: sql)
-                    try test(SQLFetchRequest(sql: sql).bound(to: FetchedType.self).fetchAll(db), sql: sql)
+                    try test(Fetched.fetchAll(db, sql), sql: sql)
+                    try test(Fetched.fetchAll(db.makeSelectStatement(sql)), sql: sql)
+                    try test(Fetched.fetchAll(db, SQLRequest(sql: sql)), sql: sql)
+                    try test(SQLRequest(sql: sql).bound(to: Fetched.self).fetchAll(db), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0, throw()"
                     let adapter = SuffixRowAdapter(fromIndex: 1)
-                    try test(FetchedType.fetchAll(db, sql, adapter: adapter), sql: sql)
-                    try test(FetchedType.fetchAll(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
-                    try test(FetchedType.fetchAll(db, SQLFetchRequest(sql: sql, adapter: adapter)), sql: sql)
-                    try test(SQLFetchRequest(sql: sql, adapter: adapter).bound(to: FetchedType.self).fetchAll(db), sql: sql)
+                    try test(Fetched.fetchAll(db, sql, adapter: adapter), sql: sql)
+                    try test(Fetched.fetchAll(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(Fetched.fetchAll(db, SQLRequest(sql: sql, adapter: adapter)), sql: sql)
+                    try test(SQLRequest(sql: sql, adapter: adapter).bound(to: Fetched.self).fetchAll(db), sql: sql)
                 }
             }
         }
@@ -224,7 +224,7 @@ class RowConvertibleTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                func test(_ array: @autoclosure () throws -> [FetchedType], sql: String) throws {
+                func test(_ array: @autoclosure () throws -> [Fetched], sql: String) throws {
                     do {
                         _ = try array()
                         XCTFail()
@@ -237,18 +237,18 @@ class RowConvertibleTests: GRDBTestCase {
                 }
                 do {
                     let sql = "SELECT * FROM nonExistingTable"
-                    try test(FetchedType.fetchAll(db, sql), sql: sql)
-                    try test(FetchedType.fetchAll(db.makeSelectStatement(sql)), sql: sql)
-                    try test(FetchedType.fetchAll(db, SQLFetchRequest(sql: sql)), sql: sql)
-                    try test(SQLFetchRequest(sql: sql).bound(to: FetchedType.self).fetchAll(db), sql: sql)
+                    try test(Fetched.fetchAll(db, sql), sql: sql)
+                    try test(Fetched.fetchAll(db.makeSelectStatement(sql)), sql: sql)
+                    try test(Fetched.fetchAll(db, SQLRequest(sql: sql)), sql: sql)
+                    try test(SQLRequest(sql: sql).bound(to: Fetched.self).fetchAll(db), sql: sql)
                 }
                 do {
                     let sql = "SELECT * FROM nonExistingTable"
                     let adapter = SuffixRowAdapter(fromIndex: 1)
-                    try test(FetchedType.fetchAll(db, sql, adapter: adapter), sql: sql)
-                    try test(FetchedType.fetchAll(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
-                    try test(FetchedType.fetchAll(db, SQLFetchRequest(sql: sql, adapter: adapter)), sql: sql)
-                    try test(SQLFetchRequest(sql: sql, adapter: adapter).bound(to: FetchedType.self).fetchAll(db), sql: sql)
+                    try test(Fetched.fetchAll(db, sql, adapter: adapter), sql: sql)
+                    try test(Fetched.fetchAll(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(Fetched.fetchAll(db, SQLRequest(sql: sql, adapter: adapter)), sql: sql)
+                    try test(SQLRequest(sql: sql, adapter: adapter).bound(to: Fetched.self).fetchAll(db), sql: sql)
                 }
             }
         }
@@ -259,29 +259,29 @@ class RowConvertibleTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 do {
-                    func test(_ nilBecauseMissingRow: FetchedType?) {
+                    func test(_ nilBecauseMissingRow: Fetched?) {
                         XCTAssertTrue(nilBecauseMissingRow == nil)
                     }
                     do {
                         let sql = "SELECT 1 WHERE 0"
                         let statement = try db.makeSelectStatement(sql)
-                        try test(FetchedType.fetchOne(db, sql))
-                        try test(FetchedType.fetchOne(statement))
-                        try test(FetchedType.fetchOne(db, SQLFetchRequest(sql: sql)))
-                        try test(SQLFetchRequest(sql: sql).bound(to: FetchedType.self).fetchOne(db))
+                        try test(Fetched.fetchOne(db, sql))
+                        try test(Fetched.fetchOne(statement))
+                        try test(Fetched.fetchOne(db, SQLRequest(sql: sql)))
+                        try test(SQLRequest(sql: sql).bound(to: Fetched.self).fetchOne(db))
                     }
                     do {
                         let sql = "SELECT 0, 1 WHERE 0"
                         let statement = try db.makeSelectStatement(sql)
                         let adapter = SuffixRowAdapter(fromIndex: 1)
-                        try test(FetchedType.fetchOne(db, sql, adapter: adapter))
-                        try test(FetchedType.fetchOne(statement, adapter: adapter))
-                        try test(FetchedType.fetchOne(db, SQLFetchRequest(sql: sql, adapter: adapter)))
-                        try test(SQLFetchRequest(sql: sql, adapter: adapter).bound(to: FetchedType.self).fetchOne(db))
+                        try test(Fetched.fetchOne(db, sql, adapter: adapter))
+                        try test(Fetched.fetchOne(statement, adapter: adapter))
+                        try test(Fetched.fetchOne(db, SQLRequest(sql: sql, adapter: adapter)))
+                        try test(SQLRequest(sql: sql, adapter: adapter).bound(to: Fetched.self).fetchOne(db))
                     }
                 }
                 do {
-                    func test(_ record: FetchedType?) {
+                    func test(_ record: Fetched?) {
                         XCTAssertEqual(record!.firstName, "Arthur")
                         XCTAssertEqual(record!.lastName, "Martin")
                         XCTAssertTrue(record!.isFetched)
@@ -289,19 +289,19 @@ class RowConvertibleTests: GRDBTestCase {
                     do {
                         let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName"
                         let statement = try db.makeSelectStatement(sql)
-                        try test(FetchedType.fetchOne(db, sql))
-                        try test(FetchedType.fetchOne(statement))
-                        try test(FetchedType.fetchOne(db, SQLFetchRequest(sql: sql)))
-                        try test(SQLFetchRequest(sql: sql).bound(to: FetchedType.self).fetchOne(db))
+                        try test(Fetched.fetchOne(db, sql))
+                        try test(Fetched.fetchOne(statement))
+                        try test(Fetched.fetchOne(db, SQLRequest(sql: sql)))
+                        try test(SQLRequest(sql: sql).bound(to: Fetched.self).fetchOne(db))
                     }
                     do {
                         let sql = "SELECT 0 AS firstName, 'Arthur' AS firstName, 'Martin' AS lastName"
                         let statement = try db.makeSelectStatement(sql)
                         let adapter = SuffixRowAdapter(fromIndex: 1)
-                        try test(FetchedType.fetchOne(db, sql, adapter: adapter))
-                        try test(FetchedType.fetchOne(statement, adapter: adapter))
-                        try test(FetchedType.fetchOne(db, SQLFetchRequest(sql: sql, adapter: adapter)))
-                        try test(SQLFetchRequest(sql: sql, adapter: adapter).bound(to: FetchedType.self).fetchOne(db))
+                        try test(Fetched.fetchOne(db, sql, adapter: adapter))
+                        try test(Fetched.fetchOne(statement, adapter: adapter))
+                        try test(Fetched.fetchOne(db, SQLRequest(sql: sql, adapter: adapter)))
+                        try test(SQLRequest(sql: sql, adapter: adapter).bound(to: Fetched.self).fetchOne(db))
                     }
                 }
             }
@@ -314,7 +314,7 @@ class RowConvertibleTests: GRDBTestCase {
             let customError = NSError(domain: "Custom", code: 0xDEAD)
             dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
             try dbQueue.inDatabase { db in
-                func test(_ value: @autoclosure () throws -> FetchedType?, sql: String) throws {
+                func test(_ value: @autoclosure () throws -> Fetched?, sql: String) throws {
                     do {
                         _ = try value()
                         XCTFail()
@@ -327,18 +327,18 @@ class RowConvertibleTests: GRDBTestCase {
                 }
                 do {
                     let sql = "SELECT throw()"
-                    try test(FetchedType.fetchOne(db, sql), sql: sql)
-                    try test(FetchedType.fetchOne(db.makeSelectStatement(sql)), sql: sql)
-                    try test(FetchedType.fetchOne(db, SQLFetchRequest(sql: sql)), sql: sql)
-                    try test(SQLFetchRequest(sql: sql).bound(to: FetchedType.self).fetchOne(db), sql: sql)
+                    try test(Fetched.fetchOne(db, sql), sql: sql)
+                    try test(Fetched.fetchOne(db.makeSelectStatement(sql)), sql: sql)
+                    try test(Fetched.fetchOne(db, SQLRequest(sql: sql)), sql: sql)
+                    try test(SQLRequest(sql: sql).bound(to: Fetched.self).fetchOne(db), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0, throw()"
                     let adapter = SuffixRowAdapter(fromIndex: 1)
-                    try test(FetchedType.fetchOne(db, sql, adapter: adapter), sql: sql)
-                    try test(FetchedType.fetchOne(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
-                    try test(FetchedType.fetchOne(db, SQLFetchRequest(sql: sql, adapter: adapter)), sql: sql)
-                    try test(SQLFetchRequest(sql: sql, adapter: adapter).bound(to: FetchedType.self).fetchOne(db), sql: sql)
+                    try test(Fetched.fetchOne(db, sql, adapter: adapter), sql: sql)
+                    try test(Fetched.fetchOne(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(Fetched.fetchOne(db, SQLRequest(sql: sql, adapter: adapter)), sql: sql)
+                    try test(SQLRequest(sql: sql, adapter: adapter).bound(to: Fetched.self).fetchOne(db), sql: sql)
                 }
             }
         }
@@ -348,7 +348,7 @@ class RowConvertibleTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                func test(_ value: @autoclosure () throws -> FetchedType?, sql: String) throws {
+                func test(_ value: @autoclosure () throws -> Fetched?, sql: String) throws {
                     do {
                         _ = try value()
                         XCTFail()
@@ -361,18 +361,18 @@ class RowConvertibleTests: GRDBTestCase {
                 }
                 do {
                     let sql = "SELECT * FROM nonExistingTable"
-                    try test(FetchedType.fetchOne(db, sql), sql: sql)
-                    try test(FetchedType.fetchOne(db.makeSelectStatement(sql)), sql: sql)
-                    try test(FetchedType.fetchOne(db, SQLFetchRequest(sql: sql)), sql: sql)
-                    try test(SQLFetchRequest(sql: sql).bound(to: FetchedType.self).fetchOne(db), sql: sql)
+                    try test(Fetched.fetchOne(db, sql), sql: sql)
+                    try test(Fetched.fetchOne(db.makeSelectStatement(sql)), sql: sql)
+                    try test(Fetched.fetchOne(db, SQLRequest(sql: sql)), sql: sql)
+                    try test(SQLRequest(sql: sql).bound(to: Fetched.self).fetchOne(db), sql: sql)
                 }
                 do {
                     let sql = "SELECT * FROM nonExistingTable"
                     let adapter = SuffixRowAdapter(fromIndex: 1)
-                    try test(FetchedType.fetchOne(db, sql, adapter: adapter), sql: sql)
-                    try test(FetchedType.fetchOne(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
-                    try test(FetchedType.fetchOne(db, SQLFetchRequest(sql: sql, adapter: adapter)), sql: sql)
-                    try test(SQLFetchRequest(sql: sql, adapter: adapter).bound(to: FetchedType.self).fetchOne(db), sql: sql)
+                    try test(Fetched.fetchOne(db, sql, adapter: adapter), sql: sql)
+                    try test(Fetched.fetchOne(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                    try test(Fetched.fetchOne(db, SQLRequest(sql: sql, adapter: adapter)), sql: sql)
+                    try test(SQLRequest(sql: sql, adapter: adapter).bound(to: Fetched.self).fetchOne(db), sql: sql)
                 }
             }
         }

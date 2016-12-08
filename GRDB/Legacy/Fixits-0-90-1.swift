@@ -2,7 +2,7 @@ extension Row {
     @available(*, unavailable, renamed:"fetchCursor")
     public static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Any { preconditionFailure() }
     @available(*, unavailable, renamed:"fetchCursor")
-    public static func fetch(_ db: Database, _ request: FetchRequest) -> Any { preconditionFailure() }
+    public static func fetch(_ db: Database, _ request: Request) -> Any { preconditionFailure() }
     @available(*, unavailable, renamed:"fetchCursor")
     public static func fetch(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Any { preconditionFailure() }
 }
@@ -11,7 +11,7 @@ extension DatabaseValueConvertible {
     @available(*, unavailable, renamed:"fetchCursor")
     public static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Any { preconditionFailure() }
     @available(*, unavailable, renamed:"fetchCursor")
-    public static func fetch(_ db: Database, _ request: FetchRequest) -> Any { preconditionFailure() }
+    public static func fetch(_ db: Database, _ request: Request) -> Any { preconditionFailure() }
     @available(*, unavailable, renamed:"fetchCursor")
     public static func fetch(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Any { preconditionFailure() }
 }
@@ -20,7 +20,7 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     @available(*, unavailable, renamed:"fetchCursor")
     public static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Any { preconditionFailure() }
     @available(*, unavailable, renamed:"fetchCursor")
-    public static func fetch(_ db: Database, _ request: FetchRequest) -> Any { preconditionFailure() }
+    public static func fetch(_ db: Database, _ request: Request) -> Any { preconditionFailure() }
     @available(*, unavailable, renamed:"fetchCursor")
     public static func fetch(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Any { preconditionFailure() }
 }
@@ -34,7 +34,7 @@ extension RowConvertible {
     @available(*, unavailable, renamed:"fetchCursor")
     public static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Any { preconditionFailure() }
     @available(*, unavailable, renamed:"fetchCursor")
-    public static func fetch(_ db: Database, _ request: FetchRequest) -> Any { preconditionFailure() }
+    public static func fetch(_ db: Database, _ request: Request) -> Any { preconditionFailure() }
     @available(*, unavailable, renamed:"fetchCursor")
     public static func fetch(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Any { preconditionFailure() }
 }
