@@ -3216,7 +3216,7 @@ Person.deleteOne(db, key: ["email": "arthur@example.com"])
 
 ## Custom Requests
 
-Until now, we have seen fetch requests created from any type that adopts the [TableMapping](#tablemapping-protocol) protocol:
+Until now, we have seen [fetch requests](#requests) created from any type that adopts the [TableMapping](#tablemapping-protocol) protocol:
 
 ```swift
 let request = Person.all()  // QueryInterfaceRequest<Person>
@@ -3232,7 +3232,15 @@ try request.fetchCount()    // Int
 try request.deleteAll()
 ```
 
-**When the query interface can not generate the SQL you need**, you can still build requests on top of the `Request` and `TypedRequest` protocols. Unlike QueryInterfaceRequest, these protocols can't count or delete. But they can fetch:
+**When the query interface can not generate the SQL you need**, you can still fallback to [raw SQL](#fetch-queries):
+
+```swift
+let persons = try Person.fetchAll(db, "SELECT ...")
+```
+
+But if you wish to write `Person.customRequest().fetchAll(db)`, then you can build **custom requests on top of the `Request` and `TypedRequest` protocols**.
+
+Unlike QueryInterfaceRequest, these protocols can't count or delete. But they can fetch:
 
 ```swift
 /// The protocol for all types that define a way to fetch values from
@@ -3270,7 +3278,7 @@ try request.fetchAll(db)         // [Person]
 try request.fetchOne(db)         // Person?
 ```
 
-**To build fetch requests**, you can create your own type that adopts the protocols, or use one of the four built-in concrete types ([QueryInterfaceRequest](#requests), SQLRequest, AnyRequest, AnyTypedRequest):
+**To build requests**, you can create your own type that adopts the protocols, or use one of the four built-in concrete types ([QueryInterfaceRequest](#requests), SQLRequest, AnyRequest, AnyTypedRequest):
 
 ```swift
 extension Request {
