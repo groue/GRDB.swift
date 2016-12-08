@@ -229,7 +229,8 @@ public final class EnumeratedCursor<Base : Cursor> : Cursor {
     private var base: Base
 }
 
-/// TODO
+/// A cursor whose elements consist of the elements of some base cursor that
+/// also satisfy a given predicate.
 public final class FilterCursor<Base : Cursor> : Cursor {
     init(_ base: Base, _ isIncluded: @escaping (Base.Element) throws -> Bool) {
         self.base = base
@@ -301,7 +302,6 @@ public final class MapCursor<Base : Cursor, Element> : Cursor {
 
 /// A Cursor whose elements are those of a sequence iterator.
 public final class IteratorCursor<Base : IteratorProtocol> : Cursor {
-    // TODO: remove this type when `extension IteratorProtocol : Cursor { }` can be written
     
     /// Creates a cursor from a sequence iterator.
     public init(_ base: Base) {
