@@ -1,6 +1,18 @@
 Release Notes
 =============
 
+## Next Version
+
+**New**
+
+- `SQLRequest`, `AnyRequest`, `TypedRequest` and `AnyTypedRequest` are new protocols and concrete types that let you build [custom fetch requests](https://github.com/groue/GRDB.swift#custom-requests).
+- `RangeRowAdapter` is a new kind of [row adapter](https://github.com/groue/GRDB.swift#row-adapters) which exposes a range of columns.
+
+**Breaking Changes**
+
+- `FetchRequest` protocol has been renamed `Request`.
+
+
 ## 0.94.0
 
 Released December 7, 2016
@@ -45,7 +57,7 @@ Released December 1, 2016
 
 - Fixed a bug in `DatabasePool.readFromCurrentState` where its block argument could see database changes that it should not have seen ([documentation](https://github.com/groue/GRDB.swift#advanced-databasepool)).
 
-**Breaking Change**
+**Breaking Changes**
 
 - `DatabaseWriter.readFromWrite` has been renamed `DatabaseWriter.readFromCurrentState`
 - `DatabaseReader.nonIsolatedRead` has been renamed `DatabaseReader.unsafeRead`
