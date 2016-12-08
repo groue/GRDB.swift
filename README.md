@@ -3232,7 +3232,7 @@ try request.fetchCount()    // Int
 try request.deleteAll()
 ```
 
-**Whenever the query interface can not generate the SQL you need**, you can still build requests on top of the `Request` and `TypedRequest` protocols. Those protocols can't count or delete, but they can fetch:
+**When the query interface can not generate the SQL you need**, you can still build requests on top of the `Request` and `TypedRequest` protocols. Unlike QueryInterfaceRequest, these protocols can't count or delete. But they can fetch:
 
 ```swift
 /// The protocol for all types that define a way to fetch values from
@@ -3249,6 +3249,8 @@ protocol TypedRequest : Request {
     associatedtype Fetched
 }
 ```
+
+The `prepare(_:)` function returns a tuple made of a [prepared statement](#prepared-statements) and an optional [row adapter](#row-adapters).
 
 A Request doesn't know what to fetch, but it can be used by any fetchable type ([row](#fetching-rows), [value](#values), or [record](#records)):
 
@@ -3276,12 +3278,14 @@ extension Request {
     func bound<T>(to type: T.Type) -> AnyTypedRequest<T>
 }
 
+/// A Request built from raw SQL.
 struct SQLRequest : Request {
     /// Creates a fetch request from an SQL string, optional arguments, and
     /// optional row adapter.
     init(sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil)
 }
 
+/// A type-erased Request.
 struct AnyRequest : Request {
     /// Creates a new fetch request that wraps and forwards operations
     /// to `request`.
@@ -3292,6 +3296,7 @@ struct AnyRequest : Request {
     init(_ prepare: @escaping (Database) throws -> (SelectStatement, RowAdapter?))
 }
 
+/// A type-erased TypedRequest.
 struct AnyTypedRequest<T> : TypedRequest {
     /// The fetched type
     typealias Fetched = T

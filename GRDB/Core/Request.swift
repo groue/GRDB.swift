@@ -44,7 +44,7 @@ public struct AnyRequest : Request {
     private let _prepare: (Database) throws -> (SelectStatement, RowAdapter?)
 }
 
-/// TODO
+/// A Request built from raw SQL.
 public struct SQLRequest : Request {
     /// Creates a fetch request from an SQL string, optional arguments, and
     /// optional row adapter.
