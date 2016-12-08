@@ -3269,8 +3269,8 @@ A Request doesn't know what to fetch, so it needs help from a fetchable type ([r
 ```swift
 let request: Request = ...
 try Row.fetchCursor(db, request) // DatabaseCursor<Row>
-try Person.fetchAll(db, request) // [Person]
-try String.fetchOne(db, request) // String?
+try String.fetchAll(db, request) // [String]
+try Person.fetchOne(db, request) // Person?
 ```
 
 A TypedRequest knows exactly what it has to do:
