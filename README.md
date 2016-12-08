@@ -3329,7 +3329,7 @@ For example, let's extend the Person type:
 
 ```swift
 extension Person {
-    static func myCustomRequest() -> AnyTypedRequest<Person> {
+    static func someCustomRequest() -> AnyTypedRequest<Person> {
         // Some custom SQL
         let sqlRequest = SQLRequest(sql: "SELECT * FROM persons")
         return sqlRequest.bound(to: Person.self)
@@ -3337,10 +3337,10 @@ extension Person {
 }
 ```
 
-You can now use the `myCustomRequest` method just like other [query interface requests](#requests):
+You can now use the `someCustomRequest` method just like built-in requests from the [query interface](#requests):
 
 ```swift
-try Person.myCustomRequest().fetchAll(db) // [Person]
+try Person.someCustomRequest().fetchAll(db) // [Person]
 ```
 
 Another example, which builds a JOIN request with a [row adapter](#row-adapters):
