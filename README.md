@@ -3238,7 +3238,11 @@ try request.deleteAll()
 let persons = try Person.fetchAll(db, "SELECT ...")
 ```
 
-But if you wish to write `Person.customRequest().fetchAll(db)`, then you can build **custom requests on top of the `Request` and `TypedRequest` protocols**.
+But you may prefer to bring some elegance back in, and build custom requests on top of the `Request` and `TypedRequest` protocols:
+
+```swift
+let persons = try Person.someCustomRequest().fetchAll(db)
+```
 
 Unlike QueryInterfaceRequest, these protocols can't count or delete. But they can fetch:
 
