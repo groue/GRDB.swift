@@ -3268,7 +3268,7 @@ try request.fetchAll()             // [Person]
 try request.fetchOne()             // Person?
 ```
 
-**To build fetch requests**, you can create your own type that adopts the protocols, use one of the four built-in concrete types ([QueryInterfaceRequest](#requests), SQLFetchRequest, AnyFetchRequest, AnyTypedFetchRequest):
+**To build fetch requests**, you can create your own type that adopts the protocols, or use one of the four built-in concrete types ([QueryInterfaceRequest](#requests), SQLFetchRequest, AnyFetchRequest, AnyTypedFetchRequest):
 
 ```swift
 extension FetchRequest {
