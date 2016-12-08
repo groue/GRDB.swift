@@ -3266,7 +3266,7 @@ protocol TypedRequest : Request {
 
 The `prepare(_:)` function returns a tuple made of a [prepared statement](#prepared-statements) and an optional [row adapter](#row-adapters).
 
-A Request doesn't know what to fetch, so it needs help from a fetchable type ([row](#fetching-rows), [value](#value-queries), or [record](#records)):
+A Request doesn't know what to fetch, but it can feed the [fetching methods](#fetching-methods) of any fetchable type ([row](#fetching-rows), [value](#value-queries), or [record](#records)):
 
 ```swift
 let request: Request = ...
