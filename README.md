@@ -3250,7 +3250,7 @@ protocol TypedFetchRequest : FetchRequest {
 }
 ```
 
-FetchRequest can not fetch itself, but it can be consumed by fetchable types:
+FetchRequest can not fetch itself, because it doesn't know what to fetch. But it can be consumed by fetchable types:
 
 ```swift
 let request: FetchRequest = ...
@@ -3259,7 +3259,7 @@ try Person.fetchAll(db, request)   // [Person]
 try String.fetchOne(db, request)   // String?
 ```
 
-TypedFetchRequest can fetch, just like [regular query interface requests](#requests):
+TypedFetchRequest knows what to fetch, and thus it can fetch (just like [regular query interface requests](#requests)):
 
 ```swift
 let request = ...                  // Some TypedFetchRequest with Person as FetchedType
