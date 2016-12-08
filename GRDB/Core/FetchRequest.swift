@@ -51,7 +51,7 @@ public struct AnyFetchRequest : FetchRequest {
 public struct SQLFetchRequest : FetchRequest {
     /// Creates a fetch request from an SQL statement, optional arguments, and
     /// optional row adapter.
-    init(sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) {
+    public init(sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) {
         self.sql = sql
         self.arguments = arguments
         self.adapter = adapter
