@@ -3217,7 +3217,7 @@ Person.deleteOne(db, key: ["email": "arthur@example.com"])
 
 ## Custom Requests
 
-Until now, we have seen [fetch requests](#requests) created from any type that adopts the [TableMapping](#tablemapping-protocol) protocol:
+Until now, we have seen [requests](#requests) created from any type that adopts the [TableMapping](#tablemapping-protocol) protocol:
 
 ```swift
 let request = Person.all()  // QueryInterfaceRequest<Person>
