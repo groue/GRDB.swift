@@ -3328,7 +3328,7 @@ You can now use the `myCustomRequest` method just like other [query interface re
 try Person.myCustomRequest().fetchAll(db) // [Person]
 ```
 
-Another, more advanced example:
+Another example, which builds a JOIN request with a [row adapter](#row-adapters):
 
 ```swift
 struct BookAuthorPair : RowConvertible {
@@ -3336,8 +3336,8 @@ struct BookAuthorPair : RowConvertible {
     let author: Author
     
     init(row: Row) {
-        book = Book(row: row.scoped(on: "book")!)
-        author = Author(row: row.scoped(on: "author")!)
+        book = Book(row: row.scoped(on: "books")!)
+        author = Author(row: row.scoped(on: "authors")!)
     }
     
     static func all() -> AnyTypedFetchRequest<BookAuthorPair> {
@@ -3346,8 +3346,8 @@ struct BookAuthorPair : RowConvertible {
                       "FROM books " +
                       "JOIN authors ON authors.id = books.authorID"
             let adapter = try ScopeAdapter([
-                "book": SuffixRowAdapter(fromIndex: 0),
-                "author": SuffixRowAdapter(fromIndex: db.columnCount(in: "books"))])
+                "books": SuffixRowAdapter(fromIndex: 0),
+                "authors": SuffixRowAdapter(fromIndex: db.columnCount(in: "books"))])
             let statement = try db.makeSelectStatement(sql)
             return (statement, adapter)
         }
@@ -3359,8 +3359,6 @@ for pair in try BookAuthorPair.all().fetchAll(db) {
 }
 ```
 
-
-[QueryInterfaceRequest](#requests) adopts TypedFetchRequest.
 
 Application Tools
 =================
