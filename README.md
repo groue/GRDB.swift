@@ -3235,12 +3235,14 @@ try request.deleteAll()
 **When the query interface can not generate the SQL you need**, you can still fallback to [raw SQL](#fetch-queries):
 
 ```swift
+// Custom SQL is always welcome
 let persons = try Person.fetchAll(db, "SELECT ...")
 ```
 
 But you may prefer to bring some elegance back in, and build custom requests on top of the `Request` and `TypedRequest` protocols:
 
 ```swift
+// No custom SQL in sight
 let persons = try Person.someCustomRequest().fetchAll(db)
 ```
 
