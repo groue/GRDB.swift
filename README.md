@@ -3268,18 +3268,14 @@ try request.fetchAll()      // [Person]
 try request.fetchOne()      // Person?
 ```
 
-Bind fetch requests to a type T with the `bound(to:)` method:
+**To build fetch requests**, you can create your own type that adopts the protocols, use one of the four built-in concrete types ([QueryInterfaceRequest](#requests), SQLFetchRequest, AnyFetchRequest, AnyTypedFetchRequest), or use the `bound(to:)` method:
 
 ```swift
 extension FetchRequest {
     /// Returns a TypedFetchRequest bound to type T:
     func bound<T>(to type: T.Type) -> AnyTypedFetchRequest<T>
 }
-```
 
-**To build fetch requests**, you can create your own type that adopts the protocols, or use one of the four built-in concrete types: [QueryInterfaceRequest](#requests) that we already know, and SQLFetchRequest, AnyFetchRequest, AnyTypedFetchRequest:
-
-```swift
 struct SQLFetchRequest : FetchRequest {
     /// Creates a fetch request from an SQL statement, optional arguments, and
     /// optional row adapter.
