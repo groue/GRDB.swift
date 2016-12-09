@@ -1500,7 +1500,7 @@ Row adapters are values that adopt the [RowAdapter](http://cocoadocs.org/docsets
 
 ### ColumnMapping
 
-ColumnMapping renames columns. Build on with a dictionary whose keys are adapted column names, and values the column names in the raw row:
+ColumnMapping renames columns. Build one with a dictionary whose keys are adapted column names, and values the column names in the raw row:
 
 ```swift
 // <Row newName:"Hello">
