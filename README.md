@@ -3289,7 +3289,7 @@ try request.fetchOne(db)         // Person?
 
 ```swift
 extension Request {
-    /// Turns any request into a TypedRequest bound to type T:
+    /// Returns a TypedRequest bound to type T:
     func bound<T>(to type: T.Type) -> AnyTypedRequest<T>
 }
 
