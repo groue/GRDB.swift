@@ -1537,14 +1537,12 @@ let adapter = ScopeAdapter([
     "left": RangeRowAdapter(0..<2),
     "right": RangeRowAdapter(2..<4)])
 let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c, 3 AS d", adapter: adapter)!
-
-// <Row a:0 b:1 c:2 d:3>
-row
 ```
 
-ScopeAdapter did not change the columns and values of the fetched row. Instead, it has added *scopes*, which you access with the `scoped(on:)` method. It returns an optional Row, which is nil if the scope is missing.
+ScopeAdapter does not change the columns and values of the fetched row. Instead, it defines *scopes*, which you access with the `scoped(on:)` method. It returns an optional Row, which is nil if the scope is missing.
 
 ```swift
+row                       // <Row a:0 b:1 c:2 d:3>
 row.scoped(on: "left")    // <Row a:0 b:1>
 row.scoped(on: "right")   // <Row c:2 d:3>
 row.scoped(on: "missing") // nil
@@ -1579,9 +1577,8 @@ let adapter = RangeRowAdapter(0..<2)
     .addingScopes(["remainder": SuffixRowAdapter(fromIndex: 2)])
 let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c, 3 AS d", adapter: adapter)!
 
-row                         // <Row a:0 b:1>
+row // <Row a:0 b:1>
 row.scoped(on: "remainder") // <Row c:2 d:3>
-
 ```
 
 
