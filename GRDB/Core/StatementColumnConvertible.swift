@@ -205,7 +205,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     /// - returns: A cursor over fetched values.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
-        return try fetchCursor(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
+        return try fetchCursor(db, SQLRequest(sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of values fetched from an SQL query.
@@ -220,7 +220,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     /// - returns: An array of values.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Self] {
-        return try fetchAll(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
+        return try fetchAll(db, SQLRequest(sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single value fetched from an SQL query.
@@ -235,6 +235,6 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     /// - returns: An optional value.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self? {
-        return try fetchOne(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
+        return try fetchOne(db, SQLRequest(sql, arguments: arguments, adapter: adapter))
     }
 }

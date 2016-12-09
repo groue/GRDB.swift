@@ -202,7 +202,7 @@ extension RowConvertible {
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
-        return try fetchCursor(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
+        return try fetchCursor(db, SQLRequest(sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of records fetched from an SQL query.
@@ -217,7 +217,7 @@ extension RowConvertible {
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Self] {
-        return try fetchAll(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
+        return try fetchAll(db, SQLRequest(sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single record fetched from an SQL query.
@@ -232,7 +232,7 @@ extension RowConvertible {
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self? {
-        return try fetchOne(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
+        return try fetchOne(db, SQLRequest(sql, arguments: arguments, adapter: adapter))
     }
 }
 

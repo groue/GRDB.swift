@@ -3297,7 +3297,7 @@ extension Request {
 struct SQLRequest : Request {
     /// Creates a fetch request from an SQL string, optional arguments, and
     /// optional row adapter.
-    init(sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil)
+    init(_ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil)
 }
 
 /// A type-erased Request.
@@ -3332,7 +3332,7 @@ For example, let's extend the Person type:
 extension Person {
     static func someCustomRequest() -> AnyTypedRequest<Person> {
         // Some custom SQL
-        let sqlRequest = SQLRequest(sql: "SELECT * FROM persons")
+        let sqlRequest = SQLRequest("SELECT * FROM persons")
         return sqlRequest.bound(to: Person.self)
     }
 }
