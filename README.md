@@ -1481,118 +1481,108 @@ citizenshipsPk.rowIDColumn // nil
 
 ## Row Adapters
 
-**Row adapters let you map column names for easier row consumption.**
+**Row adapters let you present database rows in the way expected by the row consumers.**
 
-They basically help two incompatible row interfaces to work together. For example, a row consumer expects a column named "consumed", but the produced row has a column named "produced":
+They basically help two incompatible row interfaces to work together. For example, a row consumer expects a column named "consumed", but the produced row has a column named "produced".
+
+In this case, the `ColumnMapping` row adapter comes in handy:
 
 ```swift
-// An adapter that maps column 'consumed' to column 'produced':
+// Fetch a 'produced' column, and consume a 'consumed' column:
 let adapter = ColumnMapping(["consumed": "produced"])
-
-// Fetch a column named 'produced', and apply adapter:
 let row = try Row.fetchOne(db, "SELECT 'Hello' AS produced", adapter: adapter)!
-
-// The adapter in action:
 row.value(named: "consumed") // "Hello"
+row.value(named: "produced") // nil
 ```
 
+Row adapters are values that adopt the [RowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.94.0/Protocols/RowAdapter.html) protocol. You can implement your own custom adapters, or use one of the four built-in adapters:
 
-**Row adapters can also define row "scopes".** Scopes help several consumers feed on a single row and can reveal useful with joined queries.
 
-For example, let's build a query which loads books along with their author:
+### ColumnMapping
+
+ColumnMapping renames columns. Build on with a dictionary whose keys are adapted column names, and values the column names in the raw row:
 
 ```swift
-let sql = "SELECT books.id, books.title, " +
-          "       books.authorID, persons.name AS authorName " +
-          "FROM books " +
-          "JOIN persons ON books.authorID = persons.id"
+// <Row newName:"Hello">
+let adapter = ColumnMapping(["newName": "oldName"])
+let row = try Row.fetchOne(db, "SELECT 'Hello' AS oldName", adapter: adapter)!
 ```
 
-The author columns are "authorID" and "authorName". Let's say that we prefer to consume them as "id" and "name". For that we define a scope named "author":
+### SuffixRowAdapter
+
+`SuffixRowAdapter` hides the first columns in a row:
 
 ```swift
-let authorMapping = ColumnMapping(["id": "authorID", "name": "authorName"])
-let adapter = ScopeAdapter(["author": authorMapping])
+// <Row b:1 c:2>
+let adapter = SuffixRowAdapter(fromIndex: 1)
+let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c", adapter: adapter)!
 ```
 
-Use the `Row.scoped(on:)` method to access the "author" scope:
+### RangeRowAdapter
+
+`RangeRowAdapter` only exposes a range of columns.
 
 ```swift
-let rows = try Row.fetchCursor(db, sql, adapter: adapter)
-while let row = try rows.next() {
-    // The fetched row, without adaptation:
-    row.value(named: "id")          // 1
-    row.value(named: "title")       // Moby-Dick
-    row.value(named: "authorID")    // 10
-    row.value(named: "authorName")  // Melville
-    
-    // The "author" scope, with mapped columns:
-    if let authorRow = row.scoped(on: "author") {
-        authorRow.value(named: "id")    // 10
-        authorRow.value(named: "name")  // Melville
-    }
-}
+// <Row b:1>
+let adapter = RangeRowAdapter(1..<2)
+let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c", adapter: adapter)!
 ```
 
-> :bowtie: **Tip**: now that we have nice "id" and "name" columns, we can leverage [RowConvertible](#rowconvertible-protocol) types such as [Record](#record-class) subclasses. For example, assuming the Book type consumes the "author" scope in its row initializer and builds a Person from it, the same row can be consumed by both the Book and Person types:
-> 
-> ```swift
-> let books = try Book.fetchCursor(db, sql, adapter: adapter)
-> while let book = try books.next() {
->     book.title        // Moby-Dick
->     book.author?.name // Melville
-> }
-> ```
-> 
-> And Person and Book can still be fetched without row adapters:
-> 
-> ```swift
-> let books = try Book.fetchAll(db, "SELECT * FROM books")
-> let persons = try Person.fetchAll(db, "SELECT * FROM persons")
-> ```
+### ScopeAdapter
 
-
-**You can mix a main adapter with scopes:**
+`ScopeAdapter` defines *row scopes*:
 
 ```swift
-let sql = "SELECT main.id AS mainID, main.name AS mainName, " +
-          "       friend.id AS friendID, friend.name AS friendName, " +
-          "FROM persons main " +
-          "LEFT JOIN persons friend ON friend.id = main.bestFriendID"
+let adapter = ScopeAdapter([
+    "left": RangeRowAdapter(0..<2),
+    "right": RangeRowAdapter(2..<4)])
+let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c, 3 AS d", adapter: adapter)!
 
-let mainAdapter = ColumnMapping(["id": "mainID", "name": "mainName"])
-let bestFriendAdapter = ColumnMapping(["id": "friendID", "name": "friendName"])
-let adapter = mainAdapter.addingScopes(["bestFriend": bestFriendAdapter])
-
-let rows = try Row.fetchCursor(db, sql, adapter: adapter)
-while let row = try rows.next() {
-    // The fetched row, adapted with mainAdapter:
-    row.value(named: "id")   // 1
-    row.value(named: "name") // Arthur
-    
-    // The "bestFriend" scope, with bestFriendAdapter:
-    if let bestFriendRow = row.scoped(on: "bestFriend") {
-        bestFriendRow.value(named: "id")    // 2
-        bestFriendRow.value(named: "name")  // Barbara
-    }
-}
-
-// Assuming Person.init(row:) consumes the "bestFriend" scope:
-let persons = try Person.fetchCursor(db, sql, adapter: adapter)
-while let person = try persons.next() {
-    person.name             // Arthur
-    person.bestFriend?.name // Barbara
-}
+// <Row a:0 b:1 c:2 d:3>
+row
 ```
 
+ScopeAdapter did not change the columns and values of the fetched row. Instead, it has added *scopes*, which you access with the `scoped(on:)` method. It returns an optional Row, which is nil if the scope is missing.
 
-For more information about row adapters, see the documentation of:
+```swift
+row.scoped(on: "left")    // <Row a:0 b:1>
+row.scoped(on: "right")   // <Row c:2 d:3>
+row.scoped(on: "missing") // nil
+```
 
-- [RowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.94.0/Protocols/RowAdapter.html): the protocol that lets you define your custom row adapters
-- [ColumnMapping](http://cocoadocs.org/docsets/GRDB.swift/0.94.0/Structs/ColumnMapping.html): a row adapter that renames row columns
-- [RangeRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.94.0/Structs/SuffixRowAdapter.html): a row adapter that only exposes a range of columns
-- [SuffixRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.94.0/Structs/SuffixRowAdapter.html): a row adapter that hides the first columns of a row
-- [ScopeAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.94.0/Structs/ScopeAdapter.html): the row adapter that groups several adapters together to define scopes
+Scopes can be nested:
+
+```swift
+let adapter = ScopeAdapter([
+    "left": ScopeAdapter([
+            "left": RangeRowAdapter(0..<1),
+            "right": RangeRowAdapter(1..<2)]),
+    "right": ScopeAdapter([
+            "left": RangeRowAdapter(2..<3),
+            "right": RangeRowAdapter(3..<4)])
+    ])
+let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c, 3 AS d", adapter: adapter)!
+
+let leftRow = row.scoped(on: "left")!
+leftRow.scoped(on: "left")  // <Row a:0>
+leftRow.scoped(on: "right") // <Row b:1>
+
+let rightRow = row.scoped(on: "right")!
+rightRow.scoped(on: "left")  // <Row c:2>
+rightRow.scoped(on: "right") // <Row d:3>
+```
+
+Any adapter can be extended with scopes:
+
+```swift
+let adapter = RangeRowAdapter(0..<2)
+    .addingScopes(["remainder": SuffixRowAdapter(fromIndex: 2)])
+let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c, 3 AS d", adapter: adapter)!
+
+row                         // <Row a:0 b:1>
+row.scoped(on: "remainder") // <Row c:2 d:3>
+
+```
 
 
 ## Raw SQLite Pointers
