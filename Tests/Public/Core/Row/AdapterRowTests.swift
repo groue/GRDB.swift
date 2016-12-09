@@ -494,7 +494,7 @@ class AdapterRowTests : RowTestCase {
         }
     }
     
-    func testRangeAdapter() {
+    func testRangeAdapterWithCountableRange() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -523,6 +523,40 @@ class AdapterRowTests : RowTestCase {
                     let row = try Row.fetchOne(db, sql, adapter: RangeRowAdapter(4..<4))!
                     XCTAssertEqual(Array(row.columnNames), [])
                     XCTAssertEqual(Array(row.databaseValues), [])
+                }
+            }
+        }
+    }
+    
+    func testRangeAdapterWithCountableClosedRange() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let sql = "SELECT 0 AS a0, 1 AS a1, 2 AS a2, 3 AS a3"
+                do {
+                    let row = try Row.fetchOne(db, sql, adapter: RangeRowAdapter(0...0))!
+                    XCTAssertEqual(Array(row.columnNames), ["a0"])
+                    XCTAssertEqual(Array(row.databaseValues), [0.databaseValue])
+                }
+                do {
+                    let row = try Row.fetchOne(db, sql, adapter: RangeRowAdapter(0...1))!
+                    XCTAssertEqual(Array(row.columnNames), ["a0", "a1"])
+                    XCTAssertEqual(Array(row.databaseValues), [0.databaseValue, 1.databaseValue])
+                }
+                do {
+                    let row = try Row.fetchOne(db, sql, adapter: RangeRowAdapter(1...2))!
+                    XCTAssertEqual(Array(row.columnNames), ["a1", "a2"])
+                    XCTAssertEqual(Array(row.databaseValues), [1.databaseValue, 2.databaseValue])
+                }
+                do {
+                    let row = try Row.fetchOne(db, sql, adapter: RangeRowAdapter(0...3))!
+                    XCTAssertEqual(Array(row.columnNames), ["a0", "a1", "a2", "a3"])
+                    XCTAssertEqual(Array(row.databaseValues), [0.databaseValue, 1.databaseValue, 2.databaseValue, 3.databaseValue])
+                }
+                do {
+                    let row = try Row.fetchOne(db, sql, adapter: RangeRowAdapter(3...3))!
+                    XCTAssertEqual(Array(row.columnNames), ["a3"])
+                    XCTAssertEqual(Array(row.databaseValues), [3.databaseValue])
                 }
             }
         }

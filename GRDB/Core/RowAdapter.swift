@@ -234,6 +234,12 @@ public struct RangeRowAdapter : RowAdapter {
         self.range = range
     }
     
+    /// Creates a RangeRowAdapter that only exposes a range of columns.
+    public init(_ range: CountableClosedRange<Int>) {
+        GRDBPrecondition(range.lowerBound >= 0, "Negative column index is out of range")
+        self.range = range.lowerBound..<(range.upperBound + 1)
+    }
+    
     /// Part of the RowAdapter protocol
     public func concreteRowAdapter(with statement: SelectStatement) throws -> ConcreteRowAdapter {
         GRDBPrecondition(range.lowerBound <= statement.columnCount, "Column index is out of range")
