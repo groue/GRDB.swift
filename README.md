@@ -3267,7 +3267,7 @@ protocol TypedRequest : Request {
 
 The `prepare(_:)` function returns a tuple made of a [prepared statement](#prepared-statements) and an optional [row adapter](#row-adapters). The prepared statement tells which SQL query should be executed. The row adapter can help *presenting* the fetched rows in the way expected by the row consumers (we'll see an example below).
 
-A Request doesn't know what to fetch, but it can feed the [fetching methods](#fetching-methods) of any fetchable type ([row](#fetching-rows), [value](#value-queries), or [record](#records)):
+A Request doesn't know what to fetch, but it can feed the [fetching methods](#fetching-methods) of any fetchable type ([Row](#fetching-rows), [value](#value-queries), or [record](#records)):
 
 ```swift
 let request: Request = ...
@@ -3276,7 +3276,7 @@ try String.fetchAll(db, request) // [String]
 try Person.fetchOne(db, request) // Person?
 ```
 
-A TypedRequest knows exactly what it has to do:
+A TypedRequest knows exactly what it has to do when its Fetched associated type is fetchable ([Row](#fetching-rows), [value](#value-queries), or [record](#records)):
 
 ```swift
 let request = ...                // Some TypedRequest that fetches Person
