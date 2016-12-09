@@ -3285,7 +3285,7 @@ try request.fetchAll(db)         // [Person]
 try request.fetchOne(db)         // Person?
 ```
 
-**To build requests**, you can create your own type that adopts the protocols, or use one of the four built-in concrete types ([QueryInterfaceRequest](#requests), SQLRequest, AnyRequest, AnyTypedRequest):
+**To build requests**, you can create your own type that adopts the protocols, or use one of the built-in concrete types:
 
 ```swift
 extension Request {
