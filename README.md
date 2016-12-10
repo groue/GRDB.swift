@@ -1553,11 +1553,11 @@ Scopes can be nested:
 ```swift
 let adapter = ScopeAdapter([
     "left": ScopeAdapter([
-            "left": RangeRowAdapter(0..<1),
-            "right": RangeRowAdapter(1..<2)]),
+        "left": RangeRowAdapter(0..<1),
+        "right": RangeRowAdapter(1..<2)]),
     "right": ScopeAdapter([
-            "left": RangeRowAdapter(2..<3),
-            "right": RangeRowAdapter(3..<4)])
+        "left": RangeRowAdapter(2..<3),
+        "right": RangeRowAdapter(3..<4)])
     ])
 let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c, 3 AS d", adapter: adapter)!
 
