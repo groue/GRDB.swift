@@ -1,6 +1,5 @@
 - [ ] Request.bound(to:adapter:) (requires adapters to be able to adapt an already adapted row)
-- [ ] Insert TypedRequest between Request and QueryInterfaceRequest
-- [ ] Think about supporting Cursor's underestimatedCount, which could speed up Array(cursor)
+- [ ] Think about supporting Cursor's underestimatedCount, which could speed up Array(cursor) and fetchAll()
 - [ ] FetchedRecordsController: handle fetch errors
 - [ ] Swift 3.0.2 (Xcode 8.2): "Type inference will properly unwrap optionals when used with generics and implicitly-unwrapped optionals." Maybe this fixes `row.value(named: "foo") as? Int`?
 - [ ] Refactor Database notion of transaction/savepoints into a single type. Support INSERT OR ROLLBACK.
@@ -8,7 +7,7 @@
     - If we rely on sqlite3_rollback_hook to handle rollbacks, it may be a good idea to rely on sqlite3_commit_hook to handle commits (and have the commit() and rollback() simply perform statements and return)
     - we'll have to deal with two input sources for dealing with transactions: statement compilation observation for savepoint statements, and transaction hooks for transaction statements. Tricky.
 - [ ] Attach databases (this could be the support for fetched records controller caches). Interesting question: what happens when one attaches a non-WAL db to a databasePool?
-- [ ] sqlite3_rekey is discouraged (https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320)
+- [ ] SQLCipher: sqlite3_rekey is discouraged (https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320)
 - [ ] Restore dispatching tests in GRDBOSXTests (they are disabled in order to avoid linker errors)
     - DatabasePoolReleaseMemoryTests
     - DatabasePoolSchemaCacheTests
@@ -19,7 +18,7 @@
     - DatabaseQueueConcurrencyTests
 - [ ] FetchedRecordsController throttling (suggested by @hdlj)
 - [ ] What is the behavior inTransaction and inSavepoint behaviors in case of commit error? Code looks like we do not rollback, leaving the app in a weird state (out of Swift transaction block with a SQLite transaction that may still be opened).
-- [ ] GRDBCipher / custom SQLite builds: remove limitations on iOS or OS X versions
+- [ ] GRDBCipher / custom SQLite builds: remove #/@available limitations
 - [ ] File protection: Read https://github.com/ccgus/fmdb/issues/262 and understand https://lists.apple.com/archives/cocoa-dev/2012/Aug/msg00527.html
 - [ ] Support for resource values (see https://developer.apple.com/library/ios/qa/qa1719/_index.html)
 - [ ] Query builder
@@ -39,8 +38,10 @@ Not sure
     - [ ] ... allowing non unique column names
 - [ ] Remove DatabaseValue.value()
     - [X] Don't talk about DatabaseValue.value() in README.md
+- [ ] Document or deprecate DatabaseCoder
 - [ ] Support for NSColor/UIColor. Beware UIColor components can go beyond [0, 1.0] in iOS10.
 - [ ] Store dates as timestamp (https://twitter.com/gloparco/status/780948021613912064, https://github.com/groue/GRDB.swift/issues/97)
+
 
 Require changes in the Swift language:
 
@@ -59,7 +60,7 @@ Reading list:
 - Full text search (https://www.sqlite.org/fts3.html. Related: https://blogs.gnome.org/jnelson/)
 - https://www.sqlite.org/undoredo.html
 - http://www.sqlite.org/intern-v-extern-blob.html
-- List of documentation keywords: https://swift.org/documentation/api-design-guidelines.html#special-instructions
+- List of Swift documentation keywords: https://swift.org/documentation/api-design-guidelines.html#special-instructions
 - https://www.zetetic.net/sqlcipher/
 - https://sqlite.org/sharedcache.html
 - Amazing tip from Xcode labs: add a EXCLUDED_SOURCE_FILE_NAMES build setting to conditionally exclude sources for different configuration: https://twitter.com/zats/status/74386298602026496
