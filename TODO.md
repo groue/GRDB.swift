@@ -1,3 +1,4 @@
+- [ ] Request.bound(to:adapter:) (requires adapters to be able to adapt an already adapted row)
 - [ ] Insert TypedRequest between Request and QueryInterfaceRequest
 - [ ] Think about supporting Cursor's underestimatedCount, which could speed up Array(cursor)
 - [ ] FetchedRecordsController: handle fetch errors
