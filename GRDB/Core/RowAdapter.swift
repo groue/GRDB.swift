@@ -16,51 +16,71 @@
     #endif
 #endif
 
-/// ConcreteColumnMapping is a type that supports the RowAdapter protocol.
-public struct ConcreteColumnMapping {
-    let columns: [(Int, String)]         // [(baseRowIndex, adaptedColumn), ...]
-    let lowercaseColumnIndexes: [String: Int]   // [adaptedColumn: adaptedRowIndex]
+/// LayoutedColumnMapping is a type that supports the RowAdapter protocol.
+public struct LayoutedColumnMapping {
+    /// An array of (baseIndex, mappedName) pairs, where baseIndex is the index
+    /// of a column in a base row, and mappedName the mapped name of
+    /// that column.
+    public let layoutColumns: [(Int, String)]
     
-    /// Creates an ConcreteColumnMapping from an array of (index, name)
+    /// A cache for layoutIndex(ofColumn:)
+    let lowercaseColumnIndexes: [String: Int]   // [mappedColumn: layoutColumnIndex]
+    
+    /// Creates an LayoutedColumnMapping from an array of (baseIndex, mappedName)
     /// pairs. In each pair:
     ///
-    /// - index is the index of a column in an original row
-    /// - name is the name of the column in an adapted row
+    /// - baseIndex is the index of a column in a base row
+    /// - name is the mapped name of the column
     ///
-    /// For example, the following ConcreteColumnMapping defines two
-    /// columns, "foo" and "bar", that load from the original columns at
-    /// indexes 1 and 2:
+    /// For example, the following LayoutedColumnMapping defines two columns, "foo"
+    /// and "bar", based on the base columns at indexes 1 and 2:
     ///
-    ///     ConcreteColumnMapping([(1, "foo"), (2, "bar")])
+    ///     LayoutedColumnMapping(layoutColumns: [(1, "foo"), (2, "bar")])
     ///
     /// Use it in your custom RowAdapter type:
     ///
     ///     struct FooBarAdapter : RowAdapter {
-    ///         func concreteRowAdapter(with statement: SelectStatement) throws -> ConcreteRowAdapter {
-    ///             return ConcreteColumnMapping([(1, "foo"), (2, "bar")])
+    ///         func layoutAdapter(layout: RowLayout) throws -> LayoutedRowAdapter {
+    ///             return LayoutedColumnMapping(layoutColumns: [(1, "foo"), (2, "bar")])
     ///         }
     ///     }
     ///
     ///     // <Row foo:"foo" bar: "bar">
     ///     try Row.fetchOne(db, "SELECT NULL, 'foo', 'bar'", adapter: FooBarAdapter())
-    public init(columns: [(Int, String)]) {
-        self.columns = columns
-        self.lowercaseColumnIndexes = Dictionary(keyValueSequence: columns.enumerated().map { ($1.1.lowercased(), $0) }.reversed())
+    public init<S: Sequence>(layoutColumns: S) where S.Iterator.Element == (Int, String) {
+        self.layoutColumns = Array(layoutColumns)
+        self.lowercaseColumnIndexes = Dictionary(keyValueSequence: layoutColumns
+            .enumerated()
+            .map { ($1.1.lowercased(), $0) }
+            .reversed()) // reversed() so that the the dictionary caches leftmost indexes
     }
     
-    var count: Int {
-        return columns.count
+    func baseColumnIndex(atMappingIndex index: Int) -> Int {
+        return layoutColumns[index].0
     }
     
-    func baseColumIndex(adaptedIndex index: Int) -> Int {
-        return columns[index].0
+    func columnName(atMappingIndex index: Int) -> String {
+        return layoutColumns[index].1
+    }
+}
+
+/// LayoutedColumnMapping adopts LayoutedRowAdapter
+extension LayoutedColumnMapping : LayoutedRowAdapter {
+    /// Part of the LayoutedRowAdapter protocol; returns self.
+    public var mapping: LayoutedColumnMapping {
+        return self
     }
     
-    func columnName(adaptedIndex index: Int) -> String {
-        return columns[index].1
+    /// Part of the LayoutedRowAdapter protocol; returns the empty dictionary.
+    public var scopes: [String: LayoutedRowAdapter] {
+        return [:]
     }
-    
-    func adaptedIndexOfColumn(named name: String) -> Int? {
+}
+
+extension LayoutedColumnMapping : RowLayout {
+    /// Part of the RowLayout protocol; returns the index of the leftmost column
+    /// named `name`, in a case-insensitive way.
+    public func layoutIndex(ofColumn name: String) -> Int? {
         if let index = lowercaseColumnIndexes[name] {
             return index
         }
@@ -68,46 +88,52 @@ public struct ConcreteColumnMapping {
     }
 }
 
-/// ConcreteColumnMapping adopts ConcreteRowAdapter
-extension ConcreteColumnMapping : ConcreteRowAdapter {
-    /// Part of the ConcreteRowAdapter protocol; returns self.
-    public var concreteColumnMapping: ConcreteColumnMapping {
-        return self
-    }
-    
-    /// Part of the ConcreteRowAdapter protocol; returns the empty dictionary.
-    public var scopes: [String: ConcreteRowAdapter] {
-        return [:]
-    }
-}
-
-/// ConcreteRowAdapter is a protocol that supports the RowAdapter protocol.
+/// LayoutedRowAdapter is a protocol that supports the RowAdapter protocol.
 ///
 /// GRBD ships with a ready-made type that adopts this protocol:
-/// ConcreteColumnMapping.
-///
-/// It is unlikely that you need to write your custom type that adopts
-/// this protocol.
-public protocol ConcreteRowAdapter {
-    /// A ConcreteColumnMapping that defines how to map a column name to a
-    /// column in an original row.
-    var concreteColumnMapping: ConcreteColumnMapping { get }
+/// LayoutedColumnMapping.
+public protocol LayoutedRowAdapter {
+    /// A LayoutedColumnMapping that defines how to map a column name to a
+    /// column in a base row.
+    var mapping: LayoutedColumnMapping { get }
     
-    /// A dictionary of scopes
-    var scopes: [String: ConcreteRowAdapter] { get }
+    /// The layouted row adapters for each scope.
+    var scopes: [String: LayoutedRowAdapter] { get }
+}
+
+/// RowLayout is a protocol that supports the RowAdapter protocol. It describes
+/// a layout of a base row.
+public protocol RowLayout {
+    /// An array of (baseIndex, name) pairs, where baseIndex is the index
+    /// of a column in a base row, and name the name of that column.
+    var layoutColumns: [(Int, String)] { get }
+    
+    /// Returns the index of the leftmost column named `name`, in a
+    /// case-insensitive way.
+    func layoutIndex(ofColumn name: String) -> Int?
+}
+
+extension SelectStatement : RowLayout {
+    /// Part of the RowLayout protocol.
+    public var layoutColumns: [(Int, String)] {
+        return Array(columnNames.enumerated())
+    }
+    
+    /// Part of the RowLayout protocol.
+    public func layoutIndex(ofColumn name: String) -> Int? {
+        return index(ofColumn: name)
+    }
 }
 
 /// RowAdapter is a protocol that helps two incompatible row interfaces working
 /// together.
 ///
-/// GRDB ships with three concrete types that adopt the RowAdapter protocol:
+/// GRDB ships with four concrete types that adopt the RowAdapter protocol:
 ///
 /// - ColumnMapping: renames row columns
 /// - SuffixRowAdapter: hides the first columns of a row
+/// - RangeRowAdapter: only exposes a range of columns
 /// - ScopeAdapter: groups several adapters together to define named scopes
-///
-/// If the built-in adapters don't fit your needs, you can implement your own
-/// type that adopts RowAdapter.
 ///
 /// To use a row adapter, provide it to any method that fetches:
 ///
@@ -121,23 +147,23 @@ public protocol RowAdapter {
     /// You never call this method directly. It is called for you whenever an
     /// adapter has to be applied.
     ///
-    /// The result is a value that adopts ConcreteRowAdapter, such as
-    /// ConcreteColumnMapping.
+    /// The result is a value that adopts LayoutedRowAdapter, such as
+    /// LayoutedColumnMapping.
     ///
     /// For example:
     ///
     ///     // An adapter that turns any row to a row that contains a single
     ///     // column named "foo" whose value is the leftmost value of the
-    ///     // original row.
+    ///     // base row.
     ///     struct FirstColumnAdapter : RowAdapter {
-    ///         func concreteRowAdapter(with statement: SelectStatement) throws -> ConcreteRowAdapter {
-    ///             return ConcreteColumnMapping(columns: [(0, "foo")])
+    ///         func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter {
+    ///             return LayoutedColumnMapping(layoutColumns: [(0, "foo")])
     ///         }
     ///     }
     ///
     ///     // <Row foo:1>
     ///     try Row.fetchOne(db, "SELECT 1, 2, 3", adapter: FirstColumnAdapter())
-    func concreteRowAdapter(with statement: SelectStatement) throws -> ConcreteRowAdapter
+    func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter
 }
 
 extension RowAdapter {
@@ -154,8 +180,8 @@ extension RowAdapter {
 }
 
 extension RowAdapter {
-    func baseColumIndex(adaptedIndex index: Int, with statement: SelectStatement) throws -> Int {
-        return try concreteRowAdapter(with: statement).concreteColumnMapping.baseColumIndex(adaptedIndex: index)
+    func baseColumnIndex(atIndex index: Int, layout: RowLayout) throws -> Int {
+        return try layoutedAdapter(from: layout).mapping.baseColumnIndex(atMappingIndex: index)
     }
 }
 
@@ -167,26 +193,28 @@ extension RowAdapter {
 ///     // <Row foo:"bar">
 ///     try Row.fetchOne(db, sql, adapter: adapter)
 public struct ColumnMapping : RowAdapter {
-    /// The column names mapping, from adapted names to original names.
+    /// A dictionary from mapped column names to column names in a base row.
     let mapping: [String: String]
     
-    /// Creates a ColumnMapping with a dictionary that maps adapted column names
-    /// to original column names.
+    /// Creates a ColumnMapping with a dictionary from mapped column names to
+    /// column names in a base row.
     public init(_ mapping: [String: String]) {
         self.mapping = mapping
     }
     
     /// Part of the RowAdapter protocol
-    public func concreteRowAdapter(with statement: SelectStatement) throws -> ConcreteRowAdapter {
-        let columns = try mapping
+    public func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter {
+        let layoutColumns = try mapping
             .map { (mappedColumn, baseColumn) -> (Int, String) in
-                guard let index = statement.index(ofColumn: baseColumn) else {
-                    throw DatabaseError(code: SQLITE_MISUSE, message: "Mapping references missing column \(baseColumn). Valid column names are: \(statement.columnNames.joined(separator: ", ")).")
+                guard let index = layout.layoutIndex(ofColumn: baseColumn) else {
+                    let columnNames = layout.layoutColumns.map { $0.1 }
+                    throw DatabaseError(code: SQLITE_MISUSE, message: "Mapping references missing column \(baseColumn). Valid column names are: \(columnNames.joined(separator: ", ")).")
                 }
-                return (index, mappedColumn)
+                let baseIndex = layout.layoutColumns[index].0
+                return (baseIndex, mappedColumn)
             }
-            .sorted { $0.0 < $1.0 }
-        return ConcreteColumnMapping(columns: columns)
+            .sorted { $0.0 < $1.0 } // preserve ordering of base columns
+        return LayoutedColumnMapping(layoutColumns: layoutColumns)
     }
 }
 
@@ -204,16 +232,15 @@ public struct SuffixRowAdapter : RowAdapter {
     /// Creates a SuffixRowAdapter that hides all columns before the
     /// provided index.
     ///
-    /// If index is 0, the adapted row is identical to the original row.
+    /// If index is 0, the layout row is identical to the base row.
     public init(fromIndex index: Int) {
         GRDBPrecondition(index >= 0, "Negative column index is out of range")
         self.index = index
     }
     
     /// Part of the RowAdapter protocol
-    public func concreteRowAdapter(with statement: SelectStatement) throws -> ConcreteRowAdapter {
-        GRDBPrecondition(index <= statement.columnCount, "Column index is out of range")
-        return ConcreteColumnMapping(columns: statement.columnNames.suffix(from: index).enumerated().map { ($0 + index, $1) })
+    public func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter {
+        return LayoutedColumnMapping(layoutColumns: layout.layoutColumns.suffix(from: index))
     }
 }
 
@@ -241,10 +268,8 @@ public struct RangeRowAdapter : RowAdapter {
     }
     
     /// Part of the RowAdapter protocol
-    public func concreteRowAdapter(with statement: SelectStatement) throws -> ConcreteRowAdapter {
-        GRDBPrecondition(range.lowerBound <= statement.columnCount, "Column index is out of range")
-        GRDBPrecondition(range.upperBound <= statement.columnCount, "Column index is out of range")
-        return ConcreteColumnMapping(columns: statement.columnNames[range].enumerated().map { ($0 + range.lowerBound, $1) })
+    public func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter {
+        return LayoutedColumnMapping(layoutColumns: layout.layoutColumns[range])
     }
 }
 
@@ -293,86 +318,95 @@ public struct ScopeAdapter : RowAdapter {
     }
     
     /// Part of the RowAdapter protocol
-    public func concreteRowAdapter(with statement: SelectStatement) throws -> ConcreteRowAdapter {
-        let mainConcreteAdapter = try mainAdapter.concreteRowAdapter(with: statement)
-        var concreteAdapterScopes = mainConcreteAdapter.scopes
+    public func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter {
+        let layoutedAdapter = try mainAdapter.layoutedAdapter(from: layout)
+        var layoutedScopes = layoutedAdapter.scopes
         for (name, adapter) in scopes {
-            try concreteAdapterScopes[name] = adapter.concreteRowAdapter(with: statement)
+            try layoutedScopes[name] = adapter.layoutedAdapter(from: layout)
         }
-        return ConcreteScopeAdapter(
-            concreteColumnMapping: mainConcreteAdapter.concreteColumnMapping,
-            scopes: concreteAdapterScopes)
+        return LayoutedScopeAdapter(
+            mapping: layoutedAdapter.mapping,
+            scopes: layoutedScopes)
     }
 }
 
-/// The concrete row adapter for ScopeAdapter
-struct ConcreteScopeAdapter : ConcreteRowAdapter {
-    let concreteColumnMapping: ConcreteColumnMapping
-    let scopes: [String: ConcreteRowAdapter]
+/// The LayoutedRowAdapter for ScopeAdapter
+struct LayoutedScopeAdapter : LayoutedRowAdapter {
+    let mapping: LayoutedColumnMapping
+    let scopes: [String: LayoutedRowAdapter]
+}
+
+struct ChainedAdapter : RowAdapter {
+    let first: RowAdapter
+    let second: RowAdapter
+
+    func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter {
+        return try second.layoutedAdapter(from: first.layoutedAdapter(from: layout).mapping)
+    }
 }
 
 extension Row {
     /// Creates a row from a base row and a statement adapter
-    convenience init(baseRow: Row, concreteRowAdapter: ConcreteRowAdapter) {
-        self.init(impl: AdapterRowImpl(baseRow: baseRow, concreteRowAdapter: concreteRowAdapter))
+    convenience init(base: Row, adapter: LayoutedRowAdapter) {
+        self.init(impl: AdapterRowImpl(base: base, adapter: adapter))
     }
 
     /// Returns self if adapter is nil
-    func adaptedRow(adapter: RowAdapter?, statement: SelectStatement) throws -> Row {
+    func adapted(with adapter: RowAdapter?, layout: RowLayout) throws -> Row {
         guard let adapter = adapter else {
             return self
         }
-        return try Row(baseRow: self, concreteRowAdapter: adapter.concreteRowAdapter(with: statement))
+        return try Row(base: self, adapter: adapter.layoutedAdapter(from: layout))
     }
 }
 
 struct AdapterRowImpl : RowImpl {
-    let baseRow: Row
-    let concreteRowAdapter: ConcreteRowAdapter
-    let concreteColumnMapping: ConcreteColumnMapping
+    let base: Row
+    let adapter: LayoutedRowAdapter
+    let mapping: LayoutedColumnMapping
     
-    init(baseRow: Row, concreteRowAdapter: ConcreteRowAdapter) {
-        self.baseRow = baseRow
-        self.concreteRowAdapter = concreteRowAdapter
-        self.concreteColumnMapping = concreteRowAdapter.concreteColumnMapping
+    init(base: Row, adapter: LayoutedRowAdapter) {
+        self.base = base
+        self.adapter = adapter
+        self.mapping = adapter.mapping
     }
     
     var count: Int {
-        return concreteColumnMapping.count
+        return mapping.layoutColumns.count
     }
     
     var isFetched: Bool {
-        return baseRow.isFetched
+        return base.isFetched
     }
     
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
-        return baseRow.value(atIndex: concreteColumnMapping.baseColumIndex(adaptedIndex: index))
+        return base.value(atIndex: mapping.baseColumnIndex(atMappingIndex: index))
     }
     
     func dataNoCopy(atUncheckedIndex index:Int) -> Data? {
-        return baseRow.dataNoCopy(atIndex: concreteColumnMapping.baseColumIndex(adaptedIndex: index))
+        return base.dataNoCopy(atIndex: mapping.baseColumnIndex(atMappingIndex: index))
     }
     
     func columnName(atUncheckedIndex index: Int) -> String {
-        return concreteColumnMapping.columnName(adaptedIndex: index)
+        return mapping.columnName(atMappingIndex: index)
     }
     
     func index(ofColumn name: String) -> Int? {
-        return concreteColumnMapping.adaptedIndexOfColumn(named: name)
+        return mapping.layoutIndex(ofColumn: name)
     }
     
     func scoped(on name: String) -> Row? {
-        guard let concreteRowAdapter = concreteRowAdapter.scopes[name] else {
+        guard let adapter = adapter.scopes[name] else {
             return nil
         }
-        return Row(baseRow: baseRow, concreteRowAdapter: concreteRowAdapter)
+        return Row(base: base, adapter: adapter)
     }
     
     var scopeNames: Set<String> {
-        return Set(concreteRowAdapter.scopes.keys)
+        return Set(adapter.scopes.keys)
     }
     
     func copy(_ row: Row) -> Row {
-        return Row(baseRow: baseRow.copy(), concreteRowAdapter: concreteRowAdapter)
+        return Row(base: base.copy(), adapter: adapter)
     }
 }

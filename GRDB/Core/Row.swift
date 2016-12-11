@@ -540,7 +540,7 @@ extension Row {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Row> {
         // Reuse a single mutable row for performance
-        let row = try Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
+        let row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         return statement.fetchCursor(arguments: arguments) { row }
     }
     

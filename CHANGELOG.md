@@ -1,6 +1,24 @@
 Release Notes
 =============
 
+## Next Version
+
+**New**
+
+- `Request.adapted` modifies a request with a [row adapter](https://github.com/groue/GRDB.swift#row-adapters).
+    
+    ```swift
+    // Person has `email` column, but User expects `identifier` column:
+    Person.all()
+        .adapted { _ in ColumnMapping(["identifier": "email"]) }
+        .bound(to: User.self)
+    ```
+
+**Breaking Changes**
+
+- `RowAdapter` protocol has been refactored. This only affects your code if you implement your own [row adapter](https://github.com/groue/GRDB.swift#row-adapters).
+
+
 ## 0.95.0
 
 Released December 9, 2016

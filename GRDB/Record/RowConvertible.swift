@@ -84,7 +84,7 @@ extension RowConvertible {
         // Reuse a single mutable row for performance.
         // It is the record's responsibility to copy the row if needed.
         // See Record.awakeFromFetch(), for example.
-        let row = try Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
+        let row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         return statement.fetchCursor(arguments: arguments) {
             var record = self.init(row: row)
             record.awakeFromFetch(row: row)

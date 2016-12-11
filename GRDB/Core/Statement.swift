@@ -246,8 +246,8 @@ public final class SelectStatement : Statement {
         return Dictionary(keyValueSequence: self.columnNames.enumerated().map { ($1.lowercased(), $0) }.reversed())
     }()
     
-    // This method MUST be case-insensitive, and returns the index of the
-    // leftmost column that matches *name*.
+    /// Returns the index of the leftmost column named `name`, in a
+    /// case-insensitive way.
     func index(ofColumn name: String) -> Int? {
         return columnIndexes[name.lowercased()]
     }

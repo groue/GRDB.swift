@@ -115,7 +115,7 @@ extension DatabaseValueConvertible {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
         // Reuse a single mutable row for performance
-        let row = try Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
+        let row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         return statement.fetchCursor(arguments: arguments) { () -> Self in
             let dbv: DatabaseValue = row.value(atIndex: 0)
             if let value = Self.fromDatabaseValue(dbv) {
@@ -157,7 +157,7 @@ extension DatabaseValueConvertible {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self? {
         // Reuse a single mutable row for performance
-        let row = try Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
+        let row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         let cursor = statement.fetchCursor(arguments: arguments) { () -> Self? in
             let dbv: DatabaseValue = row.value(atIndex: 0)
             if let value = Self.fromDatabaseValue(dbv) {
@@ -328,7 +328,7 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Wrapped?> {
         // Reuse a single mutable row for performance
-        let row = try Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
+        let row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         return statement.fetchCursor(arguments: arguments) { () -> Wrapped? in
             let dbv: DatabaseValue = row.value(atIndex: 0)
             if let value = Wrapped.fromDatabaseValue(dbv) {

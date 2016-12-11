@@ -15,21 +15,32 @@ public protocol Request {
 }
 
 extension Request {
-    /// Returns a TypedRequest bound to type T:
+    /// Returns a TypedRequest bound to type T.
     ///
     ///     let request = Person
     ///         .select(min(heightColumn))
     ///         .bound(to: Double.self)
     ///     let minHeight = try request.fetchOne(db)
     ///
-    /// The returned request can fetch if the type T is fetchable:
+    /// The returned request can fetch if the type T is fetchable (Row,
+    /// RowConvertible, DatabaseConvertible).
     ///
-    /// - Type T is Row
-    /// - Type T adopts RowConvertible
-    /// - Type T adopts DatabaseConvertible
-    /// - Type T is Optional of some type that adopts DatabaseConvertible
+    /// - parameter type: The fetched type T
+    /// - returns: A typed request bound to type T.
     public func bound<T>(to type: T.Type) -> AnyTypedRequest<T> {
         return AnyTypedRequest { try self.prepare($0) }
+    }
+    
+    /// Returns an adapted request.
+    public func adapted(_ makeAdapter: @escaping (Database) throws -> RowAdapter) -> AnyRequest {
+        return AnyRequest { db in
+            let (statement, adapter) = try self.prepare(db)
+            if let adapter = adapter {
+                return try (statement, ChainedAdapter(first: adapter, second: makeAdapter(db)))
+            } else {
+                return try (statement, makeAdapter(db))
+            }
+        }
     }
 }
 
@@ -80,7 +91,7 @@ public struct SQLRequest : Request {
         }
         return (statement, adapter)
     }
-
+    
     private let sql: String
     private let arguments: StatementArguments?
     private let adapter: RowAdapter?
@@ -104,6 +115,20 @@ public protocol TypedRequest : Request {
     
     /// The fetched type
     associatedtype Fetched
+}
+
+extension TypedRequest {
+    /// Returns an adapted typed request.
+    public func adapted(_ makeAdapter: @escaping (Database) throws -> RowAdapter) -> AnyTypedRequest<Fetched> {
+        return AnyTypedRequest { db in
+            let (statement, adapter) = try self.prepare(db)
+            if let adapter = adapter {
+                return try (statement, ChainedAdapter(first: adapter, second: makeAdapter(db)))
+            } else {
+                return try (statement, makeAdapter(db))
+            }
+        }
+    }
 }
 
 /// A type-erased TypedRequest.
