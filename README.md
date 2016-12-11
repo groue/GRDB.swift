@@ -3278,6 +3278,9 @@ try request.fetchOne(db)         // Person?
 extension Request {
     /// Returns a TypedRequest bound to type T:
     func bound<T>(to type: T.Type) -> AnyTypedRequest<T>
+    
+    /// Returns a adapted Request
+    func adapted(_ makeAdapter: @escaping (Database) throws -> RowAdapter) -> AnyRequest
 }
 
 /// A Request built from raw SQL.
@@ -3344,16 +3347,16 @@ struct BookAuthorPair : RowConvertible {
     }
     
     static func all() -> AnyTypedRequest<BookAuthorPair> {
-        return AnyTypedRequest { db in
-            let sql = "SELECT books.*, authors.* " +
-                      "FROM books " +
-                      "JOIN authors ON authors.id = books.authorID"
-            let adapter = try ScopeAdapter([
-                "books": SuffixRowAdapter(fromIndex: 0),
-                "authors": SuffixRowAdapter(fromIndex: db.columnCount(in: "books"))])
-            let statement = try db.makeSelectStatement(sql)
-            return (statement, adapter)
-        }
+        return SQLRequest(
+            "SELECT books.*, authors.* " +
+            "FROM books " +
+            "JOIN authors ON authors.id = books.authorID")
+            .bound(to: BookAuthorPair.self)
+            .adapted { db in
+                try ScopeAdapter([
+                    "book": SuffixRowAdapter(fromIndex: 0),
+                    "author": SuffixRowAdapter(fromIndex: db.columnCount(in: "books"))])
+            }
     }
 }
 
