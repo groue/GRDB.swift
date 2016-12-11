@@ -825,7 +825,7 @@ let date = Date.fromDatabaseValue(row.value(atIndex: 0)) // nil
 
 #### Rows as Dictionaries
 
-Row adopts the standard [CollectionType](https://developer.apple.com/library/ios/documentation/Swift/Reference/Swift_CollectionType_Protocol/index.html) protocol, and can be seen as a dictionary of [DatabaseValue](#databasevalue):
+Row adopts the standard [Collection](https://developer.apple.com/reference/swift/collection) protocol, and can be seen as a dictionary of [DatabaseValue](#databasevalue):
 
 ```swift
 // All the (columnName, databaseValue) tuples, from left to right:
@@ -2453,11 +2453,11 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.fetchCount(db)` | [TableMapping](#tablemapping-protocol) | |
 | `Type.filter(...).fetchCount(db)` | [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
 | **Fetching Record Cursors** | | |
-| `Type.fetch(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | |
-| `Type.fetch(db, keys: ...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetch(db, sql)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-3">³</a> |
-| `Type.fetch(statement)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-4">⁴</a> |
-| `Type.filter(...).fetch(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
+| `Type.fetchCursor(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | |
+| `Type.fetchCursor(db, keys: ...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.fetchCursor(db, sql)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-3">³</a> |
+| `Type.fetchCursor(statement)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-4">⁴</a> |
+| `Type.filter(...).fetchCursor(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
 | **Fetching Record Arrays** | | |
 | `Type.fetchAll(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | |
 | `Type.fetchAll(db, keys: ...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
