@@ -2500,7 +2500,7 @@ let persons = try request.fetchAll("SELECT * FROM persons WHERE id = ?", argumen
 
 ```swift
 let statement = try db.makeSelectStatement("SELECT * FROM persons WHERE id = ?")
-let persons = try request.fetchAll(statement, arguments: [1])  // [Person]
+let persons = try Person.fetchAll(statement, arguments: [1])  // [Person]
 ```
 
 
