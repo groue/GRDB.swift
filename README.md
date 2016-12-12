@@ -3327,9 +3327,13 @@ struct BookAuthorPair : RowConvertible {
                     "authors": SuffixRowAdapter(fromIndex: db.columnCount(in: "books"))])
             }
     }
+    
+    static func fetchAll(_ db: Database) throws -> [BookAuthorPair] {
+        return try all().fetchAll(db)
+    }
 }
 
-for pair in try BookAuthorPair.all().fetchAll(db) {
+for pair in try BookAuthorPair.fetchAll(db) {
     print("\(pair.book.title) by \(pair.author.name)")
 }
 ```
