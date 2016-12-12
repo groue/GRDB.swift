@@ -100,12 +100,8 @@ public struct SQLRequest : Request {
 /// The protocol for all types that define a way to fetch values from
 /// a database, with an attached type.
 ///
-/// Typed requests can fetch if their associated type Fetched is fetchable:
-///
-/// - Fetched is Row
-/// - Fetched adopts RowConvertible
-/// - Fetched adopts DatabaseConvertible
-/// - Fetched is Optional of some type that adopts DatabaseConvertible
+/// Typed requests can fetch if their associated type Fetched is fetchable
+/// (Row, RowConvertible, DatabaseConvertible)
 ///
 ///     let request: ... // Some TypedRequest that fetches Person
 ///     try request.fetchCursor(db) // DatabaseCursor<Person>
@@ -262,7 +258,7 @@ extension TypedRequest where Fetched: DatabaseValueConvertible {
 
 extension TypedRequest where Fetched: DatabaseValueConvertible & StatementColumnConvertible {
     
-    // MARK: Fetching From Request
+    // MARK: Fetching Values
     
     /// A cursor over fetched values.
     ///

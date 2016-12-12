@@ -3274,47 +3274,11 @@ try request.fetchOne(db)         // Person?
 
 **To build requests**, you can create your own type that adopts the protocols, or use one of the built-in concrete types:
 
-```swift
-extension Request {
-    /// Returns a TypedRequest bound to type T:
-    func bound<T>(to type: T.Type) -> AnyTypedRequest<T>
-    
-    /// Returns a adapted Request
-    func adapted(_ makeAdapter: @escaping (Database) throws -> RowAdapter) -> AnyRequest
-}
-
-/// A Request built from raw SQL.
-struct SQLRequest : Request {
-    /// Creates a fetch request from an SQL string, optional arguments, and
-    /// optional row adapter.
-    init(_ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil)
-}
-
-/// A type-erased Request.
-struct AnyRequest : Request {
-    /// Creates a new fetch request that wraps and forwards operations
-    /// to `request`.
-    init(_ request: Request)
-    
-    /// Creates a new fetch request whose `prepare()` method wraps and forwards
-    /// operations the argument closure.
-    init(_ prepare: @escaping (Database) throws -> (SelectStatement, RowAdapter?))
-}
-
-/// A type-erased TypedRequest.
-struct AnyTypedRequest<T> : TypedRequest {
-    /// The fetched type
-    typealias Fetched = T
-    
-    /// Creates a new fetch request that wraps and forwards operations
-    /// to `request`.
-    init<Request>(_ request: Request) where Request: TypedRequest, Request.Fetched == Fetched
-    
-    /// Creates a new fetch request whose `prepare()` method wraps and forwards
-    /// operations the argument closure.
-    init(_ prepare: @escaping (Database) throws -> (SelectStatement, RowAdapter?))
-}
-```
+- [Request protocol](http://cocoadocs.org/docsets/GRDB.swift/0.96.0/Protocols/Request.html): the protocol for all requests
+- [TypedRequest protocol](http://cocoadocs.org/docsets/GRDB.swift/0.96.0/Protocols/TypedRequest.html): the protocol for all typed requests
+- [SQLRequest](http://cocoadocs.org/docsets/GRDB.swift/0.96.0/Structs/SQLRequest.html): a request built from raw SQL
+- [AnyRequest](http://cocoadocs.org/docsets/GRDB.swift/0.96.0/Structs/AnyRequest.html): a type-erased Request
+- [AnyTypedRequest](http://cocoadocs.org/docsets/GRDB.swift/0.96.0/Structs/AnyTypedRequest.html): a type-erased Request
 
 For example, let's extend the Person type:
 
@@ -3348,10 +3312,13 @@ struct BookAuthorPair : RowConvertible {
     
     static func all() -> AnyTypedRequest<BookAuthorPair> {
         return SQLRequest(
+            // Custom SQL
             "SELECT books.*, authors.* " +
             "FROM books " +
             "JOIN authors ON authors.id = books.authorID")
+            // Fetched Tyoe
             .bound(to: BookAuthorPair.self)
+            // Add row scopes to ease row consumption
             .adapted { db in
                 try ScopeAdapter([
                     "book": SuffixRowAdapter(fromIndex: 0),
