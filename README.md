@@ -3080,13 +3080,13 @@ let arthur = try Person.filter(nameColumn == "Arthur").fetchOne(db) // Person?
 **When the selected columns don't fit the source type**, change your target: any other type that adopts the [RowConvertible](#rowconvertible-protocol) protocol, plain [database rows](#fetching-rows), and even [values](#values):
 
 ```swift
-let request = Person.select(min(heightColumn))
-let minHeight = try Double.fetchOne(db, request) // Double?
+let request = Player.select(max(scoreColumn))
+let maxScore = try Int.fetchOne(db, request) // Int?
 
-let request = Person.select(min(heightColumn), max(heightColumn))
+let request = Player.select(min(scoreColumn), max(scoreColumn))
 let row = try Row.fetchOne(db, request)!
-let minHeight: Double? = row.value(atIndex: 0)
-let maxHeight: Double? = row.value(atIndex: 1)
+let minScore = row.value(atIndex: 0) as Int
+let maxScore = row.value(atIndex: 1) as Int
 ```
 
 
@@ -3148,13 +3148,13 @@ let count = try Person.select(nameColumn, ageColumn).distinct().fetchCount(db)
 **Other aggregated values** can also be selected and fetched (see [SQL Functions](#sql-functions)):
 
 ```swift
-let request = Person.select(min(heightColumn))
-let minHeight = try Double.fetchOne(db, request) // Double?
+let request = Player.select(max(scoreColumn))
+let maxScore = try Int.fetchOne(db, request) // Int?
 
-let request = Person.select(min(heightColumn), max(heightColumn))
+let request = Player.select(min(scoreColumn), max(scoreColumn))
 let row = try Row.fetchOne(db, request)!
-let minHeight: Double? = row.value(atIndex: 0)
-let maxHeight: Double? = row.value(atIndex: 1)
+let minScore = row.value(atIndex: 0) as Int
+let maxScore = row.value(atIndex: 1) as Int
 ```
 
 
@@ -3280,7 +3280,16 @@ try request.fetchOne(db)         // Person?
 - [AnyRequest](http://cocoadocs.org/docsets/GRDB.swift/0.96.0/Structs/AnyRequest.html): a type-erased Request
 - [AnyTypedRequest](http://cocoadocs.org/docsets/GRDB.swift/0.96.0/Structs/AnyTypedRequest.html): a type-erased TypedRequest
 
-For example, let's fetch persons with an `SQLRequest` bound to the Person type:
+Rebind the fetched type of requests:
+
+```swift
+let maxScore = Player // Int?
+    .select(max(scoreColumn))
+    .bound(to: Int.self)
+    .fetchOne(db)
+```
+
+Build `SQLRequest` bound to your record types:
 
 ```swift
 extension Person {
@@ -3291,15 +3300,11 @@ extension Person {
         return sqlRequest.bound(to: Person.self)
     }
 }
-```
 
-The `someCustomRequest` method can be used just like built-in requests from the [query interface](#requests):
-
-```swift
 try Person.someCustomRequest().fetchAll(db) // [Person]
 ```
 
-Another example which demonstrates a possible use case for [row adapters](#row-adapters):
+Use [row adapters](#row-adapters) to ease the consumption of complex rows:
 
 ```swift
 struct BookAuthorPair : RowConvertible {
@@ -3318,7 +3323,7 @@ struct BookAuthorPair : RowConvertible {
             "JOIN authors ON authors.id = books.authorID")
             .bound(to: BookAuthorPair.self)
             .adapted { db in
-                // Row scopes ease row consumption in init(row:)
+                // The scopes are used in init(row:)
                 try ScopeAdapter([
                     "book": SuffixRowAdapter(fromIndex: 0),
                     "author": SuffixRowAdapter(fromIndex: db.columnCount(in: "books"))])

@@ -1,8 +1,8 @@
 /// The protocol for all types that define a way to fetch values from
 /// a database.
 ///
-/// Requests can feed the fetching methods of any fetchable type (row, value,
-/// or record):
+/// Requests can feed the fetching methods of any fetchable type (Row,
+/// value, record):
 ///
 ///     let request: Request = ...
 ///     try Row.fetchCursor(db, request) // DatabaseCursor<Row>
@@ -17,13 +17,13 @@ public protocol Request {
 extension Request {
     /// Returns a TypedRequest bound to type T.
     ///
-    ///     let request = Person
-    ///         .select(min(heightColumn))
-    ///         .bound(to: Double.self)
-    ///     let minHeight = try request.fetchOne(db)
-    ///
     /// The returned request can fetch if the type T is fetchable (Row,
-    /// RowConvertible, DatabaseConvertible).
+    /// value, record).
+    ///
+    ///     let minHeight = Person
+    ///         .select(min(heightColumn))
+    ///         .bound(to: Double.self)    // <--
+    ///         .fetchOne(db)
     ///
     /// - parameter type: The fetched type T
     /// - returns: A typed request bound to type T.
@@ -101,7 +101,7 @@ public struct SQLRequest : Request {
 /// a database, with an attached type.
 ///
 /// Typed requests can fetch if their associated type Fetched is fetchable
-/// (Row, RowConvertible, DatabaseConvertible)
+/// (Row, value, record)
 ///
 ///     let request: ... // Some TypedRequest that fetches Person
 ///     try request.fetchCursor(db) // DatabaseCursor<Person>
