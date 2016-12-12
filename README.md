@@ -3323,8 +3323,8 @@ struct BookAuthorPair : RowConvertible {
             .adapted { db in
                 // The scopes are used in init(row:)
                 try ScopeAdapter([
-                    "book": SuffixRowAdapter(fromIndex: 0),
-                    "author": SuffixRowAdapter(fromIndex: db.columnCount(in: "books"))])
+                    "books": SuffixRowAdapter(fromIndex: 0),
+                    "authors": SuffixRowAdapter(fromIndex: db.columnCount(in: "books"))])
             }
     }
 }
