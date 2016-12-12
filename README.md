@@ -3289,14 +3289,12 @@ let maxScore = Player // Int?
     .fetchOne(db)
 ```
 
-Build `SQLRequest` bound to your record types:
+Bind custom SQL requests to your record types:
 
 ```swift
 extension Person {
     static func someCustomRequest() -> AnyTypedRequest<Person> {
-        // Some custom SQL
         let sqlRequest = SQLRequest("SELECT * FROM persons")
-        // Bind the raw request to the Person type
         return sqlRequest.bound(to: Person.self)
     }
 }
