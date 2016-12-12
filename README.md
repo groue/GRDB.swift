@@ -3272,27 +3272,28 @@ try request.fetchAll(db)         // [Person]
 try request.fetchOne(db)         // Person?
 ```
 
-**To build requests**, you can create your own type that adopts the protocols, or use one of the built-in concrete types:
+**To build requests**, you can create your own type that adopts the protocols, derive requests from other requests, or use one of the built-in concrete types:
 
-- [Request protocol](http://cocoadocs.org/docsets/GRDB.swift/0.96.0/Protocols/Request.html): the protocol for all requests
-- [TypedRequest protocol](http://cocoadocs.org/docsets/GRDB.swift/0.96.0/Protocols/TypedRequest.html): the protocol for all typed requests
-- [SQLRequest](http://cocoadocs.org/docsets/GRDB.swift/0.96.0/Structs/SQLRequest.html): a request built from raw SQL
+- [Request](http://cocoadocs.org/docsets/GRDB.swift/0.96.0/Protocols/Request.html): the protocol for all requests
+- [TypedRequest](http://cocoadocs.org/docsets/GRDB.swift/0.96.0/Protocols/TypedRequest.html): the protocol for all typed requests
+- [SQLRequest](http://cocoadocs.org/docsets/GRDB.swift/0.96.0/Structs/SQLRequest.html): a Request built from raw SQL
 - [AnyRequest](http://cocoadocs.org/docsets/GRDB.swift/0.96.0/Structs/AnyRequest.html): a type-erased Request
-- [AnyTypedRequest](http://cocoadocs.org/docsets/GRDB.swift/0.96.0/Structs/AnyTypedRequest.html): a type-erased Request
+- [AnyTypedRequest](http://cocoadocs.org/docsets/GRDB.swift/0.96.0/Structs/AnyTypedRequest.html): a type-erased TypedRequest
 
-For example, let's extend the Person type:
+For example, let's fetch persons with an `SQLRequest` bound to the Person type:
 
 ```swift
 extension Person {
     static func someCustomRequest() -> AnyTypedRequest<Person> {
         // Some custom SQL
         let sqlRequest = SQLRequest("SELECT * FROM persons")
+        // Bind the raw request to the Person type
         return sqlRequest.bound(to: Person.self)
     }
 }
 ```
 
-You can now use the `someCustomRequest` method just like built-in requests from the [query interface](#requests):
+The `someCustomRequest` method can be used just like built-in requests from the [query interface](#requests):
 
 ```swift
 try Person.someCustomRequest().fetchAll(db) // [Person]
@@ -3312,14 +3313,12 @@ struct BookAuthorPair : RowConvertible {
     
     static func all() -> AnyTypedRequest<BookAuthorPair> {
         return SQLRequest(
-            // Custom SQL
             "SELECT books.*, authors.* " +
             "FROM books " +
             "JOIN authors ON authors.id = books.authorID")
-            // Fetched Tyoe
             .bound(to: BookAuthorPair.self)
-            // Add row scopes to ease row consumption
             .adapted { db in
+                // Row scopes ease row consumption in init(row:)
                 try ScopeAdapter([
                     "book": SuffixRowAdapter(fromIndex: 0),
                     "author": SuffixRowAdapter(fromIndex: db.columnCount(in: "books"))])
