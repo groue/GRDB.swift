@@ -254,7 +254,7 @@ extension DatabaseValue : DatabaseValueConvertible {
         return self
     }
     
-    /// Returns *databaseValue*, or nil for NULL input.
+    /// Returns `databaseValue`
     public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> DatabaseValue? {
         return databaseValue
     }
