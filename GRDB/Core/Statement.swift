@@ -359,7 +359,7 @@ public final class UpdateStatement : Statement {
         }
         
         case transaction(action: TransactionAction)
-        case savePoint(name: String, action: SavepointAction)
+        case savepoint(name: String, action: SavepointAction)
     }
     
     /// If true, the database schema cache gets invalidated after this statement
