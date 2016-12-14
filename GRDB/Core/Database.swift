@@ -1683,6 +1683,9 @@ extension Database {
         
         switch transactionState {
         case .rollback:
+            // Don't notify observers because we're in a failed implicit
+            // transaction here (like an INSERT which fails with
+            // SQLITE_CONSTRAINT error)
             didRollback(notifyTransactionObservers: false)
         case .rollbackFromTransactionObserver(let error):
             didRollback(notifyTransactionObservers: true)
