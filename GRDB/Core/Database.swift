@@ -1681,9 +1681,9 @@ extension Database {
         
         switch transactionState {
         case .rollback:
-            didRollback()
+            didRollback(notifyTransactionObservers: false)
         case .rollbackFromTransactionObserver(let error):
-            didRollback()
+            didRollback(notifyTransactionObservers: true)
             throw error
         default:
             break
@@ -1749,7 +1749,7 @@ extension Database {
         case .commit:
             didCommit()
         case .rollback:
-            didRollback()
+            didRollback(notifyTransactionObservers: true)
         default:
             break
         }
@@ -1818,12 +1818,14 @@ extension Database {
     }
     
     /// Transaction hook
-    private func didRollback() {
+    private func didRollback(notifyTransactionObservers: Bool) {
         isInsideExplicitTransaction = false
         savepointStack.clear()
         
-        for observer in databaseEventObservers.flatMap({ $0.transactionObserver }) {
-            observer.databaseDidRollback(self)
+        if notifyTransactionObservers {
+            for observer in databaseEventObservers.flatMap({ $0.transactionObserver }) {
+                observer.databaseDidRollback(self)
+            }
         }
         cleanupDatabaseEventObservers()
     }
