@@ -345,15 +345,32 @@ public final class DatabaseCursor<Element> : Cursor {
 ///         return .commit
 ///     }
 public final class UpdateStatement : Statement {
+    enum TransactionStatementInfo {
+        enum SavepointAction : String {
+            case begin = "BEGIN"
+            case release = "RELEASE"
+            case rollback = "ROLLBACK"
+        }
+        
+        enum TransactionAction : String {
+            case begin = "BEGIN"
+            case commit = "COMMIT"
+            case rollback = "ROLLBACK"
+        }
+        
+        case transaction(action: TransactionAction)
+        case savePoint(name: String, action: SavepointAction)
+    }
+    
     /// If true, the database schema cache gets invalidated after this statement
     /// is executed.
     private(set) var invalidatesDatabaseSchemaCache: Bool
-    private(set) var savepointAction: (name: String, action: SavepointActionKind)?
+    private(set) var transactionStatementInfo: TransactionStatementInfo?
     private(set) var databaseEventKinds: [DatabaseEventKind]
     
-    init(database: Database, sqliteStatement: SQLiteStatement, invalidatesDatabaseSchemaCache: Bool, savepointAction: (name: String, action: SavepointActionKind)?, databaseEventKinds: [DatabaseEventKind]) {
+    init(database: Database, sqliteStatement: SQLiteStatement, invalidatesDatabaseSchemaCache: Bool, transactionStatementInfo: TransactionStatementInfo?, databaseEventKinds: [DatabaseEventKind]) {
         self.invalidatesDatabaseSchemaCache = invalidatesDatabaseSchemaCache
-        self.savepointAction = savepointAction
+        self.transactionStatementInfo = transactionStatementInfo
         self.databaseEventKinds = databaseEventKinds
         super.init(database: database, sqliteStatement: sqliteStatement)
     }
@@ -365,7 +382,7 @@ public final class UpdateStatement : Statement {
         let observer = StatementCompilationObserver(database)
         try super.init(database: database, sql: sql, observer: observer)
         self.invalidatesDatabaseSchemaCache = observer.invalidatesDatabaseSchemaCache
-        self.savepointAction = observer.savepointAction
+        self.transactionStatementInfo = observer.transactionStatementInfo
         self.databaseEventKinds = observer.databaseEventKinds
     }
     

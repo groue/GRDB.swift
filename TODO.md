@@ -3,6 +3,7 @@
 - [ ] FetchedRecordsController: handle fetch errors
 - [ ] Swift 3.0.2 (Xcode 8.2): "Type inference will properly unwrap optionals when used with generics and implicitly-unwrapped optionals." Maybe this fixes `row.value(named: "foo") as? Int`?
 - [ ] Refactor Database notion of transaction/savepoints into a single type. Support INSERT OR ROLLBACK.
+    - [X] Observe begin/commit/rollback statements 
     - Since some statements may implicitly rollback transactions, we can not rely on explicit rollback statements to infer the transaction state. We can only rely on sqlite3_rollback_hook, assuming it is called even for implicit rollbacks (test with an INSERT OR ROLLBACK statement).
     - If we rely on sqlite3_rollback_hook to handle rollbacks, it may be a good idea to rely on sqlite3_commit_hook to handle commits (and have the commit() and rollback() simply perform statements and return)
     - we'll have to deal with two input sources for dealing with transactions: statement compilation observation for savepoint statements, and transaction hooks for transaction statements. Tricky.

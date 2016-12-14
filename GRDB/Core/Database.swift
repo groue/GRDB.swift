@@ -637,7 +637,7 @@ extension Database {
                         database: self,
                         sqliteStatement: sqliteStatement!,
                         invalidatesDatabaseSchemaCache: observer.invalidatesDatabaseSchemaCache,
-                        savepointAction: observer.savepointAction,
+                        transactionStatementInfo: observer.transactionStatementInfo,
                         databaseEventKinds: observer.databaseEventKinds)
                     let arguments = try consumeArguments(statement)
                     statement.unsafeSetArguments(arguments)
@@ -1289,8 +1289,8 @@ final class StatementCompilationObserver {
     /// cache, but not adding a table.
     var invalidatesDatabaseSchemaCache = false
     
-    /// Not nil if a statement is a BEGIN/RELEASE/ROLLBACK savepoint statement.
-    var savepointAction: (name: String, action: SavepointActionKind)?
+    /// Not nil if a statement is a BEGIN/COMMIT/ROLLBACK/RELEASE transaction/savepoint statement.
+    var transactionStatementInfo: UpdateStatement.TransactionStatementInfo?
     
     init(_ database: Database) {
         self.database = database
@@ -1316,11 +1316,15 @@ final class StatementCompilationObserver {
             case SQLITE_UPDATE:
                 let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
                 observer.insertUpdateEventKind(tableName: String(cString: CString1!), columnName: String(cString: CString2!))
+            case SQLITE_TRANSACTION:
+                let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
+                let action = UpdateStatement.TransactionStatementInfo.TransactionAction(rawValue: String(cString: CString1!))!
+                observer.transactionStatementInfo = .transaction(action: action)
             case SQLITE_SAVEPOINT:
                 let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
                 let name = String(cString: CString2!)
-                let action = SavepointActionKind(rawValue: String(cString: CString1!))!
-                observer.savepointAction = (name: name, action: action)
+                let action = UpdateStatement.TransactionStatementInfo.SavepointAction(rawValue: String(cString: CString1!))!
+                observer.transactionStatementInfo = .savePoint(name: name, action: action)
             default:
                 break
             }
@@ -1333,7 +1337,7 @@ final class StatementCompilationObserver {
         selectionInfo = SelectStatement.SelectionInfo()
         databaseEventKinds = []
         invalidatesDatabaseSchemaCache = false
-        savepointAction = nil
+        transactionStatementInfo = nil
     }
     
     func insertUpdateEventKind(tableName: String, columnName: String) {
@@ -1351,12 +1355,6 @@ final class StatementCompilationObserver {
     func stop() {
         sqlite3_set_authorizer(database.sqliteConnection, nil, nil)
     }
-}
-
-enum SavepointActionKind : String {
-    case begin = "BEGIN"
-    case release = "RELEASE"
-    case rollback = "ROLLBACK"
 }
 
 
@@ -1517,7 +1515,6 @@ extension Database {
         case .exclusive:
             try execute("BEGIN EXCLUSIVE TRANSACTION")
         }
-        isInsideExplicitTransaction = true
     }
     
     private func rollback(underlyingError: Error? = nil) throws {
@@ -1549,15 +1546,10 @@ extension Database {
                 throw error
             }
         }
-        
-        savepointStack.clear()  // TODO: write tests that fail when we remove this line. Hint: those tests must not use any transaction observer because savepointStack.clear() is already called in willCommit() and didRollback()
-        isInsideExplicitTransaction = false
     }
     
     private func commit() throws {
         try execute("COMMIT TRANSACTION")
-        savepointStack.clear()  // TODO: write tests that fail when we remove this line. Hint: those tests must not use any transaction observer because savepointStack.clear() is already called in willCommit() and didRollback()
-        isInsideExplicitTransaction = false
     }
     
     /// Add a transaction observer, so that it gets notified of
@@ -1603,7 +1595,7 @@ extension Database {
     /// database cache), or RELEASE SAVEPOINT (which alters the savepoint stack)
     static func preconditionValidSelectStatement(sql: String, observer: StatementCompilationObserver) {
         GRDBPrecondition(observer.invalidatesDatabaseSchemaCache == false, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
-        GRDBPrecondition(observer.savepointAction == nil, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
+        GRDBPrecondition(observer.transactionStatementInfo == nil, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
         
         // Don't check for observer.databaseEventKinds.isEmpty
         //
@@ -1674,23 +1666,34 @@ extension Database {
             clearSchemaCache()
         }
         
-        if let savepointAction = statement.savepointAction {
-            switch savepointAction.action {
-            case .begin:
-                savepointStack.beginSavepoint(named: savepointAction.name)
-            case .release:
-                savepointStack.releaseSavepoint(named: savepointAction.name)
-                if savepointStack.isEmpty {
-                    let eventsBuffer = savepointStack.eventsBuffer
-                    savepointStack.clear()
-                    for (event, notifiedObservers) in eventsBuffer {
-                        for observer in notifiedObservers.flatMap({ $0.transactionObserver }) {
-                            event.send(to: observer)
+        if let transactionStatementInfo = statement.transactionStatementInfo {
+            switch transactionStatementInfo {
+            case .transaction(action: let action):
+                switch action {
+                case .begin:
+                    isInsideExplicitTransaction = true
+                case .commit, .rollback:
+                    savepointStack.clear()  // TODO: write tests that fail when we remove this line. Hint: those tests must not use any transaction observer because savepointStack.clear() is already called in willCommit() and didRollback()
+                    isInsideExplicitTransaction = false
+                }
+            case .savePoint(name: let name, action: let action):
+                switch action {
+                case .begin:
+                    savepointStack.beginSavepoint(named: name)
+                case .release:
+                    savepointStack.releaseSavepoint(named: name)
+                    if savepointStack.isEmpty {
+                        let eventsBuffer = savepointStack.eventsBuffer
+                        savepointStack.clear()
+                        for (event, notifiedObservers) in eventsBuffer {
+                            for observer in notifiedObservers.flatMap({ $0.transactionObserver }) {
+                                event.send(to: observer)
+                            }
                         }
                     }
+                case .rollback:
+                    savepointStack.rollbackSavepoint(named: name)
                 }
-            case .rollback:
-                savepointStack.rollbackSavepoint(named: savepointAction.name)
             }
         }
         
