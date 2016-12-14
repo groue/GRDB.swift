@@ -59,6 +59,31 @@ class SavepointTests: GRDBTestCase {
             try db.execute("CREATE TABLE items (name TEXT)")
         }
     }
+    
+    func testIsInsideTransaction() {
+        assertNoError {
+            dbConfiguration.defaultTransactionKind = .deferred
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                XCTAssertFalse(db.isInsideTransaction)
+                try db.inTransaction {
+                    XCTAssertTrue(db.isInsideTransaction)
+                    return .commit
+                }
+                XCTAssertFalse(db.isInsideTransaction)
+                
+                try db.execute("BEGIN TRANSACTION")
+                XCTAssertTrue(db.isInsideTransaction)
+                try db.execute("COMMIT")
+                XCTAssertFalse(db.isInsideTransaction)
+                
+                try db.execute("BEGIN TRANSACTION")
+                XCTAssertTrue(db.isInsideTransaction)
+                try db.execute("ROLLBACK")
+                XCTAssertFalse(db.isInsideTransaction)
+            }
+        }
+    }
 
     func testReleaseTopLevelSavepointFromDatabaseWithDefaultDeferredTransactions() {
         assertNoError {
