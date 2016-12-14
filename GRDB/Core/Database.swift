@@ -1418,7 +1418,7 @@ extension Database {
     /// - throws: The error thrown by the block.
     public func inTransaction(_ kind: TransactionKind? = nil, _ block: () throws -> TransactionCompletion) throws {
         // Begin transaction
-        try beginTransaction(kind ?? configuration.defaultTransactionKind)
+        try beginTransaction(kind)
         
         // Now that transaction has begun, we'll rollback in case of error.
         // But we'll throw the first caught error, so that user knows
@@ -1538,8 +1538,8 @@ extension Database {
         }
     }
     
-    private func beginTransaction(_ kind: TransactionKind) throws {
-        switch kind {
+    private func beginTransaction(_ kind: TransactionKind? = nil) throws {
+        switch kind ?? configuration.defaultTransactionKind {
         case .deferred:
             try execute("BEGIN DEFERRED TRANSACTION")
         case .immediate:
@@ -1549,7 +1549,7 @@ extension Database {
         }
     }
     
-    private func rollback(underlyingError: Error? = nil) throws {
+    private func rollback(underlyingError: Error?) throws {
         do {
             try execute("ROLLBACK TRANSACTION")
         } catch {
