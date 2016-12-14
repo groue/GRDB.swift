@@ -1573,7 +1573,9 @@ extension Database {
             // > command will fail with an error, but no harm is caused
             // > by this.
             //
-            // Rollback and ignore error because we'll throw firstError.
+            // TODO: test that isInsideTransaction, savePointStack, transaction
+            // observers, etc. are in good shape when such an implicit rollback
+            // happens.
             guard let underlyingError = underlyingError as? DatabaseError, [SQLITE_FULL, SQLITE_IOERR, SQLITE_BUSY, SQLITE_NOMEM].contains(Int32(underlyingError.code)) else {
                 throw error
             }
