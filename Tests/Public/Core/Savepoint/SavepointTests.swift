@@ -62,7 +62,6 @@ class SavepointTests: GRDBTestCase {
     
     func testIsInsideTransaction() {
         assertNoError {
-            dbConfiguration.defaultTransactionKind = .deferred
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 XCTAssertFalse(db.isInsideTransaction)
@@ -81,6 +80,25 @@ class SavepointTests: GRDBTestCase {
                 XCTAssertTrue(db.isInsideTransaction)
                 try db.execute("ROLLBACK")
                 XCTAssertFalse(db.isInsideTransaction)
+            }
+        }
+    }
+    
+    func testIsInsideTransactionWithImplicitRollback() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.create(table: "test") { t in
+                    t.column("value", .integer).unique(onConflict: .rollback)
+                }
+                print(self.lastSQLQuery)
+                try db.execute("BEGIN TRANSACTION")
+                XCTAssertTrue(db.isInsideTransaction)
+                try db.execute("INSERT INTO test (value) VALUES (?)", arguments: [1])
+                XCTAssertTrue(db.isInsideTransaction)
+                XCTAssertThrowsError(try db.execute("INSERT INTO test (value) VALUES (?)", arguments: [1]))
+                XCTAssertFalse(db.isInsideTransaction)
+                XCTAssertThrowsError(try db.execute("COMMIT"))
             }
         }
     }
