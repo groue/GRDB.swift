@@ -348,6 +348,7 @@ public final class Database {
         setupBusyMode()
         setupDefaultFunctions()
         setupDefaultCollations()
+        setupTransactionHooks()
     }
     
     /// This method must be called before database deallocation
@@ -435,6 +436,37 @@ public final class Database {
         add(collation: .localizedCaseInsensitiveCompare)
         add(collation: .localizedCompare)
         add(collation: .localizedStandardCompare)
+    }
+    
+    private func setupTransactionHooks() {
+        let dbPointer = unsafeBitCast(self, to: UnsafeMutableRawPointer.self)
+        
+        sqlite3_commit_hook(sqliteConnection, { dbPointer in
+            let db = unsafeBitCast(dbPointer, to: Database.self)
+            do {
+                try db.willCommit()
+                db.transactionState = .commit
+                // Next step: updateStatementDidExecute()
+                return 0
+            } catch {
+                db.transactionState = .rollbackFromTransactionObserver(error)
+                // Next step: sqlite3_rollback_hook callback
+                return 1
+            }
+        }, dbPointer)
+        
+        
+        sqlite3_rollback_hook(sqliteConnection, { dbPointer in
+            let db = unsafeBitCast(dbPointer, to: Database.self)
+            switch db.transactionState {
+            case .rollbackFromTransactionObserver:
+                // Next step: updateStatementDidFail()
+                break
+            default:
+                db.transactionState = .rollback
+                // Next step: updateStatementDidExecute()
+            }
+        }, dbPointer)
     }
 }
 
@@ -1563,7 +1595,7 @@ extension Database {
         SchedulingWatchdog.preconditionValidQueue(self)
         databaseEventObservers.append(DatabaseEventObserver(transactionObserver: transactionObserver))
         if databaseEventObservers.count == 1 {
-            installTransactionObserverHooks()
+            installUpdateHook()
         }
     }
     
@@ -1572,7 +1604,7 @@ extension Database {
         SchedulingWatchdog.preconditionValidQueue(self)
         databaseEventObservers.removeFirst { $0.transactionObserver === transactionObserver }
         if databaseEventObservers.isEmpty {
-            uninstallTransactionObserverHooks()
+            uninstallUpdateHook()
         }
     }
     
@@ -1581,7 +1613,7 @@ extension Database {
     private func cleanupDatabaseEventObservers() {
         databaseEventObservers = databaseEventObservers.filter { $0.transactionObserver != nil }
         if databaseEventObservers.isEmpty {
-            uninstallTransactionObserverHooks()
+            uninstallUpdateHook()
         }
     }
     
@@ -1648,6 +1680,8 @@ extension Database {
         }
         
         switch transactionState {
+        case .rollback:
+            didRollback()
         case .rollbackFromTransactionObserver(let error):
             didRollback()
             throw error
@@ -1672,9 +1706,18 @@ extension Database {
                 switch action {
                 case .begin:
                     isInsideExplicitTransaction = true
-                case .commit, .rollback:
-                    savepointStack.clear()  // TODO: write tests that fail when we remove this line. Hint: those tests must not use any transaction observer because savepointStack.clear() is already called in willCommit() and didRollback()
-                    isInsideExplicitTransaction = false
+                case .commit:
+                    if case .waitForTransactionCompletion = self.transactionState {
+                        // A COMMIT statement has ended a deferred transaction
+                        // that did not open, and sqlite_commit_hook was not
+                        // called.
+                        //
+                        //  BEGIN DEFERRED TRANSACTION
+                        //  COMMIT
+                        self.transactionState = .commit
+                    }
+                case .rollback:
+                    break
                 }
             case .savePoint(name: let name, action: let action):
                 switch action {
@@ -1713,7 +1756,7 @@ extension Database {
     }
     
     /// Transaction hook
-    private func willCommit() throws {
+    func willCommit() throws {
         let eventsBuffer = savepointStack.eventsBuffer
         savepointStack.clear()
         
@@ -1765,6 +1808,9 @@ extension Database {
     
     /// Transaction hook
     private func didCommit() {
+        isInsideExplicitTransaction = false
+        savepointStack.clear()
+        
         for observer in databaseEventObservers.flatMap({ $0.transactionObserver }) {
             observer.databaseDidCommit(self)
         }
@@ -1773,14 +1819,16 @@ extension Database {
     
     /// Transaction hook
     private func didRollback() {
+        isInsideExplicitTransaction = false
         savepointStack.clear()
+        
         for observer in databaseEventObservers.flatMap({ $0.transactionObserver }) {
             observer.databaseDidRollback(self)
         }
         cleanupDatabaseEventObservers()
     }
     
-    private func installTransactionObserverHooks() {
+    private func installUpdateHook() {
         let dbPointer = unsafeBitCast(self, to: UnsafeMutableRawPointer.self)
         sqlite3_update_hook(sqliteConnection, { (dbPointer, updateKind, databaseNameCString, tableNameCString, rowID) in
             let db = unsafeBitCast(dbPointer, to: Database.self)
@@ -1789,35 +1837,7 @@ extension Database {
                 rowID: rowID,
                 databaseNameCString: databaseNameCString,
                 tableNameCString: tableNameCString))
-            }, dbPointer)
-        
-        
-        sqlite3_commit_hook(sqliteConnection, { dbPointer in
-            let db = unsafeBitCast(dbPointer, to: Database.self)
-            do {
-                try db.willCommit()
-                db.transactionState = .commit
-                // Next step: updateStatementDidExecute()
-                return 0
-            } catch {
-                db.transactionState = .rollbackFromTransactionObserver(error)
-                // Next step: sqlite3_rollback_hook callback
-                return 1
-            }
-            }, dbPointer)
-        
-        
-        sqlite3_rollback_hook(sqliteConnection, { dbPointer in
-            let db = unsafeBitCast(dbPointer, to: Database.self)
-            switch db.transactionState {
-            case .rollbackFromTransactionObserver:
-                // Next step: updateStatementDidFail()
-                break
-            default:
-                db.transactionState = .rollback
-                // Next step: updateStatementDidExecute()
-            }
-            }, dbPointer)
+        }, dbPointer)
         
         #if SQLITE_ENABLE_PREUPDATE_HOOK
             sqlite3_preupdate_hook(sqliteConnection, { (dbPointer, databaseConnection, updateKind, databaseNameCString, tableNameCString, initialRowID, finalRowID) in
@@ -1829,14 +1849,12 @@ extension Database {
                     finalRowID: finalRowID,
                     databaseNameCString: databaseNameCString,
                     tableNameCString: tableNameCString))
-                }, dbPointer)
+            }, dbPointer)
         #endif
     }
     
-    private func uninstallTransactionObserverHooks() {
+    private func uninstallUpdateHook() {
         sqlite3_update_hook(sqliteConnection, nil, nil)
-        sqlite3_commit_hook(sqliteConnection, nil, nil)
-        sqlite3_rollback_hook(sqliteConnection, nil, nil)
         #if SQLITE_ENABLE_PREUPDATE_HOOK
             sqlite3_preupdate_hook(sqliteConnection, nil, nil)
         #endif
