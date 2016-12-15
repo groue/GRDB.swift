@@ -559,6 +559,46 @@ public struct StatementArguments {
     }
     
     
+    // MARK: Adding arguments
+    
+    /// Use this method to append or replace arguments.
+    ///
+    ///     var arguments: StatementArguments = [1]
+    ///     arguments.append(contentsOf: [2, 3])
+    ///     print(arguments)
+    ///     // Prints [1, 2, 3]
+    ///
+    ///     // Builds the ["foo": 2, "bar": 3] arguments
+    ///     var arguments: StatementArguments = ["foo": 1]
+    ///     arguments.append(contentsOf: ["foo": 2, "bar": 3])
+    ///     print(arguments)
+    ///     // Prints [foo:2, bar:3]
+    ///
+    /// This method can build arguments that mix named and positional arguments:
+    ///
+    ///     var arguments: StatementArguments = ["foo": 1]
+    ///     arguments.append(contentsOf: [2, 3])
+    ///     print(arguments)
+    ///     // Prints [foo:1, 2, 3]
+    ///
+    /// When arguments mix named and positional elements, statements prefer
+    /// named arguments (which can be reused) over positional ones (which are
+    /// never reused). For example:
+    ///
+    ///     var arguments: StatementArguments = ["foo": 1]
+    ///     arguments.append(contentsOf: [2, 3]) // [foo:1, 2, 3]
+    ///     let sql = "SELECT ? AS a, :foo AS foo, ? AS c, :foo AS foo2"
+    ///     let row = try Row.fetchOne(db, sql, arguments: arguments)!
+    ///     print(row)
+    ///     // Prints <Row a:2 foo:1 c:3 foo2:1>
+    public mutating func append(contentsOf arguments: StatementArguments) {
+        self.values.append(contentsOf: arguments.values)
+        for (key, value) in arguments.namedValues {
+            self.namedValues.updateValue(value, forKey: key)
+        }
+    }
+    
+    
     // MARK: Not Public
     
     var values: [DatabaseValue] = []
@@ -616,8 +656,8 @@ extension StatementArguments : CustomStringConvertible {
     public var description: String {
         let valuesDescriptions = values.map { $0.description }
         let namedValuesDescriptions = namedValues.map { (key, value) -> String in
-            return "\(key):\(value))"
+            return "\(key):\(value)"
         }
-        return "[" + (valuesDescriptions + namedValuesDescriptions).joined(separator: ", ") + "]"
+        return "[" + (namedValuesDescriptions + valuesDescriptions).joined(separator: ", ") + "]"
     }
 }
