@@ -42,7 +42,8 @@ final class SerializedDatabase {
     }
     
     deinit {
-        sync { db in
+        // Database may be deallocated in its own queue: allow reentrancy
+        reentrantSync { db in
             db.close()
         }
     }
@@ -82,6 +83,48 @@ final class SerializedDatabase {
         
         // Case 2 is forbidden.
         GRDBPrecondition(!watchdog.allows(db), "Database methods are not reentrant.")
+        
+        // Case 3
+        return try queue.sync {
+            try SchedulingWatchdog.current!.allowing(databases: watchdog.allowedDatabases) {
+                try block(db)
+            }
+        }
+    }
+    
+    private func reentrantSync<T>(_ block: (Database) throws -> T) rethrows -> T {
+        // Three different cases:
+        //
+        // 1. A database is invoked from some queue like the main queue:
+        //
+        //      dbQueue.inDatabase { db in       // <-- we're here
+        //      }
+        //
+        // 2. A database is invoked in a reentrant way:
+        //
+        //      dbQueue.inDatabase { db in
+        //          dbQueue.inDatabase { db in   // <-- we're here
+        //          }
+        //      }
+        //
+        // 3. A database in invoked from another database:
+        //
+        //      dbQueue1.inDatabase { db1 in
+        //          dbQueue2.inDatabase { db2 in // <-- we're here
+        //          }
+        //      }
+        
+        guard let watchdog = SchedulingWatchdog.current else {
+            // Case 1
+            return try queue.sync {
+                try block(db)
+            }
+        }
+        
+        // Case 2
+        if watchdog.allows(db) {
+            return try block(db)
+        }
         
         // Case 3
         return try queue.sync {
