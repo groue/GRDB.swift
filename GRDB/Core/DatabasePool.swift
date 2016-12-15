@@ -481,8 +481,8 @@ extension DatabasePool : DatabaseWriter {
     /// been established, and before the block argument has run.
     public func readFromCurrentState(_ block: @escaping (Database) -> Void) throws {
         writer.preconditionValidQueue()
-        
         let semaphore = DispatchSemaphore(value: 0)
+        var readError: Error? = nil
         try readerPool.get { reader in
             reader.async { db in
                 // https://www.sqlite.org/isolation.html
@@ -518,13 +518,24 @@ extension DatabasePool : DatabaseWriter {
                 //     SELECT anything -- the work around
                 //                                  UPDATE ...
                 //     Here the change is not visible by GRDB user
-                try! db.beginTransaction(.deferred)
-                try! db.makeSelectStatement("SELECT rootpage FROM sqlite_master").fetchCursor().next() // doesn't work with cached statement
-                semaphore.signal() // We can release the writer queue now that we are isolated for good.
+                do {
+                    try db.beginTransaction(.deferred)
+                    assert(db.isInsideTransaction)
+                    try db.makeSelectStatement("SELECT rootpage FROM sqlite_master").fetchCursor().next() // doesn't work with cached statement
+                } catch {
+                    readError = error
+                    semaphore.signal() // Release the writer queue and rethrow error
+                    return
+                }
+                semaphore.signal() // We can release the writer queue now that we are isolated for good
                 block(db)
-                try! db.commit()
+                _ = try? db.commit() // Ignore commit error
             }
         }
         _ = semaphore.wait(timeout: .distantFuture)
+        if let readError = readError {
+            // TODO: write a test for this
+            throw readError
+        }
     }
 }
