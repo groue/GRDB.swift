@@ -606,13 +606,6 @@ public struct StatementArguments {
         }
     }
     
-    /// TODO
-    public static func + (lhs: StatementArguments, rhs: StatementArguments) -> StatementArguments {
-        var lhs = lhs
-        lhs.append(contentsOf: rhs)
-        return lhs
-    }
-    
     
     // MARK: Not Public
     
