@@ -1149,7 +1149,7 @@ try dbQueue.inTransaction { db in
 
 If an error is thrown within the transaction body, the transaction is rollbacked and the error is rethrown by the `inTransaction` method. If you return `.rollback` from your closure, the transaction is also rollbacked, but no error is thrown.
 
-If you want to insert a transaction between other database statements, you can use the Database.inTransaction() function:
+If you want to insert a transaction between other database statements, you can use the Database.inTransaction() function, or even raw SQL statements:
 
 ```swift
 try dbQueue.inDatabase { db in  // or dbPool.write { db in
@@ -1159,6 +1159,9 @@ try dbQueue.inDatabase { db in  // or dbPool.write { db in
         return .commit
     }
     ...
+    try db.execute("BEGIN TRANSACTION")
+    ...
+    try db.execute("COMMIT")
 }
 ```
 

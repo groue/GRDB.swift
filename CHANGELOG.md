@@ -1,6 +1,17 @@
 Release Notes
 =============
 
+## Next Version
+
+**Fixed**
+
+- `DatabasePool.readFromCurrentState` now throws an error if it can't acquire an isolated access to the databaase ([documentation](https://github.com/groue/GRDB.swift#advanced-databasepool)).
+
+**New**
+
+- Support for fine-grained transaction handling: raw BEGIN, COMMIT, ROLLBACK SQL statements are properly handled in regard to transaction observers, `Database.isInsideTransaction`, etc.
+
+
 ## 0.96.0
 
 Released December 11, 2016

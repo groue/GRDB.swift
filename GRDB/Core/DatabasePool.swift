@@ -479,6 +479,10 @@ extension DatabasePool : DatabaseWriter {
     ///
     /// This method blocks the current thread until the isolation guarantee has
     /// been established, and before the block argument has run.
+    ///
+    /// - parameter block: A block that accesses the database.
+    /// - throws: The error thrown by the block, or any DatabaseError that would
+    ///   happen while establishing the read access to the database.
     public func readFromCurrentState(_ block: @escaping (Database) -> Void) throws {
         writer.preconditionValidQueue()
         let semaphore = DispatchSemaphore(value: 0)
