@@ -30,7 +30,6 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         // END
         
         assertNoError {
-            dbConfiguration.trace = { print($0) }
             do {
                 let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
                 try dbQueue.inDatabase { db in
@@ -240,6 +239,20 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         }
     }
     
+    func testReadOpensATransaction() {
+        assertNoError {
+            let dbPool = try makeDatabasePool()
+            try dbPool.read { db in
+                XCTAssertTrue(db.isInsideTransaction)
+                do {
+                    try db.execute("BEGIN DEFERRED TRANSACTION")
+                    XCTFail("Expected error")
+                } catch {
+                }
+            }
+        }
+    }
+
     func testConcurrentRead() {
         assertNoError {
             let dbPool = try makeDatabasePool()
@@ -772,9 +785,27 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         }
     }
     
+    func testReadFromCurrentStateOpensATransaction() {
+        assertNoError {
+            let dbPool = try makeDatabasePool()
+            let s = DispatchSemaphore(value: 0)
+            try dbPool.write { db in
+                try dbPool.readFromCurrentState { db in
+                    XCTAssertTrue(db.isInsideTransaction)
+                    do {
+                        try db.execute("BEGIN DEFERRED TRANSACTION")
+                        XCTFail("Expected error")
+                    } catch {
+                    }
+                    s.signal()
+                }
+            }
+            _ = s.wait(timeout: .distantFuture)
+        }
+    }
+    
     func testReadFromCurrentStateOutsideOfTransaction() {
         assertNoError {
-            dbConfiguration.trace = { print($0) }
             let dbPool = try makeDatabasePool()
             try dbPool.write { db in
                 try db.create(table: "persons") { t in
