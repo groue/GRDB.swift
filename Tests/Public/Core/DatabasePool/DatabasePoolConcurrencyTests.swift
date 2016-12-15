@@ -247,8 +247,51 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 do {
                     try db.execute("BEGIN DEFERRED TRANSACTION")
                     XCTFail("Expected error")
-                } catch {
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                    XCTAssertEqual(error.message!, "cannot start a transaction within a transaction")
+                    XCTAssertEqual(error.sql!, "BEGIN DEFERRED TRANSACTION")
+                    XCTAssertEqual(error.description, "SQLite error 1 with statement `BEGIN DEFERRED TRANSACTION`: cannot start a transaction within a transaction")
                 }
+            }
+        }
+    }
+    
+    func testReadError() {
+        assertNoError {
+            let dbPool = try makeDatabasePool()
+            
+            // Block 1                          Block 2
+            // PRAGMA locking_mode=EXCLUSIVE
+            // CREATE TABLE
+            // >
+            let s1 = DispatchSemaphore(value: 0)
+            //                                  dbPool.read // throws
+            
+            let block1 = { () in
+                try! dbPool.write { db in
+                    try db.execute("PRAGMA locking_mode=EXCLUSIVE")
+                    try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                    s1.signal()
+                }
+            }
+            let block2 = { () in
+                _ = s1.wait(timeout: .distantFuture)
+                do {
+                    try dbPool.read { _ in }
+                    XCTFail("Expected error")
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.code, 5) // SQLITE_BUSY
+                    XCTAssertEqual(error.message!, "database is locked")
+                    XCTAssertTrue(error.sql == nil)
+                    XCTAssertEqual(error.description, "SQLite error 5: database is locked")
+                } catch {
+                    XCTFail("Expected DatabaseError")
+                }
+            }
+            let blocks = [block1, block2]
+            DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
+                blocks[index]()
             }
         }
     }
@@ -838,6 +881,28 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             }
             _ = s2.wait(timeout: .distantFuture)
             XCTAssertEqual(i, 0)
+        }
+    }
+    
+    func testReadFromCurrentStateError() {
+        assertNoError {
+            dbConfiguration.trace = { print($0) }
+            let dbPool = try makeDatabasePool()
+            try dbPool.write { db in
+                try db.execute("PRAGMA locking_mode=EXCLUSIVE")
+                try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                do {
+                    try dbPool.readFromCurrentState { db in
+                        fatalError("Should not run")
+                    }
+                    XCTFail("Expected error")
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.code, 5) // SQLITE_BUSY
+                    XCTAssertEqual(error.message!, "database is locked")
+                    XCTAssertTrue(error.sql == nil)
+                    XCTAssertEqual(error.description, "SQLite error 5: database is locked")
+                }
+            }
         }
     }
     

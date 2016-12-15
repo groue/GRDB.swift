@@ -169,8 +169,29 @@ final class Pool<T> {
     /// Returns a tuple (element, releaseElement())
     /// Client MUST call releaseElement() after the element has been used.
     func get() throws -> (T, () -> ()) {
-        let item = try lockItem()
-        return (item.element, { self.unlockItem(item) })
+        var item: PoolItem<T>! = nil
+        _ = semaphore.wait(timeout: .distantFuture)
+        do {
+            try queue.sync {
+                if let availableItem = self.items.first(where: { $0.available }) {
+                    item = availableItem
+                    item.available = false
+                } else {
+                    item = try PoolItem(element: self.makeElement!(), available: false)
+                    self.items.append(item)
+                }
+            }
+        } catch {
+            semaphore.signal()
+            throw error
+        }
+        let unlock = {
+            self.queue.sync {
+                item.available = true
+            }
+            self.semaphore.signal()
+        }
+        return (item.element, unlock)
     }
     
     /// Performs a synchronous block with an element. The element turns
@@ -203,28 +224,6 @@ final class Pool<T> {
             items = []
             try block()
         }
-    }
-    
-    private func lockItem() throws -> PoolItem<T> {
-        var item: PoolItem<T>! = nil
-        _ = semaphore.wait(timeout: .distantFuture)
-        try queue.sync {
-            if let availableItem = self.items.first(where: { $0.available }) {
-                item = availableItem
-                item.available = false
-            } else {
-                item = try PoolItem(element: self.makeElement!(), available: false)
-                self.items.append(item)
-            }
-        }
-        return item
-    }
-    
-    private func unlockItem(_ item: PoolItem<T>) {
-        queue.sync {
-            item.available = true
-        }
-        semaphore.signal()
     }
 }
 
