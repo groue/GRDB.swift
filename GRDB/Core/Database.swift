@@ -1542,7 +1542,7 @@ extension Database {
         }
     }
     
-    private func beginTransaction(_ kind: TransactionKind? = nil) throws {
+    func beginTransaction(_ kind: TransactionKind? = nil) throws {
         switch kind ?? configuration.defaultTransactionKind {
         case .deferred:
             try execute("BEGIN DEFERRED TRANSACTION")
@@ -1586,7 +1586,7 @@ extension Database {
         }
     }
     
-    private func commit() throws {
+    func commit() throws {
         try execute("COMMIT TRANSACTION")
     }
     

@@ -518,12 +518,11 @@ extension DatabasePool : DatabaseWriter {
                 //     SELECT anything -- the work around
                 //                                  UPDATE ...
                 //     Here the change is not visible by GRDB user
-                try! db.inTransaction(.deferred) {  // Assume deferred transactions are always possible in a read-only WAL database
-                    try db.makeSelectStatement("SELECT rootpage FROM sqlite_master").fetchCursor().next() // doesn't work with cached statement
-                    semaphore.signal() // We can release the writer queue now that we are isolated for good.
-                    block(db)
-                    return .commit
-                }
+                try! db.beginTransaction(.deferred)
+                try! db.makeSelectStatement("SELECT rootpage FROM sqlite_master").fetchCursor().next() // doesn't work with cached statement
+                semaphore.signal() // We can release the writer queue now that we are isolated for good.
+                block(db)
+                try! db.commit()
             }
         }
         _ = semaphore.wait(timeout: .distantFuture)
