@@ -173,12 +173,12 @@ final class Pool<T> {
         _ = semaphore.wait(timeout: .distantFuture)
         do {
             try queue.sync {
-                if let availableItem = self.items.first(where: { $0.available }) {
+                if let availableItem = items.first(where: { $0.available }) {
                     item = availableItem
                     item.available = false
                 } else {
-                    item = try PoolItem(element: self.makeElement!(), available: false)
-                    self.items.append(item)
+                    item = try PoolItem(element: makeElement!(), available: false)
+                    items.append(item)
                 }
             }
         } catch {
