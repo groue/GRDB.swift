@@ -1,11 +1,13 @@
 Release Notes
 =============
 
-## Next Version
+## 0.97.0
+
+Released December 15, 2016
 
 **Fixed**
 
-- DatabasePool `read` and `readFromCurrentState` methods now properly throw errors whenever they can't acquire an isolated access to the databaase.
+- DatabasePool `read` and `readFromCurrentState` methods now properly throw errors whenever they can't acquire an isolated access to the database.
 
 **New**
 
