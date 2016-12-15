@@ -1,5 +1,5 @@
-- [ ] Have StatementArguments.append(contentsOf:) avoid fatal errors before making it public for good (return a dictionary of lost values?)
-- [ ] Test StatementArguments.append(contentsOf:)
+- [ ] Document StatementArguments.append(contentsOf:), +, &+, +=
+- [ ] Test StatementArguments.append(contentsOf:), +, &+, +=
 - [ ] Request.bound(to:adapter:) (requires adapters to be able to adapt an already adapted row)
 - [ ] Think about supporting Cursor's underestimatedCount, which could speed up Array(cursor) and fetchAll()
 - [ ] FetchedRecordsController: handle fetch errors
