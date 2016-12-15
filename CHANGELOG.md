@@ -1,6 +1,18 @@
 Release Notes
 =============
 
+## Next Version
+
+**New**
+
+- StatementArguments can be concatenated with the `append(contentsOf:)` method and the `+`, `&+`, `+=` operators:
+    
+    ```swift
+    let arguments: StatementArguments = ["foo"]
+    arguments += ["bar"]
+    arguments // ["foo", "bar"]
+    ```
+
 ## 0.97.0
 
 Released December 15, 2016
