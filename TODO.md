@@ -2,11 +2,6 @@
 - [ ] Think about supporting Cursor's underestimatedCount, which could speed up Array(cursor) and fetchAll()
 - [ ] FetchedRecordsController: handle fetch errors
 - [ ] Swift 3.0.2 (Xcode 8.2): "Type inference will properly unwrap optionals when used with generics and implicitly-unwrapped optionals." Maybe this fixes `row.value(named: "foo") as? Int`?
-- [ ] Refactor Database notion of transaction/savepoints into a single type. Support INSERT OR ROLLBACK.
-    - [X] Refactor readFromCurrentState so that it catches and exposes errors
-    - [X] Observe begin/commit/rollback statements 
-    - [ ] Throw errors when SQLite transaction/savepoint depth does not match the code's
-    - Since some statements may implicitly rollback transactions, we can not rely on explicit rollback statements to infer the transaction state. We can only rely on sqlite3_rollback_hook, assuming it is called even for implicit rollbacks (test with an INSERT OR ROLLBACK statement).
 - [ ] Attach databases (this could be the support for fetched records controller caches). Interesting question: what happens when one attaches a non-WAL db to a databasePool?
 - [ ] SQLCipher: sqlite3_rekey is discouraged (https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320)
 - [ ] Restore dispatching tests in GRDBOSXTests (they are disabled in order to avoid linker errors)
@@ -34,6 +29,46 @@
 
 
 Not sure
+
+- [ ] Support for OR ROLLBACK, and mismatch between the Swift depth and the SQLite depth of nested transactions/savepoint:
+    
+    ```swift
+    try db.inTransaction {           // Swift depth: 1, SQLite depth: 1
+        try db.execute("COMMIT")     // Swift depth: 1, SQLite depth: 0
+        try db.execute("INSERT ...") // Should throw an error since this statement is no longer protected by a transaction
+        try db.execute("SELECT ...") // Should throw an error since this statement is no longer protected by a transaction
+        return .commit 
+    }
+    ```
+
+    ```swift
+    try db.inTransaction {
+        try db.execute("INSERT OR ROLLBACK ...") // throws 
+        return .commit // not executed because of error
+    }   // Should not ROLLBACK since transaction has already been rollbacked
+    ```
+
+    ```swift
+    try db.inTransaction {
+        do {
+            try db.execute("INSERT OR ROLLBACK ...") // throws
+        } catch {
+        }
+        try db.execute("INSERT ...") // Should throw an error since this statement is no longer protected by a transaction
+        try db.execute("SELECT ...") // Should throw an error since this statement is no longer protected by a transaction
+        return .commit
+    }
+    ```
+
+    ```swift
+    try db.inTransaction {
+        do {
+            try db.execute("INSERT OR ROLLBACK ...") // throws
+        } catch {
+        }
+        return .commit  // Should throw an error since transaction has been rollbacked and user's intent can not be applied
+    }
+    ```
 
 - [X] Have Row adopt LiteralDictionaryConvertible
     - [ ] ... allowing non unique column names
