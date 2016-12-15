@@ -561,18 +561,22 @@ public struct StatementArguments {
     
     // MARK: Adding arguments
     
-    /// Use this method to append or replace arguments.
+    /// Use this method to extend statement arguments
     ///
     ///     var arguments: StatementArguments = [1]
     ///     arguments.append(contentsOf: [2, 3])
     ///     print(arguments)
     ///     // Prints [1, 2, 3]
     ///
-    ///     // Builds the ["foo": 2, "bar": 3] arguments
     ///     var arguments: StatementArguments = ["foo": 1]
-    ///     arguments.append(contentsOf: ["foo": 2, "bar": 3])
+    ///     arguments.append(contentsOf: ["bar": 2])
     ///     print(arguments)
-    ///     // Prints [foo:2, bar:3]
+    ///     // Prints [foo:1, bar:2]
+    ///
+    /// It is a programmer error to attempt to update named arguments:
+    ///
+    ///     var arguments: StatementArguments = ["foo": 1]
+    ///     arguments.append(contentsOf: ["foo": 2])    // fatal error: argument "foo" can't be reused.
     ///
     /// This method can build arguments that mix named and positional arguments:
     ///
@@ -592,9 +596,13 @@ public struct StatementArguments {
     ///     print(row)
     ///     // Prints <Row a:2 foo:1 c:3 foo2:1>
     public mutating func append(contentsOf arguments: StatementArguments) {
-        self.values.append(contentsOf: arguments.values)
-        for (key, value) in arguments.namedValues {
-            self.namedValues.updateValue(value, forKey: key)
+        values.append(contentsOf: arguments.values)
+        for (name, value) in arguments.namedValues {
+            guard namedValues[name] == nil else {
+                // Programmer error
+                fatalError("argument \(String(reflecting: name)) can't be reused")
+            }
+            namedValues[name] = value
         }
     }
     

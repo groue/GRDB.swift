@@ -292,17 +292,11 @@ public struct SQLExpressionLiteral : SQLExpression {
     public func expressionSQL(_ arguments: inout StatementArguments?) -> String {
         if let literalArguments = self.arguments {
             guard arguments != nil else {
-                // GRDB limitation
+                // GRDB limitation: we don't know how to look for `?` in sql and
+                // replace them with with literals.
                 fatalError("Not implemented")
             }
-            arguments!.values.append(contentsOf: literalArguments.values)
-            for (name, value) in literalArguments.namedValues {
-                guard arguments!.namedValues[name] == nil else {
-                    // Programmer error
-                    fatalError("argument \(String(reflecting: name)) can't be reused")
-                }
-                arguments!.namedValues[name] = value
-            }
+            arguments!.append(contentsOf: literalArguments)
         }
         return sql
     }
