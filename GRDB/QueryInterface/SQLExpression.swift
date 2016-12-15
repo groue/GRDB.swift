@@ -296,7 +296,7 @@ public struct SQLExpressionLiteral : SQLExpression {
                 // replace them with with literals.
                 fatalError("Not implemented")
             }
-            arguments!.append(contentsOf: literalArguments)
+            arguments! += literalArguments
         }
         return sql
     }

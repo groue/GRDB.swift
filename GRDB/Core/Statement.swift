@@ -561,49 +561,165 @@ public struct StatementArguments {
     
     // MARK: Adding arguments
     
-    /// Use this method to extend statement arguments
+    /// Extends statement arguments.
+    ///
+    /// Positional arguments (provided as arrays) are concatenated:
     ///
     ///     var arguments: StatementArguments = [1]
     ///     arguments.append(contentsOf: [2, 3])
     ///     print(arguments)
     ///     // Prints [1, 2, 3]
     ///
+    /// Named arguments (provided as dictionaries) are updated:
+    ///
     ///     var arguments: StatementArguments = ["foo": 1]
     ///     arguments.append(contentsOf: ["bar": 2])
     ///     print(arguments)
-    ///     // Prints [foo:1, bar:2]
+    ///     // Prints ["foo": 1, "bar": 2]
     ///
-    /// It is a programmer error to attempt to update named arguments:
+    /// Arguments that were replaced, if any, are returned:
     ///
-    ///     var arguments: StatementArguments = ["foo": 1]
-    ///     arguments.append(contentsOf: ["foo": 2])    // fatal error: argument "foo" can't be reused.
+    ///     var arguments: StatementArguments = ["foo": 1, "bar": 2]
+    ///     let replacedValues = arguments.append(contentsOf: ["foo": 3])
+    ///     print(arguments)
+    ///     // Prints ["foo": 3, "bar": 2]
+    ///     print(replacedValues)
+    ///     // Prints ["foo": 1]
     ///
-    /// This method can build arguments that mix named and positional arguments:
+    /// You can mix named and positional arguments:
     ///
     ///     var arguments: StatementArguments = ["foo": 1]
     ///     arguments.append(contentsOf: [2, 3])
     ///     print(arguments)
-    ///     // Prints [foo:1, 2, 3]
+    ///     // Prints ["foo": 1, 2, 3]
     ///
     /// When arguments mix named and positional elements, statements prefer
-    /// named arguments (which can be reused) over positional ones (which are
-    /// never reused). For example:
+    /// named arguments (which can be reused) over positional ones.
+    /// For example:
     ///
     ///     var arguments: StatementArguments = ["foo": 1]
-    ///     arguments.append(contentsOf: [2, 3]) // [foo:1, 2, 3]
+    ///     arguments.append(contentsOf: [2, 3]) // ["foo": 1, 2, 3]
     ///     let sql = "SELECT ? AS a, :foo AS foo, ? AS c, :foo AS foo2"
     ///     let row = try Row.fetchOne(db, sql, arguments: arguments)!
     ///     print(row)
     ///     // Prints <Row a:2 foo:1 c:3 foo2:1>
-    public mutating func append(contentsOf arguments: StatementArguments) {
+    public mutating func append(contentsOf arguments: StatementArguments) -> [String: DatabaseValue] {
+        var replacedValues: [String: DatabaseValue] = [:]
         values.append(contentsOf: arguments.values)
         for (name, value) in arguments.namedValues {
-            guard namedValues[name] == nil else {
-                // Programmer error
-                fatalError("argument \(String(reflecting: name)) can't be reused")
+            if let replacedValue = namedValues.updateValue(value, forKey: name) {
+                replacedValues[name] = replacedValue
             }
-            namedValues[name] = value
         }
+        return replacedValues
+    }
+    
+    /// Creates a new StatementArguments by extending the left-hand size
+    /// arguments with the right-hand side arguments.
+    ///
+    /// Positional arguments (provided as arrays) are concatenated:
+    ///
+    ///     let arguments: StatementArguments = [1] + [2, 3]
+    ///     print(arguments)
+    ///     // Prints [1, 2, 3]
+    ///
+    /// Named arguments (provided as dictionaries) are updated:
+    ///
+    ///     let arguments: StatementArguments = ["foo": 1] + ["bar": 2]
+    ///     print(arguments)
+    ///     // Prints ["foo": 1, "bar": 2]
+    ///
+    /// You can mix named and positional arguments (see appends(contentOf:) for
+    /// more information about mixed arguments):
+    ///
+    ///     let arguments: StatementArguments = ["foo": 1] + [2, 3]
+    ///     print(arguments)
+    ///     // Prints ["foo": 1, 2, 3]
+    ///
+    /// If the arguments on the right-hand side has named parameters that are
+    /// already defined on the left, a fatal error is raised:
+    ///
+    ///     let arguments: StatementArguments = ["foo": 1] + ["foo": 2]
+    ///     // fatal error: already defined statement argument: foo
+    ///
+    /// This fatal error can be avoided with the &+ operator, or the
+    /// append(contentsOf:) method.
+    public static func + (lhs: StatementArguments, rhs: StatementArguments) -> StatementArguments {
+        var lhs = lhs
+        lhs += rhs
+        return lhs
+    }
+    
+    /// Creates a new StatementArguments by extending the left-hand size
+    /// arguments with the right-hand side arguments.
+    ///
+    /// Positional arguments (provided as arrays) are concatenated:
+    ///
+    ///     let arguments: StatementArguments = [1] &+ [2, 3]
+    ///     print(arguments)
+    ///     // Prints [1, 2, 3]
+    ///
+    /// Named arguments (provided as dictionaries) are updated:
+    ///
+    ///     let arguments: StatementArguments = ["foo": 1] &+ ["bar": 2]
+    ///     print(arguments)
+    ///     // Prints ["foo": 1, "bar": 2]
+    ///
+    /// You can mix named and positional arguments (see appends(contentOf:) for
+    /// more information about mixed arguments):
+    ///
+    ///     let arguments: StatementArguments = ["foo": 1] &+ [2, 3]
+    ///     print(arguments)
+    ///     // Prints ["foo": 1, 2, 3]
+    ///
+    /// If a named arguments is defined in both arguments, the right-hand
+    /// side wins:
+    ///
+    ///     let arguments: StatementArguments = ["foo": 1] &+ ["foo": 2]
+    ///     print(arguments)
+    ///     // Prints ["foo": 2]
+    public static func &+ (lhs: StatementArguments, rhs: StatementArguments) -> StatementArguments {
+        var lhs = lhs
+        _ = lhs.append(contentsOf: rhs)
+        return lhs
+    }
+    
+    /// Extends the left-hand size arguments with the right-hand side arguments.
+    ///
+    /// Positional arguments (provided as arrays) are concatenated:
+    ///
+    ///     var arguments: StatementArguments = [1]
+    ///     arguments += [2, 3]
+    ///     print(arguments)
+    ///     // Prints [1, 2, 3]
+    ///
+    /// Named arguments (provided as dictionaries) are updated:
+    ///
+    ///     var arguments: StatementArguments = ["foo": 1]
+    ///     arguments += ["bar": 2]
+    ///     print(arguments)
+    ///     // Prints ["foo": 1, "bar": 2]
+    ///
+    /// You can mix named and positional arguments (see appends(contentOf:) for
+    /// more information about mixed arguments):
+    ///
+    ///     var arguments: StatementArguments = ["foo": 1]
+    ///     arguments.append(contentsOf: [2, 3])
+    ///     print(arguments)
+    ///     // Prints ["foo": 1, 2, 3]
+    ///
+    /// If the arguments on the right-hand side has named parameters that are
+    /// already defined on the left, a fatal error is raised:
+    ///
+    ///     var arguments: StatementArguments = ["foo": 1]
+    ///     arguments += ["foo": 2]
+    ///     // fatal error: already defined statement argument: foo
+    ///
+    /// This fatal error can be avoided with the &+ operator, or the
+    /// append(contentsOf:) method.
+    public static func += (lhs: inout StatementArguments, rhs: StatementArguments) {
+        let replacedValues = lhs.append(contentsOf: rhs)
+        GRDBPrecondition(replacedValues.isEmpty, "already defined statement argument: \(replacedValues.keys.joined(separator: ", "))")
     }
     
     
@@ -664,7 +780,7 @@ extension StatementArguments : CustomStringConvertible {
     public var description: String {
         let valuesDescriptions = values.map { $0.description }
         let namedValuesDescriptions = namedValues.map { (key, value) -> String in
-            return "\(key):\(value)"
+            return "\(String(reflecting: key)): \(value)"
         }
         return "[" + (namedValuesDescriptions + valuesDescriptions).joined(separator: ", ") + "]"
     }
