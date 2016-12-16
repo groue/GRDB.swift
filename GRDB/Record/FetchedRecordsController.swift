@@ -323,6 +323,19 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     }
     #endif
     
+    /// Registers a callback for changes tracking errors.
+    ///
+    /// Whenever the controller could not look for changes after a transaction
+    /// has potentially modified the tracked request, this error handler is
+    /// called.
+    ///
+    /// The request observation is not stopped, though: future transactions may
+    /// successfully be handled, and the notified changes will then be based on
+    /// the last successful fetch.
+    public func trackErrors(_ errorHandler: @escaping (FetchedRecordsController<Record>, Error) -> ()) {
+        self.errorHandler = errorHandler
+    }
+    
     
     // MARK: - Accessing Records
     
@@ -357,6 +370,9 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     
     // The eventual current database observer
     private var observer: FetchedRecordsObserver<Record>?
+    
+    // The eventual error handler
+    fileprivate var errorHandler: ((FetchedRecordsController<Record>, Error) -> ())?
 }
 
 fileprivate struct ObservedRequest<Record: RowConvertible> : TypedRequest {
@@ -608,8 +624,11 @@ fileprivate func makeFetchFunction<Record, T>(
             
             switch result {
             case .failure(let error):
-                // TODO: handle error
-                fatalError("\(error)")
+                callbackQueue.async {
+                    // Now we can retain controller
+                    guard let strongController = controller else { return }
+                    strongController.errorHandler?(strongController, error)
+                }
                 
             case .success((fetchedItems: let fetchedItems, fetchedAlongside: let fetchedAlongside, observer: let observer)):
                 // Return if there is no change
@@ -808,8 +827,11 @@ fileprivate func makeFetchFunction<Record, T>(
             
             switch result {
             case .failure(let error):
-                // TODO: handle error
-                fatalError("\(error)")
+                callbackQueue.async {
+                    // Now we can retain controller
+                    guard let strongController = controller else { return }
+                    strongController.errorHandler?(strongController, error)
+                }
                 
             case .success((fetchedItems: let fetchedItems, fetchedAlongside: let fetchedAlongside, observer: let observer)):
                 // Return if there is no change
