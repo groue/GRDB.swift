@@ -1,5 +1,3 @@
-- [ ] Document StatementArguments.append(contentsOf:), +, &+, +=
-- [ ] Test StatementArguments.append(contentsOf:), +, &+, +=
 - [ ] Request.bound(to:adapter:) (requires adapters to be able to adapt an already adapted row)
 - [ ] Think about supporting Cursor's underestimatedCount, which could speed up Array(cursor) and fetchAll()
 - [ ] FetchedRecordsController: handle fetch errors
@@ -72,8 +70,6 @@ Not sure
     }
     ```
 
-- [X] Have Row adopt LiteralDictionaryConvertible
-    - [ ] ... allowing non unique column names
 - [ ] Remove DatabaseValue.value()
     - [X] Don't talk about DatabaseValue.value() in README.md
 - [ ] Document or deprecate DatabaseCoder
