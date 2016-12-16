@@ -375,4 +375,129 @@ class StatementArgumentsTests: GRDBTestCase {
         }
     }
     
+    func testMixedArguments() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let sql = "SELECT ?2 AS two, :foo AS foo, ?1 AS one, :foo AS foo2, :bar AS bar"
+                let row = try Row.fetchOne(db, sql, arguments: [1, 2, "bar"] + ["foo": "foo"])!
+                XCTAssertEqual(row, ["two": 2, "foo": "foo", "one": 1, "foo2": "foo", "bar": "bar"])
+            }
+        }
+    }
+    
+    func testAppendContentsOf() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                do {
+                    var arguments: StatementArguments = [1, 2]
+                    let replacedValues = arguments.append(contentsOf: [3, 4])
+                    XCTAssert(replacedValues.isEmpty)
+                    
+                    let row = try Row.fetchOne(db, "SELECT ?, ?, ?, ?", arguments: arguments)!
+                    XCTAssertEqual(row, ["?": 1, "?": 2, "?": 3, "?": 4])
+                }
+                
+                do {
+                    var arguments: StatementArguments = ["foo": "foo", "bar": "bar", "toto": "titi"]
+                    let replacedValues = arguments.append(contentsOf: ["foo": "qux", "bar": "baz", "tata": "tutu"])
+                    XCTAssertEqual(replacedValues, ["foo": "foo".databaseValue, "bar": "bar".databaseValue])
+                    
+                    let row = try Row.fetchOne(db, "SELECT :foo, :bar, :toto, :tata", arguments: arguments)!
+                    XCTAssertEqual(row, [":foo": "qux", ":bar": "baz", ":toto": "titi", ":tata": "tutu"])
+                }
+                
+                do {
+                    var arguments: StatementArguments = [1, 2]
+                    let replacedValues = arguments.append(contentsOf: ["foo": "qux", "bar": "baz", "tata": "tutu"])
+                    XCTAssert(replacedValues.isEmpty)
+                    
+                    let row = try Row.fetchOne(db, "SELECT ?, :foo, :bar, ?, :tata", arguments: arguments)!
+                    XCTAssertEqual(row, ["?": 1, ":foo": "qux", ":bar": "baz", "?": 2, ":tata": "tutu"])
+                }
+            }
+        }
+    }
+    
+    func testPlusOperator() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                do {
+                    let arguments: StatementArguments = [1, 2] + [3, 4]
+                    let row = try Row.fetchOne(db, "SELECT ?, ?, ?, ?", arguments: arguments)!
+                    XCTAssertEqual(row, ["?": 1, "?": 2, "?": 3, "?": 4])
+                }
+                
+                do {
+                    // + does not allow overrides
+                    let arguments: StatementArguments = ["foo": "foo", "bar": "bar", "toto": "titi"] + ["tata": "tutu"]
+                    let row = try Row.fetchOne(db, "SELECT :foo, :bar, :toto, :tata", arguments: arguments)!
+                    XCTAssertEqual(row, [":foo": "foo", ":bar": "bar", ":toto": "titi", ":tata": "tutu"])
+                }
+                
+                do {
+                    let arguments: StatementArguments = [1, 2] + ["foo": "qux", "bar": "baz", "tata": "tutu"]
+                    let row = try Row.fetchOne(db, "SELECT ?, :foo, :bar, ?, :tata", arguments: arguments)!
+                    XCTAssertEqual(row, ["?": 1, ":foo": "qux", ":bar": "baz", "?": 2, ":tata": "tutu"])
+                }
+            }
+        }
+    }
+    
+    func testOverflowPlusOperator() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                do {
+                    let arguments: StatementArguments = [1, 2] &+ [3, 4]
+                    let row = try Row.fetchOne(db, "SELECT ?, ?, ?, ?", arguments: arguments)!
+                    XCTAssertEqual(row, ["?": 1, "?": 2, "?": 3, "?": 4])
+                }
+                
+                do {
+                    // &+ does not allow overrides
+                    let arguments: StatementArguments = ["foo": "foo", "bar": "bar", "toto": "titi"] &+ ["foo": "qux", "bar": "baz", "tata": "tutu"]
+                    let row = try Row.fetchOne(db, "SELECT :foo, :bar, :toto, :tata", arguments: arguments)!
+                    XCTAssertEqual(row, [":foo": "qux", ":bar": "baz", ":toto": "titi", ":tata": "tutu"])
+                }
+                
+                do {
+                    let arguments: StatementArguments = [1, 2] &+ ["foo": "qux", "bar": "baz", "tata": "tutu"]
+                    let row = try Row.fetchOne(db, "SELECT ?, :foo, :bar, ?, :tata", arguments: arguments)!
+                    XCTAssertEqual(row, ["?": 1, ":foo": "qux", ":bar": "baz", "?": 2, ":tata": "tutu"])
+                }
+            }
+        }
+    }
+    
+    func testPlusEqualOperator() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                do {
+                    var arguments: StatementArguments = [1, 2]
+                    arguments += [3, 4]
+                    let row = try Row.fetchOne(db, "SELECT ?, ?, ?, ?", arguments: arguments)!
+                    XCTAssertEqual(row, ["?": 1, "?": 2, "?": 3, "?": 4])
+                }
+                
+                do {
+                    // += does not allow overrides
+                    var arguments: StatementArguments = ["foo": "foo", "bar": "bar", "toto": "titi"]
+                    arguments += ["tata": "tutu"]
+                    let row = try Row.fetchOne(db, "SELECT :foo, :bar, :toto, :tata", arguments: arguments)!
+                    XCTAssertEqual(row, [":foo": "foo", ":bar": "bar", ":toto": "titi", ":tata": "tutu"])
+                }
+                
+                do {
+                    var arguments: StatementArguments = [1, 2]
+                    arguments += ["foo": "qux", "bar": "baz", "tata": "tutu"]
+                    let row = try Row.fetchOne(db, "SELECT ?, :foo, :bar, ?, :tata", arguments: arguments)!
+                    XCTAssertEqual(row, ["?": 1, ":foo": "qux", ":bar": "baz", "?": 2, ":tata": "tutu"])
+                }
+            }
+        }
+    }
 }
