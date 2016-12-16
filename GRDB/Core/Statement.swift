@@ -440,8 +440,8 @@ public final class UpdateStatement : Statement {
 
 // MARK: - StatementArguments
 
-/// StatementArguments provide values to SQLite statements expressed as
-/// placeholders in raw SQL queries.
+/// StatementArguments provide values to argument placeholders in raw
+/// SQL queries.
 ///
 /// Placeholders can take several forms (see https://www.sqlite.org/lang_expr.html#varparam
 /// for more information):
