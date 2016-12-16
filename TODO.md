@@ -1,3 +1,4 @@
+- [ ] We share the database cache between database pool writers and readers. But what if a writer modifies the database schema within a transaction, and a concurrent reader reads the cache? Bad things, isn't it? Write failing tests first, and fix the bug.
 - [ ] FetchedRecordsController is not reactive:
     
     We need to be able to start and stop subscribing to changes made on a request. This means that diffs have to be performed between two arbitraty states of the database, not only between two transactions.
