@@ -1,4 +1,9 @@
-- [ ] Faire du rx (but: un subscriber peut s'interrompre et récupérer un diff par rapport à la dernière liste. Et peut animer le diff au moment où il veut, pas au moment où la base est modifiée)
+- [ ] FetchedRecordsController is not reactive:
+    
+    We need to be able to start and stop subscribing to changes made on a request. This means that diffs have to be performed between two arbitraty states of the database, not only between two transactions.
+    
+    And let's lift the restriction on Record: make this able to work on any fetchable type (row, record, value, optional value).
+    
 - [ ] Request.bound(to:adapter:) (requires adapters to be able to adapt an already adapted row)
 - [ ] Think about supporting Cursor's underestimatedCount, which could speed up Array(cursor) and fetchAll()
 - [ ] FetchedRecordsController: handle fetch errors
