@@ -661,7 +661,7 @@ let rows = try Row.fetchAll(db,
     arguments: ["name": "Arthur"])
 ```
 
-See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.).
+See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.), and [StatementArguments](http://cocoadocs.org/docsets/GRDB.swift/0.97.0/Structs/StatementArguments.html) for a detailed documentation of SQLite arguments.
 
 Unlike row arrays that contain copies of the database rows, row cursors are close to the SQLite metal, and require a little care:
 
@@ -892,7 +892,7 @@ GRDB ships with built-in support for the following value types:
 
 - Generally speaking, all types that adopt the [DatabaseValueConvertible](#custom-value-types) protocol.
 
-Values can be used as [statement arguments](#executing-updates):
+Values can be used as [statement arguments](http://cocoadocs.org/docsets/GRDB.swift/0.97.0/Structs/StatementArguments.html):
 
 ```swift
 let url: URL = ...
@@ -1283,7 +1283,7 @@ try dbQueue.inDatabase { db in
 }
 ```
 
-The `?` and colon-prefixed keys like `:name` in the SQL query are the statement arguments. You set them with arrays or dictionaries (arguments are actually of type StatementArguments, which happens to adopt the ExpressibleByArrayLiteral and ExpressibleByDictionaryLiteral protocols).
+The `?` and colon-prefixed keys like `:name` in the SQL query are the statement arguments. You set them with arrays or dictionaries (arguments are actually of type [StatementArguments](http://cocoadocs.org/docsets/GRDB.swift/0.97.0/Structs/StatementArguments.html), which happens to adopt the ExpressibleByArrayLiteral and ExpressibleByDictionaryLiteral protocols).
 
 ```swift
 updateStatement.arguments = ["name": "Arthur", "age": 41]
@@ -1857,7 +1857,7 @@ try PointOfInterest.fetchAll(db, "SELECT ...", arguments:...)    // [PointOfInte
 try PointOfInterest.fetchOne(db, "SELECT ...", arguments:...)    // PointOfInterest?
 ```
 
-See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll` and `fetchOne` methods. See [fetching rows](#fetching-rows) for more information about the query arguments.
+See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll` and `fetchOne` methods. See [StatementArguments](http://cocoadocs.org/docsets/GRDB.swift/0.97.0/Structs/StatementArguments.html) for more information about the query arguments.
 
 
 ### RowConvertible and Row Adapters
@@ -2852,7 +2852,7 @@ Person                          // SELECT * FROM persons
 ```
 
 
-Raw SQL snippets are also accepted, with eventual arguments:
+Raw SQL snippets are also accepted, with eventual [arguments](http://cocoadocs.org/docsets/GRDB.swift/0.97.0/Structs/StatementArguments.html):
 
 ```swift
 // SELECT DATE(creationDate), COUNT(*) FROM persons WHERE name = 'Arthur' GROUP BY date(creationDate)
@@ -3696,7 +3696,7 @@ let pattern = FTS3Pattern(matchingAnyTokenIn: "")  // nil
 let pattern = FTS3Pattern(matchingAnyTokenIn: "*") // nil
 ```
 
-FTS3Pattern are regular [values](#values). You can use them as query arguments:
+FTS3Pattern are regular [values](#values). You can use them as query [arguments](http://cocoadocs.org/docsets/GRDB.swift/0.97.0/Structs/StatementArguments.html):
 
 ```swift
 let documents = try Document.fetchAll(db,
@@ -3909,7 +3909,7 @@ let pattern = FTS5Pattern(matchingAnyTokenIn: "")  // nil
 let pattern = FTS5Pattern(matchingAnyTokenIn: "*") // nil
 ```
 
-FTS5Pattern are regular [values](#values). You can use them as query arguments:
+FTS5Pattern are regular [values](#values). You can use them as query [arguments](http://cocoadocs.org/docsets/GRDB.swift/0.97.0/Structs/StatementArguments.html):
 
 ```swift
 let documents = try Document.fetchAll(db,
@@ -4622,7 +4622,7 @@ DROP TABLE students;
 --' WHERE id = 1
 ```
 
-To avoid those problems, **never embed raw values in your SQL queries**. The only correct technique is to provide arguments to your SQL queries:
+To avoid those problems, **never embed raw values in your SQL queries**. The only correct technique is to provide [arguments](http://cocoadocs.org/docsets/GRDB.swift/0.97.0/Structs/StatementArguments.html) to your SQL queries:
 
 ```swift
 // Good
