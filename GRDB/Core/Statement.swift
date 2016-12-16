@@ -488,6 +488,20 @@ public final class UpdateStatement : Statement {
 ///     arguments += [41]
 ///     db.execute("INSERT ... (?, ?)", arguments: arguments)
 ///
+/// `+` and `+=` operators consider that overriding named arguments is a
+/// programmer error:
+///
+///     var arguments: StatementArguments = ["name": "Arthur"]
+///     arguments += ["name": "Barbara"]
+///     // fatal error: already defined statement argument: name
+///
+/// `&+` and `append(contentsOf:)` allow overriding named arguments:
+///
+///     var arguments: StatementArguments = ["name": "Arthur"]
+///     arguments = arguments &+ ["name": "Barbara"]
+///     print(arguments)
+///     // Prints ["name": "Barbara"]
+///
 /// ## Mixed Arguments
 ///
 /// When a statement consumes a mix of named and positional arguments, it
