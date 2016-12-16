@@ -30,7 +30,7 @@ public final class Row {
     
     /// Creates a row from a dictionary of values.
     public convenience init(_ dictionary: [String: DatabaseValueConvertible?]) {
-        self.init(impl: DictionaryRowImpl(dictionary: dictionary))
+        self.init(impl: ArrayRowImpl(columns: dictionary.map { ($0, $1?.databaseValue ?? .null) }))
     }
     
     /// Creates a row from [AnyHashable: Any].
@@ -713,9 +713,14 @@ extension Row {
 
 extension Row : ExpressibleByDictionaryLiteral {
     
-    /// Creates a row initialized with elements.
+    /// Creates a row initialized with elements. Column order is preserved, and
+    /// duplicated columns names are allowed.
+    ///
+    ///     let row: Row = ["foo": 1, "foo": "bar", "baz": nil]
+    ///     print(row)
+    ///     // Prints <Row foo:1 foo:"bar" baz:NULL>
     public convenience init(dictionaryLiteral elements: (String, DatabaseValueConvertible?)...) {
-        self.init(Dictionary(keyValueSequence: elements))
+        self.init(impl: ArrayRowImpl(columns: elements.map { ($0, $1?.databaseValue ?? .null) }))
     }
 }
 
@@ -857,15 +862,15 @@ protocol RowImpl {
 
 
 /// See Row.init(dictionary:)
-private struct DictionaryRowImpl : RowImpl {
-    let dictionary: [String: DatabaseValueConvertible?]
+private struct ArrayRowImpl : RowImpl {
+    let columns: [(String, DatabaseValue)]
     
-    init (dictionary: [String: DatabaseValueConvertible?]) {
-        self.dictionary = dictionary
+    init(columns: [(String, DatabaseValue)]) {
+        self.columns = columns
     }
     
     var count: Int {
-        return dictionary.count
+        return columns.count
     }
     
     var isFetched: Bool {
@@ -877,23 +882,18 @@ private struct DictionaryRowImpl : RowImpl {
     }
     
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
-        let i = dictionary.index(dictionary.startIndex, offsetBy: index)
-        return dictionary[i].1?.databaseValue ?? .null
+        return columns[index].1
     }
     
     func columnName(atUncheckedIndex index: Int) -> String {
-        let i = dictionary.index(dictionary.startIndex, offsetBy: index)
-        return dictionary[i].0
+        return columns[index].0
     }
     
     // This method MUST be case-insensitive, and returns the index of the
     // leftmost column that matches *name*.
     func index(ofColumn name: String) -> Int? {
         let lowercaseName = name.lowercased()
-        guard let index = dictionary.index(where: { (column, value) in column.lowercased() == lowercaseName }) else {
-            return nil
-        }
-        return dictionary.distance(from: dictionary.startIndex, to: index)
+        return columns.index { (column, _) in column.lowercased() == lowercaseName }
     }
     
     func scoped(on name: String) -> Row? {

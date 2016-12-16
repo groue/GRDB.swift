@@ -13,6 +13,15 @@ Release Notes
     arguments // ["foo", "bar"]
     ```
 
+- Rows expressed as dictionary literals now preserve column ordering, and allow duplicated column names:
+    
+    ```swift
+    let row: Row = ["foo": 1, "foo": "bar", "baz": nil]
+    print(row)
+    // Prints <Row foo:1 foo:"bar" baz:NULL>
+    ```
+
+
 ## 0.97.0
 
 Released December 15, 2016

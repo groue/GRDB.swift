@@ -32,6 +32,19 @@ class RowAsDictionaryLiteralConvertibleTests : RowTestCase {
         XCTAssertEqual(bools, [false, true, true])
     }
     
+    func testColumnOrderIsPreserved() {
+        // Paramount for tests
+        let row: Row = ["a": 0, "i": 8, "b": 1, "h": 7, "c": 2, "g": 6, "d": 3, "f": 5, "e": 4]
+        XCTAssertEqual(Array(row.columnNames), ["a", "i", "b", "h", "c", "g", "d", "f", "e"])
+    }
+    
+    func testDuplicateColumnNames() {
+        // Paramount for tests
+        let row: Row = ["a": 0, "a": 1]
+        XCTAssertEqual(Array(row.columnNames), ["a", "a"])
+        XCTAssertEqual(row.value(named: "a") as Int, 0)
+    }
+    
     func testRowValueAtIndex() {
         let row: Row = ["a": 0, "b": 1, "c": 2]
         
