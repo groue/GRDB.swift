@@ -12,9 +12,9 @@ Released December 16, 2016
 - Rows expressed as dictionary literals now preserve column ordering, and allow duplicated column names:
     
     ```swift
-    let row: Row = ["foo": 1, "foo": "bar", "baz": nil]
+    let row: Row = ["foo": 1, "foo": Date(), "baz": nil]
     print(row)
-    // Prints <Row foo:1 foo:"bar" baz:NULL>
+    // Prints <Row foo:1 foo:"2016-12-16 13:19:49.230" baz:NULL>
     ```
 
 
