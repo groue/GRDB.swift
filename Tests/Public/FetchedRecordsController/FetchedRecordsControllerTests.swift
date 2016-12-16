@@ -591,6 +591,37 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(recorder.countAfterChanges!, 2)
         }
     }
+    
+    func testFetchErrors() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            let controller = try FetchedRecordsController<Person>(dbQueue, request: Person.all())
+            
+            let expectation = self.expectation(description: "expectation")
+            var error: Error?
+            controller.trackErrors {
+                error = $1
+                expectation.fulfill()
+            }
+            controller.trackChanges { _ in }
+            try controller.performFetch()
+            try dbQueue.inTransaction { db in
+                try synchronizePersons(db, [
+                    Person(id: 1, name: "Arthur")])
+                try db.drop(table: "persons")
+                return .commit
+            }
+            waitForExpectations(timeout: 1, handler: nil)
+            if let error = error as? DatabaseError {
+                XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                XCTAssertEqual(error.message, "no such table: persons")
+                XCTAssertEqual(error.sql!, "SELECT * FROM \"persons\"")
+                XCTAssertEqual(error.description, "SQLite error 1 with statement `SELECT * FROM \"persons\"`: no such table: persons")
+            } else {
+                XCTFail("Expected DatabaseError")
+            }
+        }
+    }
 }
 
 
