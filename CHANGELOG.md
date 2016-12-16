@@ -1,17 +1,13 @@
 Release Notes
 =============
 
-## Next Version
+## 0.98.0
+
+Released December 16, 2016
 
 **New**
 
-- StatementArguments can be concatenated with the `append(contentsOf:)` method and the `+`, `&+`, `+=` operators:
-    
-    ```swift
-    let arguments: StatementArguments = ["foo"]
-    arguments += ["bar"]
-    arguments // ["foo", "bar"]
-    ```
+- StatementArguments can be concatenated with the `append(contentsOf:)` method and the `+`, `&+`, `+=` operators ([documentation](https://github.com/groue/GRDB.swift/blob/v0.98.0/GRDB/Core/Statement.swift#L443))
 
 - Rows expressed as dictionary literals now preserve column ordering, and allow duplicated column names:
     
