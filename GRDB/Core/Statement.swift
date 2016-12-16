@@ -106,7 +106,7 @@ public class Statement {
             guard let cString = sqlite3_bind_parameter_name(self.sqliteStatement, Int32($0 + 1)) else {
                 return nil
             }
-            return String(String(cString: cString).characters.dropFirst()) // Drop initial ":"
+            return String(String(cString: cString).characters.dropFirst()) // Drop initial ":", "@", "$"
         }
     }()
     
@@ -440,28 +440,63 @@ public final class UpdateStatement : Statement {
 
 // MARK: - StatementArguments
 
-/// SQL statements can have arguments:
+/// StatementArguments provide values to SQLite statements expressed as
+/// placeholders in raw SQL queries.
 ///
-///     INSERT INTO persons (name, age) VALUES (?, ?)
-///     INSERT INTO persons (name, age) VALUES (:name, :age)
+/// Placeholders can take several forms (see https://www.sqlite.org/lang_expr.html#varparam
+/// for more information):
 ///
-/// To fill question mark arguments, feed StatementArguments with an array:
+/// - `?NNN` (e.g. `?2`): the NNN-th argument (starts at 1)
+/// - `?`: the N-th argument, where N is one greater than the largest argument
+///    number already assigned
+/// - `:AAAA` (e.g. `:name`): named argument
+/// - `@AAAA` (e.g. `@name`): named argument
+/// - `$AAAA` (e.g. `$name`): named argument
 ///
-///     db.execute("INSERT ... (?, ?)", arguments: StatementArguments(["Arthur", 41]))
+/// ## Positional Arguments
 ///
-/// Array literals are automatically converted to StatementArguments:
+/// To fill question marks placeholders, feed StatementArguments with an array:
 ///
-///     db.execute("INSERT ... (?, ?)", arguments: ["Arthur", 41])
+///     db.execute(
+///         "INSERT ... (?, ?)",
+///         arguments: StatementArguments(["Arthur", 41]))
+///
+///     // Array literals are automatically converted:
+///     db.execute(
+///         "INSERT ... (?, ?)",
+///         arguments: ["Arthur", 41])
+///
+/// ## Named Arguments
 ///
 /// To fill named arguments, feed StatementArguments with a dictionary:
 ///
-///     db.execute("INSERT ... (:name, :age)", arguments: StatementArguments(["name": "Arthur", "age": 41]))
+///     db.execute(
+///         "INSERT ... (:name, :age)",
+///         arguments: StatementArguments(["name": "Arthur", "age": 41]))
 ///
-/// Dictionary literals are automatically converted to StatementArguments:
+///     // Dictionary literals are automatically converted:
+///     db.execute(
+///         "INSERT ... (:name, :age)",
+///         arguments: ["name": "Arthur", "age": 41])
 ///
-///     db.execute("INSERT ... (:name, :age)", arguments: ["name": "Arthur", "age": 41])
+/// ## Concatenating Arguments
 ///
-/// See https://www.sqlite.org/lang_expr.html#varparam for more information.
+/// Several arguments can be concatenated and mixed with the
+/// `append(contentsOf:)` method and the `+`, `&+`, `+=` operators:
+///
+///     var arguments: StatementArguments = ["Arthur"]
+///     arguments += [41]
+///     db.execute("INSERT ... (?, ?)", arguments: arguments)
+///
+/// ## Mixed Arguments
+///
+/// When a statement consumes a mix of named and positional arguments, it
+/// prefers named arguments over positional ones. For example:
+///
+///     let sql = "SELECT ?2 AS two, :foo AS foo, ?1 AS one, :foo AS foo2, :bar AS bar"
+///     let row = try Row.fetchOne(db, sql, arguments: [1, 2, "bar"] + ["foo": "foo"])!
+///     print(row)
+///     // Prints <Row two:2 foo:"foo" one:1 foo2:"foo" bar:"bar">
 public struct StatementArguments {
     
     public var isEmpty: Bool {
@@ -561,7 +596,7 @@ public struct StatementArguments {
     
     // MARK: Adding arguments
     
-    /// Extends statement arguments.
+    /// Extends statement arguments with other arguments.
     ///
     /// Positional arguments (provided as arrays) are concatenated:
     ///
@@ -586,23 +621,13 @@ public struct StatementArguments {
     ///     print(replacedValues)
     ///     // Prints ["foo": 1]
     ///
-    /// You can mix named and positional arguments:
+    /// You can mix named and positional arguments (see documentation of
+    /// the StatementArguments type for more information about mixed arguments):
     ///
     ///     var arguments: StatementArguments = ["foo": 1]
     ///     arguments.append(contentsOf: [2, 3])
     ///     print(arguments)
     ///     // Prints ["foo": 1, 2, 3]
-    ///
-    /// When arguments mix named and positional elements, statements prefer
-    /// named arguments (which can be reused) over positional ones.
-    /// For example:
-    ///
-    ///     var arguments: StatementArguments = ["foo": 1]
-    ///     arguments.append(contentsOf: [2, 3]) // ["foo": 1, 2, 3]
-    ///     let sql = "SELECT ? AS a, :foo AS foo, ? AS c, :foo AS foo2"
-    ///     let row = try Row.fetchOne(db, sql, arguments: arguments)!
-    ///     print(row)
-    ///     // Prints <Row a:2 foo:1 c:3 foo2:1>
     public mutating func append(contentsOf arguments: StatementArguments) -> [String: DatabaseValue] {
         var replacedValues: [String: DatabaseValue] = [:]
         values.append(contentsOf: arguments.values)
@@ -629,8 +654,8 @@ public struct StatementArguments {
     ///     print(arguments)
     ///     // Prints ["foo": 1, "bar": 2]
     ///
-    /// You can mix named and positional arguments (see appends(contentOf:) for
-    /// more information about mixed arguments):
+    /// You can mix named and positional arguments (see documentation of
+    /// the StatementArguments type for more information about mixed arguments):
     ///
     ///     let arguments: StatementArguments = ["foo": 1] + [2, 3]
     ///     print(arguments)
@@ -665,8 +690,8 @@ public struct StatementArguments {
     ///     print(arguments)
     ///     // Prints ["foo": 1, "bar": 2]
     ///
-    /// You can mix named and positional arguments (see appends(contentOf:) for
-    /// more information about mixed arguments):
+    /// You can mix named and positional arguments (see documentation of
+    /// the StatementArguments type for more information about mixed arguments):
     ///
     ///     let arguments: StatementArguments = ["foo": 1] &+ [2, 3]
     ///     print(arguments)
@@ -700,8 +725,8 @@ public struct StatementArguments {
     ///     print(arguments)
     ///     // Prints ["foo": 1, "bar": 2]
     ///
-    /// You can mix named and positional arguments (see appends(contentOf:) for
-    /// more information about mixed arguments):
+    /// You can mix named and positional arguments (see documentation of
+    /// the StatementArguments type for more information about mixed arguments):
     ///
     ///     var arguments: StatementArguments = ["foo": 1]
     ///     arguments.append(contentsOf: [2, 3])
