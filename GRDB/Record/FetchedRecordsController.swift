@@ -513,6 +513,78 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
 
 // MARK: - Changes
 
+fileprivate func makeFetchFunction<Record, T>(
+    controller: FetchedRecordsController<Record>,
+    fetchAlongside: @escaping (Database) throws -> T,
+    completion: @escaping (Result<(fetchedItems: [Item<Record>], fetchedAlongside: T, observer: FetchedRecordsObserver<Record>)>) -> ()
+    ) -> (FetchedRecordsObserver<Record>) -> ()
+{
+    // Make sure we keep a weak reference to the fetched records controller,
+    // so that the user can use unowned references in callbacks:
+    //
+    //      controller.trackChanges { [unowned self] ... }
+    //
+    // Should controller become strong at any point before callbacks are
+    // called, such unowned reference would have an opportunity to crash.
+    return { [weak controller] observer in
+        // Return if observer has been invalidated
+        guard observer.isValid else { return }
+        
+        // Return if fetched records controller has been deallocated
+        guard let request = controller?.request, let databaseWriter = controller?.databaseWriter else { return }
+        
+        // Fetch items.
+        //
+        // This method is called from the database writer's serialized
+        // queue, so that we can fetch items before other writes have the
+        // opportunity to modify the database.
+        //
+        // However, we don't have to block the writer queue for all the
+        // duration of the fetch. We just need to block the writer queue
+        // until we can perform a fetch in isolation. This is the role of
+        // the readFromCurrentState method (see below).
+        //
+        // However, our fetch will last for an unknown duration. And since
+        // we release the writer queue early, the next database modification
+        // will triggers this callback while our fetch is, maybe, still
+        // running. This next callback will also perform its own fetch, that
+        // will maybe end before our own fetch.
+        //
+        // We have to make sure that our fetch is processed *before* the
+        // next fetch: let's immediately dispatch the processing task in our
+        // serialized FIFO queue, but have it wait for our fetch to
+        // complete, with a semaphore:
+        let semaphore = DispatchSemaphore(value: 0)
+        var result: Result<(fetchedItems: [Item<Record>], fetchedAlongside: T)>? = nil
+        do {
+            try databaseWriter.readFromCurrentState { db in
+                result = Result.wrap { try (
+                    fetchedItems: request.fetchAll(db),
+                    fetchedAlongside: fetchAlongside(db)) }
+                semaphore.signal()
+            }
+        } catch {
+            result = .failure(error)
+            semaphore.signal()
+        }
+        
+        // Process the fetched items
+        
+        observer.queue.async { [weak observer] in
+            // Wait for the fetch to complete:
+            _ = semaphore.wait(timeout: .distantFuture)
+            
+            // Return if observer has been invalidated
+            guard let strongObserver = observer else { return }
+            guard strongObserver.isValid else { return }
+            
+            completion(result!.map { (fetchedItems, fetchedAlongside) in
+                (fetchedItems: fetchedItems, fetchedAlongside: fetchedAlongside, observer: strongObserver)
+            })
+        }
+    }
+}
+
 #if os(iOS)
     fileprivate func makeFetchAndNotifyChangesFunction<Record, T>(
         controller: FetchedRecordsController<Record>,
@@ -530,80 +602,32 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
         //
         // Should controller become strong at any point before callbacks are
         // called, such unowned reference would have an opportunity to crash.
-        return { [weak controller] observer in
-            // Return if observer has been invalidated
-            guard observer.isValid else { return }
-            
+        return makeFetchFunction(controller: controller, fetchAlongside: fetchAlongside) { [weak controller] result in
             // Return if fetched records controller has been deallocated
-            guard let request = controller?.request, let databaseWriter = controller?.databaseWriter else { return }
+            guard let callbackQueue = controller?.queue else { return }
             
-            // Fetch items.
-            //
-            // This method is called from the database writer's serialized
-            // queue, so that we can fetch items before other writes have the
-            // opportunity to modify the database.
-            //
-            // However, we don't have to block the writer queue for all the
-            // duration of the fetch. We just need to block the writer queue
-            // until we can perform a fetch in isolation. This is the role of
-            // the readFromCurrentState method (see below).
-            //
-            // However, our fetch will last for an unknown duration. And since
-            // we release the writer queue early, the next database modification
-            // will triggers this callback while our fetch is, maybe, still
-            // running. This next callback will also perform its own fetch, that
-            // will maybe end before our own fetch.
-            //
-            // We have to make sure that our fetch is processed *before* the
-            // next fetch: let's immediately dispatch the processing task in our
-            // serialized FIFO queue, but have it wait for our fetch to
-            // complete, with a semaphore:
-            let semaphore = DispatchSemaphore(value: 0)
-            var fetchedItems: [Item<Record>]! = nil
-            var fetchedAlongside: T! = nil
-            
-            // TODO: handle error and don't crash
-            try! databaseWriter.readFromCurrentState { db in
-                // TODO: handle error and don't crash
-                fetchedItems = try! request.fetchAll(db)
-                fetchedAlongside = try! fetchAlongside(db)
+            switch result {
+            case .failure(let error):
+                // TODO: handle error
+                fatalError("\(error)")
                 
-                // Fetch is complete:
-                semaphore.signal()
-            }
-            
-            
-            // Process the fetched items
-            
-            observer.queue.async { [weak observer] in
-                // Wait for the fetch to complete:
-                _ = semaphore.wait(timeout: .distantFuture)
-                assert(fetchedItems != nil)
-                assert(fetchedAlongside != nil)
-                
-                // Return if observer has been invalidated
-                guard let strongObserver = observer else { return }
-                guard strongObserver.isValid else { return }
-                
-                // Return if fetched records controller has been deallocated
-                guard let callbackQueue = controller?.queue else { return }
-                
+            case .success((fetchedItems: let fetchedItems, fetchedAlongside: let fetchedAlongside, observer: let observer)):
                 // Return if there is no change
                 let tableViewChanges: [TableViewChange<Record>]
                 if tableViewEvent != nil {
                     // Compute table view changes
-                    tableViewChanges = computeTableViewChanges(from: strongObserver.items, to: fetchedItems, itemsAreIdentical: itemsAreIdentical)
+                    tableViewChanges = computeTableViewChanges(from: observer.items, to: fetchedItems, itemsAreIdentical: itemsAreIdentical)
                     if tableViewChanges.isEmpty { return }
                 } else {
                     // Don't compute changes: just look for a row difference:
-                    if identicalItemArrays(fetchedItems, strongObserver.items) { return }
+                    if identicalItemArrays(fetchedItems, observer.items) { return }
                     tableViewChanges = []
                 }
                 
                 // Ready for next check
-                strongObserver.items = fetchedItems
+                observer.items = fetchedItems
                 
-                callbackQueue.async {
+                callbackQueue.async { [weak observer] in
                     // Return if observer has been invalidated
                     guard let strongObserver = observer else { return }
                     guard strongObserver.isValid else { return }
@@ -778,71 +802,23 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
         //
         // Should controller become strong at any point before callbacks are
         // called, such unowned reference would have an opportunity to crash.
-        return { [weak controller] observer in
-            // Return if observer has been invalidated
-            guard observer.isValid else { return }
-            
+        return makeFetchFunction(controller: controller, fetchAlongside: fetchAlongside) { [weak controller] result in
             // Return if fetched records controller has been deallocated
-            guard let request = controller?.request, let databaseWriter = controller?.databaseWriter else { return }
+            guard let callbackQueue = controller?.queue else { return }
             
-            // Fetch items.
-            //
-            // This method is called from the database writer's serialized
-            // queue, so that we can fetch items before other writes have the
-            // opportunity to modify the database.
-            //
-            // However, we don't have to block the writer queue for all the
-            // duration of the fetch. We just need to block the writer queue
-            // until we can perform a fetch in isolation. This is the role of
-            // the readFromCurrentState method (see below).
-            //
-            // However, our fetch will last for an unknown duration. And since
-            // we release the writer queue early, the next database modification
-            // will triggers this callback while our fetch is, maybe, still
-            // running. This next callback will also perform its own fetch, that
-            // will maybe end before our own fetch.
-            //
-            // We have to make sure that our fetch is processed *before* the
-            // next fetch: let's immediately dispatch the processing task in our
-            // serialized FIFO queue, but have it wait for our fetch to
-            // complete, with a semaphore:
-            let semaphore = DispatchSemaphore(value: 0)
-            var fetchedItems: [Item<Record>]! = nil
-            var fetchedAlongside: T! = nil
-            
-            // TODO: handle error and don't crash
-            try! databaseWriter.readFromCurrentState { db in
-                // TODO: handle error and don't crash
-                fetchedItems = try! Item<Record>.fetchAll(db, request)
-                fetchedAlongside = try! fetchAlongside(db)
+            switch result {
+            case .failure(let error):
+                // TODO: handle error
+                fatalError("\(error)")
                 
-                // Fetch is complete:
-                semaphore.signal()
-            }
-            
-            
-            // Process the fetched items
-            
-            observer.queue.async { [weak observer] in
-                // Wait for the fetch to complete:
-                _ = semaphore.wait(timeout: .distantFuture)
-                assert(fetchedItems != nil)
-                assert(fetchedAlongside != nil)
-                
-                // Return if observer has been invalidated
-                guard let strongObserver = observer else { return }
-                guard strongObserver.isValid else { return }
-                
-                // Return if fetched records controller has been deallocated
-                guard let callbackQueue = controller?.queue else { return }
-                
+            case .success((fetchedItems: let fetchedItems, fetchedAlongside: let fetchedAlongside, observer: let observer)):
                 // Return if there is no change
-                if identicalItemArrays(fetchedItems, strongObserver.items) { return }
+                if identicalItemArrays(fetchedItems, observer.items) { return }
                 
                 // Ready for next check
-                strongObserver.items = fetchedItems
+                observer.items = fetchedItems
                 
-                callbackQueue.async {
+                callbackQueue.async { [weak observer] in
                     // Return if observer has been invalidated
                     guard let strongObserver = observer else { return }
                     guard strongObserver.isValid else { return }
