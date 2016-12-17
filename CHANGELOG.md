@@ -1,10 +1,11 @@
 Release Notes
 =============
 
-## Next Release
+## Next Version
 
 **New**
 
+- `Row` adopts the Hashable protocol
 - [FetchedRecordsController](https://github.com/groue/GRDB.swift#fetchedrecordscontroller) now outputs detailed change events on all platforms, and for both table and collection views. Merged [#160](https://github.com/groue/GRDB.swift/pull/160) by [@kdubb](https://github.com/kdubb).
 
 

@@ -766,6 +766,7 @@ extension Row : Collection {
     }
 }
 
+/// Row adopts Equatable.
 extension Row : Equatable {
     
     /// Returns true if and only if both rows have the same columns and values,
@@ -806,6 +807,15 @@ extension Row : Equatable {
         }
         
         return true
+    }
+}
+
+/// Row adopts Hashable.
+extension Row : Hashable {
+    /// The hash value
+    public var hashValue: Int {
+        return columnNames.reduce(0) { (acc, column) in acc ^ column.hashValue } ^
+            databaseValues.reduce(0) { (acc, dbv) in acc ^ dbv.hashValue }
     }
 }
 
