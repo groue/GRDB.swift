@@ -224,3 +224,57 @@ extension TableMapping {
         return statement
     }
 }
+
+extension TableMapping {
+    /// Returns a function that returns the primary key of a row.
+    ///
+    /// If the table has no primary key, and selectsRowID is true, use the
+    /// "rowid" key.
+    ///
+    ///     try dbQueue.inDatabase { db in
+    ///         let primaryKey = try Person.primaryKeyFunction(db)
+    ///         let row = try Row.fetchOne(db, "SELECT * FROM persons")!
+    ///         primaryKey(row) // ["id": 1]
+    ///     }
+    ///
+    /// - throws: A DatabaseError if table does not exist.
+    static func primaryKeyFunction(_ db: Database) throws -> (Row) -> [String: DatabaseValue] {
+        let columns: [String]
+        if let primaryKey = try db.primaryKey(databaseTableName) {
+            columns = primaryKey.columns
+        } else if selectsRowID {
+            columns = ["rowid"]
+        } else {
+            columns = []
+        }
+        return { row in
+            return Dictionary<String, DatabaseValue>(keys: columns) { row.value(named: $0) }
+        }
+    }
+    
+    /// Returns a function that returns true if and only if two rows have the
+    /// same primary key and both primary keys contain at least one non-null
+    /// value.
+    ///
+    ///     try dbQueue.inDatabase { db in
+    ///         let comparator = try Person.primaryKeyRowComparator(db)
+    ///         let row0 = Row(["id": nil, "name": "Unsaved"])
+    ///         let row1 = Row(["id": 1, "name": "Arthur"])
+    ///         let row2 = Row(["id": 1, "name": "Arthur"])
+    ///         let row3 = Row(["id": 2, "name": "Barbara"])
+    ///         comparator(row0, row0) // false
+    ///         comparator(row1, row2) // true
+    ///         comparator(row1, row3) // false
+    ///     }
+    ///
+    /// - throws: A DatabaseError if table does not exist.
+    static func primaryKeyRowComparator(_ db: Database) throws -> (Row, Row) -> Bool {
+        let primaryKey = try primaryKeyFunction(db)
+        return { (lhs, rhs) in
+            let (lhs, rhs) = (primaryKey(lhs), primaryKey(rhs))
+            guard lhs.contains(where: { !$1.isNull }) else { return false }
+            guard rhs.contains(where: { !$1.isNull }) else { return false }
+            return lhs == rhs
+        }
+    }
+}
