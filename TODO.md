@@ -1,3 +1,4 @@
+- [ ] Document FetchedRecordsController error handling
 - [ ] We share the database cache between database pool writers and readers. But what if a writer modifies the database schema within a transaction, and a concurrent reader reads the cache? Bad things, isn't it? Write failing tests first, and fix the bug.
 - [ ] FetchedRecordsController is not reactive:
     
