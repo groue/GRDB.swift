@@ -11,7 +11,7 @@ Released December 20, 2016
 
 **New**
 
-- FetchedRecordsController no longer crashes whenever an error prevents it from looking for changes after a transaction has potentially modified the tracked request. Instead, it notifies its optional error handler:
+- [FetchedRecordsController](https://github.com/groue/GRDB.swift#fetchedrecordscontroller) no longer crashes whenever an error prevents it from looking for changes after a transaction has potentially modified the tracked request. Instead, it notifies its optional error handler:
     
     ```swift
     controller.trackErrors { (controller, error) in
