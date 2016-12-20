@@ -1,3 +1,4 @@
+- [ ] Does GRDB need to provide support for UIApplicationProtectedDataWillBecomeUnavailable?
 - [ ] Test that truncate optimization does not prevent transaction observers from observing individual deletions. See https://github.com/groue/GRDB.swift/files/659521/TestDeleteAll.swift.zip for a sample code that catches failure not caught by TransactionObserverTests.testTruncateOptimization()
 - [ ] https://www.sqlite.org/capi3ref.html#sqlite3_set_authorizer reads:
 
