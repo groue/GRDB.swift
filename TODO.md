@@ -1,11 +1,10 @@
-- [ ] Test that truncate optimization does not prevent transaction observers from observing individual deletions
+- [ ] Test that truncate optimization does not prevent transaction observers from observing individual deletions. See https://github.com/groue/GRDB.swift/files/659521/TestDeleteAll.swift.zip for a sample code that catches failure not caught by TransactionObserverTests.testTruncateOptimization()
 - [ ] https://www.sqlite.org/capi3ref.html#sqlite3_set_authorizer reads:
 
     > When sqlite3_prepare_v2() is used to prepare a statement, the statement might be re-prepared during sqlite3_step() due to a schema change. Hence, the application should ensure that the correct authorizer callback remains in place during the sqlite3_step().
     
     What does it mean for GRDB?
 
-- [ ] Document FetchedRecordsController error handling
 - [ ] We share the database cache between database pool writers and readers. But what if a writer modifies the database schema within a transaction, and a concurrent reader reads the cache? Bad things, isn't it? Write failing tests first, and fix the bug.
 - [ ] FetchedRecordsController is not reactive:
     
