@@ -1,6 +1,23 @@
 Release Notes
 =============
 
+## Next Version
+
+**Fixed**
+
+- [Transaction Observers](https://github.com/groue/GRDB.swift#database-changes-observation) are no longer blinded by the [truncate optimization](https://www.sqlite.org/lang_delete.html#truncateopt) (fixes [#156](https://github.com/groue/GRDB.swift/issues/156))
+
+**New**
+
+- FetchedRecordsController no longer crashes whenever an error prevents it from looking for changes after a transaction has potentially modified the tracked request. Instead, it notifies its optional error handler:
+    
+    ```swift
+    controller.trackErrors { (controller, error) in
+        print("Missed a transaction because \(error)")
+    }
+    ```
+
+
 ## 0.98.0
 
 Released December 16, 2016
@@ -28,7 +45,7 @@ Released December 15, 2016
 
 **New**
 
-- Raw transaction and savepoint SQL statements are properly reflected in transaction observers, `Database.isInsideTransaction`, etc.
+- Raw transaction and savepoint SQL statements are properly reflected in [transaction observers](https://github.com/groue/GRDB.swift#database-changes-observation), `Database.isInsideTransaction`, etc.
 
 
 ## 0.96.0

@@ -4338,6 +4338,13 @@ controller.trackChanges(
     })
 ```
 
+Whenever the fetched records controller can not look for changes after a transaction has potentially modified the tracked request, an error handler is called. The request observation is not stopped, though: future transactions may successfully be handled, and the notified changes will then be based on the last successful fetch.
+
+```swift
+controller.trackErrors { (controller, error) in
+    print("Missed a transaction because \(error)")
+}
+```
 
 
 ### Modifying the Fetch Request
