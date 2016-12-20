@@ -1349,6 +1349,9 @@ final class StatementCompilationObserver {
             case SQLITE_DELETE:
                 let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
                 observer.databaseEventKinds.append(.delete(tableName: String(cString: CString1!)))
+                // Prevent [Truncate Optimization](https://www.sqlite.org/lang_delete.html#truncateopt)
+                // so that transaction observers can observe individual deletions.
+                return SQLITE_IGNORE
             case SQLITE_UPDATE:
                 let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
                 observer.insertUpdateEventKind(tableName: String(cString: CString1!), columnName: String(cString: CString2!))

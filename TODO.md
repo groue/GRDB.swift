@@ -1,4 +1,5 @@
-- https://www.sqlite.org/capi3ref.html#sqlite3_set_authorizer reads:
+- [ ] Test that truncate optimization does not prevent transaction observers from observing individual deletions
+- [ ] https://www.sqlite.org/capi3ref.html#sqlite3_set_authorizer reads:
 
     > When sqlite3_prepare_v2() is used to prepare a statement, the statement might be re-prepared during sqlite3_step() due to a schema change. Hence, the application should ensure that the correct authorizer callback remains in place during the sqlite3_step().
     
