@@ -353,6 +353,7 @@ public final class Database {
         setupDefaultFunctions()
         setupDefaultCollations()
         setupTransactionHooks()
+        installDefaultAuthorizer()
     }
     
     /// This method must be called before database deallocation
@@ -471,6 +472,28 @@ public final class Database {
                 // Next step: updateStatementDidExecute()
             }
         }, dbPointer)
+    }
+    
+    fileprivate func installDefaultAuthorizer() {
+        // https://www.sqlite.org/capi3ref.html#sqlite3_set_authorizer
+        // > When sqlite3_prepare_v2() is used to prepare a statement, the
+        // > statement might be re-prepared during sqlite3_step() due to a
+        // > schema change. Hence, the application should ensure that the
+        // > correct authorizer callback remains in place during the
+        // > sqlite3_step().
+        //
+        // As a matter of fact, without this default authorizer, the truncate
+        // optimization prevents transaction observers from observing
+        // individual deletions.
+        sqlite3_set_authorizer(sqliteConnection, { (_, actionCode, CString1, CString2, CString3, CString4) -> Int32 in
+            if actionCode == SQLITE_DELETE {
+                // Prevent [truncate optimization](https://www.sqlite.org/lang_delete.html#truncateopt)
+                // so that transaction observers can observe individual deletions.
+                return SQLITE_IGNORE
+            } else {
+                return SQLITE_OK
+            }
+        }, nil)
     }
 }
 
@@ -1349,7 +1372,7 @@ final class StatementCompilationObserver {
             case SQLITE_DELETE:
                 let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
                 observer.databaseEventKinds.append(.delete(tableName: String(cString: CString1!)))
-                // Prevent [Truncate Optimization](https://www.sqlite.org/lang_delete.html#truncateopt)
+                // Prevent [truncate optimization](https://www.sqlite.org/lang_delete.html#truncateopt)
                 // so that transaction observers can observe individual deletions.
                 return SQLITE_IGNORE
             case SQLITE_UPDATE:
@@ -1392,7 +1415,8 @@ final class StatementCompilationObserver {
     }
     
     func stop() {
-        sqlite3_set_authorizer(database.sqliteConnection, nil, nil)
+        // Restore default authorizer
+        database.installDefaultAuthorizer()
     }
 }
 
