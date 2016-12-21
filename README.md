@@ -3,7 +3,7 @@ GRDB.swift [![Swift](https://img.shields.io/badge/swift-3-orange.svg?style=flat)
 
 ### A Swift application toolkit for SQLite databases.
 
-**Latest release**: December 20, 2016 &bull; version 0.99.0 &bull; [CHANGELOG](CHANGELOG.md)
+**Latest release**: December 21, 2016 &bull; version 0.99.1 &bull; [CHANGELOG](CHANGELOG.md)
 
 **Requirements**: iOS 8.0+ / OSX 10.9+ / watchOS 2.0+ &bull; Xcode 8.1+ &bull; Swift 3
 
@@ -168,7 +168,7 @@ Documentation
 
 **Reference**
 
-- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.99.0/index.html) (on cocoadocs.org)
+- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.99.1/index.html) (on cocoadocs.org)
 
 **Getting Started**
 
@@ -251,7 +251,7 @@ See [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) for the installa
 
 1. Make sure Xcode is installed in the /Applications folder, with its regular name Xcode.
 
-2. [Download](https://github.com/groue/GRDB.swift/releases/tag/v0.99.0) a copy of GRDB.swift, or clone its repository and make sure you use the latest tagged version with the `git checkout v0.99.0` command.
+2. [Download](https://github.com/groue/GRDB.swift/releases/tag/v0.99.1) a copy of GRDB.swift, or clone its repository and make sure you use the latest tagged version with the `git checkout v0.99.1` command.
 
 3. Embed the `GRDB.xcodeproj` project in your own project.
 
@@ -349,7 +349,7 @@ let dbQueue = try DatabaseQueue(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.99.0/Structs/Configuration.html) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.99.1/Structs/Configuration.html) for more details.
 
 
 ## Database Pools
@@ -427,7 +427,7 @@ let dbPool = try DatabasePool(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.99.0/Structs/Configuration.html) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.99.1/Structs/Configuration.html) for more details.
 
 
 Database pools are more memory-hungry than database queues. See [Memory Management](#memory-management) for more information.
@@ -661,7 +661,7 @@ let rows = try Row.fetchAll(db,
     arguments: ["name": "Arthur"])
 ```
 
-See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.), and [StatementArguments](http://cocoadocs.org/docsets/GRDB.swift/0.99.0/Structs/StatementArguments.html) for a detailed documentation of SQLite arguments.
+See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.), and [StatementArguments](http://cocoadocs.org/docsets/GRDB.swift/0.99.1/Structs/StatementArguments.html) for a detailed documentation of SQLite arguments.
 
 Unlike row arrays that contain copies of the database rows, row cursors are close to the SQLite metal, and require a little care:
 
@@ -892,7 +892,7 @@ GRDB ships with built-in support for the following value types:
 
 - Generally speaking, all types that adopt the [DatabaseValueConvertible](#custom-value-types) protocol.
 
-Values can be used as [statement arguments](http://cocoadocs.org/docsets/GRDB.swift/0.99.0/Structs/StatementArguments.html):
+Values can be used as [statement arguments](http://cocoadocs.org/docsets/GRDB.swift/0.99.1/Structs/StatementArguments.html):
 
 ```swift
 let url: URL = ...
@@ -1283,7 +1283,7 @@ try dbQueue.inDatabase { db in
 }
 ```
 
-The `?` and colon-prefixed keys like `:name` in the SQL query are the statement arguments. You set them with arrays or dictionaries (arguments are actually of type [StatementArguments](http://cocoadocs.org/docsets/GRDB.swift/0.99.0/Structs/StatementArguments.html), which happens to adopt the ExpressibleByArrayLiteral and ExpressibleByDictionaryLiteral protocols).
+The `?` and colon-prefixed keys like `:name` in the SQL query are the statement arguments. You set them with arrays or dictionaries (arguments are actually of type [StatementArguments](http://cocoadocs.org/docsets/GRDB.swift/0.99.1/Structs/StatementArguments.html), which happens to adopt the ExpressibleByArrayLiteral and ExpressibleByDictionaryLiteral protocols).
 
 ```swift
 updateStatement.arguments = ["name": "Arthur", "age": 41]
@@ -1498,7 +1498,7 @@ row.value(named: "consumed") // "Hello"
 row.value(named: "produced") // nil
 ```
 
-Row adapters are values that adopt the [RowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.99.0/Protocols/RowAdapter.html) protocol. You can implement your own custom adapters, or use one of the four built-in adapters:
+Row adapters are values that adopt the [RowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.99.1/Protocols/RowAdapter.html) protocol. You can implement your own custom adapters, or use one of the four built-in adapters:
 
 
 ### ColumnMapping
@@ -1651,8 +1651,8 @@ Before jumping in the low-level wagon, here is the list of all SQLite APIs used 
 
 - `sqlite3_backup_finish`, `sqlite3_backup_init`, `sqlite3_backup_step`: see [Backup](#backup)
 - `sqlite3_bind_blob`, `sqlite3_bind_double`, `sqlite3_bind_int64`, `sqlite3_bind_null`, `sqlite3_bind_parameter_count`, `sqlite3_bind_parameter_name`, `sqlite3_bind_text`, `sqlite3_clear_bindings`, `sqlite3_column_blob`, `sqlite3_column_bytes`, `sqlite3_column_count`, `sqlite3_column_double`, `sqlite3_column_int64`, `sqlite3_column_name`, `sqlite3_column_text`, `sqlite3_column_type`, `sqlite3_exec`, `sqlite3_finalize`, `sqlite3_prepare_v2`, `sqlite3_reset`, `sqlite3_step`: see [Executing Updates](#executing-updates), [Fetch Queries](#fetch-queries), [Prepared Statements](#prepared-statements), [Values](#values)
-- `sqlite3_busy_handler`, `sqlite3_busy_timeout`: see [Configuration.busyMode](http://cocoadocs.org/docsets/GRDB.swift/0.99.0/Structs/Configuration.html)
-- `sqlite3_changes`, `sqlite3_total_changes`: see [Database.changesCount and Database.totalChangesCount](http://cocoadocs.org/docsets/GRDB.swift/0.99.0/Classes/Database.html)
+- `sqlite3_busy_handler`, `sqlite3_busy_timeout`: see [Configuration.busyMode](http://cocoadocs.org/docsets/GRDB.swift/0.99.1/Structs/Configuration.html)
+- `sqlite3_changes`, `sqlite3_total_changes`: see [Database.changesCount and Database.totalChangesCount](http://cocoadocs.org/docsets/GRDB.swift/0.99.1/Classes/Database.html)
 - `sqlite3_close`, `sqlite3_close_v2`, `sqlite3_next_stmt`, `sqlite3_open_v2`: see [Database Connections](#database-connections)
 - `sqlite3_commit_hook`, `sqlite3_rollback_hook`, `sqlite3_update_hook`: see [Database Changes Observation](#database-changes-observation), [FetchedRecordsController](#fetchedrecordscontroller)
 - `sqlite3_create_collation_v2`: see [String Comparison](#string-comparison)
@@ -1663,9 +1663,9 @@ Before jumping in the low-level wagon, here is the list of all SQLite APIs used 
 - `sqlite3_last_insert_rowid`: see [Executing Updates](#executing-updates)
 - `sqlite3_preupdate_count`, `sqlite3_preupdate_depth`, `sqlite3_preupdate_hook`, `sqlite3_preupdate_new`, `sqlite3_preupdate_old`: see [Support for SQLite Pre-Update Hooks](#support-for-sqlite-pre-update-hooks)
 - `sqlite3_set_authorizer`: **reserved by GRDB**
-- `sqlite3_sql`: see [Statement.sql](http://cocoadocs.org/docsets/GRDB.swift/0.99.0/Classes/Statement.html)
-- `sqlite3_trace`: see [Configuration.trace](http://cocoadocs.org/docsets/GRDB.swift/0.99.0/Structs/Configuration.html)
-- `sqlite3_wal_checkpoint_v2`: see [DatabasePool.checkpoint](http://cocoadocs.org/docsets/GRDB.swift/0.99.0/Classes/DatabasePool.html)
+- `sqlite3_sql`: see [Statement.sql](http://cocoadocs.org/docsets/GRDB.swift/0.99.1/Classes/Statement.html)
+- `sqlite3_trace`: see [Configuration.trace](http://cocoadocs.org/docsets/GRDB.swift/0.99.1/Structs/Configuration.html)
+- `sqlite3_wal_checkpoint_v2`: see [DatabasePool.checkpoint](http://cocoadocs.org/docsets/GRDB.swift/0.99.1/Classes/DatabasePool.html)
 
 
 Records
@@ -1857,7 +1857,7 @@ try PointOfInterest.fetchAll(db, "SELECT ...", arguments:...)    // [PointOfInte
 try PointOfInterest.fetchOne(db, "SELECT ...", arguments:...)    // PointOfInterest?
 ```
 
-See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll` and `fetchOne` methods. See [StatementArguments](http://cocoadocs.org/docsets/GRDB.swift/0.99.0/Structs/StatementArguments.html) for more information about the query arguments.
+See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll` and `fetchOne` methods. See [StatementArguments](http://cocoadocs.org/docsets/GRDB.swift/0.99.1/Structs/StatementArguments.html) for more information about the query arguments.
 
 
 ### RowConvertible and Row Adapters
@@ -2852,7 +2852,7 @@ Person                          // SELECT * FROM persons
 ```
 
 
-Raw SQL snippets are also accepted, with eventual [arguments](http://cocoadocs.org/docsets/GRDB.swift/0.99.0/Structs/StatementArguments.html):
+Raw SQL snippets are also accepted, with eventual [arguments](http://cocoadocs.org/docsets/GRDB.swift/0.99.1/Structs/StatementArguments.html):
 
 ```swift
 // SELECT DATE(creationDate), COUNT(*) FROM persons WHERE name = 'Arthur' GROUP BY date(creationDate)
@@ -3277,11 +3277,11 @@ try request.fetchOne(db)         // Person?
 
 **To build requests**, you can create your own type that adopts the protocols, derive requests from other requests, or use one of the built-in concrete types:
 
-- [Request](http://cocoadocs.org/docsets/GRDB.swift/0.99.0/Protocols/Request.html): the protocol for all requests
-- [TypedRequest](http://cocoadocs.org/docsets/GRDB.swift/0.99.0/Protocols/TypedRequest.html): the protocol for all typed requests
-- [SQLRequest](http://cocoadocs.org/docsets/GRDB.swift/0.99.0/Structs/SQLRequest.html): a Request built from raw SQL
-- [AnyRequest](http://cocoadocs.org/docsets/GRDB.swift/0.99.0/Structs/AnyRequest.html): a type-erased Request
-- [AnyTypedRequest](http://cocoadocs.org/docsets/GRDB.swift/0.99.0/Structs/AnyTypedRequest.html): a type-erased TypedRequest
+- [Request](http://cocoadocs.org/docsets/GRDB.swift/0.99.1/Protocols/Request.html): the protocol for all requests
+- [TypedRequest](http://cocoadocs.org/docsets/GRDB.swift/0.99.1/Protocols/TypedRequest.html): the protocol for all typed requests
+- [SQLRequest](http://cocoadocs.org/docsets/GRDB.swift/0.99.1/Structs/SQLRequest.html): a Request built from raw SQL
+- [AnyRequest](http://cocoadocs.org/docsets/GRDB.swift/0.99.1/Structs/AnyRequest.html): a type-erased Request
+- [AnyTypedRequest](http://cocoadocs.org/docsets/GRDB.swift/0.99.1/Structs/AnyTypedRequest.html): a type-erased TypedRequest
 
 Rebind the fetched type of requests:
 
@@ -3696,7 +3696,7 @@ let pattern = FTS3Pattern(matchingAnyTokenIn: "")  // nil
 let pattern = FTS3Pattern(matchingAnyTokenIn: "*") // nil
 ```
 
-FTS3Pattern are regular [values](#values). You can use them as query [arguments](http://cocoadocs.org/docsets/GRDB.swift/0.99.0/Structs/StatementArguments.html):
+FTS3Pattern are regular [values](#values). You can use them as query [arguments](http://cocoadocs.org/docsets/GRDB.swift/0.99.1/Structs/StatementArguments.html):
 
 ```swift
 let documents = try Document.fetchAll(db,
@@ -3909,7 +3909,7 @@ let pattern = FTS5Pattern(matchingAnyTokenIn: "")  // nil
 let pattern = FTS5Pattern(matchingAnyTokenIn: "*") // nil
 ```
 
-FTS5Pattern are regular [values](#values). You can use them as query [arguments](http://cocoadocs.org/docsets/GRDB.swift/0.99.0/Structs/StatementArguments.html):
+FTS5Pattern are regular [values](#values). You can use them as query [arguments](http://cocoadocs.org/docsets/GRDB.swift/0.99.1/Structs/StatementArguments.html):
 
 ```swift
 let documents = try Document.fetchAll(db,
@@ -4524,7 +4524,7 @@ This requires a manual installation of GRDB:
     
     ```sh
     cd [GRDB.swift directory]
-    git checkout v0.99.0
+    git checkout v0.99.1
     git submodule update --init SQLCipher/src
     ````
     
@@ -4629,7 +4629,7 @@ DROP TABLE students;
 --' WHERE id = 1
 ```
 
-To avoid those problems, **never embed raw values in your SQL queries**. The only correct technique is to provide [arguments](http://cocoadocs.org/docsets/GRDB.swift/0.99.0/Structs/StatementArguments.html) to your SQL queries:
+To avoid those problems, **never embed raw values in your SQL queries**. The only correct technique is to provide [arguments](http://cocoadocs.org/docsets/GRDB.swift/0.99.1/Structs/StatementArguments.html) to your SQL queries:
 
 ```swift
 // Good
@@ -5085,7 +5085,7 @@ try dbPool.write { db in
 
 ### DatabaseWriter and DatabaseReader Protocols
 
-Both DatabaseQueue and DatabasePool adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.99.0/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.99.0/Protocols/DatabaseWriter.html) protocols.
+Both DatabaseQueue and DatabasePool adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.99.1/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.99.1/Protocols/DatabaseWriter.html) protocols.
 
 Those protocols provide a unified API that lets you write safe concurrent code that targets both classes.
 
@@ -5104,7 +5104,7 @@ If you absolutely need multiple connections, then:
 - Read about [isolation in SQLite](https://www.sqlite.org/isolation.html)
 - Learn about [locks and transactions](https://www.sqlite.org/lang_transaction.html)
 - Become a master of the [WAL mode](https://www.sqlite.org/wal.html)
-- Prepare to setup a [busy handler](https://www.sqlite.org/c3ref/busy_handler.html) with [Configuration.busyMode](http://cocoadocs.org/docsets/GRDB.swift/0.99.0/Structs/Configuration.html)
+- Prepare to setup a [busy handler](https://www.sqlite.org/c3ref/busy_handler.html) with [Configuration.busyMode](http://cocoadocs.org/docsets/GRDB.swift/0.99.1/Structs/Configuration.html)
 - [Ask questions](https://github.com/groue/GRDB.swift/issues)
 
 

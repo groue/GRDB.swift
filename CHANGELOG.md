@@ -1,7 +1,17 @@
 Release Notes
 =============
 
-## 0.99.0
+## 0.99.1
+
+Released December 21, 2016
+
+**Fixed**
+
+- An awful bug where SQLite would not drop any table ([#157](https://github.com/groue/GRDB.swift/issues/157))
+- [Transaction Observers](https://github.com/groue/GRDB.swift#database-changes-observation) are no longer blinded by the [truncate optimization](https://www.sqlite.org/lang_delete.html#truncateopt) (fixes [#156](https://github.com/groue/GRDB.swift/issues/156))
+
+
+## 0.99.0 (don't use)
 
 Released December 20, 2016
 
