@@ -1702,6 +1702,17 @@ extension Database {
         }
     }
     
+    func selectStatementDidFail(_ statement: SelectStatement) {
+        // Failed statements can not be reused, because sqlite3_reset won't
+        // be able to restore the statement to its initial state:
+        // https://www.sqlite.org/c3ref/reset.html
+        //
+        // So make sure we clear this statement from the cache.
+        if let index = selectStatementCache.index(where: { $0.1 === statement }) {
+            selectStatementCache.remove(at: index)
+        }
+    }
+    
     /// Some failed statements interest transaction observers.
     func updateStatementDidFail(_ statement: UpdateStatement) throws {
         // Wait for next statement

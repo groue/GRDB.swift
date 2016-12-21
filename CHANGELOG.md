@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Version
+
+**Fixed**
+
+- `Database.cachedSelectStatement()` no longer returns a statement that can not be reused because it has already failed. 
+
+
 ## 0.99.1
 
 Released December 21, 2016

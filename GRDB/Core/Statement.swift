@@ -326,6 +326,7 @@ public final class DatabaseCursor<Element> : Cursor {
         case SQLITE_ROW:
             return try element()
         case let errorCode:
+            statement.database.selectStatementDidFail(statement)
             throw DatabaseError(code: errorCode, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
         }
     }
