@@ -103,4 +103,35 @@ class SelectStatementTests : GRDBTestCase {
             }
         }
     }
+    
+    func testCachedSelectStatementStepFailure() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.create(table: "table1") { t in
+                    t.column("name", .text)
+                }
+                try db.execute("INSERT INTO table1 (name) VALUES (?)", arguments: ["success"])
+                let statement = try db.cachedSelectStatement("SELECT * FROM table1")
+                XCTAssertEqual(try String.fetchAll(statement), ["success"])
+                
+                try db.execute("DROP TABLE table1")
+                do {
+                    _ = try String.fetchAll(statement)
+                    XCTFail()
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.code, 1)
+                    XCTAssertEqual(error.message!, "no such table: table1")
+                    XCTAssertEqual(error.sql!, "SELECT * FROM table1")
+                    XCTAssertEqual(error.description, "SQLite error 1 with statement `SELECT * FROM table1`: no such table: table1")
+                }
+                
+                try db.create(table: "table1") { t in
+                    t.column("name", .text)
+                }
+                try db.execute("INSERT INTO table1 (name) VALUES (?)", arguments: ["success"])
+                XCTAssertEqual(try String.fetchAll(statement), ["success"])
+            }
+        }
+    }
 }
