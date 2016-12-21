@@ -489,7 +489,6 @@ public final class Database {
             if actionCode == SQLITE_DELETE && String(cString: CString1!) != "sqlite_master" {
                 // Prevent [truncate optimization](https://www.sqlite.org/lang_delete.html#truncateopt)
                 // so that transaction observers can observe individual deletions.
-                print("IGNORE DELETE FROM \(String(cString: CString1!))")
                 return SQLITE_IGNORE
             } else {
                 return SQLITE_OK
@@ -1365,7 +1364,7 @@ final class StatementCompilationObserver {
             switch actionCode {
             case SQLITE_DROP_TABLE, SQLITE_DROP_TEMP_TABLE, SQLITE_DROP_TEMP_VIEW, SQLITE_DROP_VIEW, SQLITE_DETACH, SQLITE_ALTER_TABLE, SQLITE_DROP_VTABLE, SQLITE_CREATE_INDEX, SQLITE_CREATE_TEMP_INDEX, SQLITE_DROP_INDEX, SQLITE_DROP_TEMP_INDEX:
                 let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
-                if actionCode == SQLITE_DROP_TABLE {
+                if actionCode == SQLITE_DROP_TABLE || actionCode == SQLITE_DROP_VTABLE {
                     observer.isDropTableStatement = true
                 }
                 observer.invalidatesDatabaseSchemaCache = true
