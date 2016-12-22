@@ -1,23 +1,14 @@
-- [ ] Remove from the cache the select statements that have failed.
 - [ ] Check for SQLCipher at runtime with `PRAGMA cipher_version`: https://discuss.zetetic.net/t/important-advisory-sqlcipher-with-xcode-8-and-new-sdks/1688
-- [ ] Test that truncate optimization does not prevent transaction observers from observing individual deletions. See https://github.com/groue/GRDB.swift/files/659521/TestDeleteAll.swift.zip for a sample code that catches failure not caught by TransactionObserverTests.testTruncateOptimization()
-- [ ] https://www.sqlite.org/capi3ref.html#sqlite3_set_authorizer reads:
-
-    > When sqlite3_prepare_v2() is used to prepare a statement, the statement might be re-prepared during sqlite3_step() due to a schema change. Hence, the application should ensure that the correct authorizer callback remains in place during the sqlite3_step().
-    
-    What does it mean for GRDB?
-
 - [ ] We share the database cache between database pool writers and readers. But what if a writer modifies the database schema within a transaction, and a concurrent reader reads the cache? Bad things, isn't it? Write failing tests first, and fix the bug.
 - [ ] FetchedRecordsController is not reactive:
     
     We need to be able to start and stop subscribing to changes made on a request. This means that diffs have to be performed between two arbitraty states of the database, not only between two transactions.
     
     And let's lift the restriction on Record: make this able to work on any fetchable type (row, record, value, optional value).
-    
-- [ ] Request.bound(to:adapter:) (requires adapters to be able to adapt an already adapted row)
+
+    Being reactive may also address the feature request by @hdlj for FetchedRecordsController throttling
+
 - [ ] Think about supporting Cursor's underestimatedCount, which could speed up Array(cursor) and fetchAll()
-- [ ] FetchedRecordsController: document how to handle errors
-- [ ] Swift 3.0.2 (Xcode 8.2): "Type inference will properly unwrap optionals when used with generics and implicitly-unwrapped optionals." Maybe this fixes `row.value(named: "foo") as? Int`?
 - [ ] Attach databases (this could be the support for fetched records controller caches). Interesting question: what happens when one attaches a non-WAL db to a databasePool?
 - [ ] SQLCipher: sqlite3_rekey is discouraged (https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320)
 - [ ] Restore dispatching tests in GRDBOSXTests (they are disabled in order to avoid linker errors)
@@ -28,7 +19,6 @@
     - DatabasePoolConcurrencyTests
     - DatabasePoolReadOnlyTests
     - DatabaseQueueConcurrencyTests
-- [ ] FetchedRecordsController throttling (suggested by @hdlj)
 - [ ] What is the behavior inTransaction and inSavepoint behaviors in case of commit error? Code looks like we do not rollback, leaving the app in a weird state (out of Swift transaction block with a SQLite transaction that may still be opened).
 - [ ] GRDBCipher / custom SQLite builds: remove #/@available limitations
 - [ ] File protection: Read https://github.com/ccgus/fmdb/issues/262 and understand https://lists.apple.com/archives/cocoa-dev/2012/Aug/msg00527.html
