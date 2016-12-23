@@ -5087,7 +5087,7 @@ try dbPool.write { db in
 
 Both DatabaseQueue and DatabasePool adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.99.2/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.99.2/Protocols/DatabaseWriter.html) protocols.
 
-Those protocols provide a unified API that lets you write safe concurrent code that targets both classes.
+These protocols provide a unified API that lets you write safe concurrent code that targets both classes.
 
 However, database queues are not database pools, and DatabaseReader and DatabaseWriter provide the *smallest* common guarantees. They require more discipline:
 
@@ -5095,7 +5095,7 @@ However, database queues are not database pools, and DatabaseReader and Database
 - DatabaseReader.read does not prevent a queue from writing.
 - DatabaseWriter.readFromCurrentState is synchronous, or asynchronous, depending on whether it is run by a queue or a pool (see [advanced DatabasePool](#advanced-databasepool)). It thus requires higher libDispatch skills, and more complex synchronization code.
 
-DatabaseReader and DatabaseWriter are not a tool for applications that hesitate between DatabaseQueue and DatabasePool, and look for a common API. As seen above, the protocols actually make applications harder to write correctly. Instead, they target reusable agnostic code that has *both* queue and pools in mind.
+DatabaseReader and DatabaseWriter are not a tool for applications that hesitate between DatabaseQueue and DatabasePool, and look for a common API. As seen above, the protocols actually make applications harder to write correctly. Instead, they target reusable agnostic code that has *both* queues and pools in mind.
 
 
 ### Dealing with External Connections
