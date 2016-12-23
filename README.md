@@ -5089,6 +5089,14 @@ Both DatabaseQueue and DatabasePool adopt the [DatabaseReader](http://cocoadocs.
 
 Those protocols provide a unified API that lets you write safe concurrent code that targets both classes.
 
+However, database queues are not database pools, and DatabaseReader and DatabaseWriter provide the *smallest* common guarantees. They require more discipline:
+
+- Pools are less forgiving than queues when one overlooks a transaction (see [concurrency rule 3](#guarantees-and-rules)).
+- DatabaseReader.read does not prevent a queue from writing.
+- DatabaseWriter.readFromCurrentState is synchronous, or asynchronous, depending on whether it is run by a queue or a pool (see [advanced DatabasePool](#advanced-databasepool)). It thus requires higher libDispatch skills, and more complex synchronization code.
+
+DatabaseReader and DatabaseWriter are not a tool for applications that hesitate between DatabaseQueue and DatabasePool, and look for a common API. As seen above, the protocols actually make applications harder to write correctly. Instead, they target reusable agnostic code that has *both* queue and pools in mind.
+
 
 ### Dealing with External Connections
 
