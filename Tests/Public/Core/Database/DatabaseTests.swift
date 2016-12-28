@@ -316,7 +316,7 @@ class DatabaseTests : GRDBTestCase {
                 }
                 XCTFail()
             } catch let error as DatabaseError {
-                XCTAssertEqual(error.code, 19) // SQLITE_CONSTRAINT
+                XCTAssertEqual(error.code, .SQLITE_CONSTRAINT)
                 XCTAssertEqual(error.message!, "FOREIGN KEY constraint failed")
                 XCTAssertEqual(error.sql!, "COMMIT TRANSACTION")
                 XCTAssertEqual(error.description, "SQLite error 19 with statement `COMMIT TRANSACTION`: FOREIGN KEY constraint failed")

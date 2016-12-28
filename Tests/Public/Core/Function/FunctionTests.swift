@@ -305,7 +305,7 @@ class FunctionTests: GRDBTestCase {
                     try db.execute("INSERT INTO items VALUES (f(1))")
                     XCTFail("Expected DatabaseError")
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, 1)
+                    XCTAssertEqual(error.code, .SQLITE_ERROR)
                     XCTAssertEqual(error.message, "custom error message")
                 }
             }
@@ -325,7 +325,7 @@ class FunctionTests: GRDBTestCase {
                     try db.execute("INSERT INTO items VALUES (f(1))")
                     XCTFail("Expected DatabaseError")
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, 123)
+                    XCTAssertEqual(error.code.rawValue, 123)
                     XCTAssertEqual(error.message, "unknown error")
                 }
             }
@@ -345,7 +345,7 @@ class FunctionTests: GRDBTestCase {
                     try db.execute("INSERT INTO items VALUES (f(1))")
                     XCTFail("Expected DatabaseError")
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, 123)
+                    XCTAssertEqual(error.code.rawValue, 123)
                     XCTAssertEqual(error.message, "custom error message")
                 }
             }
@@ -365,7 +365,7 @@ class FunctionTests: GRDBTestCase {
                     try db.execute("INSERT INTO items VALUES (f(1))")
                     XCTFail("Expected DatabaseError")
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, 1)
+                    XCTAssertEqual(error.code, .SQLITE_ERROR)
                     XCTAssertTrue(error.message!.contains("CustomErrorDomain"))
                     XCTAssertTrue(error.message!.contains("123"))
                     XCTAssertTrue(error.message!.contains("custom error message"))

@@ -130,7 +130,7 @@
                         
                         return SQLITE_OK
                     } catch let error as DatabaseError {
-                        return error.code
+                        return error.code.rawValue
                     } catch {
                         return SQLITE_ERROR
                     }

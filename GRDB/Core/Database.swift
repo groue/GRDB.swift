@@ -190,6 +190,55 @@ public final class Database {
         case setDefault = "SET DEFAULT"
     }
     
+    /// An SQLite result code.
+    ///
+    /// See https://www.sqlite.org/c3ref/c_abort.html
+    public struct ResultCode : RawRepresentable, Equatable {
+        public let rawValue: Int32
+        
+        public init(rawValue: Int32) {
+            self.rawValue = rawValue
+        }
+        
+        public static func == (lhs: ResultCode, rhs: ResultCode) -> Bool {
+            return lhs.rawValue == rhs.rawValue
+        }
+        
+        public static let SQLITE_OK =         ResultCode(rawValue: 0)
+        public static let SQLITE_ERROR =      ResultCode(rawValue: 1)
+        public static let SQLITE_INTERNAL =   ResultCode(rawValue: 2)
+        public static let SQLITE_PERM =       ResultCode(rawValue: 3)
+        public static let SQLITE_ABORT =      ResultCode(rawValue: 4)
+        public static let SQLITE_BUSY =       ResultCode(rawValue: 5)
+        public static let SQLITE_LOCKED =     ResultCode(rawValue: 6)
+        public static let SQLITE_NOMEM =      ResultCode(rawValue: 7)
+        public static let SQLITE_READONLY =   ResultCode(rawValue: 8)
+        public static let SQLITE_INTERRUPT =  ResultCode(rawValue: 9)
+        public static let SQLITE_IOERR =      ResultCode(rawValue: 10)
+        public static let SQLITE_CORRUPT =    ResultCode(rawValue: 11)
+        public static let SQLITE_NOTFOUND =   ResultCode(rawValue: 12)
+        public static let SQLITE_FULL =       ResultCode(rawValue: 13)
+        public static let SQLITE_CANTOPEN =   ResultCode(rawValue: 14)
+        public static let SQLITE_PROTOCOL =   ResultCode(rawValue: 15)
+        public static let SQLITE_EMPTY =      ResultCode(rawValue: 16)
+        public static let SQLITE_SCHEMA =     ResultCode(rawValue: 17)
+        public static let SQLITE_TOOBIG =     ResultCode(rawValue: 18)
+        public static let SQLITE_CONSTRAINT = ResultCode(rawValue: 19)
+        public static let SQLITE_MISMATCH =   ResultCode(rawValue: 20)
+        public static let SQLITE_MISUSE =     ResultCode(rawValue: 21)
+        public static let SQLITE_NOLFS =      ResultCode(rawValue: 22)
+        public static let SQLITE_AUTH =       ResultCode(rawValue: 23)
+        public static let SQLITE_FORMAT =     ResultCode(rawValue: 24)
+        public static let SQLITE_RANGE =      ResultCode(rawValue: 25)
+        public static let SQLITE_NOTADB =     ResultCode(rawValue: 26)
+        public static let SQLITE_NOTICE =     ResultCode(rawValue: 27)
+        public static let SQLITE_WARNING =    ResultCode(rawValue: 28)
+        public static let SQLITE_ROW =        ResultCode(rawValue: 100)
+        public static let SQLITE_DONE =       ResultCode(rawValue: 101)
+    }
+    
+
+    
     /// An SQLite threading mode. See https://www.sqlite.org/threadsafe.html.
     enum ThreadingMode {
         case `default`
@@ -770,7 +819,7 @@ extension Database {
                     if let message = error.message {
                         sqlite3_result_error(context, message, -1)
                     }
-                    sqlite3_result_error_code(context, Int32(error.code))
+                    sqlite3_result_error_code(context, error.code.rawValue)
                 } catch {
                     sqlite3_result_error(context, "\(error)", -1)
                 }
@@ -1616,7 +1665,7 @@ extension Database {
             // TODO: test that isInsideTransaction, savepointStack, transaction
             // observers, etc. are in good shape when such an implicit rollback
             // happens.
-            guard let underlyingError = underlyingError as? DatabaseError, [SQLITE_FULL, SQLITE_IOERR, SQLITE_BUSY, SQLITE_NOMEM].contains(Int32(underlyingError.code)) else {
+            guard let underlyingError = underlyingError as? DatabaseError, [SQLITE_FULL, SQLITE_IOERR, SQLITE_BUSY, SQLITE_NOMEM].contains(underlyingError.code.rawValue) else {
                 throw error
             }
         }

@@ -596,7 +596,7 @@ class SavepointTests: GRDBTestCase {
                     }
                     XCTFail()
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, 123)
+                    XCTAssertEqual(error.code.rawValue, 123)
                 }
                 
                 try db.inSavepoint {
