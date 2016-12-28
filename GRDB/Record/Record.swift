@@ -6,15 +6,11 @@ open class Record : RowConvertible, TableMapping, Persistable {
     
     // MARK: - Initializers
     
-    /// Initializes a Record.
-    ///
-    /// The returned record is *edited*.
+    /// Creates a Record.
     public init() {
     }
     
-    /// Initializes a Record from a row.
-    ///
-    /// The returned record is *edited*.
+    /// Creates a Record from a row.
     ///
     /// The input row may not come straight from the database. When you want to
     /// complete your initialization after being fetched, override
