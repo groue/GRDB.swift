@@ -1,55 +1,6 @@
 Release Notes
 =============
 
-## Next Version
-
-**Breaking Change**
-
-- `DatabaseError.code` is now Database.ResultCode:
-    
-    ```diff
-    +struct ResultCode : RawRepresentable, Equatable {
-    +    let rawValue: Int32
-    +    init(rawValue: Int32)
-    +    static let SQLITE_OK: ResultCode
-    +    static let SQLITE_ERROR: ResultCode
-    +    static let SQLITE_INTERNAL: ResultCode
-    +    static let SQLITE_PERM: ResultCode
-    +    static let SQLITE_ABORT: ResultCode
-    +    static let SQLITE_BUSY: ResultCode
-    +    static let SQLITE_LOCKED: ResultCode
-    +    static let SQLITE_NOMEM: ResultCode
-    +    static let SQLITE_READONLY: ResultCode
-    +    static let SQLITE_INTERRUPT: ResultCode
-    +    static let SQLITE_IOERR: ResultCode
-    +    static let SQLITE_CORRUPT: ResultCode
-    +    static let SQLITE_NOTFOUND: ResultCode
-    +    static let SQLITE_FULL: ResultCode
-    +    static let SQLITE_CANTOPEN: ResultCode
-    +    static let SQLITE_PROTOCOL: ResultCode
-    +    static let SQLITE_EMPTY: ResultCode
-    +    static let SQLITE_SCHEMA: ResultCode
-    +    static let SQLITE_TOOBIG: ResultCode
-    +    static let SQLITE_CONSTRAINT: ResultCode
-    +    static let SQLITE_MISMATCH: ResultCode
-    +    static let SQLITE_MISUSE: ResultCode
-    +    static let SQLITE_NOLFS: ResultCode
-    +    static let SQLITE_AUTH: ResultCode
-    +    static let SQLITE_FORMAT: ResultCode
-    +    static let SQLITE_RANGE: ResultCode
-    +    static let SQLITE_NOTADB: ResultCode
-    +    static let SQLITE_NOTICE: ResultCode
-    +    static let SQLITE_WARNING: ResultCode
-    +    static let SQLITE_ROW: ResultCode
-    +    static let SQLITE_DONE: ResultCode
-    +}
-     struct DatabaseError : Error {
-    -    let code: Int32
-    +    let code: Database.ResultCode
-    +    init(code: Database.ResultCode = .SQLITE_ERROR, message: String? = nil, sql: String? = nil, arguments: StatementArguments? = nil)
-     }
-    
-
 ## 0.99.2
 
 Released December 22, 2016

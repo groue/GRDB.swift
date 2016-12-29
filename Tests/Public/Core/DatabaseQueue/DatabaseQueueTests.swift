@@ -21,7 +21,7 @@ class DatabaseQueueTests: GRDBTestCase {
                 _ = try DatabaseQueue(path: url.path)
                 XCTFail("Expected error")
             } catch let error as DatabaseError {
-                XCTAssertEqual(error.code, .SQLITE_NOTADB)
+                XCTAssertEqual(error.code, 26) // SQLITE_NOTADB
                 XCTAssertEqual(error.message!.lowercased(), "file is encrypted or is not a database") // lowercased: accept multiple SQLite version
                 XCTAssertTrue(error.sql == nil)
                 XCTAssertEqual(error.description.lowercased(), "sqlite error 26: file is encrypted or is not a database")
@@ -55,7 +55,7 @@ class DatabaseQueueTests: GRDBTestCase {
                 }
                 catch let error as DatabaseError {
                     // expected error
-                    XCTAssertEqual(error.code, .SQLITE_ERROR)
+                    XCTAssertEqual(error.code, 1) // SQLITE_ERROR
                     XCTAssertEqual(error.message!.lowercased(), "no such function: succ") // lowercaseString: accept multiple SQLite version
                     XCTAssertEqual(error.sql!, "SELECT succ(1)")
                     XCTAssertEqual(error.description.lowercased(), "sqlite error 1 with statement `select succ(1)`: no such function: succ")
@@ -86,7 +86,7 @@ class DatabaseQueueTests: GRDBTestCase {
                 }
                 catch let error as DatabaseError {
                     // expected error
-                    XCTAssertEqual(error.code, .SQLITE_ERROR)
+                    XCTAssertEqual(error.code, 1) // SQLITE_ERROR
                     XCTAssertEqual(error.message!.lowercased(), "no such collation sequence: test_collation_foo") // lowercaseString: accept multiple SQLite version
                     XCTAssertEqual(error.sql!, "CREATE TABLE files_fail (name TEXT COLLATE TEST_COLLATION_FOO)")
                     XCTAssertEqual(error.description.lowercased(), "sqlite error 1 with statement `create table files_fail (name text collate test_collation_foo)`: no such collation sequence: test_collation_foo")

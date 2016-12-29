@@ -113,7 +113,7 @@ class ConcurrencyTests: GRDBTestCase {
             _ = group.wait(timeout: .distantFuture)
             
             if let concurrencyError = concurrencyError {
-                XCTAssertEqual(concurrencyError.code, .SQLITE_BUSY)
+                XCTAssertEqual(concurrencyError.code, 5) // SQLITE_BUSY
                 XCTAssertEqual(concurrencyError.sql, "INSERT INTO stuffs (id) VALUES (NULL)")
             } else {
                 XCTFail("Expected concurrency error")
@@ -171,7 +171,7 @@ class ConcurrencyTests: GRDBTestCase {
             _ = group.wait(timeout: .distantFuture)
             
             if let concurrencyError = concurrencyError {
-                XCTAssertEqual(concurrencyError.code, .SQLITE_BUSY)
+                XCTAssertEqual(concurrencyError.code, 5) // SQLITE_BUSY
                 XCTAssertEqual(concurrencyError.sql, "BEGIN EXCLUSIVE TRANSACTION")
             } else {
                 XCTFail("Expected concurrency error")
@@ -229,7 +229,7 @@ class ConcurrencyTests: GRDBTestCase {
             _ = group.wait(timeout: .distantFuture)
             
             if let concurrencyError = concurrencyError {
-                XCTAssertEqual(concurrencyError.code, .SQLITE_BUSY)
+                XCTAssertEqual(concurrencyError.code, 5) // SQLITE_BUSY
                 XCTAssertEqual(concurrencyError.sql, "BEGIN IMMEDIATE TRANSACTION")
             } else {
                 XCTFail("Expected concurrency error")

@@ -73,7 +73,7 @@ class VirtualTableModuleTests: GRDBTestCase {
                     }
                     XCTFail("Expected DatabaseError")
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code.rawValue, 123)
+                    XCTAssertEqual(error.code, 123)
                 }
                 assertDidExecute(sql: "CREATE VIRTUAL TABLE \"test\" USING fts3tokenize(simple)")
                 XCTAssertFalse(try db.tableExists("test"))

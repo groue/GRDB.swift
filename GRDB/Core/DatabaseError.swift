@@ -22,7 +22,7 @@ import Foundation
 public struct DatabaseError : Error {
     
     /// The SQLite error code (see https://www.sqlite.org/c3ref/c_abort.html).
-    public let code: Database.ResultCode
+    public let code: Int32
     
     /// The SQLite error message.
     public let message: String?
@@ -30,11 +30,7 @@ public struct DatabaseError : Error {
     /// The SQL query that yielded the error (if relevant).
     public let sql: String?
     
-    public init(code: Int32, message: String? = nil, sql: String? = nil, arguments: StatementArguments? = nil) {
-        self.init(code: Database.ResultCode(rawValue: code), message: message, sql: sql, arguments: arguments)
-    }
-    
-    public init(code: Database.ResultCode = .SQLITE_ERROR, message: String? = nil, sql: String? = nil, arguments: StatementArguments? = nil) {
+    public init(code: Int32 = SQLITE_ERROR, message: String? = nil, sql: String? = nil, arguments: StatementArguments? = nil) {
         self.code = code
         self.message = message
         self.sql = sql
@@ -52,7 +48,7 @@ public struct DatabaseError : Error {
 extension DatabaseError: CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
-        var description = "SQLite error \(code.rawValue)"
+        var description = "SQLite error \(code)"
         if let sql = sql {
             description += " with statement `\(sql)`"
         }
@@ -75,7 +71,7 @@ extension DatabaseError : CustomNSError {
     
     /// NSError bridging: the error code within the given domain.
     public var errorCode: Int {
-        return Int(code.rawValue)
+        return Int(code)
     }
     
     /// NSError bridging: the user-info dictionary.

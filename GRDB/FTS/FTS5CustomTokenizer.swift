@@ -81,7 +81,7 @@
                         tokenizerHandle.pointee = tokenizerPointer
                         return SQLITE_OK
                     } catch let error as DatabaseError {
-                        return error.code.rawValue
+                        return error.code
                     } catch {
                         return SQLITE_ERROR
                     }

@@ -293,7 +293,7 @@ class UpdateStatementTests : GRDBTestCase {
                     _ = try db.makeUpdateStatement("UPDATE blah SET id = 12")
                     XCTFail()
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, .SQLITE_ERROR)
+                    XCTAssertEqual(error.code, 1)
                     XCTAssertEqual(error.message!, "no such table: blah")
                     XCTAssertEqual(error.sql!, "UPDATE blah SET id = 12")
                     XCTAssertEqual(error.description, "SQLite error 1 with statement `UPDATE blah SET id = 12`: no such table: blah")
@@ -310,7 +310,7 @@ class UpdateStatementTests : GRDBTestCase {
                     _ = try db.makeUpdateStatement("UPDATE persons SET age = 1; UPDATE persons SET age = 2;")
                     XCTFail("Expected error")
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, .SQLITE_MISUSE)
+                    XCTAssertEqual(error.code, 21)  // SQLITE_MISUSE
                     XCTAssertEqual(error.message!, "Multiple statements found. To execute multiple statements, use Database.execute() instead.")
                     XCTAssertEqual(error.sql!, "UPDATE persons SET age = 1; UPDATE persons SET age = 2;")
                     XCTAssertEqual(error.description, "SQLite error 21 with statement `UPDATE persons SET age = 1; UPDATE persons SET age = 2;`: Multiple statements found. To execute multiple statements, use Database.execute() instead.")
@@ -327,7 +327,7 @@ class UpdateStatementTests : GRDBTestCase {
                     _ = try db.makeUpdateStatement("UPDATE persons SET age = 1;x")
                     XCTFail("Expected error")
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, .SQLITE_MISUSE)
+                    XCTAssertEqual(error.code, 21)  // SQLITE_MISUSE
                     XCTAssertEqual(error.message!, "Multiple statements found. To execute multiple statements, use Database.execute() instead.")
                     XCTAssertEqual(error.sql!, "UPDATE persons SET age = 1;x")
                     XCTAssertEqual(error.description, "SQLite error 21 with statement `UPDATE persons SET age = 1;x`: Multiple statements found. To execute multiple statements, use Database.execute() instead.")
