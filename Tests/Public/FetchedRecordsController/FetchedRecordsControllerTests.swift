@@ -8,22 +8,34 @@ import XCTest
 #endif
 
 private class ChangesRecorder<Record: RowConvertible> {
+    var changes: [(record: Record, event: FetchedRecordsChangeEvent)] = []
     var recordsBeforeChanges: [Record]!
     var recordsAfterChanges: [Record]!
     var countBeforeChanges: Int?
     var countAfterChanges: Int?
+    var recordsOnFirstEvent: [Record]!
     var transactionExpectation: XCTestExpectation? {
         didSet {
+            changes = []
             recordsBeforeChanges = nil
             recordsAfterChanges = nil
             countBeforeChanges = nil
             countAfterChanges = nil
+            recordsOnFirstEvent = nil
         }
     }
     
     func controllerWillChange(_ controller: FetchedRecordsController<Record>, count: Int? = nil) {
         recordsBeforeChanges = controller.fetchedRecords
         countBeforeChanges = count
+    }
+    
+    /// The default implementation does nothing.
+    func controller(_ controller: FetchedRecordsController<Record>, didChangeRecord record: Record, withEvent event:FetchedRecordsChangeEvent) {
+        if recordsOnFirstEvent == nil {
+            recordsOnFirstEvent = controller.fetchedRecords!
+        }
+        changes.append((record: record, event: event))
     }
     
     /// The default implementation does nothing.
@@ -171,11 +183,31 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             }
             
             let request = Person.all()
+            let controller = try FetchedRecordsController<Person>(dbQueue, request: request, compareRecordsByPrimaryKey: true)
+            XCTAssertTrue(controller.fetchedRecords == nil)
+            try controller.performFetch()
+            XCTAssertEqual(controller.sections.count, 1)
+            XCTAssertEqual(controller.sections[0].numberOfRecords, 1)
+            XCTAssertEqual(controller.sections[0].records.count, 1)
+            XCTAssertEqual(controller.sections[0].records[0].name, "Arthur")
+            XCTAssertEqual(controller.fetchedRecords!.count, 1)
+            XCTAssertEqual(controller.fetchedRecords![0].name, "Arthur")
+            XCTAssertEqual(controller.record(at: IndexPath(indexes: [0, 0])).name, "Arthur")
+            XCTAssertEqual(controller.indexPath(for: arthur), IndexPath(indexes: [0, 0]))
+        }
+    }
+    
+    func testEmptyRequestGivesOneSection() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            let request = Person.all()
             let controller = try FetchedRecordsController<Person>(dbQueue, request: request)
             XCTAssertTrue(controller.fetchedRecords == nil)
             try controller.performFetch()
-            XCTAssertEqual(controller.fetchedRecords!.count, 1)
-            XCTAssertEqual(controller.fetchedRecords![0].name, "Arthur")
+            XCTAssertEqual(controller.fetchedRecords!.count, 0)
+            
+            // Just like NSFetchedResultsController
+            XCTAssertEqual(controller.sections.count, 1)
         }
     }
     
@@ -188,10 +220,11 @@ class FetchedRecordsControllerTests: GRDBTestCase {
     func testSimpleInsert() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let controller = try FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("id")))
+            let controller = try FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("id")), compareRecordsByPrimaryKey: true)
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
+                event: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
                 recordsDidChange: { recorder.controllerDidChange($0) })
             try controller.performFetch()
             
@@ -205,8 +238,17 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             waitForExpectations(timeout: 1, handler: nil)
             
             XCTAssertEqual(recorder.recordsBeforeChanges.count, 0)
-            XCTAssertEqual(recorder.recordsAfterChanges.count, 1)
-            XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Arthur"])
+            XCTAssertEqual(recorder.recordsOnFirstEvent.count, 1)
+            XCTAssertEqual(recorder.recordsOnFirstEvent.map { $0.name }, ["Arthur"])
+            XCTAssertEqual(recorder.changes.count, 1)
+            XCTAssertEqual(recorder.changes[0].record.id, 1)
+            XCTAssertEqual(recorder.changes[0].record.name, "Arthur")
+            switch recorder.changes[0].event {
+            case .insertion(let indexPath):
+                XCTAssertEqual(indexPath, IndexPath(indexes: [0, 0]))
+            default:
+                XCTFail()
+            }
             
             // Second insert
             recorder.transactionExpectation = expectation(description: "expectation")
@@ -220,18 +262,29 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             
             XCTAssertEqual(recorder.recordsBeforeChanges.count, 1)
             XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur"])
-            XCTAssertEqual(recorder.recordsAfterChanges.count, 2)
-            XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Arthur", "Barbara"])
+            XCTAssertEqual(recorder.recordsOnFirstEvent.count, 2)
+            XCTAssertEqual(recorder.recordsOnFirstEvent.map { $0.name }, ["Arthur", "Barbara"])
+            XCTAssertEqual(recorder.changes.count, 1)
+            XCTAssertEqual(recorder.changes[0].record.id, 2)
+            XCTAssertEqual(recorder.changes[0].record.name, "Barbara")
+            switch recorder.changes[0].event {
+            case .insertion(let indexPath):
+                XCTAssertEqual(indexPath, IndexPath(indexes: [0, 1]))
+            default:
+                XCTFail()
+            }
+            
         }
     }
     
     func testSimpleUpdate() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let controller = try FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("id")))
+            let controller = try FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("id")), compareRecordsByPrimaryKey: true)
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
+                event: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
                 recordsDidChange: { recorder.controllerDidChange($0) })
             try controller.performFetch()
             
@@ -263,8 +316,18 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             
             XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
             XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur", "Barbara"])
-            XCTAssertEqual(recorder.recordsAfterChanges.count, 2)
-            XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Craig", "Barbara"])
+            XCTAssertEqual(recorder.recordsOnFirstEvent.count, 2)
+            XCTAssertEqual(recorder.recordsOnFirstEvent.map { $0.name }, ["Craig", "Barbara"])
+            XCTAssertEqual(recorder.changes.count, 1)
+            XCTAssertEqual(recorder.changes[0].record.id, 1)
+            XCTAssertEqual(recorder.changes[0].record.name, "Craig")
+            switch recorder.changes[0].event {
+            case .update(let indexPath, let changes):
+                XCTAssertEqual(indexPath, IndexPath(indexes: [0, 0]))
+                XCTAssertEqual(changes, ["name": "Arthur".databaseValue])
+            default:
+                XCTFail()
+            }
             
             // Second update
             recorder.transactionExpectation = expectation(description: "expectation")
@@ -278,18 +341,29 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             
             XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
             XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Craig", "Barbara"])
-            XCTAssertEqual(recorder.recordsAfterChanges.count, 2)
-            XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Craig", "Danielle"])
+            XCTAssertEqual(recorder.recordsOnFirstEvent.count, 2)
+            XCTAssertEqual(recorder.recordsOnFirstEvent.map { $0.name }, ["Craig", "Danielle"])
+            XCTAssertEqual(recorder.changes.count, 1)
+            XCTAssertEqual(recorder.changes[0].record.id, 2)
+            XCTAssertEqual(recorder.changes[0].record.name, "Danielle")
+            switch recorder.changes[0].event {
+            case .update(let indexPath, let changes):
+                XCTAssertEqual(indexPath, IndexPath(indexes: [0, 1]))
+                XCTAssertEqual(changes, ["name": "Barbara".databaseValue])
+            default:
+                XCTFail()
+            }
         }
     }
     
     func testSimpleDelete() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let controller = try FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("id")))
+            let controller = try FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("id")), compareRecordsByPrimaryKey: true)
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
+                event: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
                 recordsDidChange: { recorder.controllerDidChange($0) })
             try controller.performFetch()
             
@@ -314,8 +388,17 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             
             XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
             XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur", "Barbara"])
-            XCTAssertEqual(recorder.recordsAfterChanges.count, 1)
-            XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Barbara"])
+            XCTAssertEqual(recorder.recordsOnFirstEvent.count, 1)
+            XCTAssertEqual(recorder.recordsOnFirstEvent.map { $0.name }, ["Barbara"])
+            XCTAssertEqual(recorder.changes.count, 1)
+            XCTAssertEqual(recorder.changes[0].record.id, 1)
+            XCTAssertEqual(recorder.changes[0].record.name, "Arthur")
+            switch recorder.changes[0].event {
+            case .deletion(let indexPath):
+                XCTAssertEqual(indexPath, IndexPath(indexes: [0, 0]))
+            default:
+                XCTFail()
+            }
             
             // Second delete
             recorder.transactionExpectation = expectation(description: "expectation")
@@ -327,17 +410,27 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             
             XCTAssertEqual(recorder.recordsBeforeChanges.count, 1)
             XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Barbara"])
-            XCTAssertEqual(recorder.recordsAfterChanges.count, 0)
+            XCTAssertEqual(recorder.recordsOnFirstEvent.count, 0)
+            XCTAssertEqual(recorder.changes.count, 1)
+            XCTAssertEqual(recorder.changes[0].record.id, 2)
+            XCTAssertEqual(recorder.changes[0].record.name, "Barbara")
+            switch recorder.changes[0].event {
+            case .deletion(let indexPath):
+                XCTAssertEqual(indexPath, IndexPath(indexes: [0, 0]))
+            default:
+                XCTFail()
+            }
         }
     }
     
     func testSimpleMove() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let controller = try FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")))
+            let controller = try FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")), compareRecordsByPrimaryKey: true)
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
+                event: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
                 recordsDidChange: { recorder.controllerDidChange($0) })
             try controller.performFetch()
             
@@ -363,8 +456,19 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             
             XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
             XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur", "Barbara"])
-            XCTAssertEqual(recorder.recordsAfterChanges.count, 2)
-            XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Barbara", "Craig"])
+            XCTAssertEqual(recorder.recordsOnFirstEvent.count, 2)
+            XCTAssertEqual(recorder.recordsOnFirstEvent.map { $0.name }, ["Barbara", "Craig"])
+            XCTAssertEqual(recorder.changes.count, 1)
+            XCTAssertEqual(recorder.changes[0].record.id, 1)
+            XCTAssertEqual(recorder.changes[0].record.name, "Craig")
+            switch recorder.changes[0].event {
+            case .move(let indexPath, let newIndexPath, let changes):
+                XCTAssertEqual(indexPath, IndexPath(indexes: [0, 0]))
+                XCTAssertEqual(newIndexPath, IndexPath(indexes: [0, 1]))
+                XCTAssertEqual(changes, ["name": "Arthur".databaseValue])
+            default:
+                XCTFail()
+            }
         }
     }
     
@@ -375,20 +479,22 @@ class FetchedRecordsControllerTests: GRDBTestCase {
                 dbQueue,
                 sql: ("SELECT persons.*, COUNT(books.id) AS bookCount " +
                     "FROM persons " +
-                    "LEFT JOIN books ON books.authorID = persons.id " +
+                    "LEFT JOIN books ON books.authorId = persons.id " +
                     "GROUP BY persons.id " +
-                    "ORDER BY persons.name"))
+                    "ORDER BY persons.name"),
+                compareRecordsByPrimaryKey: true)
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
+                event: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
                 recordsDidChange: { recorder.controllerDidChange($0) })
             try controller.performFetch()
             
             // Insert
             recorder.transactionExpectation = expectation(description: "expectation")
             try dbQueue.inTransaction { db in
-                try db.execute("INSERT INTO persons (name) VALUES (?)", arguments: ["Herman Melville"])
-                try db.execute("INSERT INTO books (authorID, title) VALUES (?, ?)", arguments: [1, "Moby-Dick"])
+                try db.execute("INSERT INTO persons (name) VALUES (?)", arguments: ["Arthur"])
+                try db.execute("INSERT INTO books (authorId, title) VALUES (?, ?)", arguments: [1, "Moby Dick"])
                 return .commit
             }
             waitForExpectations(timeout: 1, handler: nil)
@@ -402,11 +508,144 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             waitForExpectations(timeout: 1, handler: nil)
             
             XCTAssertEqual(recorder.recordsBeforeChanges.count, 1)
-            XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Herman Melville"])
+            XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur"])
             XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.bookCount! }, [1])
-            XCTAssertEqual(recorder.recordsAfterChanges.count, 1)
-            XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Herman Melville"])
-            XCTAssertEqual(recorder.recordsAfterChanges.map { $0.bookCount! }, [0])
+            XCTAssertEqual(recorder.recordsOnFirstEvent.count, 1)
+            XCTAssertEqual(recorder.recordsOnFirstEvent.map { $0.name }, ["Arthur"])
+            XCTAssertEqual(recorder.recordsOnFirstEvent.map { $0.bookCount! }, [0])
+            XCTAssertEqual(recorder.changes.count, 1)
+            XCTAssertEqual(recorder.changes[0].record.id, 1)
+            XCTAssertEqual(recorder.changes[0].record.name, "Arthur")
+            XCTAssertEqual(recorder.changes[0].record.bookCount, 0)
+            switch recorder.changes[0].event {
+            case .update(let indexPath, let changes):
+                XCTAssertEqual(indexPath, IndexPath(indexes: [0, 0]))
+                XCTAssertEqual(changes, ["bookCount": 1.databaseValue])
+            default:
+                XCTFail()
+            }
+        }
+    }
+    
+    func testComplexChanges() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            let controller = try FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")), compareRecordsByPrimaryKey: true)
+            let recorder = ChangesRecorder<Person>()
+            controller.trackChanges(
+                recordsWillChange: { recorder.controllerWillChange($0) },
+                event: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
+                recordsDidChange: { recorder.controllerDidChange($0) })
+            try controller.performFetch()
+            
+            enum EventTest {
+                case I(String, Int) // insert string at index
+                case M(String, Int, Int, String) // move string from index to index with changed string
+                case D(String, Int) // delete string at index
+                case U(String, Int, String) // update string at index with changed string
+                
+                func match(name: String, event: FetchedRecordsChangeEvent) -> Bool {
+                    switch self {
+                    case .I(let s, let i):
+                        switch event {
+                        case .insertion(let indexPath):
+                            return s == name && i == indexPath[1]
+                        default:
+                            return false
+                        }
+                    case .M(let s, let i, let j, let c):
+                        switch event {
+                        case .move(let indexPath, let newIndexPath, let changes):
+                            return s == name && i == indexPath[1] && j == newIndexPath[1] && c == changes["name"]!.value()
+                        default:
+                            return false
+                        }
+                    case .D(let s, let i):
+                        switch event {
+                        case .deletion(let indexPath):
+                            return s == name && i == indexPath[1]
+                        default:
+                            return false
+                        }
+                    case .U(let s, let i, let c):
+                        switch event {
+                        case .update(let indexPath, let changes):
+                            return s == name && i == indexPath[1] && c == changes["name"]!.value()
+                        default:
+                            return false
+                        }
+                    }
+                }
+            }
+            
+            // A list of random updates. We hope to cover most cases if not all cases here.
+            let steps: [(word: String, events: [EventTest])] = [
+                (word: "B", events: [.I("B",0)]),
+                (word: "BA", events: [.I("A",0)]),
+                (word: "ABF", events: [.M("B",0,1,"A"), .M("A",1,0,"B"), .I("F",2)]),
+                (word: "AB", events: [.D("F",2)]),
+                (word: "A", events: [.D("B",1)]),
+                (word: "C", events: [.U("C",0,"A")]),
+                (word: "", events: [.D("C",0)]),
+                (word: "C", events: [.I("C",0)]),
+                (word: "CD", events: [.I("D",1)]),
+                (word: "B", events: [.D("D",1), .U("B",0,"C")]),
+                (word: "BCAEFD", events: [.I("A",0), .I("C",2), .I("D",3), .I("E",4), .I("F",5)]),
+                (word: "CADBE", events: [.M("A",2,0,"C"), .D("D",3), .M("C",1,2,"B"), .M("B",4,1,"E"), .M("D",0,3,"A"), .M("E",5,4,"F")]),
+                (word: "EB", events: [.D("B",1), .D("D",3), .D("E",4), .M("E",2,1,"C"), .U("B",0,"A")]),
+                (word: "BEC", events: [.I("C",1), .M("B",1,0,"E"), .M("E",0,2,"B")]),
+                (word: "AB", events: [.D("C",1), .M("B",2,1,"E"), .U("A",0,"B")]),
+                (word: "ADEFCB", events: [.I("B",1), .I("C",2), .I("E",4), .M("D",1,3,"B"), .I("F",5)]),
+                (word: "DA", events: [.D("B",1), .D("C",2), .D("E",4), .M("A",3,0,"D"), .D("F",5), .M("D",0,1,"A")]),
+                (word: "BACEF", events: [.I("C",2), .I("E",3), .I("F",4), .U("B",1,"D")]),
+                (word: "BACD", events: [.D("F",4), .U("D",3,"E")]),
+                (word: "EABDFC", events: [.M("B",2,1,"C"), .I("C",2), .M("E",1,4,"B"), .I("F",5)]),
+                (word: "CAB", events: [.D("C",2), .D("D",3), .D("F",5), .M("C",4,2,"E")]),
+                (word: "CBAD", events: [.M("A",1,0,"B"), .M("B",0,1,"A"), .I("D",3)]),
+                (word: "BAC", events: [.M("A",1,0,"B"), .M("B",2,1,"C"), .D("D",3), .M("C",0,2,"A")]),
+                (word: "CBEADF", events: [.I("A",0), .M("B",0,1,"A"), .I("D",3), .M("C",1,2,"B"), .M("E",2,4,"C"), .I("F",5)]),
+                (word: "CBA", events: [.D("A",0), .D("D",3), .M("A",4,0,"E"), .D("F",5)]),
+                (word: "CBDAF", events: [.I("A",0), .M("D",0,3,"A"), .I("F",4)]),
+                (word: "B", events: [.D("A",0), .D("B",1), .D("D",3), .D("F",4), .M("B",2,0,"C")]),
+                (word: "BDECAF", events: [.I("A",0), .I("C",2), .I("D",3), .I("E",4), .I("F",5)]),
+                (word: "ABCDEF", events: [.M("A",1,0,"B"), .M("B",3,1,"D"), .M("D",2,3,"C"), .M("C",4,2,"E"), .M("E",0,4,"A")]),
+                (word: "ADBCF", events: [.M("B",2,1,"C"), .M("C",3,2,"D"), .M("D",1,3,"B"), .D("F",5), .U("F",4,"E")]),
+                (word: "A", events: [.D("B",1), .D("C",2), .D("D",3), .D("F",4)]),
+                (word: "AEBDCF", events: [.I("B",1), .I("C",2), .I("D",3), .I("E",4), .I("F",5)]),
+                (word: "B", events: [.D("B",1), .D("C",2), .D("D",3), .D("E",4), .D("F",5), .U("B",0,"A")]),
+                (word: "ABCDF", events: [.I("B",1), .I("C",2), .I("D",3), .I("F",4), .U("A",0,"B")]),
+                (word: "CAB", events: [.M("A",1,0,"B"), .D("D",3), .M("B",2,1,"C"), .D("F",4), .M("C",0,2,"A")]),
+                (word: "AC", events: [.D("B",1), .M("A",2,0,"C"), .M("C",0,1,"A")]),
+                (word: "DABC", events: [.I("B",1), .I("C",2), .M("A",1,0,"C"), .M("D",0,3,"A")]),
+                (word: "BACD", events: [.M("C",1,2,"B"), .M("B",3,1,"D"), .M("D",2,3,"C")]),
+                (word: "D", events: [.D("A",0), .D("C",2), .D("D",3), .M("D",1,0,"B")]),
+                (word: "CABDFE", events: [.I("A",0), .I("B",1), .I("D",3), .I("E",4), .M("C",0,2,"D"), .I("F",5)]),
+                (word: "BACDEF", events: [.M("B",2,1,"C"), .M("C",1,2,"B"), .M("E",5,4,"F"), .M("F",4,5,"E")]),
+                (word: "AB", events: [.D("C",2), .D("D",3), .D("E",4), .M("A",1,0,"B"), .D("F",5), .M("B",0,1,"A")]),
+                (word: "BACDE", events: [.I("C",2), .M("B",0,1,"A"), .I("D",3), .M("A",1,0,"B"), .I("E",4)]),
+                (word: "E", events: [.D("A",0), .D("C",2), .D("D",3), .D("E",4), .M("E",1,0,"B")]),
+                (word: "A", events: [.U("A",0,"E")]),
+                (word: "ABCDE", events: [.I("B",1), .I("C",2), .I("D",3), .I("E",4)]),
+                (word: "BA", events: [.D("C",2), .D("D",3), .M("A",1,0,"B"), .D("E",4), .M("B",0,1,"A")]),
+                (word: "A", events: [.D("A",0), .M("A",1,0,"B")]),
+                (word: "CAB", events: [.I("A",0), .I("B",1), .M("C",0,2,"A")]),
+                (word: "EA", events: [.D("B",1), .M("E",2,1,"C")]),
+                (word: "B", events: [.D("A",0), .M("B",1,0,"E")]),
+                ]
+            
+            for step in steps {
+                recorder.transactionExpectation = expectation(description: "expectation")
+                try dbQueue.inTransaction { db in
+                    try synchronizePersons(db, step.word.characters.enumerated().map { Person(id: Int64($0), name: String($1)) })
+                    return .commit
+                }
+                waitForExpectations(timeout: 1, handler: nil)
+                
+                XCTAssertEqual(recorder.changes.count, step.events.count)
+                for (change, event) in zip(recorder.changes, step.events) {
+                    XCTAssertTrue(event.match(name: change.record.name, event: change.event))
+                }
+            }
         }
     }
     
@@ -424,11 +663,11 @@ class FetchedRecordsControllerTests: GRDBTestCase {
     func testRequestChange() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let request = Person.select(Column("name")).order(Column("name"))
-            let controller = try FetchedRecordsController<Person>(dbQueue, request: request)
+            let controller = try FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")), compareRecordsByPrimaryKey: true)
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
+                event: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
                 recordsDidChange: { recorder.controllerDidChange($0) })
             try controller.performFetch()
             
@@ -449,8 +688,19 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             
             XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
             XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur", "Barbara"])
-            XCTAssertEqual(recorder.recordsAfterChanges.count, 2)
-            XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Barbara", "Arthur"])
+            XCTAssertEqual(recorder.recordsOnFirstEvent.count, 2)
+            XCTAssertEqual(recorder.recordsOnFirstEvent.map { $0.name }, ["Barbara", "Arthur"])
+            XCTAssertEqual(recorder.changes.count, 1)
+            XCTAssertEqual(recorder.changes[0].record.id, 2)
+            XCTAssertEqual(recorder.changes[0].record.name, "Barbara")
+            switch recorder.changes[0].event {
+            case .move(let indexPath, let newIndexPath, let changes):
+                XCTAssertEqual(indexPath, IndexPath(indexes: [0, 1]))
+                XCTAssertEqual(newIndexPath, IndexPath(indexes: [0, 0]))
+                XCTAssertTrue(changes.isEmpty)
+            default:
+                XCTFail()
+            }
             
             // Change request with SQL and arguments
             recorder.transactionExpectation = expectation(description: "expectation")
@@ -459,49 +709,36 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             
             XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
             XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Barbara", "Arthur"])
-            XCTAssertEqual(recorder.recordsAfterChanges.count, 1)
-            XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Craig"])
-            
-            // Change request with a different set of tracked columns
-            recorder.transactionExpectation = expectation(description: "expectation")
-            try controller.setRequest(Person.select(Column("name"), Column("email")).order(Column("name")))
-            waitForExpectations(timeout: 1, handler: nil)
-            
-            XCTAssertEqual(recorder.recordsBeforeChanges.count, 1)
-            XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Craig"])
-            XCTAssertEqual(recorder.recordsAfterChanges.count, 2)
-            XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Arthur", "Barbara"])
-            
-            recorder.transactionExpectation = expectation(description: "expectation")
-            try dbQueue.inTransaction { db in
-                try db.execute("UPDATE persons SET email = ? WHERE name = ?", arguments: ["arthur@example.com", "Arthur"])
-                return .commit
+            XCTAssertEqual(recorder.recordsOnFirstEvent.count, 1)
+            XCTAssertEqual(recorder.recordsOnFirstEvent.map { $0.name }, ["Craig"])
+            XCTAssertEqual(recorder.changes.count, 2)
+            XCTAssertEqual(recorder.changes[0].record.id, 2)
+            XCTAssertEqual(recorder.changes[0].record.name, "Barbara")
+            XCTAssertEqual(recorder.changes[1].record.id, 1)
+            XCTAssertEqual(recorder.changes[1].record.name, "Craig")
+            switch recorder.changes[0].event {
+            case .deletion(let indexPath):
+                XCTAssertEqual(indexPath, IndexPath(indexes: [0, 0]))
+            default:
+                XCTFail()
             }
-            waitForExpectations(timeout: 1, handler: nil)
-            
-            XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
-            XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur", "Barbara"])
-            XCTAssertEqual(recorder.recordsAfterChanges.count, 2)
-            XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Arthur", "Barbara"])
-            
-            recorder.transactionExpectation = expectation(description: "expectation")
-            try dbQueue.inTransaction { db in
-                try db.execute("UPDATE PERSONS SET EMAIL = ? WHERE NAME = ?", arguments: ["barbara@example.com", "Barbara"])
-                return .commit
+            switch recorder.changes[1].event {
+            case .move(let indexPath, let newIndexPath, let changes):
+                // TODO: is it really what we should expect? Wouldn't an update fit better?
+                // What does UITableView think?
+                XCTAssertEqual(indexPath, IndexPath(indexes: [0, 1]))
+                XCTAssertEqual(newIndexPath, IndexPath(indexes: [0, 0]))
+                XCTAssertEqual(changes, ["name": "Arthur".databaseValue])
+            default:
+                XCTFail()
             }
-            waitForExpectations(timeout: 1, handler: nil)
-            
-            XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
-            XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur", "Barbara"])
-            XCTAssertEqual(recorder.recordsAfterChanges.count, 2)
-            XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Arthur", "Barbara"])
         }
     }
     
     func testSetCallbacksAfterUpdate() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let controller = try FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")))
+            let controller = try FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")), compareRecordsByPrimaryKey: true)
             let recorder = ChangesRecorder<Person>()
             try controller.performFetch()
             
@@ -516,19 +753,29 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             recorder.transactionExpectation = expectation(description: "expectation")
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
+                event: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
                 recordsDidChange: { recorder.controllerDidChange($0) })
             waitForExpectations(timeout: 1, handler: nil)
             
             XCTAssertEqual(recorder.recordsBeforeChanges.count, 0)
-            XCTAssertEqual(recorder.recordsAfterChanges.count, 1)
-            XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Arthur"])
+            XCTAssertEqual(recorder.recordsOnFirstEvent.count, 1)
+            XCTAssertEqual(recorder.recordsOnFirstEvent.map { $0.name }, ["Arthur"])
+            XCTAssertEqual(recorder.changes.count, 1)
+            XCTAssertEqual(recorder.changes[0].record.id, 1)
+            XCTAssertEqual(recorder.changes[0].record.name, "Arthur")
+            switch recorder.changes[0].event {
+            case .insertion(let indexPath):
+                XCTAssertEqual(indexPath, IndexPath(indexes: [0, 0]))
+            default:
+                XCTFail()
+            }
         }
     }
     
     func testTrailingClosureCallback() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let controller = try FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")))
+            let controller = try FetchedRecordsController<Person>(dbQueue, request: Person.order(Column("name")), compareRecordsByPrimaryKey: true)
             var persons: [Person] = []
             try controller.performFetch()
             
@@ -555,6 +802,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             controller.trackChanges(
                 fetchAlongside: { db in try Person.fetchCount(db) },
                 recordsWillChange: { (controller, count) in recorder.controllerWillChange(controller, count: count) },
+                event: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
                 recordsDidChange: { (controller, count) in recorder.controllerDidChange(controller, count: count) })
             try controller.performFetch()
             
@@ -636,12 +884,12 @@ private func synchronizePersons(_ db: Database, _ newPersons: [Person]) throws {
     //
     // We'll delete, insert or update persons, depending on their presence
     // in either lists.
-    let steps = sortedMerge(
+    for mergeStep in sortedMerge(
         left: databasePersons,
         right: newPersons,
         leftKey: { $0.id! },
         rightKey: { $0.id! })
-    for mergeStep in steps {
+    {
         switch mergeStep {
         case .left(let databasePerson):
             try databasePerson.delete(db)
