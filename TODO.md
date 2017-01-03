@@ -112,3 +112,4 @@ Reading list:
 - pinyin: http://hustlzp.com/post/2016/02/ios-full-text-search-using-sqlite-fts4
 - FetchedRecordsController: https://github.com/jflinter/Dwifft
 - FetchedRecordsController: https://github.com/wokalski/Diff.swift (Faster)
+- FetchedRecordsController: https://github.com/andre-alves/PHDiff
