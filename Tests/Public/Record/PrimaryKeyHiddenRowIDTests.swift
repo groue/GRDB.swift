@@ -657,28 +657,21 @@ class PrimaryKeyHiddenRowIDTests : GRDBTestCase {
             }
             
             let expectation = self.expectation(description: "expectation")
-            let controller: FetchedRecordsController<Person>
-            #if os(iOS)
-                controller = try FetchedRecordsController<Person>(dbQueue, request: Person.all(), compareRecordsByPrimaryKey: true)
-                var update = false
-                controller.trackChanges(
-                    tableViewEvent: { (_, _, event) in
-                        switch event {
-                        case .update:
-                            update = true
-                        default:
-                            break
-                        }
-                    },
-                    recordsDidChange: { _ in
-                        expectation.fulfill()
-                })
-            #else
-                controller = try FetchedRecordsController<Person>(dbQueue, request: Person.all())
-                controller.trackChanges { _ in
+            let controller =
+                try FetchedRecordsController<Person>(dbQueue, request: Person.all(), compareRecordsByPrimaryKey: true)
+            var update = false
+            controller.trackChanges(
+                event: { (_, _, event) in
+                    switch event {
+                    case .update:
+                        update = true
+                    default:
+                        break
+                    }
+                },
+                recordsDidChange: { _ in
                     expectation.fulfill()
-                }
-            #endif
+            })
             try controller.performFetch()
             try dbQueue.inDatabase { db in
                 person.name = "Barbara"
@@ -686,9 +679,7 @@ class PrimaryKeyHiddenRowIDTests : GRDBTestCase {
             }
             waitForExpectations(timeout: 1, handler: nil)
             
-            #if os(iOS)
-                XCTAssertTrue(update)
-            #endif
+            XCTAssertTrue(update)
         }
     }
 }
