@@ -732,6 +732,40 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             default:
                 XCTFail()
             }
+            
+            // Change request with a different set of tracked columns
+            recorder.transactionExpectation = expectation(description: "expectation")
+            try controller.setRequest(Person.select(Column("id"), Column("name"), Column("email")).order(Column("name")))
+            waitForExpectations(timeout: 1, handler: nil)
+            
+            XCTAssertEqual(recorder.recordsBeforeChanges.count, 1)
+            XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Craig"])
+            XCTAssertEqual(recorder.recordsAfterChanges.count, 2)
+            XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Arthur", "Barbara"])
+            
+            recorder.transactionExpectation = expectation(description: "expectation")
+            try dbQueue.inTransaction { db in
+                try db.execute("UPDATE persons SET email = ? WHERE name = ?", arguments: ["arthur@example.com", "Arthur"])
+                return .commit
+            }
+            waitForExpectations(timeout: 1, handler: nil)
+            
+            XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
+            XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur", "Barbara"])
+            XCTAssertEqual(recorder.recordsAfterChanges.count, 2)
+            XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Arthur", "Barbara"])
+            
+            recorder.transactionExpectation = expectation(description: "expectation")
+            try dbQueue.inTransaction { db in
+                try db.execute("UPDATE PERSONS SET EMAIL = ? WHERE NAME = ?", arguments: ["barbara@example.com", "Barbara"])
+                return .commit
+            }
+            waitForExpectations(timeout: 1, handler: nil)
+            
+            XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
+            XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur", "Barbara"])
+            XCTAssertEqual(recorder.recordsAfterChanges.count, 2)
+            XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Arthur", "Barbara"])
         }
     }
     
