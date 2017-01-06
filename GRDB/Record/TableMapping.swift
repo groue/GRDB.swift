@@ -239,16 +239,13 @@ extension TableMapping {
     ///
     /// - throws: A DatabaseError if table does not exist.
     static func primaryKeyFunction(_ db: Database) throws -> (Row) -> [String: DatabaseValue] {
-        let columns: [String]
         if let primaryKey = try db.primaryKey(databaseTableName) {
-            columns = primaryKey.columns
+            let columns = primaryKey.columns
+            return { row in Dictionary(keys: columns) { row.value(named: $0) } }
         } else if selectsRowID {
-            columns = ["rowid"]
+            return { row in ["rowid": row.value(named: "rowid")] }
         } else {
-            columns = []
-        }
-        return { row in
-            return Dictionary<String, DatabaseValue>(keys: columns) { row.value(named: $0) }
+            return { _ in [:] }
         }
     }
     
