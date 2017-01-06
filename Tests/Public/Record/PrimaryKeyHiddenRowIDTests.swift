@@ -658,7 +658,7 @@ class PrimaryKeyHiddenRowIDTests : GRDBTestCase {
             
             let expectation = self.expectation(description: "expectation")
             let controller =
-                try FetchedRecordsController<Person>(dbQueue, request: Person.all(), compareRecordsByPrimaryKey: true)
+                try FetchedRecordsController<Person>(dbQueue, request: Person.all())
             var update = false
             controller.trackChanges(
                 event: { (_, _, event) in

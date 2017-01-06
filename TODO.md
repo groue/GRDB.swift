@@ -1,6 +1,7 @@
 - [ ] v0.100.0
     - [ ] Update FetchedRecordsController documentation for https://github.com/groue/GRDB.swift/pull/160
     - [X] Use TypedRequest in FetchedRecordsController
+    - [X] Remove compareRecordsByPrimaryKey initializer option 
     - [ ] Bump tp SQLite 3.16.1
 - [ ] Check for SQLCipher at runtime with `PRAGMA cipher_version`: https://discuss.zetetic.net/t/important-advisory-sqlcipher-with-xcode-8-and-new-sdks/1688
 - [ ] We share the database cache between database pool writers and readers. But what if a writer modifies the database schema within a transaction, and a concurrent reader reads the cache? Bad things, isn't it? Write failing tests first, and fix the bug.

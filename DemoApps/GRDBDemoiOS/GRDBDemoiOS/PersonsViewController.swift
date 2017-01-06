@@ -13,7 +13,7 @@ class PersonsViewController: UITableViewController {
         ]
         
         let request = personsSortedByScore
-        personsController = try! FetchedRecordsController(dbQueue, request: request, compareRecordsByPrimaryKey: true)
+        personsController = try! FetchedRecordsController(dbQueue, request: request)
         personsController.trackChanges(
             recordsWillChange: { [unowned self] _ in
                 self.tableView.beginUpdates()

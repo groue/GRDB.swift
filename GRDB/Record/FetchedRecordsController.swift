@@ -306,8 +306,8 @@ extension FetchedRecordsController where Record: TableMapping {
     ///
     ///     - compareRecordsByPrimaryKey: A boolean that tells if two records
     ///         share the same identity if they share the same primay key.
-    public convenience init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: DispatchQueue = .main, compareRecordsByPrimaryKey: Bool) throws {
-        try self.init(databaseWriter, request: SQLRequest(sql, arguments: arguments, adapter: adapter).bound(to: Record.self), queue: queue, compareRecordsByPrimaryKey: compareRecordsByPrimaryKey)
+    public convenience init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: DispatchQueue = .main) throws {
+        try self.init(databaseWriter, request: SQLRequest(sql, arguments: arguments, adapter: adapter).bound(to: Record.self), queue: queue)
     }
     
     /// Creates a fetched records controller initialized from a fetch request.
@@ -332,13 +332,9 @@ extension FetchedRecordsController where Record: TableMapping {
     ///
     ///     - compareRecordsByPrimaryKey: A boolean that tells if two records
     ///         share the same identity if they share the same primay key.
-    public convenience init<Request>(_ databaseWriter: DatabaseWriter, request: Request, queue: DispatchQueue = .main, compareRecordsByPrimaryKey: Bool) throws where Request: TypedRequest, Request.Fetched == Record {
-        if compareRecordsByPrimaryKey {
-            let rowComparator = try databaseWriter.read { db in try Record.primaryKeyRowComparator(db) }
-            try self.init(databaseWriter, request: request, queue: queue, itemsAreIdentical: { rowComparator($0.row, $1.row) })
-        } else {
-            try self.init(databaseWriter, request: request, queue: queue, itemsAreIdentical: { _ in false })
-        }
+    public convenience init<Request>(_ databaseWriter: DatabaseWriter, request: Request, queue: DispatchQueue = .main) throws where Request: TypedRequest, Request.Fetched == Record {
+        let rowComparator = try databaseWriter.read { db in try Record.primaryKeyRowComparator(db) }
+        try self.init(databaseWriter, request: request, queue: queue, itemsAreIdentical: { rowComparator($0.row, $1.row) })
     }
 }
 
