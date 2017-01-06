@@ -8,7 +8,7 @@ import XCTest
 #endif
 
 private class ChangesRecorder<Record: RowConvertible> {
-    var changes: [(record: Record, event: FetchedRecordsChangeEvent)] = []
+    var changes: [(record: Record, change: FetchedRecordChange)] = []
     var recordsBeforeChanges: [Record]!
     var recordsAfterChanges: [Record]!
     var countBeforeChanges: Int?
@@ -31,11 +31,11 @@ private class ChangesRecorder<Record: RowConvertible> {
     }
     
     /// The default implementation does nothing.
-    func controller(_ controller: FetchedRecordsController<Record>, didChangeRecord record: Record, withEvent event:FetchedRecordsChangeEvent) {
+    func controller(_ controller: FetchedRecordsController<Record>, didChangeRecord record: Record, with change: FetchedRecordChange) {
         if recordsOnFirstEvent == nil {
             recordsOnFirstEvent = controller.fetchedRecords!
         }
-        changes.append((record: record, event: event))
+        changes.append((record: record, change: change))
     }
     
     /// The default implementation does nothing.
@@ -223,9 +223,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             let controller = try FetchedRecordsController(dbQueue, request: Person.order(Column("id")))
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
-                recordsWillChange: { recorder.controllerWillChange($0) },
-                event: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
-                recordsDidChange: { recorder.controllerDidChange($0) })
+                willChange: { recorder.controllerWillChange($0) },
+                onChange: { (controller, record, change) in recorder.controller(controller, didChangeRecord: record, with: change) },
+                didChange: { recorder.controllerDidChange($0) })
             try controller.performFetch()
             
             // First insert
@@ -243,7 +243,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(recorder.changes.count, 1)
             XCTAssertEqual(recorder.changes[0].record.id, 1)
             XCTAssertEqual(recorder.changes[0].record.name, "Arthur")
-            switch recorder.changes[0].event {
+            switch recorder.changes[0].change {
             case .insertion(let indexPath):
                 XCTAssertEqual(indexPath, IndexPath(indexes: [0, 0]))
             default:
@@ -267,7 +267,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(recorder.changes.count, 1)
             XCTAssertEqual(recorder.changes[0].record.id, 2)
             XCTAssertEqual(recorder.changes[0].record.name, "Barbara")
-            switch recorder.changes[0].event {
+            switch recorder.changes[0].change {
             case .insertion(let indexPath):
                 XCTAssertEqual(indexPath, IndexPath(indexes: [0, 1]))
             default:
@@ -283,9 +283,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             let controller = try FetchedRecordsController(dbQueue, request: Person.order(Column("id")))
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
-                recordsWillChange: { recorder.controllerWillChange($0) },
-                event: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
-                recordsDidChange: { recorder.controllerDidChange($0) })
+                willChange: { recorder.controllerWillChange($0) },
+                onChange: { (controller, record, change) in recorder.controller(controller, didChangeRecord: record, with: change) },
+                didChange: { recorder.controllerDidChange($0) })
             try controller.performFetch()
             
             // Insert
@@ -321,7 +321,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(recorder.changes.count, 1)
             XCTAssertEqual(recorder.changes[0].record.id, 1)
             XCTAssertEqual(recorder.changes[0].record.name, "Craig")
-            switch recorder.changes[0].event {
+            switch recorder.changes[0].change {
             case .update(let indexPath, let changes):
                 XCTAssertEqual(indexPath, IndexPath(indexes: [0, 0]))
                 XCTAssertEqual(changes, ["name": "Arthur".databaseValue])
@@ -346,7 +346,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(recorder.changes.count, 1)
             XCTAssertEqual(recorder.changes[0].record.id, 2)
             XCTAssertEqual(recorder.changes[0].record.name, "Danielle")
-            switch recorder.changes[0].event {
+            switch recorder.changes[0].change {
             case .update(let indexPath, let changes):
                 XCTAssertEqual(indexPath, IndexPath(indexes: [0, 1]))
                 XCTAssertEqual(changes, ["name": "Barbara".databaseValue])
@@ -362,9 +362,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             let controller = try FetchedRecordsController(dbQueue, request: Person.order(Column("id")))
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
-                recordsWillChange: { recorder.controllerWillChange($0) },
-                event: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
-                recordsDidChange: { recorder.controllerDidChange($0) })
+                willChange: { recorder.controllerWillChange($0) },
+                onChange: { (controller, record, change) in recorder.controller(controller, didChangeRecord: record, with: change) },
+                didChange: { recorder.controllerDidChange($0) })
             try controller.performFetch()
             
             // Insert
@@ -393,7 +393,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(recorder.changes.count, 1)
             XCTAssertEqual(recorder.changes[0].record.id, 1)
             XCTAssertEqual(recorder.changes[0].record.name, "Arthur")
-            switch recorder.changes[0].event {
+            switch recorder.changes[0].change {
             case .deletion(let indexPath):
                 XCTAssertEqual(indexPath, IndexPath(indexes: [0, 0]))
             default:
@@ -414,7 +414,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(recorder.changes.count, 1)
             XCTAssertEqual(recorder.changes[0].record.id, 2)
             XCTAssertEqual(recorder.changes[0].record.name, "Barbara")
-            switch recorder.changes[0].event {
+            switch recorder.changes[0].change {
             case .deletion(let indexPath):
                 XCTAssertEqual(indexPath, IndexPath(indexes: [0, 0]))
             default:
@@ -429,9 +429,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             let controller = try FetchedRecordsController(dbQueue, request: Person.order(Column("name")))
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
-                recordsWillChange: { recorder.controllerWillChange($0) },
-                event: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
-                recordsDidChange: { recorder.controllerDidChange($0) })
+                willChange: { recorder.controllerWillChange($0) },
+                onChange: { (controller, record, change) in recorder.controller(controller, didChangeRecord: record, with: change) },
+                didChange: { recorder.controllerDidChange($0) })
             try controller.performFetch()
             
             // Insert
@@ -461,7 +461,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(recorder.changes.count, 1)
             XCTAssertEqual(recorder.changes[0].record.id, 1)
             XCTAssertEqual(recorder.changes[0].record.name, "Craig")
-            switch recorder.changes[0].event {
+            switch recorder.changes[0].change {
             case .move(let indexPath, let newIndexPath, let changes):
                 XCTAssertEqual(indexPath, IndexPath(indexes: [0, 0]))
                 XCTAssertEqual(newIndexPath, IndexPath(indexes: [0, 1]))
@@ -484,9 +484,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
                     "ORDER BY persons.name"))
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
-                recordsWillChange: { recorder.controllerWillChange($0) },
-                event: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
-                recordsDidChange: { recorder.controllerDidChange($0) })
+                willChange: { recorder.controllerWillChange($0) },
+                onChange: { (controller, record, change) in recorder.controller(controller, didChangeRecord: record, with: change) },
+                didChange: { recorder.controllerDidChange($0) })
             try controller.performFetch()
             
             // Insert
@@ -516,7 +516,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(recorder.changes[0].record.id, 1)
             XCTAssertEqual(recorder.changes[0].record.name, "Arthur")
             XCTAssertEqual(recorder.changes[0].record.bookCount, 0)
-            switch recorder.changes[0].event {
+            switch recorder.changes[0].change {
             case .update(let indexPath, let changes):
                 XCTAssertEqual(indexPath, IndexPath(indexes: [0, 0]))
                 XCTAssertEqual(changes, ["bookCount": 1.databaseValue])
@@ -532,9 +532,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             let controller = try FetchedRecordsController(dbQueue, request: Person.order(Column("name")))
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
-                recordsWillChange: { recorder.controllerWillChange($0) },
-                event: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
-                recordsDidChange: { recorder.controllerDidChange($0) })
+                willChange: { recorder.controllerWillChange($0) },
+                onChange: { (controller, record, change) in recorder.controller(controller, didChangeRecord: record, with: change) },
+                didChange: { recorder.controllerDidChange($0) })
             try controller.performFetch()
             
             enum EventTest {
@@ -543,7 +543,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
                 case D(String, Int) // delete string at index
                 case U(String, Int, String) // update string at index with changed string
                 
-                func match(name: String, event: FetchedRecordsChangeEvent) -> Bool {
+                func match(name: String, event: FetchedRecordChange) -> Bool {
                     switch self {
                     case .I(let s, let i):
                         switch event {
@@ -642,7 +642,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
                 
                 XCTAssertEqual(recorder.changes.count, step.events.count)
                 for (change, event) in zip(recorder.changes, step.events) {
-                    XCTAssertTrue(event.match(name: change.record.name, event: change.event))
+                    XCTAssertTrue(event.match(name: change.record.name, event: change.change))
                 }
             }
         }
@@ -665,9 +665,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             let controller = try FetchedRecordsController(dbQueue, request: Person.order(Column("name")))
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
-                recordsWillChange: { recorder.controllerWillChange($0) },
-                event: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
-                recordsDidChange: { recorder.controllerDidChange($0) })
+                willChange: { recorder.controllerWillChange($0) },
+                onChange: { (controller, record, change) in recorder.controller(controller, didChangeRecord: record, with: change) },
+                didChange: { recorder.controllerDidChange($0) })
             try controller.performFetch()
             
             // Insert
@@ -692,7 +692,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(recorder.changes.count, 1)
             XCTAssertEqual(recorder.changes[0].record.id, 2)
             XCTAssertEqual(recorder.changes[0].record.name, "Barbara")
-            switch recorder.changes[0].event {
+            switch recorder.changes[0].change {
             case .move(let indexPath, let newIndexPath, let changes):
                 XCTAssertEqual(indexPath, IndexPath(indexes: [0, 1]))
                 XCTAssertEqual(newIndexPath, IndexPath(indexes: [0, 0]))
@@ -715,13 +715,13 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(recorder.changes[0].record.name, "Barbara")
             XCTAssertEqual(recorder.changes[1].record.id, 1)
             XCTAssertEqual(recorder.changes[1].record.name, "Craig")
-            switch recorder.changes[0].event {
+            switch recorder.changes[0].change {
             case .deletion(let indexPath):
                 XCTAssertEqual(indexPath, IndexPath(indexes: [0, 0]))
             default:
                 XCTFail()
             }
-            switch recorder.changes[1].event {
+            switch recorder.changes[1].change {
             case .move(let indexPath, let newIndexPath, let changes):
                 // TODO: is it really what we should expect? Wouldn't an update fit better?
                 // What does UITableView think?
@@ -785,9 +785,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             // Set callbacks
             recorder.transactionExpectation = expectation(description: "expectation")
             controller.trackChanges(
-                recordsWillChange: { recorder.controllerWillChange($0) },
-                event: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
-                recordsDidChange: { recorder.controllerDidChange($0) })
+                willChange: { recorder.controllerWillChange($0) },
+                onChange: { (controller, record, change) in recorder.controller(controller, didChangeRecord: record, with: change) },
+                didChange: { recorder.controllerDidChange($0) })
             waitForExpectations(timeout: 1, handler: nil)
             
             XCTAssertEqual(recorder.recordsBeforeChanges.count, 0)
@@ -796,7 +796,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(recorder.changes.count, 1)
             XCTAssertEqual(recorder.changes[0].record.id, 1)
             XCTAssertEqual(recorder.changes[0].record.name, "Arthur")
-            switch recorder.changes[0].event {
+            switch recorder.changes[0].change {
             case .insertion(let indexPath):
                 XCTAssertEqual(indexPath, IndexPath(indexes: [0, 0]))
             default:
@@ -834,9 +834,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
                 fetchAlongside: { db in try Person.fetchCount(db) },
-                recordsWillChange: { (controller, count) in recorder.controllerWillChange(controller, count: count) },
-                event: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
-                recordsDidChange: { (controller, count) in recorder.controllerDidChange(controller, count: count) })
+                willChange: { (controller, count) in recorder.controllerWillChange(controller, count: count) },
+                onChange: { (controller, record, change) in recorder.controller(controller, didChangeRecord: record, with: change) },
+                didChange: { (controller, count) in recorder.controllerDidChange(controller, count: count) })
             try controller.performFetch()
             
             // First insert

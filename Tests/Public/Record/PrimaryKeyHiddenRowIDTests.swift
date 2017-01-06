@@ -661,16 +661,8 @@ class PrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 try FetchedRecordsController<Person>(dbQueue, request: Person.all())
             var update = false
             controller.trackChanges(
-                event: { (_, _, event) in
-                    switch event {
-                    case .update:
-                        update = true
-                    default:
-                        break
-                    }
-                },
-                recordsDidChange: { _ in
-                    expectation.fulfill()
+                onChange: { (_, _, change) in if case .update = change { update = true } },
+                didChange: { _ in expectation.fulfill()
             })
             try controller.performFetch()
             try dbQueue.inDatabase { db in
