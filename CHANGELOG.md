@@ -3,7 +3,7 @@ Release Notes
 
 ## 0.100.0
 
-Released January 10, 2016
+Released January 10, 2017
 
 **New**
 
