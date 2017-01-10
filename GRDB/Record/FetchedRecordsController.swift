@@ -41,7 +41,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// from the [Query Interface](https://github.com/groue/GRDB.swift#the-query-interface).
     ///
     ///     let request = Wine.order(Column("name"))
-    ///     let controller = FetchedRecordsController<Wine>(
+    ///     let controller = FetchedRecordsController(
     ///         dbQueue,
     ///         request: request,
     ///         isSameRecord: { (wine1, wine2) in wine1.id == wine2.id })
@@ -49,13 +49,11 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// - parameters:
     ///     - databaseWriter: A DatabaseWriter (DatabaseQueue, or DatabasePool)
     ///     - request: A fetch request.
-    ///     - queue: Optional dispatch queue (defaults to the main queue)
+    ///     - queue: A serial dispatch queue (defaults to the main queue)
     ///
-    ///         The fetched records controller delegate will be notified of
-    ///         record changes in this queue. The controller itself must be used
-    ///         from this queue.
-    ///
-    ///         This dispatch queue must be serial.
+    ///         The fetched records controller tracking callbacks will be
+    ///         notified of changes in this queue. The controller itself must be
+    ///         used from this queue.
     ///
     ///     - isSameRecord: Optional function that compares two records.
     ///
@@ -79,7 +77,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// Executes the controller's fetch request.
     ///
     /// After executing this method, you can access the the fetched objects with
-    /// the property fetchedRecords.
+    /// the `fetchedRecords` property.
     public func performFetch() throws {
         // If some changes are currently processed, make sure they are
         // discarded. But preserve eventual changes processing for future
@@ -117,10 +115,9 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// Unless specified otherwise at initialization time, it is the main queue.
     public let queue: DispatchQueue
     
-    /// Updates the fetch request, and notifies the delegate of changes in the
-    /// fetched records if delegate is not nil, and performFetch() has been
-    /// called.
-    public func setRequest(_ request: Request) throws {
+    /// Updates the fetch request, and eventually notifies the tracking
+    /// callbacks if performFetch() has been called.
+    public func setRequest<Request>(_ request: Request) throws where Request: TypedRequest, Request.Fetched == Record {
         self.request = try databaseWriter.read { db in try ObservedRequest(db, request: request) }
         
         // No observer: don't look for changes
@@ -144,11 +141,10 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         }
     }
     
-    /// Updates the fetch request, and notifies the delegate of changes in the
-    /// fetched records if delegate is not nil, and performFetch() has been
-    /// called.
+    /// Updates the fetch request, and eventually notifies the tracking
+    /// callbacks if performFetch() has been called.
     public func setRequest(sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
-        try setRequest(SQLRequest(sql, arguments: arguments, adapter: adapter))
+        try setRequest(SQLRequest(sql, arguments: arguments, adapter: adapter).bound(to: Record.self))
     }
     
     /// Registers changes notification callbacks
