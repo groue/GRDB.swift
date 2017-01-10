@@ -4188,13 +4188,11 @@ protocol TransactionObserverType : class {
 
 **You use FetchedRecordsController to track changes in the results of an SQLite request.**
 
-**On iOS, FetchedRecordsController can feed a UITableView, and animate rows when the results of the request change.**
+**FetchedRecordsController can also feed table views, collection views, and animate cells when the results of the request change.**
 
 It looks and behaves very much like [Core Data's NSFetchedResultsController](https://developer.apple.com/library/ios/documentation/CoreData/Reference/NSFetchedResultsController_Class/).
 
-Given a fetch request, and a type that adopts the [RowConvertible](#rowconvertible-protocol) protocol, such as a subclass of the [Record](#record-class) class, a FetchedRecordsController is able to track changes in the results of the fetch request, and notify of those changes.
-
-On iOS, FetchedRecordsController is able to return the results of the request in a form that is suitable for a UITableView, with one table view row per fetched record.
+Given a fetch request, and a type that adopts the [RowConvertible](#rowconvertible-protocol) protocol, such as a subclass of the [Record](#record-class) class, a FetchedRecordsController is able to track changes in the results of the fetch request, notify of those changes, and return the results of the request in a form that is suitable for a table view or a collection view, with one cell per fetched record.
 
 See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an sample app that uses FetchedRecordsController.
 
@@ -4202,7 +4200,7 @@ See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an sample app that uses FetchedRecor
 - [Responding to Changes](#responding-to-changes)
 - [The Changes Notifications](#the-changes-notifications)
 - [Modifying the Fetch Request](#modifying-the-fetch-request)
-- [FetchedRecordsController on iOS](#fetchedrecordscontroller-on-ios)
+- [Table and Collection Views](#table-and-collection-views)
     - [Implementing the Table View Datasource Methods](#implementing-the-table-view-datasource methods)
     - [Implementing Table View Updates](#implementing-table-view-updates)
 - [FetchedRecordsController Concurrency](#fetchedrecordscontroller-concurrency)
@@ -4221,7 +4219,7 @@ class Person : Record { ... }
 let dbQueue = DatabaseQueue(...)    // Or DatabasePool
 
 // Using a Request from the Query Interface:
-let controller = FetchedRecordsController<Person>(
+let controller = FetchedRecordsController(
     dbQueue,
     request: Person.order(Column("name")))
 
@@ -4284,24 +4282,24 @@ let controller = try FetchedRecordsController(...)
 
 controller.trackChanges(
     // controller's records are about to change:
-    recordsWillChange: { controller in ... },
+    willChange: { controller in ... },
     
-    // (iOS only) notification of individual record changes:
-    tableViewEvent: { (controller, record, event) in ... },
+    // notification of individual record changes:
+    onChange: { (controller, record, change) in ... },
     
     // controller's records have changed:
-    recordsDidChange: { controller in ... })
+    didChange: { controller in ... })
 
 try controller.performFetch()
 ```
 
-See [Implementing Table View Updates](#implementing-table-view-updates) for more detail on table view updates on iOS.
+See [Implementing Table View Updates](#implementing-table-view-updates) for more detail on table view updates.
 
-**All callbacks are optional.** When you only need to grab the latest results, you can omit the `recordsDidChange` argument name:
+**All callbacks are optional.** When you only need to grab the latest results, you can omit the `didChange` argument name:
 
 ```swift
 controller.trackChanges { controller in
-    let newPersons = controller.fetchedRecords! // [Person]
+    let newPersons = controller.fetchedRecords // [Person]
 }
 ```
 
@@ -4310,12 +4308,12 @@ Callbacks have the fetched record controller itself as an argument: use it in or
 ```swift
 // BAD: memory leak
 controller.trackChanges { _ in
-    let newPersons = controller.fetchedRecords!
+    let newPersons = controller.fetchedRecords
 }
 
 // GOOD
 controller.trackChanges { controller in
-    let newPersons = controller.fetchedRecords!
+    let newPersons = controller.fetchedRecords
 }
 ```
 
@@ -4331,9 +4329,9 @@ controller.trackChanges(
         // Fetch any extra value, for example the number of fetched records:
         return try Person.fetchCount(db)
     },
-    recordsDidChange: { (controller, count) in
+    didChange: { (controller, count) in
         // The extra value is the second argument.
-        let recordsCount = controller.fetchedRecords!.count
+        let recordsCount = controller.fetchedRecords.count
         assert(count == recordsCount) // guaranteed
     })
 ```
@@ -4370,25 +4368,23 @@ controller.setRequest(Person.order(Column("name")))
 try controller.performFetch()
 ```
 
-### FetchedRecordsController on iOS
+### Table and Collection Views
 
-On iOS, FetchedRecordsController provides extra APIs that help feeding table views, and keeping them up-to-date with the database content.
+FetchedRecordsController let you feed table and collection views, and keep them up-to-date with the database content.
 
-This require an extra step in the controller initialization, so that it can *identify* records.
-
-Records are usually identified by their primary key. When the record type adopts the [TableMapping](#tablemapping-protocol) protocol, such as [Record](#record-class) subclasses, you will generally use the `compareRecordsByPrimaryKey` initialization argument:
+For nice animated updates, a fetched records controller needs to recognize identical records between two different result sets. When records adopt the [TableMapping](#tablemapping-protocol) protocol, they are automatically compared according to their primary key:
 
 ```swift
-let controller = FetchedRecordsController<Person>(
+class Person : TableMapping { ... }
+let controller = FetchedRecordsController(
     dbQueue,
-    request: ...,
-    compareRecordsByPrimaryKey: true)
+    request: Person.all())
 ```
 
-When the record type does not adopt the [TableMapping](#tablemapping-protocol) protocol, be explicit:
+For other types, the fetched records controller needs you to be more explicit:
 
 ```swift
-let controller = FetchedRecordsController<Person>(
+let controller = FetchedRecordsController(
     dbQueue,
     request: ...,
     isSameRecord: { (person1, person2) in person1.id == person2.id })
@@ -4434,7 +4430,7 @@ Yet, FetchedRecordsController can notify that the controller’s fetched records
 
 ##### Typical Table View Updates
 
-For animated table view updates, use the `recordsWillChange` and `recordsDidChange` callbacks to bracket events provided by the fetched records controller, as illustrated in the following example:
+For animated table view updates, use the `willChange` and `didChange` callbacks to bracket events provided by the fetched records controller, as illustrated in the following example:
 
 ```swift
 // Assume self has a tableView property, and a cell configuration
@@ -4442,13 +4438,13 @@ For animated table view updates, use the `recordsWillChange` and `recordsDidChan
 
 controller.trackChanges(
     // controller's records are about to change:
-    recordsWillChange: { [unowned self] _ in
+    willChange: { [unowned self] _ in
         self.tableView.beginUpdates()
     },
     
     // notification of individual record changes:
-    tableViewEvent: { [unowned self] (controller, record, event) in
-        switch event {
+    onChange: { [unowned self] (controller, record, change) in
+        switch change {
         case .insertion(let indexPath):
             self.tableView.insertRows(at: [indexPath], with: .fade)
             
@@ -4474,7 +4470,7 @@ controller.trackChanges(
     },
     
     // controller's records have changed:
-    recordsDidChange: { [unowned self] _ in
+    didChange: { [unowned self] _ in
         self.tableView.endUpdates()
     })
 ```

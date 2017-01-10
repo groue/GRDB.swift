@@ -33,7 +33,7 @@ private class ChangesRecorder<Record: RowConvertible> {
     /// The default implementation does nothing.
     func controller(_ controller: FetchedRecordsController<Record>, didChangeRecord record: Record, with change: FetchedRecordChange) {
         if recordsOnFirstEvent == nil {
-            recordsOnFirstEvent = controller.fetchedRecords!
+            recordsOnFirstEvent = controller.fetchedRecords
         }
         changes.append((record: record, change: change))
     }
@@ -131,8 +131,8 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             
             let controller = try FetchedRecordsController<Book>(dbQueue, sql: "SELECT * FROM books WHERE authorID = ?", arguments: [authorId])
             try controller.performFetch()
-            XCTAssertEqual(controller.fetchedRecords!.count, 1)
-            XCTAssertEqual(controller.fetchedRecords![0].title, "Don Quixote")
+            XCTAssertEqual(controller.fetchedRecords.count, 1)
+            XCTAssertEqual(controller.fetchedRecords[0].title, "Don Quixote")
         }
     }
     
@@ -152,8 +152,8 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             let adapter = ColumnMapping(["id": "_id", "authorId": "_authorId", "title": "_title"])
             let controller = try FetchedRecordsController<Book>(dbQueue, sql: "SELECT id AS _id, authorId AS _authorId, title AS _title FROM books WHERE authorID = ?", arguments: [authorId], adapter: adapter)
             try controller.performFetch()
-            XCTAssertEqual(controller.fetchedRecords!.count, 1)
-            XCTAssertEqual(controller.fetchedRecords![0].title, "Don Quixote")
+            XCTAssertEqual(controller.fetchedRecords.count, 1)
+            XCTAssertEqual(controller.fetchedRecords[0].title, "Don Quixote")
         }
     }
     
@@ -168,13 +168,13 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             let request = Person.order(Column("name"))
             let controller = try FetchedRecordsController(dbQueue, request: request)
             try controller.performFetch()
-            XCTAssertEqual(controller.fetchedRecords!.count, 2)
-            XCTAssertEqual(controller.fetchedRecords![0].name, "Cervantes")
-            XCTAssertEqual(controller.fetchedRecords![1].name, "Plato")
+            XCTAssertEqual(controller.fetchedRecords.count, 2)
+            XCTAssertEqual(controller.fetchedRecords[0].name, "Cervantes")
+            XCTAssertEqual(controller.fetchedRecords[1].name, "Plato")
         }
     }
     
-    func testRecordsAreNotLoadedUntilPerformFetch() {
+    func testSections() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             let arthur = Person(name: "Arthur")
@@ -184,14 +184,13 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             
             let request = Person.all()
             let controller = try FetchedRecordsController(dbQueue, request: request)
-            XCTAssertTrue(controller.fetchedRecords == nil)
             try controller.performFetch()
             XCTAssertEqual(controller.sections.count, 1)
             XCTAssertEqual(controller.sections[0].numberOfRecords, 1)
             XCTAssertEqual(controller.sections[0].records.count, 1)
             XCTAssertEqual(controller.sections[0].records[0].name, "Arthur")
-            XCTAssertEqual(controller.fetchedRecords!.count, 1)
-            XCTAssertEqual(controller.fetchedRecords![0].name, "Arthur")
+            XCTAssertEqual(controller.fetchedRecords.count, 1)
+            XCTAssertEqual(controller.fetchedRecords[0].name, "Arthur")
             XCTAssertEqual(controller.record(at: IndexPath(indexes: [0, 0])).name, "Arthur")
             XCTAssertEqual(controller.indexPath(for: arthur), IndexPath(indexes: [0, 0]))
         }
@@ -202,9 +201,8 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             let request = Person.all()
             let controller = try FetchedRecordsController(dbQueue, request: request)
-            XCTAssertTrue(controller.fetchedRecords == nil)
             try controller.performFetch()
-            XCTAssertEqual(controller.fetchedRecords!.count, 0)
+            XCTAssertEqual(controller.fetchedRecords.count, 0)
             
             // Just like NSFetchedResultsController
             XCTAssertEqual(controller.sections.count, 1)
@@ -814,7 +812,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             
             let expectation = self.expectation(description: "expectation")
             controller.trackChanges {
-                persons = $0.fetchedRecords!
+                persons = $0.fetchedRecords
                 expectation.fulfill()
             }
             try dbQueue.inTransaction { db in

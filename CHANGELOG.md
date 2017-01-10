@@ -9,6 +9,42 @@ Release Notes
 - [FetchedRecordsController](https://github.com/groue/GRDB.swift#fetchedrecordscontroller) now outputs detailed change events on all platforms, and for both table and collection views. Merged [#160](https://github.com/groue/GRDB.swift/pull/160) by [@kdubb](https://github.com/kdubb).
 - Upgrade custom SQLite builds to [v3.16.2](http://www.sqlite.org/changes.html) (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib)).
 
+**Breaking Changes**
+
+- It is now a programmer error to invoke `FetchedRecordsController.fetchedRecords` before `performFetch()`:
+    
+    ```diff
+    final class FetchedRecordsController<Record: RowConvertible> {
+    -    var fetchedRecords: [Record]?
+    +    var fetchedRecords: [Record]
+    }
+    ```
+    
+- The fetched record type of a FetchedRecordsController is now infered from the request that feeds the controller:
+    
+    ```diff
+    final class FetchedRecordsController<Record: RowConvertible> {
+    -    convenience init(...:request: Request) throws
+    +    convenience init<Request>(...:request: Request) throws where Request: TypedRequest, Request.Fetched == Record
+    }
+    ```
+    
+- FetchedRecordsController now automatically compares records by primary key when the record type adopts the TableMapping protocol, such as all Record subclasses. This feature used to require an explicit `compareRecordsByPrimaryKey` initialization parameter:
+    
+    ```diff
+    extension FetchedRecordsController where Record: TableMapping {
+    -    convenience init(...:compareRecordsByPrimaryKey: Bool) throws
+    }
+    ```
+    
+- Change tracking APIs have been modified:
+    
+    ```diff
+    final class FetchedRecordsController<Record: RowConvertible> {
+    -    func trackChanges(recordsWillChange:tableViewEvent:recordsDidChange:)
+    +    func trackChanges(willChange:onChange:didChange:)
+    }
+    ```
 
 
 ## 0.99.2

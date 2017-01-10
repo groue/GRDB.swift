@@ -1,5 +1,5 @@
 - [ ] v0.100.0
-    - [ ] Update FetchedRecordsController documentation for https://github.com/groue/GRDB.swift/pull/160
+    - [X] Update FetchedRecordsController documentation for https://github.com/groue/GRDB.swift/pull/160
     - [X] Use TypedRequest in FetchedRecordsController
     - [X] Remove compareRecordsByPrimaryKey initializer option
     - [X] Simplify FetchedRecordsController callbacks API 
