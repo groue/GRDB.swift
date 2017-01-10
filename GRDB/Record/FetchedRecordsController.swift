@@ -252,7 +252,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// main queue unless stated otherwise in the controller's initializer).
     public var fetchedRecords: [Record] {
         guard let fetchedItems = fetchedItems else {
-            fatalError("fetchedRecords invoked before performFetch()")
+            fatalError("the performFetch() method must be called before accessing fetched records")
         }
         return fetchedItems.map { $0.record }
     }
