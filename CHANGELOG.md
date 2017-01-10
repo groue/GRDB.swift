@@ -7,7 +7,7 @@ Release Notes
 
 - `Row` adopts the Hashable protocol
 - [FetchedRecordsController](https://github.com/groue/GRDB.swift#fetchedrecordscontroller) now outputs detailed change events on all platforms, and for both table and collection views. Merged [#160](https://github.com/groue/GRDB.swift/pull/160) by [@kdubb](https://github.com/kdubb).
-- Upgrade custom SQLite builds to [v3.16.1](http://www.sqlite.org/changes.html) (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib)).
+- Upgrade custom SQLite builds to [v3.16.2](http://www.sqlite.org/changes.html) (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib)).
 
 
 
