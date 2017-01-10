@@ -21,13 +21,11 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter
-    ///     - queue: Optional dispatch queue (defaults to the main queue)
+    ///     - queue: A serial dispatch queue (defaults to the main queue)
     ///
-    ///         The fetched records controller delegate will be notified of
-    ///         record changes in this queue. The controller itself must be used
-    ///         from this queue.
-    ///
-    ///         This dispatch queue must be serial.
+    ///         The fetched records controller tracking callbacks will be
+    ///         notified of changes in this queue. The controller itself must be
+    ///         used from this queue.
     ///
     ///     - isSameRecord: Optional function that compares two records.
     ///
@@ -78,6 +76,9 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///
     /// After executing this method, you can access the the fetched objects with
     /// the `fetchedRecords` property.
+    ///
+    /// This method must be used from the controller's dispatch queue (the
+    /// main queue unless stated otherwise in the controller's initializer).
     public func performFetch() throws {
         // If some changes are currently processed, make sure they are
         // discarded. But preserve eventual changes processing for future
@@ -117,6 +118,9 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     
     /// Updates the fetch request, and eventually notifies the tracking
     /// callbacks if performFetch() has been called.
+    ///
+    /// This method must be used from the controller's dispatch queue (the
+    /// main queue unless stated otherwise in the controller's initializer).
     public func setRequest<Request>(_ request: Request) throws where Request: TypedRequest, Request.Fetched == Record {
         self.request = try databaseWriter.read { db in try ObservedRequest(db, request: request) }
         
@@ -143,11 +147,17 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     
     /// Updates the fetch request, and eventually notifies the tracking
     /// callbacks if performFetch() has been called.
+    ///
+    /// This method must be used from the controller's dispatch queue (the
+    /// main queue unless stated otherwise in the controller's initializer).
     public func setRequest(sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
         try setRequest(SQLRequest(sql, arguments: arguments, adapter: adapter).bound(to: Record.self))
     }
     
-    /// Registers changes notification callbacks
+    /// Registers changes notification callbacks.
+    ///
+    /// This method must be used from the controller's dispatch queue (the
+    /// main queue unless stated otherwise in the controller's initializer).
     ///
     /// - parameters:
     ///     - willChange: Invoked before records are updated.
@@ -166,7 +176,10 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             didChange: didChange.flatMap { callback in { (controller, _) in callback(controller) } })
     }
 
-    /// Registers changes notification callbacks (iOS only).
+    /// Registers changes notification callbacks.
+    ///
+    /// This method must be used from the controller's dispatch queue (the
+    /// main queue unless stated otherwise in the controller's initializer).
     ///
     /// - parameters:
     ///     - fetchAlongside: The value returned from this closure is given to
@@ -208,7 +221,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         }
     }
 
-    /// Registers a callback for changes tracking errors.
+    /// Registers an error callback.
     ///
     /// Whenever the controller could not look for changes after a transaction
     /// has potentially modified the tracked request, this error handler is
@@ -217,6 +230,9 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// The request observation is not stopped, though: future transactions may
     /// successfully be handled, and the notified changes will then be based on
     /// the last successful fetch.
+    ///
+    /// This method must be used from the controller's dispatch queue (the
+    /// main queue unless stated otherwise in the controller's initializer).
     public func trackErrors(_ errorHandler: @escaping (FetchedRecordsController<Record>, Error) -> ()) {
         self.errorHandler = errorHandler
     }
@@ -226,14 +242,17 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     
     /// The fetched records.
     ///
-    /// The value of this property is nil if performFetch() hasn't been called.
+    /// The value of this property is nil until performFetch() has been called.
     ///
     /// The records reflect the state of the database after the initial
     /// call to performFetch, and after each database transaction that affects
     /// the results of the fetch request.
-    public var fetchedRecords: [Record]? {
+    ///
+    /// This property must be used from the controller's dispatch queue (the
+    /// main queue unless stated otherwise in the controller's initializer).
+    public var fetchedRecords: [Record] {
         guard let fetchedItems = fetchedItems else {
-            return nil
+            fatalError("fetchedRecords invoked before performFetch()")
         }
         return fetchedItems.map { $0.record }
     }
@@ -284,50 +303,59 @@ extension FetchedRecordsController where Record: TableMapping {
     ///     let controller = FetchedRecordsController<Wine>(
     ///         dbQueue,
     ///         sql: "SELECT * FROM wines WHERE color = ? ORDER BY name",
+    ///         arguments: [Color.red])
+    ///
+    /// The records are compared by primary key (single-column primary key,
+    /// compound primary key, or implicit rowid). For a database table which
+    /// has an `id` primary key, this initializer is equivalent to:
+    ///
+    ///     // Assuming the wines table has an `id` primary key:
+    ///     let controller = FetchedRecordsController<Wine>(
+    ///         dbQueue,
+    ///         sql: "SELECT * FROM wines WHERE color = ? ORDER BY name",
     ///         arguments: [Color.red],
-    ///         compareRecordsByPrimaryKey: true)
+    ///         isSameRecord: { (wine1, wine2) in wine1.id == wine2.id })
     ///
     /// - parameters:
     ///     - databaseWriter: A DatabaseWriter (DatabaseQueue, or DatabasePool)
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter
-    ///     - queue: Optional dispatch queue (defaults to the main queue)
+    ///     - queue: A serial dispatch queue (defaults to the main queue)
     ///
-    ///         The fetched records controller delegate will be notified of
-    ///         record changes in this queue. The controller itself must be used
-    ///         from this queue.
-    ///
-    ///         This dispatch queue must be serial.
-    ///
-    ///     - compareRecordsByPrimaryKey: A boolean that tells if two records
-    ///         share the same identity if they share the same primay key.
+    ///         The fetched records controller tracking callbacks will be
+    ///         notified of changes in this queue. The controller itself must be
+    ///         used from this queue.
     public convenience init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: DispatchQueue = .main) throws {
         try self.init(databaseWriter, request: SQLRequest(sql, arguments: arguments, adapter: adapter).bound(to: Record.self), queue: queue)
     }
     
-    /// Creates a fetched records controller initialized from a fetch request.
+    /// Creates a fetched records controller initialized from a fetch request
     /// from the [Query Interface](https://github.com/groue/GRDB.swift#the-query-interface).
     ///
     ///     let request = Wine.order(Column("name"))
+    ///     let controller = FetchedRecordsController(
+    ///         dbQueue,
+    ///         request: request)
+    ///
+    /// The records are compared by primary key (single-column primary key,
+    /// compound primary key, or implicit rowid). For a database table which
+    /// has an `id` primary key, this initializer is equivalent to:
+    ///
+    ///     // Assuming the wines table has an `id` primary key:
     ///     let controller = FetchedRecordsController<Wine>(
     ///         dbQueue,
     ///         request: request,
-    ///         compareRecordsByPrimaryKey: true)
+    ///         isSameRecord: { (wine1, wine2) in wine1.id == wine2.id })
     ///
     /// - parameters:
     ///     - databaseWriter: A DatabaseWriter (DatabaseQueue, or DatabasePool)
     ///     - request: A fetch request.
-    ///     - queue: Optional dispatch queue (defaults to the main queue)
+    ///     - queue: A serial dispatch queue (defaults to the main queue)
     ///
-    ///         The fetched records controller delegate will be notified of
-    ///         record changes in this queue. The controller itself must be used
-    ///         from this queue.
-    ///
-    ///         This dispatch queue must be serial.
-    ///
-    ///     - compareRecordsByPrimaryKey: A boolean that tells if two records
-    ///         share the same identity if they share the same primay key.
+    ///         The fetched records controller tracking callbacks will be
+    ///         notified of changes in this queue. The controller itself must be
+    ///         used from this queue.
     public convenience init<Request>(_ databaseWriter: DatabaseWriter, request: Request, queue: DispatchQueue = .main) throws where Request: TypedRequest, Request.Fetched == Record {
         let rowComparator = try databaseWriter.read { db in try Record.primaryKeyRowComparator(db) }
         try self.init(databaseWriter, request: request, queue: queue, itemsAreIdentical: { rowComparator($0.row, $1.row) })
@@ -701,7 +729,7 @@ extension FetchedRecordsController {
     
     // MARK: - Accessing Records
     
-    /// Returns the object at the given index path (iOS only).
+    /// Returns the object at the given index path.
     ///
     /// - parameter indexPath: An index path in the fetched records.
     ///
@@ -718,7 +746,7 @@ extension FetchedRecordsController {
     
     // MARK: - Querying Sections Information
     
-    /// The sections for the fetched records (iOS only).
+    /// The sections for the fetched records.
     ///
     /// You typically use the sections array when implementing
     /// UITableViewDataSource methods, such as `numberOfSectionsInTableView`.
@@ -735,7 +763,7 @@ extension FetchedRecordsController {
 
 extension FetchedRecordsController where Record: MutablePersistable {
     
-    /// Returns the indexPath of a given record (iOS only).
+    /// Returns the indexPath of a given record.
     ///
     /// - returns: The index path of *record* in the fetched records, or nil
     ///   if record could not be found.
@@ -801,10 +829,10 @@ extension ItemChange: CustomStringConvertible {
     }
 }
 
-/// A change event given by a FetchedRecordsController to its delegate.
+/// A record change, given by a FetchedRecordsController to its change callback.
 ///
-/// The move and update events hold a *changes* dictionary. Its keys are column
-/// names, and values the old values that have been changed.
+/// The move and update events hold a *changes* dictionary, whose keys are
+/// column names, and values the old values that have been changed.
 public enum FetchedRecordChange {
     
     /// An insertion event, at given indexPath.
