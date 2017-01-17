@@ -15,7 +15,7 @@ Follow [@groue](http://twitter.com/groue) on Twitter for release announcements a
 
 ## What is this?
 
-It's a toolkit for SQLite databases with a focus on application development.
+GRDB.swift is a toolkit for SQLite databases with a focus on application development.
 
 It provides raw access to SQLite and the SQL language, because one sometimes enjoys a sharp tool. It has efficient and robust concurrency primitives, because SQLite concurrency is not trivial. It provides persistence and fetching protocols for your application models, because it is unlikely that dealing with raw database rows or writing SQL is your daily focus.
 
