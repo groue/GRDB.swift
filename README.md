@@ -24,6 +24,17 @@ Follow [@groue](http://twitter.com/groue) on Twitter for release announcements a
 
 ---
 
+## What is this?
+
+It's a toolkit for SQLite databases with a focus on application development.
+
+It provides raw access to SQLite and the SQL language, because one sometimes enjoys a sharp tool. It has efficient and robust concurrency primitives, because SQLite concurrency is not trivial. It provides persistence and fetching protocols for your application models, because it is unlikely that dealing with raw database rows or writing SQL is your daily focus.
+
+Between libraries like ([SQLite.swift](http://github.com/stephencelis/SQLite.swift) or [FMDB](http://github.com/ccgus/fmdb)) and frameworks like [Core Data](https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/CoreData/) or [Realm](http://realm.io), GRDB strives at providing a set of balanced and useful APIs for application developers.
+
+GRDB ships with code (this repository), [reference documentation](http://cocoadocs.org/docsets/GRDB.swift/0.100.0/index.html) on cocoadocs.org, guidelines (this file), [general articles](https://medium.com/@gwendal.roue), [sample code](#sample-code), and a lot of interesting issues that may answer your eventual [questions](https://github.com/groue/GRDB.swift/issues?utf8=✓&q=is%3Aissue%20label%3Aquestion) and foster [best practices](https://github.com/groue/GRDB.swift/issues?q=is%3Aissue+label%3A%22best+practices%22).
+
+
 ## Features
 
 GRDB ships with a **[low-level SQLite API](#sqlite-api)**, and high-level tools that help dealing with databases:
@@ -5472,7 +5483,6 @@ Sample Code
 - [WWDC Companion](https://github.com/groue/WWDCCompanion): A sample iOS application.
 - Check `GRDB.xcworkspace`: it contains GRDB-enabled playgrounds to play with.
 - How to synchronize a database table with a JSON payload: [JSONSynchronization.playground](Playgrounds/JSONSynchronization.playground/Contents.swift)
-- How to notify view controllers of database changes: [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd)
 
 
 ---
