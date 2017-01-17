@@ -17,7 +17,7 @@ Follow [@groue](http://twitter.com/groue) on Twitter for release announcements a
 
 GRDB.swift is a toolkit for SQLite databases with a focus on application development.
 
-It provides raw access to SQLite and the SQL language, because one sometimes enjoys a sharp tool. It has efficient and robust concurrency primitives, because SQLite concurrency is not trivial. It provides persistence and fetching protocols for your application models, because it is unlikely that dealing with raw database rows or writing SQL is your daily focus.
+It provides raw access to SQLite and the SQL language, because one sometimes enjoys a sharp tool. It has efficient and robust concurrency primitives, because SQLite concurrency is not trivial. It provides persistence and fetching methods for your application models, because it is unlikely that dealing with raw database rows or writing SQL is your daily focus.
 
 Between libraries like [SQLite.swift](http://github.com/stephencelis/SQLite.swift) or [FMDB](http://github.com/ccgus/fmdb) that have application developers write a great deal of glue code, and frameworks like [Core Data](https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/CoreData/) or [Realm](http://realm.io) that don't take advantage of Swift, GRDB aims at providing a set of modern, to the point, APIs.
 
