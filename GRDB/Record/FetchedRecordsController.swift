@@ -1,3 +1,7 @@
+#if os(iOS)
+    import UIKit
+#endif
+
 /// You use FetchedRecordsController to track changes in the results of an
 /// SQLite request.
 ///
@@ -208,9 +212,33 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             return
         }
         
+        var willProcessTransaction: () -> () = { }
+        var didProcessTransaction: () -> () = { }
+        #if os(iOS)
+            if let application = application {
+                var backgroundTaskID: UIBackgroundTaskIdentifier! = nil
+                willProcessTransaction = {
+                    backgroundTaskID = application.beginBackgroundTask {
+                        application.endBackgroundTask(backgroundTaskID)
+                    }
+                }
+                didProcessTransaction = {
+                    application.endBackgroundTask(backgroundTaskID)
+                }
+            }
+        #endif
+        
         let initialItems = fetchedItems
         databaseWriter.write { db in
-            let fetchAndNotifyChanges = makeFetchAndNotifyChangesFunction(controller: self, fetchAlongside: fetchAlongside, itemsAreIdentical: itemsAreIdentical, willChange: willChange, onChange: onChange, didChange: didChange)
+            let fetchAndNotifyChanges = makeFetchAndNotifyChangesFunction(
+                controller: self,
+                fetchAlongside: fetchAlongside,
+                itemsAreIdentical: itemsAreIdentical,
+                willProcessTransaction: willProcessTransaction,
+                willChange: willChange,
+                onChange: onChange,
+                didChange: didChange,
+                didProcessTransaction: didProcessTransaction)
             let observer = FetchedRecordsObserver(selectionInfo: request.selectionInfo, fetchAndNotifyChanges: fetchAndNotifyChanges)
             self.observer = observer
             if let initialItems = initialItems {
@@ -237,6 +265,14 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         self.errorHandler = errorHandler
     }
     
+    #if os(iOS)
+    var application: UIApplication?
+    
+    /// TODO
+    public func allowBackgroundTracking(in application: UIApplication) {
+        self.application = application
+    }
+    #endif
     
     // MARK: - Accessing Records
     
@@ -437,6 +473,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
 fileprivate func makeFetchFunction<Record, T>(
     controller: FetchedRecordsController<Record>,
     fetchAlongside: @escaping (Database) throws -> T,
+    willProcessTransaction: @escaping () -> (),
     completion: @escaping (Result<(fetchedItems: [Item<Record>], fetchedAlongside: T, observer: FetchedRecordsObserver<Record>)>) -> ()
     ) -> (FetchedRecordsObserver<Record>) -> ()
 {
@@ -453,6 +490,8 @@ fileprivate func makeFetchFunction<Record, T>(
         
         // Return if fetched records controller has been deallocated
         guard let request = controller?.request, let databaseWriter = controller?.databaseWriter else { return }
+        
+        willProcessTransaction()
         
         // Fetch items.
         //
@@ -510,9 +549,11 @@ fileprivate func makeFetchAndNotifyChangesFunction<Record, T>(
     controller: FetchedRecordsController<Record>,
     fetchAlongside: @escaping (Database) throws -> T,
     itemsAreIdentical: @escaping ItemComparator<Record>,
+    willProcessTransaction: @escaping () -> (),
     willChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())?,
     onChange: ((FetchedRecordsController<Record>, Record, FetchedRecordChange) -> ())?,
-    didChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())?
+    didChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())?,
+    didProcessTransaction: @escaping () -> ()
     ) -> (FetchedRecordsObserver<Record>) -> ()
 {
     // Make sure we keep a weak reference to the fetched records controller,
@@ -522,7 +563,7 @@ fileprivate func makeFetchAndNotifyChangesFunction<Record, T>(
     //
     // Should controller become strong at any point before callbacks are
     // called, such unowned reference would have an opportunity to crash.
-    return makeFetchFunction(controller: controller, fetchAlongside: fetchAlongside) { [weak controller] result in
+    return makeFetchFunction(controller: controller, fetchAlongside: fetchAlongside, willProcessTransaction: willProcessTransaction) { [weak controller] result in
         // Return if fetched records controller has been deallocated
         guard let callbackQueue = controller?.queue else { return }
         
@@ -532,6 +573,7 @@ fileprivate func makeFetchAndNotifyChangesFunction<Record, T>(
                 // Now we can retain controller
                 guard let strongController = controller else { return }
                 strongController.errorHandler?(strongController, error)
+                didProcessTransaction()
             }
             
         case .success((fetchedItems: let fetchedItems, fetchedAlongside: let fetchedAlongside, observer: let observer)):
@@ -567,6 +609,7 @@ fileprivate func makeFetchAndNotifyChangesFunction<Record, T>(
                     }
                 }
                 didChange?(strongController, fetchedAlongside)
+                didProcessTransaction()
             }
         }
     }
