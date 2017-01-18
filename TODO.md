@@ -114,3 +114,5 @@ Reading list:
 - FetchedRecordsController: https://github.com/jflinter/Dwifft
 - FetchedRecordsController: https://github.com/wokalski/Diff.swift (Faster)
 - FetchedRecordsController: https://github.com/andre-alves/PHDiff
+- React oddities:
+    - http://stackoverflow.com/questions/41721769/realm-update-object-without-updating-lists
