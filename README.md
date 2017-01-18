@@ -17,11 +17,11 @@ Follow [@groue](http://twitter.com/groue) on Twitter for release announcements a
 
 GRDB.swift is a toolkit for SQLite databases with a focus on application development.
 
-It provides raw access to SQLite and the SQL language, because one sometimes enjoys a sharp tool. It has efficient and robust concurrency primitives, because SQLite concurrency is not trivial. It provides persistence and fetching methods for your application models, because it is unlikely that dealing with raw database rows or writing SQL is your daily focus.
+It provides raw access to SQLite and the SQL language, because one sometimes enjoys a sharp tool. It has robust concurrency primitives, so that multi-threaded applications can efficiently use their databases. It grants your application models with persistence and fetching methods, because it is unlikely that dealing with raw database rows or writing SQL is your daily focus.
 
-Between libraries like [SQLite.swift](http://github.com/stephencelis/SQLite.swift) or [FMDB](http://github.com/ccgus/fmdb) that have application developers write a great deal of glue code, and frameworks like [Core Data](https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/CoreData/) or [Realm](http://realm.io) that don't take advantage of Swift, GRDB aims at providing a set of modern, to the point, APIs.
+Between libraries like [SQLite.swift](http://github.com/stephencelis/SQLite.swift) or [FMDB](http://github.com/ccgus/fmdb) that have application developers write a great deal of glue code, and frameworks like [Core Data](https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/CoreData/) or [Realm](http://realm.io) that don't take advantage of Swift, GRDB aims at providing a set of modern and to the point APIs.
 
-Since its introduction mid-2015, GRDB is now code, obviously, but also [reference documentation](http://cocoadocs.org/docsets/GRDB.swift/0.100.0/index.html), [guidelines](#documentation), [general articles](https://medium.com/@gwendal.roue), [sample code](#sample-code), and a lot of interesting resolved issues that may answer your eventual [questions](https://github.com/groue/GRDB.swift/issues?utf8=✓&q=is%3Aissue%20label%3Aquestion) and foster [best practices](https://github.com/groue/GRDB.swift/issues?q=is%3Aissue+label%3A%22best+practices%22).
+Since its introduction mid-2015, GRDB has grown into a library that comes with [reference documentation](http://cocoadocs.org/docsets/GRDB.swift/0.100.0/index.html), [guidelines](#documentation), [general articles](https://medium.com/@gwendal.roue), [sample code](#sample-code), and a lot of interesting resolved issues that may answer your eventual [questions](https://github.com/groue/GRDB.swift/issues?utf8=✓&q=is%3Aissue%20label%3Aquestion) and foster [best practices](https://github.com/groue/GRDB.swift/issues?q=is%3Aissue+label%3A%22best+practices%22).
 
 
 ---
