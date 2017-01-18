@@ -5360,7 +5360,8 @@ FAQ
 - [How do I close a database connection?](#how-do-i-close-a-database-connection)
 - [How do I open a database stored as a resource of my application?](#how-do-i-open-a-database-stored-as-a-resource-of-my-application)
 - [Generic parameter 'T' could not be inferred](#generic-parameter-t-could-not-be-inferred)
-- [Compilation takes a long time](#compilation-takes-a-long-time) 
+- [Compilation takes a long time](#compilation-takes-a-long-time)
+- [SQLite error 10 "disk I/O error", SQLite error 23 "not authorized"](#sqlite-error-10-disk-i-o-error-sqlite-error-23-not-authorized)
 
 
 ### How do I close a database connection?
@@ -5475,6 +5476,11 @@ var persistentDictionary: [String: DatabaseValueConvertible?] {
 > // BAD: when the value is nil, this erases the key instead of setting it to nil.
 > dict["a"] = a
 > ```
+
+
+### SQLite error 10 "disk I/O error", SQLite error 23 "not authorized"
+
+Those errors may be the sign that SQLite can't access the database due to [data protection](https://developer.apple.com/library/content/documentation/iPhone/Conceptual/iPhoneOSProgrammingGuide/StrategiesforImplementingYourApp/StrategiesforImplementingYourApp.html#//apple_ref/doc/uid/TP40007072-CH5-SW21). When your application should be able to run in the background on a locked device, it should be able to handle this error. This error can also be prevented altogether by using a more relaxed [file protection](https://developer.apple.com/reference/foundation/filemanager/1653059-file_protection_values).
 
 
 Sample Code
