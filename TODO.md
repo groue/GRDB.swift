@@ -1,3 +1,4 @@
+- [ ] Drop DatabaseStore and support for FileProtectionKey if it can be confirmed that file inherit protection from their directory (see http://stackoverflow.com/questions/26033127/why-doesnt-nsfileprotectionkey-attribute-when-a-device-is-jailbroken)
 - [ ] Check for SQLCipher at runtime with `PRAGMA cipher_version`: https://discuss.zetetic.net/t/important-advisory-sqlcipher-with-xcode-8-and-new-sdks/1688
 - [ ] We share the database cache between database pool writers and readers. But what if a writer modifies the database schema within a transaction, and a concurrent reader reads the cache? Bad things, isn't it? Write failing tests first, and fix the bug.
 - [ ] FetchedRecordsController is not reactive:
@@ -113,3 +114,5 @@ Reading list:
 - FetchedRecordsController: https://github.com/jflinter/Dwifft
 - FetchedRecordsController: https://github.com/wokalski/Diff.swift (Faster)
 - FetchedRecordsController: https://github.com/andre-alves/PHDiff
+- React oddities:
+    - http://stackoverflow.com/questions/41721769/realm-update-object-without-updating-lists
