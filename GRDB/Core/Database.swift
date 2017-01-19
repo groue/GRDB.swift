@@ -2026,6 +2026,17 @@ public enum DatabaseEventKind {
     case update(tableName: String, columnNames: Set<String>)
 }
 
+extension DatabaseEventKind {
+    /// The impacted database table
+    var tableName: String {
+        switch self {
+        case .insert(tableName: let tableName): return tableName
+        case .delete(tableName: let tableName): return tableName
+        case .update(tableName: let tableName, columnNames: _): return tableName
+        }
+    }
+}
+
 protocol DatabaseEventProtocol {
     func send(to observer: TransactionObserver)
 }
