@@ -5,7 +5,8 @@ Release Notes
 
 **New**
 
-- `DatabaseEventKind.tableName`
+- `DatabaseEventKind.tableName` makes it easier to track any change that may happen to a database table ([documentation](https://github.com/groue/GRDB.swift#filtering-database-events))
+
 
 **Breaking Changes**
 

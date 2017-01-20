@@ -4135,25 +4135,70 @@ At first sight, this looks somewhat redundant with the checks that observers can
 ```swift
 // BAD: An inefficient way to track the "persons" table:
 class PersonObserver: TransactionObserver {
+    var personsTableModified = false
+    
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
         // Observe all events
         return true
     }
     
     func databaseDidChange(with event: DatabaseEvent) {
-        guard event.tableName == "persons" else {
-            return
+        if event.tableName == "persons" {
+            personsTableModified = true
         }
-        // Process change
+    }
+    
+    func databaseDidRollback(_ db: Database) {
+        // Get ready for next transaction
+        personsTableModified = false
+    }
+    
+    func databaseDidCommit(_ db: Database) {
+        if personsTableModified {
+            // Process committed changes to the persons table
+        }
+        
+        // Get ready for next transaction
+        personsTableModified = false
     }
 }
 ```
 
 The `databaseDidChange` method is invoked for each insertion, deletion, and update of individual rows. When there are many changed rows, the observer will spend of a lot of time performing the same check again and again.
 
-More, when you're interested in specific table columns, you're out of luck, because `databaseDidChange` does not know about columns: it just knows that a row has been inserted, deleted, or updated, without further detail.
+Instead, filter events in the `observes(eventsOfKind:)` method. This will prevent `databaseDidChange` from being called for changes you're not interested into, and is *much more* efficient:
 
-Instead, filter events in the `observes(eventsOfKind:)` method, as below:
+```swift
+// GOOD: An efficient way to track the "persons" table:
+class PersonObserver: TransactionObserver {
+    var personsTableModified = false
+    
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+        // Only observe changes to the "persons" table.
+        return eventKind.tableName == "persons"
+    }
+    
+    func databaseDidChange(with event: DatabaseEvent) {
+        personsTableModified = true // Guaranteed
+    }
+    
+    func databaseDidRollback(_ db: Database) {
+        // Get ready for next transaction
+        personsTableModified = false
+    }
+    
+    func databaseDidCommit(_ db: Database) {
+        if personsTableModified {
+            // Process committed changes to the persons table
+        }
+        
+        // Get ready for next transaction
+        personsTableModified = false
+    }
+}
+```
+
+The `observes(eventsOfKind:)` method is also able to inspect the columns that are about to be changed:
 
 ```swift
 class PersonObserver: TransactionObserver {
@@ -4168,14 +4213,8 @@ class PersonObserver: TransactionObserver {
             return tableName == "persons" && columnNames.contains("name")
         }
     }
-    
-    func databaseDidChange(with event: DatabaseEvent) {
-        // Process change
-    }
 }
 ```
-
-This technique is *much more* efficient, because GRDB will apply the filter only once for each update statement, instead of once for each modified row.
 
 
 ### Support for SQLite Pre-Update Hooks
