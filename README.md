@@ -214,6 +214,7 @@ Documentation
 - [Error Handling](#error-handling)
 - [Unicode](#unicode)
 - [Memory Management](#memory-management)
+- [Data Protection](#data-protection)
 - [Concurrency](#concurrency)
 - [Performance](#performance)
 
@@ -356,7 +357,6 @@ var config = Configuration()
 config.readonly = true
 config.foreignKeysEnabled = true // Default is already true
 config.trace = { print($0) }     // Prints all SQL statements
-config.fileAttributes = [FileAttributeKey.protectionKey.rawValue: ...]  // Configure database protection
 
 let dbQueue = try DatabaseQueue(
     path: "/path/to/database.sqlite",
@@ -433,7 +433,6 @@ var config = Configuration()
 config.readonly = true
 config.foreignKeysEnabled = true // Default is already true
 config.trace = { print($0) }     // Prints all SQL statements
-config.fileAttributes = [FileAttributeKey.protectionKey.rawValue: ...]  // Configure database protection
 config.maximumReaderCount = 10   // The default is 5
 
 let dbPool = try DatabasePool(
@@ -4609,6 +4608,7 @@ This chapter covers general topics that you should be aware of.
 - [Error Handling](#error-handling)
 - [Unicode](#unicode)
 - [Memory Management](#memory-management)
+- [Data Protection](#data-protection)
 - [Concurrency](#concurrency)
 - [Performance](#performance)
 
@@ -4924,6 +4924,11 @@ This method blocks the current thread until all current database accesses are co
 let dbQueue = try DatabaseQueue(...)
 dbQueue.setupMemoryManagement(in: UIApplication.sharedApplication())
 ```
+
+
+## Data Protection
+
+TODO [data protection](https://developer.apple.com/library/content/documentation/iPhone/Conceptual/iPhoneOSProgrammingGuide/StrategiesforImplementingYourApp/StrategiesforImplementingYourApp.html#//apple_ref/doc/uid/TP40007072-CH5-SW21) FileAttributeKey.protectionKey
 
 
 ## Concurrency
@@ -5481,7 +5486,7 @@ var persistentDictionary: [String: DatabaseValueConvertible?] {
 
 ### SQLite error 10 "disk I/O error", SQLite error 23 "not authorized"
 
-Those errors may be the sign that SQLite can't access the database due to [data protection](https://developer.apple.com/library/content/documentation/iPhone/Conceptual/iPhoneOSProgrammingGuide/StrategiesforImplementingYourApp/StrategiesforImplementingYourApp.html#//apple_ref/doc/uid/TP40007072-CH5-SW21).
+Those errors may be the sign that SQLite can't access the database due to [data protection](#data-protection).
 
 When your application should be able to run in the background on a locked device, it has to catch this error, and, for example, wait for [UIApplicationDelegate.applicationProtectedDataDidBecomeAvailable(_:)](https://developer.apple.com/reference/uikit/uiapplicationdelegate/1623044-applicationprotecteddatadidbecom) or [UIApplicationProtectedDataDidBecomeAvailable](https://developer.apple.com/reference/uikit/uiapplicationprotecteddatadidbecomeavailable) notification and retry the failed database operation.
 

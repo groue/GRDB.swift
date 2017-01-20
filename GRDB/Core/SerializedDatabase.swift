@@ -10,6 +10,9 @@ final class SerializedDatabase {
         return db.configuration
     }
     
+    /// The path to the database file
+    var path: String
+    
     /// The dispatch queue
     private let queue: DispatchQueue
     
@@ -36,6 +39,7 @@ final class SerializedDatabase {
         
         db = try Database(path: path, configuration: config, schemaCache: schemaCache)
         queue = SchedulingWatchdog.makeSerializedQueue(allowingDatabase: db)
+        self.path = path
         try queue.sync {
             try db.setup()
         }

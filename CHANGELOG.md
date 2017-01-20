@@ -1,6 +1,17 @@
 Release Notes
 =============
 
+## Next Release
+
+**New**
+
+- `DatabaseEventKind.tableName`
+
+**Breaking Changes**
+
+- `Configuration.fileAttributes` has been removed (see [Data Protection](https://github.com/groue/GRDB.swift#data-protection))
+
+
 ## 0.100.0
 
 Released January 10, 2017

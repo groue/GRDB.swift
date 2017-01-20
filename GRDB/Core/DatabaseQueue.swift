@@ -20,7 +20,6 @@ public final class DatabaseQueue {
     ///     - configuration: A configuration.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public init(path: String, configuration: Configuration = Configuration()) throws {
-        store = try DatabaseStore(path: path, attributes: configuration.fileAttributes)
         serializedDatabase = try SerializedDatabase(
             path: path,
             configuration: configuration,
@@ -35,7 +34,6 @@ public final class DatabaseQueue {
     ///
     /// - parameter configuration: A configuration.
     public init(configuration: Configuration = Configuration()) {
-        store = nil
         // Assume SQLite always succeeds creating an in-memory database
         serializedDatabase = try! SerializedDatabase(
             path: ":memory:",
@@ -61,9 +59,9 @@ public final class DatabaseQueue {
         return serializedDatabase.configuration
     }
     
-    /// The path to the database file; nil for in-memory databases.
-    public var path: String! {
-        return store?.path
+    /// The path to the database file; it is ":memory:" for in-memory databases.
+    public var path: String {
+        return serializedDatabase.path
     }
     
     
@@ -175,8 +173,6 @@ public final class DatabaseQueue {
     
     
     // MARK: - Not public
-    
-    private let store: DatabaseStore?
 
     // https://www.sqlite.org/isolation.html
     //

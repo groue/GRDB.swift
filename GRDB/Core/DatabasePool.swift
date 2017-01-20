@@ -41,9 +41,6 @@ public final class DatabasePool {
     public init(path: String, configuration: Configuration = Configuration()) throws {
         GRDBPrecondition(configuration.maximumReaderCount > 0, "configuration.maximumReaderCount must be at least 1")
         
-        // Database Store
-        store = try DatabaseStore(path: path, attributes: configuration.fileAttributes)
-        
         // Writer and readers share the same database schema cache
         let sharedSchemaCache = SharedDatabaseSchemaCache()
         
@@ -116,7 +113,7 @@ public final class DatabasePool {
     
     /// The path to the database.
     public var path: String {
-        return store.path
+        return writer.path
     }
     
     
@@ -212,7 +209,6 @@ public final class DatabasePool {
     
     // MARK: - Not public
     
-    let store: DatabaseStore    // Not private for tests that require syncing with the store
     fileprivate let writer: SerializedDatabase
     fileprivate var readerConfig: Configuration
     fileprivate let readerPool: Pool<SerializedDatabase>

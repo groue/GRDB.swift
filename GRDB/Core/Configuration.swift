@@ -49,23 +49,6 @@ public struct Configuration {
     #endif
     
     
-    // MARK: - File Attributes
-    
-    /// The file attributes that should be applied to the database files (see
-    /// `NSFileMnager.setAttributes(_,ofItemAtPath:)`).
-    ///
-    /// SQLite will create [temporary files](https://www.sqlite.org/tempfiles.html)
-    /// when it needs them.
-    ///
-    /// In WAL mode (see DatabasePool), SQLite will also eventually create
-    /// `-shm` and `-wal` files.
-    ///
-    /// GRDB will apply file attributes to all those files.
-    ///
-    /// Default: nil
-    public var fileAttributes: [FileAttributeKey: Any]? = nil
-    
-    
     // MARK: - Transactions
     
     /// The default kind of transaction.
