@@ -590,7 +590,7 @@ try Type.fetchOne(...)    // Type?
 
 **Whenever you consume several rows from the database, you can fetch a Cursor, or an Array**.
 
-Array contains copies of database values and may be consumed on any thread. But they can take a lot of memory. Conversely, cursors iterate over database results in a lazy fashion, don't consume much memory, and are generally more efficient. But they must be consumed in a [protected dispatch queue](#database-connections):
+Arrays contain copies of database values and may be consumed on any thread. But they can take a lot of memory. Conversely, cursors iterate over database results in a lazy fashion, don't consume much memory, and are generally more efficient. But they must be consumed in a [protected dispatch queue](#database-connections):
 
 ```swift
 let rows = try Row.fetchAll(db, "SELECT ...")    // [Row]
@@ -2509,7 +2509,7 @@ let count = try request.fetchCount(db)  // Int
 <a name="list-of-record-methods-3">³</a> See [SQL queries](#fetch-queries):
 
 ```swift
-let persons = try request.fetchAll("SELECT * FROM persons WHERE id = ?", arguments: [1])  // [Person]
+let persons = try Person.fetchAll("SELECT * FROM persons WHERE id = ?", arguments: [1]) // [Person]
 ```
 
 <a name="list-of-record-methods-4">⁴</a> See [Prepared Statements](#prepared-statements):
