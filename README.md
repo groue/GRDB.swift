@@ -4928,7 +4928,47 @@ dbQueue.setupMemoryManagement(in: UIApplication.sharedApplication())
 
 ## Data Protection
 
-TODO [data protection](https://developer.apple.com/library/content/documentation/iPhone/Conceptual/iPhoneOSProgrammingGuide/StrategiesforImplementingYourApp/StrategiesforImplementingYourApp.html#//apple_ref/doc/uid/TP40007072-CH5-SW21) FileAttributeKey.protectionKey
+[Data Protection](https://developer.apple.com/library/content/documentation/iPhone/Conceptual/iPhoneOSProgrammingGuide/StrategiesforImplementingYourApp/StrategiesforImplementingYourApp.html#//apple_ref/doc/uid/TP40007072-CH5-SW21) lets you protect files so that they are encrypted and unavailable until the device is unlocked.
+
+Data protection can be enabled [globally](https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/AddingCapabilities/AddingCapabilities.html#//apple_ref/doc/uid/TP40012582-CH26-SW30) for all files created by an application.
+
+You can also explicitly protect a database, by configuring its enclosing *directory*. This will not only protect the database file, but also all [temporary files](https://www.sqlite.org/tempfiles.html) created by SQLite (including the persistent `.shm` and `.wal` files created by [database pools](#database-pools)).
+
+For example, to explicitely use [complete](https://developer.apple.com/reference/foundation/fileprotectiontype/1616200-complete) protection:
+
+```swift
+// Paths
+let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
+let directoryPath = (documentsPath as NSString).appendingPathComponent("database")
+let databasePath = (directoryPath as NSString).appendingPathComponent("db.sqlite")
+
+// Create directory if needed
+let fm = FileManager.default
+var isDirectory: ObjCBool = false
+if !fm.fileExists(atPath: directoryPath, isDirectory: &isDirectory) {
+    try fm.createDirectory(atPath: directoryPath, withIntermediateDirectories: false)
+} else if !isDirectory.boolValue {
+    throw NSError(domain: NSCocoaErrorDomain, code: NSFileWriteFileExistsError, userInfo: nil)
+}
+
+// Enable data protection
+try fm.setAttributes([.protectionKey : FileProtectionType.complete], ofItemAtPath: directoryPath)
+
+// Open database
+let dbQueue = try DatabaseQueue(path: databasePath)
+```
+
+When a database is protected, an application that runs in the background on a locked device won't be able to read or write from it. Instead, it will get [DatabaseError](#error-handling) with code [`SQLITE_IOERR`](https://www.sqlite.org/rescode.html#ioerr) (10) "disk I/O error", or [`SQLITE_AUTH`](https://www.sqlite.org/rescode.html#auth) (23) "not authorized".
+
+You can catch those errors and wait for [UIApplicationDelegate.applicationProtectedDataDidBecomeAvailable(_:)](https://developer.apple.com/reference/uikit/uiapplicationdelegate/1623044-applicationprotecteddatadidbecom) or [UIApplicationProtectedDataDidBecomeAvailable](https://developer.apple.com/reference/uikit/uiapplicationprotecteddatadidbecomeavailable) notification in order to retry the failed database operation:
+
+
+### SQLite error 10 "disk I/O error", SQLite error 23 "not authorized"
+
+Those errors may be the sign that SQLite can't access the database due to [data protection](#data-protection).
+
+When your application should be able to run in the background on a locked device, it has to catch this error, and, for example, wait for [UIApplicationDelegate.applicationProtectedDataDidBecomeAvailable(_:)](https://developer.apple.com/reference/uikit/uiapplicationdelegate/1623044-applicationprotecteddatadidbecom) or [UIApplicationProtectedDataDidBecomeAvailable](https://developer.apple.com/reference/uikit/uiapplicationprotecteddatadidbecomeavailable) notification and retry the failed database operation.
+
 
 
 ## Concurrency
