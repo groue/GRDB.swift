@@ -266,10 +266,15 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     }
     
     #if os(iOS)
-    var application: UIApplication?
-    
-    /// TODO
-    public func allowBackgroundTracking(in application: UIApplication) {
+    /// Call this method when changes performed while the application is
+    /// in the background should be processed before the application enters the
+    /// suspended state.
+    ///
+    /// Whenever the tracked request is changed, the fetched records controller
+    /// sets up a background task using
+    /// `UIApplication.beginBackgroundTask(expirationHandler:)` which is ended
+    /// after the `didChange` callback has completed.
+    public func allowBackgroundChangesTracking(in application: UIApplication) {
         self.application = application
     }
     #endif
@@ -296,20 +301,24 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     
     // MARK: - Not public
     
-    
-    // The items
+    #if os(iOS)
+    /// Support for allowBackgroundChangeTracking(in:)
+    var application: UIApplication?
+    #endif
+
+    /// The items
     fileprivate var fetchedItems: [Item<Record>]?
     
-    // The record comparator
+    /// The record comparator
     fileprivate var itemsAreIdentical: ItemComparator<Record>
 
-    // The request
+    /// The request
     fileprivate var request: ObservedRequest<Record>
     
-    // The eventual current database observer
+    /// The eventual current database observer
     private var observer: FetchedRecordsObserver<Record>?
     
-    // The eventual error handler
+    /// The eventual error handler
     fileprivate var errorHandler: ((FetchedRecordsController<Record>, Error) -> ())?
 }
 

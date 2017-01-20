@@ -6,6 +6,7 @@ Release Notes
 **New**
 
 - `DatabaseEventKind.tableName` makes it easier to track any change that may happen to a database table ([documentation](https://github.com/groue/GRDB.swift#filtering-database-events))
+- `FetchedRecordsController.allowBackgroundChangesTracking(in:)`: call this [FetchedRecordsController](https://github.com/groue/GRDB.swift#fetchedrecordscontroller) method when changes performed while the application is in the background should be processed before the application enters the suspended state.
 
 
 **Breaking Changes**
