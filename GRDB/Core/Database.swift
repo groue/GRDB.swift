@@ -2028,7 +2028,7 @@ public enum DatabaseEventKind {
 
 extension DatabaseEventKind {
     /// The impacted database table
-    var tableName: String {
+    public var tableName: String {
         switch self {
         case .insert(tableName: let tableName): return tableName
         case .delete(tableName: let tableName): return tableName
