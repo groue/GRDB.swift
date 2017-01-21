@@ -4164,7 +4164,7 @@ class PersonObserver: TransactionObserver {
 }
 ```
 
-The `databaseDidChange` method is invoked for each insertion, deletion, and update of individual rows. When there are many changed rows, the observer will spend of a lot of time performing the same check again and again.
+The `databaseDidChange` method is invoked for each insertion, deletion, and update of individual rows, of any table. When there are many changed rows, the observer will spend of a lot of time performing the same check again and again.
 
 Instead, filter events in the `observes(eventsOfKind:)` method. This will prevent `databaseDidChange` from being called for changes you're not interested into, and is *much more* efficient:
 
