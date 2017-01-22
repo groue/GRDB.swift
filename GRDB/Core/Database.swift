@@ -500,7 +500,7 @@ public final class Database {
 private func closeConnection(_ sqliteConnection: SQLiteConnection) {
     // sqlite3_close_v2 was added in SQLite 3.7.14 http://www.sqlite.org/changes.html#version_3_7_14
     // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-    if #available(iOS 8.2, OSX 10.10, *) {
+    #if USING_CUSTOMSQLITE || USING_SQLCIPHER
         // https://www.sqlite.org/c3ref/close.html
         // > If sqlite3_close_v2() is called with unfinalized prepared
         // > statements and/or unfinished sqlite3_backups, then the database
@@ -514,29 +514,45 @@ private func closeConnection(_ sqliteConnection: SQLiteConnection) {
             let message = String(cString: sqlite3_errmsg(sqliteConnection))
             NSLog("GRDB could not close database with error %@: %@", NSNumber(value: code), NSString(string: message))
         }
-    } else {
-        // https://www.sqlite.org/c3ref/close.html
-        // > If the database connection is associated with unfinalized prepared
-        // > statements or unfinished sqlite3_backup objects then
-        // > sqlite3_close() will leave the database connection open and
-        // > return SQLITE_BUSY.
-        let code = sqlite3_close(sqliteConnection)
-        if code != SQLITE_OK {
-            // A rare situation where GRDB doesn't fatalError on unprocessed
-            // errors.
-            let message = String(cString: sqlite3_errmsg(sqliteConnection))
-            NSLog("GRDB could not close database with error %@: %@", NSNumber(value: code), NSString(string: message))
-            if code == SQLITE_BUSY {
-                // Let the user know about unfinalized statements that did
-                // prevent the connection from closing properly.
-                var stmt: SQLiteStatement? = sqlite3_next_stmt(sqliteConnection, nil)
-                while stmt != nil {
-                    NSLog("GRDB unfinalized statement: %@", NSString(string: String(validatingUTF8: sqlite3_sql(stmt))!))
-                    stmt = sqlite3_next_stmt(sqliteConnection, stmt)
+    #else
+        if #available(iOS 8.2, OSX 10.10, *) {
+            // https://www.sqlite.org/c3ref/close.html
+            // > If sqlite3_close_v2() is called with unfinalized prepared
+            // > statements and/or unfinished sqlite3_backups, then the database
+            // > connection becomes an unusable "zombie" which will automatically
+            // > be deallocated when the last prepared statement is finalized or the
+            // > last sqlite3_backup is finished.
+            let code = sqlite3_close_v2(sqliteConnection)
+            if code != SQLITE_OK {
+                // A rare situation where GRDB doesn't fatalError on unprocessed
+                // errors.
+                let message = String(cString: sqlite3_errmsg(sqliteConnection))
+                NSLog("GRDB could not close database with error %@: %@", NSNumber(value: code), NSString(string: message))
+            }
+        } else {
+            // https://www.sqlite.org/c3ref/close.html
+            // > If the database connection is associated with unfinalized prepared
+            // > statements or unfinished sqlite3_backup objects then
+            // > sqlite3_close() will leave the database connection open and
+            // > return SQLITE_BUSY.
+            let code = sqlite3_close(sqliteConnection)
+            if code != SQLITE_OK {
+                // A rare situation where GRDB doesn't fatalError on unprocessed
+                // errors.
+                let message = String(cString: sqlite3_errmsg(sqliteConnection))
+                NSLog("GRDB could not close database with error %@: %@", NSNumber(value: code), NSString(string: message))
+                if code == SQLITE_BUSY {
+                    // Let the user know about unfinalized statements that did
+                    // prevent the connection from closing properly.
+                    var stmt: SQLiteStatement? = sqlite3_next_stmt(sqliteConnection, nil)
+                    while stmt != nil {
+                        NSLog("GRDB unfinalized statement: %@", NSString(string: String(validatingUTF8: sqlite3_sql(stmt))!))
+                        stmt = sqlite3_next_stmt(sqliteConnection, stmt)
+                    }
                 }
             }
         }
-    }
+    #endif
 }
 
 
