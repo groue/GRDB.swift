@@ -28,8 +28,8 @@ class RecordUniqueIndexTests: GRDBTestCase {
                     XCTFail()
                 } catch let error as DatabaseError {
                     XCTAssertEqual(error.code, 21) // SQLITE_MISUSE
-                    XCTAssertEqual(error.message!, "table persons has no unique index on column(s) id, email")
-                    XCTAssertEqual(error.description, "SQLite error 21: table persons has no unique index on column(s) id, email")
+                    XCTAssertEqual(error.message!, "table persons has no unique index on column(s) email, id")
+                    XCTAssertEqual(error.description, "SQLite error 21: table persons has no unique index on column(s) email, id")
                 }
                 do {
                     _ = try Person.makeFetchByKeyStatement(db, keys: [["name": nil]], fatalErrorOnMissingUniqueIndex: false)
@@ -56,8 +56,8 @@ class RecordUniqueIndexTests: GRDBTestCase {
                     XCTFail()
                 } catch let error as DatabaseError {
                     XCTAssertEqual(error.code, 21) // SQLITE_MISUSE
-                    XCTAssertEqual(error.message!, "table persons has no unique index on column(s) id, email")
-                    XCTAssertEqual(error.description, "SQLite error 21: table persons has no unique index on column(s) id, email")
+                    XCTAssertEqual(error.message!, "table persons has no unique index on column(s) email, id")
+                    XCTAssertEqual(error.description, "SQLite error 21: table persons has no unique index on column(s) email, id")
                 }
                 do {
                     _ = try Person.makeDeleteByKeyStatement(db, keys: [["name": nil]], fatalErrorOnMissingUniqueIndex: false)

@@ -1143,13 +1143,16 @@ extension Database {
         // 1   | firstName | TEXT    | 0       | NULL       | 0  |
         // 2   | lastName  | TEXT    | 0       | NULL       | 0  |
         
-        if #available(iOS 8.2, OSX 10.10, *) { } else {
-            // Work around a bug in SQLite where PRAGMA table_info would
-            // return a result even after the table was deleted.
-            if try !tableExists(tableName) {
-                throw DatabaseError(message: "no such table: \(tableName)")
+        #if !USING_CUSTOMSQLITE && !USING_SQLCIPHER
+            if #available(iOS 8.2, OSX 10.10, *) {
+            } else {
+                // Work around a bug in SQLite where PRAGMA table_info would
+                // return a result even after the table was deleted.
+                if try !tableExists(tableName) {
+                    throw DatabaseError(message: "no such table: \(tableName)")
+                }
             }
-        }
+        #endif
         let columns = try ColumnInfo.fetchAll(self, "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))")
         guard columns.count > 0 else {
             throw DatabaseError(message: "no such table: \(tableName)")
@@ -1186,26 +1189,33 @@ extension Database {
         return indexes
     }
     
+    /// If there exists a unique key on columns, return the columns
+    /// ordered as the matching index (or primay key). Case of returned columns
+    /// is not guaranteed.
+    func columnsForUniqueKey(_ columns: [String], in tableName: String) throws -> [String]? {
+        let primaryKey = try self.primaryKey(tableName) // first, so that we fail early and consistently should the table not exist
+        let lowercasedColumns = Set(columns.map { $0.lowercased() })
+        if let index = try indexes(on: tableName).first(where: { index in index.isUnique && Set(index.columns.map { $0.lowercased() }) == lowercasedColumns }) {
+            // There is an explicit unique index on the columns
+            return index.columns
+        }
+        if let lowercasedColumn = lowercasedColumns.first, lowercasedColumns.count == 1 {
+            if let rowIDColumnName = primaryKey?.rowIDColumn, rowIDColumnName.lowercased() == lowercasedColumn {
+                // An explicit INTEGER PRIMARY KEY column is a unique key.
+                return [rowIDColumnName]
+            }
+            if try primaryKey == nil && ["rowid", "oid", "_rowid_"].contains(lowercasedColumn) && !self.columns(in: tableName).map({ $0.name.lowercased() }).contains(lowercasedColumn) {
+                // A rowid, oid or _rowid_ column is a unique key when there is no explicit primary key and the column is not already used.
+                return [lowercasedColumn]
+            }
+        }
+        return nil
+    }
+    
     /// True if a sequence of columns uniquely identifies a row, that is to say
     /// if the columns are the primary key, or if there is a unique index on them.
     public func table<T: Sequence>(_ tableName: String, hasUniqueKey columns: T) throws -> Bool where T.Iterator.Element == String {
-        let primaryKey = try self.primaryKey(tableName) // first, so that we fail early and consistently should the table not exist
-        let columns = Set(columns.map { $0.lowercased() })
-        if try indexes(on: tableName).contains(where: { index in index.isUnique && Set(index.columns.map { $0.lowercased() }) == columns }) {
-            // There is an explicit unique index on the columns
-            return true
-        }
-        if let column = columns.first, columns.count == 1 {
-            if let rowIDColumnName = primaryKey?.rowIDColumn, rowIDColumnName.lowercased() == column {
-                // An explicit INTEGER PRIMARY KEY column is a unique key.
-                return true
-            }
-            if try primaryKey == nil && ["rowid", "oid", "_rowid_"].contains(column) && !self.columns(in: tableName).map({ $0.name.lowercased() }).contains(column) {
-                // A rowid, oid or _rowid_ column is a unique key when there is no explicit primary key and the column is not already used.
-                return true
-            }
-        }
-        return false
+        return try columnsForUniqueKey(Array(columns), in: tableName) != nil
     }
     
 }

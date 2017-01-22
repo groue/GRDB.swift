@@ -204,17 +204,19 @@ extension TableMapping {
         var whereClauses: [String] = []
         for dictionary in keys {
             GRDBPrecondition(dictionary.count > 0, "Invalid empty key dictionary")
-            let columns = dictionary.keys
-            guard try db.table(databaseTableName, hasUniqueKey: columns) else {
-                let error = DatabaseError(code: SQLITE_MISUSE, message: "table \(databaseTableName) has no unique index on column(s) \(columns.joined(separator: ", "))")
+            let columns = Array(dictionary.keys)
+            guard let orderedColumns = try db.columnsForUniqueKey(columns, in: databaseTableName) else {
+                let error = DatabaseError(code: SQLITE_MISUSE, message: "table \(databaseTableName) has no unique index on column(s) \(columns.sorted().joined(separator: ", "))")
                 if fatalErrorOnMissingUniqueIndex {
                     fatalError(error.description)
                 } else {
                     throw error
                 }
             }
-            arguments.append(contentsOf: dictionary.values)
-            whereClauses.append("(" + (columns.map { "\($0.quotedDatabaseIdentifier) = ?" } as [String]).joined(separator: " AND ") + ")")
+            arguments.append(contentsOf: orderedColumns.map { orderedColumn in
+                dictionary.first { (column, value) in column.lowercased() == orderedColumn.lowercased() }!.value
+            })
+            whereClauses.append("(" + (orderedColumns.map { "\($0.quotedDatabaseIdentifier) = ?" } as [String]).joined(separator: " AND ") + ")")
         }
         
         let whereClause = whereClauses.joined(separator: " OR ")
