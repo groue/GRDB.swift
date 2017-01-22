@@ -61,29 +61,54 @@ public struct DatabaseMigrator {
         registerMigration(Migration(identifier: identifier, migrate: migrate))
     }
     
-    @available(iOS 8.2, OSX 10.10, *)
-    /// Registers an advanced migration, as described at https://www.sqlite.org/lang_altertable.html#otheralter
-    ///
-    ///     // Add a NOT NULL constraint on persons.name:
-    ///     migrator.registerMigrationWithDisabledForeignKeyChecks("AddNotNullCheckOnName") { db in
-    ///         try db.execute(
-    ///             "CREATE TABLE new_persons (id INTEGER PRIMARY KEY, name TEXT NOT NULL);" +
-    ///             "INSERT INTO new_persons SELECT * FROM persons;" +
-    ///             "DROP TABLE persons;" +
-    ///             "ALTER TABLE new_persons RENAME TO persons;")
-    ///     }
-    ///
-    /// While your migration code runs with disabled foreign key checks, those
-    /// are re-enabled and checked at the end of the migration, regardless of
-    /// eventual errors.
-    ///
-    /// - parameters:
-    ///     - identifier: The migration identifier.
-    ///     - block: The migration block that performs SQL statements.
-    /// - precondition: No migration with the same same as already been registered.
-    public mutating func registerMigrationWithDisabledForeignKeyChecks(_ identifier: String, migrate: @escaping (Database) throws -> Void) {
-        registerMigration(Migration(identifier: identifier, disabledForeignKeyChecks: true, migrate: migrate))
-    }
+    #if USING_CUSTOMSQLITE || USING_SQLCIPHER
+        /// Registers an advanced migration, as described at https://www.sqlite.org/lang_altertable.html#otheralter
+        ///
+        ///     // Add a NOT NULL constraint on persons.name:
+        ///     migrator.registerMigrationWithDisabledForeignKeyChecks("AddNotNullCheckOnName") { db in
+        ///         try db.execute(
+        ///             "CREATE TABLE new_persons (id INTEGER PRIMARY KEY, name TEXT NOT NULL);" +
+        ///             "INSERT INTO new_persons SELECT * FROM persons;" +
+        ///             "DROP TABLE persons;" +
+        ///             "ALTER TABLE new_persons RENAME TO persons;")
+        ///     }
+        ///
+        /// While your migration code runs with disabled foreign key checks, those
+        /// are re-enabled and checked at the end of the migration, regardless of
+        /// eventual errors.
+        ///
+        /// - parameters:
+        ///     - identifier: The migration identifier.
+        ///     - block: The migration block that performs SQL statements.
+        /// - precondition: No migration with the same same as already been registered.
+        public mutating func registerMigrationWithDisabledForeignKeyChecks(_ identifier: String, migrate: @escaping (Database) throws -> Void) {
+            registerMigration(Migration(identifier: identifier, disabledForeignKeyChecks: true, migrate: migrate))
+        }
+    #else
+        @available(iOS 8.2, OSX 10.10, *)
+        /// Registers an advanced migration, as described at https://www.sqlite.org/lang_altertable.html#otheralter
+        ///
+        ///     // Add a NOT NULL constraint on persons.name:
+        ///     migrator.registerMigrationWithDisabledForeignKeyChecks("AddNotNullCheckOnName") { db in
+        ///         try db.execute(
+        ///             "CREATE TABLE new_persons (id INTEGER PRIMARY KEY, name TEXT NOT NULL);" +
+        ///             "INSERT INTO new_persons SELECT * FROM persons;" +
+        ///             "DROP TABLE persons;" +
+        ///             "ALTER TABLE new_persons RENAME TO persons;")
+        ///     }
+        ///
+        /// While your migration code runs with disabled foreign key checks, those
+        /// are re-enabled and checked at the end of the migration, regardless of
+        /// eventual errors.
+        ///
+        /// - parameters:
+        ///     - identifier: The migration identifier.
+        ///     - block: The migration block that performs SQL statements.
+        /// - precondition: No migration with the same same as already been registered.
+        public mutating func registerMigrationWithDisabledForeignKeyChecks(_ identifier: String, migrate: @escaping (Database) throws -> Void) {
+            registerMigration(Migration(identifier: identifier, disabledForeignKeyChecks: true, migrate: migrate))
+        }
+    #endif
     
     /// Iterate migrations in the same order as they were registered. If a
     /// migration has not yet been applied, its block is executed in

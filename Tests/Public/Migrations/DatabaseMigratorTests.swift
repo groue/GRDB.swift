@@ -132,10 +132,6 @@ class DatabaseMigratorTests : GRDBTestCase {
     }
     
     func testMigrationWithoutForeignKeyChecks() {
-        // Advanced migration are not available until iOS 8.2 and OSX 10.10
-        guard #available(iOS 8.2, OSX 10.10, *) else {
-            return
-        }
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
             try db.execute("CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, tmp TEXT)")
