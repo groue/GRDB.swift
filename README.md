@@ -9,6 +9,7 @@ GRDB.swift [![Swift](https://img.shields.io/badge/swift-3-orange.svg?style=flat)
 
 - Swift 2.2: use the [version 0.80.2](https://github.com/groue/GRDB.swift/tree/v0.80.2)
 - Swift 2.3: use the [version 0.81.2](https://github.com/groue/GRDB.swift/tree/v0.81.2)
+- Swift 3.1 and Xcode 8.3 beta: use the [Xcode8.3beta branch](https://github.com/groue/GRDB.swift/tree/Xcode8.3beta)
 
 Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
