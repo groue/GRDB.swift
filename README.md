@@ -5444,19 +5444,9 @@ FAQ
 
 ### How do I close a database connection?
     
-The short answer is:
-
-```swift
-// Eventually close all database connections
-dbQueue = nil
-dbPool = nil
-```
-
-You do not explicitely close a database connection: it is managed by a [database queue](#database-queues) or [pool](#database-pools). The connection is closed when all usages of this connection are completed, and when its database queue or pool gets deallocated.
+Database connections are managed by [database queues](#database-queues) and [pools](#database-pools). A connection is closed when its database queue or pool is deallocated, and all usages of this connection are completed.
 
 Database accesses that run in background threads postpone the closing of connections.
-
-The `releaseMemory` method of DatabasePool ([documentation](#memory-management)) will actually close some connections, but the pool will open another connection as soon as you access the database again.
 
 
 ### How do I open a database stored as a resource of my application?
