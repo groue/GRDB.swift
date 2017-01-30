@@ -860,8 +860,9 @@ Yet rows are not real dictionaries: they are ordered, and may contain duplicate 
 
 ```swift
 let row = try Row.fetchOne(db, "SELECT 1 AS foo, 2 AS foo")!
-row.columnNames     // ["foo", "foo"]
-row.databaseValues  // [1, 2]
+row.columnNames         // ["foo", "foo"]
+row.databaseValues      // [1, 2]
+row.value(named: "foo") // 1 (leftmost matching column)
 for (columnName, databaseValue) in row { ... } // ("foo", 1), ("foo", 2)
 ```
 
