@@ -131,6 +131,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         }
     }
     
+    @available(iOS 8.2, OSX 10.10, *)
     func testMigrationWithoutForeignKeyChecks() {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
