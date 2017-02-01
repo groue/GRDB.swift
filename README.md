@@ -3711,6 +3711,8 @@ let pattern = FTS3Pattern(matchingAnyTokenIn: "")  // nil
 let pattern = FTS3Pattern(matchingAnyTokenIn: "*") // nil
 ```
 
+> :warning: **Warning**: when GRDB uses the SQLite library that ships with the host system, those three initializers do not work until iOS 8.2 and macOS 10.10. Don't use them if your application targets previous systems.
+
 FTS3Pattern are regular [values](#values). You can use them as query [arguments](http://cocoadocs.org/docsets/GRDB.swift/0.101.1/Structs/StatementArguments.html):
 
 ```swift
