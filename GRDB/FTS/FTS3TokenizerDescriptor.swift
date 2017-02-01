@@ -67,6 +67,8 @@ public struct FTS3TokenizerDescriptor {
     ///
     ///     FTS3TokenizerDescriptor.simple.tokenize("foo bar") // ["foo", "bar"]
     func tokenize(_ string: String) -> [String] {
+        // fts3tokenize was introduced in SQLite 3.7.17 https://www.sqlite.org/changes.html#version_3_7_17
+        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         return DatabaseQueue().inDatabase { db in
             var tokenizerChunks: [String] = []
             tokenizerChunks.append(name)
