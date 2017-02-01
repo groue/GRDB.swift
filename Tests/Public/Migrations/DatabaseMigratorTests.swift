@@ -131,8 +131,12 @@ class DatabaseMigratorTests : GRDBTestCase {
         }
     }
     
-    @available(iOS 8.2, OSX 10.10, *)
     func testMigrationWithoutForeignKeyChecks() {
+        #if !USING_CUSTOMSQLITE && !USING_SQLCIPHER
+            guard #available(iOS 8.2, OSX 10.10, *) else {
+                return
+            }
+        #endif
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
             try db.execute("CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, tmp TEXT)")
