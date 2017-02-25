@@ -59,6 +59,22 @@ open class Record : RowConvertible, TableMapping, Persistable {
         fatalError("subclass must override")
     }
     
+    /// The policy that handles SQLite conflicts when records are inserted
+    /// or updated.
+    ///
+    /// This property is optional: its default value uses the ABORT policy
+    /// for both insertions and updates, and has GRDB generate regular
+    /// INSERT and UPDATE queries.
+    ///
+    /// If insertions are resolved with .ignore policy, the
+    /// `didInsert(with:for:)` method is not called upon successful insertion,
+    /// even if a row was actually inserted without any conflict.
+    ///
+    /// See https://www.sqlite.org/lang_conflict.html
+    open class var persistenceConflictPolicy: PersistenceConflictPolicy {
+        return PersistenceConflictPolicy(insert: .abort, update: .abort)
+    }
+    
     /// This flag tells whether the hidden "rowid" column should be fetched
     /// with other columns.
     ///
