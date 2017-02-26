@@ -121,7 +121,7 @@ extension DatabaseValueConvertible {
             if let value = Self.fromDatabaseValue(dbv) {
                 return value
             } else {
-                throw DatabaseError(code: .SQLITE_ERROR, message: "could not convert database value \(dbv) to \(Self.self)", sql: statement.sql, arguments: arguments)
+                throw DatabaseError(resultCode: .SQLITE_ERROR, message: "could not convert database value \(dbv) to \(Self.self)", sql: statement.sql, arguments: arguments)
             }
         }
     }
@@ -165,7 +165,7 @@ extension DatabaseValueConvertible {
             } else if dbv.isNull {
                 return nil
             } else {
-                throw DatabaseError(code: .SQLITE_ERROR, message: "could not convert database value \(dbv) to \(Self.self)", sql: statement.sql, arguments: arguments)
+                throw DatabaseError(resultCode: .SQLITE_ERROR, message: "could not convert database value \(dbv) to \(Self.self)", sql: statement.sql, arguments: arguments)
             }
         }
         return try cursor.next() ?? nil
@@ -336,7 +336,7 @@ extension Optional where Wrapped: DatabaseValueConvertible {
             } else if dbv.isNull {
                 return nil
             } else {
-                throw DatabaseError(code: .SQLITE_ERROR, message: "could not convert database value \(dbv) to \(Wrapped.self)", sql: statement.sql, arguments: arguments)
+                throw DatabaseError(resultCode: .SQLITE_ERROR, message: "could not convert database value \(dbv) to \(Wrapped.self)", sql: statement.sql, arguments: arguments)
             }
         }
     }

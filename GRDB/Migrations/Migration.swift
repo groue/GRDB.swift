@@ -86,7 +86,7 @@ struct Migration {
                 //
                 // Let's turn any violation into an SQLITE_CONSTRAINT
                 // error, and rollback the transaction.
-                throw DatabaseError(code: .SQLITE_CONSTRAINT, message: "FOREIGN KEY constraint failed")
+                throw DatabaseError(resultCode: .SQLITE_CONSTRAINT, message: "FOREIGN KEY constraint failed")
             }
             
             // > 11. Commit the transaction started in step 2.

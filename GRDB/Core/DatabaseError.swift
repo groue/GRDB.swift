@@ -132,10 +132,10 @@ public struct ResultCode : RawRepresentable, Equatable, CustomStringConvertible 
 public struct DatabaseError : Error {
     
     /// The SQLite error code (see https://www.sqlite.org/c3ref/c_abort.html).
-    public let code: ResultCode
+    public let resultCode: ResultCode
     
     public var primaryResultCode: ResultCode {
-        return code.primaryResultCode
+        return resultCode.primaryResultCode
     }
     
     /// The SQLite error message.
@@ -144,8 +144,8 @@ public struct DatabaseError : Error {
     /// The SQL query that yielded the error (if relevant).
     public let sql: String?
     
-    public init(code: ResultCode = .SQLITE_ERROR, message: String? = nil, sql: String? = nil, arguments: StatementArguments? = nil) {
-        self.code = code
+    public init(resultCode: ResultCode = .SQLITE_ERROR, message: String? = nil, sql: String? = nil, arguments: StatementArguments? = nil) {
+        self.resultCode = resultCode
         self.message = message
         self.sql = sql
         self.arguments = arguments
@@ -162,7 +162,7 @@ public struct DatabaseError : Error {
 extension DatabaseError: CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
-        var description = "SQLite error \(code.rawValue)"
+        var description = "SQLite error \(resultCode.rawValue)"
         if let sql = sql {
             description += " with statement `\(sql)`"
         }
@@ -185,7 +185,7 @@ extension DatabaseError : CustomNSError {
     
     /// NSError bridging: the error code within the given domain.
     public var errorCode: Int {
-        return Int(code.rawValue)
+        return Int(resultCode.rawValue)
     }
     
     /// NSError bridging: the user-info dictionary.

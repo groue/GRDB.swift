@@ -95,7 +95,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
                     _ = try db.primaryKey("items")
                     XCTFail()
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, .SQLITE_ERROR)
+                    XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                     XCTAssertEqual(error.message!, "no such table: items")
                     XCTAssertEqual(error.description, "SQLite error 1: no such table: items")
                 }

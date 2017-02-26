@@ -592,11 +592,11 @@ class SavepointTests: GRDBTestCase {
                 do {
                     try db.inSavepoint {
                         try insertItem(db, name: "item1")
-                        throw DatabaseError(code: ResultCode(rawValue: 123))
+                        throw DatabaseError(resultCode: ResultCode(rawValue: 123))
                     }
                     XCTFail()
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code.rawValue, 123)
+                    XCTAssertEqual(error.resultCode.rawValue, 123)
                 }
                 
                 try db.inSavepoint {

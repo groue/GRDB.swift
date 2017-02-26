@@ -47,7 +47,7 @@ class DatabaseCursorTests: GRDBTestCase {
                     _ = try cursor.next()
                     XCTFail()
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, .SQLITE_ERROR)
+                    XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                     XCTAssertEqual(error.message, "\(customError)")
                     XCTAssertEqual(error.sql!, "SELECT 1 UNION ALL SELECT throw()")
                     XCTAssertEqual(error.description, "SQLite error 1 with statement `SELECT 1 UNION ALL SELECT throw()`: \(customError)")

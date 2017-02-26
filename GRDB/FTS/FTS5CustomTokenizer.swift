@@ -134,7 +134,7 @@
             }
             guard code == SQLITE_OK else {
                 // Assume a GRDB bug: there is no point throwing any error.
-                fatalError(DatabaseError(code: code, message: lastErrorMessage).description)
+                fatalError(DatabaseError(resultCode: code, message: lastErrorMessage).description)
             }
         }
     }

@@ -57,7 +57,7 @@ class RowFetchTests: GRDBTestCase {
                         _ = try cursor.next()
                         XCTFail()
                     } catch let error as DatabaseError {
-                        XCTAssertEqual(error.code, .SQLITE_ERROR)
+                        XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                         XCTAssertEqual(error.message, "\(customError)")
                         XCTAssertEqual(error.sql!, sql)
                         XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: \(customError)")
@@ -66,7 +66,7 @@ class RowFetchTests: GRDBTestCase {
                         _ = try cursor.next()
                         XCTFail()
                     } catch let error as DatabaseError {
-                        XCTAssertEqual(error.code, .SQLITE_MISUSE)
+                        XCTAssertEqual(error.resultCode, .SQLITE_MISUSE)
                         XCTAssertEqual(error.message, "\(customError)")
                         XCTAssertEqual(error.sql!, sql)
                         XCTAssertEqual(error.description, "SQLite error 21 with statement `\(sql)`: \(customError)")
@@ -100,7 +100,7 @@ class RowFetchTests: GRDBTestCase {
                         _ = try cursor()
                         XCTFail()
                     } catch let error as DatabaseError {
-                        XCTAssertEqual(error.code, .SQLITE_ERROR)
+                        XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                         XCTAssertEqual(error.message, "no such table: nonExistingTable")
                         XCTAssertEqual(error.sql!, sql)
                         XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: no such table: nonExistingTable")
@@ -165,7 +165,7 @@ class RowFetchTests: GRDBTestCase {
                         _ = try array()
                         XCTFail()
                     } catch let error as DatabaseError {
-                        XCTAssertEqual(error.code, .SQLITE_ERROR)
+                        XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                         XCTAssertEqual(error.message, "\(customError)")
                         XCTAssertEqual(error.sql!, sql)
                         XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: \(customError)")
@@ -199,7 +199,7 @@ class RowFetchTests: GRDBTestCase {
                         _ = try array()
                         XCTFail()
                     } catch let error as DatabaseError {
-                        XCTAssertEqual(error.code, .SQLITE_ERROR)
+                        XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                         XCTAssertEqual(error.message, "no such table: nonExistingTable")
                         XCTAssertEqual(error.sql!, sql)
                         XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: no such table: nonExistingTable")
@@ -288,7 +288,7 @@ class RowFetchTests: GRDBTestCase {
                         _ = try value()
                         XCTFail()
                     } catch let error as DatabaseError {
-                        XCTAssertEqual(error.code, .SQLITE_ERROR)
+                        XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                         XCTAssertEqual(error.message, "\(customError)")
                         XCTAssertEqual(error.sql!, sql)
                         XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: \(customError)")
@@ -322,7 +322,7 @@ class RowFetchTests: GRDBTestCase {
                         _ = try value()
                         XCTFail()
                     } catch let error as DatabaseError {
-                        XCTAssertEqual(error.code, .SQLITE_ERROR)
+                        XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                         XCTAssertEqual(error.message, "no such table: nonExistingTable")
                         XCTAssertEqual(error.sql!, sql)
                         XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: no such table: nonExistingTable")

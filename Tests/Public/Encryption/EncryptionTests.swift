@@ -40,7 +40,7 @@ class EncryptionTests: GRDBTestCase {
                 do {
                     _ = try makeDatabaseQueue()
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, .SQLITE_NOTADB)
+                    XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                     XCTAssertEqual(error.message!, "file is encrypted or is not a database")
                     XCTAssertTrue(error.sql == nil)
                     XCTAssertEqual(error.description, "SQLite error 26: file is encrypted or is not a database")
@@ -66,7 +66,7 @@ class EncryptionTests: GRDBTestCase {
                 do {
                     _ = try makeDatabaseQueue()
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, .SQLITE_NOTADB)
+                    XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                     XCTAssertEqual(error.message!, "file is encrypted or is not a database")
                     XCTAssertTrue(error.sql == nil)
                     XCTAssertEqual(error.description, "SQLite error 26: file is encrypted or is not a database")
@@ -146,7 +146,7 @@ class EncryptionTests: GRDBTestCase {
                 do {
                     _ = try makeDatabasePool()
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, .SQLITE_NOTADB)
+                    XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                     XCTAssertEqual(error.message!, "file is encrypted or is not a database")
                     XCTAssertTrue(error.sql == nil)
                     XCTAssertEqual(error.description, "SQLite error 26: file is encrypted or is not a database")
@@ -171,7 +171,7 @@ class EncryptionTests: GRDBTestCase {
                 do {
                     _ = try makeDatabasePool()
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, .SQLITE_NOTADB)
+                    XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                     XCTAssertEqual(error.message!, "file is encrypted or is not a database")
                     XCTAssertTrue(error.sql == nil)
                     XCTAssertEqual(error.description, "SQLite error 26: file is encrypted or is not a database")
@@ -248,7 +248,7 @@ class EncryptionTests: GRDBTestCase {
                 do {
                     _ = try makeDatabasePool()
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, .SQLITE_NOTADB)
+                    XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                     XCTAssertEqual(error.message!, "file is encrypted or is not a database")
                     XCTAssertTrue(error.sql == nil)
                     XCTAssertEqual(error.description, "SQLite error 26: file is encrypted or is not a database")
@@ -273,7 +273,7 @@ class EncryptionTests: GRDBTestCase {
                 do {
                     _ = try makeDatabasePool()
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, .SQLITE_NOTADB)
+                    XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                     XCTAssertEqual(error.message!, "file is encrypted or is not a database")
                     XCTAssertTrue(error.sql == nil)
                     XCTAssertEqual(error.description, "SQLite error 26: file is encrypted or is not a database")
@@ -353,7 +353,7 @@ class EncryptionTests: GRDBTestCase {
                 do {
                     _ = try makeDatabaseQueue()
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, .SQLITE_NOTADB)
+                    XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                     XCTAssertEqual(error.message!, "file is encrypted or is not a database")
                     XCTAssertTrue(error.sql == nil)
                     XCTAssertEqual(error.description, "SQLite error 26: file is encrypted or is not a database")
@@ -377,7 +377,7 @@ class EncryptionTests: GRDBTestCase {
                 do {
                     _ = try makeDatabaseQueue(filename: "plaintext.sqlite")
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, .SQLITE_NOTADB)
+                    XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                     XCTAssertEqual(error.message!, "file is encrypted or is not a database")
                     XCTAssertTrue(error.sql == nil)
                     XCTAssertEqual(error.description, "SQLite error 26: file is encrypted or is not a database")
