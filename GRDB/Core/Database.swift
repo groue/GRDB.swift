@@ -315,6 +315,15 @@ public final class Database {
         }
         
         do {
+            // Use extended result codes
+            do {
+                let code = sqlite3_extended_result_codes(sqliteConnection!, 1)
+                guard code == SQLITE_OK else {
+                    throw DatabaseError(code: ResultCode(rawValue: code), message: String(cString: sqlite3_errmsg(sqliteConnection)))
+                }
+            }
+            
+            // Eventual passphrase
             #if SQLITE_HAS_CODEC
                 if let passphrase = configuration.passphrase {
                     try Database.set(passphrase: passphrase, forConnection: sqliteConnection!)
