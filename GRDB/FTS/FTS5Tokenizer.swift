@@ -116,7 +116,7 @@
             
             init(xTokenizer: fts5_tokenizer, contextPointer: UnsafeMutableRawPointer?, arguments: [String]) throws {
                 guard let xCreate = xTokenizer.xCreate else {
-                    throw DatabaseError(code: SQLITE_ERROR, message: "nil fts5_tokenizer.xCreate")
+                    throw DatabaseError(code: .SQLITE_ERROR, message: "nil fts5_tokenizer.xCreate")
                 }
                 
                 self.xTokenizer = xTokenizer
@@ -189,7 +189,7 @@
         ///     }
         public func makeTokenizer(_ descriptor: FTS5TokenizerDescriptor) throws -> FTS5Tokenizer {
             guard let api = FTS5.api(self) else {
-                throw DatabaseError(code: SQLITE_MISUSE, message: "FTS5 API not found")
+                throw DatabaseError(code: .SQLITE_MISUSE, message: "FTS5 API not found")
             }
             
             let xTokenizerPointer: UnsafeMutablePointer<fts5_tokenizer> = .allocate(capacity: 1)

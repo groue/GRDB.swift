@@ -796,7 +796,7 @@ class TransactionObserverTests: GRDBTestCase {
                         try Artwork(title: "meh").save(db)
                         XCTFail("Expected Error")
                     } catch let error as DatabaseError {
-                        XCTAssertEqual(error.code, 19)
+                        XCTAssertEqual(error.code, .SQLITE_CONSTRAINT)
                         #if SQLITE_ENABLE_PREUPDATE_HOOK
                             XCTAssertEqual(observer.willChangeCount, 0)
                         #endif
@@ -809,7 +809,7 @@ class TransactionObserverTests: GRDBTestCase {
                 }
                 XCTFail("Expected Error")
             } catch let error as DatabaseError {
-                XCTAssertEqual(error.code, 19)
+                XCTAssertEqual(error.code, .SQLITE_CONSTRAINT)
                 #if SQLITE_ENABLE_PREUPDATE_HOOK
                     XCTAssertEqual(observer.willChangeCount, 0)
                 #endif
@@ -834,7 +834,7 @@ class TransactionObserverTests: GRDBTestCase {
                         XCTFail("Expected Error")
                     } catch let error as DatabaseError {
                         // Immediate constraint check has failed.
-                        XCTAssertEqual(error.code, 19)
+                        XCTAssertEqual(error.code, .SQLITE_CONSTRAINT)
                         #if SQLITE_ENABLE_PREUPDATE_HOOK
                             XCTAssertEqual(observer.willChangeCount, 0)
                         #endif
@@ -848,7 +848,7 @@ class TransactionObserverTests: GRDBTestCase {
                 }
                 XCTFail("Expected Error")
             } catch let error as DatabaseError {
-                XCTAssertEqual(error.code, 19)
+                XCTAssertEqual(error.code, .SQLITE_CONSTRAINT)
                 #if SQLITE_ENABLE_PREUPDATE_HOOK
                     XCTAssertEqual(observer.willChangeCount, 0)
                 #endif
@@ -930,7 +930,7 @@ class TransactionObserverTests: GRDBTestCase {
                         try Artwork(title: "meh").save(db)
                         XCTFail("Expected Error")
                     } catch let error as DatabaseError {
-                        XCTAssertEqual(error.code, 19)
+                        XCTAssertEqual(error.code, .SQLITE_CONSTRAINT)
                         #if SQLITE_ENABLE_PREUPDATE_HOOK
                             XCTAssertEqual(observer.willChangeCount, 0)
                         #endif
@@ -943,7 +943,7 @@ class TransactionObserverTests: GRDBTestCase {
                 }
                 XCTFail("Expected Error")
             } catch let error as DatabaseError {
-                XCTAssertEqual(error.code, 19)
+                XCTAssertEqual(error.code, .SQLITE_CONSTRAINT)
                 #if SQLITE_ENABLE_PREUPDATE_HOOK
                     XCTAssertEqual(observer.willChangeCount, 0)
                 #endif
@@ -969,7 +969,7 @@ class TransactionObserverTests: GRDBTestCase {
                         XCTFail("Expected Error")
                     } catch let error as DatabaseError {
                         // Immediate constraint check has failed.
-                        XCTAssertEqual(error.code, 19)
+                        XCTAssertEqual(error.code, .SQLITE_CONSTRAINT)
                         #if SQLITE_ENABLE_PREUPDATE_HOOK
                             XCTAssertEqual(observer.willChangeCount, 0)
                         #endif
@@ -983,7 +983,7 @@ class TransactionObserverTests: GRDBTestCase {
                 }
                 XCTFail("Expected Error")
             } catch let error as DatabaseError {
-                XCTAssertEqual(error.code, 19)
+                XCTAssertEqual(error.code, .SQLITE_CONSTRAINT)
                 #if SQLITE_ENABLE_PREUPDATE_HOOK
                     XCTAssertEqual(observer.willChangeCount, 0)
                 #endif

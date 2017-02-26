@@ -454,7 +454,7 @@ extension RowConvertible where Self: TableMapping {
             GRDBPrecondition(dictionary.count > 0, "Invalid empty key dictionary")
             let columns = Array(dictionary.keys)
             guard let orderedColumns = try db.columnsForUniqueKey(columns, in: databaseTableName) else {
-                let error = DatabaseError(code: SQLITE_MISUSE, message: "table \(databaseTableName) has no unique index on column(s) \(columns.sorted().joined(separator: ", "))")
+                let error = DatabaseError(code: .SQLITE_MISUSE, message: "table \(databaseTableName) has no unique index on column(s) \(columns.sorted().joined(separator: ", "))")
                 if fatalErrorOnMissingUniqueIndex {
                     // Programmer error
                     fatalError(error.description)

@@ -793,7 +793,7 @@ class PersistableTests: GRDBTestCase {
                 do {
                     try Citizenship(personID: person.id!, countryIsoCode: "US").insert(db)
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, 19) // SQLITE_CONSTRAINT
+                    XCTAssertEqual(error.code, .SQLITE_CONSTRAINT)
                 }
                 try Citizenship(personID: person.id!, countryIsoCode: "FR").insert(db)
             }

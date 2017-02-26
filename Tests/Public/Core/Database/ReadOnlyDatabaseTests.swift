@@ -28,7 +28,7 @@ class ReadOnlyDatabaseTests : GRDBTestCase {
                 }
                 XCTFail()
             } catch let error as DatabaseError {
-                XCTAssertEqual(error.code, 8)   // SQLITE_READONLY
+                XCTAssertEqual(error.code, .SQLITE_READONLY)
                 XCTAssertEqual(error.message!, "attempt to write a readonly database")
                 XCTAssertEqual(error.sql!, "CREATE TABLE items (id INTEGER PRIMARY KEY)")
                 XCTAssertEqual(error.description, "SQLite error 8 with statement `CREATE TABLE items (id INTEGER PRIMARY KEY)`: attempt to write a readonly database")

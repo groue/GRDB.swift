@@ -133,7 +133,7 @@ public final class DatabasePool {
             // when kind is not .Passive.
             let code = sqlite3_wal_checkpoint_v2(db.sqliteConnection, nil, kind.rawValue, nil, nil)
             guard code == SQLITE_OK else {
-                throw DatabaseError(code: code, message: db.lastErrorMessage, sql: nil)
+                throw DatabaseError(code: ResultCode(rawValue: code), message: db.lastErrorMessage, sql: nil)
             }
         }
     }

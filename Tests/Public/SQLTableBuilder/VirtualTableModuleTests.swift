@@ -40,7 +40,7 @@ private struct ThrowingFTS3TokenizeModule : VirtualTableModule {
     }
     
     func database(_ db: Database, didCreate tableName: String, using definition: FTS3TokenizeTableDefinition) throws {
-        throw DatabaseError(code: 123)
+        throw DatabaseError(code: ResultCode(rawValue: 123))
     }
 }
 
@@ -73,7 +73,7 @@ class VirtualTableModuleTests: GRDBTestCase {
                     }
                     XCTFail("Expected DatabaseError")
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, 123)
+                    XCTAssertEqual(error.code.rawValue, 123)
                 }
                 assertDidExecute(sql: "CREATE VIRTUAL TABLE \"test\" USING fts3tokenize(simple)")
                 XCTAssertFalse(try db.tableExists("test"))

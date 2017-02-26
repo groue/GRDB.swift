@@ -144,7 +144,7 @@ extension DatabaseReader {
                     throw DatabaseError(code: dbDest.lastErrorCode, message: dbDest.lastErrorMessage)
                 }
                 guard Int(bitPattern: backup) != Int(SQLITE_ERROR) else {
-                    throw DatabaseError(code: SQLITE_ERROR)
+                    throw DatabaseError(code: .SQLITE_ERROR)
                 }
                 
                 afterBackupInit?()
@@ -158,7 +158,7 @@ extension DatabaseReader {
                         case SQLITE_OK:
                             afterBackupStep?()
                         case let code:
-                            throw DatabaseError(code: code, message: dbDest.lastErrorMessage)
+                            throw DatabaseError(code: ResultCode(rawValue: code), message: dbDest.lastErrorMessage)
                         }
                     }
                 } catch {
@@ -170,7 +170,7 @@ extension DatabaseReader {
                 case SQLITE_OK:
                     break
                 case let code:
-                    throw DatabaseError(code: code, message: dbDest.lastErrorMessage)
+                    throw DatabaseError(code: ResultCode(rawValue: code), message: dbDest.lastErrorMessage)
                 }
                 
                 dbDest.clearSchemaCache()
