@@ -1,3 +1,8 @@
+- [ ] Enable extended result codes (https://github.com/groue/GRDB.swift/issues/171)
+- [ ] Request.fetchCount() (see https://github.com/groue/GRDB.swift/issues/176#issuecomment-282783884). This method should be a customization point, not an extension.
+- [ ] Check that https://github.com/groue/GRDB.swift/issues/172#issuecomment-282511719 is true (manual deferred foreign key check)
+- [ ] Document how to query external content tables (https://github.com/groue/GRDB.swift/issues/178)
+- [ ] SQLiteLib 3.17.0
 - [ ] fts3tokenize was introduced in SQLite 3.7.17 (iOS 8.2 and OS X 10.10). And GRDB uses it before.
 - [ ] Make GRDB less stringly-typed: For each API that eats column names, check if it couldn't eat both Column and String. If this requires Column to adopt ExpressibleByStringLiteral, check if it does not introduce awful ambiguities
 - [ ] Check for SQLCipher at runtime with `PRAGMA cipher_version`: https://discuss.zetetic.net/t/important-advisory-sqlcipher-with-xcode-8-and-new-sdks/1688
