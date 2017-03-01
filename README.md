@@ -4706,7 +4706,7 @@ Considering that a local database is not some JSON loaded from a remote server, 
 
 ### DatabaseError
 
-**DatabaseError** are thrown on SQLite errors (see [the list of SQLite error codes](https://www.sqlite.org/rescode.html)):
+**DatabaseError** are thrown on SQLite errors:
 
 ```swift
 do {
@@ -4715,7 +4715,10 @@ do {
         arguments: [1, "Bobby"])
 } catch let error as DatabaseError {
     // The SQLite error code: 19 (SQLITE_CONSTRAINT)
-    error.code
+    error.resultCode
+    
+    // The extended error code: 787 (SQLITE_CONSTRAINT_FOREIGNKEY)
+    error.extendedResultCode
     
     // The eventual SQLite message: FOREIGN KEY constraint failed
     error.message
@@ -4723,11 +4726,44 @@ do {
     // The eventual erroneous SQL query
     // "INSERT INTO pets (masterId, name) VALUES (?, ?)"
     error.sql
-
+    
     // Full error description:
-    // "SQLite error 19 with statement `INSERT INTO pets (masterId, name)
+    // "SQLite error 787 with statement `INSERT INTO pets (masterId, name)
     //  VALUES (?, ?)` arguments [1, "Bobby"]: FOREIGN KEY constraint failed""
     error.description
+}
+```
+
+**SQLite uses codes to distinguish between various errors:**
+
+```swift
+do {
+    try ...
+} catch let error as DatabaseError where error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY {
+    // foreign key constraint error
+} catch let error as DatabaseError where error.resultCode == .SQLITE_CONSTRAINT {
+    // any other constraint error
+} catch let error as DatabaseError {
+    // any other database error
+}
+```
+
+In the example above, `error.extendedResultCode` is a precise [extended result code](https://www.sqlite.org/rescode.html#extended_result_code_list), and `error.resultCode` is a less precise [primary result code](https://www.sqlite.org/rescode.html#primary_result_code_list). Extended result codes are refinements of primary result codes, as `SQLITE_CONSTRAINT_FOREIGNKEY` is to `SQLITE_CONSTRAINT`, for example. See [SQLite result codes](https://www.sqlite.org/rescode.html) for more information.
+
+As a convenience, extended result codes match their primary result code in a switch statement:
+
+```swift
+do {
+    try ...
+} catch let error as DatabaseError {
+    switch error.extendedResultCode {
+    case .SQLITE_CONSTRAINT_FOREIGNKEY:
+        // foreign key constraint error
+    case .SQLITE_CONSTRAINT
+        // any other constraint error
+    default:
+        // any other database error
+    }
 }
 ```
 
