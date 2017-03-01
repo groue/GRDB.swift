@@ -234,11 +234,12 @@ extension QueryInterfaceRequest {
     
     // MARK: Counting
     
-    /// The number of rows matched by the request.
+    /// Returns a request that selects the number of rows. Don't call it
+    /// directly: instead, use the `fetchCount` method.
     ///
     /// - parameter db: A database connection.
-    public func fetchCount(_ db: Database) throws -> Int {
-        return try query.countRequest.fetchOne(db)!
+    public func countRequest(_ db: Database) throws -> AnyTypedRequest<Int> {
+        return try query.countRequest(db)
     }
 }
 

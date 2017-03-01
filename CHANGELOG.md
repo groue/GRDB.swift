@@ -1,6 +1,27 @@
 Release Notes
 =============
 
+## Next version
+
+**New**
+
+- The Request and TypedRequest protocols for [custom requests](https://github.com/groue/GRDB.swift#custom-requests) can now count:
+    
+    ```swift
+    let request: Request = ...
+    let count = try request.fetchCount(db) // Int
+    ```
+    
+    Default implementation performs a naive counting: `SELECT COUNT(*) FROM (...)`. Adopting types can refine the counting SQL by implementing the `countRequest` method:
+    
+    ```swift
+    protocol Request {
+        // customization point
+        func countRequest(_ db: Database) throws -> AnyTypedRequest<Int>
+    }
+    ```
+    
+
 ## 0.101.1
 
 Released January 20, 2017
