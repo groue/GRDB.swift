@@ -139,7 +139,7 @@ public struct DatabaseError : Error {
     /// The SQLite error code (see
     /// https://www.sqlite.org/rescode.html#primary_result_code_list).
     ///
-    ///     try {
+    ///     do {
     ///         ...
     ///     } catch let error as DatabaseError where error.resultCode == .SQL_CONSTRAINT {
     ///         // A constraint error
@@ -157,7 +157,7 @@ public struct DatabaseError : Error {
     /// The SQLite extended error code (see
     /// https://www.sqlite.org/rescode.html#extended_result_code_list).
     ///
-    ///     try {
+    ///     do {
     ///         ...
     ///     } catch let error as DatabaseError where error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY {
     ///         // A foreign key constraint error

@@ -1673,7 +1673,7 @@ Before jumping in the low-level wagon, here is the list of all SQLite APIs used 
 - `sqlite3_create_collation_v2`: see [String Comparison](#string-comparison)
 - `sqlite3_create_function_v2`, `sqlite3_result_blob`, `sqlite3_result_double`, `sqlite3_result_error`, `sqlite3_result_error_code`, `sqlite3_result_int64`, `sqlite3_result_null`, `sqlite3_result_text`, `sqlite3_user_data`, `sqlite3_value_blob`, `sqlite3_value_bytes`, `sqlite3_value_double`, `sqlite3_value_int64`, `sqlite3_value_text`, `sqlite3_value_type`: see [Custom SQL Functions](#custom-sql-functions)
 - `sqlite3_db_release_memory`: see [Memory Management](#memory-management)
-- `sqlite3_errcode`, `sqlite3_errmsg`: see [Error Handling](#error-handling)
+- `sqlite3_errcode`, `sqlite3_errmsg`, `sqlite3_errstr`, `sqlite3_extended_result_codes`: see [Error Handling](#error-handling)
 - `sqlite3_key`, `sqlite3_rekey`: see [Encryption](#encryption)
 - `sqlite3_last_insert_rowid`: see [Executing Updates](#executing-updates)
 - `sqlite3_preupdate_count`, `sqlite3_preupdate_depth`, `sqlite3_preupdate_hook`, `sqlite3_preupdate_new`, `sqlite3_preupdate_old`: see [Support for SQLite Pre-Update Hooks](#support-for-sqlite-pre-update-hooks)

@@ -1,6 +1,24 @@
 Release Notes
 =============
 
+## Next version
+
+**New**
+
+- GRDB activates SQLite's [extended result codes](https://www.sqlite.org/rescode.html)
+- The new `ResultCode` type defines constants for all SQLite [result codes and extended result codes](https://www.sqlite.org/rescode.html):
+- The SQLite error code of `DatabaseError` can be queried with `resultCode`, or `extendedResultCode`, depending on the level of details you need:
+    
+    ```swift
+    do {
+        ...
+    } catch let error as DatabaseError where error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY {
+        // handle foreign key constraint error
+    } catch let error as DatabaseError where error.resultCode == .SQLITE_CONSTRAINT {
+        // handle any other constraint error
+    }
+    ```
+
 ## 0.101.1
 
 Released January 20, 2017
