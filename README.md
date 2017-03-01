@@ -3242,17 +3242,17 @@ try request.deleteAll()
 
 ```swift
 // Custom SQL is always welcome
-try Person.fetchAll(db, "SELECT ...")       // [Person]
+try Person.fetchAll(db, "SELECT ...")   // [Person]
 ```
 
 But you may prefer to bring some elegance back in, and build custom requests on top of the `Request` and `TypedRequest` protocols:
 
 ```swift
 // No custom SQL in sight
-try Person.someCustomRequest().fetchAll(db) // [Person]
+try Person.customRequest().fetchAll(db) // [Person]
 ```
 
-Unlike QueryInterfaceRequest, these protocols can't count or delete. But they can fetch:
+Unlike QueryInterfaceRequest, these protocols can't delete. But they can fetch and count:
 
 ```swift
 /// The protocol for all types that define a way to fetch values from
@@ -3261,6 +3261,9 @@ protocol Request {
     /// A tuple that contains a prepared statement that is ready to be
     /// executed, and an eventual row adapter.
     func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?)
+    
+    /// The number of rows fetched by the request.
+    func fetchCount(_ db: Database) throws -> Int
 }
 
 /// The protocol for typed fetch requests.
@@ -3270,7 +3273,12 @@ protocol TypedRequest : Request {
 }
 ```
 
-The `prepare(_:)` function returns a tuple made of a [prepared statement](#prepared-statements) and an optional [row adapter](#row-adapters). The prepared statement tells which SQL query should be executed. The row adapter can help *presenting* the fetched rows in the way expected by the row consumers (we'll see an example below).
+The `prepare` method returns a tuple made of a [prepared statement](#prepared-statements) and an optional [row adapter](#row-adapters). The prepared statement tells which SQL query should be executed. The row adapter can help *presenting* the fetched rows in the way expected by the row consumers (we'll see an example below).
+
+The `fetchCount` method has a default implementation that builds a correct but naive SQL query from the statement returned by `prepare`: `SELECT COUNT(*) FROM (...)`. Adopting types can refine the counting SQL by refining their `fetchCount` implementation.
+
+
+### Fetching From Custom Requests
 
 A Request doesn't know what to fetch, but it can feed the [fetching methods](#fetching-methods) of any fetchable type ([Row](#fetching-rows), [value](#value-queries), or [record](#records)):
 
@@ -3290,7 +3298,10 @@ try request.fetchAll(db)         // [Person]
 try request.fetchOne(db)         // Person?
 ```
 
-**To build requests**, you can create your own type that adopts the protocols, derive requests from other requests, or use one of the built-in concrete types:
+
+### Building Custom Requests
+
+**To build custom requests**, you can create your own type that adopts the protocols, or derive requests from other requests, or use one of the built-in concrete types:
 
 - [Request](http://cocoadocs.org/docsets/GRDB.swift/0.101.1/Protocols/Request.html): the protocol for all requests
 - [TypedRequest](http://cocoadocs.org/docsets/GRDB.swift/0.101.1/Protocols/TypedRequest.html): the protocol for all typed requests
@@ -3301,8 +3312,7 @@ try request.fetchOne(db)         // Person?
 Rebind the fetched type of requests:
 
 ```swift
-let maxScore = Player // Int?
-    .select(max(scoreColumn))
+let maxScore = Player.select(max(scoreColumn))
     .bound(to: Int.self)
     .fetchOne(db)
 ```
@@ -3311,13 +3321,14 @@ Bind custom SQL requests to your record types:
 
 ```swift
 extension Person {
-    static func someCustomRequest() -> AnyTypedRequest<Person> {
-        let sqlRequest = SQLRequest("SELECT * FROM persons")
-        return sqlRequest.bound(to: Person.self)
+    static func customRequest(...) -> AnyTypedRequest<Person> {
+        let request = SQLRequest("SELECT ...", arguments: ...)
+        return request.bound(to: Person.self)
     }
 }
 
-try Person.someCustomRequest().fetchAll(db) // [Person]
+try Person.customRequest(...).fetchAll(db)   // [Person]
+try Person.customRequest(...).fetchCount(db) // Int
 ```
 
 Use [row adapters](#row-adapters) to ease the consumption of complex rows:

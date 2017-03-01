@@ -13,7 +13,7 @@ public protocol Request {
     /// executed, and an eventual row adapter.
     func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?)
     
-    /// The number of rows matched by the request.
+    /// The number of rows fetched by the request.
     ///
     /// Default implementation builds a naive SQL query based on the statement
     /// returned by the `prepare` method: `SELECT COUNT(*) FROM (...)`.
@@ -26,7 +26,7 @@ public protocol Request {
 }
 
 extension Request {
-    /// The number of rows matched by the request.
+    /// The number of rows fetched by the request.
     ///
     /// This default implementation builds a naive SQL query based on the
     /// statement returned by the `prepare` method: `SELECT COUNT(*) FROM (...)`.

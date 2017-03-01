@@ -234,7 +234,7 @@ extension QueryInterfaceRequest {
     
     // MARK: Counting
     
-    /// The number of rows matched by the request.
+    /// The number of rows fetched by the request.
     ///
     /// - parameter db: A database connection.
     public func fetchCount(_ db: Database) throws -> Int {
