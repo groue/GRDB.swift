@@ -87,7 +87,7 @@
                         return SQLITE_OK
                     })
                     if (code != SQLITE_OK) {
-                        throw DatabaseError(resultCode: code)
+                        throw DatabaseError(resultCode: ResultCode(rawValue: code))
                     }
                 }
                 return context.tokens
@@ -147,13 +147,13 @@
                 }
                 
                 guard code == SQLITE_OK else {
-                    throw DatabaseError(resultCode: code, message: "failed fts5_tokenizer.xCreate")
+                    throw DatabaseError(resultCode: ResultCode(rawValue: code), message: "failed fts5_tokenizer.xCreate")
                 }
                 
                 if let tokenizerPointer = tokenizerPointer {
                     self.tokenizerPointer = tokenizerPointer
                 } else {
-                    throw DatabaseError(resultCode: code, message: "nil tokenizer")
+                    throw DatabaseError(resultCode: ResultCode(rawValue: code), message: "nil tokenizer")
                 }
             }
             
@@ -205,7 +205,7 @@
                 xTokenizerPointer)
             
             guard code == SQLITE_OK else {
-                throw DatabaseError(resultCode: code)
+                throw DatabaseError(resultCode: ResultCode(rawValue: code))
             }
             
             let contextPointer = contextHandle.pointee
