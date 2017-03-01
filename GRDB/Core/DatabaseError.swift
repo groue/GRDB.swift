@@ -34,12 +34,34 @@ public struct ResultCode : RawRepresentable, Equatable, CustomStringConvertible 
         return ResultCode(rawValue: rawValue & 0xFF)
     }
     
+    var isPrimary: Bool {
+        return self == primaryResultCode
+    }
+    
     public var description: String {
         return "\(rawValue) (\(String(cString: sqlite3_errstr(rawValue))))"
     }
     
     public static func == (_ lhs: ResultCode, _ rhs: ResultCode) -> Bool {
         return lhs.rawValue == rhs.rawValue
+    }
+    
+    /// Returns true if the code on the left matches the code on the right.
+    ///
+    /// Primary result codes match themselves and their extended result codes,
+    /// while extended result codes match only themselves:
+    ///
+    ///     switch error.extendedResultCode {
+    ///     case .SQLITE_CONSTRAINT_FOREIGNKEY: // foreign key constraint error
+    ///     case .SQLITE_CONSTRAINT:            // any other constraint error
+    ///     default:                            // any other database error
+    ///     }
+    public static func ~= (pattern: ResultCode, code: ResultCode) -> Bool {
+        if pattern.isPrimary {
+            return pattern == code.primaryResultCode
+        } else {
+            return pattern == code
+        }
     }
     
     public static let SQLITE_OK           = ResultCode(rawValue: 0)   // Successful result
