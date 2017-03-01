@@ -4757,9 +4757,9 @@ do {
     try ...
 } catch let error as DatabaseError {
     switch error.extendedResultCode {
-    case .SQLITE_CONSTRAINT_FOREIGNKEY:
+    case ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY:
         // foreign key constraint error
-    case .SQLITE_CONSTRAINT:
+    case ResultCode.SQLITE_CONSTRAINT:
         // any other constraint error
     default:
         // any other database error
