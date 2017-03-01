@@ -13,8 +13,7 @@ public protocol Request {
     /// executed, and an eventual row adapter.
     func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?)
     
-    /// Returns a request that selects the number of rows. Don't call it
-    /// directly: instead, use the `fetchCount` method.
+    /// The number of rows matched by the request.
     ///
     /// Default implementation builds a naive SQL query based on the statement
     /// returned by the `prepare` method: `SELECT COUNT(*) FROM (...)`.
@@ -23,28 +22,20 @@ public protocol Request {
     /// efficient SQL.
     ///
     /// - parameter db: A database connection.
-    func countRequest(_ db: Database) throws -> AnyTypedRequest<Int>
+    func fetchCount(_ db: Database) throws -> Int
 }
 
 extension Request {
-    /// Returns a request that selects the number of rows. Don't call it
-    /// directly: instead, use the `fetchCount` method.
+    /// The number of rows matched by the request.
     ///
     /// This default implementation builds a naive SQL query based on the
     /// statement returned by the `prepare` method: `SELECT COUNT(*) FROM (...)`.
     ///
     /// - parameter db: A database connection.
-    public func countRequest(_ db: Database) throws -> AnyTypedRequest<Int> {
-        let (statement, _) = try prepare(db)
-        let sql = statement.sql
-        return SQLRequest("SELECT COUNT(*) FROM (\(sql))", arguments: statement.arguments).bound(to: Int.self)
-    }
-    
-    /// The number of rows matched by the request.
-    ///
-    /// - parameter db: A database connection.
     public func fetchCount(_ db: Database) throws -> Int {
-        return try countRequest(db).fetchOne(db)!
+        let (statement, _) = try prepare(db)
+        let sql = "SELECT COUNT(*) FROM (\(statement.sql))"
+        return try Int.fetchOne(db, sql, arguments: statement.arguments)!
     }
 }
 

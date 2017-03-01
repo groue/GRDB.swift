@@ -91,8 +91,8 @@ struct QueryInterfaceSelectQueryDefinition {
     }
     
     /// Part of Request protocol
-    func countRequest(_ db: Database) throws -> AnyTypedRequest<Int> {
-        return countQuery.bound(to: Int.self)
+    func fetchCount(_ db: Database) throws -> Int {
+        return try Int.fetchOne(db, countQuery)!
     }
     
     private var countQuery: QueryInterfaceSelectQueryDefinition {
