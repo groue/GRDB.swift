@@ -3275,7 +3275,7 @@ protocol TypedRequest : Request {
 
 The `prepare` method returns a tuple made of a [prepared statement](#prepared-statements) and an optional [row adapter](#row-adapters). The prepared statement tells which SQL query should be executed. The row adapter can help *presenting* the fetched rows in the way expected by the row consumers (we'll see an example below).
 
-The `fetchCount` method has a default implementation that builds a correct but naive SQL query from the statement returned by `prepare`: `SELECT COUNT(*) FROM (...)`. Adopting types can refine the counting SQL by refining their `fetchCount` implementation.
+The `fetchCount` method has a default implementation that builds a correct but naive SQL query from the statement returned by `prepare`: `SELECT COUNT(*) FROM (...)`. Adopting types can refine the counting SQL by customizing their `fetchCount` implementation.
 
 
 ### Fetching From Custom Requests
