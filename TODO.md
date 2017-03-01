@@ -2,7 +2,7 @@
 - [ ] Enable extended result codes (https://github.com/groue/GRDB.swift/issues/171)
 - [ ] Request.fetchCount() (see https://github.com/groue/GRDB.swift/issues/176#issuecomment-282783884). This method should be a customization point, not an extension.
     - [X] implementation
-    - [ ] tests
+    - [X] tests
     - [ ] documentation
 - [ ] Check that https://github.com/groue/GRDB.swift/issues/172#issuecomment-282511719 is true (manual deferred foreign key check)
 - [ ] Document how to query external content tables (https://github.com/groue/GRDB.swift/issues/178)
