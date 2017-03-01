@@ -5,7 +5,7 @@ Release Notes
 
 **New**
 
-- GRDB activates SQLite's [extended result codes](https://www.sqlite.org/rescode.html).
+- GRDB activates SQLite's [extended result codes](https://www.sqlite.org/rescode.html) for more detailed error reporting.
 - The new `ResultCode` type defines constants for all SQLite [result codes and extended result codes](https://www.sqlite.org/rescode.html).
 - The SQLite error code of `DatabaseError` can be queried with `resultCode`, or `extendedResultCode`, depending on the level of details you need:
     
