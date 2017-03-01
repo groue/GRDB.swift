@@ -1635,7 +1635,7 @@ extension Database {
             // TODO: test that isInsideTransaction, savepointStack, transaction
             // observers, etc. are in good shape when such an implicit rollback
             // happens.
-            guard let underlyingError = underlyingError as? DatabaseError, [.SQLITE_FULL, .SQLITE_IOERR, .SQLITE_BUSY, .SQLITE_NOMEM].contains(underlyingError.primaryResultCode) else {
+            guard let underlyingError = underlyingError as? DatabaseError, [.SQLITE_FULL, .SQLITE_IOERR, .SQLITE_BUSY, .SQLITE_NOMEM].contains(underlyingError.resultCode) else {
                 throw error
             }
         }

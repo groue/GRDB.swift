@@ -118,7 +118,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                 // The first migration should be committed.
                 // The second migration should be rollbacked.
                 
-                XCTAssertEqual(error.primaryResultCode, .SQLITE_CONSTRAINT)
+                XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
                 XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
                 XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
                 XCTAssertEqual(error.description.lowercased(), "sqlite error 787 with statement `insert into pets (masterid, name) values (?, ?)` arguments [123, \"bobby\"]: foreign key constraint failed")
@@ -172,7 +172,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                 // Migration 1 and 2 should be committed.
                 // Migration 3 should not be committed.
                 
-                XCTAssertEqual(error.primaryResultCode, .SQLITE_CONSTRAINT)
+                XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
                 XCTAssertEqual(error.message!, "FOREIGN KEY constraint failed")
                 XCTAssertTrue(error.sql == nil)
                 XCTAssertEqual(error.description, "SQLite error 19: FOREIGN KEY constraint failed")

@@ -25,6 +25,11 @@ public struct ResultCode : RawRepresentable, Equatable, CustomStringConvertible 
         self.rawValue = rawValue
     }
     
+    /// A result code limited to the least significant 8 bits of the receiver.
+    /// See https://www.sqlite.org/rescode.html for more information.
+    ///
+    ///     let resultCode = .SQLITE_CONSTRAINT_FOREIGNKEY
+    ///     resultCode.primaryResultCode == .SQLITE_CONSTRAINT // true
     public var primaryResultCode: ResultCode {
         return ResultCode(rawValue: rawValue & 0xFF)
     }
@@ -131,12 +136,35 @@ public struct ResultCode : RawRepresentable, Equatable, CustomStringConvertible 
 /// DatabaseError wraps an SQLite error.
 public struct DatabaseError : Error {
     
-    /// The SQLite error code (see https://www.sqlite.org/c3ref/c_abort.html).
-    public let resultCode: ResultCode
-    
-    public var primaryResultCode: ResultCode {
-        return resultCode.primaryResultCode
+    /// The SQLite error code (see
+    /// https://www.sqlite.org/rescode.html#primary_result_code_list).
+    ///
+    ///     try {
+    ///         ...
+    ///     } catch let error as DatabaseError where error.resultCode == .SQL_CONSTRAINT {
+    ///         // A constraint error
+    ///     }
+    ///
+    /// This property returns a "primary result code", that is to say the least
+    /// significant 8 bits of any SQLite result code. See
+    /// https://www.sqlite.org/rescode.html for more information.
+    ///
+    /// See also `extendedResultCode`.
+    public var resultCode: ResultCode {
+        return extendedResultCode.primaryResultCode
     }
+    
+    /// The SQLite extended error code (see
+    /// https://www.sqlite.org/rescode.html#extended_result_code_list).
+    ///
+    ///     try {
+    ///         ...
+    ///     } catch let error as DatabaseError where error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY {
+    ///         // A foreign key constraint error
+    ///     }
+    ///
+    /// See also `resultCode`.
+    public let extendedResultCode: ResultCode
     
     /// The SQLite error message.
     public let message: String?
@@ -145,7 +173,7 @@ public struct DatabaseError : Error {
     public let sql: String?
     
     public init(resultCode: ResultCode = .SQLITE_ERROR, message: String? = nil, sql: String? = nil, arguments: StatementArguments? = nil) {
-        self.resultCode = resultCode
+        self.extendedResultCode = resultCode
         self.message = message
         self.sql = sql
         self.arguments = arguments
@@ -162,7 +190,7 @@ public struct DatabaseError : Error {
 extension DatabaseError: CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
-        var description = "SQLite error \(resultCode.rawValue)"
+        var description = "SQLite error \(extendedResultCode.rawValue)"
         if let sql = sql {
             description += " with statement `\(sql)`"
         }
