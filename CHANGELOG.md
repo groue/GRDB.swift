@@ -3,7 +3,7 @@ Release Notes
 
 ## Next version
 
-**New**
+**New: Error Handling**
 
 - GRDB activates SQLite's [extended result codes](https://www.sqlite.org/rescode.html) for more detailed error reporting.
 - The new `ResultCode` type defines constants for all SQLite [result codes and extended result codes](https://www.sqlite.org/rescode.html).
@@ -18,6 +18,18 @@ Release Notes
         // handle any other constraint error
     }
     ```
+
+**New: Request**
+
+- The Request protocol for [custom requests](https://github.com/groue/GRDB.swift#custom-requests) learned how to count:
+    
+    ```swift
+    let request: Request = ...
+    let count = try request.fetchCount(db) // Int
+    ```
+    
+    Default implementation performs a naive counting based on the request SQL: `SELECT COUNT(*) FROM (...)`. Adopting types can refine the counting SQL by refining their `fetchCount` implementation.
+    
 
 ## 0.101.1
 
