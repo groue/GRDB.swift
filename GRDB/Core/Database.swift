@@ -779,7 +779,7 @@ extension Database {
                     if let message = error.message {
                         sqlite3_result_error(context, message, -1)
                     }
-                    sqlite3_result_error_code(context, error.resultCode.rawValue)
+                    sqlite3_result_error_code(context, error.extendedResultCode.rawValue)
                 } catch {
                     sqlite3_result_error(context, "\(error)", -1)
                 }

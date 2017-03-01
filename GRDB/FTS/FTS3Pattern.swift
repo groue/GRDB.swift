@@ -24,7 +24,7 @@ public struct FTS3Pattern {
             }
         } catch let error as DatabaseError {
             // Remove private SQL & arguments from the thrown error
-            throw DatabaseError(resultCode: error.resultCode, message: error.message, sql: nil, arguments: nil)
+            throw DatabaseError(resultCode: error.extendedResultCode, message: error.message, sql: nil, arguments: nil)
         }
         
         // Pattern is valid
