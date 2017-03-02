@@ -29,12 +29,13 @@ Release Notes
     let count = try request.fetchCount(db) // Int
     ```
     
-    Default implementation performs a naive counting based on the request SQL: `SELECT COUNT(*) FROM (...)`. Adopting types can refine the counting SQL by refining their `fetchCount` implementation.
+    Default implementation performs a naive counting based on the request SQL: `SELECT COUNT(*) FROM (...)`. Adopting types can refine the counting SQL by providing their own `fetchCount` implementation.
 
 
 **Breaking Changes**
 
 - `DatabaseError.code` has been removed, replaced with `DatabaseError.resultCode` and `DatabaseError.extendedResultCode`.
+- `DatabaseMigrator.registerMigrationWithDisabledForeignKeyChecks` has been renamed `DatabaseMigrator.registerMigrationWithDeferredForeignKeyCheck` ([documentation](https://github.com/groue/GRDB.swift#advanced-database-schema-changes))
 
 
 ## 0.101.1
