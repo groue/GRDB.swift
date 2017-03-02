@@ -3423,11 +3423,11 @@ try migrator.migrate(dbQueue) // or migrator.migrate(dbPool)
 
 SQLite does not support many schema changes, and won't let you drop a table column with "ALTER TABLE ... DROP COLUMN ...", for example.
 
-Yet any kind of schema change is still possible. The SQLite documentation explains in detail how to do so: https://www.sqlite.org/lang_altertable.html#otheralter. This technique requires the temporary disabling of foreign key checks, and is supported by the `registerMigrationWithDisabledForeignKeyChecks` function:
+Yet any kind of schema change is still possible. The SQLite documentation explains in detail how to do so: https://www.sqlite.org/lang_altertable.html#otheralter. This technique requires the temporary disabling of foreign key checks, and is supported by the `registerMigrationWithDeferredForeignKeyCheck` function:
 
 ```swift
 // Add a NOT NULL constraint on persons.name:
-migrator.registerMigrationWithDisabledForeignKeyChecks("AddNotNullCheckOnName") { db in
+migrator.registerMigrationWithDeferredForeignKeyCheck("AddNotNullCheckOnName") { db in
     try db.create(table: "new_persons") { t in
         t.column("id", .integer).primaryKey()
         t.column("name", .text).notNull()
@@ -4002,6 +4002,32 @@ The eventual content already present in the regular table is indexed, and every 
 For more information, see the SQLite documentation about external content tables: [FTS4](https://www.sqlite.org/fts3.html#_external_content_fts4_tables_), [FTS5](https://sqlite.org/fts5.html#external_content_tables).
 
 See also [WWDC Companion](https://github.com/groue/WWDCCompanion), a sample app that uses external content tables to store, display, and let the user search the WWDC 2016 sessions.
+
+
+#### Querying External Content Full-Text Tables
+
+When you need to perform a full-text search, and the external content table contains all the data you need, you can simply query the full-text table.
+
+But if you need to load columns from the regular table, and in the same time perform a full-text search, then you will need to query both tables at the same time.
+
+That is because SQLite will throw an error when you try to perform a full-text search on a regular table:
+
+```swift
+// SQLite error 1: unable to use function MATCH in the requested context
+// SELECT * FROM books WHERE books MATCH '...'
+let books = Book.matching(pattern).fetchAll(db)
+```
+
+The solution is to perform a joined request, using raw SQL:
+
+```swift
+let sql = "SELECT books.* " +
+          "FROM books " +
+          "JOIN books_ft ON " +
+          "books_ft.rowid = books.rowid AND " +
+          "books_ft MATCH ?"
+let books = Book.fetchAll(db, sql, arguments: [pattern])
+```
 
 
 ### Full-Text Records
