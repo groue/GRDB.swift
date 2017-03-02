@@ -1,4 +1,4 @@
-- [ ] registerMigrationWithDisabledForeignKeyChecks should be renamed registerMigrationWithDeferredForeignKeyChecks
+- [X] registerMigrationWithDisabledForeignKeyChecks should be renamed registerMigrationWithDeferredForeignKeyCheck
 - [ ] Enable extended result codes (https://github.com/groue/GRDB.swift/issues/171)
 - [ ] Request.fetchCount() (see https://github.com/groue/GRDB.swift/issues/176#issuecomment-282783884). This method should be a customization point, not an extension.
 - [ ] Check that https://github.com/groue/GRDB.swift/issues/172#issuecomment-282511719 is true (manual deferred foreign key check)

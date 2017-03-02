@@ -1,6 +1,14 @@
 Release Notes
 =============
 
+## Next version
+
+**Breaking Changes**
+
+- `DatabaseMigrator.registerMigrationWithDisabledForeignKeyChecks` has been renamed `DatabaseMigrator.registerMigrationWithDeferredForeignKeyCheck` ([documentation](https://github.com/groue/GRDB.swift#advanced-database-schema-changes))
+
+
+
 ## 0.101.1
 
 Released January 20, 2017

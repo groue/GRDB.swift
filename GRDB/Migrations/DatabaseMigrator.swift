@@ -65,7 +65,7 @@ public struct DatabaseMigrator {
         /// Registers an advanced migration, as described at https://www.sqlite.org/lang_altertable.html#otheralter
         ///
         ///     // Add a NOT NULL constraint on persons.name:
-        ///     migrator.registerMigrationWithDisabledForeignKeyChecks("AddNotNullCheckOnName") { db in
+        ///     migrator.registerMigrationWithDeferredForeignKeyCheck("AddNotNullCheckOnName") { db in
         ///         try db.execute(
         ///             "CREATE TABLE new_persons (id INTEGER PRIMARY KEY, name TEXT NOT NULL);" +
         ///             "INSERT INTO new_persons SELECT * FROM persons;" +
@@ -81,7 +81,7 @@ public struct DatabaseMigrator {
         ///     - identifier: The migration identifier.
         ///     - block: The migration block that performs SQL statements.
         /// - precondition: No migration with the same same as already been registered.
-        public mutating func registerMigrationWithDisabledForeignKeyChecks(_ identifier: String, migrate: @escaping (Database) throws -> Void) {
+        public mutating func registerMigrationWithDeferredForeignKeyCheck(_ identifier: String, migrate: @escaping (Database) throws -> Void) {
             registerMigration(Migration(identifier: identifier, disabledForeignKeyChecks: true, migrate: migrate))
         }
     #else
@@ -89,7 +89,7 @@ public struct DatabaseMigrator {
         /// Registers an advanced migration, as described at https://www.sqlite.org/lang_altertable.html#otheralter
         ///
         ///     // Add a NOT NULL constraint on persons.name:
-        ///     migrator.registerMigrationWithDisabledForeignKeyChecks("AddNotNullCheckOnName") { db in
+        ///     migrator.registerMigrationWithDeferredForeignKeyCheck("AddNotNullCheckOnName") { db in
         ///         try db.execute(
         ///             "CREATE TABLE new_persons (id INTEGER PRIMARY KEY, name TEXT NOT NULL);" +
         ///             "INSERT INTO new_persons SELECT * FROM persons;" +
@@ -105,7 +105,7 @@ public struct DatabaseMigrator {
         ///     - identifier: The migration identifier.
         ///     - block: The migration block that performs SQL statements.
         /// - precondition: No migration with the same same as already been registered.
-        public mutating func registerMigrationWithDisabledForeignKeyChecks(_ identifier: String, migrate: @escaping (Database) throws -> Void) {
+        public mutating func registerMigrationWithDeferredForeignKeyCheck(_ identifier: String, migrate: @escaping (Database) throws -> Void) {
             registerMigration(Migration(identifier: identifier, disabledForeignKeyChecks: true, migrate: migrate))
         }
     #endif

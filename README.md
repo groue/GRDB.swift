@@ -3412,11 +3412,11 @@ try migrator.migrate(dbQueue) // or migrator.migrate(dbPool)
 
 SQLite does not support many schema changes, and won't let you drop a table column with "ALTER TABLE ... DROP COLUMN ...", for example.
 
-Yet any kind of schema change is still possible. The SQLite documentation explains in detail how to do so: https://www.sqlite.org/lang_altertable.html#otheralter. This technique requires the temporary disabling of foreign key checks, and is supported by the `registerMigrationWithDisabledForeignKeyChecks` function:
+Yet any kind of schema change is still possible. The SQLite documentation explains in detail how to do so: https://www.sqlite.org/lang_altertable.html#otheralter. This technique requires the temporary disabling of foreign key checks, and is supported by the `registerMigrationWithDeferredForeignKeyCheck` function:
 
 ```swift
 // Add a NOT NULL constraint on persons.name:
-migrator.registerMigrationWithDisabledForeignKeyChecks("AddNotNullCheckOnName") { db in
+migrator.registerMigrationWithDeferredForeignKeyCheck("AddNotNullCheckOnName") { db in
     try db.create(table: "new_persons") { t in
         t.column("id", .integer).primaryKey()
         t.column("name", .text).notNull()
