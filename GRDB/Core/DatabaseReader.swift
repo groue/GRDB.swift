@@ -158,7 +158,7 @@ extension DatabaseReader {
                         case SQLITE_OK:
                             afterBackupStep?()
                         case let code:
-                            throw DatabaseError(resultCode: ResultCode(rawValue: code), message: dbDest.lastErrorMessage)
+                            throw DatabaseError(resultCode: code, message: dbDest.lastErrorMessage)
                         }
                     }
                 } catch {
@@ -170,7 +170,7 @@ extension DatabaseReader {
                 case SQLITE_OK:
                     break
                 case let code:
-                    throw DatabaseError(resultCode: ResultCode(rawValue: code), message: dbDest.lastErrorMessage)
+                    throw DatabaseError(resultCode: code, message: dbDest.lastErrorMessage)
                 }
                 
                 dbDest.clearSchemaCache()

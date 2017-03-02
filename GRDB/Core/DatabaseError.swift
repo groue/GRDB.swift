@@ -200,6 +200,7 @@ public struct DatabaseError : Error {
     /// The SQL query that yielded the error (if relevant).
     public let sql: String?
     
+    /// Creates a Database Error
     public init(resultCode: ResultCode = .SQLITE_ERROR, message: String? = nil, sql: String? = nil, arguments: StatementArguments? = nil) {
         self.extendedResultCode = resultCode
         self.message = message
@@ -207,6 +208,13 @@ public struct DatabaseError : Error {
         self.arguments = arguments
     }
     
+    /// Creates a Database Error with a raw Int32 result code.
+    ///
+    /// This initializer is not public because library user is not supposed to
+    /// be exposed to raw result codes.
+    init(resultCode: Int32, message: String? = nil, sql: String? = nil, arguments: StatementArguments? = nil) {
+        self.init(resultCode: ResultCode(rawValue: resultCode), message: message, sql: sql, arguments: arguments)
+    }
     
     // MARK: Not public
     
