@@ -269,7 +269,7 @@ public final class Database {
         return Int(sqlite3_total_changes(sqliteConnection))
     }
     
-    var lastErrorCode: Int32 { return sqlite3_errcode(sqliteConnection) }
+    var lastErrorCode: ResultCode { return ResultCode(rawValue: sqlite3_errcode(sqliteConnection)) }
     var lastErrorMessage: String? { return String(cString: sqlite3_errmsg(sqliteConnection)) }
     
     /// True if the database connection is currently in a transaction.
@@ -311,10 +311,19 @@ public final class Database {
         var sqliteConnection: SQLiteConnection? = nil
         let code = sqlite3_open_v2(path, &sqliteConnection, configuration.SQLiteOpenFlags, nil)
         guard code == SQLITE_OK else {
-            throw DatabaseError(code: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
+            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
         }
         
         do {
+            // Use extended result codes
+            do {
+                let code = sqlite3_extended_result_codes(sqliteConnection!, 1)
+                guard code == SQLITE_OK else {
+                    throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
+                }
+            }
+            
+            // Eventual passphrase
             #if SQLITE_HAS_CODEC
                 if let passphrase = configuration.passphrase {
                     try Database.set(passphrase: passphrase, forConnection: sqliteConnection!)
@@ -329,7 +338,7 @@ public final class Database {
             do {
                 let code = sqlite3_exec(sqliteConnection, "SELECT * FROM sqlite_master LIMIT 1", nil, nil, nil)
                 guard code == SQLITE_OK else {
-                    throw DatabaseError(code: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
+                    throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
                 }
             }
         } catch {
@@ -655,7 +664,7 @@ extension Database {
         }
         let validateRemainingArguments = {
             if !arguments.values.isEmpty {
-                throw DatabaseError(code: SQLITE_MISUSE, message: "wrong number of statement arguments: \(initialValuesCount)")
+                throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "wrong number of statement arguments: \(initialValuesCount)")
             }
         }
         
@@ -681,7 +690,7 @@ extension Database {
                 var sqliteStatement: SQLiteStatement? = nil
                 let code = sqlite3_prepare_v2(sqliteConnection, statementStart, -1, &sqliteStatement, &statementEnd)
                 guard code == SQLITE_OK else {
-                    error = DatabaseError(code: code, message: lastErrorMessage, sql: sql)
+                    error = DatabaseError(resultCode: code, message: lastErrorMessage, sql: sql)
                     break
                 }
                 
@@ -770,7 +779,7 @@ extension Database {
                     if let message = error.message {
                         sqlite3_result_error(context, message, -1)
                     }
-                    sqlite3_result_error_code(context, Int32(error.code))
+                    sqlite3_result_error_code(context, error.extendedResultCode.rawValue)
                 } catch {
                     sqlite3_result_error(context, "\(error)", -1)
                 }
@@ -778,7 +787,7 @@ extension Database {
         
         guard code == SQLITE_OK else {
             // Assume a GRDB bug: there is no point throwing any error.
-            fatalError(DatabaseError(code: code, message: lastErrorMessage).description)
+            fatalError(DatabaseError(resultCode: code, message: lastErrorMessage).description)
         }
     }
     
@@ -793,7 +802,7 @@ extension Database {
             nil, nil, nil, nil, nil)
         guard code == SQLITE_OK else {
             // Assume a GRDB bug: there is no point throwing any error.
-            fatalError(DatabaseError(code: code, message: lastErrorMessage).description)
+            fatalError(DatabaseError(resultCode: code, message: lastErrorMessage).description)
         }
     }
 }
@@ -882,7 +891,7 @@ extension Database {
             }, nil)
         guard code == SQLITE_OK else {
             // Assume a GRDB bug: there is no point throwing any error.
-            fatalError(DatabaseError(code: code, message: lastErrorMessage).description)
+            fatalError(DatabaseError(resultCode: code, message: lastErrorMessage).description)
         }
     }
     
@@ -951,7 +960,7 @@ extension Database {
             sqlite3_key(sqliteConnection, bytes, Int32(data.count))
         }
         guard code == SQLITE_OK else {
-            throw DatabaseError(code: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
+            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
         }
     }
 
@@ -970,7 +979,7 @@ extension Database {
             sqlite3_rekey(sqliteConnection, bytes, Int32(data.count))
         }
         guard code == SQLITE_OK else {
-            throw DatabaseError(code: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
+            throw DatabaseError(resultCode: code, message: lastErrorMessage)
         }
     }
 }
@@ -1626,7 +1635,7 @@ extension Database {
             // TODO: test that isInsideTransaction, savepointStack, transaction
             // observers, etc. are in good shape when such an implicit rollback
             // happens.
-            guard let underlyingError = underlyingError as? DatabaseError, [SQLITE_FULL, SQLITE_IOERR, SQLITE_BUSY, SQLITE_NOMEM].contains(Int32(underlyingError.code)) else {
+            guard let underlyingError = underlyingError as? DatabaseError, [.SQLITE_FULL, .SQLITE_IOERR, .SQLITE_BUSY, .SQLITE_NOMEM].contains(underlyingError.resultCode) else {
                 throw error
             }
         }

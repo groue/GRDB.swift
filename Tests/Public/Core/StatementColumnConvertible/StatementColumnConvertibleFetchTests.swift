@@ -144,7 +144,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                         _ = try cursor.next()
                         XCTFail()
                     } catch let error as DatabaseError {
-                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                         XCTAssertEqual(error.message, "could not convert database value NULL to \(Fetched.self)")
                         XCTAssertEqual(error.sql!, sql)
                         XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: could not convert database value NULL to \(Fetched.self)")
@@ -190,7 +190,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                         _ = try cursor.next()
                         XCTFail()
                     } catch let error as DatabaseError {
-                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                         XCTAssertEqual(error.message, "\(customError)")
                         XCTAssertEqual(error.sql!, sql)
                         XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: \(customError)")
@@ -199,7 +199,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                         _ = try cursor.next()
                         XCTFail()
                     } catch let error as DatabaseError {
-                        XCTAssertEqual(error.code, 21) // SQLITE_MISUSE
+                        XCTAssertEqual(error.resultCode, .SQLITE_MISUSE)
                         XCTAssertEqual(error.message, "\(customError)")
                         XCTAssertEqual(error.sql!, sql)
                         XCTAssertEqual(error.description, "SQLite error 21 with statement `\(sql)`: \(customError)")
@@ -233,7 +233,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                         _ = try cursor()
                         XCTFail()
                     } catch let error as DatabaseError {
-                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                         XCTAssertEqual(error.message, "no such table: nonExistingTable")
                         XCTAssertEqual(error.sql!, sql)
                         XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: no such table: nonExistingTable")
@@ -296,7 +296,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                         _ = try array()
                         XCTFail()
                     } catch let error as DatabaseError {
-                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                         XCTAssertEqual(error.message, "could not convert database value NULL to \(Fetched.self)")
                         XCTAssertEqual(error.sql!, sql)
                         XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: could not convert database value NULL to \(Fetched.self)")
@@ -334,7 +334,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                         _ = try array()
                         XCTFail()
                     } catch let error as DatabaseError {
-                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                         XCTAssertEqual(error.message, "\(customError)")
                         XCTAssertEqual(error.sql!, sql)
                         XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: \(customError)")
@@ -368,7 +368,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                         _ = try array()
                         XCTFail()
                     } catch let error as DatabaseError {
-                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                         XCTAssertEqual(error.message, "no such table: nonExistingTable")
                         XCTAssertEqual(error.sql!, sql)
                         XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: no such table: nonExistingTable")
@@ -478,7 +478,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                         _ = try value()
                         XCTFail()
                     } catch let error as DatabaseError {
-                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                         XCTAssertEqual(error.message, "\(customError)")
                         XCTAssertEqual(error.sql!, sql)
                         XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: \(customError)")
@@ -512,7 +512,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                         _ = try value()
                         XCTFail()
                     } catch let error as DatabaseError {
-                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                         XCTAssertEqual(error.message, "no such table: nonExistingTable")
                         XCTAssertEqual(error.sql!, sql)
                         XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: no such table: nonExistingTable")
@@ -586,7 +586,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                         _ = try cursor.next()
                         XCTFail()
                     } catch let error as DatabaseError {
-                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                         XCTAssertEqual(error.message, "could not convert database value \"foo\" to \(Fetched.self)")
                         XCTAssertEqual(error.sql!, sql)
                         XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: could not convert database value \"foo\" to \(Fetched.self)")
@@ -625,7 +625,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                         _ = try cursor()
                         XCTFail()
                     } catch let error as DatabaseError {
-                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                         XCTAssertEqual(error.message, "no such table: nonExistingTable")
                         XCTAssertEqual(error.sql!, sql)
                         XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: no such table: nonExistingTable")
@@ -693,7 +693,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                         _ = try array()
                         XCTFail()
                     } catch let error as DatabaseError {
-                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                         XCTAssertEqual(error.message, "could not convert database value \"foo\" to \(Fetched.self)")
                         XCTAssertEqual(error.sql!, sql)
                         XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: could not convert database value \"foo\" to \(Fetched.self)")
@@ -731,7 +731,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                         _ = try array()
                         XCTFail()
                     } catch let error as DatabaseError {
-                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                         XCTAssertEqual(error.message, "\(customError)")
                         XCTAssertEqual(error.sql!, sql)
                         XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: \(customError)")
@@ -765,7 +765,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                         _ = try array()
                         XCTFail()
                     } catch let error as DatabaseError {
-                        XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                        XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                         XCTAssertEqual(error.message, "no such table: nonExistingTable")
                         XCTAssertEqual(error.sql!, sql)
                         XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: no such table: nonExistingTable")

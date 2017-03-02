@@ -248,7 +248,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                     try db.execute("BEGIN DEFERRED TRANSACTION")
                     XCTFail("Expected error")
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                    XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                     XCTAssertEqual(error.message!, "cannot start a transaction within a transaction")
                     XCTAssertEqual(error.sql!, "BEGIN DEFERRED TRANSACTION")
                     XCTAssertEqual(error.description, "SQLite error 1 with statement `BEGIN DEFERRED TRANSACTION`: cannot start a transaction within a transaction")
@@ -281,7 +281,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                     try dbPool.read { _ in }
                     XCTFail("Expected error")
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, 5) // SQLITE_BUSY
+                    XCTAssertEqual(error.resultCode, .SQLITE_BUSY)
                     XCTAssertEqual(error.message!, "database is locked")
                     XCTAssertTrue(error.sql == nil)
                     XCTAssertEqual(error.description, "SQLite error 5: database is locked")
@@ -897,7 +897,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                     }
                     XCTFail("Expected error")
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, 5) // SQLITE_BUSY
+                    XCTAssertEqual(error.resultCode, .SQLITE_BUSY)
                     XCTAssertEqual(error.message!, "database is locked")
                     XCTAssertTrue(error.sql == nil)
                     XCTAssertEqual(error.description, "SQLite error 5: database is locked")

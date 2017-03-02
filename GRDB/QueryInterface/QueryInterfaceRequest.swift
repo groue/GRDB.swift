@@ -238,7 +238,7 @@ extension QueryInterfaceRequest {
     ///
     /// - parameter db: A database connection.
     public func fetchCount(_ db: Database) throws -> Int {
-        return try query.countRequest.fetchOne(db)!
+        return try query.fetchCount(db)
     }
 }
 

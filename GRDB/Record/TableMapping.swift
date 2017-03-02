@@ -206,7 +206,7 @@ extension TableMapping {
             GRDBPrecondition(dictionary.count > 0, "Invalid empty key dictionary")
             let columns = Array(dictionary.keys)
             guard let orderedColumns = try db.columnsForUniqueKey(columns, in: databaseTableName) else {
-                let error = DatabaseError(code: SQLITE_MISUSE, message: "table \(databaseTableName) has no unique index on column(s) \(columns.sorted().joined(separator: ", "))")
+                let error = DatabaseError(resultCode: .SQLITE_MISUSE, message: "table \(databaseTableName) has no unique index on column(s) \(columns.sorted().joined(separator: ", "))")
                 if fatalErrorOnMissingUniqueIndex {
                     fatalError(error.description)
                 } else {

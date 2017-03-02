@@ -208,7 +208,7 @@ public struct ColumnMapping : RowAdapter {
             .map { (mappedColumn, baseColumn) -> (Int, String) in
                 guard let index = layout.layoutIndex(ofColumn: baseColumn) else {
                     let columnNames = layout.layoutColumns.map { $0.1 }
-                    throw DatabaseError(code: SQLITE_MISUSE, message: "Mapping references missing column \(baseColumn). Valid column names are: \(columnNames.joined(separator: ", ")).")
+                    throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Mapping references missing column \(baseColumn). Valid column names are: \(columnNames.joined(separator: ", ")).")
                 }
                 let baseIndex = layout.layoutColumns[index].0
                 return (baseIndex, mappedColumn)

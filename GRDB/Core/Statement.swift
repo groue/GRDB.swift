@@ -62,12 +62,12 @@ public class Statement {
         }
         
         guard code == SQLITE_OK else {
-            throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
+            throw DatabaseError(resultCode: code, message: database.lastErrorMessage, sql: sql)
         }
         
         guard remainingSQL.isEmpty else {
             sqlite3_finalize(sqliteStatement)
-            throw DatabaseError(code: SQLITE_MISUSE, message: "Multiple statements found. To execute multiple statements, use Database.execute() instead.", sql: sql, arguments: nil)
+            throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Multiple statements found. To execute multiple statements, use Database.execute() instead.", sql: sql, arguments: nil)
         }
         
         self.database = database
@@ -86,7 +86,7 @@ public class Statement {
         // throwing any error.
         let code = sqlite3_reset(sqliteStatement)
         guard code == SQLITE_OK else {
-            fatalError(DatabaseError(code: code, message: database.lastErrorMessage, sql: sql).description)
+            fatalError(DatabaseError(resultCode: code, message: database.lastErrorMessage, sql: sql).description)
         }
     }
     
@@ -183,7 +183,7 @@ public class Statement {
         // It looks like sqlite3_bind_xxx() functions do not access the file system.
         // They should thus succeed, unless a GRDB bug: there is no point throwing any error.
         guard code == SQLITE_OK else {
-            fatalError(DatabaseError(code: code, message: database.lastErrorMessage, sql: sql).description)
+            fatalError(DatabaseError(resultCode: code, message: database.lastErrorMessage, sql: sql).description)
         }
     }
     
@@ -194,7 +194,7 @@ public class Statement {
         // no point throwing any error.
         let code = sqlite3_clear_bindings(sqliteStatement)
         guard code == SQLITE_OK else {
-            fatalError(DatabaseError(code: code, message: database.lastErrorMessage, sql: sql).description)
+            fatalError(DatabaseError(resultCode: code, message: database.lastErrorMessage, sql: sql).description)
         }
     }
 
@@ -325,9 +325,9 @@ public final class DatabaseCursor<Element> : Cursor {
             return nil
         case SQLITE_ROW:
             return try element()
-        case let errorCode:
+        case let code:
             statement.database.selectStatementDidFail(statement)
-            throw DatabaseError(code: errorCode, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
+            throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
         }
     }
 }
@@ -426,13 +426,13 @@ public final class UpdateStatement : Statement {
                 database.updateStatementDidExecute(self)
                 return
                 
-            case let errorCode:
+            case let code:
                 // Failure
                 //
                 // Let database rethrow eventual transaction observer error:
                 try database.updateStatementDidFail(self)
                 
-                throw DatabaseError(code: errorCode, message: database.lastErrorMessage, sql: sql, arguments: self.arguments) // Error uses self.arguments, not the optional arguments parameter.
+                throw DatabaseError(resultCode: code, message: database.lastErrorMessage, sql: sql, arguments: self.arguments) // Error uses self.arguments, not the optional arguments parameter.
             }
         }
     }
@@ -778,20 +778,20 @@ public struct StatementArguments {
                 if let databaseValue = namedValues[argumentName] {
                     return databaseValue
                 } else if values.isEmpty {
-                    throw DatabaseError(code: SQLITE_MISUSE, message: "missing statement argument: \(argumentName)", sql: statement.sql, arguments: nil)
+                    throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "missing statement argument: \(argumentName)", sql: statement.sql, arguments: nil)
                 } else {
                     return values.removeFirst()
                 }
             } else {
                 if values.isEmpty {
-                    throw DatabaseError(code: SQLITE_MISUSE, message: "wrong number of statement arguments: \(initialValuesCount)", sql: statement.sql, arguments: nil)
+                    throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "wrong number of statement arguments: \(initialValuesCount)", sql: statement.sql, arguments: nil)
                 } else {
                     return values.removeFirst()
                 }
             }
         }
         if !allowingRemainingValues && !values.isEmpty {
-            throw DatabaseError(code: SQLITE_MISUSE, message: "wrong number of statement arguments: \(initialValuesCount)", sql: statement.sql, arguments: nil)
+            throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "wrong number of statement arguments: \(initialValuesCount)", sql: statement.sql, arguments: nil)
         }
         return bindings
     }

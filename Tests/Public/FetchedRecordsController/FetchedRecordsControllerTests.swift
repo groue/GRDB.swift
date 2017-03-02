@@ -892,7 +892,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             }
             waitForExpectations(timeout: 1, handler: nil)
             if let error = error as? DatabaseError {
-                XCTAssertEqual(error.code, 1) // SQLITE_ERROR
+                XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                 XCTAssertEqual(error.message, "no such table: persons")
                 XCTAssertEqual(error.sql!, "SELECT * FROM \"persons\"")
                 XCTAssertEqual(error.description, "SQLite error 1 with statement `SELECT * FROM \"persons\"`: no such table: persons")

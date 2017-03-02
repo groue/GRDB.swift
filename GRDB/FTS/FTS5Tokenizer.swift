@@ -87,7 +87,7 @@
                         return SQLITE_OK
                     })
                     if (code != SQLITE_OK) {
-                        throw DatabaseError(code: code)
+                        throw DatabaseError(resultCode: code)
                     }
                 }
                 return context.tokens
@@ -116,7 +116,7 @@
             
             init(xTokenizer: fts5_tokenizer, contextPointer: UnsafeMutableRawPointer?, arguments: [String]) throws {
                 guard let xCreate = xTokenizer.xCreate else {
-                    throw DatabaseError(code: SQLITE_ERROR, message: "nil fts5_tokenizer.xCreate")
+                    throw DatabaseError(resultCode: .SQLITE_ERROR, message: "nil fts5_tokenizer.xCreate")
                 }
                 
                 self.xTokenizer = xTokenizer
@@ -147,13 +147,13 @@
                 }
                 
                 guard code == SQLITE_OK else {
-                    throw DatabaseError(code: code, message: "failed fts5_tokenizer.xCreate")
+                    throw DatabaseError(resultCode: code, message: "failed fts5_tokenizer.xCreate")
                 }
                 
                 if let tokenizerPointer = tokenizerPointer {
                     self.tokenizerPointer = tokenizerPointer
                 } else {
-                    throw DatabaseError(code: code, message: "nil tokenizer")
+                    throw DatabaseError(resultCode: code, message: "nil tokenizer")
                 }
             }
             
@@ -189,7 +189,7 @@
         ///     }
         public func makeTokenizer(_ descriptor: FTS5TokenizerDescriptor) throws -> FTS5Tokenizer {
             guard let api = FTS5.api(self) else {
-                throw DatabaseError(code: SQLITE_MISUSE, message: "FTS5 API not found")
+                throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "FTS5 API not found")
             }
             
             let xTokenizerPointer: UnsafeMutablePointer<fts5_tokenizer> = .allocate(capacity: 1)
@@ -205,7 +205,7 @@
                 xTokenizerPointer)
             
             guard code == SQLITE_OK else {
-                throw DatabaseError(code: code)
+                throw DatabaseError(resultCode: code)
             }
             
             let contextPointer = contextHandle.pointee

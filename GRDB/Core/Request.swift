@@ -12,6 +12,31 @@ public protocol Request {
     /// A tuple that contains a prepared statement that is ready to be
     /// executed, and an eventual row adapter.
     func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?)
+    
+    /// The number of rows matched by the request.
+    ///
+    /// Default implementation builds a naive SQL query based on the statement
+    /// returned by the `prepare` method: `SELECT COUNT(*) FROM (...)`.
+    ///
+    /// Adopting types can refine this countRequest method and return more
+    /// efficient SQL.
+    ///
+    /// - parameter db: A database connection.
+    func fetchCount(_ db: Database) throws -> Int
+}
+
+extension Request {
+    /// The number of rows matched by the request.
+    ///
+    /// This default implementation builds a naive SQL query based on the
+    /// statement returned by the `prepare` method: `SELECT COUNT(*) FROM (...)`.
+    ///
+    /// - parameter db: A database connection.
+    public func fetchCount(_ db: Database) throws -> Int {
+        let (statement, _) = try prepare(db)
+        let sql = "SELECT COUNT(*) FROM (\(statement.sql))"
+        return try Int.fetchOne(db, sql, arguments: statement.arguments)!
+    }
 }
 
 extension Request {
