@@ -19,6 +19,7 @@ Release Notes
     }
     ```
 
+
 **New: Request**
 
 - The Request protocol for [custom requests](https://github.com/groue/GRDB.swift#custom-requests) learned how to count:
@@ -29,7 +30,12 @@ Release Notes
     ```
     
     Default implementation performs a naive counting based on the request SQL: `SELECT COUNT(*) FROM (...)`. Adopting types can refine the counting SQL by refining their `fetchCount` implementation.
-    
+
+
+**Breaking Changes**
+
+- `DatabaseError.code` has been removed, replaced with `DatabaseError.resultCode` and `DatabaseError.extendedResultCode`.
+
 
 ## 0.101.1
 
