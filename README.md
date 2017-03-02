@@ -3993,6 +3993,32 @@ For more information, see the SQLite documentation about external content tables
 See also [WWDC Companion](https://github.com/groue/WWDCCompanion), a sample app that uses external content tables to store, display, and let the user search the WWDC 2016 sessions.
 
 
+#### Querying External Content Full-Text Tables
+
+When you need to perform a full-text search, and the external content table contains all the data you need, you can simply query the full-text table.
+
+But if you need to load columns from the regular table, and in the same time perform a full-text search, then you will need to query both tables at the same time.
+
+That is because SQLite will throw an error when you try to perform a full-text search on a regular table:
+
+```swift
+// SQLite error 1: unable to use function MATCH in the requested context
+// SELECT * FROM books WHERE books MATCH '...'
+let books = Book.matching(pattern).fetchAll(db)
+```
+
+The solution is to perform a joined request, using raw SQL:
+
+```swift
+let sql = "SELECT books.* " +
+          "FROM books " +
+          "JOIN books_ft ON " +
+          "books_ft.rowid = books.rowid AND " +
+          "books_ft MATCH ?"
+let books = Book.fetchAll(db, sql, arguments: [pattern])
+```
+
+
 ### Full-Text Records
 
 **You can define [record](#records) types around the full-text virtual tables.**
