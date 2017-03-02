@@ -123,14 +123,14 @@
                                     // Inject token bytes into SQLite
                                     let code = tokenCallback(context, flags.rawValue, pToken, nToken, iStart, iEnd)
                                     guard code == SQLITE_OK else {
-                                        throw DatabaseError(code: code, message: "token callback failed")
+                                        throw DatabaseError(resultCode: code, message: "token callback failed")
                                     }
                                 }
                         })
                         
                         return SQLITE_OK
                     } catch let error as DatabaseError {
-                        return error.code
+                        return error.extendedResultCode.rawValue
                     } catch {
                         return SQLITE_ERROR
                     }

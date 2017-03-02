@@ -81,7 +81,7 @@
                         tokenizerHandle.pointee = tokenizerPointer
                         return SQLITE_OK
                     } catch let error as DatabaseError {
-                        return error.code
+                        return error.extendedResultCode.rawValue
                     } catch {
                         return SQLITE_ERROR
                     }
@@ -134,7 +134,7 @@
             }
             guard code == SQLITE_OK else {
                 // Assume a GRDB bug: there is no point throwing any error.
-                fatalError(DatabaseError(code: code, message: lastErrorMessage).description)
+                fatalError(DatabaseError(resultCode: code, message: lastErrorMessage).description)
             }
         }
     }
