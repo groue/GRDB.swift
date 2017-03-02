@@ -64,6 +64,9 @@ public struct ResultCode : RawRepresentable, Equatable, CustomStringConvertible 
         }
     }
     
+    // Primary Result codes
+    // https://www.sqlite.org/rescode.html#primary_result_code_list
+    
     public static let SQLITE_OK           = ResultCode(rawValue: 0)   // Successful result
     public static let SQLITE_ERROR        = ResultCode(rawValue: 1)   // SQL error or missing database
     public static let SQLITE_INTERNAL     = ResultCode(rawValue: 2)   // Internal logic error in SQLite
@@ -95,6 +98,9 @@ public struct ResultCode : RawRepresentable, Equatable, CustomStringConvertible 
     public static let SQLITE_WARNING      = ResultCode(rawValue: 28)  // Warnings from sqlite3_log()
     public static let SQLITE_ROW          = ResultCode(rawValue: 100) // sqlite3_step() has another row ready
     public static let SQLITE_DONE         = ResultCode(rawValue: 101) // sqlite3_step() has finished executing
+    
+    // Extended Result Code
+    // https://www.sqlite.org/rescode.html#extended_result_code_list
     
     public static let SQLITE_IOERR_READ              = ResultCode(rawValue: (SQLITE_IOERR.rawValue | (1<<8)))
     public static let SQLITE_IOERR_SHORT_READ        = ResultCode(rawValue: (SQLITE_IOERR.rawValue | (2<<8)))
