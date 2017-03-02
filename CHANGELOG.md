@@ -1,7 +1,9 @@
 Release Notes
 =============
 
-## Next version
+## 0.102.0
+
+Released March 2, 2017
 
 **New: Error Handling**
 
