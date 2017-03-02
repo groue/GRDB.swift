@@ -5,7 +5,7 @@ Release Notes
 
 Released March 2, 2017
 
-**New: Error Handling**
+**New: Error Handling** (fixes [#171](https://github.com/groue/GRDB.swift/issues/171))
 
 - GRDB activates SQLite's [extended result codes](https://www.sqlite.org/rescode.html) for more detailed error reporting.
 - The new `ResultCode` type defines constants for all SQLite [result codes and extended result codes](https://www.sqlite.org/rescode.html).
@@ -32,11 +32,13 @@ Released March 2, 2017
     ```
     
     Default implementation performs a naive counting based on the request SQL: `SELECT COUNT(*) FROM (...)`. Adopting types can refine the counting SQL by providing their own `fetchCount` implementation.
+    
+    Thanks [David Hart](https://github.com/hartbit) for this [suggestion](https://github.com/groue/GRDB.swift/issues/176#issuecomment-282783884).
 
 
 **Breaking Changes**
 
-- `DatabaseError.code` has been removed, replaced with `DatabaseError.resultCode` and `DatabaseError.extendedResultCode`.
+- `DatabaseError.code` has been removed, replaced with `DatabaseError.resultCode` and `DatabaseError.extendedResultCode` ([documentation](https://github.com/groue/GRDB.swift#databaseerror)).
 - `DatabaseMigrator.registerMigrationWithDisabledForeignKeyChecks` has been renamed `DatabaseMigrator.registerMigrationWithDeferredForeignKeyCheck` ([documentation](https://github.com/groue/GRDB.swift#advanced-database-schema-changes))
 
 
