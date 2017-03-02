@@ -24,7 +24,7 @@ class RequestTests: GRDBTestCase {
             try db.execute("INSERT INTO table1 DEFAULT VALUES")
             try db.execute("INSERT INTO table1 DEFAULT VALUES")
             
-            let request = CustomRequest()
+            let request: Request = CustomRequest()  // Lose type
             let rows = try Row.fetchAll(db, request)
             XCTAssertEqual(lastSQLQuery, "SELECT * FROM table1")
             XCTAssertEqual(rows.count, 2)
@@ -48,7 +48,7 @@ class RequestTests: GRDBTestCase {
             try db.execute("INSERT INTO table1 DEFAULT VALUES")
             try db.execute("INSERT INTO table1 DEFAULT VALUES")
             
-            let request = CustomRequest()
+            let request: Request = CustomRequest()  // Lose type
             let count = try request.fetchCount(db)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT * FROM table1)")
             XCTAssertEqual(count, 2)
@@ -74,7 +74,7 @@ class RequestTests: GRDBTestCase {
             try db.execute("INSERT INTO table1 DEFAULT VALUES")
             try db.execute("INSERT INTO table1 DEFAULT VALUES")
             
-            let request = CustomRequest()
+            let request: Request = CustomRequest()  // Lose type
             let count = try request.fetchCount(db)
             XCTAssertEqual(lastSQLQuery, "INSERT INTO table1 DEFAULT VALUES")
             XCTAssertEqual(count, 2)
