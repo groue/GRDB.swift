@@ -960,7 +960,7 @@ extension Database {
             sqlite3_key(sqliteConnection, bytes, Int32(data.count))
         }
         guard code == SQLITE_OK else {
-            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
+            throw DatabaseError(resultCode: ResultCode(rawValue: code), message: String(cString: sqlite3_errmsg(sqliteConnection)))
         }
     }
 
@@ -979,7 +979,7 @@ extension Database {
             sqlite3_rekey(sqliteConnection, bytes, Int32(data.count))
         }
         guard code == SQLITE_OK else {
-            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
+            throw DatabaseError(resultCode: ResultCode(rawValue: code), message: String(cString: sqlite3_errmsg(sqliteConnection)))
         }
     }
 }
