@@ -11,24 +11,6 @@ import XCTest
 
 class ResultCodeTests: GRDBTestCase {
     
-    func testExtendedResultCodesAreActivated() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            try db.create(table: "parents") { t in
-                t.column("id", .integer).primaryKey()
-            }
-            try db.create(table: "children") { t in
-                t.column("parentId", .integer).references("parents")
-            }
-            do {
-                try db.execute("INSERT INTO children (parentId) VALUES (1)")
-            } catch let error as DatabaseError {
-                XCTAssertEqual(error.resultCode.rawValue, 19)           // primary SQLITE_CONSTRAINT
-                XCTAssertEqual(error.extendedResultCode.rawValue, 787)  // extended SQLITE_CONSTRAINT_FOREIGNKEY
-            }
-        }
-    }
-    
     func testResultCodeEquatable() {
         XCTAssertEqual(ResultCode(rawValue: 19), .SQLITE_CONSTRAINT)
         XCTAssertEqual(ResultCode(rawValue: 787), .SQLITE_CONSTRAINT_FOREIGNKEY)

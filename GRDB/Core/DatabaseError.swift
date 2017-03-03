@@ -249,7 +249,7 @@ extension DatabaseError : CustomNSError {
     
     /// NSError bridging: the error code within the given domain.
     public var errorCode: Int {
-        return Int(resultCode.rawValue)
+        return Int(extendedResultCode.rawValue)
     }
     
     /// NSError bridging: the user-info dictionary.

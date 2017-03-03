@@ -135,5 +135,34 @@ class DatabaseErrorTests: GRDBTestCase {
             }
         }
     }
+    
+    func testExtendedResultCodesAreActivated() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "parents") { $0.column("id", .integer).primaryKey() }
+            try db.create(table: "children") { $0.column("parentId", .integer).references("parents") }
+            do {
+                try db.execute("INSERT INTO children (parentId) VALUES (1)")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode.rawValue, 19)           // primary SQLITE_CONSTRAINT
+                XCTAssertEqual(error.extendedResultCode.rawValue, 787)  // extended SQLITE_CONSTRAINT_FOREIGNKEY
+            }
+        }
+    }
+    
+    func testNSErrorBridging() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "parents") { $0.column("id", .integer).primaryKey() }
+            try db.create(table: "children") { $0.column("parentId", .integer).references("parents") }
+            do {
+                try db.execute("INSERT INTO children (parentId) VALUES (1)")
+            } catch let error as NSError {
+                XCTAssertEqual(DatabaseError.errorDomain, "GRDB.DatabaseError")
+                XCTAssertEqual(error.domain, DatabaseError.errorDomain)
+                XCTAssertEqual(error.code, 787) // extended SQLITE_CONSTRAINT_FOREIGNKEY
+            }
+        }
+    }
 
 }
