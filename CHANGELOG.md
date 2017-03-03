@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next version
+
+**Fixed**
+
+- `DatabaseError` conversion to `NSError` preserves extended result codes.
+
+
 ## 0.102.0
 
 Released March 2, 2017
