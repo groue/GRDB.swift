@@ -2895,7 +2895,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     // SELECT * FROM persons WHERE (name IS NULL)
     Person.filter(nameColumn == nil)
     
-    // SELECT * FROM persons WHERE (age === 18)
+    // SELECT * FROM persons WHERE (age IS 18)
     Person.filter(ageColumn === 18)
     
     // SELECT * FROM rectangles WHERE width < height
