@@ -370,6 +370,8 @@ See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.102.0/Structs/Conf
 
 **A Database Pool allows concurrent database accesses.**
 
+When more efficient than [database queues](#database-queues), database pools also require a good mastery of database transactions. Details follow. If you don't feel comfortable with transactions, use a [database queue](#database-queues) instead.
+
 ```swift
 import GRDB
 let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
