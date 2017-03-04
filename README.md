@@ -316,7 +316,7 @@ let inMemoryDBQueue = DatabaseQueue()
 SQLite creates the database file if it does not already exist. The connection is closed when the database queue gets deallocated.
 
 
-**A database queue can be used from any thread.** The `inDatabase` and `inTransaction` methods block the current thread until your database statements are executed in a protected dispatch queue. They safely serialize the database accesses:
+**A database queue can be used from any thread.** The `inDatabase` and `inTransaction` methods are synchronous, and block the current thread until your database statements are executed in a protected dispatch queue. They safely serialize the database accesses:
 
 ```swift
 // Execute database statements:
@@ -380,7 +380,7 @@ SQLite creates the database file if it does not already exist. The connection is
 > :point_up: **Note**: unless read-only, a database pool opens your database in the SQLite "WAL mode". The WAL mode does not fit all situations. Please have a look at https://www.sqlite.org/wal.html.
 
 
-**A database pool can be used from any thread.** The `read`, `write` and `writeInTransaction` methods block the current thread until your database statements are executed in a protected dispatch queue. They safely isolate the database accesses:
+**A database pool can be used from any thread.** The `read`, `write` and `writeInTransaction` methods are synchronous, and block the current thread until your database statements are executed in a protected dispatch queue. They safely isolate the database accesses:
 
 ```swift
 // Execute database statements:
