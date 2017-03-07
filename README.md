@@ -5132,6 +5132,8 @@ Those guarantees hold as long as you follow three rules:
     }
     
     // UNSAFE CONCURRENCY
+    // This method fails when some other thread is currently writing into
+    // the database.
     func currentUser() throws -> User? {
         let dbQueue = try DatabaseQueue(...)
         return try dbQueue.inDatabase { db in
