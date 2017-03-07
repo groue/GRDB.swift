@@ -5128,7 +5128,7 @@ Those guarantees hold as long as you follow three rules:
     }
     // dbQueue is a singleton defined somewhere in your app
     let user = try dbQueue.inDatabase { db in
-        try currentUser($0)
+        try currentUser(db)
     }
     
     // UNSAFE CONCURRENCY
