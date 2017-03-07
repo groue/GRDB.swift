@@ -5121,6 +5121,26 @@ Those guarantees hold as long as you follow three rules:
     
     If there are several instances of database queues or pools that access the same database, a multi-threaded application will eventually face "database is locked" errors. See [Dealing with External Connections](#dealing-with-external-connections).
     
+    ```swift
+    // SAFE CONCURRENCY
+    func currentUser(_ db: Database) throws -> User? {
+        return try User.fetchOne(db)
+    }
+    // dbQueue is a singleton defined somewhere in your app
+    let user = try dbQueue.inDatabase { db in
+        try currentUser($0)
+    }
+    
+    // UNSAFE CONCURRENCY
+    func currentUser() throws -> User? {
+        let dbQueue = try DatabaseQueue(...)
+        return try dbQueue.inDatabase { db in
+            try User.fetchOne(db)
+        }
+    }
+    let user = try currentUser()
+    ```
+    
 - :point_up: **Rule 2**: Group related statements within a single call to a DatabaseQueue or DatabasePool database access method.
     
     Those methods isolate your groups of related statements against eventual database updates performed by other threads, and guarantee a consistent view of the database. This isolation is only guaranteed *inside* the closure argument of those methods. Two consecutive calls *do not* guarantee isolation:
