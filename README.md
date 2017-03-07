@@ -5127,7 +5127,7 @@ Those guarantees hold as long as you follow three rules:
         return try User.fetchOne(db)
     }
     // dbQueue is a singleton defined somewhere in your app
-    let user = try dbQueue.inDatabase { db in
+    let user = try dbQueue.inDatabase { db in // or dbPool.read { ... }
         try currentUser(db)
     }
     
