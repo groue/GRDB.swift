@@ -105,7 +105,7 @@ public final class DatabaseQueue {
     ///       .commit or .rollback.
     /// - throws: The error thrown by the block.
     public func inTransaction(_ kind: Database.TransactionKind? = nil, _ block: (Database) throws -> Database.TransactionCompletion) throws {
-        try serializedDatabase.sync { db in
+        try inDatabase { db in
             try db.inTransaction(kind) {
                 try block(db)
             }
@@ -121,9 +121,7 @@ public final class DatabaseQueue {
     ///
     /// See also setupMemoryManagement(application:)
     public func releaseMemory() {
-        serializedDatabase.sync { db in
-            db.releaseMemory()
-        }
+        inDatabase { $0.releaseMemory() }
     }
     
     
@@ -203,9 +201,7 @@ public final class DatabaseQueue {
         
         /// Changes the passphrase of an encrypted database
         public func change(passphrase: String) throws {
-            try serializedDatabase.sync { db in
-                try db.change(passphrase: passphrase)
-            }
+            try inDatabase { try $0.change(passphrase: passphrase) }
         }
     }
 #endif
@@ -222,14 +218,14 @@ extension DatabaseQueue : DatabaseReader {
     ///
     /// This method is part of the DatabaseReader protocol adoption.
     public func read<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try serializedDatabase.sync(block)
+        return try inDatabase(block)
     }
     
     /// Alias for inDatabase
     ///
     /// This method is part of the DatabaseReader protocol adoption.
     public func unsafeRead<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try serializedDatabase.sync(block)
+        return try inDatabase(block)
     }
     
     
@@ -249,16 +245,12 @@ extension DatabaseQueue : DatabaseReader {
     ///         try Int.fetchOne(db, "SELECT succ(1)") // 2
     ///     }
     public func add(function: DatabaseFunction) {
-        serializedDatabase.sync { db in
-            db.add(function: function)
-        }
+        inDatabase { $0.add(function: function) }
     }
     
     /// Remove an SQL function.
     public func remove(function: DatabaseFunction) {
-        serializedDatabase.sync { db in
-            db.remove(function: function)
-        }
+        inDatabase { $0.remove(function: function) }
     }
     
     
@@ -274,16 +266,12 @@ extension DatabaseQueue : DatabaseReader {
     ///         try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
     ///     }
     public func add(collation: DatabaseCollation) {
-        serializedDatabase.sync { db in
-            db.add(collation: collation)
-        }
+        inDatabase { $0.add(collation: collation) }
     }
     
     /// Remove a collation.
     public func remove(collation: DatabaseCollation) {
-        serializedDatabase.sync { db in
-            db.remove(collation: collation)
-        }
+        inDatabase { $0.remove(collation: collation) }
     }
 }
 
