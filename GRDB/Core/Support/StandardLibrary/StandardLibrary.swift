@@ -115,8 +115,11 @@ extension Int: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         let int64 = sqlite3_column_int64(sqliteStatement, index)
-        GRDBPrecondition(int64 >= Int64(Int.min) && int64 <= Int64(Int.max), "could not convert database value \(int64) to Int")
-        self = Int(int64)
+        if let v = Int(exactly: int64) {
+            self = v
+        } else {
+            fatalError("could not convert database value \(int64) to Int")
+        }
     }
     
     /// Returns a value that can be stored in the database.
@@ -128,20 +131,11 @@ extension Int: DatabaseValueConvertible, StatementColumnConvertible {
     public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Int? {
         switch databaseValue.storage {
         case .int64(let int64):
-            guard int64 >= Int64(Int.min) else { return nil }
-            guard int64 <= Int64(Int.max) else { return nil }
-            return Int(int64)
+            return Int(exactly: int64)
         case .double(let double):
-            // Cast from Double to Int64 to Int
-            // Why? Because on 32-bits platforms we'll convert more values this way (Swift bug?)
-            // - Int(Int64(-2147483648.999999))  // -2147483648
-            // - Int(-2147483648.999999)         // fatal error
             guard double >= Double(Int64.min) else { return nil }
             guard double < Double(Int64.max) else { return nil }
-            let int64 = Int64(double)
-            guard int64 >= Int64(Int.min) else { return nil }
-            guard int64 <= Int64(Int.max) else { return nil }
-            return Int(int64)
+            return Int(exactly: Int64(double))
         default:
             return nil
         }
@@ -158,8 +152,11 @@ extension Int32: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         let int64 = sqlite3_column_int64(sqliteStatement, index)
-        GRDBPrecondition(int64 >= Int64(Int32.min) && int64 <= Int64(Int32.max), "could not convert database value \(int64) to Int32")
-        self = Int32(int64)
+        if let v = Int32(exactly: int64) {
+            self = v
+        } else {
+            fatalError("could not convert database value \(int64) to Int32")
+        }
     }
     
     /// Returns a value that can be stored in the database.
@@ -171,20 +168,11 @@ extension Int32: DatabaseValueConvertible, StatementColumnConvertible {
     public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Int32? {
         switch databaseValue.storage {
         case .int64(let int64):
-            guard int64 >= Int64(Int32.min) else { return nil }
-            guard int64 <= Int64(Int32.max) else { return nil }
-            return Int32(int64)
+            return Int32(exactly: int64)
         case .double(let double):
-            // Cast from Double to Int64 to Int32
-            // Why? Because we'll convert more values this way (Swift bug?)
-            // - Int32(Int64(-2147483648.999999))  // -2147483648
-            // - Int32(-2147483648.999999)         // fatal error
             guard double >= Double(Int64.min) else { return nil }
             guard double < Double(Int64.max) else { return nil }
-            let int64 = Int64(double)
-            guard int64 >= Int64(Int32.min) else { return nil }
-            guard int64 <= Int64(Int32.max) else { return nil }
-            return Int32(int64)
+            return Int32(exactly: Int64(double))
         default:
             return nil
         }
