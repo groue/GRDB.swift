@@ -160,6 +160,9 @@
 		561667081D08A49900ADD404 /* NSDecimalNumberTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 561667001D08A49900ADD404 /* NSDecimalNumberTests.swift */; };
 		56193E8E1CD8A3E200F95862 /* FetchedRecordsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31A7787C1C6A4DD600F507F6 /* FetchedRecordsController.swift */; };
 		56193E961CD8A3E300F95862 /* FetchedRecordsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31A7787C1C6A4DD600F507F6 /* FetchedRecordsController.swift */; };
+		5620D0DF1E7D70F2006781C5 /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = 5620D0DE1E7D70F2006781C5 /* sqlite3.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		5620D0E01E7D70F2006781C5 /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = 5620D0DE1E7D70F2006781C5 /* sqlite3.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		5620D0E11E7D70F2006781C5 /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = 5620D0DE1E7D70F2006781C5 /* sqlite3.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		562205F11E420E47005860AC /* DatabasePoolReleaseMemoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563363CF1C943D13000BE133 /* DatabasePoolReleaseMemoryTests.swift */; };
 		562205F21E420E47005860AC /* DatabasePoolSchemaCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569531281C908A5B00CF1A2B /* DatabasePoolSchemaCacheTests.swift */; };
 		562205F31E420E47005860AC /* DatabaseQueueReleaseMemoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563363D41C94484E000BE133 /* DatabaseQueueReleaseMemoryTests.swift */; };
@@ -1724,6 +1727,7 @@
 		560FC5501CB004AD0014AA8E /* sqlcipher.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = sqlcipher.xcodeproj; path = SQLCipher/src/sqlcipher.xcodeproj; sourceTree = "<group>"; };
 		560FC5B01CB00B880014AA8E /* GRDBTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		561667001D08A49900ADD404 /* NSDecimalNumberTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSDecimalNumberTests.swift; sourceTree = "<group>"; };
+		5620D0DE1E7D70F2006781C5 /* sqlite3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sqlite3.h; path = GRDB/sqlite3.h; sourceTree = SOURCE_ROOT; };
 		562393171DECC02000A6B01F /* RowFetchTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowFetchTests.swift; sourceTree = "<group>"; };
 		5623932F1DEDFC5700A6B01F /* AnyCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AnyCursorTests.swift; sourceTree = "<group>"; };
 		562393441DEDFE4500A6B01F /* IteratorCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IteratorCursorTests.swift; sourceTree = "<group>"; };
@@ -2852,6 +2856,7 @@
 				567D10641C9A911C00ACC500 /* GRDBOSX */,
 				56F5ABDE1D817B91001F60CB /* GRDBwatchOS */,
 				DC3773F819C8CBB3004FCF85 /* GRDB.h */,
+				5620D0DE1E7D70F2006781C5 /* sqlite3.h */,
 				DC2393C61ABE35F8003FF113 /* GRDB-Bridging.h */,
 				DC3773F719C8CBB3004FCF85 /* Info.plist */,
 			);
@@ -2909,6 +2914,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				565490B41D5A4820005622CB /* GRDB.h in Headers */,
+				5620D0E11E7D70F2006781C5 /* sqlite3.h in Headers */,
 				565490B51D5A4827005622CB /* GRDB-Bridging.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2928,6 +2934,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				56E5D82C1B4D437600430942 /* GRDB.h in Headers */,
+				5620D0E01E7D70F2006781C5 /* sqlite3.h in Headers */,
 				56E5D82D1B4D438800430942 /* GRDB-Bridging.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2937,6 +2944,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DC3773F919C8CBB3004FCF85 /* GRDB.h in Headers */,
+				5620D0DF1E7D70F2006781C5 /* sqlite3.h in Headers */,
 				DC2393C81ABE35F8003FF113 /* GRDB-Bridging.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
