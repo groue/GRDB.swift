@@ -202,10 +202,7 @@ extension DatabaseValue : Hashable {
 /// Returns true if i and d hold exactly the same value, and if converting one
 /// type to the other does not lose any information.
 private func int64EqualDouble(_ i: Int64, _ d: Double) -> Bool {
-    // TODO: wait for https://github.com/apple/swift-evolution/blob/master/proposals/0080-failable-numeric-initializers.md
-    // Bug: https://bugs.swift.org/browse/SR-1491
-    // 
-    // For current implementation, see http://stackoverflow.com/questions/33719132/how-to-test-for-lossless-double-integer-conversion/33784296#33784296
+    // See http://stackoverflow.com/questions/33719132/how-to-test-for-lossless-double-integer-conversion/33784296#33784296
     return (d >= Double(Int64.min))
         && (d < Double(Int64.max))
         && (round(d) == d)
