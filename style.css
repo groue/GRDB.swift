@@ -1,0 +1,97 @@
+body {
+  margin: 0 auto;
+  padding: 0 25px;
+  max-width: 50em;
+  font-family: -apple-system, Helvetica, Arial, sans-serif;
+  color: #111;
+}
+
+h1 {
+  font-size: 2.5em;
+  font-weight: bold;
+  padding: 0;
+  margin: 1.5em 0 0;
+  color: #444;
+}
+
+h2 {
+  font-size: 1em;
+  font-weight: bold;
+  padding: 0;
+  margin: 2em 0 1em;
+  color: #444;
+}
+
+p {
+  padding: 0;
+  margin: 1em 0;
+}
+
+h1, h2, p, li {
+  line-height: 1.33em;
+}
+
+header {
+  margin-bottom: 2em;
+}
+
+header p {
+  color: #777;
+  margin-top: 0.25em;
+}
+
+strong {
+  color: #444;
+}
+
+a {
+  color: #0071bc;
+}
+
+a:visited {
+  color: #4c2c92;
+}
+
+ul.toggles {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+ul.toggles li {
+  margin: 0;
+  padding: 0;
+}
+
+input.toggle {
+  display: none;
+}
+
+input.toggle + label {
+  display: block;
+  cursor: pointer;
+  color: #0071bc;
+}
+
+input.toggle + label::before {
+  content: "▸";
+  color: #111;
+  display: inline-block;
+  width: 1em;
+}
+
+input.toggle + label + * {
+  display: none;
+}
+
+input.toggle:checked + label {
+  margin-bottom: 1em;
+}
+
+input.toggle:checked + label::before {
+  content: "▾";
+}
+
+input.toggle:checked + label + * {
+  display: block;
+}

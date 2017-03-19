@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>GRDB.swift</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <header>
+      <h1>
+        GRDB.swift
+        <img src="https://img.shields.io/badge/swift-3-orange.svg?style=flat" alt="Supported Swift version">
+        <img src="https://img.shields.io/cocoapods/p/GRDB.swift.svg" alt="Supported platforms">
+        <img src="https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000" alt="MIT License">
+      </h1>
+      <p><em>A toolkit for SQLite databases with a focus on application development.</em></p>
+    </header>
+    
+    <section>
+      <p>
+        <strong>Latest release</strong>: March 2, 2017 • version 0.102.0 • <a href="https://github.com/groue/GRDB.swift/blob/master/CHANGELOG.md">Release notes</a>
+      </p>
+      <p>
+        <strong>Requirements</strong>: iOS 8.0+ / OSX 10.9+ / watchOS 2.0+ • Xcode 8.1+ • Swift 3
+      </p>
+      <p>
+        <strong>Links</strong>:
+        <a href="http://github.com/groue/GRDB.swift">Github</a> •
+        <a href="https://github.com/groue/GRDB.swift#features">Features</a> •
+        <a href="https://github.com/groue/GRDB.swift#installation">Installation</a> •
+        <a href="https://github.com/groue/GRDB.swift#documentation">User Guide</a> •
+        <a href="docs/0.102.0/">Reference</a> •
+        <a href="https://github.com/groue/GRDB.swift#sample-code">Sample Code</a> •
+        <a href="https://medium.com/@gwendal.roue">General Articles</a>
+      </p>
+    </section>
+    
+    <section>
+      <h2>What is this?</h2>
+      <p>GRDB provides raw access to SQL and advanced SQLite features, because one sometimes enjoys a sharp tool. It has robust concurrency primitives, so that multi-threaded applications can efficiently use their databases. It grants your application models with persistence and fetching methods, so that you don't have to deal with SQL and raw database rows when you don't want to.</p>
+      <p>Compared to <a href="http://github.com/stephencelis/SQLite.swift">SQLite.swift</a> or <a href="http://github.com/ccgus/fmdb">FMDB</a>, GRDB can spare you a lot of glue code. Compared to <a href="https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/CoreData/">Core Data</a> or <a href="http://realm.io">Realm</a>, it can simplify your multi-threaded applications.</p>
+    </section>
+    
+    <section>
+      <h2>Basic Usage</h2>
+      <ul class="toggles">
+        <li>
+          <input class="toggle" type="checkbox" id="usage_connect" checked>
+          <label for="usage_connect">Connect to SQLite database</label>
+          <div>
+            <script src="https://gist.github.com/groue/b43623818e875c1b71d7927e88080679.js"></script>
+          </div>
+        </li>
+        <li>
+          <input class="toggle" type="checkbox" id="usage_sql_execute">
+          <label for="usage_sql_execute">Execute SQL statements</label>
+          <div>
+            <script src="https://gist.github.com/groue/4b7a64f3649016520e3ea03060729d13.js"></script>
+          </div>
+        </li>
+        <li>
+          <input class="toggle" type="checkbox" id="usage_sql_fetch">
+          <label for="usage_sql_fetch">Use SQL to fetch raw database rows and values</label>
+          <div>
+            <script src="https://gist.github.com/groue/76fa9a18cebd71c738830c7ff958a9bb.js"></script>
+          </div>
+        </li>
+        <li>
+          <input class="toggle" type="checkbox" id="usage_records_persistence">
+          <label for="usage_records_persistence">Store custom models aka "records"</label>
+          <div>
+            <script src="https://gist.github.com/groue/230f324dcd5287238f2cb8e06ffe8314.js"></script>
+          </div>
+        </li>
+        <li>
+          <input class="toggle" type="checkbox" id="usage_records_fetch">
+          <label for="usage_records_fetch">Avoid SQL with the Swift query interface</label>
+          <div>
+            <script src="https://gist.github.com/groue/ea9ae96701d119b3d0773cb2af2ace01.js"></script>
+          </div>
+        </li>
+      </ul>
+    </section>
+    
+  </body>
+</html>
