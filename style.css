@@ -1,5 +1,5 @@
 body {
-  margin: 0 auto;
+  margin: 1em auto;
   padding: 0 25px;
   max-width: 50em;
   font-family: -apple-system, Helvetica, Arial, sans-serif;
@@ -32,12 +32,31 @@ h1, h2, p, li {
 }
 
 header {
-  margin-bottom: 2em;
+  margin-bottom: 4em;
+  text-align: center;
 }
 
 header p {
   color: #777;
   margin-top: 0.25em;
+}
+
+header a.button {
+  display: inline-block;
+  text-decoration: none;
+  background-color: #0071bc;
+  color: #fff;
+  line-height: 2em;
+  padding: 0 1em;
+  border-radius: 1em;
+}
+
+header a.button:hover {
+  background-color: #205493;
+}
+
+header a.button:active {
+  background-color: #112e51;
 }
 
 strong {
