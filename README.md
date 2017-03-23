@@ -1694,7 +1694,7 @@ if let poi = try PointOfInterest.fetchOne(db, key: 1) {
 }
 ```
 
-Your custom structs and classes can adopt each protocol individually, and opt in to focused sets of features. Or you can subclass the `Record` class, and get the full toolkit in one go: fetching methods, persistence methods, and changes tracking.
+Your custom structs and classes can adopt each protocol individually, and opt in to focused sets of features. Or you can subclass the `Record` class, and get the full toolkit in one go: fetching methods, persistence methods, and changes tracking. See the [list of record methods](#list-of-record-methods) for an overview.
 
 > :point_up: **Note**: if you are familiar with Core Data's NSManagedObject or Realm's Object, you may experience a cultural shock: GRDB records are not uniqued, and do not auto-update. This is both a purpose, and a consequence of protocol-oriented programming. You should read [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3) for a general introduction.
 
@@ -2022,6 +2022,21 @@ try paris.insert(db)
 paris.id   // some value
 ```
 
+When your record has many columns, the Swift compiler may take a long time compiling the `persistentDictionary` property:
+
+```swift
+// May be long to compile
+var persistentDictionary: [String: DatabaseValueConvertible?] {
+    return [
+        "id": id,
+        "title": title,
+        // many other columns
+    ]
+}
+```
+
+If this happens, check the ["Compilation takes a long time" FAQ](#compilation-takes-a-long-time).
+
 
 ### Persistence Methods
 
@@ -2181,30 +2196,9 @@ try person.insert(db)
 
 ## Record Class
 
-**Record** is a class that is designed to be subclassed, and provides the full GRDB Record toolkit in one go:
+**Record** is a class that is designed to be subclassed, and provides the full toolkit in one go: fetching and persistence methods, as well as changes tracking (see the [list of record methods](#list-of-record-methods) for an overview).
 
-- Fetching methods (from the [RowConvertible](#rowconvertible-protocol) protocol)
-- [Persistence methods](#persistence-methods) (from the [Persistable](#persistable-protocol) protocol)
-- The [query interface](#the-query-interface) (from the [TableMapping](#tablemapping-protocol) protocol)
-- [Changes tracking](#changes-tracking) (unique to the Record class)
-
-**Record subclasses override the four core methods that define their relationship with the database:**
-
-```swift
-class Record {
-    /// The table name
-    class var databaseTableName: String { get }
-    
-    /// Initialize from a database row
-    required init(row: Row)
-    
-    /// The values persisted in the database
-    var persistentDictionary: [String: DatabaseValueConvertible?]
-    
-    /// Optionally update record ID after a successful insertion
-    func didInsert(with rowID: Int64, for column: String?)
-}
-```
+Record subclasses inherit their features from the [RowConvertible](#rowconvertible-protocol), [TableMapping](#tablemapping-protocol), and [Persistable](#persistable-protocol) protocols. Check their documentation for more information.
 
 For example, here is a fully functional Record subclass:
 
@@ -2243,45 +2237,6 @@ class PointOfInterest : Record {
         id = rowID
     }
 }
-```
-
-
-**Insert records** (see [persistence methods](#persistence-methods)):
-
-```swift
-let poi = PointOfInterest(...)
-try poi.insert(db)
-```
-
-
-**Fetch records** (see [RowConvertible](#rowconvertible-protocol) and the [query interface](#the-query-interface)):
-
-```swift
-// Using the query interface
-let pois = try PointOfInterest.order(titleColumn).fetchAll(db)
-
-// By key
-let poi = try PointOfInterest.fetchOne(db, key: 1)
-
-// Using SQL
-let pois = try PointOfInterest.fetchAll(db, "SELECT ...", arguments: ...)
-```
-
-
-**Update records** (see [persistence methods](#persistence-methods)):
-
-```swift
-let poi = try PointOfInterest.fetchOne(db, key: 1)!
-poi.coordinate = ...
-try poi.update(db)
-```
-
-
-**Delete records** (see [persistence methods](#persistence-methods)):
-
-```swift
-let poi = try PointOfInterest.fetchOne(db, key: 1)!
-try poi.delete(db)
 ```
 
 
@@ -2354,7 +2309,7 @@ try Book.deleteOne(db, key: 1)
 
 ### Exposing the RowID Column
 
-**A record type that wraps a table without any explicit primary key doesn't know about the hidden rowid column.**
+**By default, a record type that wraps a table without any explicit primary key doesn't know about the hidden rowid column.**
 
 Without primary key, records don't have any identity, and the [persistence method](#persistence-methods) can behave in undesired fashion: `update()` throws errors, `save()` always performs insertions and may break constraints, `exists()` is always false.
 
