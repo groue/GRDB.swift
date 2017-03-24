@@ -77,9 +77,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(Double.fromDatabaseValue(dbv) == nil)
                 XCTAssertEqual(String.fromDatabaseValue(dbv)!, "0")
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
-                
-                XCTAssertEqual((dbv.value() as String?)!, "0")
-                XCTAssertEqual((dbv.value() as String), "0")
 
                 return .rollback
             }
@@ -100,9 +97,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(String.fromDatabaseValue(dbv)!, "0")
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
                 
-                XCTAssertEqual((dbv.value() as String?)!, "0")
-                XCTAssertEqual((dbv.value() as String), "0")
-                
                 return .rollback
             }
             
@@ -121,9 +115,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(Double.fromDatabaseValue(dbv) == nil)
                 XCTAssertEqual(String.fromDatabaseValue(dbv)!, "0")
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
-                
-                XCTAssertEqual((dbv.value() as String?)!, "0")
-                XCTAssertEqual((dbv.value() as String), "0")
                 
                 return .rollback
             }
@@ -144,9 +135,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(String.fromDatabaseValue(dbv)!, "0.0")
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
                 
-                XCTAssertEqual((dbv.value() as String?)!, "0.0")
-                XCTAssertEqual((dbv.value() as String), "0.0")
-                
                 return .rollback
             }
             
@@ -165,9 +153,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(Double.fromDatabaseValue(dbv) == nil)
                 XCTAssertEqual(String.fromDatabaseValue(dbv)!, "3.0e+5")
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
-
-                XCTAssertEqual((dbv.value() as String?)!, "3.0e+5")
-                XCTAssertEqual((dbv.value() as String), "3.0e+5")
 
                 return .rollback
             }
@@ -188,9 +173,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(String.fromDatabaseValue(dbv)!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
                 
-                XCTAssertEqual((dbv.value() as String?)!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
-                XCTAssertEqual((dbv.value() as String), "'fooéı👨👨🏿🇫🇷🇨🇮'")
-                
                 return .rollback
             }
             
@@ -209,9 +191,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(Double.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertEqual(Data.fromDatabaseValue(dbv), "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
-                
-                XCTAssertEqual((dbv.value() as Data?)!, "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
-                XCTAssertEqual((dbv.value() as Data), "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
                 
                 return .rollback
             }
@@ -284,17 +263,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
                 
-                XCTAssertEqual((dbv.value() as Bool?)!, false)
-                XCTAssertEqual((dbv.value() as Bool), false)
-                XCTAssertEqual((dbv.value() as Int?)!, 0)
-                XCTAssertEqual((dbv.value() as Int), 0)
-                XCTAssertEqual((dbv.value() as Int32?)!, Int32(0))
-                XCTAssertEqual((dbv.value() as Int32), Int32(0))
-                XCTAssertEqual((dbv.value() as Int64?)!, Int64(0))
-                XCTAssertEqual((dbv.value() as Int64), Int64(0))
-                XCTAssertEqual((dbv.value() as Double?)!, 0.0)
-                XCTAssertEqual((dbv.value() as Double), 0.0)
-                
                 return .rollback
             }
             
@@ -313,17 +281,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(Double.fromDatabaseValue(dbv)!, 0.0)
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
-                
-                XCTAssertEqual((dbv.value() as Bool?)!, false)
-                XCTAssertEqual((dbv.value() as Bool), false)
-                XCTAssertEqual((dbv.value() as Int?)!, 0)
-                XCTAssertEqual((dbv.value() as Int), 0)
-                XCTAssertEqual((dbv.value() as Int32?)!, Int32(0))
-                XCTAssertEqual((dbv.value() as Int32), Int32(0))
-                XCTAssertEqual((dbv.value() as Int64?)!, Int64(0))
-                XCTAssertEqual((dbv.value() as Int64), Int64(0))
-                XCTAssertEqual((dbv.value() as Double?)!, 0.0)
-                XCTAssertEqual((dbv.value() as Double), 0.0)
                 
                 return .rollback
             }
@@ -344,17 +301,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
                 
-                XCTAssertEqual((dbv.value() as Bool?)!, false)
-                XCTAssertEqual((dbv.value() as Bool), false)
-                XCTAssertEqual((dbv.value() as Int?)!, 0)
-                XCTAssertEqual((dbv.value() as Int), 0)
-                XCTAssertEqual((dbv.value() as Int32?)!, Int32(0))
-                XCTAssertEqual((dbv.value() as Int32), Int32(0))
-                XCTAssertEqual((dbv.value() as Int64?)!, Int64(0))
-                XCTAssertEqual((dbv.value() as Int64), Int64(0))
-                XCTAssertEqual((dbv.value() as Double?)!, 0.0)
-                XCTAssertEqual((dbv.value() as Double), 0.0)
-                
                 return .rollback
             }
             
@@ -374,17 +320,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
                 
-                XCTAssertEqual((dbv.value() as Bool?)!, true)
-                XCTAssertEqual((dbv.value() as Bool), true)
-                XCTAssertEqual((dbv.value() as Int?)!, 300000)
-                XCTAssertEqual((dbv.value() as Int), 300000)
-                XCTAssertEqual((dbv.value() as Int32?)!, Int32(300000))
-                XCTAssertEqual((dbv.value() as Int32), Int32(300000))
-                XCTAssertEqual((dbv.value() as Int64?)!, Int64(300000))
-                XCTAssertEqual((dbv.value() as Int64), Int64(300000))
-                XCTAssertEqual((dbv.value() as Double?)!, Double(300000))
-                XCTAssertEqual((dbv.value() as Double), Double(300000))
-                
                 return .rollback
             }
             
@@ -400,11 +335,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(Double.fromDatabaseValue(dbv)!, 1e20)
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
-
-                XCTAssertEqual((dbv.value() as Bool?)!, true)
-                XCTAssertEqual((dbv.value() as Bool), true)
-                XCTAssertEqual((dbv.value() as Double?)!, 1e20)
-                XCTAssertEqual((dbv.value() as Double), 1e20)
 
                 return .rollback
             }
@@ -425,17 +355,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
                 
-                XCTAssertEqual((dbv.value() as Bool?)!, true)
-                XCTAssertEqual((dbv.value() as Bool), true)
-                XCTAssertEqual((dbv.value() as Int?)!, 300000)
-                XCTAssertEqual((dbv.value() as Int), 300000)
-                XCTAssertEqual((dbv.value() as Int32?)!, Int32(300000))
-                XCTAssertEqual((dbv.value() as Int32), Int32(300000))
-                XCTAssertEqual((dbv.value() as Int64?)!, Int64(300000))
-                XCTAssertEqual((dbv.value() as Int64), Int64(300000))
-                XCTAssertEqual((dbv.value() as Double?)!, Double(300000))
-                XCTAssertEqual((dbv.value() as Double), Double(300000))
-                
                 return .rollback
             }
             
@@ -451,11 +370,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(Double.fromDatabaseValue(dbv)!, 1e20)
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
-                
-                XCTAssertEqual((dbv.value() as Bool?)!, true)
-                XCTAssertEqual((dbv.value() as Bool), true)
-                XCTAssertEqual((dbv.value() as Double?)!, 1e20)
-                XCTAssertEqual((dbv.value() as Double), 1e20)
                 
                 return .rollback
             }
@@ -476,9 +390,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(String.fromDatabaseValue(dbv)!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
                 
-                XCTAssertEqual((dbv.value() as String?)!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
-                XCTAssertEqual((dbv.value() as String), "'fooéı👨👨🏿🇫🇷🇨🇮'")
-                
                 return .rollback
             }
             
@@ -497,9 +408,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(Double.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertEqual(Data.fromDatabaseValue(dbv), "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
-                
-                XCTAssertEqual((dbv.value() as Data?)!, "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
-                XCTAssertEqual((dbv.value() as Data), "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
                 
                 return .rollback
             }
@@ -532,17 +440,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
                 
-                XCTAssertEqual((dbv.value() as Bool?)!, false)
-                XCTAssertEqual((dbv.value() as Bool), false)
-                XCTAssertEqual((dbv.value() as Int?)!, 0)
-                XCTAssertEqual((dbv.value() as Int), 0)
-                XCTAssertEqual((dbv.value() as Int32?)!, Int32(0))
-                XCTAssertEqual((dbv.value() as Int32), Int32(0))
-                XCTAssertEqual((dbv.value() as Int64?)!, Int64(0))
-                XCTAssertEqual((dbv.value() as Int64), Int64(0))
-                XCTAssertEqual((dbv.value() as Double?)!, 0.0)
-                XCTAssertEqual((dbv.value() as Double), 0.0)
-                
                 return .rollback
             }
             
@@ -561,17 +458,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(Double.fromDatabaseValue(dbv)!, 0.0)
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
-                
-                XCTAssertEqual((dbv.value() as Bool?)!, false)
-                XCTAssertEqual((dbv.value() as Bool), false)
-                XCTAssertEqual((dbv.value() as Int?)!, 0)
-                XCTAssertEqual((dbv.value() as Int), 0)
-                XCTAssertEqual((dbv.value() as Int32?)!, Int32(0))
-                XCTAssertEqual((dbv.value() as Int32), Int32(0))
-                XCTAssertEqual((dbv.value() as Int64?)!, Int64(0))
-                XCTAssertEqual((dbv.value() as Int64), Int64(0))
-                XCTAssertEqual((dbv.value() as Double?)!, 0.0)
-                XCTAssertEqual((dbv.value() as Double), 0.0)
                 
                 return .rollback
             }
@@ -592,17 +478,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
                 
-                XCTAssertEqual((dbv.value() as Bool?)!, false)
-                XCTAssertEqual((dbv.value() as Bool), false)
-                XCTAssertEqual((dbv.value() as Int?)!, 0)
-                XCTAssertEqual((dbv.value() as Int), 0)
-                XCTAssertEqual((dbv.value() as Int32?)!, Int32(0))
-                XCTAssertEqual((dbv.value() as Int32), Int32(0))
-                XCTAssertEqual((dbv.value() as Int64?)!, Int64(0))
-                XCTAssertEqual((dbv.value() as Int64), Int64(0))
-                XCTAssertEqual((dbv.value() as Double?)!, 0.0)
-                XCTAssertEqual((dbv.value() as Double), 0.0)
-                
                 return .rollback
             }
             
@@ -621,17 +496,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(Double.fromDatabaseValue(dbv)!, 0.0)
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
-                
-                XCTAssertEqual((dbv.value() as Bool?)!, false)
-                XCTAssertEqual((dbv.value() as Bool), false)
-                XCTAssertEqual((dbv.value() as Int?)!, 0)
-                XCTAssertEqual((dbv.value() as Int), 0)
-                XCTAssertEqual((dbv.value() as Int32?)!, Int32(0))
-                XCTAssertEqual((dbv.value() as Int32), Int32(0))
-                XCTAssertEqual((dbv.value() as Int64?)!, Int64(0))
-                XCTAssertEqual((dbv.value() as Int64), Int64(0))
-                XCTAssertEqual((dbv.value() as Double?)!, 0.0)
-                XCTAssertEqual((dbv.value() as Double), 0.0)
                 
                 return .rollback
             }
@@ -652,9 +516,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(String.fromDatabaseValue(dbv)!, "3.0e+5")
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
                 
-                XCTAssertEqual((dbv.value() as String?)!, "3.0e+5")
-                XCTAssertEqual((dbv.value() as String), "3.0e+5")
-                
                 return .rollback
             }
             
@@ -673,9 +534,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(Double.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertEqual(Data.fromDatabaseValue(dbv), "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
-                
-                XCTAssertEqual((dbv.value() as Data?)!, "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
-                XCTAssertEqual((dbv.value() as Data), "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
                 
                 return .rollback
             }
@@ -722,17 +580,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
                 
-                XCTAssertEqual((dbv.value() as Bool?)!, false)
-                XCTAssertEqual((dbv.value() as Bool), false)
-                XCTAssertEqual((dbv.value() as Int?)!, 0)
-                XCTAssertEqual((dbv.value() as Int), 0)
-                XCTAssertEqual((dbv.value() as Int32?)!, Int32(0))
-                XCTAssertEqual((dbv.value() as Int32), Int32(0))
-                XCTAssertEqual((dbv.value() as Int64?)!, Int64(0))
-                XCTAssertEqual((dbv.value() as Int64), Int64(0))
-                XCTAssertEqual((dbv.value() as Double?)!, 0.0)
-                XCTAssertEqual((dbv.value() as Double), 0.0)
-                
                 return .rollback
             }
             
@@ -751,17 +598,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(Double.fromDatabaseValue(dbv)!, 0.0)
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
-                
-                XCTAssertEqual((dbv.value() as Bool?)!, false)
-                XCTAssertEqual((dbv.value() as Bool), false)
-                XCTAssertEqual((dbv.value() as Int?)!, 0)
-                XCTAssertEqual((dbv.value() as Int), 0)
-                XCTAssertEqual((dbv.value() as Int32?)!, Int32(0))
-                XCTAssertEqual((dbv.value() as Int32), Int32(0))
-                XCTAssertEqual((dbv.value() as Int64?)!, Int64(0))
-                XCTAssertEqual((dbv.value() as Int64), Int64(0))
-                XCTAssertEqual((dbv.value() as Double?)!, 0.0)
-                XCTAssertEqual((dbv.value() as Double), 0.0)
                 
                 return .rollback
             }
@@ -782,17 +618,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
                 
-                XCTAssertEqual((dbv.value() as Bool?)!, false)
-                XCTAssertEqual((dbv.value() as Bool), false)
-                XCTAssertEqual((dbv.value() as Int?)!, 0)
-                XCTAssertEqual((dbv.value() as Int), 0)
-                XCTAssertEqual((dbv.value() as Int32?)!, Int32(0))
-                XCTAssertEqual((dbv.value() as Int32), Int32(0))
-                XCTAssertEqual((dbv.value() as Int64?)!, Int64(0))
-                XCTAssertEqual((dbv.value() as Int64), Int64(0))
-                XCTAssertEqual((dbv.value() as Double?)!, 0.0)
-                XCTAssertEqual((dbv.value() as Double), 0.0)
-                
                 return .rollback
             }
             
@@ -812,17 +637,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
                 
-                XCTAssertEqual((dbv.value() as Bool?)!, true)
-                XCTAssertEqual((dbv.value() as Bool), true)
-                XCTAssertEqual((dbv.value() as Int?)!, 300000)
-                XCTAssertEqual((dbv.value() as Int), 300000)
-                XCTAssertEqual((dbv.value() as Int32?)!, Int32(300000))
-                XCTAssertEqual((dbv.value() as Int32), Int32(300000))
-                XCTAssertEqual((dbv.value() as Int64?)!, Int64(300000))
-                XCTAssertEqual((dbv.value() as Int64), Int64(300000))
-                XCTAssertEqual((dbv.value() as Double?)!, Double(300000))
-                XCTAssertEqual((dbv.value() as Double), Double(300000))
-                
                 return .rollback
             }
             
@@ -838,11 +652,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(Double.fromDatabaseValue(dbv)!, 1e20)
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
-                
-                XCTAssertEqual((dbv.value() as Bool?)!, true)
-                XCTAssertEqual((dbv.value() as Bool), true)
-                XCTAssertEqual((dbv.value() as Double?)!, 1e20)
-                XCTAssertEqual((dbv.value() as Double), 1e20)
                 
                 return .rollback
             }
@@ -863,17 +672,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
                 
-                XCTAssertEqual((dbv.value() as Bool?)!, true)
-                XCTAssertEqual((dbv.value() as Bool), true)
-                XCTAssertEqual((dbv.value() as Int?)!, 300000)
-                XCTAssertEqual((dbv.value() as Int), 300000)
-                XCTAssertEqual((dbv.value() as Int32?)!, Int32(300000))
-                XCTAssertEqual((dbv.value() as Int32), Int32(300000))
-                XCTAssertEqual((dbv.value() as Int64?)!, Int64(300000))
-                XCTAssertEqual((dbv.value() as Int64), Int64(300000))
-                XCTAssertEqual((dbv.value() as Double?)!, Double(300000))
-                XCTAssertEqual((dbv.value() as Double), Double(300000))
-                
                 return .rollback
             }
             
@@ -889,11 +687,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(Double.fromDatabaseValue(dbv)!, 1e20)
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
-                
-                XCTAssertEqual((dbv.value() as Bool?)!, true)
-                XCTAssertEqual((dbv.value() as Bool), true)
-                XCTAssertEqual((dbv.value() as Double?)!, 1e20)
-                XCTAssertEqual((dbv.value() as Double), 1e20)
                 
                 return .rollback
             }
@@ -914,9 +707,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(String.fromDatabaseValue(dbv)!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
                 XCTAssertTrue(Data.fromDatabaseValue(dbv) == nil)
                 
-                XCTAssertEqual((dbv.value() as String?)!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
-                XCTAssertEqual((dbv.value() as String), "'fooéı👨👨🏿🇫🇷🇨🇮'")
-                
                 return .rollback
             }
             
@@ -935,9 +725,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(Double.fromDatabaseValue(dbv) == nil)
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertEqual(Data.fromDatabaseValue(dbv), "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
-                
-                XCTAssertEqual((dbv.value() as Data?)!, "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
-                XCTAssertEqual((dbv.value() as Data), "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
                 
                 return .rollback
             }

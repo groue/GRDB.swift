@@ -10,7 +10,8 @@ Release Notes
 
 **Breaking Changes**
 
-- `DatabaseQueue.writeInTransaction`, alias for `DatabaseQueue.inTransaction` has been removed.
+- `DatabaseQueue.writeInTransaction`, alias for `DatabaseQueue.inTransaction`, has been removed.
+- `DatabaseValue.value()` has been removed.
 
 
 ## 0.102.0

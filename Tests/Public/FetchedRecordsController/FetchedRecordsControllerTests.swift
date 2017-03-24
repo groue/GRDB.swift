@@ -553,7 +553,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
                     case .M(let s, let i, let j, let c):
                         switch event {
                         case .move(let indexPath, let newIndexPath, let changes):
-                            return s == name && i == indexPath[1] && j == newIndexPath[1] && c == changes["name"]!.value()
+                            return s == name && i == indexPath[1] && j == newIndexPath[1] && c == String.fromDatabaseValue(changes["name"]!)!
                         default:
                             return false
                         }
@@ -567,7 +567,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
                     case .U(let s, let i, let c):
                         switch event {
                         case .update(let indexPath, let changes):
-                            return s == name && i == indexPath[1] && c == changes["name"]!.value()
+                            return s == name && i == indexPath[1] && c == String.fromDatabaseValue(changes["name"]!)!
                         default:
                             return false
                         }

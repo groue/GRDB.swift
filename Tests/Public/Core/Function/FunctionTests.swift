@@ -159,7 +159,7 @@ class FunctionTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("asInt64", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
-                return databaseValues[0].value() as Int64?
+                return Int64.fromDatabaseValue(databaseValues[0])
             }
             dbQueue.add(function: fn)
             try dbQueue.inDatabase { db in
@@ -174,7 +174,7 @@ class FunctionTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("asDouble", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
-                return databaseValues[0].value() as Double?
+                return Double.fromDatabaseValue(databaseValues[0])
             }
             dbQueue.add(function: fn)
             try dbQueue.inDatabase { db in
@@ -189,7 +189,7 @@ class FunctionTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("asString", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
-                return databaseValues[0].value() as String?
+                return String.fromDatabaseValue(databaseValues[0])
             }
             dbQueue.add(function: fn)
             try dbQueue.inDatabase { db in
@@ -203,7 +203,7 @@ class FunctionTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("asData", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
-                return databaseValues[0].value() as Data?
+                return Data.fromDatabaseValue(databaseValues[0])
             }
             dbQueue.add(function: fn)
             try dbQueue.inDatabase { db in
@@ -217,7 +217,7 @@ class FunctionTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("asCustomValueType", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
-                return databaseValues[0].value() as CustomValueType?
+                return CustomValueType.fromDatabaseValue(databaseValues[0])
             }
             dbQueue.add(function: fn)
             try dbQueue.inDatabase { db in
@@ -247,7 +247,7 @@ class FunctionTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("unicodeUpper", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
                 let dbv = databaseValues[0]
-                guard let string: String = dbv.value() else {
+                guard let string = String.fromDatabaseValue(dbv) else {
                     return nil
                 }
                 return string.uppercased()
@@ -265,7 +265,7 @@ class FunctionTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("f", argumentCount: 2) { databaseValues in
-                let ints: [Int] = databaseValues.flatMap { $0.value() }
+                let ints = databaseValues.flatMap { Int.fromDatabaseValue($0) }
                 return ints.reduce(0, +)
             }
             dbQueue.add(function: fn)

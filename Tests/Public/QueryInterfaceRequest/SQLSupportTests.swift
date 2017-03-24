@@ -31,7 +31,7 @@ class SQLSupportTests: GRDBTestCase {
         dbWriter.add(collation: collation)
         
         customFunction = DatabaseFunction("avgOf", pure: true) { databaseValues in
-            let sum = databaseValues.flatMap { $0.value() as Int? }.reduce(0, +)
+            let sum = databaseValues.flatMap { Int.fromDatabaseValue($0) }.reduce(0, +)
             return Double(sum) / Double(databaseValues.count)
         }
         dbWriter.add(function: self.customFunction)

@@ -649,7 +649,7 @@ class RecordEditedTests: GRDBTestCase {
                     case "age":
                         XCTAssertEqual(old, DatabaseValue.null)
                     case "creationDate":
-                        XCTAssertTrue((old?.value() as Date?) != nil)
+                        XCTAssertTrue(Date.fromDatabaseValue(old!) != nil)
                     default:
                         XCTFail("Unexpected column: \(column)")
                     }
@@ -671,7 +671,7 @@ class RecordEditedTests: GRDBTestCase {
                     case "AGE":
                         XCTAssertEqual(old, DatabaseValue.null)
                     case "CREATIONDATE":
-                        XCTAssertTrue((old?.value() as Date?) != nil)
+                        XCTAssertTrue(Date.fromDatabaseValue(old!) != nil)
                     default:
                         XCTFail("Unexpected column: \(column)")
                     }

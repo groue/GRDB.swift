@@ -28,8 +28,8 @@ class DetachedRowTests : RowTestCase {
                 var bools = [Bool]()
                 for (columnName, databaseValue) in row {
                     columnNames.append(columnName)
-                    ints.append(databaseValue.value() as Int)
-                    bools.append(databaseValue.value() as Bool)
+                    ints.append(Int.fromDatabaseValue(databaseValue)!)
+                    bools.append(Bool.fromDatabaseValue(databaseValue)!)
                 }
                 
                 XCTAssertEqual(columnNames, ["a", "b", "c"])

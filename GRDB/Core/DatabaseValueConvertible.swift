@@ -58,6 +58,36 @@ public protocol DatabaseValueConvertible : SQLExpressible {
     static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self?
 }
 
+extension DatabaseValueConvertible {
+    /// Returns the value, converted to the requested type.
+    ///
+    /// - returns: An optional *Self*.
+    static func convertOptional(from databaseValue: DatabaseValue) -> Self? {
+        // Use fromDatabaseValue first: this allows DatabaseValue to convert NULL to .null.
+        if let value = Self.fromDatabaseValue(databaseValue) {
+            return value
+        }
+        if databaseValue.isNull {
+            // Failed conversion from nil: ok
+            return nil
+        } else {
+            // Failed conversion from a non-null database value: this is data loss, a programmer error.
+            fatalError("could not convert database value \(databaseValue) to \(Self.self)")
+        }
+    }
+
+    /// Returns the value, converted to the requested type.
+    ///
+    /// - returns: A *Self*.
+    static func convert(from databaseValue: DatabaseValue) -> Self {
+        if let value = Self.fromDatabaseValue(databaseValue) {
+            return value
+        }
+        // Failed conversion: programmer error
+        fatalError("could not convert database value \(databaseValue) to \(Self.self)")
+    }
+}
+
 
 // SQLExpressible adoption
 extension DatabaseValueConvertible {

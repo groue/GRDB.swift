@@ -72,8 +72,6 @@ Not sure
     }
     ```
 
-- [ ] Remove DatabaseValue.value()
-    - [X] Don't talk about DatabaseValue.value() in README.md
 - [ ] Document or deprecate DatabaseCoder
 - [ ] Support for NSColor/UIColor. Beware UIColor components can go beyond [0, 1.0] in iOS10.
 - [ ] Store dates as timestamp (https://twitter.com/gloparco/status/780948021613912064, https://github.com/groue/GRDB.swift/issues/97)

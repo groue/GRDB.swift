@@ -36,7 +36,7 @@ class DatabaseQueueTests: GRDBTestCase {
                 let dbQueue = try makeDatabaseQueue()
                 let fn = DatabaseFunction("succ", argumentCount: 1) { databaseValues in
                      let dbv = databaseValues.first!
-                     guard let int = dbv.value() as Int? else {
+                     guard let int = Int.fromDatabaseValue(dbv) else {
                         return nil
                      }
                      return int + 1

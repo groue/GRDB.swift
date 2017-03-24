@@ -23,8 +23,8 @@ class DictionaryRowTests : RowTestCase {
         var bools = Set<Bool>()
         for (columnName, databaseValue) in row {
             columnNames.insert(columnName)
-            ints.insert(databaseValue.value() as Int)
-            bools.insert(databaseValue.value() as Bool)
+            ints.insert(Int.fromDatabaseValue(databaseValue)!)
+            bools.insert(Bool.fromDatabaseValue(databaseValue)!)
         }
         
         XCTAssertEqual(columnNames, ["a", "b", "c"])
@@ -152,7 +152,7 @@ class DictionaryRowTests : RowTestCase {
     
     func testRowDatabaseValues() {
         let row = Row(["a": 0, "b": 1, "c": 2])
-        XCTAssertEqual(row.databaseValues.sorted { ($0.value() as Int!) < ($1.value() as Int!) }, [0.databaseValue, 1.databaseValue, 2.databaseValue])
+        XCTAssertEqual(row.databaseValues.sorted { Int.fromDatabaseValue($0)! < Int.fromDatabaseValue($1)! }, [0.databaseValue, 1.databaseValue, 2.databaseValue])
     }
     
     func testRowIsCaseInsensitive() {

@@ -13,23 +13,10 @@ class DatabaseValueTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                XCTAssertTrue((try Row.fetchOne(db, "SELECT 1")!.value(atIndex: 0) as DatabaseValue).value() is Int64)
-                XCTAssertTrue((try Row.fetchOne(db, "SELECT 1.0")!.value(atIndex: 0) as DatabaseValue).value() is Double)
-                XCTAssertTrue((try Row.fetchOne(db, "SELECT 'foo'")!.value(atIndex: 0) as DatabaseValue).value() is String)
-                XCTAssertTrue((try Row.fetchOne(db, "SELECT x'53514C697465'")!.value(atIndex: 0) as DatabaseValue).value() is Data)
-                XCTAssertTrue((try Row.fetchOne(db, "SELECT NULL")!.value(atIndex: 0) as DatabaseValue).isNull)
-            }
-        }
-    }
-    
-    func testDatabaseValueAsStatementColumnConvertible() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                XCTAssertTrue(try DatabaseValue.fetchOne(db, "SELECT 1")!.value() is Int64)
-                XCTAssertTrue(try DatabaseValue.fetchOne(db, "SELECT 1.0")!.value() is Double)
-                XCTAssertTrue(try DatabaseValue.fetchOne(db, "SELECT 'foo'")!.value() is String)
-                XCTAssertTrue(try DatabaseValue.fetchOne(db, "SELECT x'53514C697465'")!.value() is Data)
+                XCTAssertEqual(try DatabaseValue.fetchOne(db, "SELECT 1")!.storage, DatabaseValue.Storage.int64(1))
+                XCTAssertEqual(try DatabaseValue.fetchOne(db, "SELECT 1.0")!.storage, DatabaseValue.Storage.double(1))
+                XCTAssertEqual(try DatabaseValue.fetchOne(db, "SELECT 'foo'")!.storage, DatabaseValue.Storage.string("foo"))
+                XCTAssertEqual(try DatabaseValue.fetchOne(db, "SELECT x'53514C697465'")!.storage, DatabaseValue.Storage.blob("SQLite".data(using: .utf8)!))
                 XCTAssertTrue(try DatabaseValue.fetchOne(db, "SELECT NULL")!.isNull)
             }
         }
@@ -120,11 +107,6 @@ class DatabaseValueTests: GRDBTestCase {
         let fooData2 = "foo".data(using: .utf8)!.databaseValue
         XCTAssertEqual(fooData1, fooData2)
         XCTAssertEqual(fooData1.hashValue, fooData2.hashValue)
-    }
-    
-    func testNullDatabaseValueGetValue() {
-        let databaseValue_Null = DatabaseValue.null
-        XCTAssertNil(databaseValue_Null.value())
     }
     
     func testDatabaseValueDescription() {
