@@ -6,7 +6,7 @@ Release Notes
 **Fixed**
 
 - `DatabaseError` conversion to `NSError` preserves extended result codes.
-- `DatabaseQueue.read` prevents database modifications.
+- `DatabaseQueue.read` and `DatabaseQueue.readFromCurrentState` prevent database modifications.
 
 **Breaking Changes**
 
