@@ -1190,6 +1190,12 @@
 		56DE7B2F1C42B23B00861EB8 /* PerformanceModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 56DE7B2D1C42B23B00861EB8 /* PerformanceModel.xcdatamodeld */; };
 		56DE7B351C42B37E00861EB8 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56DE7B341C42B37E00861EB8 /* CoreData.framework */; };
 		56DE7B371C42BBBB00861EB8 /* PerformanceCoreDataTests.sqlite in Resources */ = {isa = PBXBuildFile; fileRef = 56DE7B361C42BBBB00861EB8 /* PerformanceCoreDataTests.sqlite */; };
+		56E06F061E859064008AE2A4 /* Fixits-0.102.0.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E06F051E859064008AE2A4 /* Fixits-0.102.0.swift */; };
+		56E06F131E859068008AE2A4 /* Fixits-0.102.0.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E06F051E859064008AE2A4 /* Fixits-0.102.0.swift */; };
+		56E06F141E859069008AE2A4 /* Fixits-0.102.0.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E06F051E859064008AE2A4 /* Fixits-0.102.0.swift */; };
+		56E06F161E85906C008AE2A4 /* Fixits-0.102.0.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E06F051E859064008AE2A4 /* Fixits-0.102.0.swift */; };
+		56E06F171E85906D008AE2A4 /* Fixits-0.102.0.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E06F051E859064008AE2A4 /* Fixits-0.102.0.swift */; };
+		56E06F181E85906E008AE2A4 /* Fixits-0.102.0.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E06F051E859064008AE2A4 /* Fixits-0.102.0.swift */; };
 		56E5D7D41B4D3FEE00430942 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56E5D7CA1B4D3FED00430942 /* GRDB.framework */; };
 		56E5D7FE1B4D422E00430942 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC3773F319C8CBB3004FCF85 /* GRDB.framework */; };
 		56E5D8041B4D424400430942 /* GRDBTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5623E0901B4AFACC00B20B7F /* GRDBTestCase.swift */; };
@@ -1921,6 +1927,7 @@
 		56DE7B2E1C42B23B00861EB8 /* PerformanceModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = PerformanceModel.xcdatamodel; sourceTree = "<group>"; };
 		56DE7B341C42B37E00861EB8 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		56DE7B361C42BBBB00861EB8 /* PerformanceCoreDataTests.sqlite */ = {isa = PBXFileReference; lastKnownFileType = file; path = PerformanceCoreDataTests.sqlite; sourceTree = "<group>"; };
+		56E06F051E859064008AE2A4 /* Fixits-0.102.0.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Fixits-0.102.0.swift"; sourceTree = "<group>"; };
 		56E1524B1B43FD5B00EE27AA /* TODO.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = TODO.md; sourceTree = "<group>"; };
 		56E5D7CA1B4D3FED00430942 /* GRDB.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GRDB.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		56E5D7D31B4D3FEE00430942 /* GRDBTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2665,6 +2672,7 @@
 				56BF6D2C1DEF47DA006039A3 /* Fixits-0-84-0.swift */,
 				56BF6D2D1DEF47DA006039A3 /* Fixits-0-90-1.swift */,
 				56F3E7621E67F8C100BF0F01 /* Fixits-0.101.1.swift */,
+				56E06F051E859064008AE2A4 /* Fixits-0.102.0.swift */,
 				56BF6D2E1DEF47DA006039A3 /* Fixits-Swift2.swift */,
 			);
 			path = Legacy;
@@ -3674,6 +3682,7 @@
 				5698AC711DA2FCAF0056AF8C /* FTS3.swift in Sources */,
 				5664759B1D97D8A000FF74B8 /* SQLCollection.swift in Sources */,
 				567404891CEF84C8003ED5CC /* RowAdapter.swift in Sources */,
+				56E06F131E859068008AE2A4 /* Fixits-0.102.0.swift in Sources */,
 				560FC5241CB003810014AA8E /* DatabaseWriter.swift in Sources */,
 				5698AD191DAAD17B0056AF8C /* FTS5Tokenizer.swift in Sources */,
 				56F3E7641E67F8C100BF0F01 /* Fixits-0.101.1.swift in Sources */,
@@ -3876,6 +3885,7 @@
 				565490D71D5AE252005622CB /* Utils.swift in Sources */,
 				5698AC3D1D9E5A590056AF8C /* FTS3Pattern.swift in Sources */,
 				565490BF1D5AE236005622CB /* DatabaseValueConvertible.swift in Sources */,
+				56E06F181E85906E008AE2A4 /* Fixits-0.102.0.swift in Sources */,
 				56B964A31DA51B4C0002DA19 /* FTS5.swift in Sources */,
 				566475A01D97D8A000FF74B8 /* SQLCollection.swift in Sources */,
 				565490BB1D5AE236005622CB /* DatabaseReader.swift in Sources */,
@@ -4082,6 +4092,7 @@
 				5698AC741DA2FCAF0056AF8C /* FTS3.swift in Sources */,
 				5664759E1D97D8A000FF74B8 /* SQLCollection.swift in Sources */,
 				5674048B1CEF84C8003ED5CC /* RowAdapter.swift in Sources */,
+				56E06F161E85906C008AE2A4 /* Fixits-0.102.0.swift in Sources */,
 				56AFC9F91CB1A8BB00F48B96 /* DatabaseWriter.swift in Sources */,
 				5698AD1A1DAAD17C0056AF8C /* FTS5Tokenizer.swift in Sources */,
 				56F3E7671E67F8C100BF0F01 /* Fixits-0.101.1.swift in Sources */,
@@ -4708,6 +4719,7 @@
 				5698AC701DA2FCAF0056AF8C /* FTS3.swift in Sources */,
 				5664759A1D97D8A000FF74B8 /* SQLCollection.swift in Sources */,
 				567404881CEF84C8003ED5CC /* RowAdapter.swift in Sources */,
+				56E06F061E859064008AE2A4 /* Fixits-0.102.0.swift in Sources */,
 				563363C41C942C37000BE133 /* DatabaseWriter.swift in Sources */,
 				5698AD181DAAD17A0056AF8C /* FTS5Tokenizer.swift in Sources */,
 				56F3E7631E67F8C100BF0F01 /* Fixits-0.101.1.swift in Sources */,
@@ -4782,6 +4794,7 @@
 				5698AC751DA2FCAF0056AF8C /* FTS3.swift in Sources */,
 				566475D11D981D5E00FF74B8 /* SQLFunctions.swift in Sources */,
 				5664759F1D97D8A000FF74B8 /* SQLCollection.swift in Sources */,
+				56E06F171E85906D008AE2A4 /* Fixits-0.102.0.swift in Sources */,
 				F3BA802B1CFB289B003DC1BA /* QueryInterfaceRequest.swift in Sources */,
 				5698AD171DAAD16F0056AF8C /* FTS5Tokenizer.swift in Sources */,
 				56F3E7681E67F8C100BF0F01 /* Fixits-0.101.1.swift in Sources */,
@@ -4981,6 +4994,7 @@
 				5698AC721DA2FCAF0056AF8C /* FTS3.swift in Sources */,
 				566475CE1D981D5E00FF74B8 /* SQLFunctions.swift in Sources */,
 				5664759C1D97D8A000FF74B8 /* SQLCollection.swift in Sources */,
+				56E06F141E859069008AE2A4 /* Fixits-0.102.0.swift in Sources */,
 				F3BA80871CFB2E70003DC1BA /* QueryInterfaceRequest.swift in Sources */,
 				5698AD161DAAD16F0056AF8C /* FTS5Tokenizer.swift in Sources */,
 				56F3E7651E67F8C100BF0F01 /* Fixits-0.101.1.swift in Sources */,

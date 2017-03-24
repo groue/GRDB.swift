@@ -6,6 +6,11 @@ Release Notes
 **Fixed**
 
 - `DatabaseError` conversion to `NSError` preserves extended result codes.
+- `DatabaseQueue.read` prevents database modifications.
+
+**Breaking Changes**
+
+- `DatabaseQueue.writeInTransaction`, alias for `DatabaseQueue.inTransaction` has been removed.
 
 
 ## 0.102.0

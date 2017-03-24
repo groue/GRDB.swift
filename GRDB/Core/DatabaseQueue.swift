@@ -214,20 +214,25 @@ extension DatabaseQueue : DatabaseReader {
     
     // MARK: - DatabaseReader Protocol Adoption
     
-    /// Alias for inDatabase
+    /// Synchronously executes a read-only block in a protected dispatch queue,
+    /// and returns its result.
     ///
-    /// TODO: writes are prevented
+    ///     let persons = try dbQueue.read { db in
+    ///         try Person.fetchAll(...)
+    ///     }
     ///
-    /// This method is part of the DatabaseReader protocol adoption.
+    /// This method is *not* reentrant.
+    ///
+    /// Attempts to write in the database throw a DatabaseError whose
+    /// resultCode is `SQLITE_READONLY`.
+    ///
+    /// - parameter block: A block that accesses the database.
+    /// - throws: The error thrown by the block.
     public func read<T>(_ block: (Database) throws -> T) rethrows -> T {
         return try inDatabase { try readOnly($0, block) }
     }
     
-    /// Alias for inDatabase
-    ///
-    /// TODO: writes are not prevented
-    ///
-    /// This method is part of the DatabaseReader protocol adoption.
+    /// Alias for `inDatabase`. See `DatabaseReader.unsafeRead`.
     public func unsafeRead<T>(_ block: (Database) throws -> T) rethrows -> T {
         return try inDatabase(block)
     }
@@ -287,24 +292,18 @@ extension DatabaseQueue : DatabaseWriter {
     
     // MARK: - DatabaseWriter Protocol Adoption
     
-    /// Alias for inDatabase
-    ///
-    /// This method is part of the DatabaseWriter protocol adoption.
+    /// Alias for `inDatabase`. See `DatabaseWriter.write`.
     public func write<T>(_ block: (Database) throws -> T) rethrows -> T {
         return try inDatabase(block)
     }
     
-    /// Alias for inTransaction
-    ///
-    /// This method is part of the DatabaseWriter protocol adoption.
-    public func writeInTransaction(_ kind: Database.TransactionKind? = nil, _ block: (Database) throws -> Database.TransactionCompletion) throws {
-        try inTransaction(kind, block)
-    }
-
     /// Synchronously executes *block*.
     ///
-    /// This method is part of the DatabaseWriter protocol adoption, and must
-    /// be called from the protected database dispatch queue.
+    /// Attempts to write in the database throw a DatabaseError whose
+    /// resultCode is `SQLITE_READONLY`.
+    ///
+    /// This method must be called from the protected database dispatch queue.
+    /// See `DatabaseWriter.readFromCurrentState`.
     public func readFromCurrentState(_ block: @escaping (Database) -> Void) {
         serializedDatabase.execute { readOnly($0, block) }
     }
