@@ -70,7 +70,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     }
     
     fileprivate init<Request>(_ databaseWriter: DatabaseWriter, request: Request, queue: DispatchQueue, itemsAreIdentical: @escaping ItemComparator<Record>) throws where Request: TypedRequest, Request.Fetched == Record {
-        self.request = try databaseWriter.read { db in try ObservedRequest(db, request: request) }
+        self.request = try databaseWriter.unsafeRead { db in try ObservedRequest(db, request: request) }
         self.databaseWriter = databaseWriter
         self.itemsAreIdentical = itemsAreIdentical
         self.queue = queue
@@ -126,7 +126,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// This method must be used from the controller's dispatch queue (the
     /// main queue unless stated otherwise in the controller's initializer).
     public func setRequest<Request>(_ request: Request) throws where Request: TypedRequest, Request.Fetched == Record {
-        self.request = try databaseWriter.read { db in try ObservedRequest(db, request: request) }
+        self.request = try databaseWriter.unsafeRead { db in try ObservedRequest(db, request: request) }
         
         // No observer: don't look for changes
         guard let observer = observer else { return }
@@ -402,7 +402,7 @@ extension FetchedRecordsController where Record: TableMapping {
     ///         notified of changes in this queue. The controller itself must be
     ///         used from this queue.
     public convenience init<Request>(_ databaseWriter: DatabaseWriter, request: Request, queue: DispatchQueue = .main) throws where Request: TypedRequest, Request.Fetched == Record {
-        let rowComparator = try databaseWriter.read { db in try Record.primaryKeyRowComparator(db) }
+        let rowComparator = try databaseWriter.unsafeRead { db in try Record.primaryKeyRowComparator(db) }
         try self.init(databaseWriter, request: request, queue: queue, itemsAreIdentical: { rowComparator($0.row, $1.row) })
     }
 }

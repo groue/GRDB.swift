@@ -216,12 +216,16 @@ extension DatabaseQueue : DatabaseReader {
     
     /// Alias for inDatabase
     ///
+    /// TODO: writes are prevented
+    ///
     /// This method is part of the DatabaseReader protocol adoption.
     public func read<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try inDatabase(block)
+        return try inDatabase { try readOnly($0, block) }
     }
     
     /// Alias for inDatabase
+    ///
+    /// TODO: writes are not prevented
     ///
     /// This method is part of the DatabaseReader protocol adoption.
     public func unsafeRead<T>(_ block: (Database) throws -> T) rethrows -> T {
@@ -302,6 +306,23 @@ extension DatabaseQueue : DatabaseWriter {
     /// This method is part of the DatabaseWriter protocol adoption, and must
     /// be called from the protected database dispatch queue.
     public func readFromCurrentState(_ block: @escaping (Database) -> Void) {
-        serializedDatabase.execute(block)
+        serializedDatabase.execute { readOnly($0, block) }
     }
 }
+
+// Wraps the block between two `PRAGMA query_only` statements.
+//
+// This method is unsafe because the two calls to `PRAGMA query_only` are
+// not guaranteed to be serialized (some other thread could mess with this).
+private func readOnly<T>(_ db: Database, _ block: (Database) throws -> T) rethrows -> T {
+    if db.configuration.readonly {
+        return try block(db)
+    } else {
+        try! db.execute("PRAGMA query_only = 1")    // Assume can't fail
+        let result = try block(db)
+        try! db.execute("PRAGMA query_only = 0")    // Assume can't fail
+        return result
+    }
+}
+
+

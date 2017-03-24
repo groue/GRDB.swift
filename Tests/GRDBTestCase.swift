@@ -124,7 +124,7 @@ class GRDBTestCase: XCTestCase {
     }
     
     func sql(_ databaseReader: DatabaseReader, _ request: Request) -> String {
-        return try! databaseReader.read { db in
+        return try! databaseReader.unsafeRead { db in
             _ = try Row.fetchOne(db, request)
             return lastSQLQuery
         }
