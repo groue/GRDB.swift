@@ -5231,7 +5231,6 @@ These protocols provide a unified API that lets you write safe concurrent code t
 However, database queues are not database pools, and DatabaseReader and DatabaseWriter provide the *smallest* common guarantees. They require more discipline:
 
 - Pools are less forgiving than queues when one overlooks a transaction (see [concurrency rule 3](#guarantees-and-rules)).
-- DatabaseReader.read does not prevent a queue from writing.
 - DatabaseWriter.readFromCurrentState is synchronous, or asynchronous, depending on whether it is run by a queue or a pool (see [advanced DatabasePool](#advanced-databasepool)). It thus requires higher libDispatch skills, and more complex synchronization code.
 - The definition of "current state" in DatabaseWriter.readFromCurrentState is [delicate](http://groue.github.io/GRDB.swift/docs/0.102.0/Protocols/DatabaseWriter.html#/s:FP4GRDB14DatabaseWriter20readFromCurrentStateFzFCS_8DatabaseT_T_).
 
