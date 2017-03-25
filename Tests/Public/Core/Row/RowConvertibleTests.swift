@@ -78,10 +78,6 @@ class RowConvertibleTests: GRDBTestCase {
             dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
             try dbQueue.inDatabase { db in
                 func test(_ cursor: DatabaseCursor<Fetched>, sql: String) throws {
-                    let record = try cursor.next()!
-                    XCTAssertEqual(record.firstName, "Arthur")
-                    XCTAssertEqual(record.lastName, "Martin")
-                    XCTAssertTrue(record.isFetched)
                     do {
                         _ = try cursor.next()
                         XCTFail()
@@ -102,14 +98,14 @@ class RowConvertibleTests: GRDBTestCase {
                     }
                 }
                 do {
-                    let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT throw(), NULL"
+                    let sql = "SELECT throw(), NULL"
                     try test(Fetched.fetchCursor(db, sql), sql: sql)
                     try test(Fetched.fetchCursor(db.makeSelectStatement(sql)), sql: sql)
                     try test(Fetched.fetchCursor(db, SQLRequest(sql)), sql: sql)
                     try test(SQLRequest(sql).bound(to: Fetched.self).fetchCursor(db), sql: sql)
                 }
                 do {
-                    let sql = "SELECT 0 AS firstName, 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 0, throw(), NULL"
+                    let sql = "SELECT 0, throw(), NULL"
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(Fetched.fetchCursor(db, sql, adapter: adapter), sql: sql)
                     try test(Fetched.fetchCursor(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
