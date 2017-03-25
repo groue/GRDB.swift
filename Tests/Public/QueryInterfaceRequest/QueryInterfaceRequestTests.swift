@@ -44,191 +44,177 @@ class QueryInterfaceRequestTests: GRDBTestCase {
     
     // MARK: - Fetch rows
     
-    func testFetchRowFromRequest() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
-                try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
-                
-                do {
-                    let rows = try Row.fetchAll(db, tableRequest)
-                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
-                    XCTAssertEqual(rows.count, 2)
-                    XCTAssertEqual(rows[0].value(named: "id") as Int64, 1)
-                    XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
-                    XCTAssertEqual(rows[0].value(named: "age") as Int, 42)
-                    XCTAssertEqual(rows[1].value(named: "id") as Int64, 2)
-                    XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
-                    XCTAssertEqual(rows[1].value(named: "age") as Int, 36)
+    func testFetchRowFromRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
+            try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
+            
+            do {
+                let rows = try Row.fetchAll(db, tableRequest)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
+                XCTAssertEqual(rows.count, 2)
+                XCTAssertEqual(rows[0].value(named: "id") as Int64, 1)
+                XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
+                XCTAssertEqual(rows[0].value(named: "age") as Int, 42)
+                XCTAssertEqual(rows[1].value(named: "id") as Int64, 2)
+                XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
+                XCTAssertEqual(rows[1].value(named: "age") as Int, 36)
+            }
+            
+            do {
+                let row = try Row.fetchOne(db, tableRequest)!
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
+                XCTAssertEqual(row.value(named: "id") as Int64, 1)
+                XCTAssertEqual(row.value(named: "name") as String, "Arthur")
+                XCTAssertEqual(row.value(named: "age") as Int, 42)
+            }
+            
+            do {
+                var names: [String] = []
+                let rows = try Row.fetchCursor(db, tableRequest)
+                while let row = try rows.next() {
+                    names.append(row.value(named: "name"))
                 }
-                
-                do {
-                    let row = try Row.fetchOne(db, tableRequest)!
-                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
-                    XCTAssertEqual(row.value(named: "id") as Int64, 1)
-                    XCTAssertEqual(row.value(named: "name") as String, "Arthur")
-                    XCTAssertEqual(row.value(named: "age") as Int, 42)
-                }
-                
-                do {
-                    var names: [String] = []
-                    let rows = try Row.fetchCursor(db, tableRequest)
-                    while let row = try rows.next() {
-                        names.append(row.value(named: "name"))
-                    }
-                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
-                    XCTAssertEqual(names, ["Arthur", "Barbara"])
-                }
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
+                XCTAssertEqual(names, ["Arthur", "Barbara"])
             }
         }
     }
-    
-    
+
+
     // MARK: - Count
-    
-    func testFetchCount() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                XCTAssertEqual(try tableRequest.fetchCount(db), 0)
-                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
-                
-                XCTAssertEqual(try tableRequest.reversed().fetchCount(db), 0)
-                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
-                
-                XCTAssertEqual(try tableRequest.order(Col.name).fetchCount(db), 0)
-                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
-                
-                XCTAssertEqual(try tableRequest.limit(10).fetchCount(db), 0)
-                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT * FROM \"readers\" LIMIT 10)")
-                
-                XCTAssertEqual(try tableRequest.filter(Col.age == 42).fetchCount(db), 0)
-                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\" WHERE (\"age\" = 42)")
-                
-                XCTAssertEqual(try tableRequest.distinct().fetchCount(db), 0)
-                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT * FROM \"readers\")")
-                
-                XCTAssertEqual(try tableRequest.select(Col.name).fetchCount(db), 0)
-                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
-                
-                XCTAssertEqual(try tableRequest.select(Col.name).distinct().fetchCount(db), 0)
-                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"name\") FROM \"readers\"")
-                
-                XCTAssertEqual(try tableRequest.select(Col.age * 2).distinct().fetchCount(db), 0)
-                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT (\"age\" * 2)) FROM \"readers\"")
-                
-                XCTAssertEqual(try tableRequest.select((Col.age * 2).aliased("ignored")).distinct().fetchCount(db), 0)
-                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT (\"age\" * 2)) FROM \"readers\"")
-                
-                XCTAssertEqual(try tableRequest.select(Col.name, Col.age).fetchCount(db), 0)
-                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
-                
-                XCTAssertEqual(try tableRequest.select(Col.name, Col.age).distinct().fetchCount(db), 0)
-                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT \"name\", \"age\" FROM \"readers\")")
-                
-                XCTAssertEqual(try tableRequest.select(max(Col.age)).group(Col.name).fetchCount(db), 0)
-                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT MAX(\"age\") FROM \"readers\" GROUP BY \"name\")")
-            }
+
+    func testFetchCount() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            XCTAssertEqual(try tableRequest.fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+            
+            XCTAssertEqual(try tableRequest.reversed().fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+            
+            XCTAssertEqual(try tableRequest.order(Col.name).fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+            
+            XCTAssertEqual(try tableRequest.limit(10).fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT * FROM \"readers\" LIMIT 10)")
+            
+            XCTAssertEqual(try tableRequest.filter(Col.age == 42).fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\" WHERE (\"age\" = 42)")
+            
+            XCTAssertEqual(try tableRequest.distinct().fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT * FROM \"readers\")")
+            
+            XCTAssertEqual(try tableRequest.select(Col.name).fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+            
+            XCTAssertEqual(try tableRequest.select(Col.name).distinct().fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"name\") FROM \"readers\"")
+            
+            XCTAssertEqual(try tableRequest.select(Col.age * 2).distinct().fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT (\"age\" * 2)) FROM \"readers\"")
+            
+            XCTAssertEqual(try tableRequest.select((Col.age * 2).aliased("ignored")).distinct().fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT (\"age\" * 2)) FROM \"readers\"")
+            
+            XCTAssertEqual(try tableRequest.select(Col.name, Col.age).fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+            
+            XCTAssertEqual(try tableRequest.select(Col.name, Col.age).distinct().fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT \"name\", \"age\" FROM \"readers\")")
+            
+            XCTAssertEqual(try tableRequest.select(max(Col.age)).group(Col.name).fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT MAX(\"age\") FROM \"readers\" GROUP BY \"name\")")
         }
     }
-    
-    
+
+
     // MARK: - Select
-    
-    func testSelectLiteral() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
-                try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
-                
-                let request = tableRequest.select(sql: "name, id - 1")
-                let rows = try Row.fetchAll(db, request)
-                XCTAssertEqual(lastSQLQuery, "SELECT name, id - 1 FROM \"readers\"")
-                XCTAssertEqual(rows.count, 2)
-                XCTAssertEqual(rows[0].value(atIndex: 0) as String, "Arthur")
-                XCTAssertEqual(rows[0].value(atIndex: 1) as Int64, 0)
-                XCTAssertEqual(rows[1].value(atIndex: 0) as String, "Barbara")
-                XCTAssertEqual(rows[1].value(atIndex: 1) as Int64, 1)
-            }
+
+    func testSelectLiteral() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
+            try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
+            
+            let request = tableRequest.select(sql: "name, id - 1")
+            let rows = try Row.fetchAll(db, request)
+            XCTAssertEqual(lastSQLQuery, "SELECT name, id - 1 FROM \"readers\"")
+            XCTAssertEqual(rows.count, 2)
+            XCTAssertEqual(rows[0].value(atIndex: 0) as String, "Arthur")
+            XCTAssertEqual(rows[0].value(atIndex: 1) as Int64, 0)
+            XCTAssertEqual(rows[1].value(atIndex: 0) as String, "Barbara")
+            XCTAssertEqual(rows[1].value(atIndex: 1) as Int64, 1)
         }
     }
-    
-    func testSelectLiteralWithPositionalArguments() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
-                try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
-                
-                let request = tableRequest.select(sql: "name, id - ?", arguments: [1])
-                let rows = try Row.fetchAll(db, request)
-                XCTAssertEqual(lastSQLQuery, "SELECT name, id - 1 FROM \"readers\"")
-                XCTAssertEqual(rows.count, 2)
-                XCTAssertEqual(rows[0].value(atIndex: 0) as String, "Arthur")
-                XCTAssertEqual(rows[0].value(atIndex: 1) as Int64, 0)
-                XCTAssertEqual(rows[1].value(atIndex: 0) as String, "Barbara")
-                XCTAssertEqual(rows[1].value(atIndex: 1) as Int64, 1)
-            }
+
+    func testSelectLiteralWithPositionalArguments() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
+            try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
+            
+            let request = tableRequest.select(sql: "name, id - ?", arguments: [1])
+            let rows = try Row.fetchAll(db, request)
+            XCTAssertEqual(lastSQLQuery, "SELECT name, id - 1 FROM \"readers\"")
+            XCTAssertEqual(rows.count, 2)
+            XCTAssertEqual(rows[0].value(atIndex: 0) as String, "Arthur")
+            XCTAssertEqual(rows[0].value(atIndex: 1) as Int64, 0)
+            XCTAssertEqual(rows[1].value(atIndex: 0) as String, "Barbara")
+            XCTAssertEqual(rows[1].value(atIndex: 1) as Int64, 1)
         }
     }
-    
-    func testSelectLiteralWithNamedArguments() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
-                try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
-                
-                let request = tableRequest.select(sql: "name, id - :n", arguments: ["n": 1])
-                let rows = try Row.fetchAll(db, request)
-                XCTAssertEqual(lastSQLQuery, "SELECT name, id - 1 FROM \"readers\"")
-                XCTAssertEqual(rows.count, 2)
-                XCTAssertEqual(rows[0].value(atIndex: 0) as String, "Arthur")
-                XCTAssertEqual(rows[0].value(atIndex: 1) as Int64, 0)
-                XCTAssertEqual(rows[1].value(atIndex: 0) as String, "Barbara")
-                XCTAssertEqual(rows[1].value(atIndex: 1) as Int64, 1)
-            }
+
+    func testSelectLiteralWithNamedArguments() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
+            try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
+            
+            let request = tableRequest.select(sql: "name, id - :n", arguments: ["n": 1])
+            let rows = try Row.fetchAll(db, request)
+            XCTAssertEqual(lastSQLQuery, "SELECT name, id - 1 FROM \"readers\"")
+            XCTAssertEqual(rows.count, 2)
+            XCTAssertEqual(rows[0].value(atIndex: 0) as String, "Arthur")
+            XCTAssertEqual(rows[0].value(atIndex: 1) as Int64, 0)
+            XCTAssertEqual(rows[1].value(atIndex: 0) as String, "Barbara")
+            XCTAssertEqual(rows[1].value(atIndex: 1) as Int64, 1)
         }
     }
-    
-    func testSelect() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
-                try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
-                
-                let request = tableRequest.select(Col.name, Col.id - 1)
-                let rows = try Row.fetchAll(db, request)
-                XCTAssertEqual(lastSQLQuery, "SELECT \"name\", (\"id\" - 1) FROM \"readers\"")
-                XCTAssertEqual(rows.count, 2)
-                XCTAssertEqual(rows[0].value(atIndex: 0) as String, "Arthur")
-                XCTAssertEqual(rows[0].value(atIndex: 1) as Int64, 0)
-                XCTAssertEqual(rows[1].value(atIndex: 0) as String, "Barbara")
-                XCTAssertEqual(rows[1].value(atIndex: 1) as Int64, 1)
-            }
+
+    func testSelect() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
+            try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
+            
+            let request = tableRequest.select(Col.name, Col.id - 1)
+            let rows = try Row.fetchAll(db, request)
+            XCTAssertEqual(lastSQLQuery, "SELECT \"name\", (\"id\" - 1) FROM \"readers\"")
+            XCTAssertEqual(rows.count, 2)
+            XCTAssertEqual(rows[0].value(atIndex: 0) as String, "Arthur")
+            XCTAssertEqual(rows[0].value(atIndex: 1) as Int64, 0)
+            XCTAssertEqual(rows[1].value(atIndex: 0) as String, "Barbara")
+            XCTAssertEqual(rows[1].value(atIndex: 1) as Int64, 1)
         }
     }
-    
-    func testSelectAliased() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
-                
-                let request = tableRequest.select(Col.name.aliased("nom"), (Col.age + 1).aliased("agePlusOne"))
-                let row = try Row.fetchOne(db, request)!
-                XCTAssertEqual(lastSQLQuery, "SELECT \"name\" AS \"nom\", (\"age\" + 1) AS \"agePlusOne\" FROM \"readers\"")
-                XCTAssertEqual(row.value(named: "nom") as String, "Arthur")
-                XCTAssertEqual(row.value(named: "agePlusOne") as Int, 43)
-            }
+
+    func testSelectAliased() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
+            
+            let request = tableRequest.select(Col.name.aliased("nom"), (Col.age + 1).aliased("agePlusOne"))
+            let row = try Row.fetchOne(db, request)!
+            XCTAssertEqual(lastSQLQuery, "SELECT \"name\" AS \"nom\", (\"age\" + 1) AS \"agePlusOne\" FROM \"readers\"")
+            XCTAssertEqual(row.value(named: "nom") as String, "Arthur")
+            XCTAssertEqual(row.value(named: "agePlusOne") as Int, 43)
         }
     }
-    
-    func testMultipleSelect() {
-        let dbQueue = try! makeDatabaseQueue()
+
+    func testMultipleSelect() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.select(Col.age).select(Col.name)),
             "SELECT \"name\" FROM \"readers\"")
@@ -237,8 +223,8 @@ class QueryInterfaceRequestTests: GRDBTestCase {
     
     // MARK: - Distinct
     
-    func testDistinct() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testDistinct() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.select(Col.name).distinct()),
             "SELECT DISTINCT \"name\" FROM \"readers\"")
@@ -247,36 +233,36 @@ class QueryInterfaceRequestTests: GRDBTestCase {
     
     // MARK: - Filter
     
-    func testFilterLiteral() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testFilterLiteral() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(sql: "id <> 1")),
             "SELECT * FROM \"readers\" WHERE id <> 1")
     }
     
-    func testFilterLiteralWithPositionalArguments() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testFilterLiteralWithPositionalArguments() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(sql: "id <> ?", arguments: [1])),
             "SELECT * FROM \"readers\" WHERE id <> 1")
     }
     
-    func testFilterLiteralWithNamedArguments() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testFilterLiteralWithNamedArguments() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(sql: "id <> :id", arguments: ["id": 1])),
             "SELECT * FROM \"readers\" WHERE id <> 1")
     }
     
-    func testFilter() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testFilter() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(true)),
             "SELECT * FROM \"readers\" WHERE 1")
     }
 
-    func testMultipleFilter() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testMultipleFilter() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(true).filter(false)),
             "SELECT * FROM \"readers\" WHERE (1 AND 0)")
@@ -285,29 +271,29 @@ class QueryInterfaceRequestTests: GRDBTestCase {
     
     // MARK: - Group
     
-    func testGroupLiteral() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testGroupLiteral() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.group(sql: "age, lower(name)")),
             "SELECT * FROM \"readers\" GROUP BY age, lower(name)")
     }
     
-    func testGroupLiteralWithPositionalArguments() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testGroupLiteralWithPositionalArguments() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.group(sql: "age + ?, lower(name)", arguments: [1])),
             "SELECT * FROM \"readers\" GROUP BY age + 1, lower(name)")
     }
     
-    func testGroupLiteralWithNamedArguments() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testGroupLiteralWithNamedArguments() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.group(sql: "age + :n, lower(name)", arguments: ["n": 1])),
             "SELECT * FROM \"readers\" GROUP BY age + 1, lower(name)")
     }
     
-    func testGroup() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testGroup() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.group(Col.age)),
             "SELECT * FROM \"readers\" GROUP BY \"age\"")
@@ -316,8 +302,8 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             "SELECT * FROM \"readers\" GROUP BY \"age\", \"name\"")
     }
     
-    func testMultipleGroup() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testMultipleGroup() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.group(Col.age).group(Col.name)),
             "SELECT * FROM \"readers\" GROUP BY \"name\"")
@@ -326,36 +312,36 @@ class QueryInterfaceRequestTests: GRDBTestCase {
     
     // MARK: - Having
     
-    func testHavingLiteral() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testHavingLiteral() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.group(Col.name).having(sql: "min(age) > 18")),
             "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING min(age) > 18")
     }
     
-    func testHavingLiteralWithPositionalArguments() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testHavingLiteralWithPositionalArguments() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.group(Col.name).having(sql: "min(age) > ?", arguments: [18])),
             "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING min(age) > 18")
     }
     
-    func testHavingLiteralWithNamedArguments() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testHavingLiteralWithNamedArguments() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.group(Col.name).having(sql: "min(age) > :age", arguments: ["age": 18])),
             "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING min(age) > 18")
     }
     
-    func testHaving() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testHaving() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.group(Col.name).having(min(Col.age) > 18)),
             "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING (MIN(\"age\") > 18)")
     }
     
-    func testMultipleHaving() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testMultipleHaving() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.group(Col.name).having(min(Col.age) > 18).having(max(Col.age) < 50)),
                 "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING ((MIN(\"age\") > 18) AND (MAX(\"age\") < 50))")
@@ -364,29 +350,29 @@ class QueryInterfaceRequestTests: GRDBTestCase {
     
     // MARK: - Sort
     
-    func testSortLiteral() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testSortLiteral() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(sql: "lower(name) desc")),
             "SELECT * FROM \"readers\" ORDER BY lower(name) desc")
     }
     
-    func testSortLiteralWithPositionalArguments() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testSortLiteralWithPositionalArguments() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(sql: "age + ?", arguments: [1])),
             "SELECT * FROM \"readers\" ORDER BY age + 1")
     }
     
-    func testSortLiteralWithNamedArguments() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testSortLiteralWithNamedArguments() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(sql: "age + :age", arguments: ["age": 1])),
             "SELECT * FROM \"readers\" ORDER BY age + 1")
     }
     
-    func testSort() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testSort() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Col.age)),
             "SELECT * FROM \"readers\" ORDER BY \"age\"")
@@ -404,8 +390,8 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             "SELECT * FROM \"readers\" ORDER BY ABS(\"age\")")
     }
     
-    func testSortWithCollation() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testSortWithCollation() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Col.name.collating(.nocase))),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE")
@@ -417,8 +403,8 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE localized_case_insensitive")
     }
     
-    func testMultipleSort() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testMultipleSort() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Col.age).order(Col.name)),
             "SELECT * FROM \"readers\" ORDER BY \"name\"")
@@ -427,8 +413,8 @@ class QueryInterfaceRequestTests: GRDBTestCase {
     
     // MARK: - Reverse
     
-    func testReverse() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testReverse() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"rowid\" DESC")
@@ -449,8 +435,8 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             "SELECT * FROM \"readers\" ORDER BY ABS(\"age\") DESC")
     }
     
-    func testReverseWithCollation() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testReverseWithCollation() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Col.name.collating(.nocase)).reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE DESC")
@@ -462,8 +448,8 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE localized_case_insensitive DESC")
     }
     
-    func testMultipleReverse() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testMultipleReverse() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.reversed().reversed()),
             "SELECT * FROM \"readers\"")
@@ -475,8 +461,8 @@ class QueryInterfaceRequestTests: GRDBTestCase {
     
     // MARK: - Limit
     
-    func testLimit() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testLimit() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.limit(1)),
             "SELECT * FROM \"readers\" LIMIT 1")
@@ -485,8 +471,8 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             "SELECT * FROM \"readers\" LIMIT 1 OFFSET 2")
     }
     
-    func testMultipleLimit() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testMultipleLimit() throws {
+        let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.limit(1, offset: 2).limit(3)),
             "SELECT * FROM \"readers\" LIMIT 3")
@@ -495,29 +481,27 @@ class QueryInterfaceRequestTests: GRDBTestCase {
     
     // MARK: - Delete
     
-    func testDelete() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
+    func testDelete() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        try dbQueue.inDatabase { db in
+            try tableRequest.deleteAll(db)
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"readers\"")
             
-            try dbQueue.inDatabase { db in
-                try tableRequest.deleteAll(db)
-                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"readers\"")
-
-                try tableRequest.filter(Col.age == 42).deleteAll(db)
-                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"readers\" WHERE (\"age\" = 42)")
-                
-                try tableRequest.filter(sql: "id = 1").deleteAll(db)
-                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"readers\" WHERE id = 1")
-                
-                try tableRequest.select(Col.name).deleteAll(db)
-                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"readers\"")
-                
-                try tableRequest.distinct().deleteAll(db)
-                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"readers\"")
-                
-                try tableRequest.order(Col.name).deleteAll(db)
-                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"readers\"")
-            }
+            try tableRequest.filter(Col.age == 42).deleteAll(db)
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"readers\" WHERE (\"age\" = 42)")
+            
+            try tableRequest.filter(sql: "id = 1").deleteAll(db)
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"readers\" WHERE id = 1")
+            
+            try tableRequest.select(Col.name).deleteAll(db)
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"readers\"")
+            
+            try tableRequest.distinct().deleteAll(db)
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"readers\"")
+            
+            try tableRequest.order(Col.name).deleteAll(db)
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"readers\"")
         }
     }
 }

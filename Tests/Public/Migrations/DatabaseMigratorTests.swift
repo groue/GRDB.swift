@@ -9,89 +9,85 @@ import XCTest
 
 class DatabaseMigratorTests : GRDBTestCase {
     
-    func testMigratorDatabaseQueue() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            
-            var migrator = DatabaseMigrator()
-            migrator.registerMigration("createPersons") { db in
-                try db.execute(
-                    "CREATE TABLE persons (" +
-                        "id INTEGER PRIMARY KEY, " +
-                        "name TEXT" +
-                    ")")
-            }
-            migrator.registerMigration("createPets") { db in
-                try db.execute(
-                    "CREATE TABLE pets (" +
-                        "id INTEGER PRIMARY KEY, " +
-                        "masterID INTEGER NOT NULL " +
-                        "         REFERENCES persons(id) " +
-                        "         ON DELETE CASCADE ON UPDATE CASCADE, " +
-                        "name TEXT" +
-                    ")")
-            }
-            
-            try migrator.migrate(dbQueue)
-            try dbQueue.inDatabase { db in
-                XCTAssertTrue(try db.tableExists("persons"))
-                XCTAssertTrue(try db.tableExists("pets"))
-            }
-            
-            migrator.registerMigration("destroyPersons") { db in
-                try db.execute("DROP TABLE pets")
-            }
-            
-            try migrator.migrate(dbQueue)
-            try dbQueue.inDatabase { db in
-                XCTAssertTrue(try db.tableExists("persons"))
-                XCTAssertFalse(try db.tableExists("pets"))
-            }
+    func testMigratorDatabaseQueue() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("createPersons") { db in
+            try db.execute(
+                "CREATE TABLE persons (" +
+                    "id INTEGER PRIMARY KEY, " +
+                    "name TEXT" +
+                ")")
+        }
+        migrator.registerMigration("createPets") { db in
+            try db.execute(
+                "CREATE TABLE pets (" +
+                    "id INTEGER PRIMARY KEY, " +
+                    "masterID INTEGER NOT NULL " +
+                    "         REFERENCES persons(id) " +
+                    "         ON DELETE CASCADE ON UPDATE CASCADE, " +
+                    "name TEXT" +
+                ")")
+        }
+        
+        try migrator.migrate(dbQueue)
+        try dbQueue.inDatabase { db in
+            XCTAssertTrue(try db.tableExists("persons"))
+            XCTAssertTrue(try db.tableExists("pets"))
+        }
+        
+        migrator.registerMigration("destroyPersons") { db in
+            try db.execute("DROP TABLE pets")
+        }
+        
+        try migrator.migrate(dbQueue)
+        try dbQueue.inDatabase { db in
+            XCTAssertTrue(try db.tableExists("persons"))
+            XCTAssertFalse(try db.tableExists("pets"))
         }
     }
-    
-    func testMigratorDatabasePool() {
-        assertNoError {
-            let dbPool = try makeDatabasePool()
-            
-            var migrator = DatabaseMigrator()
-            migrator.registerMigration("createPersons") { db in
-                try db.execute(
-                    "CREATE TABLE persons (" +
-                        "id INTEGER PRIMARY KEY, " +
-                        "name TEXT" +
-                    ")")
-            }
-            migrator.registerMigration("createPets") { db in
-                try db.execute(
-                    "CREATE TABLE pets (" +
-                        "id INTEGER PRIMARY KEY, " +
-                        "masterID INTEGER NOT NULL " +
-                        "         REFERENCES persons(id) " +
-                        "         ON DELETE CASCADE ON UPDATE CASCADE, " +
-                        "name TEXT" +
-                    ")")
-            }
-            
-            try migrator.migrate(dbPool)
-            try dbPool.read { db in
-                XCTAssertTrue(try db.tableExists("persons"))
-                XCTAssertTrue(try db.tableExists("pets"))
-            }
-            
-            migrator.registerMigration("destroyPersons") { db in
-                try db.execute("DROP TABLE pets")
-            }
-            
-            try migrator.migrate(dbPool)
-            try dbPool.read { db in
-                XCTAssertTrue(try db.tableExists("persons"))
-                XCTAssertFalse(try db.tableExists("pets"))
-            }
+
+    func testMigratorDatabasePool() throws {
+        let dbPool = try makeDatabasePool()
+        
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("createPersons") { db in
+            try db.execute(
+                "CREATE TABLE persons (" +
+                    "id INTEGER PRIMARY KEY, " +
+                    "name TEXT" +
+                ")")
+        }
+        migrator.registerMigration("createPets") { db in
+            try db.execute(
+                "CREATE TABLE pets (" +
+                    "id INTEGER PRIMARY KEY, " +
+                    "masterID INTEGER NOT NULL " +
+                    "         REFERENCES persons(id) " +
+                    "         ON DELETE CASCADE ON UPDATE CASCADE, " +
+                    "name TEXT" +
+                ")")
+        }
+        
+        try migrator.migrate(dbPool)
+        try dbPool.read { db in
+            XCTAssertTrue(try db.tableExists("persons"))
+            XCTAssertTrue(try db.tableExists("pets"))
+        }
+        
+        migrator.registerMigration("destroyPersons") { db in
+            try db.execute("DROP TABLE pets")
+        }
+        
+        try migrator.migrate(dbPool)
+        try dbPool.read { db in
+            XCTAssertTrue(try db.tableExists("persons"))
+            XCTAssertFalse(try db.tableExists("pets"))
         }
     }
-    
-    func testMigrationFailureTriggersRollback() {
+
+    func testMigrationFailureTriggersRollback() throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
             try db.execute("CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT)")
@@ -109,29 +105,27 @@ class DatabaseMigratorTests : GRDBTestCase {
             }
         }
         
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            do {
-                try migrator.migrate(dbQueue)
-                XCTFail("Expected error")
-            } catch let error as DatabaseError {
-                // The first migration should be committed.
-                // The second migration should be rollbacked.
-                
-                XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
-                XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
-                XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
-                XCTAssertEqual(error.description.lowercased(), "sqlite error 787 with statement `insert into pets (masterid, name) values (?, ?)` arguments [123, \"bobby\"]: foreign key constraint failed")
-
-                let names = try dbQueue.inDatabase { db in
-                    try String.fetchAll(db, "SELECT name FROM persons")
-                }
-                XCTAssertEqual(names, ["Arthur"])
+        let dbQueue = try makeDatabaseQueue()
+        do {
+            try migrator.migrate(dbQueue)
+            XCTFail("Expected error")
+        } catch let error as DatabaseError {
+            // The first migration should be committed.
+            // The second migration should be rollbacked.
+            
+            XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
+            XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
+            XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
+            XCTAssertEqual(error.description.lowercased(), "sqlite error 787 with statement `insert into pets (masterid, name) values (?, ?)` arguments [123, \"bobby\"]: foreign key constraint failed")
+            
+            let names = try dbQueue.inDatabase { db in
+                try String.fetchAll(db, "SELECT name FROM persons")
             }
+            XCTAssertEqual(names, ["Arthur"])
         }
     }
     
-    func testMigrationWithoutForeignKeyChecks() {
+    func testMigrationWithoutForeignKeyChecks() throws {
         #if !USING_CUSTOMSQLITE && !USING_SQLCIPHER
             guard #available(iOS 8.2, OSX 10.10, *) else {
                 return
@@ -163,36 +157,34 @@ class DatabaseMigratorTests : GRDBTestCase {
             }
         }
         
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            do {
-                try migrator.migrate(dbQueue)
-                XCTFail("Expected error")
-            } catch let error as DatabaseError {
-                // Migration 1 and 2 should be committed.
-                // Migration 3 should not be committed.
+        let dbQueue = try makeDatabaseQueue()
+        do {
+            try migrator.migrate(dbQueue)
+            XCTFail("Expected error")
+        } catch let error as DatabaseError {
+            // Migration 1 and 2 should be committed.
+            // Migration 3 should not be committed.
+            
+            XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
+            XCTAssertEqual(error.message!, "FOREIGN KEY constraint failed")
+            XCTAssertTrue(error.sql == nil)
+            XCTAssertEqual(error.description, "SQLite error 19: FOREIGN KEY constraint failed")
+            
+            try dbQueue.inDatabase { db in
+                // Arthur inserted (migration 1), Barbara (migration 3) not inserted.
+                var rows = try Row.fetchAll(db, "SELECT * FROM persons")
+                XCTAssertEqual(rows.count, 1)
+                var row = rows.first!
+                XCTAssertEqual(row.value(named: "name") as String, "Arthur")
                 
-                XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
-                XCTAssertEqual(error.message!, "FOREIGN KEY constraint failed")
-                XCTAssertTrue(error.sql == nil)
-                XCTAssertEqual(error.description, "SQLite error 19: FOREIGN KEY constraint failed")
+                // persons table has no "tmp" column (migration 2)
+                XCTAssertEqual(Array(row.columnNames), ["id", "name"])
                 
-                try dbQueue.inDatabase { db in
-                    // Arthur inserted (migration 1), Barbara (migration 3) not inserted.
-                    var rows = try Row.fetchAll(db, "SELECT * FROM persons")
-                    XCTAssertEqual(rows.count, 1)
-                    var row = rows.first!
-                    XCTAssertEqual(row.value(named: "name") as String, "Arthur")
-                    
-                    // persons table has no "tmp" column (migration 2)
-                    XCTAssertEqual(Array(row.columnNames), ["id", "name"])
-                    
-                    // Bobby inserted (migration 1), not deleted by migration 2.
-                    rows = try Row.fetchAll(db, "SELECT * FROM pets")
-                    XCTAssertEqual(rows.count, 1)
-                    row = rows.first!
-                    XCTAssertEqual(row.value(named: "name") as String, "Bobby")
-                }
+                // Bobby inserted (migration 1), not deleted by migration 2.
+                rows = try Row.fetchAll(db, "SELECT * FROM pets")
+                XCTAssertEqual(rows.count, 1)
+                row = rows.first!
+                XCTAssertEqual(row.value(named: "name") as String, "Bobby")
             }
         }
     }

@@ -63,405 +63,359 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     
     // MARK: - Insert
     
-    func testInsertWithNilPrimaryKeyThrowsDatabaseError() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = Citizenship(native: true)
-                XCTAssertTrue(record.personName == nil && record.countryName == nil)
-                do {
-                    try record.insert(db)
-                    XCTFail("Expected DatabaseError")
-                } catch is DatabaseError {
-                    // Expected DatabaseError
-                }
+    func testInsertWithNilPrimaryKeyThrowsDatabaseError() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Citizenship(native: true)
+            XCTAssertTrue(record.personName == nil && record.countryName == nil)
+            do {
+                try record.insert(db)
+                XCTFail("Expected DatabaseError")
+            } catch is DatabaseError {
+                // Expected DatabaseError
             }
         }
     }
-    
-    func testInsertWithNotNilPrimaryKeyThatDoesNotMatchAnyRowInsertsARow() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
-                try record.insert(db)
-                
-                let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
-                for (key, value) in record.persistentDictionary {
+
+    func testInsertWithNotNilPrimaryKeyThatDoesNotMatchAnyRowInsertsARow() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
+            try record.insert(db)
+            
+            let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
+            for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
-                    } else {
-                        XCTFail("Missing column \(key) in fetched row")
-                    }
+                } else {
+                    XCTFail("Missing column \(key) in fetched row")
                 }
             }
         }
     }
-    
-    func testInsertWithNotNilPrimaryKeyThatMatchesARowThrowsDatabaseError() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
+
+    func testInsertWithNotNilPrimaryKeyThatMatchesARowThrowsDatabaseError() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
+            try record.insert(db)
+            do {
                 try record.insert(db)
-                do {
-                    try record.insert(db)
-                    XCTFail("Expected DatabaseError")
-                } catch is DatabaseError {
-                    // Expected DatabaseError
-                }
+                XCTFail("Expected DatabaseError")
+            } catch is DatabaseError {
+                // Expected DatabaseError
             }
         }
     }
-    
-    func testInsertAfterDeleteInsertsARow() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
-                try record.insert(db)
-                try record.delete(db)
-                try record.insert(db)
-                
-                let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
-                for (key, value) in record.persistentDictionary {
+
+    func testInsertAfterDeleteInsertsARow() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
+            try record.insert(db)
+            try record.delete(db)
+            try record.insert(db)
+            
+            let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
+            for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
-                    } else {
-                        XCTFail("Missing column \(key) in fetched row")
-                    }
+                } else {
+                    XCTFail("Missing column \(key) in fetched row")
                 }
             }
         }
     }
-    
-    
+
+
     // MARK: - Update
-    
-    func testUpdateWithNilPrimaryKeyThrowsRecordNotFound() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = Citizenship(personName: nil, countryName: nil, native: true)
-                do {
-                    try record.update(db)
-                    XCTFail("Expected PersistenceError.recordNotFound")
-                } catch PersistenceError.recordNotFound {
-                    // Expected PersistenceError.recordNotFound
-                }
-            }
-        }
-    }
-    
-    func testUpdateWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRecordNotFound() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
-                do {
-                    try record.update(db)
-                    XCTFail("Expected PersistenceError.recordNotFound")
-                } catch PersistenceError.recordNotFound {
-                    // Expected PersistenceError.recordNotFound
-                }
-            }
-        }
-    }
-    
-    func testUpdateWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
-                try record.insert(db)
-                record.native = false
+
+    func testUpdateWithNilPrimaryKeyThrowsRecordNotFound() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Citizenship(personName: nil, countryName: nil, native: true)
+            do {
                 try record.update(db)
-                
-                let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
-                for (key, value) in record.persistentDictionary {
+                XCTFail("Expected PersistenceError.recordNotFound")
+            } catch PersistenceError.recordNotFound {
+                // Expected PersistenceError.recordNotFound
+            }
+        }
+    }
+
+    func testUpdateWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRecordNotFound() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
+            do {
+                try record.update(db)
+                XCTFail("Expected PersistenceError.recordNotFound")
+            } catch PersistenceError.recordNotFound {
+                // Expected PersistenceError.recordNotFound
+            }
+        }
+    }
+
+    func testUpdateWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
+            try record.insert(db)
+            record.native = false
+            try record.update(db)
+            
+            let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
+            for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
-                    } else {
-                        XCTFail("Missing column \(key) in fetched row")
-                    }
+                } else {
+                    XCTFail("Missing column \(key) in fetched row")
                 }
             }
         }
     }
-    
-    func testUpdateAfterDeleteThrowsRecordNotFound() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
-                try record.insert(db)
-                try record.delete(db)
-                do {
-                    try record.update(db)
-                    XCTFail("Expected PersistenceError.recordNotFound")
-                } catch PersistenceError.recordNotFound {
-                    // Expected PersistenceError.recordNotFound
-                }
+
+    func testUpdateAfterDeleteThrowsRecordNotFound() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
+            try record.insert(db)
+            try record.delete(db)
+            do {
+                try record.update(db)
+                XCTFail("Expected PersistenceError.recordNotFound")
+            } catch PersistenceError.recordNotFound {
+                // Expected PersistenceError.recordNotFound
             }
         }
     }
-    
-    
+
+
     // MARK: - Save
-    
-    func testSaveWithNilPrimaryKeyThrowsDatabaseError() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = Citizenship(native: true)
-                XCTAssertTrue(record.personName == nil && record.countryName == nil)
-                do {
-                    try record.save(db)
-                    XCTFail("Expected DatabaseError")
-                } catch is DatabaseError {
-                    // Expected DatabaseError
-                }
-            }
-        }
-    }
-    
-    func testSaveWithNotNilPrimaryKeyThatDoesNotMatchAnyRowInsertsARow() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
+
+    func testSaveWithNilPrimaryKeyThrowsDatabaseError() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Citizenship(native: true)
+            XCTAssertTrue(record.personName == nil && record.countryName == nil)
+            do {
                 try record.save(db)
-                
-                let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
-                for (key, value) in record.persistentDictionary {
+                XCTFail("Expected DatabaseError")
+            } catch is DatabaseError {
+                // Expected DatabaseError
+            }
+        }
+    }
+
+    func testSaveWithNotNilPrimaryKeyThatDoesNotMatchAnyRowInsertsARow() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
+            try record.save(db)
+            
+            let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
+            for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
-                    } else {
-                        XCTFail("Missing column \(key) in fetched row")
-                    }
+                } else {
+                    XCTFail("Missing column \(key) in fetched row")
                 }
             }
         }
     }
-    
-    func testSaveWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
-                try record.insert(db)
-                try record.save(db)   // Test that useless update succeeds. It is a proof that save() has performed an UPDATE statement, and not an INSERT statement: INSERT would have throw a database error for duplicated key.
-                record.native = false
-                try record.save(db)   // Actual update
-                
-                let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
-                for (key, value) in record.persistentDictionary {
+
+    func testSaveWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
+            try record.insert(db)
+            try record.save(db)   // Test that useless update succeeds. It is a proof that save() has performed an UPDATE statement, and not an INSERT statement: INSERT would have throw a database error for duplicated key.
+            record.native = false
+            try record.save(db)   // Actual update
+            
+            let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
+            for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
-                    } else {
-                        XCTFail("Missing column \(key) in fetched row")
-                    }
+                } else {
+                    XCTFail("Missing column \(key) in fetched row")
                 }
             }
         }
     }
-    
-    func testSaveAfterDeleteInsertsARow() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
-                try record.insert(db)
-                try record.delete(db)
-                try record.save(db)
-                
-                let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
-                for (key, value) in record.persistentDictionary {
+
+    func testSaveAfterDeleteInsertsARow() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
+            try record.insert(db)
+            try record.delete(db)
+            try record.save(db)
+            
+            let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
+            for (key, value) in record.persistentDictionary {
                 if let dbv: DatabaseValue = row.value(named: key) {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
-                    } else {
-                        XCTFail("Missing column \(key) in fetched row")
-                    }
+                } else {
+                    XCTFail("Missing column \(key) in fetched row")
                 }
             }
         }
     }
-    
-    
+
+
     // MARK: - Delete
-    
-    func testDeleteWithNilPrimaryKey() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = Citizenship(personName: nil, countryName: nil, native: true)
-                let deleted = try record.delete(db)
-                XCTAssertFalse(deleted)
-            }
+
+    func testDeleteWithNilPrimaryKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Citizenship(personName: nil, countryName: nil, native: true)
+            let deleted = try record.delete(db)
+            XCTAssertFalse(deleted)
         }
     }
-    
-    func testDeleteWithNotNilPrimaryKeyThatDoesNotMatchAnyRowDoesNothing() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
-                let deleted = try record.delete(db)
-                XCTAssertFalse(deleted)
-            }
+
+    func testDeleteWithNotNilPrimaryKeyThatDoesNotMatchAnyRowDoesNothing() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
+            let deleted = try record.delete(db)
+            XCTAssertFalse(deleted)
         }
     }
-    
-    func testDeleteWithNotNilPrimaryKeyThatMatchesARowDeletesThatRow() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
-                try record.insert(db)
-                let deleted = try record.delete(db)
-                XCTAssertTrue(deleted)
-                
-                let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])
-                XCTAssertTrue(row == nil)
-            }
+
+    func testDeleteWithNotNilPrimaryKeyThatMatchesARowDeletesThatRow() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
+            try record.insert(db)
+            let deleted = try record.delete(db)
+            XCTAssertTrue(deleted)
+            
+            let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])
+            XCTAssertTrue(row == nil)
         }
     }
-    
-    func testDeleteAfterDeleteDoesNothing() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
-                try record.insert(db)
-                var deleted = try record.delete(db)
-                XCTAssertTrue(deleted)
-                deleted = try record.delete(db)
-                XCTAssertFalse(deleted)
-            }
+
+    func testDeleteAfterDeleteDoesNothing() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
+            try record.insert(db)
+            var deleted = try record.delete(db)
+            XCTAssertTrue(deleted)
+            deleted = try record.delete(db)
+            XCTAssertFalse(deleted)
         }
-    }    
-    
-    
+    }
+
+
     // MARK: - Fetch With Key
     
-    func testFetchCursorWithKeys() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record1 = Citizenship(personName: "Arthur", countryName: "France", native: true)
-                try record1.insert(db)
-                let record2 = Citizenship(personName: "Barbara", countryName: "France", native: false)
-                try record2.insert(db)
-                
-                do {
-                    let cursor = try Citizenship.fetchCursor(db, keys: [])
-                    XCTAssertTrue(cursor == nil)
-                }
-                
-                do {
-                    let cursor = try Citizenship.fetchCursor(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": record2.personName, "countryName": record2.countryName]])!
-                    let fetchedRecords = try [cursor.next()!, cursor.next()!]
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.personName }), Set([record1.personName, record2.personName]))
-                    XCTAssertTrue(try cursor.next() == nil) // end
-                }
-                
-                do {
-                    let cursor = try Citizenship.fetchCursor(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": nil, "countryName": nil]])!
-                    let fetchedRecord = try cursor.next()!
-                    XCTAssertEqual(fetchedRecord.personName, record1.personName)
-                    XCTAssertTrue(try cursor.next() == nil) // end
-                }
+    func testFetchCursorWithKeys() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = Citizenship(personName: "Arthur", countryName: "France", native: true)
+            try record1.insert(db)
+            let record2 = Citizenship(personName: "Barbara", countryName: "France", native: false)
+            try record2.insert(db)
+            
+            do {
+                let cursor = try Citizenship.fetchCursor(db, keys: [])
+                XCTAssertTrue(cursor == nil)
+            }
+            
+            do {
+                let cursor = try Citizenship.fetchCursor(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": record2.personName, "countryName": record2.countryName]])!
+                let fetchedRecords = try [cursor.next()!, cursor.next()!]
+                XCTAssertEqual(Set(fetchedRecords.map { $0.personName }), Set([record1.personName, record2.personName]))
+                XCTAssertTrue(try cursor.next() == nil) // end
+            }
+            
+            do {
+                let cursor = try Citizenship.fetchCursor(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": nil, "countryName": nil]])!
+                let fetchedRecord = try cursor.next()!
+                XCTAssertEqual(fetchedRecord.personName, record1.personName)
+                XCTAssertTrue(try cursor.next() == nil) // end
             }
         }
     }
-    
-    func testFetchAllWithKeys() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record1 = Citizenship(personName: "Arthur", countryName: "France", native: true)
-                try record1.insert(db)
-                let record2 = Citizenship(personName: "Barbara", countryName: "France", native: false)
-                try record2.insert(db)
-                
-                do {
-                    let fetchedRecords = try Citizenship.fetchAll(db, keys: [])
-                    XCTAssertEqual(fetchedRecords.count, 0)
-                }
-                
-                do {
-                    let fetchedRecords = try Citizenship.fetchAll(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": record2.personName, "countryName": record2.countryName]])
-                    XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.personName }), Set([record1.personName, record2.personName]))
-                }
-                
-                do {
-                    let fetchedRecords = try Citizenship.fetchAll(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": nil, "countryName": nil]])
-                    XCTAssertEqual(fetchedRecords.count, 1)
-                    XCTAssertEqual(fetchedRecords.first!.personName, record1.personName!)
-                }
+
+    func testFetchAllWithKeys() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = Citizenship(personName: "Arthur", countryName: "France", native: true)
+            try record1.insert(db)
+            let record2 = Citizenship(personName: "Barbara", countryName: "France", native: false)
+            try record2.insert(db)
+            
+            do {
+                let fetchedRecords = try Citizenship.fetchAll(db, keys: [])
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let fetchedRecords = try Citizenship.fetchAll(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": record2.personName, "countryName": record2.countryName]])
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map { $0.personName }), Set([record1.personName, record2.personName]))
+            }
+            
+            do {
+                let fetchedRecords = try Citizenship.fetchAll(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": nil, "countryName": nil]])
+                XCTAssertEqual(fetchedRecords.count, 1)
+                XCTAssertEqual(fetchedRecords.first!.personName, record1.personName!)
             }
         }
     }
-    
-    func testFetchOneWithKey() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
-                try record.insert(db)
-                
-                let fetchedRecord = try Citizenship.fetchOne(db, key: ["personName": record.personName, "countryName": record.countryName])!
-                XCTAssertTrue(fetchedRecord.personName == record.personName)
-                XCTAssertTrue(fetchedRecord.countryName == record.countryName)
-                XCTAssertTrue(fetchedRecord.native == record.native)
-            }
+
+    func testFetchOneWithKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
+            try record.insert(db)
+            
+            let fetchedRecord = try Citizenship.fetchOne(db, key: ["personName": record.personName, "countryName": record.countryName])!
+            XCTAssertTrue(fetchedRecord.personName == record.personName)
+            XCTAssertTrue(fetchedRecord.countryName == record.countryName)
+            XCTAssertTrue(fetchedRecord.native == record.native)
         }
     }
-    
-    
+
+
     // MARK: - Exists
-    
-    func testExistsWithNilPrimaryKeyReturnsFalse() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = Citizenship(personName: nil, countryName: nil, native: true)
-                XCTAssertFalse(try record.exists(db))
-            }
+
+    func testExistsWithNilPrimaryKeyReturnsFalse() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Citizenship(personName: nil, countryName: nil, native: true)
+            XCTAssertFalse(try record.exists(db))
         }
     }
-    
-    func testExistsWithNotNilPrimaryKeyThatDoesNotMatchAnyRowReturnsFalse() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
-                XCTAssertFalse(try record.exists(db))
-            }
+
+    func testExistsWithNotNilPrimaryKeyThatDoesNotMatchAnyRowReturnsFalse() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
+            XCTAssertFalse(try record.exists(db))
         }
     }
-    
-    func testExistsWithNotNilPrimaryKeyThatMatchesARowReturnsTrue() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
-                try record.insert(db)
-                XCTAssertTrue(try record.exists(db))
-            }
+
+    func testExistsWithNotNilPrimaryKeyThatMatchesARowReturnsTrue() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
+            try record.insert(db)
+            XCTAssertTrue(try record.exists(db))
         }
     }
-    
-    func testExistsAfterDeleteReturnsTrue() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
-                try record.insert(db)
-                try record.delete(db)
-                XCTAssertFalse(try record.exists(db))
-            }
+
+    func testExistsAfterDeleteReturnsTrue() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
+            try record.insert(db)
+            try record.delete(db)
+            XCTAssertFalse(try record.exists(db))
         }
     }
 }

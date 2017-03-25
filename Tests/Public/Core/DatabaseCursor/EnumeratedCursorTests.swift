@@ -11,20 +11,20 @@ private struct TestError : Error { }
 
 class EnumeratedCursorTests: GRDBTestCase {
     
-    func testEnumeratedCursorFromCursor() {
+    func testEnumeratedCursorFromCursor() throws {
         let base = IteratorCursor(["foo", "bar"])
         let cursor = base.enumerated()
-        var (n, x) = try! cursor.next()!
+        var (n, x) = try cursor.next()!
         XCTAssertEqual(x, "foo")
         XCTAssertEqual(n, 0)
-        (n, x) = try! cursor.next()!
+        (n, x) = try cursor.next()!
         XCTAssertEqual(x, "bar")
         XCTAssertEqual(n, 1)
         XCTAssertTrue(try cursor.next() == nil) // end
         XCTAssertTrue(try cursor.next() == nil) // past the end
     }
     
-    func testEnumeratedCursorFromThrowingCursor() {
+    func testEnumeratedCursorFromThrowingCursor() throws {
         var i = 0
         let strings = ["foo", "bar"]
         let base: AnyCursor<String> = AnyCursor {
@@ -33,10 +33,10 @@ class EnumeratedCursorTests: GRDBTestCase {
             return strings[i]
         }
         let cursor = base.enumerated()
-        var (n, x) = try! cursor.next()!
+        var (n, x) = try cursor.next()!
         XCTAssertEqual(x, "foo")
         XCTAssertEqual(n, 0)
-        (n, x) = try! cursor.next()!
+        (n, x) = try cursor.next()!
         XCTAssertEqual(x, "bar")
         XCTAssertEqual(n, 1)
         do {

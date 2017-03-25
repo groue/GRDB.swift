@@ -66,127 +66,121 @@ class RowConvertibleQueryInterfaceRequestTests: GRDBTestCase {
     
     // MARK: - Fetch RowConvertible
     
-    func testAll() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                var arthur = Reader(id: nil, name: "Arthur", age: 42)
-                try arthur.insert(db)
-                var barbara = Reader(id: nil, name: "Barbara", age: 36)
-                try barbara.insert(db)
-                
-                let request = Reader.all()
-                
-                do {
-                    let readers = try request.fetchAll(db)
-                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
-                    XCTAssertEqual(readers.count, 2)
-                    XCTAssertEqual(readers[0].id!, arthur.id!)
-                    XCTAssertEqual(readers[0].name, arthur.name)
-                    XCTAssertEqual(readers[0].age, arthur.age)
-                    XCTAssertEqual(readers[1].id!, barbara.id!)
-                    XCTAssertEqual(readers[1].name, barbara.name)
-                    XCTAssertEqual(readers[1].age, barbara.age)
-                }
-                
-                do {
-                    let reader = try request.fetchOne(db)!
-                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
-                    XCTAssertEqual(reader.id!, arthur.id!)
-                    XCTAssertEqual(reader.name, arthur.name)
-                    XCTAssertEqual(reader.age, arthur.age)
-                }
-                
-                do {
-                    let names = try request.fetchCursor(db).map { $0.name }
-                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
-                    XCTAssertEqual(try names.next()!, arthur.name)
-                    XCTAssertEqual(try names.next()!, barbara.name)
-                    XCTAssertTrue(try names.next() == nil)
-                }
+    func testAll() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            var arthur = Reader(id: nil, name: "Arthur", age: 42)
+            try arthur.insert(db)
+            var barbara = Reader(id: nil, name: "Barbara", age: 36)
+            try barbara.insert(db)
+            
+            let request = Reader.all()
+            
+            do {
+                let readers = try request.fetchAll(db)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
+                XCTAssertEqual(readers.count, 2)
+                XCTAssertEqual(readers[0].id!, arthur.id!)
+                XCTAssertEqual(readers[0].name, arthur.name)
+                XCTAssertEqual(readers[0].age, arthur.age)
+                XCTAssertEqual(readers[1].id!, barbara.id!)
+                XCTAssertEqual(readers[1].name, barbara.name)
+                XCTAssertEqual(readers[1].age, barbara.age)
+            }
+            
+            do {
+                let reader = try request.fetchOne(db)!
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
+                XCTAssertEqual(reader.id!, arthur.id!)
+                XCTAssertEqual(reader.name, arthur.name)
+                XCTAssertEqual(reader.age, arthur.age)
+            }
+            
+            do {
+                let names = try request.fetchCursor(db).map { $0.name }
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
+                XCTAssertEqual(try names.next()!, arthur.name)
+                XCTAssertEqual(try names.next()!, barbara.name)
+                XCTAssertTrue(try names.next() == nil)
             }
         }
     }
-    
-    func testFetch() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                var arthur = Reader(id: nil, name: "Arthur", age: 42)
-                try arthur.insert(db)
-                var barbara = Reader(id: nil, name: "Barbara", age: 36)
-                try barbara.insert(db)
-                
-                do {
-                    let readers = try Reader.fetchAll(db)
-                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
-                    XCTAssertEqual(readers.count, 2)
-                    XCTAssertEqual(readers[0].id!, arthur.id!)
-                    XCTAssertEqual(readers[0].name, arthur.name)
-                    XCTAssertEqual(readers[0].age, arthur.age)
-                    XCTAssertEqual(readers[1].id!, barbara.id!)
-                    XCTAssertEqual(readers[1].name, barbara.name)
-                    XCTAssertEqual(readers[1].age, barbara.age)
-                }
-                
-                do {
-                    let reader = try Reader.fetchOne(db)!
-                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
-                    XCTAssertEqual(reader.id!, arthur.id!)
-                    XCTAssertEqual(reader.name, arthur.name)
-                    XCTAssertEqual(reader.age, arthur.age)
-                }
-                
-                do {
-                    let cursor = try Reader.fetchCursor(db)
-                    let names = cursor.map { $0.name }
-                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
-                    XCTAssertEqual(try names.next()!, arthur.name)
-                    XCTAssertEqual(try names.next()!, barbara.name)
-                    XCTAssertTrue(try names.next() == nil)
-                }
+
+    func testFetch() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            var arthur = Reader(id: nil, name: "Arthur", age: 42)
+            try arthur.insert(db)
+            var barbara = Reader(id: nil, name: "Barbara", age: 36)
+            try barbara.insert(db)
+            
+            do {
+                let readers = try Reader.fetchAll(db)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
+                XCTAssertEqual(readers.count, 2)
+                XCTAssertEqual(readers[0].id!, arthur.id!)
+                XCTAssertEqual(readers[0].name, arthur.name)
+                XCTAssertEqual(readers[0].age, arthur.age)
+                XCTAssertEqual(readers[1].id!, barbara.id!)
+                XCTAssertEqual(readers[1].name, barbara.name)
+                XCTAssertEqual(readers[1].age, barbara.age)
+            }
+            
+            do {
+                let reader = try Reader.fetchOne(db)!
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
+                XCTAssertEqual(reader.id!, arthur.id!)
+                XCTAssertEqual(reader.name, arthur.name)
+                XCTAssertEqual(reader.age, arthur.age)
+            }
+            
+            do {
+                let cursor = try Reader.fetchCursor(db)
+                let names = cursor.map { $0.name }
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
+                XCTAssertEqual(try names.next()!, arthur.name)
+                XCTAssertEqual(try names.next()!, barbara.name)
+                XCTAssertTrue(try names.next() == nil)
             }
         }
     }
-    
-    func testAlternativeFetch() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                var arthur = Reader(id: nil, name: "Arthur", age: 42)
-                try arthur.insert(db)
-                var barbara = Reader(id: nil, name: "Barbara", age: 36)
-                try barbara.insert(db)
-                
-                let request = Reader.all()
-                
-                do {
-                    let readers = try AltReader.fetchAll(db, request)
-                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
-                    XCTAssertEqual(readers.count, 2)
-                    XCTAssertEqual(readers[0].id!, arthur.id!)
-                    XCTAssertEqual(readers[0].name, arthur.name)
-                    XCTAssertEqual(readers[0].age, arthur.age)
-                    XCTAssertEqual(readers[1].id!, barbara.id!)
-                    XCTAssertEqual(readers[1].name, barbara.name)
-                    XCTAssertEqual(readers[1].age, barbara.age)
-                }
-                
-                do {
-                    let reader = try AltReader.fetchOne(db, request)!
-                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
-                    XCTAssertEqual(reader.id!, arthur.id!)
-                    XCTAssertEqual(reader.name, arthur.name)
-                    XCTAssertEqual(reader.age, arthur.age)
-                }
-                
-                do {
-                    let names = try AltReader.fetchCursor(db, request).map { $0.name }
-                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
-                    XCTAssertEqual(try names.next()!, arthur.name)
-                    XCTAssertEqual(try names.next()!, barbara.name)
-                    XCTAssertTrue(try names.next() == nil)
-                }
+
+    func testAlternativeFetch() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            var arthur = Reader(id: nil, name: "Arthur", age: 42)
+            try arthur.insert(db)
+            var barbara = Reader(id: nil, name: "Barbara", age: 36)
+            try barbara.insert(db)
+            
+            let request = Reader.all()
+            
+            do {
+                let readers = try AltReader.fetchAll(db, request)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
+                XCTAssertEqual(readers.count, 2)
+                XCTAssertEqual(readers[0].id!, arthur.id!)
+                XCTAssertEqual(readers[0].name, arthur.name)
+                XCTAssertEqual(readers[0].age, arthur.age)
+                XCTAssertEqual(readers[1].id!, barbara.id!)
+                XCTAssertEqual(readers[1].name, barbara.name)
+                XCTAssertEqual(readers[1].age, barbara.age)
+            }
+            
+            do {
+                let reader = try AltReader.fetchOne(db, request)!
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
+                XCTAssertEqual(reader.id!, arthur.id!)
+                XCTAssertEqual(reader.name, arthur.name)
+                XCTAssertEqual(reader.age, arthur.age)
+            }
+            
+            do {
+                let names = try AltReader.fetchCursor(db, request).map { $0.name }
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
+                XCTAssertEqual(try names.next()!, arthur.name)
+                XCTAssertEqual(try names.next()!, barbara.name)
+                XCTAssertTrue(try names.next() == nil)
             }
         }
     }

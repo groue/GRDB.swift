@@ -50,34 +50,30 @@ private final class FTS3TokenizeTableDefinition {
 
 class VirtualTableModuleTests: GRDBTestCase {
     
-    func testCustomVirtualTableModule() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.create(virtualTable: "test", using: FTS3TokenizeModule()) { t in
-                    t.tokenizer = "simple"
-                }
-                assertDidExecute(sql: "CREATE VIRTUAL TABLE \"test\" USING fts3tokenize(simple)")
-                XCTAssertTrue(try db.tableExists("test"))
+    func testCustomVirtualTableModule() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "test", using: FTS3TokenizeModule()) { t in
+                t.tokenizer = "simple"
             }
+            assertDidExecute(sql: "CREATE VIRTUAL TABLE \"test\" USING fts3tokenize(simple)")
+            XCTAssertTrue(try db.tableExists("test"))
         }
     }
-    
-    func testThrowingCustomVirtualTableModule() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                do {
-                    try db.create(virtualTable: "test", using: ThrowingFTS3TokenizeModule()) { t in
-                        t.tokenizer = "simple"
-                    }
-                    XCTFail("Expected DatabaseError")
-                } catch let error as DatabaseError {
-                    XCTAssertEqual(error.resultCode.rawValue, 123)
+
+    func testThrowingCustomVirtualTableModule() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                try db.create(virtualTable: "test", using: ThrowingFTS3TokenizeModule()) { t in
+                    t.tokenizer = "simple"
                 }
-                assertDidExecute(sql: "CREATE VIRTUAL TABLE \"test\" USING fts3tokenize(simple)")
-                XCTAssertFalse(try db.tableExists("test"))
+                XCTFail("Expected DatabaseError")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode.rawValue, 123)
             }
+            assertDidExecute(sql: "CREATE VIRTUAL TABLE \"test\" USING fts3tokenize(simple)")
+            XCTAssertFalse(try db.tableExists("test"))
         }
     }
 }

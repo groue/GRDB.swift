@@ -33,35 +33,31 @@ class FetchableChild : FetchableParent {
 
 class DatabaseValueConvertibleSubclassTests: GRDBTestCase {
     
-    func testParent() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE parents (name TEXT)")
-                try db.execute("INSERT INTO parents (name) VALUES (?)", arguments: [FetchableParent()])
-                let string = try String.fetchOne(db, "SELECT * FROM parents")!
-                XCTAssertEqual(string, "Parent")
-                let parent = try FetchableParent.fetchOne(db, "SELECT * FROM parents")!
-                XCTAssertEqual(parent.description, "Parent")
-                let parents = try FetchableParent.fetchAll(db, "SELECT * FROM parents")
-                XCTAssertEqual(parents.first!.description, "Parent")
-            }
+    func testParent() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE parents (name TEXT)")
+            try db.execute("INSERT INTO parents (name) VALUES (?)", arguments: [FetchableParent()])
+            let string = try String.fetchOne(db, "SELECT * FROM parents")!
+            XCTAssertEqual(string, "Parent")
+            let parent = try FetchableParent.fetchOne(db, "SELECT * FROM parents")!
+            XCTAssertEqual(parent.description, "Parent")
+            let parents = try FetchableParent.fetchAll(db, "SELECT * FROM parents")
+            XCTAssertEqual(parents.first!.description, "Parent")
         }
     }
-    
-    func testChild() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE children (name TEXT)")
-                try db.execute("INSERT INTO children (name) VALUES (?)", arguments: [FetchableChild()])
-                let string = try String.fetchOne(db, "SELECT * FROM children")!
-                XCTAssertEqual(string, "Child")
-                let child = try FetchableChild.fetchOne(db, "SELECT * FROM children")!
-                XCTAssertEqual(child.description, "Child")
-                let children = try FetchableChild.fetchAll(db, "SELECT * FROM children")
-                XCTAssertEqual(children.first!.description, "Child")
-            }
+
+    func testChild() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE children (name TEXT)")
+            try db.execute("INSERT INTO children (name) VALUES (?)", arguments: [FetchableChild()])
+            let string = try String.fetchOne(db, "SELECT * FROM children")!
+            XCTAssertEqual(string, "Child")
+            let child = try FetchableChild.fetchOne(db, "SELECT * FROM children")!
+            XCTAssertEqual(child.description, "Child")
+            let children = try FetchableChild.fetchAll(db, "SELECT * FROM children")
+            XCTAssertEqual(children.first!.description, "Child")
         }
     }
 }

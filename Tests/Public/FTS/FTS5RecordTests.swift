@@ -66,70 +66,62 @@ class FTS5RecordTests: GRDBTestCase {
     
     // MARK: - Full Text
     
-    func testRowIdIsSelectedByDefault() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
+    func testRowIdIsSelectedByDefault() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            var book = Book(id: nil, title: "Moby Dick", author: "Herman Melville", body: "Call me Ishmael.")
+            try book.insert(db)
+            XCTAssertTrue(book.id != nil)
+            
+            let fetchedBook = try Book.matching(FTS5Pattern(matchingAllTokensIn: "Herman Melville")!).fetchOne(db)!
+            XCTAssertEqual(fetchedBook.id, book.id)
+            XCTAssertEqual(fetchedBook.title, book.title)
+            XCTAssertEqual(fetchedBook.author, book.author)
+            XCTAssertEqual(fetchedBook.body, book.body)
+        }
+    }
+
+    func testMatch() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
                 var book = Book(id: nil, title: "Moby Dick", author: "Herman Melville", body: "Call me Ishmael.")
                 try book.insert(db)
-                XCTAssertTrue(book.id != nil)
-                
-                let fetchedBook = try Book.matching(FTS5Pattern(matchingAllTokensIn: "Herman Melville")!).fetchOne(db)!
-                XCTAssertEqual(fetchedBook.id, book.id)
-                XCTAssertEqual(fetchedBook.title, book.title)
-                XCTAssertEqual(fetchedBook.author, book.author)
-                XCTAssertEqual(fetchedBook.body, book.body)
             }
+            
+            let pattern = FTS5Pattern(matchingAllTokensIn: "Herman Melville")!
+            XCTAssertEqual(try Book.matching(pattern).fetchCount(db), 1)
         }
     }
-    
-    func testMatch() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                do {
-                    var book = Book(id: nil, title: "Moby Dick", author: "Herman Melville", body: "Call me Ishmael.")
-                    try book.insert(db)
-                }
-                
-                let pattern = FTS5Pattern(matchingAllTokensIn: "Herman Melville")!
-                XCTAssertEqual(try Book.matching(pattern).fetchCount(db), 1)
+
+    func testMatchNil() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                var book = Book(id: nil, title: "Moby Dick", author: "Herman Melville", body: "Call me Ishmael.")
+                try book.insert(db)
             }
+            
+            let pattern = FTS5Pattern(matchingAllTokensIn: "")
+            XCTAssertTrue(pattern == nil)
+            XCTAssertEqual(try Book.matching(pattern).fetchCount(db), 0)
         }
     }
-    
-    func testMatchNil() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                do {
-                    var book = Book(id: nil, title: "Moby Dick", author: "Herman Melville", body: "Call me Ishmael.")
-                    try book.insert(db)
-                }
-                
-                let pattern = FTS5Pattern(matchingAllTokensIn: "")
-                XCTAssertTrue(pattern == nil)
-                XCTAssertEqual(try Book.matching(pattern).fetchCount(db), 0)
+
+    func testFetchCount() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                var book = Book(id: nil, title: "Moby Dick", author: "Herman Melville", body: "Call me Ishmael.")
+                try book.insert(db)
             }
-        }
-    }
-    
-    func testFetchCount() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                do {
-                    var book = Book(id: nil, title: "Moby Dick", author: "Herman Melville", body: "Call me Ishmael.")
-                    try book.insert(db)
-                }
-                
-                let pattern = FTS5Pattern(matchingAllTokensIn: "Herman Melville")!
-                XCTAssertEqual(try Book.matching(pattern).fetchCount(db), 1)
-                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"books\" WHERE (\"books\" MATCH 'herman melville')")
-                
-                XCTAssertEqual(try Book.fetchCount(db), 1)
-                XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"books\"")
-            }
+            
+            let pattern = FTS5Pattern(matchingAllTokensIn: "Herman Melville")!
+            XCTAssertEqual(try Book.matching(pattern).fetchCount(db), 1)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"books\" WHERE (\"books\" MATCH 'herman melville')")
+            
+            XCTAssertEqual(try Book.fetchCount(db), 1)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"books\"")
         }
     }
 }

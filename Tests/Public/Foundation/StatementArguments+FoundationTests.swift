@@ -26,35 +26,33 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
         try migrator.migrate(dbWriter)
     }
     
-    func testStatementArgumentsArrayInitializer() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
+    func testStatementArgumentsArrayInitializer() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        try dbQueue.inTransaction { db in
             
-            try dbQueue.inTransaction { db in
-                
-                let statement = try db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
-                let persons: [[Any]] = [
-                    ["Arthur", 41],
-                    ["Barbara", 38],
+            let statement = try db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
+            let persons: [[Any]] = [
+                ["Arthur", 41],
+                ["Barbara", 38],
                 ]
-                for person in persons {
-                    try statement.execute(arguments: StatementArguments(person)!)
-                }
-                
-                return .commit
+            for person in persons {
+                try statement.execute(arguments: StatementArguments(person)!)
             }
             
-            try dbQueue.inDatabase { db in
-                let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
-                XCTAssertEqual(rows.count, 2)
-                XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
-                XCTAssertEqual(rows[0].value(named: "age") as Int, 41)
-                XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
-                XCTAssertEqual(rows[1].value(named: "age") as Int, 38)
-            }
+            return .commit
+        }
+        
+        try dbQueue.inDatabase { db in
+            let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
+            XCTAssertEqual(rows.count, 2)
+            XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
+            XCTAssertEqual(rows[0].value(named: "age") as Int, 41)
+            XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
+            XCTAssertEqual(rows[1].value(named: "age") as Int, 38)
         }
     }
-    
+
     func testStatementArgumentsNSArrayInitializerFromInvalidNSArray() {
         let persons = [ // NSArray, because of the heterogeneous values
             ["Arthur", NonDatabaseConvertibleObject()],
@@ -66,35 +64,33 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
         }
     }
     
-    func testStatementArgumentsDictionaryInitializer() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
+    func testStatementArgumentsDictionaryInitializer() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        try dbQueue.inTransaction { db in
             
-            try dbQueue.inTransaction { db in
-                
-                let statement = try db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
-                let persons: [[AnyHashable: Any]] = [
-                    ["name": "Arthur", "age": 41],
-                    ["name": "Barbara", "age": 38],
+            let statement = try db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
+            let persons: [[AnyHashable: Any]] = [
+                ["name": "Arthur", "age": 41],
+                ["name": "Barbara", "age": 38],
                 ]
-                for person in persons {
-                    try statement.execute(arguments: StatementArguments(person)!)
-                }
-                
-                return .commit
+            for person in persons {
+                try statement.execute(arguments: StatementArguments(person)!)
             }
             
-            try dbQueue.inDatabase { db in
-                let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
-                XCTAssertEqual(rows.count, 2)
-                XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
-                XCTAssertEqual(rows[0].value(named: "age") as Int, 41)
-                XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
-                XCTAssertEqual(rows[1].value(named: "age") as Int, 38)
-            }
+            return .commit
+        }
+        
+        try dbQueue.inDatabase { db in
+            let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
+            XCTAssertEqual(rows.count, 2)
+            XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
+            XCTAssertEqual(rows[0].value(named: "age") as Int, 41)
+            XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
+            XCTAssertEqual(rows[1].value(named: "age") as Int, 38)
         }
     }
-    
+
     func testStatementArgumentsNSDictionaryInitializerFromInvalidNSDictionary() {
         let dictionary: [AnyHashable: Any] = ["a": NSObject()]
         let arguments = StatementArguments(dictionary)

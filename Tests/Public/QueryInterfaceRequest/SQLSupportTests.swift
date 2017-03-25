@@ -51,8 +51,8 @@ class SQLSupportTests: GRDBTestCase {
     
     // MARK: - Boolean expressions
     
-    func testContains() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testContains() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         // emptyArray.contains(): 0
         XCTAssertEqual(
@@ -155,8 +155,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (\"id\" NOT IN (SELECT \"id\" FROM \"readers\"))")
     }
     
-    func testContainsWithCollation() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testContainsWithCollation() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         // Array.contains(): IN operator
         XCTAssertEqual(
@@ -186,8 +186,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE ((\"name\" >= 'A' COLLATE NOCASE) AND (\"name\" < 'z' COLLATE NOCASE))")
     }
     
-    func testGreaterThan() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testGreaterThan() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.age > 10)),
@@ -220,8 +220,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING ((AVG(\"age\") + 10) > 20)")
     }
     
-    func testGreaterThanWithCollation() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testGreaterThanWithCollation() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.name.collating(.nocase) > "fOo")),
@@ -231,8 +231,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (\"name\" > 'fOo' COLLATE localized_case_insensitive)")
     }
     
-    func testGreaterThanOrEqual() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testGreaterThanOrEqual() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.age >= 10)),
@@ -265,8 +265,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING ((AVG(\"age\") + 10) >= 20)")
     }
     
-    func testGreaterThanOrEqualWithCollation() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testGreaterThanOrEqualWithCollation() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.name.collating(.nocase) >= "fOo")),
@@ -276,8 +276,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (\"name\" >= 'fOo' COLLATE localized_case_insensitive)")
     }
     
-    func testLessThan() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testLessThan() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.age < 10)),
@@ -310,8 +310,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING ((AVG(\"age\") + 10) < 20)")
     }
     
-    func testLessThanWithCollation() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testLessThanWithCollation() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.name.collating(.nocase) < "fOo")),
@@ -321,8 +321,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (\"name\" < 'fOo' COLLATE localized_case_insensitive)")
     }
     
-    func testLessThanOrEqual() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testLessThanOrEqual() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.age <= 10)),
@@ -355,8 +355,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING ((AVG(\"age\") + 10) <= 20)")
     }
     
-    func testLessThanOrEqualWithCollation() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testLessThanOrEqualWithCollation() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.name.collating(.nocase) <= "fOo")),
@@ -366,8 +366,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (\"name\" <= 'fOo' COLLATE localized_case_insensitive)")
     }
     
-    func testEqual() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testEqual() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.age == 10)),
@@ -434,8 +434,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE 0")
     }
     
-    func testEqualWithCollation() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testEqualWithCollation() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.name.collating(.nocase) == "fOo")),
@@ -451,8 +451,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (\"name\" = 'fOo' COLLATE localized_case_insensitive)")
     }
     
-    func testNotEqual() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testNotEqual() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.age != 10)),
@@ -519,8 +519,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE 1")
     }
     
-    func testNotEqualWithCollation() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testNotEqualWithCollation() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.name.collating(.nocase) != "fOo")),
@@ -536,8 +536,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (\"name\" <> 'fOo' COLLATE localized_case_insensitive)")
     }
     
-    func testNotEqualWithSwiftNotOperator() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testNotEqualWithSwiftNotOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(!(Col.age == 10))),
@@ -563,8 +563,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (\"age\" <> \"age\")")
     }
     
-    func testIs() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testIs() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.age === 10)),
@@ -597,8 +597,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (\"name\" IS \"name\")")
     }
     
-    func testIsWithCollation() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testIsWithCollation() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.name.collating(.nocase) === "fOo")),
@@ -608,8 +608,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (\"name\" IS 'fOo' COLLATE localized_case_insensitive)")
     }
     
-    func testIsNot() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testIsNot() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.age !== 10)),
@@ -642,8 +642,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (\"name\" IS NOT \"name\")")
     }
     
-    func testIsNotWithCollation() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testIsNotWithCollation() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.name.collating(.nocase) !== "fOo")),
@@ -653,8 +653,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (\"name\" IS NOT 'fOo' COLLATE localized_case_insensitive)")
     }
     
-    func testIsNotWithSwiftNotOperator() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testIsNotWithSwiftNotOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(!(Col.age === 10))),
@@ -677,8 +677,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT \"age\")")
     }
     
-    func testExists() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testExists() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(tableRequest.exists())),
@@ -688,8 +688,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (NOT EXISTS (SELECT * FROM \"readers\"))")
     }
     
-    func testLogicalOperators() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testLogicalOperators() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(!Col.age)),
@@ -723,8 +723,8 @@ class SQLSupportTests: GRDBTestCase {
     
     // MARK: - String functions
     
-    func testStringFunctions() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testStringFunctions() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.select(Col.name.capitalized)),
@@ -752,16 +752,16 @@ class SQLSupportTests: GRDBTestCase {
     
     // MARK: - Arithmetic expressions
     
-    func testPrefixMinusOperator() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testPrefixMinusOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(-Col.age)),
             "SELECT * FROM \"readers\" WHERE -\"age\"")
     }
     
-    func testInfixMinusOperator() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testInfixMinusOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.age - 2)),
@@ -777,8 +777,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (\"age\" - \"age\")")
     }
     
-    func testInfixPlusOperator() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testInfixPlusOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.age + 2)),
@@ -794,8 +794,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (\"age\" + \"age\")")
     }
     
-    func testInfixMultiplyOperator() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testInfixMultiplyOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.age * 2)),
@@ -811,8 +811,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (\"age\" * \"age\")")
     }
     
-    func testInfixDivideOperator() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testInfixDivideOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.age / 2)),
@@ -828,8 +828,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (\"age\" / \"age\")")
     }
     
-    func testCompoundArithmeticExpression() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testCompoundArithmeticExpression() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         // Int / Double
         XCTAssertEqual(
@@ -850,8 +850,8 @@ class SQLSupportTests: GRDBTestCase {
     
     // MARK: - IFNULL expression
     
-    func testIfNull() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testIfNull() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         var optInt: Int? = nil
         XCTAssertEqual(
@@ -872,8 +872,8 @@ class SQLSupportTests: GRDBTestCase {
     
     // MARK: - Aggregated expressions
     
-    func testCountExpression() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testCountExpression() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.select(count(Col.age))),
@@ -889,8 +889,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT COUNT(DISTINCT (\"age\" / \"age\")) FROM \"readers\"")
     }
     
-    func testAvgExpression() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testAvgExpression() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.select(average(Col.age))),
@@ -900,16 +900,16 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT AVG((\"age\" / 2)) FROM \"readers\"")
     }
     
-    func testLengthExpression() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testLengthExpression() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.select(length(Col.name))),
             "SELECT LENGTH(\"name\") FROM \"readers\"")
     }
     
-    func testMinExpression() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testMinExpression() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.select(min(Col.age))),
@@ -919,8 +919,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT MIN((\"age\" / 2)) FROM \"readers\"")
     }
     
-    func testMaxExpression() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testMaxExpression() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.select(max(Col.age))),
@@ -930,8 +930,8 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT MAX((\"age\" / 2)) FROM \"readers\"")
     }
     
-    func testSumExpression() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testSumExpression() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.select(sum(Col.age))),
@@ -944,8 +944,8 @@ class SQLSupportTests: GRDBTestCase {
     
     // MARK: - LIKE operator
     
-    func testLikeOperator() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testLikeOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.name.like("%foo"))),
@@ -955,8 +955,8 @@ class SQLSupportTests: GRDBTestCase {
     
     // MARK: - Function
     
-    func testCustomFunction() {
-        let dbQueue = try! makeDatabaseQueue()
+    func testCustomFunction() throws {
+        let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.select(customFunction.apply(Col.age, 1, 2))),

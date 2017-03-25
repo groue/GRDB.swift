@@ -88,9 +88,9 @@ class FetchRecordTests: XCTestCase {
         }
     }
 
-    func testGRDB() {
+    func testGRDB() throws {
         let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
-        let dbQueue = try! DatabaseQueue(path: databasePath)
+        let dbQueue = try DatabaseQueue(path: databasePath)
         
         measure {
             let items = try! dbQueue.inDatabase { db in
@@ -103,9 +103,9 @@ class FetchRecordTests: XCTestCase {
         }
     }
 
-    func testSQLiteSwift() {
+    func testSQLiteSwift() throws {
         let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
-        let db = try! Connection(databasePath)
+        let db = try Connection(databasePath)
         
         measure {
             var items = [Item]()
@@ -130,12 +130,12 @@ class FetchRecordTests: XCTestCase {
         }
     }
     
-    func testCoreData() {
+    func testCoreData() throws {
         let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceCoreDataTests", ofType: "sqlite")!
         let modelURL = Bundle(for: type(of: self)).url(forResource: "PerformanceModel", withExtension: "momd")!
         let mom = NSManagedObjectModel(contentsOf: modelURL)!
         let psc = NSPersistentStoreCoordinator(managedObjectModel: mom)
-        try! psc.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil, at: URL(fileURLWithPath: databasePath), options: nil)
+        try psc.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil, at: URL(fileURLWithPath: databasePath), options: nil)
         let moc = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
         moc.persistentStoreCoordinator = psc
         
@@ -159,9 +159,9 @@ class FetchRecordTests: XCTestCase {
         }
     }
     
-    func testRealm() {
+    func testRealm() throws {
         let databaseURL = Bundle(for: type(of: self)).url(forResource: "PerformanceRealmTests", withExtension: "realm")!
-        let realm = try! Realm(fileURL: databaseURL)
+        let realm = try Realm(fileURL: databaseURL)
         
         measure {
             let items = realm.objects(RealmItem.self)

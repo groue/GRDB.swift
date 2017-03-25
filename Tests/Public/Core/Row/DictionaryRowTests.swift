@@ -108,38 +108,34 @@ class DictionaryRowTests : RowTestCase {
         XCTAssertEqual(row.dataNoCopy(Column("a")), data)
     }
     
-    func testRowDatabaseValueAtIndex() {
-        assertNoError {
-            let dictionary: [String: DatabaseValueConvertible?] = ["null": nil, "int64": 1, "double": 1.1, "string": "foo", "blob": "SQLite".data(using: .utf8)]
-            let row = Row(dictionary)
-            
-            let nullIndex = dictionary.distance(from: dictionary.startIndex, to: dictionary.index(forKey: "null")!)
-            let int64Index = dictionary.distance(from: dictionary.startIndex, to: dictionary.index(forKey: "int64")!)
-            let doubleIndex = dictionary.distance(from: dictionary.startIndex, to: dictionary.index(forKey: "double")!)
-            let stringIndex = dictionary.distance(from: dictionary.startIndex, to: dictionary.index(forKey: "string")!)
-            let blobIndex = dictionary.distance(from: dictionary.startIndex, to: dictionary.index(forKey: "blob")!)
-            
-            guard case .null = (row.value(atIndex: nullIndex) as DatabaseValue).storage else { XCTFail(); return }
-            guard case .int64(let int64) = (row.value(atIndex: int64Index) as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
-            guard case .double(let double) = (row.value(atIndex: doubleIndex) as DatabaseValue).storage, double == 1.1 else { XCTFail(); return }
-            guard case .string(let string) = (row.value(atIndex: stringIndex) as DatabaseValue).storage, string == "foo" else { XCTFail(); return }
-            guard case .blob(let data) = (row.value(atIndex: blobIndex) as DatabaseValue).storage, data == "SQLite".data(using: .utf8) else { XCTFail(); return }
-        }
+    func testRowDatabaseValueAtIndex() throws {
+        let dictionary: [String: DatabaseValueConvertible?] = ["null": nil, "int64": 1, "double": 1.1, "string": "foo", "blob": "SQLite".data(using: .utf8)]
+        let row = Row(dictionary)
+        
+        let nullIndex = dictionary.distance(from: dictionary.startIndex, to: dictionary.index(forKey: "null")!)
+        let int64Index = dictionary.distance(from: dictionary.startIndex, to: dictionary.index(forKey: "int64")!)
+        let doubleIndex = dictionary.distance(from: dictionary.startIndex, to: dictionary.index(forKey: "double")!)
+        let stringIndex = dictionary.distance(from: dictionary.startIndex, to: dictionary.index(forKey: "string")!)
+        let blobIndex = dictionary.distance(from: dictionary.startIndex, to: dictionary.index(forKey: "blob")!)
+        
+        guard case .null = (row.value(atIndex: nullIndex) as DatabaseValue).storage else { XCTFail(); return }
+        guard case .int64(let int64) = (row.value(atIndex: int64Index) as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
+        guard case .double(let double) = (row.value(atIndex: doubleIndex) as DatabaseValue).storage, double == 1.1 else { XCTFail(); return }
+        guard case .string(let string) = (row.value(atIndex: stringIndex) as DatabaseValue).storage, string == "foo" else { XCTFail(); return }
+        guard case .blob(let data) = (row.value(atIndex: blobIndex) as DatabaseValue).storage, data == "SQLite".data(using: .utf8) else { XCTFail(); return }
     }
-    
-    func testRowDatabaseValueNamed() {
-        assertNoError {
-            let dictionary: [String: DatabaseValueConvertible?] = ["null": nil, "int64": 1, "double": 1.1, "string": "foo", "blob": "SQLite".data(using: .utf8)]
-            let row = Row(dictionary)
 
-            guard case .null = (row.value(named: "null") as DatabaseValue).storage else { XCTFail(); return }
-            guard case .int64(let int64) = (row.value(named: "int64") as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
-            guard case .double(let double) = (row.value(named: "double") as DatabaseValue).storage, double == 1.1 else { XCTFail(); return }
-            guard case .string(let string) = (row.value(named: "string") as DatabaseValue).storage, string == "foo" else { XCTFail(); return }
-            guard case .blob(let data) = (row.value(named: "blob") as DatabaseValue).storage, data == "SQLite".data(using: .utf8) else { XCTFail(); return }
-        }
+    func testRowDatabaseValueNamed() throws {
+        let dictionary: [String: DatabaseValueConvertible?] = ["null": nil, "int64": 1, "double": 1.1, "string": "foo", "blob": "SQLite".data(using: .utf8)]
+        let row = Row(dictionary)
+        
+        guard case .null = (row.value(named: "null") as DatabaseValue).storage else { XCTFail(); return }
+        guard case .int64(let int64) = (row.value(named: "int64") as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
+        guard case .double(let double) = (row.value(named: "double") as DatabaseValue).storage, double == 1.1 else { XCTFail(); return }
+        guard case .string(let string) = (row.value(named: "string") as DatabaseValue).storage, string == "foo" else { XCTFail(); return }
+        guard case .blob(let data) = (row.value(named: "blob") as DatabaseValue).storage, data == "SQLite".data(using: .utf8) else { XCTFail(); return }
     }
-    
+
     func testRowCount() {
         let row = Row(["a": 0, "b": 1, "c": 2])
         XCTAssertEqual(row.count, 3)

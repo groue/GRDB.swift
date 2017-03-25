@@ -78,9 +78,9 @@ class FetchPositionalValuesTests: XCTestCase {
         }
     }
     
-    func testGRDB() {
+    func testGRDB() throws {
         let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
-        let dbQueue = try! DatabaseQueue(path: databasePath)
+        let dbQueue = try DatabaseQueue(path: databasePath)
         
         measure {
             var count = 0
@@ -107,9 +107,9 @@ class FetchPositionalValuesTests: XCTestCase {
         }
     }
     
-    func testSQLiteSwift() {
+    func testSQLiteSwift() throws {
         let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
-        let db = try! Connection(databasePath)
+        let db = try Connection(databasePath)
         
         measure {
             var count = 0

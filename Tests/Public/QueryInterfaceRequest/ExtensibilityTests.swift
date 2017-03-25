@@ -54,72 +54,65 @@ func cast(_ value: SQLExpressible, as type: Database.ColumnType) -> SQLExpressio
 
 class ExtensibilityTests: GRDBTestCase {
     
-    func testStrftime() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.create(table: "records") { t in
-                    t.column("date", .datetime)
-                }
-                struct Record : TableMapping {
-                    static let databaseTableName = "records"
-                }
-                
-                let date = Date(timeIntervalSince1970: 0)
-                try db.execute("INSERT INTO records (date) VALUES (?)", arguments: [date])
-                
-                let request = Record.select(strftime("%Y", Column("date")))
-                let year = try Int.fetchOne(db, request)
-                XCTAssertEqual(year, 1970)
-                XCTAssertEqual(self.lastSQLQuery, "SELECT STRFTIME('%Y', \"date\") FROM \"records\"")
+    func testStrftime() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "records") { t in
+                t.column("date", .datetime)
             }
+            struct Record : TableMapping {
+                static let databaseTableName = "records"
+            }
+            
+            let date = Date(timeIntervalSince1970: 0)
+            try db.execute("INSERT INTO records (date) VALUES (?)", arguments: [date])
+            
+            let request = Record.select(strftime("%Y", Column("date")))
+            let year = try Int.fetchOne(db, request)
+            XCTAssertEqual(year, 1970)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT STRFTIME('%Y', \"date\") FROM \"records\"")
         }
     }
-    
-    func testMatch() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE VIRTUAL TABLE records USING fts3(content TEXT)")
-                struct Record : TableMapping {
-                    static let databaseTableName = "records"
-                }
-                
-                try db.execute("INSERT INTO records (content) VALUES (?)", arguments: ["foo"])
-                try db.execute("INSERT INTO records (content) VALUES (?)", arguments: ["foo bar"])
-                try db.execute("INSERT INTO records (content) VALUES (?)", arguments: ["bar"])
-                
-                let request = Record.filter("foo" ~= Column("content"))
-                let count = try request.fetchCount(db)
-                XCTAssertEqual(count, 2)
+
+    func testMatch() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE VIRTUAL TABLE records USING fts3(content TEXT)")
+            struct Record : TableMapping {
+                static let databaseTableName = "records"
             }
+            
+            try db.execute("INSERT INTO records (content) VALUES (?)", arguments: ["foo"])
+            try db.execute("INSERT INTO records (content) VALUES (?)", arguments: ["foo bar"])
+            try db.execute("INSERT INTO records (content) VALUES (?)", arguments: ["bar"])
+            
+            let request = Record.filter("foo" ~= Column("content"))
+            let count = try request.fetchCount(db)
+            XCTAssertEqual(count, 2)
         }
     }
-    
-    func testCast() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.create(table: "records") { t in
-                    t.column("text", .text)
-                }
-                struct Record : TableMapping {
-                    static let databaseTableName = "records"
-                }
-                
-                try db.execute("INSERT INTO records (text) VALUES (?)", arguments: ["foo"])
-                
-                let request = Record.select(cast(Column("text"), as: .blob))
-                let dbv = try DatabaseValue.fetchOne(db, request)!
-                switch dbv.storage {
-                case .blob:
-                    break
-                default:
-                    XCTFail("Expected data blob")
-                }
-                XCTAssertEqual(self.lastSQLQuery, "SELECT CAST(\"text\" AS BLOB) FROM \"records\"")
+
+    func testCast() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "records") { t in
+                t.column("text", .text)
             }
+            struct Record : TableMapping {
+                static let databaseTableName = "records"
+            }
+            
+            try db.execute("INSERT INTO records (text) VALUES (?)", arguments: ["foo"])
+            
+            let request = Record.select(cast(Column("text"), as: .blob))
+            let dbv = try DatabaseValue.fetchOne(db, request)!
+            switch dbv.storage {
+            case .blob:
+                break
+            default:
+                XCTFail("Expected data blob")
+            }
+            XCTAssertEqual(self.lastSQLQuery, "SELECT CAST(\"text\" AS BLOB) FROM \"records\"")
         }
     }
-    
 }

@@ -175,312 +175,290 @@ class RecordEditedTests: GRDBTestCase {
         XCTAssertTrue(person.hasPersistentChangedValues)
     }
     
-    func testRecordIsNotEditedAfterFullFetch() {
+    func testRecordIsNotEditedAfterFullFetch() throws {
         // Fetch a record from a row that contains all the columns in
         // persistentDictionary: An update statement, which only saves the
         // columns in persistentDictionary would perform no change. So the
         // record is not edited.
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try Person(name: "Arthur", age: 41).insert(db)
-                let person = try Person.fetchOne(db, "SELECT * FROM persons")!
-                XCTAssertFalse(person.hasPersistentChangedValues)
-            }
-            try dbQueue.inDatabase { db in
-                try PersonWithModifiedCaseColumns(name: "Arthur", age: 41).insert(db)
-                let person = try PersonWithModifiedCaseColumns.fetchOne(db, "SELECT * FROM persons")!
-                XCTAssertFalse(person.hasPersistentChangedValues)
-            }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try Person(name: "Arthur", age: 41).insert(db)
+            let person = try Person.fetchOne(db, "SELECT * FROM persons")!
+            XCTAssertFalse(person.hasPersistentChangedValues)
+        }
+        try dbQueue.inDatabase { db in
+            try PersonWithModifiedCaseColumns(name: "Arthur", age: 41).insert(db)
+            let person = try PersonWithModifiedCaseColumns.fetchOne(db, "SELECT * FROM persons")!
+            XCTAssertFalse(person.hasPersistentChangedValues)
         }
     }
-    
-    func testRecordIsNotEditedAfterFullFetchWithIntegerPropertyOnRealAffinityColumn() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE t (value REAL)")
-                try db.execute("INSERT INTO t (value) VALUES (1)")
-                
-                // Load a double...
-                let row1 = try Row.fetchOne(db, "SELECT * FROM t")!
-                switch (row1.value(named: "value") as DatabaseValue).storage {
-                case .double(let double):
-                    XCTAssertEqual(double, 1.0)
-                default:
-                    XCTFail("Unexpected DatabaseValue")
-                }
-                
-                // Compare to an Int
-                let record = try IntegerPropertyOnRealAffinityColumn.fetchOne(db, "SELECT * FROM t")!
-                let row2 = Row(record.persistentDictionary)
-                switch (row2.value(named: "value") as DatabaseValue).storage {
-                case .int64(let int64):
-                    XCTAssertEqual(int64, 1)
-                default:
-                    XCTFail("Unexpected DatabaseValue")
-                }
-                
-                XCTAssertFalse(record.hasPersistentChangedValues)
+
+    func testRecordIsNotEditedAfterFullFetchWithIntegerPropertyOnRealAffinityColumn() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE t (value REAL)")
+            try db.execute("INSERT INTO t (value) VALUES (1)")
+            
+            // Load a double...
+            let row1 = try Row.fetchOne(db, "SELECT * FROM t")!
+            switch (row1.value(named: "value") as DatabaseValue).storage {
+            case .double(let double):
+                XCTAssertEqual(double, 1.0)
+            default:
+                XCTFail("Unexpected DatabaseValue")
             }
+            
+            // Compare to an Int
+            let record = try IntegerPropertyOnRealAffinityColumn.fetchOne(db, "SELECT * FROM t")!
+            let row2 = Row(record.persistentDictionary)
+            switch (row2.value(named: "value") as DatabaseValue).storage {
+            case .int64(let int64):
+                XCTAssertEqual(int64, 1)
+            default:
+                XCTFail("Unexpected DatabaseValue")
+            }
+            
+            XCTAssertFalse(record.hasPersistentChangedValues)
         }
     }
-    
-    func testRecordIsNotEditedAfterWiderThanFullFetch() {
+
+    func testRecordIsNotEditedAfterWiderThanFullFetch() throws {
         // Fetch a record from a row that contains all the columns in
         // persistentDictionary, plus extra ones: An update statement,
         // which only saves the columns in persistentDictionary would
         // perform no change. So the record is not edited.
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try Person(name: "Arthur", age: 41).insert(db)
-                let person = try Person.fetchOne(db, "SELECT *, 1 AS foo FROM persons")!
-                XCTAssertFalse(person.hasPersistentChangedValues)
-            }
-            try dbQueue.inDatabase { db in
-                try PersonWithModifiedCaseColumns(name: "Arthur", age: 41).insert(db)
-                let person = try PersonWithModifiedCaseColumns.fetchOne(db, "SELECT *, 1 AS foo FROM persons")!
-                XCTAssertFalse(person.hasPersistentChangedValues)
-            }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try Person(name: "Arthur", age: 41).insert(db)
+            let person = try Person.fetchOne(db, "SELECT *, 1 AS foo FROM persons")!
+            XCTAssertFalse(person.hasPersistentChangedValues)
+        }
+        try dbQueue.inDatabase { db in
+            try PersonWithModifiedCaseColumns(name: "Arthur", age: 41).insert(db)
+            let person = try PersonWithModifiedCaseColumns.fetchOne(db, "SELECT *, 1 AS foo FROM persons")!
+            XCTAssertFalse(person.hasPersistentChangedValues)
         }
     }
-    
-    func testRecordIsEditedAfterPartialFetch() {
+
+    func testRecordIsEditedAfterPartialFetch() throws {
         // Fetch a record from a row that does not contain all the columns in
         // persistentDictionary: An update statement saves the columns in
         // persistentDictionary, so it may perform unpredictable change.
         // So the record is edited.
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try Person(name: "Arthur", age: 41).insert(db)
-                let person = try Person.fetchOne(db, "SELECT name FROM persons")!
-                XCTAssertTrue(person.hasPersistentChangedValues)
-            }
-            try dbQueue.inDatabase { db in
-                try PersonWithModifiedCaseColumns(name: "Arthur", age: 41).insert(db)
-                let person = try PersonWithModifiedCaseColumns.fetchOne(db, "SELECT name FROM persons")!
-                XCTAssertTrue(person.hasPersistentChangedValues)
-            }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try Person(name: "Arthur", age: 41).insert(db)
+            let person = try Person.fetchOne(db, "SELECT name FROM persons")!
+            XCTAssertTrue(person.hasPersistentChangedValues)
+        }
+        try dbQueue.inDatabase { db in
+            try PersonWithModifiedCaseColumns(name: "Arthur", age: 41).insert(db)
+            let person = try PersonWithModifiedCaseColumns.fetchOne(db, "SELECT name FROM persons")!
+            XCTAssertTrue(person.hasPersistentChangedValues)
         }
     }
-    
-    func testRecordIsNotEditedAfterInsert() {
+
+    func testRecordIsNotEditedAfterInsert() throws {
         // After insertion, a record is not edited.
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let person = Person(name: "Arthur", age: 41)
-                try person.insert(db)
-                XCTAssertFalse(person.hasPersistentChangedValues)
-            }
-            try dbQueue.inDatabase { db in
-                let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
-                try person.insert(db)
-                XCTAssertFalse(person.hasPersistentChangedValues)
-            }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let person = Person(name: "Arthur", age: 41)
+            try person.insert(db)
+            XCTAssertFalse(person.hasPersistentChangedValues)
+        }
+        try dbQueue.inDatabase { db in
+            let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
+            try person.insert(db)
+            XCTAssertFalse(person.hasPersistentChangedValues)
         }
     }
-    
-    func testRecordIsEditedAfterValueChange() {
+
+    func testRecordIsEditedAfterValueChange() throws {
         // Any change in a value exposed in persistentDictionary yields a
         // record that is edited.
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                do {
-                    let person = Person(name: "Arthur")
-                    try person.insert(db)
-                    XCTAssertTrue(person.name != nil)
-                    person.name = "Bobby"           // non-nil vs. non-nil
-                    XCTAssertTrue(person.hasPersistentChangedValues)
-                }
-                do {
-                    let person = Person(name: "Arthur")
-                    try person.insert(db)
-                    XCTAssertTrue(person.name != nil)
-                    person.name = nil               // non-nil vs. nil
-                    XCTAssertTrue(person.hasPersistentChangedValues)
-                }
-                do {
-                    let person = Person(name: "Arthur")
-                    try person.insert(db)
-                    XCTAssertTrue(person.age == nil)
-                    person.age = 41                 // nil vs. non-nil
-                    XCTAssertTrue(person.hasPersistentChangedValues)
-                }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                let person = Person(name: "Arthur")
+                try person.insert(db)
+                XCTAssertTrue(person.name != nil)
+                person.name = "Bobby"           // non-nil vs. non-nil
+                XCTAssertTrue(person.hasPersistentChangedValues)
             }
-            try dbQueue.inDatabase { db in
-                do {
-                    let person = PersonWithModifiedCaseColumns(name: "Arthur")
-                    try person.insert(db)
-                    XCTAssertTrue(person.name != nil)
-                    person.name = "Bobby"           // non-nil vs. non-nil
-                    XCTAssertTrue(person.hasPersistentChangedValues)
-                }
-                do {
-                    let person = PersonWithModifiedCaseColumns(name: "Arthur")
-                    try person.insert(db)
-                    XCTAssertTrue(person.name != nil)
-                    person.name = nil               // non-nil vs. nil
-                    XCTAssertTrue(person.hasPersistentChangedValues)
-                }
-                do {
-                    let person = PersonWithModifiedCaseColumns(name: "Arthur")
-                    try person.insert(db)
-                    XCTAssertTrue(person.age == nil)
-                    person.age = 41                 // nil vs. non-nil
-                    XCTAssertTrue(person.hasPersistentChangedValues)
-                }
+            do {
+                let person = Person(name: "Arthur")
+                try person.insert(db)
+                XCTAssertTrue(person.name != nil)
+                person.name = nil               // non-nil vs. nil
+                XCTAssertTrue(person.hasPersistentChangedValues)
+            }
+            do {
+                let person = Person(name: "Arthur")
+                try person.insert(db)
+                XCTAssertTrue(person.age == nil)
+                person.age = 41                 // nil vs. non-nil
+                XCTAssertTrue(person.hasPersistentChangedValues)
+            }
+        }
+        try dbQueue.inDatabase { db in
+            do {
+                let person = PersonWithModifiedCaseColumns(name: "Arthur")
+                try person.insert(db)
+                XCTAssertTrue(person.name != nil)
+                person.name = "Bobby"           // non-nil vs. non-nil
+                XCTAssertTrue(person.hasPersistentChangedValues)
+            }
+            do {
+                let person = PersonWithModifiedCaseColumns(name: "Arthur")
+                try person.insert(db)
+                XCTAssertTrue(person.name != nil)
+                person.name = nil               // non-nil vs. nil
+                XCTAssertTrue(person.hasPersistentChangedValues)
+            }
+            do {
+                let person = PersonWithModifiedCaseColumns(name: "Arthur")
+                try person.insert(db)
+                XCTAssertTrue(person.age == nil)
+                person.age = 41                 // nil vs. non-nil
+                XCTAssertTrue(person.hasPersistentChangedValues)
             }
         }
     }
-    
-    func testRecordIsNotEditedAfterSameValueChange() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                do {
-                    let person = Person(name: "Arthur")
-                    try person.insert(db)
-                    XCTAssertTrue(person.name != nil)
-                    person.name = "Arthur"           // non-nil vs. non-nil
-                    XCTAssertFalse(person.hasPersistentChangedValues)
-                }
-                do {
-                    let person = Person(name: "Arthur")
-                    try person.insert(db)
-                    XCTAssertTrue(person.age == nil)
-                    person.age = nil                 // nil vs. nil
-                    XCTAssertFalse(person.hasPersistentChangedValues)
-                }
+
+    func testRecordIsNotEditedAfterSameValueChange() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                let person = Person(name: "Arthur")
+                try person.insert(db)
+                XCTAssertTrue(person.name != nil)
+                person.name = "Arthur"           // non-nil vs. non-nil
+                XCTAssertFalse(person.hasPersistentChangedValues)
             }
-            try dbQueue.inDatabase { db in
-                do {
-                    let person = PersonWithModifiedCaseColumns(name: "Arthur")
-                    try person.insert(db)
-                    XCTAssertTrue(person.name != nil)
-                    person.name = "Arthur"           // non-nil vs. non-nil
-                    XCTAssertFalse(person.hasPersistentChangedValues)
-                }
-                do {
-                    let person = PersonWithModifiedCaseColumns(name: "Arthur")
-                    try person.insert(db)
-                    XCTAssertTrue(person.age == nil)
-                    person.age = nil                 // nil vs. nil
-                    XCTAssertFalse(person.hasPersistentChangedValues)
-                }
+            do {
+                let person = Person(name: "Arthur")
+                try person.insert(db)
+                XCTAssertTrue(person.age == nil)
+                person.age = nil                 // nil vs. nil
+                XCTAssertFalse(person.hasPersistentChangedValues)
+            }
+        }
+        try dbQueue.inDatabase { db in
+            do {
+                let person = PersonWithModifiedCaseColumns(name: "Arthur")
+                try person.insert(db)
+                XCTAssertTrue(person.name != nil)
+                person.name = "Arthur"           // non-nil vs. non-nil
+                XCTAssertFalse(person.hasPersistentChangedValues)
+            }
+            do {
+                let person = PersonWithModifiedCaseColumns(name: "Arthur")
+                try person.insert(db)
+                XCTAssertTrue(person.age == nil)
+                person.age = nil                 // nil vs. nil
+                XCTAssertFalse(person.hasPersistentChangedValues)
             }
         }
     }
-    
-    func testRecordIsNotEditedAfterUpdate() {
+
+    func testRecordIsNotEditedAfterUpdate() throws {
         // After update, a record is not edited.
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let person = Person(name: "Arthur", age: 41)
-                try person.insert(db)
-                person.name = "Bobby"
-                try person.update(db)
-                XCTAssertFalse(person.hasPersistentChangedValues)
-            }
-            try dbQueue.inDatabase { db in
-                let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
-                try person.insert(db)
-                person.name = "Bobby"
-                try person.update(db)
-                XCTAssertFalse(person.hasPersistentChangedValues)
-            }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let person = Person(name: "Arthur", age: 41)
+            try person.insert(db)
+            person.name = "Bobby"
+            try person.update(db)
+            XCTAssertFalse(person.hasPersistentChangedValues)
+        }
+        try dbQueue.inDatabase { db in
+            let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
+            try person.insert(db)
+            person.name = "Bobby"
+            try person.update(db)
+            XCTAssertFalse(person.hasPersistentChangedValues)
         }
     }
-    
-    func testRecordIsNotEditedAfterSave() {
+
+    func testRecordIsNotEditedAfterSave() throws {
         // After save, a record is not edited.
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let person = Person(name: "Arthur", age: 41)
-                try person.save(db)
-                XCTAssertFalse(person.hasPersistentChangedValues)
-                person.name = "Bobby"
-                XCTAssertTrue(person.hasPersistentChangedValues)
-                try person.save(db)
-                XCTAssertFalse(person.hasPersistentChangedValues)
-            }
-            try dbQueue.inDatabase { db in
-                let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
-                try person.save(db)
-                XCTAssertFalse(person.hasPersistentChangedValues)
-                person.name = "Bobby"
-                XCTAssertTrue(person.hasPersistentChangedValues)
-                try person.save(db)
-                XCTAssertFalse(person.hasPersistentChangedValues)
-            }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let person = Person(name: "Arthur", age: 41)
+            try person.save(db)
+            XCTAssertFalse(person.hasPersistentChangedValues)
+            person.name = "Bobby"
+            XCTAssertTrue(person.hasPersistentChangedValues)
+            try person.save(db)
+            XCTAssertFalse(person.hasPersistentChangedValues)
+        }
+        try dbQueue.inDatabase { db in
+            let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
+            try person.save(db)
+            XCTAssertFalse(person.hasPersistentChangedValues)
+            person.name = "Bobby"
+            XCTAssertTrue(person.hasPersistentChangedValues)
+            try person.save(db)
+            XCTAssertFalse(person.hasPersistentChangedValues)
         }
     }
-    
-    func testRecordIsEditedAfterPrimaryKeyChange() {
+
+    func testRecordIsEditedAfterPrimaryKeyChange() throws {
         // After reload, a record is not edited.
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let person = Person(name: "Arthur", age: 41)
-                try person.insert(db)
-                person.id = person.id + 1
-                XCTAssertTrue(person.hasPersistentChangedValues)
-            }
-            try dbQueue.inDatabase { db in
-                let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
-                try person.insert(db)
-                person.id = person.id + 1
-                XCTAssertTrue(person.hasPersistentChangedValues)
-            }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let person = Person(name: "Arthur", age: 41)
+            try person.insert(db)
+            person.id = person.id + 1
+            XCTAssertTrue(person.hasPersistentChangedValues)
+        }
+        try dbQueue.inDatabase { db in
+            let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
+            try person.insert(db)
+            person.id = person.id + 1
+            XCTAssertTrue(person.hasPersistentChangedValues)
         }
     }
-    
-    func testCopyTransfersEditedFlag() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let person = Person(name: "Arthur", age: 41)
-                
-                try person.insert(db)
-                XCTAssertFalse(person.hasPersistentChangedValues)
-                XCTAssertFalse(person.copy().hasPersistentChangedValues)
-                
-                person.name = "Barbara"
-                XCTAssertTrue(person.hasPersistentChangedValues)
-                XCTAssertTrue(person.copy().hasPersistentChangedValues)
-                
-                person.hasPersistentChangedValues = false
-                XCTAssertFalse(person.hasPersistentChangedValues)
-                XCTAssertFalse(person.copy().hasPersistentChangedValues)
-                
-                person.hasPersistentChangedValues = true
-                XCTAssertTrue(person.hasPersistentChangedValues)
-                XCTAssertTrue(person.copy().hasPersistentChangedValues)
-            }
-            try dbQueue.inDatabase { db in
-                let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
-                
-                try person.insert(db)
-                XCTAssertFalse(person.hasPersistentChangedValues)
-                XCTAssertFalse(person.copy().hasPersistentChangedValues)
-                
-                person.name = "Barbara"
-                XCTAssertTrue(person.hasPersistentChangedValues)
-                XCTAssertTrue(person.copy().hasPersistentChangedValues)
-                
-                person.hasPersistentChangedValues = false
-                XCTAssertFalse(person.hasPersistentChangedValues)
-                XCTAssertFalse(person.copy().hasPersistentChangedValues)
-                
-                person.hasPersistentChangedValues = true
-                XCTAssertTrue(person.hasPersistentChangedValues)
-                XCTAssertTrue(person.copy().hasPersistentChangedValues)
-            }
+
+    func testCopyTransfersEditedFlag() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let person = Person(name: "Arthur", age: 41)
+            
+            try person.insert(db)
+            XCTAssertFalse(person.hasPersistentChangedValues)
+            XCTAssertFalse(person.copy().hasPersistentChangedValues)
+            
+            person.name = "Barbara"
+            XCTAssertTrue(person.hasPersistentChangedValues)
+            XCTAssertTrue(person.copy().hasPersistentChangedValues)
+            
+            person.hasPersistentChangedValues = false
+            XCTAssertFalse(person.hasPersistentChangedValues)
+            XCTAssertFalse(person.copy().hasPersistentChangedValues)
+            
+            person.hasPersistentChangedValues = true
+            XCTAssertTrue(person.hasPersistentChangedValues)
+            XCTAssertTrue(person.copy().hasPersistentChangedValues)
+        }
+        try dbQueue.inDatabase { db in
+            let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
+            
+            try person.insert(db)
+            XCTAssertFalse(person.hasPersistentChangedValues)
+            XCTAssertFalse(person.copy().hasPersistentChangedValues)
+            
+            person.name = "Barbara"
+            XCTAssertTrue(person.hasPersistentChangedValues)
+            XCTAssertTrue(person.copy().hasPersistentChangedValues)
+            
+            person.hasPersistentChangedValues = false
+            XCTAssertFalse(person.hasPersistentChangedValues)
+            XCTAssertFalse(person.copy().hasPersistentChangedValues)
+            
+            person.hasPersistentChangedValues = true
+            XCTAssertTrue(person.hasPersistentChangedValues)
+            XCTAssertTrue(person.copy().hasPersistentChangedValues)
         }
     }
 
@@ -524,324 +502,306 @@ class RecordEditedTests: GRDBTestCase {
         }
     }
     
-    func testChangesAfterFullFetch() {
+    func testChangesAfterFullFetch() throws {
         // Fetch a record from a row that contains all the columns in
         // persistentDictionary: An update statement, which only saves the
         // columns in persistentDictionary would perform no change. So the
         // record is not edited.
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try Person(name: "Arthur", age: 41).insert(db)
-                do {
-                    let person = try Person.fetchOne(db, "SELECT * FROM persons")!
-                    let changes = person.persistentChangedValues
-                    XCTAssertEqual(changes.count, 0)
-                }
-                do {
-                    let persons = try Person.fetchAll(db, "SELECT * FROM persons")
-                    let changes = persons[0].persistentChangedValues
-                    XCTAssertEqual(changes.count, 0)
-                }
-                do {
-                    let persons = try Person.fetchCursor(db, "SELECT * FROM persons")
-                    let changes = try persons.next()!.persistentChangedValues
-                    XCTAssertEqual(changes.count, 0)
-                }
-                do {
-                    let person = try Person.fetchOne(db, "SELECT * FROM persons", adapter: SuffixRowAdapter(fromIndex: 0))!
-                    let changes = person.persistentChangedValues
-                    XCTAssertEqual(changes.count, 0)
-                }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try Person(name: "Arthur", age: 41).insert(db)
+            do {
+                let person = try Person.fetchOne(db, "SELECT * FROM persons")!
+                let changes = person.persistentChangedValues
+                XCTAssertEqual(changes.count, 0)
             }
-            try dbQueue.inDatabase { db in
-                try PersonWithModifiedCaseColumns(name: "Arthur", age: 41).insert(db)
-                let person = try PersonWithModifiedCaseColumns.fetchOne(db, "SELECT * FROM persons")!
+            do {
+                let persons = try Person.fetchAll(db, "SELECT * FROM persons")
+                let changes = persons[0].persistentChangedValues
+                XCTAssertEqual(changes.count, 0)
+            }
+            do {
+                let persons = try Person.fetchCursor(db, "SELECT * FROM persons")
+                let changes = try persons.next()!.persistentChangedValues
+                XCTAssertEqual(changes.count, 0)
+            }
+            do {
+                let person = try Person.fetchOne(db, "SELECT * FROM persons", adapter: SuffixRowAdapter(fromIndex: 0))!
                 let changes = person.persistentChangedValues
                 XCTAssertEqual(changes.count, 0)
             }
         }
+        try dbQueue.inDatabase { db in
+            try PersonWithModifiedCaseColumns(name: "Arthur", age: 41).insert(db)
+            let person = try PersonWithModifiedCaseColumns.fetchOne(db, "SELECT * FROM persons")!
+            let changes = person.persistentChangedValues
+            XCTAssertEqual(changes.count, 0)
+        }
     }
 
-    func testChangesAfterPartialFetch() {
+    func testChangesAfterPartialFetch() throws {
         // Fetch a record from a row that does not contain all the columns in
         // persistentDictionary: An update statement saves the columns in
         // persistentDictionary, so it may perform unpredictable change.
         // So the record is edited.
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try Person(name: "Arthur", age: 41).insert(db)
-                let person = try Person.fetchOne(db, "SELECT name FROM persons")!
-                let changes = person.persistentChangedValues
-                XCTAssertEqual(changes.count, 3)
-                for (column, old) in changes {
-                    switch column {
-                    case "id":
-                        XCTAssertTrue(old == nil)
-                    case "age":
-                        XCTAssertTrue(old == nil)
-                    case "creationDate":
-                        XCTAssertTrue(old == nil)
-                    default:
-                        XCTFail("Unexpected column: \(column)")
-                    }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try Person(name: "Arthur", age: 41).insert(db)
+            let person = try Person.fetchOne(db, "SELECT name FROM persons")!
+            let changes = person.persistentChangedValues
+            XCTAssertEqual(changes.count, 3)
+            for (column, old) in changes {
+                switch column {
+                case "id":
+                    XCTAssertTrue(old == nil)
+                case "age":
+                    XCTAssertTrue(old == nil)
+                case "creationDate":
+                    XCTAssertTrue(old == nil)
+                default:
+                    XCTFail("Unexpected column: \(column)")
                 }
             }
-            try dbQueue.inDatabase { db in
-                try PersonWithModifiedCaseColumns(name: "Arthur", age: 41).insert(db)
-                let person = try PersonWithModifiedCaseColumns.fetchOne(db, "SELECT name FROM persons")!
-                let changes = person.persistentChangedValues
-                XCTAssertEqual(changes.count, 3)
-                for (column, old) in changes {
-                    switch column {
-                    case "ID":
-                        XCTAssertTrue(old == nil)
-                    case "AGE":
-                        XCTAssertTrue(old == nil)
-                    case "CREATIONDATE":
-                        XCTAssertTrue(old == nil)
-                    default:
-                        XCTFail("Unexpected column: \(column)")
-                    }
+        }
+        try dbQueue.inDatabase { db in
+            try PersonWithModifiedCaseColumns(name: "Arthur", age: 41).insert(db)
+            let person = try PersonWithModifiedCaseColumns.fetchOne(db, "SELECT name FROM persons")!
+            let changes = person.persistentChangedValues
+            XCTAssertEqual(changes.count, 3)
+            for (column, old) in changes {
+                switch column {
+                case "ID":
+                    XCTAssertTrue(old == nil)
+                case "AGE":
+                    XCTAssertTrue(old == nil)
+                case "CREATIONDATE":
+                    XCTAssertTrue(old == nil)
+                default:
+                    XCTFail("Unexpected column: \(column)")
                 }
             }
         }
     }
-    
-    func testChangesAfterInsert() {
+
+    func testChangesAfterInsert() throws {
         // After insertion, a record is not edited.
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let person = Person(name: "Arthur", age: 41)
-                try person.insert(db)
-                let changes = person.persistentChangedValues
-                XCTAssertEqual(changes.count, 0)
-            }
-            try dbQueue.inDatabase { db in
-                let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
-                try person.insert(db)
-                let changes = person.persistentChangedValues
-                XCTAssertEqual(changes.count, 0)
-            }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let person = Person(name: "Arthur", age: 41)
+            try person.insert(db)
+            let changes = person.persistentChangedValues
+            XCTAssertEqual(changes.count, 0)
+        }
+        try dbQueue.inDatabase { db in
+            let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
+            try person.insert(db)
+            let changes = person.persistentChangedValues
+            XCTAssertEqual(changes.count, 0)
         }
     }
-    
-    func testChangesAfterValueChange() {
+
+    func testChangesAfterValueChange() throws {
         // Any change in a value exposed in persistentDictionary yields a
         // record that is edited.
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let person = Person(name: "Arthur", age: nil)
-                try person.insert(db)
-                
-                person.name = "Bobby"           // non-nil -> non-nil
-                person.age = 41                 // nil -> non-nil
-                person.creationDate = nil       // non-nil -> nil
-                let changes = person.persistentChangedValues
-                XCTAssertEqual(changes.count, 3)
-                for (column, old) in changes {
-                    switch column {
-                    case "name":
-                        XCTAssertEqual(old, "Arthur".databaseValue)
-                    case "age":
-                        XCTAssertEqual(old, DatabaseValue.null)
-                    case "creationDate":
-                        XCTAssertTrue(Date.fromDatabaseValue(old!) != nil)
-                    default:
-                        XCTFail("Unexpected column: \(column)")
-                    }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let person = Person(name: "Arthur", age: nil)
+            try person.insert(db)
+            
+            person.name = "Bobby"           // non-nil -> non-nil
+            person.age = 41                 // nil -> non-nil
+            person.creationDate = nil       // non-nil -> nil
+            let changes = person.persistentChangedValues
+            XCTAssertEqual(changes.count, 3)
+            for (column, old) in changes {
+                switch column {
+                case "name":
+                    XCTAssertEqual(old, "Arthur".databaseValue)
+                case "age":
+                    XCTAssertEqual(old, DatabaseValue.null)
+                case "creationDate":
+                    XCTAssertTrue(Date.fromDatabaseValue(old!) != nil)
+                default:
+                    XCTFail("Unexpected column: \(column)")
                 }
             }
-            try dbQueue.inDatabase { db in
-                let person = PersonWithModifiedCaseColumns(name: "Arthur", age: nil)
-                try person.insert(db)
-                
-                person.name = "Bobby"           // non-nil -> non-nil
-                person.age = 41                 // nil -> non-nil
-                person.creationDate = nil       // non-nil -> nil
-                let changes = person.persistentChangedValues
-                XCTAssertEqual(changes.count, 3)
-                for (column, old) in changes {
-                    switch column {
-                    case "NAME":
-                        XCTAssertEqual(old, "Arthur".databaseValue)
-                    case "AGE":
-                        XCTAssertEqual(old, DatabaseValue.null)
-                    case "CREATIONDATE":
-                        XCTAssertTrue(Date.fromDatabaseValue(old!) != nil)
-                    default:
-                        XCTFail("Unexpected column: \(column)")
-                    }
+        }
+        try dbQueue.inDatabase { db in
+            let person = PersonWithModifiedCaseColumns(name: "Arthur", age: nil)
+            try person.insert(db)
+            
+            person.name = "Bobby"           // non-nil -> non-nil
+            person.age = 41                 // nil -> non-nil
+            person.creationDate = nil       // non-nil -> nil
+            let changes = person.persistentChangedValues
+            XCTAssertEqual(changes.count, 3)
+            for (column, old) in changes {
+                switch column {
+                case "NAME":
+                    XCTAssertEqual(old, "Arthur".databaseValue)
+                case "AGE":
+                    XCTAssertEqual(old, DatabaseValue.null)
+                case "CREATIONDATE":
+                    XCTAssertTrue(Date.fromDatabaseValue(old!) != nil)
+                default:
+                    XCTFail("Unexpected column: \(column)")
                 }
             }
         }
     }
-    
-    func testChangesAfterUpdate() {
+
+    func testChangesAfterUpdate() throws {
         // After update, a record is not edited.
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let person = Person(name: "Arthur", age: 41)
-                try person.insert(db)
-                person.name = "Bobby"
-                try person.update(db)
-                XCTAssertEqual(person.persistentChangedValues.count, 0)
-            }
-            try dbQueue.inDatabase { db in
-                let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
-                try person.insert(db)
-                person.name = "Bobby"
-                try person.update(db)
-                XCTAssertEqual(person.persistentChangedValues.count, 0)
-            }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let person = Person(name: "Arthur", age: 41)
+            try person.insert(db)
+            person.name = "Bobby"
+            try person.update(db)
+            XCTAssertEqual(person.persistentChangedValues.count, 0)
+        }
+        try dbQueue.inDatabase { db in
+            let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
+            try person.insert(db)
+            person.name = "Bobby"
+            try person.update(db)
+            XCTAssertEqual(person.persistentChangedValues.count, 0)
         }
     }
-    
-    func testChangesAfterSave() {
+
+    func testChangesAfterSave() throws {
         // After save, a record is not edited.
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let person = Person(name: "Arthur", age: 41)
-                try person.save(db)
-                XCTAssertEqual(person.persistentChangedValues.count, 0)
-                
-                person.name = "Bobby"
-                let changes = person.persistentChangedValues
-                XCTAssertEqual(changes.count, 1)
-                for (column, old) in changes {
-                    switch column {
-                    case "name":
-                        XCTAssertEqual(old, "Arthur".databaseValue)
-                    default:
-                        XCTFail("Unexpected column: \(column)")
-                    }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let person = Person(name: "Arthur", age: 41)
+            try person.save(db)
+            XCTAssertEqual(person.persistentChangedValues.count, 0)
+            
+            person.name = "Bobby"
+            let changes = person.persistentChangedValues
+            XCTAssertEqual(changes.count, 1)
+            for (column, old) in changes {
+                switch column {
+                case "name":
+                    XCTAssertEqual(old, "Arthur".databaseValue)
+                default:
+                    XCTFail("Unexpected column: \(column)")
                 }
-                try person.save(db)
-                XCTAssertEqual(person.persistentChangedValues.count, 0)
             }
-            try dbQueue.inDatabase { db in
-                let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
-                try person.save(db)
-                XCTAssertEqual(person.persistentChangedValues.count, 0)
-                
-                person.name = "Bobby"
-                let changes = person.persistentChangedValues
-                XCTAssertEqual(changes.count, 1)
-                for (column, old) in changes {
-                    switch column {
-                    case "NAME":
-                        XCTAssertEqual(old, "Arthur".databaseValue)
-                    default:
-                        XCTFail("Unexpected column: \(column)")
-                    }
+            try person.save(db)
+            XCTAssertEqual(person.persistentChangedValues.count, 0)
+        }
+        try dbQueue.inDatabase { db in
+            let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
+            try person.save(db)
+            XCTAssertEqual(person.persistentChangedValues.count, 0)
+            
+            person.name = "Bobby"
+            let changes = person.persistentChangedValues
+            XCTAssertEqual(changes.count, 1)
+            for (column, old) in changes {
+                switch column {
+                case "NAME":
+                    XCTAssertEqual(old, "Arthur".databaseValue)
+                default:
+                    XCTFail("Unexpected column: \(column)")
                 }
-                try person.save(db)
-                XCTAssertEqual(person.persistentChangedValues.count, 0)
             }
+            try person.save(db)
+            XCTAssertEqual(person.persistentChangedValues.count, 0)
         }
     }
-    
-    func testChangesAfterPrimaryKeyChange() {
+
+    func testChangesAfterPrimaryKeyChange() throws {
         // After reload, a record is not edited.
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let person = Person(name: "Arthur", age: 41)
-                try person.insert(db)
-                person.id = person.id + 1
-                let changes = person.persistentChangedValues
-                XCTAssertEqual(changes.count, 1)
-                for (column, old) in changes {
-                    switch column {
-                    case "id":
-                        XCTAssertEqual(old, (person.id - 1).databaseValue)
-                    default:
-                        XCTFail("Unexpected column: \(column)")
-                    }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let person = Person(name: "Arthur", age: 41)
+            try person.insert(db)
+            person.id = person.id + 1
+            let changes = person.persistentChangedValues
+            XCTAssertEqual(changes.count, 1)
+            for (column, old) in changes {
+                switch column {
+                case "id":
+                    XCTAssertEqual(old, (person.id - 1).databaseValue)
+                default:
+                    XCTFail("Unexpected column: \(column)")
                 }
             }
-            try dbQueue.inDatabase { db in
-                let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
-                try person.insert(db)
-                person.id = person.id + 1
-                let changes = person.persistentChangedValues
-                XCTAssertEqual(changes.count, 1)
-                for (column, old) in changes {
-                    switch column {
-                    case "ID":
-                        XCTAssertEqual(old, (person.id - 1).databaseValue)
-                    default:
-                        XCTFail("Unexpected column: \(column)")
-                    }
+        }
+        try dbQueue.inDatabase { db in
+            let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
+            try person.insert(db)
+            person.id = person.id + 1
+            let changes = person.persistentChangedValues
+            XCTAssertEqual(changes.count, 1)
+            for (column, old) in changes {
+                switch column {
+                case "ID":
+                    XCTAssertEqual(old, (person.id - 1).databaseValue)
+                default:
+                    XCTFail("Unexpected column: \(column)")
                 }
             }
         }
     }
-    
-    func testCopyTransfersChanges() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let person = Person(name: "Arthur", age: 41)
-                
-                try person.insert(db)
-                XCTAssertEqual(person.persistentChangedValues.count, 0)
-                XCTAssertEqual(person.copy().persistentChangedValues.count, 0)
-                
-                person.name = "Barbara"
-                XCTAssertTrue(person.persistentChangedValues.count > 0)            // TODO: compare actual changes
-                XCTAssertEqual(person.persistentChangedValues.count, person.copy().persistentChangedValues.count)
-                
-                person.hasPersistentChangedValues = false
-                XCTAssertEqual(person.persistentChangedValues.count, 0)
-                XCTAssertEqual(person.copy().persistentChangedValues.count, 0)
-                
-                person.hasPersistentChangedValues = true
-                XCTAssertTrue(person.persistentChangedValues.count > 0)            // TODO: compare actual changes
-                XCTAssertEqual(person.persistentChangedValues.count, person.copy().persistentChangedValues.count)
-            }
-            try dbQueue.inDatabase { db in
-                let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
-                
-                try person.insert(db)
-                XCTAssertEqual(person.persistentChangedValues.count, 0)
-                XCTAssertEqual(person.copy().persistentChangedValues.count, 0)
-                
-                person.name = "Barbara"
-                XCTAssertTrue(person.persistentChangedValues.count > 0)            // TODO: compare actual changes
-                XCTAssertEqual(person.persistentChangedValues.count, person.copy().persistentChangedValues.count)
-                
-                person.hasPersistentChangedValues = false
-                XCTAssertEqual(person.persistentChangedValues.count, 0)
-                XCTAssertEqual(person.copy().persistentChangedValues.count, 0)
-                
-                person.hasPersistentChangedValues = true
-                XCTAssertTrue(person.persistentChangedValues.count > 0)            // TODO: compare actual changes
-                XCTAssertEqual(person.persistentChangedValues.count, person.copy().persistentChangedValues.count)
-            }
+
+    func testCopyTransfersChanges() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let person = Person(name: "Arthur", age: 41)
+            
+            try person.insert(db)
+            XCTAssertEqual(person.persistentChangedValues.count, 0)
+            XCTAssertEqual(person.copy().persistentChangedValues.count, 0)
+            
+            person.name = "Barbara"
+            XCTAssertTrue(person.persistentChangedValues.count > 0)            // TODO: compare actual changes
+            XCTAssertEqual(person.persistentChangedValues.count, person.copy().persistentChangedValues.count)
+            
+            person.hasPersistentChangedValues = false
+            XCTAssertEqual(person.persistentChangedValues.count, 0)
+            XCTAssertEqual(person.copy().persistentChangedValues.count, 0)
+            
+            person.hasPersistentChangedValues = true
+            XCTAssertTrue(person.persistentChangedValues.count > 0)            // TODO: compare actual changes
+            XCTAssertEqual(person.persistentChangedValues.count, person.copy().persistentChangedValues.count)
+        }
+        try dbQueue.inDatabase { db in
+            let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
+            
+            try person.insert(db)
+            XCTAssertEqual(person.persistentChangedValues.count, 0)
+            XCTAssertEqual(person.copy().persistentChangedValues.count, 0)
+            
+            person.name = "Barbara"
+            XCTAssertTrue(person.persistentChangedValues.count > 0)            // TODO: compare actual changes
+            XCTAssertEqual(person.persistentChangedValues.count, person.copy().persistentChangedValues.count)
+            
+            person.hasPersistentChangedValues = false
+            XCTAssertEqual(person.persistentChangedValues.count, 0)
+            XCTAssertEqual(person.copy().persistentChangedValues.count, 0)
+            
+            person.hasPersistentChangedValues = true
+            XCTAssertTrue(person.persistentChangedValues.count > 0)            // TODO: compare actual changes
+            XCTAssertEqual(person.persistentChangedValues.count, person.copy().persistentChangedValues.count)
         }
     }
-    
-    func testChangesOfWrappedRecordAfterFullFetch() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try Person(name: "Arthur", age: 41).insert(db)
-                do {
-                    let personWrapper = try PersonWrapper.fetchOne(db, "SELECT * FROM persons")!
-                    let changes = personWrapper.person.persistentChangedValues
-                    XCTAssertEqual(changes.count, 0)
-                }
-                do {
-                    let personWrapper = try PersonWrapper.fetchOne(db, "SELECT * FROM persons", adapter: SuffixRowAdapter(fromIndex: 0))!
-                    let changes = personWrapper.person.persistentChangedValues
-                    XCTAssertEqual(changes.count, 0)
-                }
+
+    func testChangesOfWrappedRecordAfterFullFetch() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try Person(name: "Arthur", age: 41).insert(db)
+            do {
+                let personWrapper = try PersonWrapper.fetchOne(db, "SELECT * FROM persons")!
+                let changes = personWrapper.person.persistentChangedValues
+                XCTAssertEqual(changes.count, 0)
+            }
+            do {
+                let personWrapper = try PersonWrapper.fetchOne(db, "SELECT * FROM persons", adapter: SuffixRowAdapter(fromIndex: 0))!
+                let changes = personWrapper.person.persistentChangedValues
+                XCTAssertEqual(changes.count, 0)
             }
         }
     }

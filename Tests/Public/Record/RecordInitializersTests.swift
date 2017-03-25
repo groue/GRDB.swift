@@ -101,22 +101,20 @@ class RecordWithImmutablePropertyAndCustomInitializer : Record {
 
 class RecordInitializersTests : GRDBTestCase {
     
-    func testFetchedRecordAreInitializedFromRow() {
+    func testFetchedRecordAreInitializedFromRow() throws {
         
         // Here we test that Record.init(row: Row) can be overriden independently from Record.init().
         // People must be able to perform some initialization work when fetching records from the database.
         
         XCTAssertFalse(RecordWithPedigree().initializedFromRow)
         
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE pedigrees (foo INTEGER)")
-                try db.execute("INSERT INTO pedigrees (foo) VALUES (NULL)")
-                
-                let pedigree = try RecordWithPedigree.fetchOne(db, "SELECT * FROM pedigrees")!
-                XCTAssertTrue(pedigree.initializedFromRow)  // very important
-            }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE pedigrees (foo INTEGER)")
+            try db.execute("INSERT INTO pedigrees (foo) VALUES (NULL)")
+            
+            let pedigree = try RecordWithPedigree.fetchOne(db, "SELECT * FROM pedigrees")!
+            XCTAssertTrue(pedigree.initializedFromRow)  // very important
         }
     }
 }

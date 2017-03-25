@@ -78,10 +78,10 @@ class CursorTests: GRDBTestCase {
         XCTAssertTrue(try cursor.next() == nil) // end
     }
     
-    func testForEach() {
+    func testForEach() throws {
         let cursor = IteratorCursor([1, 2])
         var ints: [Int] = []
-        try! cursor.forEach { ints.append($0) }
+        try cursor.forEach { ints.append($0) }
         XCTAssertEqual(ints, [1, 2])
     }
     
@@ -103,9 +103,9 @@ class CursorTests: GRDBTestCase {
         }
     }
     
-    func testReduce() {
+    func testReduce() throws {
         let cursor = IteratorCursor([1, 2])
-        let squareSum = try! cursor.reduce(0) { (acc, int) in acc + int * int }
+        let squareSum = try cursor.reduce(0) { (acc, int) in acc + int * int }
         XCTAssertEqual(squareSum, 5)
     }
 }

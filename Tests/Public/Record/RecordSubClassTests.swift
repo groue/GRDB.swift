@@ -121,84 +121,73 @@ class RecordSubClassTests: GRDBTestCase {
     
     // MARK: - Save
     
-    func testSaveWithNilPrimaryKeyCallsInsertMethod() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = PersonWithOverrides(name: "Arthur")
-                try record.save(db)
-                XCTAssertEqual(record.lastSavingMethod!, PersonWithOverrides.SavingMethod.insert)
-            }
+    func testSaveWithNilPrimaryKeyCallsInsertMethod() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = PersonWithOverrides(name: "Arthur")
+            try record.save(db)
+            XCTAssertEqual(record.lastSavingMethod!, PersonWithOverrides.SavingMethod.insert)
         }
     }
     
-    func testSaveWithNotNilPrimaryKeyThatDoesNotMatchAnyRowCallsInsertMethod() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = PersonWithOverrides(id: 123456, name: "Arthur")
-                try record.save(db)
-                XCTAssertEqual(record.lastSavingMethod!, PersonWithOverrides.SavingMethod.insert)
-            }
+    func testSaveWithNotNilPrimaryKeyThatDoesNotMatchAnyRowCallsInsertMethod() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = PersonWithOverrides(id: 123456, name: "Arthur")
+            try record.save(db)
+            XCTAssertEqual(record.lastSavingMethod!, PersonWithOverrides.SavingMethod.insert)
         }
     }
     
     
-    func testSaveWithNotNilPrimaryKeyThatMatchesARowCallsUpdateMethod() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = PersonWithOverrides(name: "Arthur", age: 41)
-                try record.insert(db)
-                record.age = record.age! + 1
-                try record.save(db)
-                XCTAssertEqual(record.lastSavingMethod!, PersonWithOverrides.SavingMethod.update)
-            }
+    func testSaveWithNotNilPrimaryKeyThatMatchesARowCallsUpdateMethod() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = PersonWithOverrides(name: "Arthur", age: 41)
+            try record.insert(db)
+            record.age = record.age! + 1
+            try record.save(db)
+            XCTAssertEqual(record.lastSavingMethod!, PersonWithOverrides.SavingMethod.update)
         }
     }
     
-    func testSaveAfterDeleteCallsInsertMethod() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = PersonWithOverrides(name: "Arthur")
-                try record.insert(db)
-                try record.delete(db)
-                try record.save(db)
-                XCTAssertEqual(record.lastSavingMethod!, PersonWithOverrides.SavingMethod.insert)
-            }
+    func testSaveAfterDeleteCallsInsertMethod() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = PersonWithOverrides(name: "Arthur")
+            try record.insert(db)
+            try record.delete(db)
+            try record.save(db)
+            XCTAssertEqual(record.lastSavingMethod!, PersonWithOverrides.SavingMethod.insert)
         }
     }
     
     
     // MARK: - Select
     
-    func testSelect() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                let record = Person(name: "Arthur", age: 41)
-                try record.insert(db)
-                
-                do {
-                    let fetchedRecord = try PersonWithOverrides.fetchOne(db, "SELECT *, 123 as extra FROM persons")!
-                    XCTAssertTrue(fetchedRecord.id == record.id)
-                    XCTAssertTrue(fetchedRecord.name == record.name)
-                    XCTAssertTrue(fetchedRecord.age == record.age)
-                    XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
-                    XCTAssertTrue(fetchedRecord.extra == 123)
-                }
-                
-                do {
-                    let fetchedRecord = try MinimalPersonWithOverrides.fetchOne(db, "SELECT *, 123 as extra FROM persons")!
-                    XCTAssertTrue(fetchedRecord.id == record.id)
-                    XCTAssertTrue(fetchedRecord.name == record.name)
-                    XCTAssertTrue(fetchedRecord.age == record.age)
-                    XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
-                    XCTAssertTrue(fetchedRecord.extra == 123)
-                }
+    func testSelect() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Person(name: "Arthur", age: 41)
+            try record.insert(db)
+            
+            do {
+                let fetchedRecord = try PersonWithOverrides.fetchOne(db, "SELECT *, 123 as extra FROM persons")!
+                XCTAssertTrue(fetchedRecord.id == record.id)
+                XCTAssertTrue(fetchedRecord.name == record.name)
+                XCTAssertTrue(fetchedRecord.age == record.age)
+                XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+                XCTAssertTrue(fetchedRecord.extra == 123)
+            }
+            
+            do {
+                let fetchedRecord = try MinimalPersonWithOverrides.fetchOne(db, "SELECT *, 123 as extra FROM persons")!
+                XCTAssertTrue(fetchedRecord.id == record.id)
+                XCTAssertTrue(fetchedRecord.name == record.name)
+                XCTAssertTrue(fetchedRecord.age == record.age)
+                XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+                XCTAssertTrue(fetchedRecord.extra == 123)
             }
         }
     }
-    
 }

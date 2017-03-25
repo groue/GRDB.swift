@@ -78,258 +78,245 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
     
     
     // MARK: - Events
-    func testSavepointAsTransaction() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            let observer = Observer()
-            dbQueue.add(transactionObserver: observer)
+    func testSavepointAsTransaction() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let observer = Observer()
+        dbQueue.add(transactionObserver: observer)
+        
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
+            try db.execute("CREATE TABLE items2 (id INTEGER PRIMARY KEY)")
+            try db.execute("SAVEPOINT sp1")
+            XCTAssertTrue(db.isInsideTransaction)
+            try db.execute("INSERT INTO items1 (id) VALUES (NULL)")
+            XCTAssertEqual(observer.events.count, 0)
+            try db.execute("INSERT INTO items2 (id) VALUES (NULL)")
+            XCTAssertEqual(observer.events.count, 0)
+            try db.execute("RELEASE SAVEPOINT sp1")
+            XCTAssertFalse(db.isInsideTransaction)
             
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
-                try db.execute("CREATE TABLE items2 (id INTEGER PRIMARY KEY)")
-                try db.execute("SAVEPOINT sp1")
-                XCTAssertTrue(db.isInsideTransaction)
-                try db.execute("INSERT INTO items1 (id) VALUES (NULL)")
-                XCTAssertEqual(observer.events.count, 0)
-                try db.execute("INSERT INTO items2 (id) VALUES (NULL)")
-                XCTAssertEqual(observer.events.count, 0)
-                try db.execute("RELEASE SAVEPOINT sp1")
-                XCTAssertFalse(db.isInsideTransaction)
-                
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items1"), 1)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items2"), 1)
-            }
-            
-            XCTAssertEqual(observer.lastCommittedEvents.count, 2)
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .insert, tableName: "items1", rowId: 1))
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .insert, tableName: "items2", rowId: 1))
-            
-            #if SQLITE_ENABLE_PREUPDATE_HOOK
-                XCTAssertEqual(observer.preUpdateEvents.count, 2)
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[0], kind: .insert, tableName: "items1", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[1], kind: .insert, tableName: "items2", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-            #endif
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items1"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items2"), 1)
         }
+        
+        XCTAssertEqual(observer.lastCommittedEvents.count, 2)
+        XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .insert, tableName: "items1", rowId: 1))
+        XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .insert, tableName: "items2", rowId: 1))
+        
+        #if SQLITE_ENABLE_PREUPDATE_HOOK
+            XCTAssertEqual(observer.preUpdateEvents.count, 2)
+            XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[0], kind: .insert, tableName: "items1", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+            XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[1], kind: .insert, tableName: "items2", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+        #endif
     }
-    
-    func testSavepointInsideTransaction() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            let observer = Observer()
-            dbQueue.add(transactionObserver: observer)
+
+    func testSavepointInsideTransaction() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let observer = Observer()
+        dbQueue.add(transactionObserver: observer)
+        
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
+            try db.execute("CREATE TABLE items2 (id INTEGER PRIMARY KEY)")
+            try db.execute("BEGIN TRANSACTION")
+            try db.execute("INSERT INTO items1 (id) VALUES (NULL)")
+            XCTAssertEqual(observer.events.count, 1)
+            try db.execute("SAVEPOINT sp1")
+            try db.execute("INSERT INTO items2 (id) VALUES (NULL)")
+            XCTAssertEqual(observer.events.count, 1)
+            try db.execute("COMMIT")
             
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
-                try db.execute("CREATE TABLE items2 (id INTEGER PRIMARY KEY)")
-                try db.execute("BEGIN TRANSACTION")
-                try db.execute("INSERT INTO items1 (id) VALUES (NULL)")
-                XCTAssertEqual(observer.events.count, 1)
-                try db.execute("SAVEPOINT sp1")
-                try db.execute("INSERT INTO items2 (id) VALUES (NULL)")
-                XCTAssertEqual(observer.events.count, 1)
-                try db.execute("COMMIT")
-                
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items1"), 1)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items2"), 1)
-            }
-            
-            XCTAssertEqual(observer.lastCommittedEvents.count, 2)
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .insert, tableName: "items1", rowId: 1))
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .insert, tableName: "items2", rowId: 1))
-            
-            #if SQLITE_ENABLE_PREUPDATE_HOOK
-                XCTAssertEqual(observer.preUpdateEvents.count, 2)
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[0], kind: .insert, tableName: "items1", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[1], kind: .insert, tableName: "items2", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-            #endif
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items1"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items2"), 1)
         }
+        
+        XCTAssertEqual(observer.lastCommittedEvents.count, 2)
+        XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .insert, tableName: "items1", rowId: 1))
+        XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .insert, tableName: "items2", rowId: 1))
+        
+        #if SQLITE_ENABLE_PREUPDATE_HOOK
+            XCTAssertEqual(observer.preUpdateEvents.count, 2)
+            XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[0], kind: .insert, tableName: "items1", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+            XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[1], kind: .insert, tableName: "items2", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+        #endif
     }
-    
-    func testSavepointWithIdenticalName() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            let observer = Observer()
-            dbQueue.add(transactionObserver: observer)
+
+    func testSavepointWithIdenticalName() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let observer = Observer()
+        dbQueue.add(transactionObserver: observer)
+        
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
+            try db.execute("CREATE TABLE items2 (id INTEGER PRIMARY KEY)")
+            try db.execute("CREATE TABLE items3 (id INTEGER PRIMARY KEY)")
+            try db.execute("CREATE TABLE items4 (id INTEGER PRIMARY KEY)")
+            try db.execute("BEGIN TRANSACTION")
+            try db.execute("INSERT INTO items1 (id) VALUES (NULL)")
+            XCTAssertEqual(observer.events.count, 1)
+            try db.execute("SAVEPOINT sp1")
+            try db.execute("INSERT INTO items2 (id) VALUES (NULL)")
+            XCTAssertEqual(observer.events.count, 1)
+            try db.execute("SAVEPOINT sp1")
+            try db.execute("INSERT INTO items3 (id) VALUES (NULL)")
+            XCTAssertEqual(observer.events.count, 1)
+            try db.execute("RELEASE SAVEPOINT sp1")
+            XCTAssertEqual(observer.events.count, 1)
+            try db.execute("RELEASE SAVEPOINT sp1")
+            XCTAssertEqual(observer.events.count, 3)
+            try db.execute("INSERT INTO items4 (id) VALUES (NULL)")
+            XCTAssertEqual(observer.events.count, 4)
+            try db.execute("COMMIT")
             
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
-                try db.execute("CREATE TABLE items2 (id INTEGER PRIMARY KEY)")
-                try db.execute("CREATE TABLE items3 (id INTEGER PRIMARY KEY)")
-                try db.execute("CREATE TABLE items4 (id INTEGER PRIMARY KEY)")
-                try db.execute("BEGIN TRANSACTION")
-                try db.execute("INSERT INTO items1 (id) VALUES (NULL)")
-                XCTAssertEqual(observer.events.count, 1)
-                try db.execute("SAVEPOINT sp1")
-                try db.execute("INSERT INTO items2 (id) VALUES (NULL)")
-                XCTAssertEqual(observer.events.count, 1)
-                try db.execute("SAVEPOINT sp1")
-                try db.execute("INSERT INTO items3 (id) VALUES (NULL)")
-                XCTAssertEqual(observer.events.count, 1)
-                try db.execute("RELEASE SAVEPOINT sp1")
-                XCTAssertEqual(observer.events.count, 1)
-                try db.execute("RELEASE SAVEPOINT sp1")
-                XCTAssertEqual(observer.events.count, 3)
-                try db.execute("INSERT INTO items4 (id) VALUES (NULL)")
-                XCTAssertEqual(observer.events.count, 4)
-                try db.execute("COMMIT")
-                
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items1"), 1)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items2"), 1)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items3"), 1)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items4"), 1)
-            }
-            
-            XCTAssertEqual(observer.lastCommittedEvents.count, 4)
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .insert, tableName: "items1", rowId: 1))
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .insert, tableName: "items2", rowId: 1))
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[2], kind: .insert, tableName: "items3", rowId: 1))
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[3], kind: .insert, tableName: "items4", rowId: 1))
-            
-            #if SQLITE_ENABLE_PREUPDATE_HOOK
-                XCTAssertEqual(observer.preUpdateEvents.count, 4)
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[0], kind: .insert, tableName: "items1", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[1], kind: .insert, tableName: "items2", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[2], kind: .insert, tableName: "items3", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[3], kind: .insert, tableName: "items4", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-            #endif
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items1"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items2"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items3"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items4"), 1)
         }
+        
+        XCTAssertEqual(observer.lastCommittedEvents.count, 4)
+        XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .insert, tableName: "items1", rowId: 1))
+        XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .insert, tableName: "items2", rowId: 1))
+        XCTAssertTrue(match(event: observer.lastCommittedEvents[2], kind: .insert, tableName: "items3", rowId: 1))
+        XCTAssertTrue(match(event: observer.lastCommittedEvents[3], kind: .insert, tableName: "items4", rowId: 1))
+        
+        #if SQLITE_ENABLE_PREUPDATE_HOOK
+            XCTAssertEqual(observer.preUpdateEvents.count, 4)
+            XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[0], kind: .insert, tableName: "items1", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+            XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[1], kind: .insert, tableName: "items2", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+            XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[2], kind: .insert, tableName: "items3", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+            XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[3], kind: .insert, tableName: "items4", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+        #endif
     }
-    
-    func testMultipleRollbackOfSavepoint() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            let observer = Observer()
-            dbQueue.add(transactionObserver: observer)
+
+    func testMultipleRollbackOfSavepoint() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let observer = Observer()
+        dbQueue.add(transactionObserver: observer)
+        
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
+            try db.execute("CREATE TABLE items2 (id INTEGER PRIMARY KEY)")
+            try db.execute("CREATE TABLE items3 (id INTEGER PRIMARY KEY)")
+            try db.execute("CREATE TABLE items4 (id INTEGER PRIMARY KEY)")
+            try db.execute("BEGIN TRANSACTION")
+            try db.execute("INSERT INTO items1 (id) VALUES (NULL)")
+            XCTAssertEqual(observer.events.count, 1)
+            try db.execute("SAVEPOINT sp1")
+            try db.execute("INSERT INTO items2 (id) VALUES (NULL)")
+            XCTAssertEqual(observer.events.count, 1)
+            try db.execute("INSERT INTO items3 (id) VALUES (NULL)")
+            XCTAssertEqual(observer.events.count, 1)
+            try db.execute("ROLLBACK TO SAVEPOINT sp1")
+            try db.execute("INSERT INTO items4 (id) VALUES (NULL)")
+            XCTAssertEqual(observer.events.count, 1)
+            try db.execute("ROLLBACK TO SAVEPOINT sp1")
+            try db.execute("INSERT INTO items4 (id) VALUES (NULL)")
+            XCTAssertEqual(observer.events.count, 1)
+            try db.execute("COMMIT")
             
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
-                try db.execute("CREATE TABLE items2 (id INTEGER PRIMARY KEY)")
-                try db.execute("CREATE TABLE items3 (id INTEGER PRIMARY KEY)")
-                try db.execute("CREATE TABLE items4 (id INTEGER PRIMARY KEY)")
-                try db.execute("BEGIN TRANSACTION")
-                try db.execute("INSERT INTO items1 (id) VALUES (NULL)")
-                XCTAssertEqual(observer.events.count, 1)
-                try db.execute("SAVEPOINT sp1")
-                try db.execute("INSERT INTO items2 (id) VALUES (NULL)")
-                XCTAssertEqual(observer.events.count, 1)
-                try db.execute("INSERT INTO items3 (id) VALUES (NULL)")
-                XCTAssertEqual(observer.events.count, 1)
-                try db.execute("ROLLBACK TO SAVEPOINT sp1")
-                try db.execute("INSERT INTO items4 (id) VALUES (NULL)")
-                XCTAssertEqual(observer.events.count, 1)
-                try db.execute("ROLLBACK TO SAVEPOINT sp1")
-                try db.execute("INSERT INTO items4 (id) VALUES (NULL)")
-                XCTAssertEqual(observer.events.count, 1)
-                try db.execute("COMMIT")
-                
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items1"), 1)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items2"), 0)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items3"), 0)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items4"), 1)
-            }
-            
-            XCTAssertEqual(observer.lastCommittedEvents.count, 2)
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .insert, tableName: "items1", rowId: 1))
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .insert, tableName: "items4", rowId: 1))
-            
-            #if SQLITE_ENABLE_PREUPDATE_HOOK
-                XCTAssertEqual(observer.preUpdateEvents.count, 2)
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[0], kind: .insert, tableName: "items1", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[1], kind: .insert, tableName: "items4", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-            #endif
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items1"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items2"), 0)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items3"), 0)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items4"), 1)
         }
+        
+        XCTAssertEqual(observer.lastCommittedEvents.count, 2)
+        XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .insert, tableName: "items1", rowId: 1))
+        XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .insert, tableName: "items4", rowId: 1))
+        
+        #if SQLITE_ENABLE_PREUPDATE_HOOK
+            XCTAssertEqual(observer.preUpdateEvents.count, 2)
+            XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[0], kind: .insert, tableName: "items1", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+            XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[1], kind: .insert, tableName: "items4", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+        #endif
     }
-    
-    func testReleaseSavepoint() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            let observer = Observer()
-            dbQueue.add(transactionObserver: observer)
+
+    func testReleaseSavepoint() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let observer = Observer()
+        dbQueue.add(transactionObserver: observer)
+        
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
+            try db.execute("CREATE TABLE items2 (id INTEGER PRIMARY KEY)")
+            try db.execute("CREATE TABLE items3 (id INTEGER PRIMARY KEY)")
+            try db.execute("CREATE TABLE items4 (id INTEGER PRIMARY KEY)")
+            try db.execute("BEGIN TRANSACTION")
+            try db.execute("INSERT INTO items1 (id) VALUES (NULL)")
+            XCTAssertEqual(observer.events.count, 1)
+            try db.execute("SAVEPOINT sp1")
+            try db.execute("INSERT INTO items2 (id) VALUES (NULL)")
+            try db.execute("INSERT INTO items3 (id) VALUES (NULL)")
+            XCTAssertEqual(observer.events.count, 1)
+            try db.execute("RELEASE SAVEPOINT sp1")
+            XCTAssertEqual(observer.events.count, 3)
+            try db.execute("INSERT INTO items4 (id) VALUES (NULL)")
+            XCTAssertEqual(observer.events.count, 4)
+            try db.execute("COMMIT")
             
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
-                try db.execute("CREATE TABLE items2 (id INTEGER PRIMARY KEY)")
-                try db.execute("CREATE TABLE items3 (id INTEGER PRIMARY KEY)")
-                try db.execute("CREATE TABLE items4 (id INTEGER PRIMARY KEY)")
-                try db.execute("BEGIN TRANSACTION")
-                try db.execute("INSERT INTO items1 (id) VALUES (NULL)")
-                XCTAssertEqual(observer.events.count, 1)
-                try db.execute("SAVEPOINT sp1")
-                try db.execute("INSERT INTO items2 (id) VALUES (NULL)")
-                try db.execute("INSERT INTO items3 (id) VALUES (NULL)")
-                XCTAssertEqual(observer.events.count, 1)
-                try db.execute("RELEASE SAVEPOINT sp1")
-                XCTAssertEqual(observer.events.count, 3)
-                try db.execute("INSERT INTO items4 (id) VALUES (NULL)")
-                XCTAssertEqual(observer.events.count, 4)
-                try db.execute("COMMIT")
-                
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items1"), 1)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items2"), 1)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items3"), 1)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items4"), 1)
-            }
-            
-            XCTAssertEqual(observer.lastCommittedEvents.count, 4)
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .insert, tableName: "items1", rowId: 1))
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .insert, tableName: "items2", rowId: 1))
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[2], kind: .insert, tableName: "items3", rowId: 1))
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[3], kind: .insert, tableName: "items4", rowId: 1))
-            
-            #if SQLITE_ENABLE_PREUPDATE_HOOK
-                XCTAssertEqual(observer.preUpdateEvents.count, 4)
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[0], kind: .insert, tableName: "items1", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[1], kind: .insert, tableName: "items2", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[2], kind: .insert, tableName: "items3", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[3], kind: .insert, tableName: "items4", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-            #endif
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items1"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items2"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items3"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items4"), 1)
         }
+        
+        XCTAssertEqual(observer.lastCommittedEvents.count, 4)
+        XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .insert, tableName: "items1", rowId: 1))
+        XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .insert, tableName: "items2", rowId: 1))
+        XCTAssertTrue(match(event: observer.lastCommittedEvents[2], kind: .insert, tableName: "items3", rowId: 1))
+        XCTAssertTrue(match(event: observer.lastCommittedEvents[3], kind: .insert, tableName: "items4", rowId: 1))
+        
+        #if SQLITE_ENABLE_PREUPDATE_HOOK
+            XCTAssertEqual(observer.preUpdateEvents.count, 4)
+            XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[0], kind: .insert, tableName: "items1", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+            XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[1], kind: .insert, tableName: "items2", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+            XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[2], kind: .insert, tableName: "items3", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+            XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[3], kind: .insert, tableName: "items4", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+        #endif
     }
-    
-    func testRollbackNonNestedSavepointInsideTransaction() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            let observer = Observer()
-            dbQueue.add(transactionObserver: observer)
+
+    func testRollbackNonNestedSavepointInsideTransaction() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let observer = Observer()
+        dbQueue.add(transactionObserver: observer)
+        
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
+            try db.execute("CREATE TABLE items2 (id INTEGER PRIMARY KEY)")
+            try db.execute("CREATE TABLE items3 (id INTEGER PRIMARY KEY)")
+            try db.execute("CREATE TABLE items4 (id INTEGER PRIMARY KEY)")
+            try db.execute("BEGIN TRANSACTION")
+            try db.execute("INSERT INTO items1 (id) VALUES (NULL)")
+            XCTAssertEqual(observer.events.count, 1)
+            try db.execute("SAVEPOINT sp1")
+            try db.execute("INSERT INTO items2 (id) VALUES (NULL)")
+            XCTAssertEqual(observer.events.count, 1)
+            try db.execute("SAVEPOINT sp2")
+            try db.execute("INSERT INTO items3 (id) VALUES (NULL)")
+            XCTAssertEqual(observer.events.count, 1)
+            try db.execute("RELEASE SAVEPOINT sp2")
+            XCTAssertEqual(observer.events.count, 1)
+            try db.execute("ROLLBACK TO SAVEPOINT sp1")
+            XCTAssertEqual(observer.events.count, 1)
+            try db.execute("INSERT INTO items4 (id) VALUES (NULL)")
+            XCTAssertEqual(observer.events.count, 1)
+            try db.execute("COMMIT")
             
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
-                try db.execute("CREATE TABLE items2 (id INTEGER PRIMARY KEY)")
-                try db.execute("CREATE TABLE items3 (id INTEGER PRIMARY KEY)")
-                try db.execute("CREATE TABLE items4 (id INTEGER PRIMARY KEY)")
-                try db.execute("BEGIN TRANSACTION")
-                try db.execute("INSERT INTO items1 (id) VALUES (NULL)")
-                XCTAssertEqual(observer.events.count, 1)
-                try db.execute("SAVEPOINT sp1")
-                try db.execute("INSERT INTO items2 (id) VALUES (NULL)")
-                XCTAssertEqual(observer.events.count, 1)
-                try db.execute("SAVEPOINT sp2")
-                try db.execute("INSERT INTO items3 (id) VALUES (NULL)")
-                XCTAssertEqual(observer.events.count, 1)
-                try db.execute("RELEASE SAVEPOINT sp2")
-                XCTAssertEqual(observer.events.count, 1)
-                try db.execute("ROLLBACK TO SAVEPOINT sp1")
-                XCTAssertEqual(observer.events.count, 1)
-                try db.execute("INSERT INTO items4 (id) VALUES (NULL)")
-                XCTAssertEqual(observer.events.count, 1)
-                try db.execute("COMMIT")
-                
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items1"), 1)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items2"), 0)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items3"), 0)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items4"), 1)
-            }
-            
-            XCTAssertEqual(observer.lastCommittedEvents.count, 2)
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .insert, tableName: "items1", rowId: 1))
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .insert, tableName: "items4", rowId: 1))
-            
-            #if SQLITE_ENABLE_PREUPDATE_HOOK
-                XCTAssertEqual(observer.preUpdateEvents.count, 2)
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[0], kind: .insert, tableName: "items1", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-                XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[1], kind: .insert, tableName: "items4", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
-            #endif
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items1"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items2"), 0)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items3"), 0)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items4"), 1)
         }
+        
+        XCTAssertEqual(observer.lastCommittedEvents.count, 2)
+        XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .insert, tableName: "items1", rowId: 1))
+        XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .insert, tableName: "items4", rowId: 1))
+        
+        #if SQLITE_ENABLE_PREUPDATE_HOOK
+            XCTAssertEqual(observer.preUpdateEvents.count, 2)
+            XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[0], kind: .insert, tableName: "items1", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+            XCTAssertTrue(match(preUpdateEvent: observer.preUpdateEvents[1], kind: .insert, tableName: "items4", initialRowID: nil, finalRowID: 1, initialValues: nil, finalValues: [Int(1).databaseValue]))
+        #endif
     }
-    
 }

@@ -23,43 +23,41 @@ class FTS3PatternTests: GRDBTestCase {
         }
     }
     
-    func testValidFTS3Pattern() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                // Couples (raw pattern, expected count of matching rows)
-                let validRawPatterns: [(String, Int)] = [
-                    // Empty query
-                    ("", 0),
-                    ("?!", 0),
-                    // Token queries
-                    ("Moby", 1),
-                    ("écarlates", 1),
-                    ("fooéı👨👨🏿🇫🇷🇨🇮", 0),
-                    // Prefix queries
-                    ("*", 0),
-                    ("Robin*", 1),
-                    // Phrase queries
-                    ("\"foulent muscles\"", 1),
-                    ("\"Kim Stan* Robin*\"", 1),
-                    // NEAR queries
-                    ("history NEAR evolution", 1),
-                    // Logical queries
-                    ("years NOT months", 1),
-                    ("years AND months", 1),
-                    ("years OR months", 2),
-                    // column queries
-                    ("title:brest", 1)
-                ]
-                for (rawPattern, expectedCount) in validRawPatterns {
-                    let pattern = try FTS3Pattern(rawPattern: rawPattern)
-                    let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
-                    XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
-                }
+    func testValidFTS3Pattern() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            // Couples (raw pattern, expected count of matching rows)
+            let validRawPatterns: [(String, Int)] = [
+                // Empty query
+                ("", 0),
+                ("?!", 0),
+                // Token queries
+                ("Moby", 1),
+                ("écarlates", 1),
+                ("fooéı👨👨🏿🇫🇷🇨🇮", 0),
+                // Prefix queries
+                ("*", 0),
+                ("Robin*", 1),
+                // Phrase queries
+                ("\"foulent muscles\"", 1),
+                ("\"Kim Stan* Robin*\"", 1),
+                // NEAR queries
+                ("history NEAR evolution", 1),
+                // Logical queries
+                ("years NOT months", 1),
+                ("years AND months", 1),
+                ("years OR months", 2),
+                // column queries
+                ("title:brest", 1)
+            ]
+            for (rawPattern, expectedCount) in validRawPatterns {
+                let pattern = try FTS3Pattern(rawPattern: rawPattern)
+                let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
+                XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
             }
         }
     }
-    
+
     func testInvalidFTS3Pattern() {
         let invalidRawPatterns = ["NOT", "(", "AND", "OR", "\""]
         for rawPattern in invalidRawPatterns {
@@ -73,7 +71,7 @@ class FTS3PatternTests: GRDBTestCase {
         }
     }
     
-    func testFTS3PatternWithAnyToken() {
+    func testFTS3PatternWithAnyToken() throws {
         let wrongInputs = ["", "*", "^", " ", "(", "()", "\"", "?!"]
         for string in wrongInputs {
             if let pattern = FTS3Pattern(matchingAnyTokenIn: string) {
@@ -82,30 +80,28 @@ class FTS3PatternTests: GRDBTestCase {
             }
         }
         
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                // Couples (pattern, expected raw pattern, expected count of matching rows)
-                let cases = [
-                    ("écarlates", "écarlates", 1),
-                    ("^Moby*", "moby", 1),
-                    (" \t\nyears \t\nmonths \t\n", "years OR months", 2),
-                    ("\"years months days\"", "years OR months OR days", 2),
-                    ("FOOÉı👨👨🏿🇫🇷🇨🇮", "fooÉı👨👨🏿🇫🇷🇨🇮", 0),
-                ]
-                for (string, expectedRawPattern, expectedCount) in cases {
-                    if let pattern = FTS3Pattern(matchingAnyTokenIn: string) {
-                        let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
-                        XCTAssertEqual(rawPattern, expectedRawPattern)
-                        let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
-                        XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
-                    }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            // Couples (pattern, expected raw pattern, expected count of matching rows)
+            let cases = [
+                ("écarlates", "écarlates", 1),
+                ("^Moby*", "moby", 1),
+                (" \t\nyears \t\nmonths \t\n", "years OR months", 2),
+                ("\"years months days\"", "years OR months OR days", 2),
+                ("FOOÉı👨👨🏿🇫🇷🇨🇮", "fooÉı👨👨🏿🇫🇷🇨🇮", 0),
+            ]
+            for (string, expectedRawPattern, expectedCount) in cases {
+                if let pattern = FTS3Pattern(matchingAnyTokenIn: string) {
+                    let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
+                    XCTAssertEqual(rawPattern, expectedRawPattern)
+                    let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
+                    XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
                 }
             }
         }
     }
     
-    func testFTS3PatternWithAllTokens() {
+    func testFTS3PatternWithAllTokens() throws {
         let wrongInputs = ["", "*", "^", " ", "(", "()", "\"", "?!"]
         for string in wrongInputs {
             if let pattern = FTS3Pattern(matchingAllTokensIn: string) {
@@ -114,30 +110,28 @@ class FTS3PatternTests: GRDBTestCase {
             }
         }
         
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                // Couples (pattern, expected raw pattern, expected count of matching rows)
-                let cases = [
-                    ("écarlates", "écarlates", 1),
-                    ("^Moby*", "moby", 1),
-                    (" \t\nyears \t\nmonths \t\n", "years months", 1),
-                    ("\"years months days\"", "years months days", 1),
-                    ("FOOÉı👨👨🏿🇫🇷🇨🇮", "fooÉı👨👨🏿🇫🇷🇨🇮", 0),
-                    ]
-                for (string, expectedRawPattern, expectedCount) in cases {
-                    if let pattern = FTS3Pattern(matchingAllTokensIn: string) {
-                        let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
-                        XCTAssertEqual(rawPattern, expectedRawPattern)
-                        let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
-                        XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
-                    }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            // Couples (pattern, expected raw pattern, expected count of matching rows)
+            let cases = [
+                ("écarlates", "écarlates", 1),
+                ("^Moby*", "moby", 1),
+                (" \t\nyears \t\nmonths \t\n", "years months", 1),
+                ("\"years months days\"", "years months days", 1),
+                ("FOOÉı👨👨🏿🇫🇷🇨🇮", "fooÉı👨👨🏿🇫🇷🇨🇮", 0),
+                ]
+            for (string, expectedRawPattern, expectedCount) in cases {
+                if let pattern = FTS3Pattern(matchingAllTokensIn: string) {
+                    let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
+                    XCTAssertEqual(rawPattern, expectedRawPattern)
+                    let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
+                    XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
                 }
             }
         }
     }
     
-    func testFTS3PatternWithPhrase() {
+    func testFTS3PatternWithPhrase() throws {
         let wrongInputs = ["", "*", "^", " ", "(", "()", "\"", "?!"]
         for string in wrongInputs {
             if let pattern = FTS3Pattern(matchingPhrase: string) {
@@ -146,24 +140,22 @@ class FTS3PatternTests: GRDBTestCase {
             }
         }
         
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                // Couples (pattern, expected raw pattern, expected count of matching rows)
-                let cases = [
-                    ("écarlates", "\"écarlates\"", 1),
-                    ("^Moby*", "\"moby\"", 1),
-                    (" \t\nyears \t\nmonths \t\n", "\"years months\"", 0),
-                    ("\"years months days\"", "\"years months days\"", 0),
-                    ("FOOÉı👨👨🏿🇫🇷🇨🇮", "\"fooÉı👨👨🏿🇫🇷🇨🇮\"", 0),
-                    ]
-                for (string, expectedRawPattern, expectedCount) in cases {
-                    if let pattern = FTS3Pattern(matchingPhrase: string) {
-                        let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
-                        XCTAssertEqual(rawPattern, expectedRawPattern)
-                        let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
-                        XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
-                    }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            // Couples (pattern, expected raw pattern, expected count of matching rows)
+            let cases = [
+                ("écarlates", "\"écarlates\"", 1),
+                ("^Moby*", "\"moby\"", 1),
+                (" \t\nyears \t\nmonths \t\n", "\"years months\"", 0),
+                ("\"years months days\"", "\"years months days\"", 0),
+                ("FOOÉı👨👨🏿🇫🇷🇨🇮", "\"fooÉı👨👨🏿🇫🇷🇨🇮\"", 0),
+                ]
+            for (string, expectedRawPattern, expectedCount) in cases {
+                if let pattern = FTS3Pattern(matchingPhrase: string) {
+                    let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
+                    XCTAssertEqual(rawPattern, expectedRawPattern)
+                    let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
+                    XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
                 }
             }
         }

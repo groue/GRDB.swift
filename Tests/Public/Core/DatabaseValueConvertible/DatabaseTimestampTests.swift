@@ -50,17 +50,15 @@ struct DatabaseTimestamp: DatabaseValueConvertible {
 
 class DatabaseTimestampTests: GRDBTestCase {
 
-    func testDatabaseTimestamp() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE dates (date DATETIME)")
-                let storedDate = Date()
-                try db.execute("INSERT INTO dates (date) VALUES (?)", arguments: [DatabaseTimestamp(storedDate)])
-                let fetchedDate = try DatabaseTimestamp.fetchOne(db, "SELECT date FROM dates")!.date
-                let delta = storedDate.timeIntervalSince(fetchedDate)
-                XCTAssertTrue(abs(delta) < 0.1)
-            }
+    func testDatabaseTimestamp() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE dates (date DATETIME)")
+            let storedDate = Date()
+            try db.execute("INSERT INTO dates (date) VALUES (?)", arguments: [DatabaseTimestamp(storedDate)])
+            let fetchedDate = try DatabaseTimestamp.fetchOne(db, "SELECT date FROM dates")!.date
+            let delta = storedDate.timeIntervalSince(fetchedDate)
+            XCTAssertTrue(abs(delta) < 0.1)
         }
     }
 }

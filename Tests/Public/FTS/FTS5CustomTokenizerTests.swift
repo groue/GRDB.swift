@@ -199,145 +199,137 @@ private final class SynonymsTokenizer : FTS5CustomTokenizer {
 
 class FTS5CustomTokenizerTests: GRDBTestCase {
     
-    func testStopWordsTokenizerDatabaseQueue() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            dbQueue.add(tokenizer: StopWordsTokenizer.self)
-            
-            try dbQueue.inDatabase { db in
-                try db.create(virtualTable: "documents", using: FTS5()) { t in
-                    t.tokenizer = StopWordsTokenizer.tokenizerDescriptor()
-                    t.column("content")
-                }
-                
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["foo bar"])
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["foo baz"])
-                
-                // foo is not ignored
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["foo"]), 2)
-                // bar is ignored
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["bar"]), 0)
-                // bar is ignored in queries too: the "foo bar baz" phrase matches the "foo baz" content
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"foo bar baz\""]), 1)
+    func testStopWordsTokenizerDatabaseQueue() throws {
+        let dbQueue = try makeDatabaseQueue()
+        dbQueue.add(tokenizer: StopWordsTokenizer.self)
+        
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", using: FTS5()) { t in
+                t.tokenizer = StopWordsTokenizer.tokenizerDescriptor()
+                t.column("content")
             }
+            
+            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["foo bar"])
+            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["foo baz"])
+            
+            // foo is not ignored
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["foo"]), 2)
+            // bar is ignored
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["bar"]), 0)
+            // bar is ignored in queries too: the "foo bar baz" phrase matches the "foo baz" content
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"foo bar baz\""]), 1)
         }
     }
-    
-    func testStopWordsTokenizerDatabasePool() {
-        assertNoError {
-            let dbPool = try makeDatabaseQueue()
-            dbPool.add(tokenizer: StopWordsTokenizer.self)
-            
-            try dbPool.write { db in
-                try db.create(virtualTable: "documents", using: FTS5()) { t in
-                    t.tokenizer = StopWordsTokenizer.tokenizerDescriptor()
-                    t.column("content")
-                }
-                
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["foo bar"])
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["foo baz"])
-                
-                // foo is not ignored
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["foo"]), 2)
-                // bar is ignored
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["bar"]), 0)
-                // bar is ignored in queries too: the "foo bar baz" phrase matches the "foo baz" content
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"foo bar baz\""]), 1)
+
+    func testStopWordsTokenizerDatabasePool() throws {
+        let dbPool = try makeDatabaseQueue()
+        dbPool.add(tokenizer: StopWordsTokenizer.self)
+        
+        try dbPool.write { db in
+            try db.create(virtualTable: "documents", using: FTS5()) { t in
+                t.tokenizer = StopWordsTokenizer.tokenizerDescriptor()
+                t.column("content")
             }
             
-            try dbPool.read { db in
-                // foo is not ignored
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["foo"]), 2)
-                // bar is ignored
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["bar"]), 0)
-                // bar is ignored in queries too: the "foo bar baz" phrase matches the "foo baz" content
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"foo bar baz\""]), 1)
-            }
+            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["foo bar"])
+            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["foo baz"])
+            
+            // foo is not ignored
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["foo"]), 2)
+            // bar is ignored
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["bar"]), 0)
+            // bar is ignored in queries too: the "foo bar baz" phrase matches the "foo baz" content
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"foo bar baz\""]), 1)
+        }
+        
+        try dbPool.read { db in
+            // foo is not ignored
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["foo"]), 2)
+            // bar is ignored
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["bar"]), 0)
+            // bar is ignored in queries too: the "foo bar baz" phrase matches the "foo baz" content
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"foo bar baz\""]), 1)
         }
     }
-    
-    func testNFKCTokenizer() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            dbQueue.add(tokenizer: NFKCTokenizer.self)
-            
-            // Without NFKC conversion
-            try dbQueue.inDatabase { db in
-                try db.create(virtualTable: "documents", using: FTS5()) { t in
-                    t.tokenizer = .unicode61()
-                    t.column("content")
-                }
-                
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["aimé\u{FB01}"]) // U+FB01: LATIN SMALL LIGATURE FI
-                
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimé\u{FB01}"]), 1)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimefi"]), 0)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aim\u{00E9}fi"]), 0)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aime\u{0301}\u{FB01}"]), 1)
-                
-                try db.drop(table: "documents")
+
+    func testNFKCTokenizer() throws {
+        let dbQueue = try makeDatabaseQueue()
+        dbQueue.add(tokenizer: NFKCTokenizer.self)
+        
+        // Without NFKC conversion
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", using: FTS5()) { t in
+                t.tokenizer = .unicode61()
+                t.column("content")
             }
             
-            // With NFKC conversion wrapping unicode61 (the default)
-            try dbQueue.inDatabase { db in
-                try db.create(virtualTable: "documents", using: FTS5()) { t in
-                    t.tokenizer = NFKCTokenizer.tokenizerDescriptor()
-                    t.column("content")
-                }
-                
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["aimé\u{FB01}"]) // U+FB01: LATIN SMALL LIGATURE FI
-                
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimé\u{FB01}"]), 1)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimefi"]), 1)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aim\u{00E9}fi"]), 1)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aime\u{0301}\u{FB01}"]), 1)
-                
-                try db.drop(table: "documents")
+            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["aimé\u{FB01}"]) // U+FB01: LATIN SMALL LIGATURE FI
+            
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimé\u{FB01}"]), 1)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimefi"]), 0)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aim\u{00E9}fi"]), 0)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aime\u{0301}\u{FB01}"]), 1)
+            
+            try db.drop(table: "documents")
+        }
+        
+        // With NFKC conversion wrapping unicode61 (the default)
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", using: FTS5()) { t in
+                t.tokenizer = NFKCTokenizer.tokenizerDescriptor()
+                t.column("content")
             }
             
-            // With NFKC conversion wrapping ascii
-            try dbQueue.inDatabase { db in
-                try db.create(virtualTable: "documents", using: FTS5()) { t in
-                    let ascii = FTS5TokenizerDescriptor.ascii()
-                    t.tokenizer = NFKCTokenizer.tokenizerDescriptor(arguments: ascii.components)
-                    t.column("content")
-                }
-                
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["aimé\u{FB01}"]) // U+FB01: LATIN SMALL LIGATURE FI
-                
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimé\u{FB01}"]), 1)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimefi"]), 0)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aim\u{00E9}fi"]), 1)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aime\u{0301}\u{FB01}"]), 1)
-                
-                try db.drop(table: "documents")
+            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["aimé\u{FB01}"]) // U+FB01: LATIN SMALL LIGATURE FI
+            
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimé\u{FB01}"]), 1)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimefi"]), 1)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aim\u{00E9}fi"]), 1)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aime\u{0301}\u{FB01}"]), 1)
+            
+            try db.drop(table: "documents")
+        }
+        
+        // With NFKC conversion wrapping ascii
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", using: FTS5()) { t in
+                let ascii = FTS5TokenizerDescriptor.ascii()
+                t.tokenizer = NFKCTokenizer.tokenizerDescriptor(arguments: ascii.components)
+                t.column("content")
             }
+            
+            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["aimé\u{FB01}"]) // U+FB01: LATIN SMALL LIGATURE FI
+            
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimé\u{FB01}"]), 1)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimefi"]), 0)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aim\u{00E9}fi"]), 1)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aime\u{0301}\u{FB01}"]), 1)
+            
+            try db.drop(table: "documents")
         }
     }
-    
-    func testSynonymTokenizer() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            dbQueue.add(tokenizer: SynonymsTokenizer.self)
-            
-            try dbQueue.inDatabase { db in
-                try db.create(virtualTable: "documents", using: FTS5()) { t in
-                    t.tokenizer = SynonymsTokenizer.tokenizerDescriptor()
-                    t.column("content")
-                }
-                
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["first foo"])
-                try db.execute("INSERT INTO documents VALUES (?)", arguments: ["1st bar"])
-                
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["first"]), 2)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["1st"]), 2)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"first foo\""]), 1)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"1st foo\""]), 1)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"first bar\""]), 1)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"1st bar\""]), 1)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["fi*"]), 2)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["1s*"]), 2)
+
+    func testSynonymTokenizer() throws {
+        let dbQueue = try makeDatabaseQueue()
+        dbQueue.add(tokenizer: SynonymsTokenizer.self)
+        
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", using: FTS5()) { t in
+                t.tokenizer = SynonymsTokenizer.tokenizerDescriptor()
+                t.column("content")
             }
+            
+            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["first foo"])
+            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["1st bar"])
+            
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["first"]), 2)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["1st"]), 2)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"first foo\""]), 1)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"1st foo\""]), 1)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"first bar\""]), 1)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"1st bar\""]), 1)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["fi*"]), 2)
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["1s*"]), 2)
         }
     }
 }

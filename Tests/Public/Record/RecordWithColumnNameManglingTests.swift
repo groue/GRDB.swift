@@ -56,28 +56,26 @@ class RecordWithColumnNameManglingTests: GRDBTestCase {
         try migrator.migrate(dbWriter)
     }
     
-    func testBadlyMangledStuff() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                do {
-                    let record = BadlyMangledStuff()
-                    record.name = "foo"
-                    try record.save(db)
-                    
-                    // Nothing special here
-                    XCTAssertFalse(record.hasPersistentChangedValues)
-                }
-                do {
-                    let record = try BadlyMangledStuff.fetchOne(db, "SELECT id AS mangled_id, name AS mangled_name FROM stuffs")!
-                    // OK we could extract values.
-                    XCTAssertEqual(record.id, 1)
-                    XCTAssertEqual(record.name, "foo")
-                    
-                    // But here lies the problem with BadlyMangledStuff.
-                    // It should not be edited:
-                    XCTAssertTrue(record.hasPersistentChangedValues)
-                }
+    func testBadlyMangledStuff() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                let record = BadlyMangledStuff()
+                record.name = "foo"
+                try record.save(db)
+                
+                // Nothing special here
+                XCTAssertFalse(record.hasPersistentChangedValues)
+            }
+            do {
+                let record = try BadlyMangledStuff.fetchOne(db, "SELECT id AS mangled_id, name AS mangled_name FROM stuffs")!
+                // OK we could extract values.
+                XCTAssertEqual(record.id, 1)
+                XCTAssertEqual(record.name, "foo")
+                
+                // But here lies the problem with BadlyMangledStuff.
+                // It should not be edited:
+                XCTAssertTrue(record.hasPersistentChangedValues)
             }
         }
     }
