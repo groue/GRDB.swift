@@ -41,16 +41,35 @@ class DatabaseCursorTests: GRDBTestCase {
             let customError = NSError(domain: "Custom", code: 0xDEAD)
             dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
             try dbQueue.inDatabase { db in
-                let cursor = try Int.fetchCursor(db, "SELECT 1 UNION ALL SELECT throw()")
-                XCTAssertEqual(try cursor.next()!, 1)
+                let cursor = try Int.fetchCursor(db, "SELECT throw()")
                 do {
                     _ = try cursor.next()
                     XCTFail()
                 } catch let error as DatabaseError {
                     XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                     XCTAssertEqual(error.message, "\(customError)")
-                    XCTAssertEqual(error.sql!, "SELECT 1 UNION ALL SELECT throw()")
-                    XCTAssertEqual(error.description, "SQLite error 1 with statement `SELECT 1 UNION ALL SELECT throw()`: \(customError)")
+                    XCTAssertEqual(error.sql!, "SELECT throw()")
+                    XCTAssertEqual(error.description, "SQLite error 1 with statement `SELECT throw()`: \(customError)")
+                }
+            }
+        }
+    }
+    
+    func testStepDatabaseError() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            let customError = DatabaseError(resultCode: ResultCode(rawValue: 0xDEAD), message: "custom error")
+            dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
+            try dbQueue.inDatabase { db in
+                let cursor = try Int.fetchCursor(db, "SELECT throw()")
+                do {
+                    _ = try cursor.next()
+                    XCTFail()
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.extendedResultCode.rawValue, 0xDEAD)
+                    XCTAssertEqual(error.message, "custom error")
+                    XCTAssertEqual(error.sql!, "SELECT throw()")
+                    XCTAssertEqual(error.description, "SQLite error 57005 with statement `SELECT throw()`: custom error")
                 }
             }
         }
