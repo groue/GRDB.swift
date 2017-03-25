@@ -115,7 +115,7 @@ class GRDBTestCase: XCTestCase {
         do {
             try test()
         } catch {
-            XCTFail("unexpected error at \(file):\(line): \(error)")
+            XCTFail("unexpected error: \(error)", file: file, line: line)
         }
     }
     
