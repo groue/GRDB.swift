@@ -1,4 +1,16 @@
 - [ ] SQLiteLib 3.17.0
+    
+    We can't ship SQLiteLib 3.17.0: it has a FTS5 bug similar to an [old FTS3 bug](http://www.sqlite.org/src/tktview?name=13137dccf3):
+    
+    ```sql
+    CREATE VIRTUAL TABLE t1 USING FTS5(content);
+    INSERT INTO t1(content) VALUES ('some text');
+    SELECT last_insert_rowid(); // 10
+    SELECT rowid FROM t1;       // 1
+    ```
+    
+    This prevents FTS5-based records to have the correct id after insertion, and breaks an id comparison in `FTS5RecordTests.testRowIdIsSelectedByDefault`.
+
 - [ ] Stop documenting that DatabaseQueue.read does not prevent a queue from writing.
 - [ ] fts3tokenize was introduced in SQLite 3.7.17 (iOS 8.2 and OS X 10.10). And GRDB uses it before.
 - [ ] Make GRDB less stringly-typed: For each API that eats column names, check if it couldn't eat both Column and String. If this requires Column to adopt ExpressibleByStringLiteral, check if it does not introduce awful ambiguities
