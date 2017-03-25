@@ -11,7 +11,6 @@
     
     This prevents FTS5-based records to have the correct id after insertion, and breaks an id comparison in `FTS5RecordTests.testRowIdIsSelectedByDefault`.
 
-- [ ] Stop documenting that DatabaseQueue.read does not prevent a queue from writing.
 - [ ] fts3tokenize was introduced in SQLite 3.7.17 (iOS 8.2 and OS X 10.10). And GRDB uses it before.
 - [ ] Make GRDB less stringly-typed: For each API that eats column names, check if it couldn't eat both Column and String. If this requires Column to adopt ExpressibleByStringLiteral, check if it does not introduce awful ambiguities
 - [ ] Check for SQLCipher at runtime with `PRAGMA cipher_version`: https://discuss.zetetic.net/t/important-advisory-sqlcipher-with-xcode-8-and-new-sdks/1688
