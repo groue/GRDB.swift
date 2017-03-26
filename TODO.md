@@ -26,7 +26,6 @@
 - [ ] Attach databases (this could be the support for fetched records controller caches). Interesting question: what happens when one attaches a non-WAL db to a databasePool?
 - [ ] SQLCipher: sqlite3_rekey is discouraged (https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320)
 - [ ] What is the behavior inTransaction and inSavepoint behaviors in case of commit error? Code looks like we do not rollback, leaving the app in a weird state (out of Swift transaction block with a SQLite transaction that may still be opened).
-- [ ] File protection: Read https://github.com/ccgus/fmdb/issues/262 and understand https://lists.apple.com/archives/cocoa-dev/2012/Aug/msg00527.html
 - [ ] Support for resource values (see https://developer.apple.com/library/ios/qa/qa1719/_index.html)
 - [ ] Query builder
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
@@ -100,22 +99,20 @@ Requires recompilation of SQLite:
 Reading list:
 
 - VACUUM (https://blogs.gnome.org/jnelson/)
-- Full text search (https://www.sqlite.org/fts3.html. Related: https://blogs.gnome.org/jnelson/)
+- http://www.sqlite.org/intern-v-extern-blob.html
+- https://sqlite.org/sharedcache.html
 - Undo: https://www.sqlite.org/undoredo.html
 - Undo: https://sqlite.org/sessionintro.html
-- http://www.sqlite.org/intern-v-extern-blob.html
-- List of Swift documentation keywords: https://swift.org/documentation/api-design-guidelines.html#special-instructions
-- https://www.zetetic.net/sqlcipher/
-- https://sqlite.org/sharedcache.html
-- Amazing tip from Xcode labs: add a EXCLUDED_SOURCE_FILE_NAMES build setting to conditionally exclude sources for different configuration: https://twitter.com/zats/status/74386298602026496
+- Swift, Xcode:List of Swift documentation keywords: https://swift.org/documentation/api-design-guidelines.html#special-instructions
+- Swift, Xcode:Amazing tip from Xcode labs: add a EXCLUDED_SOURCE_FILE_NAMES build setting to conditionally exclude sources for different configuration: https://twitter.com/zats/status/74386298602026496
 - SQLITE_ENABLE_SQLLOG: http://mjtsai.com/blog/2016/07/19/sqlite_enable_sqllog/
-- [Writing High-Performance Swift Code](https://github.com/apple/swift/blob/master/docs/OptimizationTips.rst)
-- http://docs.diesel.rs/diesel/associations/index.html
-- http://cocoamine.net/blog/2015/09/07/contentless-fts4-for-large-immutable-documents/
-- https://discuss.zetetic.net/t/important-advisory-sqlcipher-with-xcode-8-and-ios-10/1688
+- Swift, Xcode: https://github.com/apple/swift/blob/master/docs/OptimizationTips.rst
+- Associations: http://docs.diesel.rs/diesel/associations/index.html
+- FTS: http://cocoamine.net/blog/2015/09/07/contentless-fts4-for-large-immutable-documents/
 - pinyin: http://hustlzp.com/post/2016/02/ios-full-text-search-using-sqlite-fts4
 - FetchedRecordsController: https://github.com/jflinter/Dwifft
 - FetchedRecordsController: https://github.com/wokalski/Diff.swift (Faster)
 - FetchedRecordsController: https://github.com/andre-alves/PHDiff
-- React oddities:
-    - http://stackoverflow.com/questions/41721769/realm-update-object-without-updating-lists
+- React oddity: http://stackoverflow.com/questions/41721769/realm-update-object-without-updating-lists
+- File protection: https://github.com/ccgus/fmdb/issues/262
+- File protection: https://lists.apple.com/archives/cocoa-dev/2012/Aug/msg00527.html
