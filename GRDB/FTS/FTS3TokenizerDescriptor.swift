@@ -91,10 +91,21 @@ public struct FTS3TokenizerDescriptor {
         return FTS3TokenizerDescriptor("unicode61", arguments: arguments)
     }
     
+    #if USING_CUSTOMSQLITE || USING_SQLCIPHER
+    func tokenize(_ string: String) -> [String] {
+        return _tokenize(string)
+    }
+    #else
+    @available(iOS 8.2, OSX 10.10, *)
+    func tokenize(_ string: String) -> [String] {
+        return _tokenize(string)
+    }
+    #endif
+
     /// Returns an array of tokens found in the string argument.
     ///
     ///     FTS3TokenizerDescriptor.simple.tokenize("foo bar") // ["foo", "bar"]
-    func tokenize(_ string: String) -> [String] {
+    private func _tokenize(_ string: String) -> [String] {
         // fts3tokenize was introduced in SQLite 3.7.17 https://www.sqlite.org/changes.html#version_3_7_17
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         return DatabaseQueue().inDatabase { db in
