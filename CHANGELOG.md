@@ -6,12 +6,15 @@ Release Notes
 **Fixed**
 
 - `DatabaseError` conversion to `NSError` preserves extended result codes.
-- `DatabaseQueue.read` and `DatabaseQueue.readFromCurrentState` prevent database modifications.
+- `DatabaseQueue.read` and `DatabaseQueue.readFromCurrentState` throw an error upon database modifications.
+- Added missing availability checks for SQLite features that are not available on all versions of iOS, macOS, watchOS.
+- Removed useless availability checks for SQLite features that are available with [SQLCipher](https://github.com/groue/GRDB.swift#encryption) and [custom SQLite builds](https://github.com/groue/GRDB.swift/blob/master/Documentation/CustomSQLiteBuilds.md).
+- Prevent [wrong linking of SQLCipher](https://discuss.zetetic.net/t/important-advisory-sqlcipher-with-xcode-8-and-new-sdks/1688)
 
 **Breaking Changes**
 
 - `DatabaseQueue.writeInTransaction`, alias for `DatabaseQueue.inTransaction`, has been removed.
-- `DatabaseValue.value()` has been removed.
+- `DatabaseValue.value()` has been removed, in favor of `DatabaseValue.storage`.
 
 
 ## 0.102.0
