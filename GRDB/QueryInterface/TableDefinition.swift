@@ -123,7 +123,8 @@ extension Database {
         try execute("DROP TABLE \(name.quotedDatabaseIdentifier)")
     }
     
-    /// Creates a database index.
+    #if USING_CUSTOMSQLITE || USING_SQLCIPHER
+    /// Creates an index.
     ///
     ///     try db.create(index: "personByEmail", on: "person", columns: ["email"])
     ///
@@ -144,10 +145,62 @@ extension Database {
     ///     - condition: If not nil, creates a partial index
     ///       (see https://www.sqlite.org/partialindex.html).
     public func create(index name: String, on table: String, columns: [String], unique: Bool = false, ifNotExists: Bool = false, condition: SQLExpressible? = nil) throws {
+        // Partial indexes were introduced in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
+        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         let definition = IndexDefinition(name: name, table: table, columns: columns, unique: unique, ifNotExists: ifNotExists, condition: condition?.sqlExpression)
         let sql = definition.sql()
         try execute(sql)
     }
+    #else
+    /// Creates an index.
+    ///
+    ///     try db.create(index: "personByEmail", on: "person", columns: ["email"])
+    ///
+    /// SQLite can also index expressions (https://www.sqlite.org/expridx.html)
+    /// and use specific collations. To create such an index, use a raw SQL
+    /// query.
+    ///
+    ///     try db.execute("CREATE INDEX ...")
+    ///
+    /// See https://www.sqlite.org/lang_createindex.html
+    ///
+    /// - parameters:
+    ///     - name: The index name.
+    ///     - table: The name of the indexed table.
+    ///     - columns: The indexed columns.
+    ///     - unique: If true, creates a unique index.
+    ///     - ifNotExists: If false, no error is thrown if index already exists.
+    public func create(index name: String, on table: String, columns: [String], unique: Bool = false, ifNotExists: Bool = false) throws {
+        // Partial indexes were introduced in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
+        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+        let definition = IndexDefinition(name: name, table: table, columns: columns, unique: unique, ifNotExists: ifNotExists, condition: nil)
+        let sql = definition.sql()
+        try execute(sql)
+    }
+    
+    /// Creates a partial index.
+    ///
+    ///     try db.create(index: "personByEmail", on: "person", columns: ["email"], condition: Column("email") != nil)
+    ///
+    /// See https://www.sqlite.org/lang_createindex.html, and
+    /// https://www.sqlite.org/partialindex.html
+    ///
+    /// - parameters:
+    ///     - name: The index name.
+    ///     - table: The name of the indexed table.
+    ///     - columns: The indexed columns.
+    ///     - unique: If true, creates a unique index.
+    ///     - ifNotExists: If false, no error is thrown if index already exists.
+    ///     - condition: The condition that indexed rows must verify.
+    @available(iOS 8.2, OSX 10.10, *)
+    public func create(index name: String, on table: String, columns: [String], unique: Bool = false, ifNotExists: Bool = false, condition: SQLExpressible) throws {
+        // Partial indexes were introduced in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
+        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+        let definition = IndexDefinition(name: name, table: table, columns: columns, unique: unique, ifNotExists: ifNotExists, condition: condition.sqlExpression)
+        let sql = definition.sql()
+        try execute(sql)
+    }
+    #endif
     
     /// Deletes a database index.
     ///

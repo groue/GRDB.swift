@@ -880,7 +880,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
-            try db.execute("CREATE VIRTUAL TABLE search  USING fts3(title, tokenize = unicode61)")
+            try db.execute("CREATE VIRTUAL TABLE search USING fts3(title)")
         }
         try dbPool.read { db in
             _ = try Row.fetchAll(db, "SELECT * FROM search")

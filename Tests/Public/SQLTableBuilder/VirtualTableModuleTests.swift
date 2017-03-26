@@ -51,6 +51,14 @@ private final class FTS3TokenizeTableDefinition {
 class VirtualTableModuleTests: GRDBTestCase {
     
     func testCustomVirtualTableModule() throws {
+        // fts3tokenize was introduced in SQLite 3.7.17 https://www.sqlite.org/changes.html#version_3_7_17
+        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+        #if !USING_CUSTOMSQLITE && !USING_SQLCIPHER
+            guard #available(iOS 8.2, OSX 10.10, *) else {
+                return
+            }
+        #endif
+        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "test", using: FTS3TokenizeModule()) { t in
@@ -62,6 +70,14 @@ class VirtualTableModuleTests: GRDBTestCase {
     }
 
     func testThrowingCustomVirtualTableModule() throws {
+        // fts3tokenize was introduced in SQLite 3.7.17 https://www.sqlite.org/changes.html#version_3_7_17
+        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+        #if !USING_CUSTOMSQLITE && !USING_SQLCIPHER
+            guard #available(iOS 8.2, OSX 10.10, *) else {
+                return
+            }
+        #endif
+        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {

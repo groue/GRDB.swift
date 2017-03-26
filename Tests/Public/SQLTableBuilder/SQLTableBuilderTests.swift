@@ -451,11 +451,34 @@ class SQLTableBuilderTests: GRDBTestCase {
             try db.create(index: "test_on_a", on: "test", columns: ["a"])
             XCTAssertEqual(self.lastSQLQuery, "CREATE INDEX \"test_on_a\" ON \"test\"(\"a\")")
             
+            try db.create(index: "test_on_a_b", on: "test", columns: ["a", "b"], unique: true, ifNotExists: true)
+            XCTAssertEqual(self.lastSQLQuery, "CREATE UNIQUE INDEX IF NOT EXISTS \"test_on_a_b\" ON \"test\"(\"a\", \"b\")")
+            
+            // Sanity check
+            XCTAssertEqual(try Set(db.indexes(on: "test").map { $0.name }), ["test_on_a", "test_on_a_b"])
+        }
+    }
+    
+    func testCreatePartialIndex() throws {
+        #if !USING_CUSTOMSQLITE && !USING_SQLCIPHER
+            guard #available(iOS 8.2, OSX 10.10, *) else {
+                return
+            }
+        #endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "test") { t in
+                t.column("id", .integer).primaryKey()
+                t.column("a", .text)
+                t.column("b", .text)
+            }
+            
             try db.create(index: "test_on_a_b", on: "test", columns: ["a", "b"], unique: true, ifNotExists: true, condition: Column("a") == 1)
             XCTAssertEqual(self.lastSQLQuery, "CREATE UNIQUE INDEX IF NOT EXISTS \"test_on_a_b\" ON \"test\"(\"a\", \"b\") WHERE (\"a\" = 1)")
             
             // Sanity check
-            XCTAssertEqual(try Set(db.indexes(on: "test").map { $0.name }), ["test_on_a", "test_on_a_b"])
+            XCTAssertEqual(try Set(db.indexes(on: "test").map { $0.name }), ["test_on_a_b"])
         }
     }
 
