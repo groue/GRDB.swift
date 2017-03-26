@@ -105,10 +105,11 @@ class FTS3RecordTests: GRDBTestCase {
                 try book.insert(db)
             }
             
-            XCTAssertEqual(try Book.matching(nil).fetchCount(db), 0)
-            XCTAssertEqual(try Book.filter(Column("books").match(nil)).fetchCount(db), 0)
-            XCTAssertEqual(try Book.filter(Column("author").match(nil)).fetchCount(db), 0)
-            XCTAssertEqual(try Book.filter(Column("title").match(nil)).fetchCount(db), 0)
+            let pattern: FTS3Pattern? = nil
+            XCTAssertEqual(try Book.matching(pattern).fetchCount(db), 0)
+            XCTAssertEqual(try Book.filter(Column("books").match(pattern)).fetchCount(db), 0)
+            XCTAssertEqual(try Book.filter(Column("author").match(pattern)).fetchCount(db), 0)
+            XCTAssertEqual(try Book.filter(Column("title").match(pattern)).fetchCount(db), 0)
         }
     }
 
