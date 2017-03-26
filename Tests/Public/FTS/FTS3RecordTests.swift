@@ -122,7 +122,7 @@ class FTS3RecordTests: GRDBTestCase {
             
             let pattern = try FTS3Pattern(rawPattern: "Herman Melville")
             XCTAssertEqual(try Book.matching(pattern).fetchCount(db), 1)
-            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"books\" WHERE (\"books\" MATCH 'herman melville')")
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"books\" WHERE (\"books\" MATCH 'Herman Melville')")
             
             XCTAssertEqual(try Book.fetchCount(db), 1)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"books\"")
