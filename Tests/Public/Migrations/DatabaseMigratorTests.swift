@@ -116,7 +116,14 @@ class DatabaseMigratorTests : GRDBTestCase {
             XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
             XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
             XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
-            XCTAssertEqual(error.description.lowercased(), "sqlite error 787 with statement `insert into pets (masterid, name) values (?, ?)` arguments [123, \"bobby\"]: foreign key constraint failed")
+            // SQLITE_CONSTRAINT_FOREIGNKEY was added in SQLite 3.7.16 http://www.sqlite.org/changes.html#version_3_7_16
+            // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+            if error.resultCode == error.extendedResultCode {
+                XCTAssertEqual(error.description.lowercased(), "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [123, \"bobby\"]: foreign key constraint failed")
+            } else {
+                XCTAssertEqual(error.extendedResultCode, .SQLITE_CONSTRAINT_FOREIGNKEY)
+                XCTAssertEqual(error.description.lowercased(), "sqlite error 787 with statement `insert into pets (masterid, name) values (?, ?)` arguments [123, \"bobby\"]: foreign key constraint failed")
+            }
             
             let names = try dbQueue.inDatabase { db in
                 try String.fetchAll(db, "SELECT name FROM persons")
