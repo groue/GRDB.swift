@@ -1,0 +1,3187 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Database Class Reference</title>
+    <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    <meta charset='utf-8'>
+    <script src="../js/jquery.min.js" defer></script>
+    <script src="../js/jazzy.js" defer></script>
+    
+  </head>
+  <body>
+    <a name="//apple_ref/swift/Class/Database" class="dashAnchor"></a>
+    <a title="Database Class Reference"></a>
+    <header>
+      <div class="content-wrapper">
+        <p><a href="../index.html">GRDB Docs</a> (89% documented)</p>
+        <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
+        <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue%2Egithub%2Eio%2FGRDB%2Eswift%2Fdocs%2F0%2E102%2E0%2Fdocsets%2FGRDB%2Exml"><img src="../img/dash.png"/>Install in Dash</a></p>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <p id="breadcrumbs">
+        <a href="../index.html">GRDB Reference</a>
+        <img id="carat" src="../img/carat.png" />
+        Database Class Reference
+      </p>
+    </div>
+    <div class="content-wrapper">
+      <nav class="sidebar">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a href="../Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Classes/AnyCursor.html">AnyCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/ColumnDefinition.html">ColumnDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database.html">Database</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/BusyMode.html">– BusyMode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/CheckpointMode.html">– CheckpointMode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/CollationName.html">– CollationName</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/ConflictResolution.html">– ConflictResolution</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/ColumnType.html">– ColumnType</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/ForeignKeyAction.html">– ForeignKeyAction</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/TransactionKind.html">– TransactionKind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/TransactionCompletion.html">– TransactionCompletion</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabaseCollation.html">DatabaseCollation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabaseCursor.html">DatabaseCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabaseFunction.html">DatabaseFunction</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabasePool.html">DatabasePool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabaseQueue.html">DatabaseQueue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/EnumeratedCursor.html">EnumeratedCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FTS3TableDefinition.html">FTS3TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FTS4ColumnDefinition.html">FTS4ColumnDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FTS4TableDefinition.html">FTS4TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FTS5ColumnDefinition.html">FTS5ColumnDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FTS5TableDefinition.html">FTS5TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FetchedRecordsController.html">FetchedRecordsController</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FilterCursor.html">FilterCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FlattenCursor.html">FlattenCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IteratorCursor.html">IteratorCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/MapCursor.html">MapCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Record.html">Record</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Row.html">Row</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/SelectStatement.html">SelectStatement</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Statement.html">Statement</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/TableAlteration.html">TableAlteration</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/TableDefinition.html">TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/UpdateStatement.html">UpdateStatement</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Enums.html">Enums</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Enums/DatabaseEventKind.html">DatabaseEventKind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/FetchedRecordChange.html">FetchedRecordChange</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/PersistenceError.html">PersistenceError</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Extensions.html">Extensions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Extensions/Array.html">Array</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Bool.html">Bool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/CGFloat.html">CGFloat</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/ClosedRange.html">ClosedRange</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Column.html">Column</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/CountableClosedRange.html">CountableClosedRange</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/CountableRange.html">CountableRange</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Data.html">Data</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Database.html">Database</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/DatabasePool.html">DatabasePool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/DatabaseQueue.html">DatabaseQueue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Double.html">Double</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Float.html">Float</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int.html">Int</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int32.html">Int32</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int64.html">Int64</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSData.html">NSData</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSDate.html">NSDate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSNull.html">NSNull</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSNumber.html">NSNumber</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSString.html">NSString</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSURL.html">NSURL</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSUUID.html">NSUUID</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Optional.html">Optional</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/QueryInterfaceRequest.html">QueryInterfaceRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Range.html">Range</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/RawRepresentable.html">RawRepresentable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/ReferenceConvertible.html">ReferenceConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Sequence.html">Sequence</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/String.html">String</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/TableMapping.html">TableMapping</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Functions.html">Functions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBop1nFPS_22SQLSpecificExpressible_PS_13SQLExpression_">!(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2neFTGSqPS_14SQLExpressible__PS_22SQLSpecificExpressible__PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2neFTGSqPS_14SQLExpressible__VS_21SQLCollatedExpression_PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2neFTPS_22SQLSpecificExpressible_GSqPS_14SQLExpressible___PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2neFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2neFTPS_22SQLSpecificExpressible_Sb_PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2neFTSbPS_22SQLSpecificExpressible__PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2neFTVS_21SQLCollatedExpressionGSqPS_14SQLExpressible___PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3neeFTGSqPS_14SQLExpressible__PS_22SQLSpecificExpressible__PS_13SQLExpression_">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3neeFTGSqPS_14SQLExpressible__VS_21SQLCollatedExpression_PS_13SQLExpression_">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3neeFTPS_22SQLSpecificExpressible_GSqPS_14SQLExpressible___PS_13SQLExpression_">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3neeFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3neeFTVS_21SQLCollatedExpressionGSqPS_14SQLExpressible___PS_13SQLExpression_">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2aaFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">&amp;&amp;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2aaFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">&amp;&amp;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2aaFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">&amp;&amp;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1mFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">*(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1mFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">*(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1mFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">*(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1pFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">+(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1pFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">+(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1pFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">+(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBop1sFPS_22SQLSpecificExpressible_PS_13SQLExpression_">-(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1sFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">-(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1sFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">-(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1sFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">-(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1dFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">/(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1dFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">/(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1dFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">/(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1lFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1lFTPS_14SQLExpressible_VS_21SQLCollatedExpression_PS_13SQLExpression_">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1lFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1lFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1lFTVS_21SQLCollatedExpressionPS_14SQLExpressible__PS_13SQLExpression_">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2leFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2leFTPS_14SQLExpressible_VS_21SQLCollatedExpression_PS_13SQLExpression_">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2leFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2leFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2leFTVS_21SQLCollatedExpressionPS_14SQLExpressible__PS_13SQLExpression_">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2eeFTGSqPS_14SQLExpressible__PS_22SQLSpecificExpressible__PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2eeFTGSqPS_14SQLExpressible__VS_21SQLCollatedExpression_PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2eeFTPS_22SQLSpecificExpressible_GSqPS_14SQLExpressible___PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2eeFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2eeFTPS_22SQLSpecificExpressible_Sb_PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2eeFTSbPS_22SQLSpecificExpressible__PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2eeFTVS_21SQLCollatedExpressionGSqPS_14SQLExpressible___PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3eeeFTGSqPS_14SQLExpressible__PS_22SQLSpecificExpressible__PS_13SQLExpression_">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3eeeFTGSqPS_14SQLExpressible__VS_21SQLCollatedExpression_PS_13SQLExpression_">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3eeeFTPS_22SQLSpecificExpressible_GSqPS_14SQLExpressible___PS_13SQLExpression_">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3eeeFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3eeeFTVS_21SQLCollatedExpressionGSqPS_14SQLExpressible___PS_13SQLExpression_">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1gFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1gFTPS_14SQLExpressible_VS_21SQLCollatedExpression_PS_13SQLExpression_">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1gFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1gFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1gFTVS_21SQLCollatedExpressionPS_14SQLExpressible__PS_13SQLExpression_">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2geFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2geFTPS_14SQLExpressible_VS_21SQLCollatedExpression_PS_13SQLExpression_">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2geFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2geFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2geFTVS_21SQLCollatedExpressionPS_14SQLExpressible__PS_13SQLExpression_">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2qqFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">??(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB3absFPS_22SQLSpecificExpressible_PS_13SQLExpression_">abs(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB7averageFPS_22SQLSpecificExpressible_PS_13SQLExpression_">average(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB5countFPS_13SQLSelectable_PS_13SQLExpression_">count(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB5countFT8distinctPS_22SQLSpecificExpressible__PS_13SQLExpression_">count(distinct:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB21databaseQuestionMarksFT5countSi_SS">databaseQuestionMarks(count:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB6lengthFPS_22SQLSpecificExpressible_PS_13SQLExpression_">length(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB3maxFPS_22SQLSpecificExpressible_PS_13SQLExpression_">max(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB3minFPS_22SQLSpecificExpressible_PS_13SQLExpression_">min(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB3sumFPS_22SQLSpecificExpressible_PS_13SQLExpression_">sum(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2ooFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">||(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2ooFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">||(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2ooFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">||(_:_:)</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Protocols.html">Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Protocols/Cursor.html">Cursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/DatabaseReader.html">DatabaseReader</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/DatabaseValueConvertible.html">DatabaseValueConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/DatabaseWriter.html">DatabaseWriter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/FTS5CustomTokenizer.html">FTS5CustomTokenizer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/FTS5Tokenizer.html">FTS5Tokenizer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/FTS5WrapperTokenizer.html">FTS5WrapperTokenizer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LayoutedRowAdapter.html">LayoutedRowAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/MutablePersistable.html">MutablePersistable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/Persistable.html">Persistable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/Request.html">Request</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/RowAdapter.html">RowAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/RowConvertible.html">RowConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/RowLayout.html">RowLayout</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLCollection.html">SQLCollection</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLExpressible.html">SQLExpressible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLExpression.html">SQLExpression</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLOrderingTerm.html">SQLOrderingTerm</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLSelectQuery.html">SQLSelectQuery</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLSelectable.html">SQLSelectable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLSpecificExpressible.html">SQLSpecificExpressible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/StatementColumnConvertible.html">StatementColumnConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/TableMapping.html">TableMapping</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/TransactionObserver.html">TransactionObserver</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/TypedRequest.html">TypedRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/VirtualTableModule.html">VirtualTableModule</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols.html#/s:P4GRDB18_OptionalFetchable">_OptionalFetchable</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Structs.html">Structs</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Structs/AnyRequest.html">AnyRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/AnyTypedRequest.html">AnyTypedRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/Column.html">Column</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ColumnMapping.html">ColumnMapping</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/Configuration.html">Configuration</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseCoder.html">DatabaseCoder</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseDateComponents.html">DatabaseDateComponents</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseDateComponents/Format.html">– Format</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseError.html">DatabaseError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseEvent.html">DatabaseEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseEvent/Kind.html">– Kind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseMigrator.html">DatabaseMigrator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabasePreUpdateEvent.html">DatabasePreUpdateEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabasePreUpdateEvent/Kind.html">– Kind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseValue.html">DatabaseValue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseValue/Storage.html">– Storage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS3.html">FTS3</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS3Pattern.html">FTS3Pattern</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS3TokenizerDescriptor.html">FTS3TokenizerDescriptor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS4.html">FTS4</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5.html">FTS5</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5Pattern.html">FTS5Pattern</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5TokenFlags.html">FTS5TokenFlags</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5Tokenization.html">FTS5Tokenization</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5TokenizerDescriptor.html">FTS5TokenizerDescriptor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FetchedRecordsSectionInfo.html">FetchedRecordsSectionInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/IndexInfo.html">IndexInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/LayoutedColumnMapping.html">LayoutedColumnMapping</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/PersistenceConflictPolicy.html">PersistenceConflictPolicy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/PrimaryKeyInfo.html">PrimaryKeyInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/QueryInterfaceRequest.html">QueryInterfaceRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/RangeRowAdapter.html">RangeRowAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ResultCode.html">ResultCode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/RowIndex.html">RowIndex</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLBinaryOperator.html">SQLBinaryOperator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLCollatedExpression.html">SQLCollatedExpression</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLExpressionBinary.html">SQLExpressionBinary</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLExpressionExists.html">SQLExpressionExists</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLExpressionFunction.html">SQLExpressionFunction</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLExpressionLiteral.html">SQLExpressionLiteral</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLExpressionUnary.html">SQLExpressionUnary</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLFunctionName.html">SQLFunctionName</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLRequest.html">SQLRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLUnaryOperator.html">SQLUnaryOperator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ScopeAdapter.html">ScopeAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/StatementArguments.html">StatementArguments</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SuffixRowAdapter.html">SuffixRowAdapter</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Typealiases.html">Typealiases</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Typealiases.html#/s:4GRDB16SQLiteConnection">SQLiteConnection</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Typealiases.html#/s:4GRDB15SQLiteStatement">SQLiteStatement</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Typealiases.html#/s:4GRDB11SQLiteValue">SQLiteValue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Typealiases.html#/s:4GRDB13TraceFunction">TraceFunction</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Typealiases.html#/s:E4GRDBSq8_Wrapped">_Wrapped</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Associated Types.html">Associated Types</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Associated Types.html#/s:P4GRDB12TypedRequest7Fetched">Fetched</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+        <section>
+          <section class="section">
+            <h1>Database</h1>
+              <div class="declaration">
+                <div class="language">
+                  <pre class="highlight"><code><span class="kd">public</span> <span class="kd">final</span> <span class="kd">class</span> <span class="kt">Database</span></code></pre>
+
+                </div>
+              </div>
+            <p>A Database connection.</p>
+
+<p>You don&rsquo;t create a database directly. Instead, you use a DatabaseQueue, or
+a DatabasePool:</p>
+
+<pre class="highlight plaintext"><code>let dbQueue = DatabaseQueue(...)
+
+// The Database is the `db` in the closure:
+try dbQueue.inDatabase { db in
+    try db.execute(...)
+}
+</code></pre>
+
+          </section>
+          <section class="section task-group-section">
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Database%20Types"></a>
+                <a name="//apple_ref/swift/Section/Database Types" class="dashAnchor"></a>
+                <a href="#/Database%20Types">
+                  <h3 class="section-name">Database Types</h3>
+                </a>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:C4GRDB8Database12BusyCallback"></a>
+                    <a name="//apple_ref/swift/Alias/BusyCallback" class="dashAnchor"></a>
+                    <a class="token" href="#/s:C4GRDB8Database12BusyCallback">BusyCallback</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>See BusyMode and <a href="https://www.sqlite.org/c3ref/busy_handler.html">https://www.sqlite.org/c3ref/busy_handler.html</a></p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">typealias</span> <span class="kt">BusyCallback</span> <span class="o">=</span> <span class="p">(</span><span class="n">_</span> <span class="nv">numberOfTries</span><span class="p">:</span> <span class="kt">Int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L46">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:OC4GRDB8Database8BusyMode"></a>
+                    <a name="//apple_ref/swift/Enum/BusyMode" class="dashAnchor"></a>
+                    <a class="token" href="#/s:OC4GRDB8Database8BusyMode">BusyMode</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>When there are several connections to a database, a connection may try
+to access the database while it is locked by another connection.</p>
+
+<p>The BusyMode enum describes the behavior of GRDB when such a situation
+occurs:</p>
+
+<ul>
+<li><p>.immediateError: The SQLITE_BUSY error is immediately returned to the
+connection that tries to access the locked database.</p></li>
+<li><p>.timeout: The SQLITE_BUSY error will be returned only if the database
+remains locked for more than the specified duration.</p></li>
+<li><p>.callback: Perform your custom lock handling.</p></li>
+</ul>
+
+<p>To set the busy mode of a database, use Configuration:</p>
+
+<pre class="highlight plaintext"><code>let configuration = Configuration(busyMode: .timeout(1))
+let dbQueue = DatabaseQueue(path: "...", configuration: configuration)
+</code></pre>
+
+<p>Relevant SQLite documentation:</p>
+
+<ul>
+<li><a href="https://www.sqlite.org/c3ref/busy_timeout.html">https://www.sqlite.org/c3ref/busy_timeout.html</a></li>
+<li><a href="https://www.sqlite.org/c3ref/busy_handler.html">https://www.sqlite.org/c3ref/busy_handler.html</a></li>
+<li><a href="https://www.sqlite.org/lang_transaction.html">https://www.sqlite.org/lang_transaction.html</a></li>
+<li><a href="https://www.sqlite.org/wal.html">https://www.sqlite.org/wal.html</a></li>
+</ul>
+
+                        <a href="../Classes/Database/BusyMode.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">BusyMode</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L73-L85">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:OC4GRDB8Database14CheckpointMode"></a>
+                    <a name="//apple_ref/swift/Enum/CheckpointMode" class="dashAnchor"></a>
+                    <a class="token" href="#/s:OC4GRDB8Database14CheckpointMode">CheckpointMode</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The available <a href="https://www.sqlite.org/c3ref/wal_checkpoint_v2.html">checkpoint modes</a>.</p>
+
+                        <a href="../Classes/Database/CheckpointMode.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">CheckpointMode</span><span class="p">:</span> <span class="kt">Int32</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L88-L93">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:VC4GRDB8Database13CollationName"></a>
+                    <a name="//apple_ref/swift/Struct/CollationName" class="dashAnchor"></a>
+                    <a class="token" href="#/s:VC4GRDB8Database13CollationName">CollationName</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A built-in SQLite collation.</p>
+
+<p>See <a href="https://www.sqlite.org/datatype3.html#collation">https://www.sqlite.org/datatype3.html#collation</a></p>
+
+                        <a href="../Classes/Database/CollationName.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">CollationName</span> <span class="p">:</span> <span class="kt">RawRepresentable</span><span class="p">,</span> <span class="kt">Hashable</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L98-L121">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:OC4GRDB8Database18ConflictResolution"></a>
+                    <a name="//apple_ref/swift/Enum/ConflictResolution" class="dashAnchor"></a>
+                    <a class="token" href="#/s:OC4GRDB8Database18ConflictResolution">ConflictResolution</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>An SQLite conflict resolution.</p>
+
+<p>See <a href="https://www.sqlite.org/lang_conflict.html">https://www.sqlite.org/lang_conflict.html</a>.</p>
+
+                        <a href="../Classes/Database/ConflictResolution.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">ConflictResolution</span> <span class="p">:</span> <span class="kt">String</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L126-L132">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:VC4GRDB8Database10ColumnType"></a>
+                    <a name="//apple_ref/swift/Struct/ColumnType" class="dashAnchor"></a>
+                    <a class="token" href="#/s:VC4GRDB8Database10ColumnType">ColumnType</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>An SQL column type.</p>
+
+<pre class="highlight plaintext"><code>try db.create(table: "persons") { t in
+    t.column("id", .integer).primaryKey()
+    t.column("title", .text)
+}
+</code></pre>
+
+<p>See <a href="https://www.sqlite.org/datatype3.html">https://www.sqlite.org/datatype3.html</a></p>
+
+                        <a href="../Classes/Database/ColumnType.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">ColumnType</span> <span class="p">:</span> <span class="kt">RawRepresentable</span><span class="p">,</span> <span class="kt">Hashable</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L142-L180">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:OC4GRDB8Database16ForeignKeyAction"></a>
+                    <a name="//apple_ref/swift/Enum/ForeignKeyAction" class="dashAnchor"></a>
+                    <a class="token" href="#/s:OC4GRDB8Database16ForeignKeyAction">ForeignKeyAction</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A foreign key action.</p>
+
+<p>See <a href="https://www.sqlite.org/foreignkeys.html">https://www.sqlite.org/foreignkeys.html</a></p>
+
+                        <a href="../Classes/Database/ForeignKeyAction.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">ForeignKeyAction</span> <span class="p">:</span> <span class="kt">String</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L186-L191">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:OC4GRDB8Database15TransactionKind"></a>
+                    <a name="//apple_ref/swift/Enum/TransactionKind" class="dashAnchor"></a>
+                    <a class="token" href="#/s:OC4GRDB8Database15TransactionKind">TransactionKind</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>An SQLite transaction kind. See <a href="https://www.sqlite.org/lang_transaction.html">https://www.sqlite.org/lang_transaction.html</a></p>
+
+                        <a href="../Classes/Database/TransactionKind.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">TransactionKind</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L212-L216">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:OC4GRDB8Database21TransactionCompletion"></a>
+                    <a name="//apple_ref/swift/Enum/TransactionCompletion" class="dashAnchor"></a>
+                    <a class="token" href="#/s:OC4GRDB8Database21TransactionCompletion">TransactionCompletion</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The end of a transaction: Commit, or Rollback</p>
+
+                        <a href="../Classes/Database/TransactionCompletion.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">TransactionCompletion</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L219-L222">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Database%20Information"></a>
+                <a name="//apple_ref/swift/Section/Database Information" class="dashAnchor"></a>
+                <a href="#/Database%20Information">
+                  <h3 class="section-name">Database Information</h3>
+                </a>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:vC4GRDB8Database13configurationVS_13Configuration"></a>
+                    <a name="//apple_ref/swift/Property/configuration" class="dashAnchor"></a>
+                    <a class="token" href="#/s:vC4GRDB8Database13configurationVS_13Configuration">configuration</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The database configuration</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">configuration</span><span class="p">:</span> <span class="kt"><a href="../Structs/Configuration.html">Configuration</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L237">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:vC4GRDB8Database16sqliteConnectionVs13OpaquePointer"></a>
+                    <a name="//apple_ref/swift/Property/sqliteConnection" class="dashAnchor"></a>
+                    <a class="token" href="#/s:vC4GRDB8Database16sqliteConnectionVs13OpaquePointer">sqliteConnection</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The raw SQLite connection, suitable for the SQLite C API.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">sqliteConnection</span><span class="p">:</span> <span class="kt"><a href="../Typealiases.html#/s:4GRDB16SQLiteConnection">SQLiteConnection</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L240">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:vC4GRDB8Database17lastInsertedRowIDVs5Int64"></a>
+                    <a name="//apple_ref/swift/Property/lastInsertedRowID" class="dashAnchor"></a>
+                    <a class="token" href="#/s:vC4GRDB8Database17lastInsertedRowIDVs5Int64">lastInsertedRowID</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The rowID of the most recently inserted row.</p>
+
+<p>If no row has ever been inserted using this database connection,
+returns zero.</p>
+
+<p>For more detailed information, see <a href="https://www.sqlite.org/c3ref/last_insert_rowid.html">https://www.sqlite.org/c3ref/last_insert_rowid.html</a></p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">lastInsertedRowID</span><span class="p">:</span> <span class="kt">Int64</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L248-L251">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:vC4GRDB8Database12changesCountSi"></a>
+                    <a name="//apple_ref/swift/Property/changesCount" class="dashAnchor"></a>
+                    <a class="token" href="#/s:vC4GRDB8Database12changesCountSi">changesCount</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The number of rows modified, inserted or deleted by the most recent
+successful INSERT, UPDATE or DELETE statement.</p>
+
+<p>For more detailed information, see <a href="https://www.sqlite.org/c3ref/changes.html">https://www.sqlite.org/c3ref/changes.html</a></p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">changesCount</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L257-L260">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:vC4GRDB8Database17totalChangesCountSi"></a>
+                    <a name="//apple_ref/swift/Property/totalChangesCount" class="dashAnchor"></a>
+                    <a class="token" href="#/s:vC4GRDB8Database17totalChangesCountSi">totalChangesCount</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The total number of rows modified, inserted or deleted by all successful
+INSERT, UPDATE or DELETE statements since the database connection was
+opened.</p>
+
+<p>For more detailed information, see <a href="https://www.sqlite.org/c3ref/total_changes.html">https://www.sqlite.org/c3ref/total_changes.html</a></p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">totalChangesCount</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L267-L270">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:vC4GRDB8Database19isInsideTransactionSb"></a>
+                    <a name="//apple_ref/swift/Property/isInsideTransaction" class="dashAnchor"></a>
+                    <a class="token" href="#/s:vC4GRDB8Database19isInsideTransactionSb">isInsideTransaction</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>True if the database connection is currently in a transaction.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">isInsideTransaction</span><span class="p">:</span> <span class="kt">Bool</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L276">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database19makeSelectStatementFzSSCS_15SelectStatement"></a>
+                    <a name="//apple_ref/swift/Method/makeSelectStatement(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database19makeSelectStatementFzSSCS_15SelectStatement">makeSelectStatement(_:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Returns a new prepared statement that can be reused.</p>
+
+<pre class="highlight plaintext"><code>let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM persons WHERE age &gt; ?")
+let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
+let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
+</code></pre>
+
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever SQLite could not parse the sql query.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">makeSelectStatement</span><span class="p">(</span><span class="n">_</span> <span class="nv">sql</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Classes/SelectStatement.html">SelectStatement</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>sql</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>An SQL query.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>A SelectStatement.</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L595-L597">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database21cachedSelectStatementFzSSCS_15SelectStatement"></a>
+                    <a name="//apple_ref/swift/Method/cachedSelectStatement(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database21cachedSelectStatementFzSSCS_15SelectStatement">cachedSelectStatement(_:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Returns a prepared statement that can be reused.</p>
+
+<pre class="highlight plaintext"><code>let statement = try db.cachedSelectStatement("SELECT COUNT(*) FROM persons WHERE age &gt; ?")
+let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
+let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
+</code></pre>
+
+<p>The returned statement may have already been used: it may or may not
+contain values for its eventual arguments.</p>
+
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever SQLite could not parse the sql query.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">cachedSelectStatement</span><span class="p">(</span><span class="n">_</span> <span class="nv">sql</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Classes/SelectStatement.html">SelectStatement</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>sql</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>An SQL query.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>An UpdateStatement.</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L611-L619">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database19makeUpdateStatementFzSSCS_15UpdateStatement"></a>
+                    <a name="//apple_ref/swift/Method/makeUpdateStatement(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database19makeUpdateStatementFzSSCS_15UpdateStatement">makeUpdateStatement(_:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Returns a new prepared statement that can be reused.</p>
+
+<pre class="highlight plaintext"><code>let statement = try db.makeUpdateStatement("INSERT INTO persons (name) VALUES (?)")
+try statement.execute(arguments: ["Arthur"])
+try statement.execute(arguments: ["Barbara"])
+</code></pre>
+
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever SQLite could not parse the sql query.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">makeUpdateStatement</span><span class="p">(</span><span class="n">_</span> <span class="nv">sql</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Classes/UpdateStatement.html">UpdateStatement</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>sql</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>An SQL query.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>An UpdateStatement.</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L630-L632">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database21cachedUpdateStatementFzSSCS_15UpdateStatement"></a>
+                    <a name="//apple_ref/swift/Method/cachedUpdateStatement(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database21cachedUpdateStatementFzSSCS_15UpdateStatement">cachedUpdateStatement(_:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Returns a prepared statement that can be reused.</p>
+
+<pre class="highlight plaintext"><code>let statement = try db.cachedUpdateStatement("INSERT INTO persons (name) VALUES (?)")
+try statement.execute(arguments: ["Arthur"])
+try statement.execute(arguments: ["Barbara"])
+</code></pre>
+
+<p>The returned statement may have already been used: it may or may not
+contain values for its eventual arguments.</p>
+
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever SQLite could not parse the sql query.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">cachedUpdateStatement</span><span class="p">(</span><span class="n">_</span> <span class="nv">sql</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Classes/UpdateStatement.html">UpdateStatement</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>sql</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>An SQL query.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>An UpdateStatement.</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L646-L654">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database7executeFzTSS9argumentsGSqVS_18StatementArguments__T_"></a>
+                    <a name="//apple_ref/swift/Method/execute(_:arguments:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database7executeFzTSS9argumentsGSqVS_18StatementArguments__T_">execute(_:arguments:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Executes one or several SQL statements, separated by semi-colons.</p>
+
+<pre class="highlight plaintext"><code>try db.execute(
+    "INSERT INTO persons (name) VALUES (:name)",
+    arguments: ["name": "Arthur"])
+
+try db.execute(
+    "INSERT INTO persons (name) VALUES (?);" +
+    "INSERT INTO persons (name) VALUES (?);" +
+    "INSERT INTO persons (name) VALUES (?);",
+    arguments; ['Arthur', 'Barbara', 'Craig'])
+</code></pre>
+
+<p>This method may throw a DatabaseError.</p>
+
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">execute</span><span class="p">(</span><span class="n">_</span> <span class="nv">sql</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>sql</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>An SQL query.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>arguments</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional statement arguments.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L674-L760">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database3addFT8functionCS_16DatabaseFunction_T_"></a>
+                    <a name="//apple_ref/swift/Method/add(function:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database3addFT8functionCS_16DatabaseFunction_T_">add(function:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Add or redefine an SQL function.</p>
+
+<pre class="highlight plaintext"><code>let fn = DatabaseFunction("succ", argumentCount: 1) { databaseValues in
+    let dbv = databaseValues.first!
+    guard let int = dbv.value() as Int? else {
+        return nil
+    }
+    return int + 1
+}
+db.add(function: fn)
+try Int.fetchOne(db, "SELECT succ(1)")! // 2
+</code></pre>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">add</span><span class="p">(</span><span class="nv">function</span><span class="p">:</span> <span class="kt"><a href="../Classes/DatabaseFunction.html">DatabaseFunction</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L780-L821">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database6removeFT8functionCS_16DatabaseFunction_T_"></a>
+                    <a name="//apple_ref/swift/Method/remove(function:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database6removeFT8functionCS_16DatabaseFunction_T_">remove(function:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Remove an SQL function.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">remove</span><span class="p">(</span><span class="nv">function</span><span class="p">:</span> <span class="kt"><a href="../Classes/DatabaseFunction.html">DatabaseFunction</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L824-L836">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database3addFT9collationCS_17DatabaseCollation_T_"></a>
+                    <a name="//apple_ref/swift/Method/add(collation:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database3addFT9collationCS_17DatabaseCollation_T_">add(collation:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Add or redefine a collation.</p>
+
+<pre class="highlight plaintext"><code>let collation = DatabaseCollation("localized_standard") { (string1, string2) in
+    return (string1 as NSString).localizedStandardCompare(string2)
+}
+db.add(collation: collation)
+try db.execute("CREATE TABLE files (name TEXT COLLATE localized_standard")
+</code></pre>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">add</span><span class="p">(</span><span class="nv">collation</span><span class="p">:</span> <span class="kt"><a href="../Classes/DatabaseCollation.html">DatabaseCollation</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L909-L925">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database6removeFT9collationCS_17DatabaseCollation_T_"></a>
+                    <a name="//apple_ref/swift/Method/remove(collation:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database6removeFT9collationCS_17DatabaseCollation_T_">remove(collation:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Remove a collation.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">remove</span><span class="p">(</span><span class="nv">collation</span><span class="p">:</span> <span class="kt"><a href="../Classes/DatabaseCollation.html">DatabaseCollation</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L928-L935">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database16clearSchemaCacheFT_T_"></a>
+                    <a name="//apple_ref/swift/Method/clearSchemaCache()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database16clearSchemaCacheFT_T_">clearSchemaCache()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Clears the database schema cache.</p>
+
+<p>You may need to clear the cache manually if the database schema is
+modified by another connection.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">clearSchemaCache</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L1027-L1037">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database11tableExistsFzSSSb"></a>
+                    <a name="//apple_ref/swift/Method/tableExists(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database11tableExistsFzSSSb">tableExists(_:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Returns whether a table exists.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">tableExists</span><span class="p">(</span><span class="n">_</span> <span class="nv">tableName</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L1040-L1043">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database10primaryKeyFzSSGSqVS_14PrimaryKeyInfo_"></a>
+                    <a name="//apple_ref/swift/Method/primaryKey(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database10primaryKeyFzSSGSqVS_14PrimaryKeyInfo_">primaryKey(_:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The primary key for table named <code>tableName</code>; nil if table has no
+primary key.</p>
+
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError if table does not exist.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">primaryKey</span><span class="p">(</span><span class="n">_</span> <span class="nv">tableName</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Structs/PrimaryKeyInfo.html">PrimaryKeyInfo</a></span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L1049-L1127">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database11columnCountFzT2inSS_Si"></a>
+                    <a name="//apple_ref/swift/Method/columnCount(in:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database11columnCountFzT2inSS_Si">columnCount(in:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The number of columns in the table named <code>tableName</code>.</p>
+
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError if table does not exist.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">columnCount</span><span class="p">(</span><span class="k">in</span> <span class="nv">tableName</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">Int</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L1132-L1134">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database7indexesFzT2onSS_GSaVS_9IndexInfo_"></a>
+                    <a name="//apple_ref/swift/Method/indexes(on:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database7indexesFzT2onSS_GSaVS_9IndexInfo_">indexes(on:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The indexes on table named <code>tableName</code>; returns the empty array if the
+table does not exist.</p>
+
+<p>Note: SQLite does not define any index for INTEGER PRIMARY KEY columns:
+this method does not return any index that represents this primary key.</p>
+
+<p>If you want to know if a set of columns uniquely identify a row, prefer
+table(_:hasUniqueKey:) instead.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">indexes</span><span class="p">(</span><span class="n">on</span> <span class="nv">tableName</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="kt"><a href="../Structs/IndexInfo.html">IndexInfo</a></span><span class="p">]</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L1192-L1209">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database5tableuRxs8SequenceWx8Iterator7Element_zSSrFzTSS12hasUniqueKeyx_Sb"></a>
+                    <a name="//apple_ref/swift/Method/table(_:hasUniqueKey:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database5tableuRxs8SequenceWx8Iterator7Element_zSSrFzTSS12hasUniqueKeyx_Sb">table(_:hasUniqueKey:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>True if a sequence of columns uniquely identifies a row, that is to say
+if the columns are the primary key, or if there is a unique index on them.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="n">table</span><span class="o">&lt;</span><span class="kt">T</span><span class="p">:</span> <span class="kt">Sequence</span><span class="o">&gt;</span><span class="p">(</span><span class="n">_</span> <span class="nv">tableName</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="n">hasUniqueKey</span> <span class="nv">columns</span><span class="p">:</span> <span class="kt">T</span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">Bool</span> <span class="k">where</span> <span class="kt">T</span><span class="o">.</span><span class="kt">Iterator</span><span class="o">.</span><span class="kt">Element</span> <span class="o">==</span> <span class="kt">String</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L1236-L1238">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database13inTransactionFzTGSqOS0_15TransactionKind_FzT_OS0_21TransactionCompletion_T_"></a>
+                    <a name="//apple_ref/swift/Method/inTransaction(_:_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database13inTransactionFzTGSqOS0_15TransactionKind_FzT_OS0_21TransactionCompletion_T_">inTransaction(_:_:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Executes a block inside a database transaction.</p>
+
+<pre class="highlight plaintext"><code>try dbQueue.inDatabase do {
+    try db.inTransaction {
+        try db.execute("INSERT ...")
+        return .commit
+    }
+}
+</code></pre>
+
+<p>If the block throws an error, the transaction is rollbacked and the
+error is rethrown.</p>
+
+<p>This method is not reentrant: you can&rsquo;t nest transactions.</p>
+
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    The error thrown by the block.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">inTransaction</span><span class="p">(</span><span class="n">_</span> <span class="nv">kind</span><span class="p">:</span> <span class="kt"><a href="../Classes/Database/TransactionKind.html">TransactionKind</a></span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span> <span class="n">_</span> <span class="nv">block</span><span class="p">:</span> <span class="p">()</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Classes/Database/TransactionCompletion.html">TransactionCompletion</a></span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>kind</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The transaction type (default nil). If nil, the transaction type is configuration.defaultTransactionKind, which itself defaults to .immediate. See <a href="https://www.sqlite.org/lang_transaction.html">https://www.sqlite.org/lang_transaction.html</a> for more information.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>block</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A block that executes SQL statements and return either .commit or .rollback.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L1504-L1540">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database11inSavepointFzFzT_OS0_21TransactionCompletionT_"></a>
+                    <a name="//apple_ref/swift/Method/inSavepoint(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database11inSavepointFzFzT_OS0_21TransactionCompletionT_">inSavepoint(_:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Executes a block inside a savepoint.</p>
+
+<pre class="highlight plaintext"><code>try dbQueue.inDatabase do {
+    try db.inSavepoint {
+        try db.execute("INSERT ...")
+        return .commit
+    }
+}
+</code></pre>
+
+<p>If the block throws an error, the savepoint is rollbacked and the
+error is rethrown.</p>
+
+<p>This method is reentrant: you can nest savepoints.</p>
+
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    The error thrown by the block.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">inSavepoint</span><span class="p">(</span><span class="n">_</span> <span class="nv">block</span><span class="p">:</span> <span class="p">()</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Classes/Database/TransactionCompletion.html">TransactionCompletion</a></span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>block</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A block that executes SQL statements and return either .commit or .rollback.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L1559-L1624">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database3addFT19transactionObserverPS_19TransactionObserver__T_"></a>
+                    <a name="//apple_ref/swift/Method/add(transactionObserver:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database3addFT19transactionObserverPS_19TransactionObserver__T_">add(transactionObserver:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Add a transaction observer, so that it gets notified of
+database changes.</p>
+
+<p>The transaction observer is weakly referenced: it is not retained, and
+stops getting notifications after it is deallocated.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">add</span><span class="p">(</span><span class="nv">transactionObserver</span><span class="p">:</span> <span class="kt"><a href="../Protocols/TransactionObserver.html">TransactionObserver</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>transactionObserver</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A transaction observer.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L1681-L1687">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database6removeFT19transactionObserverPS_19TransactionObserver__T_"></a>
+                    <a name="//apple_ref/swift/Method/remove(transactionObserver:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database6removeFT19transactionObserverPS_19TransactionObserver__T_">remove(transactionObserver:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Remove a transaction observer.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">remove</span><span class="p">(</span><span class="nv">transactionObserver</span><span class="p">:</span> <span class="kt"><a href="../Protocols/TransactionObserver.html">TransactionObserver</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/Database.swift#L1690-L1696">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Database%20Schema"></a>
+                <a name="//apple_ref/swift/Section/Database Schema" class="dashAnchor"></a>
+                <a href="#/Database%20Schema">
+                  <h3 class="section-name">Database Schema</h3>
+                </a>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/create(table:temporary:ifNotExists:withoutRowID:body:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">create(table:temporary:ifNotExists:withoutRowID:body:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">final</span> <span class="kd">class</span> <span class="kt">Database</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database6createFzT5tableSS9temporarySb11ifNotExistsSb12withoutRowIDSb4bodyFCS_15TableDefinitionT__T_"></a>
+                    <a name="//apple_ref/swift/Method/create(table:temporary:ifNotExists:withoutRowID:body:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database6createFzT5tableSS9temporarySb11ifNotExistsSb12withoutRowIDSb4bodyFCS_15TableDefinitionT__T_">create(table:temporary:ifNotExists:withoutRowID:body:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Creates a database table.</p>
+
+<pre class="highlight plaintext"><code>try db.create(table: "pointOfInterests") { t in
+    t.column("id", .integer).primaryKey()
+    t.column("title", .text)
+    t.column("favorite", .boolean).notNull().default(false)
+    t.column("longitude", .double).notNull()
+    t.column("latitude", .double).notNull()
+}
+</code></pre>
+
+<p>See <a href="https://www.sqlite.org/lang_createtable.html">https://www.sqlite.org/lang_createtable.html</a> and
+<a href="https://www.sqlite.org/withoutrowid.html">https://www.sqlite.org/withoutrowid.html</a></p>
+
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">create</span><span class="p">(</span><span class="n">table</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">temporary</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span> <span class="nv">ifNotExists</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span> <span class="nv">withoutRowID</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">,</span> <span class="nv">body</span><span class="p">:</span> <span class="p">(</span><span class="kt"><a href="../Classes/TableDefinition.html">TableDefinition</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>name</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The table name.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>temporary</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>If true, creates a temporary table.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>ifNotExists</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>If false, no error is thrown if table already exists.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>withoutRowID</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>If true, uses WITHOUT ROWID optimization.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>body</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A closure that defines table columns and constraints.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/QueryInterface/TableDefinition.swift#L54-L61">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database6createFzT5tableSS9temporarySb11ifNotExistsSb4bodyFCS_15TableDefinitionT__T_"></a>
+                    <a name="//apple_ref/swift/Method/create(table:temporary:ifNotExists:body:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database6createFzT5tableSS9temporarySb11ifNotExistsSb4bodyFCS_15TableDefinitionT__T_">create(table:temporary:ifNotExists:body:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Creates a database table.</p>
+
+<pre class="highlight plaintext"><code>try db.create(table: "pointOfInterests") { t in
+    t.column("id", .integer).primaryKey()
+    t.column("title", .text)
+    t.column("favorite", .boolean).notNull().default(false)
+    t.column("longitude", .double).notNull()
+    t.column("latitude", .double).notNull()
+}
+</code></pre>
+
+<p>See <a href="https://www.sqlite.org/lang_createtable.html">https://www.sqlite.org/lang_createtable.html</a></p>
+
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">create</span><span class="p">(</span><span class="n">table</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">temporary</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span> <span class="nv">ifNotExists</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span> <span class="nv">body</span><span class="p">:</span> <span class="p">(</span><span class="kt"><a href="../Classes/TableDefinition.html">TableDefinition</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>name</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The table name.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>temporary</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>If true, creates a temporary table.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>ifNotExists</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>If false, no error is thrown if table already exists.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>body</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A closure that defines table columns and constraints.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/QueryInterface/TableDefinition.swift#L81-L86">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database6renameFzT5tableSS2toSS_T_"></a>
+                    <a name="//apple_ref/swift/Method/rename(table:to:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database6renameFzT5tableSS2toSS_T_">rename(table:to:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Renames a database table.</p>
+
+<p>See <a href="https://www.sqlite.org/lang_altertable.html">https://www.sqlite.org/lang_altertable.html</a></p>
+
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">rename</span><span class="p">(</span><span class="n">table</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="n">to</span> <span class="nv">newName</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/QueryInterface/TableDefinition.swift#L94-L96">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database5alterFzT5tableSS4bodyFCS_15TableAlterationT__T_"></a>
+                    <a name="//apple_ref/swift/Method/alter(table:body:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database5alterFzT5tableSS4bodyFCS_15TableAlterationT__T_">alter(table:body:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Modifies a database table.</p>
+
+<pre class="highlight plaintext"><code>try db.alter(table: "persons") { t in
+    t.add(column: "url", .text)
+}
+</code></pre>
+
+<p>See <a href="https://www.sqlite.org/lang_altertable.html">https://www.sqlite.org/lang_altertable.html</a></p>
+
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">alter</span><span class="p">(</span><span class="n">table</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">body</span><span class="p">:</span> <span class="p">(</span><span class="kt"><a href="../Classes/TableAlteration.html">TableAlteration</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>name</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The table name.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>body</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A closure that defines table alterations.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/QueryInterface/TableDefinition.swift#L110-L115">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database4dropFzT5tableSS_T_"></a>
+                    <a name="//apple_ref/swift/Method/drop(table:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database4dropFzT5tableSS_T_">drop(table:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Deletes a database table.</p>
+
+<p>See <a href="https://www.sqlite.org/lang_droptable.html">https://www.sqlite.org/lang_droptable.html</a></p>
+
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">drop</span><span class="p">(</span><span class="n">table</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/QueryInterface/TableDefinition.swift#L122-L124">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/create(index:on:columns:unique:ifNotExists:condition:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">create(index:on:columns:unique:ifNotExists:condition:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">final</span> <span class="kd">class</span> <span class="kt">Database</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database6createFzT5indexSS2onSS7columnsGSaSS_6uniqueSb11ifNotExistsSb_T_"></a>
+                    <a name="//apple_ref/swift/Method/create(index:on:columns:unique:ifNotExists:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database6createFzT5indexSS2onSS7columnsGSaSS_6uniqueSb11ifNotExistsSb_T_">create(index:on:columns:unique:ifNotExists:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Creates an index.</p>
+
+<pre class="highlight plaintext"><code>try db.create(index: "personByEmail", on: "person", columns: ["email"])
+</code></pre>
+
+<p>SQLite can also index expressions (<a href="https://www.sqlite.org/expridx.html">https://www.sqlite.org/expridx.html</a>)
+and use specific collations. To create such an index, use a raw SQL
+query.</p>
+
+<pre class="highlight plaintext"><code>try db.execute("CREATE INDEX ...")
+</code></pre>
+
+<p>See <a href="https://www.sqlite.org/lang_createindex.html">https://www.sqlite.org/lang_createindex.html</a></p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">create</span><span class="p">(</span><span class="n">index</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="n">on</span> <span class="nv">table</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">columns</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">],</span> <span class="nv">unique</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span> <span class="nv">ifNotExists</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>name</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The index name.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>table</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The name of the indexed table.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>columns</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The indexed columns.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>unique</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>If true, creates a unique index.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>ifNotExists</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>If false, no error is thrown if index already exists.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/QueryInterface/TableDefinition.swift#L173-L179">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database6createFzT5indexSS2onSS7columnsGSaSS_6uniqueSb11ifNotExistsSb9conditionPS_14SQLExpressible__T_"></a>
+                    <a name="//apple_ref/swift/Method/create(index:on:columns:unique:ifNotExists:condition:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database6createFzT5indexSS2onSS7columnsGSaSS_6uniqueSb11ifNotExistsSb9conditionPS_14SQLExpressible__T_">create(index:on:columns:unique:ifNotExists:condition:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Creates a partial index.</p>
+
+<pre class="highlight plaintext"><code>try db.create(index: "personByEmail", on: "person", columns: ["email"], condition: Column("email") != nil)
+</code></pre>
+
+<p>See <a href="https://www.sqlite.org/lang_createindex.html">https://www.sqlite.org/lang_createindex.html</a>, and
+<a href="https://www.sqlite.org/partialindex.html">https://www.sqlite.org/partialindex.html</a></p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">create</span><span class="p">(</span><span class="n">index</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="n">on</span> <span class="nv">table</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">columns</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">],</span> <span class="nv">unique</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span> <span class="nv">ifNotExists</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span> <span class="nv">condition</span><span class="p">:</span> <span class="kt"><a href="../Protocols/SQLExpressible.html">SQLExpressible</a></span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>name</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The index name.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>table</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The name of the indexed table.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>columns</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The indexed columns.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>unique</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>If true, creates a unique index.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>ifNotExists</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>If false, no error is thrown if index already exists.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>condition</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The condition that indexed rows must verify.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/QueryInterface/TableDefinition.swift#L196-L202">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database4dropFzT5indexSS_T_"></a>
+                    <a name="//apple_ref/swift/Method/drop(index:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database4dropFzT5indexSS_T_">drop(index:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Deletes a database index.</p>
+
+<p>See <a href="https://www.sqlite.org/lang_dropindex.html">https://www.sqlite.org/lang_dropindex.html</a></p>
+
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">drop</span><span class="p">(</span><span class="n">index</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/QueryInterface/TableDefinition.swift#L210-L212">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Database%20Schema:%20Virtual%20Table"></a>
+                <a name="//apple_ref/swift/Section/Database Schema: Virtual Table" class="dashAnchor"></a>
+                <a href="#/Database%20Schema:%20Virtual%20Table">
+                  <h3 class="section-name">Database Schema: Virtual Table</h3>
+                </a>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database6createFzT12virtualTableSS11ifNotExistsSb5usingSS_T_"></a>
+                    <a name="//apple_ref/swift/Method/create(virtualTable:ifNotExists:using:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database6createFzT12virtualTableSS11ifNotExistsSb5usingSS_T_">create(virtualTable:ifNotExists:using:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Creates a virtual database table.</p>
+
+<pre class="highlight plaintext"><code>try db.create(virtualTable: "vocabulary", using: "spellfix1")
+</code></pre>
+
+<p>See <a href="https://www.sqlite.org/lang_createtable.html">https://www.sqlite.org/lang_createtable.html</a></p>
+
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">create</span><span class="p">(</span><span class="n">virtualTable</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">ifNotExists</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span> <span class="n">using</span> <span class="nv">module</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>name</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The table name.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>ifNotExists</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>If false, no error is thrown if table already exists.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>module</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The name of an SQLite virtual table module.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/QueryInterface/VirtualTableModule.swift#L55-L66">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB8Database6createuRxS_18VirtualTableModulerFzT12virtualTableSS11ifNotExistsSb5usingxGSqFwx15TableDefinitionT___T_"></a>
+                    <a name="//apple_ref/swift/Method/create(virtualTable:ifNotExists:using:_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB8Database6createuRxS_18VirtualTableModulerFzT12virtualTableSS11ifNotExistsSb5usingxGSqFwx15TableDefinitionT___T_">create(virtualTable:ifNotExists:using:_:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Creates a virtual database table.</p>
+
+<pre class="highlight plaintext"><code>let module = ...
+try db.create(virtualTable: "pointOfInterests", using: module) { t in
+    ...
+}
+</code></pre>
+
+<p>The type of the closure argument <code>t</code> depends on the type of the module
+argument: refer to this module&rsquo;s documentation.</p>
+
+<p>Use this method to create full-text tables using the FTS3, FTS4, or
+FTS5 modules:</p>
+
+<pre class="highlight plaintext"><code>try db.create(virtualTable: "books", using: FTS4()) { t in
+    t.column("title")
+    t.column("author")
+    t.column("body")
+}
+</code></pre>
+
+<p>See <a href="https://www.sqlite.org/lang_createtable.html">https://www.sqlite.org/lang_createtable.html</a></p>
+
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="n">create</span><span class="o">&lt;</span><span class="kt">Module</span><span class="p">:</span> <span class="kt"><a href="../Protocols/VirtualTableModule.html">VirtualTableModule</a></span><span class="o">&gt;</span><span class="p">(</span><span class="n">virtualTable</span> <span class="nv">tableName</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">ifNotExists</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span> <span class="n">using</span> <span class="nv">module</span><span class="p">:</span> <span class="kt">Module</span><span class="p">,</span> <span class="n">_</span> <span class="nv">body</span><span class="p">:</span> <span class="p">((</span><span class="kt">Module</span><span class="o">.</span><span class="kt"><a href="../Classes/TableDefinition.html">TableDefinition</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>name</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The table name.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>ifNotExists</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>If false, no error is thrown if table already exists.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>module</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>a VirtualTableModule</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>body</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>An optional closure that defines the virtual table.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/QueryInterface/VirtualTableModule.swift#L95-L123">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </section>
+        </section>
+        <section id="footer">
+          <p>&copy; 2017 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2017-03-26)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+        </section>
+      </article>
+    </div>
+  </body>
+</div>
+</html>

@@ -1,0 +1,2932 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>ResultCode Struct Reference</title>
+    <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    <meta charset='utf-8'>
+    <script src="../js/jquery.min.js" defer></script>
+    <script src="../js/jazzy.js" defer></script>
+    
+  </head>
+  <body>
+    <a name="//apple_ref/swift/Struct/ResultCode" class="dashAnchor"></a>
+    <a title="ResultCode Struct Reference"></a>
+    <header>
+      <div class="content-wrapper">
+        <p><a href="../index.html">GRDB Docs</a> (89% documented)</p>
+        <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
+        <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue%2Egithub%2Eio%2FGRDB%2Eswift%2Fdocs%2F0%2E102%2E0%2Fdocsets%2FGRDB%2Exml"><img src="../img/dash.png"/>Install in Dash</a></p>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <p id="breadcrumbs">
+        <a href="../index.html">GRDB Reference</a>
+        <img id="carat" src="../img/carat.png" />
+        ResultCode Struct Reference
+      </p>
+    </div>
+    <div class="content-wrapper">
+      <nav class="sidebar">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a href="../Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Classes/AnyCursor.html">AnyCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/ColumnDefinition.html">ColumnDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database.html">Database</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/BusyMode.html">– BusyMode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/CheckpointMode.html">– CheckpointMode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/CollationName.html">– CollationName</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/ConflictResolution.html">– ConflictResolution</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/ColumnType.html">– ColumnType</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/ForeignKeyAction.html">– ForeignKeyAction</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/TransactionKind.html">– TransactionKind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/TransactionCompletion.html">– TransactionCompletion</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabaseCollation.html">DatabaseCollation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabaseCursor.html">DatabaseCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabaseFunction.html">DatabaseFunction</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabasePool.html">DatabasePool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabaseQueue.html">DatabaseQueue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/EnumeratedCursor.html">EnumeratedCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FTS3TableDefinition.html">FTS3TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FTS4ColumnDefinition.html">FTS4ColumnDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FTS4TableDefinition.html">FTS4TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FTS5ColumnDefinition.html">FTS5ColumnDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FTS5TableDefinition.html">FTS5TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FetchedRecordsController.html">FetchedRecordsController</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FilterCursor.html">FilterCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FlattenCursor.html">FlattenCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IteratorCursor.html">IteratorCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/MapCursor.html">MapCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Record.html">Record</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Row.html">Row</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/SelectStatement.html">SelectStatement</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Statement.html">Statement</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/TableAlteration.html">TableAlteration</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/TableDefinition.html">TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/UpdateStatement.html">UpdateStatement</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Enums.html">Enums</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Enums/DatabaseEventKind.html">DatabaseEventKind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/FetchedRecordChange.html">FetchedRecordChange</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/PersistenceError.html">PersistenceError</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Extensions.html">Extensions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Extensions/Array.html">Array</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Bool.html">Bool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/CGFloat.html">CGFloat</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/ClosedRange.html">ClosedRange</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Column.html">Column</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/CountableClosedRange.html">CountableClosedRange</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/CountableRange.html">CountableRange</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Data.html">Data</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Database.html">Database</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/DatabasePool.html">DatabasePool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/DatabaseQueue.html">DatabaseQueue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Double.html">Double</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Float.html">Float</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int.html">Int</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int32.html">Int32</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int64.html">Int64</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSData.html">NSData</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSDate.html">NSDate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSNull.html">NSNull</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSNumber.html">NSNumber</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSString.html">NSString</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSURL.html">NSURL</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSUUID.html">NSUUID</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Optional.html">Optional</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/QueryInterfaceRequest.html">QueryInterfaceRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Range.html">Range</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/RawRepresentable.html">RawRepresentable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/ReferenceConvertible.html">ReferenceConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Sequence.html">Sequence</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/String.html">String</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/TableMapping.html">TableMapping</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Functions.html">Functions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBop1nFPS_22SQLSpecificExpressible_PS_13SQLExpression_">!(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2neFTGSqPS_14SQLExpressible__PS_22SQLSpecificExpressible__PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2neFTGSqPS_14SQLExpressible__VS_21SQLCollatedExpression_PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2neFTPS_22SQLSpecificExpressible_GSqPS_14SQLExpressible___PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2neFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2neFTPS_22SQLSpecificExpressible_Sb_PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2neFTSbPS_22SQLSpecificExpressible__PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2neFTVS_21SQLCollatedExpressionGSqPS_14SQLExpressible___PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3neeFTGSqPS_14SQLExpressible__PS_22SQLSpecificExpressible__PS_13SQLExpression_">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3neeFTGSqPS_14SQLExpressible__VS_21SQLCollatedExpression_PS_13SQLExpression_">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3neeFTPS_22SQLSpecificExpressible_GSqPS_14SQLExpressible___PS_13SQLExpression_">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3neeFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3neeFTVS_21SQLCollatedExpressionGSqPS_14SQLExpressible___PS_13SQLExpression_">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2aaFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">&amp;&amp;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2aaFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">&amp;&amp;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2aaFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">&amp;&amp;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1mFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">*(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1mFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">*(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1mFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">*(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1pFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">+(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1pFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">+(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1pFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">+(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBop1sFPS_22SQLSpecificExpressible_PS_13SQLExpression_">-(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1sFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">-(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1sFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">-(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1sFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">-(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1dFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">/(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1dFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">/(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1dFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">/(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1lFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1lFTPS_14SQLExpressible_VS_21SQLCollatedExpression_PS_13SQLExpression_">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1lFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1lFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1lFTVS_21SQLCollatedExpressionPS_14SQLExpressible__PS_13SQLExpression_">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2leFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2leFTPS_14SQLExpressible_VS_21SQLCollatedExpression_PS_13SQLExpression_">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2leFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2leFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2leFTVS_21SQLCollatedExpressionPS_14SQLExpressible__PS_13SQLExpression_">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2eeFTGSqPS_14SQLExpressible__PS_22SQLSpecificExpressible__PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2eeFTGSqPS_14SQLExpressible__VS_21SQLCollatedExpression_PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2eeFTPS_22SQLSpecificExpressible_GSqPS_14SQLExpressible___PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2eeFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2eeFTPS_22SQLSpecificExpressible_Sb_PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2eeFTSbPS_22SQLSpecificExpressible__PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2eeFTVS_21SQLCollatedExpressionGSqPS_14SQLExpressible___PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3eeeFTGSqPS_14SQLExpressible__PS_22SQLSpecificExpressible__PS_13SQLExpression_">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3eeeFTGSqPS_14SQLExpressible__VS_21SQLCollatedExpression_PS_13SQLExpression_">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3eeeFTPS_22SQLSpecificExpressible_GSqPS_14SQLExpressible___PS_13SQLExpression_">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3eeeFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3eeeFTVS_21SQLCollatedExpressionGSqPS_14SQLExpressible___PS_13SQLExpression_">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1gFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1gFTPS_14SQLExpressible_VS_21SQLCollatedExpression_PS_13SQLExpression_">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1gFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1gFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1gFTVS_21SQLCollatedExpressionPS_14SQLExpressible__PS_13SQLExpression_">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2geFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2geFTPS_14SQLExpressible_VS_21SQLCollatedExpression_PS_13SQLExpression_">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2geFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2geFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2geFTVS_21SQLCollatedExpressionPS_14SQLExpressible__PS_13SQLExpression_">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2qqFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">??(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB3absFPS_22SQLSpecificExpressible_PS_13SQLExpression_">abs(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB7averageFPS_22SQLSpecificExpressible_PS_13SQLExpression_">average(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB5countFPS_13SQLSelectable_PS_13SQLExpression_">count(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB5countFT8distinctPS_22SQLSpecificExpressible__PS_13SQLExpression_">count(distinct:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB21databaseQuestionMarksFT5countSi_SS">databaseQuestionMarks(count:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB6lengthFPS_22SQLSpecificExpressible_PS_13SQLExpression_">length(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB3maxFPS_22SQLSpecificExpressible_PS_13SQLExpression_">max(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB3minFPS_22SQLSpecificExpressible_PS_13SQLExpression_">min(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB3sumFPS_22SQLSpecificExpressible_PS_13SQLExpression_">sum(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2ooFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">||(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2ooFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">||(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2ooFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">||(_:_:)</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Protocols.html">Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Protocols/Cursor.html">Cursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/DatabaseReader.html">DatabaseReader</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/DatabaseValueConvertible.html">DatabaseValueConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/DatabaseWriter.html">DatabaseWriter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/FTS5CustomTokenizer.html">FTS5CustomTokenizer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/FTS5Tokenizer.html">FTS5Tokenizer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/FTS5WrapperTokenizer.html">FTS5WrapperTokenizer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LayoutedRowAdapter.html">LayoutedRowAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/MutablePersistable.html">MutablePersistable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/Persistable.html">Persistable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/Request.html">Request</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/RowAdapter.html">RowAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/RowConvertible.html">RowConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/RowLayout.html">RowLayout</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLCollection.html">SQLCollection</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLExpressible.html">SQLExpressible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLExpression.html">SQLExpression</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLOrderingTerm.html">SQLOrderingTerm</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLSelectQuery.html">SQLSelectQuery</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLSelectable.html">SQLSelectable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLSpecificExpressible.html">SQLSpecificExpressible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/StatementColumnConvertible.html">StatementColumnConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/TableMapping.html">TableMapping</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/TransactionObserver.html">TransactionObserver</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/TypedRequest.html">TypedRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/VirtualTableModule.html">VirtualTableModule</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols.html#/s:P4GRDB18_OptionalFetchable">_OptionalFetchable</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Structs.html">Structs</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Structs/AnyRequest.html">AnyRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/AnyTypedRequest.html">AnyTypedRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/Column.html">Column</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ColumnMapping.html">ColumnMapping</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/Configuration.html">Configuration</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseCoder.html">DatabaseCoder</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseDateComponents.html">DatabaseDateComponents</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseDateComponents/Format.html">– Format</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseError.html">DatabaseError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseEvent.html">DatabaseEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseEvent/Kind.html">– Kind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseMigrator.html">DatabaseMigrator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabasePreUpdateEvent.html">DatabasePreUpdateEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabasePreUpdateEvent/Kind.html">– Kind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseValue.html">DatabaseValue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseValue/Storage.html">– Storage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS3.html">FTS3</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS3Pattern.html">FTS3Pattern</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS3TokenizerDescriptor.html">FTS3TokenizerDescriptor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS4.html">FTS4</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5.html">FTS5</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5Pattern.html">FTS5Pattern</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5TokenFlags.html">FTS5TokenFlags</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5Tokenization.html">FTS5Tokenization</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5TokenizerDescriptor.html">FTS5TokenizerDescriptor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FetchedRecordsSectionInfo.html">FetchedRecordsSectionInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/IndexInfo.html">IndexInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/LayoutedColumnMapping.html">LayoutedColumnMapping</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/PersistenceConflictPolicy.html">PersistenceConflictPolicy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/PrimaryKeyInfo.html">PrimaryKeyInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/QueryInterfaceRequest.html">QueryInterfaceRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/RangeRowAdapter.html">RangeRowAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ResultCode.html">ResultCode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/RowIndex.html">RowIndex</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLBinaryOperator.html">SQLBinaryOperator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLCollatedExpression.html">SQLCollatedExpression</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLExpressionBinary.html">SQLExpressionBinary</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLExpressionExists.html">SQLExpressionExists</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLExpressionFunction.html">SQLExpressionFunction</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLExpressionLiteral.html">SQLExpressionLiteral</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLExpressionUnary.html">SQLExpressionUnary</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLFunctionName.html">SQLFunctionName</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLRequest.html">SQLRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLUnaryOperator.html">SQLUnaryOperator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ScopeAdapter.html">ScopeAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/StatementArguments.html">StatementArguments</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SuffixRowAdapter.html">SuffixRowAdapter</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Typealiases.html">Typealiases</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Typealiases.html#/s:4GRDB16SQLiteConnection">SQLiteConnection</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Typealiases.html#/s:4GRDB15SQLiteStatement">SQLiteStatement</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Typealiases.html#/s:4GRDB11SQLiteValue">SQLiteValue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Typealiases.html#/s:4GRDB13TraceFunction">TraceFunction</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Typealiases.html#/s:E4GRDBSq8_Wrapped">_Wrapped</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Associated Types.html">Associated Types</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Associated Types.html#/s:P4GRDB12TypedRequest7Fetched">Fetched</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+        <section>
+          <section class="section">
+            <h1>ResultCode</h1>
+            <p>Undocumented</p>
+
+          </section>
+          <section class="section task-group-section">
+            <div class="task-group">
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:vPs16RawRepresentable8rawValuewx8RawValue"></a>
+                    <a name="//apple_ref/swift/Property/rawValue" class="dashAnchor"></a>
+                    <a class="token" href="#/s:vPs16RawRepresentable8rawValuewx8RawValue">rawValue</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">rawValue</span><span class="p">:</span> <span class="kt">Int32</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FPs16RawRepresentablecFT8rawValuewx8RawValue_GSqx_"></a>
+                    <a name="//apple_ref/swift/Method/init(rawValue:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FPs16RawRepresentablecFT8rawValuewx8RawValue_GSqx_">init(rawValue:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">rawValue</span><span class="p">:</span> <span class="kt">Int32</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>rawValue</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The raw value to use for the new instance.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L24-L26">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:vV4GRDB10ResultCode17primaryResultCodeS0_"></a>
+                    <a name="//apple_ref/swift/Property/primaryResultCode" class="dashAnchor"></a>
+                    <a class="token" href="#/s:vV4GRDB10ResultCode17primaryResultCodeS0_">primaryResultCode</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A result code limited to the least significant 8 bits of the receiver.
+See <a href="https://www.sqlite.org/rescode.html">https://www.sqlite.org/rescode.html</a> for more information.</p>
+
+<pre class="highlight plaintext"><code>let resultCode = .SQLITE_CONSTRAINT_FOREIGNKEY
+resultCode.primaryResultCode == .SQLITE_CONSTRAINT // true
+</code></pre>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">primaryResultCode</span><span class="p">:</span> <span class="kt">ResultCode</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L33-L35">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:vPs23CustomStringConvertible11descriptionSS"></a>
+                    <a name="//apple_ref/swift/Property/description" class="dashAnchor"></a>
+                    <a class="token" href="#/s:vPs23CustomStringConvertible11descriptionSS">description</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A result code limited to the least significant 8 bits of the receiver.
+See <a href="https://www.sqlite.org/rescode.html">https://www.sqlite.org/rescode.html</a> for more information.</p>
+
+<pre class="highlight plaintext"><code>let resultCode = .SQLITE_CONSTRAINT_FOREIGNKEY
+resultCode.primaryResultCode == .SQLITE_CONSTRAINT // true
+</code></pre>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">description</span><span class="p">:</span> <span class="kt">String</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L41-L43">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZFPs9Equatableoi2eeFTxx_Sb"></a>
+                    <a name="//apple_ref/swift/Method/==(_:_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZFPs9Equatableoi2eeFTxx_Sb">==(_:_:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A result code limited to the least significant 8 bits of the receiver.
+See <a href="https://www.sqlite.org/rescode.html">https://www.sqlite.org/rescode.html</a> for more information.</p>
+
+<pre class="highlight plaintext"><code>let resultCode = .SQLITE_CONSTRAINT_FOREIGNKEY
+resultCode.primaryResultCode == .SQLITE_CONSTRAINT // true
+</code></pre>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="o">==</span> <span class="p">(</span><span class="n">_</span> <span class="nv">lhs</span><span class="p">:</span> <span class="kt">ResultCode</span><span class="p">,</span> <span class="n">_</span> <span class="nv">rhs</span><span class="p">:</span> <span class="kt">ResultCode</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>lhs</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A value to compare.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>rhs</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Another value to compare.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L45-L47">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZFV4GRDB10ResultCodeoi2teFTS0_S0__Sb"></a>
+                    <a name="//apple_ref/swift/Method/~=(_:_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZFV4GRDB10ResultCodeoi2teFTS0_S0__Sb">~=(_:_:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Returns true if the code on the left matches the code on the right.</p>
+
+<p>Primary result codes match themselves and their extended result codes,
+while extended result codes match only themselves:</p>
+
+<pre class="highlight plaintext"><code>switch error.extendedResultCode {
+case .SQLITE_CONSTRAINT_FOREIGNKEY: // foreign key constraint error
+case .SQLITE_CONSTRAINT:            // any other constraint error
+default:                            // any other database error
+}
+</code></pre>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="o">~=</span> <span class="p">(</span><span class="nv">pattern</span><span class="p">:</span> <span class="kt">ResultCode</span><span class="p">,</span> <span class="nv">code</span><span class="p">:</span> <span class="kt">ResultCode</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L59-L65">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode9SQLITE_OKS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_OK" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode9SQLITE_OKS0_">SQLITE_OK</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode12SQLITE_ERRORS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_ERROR" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode12SQLITE_ERRORS0_">SQLITE_ERROR</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode15SQLITE_INTERNALS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_INTERNAL" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode15SQLITE_INTERNALS0_">SQLITE_INTERNAL</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode11SQLITE_PERMS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_PERM" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode11SQLITE_PERMS0_">SQLITE_PERM</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode12SQLITE_ABORTS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_ABORT" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode12SQLITE_ABORTS0_">SQLITE_ABORT</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode11SQLITE_BUSYS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_BUSY" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode11SQLITE_BUSYS0_">SQLITE_BUSY</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode13SQLITE_LOCKEDS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_LOCKED" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode13SQLITE_LOCKEDS0_">SQLITE_LOCKED</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode12SQLITE_NOMEMS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_NOMEM" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode12SQLITE_NOMEMS0_">SQLITE_NOMEM</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode15SQLITE_READONLYS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_READONLY" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode15SQLITE_READONLYS0_">SQLITE_READONLY</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode16SQLITE_INTERRUPTS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_INTERRUPT" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode16SQLITE_INTERRUPTS0_">SQLITE_INTERRUPT</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode12SQLITE_IOERRS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode12SQLITE_IOERRS0_">SQLITE_IOERR</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode14SQLITE_CORRUPTS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_CORRUPT" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode14SQLITE_CORRUPTS0_">SQLITE_CORRUPT</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode15SQLITE_NOTFOUNDS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_NOTFOUND" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode15SQLITE_NOTFOUNDS0_">SQLITE_NOTFOUND</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode11SQLITE_FULLS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_FULL" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode11SQLITE_FULLS0_">SQLITE_FULL</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode15SQLITE_CANTOPENS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_CANTOPEN" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode15SQLITE_CANTOPENS0_">SQLITE_CANTOPEN</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode15SQLITE_PROTOCOLS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_PROTOCOL" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode15SQLITE_PROTOCOLS0_">SQLITE_PROTOCOL</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode12SQLITE_EMPTYS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_EMPTY" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode12SQLITE_EMPTYS0_">SQLITE_EMPTY</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode13SQLITE_SCHEMAS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_SCHEMA" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode13SQLITE_SCHEMAS0_">SQLITE_SCHEMA</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode13SQLITE_TOOBIGS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_TOOBIG" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode13SQLITE_TOOBIGS0_">SQLITE_TOOBIG</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode17SQLITE_CONSTRAINTS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_CONSTRAINT" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode17SQLITE_CONSTRAINTS0_">SQLITE_CONSTRAINT</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode15SQLITE_MISMATCHS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_MISMATCH" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode15SQLITE_MISMATCHS0_">SQLITE_MISMATCH</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode13SQLITE_MISUSES0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_MISUSE" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode13SQLITE_MISUSES0_">SQLITE_MISUSE</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode12SQLITE_NOLFSS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_NOLFS" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode12SQLITE_NOLFSS0_">SQLITE_NOLFS</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode11SQLITE_AUTHS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_AUTH" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode11SQLITE_AUTHS0_">SQLITE_AUTH</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode13SQLITE_FORMATS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_FORMAT" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode13SQLITE_FORMATS0_">SQLITE_FORMAT</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode12SQLITE_RANGES0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_RANGE" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode12SQLITE_RANGES0_">SQLITE_RANGE</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode13SQLITE_NOTADBS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_NOTADB" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode13SQLITE_NOTADBS0_">SQLITE_NOTADB</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode13SQLITE_NOTICES0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_NOTICE" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode13SQLITE_NOTICES0_">SQLITE_NOTICE</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode14SQLITE_WARNINGS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_WARNING" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode14SQLITE_WARNINGS0_">SQLITE_WARNING</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode10SQLITE_ROWS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_ROW" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode10SQLITE_ROWS0_">SQLITE_ROW</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode11SQLITE_DONES0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_DONE" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode11SQLITE_DONES0_">SQLITE_DONE</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode17SQLITE_IOERR_READS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_READ" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode17SQLITE_IOERR_READS0_">SQLITE_IOERR_READ</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode23SQLITE_IOERR_SHORT_READS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_SHORT_READ" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode23SQLITE_IOERR_SHORT_READS0_">SQLITE_IOERR_SHORT_READ</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode18SQLITE_IOERR_WRITES0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_WRITE" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode18SQLITE_IOERR_WRITES0_">SQLITE_IOERR_WRITE</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode18SQLITE_IOERR_FSYNCS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_FSYNC" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode18SQLITE_IOERR_FSYNCS0_">SQLITE_IOERR_FSYNC</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode22SQLITE_IOERR_DIR_FSYNCS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_DIR_FSYNC" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode22SQLITE_IOERR_DIR_FSYNCS0_">SQLITE_IOERR_DIR_FSYNC</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode21SQLITE_IOERR_TRUNCATES0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_TRUNCATE" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode21SQLITE_IOERR_TRUNCATES0_">SQLITE_IOERR_TRUNCATE</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode18SQLITE_IOERR_FSTATS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_FSTAT" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode18SQLITE_IOERR_FSTATS0_">SQLITE_IOERR_FSTAT</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode19SQLITE_IOERR_UNLOCKS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_UNLOCK" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode19SQLITE_IOERR_UNLOCKS0_">SQLITE_IOERR_UNLOCK</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode19SQLITE_IOERR_RDLOCKS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_RDLOCK" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode19SQLITE_IOERR_RDLOCKS0_">SQLITE_IOERR_RDLOCK</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode19SQLITE_IOERR_DELETES0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_DELETE" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode19SQLITE_IOERR_DELETES0_">SQLITE_IOERR_DELETE</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode20SQLITE_IOERR_BLOCKEDS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_BLOCKED" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode20SQLITE_IOERR_BLOCKEDS0_">SQLITE_IOERR_BLOCKED</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode18SQLITE_IOERR_NOMEMS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_NOMEM" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode18SQLITE_IOERR_NOMEMS0_">SQLITE_IOERR_NOMEM</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode19SQLITE_IOERR_ACCESSS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_ACCESS" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode19SQLITE_IOERR_ACCESSS0_">SQLITE_IOERR_ACCESS</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode30SQLITE_IOERR_CHECKRESERVEDLOCKS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_CHECKRESERVEDLOCK" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode30SQLITE_IOERR_CHECKRESERVEDLOCKS0_">SQLITE_IOERR_CHECKRESERVEDLOCK</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode17SQLITE_IOERR_LOCKS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_LOCK" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode17SQLITE_IOERR_LOCKS0_">SQLITE_IOERR_LOCK</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode18SQLITE_IOERR_CLOSES0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_CLOSE" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode18SQLITE_IOERR_CLOSES0_">SQLITE_IOERR_CLOSE</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode22SQLITE_IOERR_DIR_CLOSES0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_DIR_CLOSE" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode22SQLITE_IOERR_DIR_CLOSES0_">SQLITE_IOERR_DIR_CLOSE</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode20SQLITE_IOERR_SHMOPENS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_SHMOPEN" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode20SQLITE_IOERR_SHMOPENS0_">SQLITE_IOERR_SHMOPEN</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode20SQLITE_IOERR_SHMSIZES0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_SHMSIZE" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode20SQLITE_IOERR_SHMSIZES0_">SQLITE_IOERR_SHMSIZE</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode20SQLITE_IOERR_SHMLOCKS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_SHMLOCK" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode20SQLITE_IOERR_SHMLOCKS0_">SQLITE_IOERR_SHMLOCK</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode19SQLITE_IOERR_SHMMAPS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_SHMMAP" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode19SQLITE_IOERR_SHMMAPS0_">SQLITE_IOERR_SHMMAP</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode17SQLITE_IOERR_SEEKS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_SEEK" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode17SQLITE_IOERR_SEEKS0_">SQLITE_IOERR_SEEK</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode25SQLITE_IOERR_DELETE_NOENTS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_DELETE_NOENT" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode25SQLITE_IOERR_DELETE_NOENTS0_">SQLITE_IOERR_DELETE_NOENT</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode17SQLITE_IOERR_MMAPS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_MMAP" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode17SQLITE_IOERR_MMAPS0_">SQLITE_IOERR_MMAP</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode24SQLITE_IOERR_GETTEMPPATHS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_GETTEMPPATH" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode24SQLITE_IOERR_GETTEMPPATHS0_">SQLITE_IOERR_GETTEMPPATH</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode21SQLITE_IOERR_CONVPATHS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_CONVPATH" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode21SQLITE_IOERR_CONVPATHS0_">SQLITE_IOERR_CONVPATH</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode18SQLITE_IOERR_VNODES0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_VNODE" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode18SQLITE_IOERR_VNODES0_">SQLITE_IOERR_VNODE</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode17SQLITE_IOERR_AUTHS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_IOERR_AUTH" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode17SQLITE_IOERR_AUTHS0_">SQLITE_IOERR_AUTH</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode25SQLITE_LOCKED_SHAREDCACHES0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_LOCKED_SHAREDCACHE" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode25SQLITE_LOCKED_SHAREDCACHES0_">SQLITE_LOCKED_SHAREDCACHE</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode20SQLITE_BUSY_RECOVERYS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_BUSY_RECOVERY" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode20SQLITE_BUSY_RECOVERYS0_">SQLITE_BUSY_RECOVERY</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode20SQLITE_BUSY_SNAPSHOTS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_BUSY_SNAPSHOT" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode20SQLITE_BUSY_SNAPSHOTS0_">SQLITE_BUSY_SNAPSHOT</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode25SQLITE_CANTOPEN_NOTEMPDIRS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_CANTOPEN_NOTEMPDIR" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode25SQLITE_CANTOPEN_NOTEMPDIRS0_">SQLITE_CANTOPEN_NOTEMPDIR</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode21SQLITE_CANTOPEN_ISDIRS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_CANTOPEN_ISDIR" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode21SQLITE_CANTOPEN_ISDIRS0_">SQLITE_CANTOPEN_ISDIR</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode24SQLITE_CANTOPEN_FULLPATHS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_CANTOPEN_FULLPATH" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode24SQLITE_CANTOPEN_FULLPATHS0_">SQLITE_CANTOPEN_FULLPATH</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode24SQLITE_CANTOPEN_CONVPATHS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_CANTOPEN_CONVPATH" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode24SQLITE_CANTOPEN_CONVPATHS0_">SQLITE_CANTOPEN_CONVPATH</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode19SQLITE_CORRUPT_VTABS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_CORRUPT_VTAB" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode19SQLITE_CORRUPT_VTABS0_">SQLITE_CORRUPT_VTAB</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode24SQLITE_READONLY_RECOVERYS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_READONLY_RECOVERY" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode24SQLITE_READONLY_RECOVERYS0_">SQLITE_READONLY_RECOVERY</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode24SQLITE_READONLY_CANTLOCKS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_READONLY_CANTLOCK" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode24SQLITE_READONLY_CANTLOCKS0_">SQLITE_READONLY_CANTLOCK</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode24SQLITE_READONLY_ROLLBACKS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_READONLY_ROLLBACK" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode24SQLITE_READONLY_ROLLBACKS0_">SQLITE_READONLY_ROLLBACK</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode23SQLITE_READONLY_DBMOVEDS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_READONLY_DBMOVED" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode23SQLITE_READONLY_DBMOVEDS0_">SQLITE_READONLY_DBMOVED</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode21SQLITE_ABORT_ROLLBACKS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_ABORT_ROLLBACK" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode21SQLITE_ABORT_ROLLBACKS0_">SQLITE_ABORT_ROLLBACK</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode23SQLITE_CONSTRAINT_CHECKS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_CONSTRAINT_CHECK" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode23SQLITE_CONSTRAINT_CHECKS0_">SQLITE_CONSTRAINT_CHECK</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode28SQLITE_CONSTRAINT_COMMITHOOKS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_CONSTRAINT_COMMITHOOK" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode28SQLITE_CONSTRAINT_COMMITHOOKS0_">SQLITE_CONSTRAINT_COMMITHOOK</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode28SQLITE_CONSTRAINT_FOREIGNKEYS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_CONSTRAINT_FOREIGNKEY" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode28SQLITE_CONSTRAINT_FOREIGNKEYS0_">SQLITE_CONSTRAINT_FOREIGNKEY</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode26SQLITE_CONSTRAINT_FUNCTIONS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_CONSTRAINT_FUNCTION" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode26SQLITE_CONSTRAINT_FUNCTIONS0_">SQLITE_CONSTRAINT_FUNCTION</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode25SQLITE_CONSTRAINT_NOTNULLS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_CONSTRAINT_NOTNULL" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode25SQLITE_CONSTRAINT_NOTNULLS0_">SQLITE_CONSTRAINT_NOTNULL</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode28SQLITE_CONSTRAINT_PRIMARYKEYS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_CONSTRAINT_PRIMARYKEY" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode28SQLITE_CONSTRAINT_PRIMARYKEYS0_">SQLITE_CONSTRAINT_PRIMARYKEY</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode25SQLITE_CONSTRAINT_TRIGGERS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_CONSTRAINT_TRIGGER" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode25SQLITE_CONSTRAINT_TRIGGERS0_">SQLITE_CONSTRAINT_TRIGGER</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode24SQLITE_CONSTRAINT_UNIQUES0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_CONSTRAINT_UNIQUE" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode24SQLITE_CONSTRAINT_UNIQUES0_">SQLITE_CONSTRAINT_UNIQUE</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode22SQLITE_CONSTRAINT_VTABS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_CONSTRAINT_VTAB" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode22SQLITE_CONSTRAINT_VTABS0_">SQLITE_CONSTRAINT_VTAB</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode23SQLITE_CONSTRAINT_ROWIDS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_CONSTRAINT_ROWID" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode23SQLITE_CONSTRAINT_ROWIDS0_">SQLITE_CONSTRAINT_ROWID</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode25SQLITE_NOTICE_RECOVER_WALS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_NOTICE_RECOVER_WAL" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode25SQLITE_NOTICE_RECOVER_WALS0_">SQLITE_NOTICE_RECOVER_WAL</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode30SQLITE_NOTICE_RECOVER_ROLLBACKS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_NOTICE_RECOVER_ROLLBACK" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode30SQLITE_NOTICE_RECOVER_ROLLBACKS0_">SQLITE_NOTICE_RECOVER_ROLLBACK</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode24SQLITE_WARNING_AUTOINDEXS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_WARNING_AUTOINDEX" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode24SQLITE_WARNING_AUTOINDEXS0_">SQLITE_WARNING_AUTOINDEX</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode16SQLITE_AUTH_USERS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_AUTH_USER" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode16SQLITE_AUTH_USERS0_">SQLITE_AUTH_USER</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4GRDB10ResultCode26SQLITE_OK_LOAD_PERMANENTLYS0_"></a>
+                    <a name="//apple_ref/swift/Variable/SQLITE_OK_LOAD_PERMANENTLY" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4GRDB10ResultCode26SQLITE_OK_LOAD_PERMANENTLYS0_">SQLITE_OK_LOAD_PERMANENTLY</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.102.0/GRDB/Core/DatabaseError.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </section>
+        </section>
+        <section id="footer">
+          <p>&copy; 2017 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2017-03-26)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+        </section>
+      </article>
+    </div>
+  </body>
+</div>
+</html>
