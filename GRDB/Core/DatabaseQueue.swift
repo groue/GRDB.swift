@@ -223,13 +223,24 @@ extension DatabaseQueue : DatabaseReader {
     ///
     /// This method is *not* reentrant.
     ///
-    /// Attempts to write in the database throw a DatabaseError whose
+    /// Starting iOS 8.2, OSX 10.10, and with custom SQLite builds and
+    /// SQLCipher, attempts to write in the database throw a DatabaseError whose
     /// resultCode is `SQLITE_READONLY`.
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
     public func read<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try inDatabase { try readOnly($0, block) }
+        // query_only pragma was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
+        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+        #if USING_CUSTOMSQLITE || USING_SQLCIPHER
+            return try inDatabase { try readOnly($0, block) }
+        #else
+            if #available(iOS 8.2, OSX 10.10, *) {
+                return try inDatabase { try readOnly($0, block) }
+            } else {
+                return try inDatabase(block)
+            }
+        #endif
     }
     
     /// Alias for `inDatabase`. See `DatabaseReader.unsafeRead`.
@@ -299,13 +310,24 @@ extension DatabaseQueue : DatabaseWriter {
     
     /// Synchronously executes *block*.
     ///
-    /// Attempts to write in the database throw a DatabaseError whose
+    /// Starting iOS 8.2, OSX 10.10, and with custom SQLite builds and
+    /// SQLCipher, attempts to write in the database throw a DatabaseError whose
     /// resultCode is `SQLITE_READONLY`.
     ///
     /// This method must be called from the protected database dispatch queue.
     /// See `DatabaseWriter.readFromCurrentState`.
     public func readFromCurrentState(_ block: @escaping (Database) -> Void) {
-        serializedDatabase.execute { readOnly($0, block) }
+        // query_only pragma was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
+        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+        #if USING_CUSTOMSQLITE || USING_SQLCIPHER
+            serializedDatabase.execute { readOnly($0, block) }
+        #else
+            if #available(iOS 8.2, OSX 10.10, *) {
+                serializedDatabase.execute { readOnly($0, block) }
+            } else {
+                serializedDatabase.execute(block)
+            }
+        #endif
     }
 }
 

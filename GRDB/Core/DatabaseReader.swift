@@ -53,7 +53,9 @@ public protocol DatabaseReader : class {
     ///         let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
     ///     }
     ///
-    /// Guarantee 2: the block argument can't modify the database.
+    /// Guarantee 2: Starting iOS 8.2, OSX 10.10, and with custom SQLite builds
+    /// and SQLCipher, attempts to write in the database throw a DatabaseError
+    /// whose resultCode is `SQLITE_READONLY`.
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block, or any DatabaseError that would
