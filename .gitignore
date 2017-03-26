@@ -99,3 +99,7 @@ xcuserdata
 # GRDBCustomSQLite USER configuration files
 SQLiteCustom/GRDBCustomSQLite-USER.h
 SQLiteCustom/GRDBCustomSQLite-USER.xcconfig
+
+# CocoaPods test
+Tests/CocoaPods/GRDBiOS/Podfile.lock
+Tests/CocoaPods/GRDBiOS/Pods
