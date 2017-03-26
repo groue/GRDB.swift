@@ -1136,16 +1136,13 @@ extension Database {
         // 1   | firstName | TEXT    | 0       | NULL       | 0  |
         // 2   | lastName  | TEXT    | 0       | NULL       | 0  |
         
-        #if !USING_CUSTOMSQLITE && !USING_SQLCIPHER
-            if #available(iOS 8.2, OSX 10.10, *) {
-            } else {
-                // Work around a bug in SQLite where PRAGMA table_info would
-                // return a result even after the table was deleted.
-                if try !tableExists(tableName) {
-                    throw DatabaseError(message: "no such table: \(tableName)")
-                }
+        if sqlite3_libversion_number() < 3008005 {
+            // Work around a bug in SQLite where PRAGMA table_info would
+            // return a result even after the table was deleted.
+            if try !tableExists(tableName) {
+                throw DatabaseError(message: "no such table: \(tableName)")
             }
-        #endif
+        }
         let columns = try ColumnInfo.fetchAll(self, "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))")
         guard columns.count > 0 else {
             throw DatabaseError(message: "no such table: \(tableName)")
