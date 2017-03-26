@@ -103,7 +103,8 @@ Reading list:
 
 - VACUUM (https://blogs.gnome.org/jnelson/)
 - Full text search (https://www.sqlite.org/fts3.html. Related: https://blogs.gnome.org/jnelson/)
-- https://www.sqlite.org/undoredo.html
+- Undo: https://www.sqlite.org/undoredo.html
+- Undo: https://sqlite.org/sessionintro.html
 - http://www.sqlite.org/intern-v-extern-blob.html
 - List of Swift documentation keywords: https://swift.org/documentation/api-design-guidelines.html#special-instructions
 - https://www.zetetic.net/sqlcipher/
