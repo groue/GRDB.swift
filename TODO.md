@@ -13,7 +13,6 @@
 
 - [ ] fts3tokenize was introduced in SQLite 3.7.17 (iOS 8.2 and OS X 10.10). And GRDB uses it before.
 - [ ] Make GRDB less stringly-typed: For each API that eats column names, check if it couldn't eat both Column and String. If this requires Column to adopt ExpressibleByStringLiteral, check if it does not introduce awful ambiguities
-- [ ] Check for SQLCipher at runtime with `PRAGMA cipher_version`: https://discuss.zetetic.net/t/important-advisory-sqlcipher-with-xcode-8-and-new-sdks/1688
 - [ ] We share the database cache between database pool writers and readers. But what if a writer modifies the database schema within a transaction, and a concurrent reader reads the cache? Bad things, isn't it? Write failing tests first, and fix the bug.
 - [ ] FetchedRecordsController is not reactive:
     

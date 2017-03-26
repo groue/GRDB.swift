@@ -323,8 +323,37 @@ public final class Database {
                 }
             }
             
-            // Eventual passphrase
             #if SQLITE_HAS_CODEC
+                // https://discuss.zetetic.net/t/important-advisory-sqlcipher-with-xcode-8-and-new-sdks/1688
+                //
+                // > In order to avoid situations where SQLite might be used
+                // > improperly at runtime, we strongly recommend that
+                // > applications institute a runtime test to ensure that the
+                // > application is actually using SQLCipher on the active
+                // > connection.
+                
+                let isSQLCipherValid: Bool
+                do {
+                    var sqliteStatement: SQLiteStatement? = nil
+                    let code = sqlite3_prepare_v2(sqliteConnection, "PRAGMA cipher_version", -1, &sqliteStatement, nil)
+                    guard code == SQLITE_OK else {
+                        throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
+                    }
+                    defer {
+                        sqlite3_finalize(sqliteStatement)
+                    }
+                    switch sqlite3_step(sqliteStatement) {
+                    case SQLITE_ROW:
+                        isSQLCipherValid = (sqlite3_column_text(sqliteStatement, 0) != nil)
+                    default:
+                        isSQLCipherValid = false
+                    }
+                }
+                
+                guard isSQLCipherValid else {
+                    throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "GRDB is not linked against SQLCipher. Check https://discuss.zetetic.net/t/important-advisory-sqlcipher-with-xcode-8-and-new-sdks/1688")
+                }
+                
                 if let passphrase = configuration.passphrase {
                     try Database.set(passphrase: passphrase, forConnection: sqliteConnection!)
                 }
