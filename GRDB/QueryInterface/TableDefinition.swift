@@ -2,6 +2,34 @@ extension Database {
     
     // MARK: - Database Schema
     
+    #if USING_CUSTOMSQLITE || USING_SQLCIPHER
+    /// Creates a database table.
+    ///
+    ///     try db.create(table: "pointOfInterests") { t in
+    ///         t.column("id", .integer).primaryKey()
+    ///         t.column("title", .text)
+    ///         t.column("favorite", .boolean).notNull().default(false)
+    ///         t.column("longitude", .double).notNull()
+    ///         t.column("latitude", .double).notNull()
+    ///     }
+    ///
+    /// See https://www.sqlite.org/lang_createtable.html and
+    /// https://www.sqlite.org/withoutrowid.html
+    ///
+    /// - parameters:
+    ///     - name: The table name.
+    ///     - temporary: If true, creates a temporary table.
+    ///     - ifNotExists: If false, no error is thrown if table already exists.
+    ///     - withoutRowID: If true, uses WITHOUT ROWID optimization.
+    ///     - body: A closure that defines table columns and constraints.
+    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    public func create(table name: String, temporary: Bool = false, ifNotExists: Bool = false, withoutRowID: Bool = false, body: (TableDefinition) -> Void) throws {
+        let definition = TableDefinition(name: name, temporary: temporary, ifNotExists: ifNotExists, withoutRowID: withoutRowID)
+        body(definition)
+        let sql = try definition.sql(self)
+        try execute(sql)
+    }
+    #else
     /// Creates a database table.
     ///
     ///     try db.create(table: "pointOfInterests") { t in
@@ -31,7 +59,6 @@ extension Database {
         let sql = try definition.sql(self)
         try execute(sql)
     }
-
     /// Creates a database table.
     ///
     ///     try db.create(table: "pointOfInterests") { t in
@@ -56,7 +83,8 @@ extension Database {
         let sql = try definition.sql(self)
         try execute(sql)
     }
-    
+    #endif
+
     /// Renames a database table.
     ///
     /// See https://www.sqlite.org/lang_altertable.html
