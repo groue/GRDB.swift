@@ -59,6 +59,7 @@ extension Database {
         let sql = try definition.sql(self)
         try execute(sql)
     }
+    
     /// Creates a database table.
     ///
     ///     try db.create(table: "pointOfInterests") { t in
