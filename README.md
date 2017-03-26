@@ -4756,6 +4756,8 @@ do {
 }
 ```
 
+> :warning: **Warning**: SQLite has progressively introduced extended result codes accross its versions. For example, `SQLITE_CONSTRAINT_FOREIGNKEY` wasn't introduced yet on iOS 8.1. The [SQLite release notes](http://www.sqlite.org/changes.html) are unfortunately not quite clear about that: write your handling of extended result codes with care.
+
 
 ### PersistenceError
 
