@@ -65,7 +65,12 @@ Open a [connection](#database-connections) to the database:
 
 ```swift
 import GRDB
+
+// Simple database connection
 let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
+
+// Enhanced multithreading based on SQLite's WAL mode
+let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
 ```
 
 [Execute SQL statements](#executing-updates):
