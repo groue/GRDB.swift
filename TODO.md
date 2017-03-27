@@ -1,3 +1,4 @@
+- [ ] Check if DatabaseQueue can perform concurrent reads
 - [ ] SQLiteLib 3.17.0
     
     We can't ship SQLiteLib 3.17.0: it has a FTS5 bug similar to an [old FTS3 bug](http://www.sqlite.org/src/tktview?name=13137dccf3):
