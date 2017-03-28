@@ -2529,7 +2529,6 @@ You need to open a [database connection](#database-connections) before you can q
 Please bear in mind that the query interface can not generate all possible SQL queries. You may also *prefer* writing SQL, and this is just OK. From little snippets to full queries, your SQL skills are welcome:
 
 ```swift
-// SQL is always welcome
 try dbQueue.inDatabase { db in
     // Update database schema (with SQL)
     try db.execute("CREATE TABLE wines (...)")
