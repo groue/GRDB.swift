@@ -485,22 +485,24 @@ Once granted with a [database connection](#database-connections), the `execute` 
 For example:
 
 ```swift
-try db.execute(
-    "CREATE TABLE persons (" +
-        "id INTEGER PRIMARY KEY," +
-        "name TEXT NOT NULL," +
-        "age INT" +
-    ")")
+try dbQueue.inDatabase { db in
+    try db.execute(
+        "CREATE TABLE persons (" +
+            "id INTEGER PRIMARY KEY," +
+            "name TEXT NOT NULL," +
+            "age INT" +
+        ")")
 
-try db.execute(
-    "INSERT INTO persons (name, age) VALUES (:name, :age)",
-    arguments: ["name": "Barbara", "age": 39])
+    try db.execute(
+        "INSERT INTO persons (name, age) VALUES (:name, :age)",
+        arguments: ["name": "Barbara", "age": 39])
 
-// Join multiple statements with a semicolon:
-try db.execute(
-    "INSERT INTO persons (name, age) VALUES (?, ?); " +
-    "INSERT INTO persons (name, age) VALUES (?, ?)",
-    arguments: ["Arthur", 36, "Barbara", 39])
+    // Join multiple statements with a semicolon:
+    try db.execute(
+        "INSERT INTO persons (name, age) VALUES (?, ?); " +
+        "INSERT INTO persons (name, age) VALUES (?, ?)",
+        arguments: ["Arthur", 36, "Barbara", 39])
+}
 ```
 
 The `?` and colon-prefixed keys like `:name` in the SQL query are the **statements arguments**. You pass arguments with arrays or dictionaries, as in the example above. See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.).
@@ -527,15 +529,17 @@ let personId = person.id
 
 ## Fetch Queries
 
-You can fetch database rows, plain values, and custom models aka "records".
+[Database connections](#database-connections) let you fetch database rows, plain values, and custom models aka "records".
 
 **Rows** are the raw results of SQL queries:
 
 ```swift
-if let row = try Row.fetchOne(db, "SELECT * FROM wines WHERE id = ?", arguments: [1]) {
-    let name: String = row.value(named: "name")
-    let color: Color = row.value(named: "color")
-    print(name, color)
+try dbQueue.inDatabase { db in
+    if let row = try Row.fetchOne(db, "SELECT * FROM wines WHERE id = ?", arguments: [1]) {
+        let name: String = row.value(named: "name")
+        let color: Color = row.value(named: "color")
+        print(name, color)
+    }
 }
 ```
 
@@ -543,9 +547,11 @@ if let row = try Row.fetchOne(db, "SELECT * FROM wines WHERE id = ?", arguments:
 **Values** are the Bool, Int, String, Date, Swift enums, etc. stored in row columns:
 
 ```swift
-let urls = try URL.fetchCursor(db, "SELECT url FROM wines")
-while let url = try urls.next() {
-    print(url)
+try dbQueue.inDatabase { db in
+    let urls = try URL.fetchCursor(db, "SELECT url FROM wines")
+    while let url = try urls.next() {
+        print(url)
+    }
 }
 ```
 
@@ -553,7 +559,9 @@ while let url = try urls.next() {
 **Records** are your application objects that can initialize themselves from rows:
 
 ```swift
-let wines = try Wine.fetchAll(db, "SELECT * FROM wines")
+let wines = try dbQueue.inDatabase { db in
+    try Wine.fetchAll(db, "SELECT * FROM wines")
+}
 ```
 
 - [Fetching Methods](#fetching-methods) and [Cursors](#cursors)
@@ -655,15 +663,21 @@ try URL.fetchCursor(db, "SELECT url FROM links")
 Fetch **cursors** of rows, **arrays**, or **single** rows (see [fetching methods](#fetching-methods)):
 
 ```swift
-try Row.fetchCursor(db, "SELECT ...", arguments: ...) // DatabaseCursor<Row>
-try Row.fetchAll(db, "SELECT ...", arguments: ...)    // [Row]
-try Row.fetchOne(db, "SELECT ...", arguments: ...)    // Row?
+try dbQueue.inDatabase { db in
+    try Row.fetchCursor(db, "SELECT ...", arguments: ...) // DatabaseCursor<Row>
+    try Row.fetchAll(db, "SELECT ...", arguments: ...)    // [Row]
+    try Row.fetchOne(db, "SELECT ...", arguments: ...)    // Row?
+    
+    let rows = try Row.fetchCursor(db, "SELECT * FROM wines")
+    while let row = try rows.next() {
+        let name: String = row.value(named: "name")
+        let color: Color = row.value(named: "color")
+        print(name, color)
+    }
+}
 
-let rows = try Row.fetchCursor(db, "SELECT * FROM wines")
-while let row = try rows.next() {
-    let name: String = row.value(named: "name")
-    let color: Color = row.value(named: "color")
-    print(name, color)
+let rows = try dbQueue.inDatabase { db in
+    try Row.fetchAll(db, "SELECT * FROM persons")
 }
 ```
 
@@ -876,13 +890,19 @@ for (columnName, databaseValue) in row { ... } // ("foo", 1), ("foo", 2)
 Instead of rows, you can directly fetch **[values](#values)**. Like rows, fetch them as **cursors**, **arrays**, or **single** values (see [fetching methods](#fetching-methods)). Values are extracted from the leftmost column of the SQL queries:
 
 ```swift
-try Int.fetchCursor(db, "SELECT ...", arguments: ...) // DatabaseCursor<Int>
-try Int.fetchAll(db, "SELECT ...", arguments: ...)    // [Int]
-try Int.fetchOne(db, "SELECT ...", arguments: ...)    // Int?
+try dbQueue.inDatabase { db in
+    try Int.fetchCursor(db, "SELECT ...", arguments: ...) // DatabaseCursor<Int>
+    try Int.fetchAll(db, "SELECT ...", arguments: ...)    // [Int]
+    try Int.fetchOne(db, "SELECT ...", arguments: ...)    // Int?
+    
+    // When database may contain NULL:
+    try Optional<Int>.fetchCursor(db, "SELECT ...", arguments: ...) // DatabaseCursor<Int?>
+    try Optional<Int>.fetchAll(db, "SELECT ...", arguments: ...)    // [Int?]
+}
 
-// When database may contain NULL:
-try Optional<Int>.fetchCursor(db, "SELECT ...", arguments: ...) // DatabaseCursor<Int?>
-try Optional<Int>.fetchAll(db, "SELECT ...", arguments: ...)    // [Int?]
+let personCount = try dbQueue.inDatabase { db in
+    try Int.fetchOne(db, "SELECT COUNT(*) FROM persons")!
+}
 ```
 
 `fetchOne` returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
@@ -1693,11 +1713,15 @@ Records
 **On top of the [SQLite API](#sqlite-api), GRDB provides protocols and a class** that help manipulating database rows as regular objects named "records":
 
 ```swift
-if let poi = try PointOfInterest.fetchOne(db, key: 1) {
-    poi.isFavorite = true
-    try poi.update(db)
+try dbQueue.inDatabase { db in
+    if let poi = try PointOfInterest.fetchOne(db, key: 1) {
+        poi.isFavorite = true
+        try poi.update(db)
+    }
 }
 ```
+
+Of course, you need to open a [database connection](#database-connections), and [create a database table](#database-schema) first.
 
 Your custom structs and classes can adopt each protocol individually, and opt in to focused sets of features. Or you can subclass the `Record` class, and get the full toolkit in one go: fetching methods, persistence methods, and changes tracking. See the [list of record methods](#list-of-record-methods) for an overview.
 
@@ -1735,8 +1759,6 @@ class Person : Record { ... }
 let person = Person(name: "Arthur", email: "arthur@example.com")
 try person.insert(db)
 ```
-
-Of course, you need to open a [database connection](#database-connections), and [create a database table](#database-schema) first.
 
 
 ### Fetching Records
@@ -2487,26 +2509,44 @@ The Query Interface
 **The query interface lets you write pure Swift instead of SQL:**
 
 ```swift
-// Update database schema
-try db.create(table: "wines") { t in ... }
-
-// Fetch
-let wines = try Wine.filter(origin == "Burgundy").order(price).fetchAll(db)
-
-// Count
-let count = try Wine.filter(color == Color.red).fetchCount(db)
-
-// Delete
-try Wine.filter(corked == true).deleteAll(db)
+try dbQueue.inDatabase { db in
+    // Update database schema
+    try db.create(table: "wines") { t in ... }
+    
+    // Fetch records
+    let wines = try Wine.filter(origin == "Burgundy").order(price).fetchAll(db)
+    
+    // Count
+    let count = try Wine.filter(color == Color.red).fetchCount(db)
+    
+    // Delete
+    try Wine.filter(corked == true).deleteAll(db)
+}
 ```
+
+You need to open a [database connection](#database-connections) before you can query the database.
 
 Please bear in mind that the query interface can not generate all possible SQL queries. You may also *prefer* writing SQL, and this is just OK. From little snippets to full queries, your SQL skills are welcome:
 
 ```swift
-try db.execute("CREATE TABLE wines (...)")
-let count = try Wine.filter(sql: "color = ?", arguments: [Color.red]).fetchCount(db)
-let wines = try Wine.fetchAll(db, "SELECT * FROM wines WHERE origin = ? ORDER BY price", arguments: ["Burgundy"])
-try db.execute("DELETE FROM wines WHERE corked")
+// SQL is always welcome
+try dbQueue.inDatabase { db in
+    // Update database schema (with SQL)
+    try db.execute("CREATE TABLE wines (...)")
+    
+    // Fetch records (with SQL)
+    let wines = try Wine.fetchAll(db,
+        "SELECT * FROM wines WHERE origin = ? ORDER BY price",
+        arguments: ["Burgundy"])
+    
+    // Count (with an SQL snippet)
+    let count = try Wine
+        .filter(sql: "color = ?", arguments: [Color.red])
+        .fetchCount(db)
+    
+    // Delete (with SQL)
+    try db.execute("DELETE FROM wines WHERE corked")
+}
 ```
 
 So don't miss the [SQL API](#sqlite-api).
