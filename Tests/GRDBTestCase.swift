@@ -5,15 +5,6 @@ import XCTest
     @testable import GRDBCustomSQLite // @testable so that we have access to SQLiteConnectionWillClose
 #else
     @testable import GRDB       // @testable so that we have access to SQLiteConnectionWillClose
-    #if os(OSX)
-        import SQLiteMacOSX
-    #elseif os(iOS)
-        #if (arch(i386) || arch(x86_64))
-            import SQLiteiPhoneSimulator
-        #else
-            import SQLiteiPhoneOS
-        #endif
-    #endif
 #endif
 
 class GRDBTestCase: XCTestCase {
