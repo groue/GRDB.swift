@@ -455,6 +455,7 @@
 					};
 					5624A6B11D80B13300AD3DCE = {
 						CreatedOnToolsVersion = 7.3.1;
+						DevelopmentTeam = AMD8W895CT;
 						LastSwiftMigration = 0800;
 					};
 					568C7A951CA6C63100796484 = {
@@ -765,6 +766,7 @@
 		5624A6C41D80B13400AD3DCE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				DEVELOPMENT_TEAM = AMD8W895CT;
 				INFOPLIST_FILE = "GRDBDemoWatchOS Extension/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = GRDB.GRDBDemoiOS.watchkitapp.watchkitextension;
@@ -779,6 +781,7 @@
 		5624A6C51D80B13400AD3DCE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				DEVELOPMENT_TEAM = AMD8W895CT;
 				INFOPLIST_FILE = "GRDBDemoWatchOS Extension/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = GRDB.GRDBDemoiOS.watchkitapp.watchkitextension;

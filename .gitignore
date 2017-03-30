@@ -101,6 +101,5 @@ SQLiteCustom/GRDBCustomSQLite-USER.h
 SQLiteCustom/GRDBCustomSQLite-USER.xcconfig
 
 # CocoaPods test
-Tests/CocoaPods/GRDBiOS/GRDBiOS
 Tests/CocoaPods/GRDBiOS/Podfile.lock
 Tests/CocoaPods/GRDBiOS/Pods
