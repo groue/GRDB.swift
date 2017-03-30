@@ -34,7 +34,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "56E5D7D21B4D3FEE00430942"
-               BuildableName = "GRDBTests.xctest"
+               BuildableName = "GRDBiOSTests.xctest"
                BlueprintName = "GRDBiOSTests"
                ReferencedContainer = "container:GRDB.xcodeproj">
             </BuildableReference>
