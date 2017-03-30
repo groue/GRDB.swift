@@ -1725,7 +1725,7 @@
 		560FC5101CAEEDF10014AA8E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		560FC54D1CB003810014AA8E /* GRDBCipher.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GRDBCipher.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		560FC5501CB004AD0014AA8E /* sqlcipher.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = sqlcipher.xcodeproj; path = SQLCipher/src/sqlcipher.xcodeproj; sourceTree = "<group>"; };
-		560FC5B01CB00B880014AA8E /* GRDBTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		560FC5B01CB00B880014AA8E /* GRDBCipherOSXTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBCipherOSXTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		561667001D08A49900ADD404 /* NSDecimalNumberTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSDecimalNumberTests.swift; sourceTree = "<group>"; };
 		5620D0DE1E7D70F2006781C5 /* sqlite3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sqlite3.h; path = usr/include/sqlite3.h; sourceTree = SDKROOT; };
 		562393171DECC02000A6B01F /* RowFetchTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowFetchTests.swift; sourceTree = "<group>"; };
@@ -1878,8 +1878,8 @@
 		56A8C2361D1914790096E9D4 /* NSUUIDTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSUUIDTests.swift; sourceTree = "<group>"; };
 		56AF746A1D41FB9C005E9FF3 /* DatabaseValueConvertibleEscapingTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseValueConvertibleEscapingTests.swift; sourceTree = "<group>"; };
 		56AFCA231CB1A8BB00F48B96 /* GRDBCipher.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GRDBCipher.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		56AFCA7F1CB1AA9900F48B96 /* GRDBTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		56AFCAD71CB1ABC800F48B96 /* GRDBTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		56AFCA7F1CB1AA9900F48B96 /* GRDBCipheriOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBCipheriOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		56AFCAD71CB1ABC800F48B96 /* GRDBCipheriOSEncryptedTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBCipheriOSEncryptedTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		56B021C81D8C0D3900B239BB /* PersistenceConflictPolicyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersistenceConflictPolicyTests.swift; sourceTree = "<group>"; };
 		56B14E7E1D4DAE54000BF4A3 /* RowAsDictionaryLiteralConvertibleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowAsDictionaryLiteralConvertibleTests.swift; sourceTree = "<group>"; };
 		56B15D0A1CD4C35100A24C8B /* FetchedRecordsControllerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchedRecordsControllerTests.swift; sourceTree = "<group>"; };
@@ -1934,8 +1934,8 @@
 		56E06F051E859064008AE2A4 /* Fixits-0.102.0.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Fixits-0.102.0.swift"; sourceTree = "<group>"; };
 		56E1524B1B43FD5B00EE27AA /* TODO.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = TODO.md; sourceTree = "<group>"; };
 		56E5D7CA1B4D3FED00430942 /* GRDB.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GRDB.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		56E5D7D31B4D3FEE00430942 /* GRDBTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		56E5D7F91B4D422D00430942 /* GRDBTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		56E5D7D31B4D3FEE00430942 /* GRDBiOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBiOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		56E5D7F91B4D422D00430942 /* GRDBOSXTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBOSXTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		56E8CE0C1BB4FA5600828BEC /* DatabaseValueConvertibleFetchTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseValueConvertibleFetchTests.swift; sourceTree = "<group>"; };
 		56E8CE0F1BB4FE5B00828BEC /* StatementColumnConvertibleFetchTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StatementColumnConvertibleFetchTests.swift; sourceTree = "<group>"; };
 		56EA86931C91DFE7002BB4DF /* DatabaseReaderTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseReaderTests.swift; sourceTree = "<group>"; };
@@ -2805,16 +2805,16 @@
 			children = (
 				DC3773F319C8CBB3004FCF85 /* GRDB.framework */,
 				56E5D7CA1B4D3FED00430942 /* GRDB.framework */,
-				56E5D7D31B4D3FEE00430942 /* GRDBTests.xctest */,
-				56E5D7F91B4D422D00430942 /* GRDBTests.xctest */,
+				56E5D7D31B4D3FEE00430942 /* GRDBiOSTests.xctest */,
+				56E5D7F91B4D422D00430942 /* GRDBOSXTests.xctest */,
 				560C981A1C0E22D300BF8471 /* GRDBOSXPerformanceTests.xctest */,
 				56553C181C3E906C00522B5C /* GRDBOSXCrashTests.xctest */,
 				560FC54D1CB003810014AA8E /* GRDBCipher.framework */,
-				560FC5B01CB00B880014AA8E /* GRDBTests.xctest */,
+				560FC5B01CB00B880014AA8E /* GRDBCipherOSXTests.xctest */,
 				5671566C1CB16729007DC145 /* GRDBCipherOSXEncryptedTests.xctest */,
 				56AFCA231CB1A8BB00F48B96 /* GRDBCipher.framework */,
-				56AFCA7F1CB1AA9900F48B96 /* GRDBTests.xctest */,
-				56AFCAD71CB1ABC800F48B96 /* GRDBTests.xctest */,
+				56AFCA7F1CB1AA9900F48B96 /* GRDBCipheriOSTests.xctest */,
+				56AFCAD71CB1ABC800F48B96 /* GRDBCipheriOSEncryptedTests.xctest */,
 				F3BA7FFE1CFB25E4003DC1BA /* GRDBCustomSQLite.framework */,
 				F3BA80411CFB2AD7003DC1BA /* GRDBCustomSQLiteiOSTests.xctest */,
 				F3BA805A1CFB2BB2003DC1BA /* GRDBCustomSQLite.framework */,
@@ -3028,7 +3028,7 @@
 			);
 			name = GRDBCipherOSXTests;
 			productName = GRDBOSXTests;
-			productReference = 560FC5B01CB00B880014AA8E /* GRDBTests.xctest */;
+			productReference = 560FC5B01CB00B880014AA8E /* GRDBCipherOSXTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		5654909F1D5A4798005622CB /* GRDBWatchOS */ = {
@@ -3119,7 +3119,7 @@
 			);
 			name = GRDBCipheriOSTests;
 			productName = GRDBiOSTests;
-			productReference = 56AFCA7F1CB1AA9900F48B96 /* GRDBTests.xctest */;
+			productReference = 56AFCA7F1CB1AA9900F48B96 /* GRDBCipheriOSTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		56AFCA841CB1ABC800F48B96 /* GRDBCipheriOSEncryptedTests */ = {
@@ -3137,7 +3137,7 @@
 			);
 			name = GRDBCipheriOSEncryptedTests;
 			productName = GRDBiOSTests;
-			productReference = 56AFCAD71CB1ABC800F48B96 /* GRDBTests.xctest */;
+			productReference = 56AFCAD71CB1ABC800F48B96 /* GRDBCipheriOSEncryptedTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		56E5D7C91B4D3FED00430942 /* GRDBiOS */ = {
@@ -3173,7 +3173,7 @@
 			);
 			name = GRDBiOSTests;
 			productName = GRDBiOSTests;
-			productReference = 56E5D7D31B4D3FEE00430942 /* GRDBTests.xctest */;
+			productReference = 56E5D7D31B4D3FEE00430942 /* GRDBiOSTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		56E5D7F81B4D422D00430942 /* GRDBOSXTests */ = {
@@ -3191,7 +3191,7 @@
 			);
 			name = GRDBOSXTests;
 			productName = GRDBOSXTests;
-			productReference = 56E5D7F91B4D422D00430942 /* GRDBTests.xctest */;
+			productReference = 56E5D7F91B4D422D00430942 /* GRDBOSXTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		DC3773F219C8CBB3004FCF85 /* GRDBOSX */ = {
@@ -5351,7 +5351,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_SWIFT_FLAGS = "-D USING_BUILTIN_SQLITE -D USING_SQLCIPHER -D SQLITE_HAS_CODEC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipherOSXTests;
-				PRODUCT_NAME = GRDBTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -5368,7 +5368,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_SWIFT_FLAGS = "-D USING_BUILTIN_SQLITE -D USING_SQLCIPHER -D SQLITE_HAS_CODEC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipherOSXTests;
-				PRODUCT_NAME = GRDBTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 			};
@@ -5540,7 +5540,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_SWIFT_FLAGS = "-D USING_BUILTIN_SQLITE -D USING_SQLCIPHER -D SQLITE_HAS_CODEC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipheriOSTests;
-				PRODUCT_NAME = GRDBTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 			};
 			name = Debug;
@@ -5557,7 +5557,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_SWIFT_FLAGS = "-D USING_BUILTIN_SQLITE -D USING_SQLCIPHER -D SQLITE_HAS_CODEC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipheriOSTests;
-				PRODUCT_NAME = GRDBTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 			};
@@ -5574,7 +5574,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_SWIFT_FLAGS = "-D USING_BUILTIN_SQLITE -D USING_SQLCIPHER -D SQLITE_HAS_CODEC -D GRDBCIPHER_USE_ENCRYPTION";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipheriOSEncryptedTests;
-				PRODUCT_NAME = GRDBTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 			};
 			name = Debug;
@@ -5591,7 +5591,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_SWIFT_FLAGS = "-D USING_BUILTIN_SQLITE -D USING_SQLCIPHER -D SQLITE_HAS_CODEC -D GRDBCIPHER_USE_ENCRYPTION";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipheriOSEncryptedTests;
-				PRODUCT_NAME = GRDBTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 			};
@@ -5652,7 +5652,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_SWIFT_FLAGS = "-D SQLITE_MODULE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBiOSTests;
-				PRODUCT_NAME = GRDBTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 3.0;
 			};
@@ -5670,7 +5670,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_SWIFT_FLAGS = "-D SQLITE_MODULE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBiOSTests;
-				PRODUCT_NAME = GRDBTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_VERSION = 3.0;
@@ -5688,7 +5688,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_SWIFT_FLAGS = "-D SQLITE_MODULE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
-				PRODUCT_NAME = GRDBTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 3.0;
 			};
@@ -5706,7 +5706,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_SWIFT_FLAGS = "-D SQLITE_MODULE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
-				PRODUCT_NAME = GRDBTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_VERSION = 3.0;
