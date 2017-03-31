@@ -46,6 +46,7 @@ test_build_GRDBiOS_lowTarget:
 	  $(TEST_ACTIONS)
 
 test_build_GRDBCustomSQLiteOSX:
+	git submodule update --init SQLiteCustom/src
 	xcodebuild \
 	  -project $(TEST_PROJECT) \
 	  -scheme GRDBCustomSQLiteOSX \
@@ -54,6 +55,7 @@ test_build_GRDBCustomSQLiteOSX:
 test_build_GRDBCustomSQLiteiOS: test_build_GRDBCustomSQLiteiOS_highTarget test_build_GRDBCustomSQLiteiOS_lowTarget
 
 test_build_GRDBCustomSQLiteiOS_highTarget:
+	git submodule update --init SQLiteCustom/src
 	xcodebuild \
 	  -project $(TEST_PROJECT) \
 	  -scheme GRDBCustomSQLiteiOS \
@@ -61,6 +63,7 @@ test_build_GRDBCustomSQLiteiOS_highTarget:
 	  $(TEST_ACTIONS)
 
 test_build_GRDBCustomSQLiteiOS_lowTarget:
+	git submodule update --init SQLiteCustom/src
 	xcodebuild \
 	  -project $(TEST_PROJECT) \
 	  -scheme GRDBCustomSQLiteiOS \
@@ -68,6 +71,7 @@ test_build_GRDBCustomSQLiteiOS_lowTarget:
 	  $(TEST_ACTIONS)
 
 test_build_GRDBCipherOSX:
+	git submodule update --init SQLCipher/src
 	xcodebuild \
 	  -project $(TEST_PROJECT) \
 	  -scheme GRDBCipherOSX \
@@ -76,6 +80,7 @@ test_build_GRDBCipherOSX:
 test_build_GRDBCipheriOS: test_build_GRDBCipheriOS_highTarget test_build_GRDBCipheriOS_lowTarget
 
 test_build_GRDBCipheriOS_highTarget:
+	git submodule update --init SQLCipher/src
 	xcodebuild \
 	  -project $(TEST_PROJECT) \
 	  -scheme GRDBCipheriOS \
@@ -83,6 +88,7 @@ test_build_GRDBCipheriOS_highTarget:
 	  $(TEST_ACTIONS)
 
 test_build_GRDBCipheriOS_lowTarget:
+	git submodule update --init SQLCipher/src
 	xcodebuild \
 	  -project $(TEST_PROJECT) \
 	  -scheme GRDBCipheriOS \
@@ -100,6 +106,7 @@ test_installManual:
 	  clean build
 
 test_installGRDBCipher:
+	git submodule update --init SQLCipher/src
 	xcodebuild \
 	  -project Tests/GRDBCipher/GRDBiOS/GRDBiOS.xcodeproj \
 	  -scheme GRDBiOS \
