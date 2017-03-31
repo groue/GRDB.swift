@@ -2,8 +2,14 @@ default: test
 
 TEST_PROJECT = GRDB.xcodeproj
 TEST_ACTIONS = clean build build-for-testing test-without-building
-IOS_SIMULATOR_DESTINATION_HIGH_TARGET = "platform=iOS Simulator,name=iPhone 7,OS=10.3"
 IOS_SIMULATOR_DESTINATION_LOW_TARGET = "platform=iOS Simulator,name=iPhone 4s,OS=8.1"
+
+# Xcode 8.3
+IOS_SIMULATOR_DESTINATION_HIGH_TARGET = "platform=iOS Simulator,name=iPhone 7,OS=10.3"
+
+# Xcode 8.1
+# IOS_SIMULATOR_DESTINATION_HIGH_TARGET = "platform=iOS Simulator,name=iPhone 6s,OS=10.1"
+
 POD := $(shell command -v pod)
 CARTHAGE := $(shell command -v carthage)
 
