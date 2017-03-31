@@ -89,12 +89,20 @@ test_build_GRDBCipheriOS_lowTarget:
 	  -destination $(IOS_SIMULATOR_DESTINATION_LOW_TARGET) \
 	  $(TEST_ACTIONS)
 
-test_install: test_installManual test_CocoaPodsLint test_CarthageBuild
+test_install: test_installManual test_installGRDBCipher test_CocoaPodsLint test_CarthageBuild
 
 test_installManual:
 	xcodebuild \
 	  -project DemoApps/GRDBDemoiOS/GRDBDemoiOS.xcodeproj \
 	  -scheme GRDBDemoiOS \
+	  -configuration Release \
+	  -destination $(IOS_SIMULATOR_DESTINATION_HIGH_TARGET) \
+	  clean build
+
+test_installGRDBCipher:
+	xcodebuild \
+	  -project Tests/GRDBCipher/GRDBiOS/GRDBiOS.xcodeproj \
+	  -scheme GRDBiOS \
 	  -configuration Release \
 	  -destination $(IOS_SIMULATOR_DESTINATION_HIGH_TARGET) \
 	  clean build
