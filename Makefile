@@ -1,50 +1,54 @@
 default: test
 
-# GRDBOSX, GRDBCipherOSX, GRDBCustomSQLiteOSX, GRDBiOS, GRDBCipheriOS, GRDBCustomSQLiteiOS
+TEST_PROJECT = GRDB.xcodeproj
+TEST_ACTIONS = clean build build-for-testing test-without-building
+LATEST_SIMULATOR_DESTINATION = "platform=iOS Simulator,name=iPhone 7,OS=10.3"
+
 test: test_GRDB test_GRDBCustom test_GRDBCipher
 test_GRDB: test_GRDBOSX test_GRDBiOS
 test_GRDBCustom: test_GRDBCustomSQLiteOSX test_GRDBCustomSQLiteiOS
 test_GRDBCipher: test_GRDBCipherOSX test_GRDBCipheriOS
 test_GRDBOSX:
 	xcodebuild \
-	  -project GRDB.xcodeproj \
+	  -project $(TEST_PROJECT) \
 	  -scheme GRDBOSX \
-	  clean build build-for-testing test-without-building
+	  $(TEST_ACTIONS)
 test_GRDBiOS:
 	xcodebuild \
-	  -project GRDB.xcodeproj \
+	  -project $(TEST_PROJECT) \
 	  -scheme GRDBiOS \
-	  -destination "platform=iOS Simulator,name=iPhone 6s,OS=10.3" \
-	  clean build build-for-testing test-without-building
+	  -destination $(LATEST_SIMULATOR_DESTINATION) \
+	  $(TEST_ACTIONS)
 test_GRDBCustomSQLiteOSX:
 	xcodebuild \
-	  -project GRDB.xcodeproj \
+	  -project $(TEST_PROJECT) \
 	  -scheme GRDBCustomSQLiteOSX \
-	  clean build build-for-testing test-without-building
+	  $(TEST_ACTIONS)
 test_GRDBCustomSQLiteiOS:
 	xcodebuild \
-	  -project GRDB.xcodeproj \
+	  -project $(TEST_PROJECT) \
 	  -scheme GRDBCustomSQLiteiOS \
-	  -destination "platform=iOS Simulator,name=iPhone 6s,OS=10.3" \
-	  clean build build-for-testing test-without-building
+	  -destination $(LATEST_SIMULATOR_DESTINATION) \
+	  $(TEST_ACTIONS)
 test_GRDBCipherOSX:
 	xcodebuild \
-	  -project GRDB.xcodeproj \
+	  -project $(TEST_PROJECT) \
 	  -scheme GRDBCipherOSX \
-	  clean build build-for-testing test-without-building
+	  $(TEST_ACTIONS)
 test_GRDBCipheriOS:
 	xcodebuild \
-	  -project GRDB.xcodeproj \
+	  -project $(TEST_PROJECT) \
 	  -scheme GRDBCipheriOS \
-	  -destination "platform=iOS Simulator,name=iPhone 6s,OS=10.3" \
-	  clean build build-for-testing test-without-building
-test_installationManual:
-	xcodebuild \
-	  -project DemoApps/GRDBDemoiOS/GRDBDemoiOS.xcodeproj \
-	  -target GRDBDemoiOS \
-	  -configuration Debug \
-	  -destination "platform=iOS Simulator,name=iPhone 6s,OS=10.3" \
-	  clean build
+	  -destination $(LATEST_SIMULATOR_DESTINATION) \
+	  $(TEST_ACTIONS)
+# test_installationManual:
+# 	xcodebuild \
+# 	  -project DemoApps/GRDBDemoiOS/GRDBDemoiOS.xcodeproj \
+# 	  -target GRDBDemoiOS \
+# 	  -configuration Debug \
+# 	  -destination $(LATEST_SIMULATOR_DESTINATION) \
+# 	  clean build
+
 .PHONY: doc
 doc:
 	jazzy \
