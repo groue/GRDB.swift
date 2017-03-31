@@ -1,5 +1,6 @@
 default: test
 
+BUILD_TOOL = xcodebuild
 TEST_PROJECT = GRDB.xcodeproj
 TEST_ACTIONS = clean build build-for-testing test-without-building
 IOS_SIMULATOR_DESTINATION_LOW_TARGET = "platform=iOS Simulator,name=iPhone 4s,OS=8.1"
@@ -24,7 +25,7 @@ test_build_GRDBCustom: test_build_GRDBCustomSQLiteOSX test_build_GRDBCustomSQLit
 test_build_GRDBCipher: test_build_GRDBCipherOSX test_build_GRDBCipheriOS
 
 test_build_GRDBOSX:
-	xcodebuild \
+	$(BUILD_TOOL) \
 	  -project $(TEST_PROJECT) \
 	  -scheme GRDBOSX \
 	  $(TEST_ACTIONS)
@@ -32,58 +33,58 @@ test_build_GRDBOSX:
 test_build_GRDBiOS: test_build_GRDBiOS_highTarget test_build_GRDBiOS_lowTarget
 
 test_build_GRDBiOS_highTarget:
-	xcodebuild \
+	$(BUILD_TOOL) \
 	  -project $(TEST_PROJECT) \
 	  -scheme GRDBiOS \
 	  -destination $(IOS_SIMULATOR_DESTINATION_HIGH_TARGET) \
 	  $(TEST_ACTIONS)
 
 test_build_GRDBiOS_lowTarget:
-	xcodebuild \
+	$(BUILD_TOOL) \
 	  -project $(TEST_PROJECT) \
 	  -scheme GRDBiOS \
 	  -destination $(IOS_SIMULATOR_DESTINATION_LOW_TARGET) \
 	  $(TEST_ACTIONS)
 
-test_build_GRDBCustomSQLiteOSX: SQLiteCustom/src
-	xcodebuild \
+test_build_GRDBCustomSQLiteOSX: SQLiteCustom
+	$(BUILD_TOOL) \
 	  -project $(TEST_PROJECT) \
 	  -scheme GRDBCustomSQLiteOSX \
 	  $(TEST_ACTIONS)
 
 test_build_GRDBCustomSQLiteiOS: test_build_GRDBCustomSQLiteiOS_highTarget test_build_GRDBCustomSQLiteiOS_lowTarget
 
-test_build_GRDBCustomSQLiteiOS_highTarget: SQLiteCustom/src
-	xcodebuild \
+test_build_GRDBCustomSQLiteiOS_highTarget: SQLiteCustom
+	$(BUILD_TOOL) \
 	  -project $(TEST_PROJECT) \
 	  -scheme GRDBCustomSQLiteiOS \
 	  -destination $(IOS_SIMULATOR_DESTINATION_HIGH_TARGET) \
 	  $(TEST_ACTIONS)
 
-test_build_GRDBCustomSQLiteiOS_lowTarget: SQLiteCustom/src
-	xcodebuild \
+test_build_GRDBCustomSQLiteiOS_lowTarget: SQLiteCustom
+	$(BUILD_TOOL) \
 	  -project $(TEST_PROJECT) \
 	  -scheme GRDBCustomSQLiteiOS \
 	  -destination $(IOS_SIMULATOR_DESTINATION_LOW_TARGET) \
 	  $(TEST_ACTIONS)
 
-test_build_GRDBCipherOSX: SQLCipher/src
-	xcodebuild \
+test_build_GRDBCipherOSX: SQLCipher
+	$(BUILD_TOOL) \
 	  -project $(TEST_PROJECT) \
 	  -scheme GRDBCipherOSX \
 	  $(TEST_ACTIONS)
 
 test_build_GRDBCipheriOS: test_build_GRDBCipheriOS_highTarget test_build_GRDBCipheriOS_lowTarget
 
-test_build_GRDBCipheriOS_highTarget: SQLCipher/src
-	xcodebuild \
+test_build_GRDBCipheriOS_highTarget: SQLCipher
+	$(BUILD_TOOL) \
 	  -project $(TEST_PROJECT) \
 	  -scheme GRDBCipheriOS \
 	  -destination $(IOS_SIMULATOR_DESTINATION_HIGH_TARGET) \
 	  $(TEST_ACTIONS)
 
-test_build_GRDBCipheriOS_lowTarget: SQLCipher/src
-	xcodebuild \
+test_build_GRDBCipheriOS_lowTarget: SQLCipher
+	$(BUILD_TOOL) \
 	  -project $(TEST_PROJECT) \
 	  -scheme GRDBCipheriOS \
 	  -destination $(IOS_SIMULATOR_DESTINATION_LOW_TARGET) \
@@ -92,15 +93,15 @@ test_build_GRDBCipheriOS_lowTarget: SQLCipher/src
 test_install: test_installManual test_installGRDBCipher test_CocoaPodsLint test_CarthageBuild
 
 test_installManual:
-	xcodebuild \
+	$(BUILD_TOOL) \
 	  -project DemoApps/GRDBDemoiOS/GRDBDemoiOS.xcodeproj \
 	  -scheme GRDBDemoiOS \
 	  -configuration Release \
 	  -destination $(IOS_SIMULATOR_DESTINATION_HIGH_TARGET) \
 	  clean build
 
-test_installGRDBCipher: SQLCipher/src
-	xcodebuild \
+test_installGRDBCipher: SQLCipher
+	$(BUILD_TOOL) \
 	  -project Tests/GRDBCipher/GRDBiOS/GRDBiOS.xcodeproj \
 	  -scheme GRDBiOS \
 	  -configuration Release \
@@ -115,7 +116,7 @@ else
 	@exit 1
 endif
 
-test_CarthageBuild:
+test_CarthageBuild: SQLiteCustom SQLCipher
 ifdef CARTHAGE
 	rm -rf Carthage
 	$(CARTHAGE) build --no-skip-current
@@ -124,8 +125,7 @@ else
 	@exit 1
 endif
 
-SQLiteCustom/src:
-	git submodule update --init SQLiteCustom/src
+SQLiteCustom: SQLiteCustom/src/sqlite3.h
 	echo '/* Makefile generated */' > SQLiteCustom/GRDBCustomSQLite-USER.h
 	echo '#define SQLITE_ENABLE_PREUPDATE_HOOK' >> SQLiteCustom/GRDBCustomSQLite-USER.h
 	echo '#define SQLITE_ENABLE_FTS5' >> SQLiteCustom/GRDBCustomSQLite-USER.h
@@ -134,10 +134,14 @@ SQLiteCustom/src:
 	echo '// Makefile generated' > SQLiteCustom/src/SQLiteLib-USER.xcconfig
 	echo 'CUSTOM_SQLLIBRARY_CFLAGS = -DSQLITE_ENABLE_PREUPDATE_HOOK -DSQLITE_ENABLE_FTS5' >> SQLiteCustom/src/SQLiteLib-USER.xcconfig
 
-SQLCipher/src:
+SQLiteCustom/src/sqlite3.h:
+	git submodule update --init SQLiteCustom/src
+
+SQLCipher: SQLCipher/src/sqlite3.h
+
+SQLCipher/src/sqlite3.h:
 	git submodule update --init SQLCipher/src
 
-.PHONY: doc
 doc:
 	jazzy \
 	  --clean \
@@ -150,3 +154,5 @@ doc:
 	  --root-url http://groue.github.io/GRDB.swift/docs/0.102.0/ \
 	  --output Documentation/Reference \
 	  --podspec GRDB.swift.podspec
+
+.PHONY: doc test SQLCipher SQLiteCustom
