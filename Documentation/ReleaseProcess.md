@@ -10,8 +10,6 @@ To release a new GRDB version:
     - Build and run GRDBDemoiOS
     - Build and run GRDBDemoWatchOS
     - Check for performance regression with GRDBOSXPerformanceTests
-    - `rm -rf Carthage; carthage build --no-skip-current`
-    - `pod lib lint --allow-warnings`
 - On https://github.com/groue/sqlcipher.git upgrade, update SQLCipher version in README.md
 - On https://github.com/swiftlyfalling/SQLiteLib upgrade, update SQLite version in README.md and Documentation/CustomSQLiteBuilds.md
 - Update GRDB version number and release date in:
