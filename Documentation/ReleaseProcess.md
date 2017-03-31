@@ -6,12 +6,7 @@ Release Process
 To release a new GRDB version:
 
 - Tests
-    - Run GRDBOX tests
-    - Run GRDBCipherOSX tests
-    - Run GRDBCustomSQLiteOSX tests
-    - Run GRDBiOS tests
-    - Run GRDBCipheriOS tests
-    - Run GRDBCustomSQLiteiOS tests
+    - `make test`
     - Build and run GRDBDemoiOS
     - Build and run GRDBDemoWatchOS
     - Check for performance regression with GRDBOSXPerformanceTests
