@@ -2,7 +2,8 @@ default: test
 
 TEST_PROJECT = GRDB.xcodeproj
 TEST_ACTIONS = clean build build-for-testing test-without-building
-LATEST_SIMULATOR_DESTINATION = "platform=iOS Simulator,name=iPhone 7,OS=10.3"
+IOS_SIMULATOR_DESTINATION_HIGH_TARGET = "platform=iOS Simulator,name=iPhone 7,OS=10.3"
+IOS_SIMULATOR_DESTINATION_LOW_TARGET = "platform=iOS Simulator,name=iPhone 4s,OS=8.1"
 POD := $(shell command -v pod)
 CARTHAGE := $(shell command -v carthage)
 
@@ -22,11 +23,20 @@ test_build_GRDBOSX:
 	  -scheme GRDBOSX \
 	  $(TEST_ACTIONS)
 
-test_build_GRDBiOS:
+test_build_GRDBiOS: test_build_GRDBiOS_highTarget test_build_GRDBiOS_lowTarget
+
+test_build_GRDBiOS_highTarget:
 	xcodebuild \
 	  -project $(TEST_PROJECT) \
 	  -scheme GRDBiOS \
-	  -destination $(LATEST_SIMULATOR_DESTINATION) \
+	  -destination $(IOS_SIMULATOR_DESTINATION_HIGH_TARGET) \
+	  $(TEST_ACTIONS)
+
+test_build_GRDBiOS_lowTarget:
+	xcodebuild \
+	  -project $(TEST_PROJECT) \
+	  -scheme GRDBiOS \
+	  -destination $(IOS_SIMULATOR_DESTINATION_LOW_TARGET) \
 	  $(TEST_ACTIONS)
 
 test_build_GRDBCustomSQLiteOSX:
@@ -35,11 +45,20 @@ test_build_GRDBCustomSQLiteOSX:
 	  -scheme GRDBCustomSQLiteOSX \
 	  $(TEST_ACTIONS)
 
-test_build_GRDBCustomSQLiteiOS:
+test_build_GRDBCustomSQLiteiOS: test_build_GRDBCustomSQLiteiOS_highTarget test_build_GRDBCustomSQLiteiOS_lowTarget
+
+test_build_GRDBCustomSQLiteiOS_highTarget:
 	xcodebuild \
 	  -project $(TEST_PROJECT) \
 	  -scheme GRDBCustomSQLiteiOS \
-	  -destination $(LATEST_SIMULATOR_DESTINATION) \
+	  -destination $(IOS_SIMULATOR_DESTINATION_HIGH_TARGET) \
+	  $(TEST_ACTIONS)
+
+test_build_GRDBCustomSQLiteiOS_lowTarget:
+	xcodebuild \
+	  -project $(TEST_PROJECT) \
+	  -scheme GRDBCustomSQLiteiOS \
+	  -destination $(IOS_SIMULATOR_DESTINATION_LOW_TARGET) \
 	  $(TEST_ACTIONS)
 
 test_build_GRDBCipherOSX:
@@ -48,11 +67,20 @@ test_build_GRDBCipherOSX:
 	  -scheme GRDBCipherOSX \
 	  $(TEST_ACTIONS)
 
-test_build_GRDBCipheriOS:
+test_build_GRDBCipheriOS: test_build_GRDBCipheriOS_highTarget test_build_GRDBCipheriOS_lowTarget
+
+test_build_GRDBCipheriOS_highTarget:
 	xcodebuild \
 	  -project $(TEST_PROJECT) \
 	  -scheme GRDBCipheriOS \
-	  -destination $(LATEST_SIMULATOR_DESTINATION) \
+	  -destination $(IOS_SIMULATOR_DESTINATION_HIGH_TARGET) \
+	  $(TEST_ACTIONS)
+
+test_build_GRDBCipheriOS_lowTarget:
+	xcodebuild \
+	  -project $(TEST_PROJECT) \
+	  -scheme GRDBCipheriOS \
+	  -destination $(IOS_SIMULATOR_DESTINATION_LOW_TARGET) \
 	  $(TEST_ACTIONS)
 
 test_install: test_installManual test_CocoaPodsLint test_CarthageBuild
@@ -62,7 +90,7 @@ test_installManual:
 	  -project DemoApps/GRDBDemoiOS/GRDBDemoiOS.xcodeproj \
 	  -scheme GRDBDemoiOS \
 	  -configuration Release \
-	  -destination $(LATEST_SIMULATOR_DESTINATION) \
+	  -destination $(IOS_SIMULATOR_DESTINATION_HIGH_TARGET) \
 	  clean build
 
 test_CocoaPodsLint:
