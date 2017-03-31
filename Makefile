@@ -45,8 +45,7 @@ test_build_GRDBiOS_lowTarget:
 	  -destination $(IOS_SIMULATOR_DESTINATION_LOW_TARGET) \
 	  $(TEST_ACTIONS)
 
-test_build_GRDBCustomSQLiteOSX:
-	git submodule update --init SQLiteCustom/src
+test_build_GRDBCustomSQLiteOSX: SQLiteCustom/src
 	xcodebuild \
 	  -project $(TEST_PROJECT) \
 	  -scheme GRDBCustomSQLiteOSX \
@@ -54,24 +53,21 @@ test_build_GRDBCustomSQLiteOSX:
 
 test_build_GRDBCustomSQLiteiOS: test_build_GRDBCustomSQLiteiOS_highTarget test_build_GRDBCustomSQLiteiOS_lowTarget
 
-test_build_GRDBCustomSQLiteiOS_highTarget:
-	git submodule update --init SQLiteCustom/src
+test_build_GRDBCustomSQLiteiOS_highTarget: SQLiteCustom/src
 	xcodebuild \
 	  -project $(TEST_PROJECT) \
 	  -scheme GRDBCustomSQLiteiOS \
 	  -destination $(IOS_SIMULATOR_DESTINATION_HIGH_TARGET) \
 	  $(TEST_ACTIONS)
 
-test_build_GRDBCustomSQLiteiOS_lowTarget:
-	git submodule update --init SQLiteCustom/src
+test_build_GRDBCustomSQLiteiOS_lowTarget: SQLiteCustom/src
 	xcodebuild \
 	  -project $(TEST_PROJECT) \
 	  -scheme GRDBCustomSQLiteiOS \
 	  -destination $(IOS_SIMULATOR_DESTINATION_LOW_TARGET) \
 	  $(TEST_ACTIONS)
 
-test_build_GRDBCipherOSX:
-	git submodule update --init SQLCipher/src
+test_build_GRDBCipherOSX: SQLCipher/src
 	xcodebuild \
 	  -project $(TEST_PROJECT) \
 	  -scheme GRDBCipherOSX \
@@ -79,16 +75,14 @@ test_build_GRDBCipherOSX:
 
 test_build_GRDBCipheriOS: test_build_GRDBCipheriOS_highTarget test_build_GRDBCipheriOS_lowTarget
 
-test_build_GRDBCipheriOS_highTarget:
-	git submodule update --init SQLCipher/src
+test_build_GRDBCipheriOS_highTarget: SQLCipher/src
 	xcodebuild \
 	  -project $(TEST_PROJECT) \
 	  -scheme GRDBCipheriOS \
 	  -destination $(IOS_SIMULATOR_DESTINATION_HIGH_TARGET) \
 	  $(TEST_ACTIONS)
 
-test_build_GRDBCipheriOS_lowTarget:
-	git submodule update --init SQLCipher/src
+test_build_GRDBCipheriOS_lowTarget: SQLCipher/src
 	xcodebuild \
 	  -project $(TEST_PROJECT) \
 	  -scheme GRDBCipheriOS \
@@ -105,8 +99,7 @@ test_installManual:
 	  -destination $(IOS_SIMULATOR_DESTINATION_HIGH_TARGET) \
 	  clean build
 
-test_installGRDBCipher:
-	git submodule update --init SQLCipher/src
+test_installGRDBCipher: SQLCipher/src
 	xcodebuild \
 	  -project Tests/GRDBCipher/GRDBiOS/GRDBiOS.xcodeproj \
 	  -scheme GRDBiOS \
@@ -130,6 +123,19 @@ else
 	@echo Carthage must be installed for test_CocoaPodsLint
 	@exit 1
 endif
+
+SQLiteCustom/src:
+	git submodule update --init SQLiteCustom/src
+	echo '/* Makefile generated */' > SQLiteCustom/GRDBCustomSQLite-USER.h
+	echo '#define SQLITE_ENABLE_PREUPDATE_HOOK' >> SQLiteCustom/GRDBCustomSQLite-USER.h
+	echo '#define SQLITE_ENABLE_FTS5' >> SQLiteCustom/GRDBCustomSQLite-USER.h
+	echo '// Makefile generated' > SQLiteCustom/GRDBCustomSQLite-USER.xcconfig
+	echo 'CUSTOM_OTHER_SWIFT_FLAGS = -D SQLITE_ENABLE_PREUPDATE_HOOK -D SQLITE_ENABLE_FTS5' >> SQLiteCustom/GRDBCustomSQLite-USER.xcconfig
+	echo '// Makefile generated' > SQLiteCustom/src/SQLiteLib-USER.xcconfig
+	echo 'CUSTOM_SQLLIBRARY_CFLAGS = -DSQLITE_ENABLE_PREUPDATE_HOOK -DSQLITE_ENABLE_FTS5' >> SQLiteCustom/src/SQLiteLib-USER.xcconfig
+
+SQLCipher/src:
+	git submodule update --init SQLCipher/src
 
 .PHONY: doc
 doc:
