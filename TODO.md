@@ -1,4 +1,3 @@
-- [ ] Check if DatabaseQueue can perform concurrent reads
 - [ ] SQLiteLib 3.18.0
 - [ ] Make GRDB less stringly-typed: For each API that eats column names, check if it couldn't eat both Column and String. If this requires Column to adopt ExpressibleByStringLiteral, check if it does not introduce awful ambiguities
 - [ ] We share the database cache between database pool writers and readers. But what if a writer modifies the database schema within a transaction, and a concurrent reader reads the cache? Bad things, isn't it? Write failing tests first, and fix the bug.
@@ -28,6 +27,7 @@
 
 Not sure
 
+- [ ] Check if DatabaseQueue can perform concurrent reads. It's unclear if this is really necessary/useful, when DatabasePool already provides concurrent reads.
 - [ ] Support for OR ROLLBACK, and mismatch between the Swift depth and the SQLite depth of nested transactions/savepoint:
     
     ```swift
