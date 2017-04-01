@@ -1,6 +1,18 @@
 Release Notes
 =============
 
+## Next version
+
+**New**
+
+- Support for Xcode 8.3 and Swift 3.1 (Xcode 8.1 and Swift 3 are still supported).
+
+**Breaking Changes**
+
+- SQLite C API is now available right from the GRBD module: you don't need any longer to import SQLiteiPhoneOS et al.
+- Carthage is no longer supported.
+
+
 ## 0.103.0
 
 Released March 26, 2017

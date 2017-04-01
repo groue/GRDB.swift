@@ -1613,48 +1613,13 @@ row.scoped(on: "remainder") // <Row c:2 d:3>
 
 ## Raw SQLite Pointers
 
-**If not all SQLite APIs are exposed in GRDB, you can still use the [SQLite C Interface](https://www.sqlite.org/c3ref/intro.html).**
-
-The **setup** depends on the version of GRDB you are using.
-
-If you use a [custom SQLite build](Documentation/CustomSQLiteBuilds.md) or [SQLCipher](#encryption), then the C API is available right from the GRDB module:
+**If not all SQLite APIs are exposed in GRDB, you can still use the [SQLite C Interface](https://www.sqlite.org/c3ref/intro.html) and call [SQLite C functions](https://www.sqlite.org/c3ref/funclist.html).**
 
 ```swift
-// Just enough for SQLCipher and custom SQLite builds:
-import GRDBCipher // or import GRDBCustomSQLite
-
-let sqliteVersion = String(cString: sqlite3_libversion())
+let sqliteVersion = String(cString: sqlite3_libversion(), encoding: .utf8)!
 ```
 
-Otherwise (the regular case):
-
-1. Link your application with the SQLite library that ships with your SDK: add `libsqlite3.tbd` to the **Linked Frameworks and Libraries** of the **General**  tab of your target.
-
-2. Import the SQLite module in the file that uses the SQLite C Interface. That module, unfortunately, changes name depending on your platform:
-    
-    ```swift
-    // Necessary unless you use a custom SQLite build, or SQLCipher:
-    import GRDB
-    #if os(OSX)
-        import SQLiteMacOSX
-    #elseif os(iOS)
-        #if (arch(i386) || arch(x86_64))
-            import SQLiteiPhoneSimulator
-        #else
-            import SQLiteiPhoneOS
-        #endif
-    #elseif os(watchOS)
-        #if (arch(i386) || arch(x86_64))
-            import SQLiteWatchSimulator
-        #else
-            import SQLiteWatchOS
-        #endif
-    #endif
-    
-    let sqliteVersion = String(cString: sqlite3_libversion())
-    ```
-
-The `Database.sqliteConnection` and `Statement.sqliteStatement` properties provide the raw pointers that are suitable for the [SQLite C functions](https://www.sqlite.org/c3ref/funclist.html):
+Raw pointers to database connections and statements are available through the `Database.sqliteConnection` and `Statement.sqliteStatement` properties:
 
 ```swift
 try dbQueue.inDatabase { db in
@@ -1670,7 +1635,7 @@ try dbQueue.inDatabase { db in
 > :point_up: **Notes**
 >
 > - Those pointers are owned by GRDB: don't close connections or finalize statements created by GRDB.
-> - SQLite connections are opened in the "[multi-thread mode](https://www.sqlite.org/threadsafe.html)", which (oddly) means that **they are not thread-safe**. Make sure you touch raw databases and statements inside their dedicated dispatch queues.
+> - GRDB opens SQLite connections in the "[multi-thread mode](https://www.sqlite.org/threadsafe.html)", which (oddly) means that **they are not thread-safe**. Make sure you touch raw databases and statements inside their dedicated dispatch queues.
 > - Use the raw SQLite C Interface at your own risk. GRDB won't prevent you from shooting yourself in the foot.
 
 Before jumping in the low-level wagon, here is the list of all SQLite APIs used by GRDB:
