@@ -6,11 +6,14 @@ Release Notes
 **New**
 
 - Support for Xcode 8.3 and Swift 3.1 (Xcode 8.1 and Swift 3 are still supported).
+- `SelectStatement.selectionInfo` is an opaque value that knows which database tables and columns are read by a [select statement](https://github.com/groue/GRDB.swift#prepared-statements).
+- `DatabaseEventKind.impacts(_ selectionInfo:SelectStatement.SelectionInfo)` tells whether a database change has any impact on the results of a select statement. See [Database Changes Observation](https://github.com/groue/GRDB.swift#database-changes-observation)
+
 
 **Breaking Changes**
 
-- SQLite C API is now available right from the GRBD module: you don't need any longer to import SQLiteiPhoneOS et al.
-- Carthage is no longer supported.
+- SQLite C API is now available right from the GRBD module: you don't need any longer to import `SQLiteiPhoneOS` module et al.
+- Carthage is no longer supported. At the present time it is unable to support the various frameworks built by GRDB (system SQLite, SQLCipher, custom SQLite builds, etc.)
 
 
 ## 0.103.0

@@ -2051,6 +2051,20 @@ public enum DatabaseEventKind {
     
     /// The update of a set of columns in a database table
     case update(tableName: String, columnNames: Set<String>)
+    
+    /// Returns whether event has any impact on tables and columns described
+    /// by selectionInfo.
+    public func impacts(_ selectionInfo: SelectStatement.SelectionInfo) -> Bool {
+        switch self {
+        case .delete(let tableName):
+            return selectionInfo.contains(anyColumnFrom: tableName)
+        case .insert(let tableName):
+            return selectionInfo.contains(anyColumnFrom: tableName)
+        case .update(let tableName, let updatedColumnNames):
+            return selectionInfo.contains(anyColumnIn: updatedColumnNames, from: tableName)
+        }
+    }
+
 }
 
 extension DatabaseEventKind {
