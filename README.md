@@ -252,19 +252,6 @@ See [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) for the installa
     ```
 
 
-## Carthage
-
-[Carthage](https://github.com/Carthage/Carthage) is a dependency manager for Xcode projects. To use GRDB.swift with Carthage:
-
-1. Make sure Xcode is installed in the /Applications folder, with its regular name Xcode.
-
-2. Specify in your Cartfile:
-
-    ```
-    github "groue/GRDB.swift"
-    ```
-
-
 ## Manually
 
 1. Make sure Xcode is installed in the /Applications folder, with its regular name Xcode.
