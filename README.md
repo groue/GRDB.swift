@@ -233,7 +233,7 @@ Installation
 
 See [Encryption](#encryption) for the installation procedure of GRDB with SQLCipher.
 
-See [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) for the installation procedure of GRDB with a customized build of SQLite 3.16.2.
+See [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) for the installation procedure of GRDB with a customized build of SQLite 3.18.0.
 
 
 ## CocoaPods
