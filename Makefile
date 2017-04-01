@@ -117,13 +117,14 @@ else
 endif
 
 test_CarthageBuild: SQLiteCustom SQLCipher
-ifdef CARTHAGE
-	rm -rf Carthage
-	$(CARTHAGE) build --no-skip-current
-else
-	@echo Carthage must be installed for test_CocoaPodsLint
-	@exit 1
-endif
+# Disabled because https://github.com/Carthage/Carthage/issues/1867
+# ifdef CARTHAGE
+# 	rm -rf Carthage
+# 	$(CARTHAGE) build --no-skip-current
+# else
+# 	@echo Carthage must be installed for test_CarthageBuild
+# 	@exit 1
+# endif
 
 SQLiteCustom: SQLiteCustom/src/sqlite3.h
 	echo '/* Makefile generated */' > SQLiteCustom/GRDBCustomSQLite-USER.h
