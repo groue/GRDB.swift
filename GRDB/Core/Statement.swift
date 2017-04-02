@@ -254,7 +254,7 @@ public final class SelectStatement : Statement {
     }
 
     /// Information about the table and columns read by a SelectStatement
-    public struct SelectionInfo {
+    public struct SelectionInfo : CustomStringConvertible {
         mutating func insert(column: String, ofTable table: String) {
             if selection[table] != nil {
                 selection[table]!.insert(column)
@@ -272,6 +272,14 @@ public final class SelectStatement : Statement {
         }
         
         private var selection: [String: Set<String>] = [:]  // [TableName: Set<ColumnName>]
+        
+        /// A textual representation of `self`.
+        public var description: String {
+            return selection
+                .sorted { $0.key < $1.key }
+                .map { (table, columns) in "\(table)(\(columns.sorted().joined(separator: ", ")))" }
+                .joined(separator: ", ")
+        }
     }
 }
 
