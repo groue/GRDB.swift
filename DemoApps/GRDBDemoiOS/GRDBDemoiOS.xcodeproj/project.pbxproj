@@ -7,6 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		568E5FC31E926430002582E0 /* Interface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 568E5FC11E926430002582E0 /* Interface.storyboard */; };
+		568E5FC51E926430002582E0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 568E5FC41E926430002582E0 /* Assets.xcassets */; };
+		568E5FCC1E926430002582E0 /* GRDBDemoWatchOS Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 568E5FCB1E926430002582E0 /* GRDBDemoWatchOS Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		568E5FD11E926430002582E0 /* InterfaceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568E5FD01E926430002582E0 /* InterfaceController.swift */; };
+		568E5FD31E926430002582E0 /* ExtensionDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568E5FD21E926430002582E0 /* ExtensionDelegate.swift */; };
+		568E5FD51E926430002582E0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 568E5FD41E926430002582E0 /* Assets.xcassets */; };
+		568E5FD91E926430002582E0 /* GRDBDemoWatchOS.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 568E5FBF1E926430002582E0 /* GRDBDemoWatchOS.app */; };
 		56B036071E8D9EBE003B6DA4 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B036061E8D9EBE003B6DA4 /* AppDelegate.swift */; };
 		56B0360C1E8D9EBE003B6DA4 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 56B0360A1E8D9EBE003B6DA4 /* Main.storyboard */; };
 		56B0360E1E8D9EBE003B6DA4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 56B0360D1E8D9EBE003B6DA4 /* Assets.xcassets */; };
@@ -22,6 +29,20 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		568E5FCD1E926430002582E0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56B035FB1E8D9EBE003B6DA4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 568E5FCA1E926430002582E0;
+			remoteInfo = "GRDBDemoWatchOS Extension";
+		};
+		568E5FD71E926430002582E0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56B035FB1E8D9EBE003B6DA4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 568E5FBE1E926430002582E0;
+			remoteInfo = GRDBDemoWatchOS;
+		};
 		56B0363A1E8D9F79003B6DA4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
@@ -158,6 +179,28 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		568E5FDD1E926430002582E0 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				568E5FCC1E926430002582E0 /* GRDBDemoWatchOS Extension.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		568E5FE11E926430002582E0 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				568E5FD91E926430002582E0 /* GRDBDemoWatchOS.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		56B036621E8D9FB1003B6DA4 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -172,6 +215,15 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		568E5FBF1E926430002582E0 /* GRDBDemoWatchOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GRDBDemoWatchOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		568E5FC21E926430002582E0 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Interface.storyboard; sourceTree = "<group>"; };
+		568E5FC41E926430002582E0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		568E5FC61E926430002582E0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		568E5FCB1E926430002582E0 /* GRDBDemoWatchOS Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "GRDBDemoWatchOS Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		568E5FD01E926430002582E0 /* InterfaceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterfaceController.swift; sourceTree = "<group>"; };
+		568E5FD21E926430002582E0 /* ExtensionDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionDelegate.swift; sourceTree = "<group>"; };
+		568E5FD41E926430002582E0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		568E5FD61E926430002582E0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		56B036031E8D9EBE003B6DA4 /* GRDBDemoiOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GRDBDemoiOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		56B036061E8D9EBE003B6DA4 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		56B0360B1E8D9EBE003B6DA4 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -188,6 +240,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		568E5FC81E926430002582E0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		56B036001E8D9EBE003B6DA4 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -199,11 +258,34 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		568E5FC01E926430002582E0 /* GRDBDemoWatchOS */ = {
+			isa = PBXGroup;
+			children = (
+				568E5FC11E926430002582E0 /* Interface.storyboard */,
+				568E5FC41E926430002582E0 /* Assets.xcassets */,
+				568E5FC61E926430002582E0 /* Info.plist */,
+			);
+			path = GRDBDemoWatchOS;
+			sourceTree = "<group>";
+		};
+		568E5FCF1E926430002582E0 /* GRDBDemoWatchOS Extension */ = {
+			isa = PBXGroup;
+			children = (
+				568E5FD01E926430002582E0 /* InterfaceController.swift */,
+				568E5FD21E926430002582E0 /* ExtensionDelegate.swift */,
+				568E5FD41E926430002582E0 /* Assets.xcassets */,
+				568E5FD61E926430002582E0 /* Info.plist */,
+			);
+			path = "GRDBDemoWatchOS Extension";
+			sourceTree = "<group>";
+		};
 		56B035FA1E8D9EBE003B6DA4 = {
 			isa = PBXGroup;
 			children = (
 				56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */,
 				56B036051E8D9EBE003B6DA4 /* GRDBDemoiOS */,
+				568E5FC01E926430002582E0 /* GRDBDemoWatchOS */,
+				568E5FCF1E926430002582E0 /* GRDBDemoWatchOS Extension */,
 				56B036041E8D9EBE003B6DA4 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -212,6 +294,8 @@
 			isa = PBXGroup;
 			children = (
 				56B036031E8D9EBE003B6DA4 /* GRDBDemoiOS.app */,
+				568E5FBF1E926430002582E0 /* GRDBDemoWatchOS.app */,
+				568E5FCB1E926430002582E0 /* GRDBDemoWatchOS Extension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -269,6 +353,40 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		568E5FBE1E926430002582E0 /* GRDBDemoWatchOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 568E5FDE1E926430002582E0 /* Build configuration list for PBXNativeTarget "GRDBDemoWatchOS" */;
+			buildPhases = (
+				568E5FBD1E926430002582E0 /* Resources */,
+				568E5FDD1E926430002582E0 /* Embed App Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				568E5FCE1E926430002582E0 /* PBXTargetDependency */,
+			);
+			name = GRDBDemoWatchOS;
+			productName = GRDBDemoWatchOS;
+			productReference = 568E5FBF1E926430002582E0 /* GRDBDemoWatchOS.app */;
+			productType = "com.apple.product-type.application.watchapp2";
+		};
+		568E5FCA1E926430002582E0 /* GRDBDemoWatchOS Extension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 568E5FDA1E926430002582E0 /* Build configuration list for PBXNativeTarget "GRDBDemoWatchOS Extension" */;
+			buildPhases = (
+				568E5FC71E926430002582E0 /* Sources */,
+				568E5FC81E926430002582E0 /* Frameworks */,
+				568E5FC91E926430002582E0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "GRDBDemoWatchOS Extension";
+			productName = "GRDBDemoWatchOS Extension";
+			productReference = 568E5FCB1E926430002582E0 /* GRDBDemoWatchOS Extension.appex */;
+			productType = "com.apple.product-type.watchkit2-extension";
+		};
 		56B036021E8D9EBE003B6DA4 /* GRDBDemoiOS */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 56B036151E8D9EBE003B6DA4 /* Build configuration list for PBXNativeTarget "GRDBDemoiOS" */;
@@ -277,12 +395,14 @@
 				56B036001E8D9EBE003B6DA4 /* Frameworks */,
 				56B036011E8D9EBE003B6DA4 /* Resources */,
 				56B036621E8D9FB1003B6DA4 /* Embed Frameworks */,
+				568E5FE11E926430002582E0 /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				56B0365D1E8D9F8F003B6DA4 /* PBXTargetDependency */,
 				56B036611E8D9FB1003B6DA4 /* PBXTargetDependency */,
+				568E5FD81E926430002582E0 /* PBXTargetDependency */,
 			);
 			name = GRDBDemoiOS;
 			productName = GRDBDemoiOS;
@@ -299,6 +419,16 @@
 				LastUpgradeCheck = 0830;
 				ORGANIZATIONNAME = "Gwendal Roué";
 				TargetAttributes = {
+					568E5FBE1E926430002582E0 = {
+						CreatedOnToolsVersion = 8.3;
+						DevelopmentTeam = AMD8W895CT;
+						ProvisioningStyle = Automatic;
+					};
+					568E5FCA1E926430002582E0 = {
+						CreatedOnToolsVersion = 8.3;
+						DevelopmentTeam = AMD8W895CT;
+						ProvisioningStyle = Automatic;
+					};
 					56B036021E8D9EBE003B6DA4 = {
 						CreatedOnToolsVersion = 8.3;
 						DevelopmentTeam = AMD8W895CT;
@@ -326,6 +456,8 @@
 			projectRoot = "";
 			targets = (
 				56B036021E8D9EBE003B6DA4 /* GRDBDemoiOS */,
+				568E5FBE1E926430002582E0 /* GRDBDemoWatchOS */,
+				568E5FCA1E926430002582E0 /* GRDBDemoWatchOS Extension */,
 			);
 		};
 /* End PBXProject section */
@@ -453,6 +585,23 @@
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
+		568E5FBD1E926430002582E0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				568E5FC51E926430002582E0 /* Assets.xcassets in Resources */,
+				568E5FC31E926430002582E0 /* Interface.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		568E5FC91E926430002582E0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				568E5FD51E926430002582E0 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		56B036011E8D9EBE003B6DA4 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -466,6 +615,15 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		568E5FC71E926430002582E0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				568E5FD31E926430002582E0 /* ExtensionDelegate.swift in Sources */,
+				568E5FD11E926430002582E0 /* InterfaceController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		56B035FF1E8D9EBE003B6DA4 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -483,6 +641,16 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		568E5FCE1E926430002582E0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 568E5FCA1E926430002582E0 /* GRDBDemoWatchOS Extension */;
+			targetProxy = 568E5FCD1E926430002582E0 /* PBXContainerItemProxy */;
+		};
+		568E5FD81E926430002582E0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 568E5FBE1E926430002582E0 /* GRDBDemoWatchOS */;
+			targetProxy = 568E5FD71E926430002582E0 /* PBXContainerItemProxy */;
+		};
 		56B0365D1E8D9F8F003B6DA4 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = GRDBiOS;
@@ -496,6 +664,14 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
+		568E5FC11E926430002582E0 /* Interface.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				568E5FC21E926430002582E0 /* Base */,
+			);
+			name = Interface.storyboard;
+			sourceTree = "<group>";
+		};
 		56B0360A1E8D9EBE003B6DA4 /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -515,6 +691,76 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		568E5FDB1E926430002582E0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_COMPLICATION_NAME = Complication;
+				DEVELOPMENT_TEAM = AMD8W895CT;
+				INFOPLIST_FILE = "GRDBDemoWatchOS Extension/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS.watchkitapp.watchkitextension;
+				PRODUCT_NAME = "${TARGET_NAME}";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 3.2;
+			};
+			name = Debug;
+		};
+		568E5FDC1E926430002582E0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_COMPLICATION_NAME = Complication;
+				DEVELOPMENT_TEAM = AMD8W895CT;
+				INFOPLIST_FILE = "GRDBDemoWatchOS Extension/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS.watchkitapp.watchkitextension;
+				PRODUCT_NAME = "${TARGET_NAME}";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 3.2;
+			};
+			name = Release;
+		};
+		568E5FDF1E926430002582E0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = AMD8W895CT;
+				IBSC_MODULE = GRDBDemoWatchOS_Extension;
+				INFOPLIST_FILE = GRDBDemoWatchOS/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 3.2;
+			};
+			name = Debug;
+		};
+		568E5FE01E926430002582E0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = AMD8W895CT;
+				IBSC_MODULE = GRDBDemoWatchOS_Extension;
+				INFOPLIST_FILE = GRDBDemoWatchOS/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 3.2;
+			};
+			name = Release;
+		};
 		56B036131E8D9EBE003B6DA4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -639,6 +885,22 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		568E5FDA1E926430002582E0 /* Build configuration list for PBXNativeTarget "GRDBDemoWatchOS Extension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				568E5FDB1E926430002582E0 /* Debug */,
+				568E5FDC1E926430002582E0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		568E5FDE1E926430002582E0 /* Build configuration list for PBXNativeTarget "GRDBDemoWatchOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				568E5FDF1E926430002582E0 /* Debug */,
+				568E5FE01E926430002582E0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
 		56B035FE1E8D9EBE003B6DA4 /* Build configuration list for PBXProject "GRDBDemoiOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -655,6 +917,7 @@
 				56B036171E8D9EBE003B6DA4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
