@@ -1,25 +1,23 @@
+//
+//  InterfaceController.swift
+//  GRDBDemoWatchOS Extension
+//
+//  Created by Gwendal Roué on 03/04/2017.
+//  Copyright © 2017 Gwendal Roué. All rights reserved.
+//
+
 import WatchKit
+import Foundation
 import GRDB
 
 class InterfaceController: WKInterfaceController {
-
-    @IBOutlet var table: WKInterfaceTable!
+    
+    @IBOutlet var versionLabel: WKInterfaceLabel!
     
     override func awake(withContext context: Any?) {
         super.awake(withContext: context)
         
-        let persons = try! dbQueue.inDatabase { db in
-            try Person.order(Column("name")).fetchAll(db)
-        }
-        
-        table.setNumberOfRows(persons.count, withRowType: "Person")
-        for (i, person) in persons.enumerated() {
-            let row = table.rowController(at: i) as! PersonRowController
-            row.nameLabel.setText(person.name)
-        }
+        let sqliteVersion = String(cString: sqlite3_libversion(), encoding: .utf8)
+        versionLabel.setText(sqliteVersion)
     }
-}
-
-class PersonRowController: NSObject {
-    @IBOutlet var nameLabel: WKInterfaceLabel!
 }

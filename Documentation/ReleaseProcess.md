@@ -6,20 +6,15 @@ Release Process
 To release a new GRDB version:
 
 - Tests
-    - Run GRDBOX tests
-    - Run GRDBCipherOSX tests
-    - Run GRDBCustomSQLiteOSX tests
-    - Run GRDBiOS tests
-    - Run GRDBCipheriOS tests
-    - Run GRDBCustomSQLiteiOS tests
-    - Build and run GRDBDemoiOS
-    - Build and run GRDBDemoWatchOS
+    - `make test`
+    - Build and run GRDBDemoiOS in Release configuration on a device
+    - Archive GRDBDemoiOS
     - Check for performance regression with GRDBOSXPerformanceTests
-    - `rm -rf Carthage; carthage build --no-skip-current`
-    - `pod lib lint --allow-warnings`
+- On SDK upgrade, update Support/sqlite3.h
 - On https://github.com/groue/sqlcipher.git upgrade, update SQLCipher version in README.md
 - On https://github.com/swiftlyfalling/SQLiteLib upgrade, update SQLite version in README.md and Documentation/CustomSQLiteBuilds.md
 - Update GRDB version number and release date in:
+    - Makefile
     - CHANGELOG.md
     - Documentation/CustomSQLiteBuilds.md
     - Documentation/ExtendingGRDB.md
@@ -30,5 +25,6 @@ To release a new GRDB version:
 - Push to the master branch
 - Push to the Swift3 branch
 - `pod trunk push --allow-warnings`
+- `make doc`, and update index.html in the `gh-pages` branch
 - Update http://github.com/groue/GRDBDemo
 - Update http://github.com/groue/WWDCCompanion

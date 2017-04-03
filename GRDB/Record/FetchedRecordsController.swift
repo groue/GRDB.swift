@@ -434,14 +434,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     }
     
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        switch eventKind {
-        case .delete(let tableName):
-            return selectionInfo.contains(anyColumnFrom: tableName)
-        case .insert(let tableName):
-            return selectionInfo.contains(anyColumnFrom: tableName)
-        case .update(let tableName, let updatedColumnNames):
-            return selectionInfo.contains(anyColumnIn: updatedColumnNames, from: tableName)
-        }
+        return eventKind.impacts(selectionInfo)
     }
     
     #if SQLITE_ENABLE_PREUPDATE_HOOK

@@ -1,6 +1,26 @@
 Release Notes
 =============
 
+## 0.104.0
+
+Released April 3, 2017
+
+**New**
+
+- Support for Xcode 8.3 and Swift 3.1 (Xcode 8.1 and Swift 3 are still supported).
+- Upgrade custom SQLite builds to [v3.18.0](http://www.sqlite.org/changes.html) (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib)).
+- Support for [reactive](http://reactivex.io) extensions:
+    - `SelectStatement.SelectionInfo` is an opaque value that knows which database tables and columns are read by a [select statement](https://github.com/groue/GRDB.swift#prepared-statements).
+    - `DatabaseEventKind.impacts(_ selectionInfo:SelectStatement.SelectionInfo)` tells whether a database change has any impact on the results of a select statement. See [Database Changes Observation](https://github.com/groue/GRDB.swift#database-changes-observation)
+    - `TableMapping.primaryKeyRowComparator(_ db: Database)` returns a function that compares two database rows and return true if and only if they have the same non-null primary key.
+
+**Breaking Changes**
+
+- SQLite C API is now available right from the GRBD module: you don't need any longer to import `SQLiteiPhoneOS` module et al (see documentation for [Raw SQLite Pointers](https://github.com/groue/GRDB.swift#raw-sqlite-pointers)).
+- The [manual installation procedure for WatchOS extensions](https://github.com/groue/GRDB.swift#installation) has changed.
+- [Carthage](https://github.com/Carthage/Carthage) is no longer supported. At the present time it is unable to support the various frameworks built by GRDB (system SQLite, SQLCipher, custom SQLite builds, etc.)
+
+
 ## 0.103.0
 
 Released March 26, 2017

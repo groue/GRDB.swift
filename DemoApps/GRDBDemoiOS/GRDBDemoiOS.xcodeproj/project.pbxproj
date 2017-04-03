@@ -7,229 +7,235 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5624A6AA1D80B13300AD3DCE /* Interface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5624A6A81D80B13300AD3DCE /* Interface.storyboard */; };
-		5624A6AC1D80B13300AD3DCE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5624A6AB1D80B13300AD3DCE /* Assets.xcassets */; };
-		5624A6B31D80B13300AD3DCE /* GRDBDemoWatchOS Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 5624A6B21D80B13300AD3DCE /* GRDBDemoWatchOS Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		5624A6B81D80B13300AD3DCE /* InterfaceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5624A6B71D80B13300AD3DCE /* InterfaceController.swift */; };
-		5624A6BA1D80B13300AD3DCE /* ExtensionDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5624A6B91D80B13300AD3DCE /* ExtensionDelegate.swift */; };
-		5624A6BC1D80B13300AD3DCE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5624A6BB1D80B13300AD3DCE /* Assets.xcassets */; };
-		5624A6C11D80B13400AD3DCE /* GRDBDemoWatchOS.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 5624A6A61D80B13300AD3DCE /* GRDBDemoWatchOS.app */; };
-		5624A6F11D80B1FB00AD3DCE /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5624A6F01D80B1FB00AD3DCE /* Database.swift */; };
-		5624A6F31D80B23800AD3DCE /* Person.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5624A6F21D80B23800AD3DCE /* Person.swift */; };
-		568C7A9A1CA6C63100796484 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568C7A991CA6C63100796484 /* AppDelegate.swift */; };
-		568C7A9C1CA6C63100796484 /* PersonsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568C7A9B1CA6C63100796484 /* PersonsViewController.swift */; };
-		568C7A9F1CA6C63100796484 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 568C7A9D1CA6C63100796484 /* Main.storyboard */; };
-		568C7AA11CA6C63100796484 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 568C7AA01CA6C63100796484 /* Assets.xcassets */; };
-		568C7AA41CA6C63100796484 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 568C7AA21CA6C63100796484 /* LaunchScreen.storyboard */; };
-		568C7ADA1CA6C6D100796484 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 568C7AD71CA6C6BF00796484 /* GRDB.framework */; };
-		568C7ADB1CA6C6D100796484 /* GRDB.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 568C7AD71CA6C6BF00796484 /* GRDB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		568C7AE01CA6C7BC00796484 /* Person.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568C7ADF1CA6C7BC00796484 /* Person.swift */; };
-		568C7AE21CA6C97500796484 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568C7AE11CA6C97500796484 /* Database.swift */; };
-		568C7AE41CA6CEBE00796484 /* PersonEditionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568C7AE31CA6CEBE00796484 /* PersonEditionViewController.swift */; };
-		568C7AE61CA6F95300796484 /* DemoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568C7AE51CA6F95300796484 /* DemoViewController.swift */; };
-		568C7AE81CA6FB6600796484 /* SimplePersonsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568C7AE71CA6FB6600796484 /* SimplePersonsViewController.swift */; };
-		56BB80191D828F8300B719CF /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5624A6EB1D80B13400AD3DCE /* GRDB.framework */; };
-		56BB801A1D828F8300B719CF /* GRDB.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5624A6EB1D80B13400AD3DCE /* GRDB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		5657C36E1E926B05008402E8 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 5657C36D1E926B05008402E8 /* libsqlite3.tbd */; };
+		568E5FC31E926430002582E0 /* Interface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 568E5FC11E926430002582E0 /* Interface.storyboard */; };
+		568E5FC51E926430002582E0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 568E5FC41E926430002582E0 /* Assets.xcassets */; };
+		568E5FCC1E926430002582E0 /* GRDBDemoWatchOS Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 568E5FCB1E926430002582E0 /* GRDBDemoWatchOS Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		568E5FD11E926430002582E0 /* InterfaceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568E5FD01E926430002582E0 /* InterfaceController.swift */; };
+		568E5FD31E926430002582E0 /* ExtensionDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568E5FD21E926430002582E0 /* ExtensionDelegate.swift */; };
+		568E5FD51E926430002582E0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 568E5FD41E926430002582E0 /* Assets.xcassets */; };
+		568E5FD91E926430002582E0 /* GRDBDemoWatchOS.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 568E5FBF1E926430002582E0 /* GRDBDemoWatchOS.app */; };
+		568E5FE41E926547002582E0 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56B0365B1E8D9F79003B6DA4 /* GRDB.framework */; };
+		568E5FE51E926547002582E0 /* GRDB.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 56B0365B1E8D9F79003B6DA4 /* GRDB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		56B036071E8D9EBE003B6DA4 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B036061E8D9EBE003B6DA4 /* AppDelegate.swift */; };
+		56B0360C1E8D9EBE003B6DA4 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 56B0360A1E8D9EBE003B6DA4 /* Main.storyboard */; };
+		56B0360E1E8D9EBE003B6DA4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 56B0360D1E8D9EBE003B6DA4 /* Assets.xcassets */; };
+		56B036111E8D9EBE003B6DA4 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 56B0360F1E8D9EBE003B6DA4 /* LaunchScreen.storyboard */; };
+		56B0361B1E8D9F38003B6DA4 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B036191E8D9F38003B6DA4 /* Database.swift */; };
+		56B0361C1E8D9F38003B6DA4 /* Person.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B0361A1E8D9F38003B6DA4 /* Person.swift */; };
+		56B036221E8D9F4C003B6DA4 /* DemoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B0361E1E8D9F4C003B6DA4 /* DemoViewController.swift */; };
+		56B036231E8D9F4C003B6DA4 /* PersonEditionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B0361F1E8D9F4C003B6DA4 /* PersonEditionViewController.swift */; };
+		56B036241E8D9F4C003B6DA4 /* PersonsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B036201E8D9F4C003B6DA4 /* PersonsViewController.swift */; };
+		56B036251E8D9F4C003B6DA4 /* SimplePersonsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B036211E8D9F4C003B6DA4 /* SimplePersonsViewController.swift */; };
+		56B0365E1E8D9FB1003B6DA4 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56B0364D1E8D9F79003B6DA4 /* GRDB.framework */; };
+		56B0365F1E8D9FB1003B6DA4 /* GRDB.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 56B0364D1E8D9F79003B6DA4 /* GRDB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		5624A6B41D80B13300AD3DCE /* PBXContainerItemProxy */ = {
+		568E5FCD1E926430002582E0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 568C7A8E1CA6C63100796484 /* Project object */;
+			containerPortal = 56B035FB1E8D9EBE003B6DA4 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 5624A6B11D80B13300AD3DCE;
+			remoteGlobalIDString = 568E5FCA1E926430002582E0;
 			remoteInfo = "GRDBDemoWatchOS Extension";
 		};
-		5624A6BE1D80B13300AD3DCE /* PBXContainerItemProxy */ = {
+		568E5FD71E926430002582E0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 568C7A8E1CA6C63100796484 /* Project object */;
+			containerPortal = 56B035FB1E8D9EBE003B6DA4 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 5624A6A51D80B13300AD3DCE;
+			remoteGlobalIDString = 568E5FBE1E926430002582E0;
 			remoteInfo = GRDBDemoWatchOS;
 		};
-		5624A6D61D80B13400AD3DCE /* PBXContainerItemProxy */ = {
+		568E5FE21E926535002582E0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 568C7AC51CA6C6BF00796484 /* GRDB.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 560FC54D1CB003810014AA8E;
-			remoteInfo = GRDBCipherOSX;
-		};
-		5624A6D81D80B13400AD3DCE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 568C7AC51CA6C6BF00796484 /* GRDB.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 560FC5B01CB00B880014AA8E;
-			remoteInfo = GRDBCipherOSXTests;
-		};
-		5624A6DA1D80B13400AD3DCE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 568C7AC51CA6C6BF00796484 /* GRDB.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 5671566C1CB16729007DC145;
-			remoteInfo = GRDBCipherOSXEncryptedTests;
-		};
-		5624A6DC1D80B13400AD3DCE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 568C7AC51CA6C6BF00796484 /* GRDB.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = F3BA805A1CFB2BB2003DC1BA;
-			remoteInfo = GRDBCustomSQLiteOSX;
-		};
-		5624A6DE1D80B13400AD3DCE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 568C7AC51CA6C6BF00796484 /* GRDB.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = F3BA809B1CFB2F6F003DC1BA;
-			remoteInfo = GRDBCustomSQLiteOSXTests;
-		};
-		5624A6E01D80B13400AD3DCE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 568C7AC51CA6C6BF00796484 /* GRDB.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 56AFCA231CB1A8BB00F48B96;
-			remoteInfo = GRDBCipheriOS;
-		};
-		5624A6E21D80B13400AD3DCE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 568C7AC51CA6C6BF00796484 /* GRDB.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 56AFCA7F1CB1AA9900F48B96;
-			remoteInfo = GRDBCipheriOSTests;
-		};
-		5624A6E41D80B13400AD3DCE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 568C7AC51CA6C6BF00796484 /* GRDB.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 56AFCAD71CB1ABC800F48B96;
-			remoteInfo = GRDBCipheriOSEncryptedTests;
-		};
-		5624A6E61D80B13400AD3DCE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 568C7AC51CA6C6BF00796484 /* GRDB.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = F3BA7FFE1CFB25E4003DC1BA;
-			remoteInfo = GRDBCustomSQLiteiOS;
-		};
-		5624A6E81D80B13400AD3DCE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 568C7AC51CA6C6BF00796484 /* GRDB.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = F3BA80411CFB2AD7003DC1BA;
-			remoteInfo = GRDBCustomSQLiteiOSTests;
-		};
-		5624A6EA1D80B13400AD3DCE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 568C7AC51CA6C6BF00796484 /* GRDB.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 565490A01D5A4798005622CB;
+			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 5654909F1D5A4798005622CB;
 			remoteInfo = GRDBWatchOS;
 		};
-		568C7ACE1CA6C6BF00796484 /* PBXContainerItemProxy */ = {
+		568E5FE61E926547002582E0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 568C7AC51CA6C6BF00796484 /* GRDB.xcodeproj */;
+			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 5654909F1D5A4798005622CB;
+			remoteInfo = GRDBWatchOS;
+		};
+		56B0363A1E8D9F79003B6DA4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = DC3773F319C8CBB3004FCF85;
 			remoteInfo = GRDBOSX;
 		};
-		568C7AD01CA6C6BF00796484 /* PBXContainerItemProxy */ = {
+		56B0363C1E8D9F79003B6DA4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 568C7AC51CA6C6BF00796484 /* GRDB.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 56553C181C3E906C00522B5C;
-			remoteInfo = GRDBOSXCrashTests;
-		};
-		568C7AD21CA6C6BF00796484 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 568C7AC51CA6C6BF00796484 /* GRDB.xcodeproj */;
+			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 56E5D7F91B4D422D00430942;
 			remoteInfo = GRDBOSXTests;
 		};
-		568C7AD41CA6C6BF00796484 /* PBXContainerItemProxy */ = {
+		56B0363E1E8D9F79003B6DA4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 568C7AC51CA6C6BF00796484 /* GRDB.xcodeproj */;
+			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 560C981A1C0E22D300BF8471;
 			remoteInfo = GRDBOSXPerformanceTests;
 		};
-		568C7AD61CA6C6BF00796484 /* PBXContainerItemProxy */ = {
+		56B036401E8D9F79003B6DA4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 568C7AC51CA6C6BF00796484 /* GRDB.xcodeproj */;
+			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 56553C181C3E906C00522B5C;
+			remoteInfo = GRDBOSXCrashTests;
+		};
+		56B036421E8D9F79003B6DA4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 560FC54D1CB003810014AA8E;
+			remoteInfo = GRDBCipherOSX;
+		};
+		56B036441E8D9F79003B6DA4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 560FC5B01CB00B880014AA8E;
+			remoteInfo = GRDBCipherOSXTests;
+		};
+		56B036461E8D9F79003B6DA4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 5671566C1CB16729007DC145;
+			remoteInfo = GRDBCipherOSXEncryptedTests;
+		};
+		56B036481E8D9F79003B6DA4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F3BA805A1CFB2BB2003DC1BA;
+			remoteInfo = GRDBCustomSQLiteOSX;
+		};
+		56B0364A1E8D9F79003B6DA4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F3BA809B1CFB2F6F003DC1BA;
+			remoteInfo = GRDBCustomSQLiteOSXTests;
+		};
+		56B0364C1E8D9F79003B6DA4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 56E5D7CA1B4D3FED00430942;
 			remoteInfo = GRDBiOS;
 		};
-		568C7AD81CA6C6BF00796484 /* PBXContainerItemProxy */ = {
+		56B0364E1E8D9F79003B6DA4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 568C7AC51CA6C6BF00796484 /* GRDB.xcodeproj */;
+			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 56E5D7D31B4D3FEE00430942;
 			remoteInfo = GRDBiOSTests;
 		};
-		568C7ADC1CA6C6D100796484 /* PBXContainerItemProxy */ = {
+		56B036501E8D9F79003B6DA4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 568C7AC51CA6C6BF00796484 /* GRDB.xcodeproj */;
+			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 56AFCA231CB1A8BB00F48B96;
+			remoteInfo = GRDBCipheriOS;
+		};
+		56B036521E8D9F79003B6DA4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 56AFCA7F1CB1AA9900F48B96;
+			remoteInfo = GRDBCipheriOSTests;
+		};
+		56B036541E8D9F79003B6DA4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 56AFCAD71CB1ABC800F48B96;
+			remoteInfo = GRDBCipheriOSEncryptedTests;
+		};
+		56B036561E8D9F79003B6DA4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F3BA7FFE1CFB25E4003DC1BA;
+			remoteInfo = GRDBCustomSQLiteiOS;
+		};
+		56B036581E8D9F79003B6DA4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F3BA80411CFB2AD7003DC1BA;
+			remoteInfo = GRDBCustomSQLiteiOSTests;
+		};
+		56B0365A1E8D9F79003B6DA4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 565490A01D5A4798005622CB;
+			remoteInfo = GRDBWatchOS;
+		};
+		56B0365C1E8D9F8F003B6DA4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = 56E5D7C91B4D3FED00430942;
 			remoteInfo = GRDBiOS;
 		};
-		56BB80071D828F6A00B719CF /* PBXContainerItemProxy */ = {
+		56B036601E8D9FB1003B6DA4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 568C7AC51CA6C6BF00796484 /* GRDB.xcodeproj */;
+			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 5654909F1D5A4798005622CB;
-			remoteInfo = GRDBWatchOS;
-		};
-		56BB801B1D828F8300B719CF /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 568C7AC51CA6C6BF00796484 /* GRDB.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 5654909F1D5A4798005622CB;
-			remoteInfo = GRDBWatchOS;
+			remoteGlobalIDString = 56E5D7C91B4D3FED00430942;
+			remoteInfo = GRDBiOS;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		5624A6C01D80B13300AD3DCE /* Embed Watch Content */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
-			dstSubfolderSpec = 16;
-			files = (
-				5624A6C11D80B13400AD3DCE /* GRDBDemoWatchOS.app in Embed Watch Content */,
-			);
-			name = "Embed Watch Content";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		5624A6ED1D80B13400AD3DCE /* Embed App Extensions */ = {
+		568E5FDD1E926430002582E0 /* Embed App Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				5624A6B31D80B13300AD3DCE /* GRDBDemoWatchOS Extension.appex in Embed App Extensions */,
+				568E5FCC1E926430002582E0 /* GRDBDemoWatchOS Extension.appex in Embed App Extensions */,
 			);
 			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		568C7ADE1CA6C6D100796484 /* Embed Frameworks */ = {
+		568E5FE11E926430002582E0 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				568E5FD91E926430002582E0 /* GRDBDemoWatchOS.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		568E5FE81E926547002582E0 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				568C7ADB1CA6C6D100796484 /* GRDB.framework in Embed Frameworks */,
+				568E5FE51E926547002582E0 /* GRDB.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		56BB801D1D828F8300B719CF /* Embed Frameworks */ = {
+		56B036621E8D9FB1003B6DA4 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				56BB801A1D828F8300B719CF /* GRDB.framework in Embed Frameworks */,
+				56B0365F1E8D9FB1003B6DA4 /* GRDB.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -237,235 +243,243 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		5624A6A61D80B13300AD3DCE /* GRDBDemoWatchOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GRDBDemoWatchOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		5624A6A91D80B13300AD3DCE /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Interface.storyboard; sourceTree = "<group>"; };
-		5624A6AB1D80B13300AD3DCE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		5624A6AD1D80B13300AD3DCE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		5624A6B21D80B13300AD3DCE /* GRDBDemoWatchOS Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "GRDBDemoWatchOS Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
-		5624A6B71D80B13300AD3DCE /* InterfaceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterfaceController.swift; sourceTree = "<group>"; };
-		5624A6B91D80B13300AD3DCE /* ExtensionDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionDelegate.swift; sourceTree = "<group>"; };
-		5624A6BB1D80B13300AD3DCE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		5624A6BD1D80B13300AD3DCE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		5624A6F01D80B1FB00AD3DCE /* Database.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
-		5624A6F21D80B23800AD3DCE /* Person.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Person.swift; sourceTree = "<group>"; };
-		568C7A961CA6C63100796484 /* GRDBDemoiOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GRDBDemoiOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		568C7A991CA6C63100796484 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		568C7A9B1CA6C63100796484 /* PersonsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonsViewController.swift; sourceTree = "<group>"; };
-		568C7A9E1CA6C63100796484 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
-		568C7AA01CA6C63100796484 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		568C7AA31CA6C63100796484 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		568C7AA51CA6C63100796484 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		568C7AC51CA6C6BF00796484 /* GRDB.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GRDB.xcodeproj; path = ../../../GRDB.xcodeproj; sourceTree = "<group>"; };
-		568C7ADF1CA6C7BC00796484 /* Person.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Person.swift; sourceTree = "<group>"; };
-		568C7AE11CA6C97500796484 /* Database.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
-		568C7AE31CA6CEBE00796484 /* PersonEditionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersonEditionViewController.swift; sourceTree = "<group>"; };
-		568C7AE51CA6F95300796484 /* DemoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DemoViewController.swift; sourceTree = "<group>"; };
-		568C7AE71CA6FB6600796484 /* SimplePersonsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimplePersonsViewController.swift; sourceTree = "<group>"; };
+		5657C36D1E926B05008402E8 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = Platforms/WatchOS.platform/Developer/SDKs/WatchOS3.2.sdk/usr/lib/libsqlite3.tbd; sourceTree = DEVELOPER_DIR; };
+		568E5FBF1E926430002582E0 /* GRDBDemoWatchOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GRDBDemoWatchOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		568E5FC21E926430002582E0 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Interface.storyboard; sourceTree = "<group>"; };
+		568E5FC41E926430002582E0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		568E5FC61E926430002582E0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		568E5FCB1E926430002582E0 /* GRDBDemoWatchOS Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "GRDBDemoWatchOS Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		568E5FD01E926430002582E0 /* InterfaceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterfaceController.swift; sourceTree = "<group>"; };
+		568E5FD21E926430002582E0 /* ExtensionDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionDelegate.swift; sourceTree = "<group>"; };
+		568E5FD41E926430002582E0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		568E5FD61E926430002582E0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		56B036031E8D9EBE003B6DA4 /* GRDBDemoiOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GRDBDemoiOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		56B036061E8D9EBE003B6DA4 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		56B0360B1E8D9EBE003B6DA4 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		56B0360D1E8D9EBE003B6DA4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		56B036101E8D9EBE003B6DA4 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		56B036121E8D9EBE003B6DA4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		56B036191E8D9F38003B6DA4 /* Database.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
+		56B0361A1E8D9F38003B6DA4 /* Person.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Person.swift; sourceTree = "<group>"; };
+		56B0361E1E8D9F4C003B6DA4 /* DemoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DemoViewController.swift; sourceTree = "<group>"; };
+		56B0361F1E8D9F4C003B6DA4 /* PersonEditionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersonEditionViewController.swift; sourceTree = "<group>"; };
+		56B036201E8D9F4C003B6DA4 /* PersonsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersonsViewController.swift; sourceTree = "<group>"; };
+		56B036211E8D9F4C003B6DA4 /* SimplePersonsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimplePersonsViewController.swift; sourceTree = "<group>"; };
+		56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GRDB.xcodeproj; path = ../../GRDB.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		5624A6AF1D80B13300AD3DCE /* Frameworks */ = {
+		568E5FC81E926430002582E0 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				56BB80191D828F8300B719CF /* GRDB.framework in Frameworks */,
+				5657C36E1E926B05008402E8 /* libsqlite3.tbd in Frameworks */,
+				568E5FE41E926547002582E0 /* GRDB.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		568C7A931CA6C63100796484 /* Frameworks */ = {
+		56B036001E8D9EBE003B6DA4 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				568C7ADA1CA6C6D100796484 /* GRDB.framework in Frameworks */,
+				56B0365E1E8D9FB1003B6DA4 /* GRDB.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		5624A6A71D80B13300AD3DCE /* GRDBDemoWatchOS */ = {
+		5657C36C1E926B05008402E8 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				5624A6A81D80B13300AD3DCE /* Interface.storyboard */,
-				5624A6AB1D80B13300AD3DCE /* Assets.xcassets */,
-				5624A6AD1D80B13300AD3DCE /* Info.plist */,
+				5657C36D1E926B05008402E8 /* libsqlite3.tbd */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		568E5FC01E926430002582E0 /* GRDBDemoWatchOS */ = {
+			isa = PBXGroup;
+			children = (
+				568E5FC11E926430002582E0 /* Interface.storyboard */,
+				568E5FC41E926430002582E0 /* Assets.xcassets */,
+				568E5FC61E926430002582E0 /* Info.plist */,
 			);
 			path = GRDBDemoWatchOS;
 			sourceTree = "<group>";
 		};
-		5624A6B61D80B13300AD3DCE /* GRDBDemoWatchOS Extension */ = {
+		568E5FCF1E926430002582E0 /* GRDBDemoWatchOS Extension */ = {
 			isa = PBXGroup;
 			children = (
-				5624A6F01D80B1FB00AD3DCE /* Database.swift */,
-				5624A6B71D80B13300AD3DCE /* InterfaceController.swift */,
-				5624A6B91D80B13300AD3DCE /* ExtensionDelegate.swift */,
-				5624A6F21D80B23800AD3DCE /* Person.swift */,
-				5624A6BB1D80B13300AD3DCE /* Assets.xcassets */,
-				5624A6BD1D80B13300AD3DCE /* Info.plist */,
+				568E5FD01E926430002582E0 /* InterfaceController.swift */,
+				568E5FD21E926430002582E0 /* ExtensionDelegate.swift */,
+				568E5FD41E926430002582E0 /* Assets.xcassets */,
+				568E5FD61E926430002582E0 /* Info.plist */,
 			);
 			path = "GRDBDemoWatchOS Extension";
 			sourceTree = "<group>";
 		};
-		568C7A8D1CA6C63100796484 = {
+		56B035FA1E8D9EBE003B6DA4 = {
 			isa = PBXGroup;
 			children = (
-				568C7A981CA6C63100796484 /* GRDBDemoiOS */,
-				5624A6A71D80B13300AD3DCE /* GRDBDemoWatchOS */,
-				5624A6B61D80B13300AD3DCE /* GRDBDemoWatchOS Extension */,
-				568C7A971CA6C63100796484 /* Products */,
+				56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */,
+				56B036051E8D9EBE003B6DA4 /* GRDBDemoiOS */,
+				568E5FC01E926430002582E0 /* GRDBDemoWatchOS */,
+				568E5FCF1E926430002582E0 /* GRDBDemoWatchOS Extension */,
+				56B036041E8D9EBE003B6DA4 /* Products */,
+				5657C36C1E926B05008402E8 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
-		568C7A971CA6C63100796484 /* Products */ = {
+		56B036041E8D9EBE003B6DA4 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				568C7A961CA6C63100796484 /* GRDBDemoiOS.app */,
-				5624A6A61D80B13300AD3DCE /* GRDBDemoWatchOS.app */,
-				5624A6B21D80B13300AD3DCE /* GRDBDemoWatchOS Extension.appex */,
+				56B036031E8D9EBE003B6DA4 /* GRDBDemoiOS.app */,
+				568E5FBF1E926430002582E0 /* GRDBDemoWatchOS.app */,
+				568E5FCB1E926430002582E0 /* GRDBDemoWatchOS Extension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		568C7A981CA6C63100796484 /* GRDBDemoiOS */ = {
+		56B036051E8D9EBE003B6DA4 /* GRDBDemoiOS */ = {
 			isa = PBXGroup;
 			children = (
-				568C7A991CA6C63100796484 /* AppDelegate.swift */,
-				568C7AE11CA6C97500796484 /* Database.swift */,
-				568C7ADF1CA6C7BC00796484 /* Person.swift */,
-				568C7AEA1CA6FE6B00796484 /* Controllers */,
-				568C7A9D1CA6C63100796484 /* Main.storyboard */,
-				568C7AA01CA6C63100796484 /* Assets.xcassets */,
-				568C7AA21CA6C63100796484 /* LaunchScreen.storyboard */,
-				568C7AA51CA6C63100796484 /* Info.plist */,
-				568C7AC51CA6C6BF00796484 /* GRDB.xcodeproj */,
+				56B036061E8D9EBE003B6DA4 /* AppDelegate.swift */,
+				56B036191E8D9F38003B6DA4 /* Database.swift */,
+				56B0361A1E8D9F38003B6DA4 /* Person.swift */,
+				56B0361D1E8D9F3D003B6DA4 /* Controllers */,
+				56B0360A1E8D9EBE003B6DA4 /* Main.storyboard */,
+				56B0360D1E8D9EBE003B6DA4 /* Assets.xcassets */,
+				56B0360F1E8D9EBE003B6DA4 /* LaunchScreen.storyboard */,
+				56B036121E8D9EBE003B6DA4 /* Info.plist */,
 			);
 			path = GRDBDemoiOS;
 			sourceTree = "<group>";
 		};
-		568C7AC61CA6C6BF00796484 /* Products */ = {
+		56B0361D1E8D9F3D003B6DA4 /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
-				568C7ACF1CA6C6BF00796484 /* GRDB.framework */,
-				568C7AD31CA6C6BF00796484 /* GRDBTests.xctest */,
-				568C7AD51CA6C6BF00796484 /* GRDBOSXPerformanceTests.xctest */,
-				568C7AD11CA6C6BF00796484 /* GRDBOSXCrashTests.xctest */,
-				5624A6D71D80B13400AD3DCE /* GRDBCipher.framework */,
-				5624A6D91D80B13400AD3DCE /* GRDBTests.xctest */,
-				5624A6DB1D80B13400AD3DCE /* GRDBCipherOSXEncryptedTests.xctest */,
-				5624A6DD1D80B13400AD3DCE /* GRDBCustomSQLite.framework */,
-				5624A6DF1D80B13400AD3DCE /* GRDBCustomSQLiteOSXTests.xctest */,
-				568C7AD71CA6C6BF00796484 /* GRDB.framework */,
-				568C7AD91CA6C6BF00796484 /* GRDBTests.xctest */,
-				5624A6E11D80B13400AD3DCE /* GRDBCipher.framework */,
-				5624A6E31D80B13400AD3DCE /* GRDBTests.xctest */,
-				5624A6E51D80B13400AD3DCE /* GRDBTests.xctest */,
-				5624A6E71D80B13400AD3DCE /* GRDBCustomSQLite.framework */,
-				5624A6E91D80B13400AD3DCE /* GRDBCustomSQLiteiOSTests.xctest */,
-				5624A6EB1D80B13400AD3DCE /* GRDB.framework */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		568C7AEA1CA6FE6B00796484 /* Controllers */ = {
-			isa = PBXGroup;
-			children = (
-				568C7AE51CA6F95300796484 /* DemoViewController.swift */,
-				568C7AE31CA6CEBE00796484 /* PersonEditionViewController.swift */,
-				568C7A9B1CA6C63100796484 /* PersonsViewController.swift */,
-				568C7AE71CA6FB6600796484 /* SimplePersonsViewController.swift */,
+				56B0361E1E8D9F4C003B6DA4 /* DemoViewController.swift */,
+				56B0361F1E8D9F4C003B6DA4 /* PersonEditionViewController.swift */,
+				56B036201E8D9F4C003B6DA4 /* PersonsViewController.swift */,
+				56B036211E8D9F4C003B6DA4 /* SimplePersonsViewController.swift */,
 			);
 			name = Controllers;
+			sourceTree = "<group>";
+		};
+		56B036271E8D9F79003B6DA4 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				56B0363B1E8D9F79003B6DA4 /* GRDB.framework */,
+				56B0363D1E8D9F79003B6DA4 /* GRDBOSXTests.xctest */,
+				56B0363F1E8D9F79003B6DA4 /* GRDBOSXPerformanceTests.xctest */,
+				56B036411E8D9F79003B6DA4 /* GRDBOSXCrashTests.xctest */,
+				56B036431E8D9F79003B6DA4 /* GRDBCipher.framework */,
+				56B036451E8D9F79003B6DA4 /* GRDBCipherOSXTests.xctest */,
+				56B036471E8D9F79003B6DA4 /* GRDBCipherOSXEncryptedTests.xctest */,
+				56B036491E8D9F79003B6DA4 /* GRDBCustomSQLite.framework */,
+				56B0364B1E8D9F79003B6DA4 /* GRDBCustomSQLiteOSXTests.xctest */,
+				56B0364D1E8D9F79003B6DA4 /* GRDB.framework */,
+				56B0364F1E8D9F79003B6DA4 /* GRDBiOSTests.xctest */,
+				56B036511E8D9F79003B6DA4 /* GRDBCipher.framework */,
+				56B036531E8D9F79003B6DA4 /* GRDBCipheriOSTests.xctest */,
+				56B036551E8D9F79003B6DA4 /* GRDBCipheriOSEncryptedTests.xctest */,
+				56B036571E8D9F79003B6DA4 /* GRDBCustomSQLite.framework */,
+				56B036591E8D9F79003B6DA4 /* GRDBCustomSQLiteiOSTests.xctest */,
+				56B0365B1E8D9F79003B6DA4 /* GRDB.framework */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		5624A6A51D80B13300AD3DCE /* GRDBDemoWatchOS */ = {
+		568E5FBE1E926430002582E0 /* GRDBDemoWatchOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 5624A6EE1D80B13400AD3DCE /* Build configuration list for PBXNativeTarget "GRDBDemoWatchOS" */;
+			buildConfigurationList = 568E5FDE1E926430002582E0 /* Build configuration list for PBXNativeTarget "GRDBDemoWatchOS" */;
 			buildPhases = (
-				5624A6A41D80B13300AD3DCE /* Resources */,
-				5624A6ED1D80B13400AD3DCE /* Embed App Extensions */,
+				568E5FBD1E926430002582E0 /* Resources */,
+				568E5FDD1E926430002582E0 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				5624A6B51D80B13300AD3DCE /* PBXTargetDependency */,
+				568E5FCE1E926430002582E0 /* PBXTargetDependency */,
 			);
 			name = GRDBDemoWatchOS;
 			productName = GRDBDemoWatchOS;
-			productReference = 5624A6A61D80B13300AD3DCE /* GRDBDemoWatchOS.app */;
+			productReference = 568E5FBF1E926430002582E0 /* GRDBDemoWatchOS.app */;
 			productType = "com.apple.product-type.application.watchapp2";
 		};
-		5624A6B11D80B13300AD3DCE /* GRDBDemoWatchOS Extension */ = {
+		568E5FCA1E926430002582E0 /* GRDBDemoWatchOS Extension */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 5624A6EC1D80B13400AD3DCE /* Build configuration list for PBXNativeTarget "GRDBDemoWatchOS Extension" */;
+			buildConfigurationList = 568E5FDA1E926430002582E0 /* Build configuration list for PBXNativeTarget "GRDBDemoWatchOS Extension" */;
 			buildPhases = (
-				5624A6AE1D80B13300AD3DCE /* Sources */,
-				5624A6AF1D80B13300AD3DCE /* Frameworks */,
-				5624A6B01D80B13300AD3DCE /* Resources */,
-				56BB801D1D828F8300B719CF /* Embed Frameworks */,
+				568E5FC71E926430002582E0 /* Sources */,
+				568E5FC81E926430002582E0 /* Frameworks */,
+				568E5FC91E926430002582E0 /* Resources */,
+				568E5FE81E926547002582E0 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				56BB80081D828F6A00B719CF /* PBXTargetDependency */,
-				56BB801C1D828F8300B719CF /* PBXTargetDependency */,
+				568E5FE31E926535002582E0 /* PBXTargetDependency */,
+				568E5FE71E926547002582E0 /* PBXTargetDependency */,
 			);
 			name = "GRDBDemoWatchOS Extension";
 			productName = "GRDBDemoWatchOS Extension";
-			productReference = 5624A6B21D80B13300AD3DCE /* GRDBDemoWatchOS Extension.appex */;
+			productReference = 568E5FCB1E926430002582E0 /* GRDBDemoWatchOS Extension.appex */;
 			productType = "com.apple.product-type.watchkit2-extension";
 		};
-		568C7A951CA6C63100796484 /* GRDBDemoiOS */ = {
+		56B036021E8D9EBE003B6DA4 /* GRDBDemoiOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 568C7AA81CA6C63100796484 /* Build configuration list for PBXNativeTarget "GRDBDemoiOS" */;
+			buildConfigurationList = 56B036151E8D9EBE003B6DA4 /* Build configuration list for PBXNativeTarget "GRDBDemoiOS" */;
 			buildPhases = (
-				568C7A921CA6C63100796484 /* Sources */,
-				568C7A931CA6C63100796484 /* Frameworks */,
-				568C7A941CA6C63100796484 /* Resources */,
-				568C7ADE1CA6C6D100796484 /* Embed Frameworks */,
-				5624A6C01D80B13300AD3DCE /* Embed Watch Content */,
+				56B035FF1E8D9EBE003B6DA4 /* Sources */,
+				56B036001E8D9EBE003B6DA4 /* Frameworks */,
+				56B036011E8D9EBE003B6DA4 /* Resources */,
+				56B036621E8D9FB1003B6DA4 /* Embed Frameworks */,
+				568E5FE11E926430002582E0 /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				568C7ADD1CA6C6D100796484 /* PBXTargetDependency */,
-				5624A6BF1D80B13300AD3DCE /* PBXTargetDependency */,
+				56B0365D1E8D9F8F003B6DA4 /* PBXTargetDependency */,
+				56B036611E8D9FB1003B6DA4 /* PBXTargetDependency */,
+				568E5FD81E926430002582E0 /* PBXTargetDependency */,
 			);
 			name = GRDBDemoiOS;
 			productName = GRDBDemoiOS;
-			productReference = 568C7A961CA6C63100796484 /* GRDBDemoiOS.app */;
+			productReference = 56B036031E8D9EBE003B6DA4 /* GRDBDemoiOS.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		568C7A8E1CA6C63100796484 /* Project object */ = {
+		56B035FB1E8D9EBE003B6DA4 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 0730;
-				LastUpgradeCheck = 0800;
-				ORGANIZATIONNAME = Pierlis;
+				LastSwiftUpdateCheck = 0830;
+				LastUpgradeCheck = 0830;
+				ORGANIZATIONNAME = "Gwendal Roué";
 				TargetAttributes = {
-					5624A6A51D80B13300AD3DCE = {
-						CreatedOnToolsVersion = 7.3.1;
+					568E5FBE1E926430002582E0 = {
+						CreatedOnToolsVersion = 8.3;
 						DevelopmentTeam = AMD8W895CT;
-						LastSwiftMigration = 0800;
+						ProvisioningStyle = Automatic;
 					};
-					5624A6B11D80B13300AD3DCE = {
-						CreatedOnToolsVersion = 7.3.1;
+					568E5FCA1E926430002582E0 = {
+						CreatedOnToolsVersion = 8.3;
 						DevelopmentTeam = AMD8W895CT;
-						LastSwiftMigration = 0800;
+						ProvisioningStyle = Automatic;
 					};
-					568C7A951CA6C63100796484 = {
-						CreatedOnToolsVersion = 7.3;
+					56B036021E8D9EBE003B6DA4 = {
+						CreatedOnToolsVersion = 8.3;
 						DevelopmentTeam = AMD8W895CT;
-						LastSwiftMigration = 0800;
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};
-			buildConfigurationList = 568C7A911CA6C63100796484 /* Build configuration list for PBXProject "GRDBDemoiOS" */;
+			buildConfigurationList = 56B035FE1E8D9EBE003B6DA4 /* Build configuration list for PBXProject "GRDBDemoiOS" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -473,253 +487,256 @@
 				en,
 				Base,
 			);
-			mainGroup = 568C7A8D1CA6C63100796484;
-			productRefGroup = 568C7A971CA6C63100796484 /* Products */;
+			mainGroup = 56B035FA1E8D9EBE003B6DA4;
+			productRefGroup = 56B036041E8D9EBE003B6DA4 /* Products */;
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = 568C7AC61CA6C6BF00796484 /* Products */;
-					ProjectRef = 568C7AC51CA6C6BF00796484 /* GRDB.xcodeproj */;
+					ProductGroup = 56B036271E8D9F79003B6DA4 /* Products */;
+					ProjectRef = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
 				},
 			);
 			projectRoot = "";
 			targets = (
-				568C7A951CA6C63100796484 /* GRDBDemoiOS */,
-				5624A6A51D80B13300AD3DCE /* GRDBDemoWatchOS */,
-				5624A6B11D80B13300AD3DCE /* GRDBDemoWatchOS Extension */,
+				56B036021E8D9EBE003B6DA4 /* GRDBDemoiOS */,
+				568E5FBE1E926430002582E0 /* GRDBDemoWatchOS */,
+				568E5FCA1E926430002582E0 /* GRDBDemoWatchOS Extension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		5624A6D71D80B13400AD3DCE /* GRDBCipher.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = GRDBCipher.framework;
-			remoteRef = 5624A6D61D80B13400AD3DCE /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		5624A6D91D80B13400AD3DCE /* GRDBTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = GRDBTests.xctest;
-			remoteRef = 5624A6D81D80B13400AD3DCE /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		5624A6DB1D80B13400AD3DCE /* GRDBCipherOSXEncryptedTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = GRDBCipherOSXEncryptedTests.xctest;
-			remoteRef = 5624A6DA1D80B13400AD3DCE /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		5624A6DD1D80B13400AD3DCE /* GRDBCustomSQLite.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = GRDBCustomSQLite.framework;
-			remoteRef = 5624A6DC1D80B13400AD3DCE /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		5624A6DF1D80B13400AD3DCE /* GRDBCustomSQLiteOSXTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = GRDBCustomSQLiteOSXTests.xctest;
-			remoteRef = 5624A6DE1D80B13400AD3DCE /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		5624A6E11D80B13400AD3DCE /* GRDBCipher.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = GRDBCipher.framework;
-			remoteRef = 5624A6E01D80B13400AD3DCE /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		5624A6E31D80B13400AD3DCE /* GRDBTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = GRDBTests.xctest;
-			remoteRef = 5624A6E21D80B13400AD3DCE /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		5624A6E51D80B13400AD3DCE /* GRDBTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = GRDBTests.xctest;
-			remoteRef = 5624A6E41D80B13400AD3DCE /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		5624A6E71D80B13400AD3DCE /* GRDBCustomSQLite.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = GRDBCustomSQLite.framework;
-			remoteRef = 5624A6E61D80B13400AD3DCE /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		5624A6E91D80B13400AD3DCE /* GRDBCustomSQLiteiOSTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = GRDBCustomSQLiteiOSTests.xctest;
-			remoteRef = 5624A6E81D80B13400AD3DCE /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		5624A6EB1D80B13400AD3DCE /* GRDB.framework */ = {
+		56B0363B1E8D9F79003B6DA4 /* GRDB.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
 			path = GRDB.framework;
-			remoteRef = 5624A6EA1D80B13400AD3DCE /* PBXContainerItemProxy */;
+			remoteRef = 56B0363A1E8D9F79003B6DA4 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		568C7ACF1CA6C6BF00796484 /* GRDB.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = GRDB.framework;
-			remoteRef = 568C7ACE1CA6C6BF00796484 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		568C7AD11CA6C6BF00796484 /* GRDBOSXCrashTests.xctest */ = {
+		56B0363D1E8D9F79003B6DA4 /* GRDBOSXTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
-			path = GRDBOSXCrashTests.xctest;
-			remoteRef = 568C7AD01CA6C6BF00796484 /* PBXContainerItemProxy */;
+			path = GRDBOSXTests.xctest;
+			remoteRef = 56B0363C1E8D9F79003B6DA4 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		568C7AD31CA6C6BF00796484 /* GRDBTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = GRDBTests.xctest;
-			remoteRef = 568C7AD21CA6C6BF00796484 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		568C7AD51CA6C6BF00796484 /* GRDBOSXPerformanceTests.xctest */ = {
+		56B0363F1E8D9F79003B6DA4 /* GRDBOSXPerformanceTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
 			path = GRDBOSXPerformanceTests.xctest;
-			remoteRef = 568C7AD41CA6C6BF00796484 /* PBXContainerItemProxy */;
+			remoteRef = 56B0363E1E8D9F79003B6DA4 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		568C7AD71CA6C6BF00796484 /* GRDB.framework */ = {
+		56B036411E8D9F79003B6DA4 /* GRDBOSXCrashTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = GRDBOSXCrashTests.xctest;
+			remoteRef = 56B036401E8D9F79003B6DA4 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		56B036431E8D9F79003B6DA4 /* GRDBCipher.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = GRDBCipher.framework;
+			remoteRef = 56B036421E8D9F79003B6DA4 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		56B036451E8D9F79003B6DA4 /* GRDBCipherOSXTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = GRDBCipherOSXTests.xctest;
+			remoteRef = 56B036441E8D9F79003B6DA4 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		56B036471E8D9F79003B6DA4 /* GRDBCipherOSXEncryptedTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = GRDBCipherOSXEncryptedTests.xctest;
+			remoteRef = 56B036461E8D9F79003B6DA4 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		56B036491E8D9F79003B6DA4 /* GRDBCustomSQLite.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = GRDBCustomSQLite.framework;
+			remoteRef = 56B036481E8D9F79003B6DA4 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		56B0364B1E8D9F79003B6DA4 /* GRDBCustomSQLiteOSXTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = GRDBCustomSQLiteOSXTests.xctest;
+			remoteRef = 56B0364A1E8D9F79003B6DA4 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		56B0364D1E8D9F79003B6DA4 /* GRDB.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
 			path = GRDB.framework;
-			remoteRef = 568C7AD61CA6C6BF00796484 /* PBXContainerItemProxy */;
+			remoteRef = 56B0364C1E8D9F79003B6DA4 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		568C7AD91CA6C6BF00796484 /* GRDBTests.xctest */ = {
+		56B0364F1E8D9F79003B6DA4 /* GRDBiOSTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
-			path = GRDBTests.xctest;
-			remoteRef = 568C7AD81CA6C6BF00796484 /* PBXContainerItemProxy */;
+			path = GRDBiOSTests.xctest;
+			remoteRef = 56B0364E1E8D9F79003B6DA4 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		56B036511E8D9F79003B6DA4 /* GRDBCipher.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = GRDBCipher.framework;
+			remoteRef = 56B036501E8D9F79003B6DA4 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		56B036531E8D9F79003B6DA4 /* GRDBCipheriOSTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = GRDBCipheriOSTests.xctest;
+			remoteRef = 56B036521E8D9F79003B6DA4 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		56B036551E8D9F79003B6DA4 /* GRDBCipheriOSEncryptedTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = GRDBCipheriOSEncryptedTests.xctest;
+			remoteRef = 56B036541E8D9F79003B6DA4 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		56B036571E8D9F79003B6DA4 /* GRDBCustomSQLite.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = GRDBCustomSQLite.framework;
+			remoteRef = 56B036561E8D9F79003B6DA4 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		56B036591E8D9F79003B6DA4 /* GRDBCustomSQLiteiOSTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = GRDBCustomSQLiteiOSTests.xctest;
+			remoteRef = 56B036581E8D9F79003B6DA4 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		56B0365B1E8D9F79003B6DA4 /* GRDB.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = GRDB.framework;
+			remoteRef = 56B0365A1E8D9F79003B6DA4 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
-		5624A6A41D80B13300AD3DCE /* Resources */ = {
+		568E5FBD1E926430002582E0 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5624A6AC1D80B13300AD3DCE /* Assets.xcassets in Resources */,
-				5624A6AA1D80B13300AD3DCE /* Interface.storyboard in Resources */,
+				568E5FC51E926430002582E0 /* Assets.xcassets in Resources */,
+				568E5FC31E926430002582E0 /* Interface.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		5624A6B01D80B13300AD3DCE /* Resources */ = {
+		568E5FC91E926430002582E0 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5624A6BC1D80B13300AD3DCE /* Assets.xcassets in Resources */,
+				568E5FD51E926430002582E0 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		568C7A941CA6C63100796484 /* Resources */ = {
+		56B036011E8D9EBE003B6DA4 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				568C7AA41CA6C63100796484 /* LaunchScreen.storyboard in Resources */,
-				568C7AA11CA6C63100796484 /* Assets.xcassets in Resources */,
-				568C7A9F1CA6C63100796484 /* Main.storyboard in Resources */,
+				56B036111E8D9EBE003B6DA4 /* LaunchScreen.storyboard in Resources */,
+				56B0360E1E8D9EBE003B6DA4 /* Assets.xcassets in Resources */,
+				56B0360C1E8D9EBE003B6DA4 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		5624A6AE1D80B13300AD3DCE /* Sources */ = {
+		568E5FC71E926430002582E0 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5624A6F11D80B1FB00AD3DCE /* Database.swift in Sources */,
-				5624A6BA1D80B13300AD3DCE /* ExtensionDelegate.swift in Sources */,
-				5624A6F31D80B23800AD3DCE /* Person.swift in Sources */,
-				5624A6B81D80B13300AD3DCE /* InterfaceController.swift in Sources */,
+				568E5FD31E926430002582E0 /* ExtensionDelegate.swift in Sources */,
+				568E5FD11E926430002582E0 /* InterfaceController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		568C7A921CA6C63100796484 /* Sources */ = {
+		56B035FF1E8D9EBE003B6DA4 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				568C7AE01CA6C7BC00796484 /* Person.swift in Sources */,
-				568C7AE81CA6FB6600796484 /* SimplePersonsViewController.swift in Sources */,
-				568C7A9C1CA6C63100796484 /* PersonsViewController.swift in Sources */,
-				568C7AE21CA6C97500796484 /* Database.swift in Sources */,
-				568C7AE61CA6F95300796484 /* DemoViewController.swift in Sources */,
-				568C7AE41CA6CEBE00796484 /* PersonEditionViewController.swift in Sources */,
-				568C7A9A1CA6C63100796484 /* AppDelegate.swift in Sources */,
+				56B0361C1E8D9F38003B6DA4 /* Person.swift in Sources */,
+				56B0361B1E8D9F38003B6DA4 /* Database.swift in Sources */,
+				56B036071E8D9EBE003B6DA4 /* AppDelegate.swift in Sources */,
+				56B036241E8D9F4C003B6DA4 /* PersonsViewController.swift in Sources */,
+				56B036231E8D9F4C003B6DA4 /* PersonEditionViewController.swift in Sources */,
+				56B036251E8D9F4C003B6DA4 /* SimplePersonsViewController.swift in Sources */,
+				56B036221E8D9F4C003B6DA4 /* DemoViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		5624A6B51D80B13300AD3DCE /* PBXTargetDependency */ = {
+		568E5FCE1E926430002582E0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 5624A6B11D80B13300AD3DCE /* GRDBDemoWatchOS Extension */;
-			targetProxy = 5624A6B41D80B13300AD3DCE /* PBXContainerItemProxy */;
+			target = 568E5FCA1E926430002582E0 /* GRDBDemoWatchOS Extension */;
+			targetProxy = 568E5FCD1E926430002582E0 /* PBXContainerItemProxy */;
 		};
-		5624A6BF1D80B13300AD3DCE /* PBXTargetDependency */ = {
+		568E5FD81E926430002582E0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 5624A6A51D80B13300AD3DCE /* GRDBDemoWatchOS */;
-			targetProxy = 5624A6BE1D80B13300AD3DCE /* PBXContainerItemProxy */;
+			target = 568E5FBE1E926430002582E0 /* GRDBDemoWatchOS */;
+			targetProxy = 568E5FD71E926430002582E0 /* PBXContainerItemProxy */;
 		};
-		568C7ADD1CA6C6D100796484 /* PBXTargetDependency */ = {
+		568E5FE31E926535002582E0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GRDBWatchOS;
+			targetProxy = 568E5FE21E926535002582E0 /* PBXContainerItemProxy */;
+		};
+		568E5FE71E926547002582E0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GRDBWatchOS;
+			targetProxy = 568E5FE61E926547002582E0 /* PBXContainerItemProxy */;
+		};
+		56B0365D1E8D9F8F003B6DA4 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = GRDBiOS;
-			targetProxy = 568C7ADC1CA6C6D100796484 /* PBXContainerItemProxy */;
+			targetProxy = 56B0365C1E8D9F8F003B6DA4 /* PBXContainerItemProxy */;
 		};
-		56BB80081D828F6A00B719CF /* PBXTargetDependency */ = {
+		56B036611E8D9FB1003B6DA4 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = GRDBWatchOS;
-			targetProxy = 56BB80071D828F6A00B719CF /* PBXContainerItemProxy */;
-		};
-		56BB801C1D828F8300B719CF /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = GRDBWatchOS;
-			targetProxy = 56BB801B1D828F8300B719CF /* PBXContainerItemProxy */;
+			name = GRDBiOS;
+			targetProxy = 56B036601E8D9FB1003B6DA4 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
-		5624A6A81D80B13300AD3DCE /* Interface.storyboard */ = {
+		568E5FC11E926430002582E0 /* Interface.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
-				5624A6A91D80B13300AD3DCE /* Base */,
+				568E5FC21E926430002582E0 /* Base */,
 			);
 			name = Interface.storyboard;
 			sourceTree = "<group>";
 		};
-		568C7A9D1CA6C63100796484 /* Main.storyboard */ = {
+		56B0360A1E8D9EBE003B6DA4 /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
-				568C7A9E1CA6C63100796484 /* Base */,
+				56B0360B1E8D9EBE003B6DA4 /* Base */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
 		};
-		568C7AA21CA6C63100796484 /* LaunchScreen.storyboard */ = {
+		56B0360F1E8D9EBE003B6DA4 /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
-				568C7AA31CA6C63100796484 /* Base */,
+				56B036101E8D9EBE003B6DA4 /* Base */,
 			);
 			name = LaunchScreen.storyboard;
 			sourceTree = "<group>";
@@ -727,77 +744,82 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		5624A6C21D80B13400AD3DCE /* Debug */ = {
+		568E5FDB1E926430002582E0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_COMPLICATION_NAME = Complication;
+				DEVELOPMENT_TEAM = AMD8W895CT;
+				INFOPLIST_FILE = "GRDBDemoWatchOS Extension/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS.watchkitapp.watchkitextension;
+				PRODUCT_NAME = "${TARGET_NAME}";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 3.2;
+			};
+			name = Debug;
+		};
+		568E5FDC1E926430002582E0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_COMPLICATION_NAME = Complication;
+				DEVELOPMENT_TEAM = AMD8W895CT;
+				INFOPLIST_FILE = "GRDBDemoWatchOS Extension/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS.watchkitapp.watchkitextension;
+				PRODUCT_NAME = "${TARGET_NAME}";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 3.2;
+			};
+			name = Release;
+		};
+		568E5FDF1E926430002582E0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DEVELOPMENT_TEAM = AMD8W895CT;
 				IBSC_MODULE = GRDBDemoWatchOS_Extension;
 				INFOPLIST_FILE = GRDBDemoWatchOS/Info.plist;
-				PRODUCT_BUNDLE_IDENTIFIER = GRDB.GRDBDemoiOS.watchkitapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 2.2;
+				WATCHOS_DEPLOYMENT_TARGET = 3.2;
 			};
 			name = Debug;
 		};
-		5624A6C31D80B13400AD3DCE /* Release */ = {
+		568E5FE01E926430002582E0 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DEVELOPMENT_TEAM = AMD8W895CT;
 				IBSC_MODULE = GRDBDemoWatchOS_Extension;
 				INFOPLIST_FILE = GRDBDemoWatchOS/Info.plist;
-				PRODUCT_BUNDLE_IDENTIFIER = GRDB.GRDBDemoiOS.watchkitapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 2.2;
+				WATCHOS_DEPLOYMENT_TARGET = 3.2;
 			};
 			name = Release;
 		};
-		5624A6C41D80B13400AD3DCE /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				DEVELOPMENT_TEAM = AMD8W895CT;
-				INFOPLIST_FILE = "GRDBDemoWatchOS Extension/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = GRDB.GRDBDemoiOS.watchkitapp.watchkitextension;
-				PRODUCT_NAME = "${TARGET_NAME}";
-				SDKROOT = watchos;
-				SKIP_INSTALL = YES;
-				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 2.2;
-			};
-			name = Debug;
-		};
-		5624A6C51D80B13400AD3DCE /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				DEVELOPMENT_TEAM = AMD8W895CT;
-				INFOPLIST_FILE = "GRDBDemoWatchOS Extension/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = GRDB.GRDBDemoiOS.watchkitapp.watchkitextension;
-				PRODUCT_NAME = "${TARGET_NAME}";
-				SDKROOT = watchos;
-				SKIP_INSTALL = YES;
-				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 2.2;
-			};
-			name = Release;
-		};
-		568C7AA61CA6C63100796484 /* Debug */ = {
+		56B036131E8D9EBE003B6DA4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
@@ -805,6 +827,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
@@ -832,20 +855,21 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
-		568C7AA71CA6C63100796484 /* Release */ = {
+		56B036141E8D9EBE003B6DA4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
@@ -853,6 +877,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
@@ -874,87 +899,82 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
-				SWIFT_VERSION = 3.0;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
-		568C7AA91CA6C63100796484 /* Debug */ = {
+		56B036161E8D9EBE003B6DA4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DEVELOPMENT_TEAM = AMD8W895CT;
 				INFOPLIST_FILE = GRDBDemoiOS/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = GRDB.GRDBDemoiOS;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
-		568C7AAA1CA6C63100796484 /* Release */ = {
+		56B036171E8D9EBE003B6DA4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DEVELOPMENT_TEAM = AMD8W895CT;
 				INFOPLIST_FILE = GRDBDemoiOS/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = GRDB.GRDBDemoiOS;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		5624A6EC1D80B13400AD3DCE /* Build configuration list for PBXNativeTarget "GRDBDemoWatchOS Extension" */ = {
+		568E5FDA1E926430002582E0 /* Build configuration list for PBXNativeTarget "GRDBDemoWatchOS Extension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				5624A6C41D80B13400AD3DCE /* Debug */,
-				5624A6C51D80B13400AD3DCE /* Release */,
+				568E5FDB1E926430002582E0 /* Debug */,
+				568E5FDC1E926430002582E0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		5624A6EE1D80B13400AD3DCE /* Build configuration list for PBXNativeTarget "GRDBDemoWatchOS" */ = {
+		568E5FDE1E926430002582E0 /* Build configuration list for PBXNativeTarget "GRDBDemoWatchOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				5624A6C21D80B13400AD3DCE /* Debug */,
-				5624A6C31D80B13400AD3DCE /* Release */,
+				568E5FDF1E926430002582E0 /* Debug */,
+				568E5FE01E926430002582E0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		568C7A911CA6C63100796484 /* Build configuration list for PBXProject "GRDBDemoiOS" */ = {
+		56B035FE1E8D9EBE003B6DA4 /* Build configuration list for PBXProject "GRDBDemoiOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				568C7AA61CA6C63100796484 /* Debug */,
-				568C7AA71CA6C63100796484 /* Release */,
+				56B036131E8D9EBE003B6DA4 /* Debug */,
+				56B036141E8D9EBE003B6DA4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		568C7AA81CA6C63100796484 /* Build configuration list for PBXNativeTarget "GRDBDemoiOS" */ = {
+		56B036151E8D9EBE003B6DA4 /* Build configuration list for PBXNativeTarget "GRDBDemoiOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				568C7AA91CA6C63100796484 /* Debug */,
-				568C7AAA1CA6C63100796484 /* Release */,
+				56B036161E8D9EBE003B6DA4 /* Debug */,
+				56B036171E8D9EBE003B6DA4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 568C7A8E1CA6C63100796484 /* Project object */;
+	rootObject = 56B035FB1E8D9EBE003B6DA4 /* Project object */;
 }

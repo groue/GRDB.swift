@@ -1,11 +1,13 @@
-import GRDB
+import GRDBCipher
 
 class Person: Record {
     var id: Int64?
     var name: String
+    var score: Int
     
-    init(name: String) {
+    init(name: String, score: Int) {
         self.name = name
+        self.score = score
         super.init()
     }
     
@@ -18,13 +20,15 @@ class Person: Record {
     required init(row: Row) {
         id = row.value(named: "id")
         name = row.value(named: "name")
+        score = row.value(named: "score")
         super.init(row: row)
     }
     
     override var persistentDictionary: [String : DatabaseValueConvertible?] {
         return [
             "id": id,
-            "name": name]
+            "name": name,
+            "score": score]
     }
     
     override func didInsert(with rowID: Int64, for column: String?) {
@@ -38,4 +42,9 @@ class Person: Record {
     class func randomName() -> String {
         return names[Int(arc4random_uniform(UInt32(names.count)))]
     }
+    
+    class func randomScore() -> Int {
+        return 10 * Int(arc4random_uniform(101))
+    }
+
 }

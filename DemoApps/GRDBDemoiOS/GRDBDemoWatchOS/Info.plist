@@ -18,8 +18,6 @@
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.0</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>UISupportedInterfaceOrientations</key>
@@ -28,7 +26,7 @@
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
 	<key>WKCompanionAppBundleIdentifier</key>
-	<string>GRDB.GRDBDemoiOS</string>
+	<string>com.github.groue.GRDBDemoiOS</string>
 	<key>WKWatchKitApp</key>
 	<true/>
 </dict>

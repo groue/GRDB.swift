@@ -202,7 +202,8 @@ public class Statement {
 ///         let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
 ///     }
 public final class SelectStatement : Statement {
-    private(set) var selectionInfo: SelectionInfo
+    /// Information about the table and columns read by a SelectStatement
+    public private(set) var selectionInfo: SelectionInfo
     
     init(database: Database, sql: String) throws {
         self.selectionInfo = SelectionInfo()
@@ -252,8 +253,8 @@ public final class SelectStatement : Statement {
         return fetchCursor(arguments: arguments) { }
     }
 
-    /// Allows inspection of table and columns read by a SelectStatement
-    struct SelectionInfo {
+    /// Information about the table and columns read by a SelectStatement
+    public struct SelectionInfo : CustomStringConvertible {
         mutating func insert(column: String, ofTable table: String) {
             if selection[table] != nil {
                 selection[table]!.insert(column)
@@ -271,6 +272,14 @@ public final class SelectStatement : Statement {
         }
         
         private var selection: [String: Set<String>] = [:]  // [TableName: Set<ColumnName>]
+        
+        /// A textual representation of `self`.
+        public var description: String {
+            return selection
+                .sorted { $0.key < $1.key }
+                .map { (table, columns) in "\(table)(\(columns.sorted().joined(separator: ", ")))" }
+                .joined(separator: ", ")
+        }
     }
 }
 

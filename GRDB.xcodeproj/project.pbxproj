@@ -161,8 +161,6 @@
 		56193E8E1CD8A3E200F95862 /* FetchedRecordsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31A7787C1C6A4DD600F507F6 /* FetchedRecordsController.swift */; };
 		56193E961CD8A3E300F95862 /* FetchedRecordsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31A7787C1C6A4DD600F507F6 /* FetchedRecordsController.swift */; };
 		5620D0DF1E7D70F2006781C5 /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = 5620D0DE1E7D70F2006781C5 /* sqlite3.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		5620D0E01E7D70F2006781C5 /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = 5620D0DE1E7D70F2006781C5 /* sqlite3.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		5620D0E11E7D70F2006781C5 /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = 5620D0DE1E7D70F2006781C5 /* sqlite3.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		562205F11E420E47005860AC /* DatabasePoolReleaseMemoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563363CF1C943D13000BE133 /* DatabasePoolReleaseMemoryTests.swift */; };
 		562205F21E420E47005860AC /* DatabasePoolSchemaCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569531281C908A5B00CF1A2B /* DatabasePoolSchemaCacheTests.swift */; };
 		562205F31E420E47005860AC /* DatabaseQueueReleaseMemoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563363D41C94484E000BE133 /* DatabaseQueueReleaseMemoryTests.swift */; };
@@ -293,6 +291,14 @@
 		5636E9C01D22574100B9B05F /* Request.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5636E9BB1D22574100B9B05F /* Request.swift */; };
 		5636E9C11D22574100B9B05F /* Request.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5636E9BB1D22574100B9B05F /* Request.swift */; };
 		564A50C81BFF4B7F00B3A3A2 /* CollationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564A50C61BFF4B7F00B3A3A2 /* CollationTests.swift */; };
+		565029C81E914DB700615A2C /* TestMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565029C71E914DB700615A2C /* TestMappingTests.swift */; };
+		565029C91E914DB700615A2C /* TestMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565029C71E914DB700615A2C /* TestMappingTests.swift */; };
+		565029CA1E914DB700615A2C /* TestMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565029C71E914DB700615A2C /* TestMappingTests.swift */; };
+		565029CB1E914DB700615A2C /* TestMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565029C71E914DB700615A2C /* TestMappingTests.swift */; };
+		565029CC1E914DB700615A2C /* TestMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565029C71E914DB700615A2C /* TestMappingTests.swift */; };
+		565029CD1E914DB700615A2C /* TestMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565029C71E914DB700615A2C /* TestMappingTests.swift */; };
+		565029CE1E914DB700615A2C /* TestMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565029C71E914DB700615A2C /* TestMappingTests.swift */; };
+		565029CF1E914DB700615A2C /* TestMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565029C71E914DB700615A2C /* TestMappingTests.swift */; };
 		565490B41D5A4820005622CB /* GRDB.h in Headers */ = {isa = PBXBuildFile; fileRef = DC3773F819C8CBB3004FCF85 /* GRDB.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		565490B51D5A4827005622CB /* GRDB-Bridging.h in Headers */ = {isa = PBXBuildFile; fileRef = DC2393C61ABE35F8003FF113 /* GRDB-Bridging.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		565490B61D5AE236005622CB /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238701B9C75030082EB20 /* Configuration.swift */; };
@@ -337,7 +343,6 @@
 		565490E21D5AE252005622CB /* Record.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238A11B9C753B0082EB20 /* Record.swift */; };
 		565490E31D5AE252005622CB /* RowConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560D92451C672C4B00F4F92B /* RowConvertible.swift */; };
 		565490E41D5AE252005622CB /* TableMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560D92461C672C4B00F4F92B /* TableMapping.swift */; };
-		565490E61D5AE282005622CB /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 565490E51D5AE282005622CB /* libsqlite3.tbd */; };
 		56553C101C3E906C00522B5C /* GRDBTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5623E0901B4AFACC00B20B7F /* GRDBTestCase.swift */; };
 		56553C121C3E906C00522B5C /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 56BB86301BA98AB0001F9168 /* libsqlite3.tbd */; };
 		56553C131C3E906C00522B5C /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC3773F319C8CBB3004FCF85 /* GRDB.framework */; };
@@ -584,6 +589,9 @@
 		568E1CB21CB037BA008D97A6 /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = 568BE5191CB035A900270F93 /* sqlite3.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		568E1CB91CB03847008D97A6 /* GRDBCipher-Bridging.h in Headers */ = {isa = PBXBuildFile; fileRef = 568E1CB71CB03847008D97A6 /* GRDBCipher-Bridging.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		568E1CBA1CB03847008D97A6 /* GRDBCipher.h in Headers */ = {isa = PBXBuildFile; fileRef = 568E1CB81CB03847008D97A6 /* GRDBCipher.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		568E5FF61E9266B5002582E0 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 568E5FF51E9266B5002582E0 /* libsqlite3.tbd */; };
+		568E5FF91E9267A5002582E0 /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = 568E5FF81E9267A5002582E0 /* sqlite3.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		568E5FFE1E92685C002582E0 /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = 568E5FFD1E92685C002582E0 /* sqlite3.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5690C3271D23E6D800E59934 /* DateComponentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5690C3251D23E6D800E59934 /* DateComponentsTests.swift */; };
 		5690C3281D23E6D800E59934 /* DateComponentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5690C3251D23E6D800E59934 /* DateComponentsTests.swift */; };
 		5690C3291D23E6D800E59934 /* DateComponentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5690C3251D23E6D800E59934 /* DateComponentsTests.swift */; };
@@ -1725,7 +1733,7 @@
 		560FC5101CAEEDF10014AA8E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		560FC54D1CB003810014AA8E /* GRDBCipher.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GRDBCipher.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		560FC5501CB004AD0014AA8E /* sqlcipher.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = sqlcipher.xcodeproj; path = SQLCipher/src/sqlcipher.xcodeproj; sourceTree = "<group>"; };
-		560FC5B01CB00B880014AA8E /* GRDBTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		560FC5B01CB00B880014AA8E /* GRDBCipherOSXTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBCipherOSXTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		561667001D08A49900ADD404 /* NSDecimalNumberTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSDecimalNumberTests.swift; sourceTree = "<group>"; };
 		5620D0DE1E7D70F2006781C5 /* sqlite3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sqlite3.h; path = usr/include/sqlite3.h; sourceTree = SDKROOT; };
 		562393171DECC02000A6B01F /* RowFetchTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowFetchTests.swift; sourceTree = "<group>"; };
@@ -1756,6 +1764,7 @@
 		563633981DA40F0100CB70CA /* FTS4.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS4.swift; sourceTree = "<group>"; };
 		5636E9BB1D22574100B9B05F /* Request.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Request.swift; sourceTree = "<group>"; };
 		564A50C61BFF4B7F00B3A3A2 /* CollationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CollationTests.swift; sourceTree = "<group>"; };
+		565029C71E914DB700615A2C /* TestMappingTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestMappingTests.swift; sourceTree = "<group>"; };
 		565490A01D5A4798005622CB /* GRDB.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GRDB.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		565490E51D5AE282005622CB /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = Platforms/WatchOS.platform/Developer/SDKs/WatchOS2.2.sdk/usr/lib/libsqlite3.tbd; sourceTree = DEVELOPER_DIR; };
 		56553C181C3E906C00522B5C /* GRDBOSXCrashTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBOSXCrashTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1799,6 +1808,9 @@
 		568BE5201CB0360500270F93 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; name = module.modulemap; path = SQLCipher/module.modulemap; sourceTree = "<group>"; };
 		568E1CB71CB03847008D97A6 /* GRDBCipher-Bridging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "GRDBCipher-Bridging.h"; path = "SQLCipher/GRDBCipher-Bridging.h"; sourceTree = "<group>"; };
 		568E1CB81CB03847008D97A6 /* GRDBCipher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GRDBCipher.h; path = SQLCipher/GRDBCipher.h; sourceTree = "<group>"; };
+		568E5FF51E9266B5002582E0 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = Platforms/WatchOS.platform/Developer/SDKs/WatchOS3.2.sdk/usr/lib/libsqlite3.tbd; sourceTree = DEVELOPER_DIR; };
+		568E5FF81E9267A5002582E0 /* sqlite3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sqlite3.h; path = usr/include/sqlite3.h; sourceTree = SDKROOT; };
+		568E5FFD1E92685C002582E0 /* sqlite3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sqlite3.h; path = usr/include/sqlite3.h; sourceTree = SDKROOT; };
 		5690C3251D23E6D800E59934 /* DateComponentsTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DateComponentsTests.swift; sourceTree = "<group>"; };
 		5690C3361D23E7D200E59934 /* DateTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DateTests.swift; sourceTree = "<group>"; };
 		5690C33F1D23E82A00E59934 /* Data.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Data.swift; sourceTree = "<group>"; };
@@ -1878,8 +1890,8 @@
 		56A8C2361D1914790096E9D4 /* NSUUIDTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSUUIDTests.swift; sourceTree = "<group>"; };
 		56AF746A1D41FB9C005E9FF3 /* DatabaseValueConvertibleEscapingTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseValueConvertibleEscapingTests.swift; sourceTree = "<group>"; };
 		56AFCA231CB1A8BB00F48B96 /* GRDBCipher.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GRDBCipher.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		56AFCA7F1CB1AA9900F48B96 /* GRDBTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		56AFCAD71CB1ABC800F48B96 /* GRDBTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		56AFCA7F1CB1AA9900F48B96 /* GRDBCipheriOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBCipheriOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		56AFCAD71CB1ABC800F48B96 /* GRDBCipheriOSEncryptedTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBCipheriOSEncryptedTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		56B021C81D8C0D3900B239BB /* PersistenceConflictPolicyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersistenceConflictPolicyTests.swift; sourceTree = "<group>"; };
 		56B14E7E1D4DAE54000BF4A3 /* RowAsDictionaryLiteralConvertibleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowAsDictionaryLiteralConvertibleTests.swift; sourceTree = "<group>"; };
 		56B15D0A1CD4C35100A24C8B /* FetchedRecordsControllerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchedRecordsControllerTests.swift; sourceTree = "<group>"; };
@@ -1934,8 +1946,8 @@
 		56E06F051E859064008AE2A4 /* Fixits-0.102.0.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Fixits-0.102.0.swift"; sourceTree = "<group>"; };
 		56E1524B1B43FD5B00EE27AA /* TODO.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = TODO.md; sourceTree = "<group>"; };
 		56E5D7CA1B4D3FED00430942 /* GRDB.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GRDB.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		56E5D7D31B4D3FEE00430942 /* GRDBTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		56E5D7F91B4D422D00430942 /* GRDBTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		56E5D7D31B4D3FEE00430942 /* GRDBiOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBiOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		56E5D7F91B4D422D00430942 /* GRDBOSXTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBOSXTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		56E8CE0C1BB4FA5600828BEC /* DatabaseValueConvertibleFetchTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseValueConvertibleFetchTests.swift; sourceTree = "<group>"; };
 		56E8CE0F1BB4FE5B00828BEC /* StatementColumnConvertibleFetchTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StatementColumnConvertibleFetchTests.swift; sourceTree = "<group>"; };
 		56EA86931C91DFE7002BB4DF /* DatabaseReaderTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseReaderTests.swift; sourceTree = "<group>"; };
@@ -2007,7 +2019,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				565490E61D5AE282005622CB /* libsqlite3.tbd in Frameworks */,
+				568E5FF61E9266B5002582E0 /* libsqlite3.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2327,6 +2339,7 @@
 		567D10621C9A911C00ACC500 /* GRDBiOS */ = {
 			isa = PBXGroup;
 			children = (
+				568E5FF81E9267A5002582E0 /* sqlite3.h */,
 				5683C2681B4D445E00296494 /* libsqlite3.dylib */,
 			);
 			path = GRDBiOS;
@@ -2335,6 +2348,7 @@
 		567D10641C9A911C00ACC500 /* GRDBOSX */ = {
 			isa = PBXGroup;
 			children = (
+				5620D0DE1E7D70F2006781C5 /* sqlite3.h */,
 				DC37744219C8DC91004FCF85 /* libsqlite3.dylib */,
 			);
 			path = GRDBOSX;
@@ -2435,6 +2449,7 @@
 		569DF96F1DB8E9270003D0CC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				568E5FF51E9266B5002582E0 /* libsqlite3.tbd */,
 				569DF9701DB8E9280003D0CC /* Realm.framework */,
 				569DF9711DB8E9280003D0CC /* RealmSwift.framework */,
 			);
@@ -2559,6 +2574,7 @@
 				56A238331B9C74A90082EB20 /* RecordSubClassTests.swift */,
 				56A5E4081BA2BCF900707640 /* RecordWithColumnNameManglingTests.swift */,
 				6340BF7F1E5E3F7900832805 /* RecordPersistenceConflictPolicy.swift */,
+				565029C71E914DB700615A2C /* TestMappingTests.swift */,
 			);
 			path = Record;
 			sourceTree = "<group>";
@@ -2759,12 +2775,13 @@
 			path = Foundation;
 			sourceTree = "<group>";
 		};
-		56F5ABDE1D817B91001F60CB /* GRDBwatchOS */ = {
+		56F5ABDE1D817B91001F60CB /* GRDBWatchOS */ = {
 			isa = PBXGroup;
 			children = (
+				568E5FFD1E92685C002582E0 /* sqlite3.h */,
 				565490E51D5AE282005622CB /* libsqlite3.tbd */,
 			);
-			name = GRDBwatchOS;
+			name = GRDBWatchOS;
 			sourceTree = "<group>";
 		};
 		DC10500F19C904DD00D8CA30 /* Tests */ = {
@@ -2805,16 +2822,16 @@
 			children = (
 				DC3773F319C8CBB3004FCF85 /* GRDB.framework */,
 				56E5D7CA1B4D3FED00430942 /* GRDB.framework */,
-				56E5D7D31B4D3FEE00430942 /* GRDBTests.xctest */,
-				56E5D7F91B4D422D00430942 /* GRDBTests.xctest */,
+				56E5D7D31B4D3FEE00430942 /* GRDBiOSTests.xctest */,
+				56E5D7F91B4D422D00430942 /* GRDBOSXTests.xctest */,
 				560C981A1C0E22D300BF8471 /* GRDBOSXPerformanceTests.xctest */,
 				56553C181C3E906C00522B5C /* GRDBOSXCrashTests.xctest */,
 				560FC54D1CB003810014AA8E /* GRDBCipher.framework */,
-				560FC5B01CB00B880014AA8E /* GRDBTests.xctest */,
+				560FC5B01CB00B880014AA8E /* GRDBCipherOSXTests.xctest */,
 				5671566C1CB16729007DC145 /* GRDBCipherOSXEncryptedTests.xctest */,
 				56AFCA231CB1A8BB00F48B96 /* GRDBCipher.framework */,
-				56AFCA7F1CB1AA9900F48B96 /* GRDBTests.xctest */,
-				56AFCAD71CB1ABC800F48B96 /* GRDBTests.xctest */,
+				56AFCA7F1CB1AA9900F48B96 /* GRDBCipheriOSTests.xctest */,
+				56AFCAD71CB1ABC800F48B96 /* GRDBCipheriOSEncryptedTests.xctest */,
 				F3BA7FFE1CFB25E4003DC1BA /* GRDBCustomSQLite.framework */,
 				F3BA80411CFB2AD7003DC1BA /* GRDBCustomSQLiteiOSTests.xctest */,
 				F3BA805A1CFB2BB2003DC1BA /* GRDBCustomSQLite.framework */,
@@ -2854,9 +2871,8 @@
 				56C48E731C9A9923005DF1D9 /* module.modulemap */,
 				567D10621C9A911C00ACC500 /* GRDBiOS */,
 				567D10641C9A911C00ACC500 /* GRDBOSX */,
-				56F5ABDE1D817B91001F60CB /* GRDBwatchOS */,
+				56F5ABDE1D817B91001F60CB /* GRDBWatchOS */,
 				DC3773F819C8CBB3004FCF85 /* GRDB.h */,
-				5620D0DE1E7D70F2006781C5 /* sqlite3.h */,
 				DC2393C61ABE35F8003FF113 /* GRDB-Bridging.h */,
 				DC3773F719C8CBB3004FCF85 /* Info.plist */,
 			);
@@ -2914,7 +2930,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				565490B41D5A4820005622CB /* GRDB.h in Headers */,
-				5620D0E11E7D70F2006781C5 /* sqlite3.h in Headers */,
+				568E5FFE1E92685C002582E0 /* sqlite3.h in Headers */,
 				565490B51D5A4827005622CB /* GRDB-Bridging.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2934,7 +2950,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				56E5D82C1B4D437600430942 /* GRDB.h in Headers */,
-				5620D0E01E7D70F2006781C5 /* sqlite3.h in Headers */,
+				568E5FF91E9267A5002582E0 /* sqlite3.h in Headers */,
 				56E5D82D1B4D438800430942 /* GRDB-Bridging.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3028,7 +3044,7 @@
 			);
 			name = GRDBCipherOSXTests;
 			productName = GRDBOSXTests;
-			productReference = 560FC5B01CB00B880014AA8E /* GRDBTests.xctest */;
+			productReference = 560FC5B01CB00B880014AA8E /* GRDBCipherOSXTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		5654909F1D5A4798005622CB /* GRDBWatchOS */ = {
@@ -3119,7 +3135,7 @@
 			);
 			name = GRDBCipheriOSTests;
 			productName = GRDBiOSTests;
-			productReference = 56AFCA7F1CB1AA9900F48B96 /* GRDBTests.xctest */;
+			productReference = 56AFCA7F1CB1AA9900F48B96 /* GRDBCipheriOSTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		56AFCA841CB1ABC800F48B96 /* GRDBCipheriOSEncryptedTests */ = {
@@ -3137,7 +3153,7 @@
 			);
 			name = GRDBCipheriOSEncryptedTests;
 			productName = GRDBiOSTests;
-			productReference = 56AFCAD71CB1ABC800F48B96 /* GRDBTests.xctest */;
+			productReference = 56AFCAD71CB1ABC800F48B96 /* GRDBCipheriOSEncryptedTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		56E5D7C91B4D3FED00430942 /* GRDBiOS */ = {
@@ -3173,7 +3189,7 @@
 			);
 			name = GRDBiOSTests;
 			productName = GRDBiOSTests;
-			productReference = 56E5D7D31B4D3FEE00430942 /* GRDBTests.xctest */;
+			productReference = 56E5D7D31B4D3FEE00430942 /* GRDBiOSTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		56E5D7F81B4D422D00430942 /* GRDBOSXTests */ = {
@@ -3191,7 +3207,7 @@
 			);
 			name = GRDBOSXTests;
 			productName = GRDBOSXTests;
-			productReference = 56E5D7F91B4D422D00430942 /* GRDBTests.xctest */;
+			productReference = 56E5D7F91B4D422D00430942 /* GRDBOSXTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		DC3773F219C8CBB3004FCF85 /* GRDBOSX */ = {
@@ -3803,6 +3819,7 @@
 				5657AB471D108BA9006283EF /* NSNullTests.swift in Sources */,
 				560FC5811CB00B880014AA8E /* RecordCopyTests.swift in Sources */,
 				560FC5821CB00B880014AA8E /* RawRepresentableTests.swift in Sources */,
+				565029C91E914DB700615A2C /* TestMappingTests.swift in Sources */,
 				567E55ED1D2BDD3D00CC6F79 /* EncryptionTests.swift in Sources */,
 				56741EA91E66A8B3003E422D /* RequestTests.swift in Sources */,
 				560FC5841CB00B880014AA8E /* PersistableTests.swift in Sources */,
@@ -4018,6 +4035,7 @@
 				567156411CB16729007DC145 /* PersistableTests.swift in Sources */,
 				5657AB501D108BA9006283EF /* NSNumberTests.swift in Sources */,
 				567156441CB16729007DC145 /* RecordSubClassTests.swift in Sources */,
+				565029CA1E914DB700615A2C /* TestMappingTests.swift in Sources */,
 				5690C3391D23E7D200E59934 /* DateTests.swift in Sources */,
 				56741EAA1E66A8B3003E422D /* RequestTests.swift in Sources */,
 				567156461CB16729007DC145 /* TransactionObserverTests.swift in Sources */,
@@ -4213,6 +4231,7 @@
 				56AFCA551CB1AA9900F48B96 /* RawRepresentableTests.swift in Sources */,
 				5698ACBB1DA6285E0056AF8C /* FTS3TokenizerTests.swift in Sources */,
 				56AFCA561CB1AA9900F48B96 /* DatabasePoolConcurrencyTests.swift in Sources */,
+				565029CD1E914DB700615A2C /* TestMappingTests.swift in Sources */,
 				56AFCA571CB1AA9900F48B96 /* TransactionObserverTests.swift in Sources */,
 				56741EAD1E66A8B3003E422D /* RequestTests.swift in Sources */,
 				5623935C1DEE013C00A6B01F /* FilterCursorTests.swift in Sources */,
@@ -4333,6 +4352,7 @@
 				56AFCAAC1CB1ABC800F48B96 /* DatabaseValueConversionTests.swift in Sources */,
 				5698ACBC1DA6285E0056AF8C /* FTS3TokenizerTests.swift in Sources */,
 				5657AB441D108BA9006283EF /* NSDataTests.swift in Sources */,
+				565029CE1E914DB700615A2C /* TestMappingTests.swift in Sources */,
 				5623935D1DEE013C00A6B01F /* FilterCursorTests.swift in Sources */,
 				56741EAE1E66A8B3003E422D /* RequestTests.swift in Sources */,
 				5698AC861DA380A20056AF8C /* VirtualTableModuleTests.swift in Sources */,
@@ -4531,6 +4551,7 @@
 				5607EFD41BB827FD00605DE3 /* TransactionObserverTests.swift in Sources */,
 				5690C33B1D23E7D200E59934 /* DateTests.swift in Sources */,
 				565D5D721BBC694D00DC9BD4 /* Row+FoundationTests.swift in Sources */,
+				565029CC1E914DB700615A2C /* TestMappingTests.swift in Sources */,
 				5623936D1DEE0CD200A6B01F /* FlattenCursorTests.swift in Sources */,
 				567A80571D41350C00C7DCEC /* IndexInfoTests.swift in Sources */,
 				5623935B1DEE013C00A6B01F /* FilterCursorTests.swift in Sources */,
@@ -4650,6 +4671,7 @@
 				56D496C41D813767008276D7 /* DatabaseQueueTests.swift in Sources */,
 				56D496851D813147008276D7 /* StatementArgumentsTests.swift in Sources */,
 				56D496B81D813465008276D7 /* DataMemoryTests.swift in Sources */,
+				565029C81E914DB700615A2C /* TestMappingTests.swift in Sources */,
 				56D496541D812F5B008276D7 /* SQLExpressionLiteralTests.swift in Sources */,
 				56D496961D81317B008276D7 /* PersistableTests.swift in Sources */,
 				5698AC9E1DA4B0430056AF8C /* FTS4TableBuilderTests.swift in Sources */,
@@ -4925,6 +4947,7 @@
 				5698ACCC1DA62A2D0056AF8C /* FTS5TokenizerTests.swift in Sources */,
 				5690C33E1D23E7D200E59934 /* DateTests.swift in Sources */,
 				567A805A1D41350C00C7DCEC /* IndexInfoTests.swift in Sources */,
+				565029CF1E914DB700615A2C /* TestMappingTests.swift in Sources */,
 				F3BA81211CFB3063003DC1BA /* PrimaryKeyNoneTests.swift in Sources */,
 				F3BA80F71CFB3021003DC1BA /* SelectStatementTests.swift in Sources */,
 				56F3E7501E66F83A00BF0F01 /* ResultCodeTests.swift in Sources */,
@@ -5125,6 +5148,7 @@
 				5698AC061D9B9FCF0056AF8C /* ExtensibilityTests.swift in Sources */,
 				F3BA80FA1CFB3021003DC1BA /* SelectStatementTests.swift in Sources */,
 				F3BA81191CFB305F003DC1BA /* QueryInterfaceRequestTests.swift in Sources */,
+				565029CB1E914DB700615A2C /* TestMappingTests.swift in Sources */,
 				F3BA812F1CFB3064003DC1BA /* PrimaryKeyNoneTests.swift in Sources */,
 				5690C33A1D23E7D200E59934 /* DateTests.swift in Sources */,
 				56F3E74C1E66F83A00BF0F01 /* ResultCodeTests.swift in Sources */,
@@ -5308,7 +5332,9 @@
 			baseConfigurationReference = 568BE51F1CB0360500270F93 /* GRDB.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -5326,7 +5352,9 @@
 			baseConfigurationReference = 568BE51F1CB0360500270F93 /* GRDB.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -5351,7 +5379,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_SWIFT_FLAGS = "-D USING_BUILTIN_SQLITE -D USING_SQLCIPHER -D SQLITE_HAS_CODEC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipherOSXTests;
-				PRODUCT_NAME = GRDBTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -5368,7 +5396,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_SWIFT_FLAGS = "-D USING_BUILTIN_SQLITE -D USING_SQLCIPHER -D SQLITE_HAS_CODEC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipherOSXTests;
-				PRODUCT_NAME = GRDBTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 			};
@@ -5380,6 +5408,8 @@
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEFINES_MODULE = YES;
@@ -5402,6 +5432,8 @@
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -5490,6 +5522,8 @@
 			baseConfigurationReference = 568BE51F1CB0360500270F93 /* GRDB.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEFINES_MODULE = YES;
@@ -5511,6 +5545,8 @@
 			baseConfigurationReference = 568BE51F1CB0360500270F93 /* GRDB.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -5540,7 +5576,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_SWIFT_FLAGS = "-D USING_BUILTIN_SQLITE -D USING_SQLCIPHER -D SQLITE_HAS_CODEC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipheriOSTests;
-				PRODUCT_NAME = GRDBTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 			};
 			name = Debug;
@@ -5557,7 +5593,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_SWIFT_FLAGS = "-D USING_BUILTIN_SQLITE -D USING_SQLCIPHER -D SQLITE_HAS_CODEC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipheriOSTests;
-				PRODUCT_NAME = GRDBTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 			};
@@ -5574,7 +5610,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_SWIFT_FLAGS = "-D USING_BUILTIN_SQLITE -D USING_SQLCIPHER -D SQLITE_HAS_CODEC -D GRDBCIPHER_USE_ENCRYPTION";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipheriOSEncryptedTests;
-				PRODUCT_NAME = GRDBTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 			};
 			name = Debug;
@@ -5591,7 +5627,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_SWIFT_FLAGS = "-D USING_BUILTIN_SQLITE -D USING_SQLCIPHER -D SQLITE_HAS_CODEC -D GRDBCIPHER_USE_ENCRYPTION";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipheriOSEncryptedTests;
-				PRODUCT_NAME = GRDBTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 			};
@@ -5602,6 +5638,8 @@
 			baseConfigurationReference = 56B8F49A1B4E2F3600C24296 /* GRDB.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEFINES_MODULE = YES;
@@ -5623,6 +5661,8 @@
 			baseConfigurationReference = 56B8F49A1B4E2F3600C24296 /* GRDB.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -5652,7 +5692,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_SWIFT_FLAGS = "-D SQLITE_MODULE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBiOSTests;
-				PRODUCT_NAME = GRDBTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 3.0;
 			};
@@ -5670,7 +5710,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_SWIFT_FLAGS = "-D SQLITE_MODULE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBiOSTests;
-				PRODUCT_NAME = GRDBTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_VERSION = 3.0;
@@ -5688,7 +5728,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_SWIFT_FLAGS = "-D SQLITE_MODULE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
-				PRODUCT_NAME = GRDBTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 3.0;
 			};
@@ -5706,7 +5746,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_SWIFT_FLAGS = "-D SQLITE_MODULE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
-				PRODUCT_NAME = GRDBTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_VERSION = 3.0;
@@ -5805,7 +5845,9 @@
 			baseConfigurationReference = 56B8F49A1B4E2F3600C24296 /* GRDB.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -5824,7 +5866,9 @@
 			baseConfigurationReference = 56B8F49A1B4E2F3600C24296 /* GRDB.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -5845,6 +5889,8 @@
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEFINES_MODULE = YES;
@@ -5867,6 +5913,8 @@
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -5929,6 +5977,8 @@
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEFINES_MODULE = YES;
@@ -5949,6 +5999,8 @@
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEFINES_MODULE = YES;

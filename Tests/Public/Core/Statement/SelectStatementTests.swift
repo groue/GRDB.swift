@@ -124,4 +124,95 @@ class SelectStatementTests : GRDBTestCase {
             XCTAssertEqual(try String.fetchAll(db.cachedSelectStatement(sql)), ["success"])
         }
     }
+    
+    func testSelectionInfo() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            class Observer: TransactionObserver {
+                private var didChange: Bool = false
+                var triggered: Bool = false
+                let selectionInfo: SelectStatement.SelectionInfo
+                
+                init(selectionInfo: SelectStatement.SelectionInfo) {
+                    self.selectionInfo = selectionInfo
+                }
+                
+                func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+                    return eventKind.impacts(selectionInfo)
+                }
+                
+                func databaseDidChange(with event: DatabaseEvent) {
+                    didChange = true
+                }
+                
+                func databaseWillCommit() throws { }
+                
+                func databaseDidCommit(_ db: Database) {
+                    triggered = didChange
+                    didChange = false
+                }
+                
+                func databaseDidRollback(_ db: Database) {
+                    didChange = false
+                }
+                
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                func databaseWillChange(with event: DatabasePreUpdateEvent) { }
+                #endif
+            }
+            
+            try db.create(table: "table1") { t in
+                t.column("id", .integer).primaryKey()
+                t.column("a", .integer)
+                t.column("b", .integer)
+            }
+            try db.create(table: "table2") { t in
+                t.column("id", .integer).primaryKey()
+                t.column("a", .integer)
+                t.column("b", .integer)
+            }
+            
+            let statement1 = try db.makeSelectStatement("SELECT * FROM table1")
+            let statement2 = try db.makeSelectStatement("SELECT id, a FROM table1")
+            let statement3 = try db.makeSelectStatement("SELECT table1.id, table1.a, table2.a FROM table1 JOIN table2 ON table1.id = table2.id")
+            
+            let observer1 = Observer(selectionInfo: statement1.selectionInfo)
+            let observer2 = Observer(selectionInfo: statement2.selectionInfo)
+            let observer3 = Observer(selectionInfo: statement3.selectionInfo)
+            
+            db.add(transactionObserver: observer1)
+            db.add(transactionObserver: observer2)
+            db.add(transactionObserver: observer3)
+            
+            try db.execute("INSERT INTO table1 (id, a, b) VALUES (NULL, 0, 0)")
+            XCTAssertTrue(observer1.triggered)
+            XCTAssertTrue(observer2.triggered)
+            XCTAssertTrue(observer3.triggered)
+            
+            try db.execute("INSERT INTO table2 (id, a, b) VALUES (NULL, 0, 0)")
+            XCTAssertFalse(observer1.triggered)
+            XCTAssertFalse(observer2.triggered)
+            XCTAssertTrue(observer3.triggered)
+            
+            try db.execute("UPDATE table1 SET a = 1")
+            XCTAssertTrue(observer1.triggered)
+            XCTAssertTrue(observer2.triggered)
+            XCTAssertTrue(observer3.triggered)
+            
+            try db.execute("UPDATE table1 SET b = 1")
+            XCTAssertTrue(observer1.triggered)
+            XCTAssertFalse(observer2.triggered)
+            XCTAssertFalse(observer3.triggered)
+            
+            try db.execute("UPDATE table2 SET a = 1")
+            XCTAssertFalse(observer1.triggered)
+            XCTAssertFalse(observer2.triggered)
+            XCTAssertTrue(observer3.triggered)
+            
+            try db.execute("UPDATE table2 SET b = 1")
+            XCTAssertFalse(observer1.triggered)
+            XCTAssertFalse(observer2.triggered)
+            XCTAssertFalse(observer3.triggered)
+        }
+    }
 }

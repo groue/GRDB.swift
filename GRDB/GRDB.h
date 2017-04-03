@@ -7,3 +7,4 @@ FOUNDATION_EXPORT double GRDB_VersionNumber;
 FOUNDATION_EXPORT const unsigned char GRDB_VersionString[];
 
 #import <GRDB/GRDB-Bridging.h>
+#import <GRDB/sqlite3.h>
