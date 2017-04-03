@@ -42,7 +42,7 @@ test_framework: test_framework_GRDB test_framework_GRDBCustom test_framework_GRD
 test_framework_GRDB: test_framework_GRDBOSX test_framework_GRDBWatchOS test_framework_GRDBiOS
 test_framework_GRDBCustom: test_framework_GRDBCustomSQLiteOSX test_framework_GRDBCustomSQLiteiOS
 test_framework_GRDBCipher: test_framework_GRDBCipherOSX test_framework_GRDBCipheriOS
-test_install: test_install_manual test_install_GRDBCipher test_CocoaPodsLint test_CarthageBuild
+test_install: test_install_manual test_install_GRDBCipher test_CocoaPodsLint
 
 test_framework_GRDBOSX:
 	xcodebuild \
@@ -142,14 +142,13 @@ else
 endif
 
 test_CarthageBuild: SQLiteCustom SQLCipher
-# Disabled because https://github.com/Carthage/Carthage/issues/1867
-# ifdef CARTHAGE
-# 	rm -rf Carthage
-# 	$(CARTHAGE) build --no-skip-current
-# else
-# 	@echo Carthage must be installed for test_CarthageBuild
-# 	@exit 1
-# endif
+ifdef CARTHAGE
+  rm -rf Carthage
+  $(CARTHAGE) build --no-skip-current
+else
+  @echo Carthage must be installed for test_CarthageBuild
+  @exit 1
+endif
 
 # Target that setups SQLite custom builds with SQLITE_ENABLE_PREUPDATE_HOOK and
 # SQLITE_ENABLE_FTS5 extra compilation options.

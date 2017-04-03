@@ -240,31 +240,33 @@ See [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) for the installa
 
 [CocoaPods](http://cocoapods.org/) is a dependency manager for Xcode projects. To use GRDB.swift with CocoaPods:
 
-1. Make sure Xcode is installed in the /Applications folder, with its regular name Xcode.
+1. Install cocoapods version 1.1 or higher
 
-2. Install cocoapods version 1.1 or higher
-
-3. Specify in your Podfile:
+2. Specify in your Podfile:
 
     ```ruby
     use_frameworks!
     pod 'GRDB.swift'
     ```
 
+## Carthage
+
+Carthage does not support the variety of frameworks built by GRDB (standard SQLite, custom SQLite, SQLCipher).
+
+Any pull request that has the `make test_CarthageBuild` command successfully complete will be greatly appreciated, though. Bring your local Xcode guru!
+
 
 ## Manually
 
-1. Make sure Xcode is installed in the /Applications folder, with its regular name Xcode.
+1. [Download](https://github.com/groue/GRDB.swift/releases/tag/v0.103.0) a copy of GRDB.swift, or clone its repository and make sure you use the latest tagged version with the `git checkout v0.103.0` command.
 
-2. [Download](https://github.com/groue/GRDB.swift/releases/tag/v0.103.0) a copy of GRDB.swift, or clone its repository and make sure you use the latest tagged version with the `git checkout v0.103.0` command.
+2. Embed the `GRDB.xcodeproj` project in your own project.
 
-3. Embed the `GRDB.xcodeproj` project in your own project.
+3. Add the `GRDBOSX`, `GRDBiOS`, or `GRDBWatchOS` target in the **Target Dependencies** section of the **Build Phases** tab of your application target (extension target for WatchOS).
 
-4. Add the `GRDBOSX`, `GRDBiOS`, or `GRDBWatchOS` target in the **Target Dependencies** section of the **Build Phases** tab of your application target (extension target for WatchOS).
+4. Add the `GRDB.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your application target (extension target for WatchOS).
 
-5. Add the `GRDB.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your application target (extension target for WatchOS).
-
-6. (WatchOS only). Add `libsqlite3.tbd` to the **Linked Frameworks and Libraries** section of the **General** tab of your extension target.
+5. (WatchOS only). Add `libsqlite3.tbd` to the **Linked Frameworks and Libraries** section of the **General** tab of your extension target.
 
 See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an example of such integration.
 
