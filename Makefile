@@ -143,11 +143,11 @@ endif
 
 test_CarthageBuild: SQLiteCustom SQLCipher
 ifdef CARTHAGE
-  rm -rf Carthage
-  $(CARTHAGE) build --no-skip-current
+	rm -rf Carthage
+	$(CARTHAGE) build --no-skip-current
 else
-  @echo Carthage must be installed for test_CarthageBuild
-  @exit 1
+	@echo Carthage must be installed for test_CarthageBuild
+	@exit 1
 endif
 
 # Target that setups SQLite custom builds with SQLITE_ENABLE_PREUPDATE_HOOK and
@@ -183,10 +183,10 @@ ifdef JAZZY
 	  --author 'Gwendal Roué' \
 	  --author_url https://github.com/groue \
 	  --github_url https://github.com/groue/GRDB.swift \
-	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v0.102.0 \
-	  --module-version 0.102.0 \
+	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v0.104.0 \
+	  --module-version 0.104.0 \
 	  --module GRDB \
-	  --root-url http://groue.github.io/GRDB.swift/docs/0.102.0/ \
+	  --root-url http://groue.github.io/GRDB.swift/docs/0.104.0/ \
 	  --output Documentation/Reference \
 	  --podspec GRDB.swift.podspec
 else
