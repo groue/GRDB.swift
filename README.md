@@ -260,9 +260,11 @@ See [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) for the installa
 
 3. Embed the `GRDB.xcodeproj` project in your own project.
 
-4. Add the `GRDBOSX`, `GRDBiOS`, or `GRDBWatchOS` target in the **Target Dependencies** section of the **Build Phases** tab of your application target.
+4. Add the `GRDBOSX`, `GRDBiOS`, or `GRDBWatchOS` target in the **Target Dependencies** section of the **Build Phases** tab of your application target (extension target for WatchOS).
 
-5. Add the `GRDB.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your target.
+5. Add the `GRDB.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your application target (extension target for WatchOS).
+
+6. (WatchOS only). Add `libsqlite3.tbd` to the **Linked Frameworks and Libraries** section of the **General** tab of your extension target.
 
 See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an example of such integration.
 
