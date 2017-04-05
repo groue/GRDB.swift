@@ -172,47 +172,35 @@ class SelectStatementTests : GRDBTestCase {
                 t.column("b", .integer)
             }
             
-            let statement1 = try db.makeSelectStatement("SELECT * FROM table1")
-            let statement2 = try db.makeSelectStatement("SELECT id, a FROM table1")
-            let statement3 = try db.makeSelectStatement("SELECT table1.id, table1.a, table2.a FROM table1 JOIN table2 ON table1.id = table2.id")
+            let statements = try [
+                db.makeSelectStatement("SELECT * FROM table1"),
+                db.makeSelectStatement("SELECT id, a FROM table1"),
+                db.makeSelectStatement("SELECT table1.id, table1.a, table2.a FROM table1 JOIN table2 ON table1.id = table2.id"),
+                db.makeSelectStatement("SELECT COUNT(*) FROM table1"),
+            ]
             
-            let observer1 = Observer(selectionInfo: statement1.selectionInfo)
-            let observer2 = Observer(selectionInfo: statement2.selectionInfo)
-            let observer3 = Observer(selectionInfo: statement3.selectionInfo)
-            
-            db.add(transactionObserver: observer1)
-            db.add(transactionObserver: observer2)
-            db.add(transactionObserver: observer3)
+            let observers = statements.map { Observer(selectionInfo: $0.selectionInfo) }
+            for observer in observers {
+                db.add(transactionObserver: observer)
+            }
             
             try db.execute("INSERT INTO table1 (id, a, b) VALUES (NULL, 0, 0)")
-            XCTAssertTrue(observer1.triggered)
-            XCTAssertTrue(observer2.triggered)
-            XCTAssertTrue(observer3.triggered)
+            XCTAssertEqual(observers.map { $0.triggered }, [true, true, true, true])
             
             try db.execute("INSERT INTO table2 (id, a, b) VALUES (NULL, 0, 0)")
-            XCTAssertFalse(observer1.triggered)
-            XCTAssertFalse(observer2.triggered)
-            XCTAssertTrue(observer3.triggered)
+            XCTAssertEqual(observers.map { $0.triggered }, [false, false, true, false])
             
             try db.execute("UPDATE table1 SET a = 1")
-            XCTAssertTrue(observer1.triggered)
-            XCTAssertTrue(observer2.triggered)
-            XCTAssertTrue(observer3.triggered)
+            XCTAssertEqual(observers.map { $0.triggered }, [true, true, true, true])
             
             try db.execute("UPDATE table1 SET b = 1")
-            XCTAssertTrue(observer1.triggered)
-            XCTAssertFalse(observer2.triggered)
-            XCTAssertFalse(observer3.triggered)
+            XCTAssertEqual(observers.map { $0.triggered }, [true, false, false, true])
             
             try db.execute("UPDATE table2 SET a = 1")
-            XCTAssertFalse(observer1.triggered)
-            XCTAssertFalse(observer2.triggered)
-            XCTAssertTrue(observer3.triggered)
+            XCTAssertEqual(observers.map { $0.triggered }, [false, false, true, false])
             
             try db.execute("UPDATE table2 SET b = 1")
-            XCTAssertFalse(observer1.triggered)
-            XCTAssertFalse(observer2.triggered)
-            XCTAssertFalse(observer3.triggered)
+            XCTAssertEqual(observers.map { $0.triggered }, [false, false, false, false])
         }
     }
 }
