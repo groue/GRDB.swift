@@ -434,7 +434,8 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     }
     
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        return eventKind.impacts(selectionInfo)
+        // If impact is unknown, assume true
+        return eventKind.impacts(selectionInfo) ?? true
     }
     
     #if SQLITE_ENABLE_PREUPDATE_HOOK

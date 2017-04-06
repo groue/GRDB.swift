@@ -263,15 +263,32 @@ public final class SelectStatement : Statement {
             }
         }
         
+        /// If true, selection is unknown
+        let isUnknown: Bool
+        
+        /// Relevant iff isUnknown is false
         func contains(anyColumnFrom table: String) -> Bool {
             return selection.index(forKey: table) != nil
         }
         
+        /// Relevant iff isUnknown is false
         func contains(anyColumnIn columns: Set<String>, from table: String) -> Bool {
             return !(selection[table]?.isDisjoint(with: columns) ?? true)
         }
         
+        init() {
+            self.init(isUnknown: false)
+        }
+        
+        static func unknown() -> SelectionInfo {
+            return self.init(isUnknown: true)
+        }
+        
         private var selection: [String: Set<String>] = [:]  // [TableName: Set<ColumnName>]
+        
+        private init(isUnknown: Bool) {
+            self.isUnknown = isUnknown
+        }
         
         /// A textual representation of `self`.
         public var description: String {

@@ -1422,6 +1422,18 @@ final class StatementCompilationObserver {
                 let name = String(cString: CString2!)
                 let action = UpdateStatement.TransactionStatementInfo.SavepointAction(rawValue: String(cString: CString1!))!
                 observer.transactionStatementInfo = .savepoint(name: name, action: action)
+            case SQLITE_FUNCTION:
+                let functionName = String(cString: CString2!)
+                if functionName.uppercased() == "COUNT" {
+                    // As soon as a request uses the COUNT function, we don't
+                    // know which table is involved. For example, the
+                    // `SELECT COUNT(*) FROM persons` request never ever tells
+                    // GRDB about the `persons` table.
+                    //
+                    // We ignore the actual selection.
+                    let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
+                    observer.selectionInfo = SelectStatement.SelectionInfo.unknown()
+                }
             default:
                 break
             }
@@ -2054,7 +2066,13 @@ public enum DatabaseEventKind {
     
     /// Returns whether event has any impact on tables and columns described
     /// by selectionInfo.
-    public func impacts(_ selectionInfo: SelectStatement.SelectionInfo) -> Bool {
+    ///
+    /// If the result is nil, then the information is unknown.
+    public func impacts(_ selectionInfo: SelectStatement.SelectionInfo) -> Bool? {
+        if selectionInfo.isUnknown {
+            return nil
+        }
+        
         switch self {
         case .delete(let tableName):
             return selectionInfo.contains(anyColumnFrom: tableName)
