@@ -49,7 +49,7 @@ GRDB ships with a **[low-level SQLite API](#sqlite-api)**, and high-level tools 
 - **[Full-Text Search](#full-text-search)**: Perform efficient and customizable full-text searches.
 - **[Encryption](#encryption)** with SQLCipher
 - **[Support for custom SQLite builds](Documentation/CustomSQLiteBuilds.md)**
-- **[Reactive extensions for RxSwift](http://github.com/RxSwiftCommunity/RxGRDB)
+- **[Reactive extensions for RxSwift](http://github.com/RxSwiftCommunity/RxGRDB)**
 
 More than a set of tools that leverage SQLite abilities, GRDB is also:
 
