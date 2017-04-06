@@ -432,6 +432,12 @@ extension DatabasePool : DatabaseWriter {
         }
     }
     
+    /// Returns an optional database connection. If not nil, the caller is
+    /// executing on the serialized writer dispatch queue.
+    public var availableDatabaseConnection: Database? {
+        return writer.availableDatabaseConnection
+    }
+    
     
     // MARK: - Reading from Database
     

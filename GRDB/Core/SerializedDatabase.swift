@@ -145,6 +145,15 @@ final class SerializedDatabase {
         }
     }
     
+    /// Returns an optional database connection. If not nil, the caller is
+    /// executing on the serialized dispatch queue.
+    var availableDatabaseConnection: Database? {
+        guard let watchdog = SchedulingWatchdog.current else { return nil }
+        guard watchdog.allows(db) else { return nil }
+        return db
+    }
+
+    
     /// Executes the block in the current queue.
     ///
     /// - precondition: the current dispatch queue is valid.

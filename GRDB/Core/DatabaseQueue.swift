@@ -329,6 +329,12 @@ extension DatabaseQueue : DatabaseWriter {
             }
         #endif
     }
+    
+    /// Returns an optional database connection. If not nil, the caller is
+    /// executing on the protected database dispatch queue.
+    public var availableDatabaseConnection: Database? {
+        return serializedDatabase.availableDatabaseConnection
+    }
 }
 
 // Wraps the block between two `PRAGMA query_only` statements.
