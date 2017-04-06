@@ -8,6 +8,11 @@ Release Notes
 - [FetchedRecordsController](https://github.com/groue/GRDB.swift#fetchedrecordscontroller) used to be able to miss changes performed on requests that use the `COUNT` SQL function. This is fixed. 
 
 
+**New**
+
+- `DatabaseWriter.availableDatabaseConnection` allows reentrant uses of GRDB, and improves support for [reactive](http://reactivex.io) programming.
+
+
 **Breaking Changes**
 
 - `DatabaseEventKind.impacts(_ selectionInfo:SelectStatement.SelectionInfo)` now returns an optional boolean which, when nil, tells that GRDB doesn't know if a statement has any impact on the selection of a request. In practice, this happens as soon as a request uses the `COUNT` SQL function. 
