@@ -1,5 +1,8 @@
 import Foundation
 
+#if SWIFT_PACKAGE
+    import SQLiteSDK
+#endif
 
 // MARK: - Public
 

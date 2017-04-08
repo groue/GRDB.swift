@@ -1,3 +1,7 @@
+#if SWIFT_PACKAGE
+    import SQLiteSDK
+#endif
+
 /// When a type adopts both DatabaseValueConvertible and
 /// StatementColumnConvertible, it is granted with faster access to the SQLite
 /// database values.

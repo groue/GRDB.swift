@@ -1,3 +1,7 @@
+#if SWIFT_PACKAGE
+    import SQLiteSDK
+#endif
+
 // MARK: - Value Types
 
 /// Bool adopts DatabaseValueConvertible and StatementColumnConvertible.

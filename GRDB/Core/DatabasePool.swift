@@ -4,6 +4,10 @@ import Foundation
     import UIKit
 #endif
 
+#if SWIFT_PACKAGE
+    import SQLiteSDK
+#endif
+
 /// A DatabasePool grants concurrent accesses to an SQLite database.
 public final class DatabasePool {
     

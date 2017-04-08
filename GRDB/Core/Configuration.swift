@@ -1,5 +1,9 @@
 import Foundation
 
+#if SWIFT_PACKAGE
+    import SQLiteSDK
+#endif
+
 /// Configuration for a DatabaseQueue or DatabasePool.
 public struct Configuration {
     
