@@ -8,6 +8,15 @@ extension NSNumber : DatabaseValueConvertible {
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
         // Don't lose precision: store integers that fits in Int64 as Int64
+        #if os(Linux)
+        if let decimal = self as? NSDecimalNumber,
+            decimal == decimal.rounding(accordingToBehavior: integerRoundingBehavior),  // integer
+            decimal.compare(NSDecimalNumber(decimal: Decimal(Int64.max))) != .orderedDescending,   // decimal <= Int64.max
+            decimal.compare(NSDecimalNumber(decimal: Decimal(Int64.min))) != .orderedAscending     // decimal >= Int64.min
+        {
+            return int64Value.databaseValue
+        }
+        #else
         if let decimal = self as? NSDecimalNumber,
             decimal == decimal.rounding(accordingToBehavior: integerRoundingBehavior),  // integer
             decimal.compare(NSDecimalNumber(value: Int64.max)) != .orderedDescending,   // decimal <= Int64.max
@@ -15,6 +24,7 @@ extension NSNumber : DatabaseValueConvertible {
         {
             return int64Value.databaseValue
         }
+        #endif
         
         switch String(cString: objCType) {
         case "c":
@@ -57,9 +67,27 @@ extension NSNumber : DatabaseValueConvertible {
     public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
         switch databaseValue.storage {
         case .int64(let int64):
+            #if os(Linux)
+            // Error: constructing an object of class type 'Self' with a metatype value must use a 'required' initializer
+            // Workaround:
+            let coder = NSCoder()
+            let number = NSNumber(value: int64)
+            number.encode(with: coder)
+            return self.init(coder: coder)
+            #else
             return self.init(value: int64)
+            #endif
         case .double(let double):
+            #if os(Linux)
+            // Error: constructing an object of class type 'Self' with a metatype value must use a 'required' initializer
+            // Workaround:
+            let coder = NSCoder()
+            let number = NSNumber(value: double)
+            number.encode(with: coder)
+            return self.init(coder: coder)
+            #else
             return self.init(value: double)
+            #endif
         default:
             return nil
         }

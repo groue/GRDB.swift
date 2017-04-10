@@ -536,7 +536,11 @@ private func closeConnection(_ sqliteConnection: SQLiteConnection) {
             // A rare situation where GRDB doesn't fatalError on unprocessed
             // errors.
             let message = String(cString: sqlite3_errmsg(sqliteConnection))
+            #if os(Linux)
+            print("GRDB could not close database with error \(code): \(message)")
+            #else
             NSLog("GRDB could not close database with error %@: %@", NSNumber(value: code), NSString(string: message))
+            #endif
         }
     } else {
         // https://www.sqlite.org/c3ref/close.html
@@ -549,13 +553,21 @@ private func closeConnection(_ sqliteConnection: SQLiteConnection) {
             // A rare situation where GRDB doesn't fatalError on unprocessed
             // errors.
             let message = String(cString: sqlite3_errmsg(sqliteConnection))
+            #if os(Linux)
+            print("GRDB could not close database with error \(code): \(message)")
+            #else
             NSLog("GRDB could not close database with error %@: %@", NSNumber(value: code), NSString(string: message))
+            #endif
             if code == SQLITE_BUSY {
                 // Let the user know about unfinalized statements that did
                 // prevent the connection from closing properly.
                 var stmt: SQLiteStatement? = sqlite3_next_stmt(sqliteConnection, nil)
                 while stmt != nil {
+                    #if os(Linux)
+                    print("GRDB unfinalized statement: \(String(validatingUTF8: sqlite3_sql(stmt))!)")
+                    #else
                     NSLog("GRDB unfinalized statement: %@", NSString(string: String(validatingUTF8: sqlite3_sql(stmt))!))
+                    #endif
                     stmt = sqlite3_next_stmt(sqliteConnection, stmt)
                 }
             }

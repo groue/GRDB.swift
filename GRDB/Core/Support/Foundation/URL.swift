@@ -6,7 +6,11 @@ extension NSURL : DatabaseValueConvertible {
     /// Returns a value that can be stored in the database.
     /// (the URL's absoluteString).
     public var databaseValue: DatabaseValue {
+        #if os(Linux)
+        return absoluteString.databaseValue
+        #else
         return absoluteString?.databaseValue ?? .null
+        #endif
     }
     
     /// Returns an NSURL initialized from *databaseValue*, if possible.
