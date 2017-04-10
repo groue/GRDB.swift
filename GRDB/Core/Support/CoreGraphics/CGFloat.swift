@@ -1,4 +1,8 @@
-import CoreGraphics
+#if os(Linux)
+    import Foundation
+#else
+    import CoreGraphics
+#endif
 
 /// CGFloat adopts DatabaseValueConvertible
 extension CGFloat : DatabaseValueConvertible {
