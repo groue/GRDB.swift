@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## 0.106.0
+
+Released April 11, 2017
+
+**New**
+
+- Swift Package Manager, thanks to [Andrey Fidrya](https://github.com/zmeyc) in [PR #202](https://github.com/groue/GRDB.swift/pull/202).
+
+
 ## 0.105.0
 
 Released April 6, 2017
