@@ -3,7 +3,7 @@ extension Array {
     ///
     ///     let cursor = try String.fetchCursor(db, "SELECT 'foo' UNION ALL SELECT 'bar'")
     ///     let strings = try Array(cursor) // ["foo", "bar"]
-    public init<C : Cursor>(_ cursor: C) throws where C.Element == Element {
+    public init<C: Cursor>(_ cursor: C) throws where C.Element == Element {
         // TODO: cursors should have an underestimatedCount
         self.init()
         while let element = try cursor.next() {
@@ -64,7 +64,7 @@ public protocol Cursor : class {
 public class AnyCursor<Element> : Cursor {
     /// Creates a cursor that wraps a base cursor but whose type depends only on
     /// the base cursor’s element type
-    public init<C : Cursor>(_ base: C) where C.Element == Element {
+    public init<C: Cursor>(_ base: C) where C.Element == Element {
         element = base.next
     }
     
@@ -138,13 +138,13 @@ extension Cursor {
     
     /// Returns a cursor over the concatenated results of mapping transform
     /// over self.
-    public func flatMap<SegmentOfResult : Sequence>(_ transform: @escaping (Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<Self, IteratorCursor<SegmentOfResult.Iterator>>> {
+    public func flatMap<SegmentOfResult: Sequence>(_ transform: @escaping (Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<Self, IteratorCursor<SegmentOfResult.Iterator>>> {
         return flatMap { try IteratorCursor(transform($0)) }
     }
     
     /// Returns a cursor over the concatenated results of mapping transform
     /// over self.
-    public func flatMap<SegmentOfResult : Cursor>(_ transform: @escaping (Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<Self, SegmentOfResult>> {
+    public func flatMap<SegmentOfResult: Cursor>(_ transform: @escaping (Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<Self, SegmentOfResult>> {
         return map(transform).joined()
     }
     
@@ -211,7 +211,7 @@ extension Cursor where Element: Sequence {
 ///     }
 ///     // Prints: "0: foo"
 ///     // Prints: "1: bar"
-public final class EnumeratedCursor<Base : Cursor> : Cursor {
+public final class EnumeratedCursor<Base: Cursor> : Cursor {
     init(_ base: Base) {
         self.index = 0
         self.base = base
@@ -231,7 +231,7 @@ public final class EnumeratedCursor<Base : Cursor> : Cursor {
 
 /// A cursor whose elements consist of the elements of some base cursor that
 /// also satisfy a given predicate.
-public final class FilterCursor<Base : Cursor> : Cursor {
+public final class FilterCursor<Base: Cursor> : Cursor {
     init(_ base: Base, _ isIncluded: @escaping (Base.Element) throws -> Bool) {
         self.base = base
         self.isIncluded = isIncluded
@@ -283,7 +283,7 @@ public final class FlattenCursor<Base: Cursor> : Cursor where Base.Element: Curs
 /// transform function returning Element.
 ///
 /// See Cursor.map(_:)
-public final class MapCursor<Base : Cursor, Element> : Cursor {
+public final class MapCursor<Base: Cursor, Element> : Cursor {
     init(_ base: Base, _ transform: @escaping (Base.Element) throws -> Element) {
         self.base = base
         self.transform = transform
@@ -301,7 +301,7 @@ public final class MapCursor<Base : Cursor, Element> : Cursor {
 }
 
 /// A Cursor whose elements are those of a sequence iterator.
-public final class IteratorCursor<Base : IteratorProtocol> : Cursor {
+public final class IteratorCursor<Base: IteratorProtocol> : Cursor {
     
     /// Creates a cursor from a sequence iterator.
     public init(_ base: Base) {
@@ -309,7 +309,7 @@ public final class IteratorCursor<Base : IteratorProtocol> : Cursor {
     }
     
     /// Creates a cursor from a sequence.
-    public init<S : Sequence>(_ s: S) where S.Iterator == Base {
+    public init<S: Sequence>(_ s: S) where S.Iterator == Base {
         self.base = s.makeIterator()
     }
     
@@ -326,7 +326,7 @@ extension Sequence {
     
     /// Returns a cursor over the concatenated results of mapping transform
     /// over self.
-    public func flatMap<SegmentOfResult : Cursor>(_ transform: @escaping (Iterator.Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<IteratorCursor<Self.Iterator>, SegmentOfResult>> {
+    public func flatMap<SegmentOfResult: Cursor>(_ transform: @escaping (Iterator.Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<IteratorCursor<Self.Iterator>, SegmentOfResult>> {
         return IteratorCursor(self).flatMap(transform)
     }
 }

@@ -177,7 +177,7 @@ extension DatabaseValue : Hashable {
     /// storages instead:
     ///
     ///     1.databaseValue.storage == 1.0.databaseValue.storage // false
-    public static func ==(lhs: DatabaseValue, rhs: DatabaseValue) -> Bool {
+    public static func == (lhs: DatabaseValue, rhs: DatabaseValue) -> Bool {
         switch (lhs.storage, rhs.storage) {
         case (.null, .null):
             return true

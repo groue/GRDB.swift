@@ -332,7 +332,7 @@ public struct SQLUnaryOperator : Hashable {
         return sql.hashValue
     }
     
-    public static func ==(lhs: SQLUnaryOperator, rhs: SQLUnaryOperator) -> Bool {
+    public static func == (lhs: SQLUnaryOperator, rhs: SQLUnaryOperator) -> Bool {
         return lhs.sql == rhs.sql
     }
 }
@@ -420,7 +420,7 @@ public struct SQLBinaryOperator : Hashable {
         return SQLBinaryOperator(negatedSQL, negated: sql)
     }
     
-    public static func ==(lhs: SQLBinaryOperator, rhs: SQLBinaryOperator) -> Bool {
+    public static func == (lhs: SQLBinaryOperator, rhs: SQLBinaryOperator) -> Bool {
         return lhs.sql == rhs.sql
     }
 }
@@ -634,7 +634,7 @@ public struct SQLFunctionName : Hashable {
         return sql.hashValue
     }
     
-    public static func ==(lhs: SQLFunctionName, rhs: SQLFunctionName) -> Bool {
+    public static func == (lhs: SQLFunctionName, rhs: SQLFunctionName) -> Bool {
         return lhs.sql == rhs.sql
     }
 }
@@ -752,4 +752,3 @@ struct SQLExpressionCollate : SQLExpression {
         }
     }
 }
-

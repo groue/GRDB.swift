@@ -870,7 +870,7 @@ extension DatabaseFunction : Hashable {
     }
     
     /// Two functions are equal if they share the same name and argumentCount.
-    public static func ==(lhs: DatabaseFunction, rhs: DatabaseFunction) -> Bool {
+    public static func == (lhs: DatabaseFunction, rhs: DatabaseFunction) -> Bool {
         return lhs.name == rhs.name && lhs.argumentCount == rhs.argumentCount
     }
 }
@@ -953,7 +953,7 @@ extension DatabaseCollation : Hashable {
     }
     
     /// Two collations are equal if they share the same name (case insensitive)
-    public static func ==(lhs: DatabaseCollation, rhs: DatabaseCollation) -> Bool {
+    public static func == (lhs: DatabaseCollation, rhs: DatabaseCollation) -> Bool {
         // See https://www.sqlite.org/c3ref/create_collation.html
         return sqlite3_stricmp(lhs.name, lhs.name) == 0
     }
@@ -2237,8 +2237,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
         /// Values appear in the same order as the columns in the table.
         ///
         /// The result is nil if the event is an .Insert event.
-        public var initialDatabaseValues: [DatabaseValue]?
-        {
+        public var initialDatabaseValues: [DatabaseValue]? {
             guard (kind == .update || kind == .delete) else { return nil }
             return impl.initialDatabaseValues
         }
@@ -2249,8 +2248,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
         /// righmost column.
         ///
         /// The result is nil if the event is an .Insert event.
-        public func initialDatabaseValue(atIndex index: Int) -> DatabaseValue?
-        {
+        public func initialDatabaseValue(atIndex index: Int) -> DatabaseValue? {
             GRDBPrecondition(index >= 0 && index < count, "row index out of range")
             guard (kind == .update || kind == .delete) else { return nil }
             return impl.initialDatabaseValue(atIndex: index)
@@ -2261,8 +2259,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
         /// Values appear in the same order as the columns in the table.
         ///
         /// The result is nil if the event is a .Delete event.
-        public var finalDatabaseValues: [DatabaseValue]?
-        {
+        public var finalDatabaseValues: [DatabaseValue]? {
             guard (kind == .update || kind == .insert) else { return nil }
             return impl.finalDatabaseValues
         }
@@ -2273,8 +2270,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
         /// righmost column.
         ///
         /// The result is nil if the event is a .Delete event.
-        public func finalDatabaseValue(atIndex index: Int) -> DatabaseValue?
-        {
+        public func finalDatabaseValue(atIndex index: Int) -> DatabaseValue? {
             GRDBPrecondition(index >= 0 && index < count, "row index out of range")
             guard (kind == .update || kind == .insert) else { return nil }
             return impl.finalDatabaseValue(atIndex: index)
@@ -2357,8 +2353,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
             return preupdate_getValues_new(connection)
         }
         
-        func initialDatabaseValue(atIndex index: Int) -> DatabaseValue?
-        {
+        func initialDatabaseValue(atIndex index: Int) -> DatabaseValue? {
             let columnCount = columnsCount
             precondition(index >= 0 && index < Int(columnCount), "row index out of range")
             return getValue(connection, column: CInt(index), sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) -> CInt in
@@ -2366,8 +2361,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
             })
         }
         
-        func finalDatabaseValue(atIndex index: Int) -> DatabaseValue?
-        {
+        func finalDatabaseValue(atIndex index: Int) -> DatabaseValue? {
             let columnCount = columnsCount
             precondition(index >= 0 && index < Int(columnCount), "row index out of range")
             return getValue(connection, column: CInt(index), sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) -> CInt in
@@ -2385,8 +2379,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
                     finalDatabaseValues: finalDatabaseValues))
         }
     
-        private func preupdate_getValues(_ connection: SQLiteConnection, sqlite_func: (_ connection: SQLiteConnection, _ column: CInt, _ value: inout SQLiteValue? ) -> CInt ) -> [DatabaseValue]?
-        {
+        private func preupdate_getValues(_ connection: SQLiteConnection, sqlite_func: (_ connection: SQLiteConnection, _ column: CInt, _ value: inout SQLiteValue? ) -> CInt ) -> [DatabaseValue]? {
             let columnCount = sqlite3_preupdate_count(connection)
             guard columnCount > 0 else { return nil }
             
@@ -2400,8 +2393,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
             return columnValues
         }
         
-        private func getValue(_ connection: SQLiteConnection, column: CInt, sqlite_func: (_ connection: SQLiteConnection, _ column: CInt, _ value: inout SQLiteValue? ) -> CInt ) -> DatabaseValue?
-        {
+        private func getValue(_ connection: SQLiteConnection, column: CInt, sqlite_func: (_ connection: SQLiteConnection, _ column: CInt, _ value: inout SQLiteValue? ) -> CInt ) -> DatabaseValue? {
             var value : SQLiteValue? = nil
             guard sqlite_func(connection, column, &value) == SQLITE_OK else { return nil }
             if let value = value {
@@ -2410,15 +2402,13 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
             return nil
         }
         
-        private func preupdate_getValues_old(_ connection: SQLiteConnection) -> [DatabaseValue]?
-        {
+        private func preupdate_getValues_old(_ connection: SQLiteConnection) -> [DatabaseValue]? {
             return preupdate_getValues(connection, sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) -> CInt in
                 return sqlite3_preupdate_old(connection, column, &value)
             })
         }
         
-        private func preupdate_getValues_new(_ connection: SQLiteConnection) -> [DatabaseValue]?
-        {
+        private func preupdate_getValues_new(_ connection: SQLiteConnection) -> [DatabaseValue]? {
             return preupdate_getValues(connection, sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) -> CInt in
                 return sqlite3_preupdate_new(connection, column, &value)
             })
