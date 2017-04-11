@@ -1,3 +1,5 @@
+import Foundation
+
 /// LayoutedColumnMapping is a type that supports the RowAdapter protocol.
 public struct LayoutedColumnMapping {
     /// An array of (baseIndex, mappedName) pairs, where baseIndex is the index

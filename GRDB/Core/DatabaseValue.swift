@@ -1,5 +1,9 @@
 import Foundation
 
+#if SWIFT_PACKAGE
+    import CSQLite
+#endif
+
 // MARK: - DatabaseValue
 
 /// DatabaseValue is the intermediate type between SQLite and your values.

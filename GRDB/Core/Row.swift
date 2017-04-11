@@ -1,5 +1,9 @@
 import Foundation
 
+#if SWIFT_PACKAGE
+    import CSQLite
+#endif
+
 /// A database row.
 public final class Row {
     

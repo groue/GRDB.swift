@@ -1,5 +1,9 @@
 import Foundation
 
+#if SWIFT_PACKAGE
+    import CSQLite
+#endif
+
 public struct ResultCode : RawRepresentable, Equatable, CustomStringConvertible {
     public let rawValue: Int32
     

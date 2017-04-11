@@ -1,5 +1,9 @@
 import Foundation
 
+#if SWIFT_PACKAGE
+    import CSQLite
+#endif
+
 /// A raw SQLite statement, suitable for the SQLite C API.
 public typealias SQLiteStatement = OpaquePointer
 

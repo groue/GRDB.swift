@@ -1,3 +1,5 @@
+import Foundation
+
 /// DatabaseValueConvertible is free for ReferenceConvertible types whose
 /// ReferenceType is itself DatabaseValueConvertible.
 ///
