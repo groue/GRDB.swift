@@ -1,9 +1,9 @@
 import PackageDescription
 
 let package = Package(
-    name: "GRDB.swift",
+    name: "GRDB",
     dependencies: [
-        .Package(url: "https://github.com/groue/SQLiteSDK.git", majorVersion: 0)
+        .Package(url: "https://github.com/groue/CSQLite.git", majorVersion: 0)
     ],
     exclude: ["GRDB.xcworkspace", "Playgrounds", "SQLCipher", "SQLiteCustom", "Support", "DemoApps", "Tests", "Documentation"]
 )

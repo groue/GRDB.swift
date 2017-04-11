@@ -1,5 +1,5 @@
 #if SWIFT_PACKAGE
-    import SQLiteSDK
+    import CSQLite
 #endif
 
 /// The protocol for all types that can fetch values from a database.

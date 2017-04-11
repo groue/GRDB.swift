@@ -5,7 +5,7 @@ import Foundation
 #endif
 
 #if SWIFT_PACKAGE
-    import SQLiteSDK
+    import CSQLite
 #endif
 
 /// A DatabasePool grants concurrent accesses to an SQLite database.

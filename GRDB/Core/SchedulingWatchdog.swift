@@ -1,7 +1,7 @@
 import Dispatch
 
 #if SWIFT_PACKAGE
-    import SQLiteSDK
+    import CSQLite
 #endif
 
 /// SchedulingWatchdog makes sure that databases connections are used on correct

@@ -1,7 +1,7 @@
 import Foundation
 
 #if SWIFT_PACKAGE
-    import SQLiteSDK
+    import CSQLite
 #endif
 
 /// A database row.

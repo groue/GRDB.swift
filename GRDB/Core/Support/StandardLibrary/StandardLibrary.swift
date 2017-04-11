@@ -1,5 +1,5 @@
 #if SWIFT_PACKAGE
-    import SQLiteSDK
+    import CSQLite
 #endif
 
 // MARK: - Value Types
