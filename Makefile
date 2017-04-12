@@ -46,7 +46,7 @@ test_framework: test_framework_GRDB test_framework_GRDBCustom test_framework_GRD
 test_framework_GRDB: test_framework_GRDBOSX test_framework_GRDBWatchOS test_framework_GRDBiOS
 test_framework_GRDBCustom: test_framework_GRDBCustomSQLiteOSX test_framework_GRDBCustomSQLiteiOS
 test_framework_GRDBCipher: test_framework_GRDBCipherOSX test_framework_GRDBCipheriOS
-test_install: test_install_manual test_install_GRDBCipher test_CocoaPodsLint
+test_install: test_install_manual test_install_GRDBCipher test_install_SPM test_CocoaPodsLint
 
 test_framework_GRDBOSX:
 	$(XCODEBUILD) \
@@ -140,6 +140,17 @@ test_install_GRDBCipher: SQLCipher
 	  -configuration Release \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  clean build
+
+test_install_SPM:
+	cd Tests/SPM && \
+	swift package reset && \
+	rm -rf Packages/GRDB && \
+	swift package edit GRDB --revision master && \
+	rm -rf Packages/GRDB && \
+	ln -s ../../.. Packages/GRDB && \
+	swift build && \
+	./.build/debug/SPM && \
+	rm -rf Packages/GRDB
 
 test_CocoaPodsLint:
 ifdef POD
