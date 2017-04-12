@@ -239,16 +239,29 @@ See [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) for the installa
 
 ## CocoaPods
 
-[CocoaPods](http://cocoapods.org/) is a dependency manager for Xcode projects. To use GRDB.swift with CocoaPods:
+[CocoaPods](http://cocoapods.org/) is a dependency manager for Xcode projects. To use GRDB.swift with CocoaPods (version 1.1 or higher), specify in your `Podfile`:
 
-1. Install cocoapods version 1.1 or higher
+```ruby
+use_frameworks!
+pod 'GRDB.swift'
+```
 
-2. Specify in your Podfile:
 
-    ```ruby
-    use_frameworks!
-    pod 'GRDB.swift'
-    ```
+## Swift Package Manager
+
+The [Swift Package Manager](https://swift.org/package-manager/) automates the distribution of Swift code. To use GRDB.swift with SPM, add a dependency to your `Package.swift` file:
+
+```swift
+let package = Package(
+    ...
+    dependencies: [
+        .Package(url: "https://github.com/groue/GRDB.swift.git", majorVersion: 0)
+    ]
+)
+```
+
+Note that Linux is not currently supported.
+
 
 ## Carthage
 
@@ -1621,7 +1634,16 @@ row.scoped(on: "remainder") // <Row c:2 d:3>
 **If not all SQLite APIs are exposed in GRDB, you can still use the [SQLite C Interface](https://www.sqlite.org/c3ref/intro.html) and call [SQLite C functions](https://www.sqlite.org/c3ref/funclist.html).**
 
 ```swift
-let sqliteVersion = String(cString: sqlite3_libversion(), encoding: .utf8)!
+let sqliteVersion = String(cString: sqlite3_libversion())
+```
+
+Those functions are embedded right into the GRDB framework, unless you use GRDB through the Swift Package Manager. In this case, you need to import the `CSQLite` module:
+
+```swift
+// When you use the Swift Package Manager
+import CSQLite
+
+let sqliteVersion = String(cString: sqlite3_libversion())
 ```
 
 Raw pointers to database connections and statements are available through the `Database.sqliteConnection` and `Statement.sqliteStatement` properties:
