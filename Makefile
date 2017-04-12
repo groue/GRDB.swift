@@ -143,14 +143,14 @@ test_install_GRDBCipher: SQLCipher
 
 test_install_SPM:
 	cd Tests/SPM && \
-	swift package reset && \
+	$(SWIFT) package reset && \
 	rm -rf Packages/GRDB && \
-	swift package edit GRDB --revision master && \
+	$(SWIFT) package edit GRDB --revision master && \
 	rm -rf Packages/GRDB && \
 	ln -s ../../.. Packages/GRDB && \
-	swift build && \
+	$(SWIFT) build && \
 	./.build/debug/SPM && \
-	rm -rf Packages/GRDB
+	$(SWIFT) package unedit --force GRDB
 
 test_CocoaPodsLint:
 ifdef POD
