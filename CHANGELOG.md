@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## 0.106.1
+
+Released April 12, 2017
+
+No change, but a better support for Swift Package Manager at the git repository level.
+
+
 ## 0.106.0
 
 Released April 11, 2017

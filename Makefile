@@ -4,10 +4,14 @@
 # CocoaPods ~> 1.2.0 - https://cocoapods.org
 # Carthage ~> 0.20.1 - https://github.com/carthage/carthage
 # Jazzy ~> 0.7.4 - https://github.com/realm/jazzy
+# Xcode 8.3, with iOS8.1 Simulator installed
 
-POD := $(shell command -v pod)
 CARTHAGE := $(shell command -v carthage)
+GIT := $(shell command -v git)
 JAZZY := $(shell command -v jazzy)
+POD := $(shell command -v pod)
+SWIFT := $(shell command -v swift)
+XCODEBUILD := $(shell command -v xcodebuild)
 
 
 # Targets
@@ -45,14 +49,14 @@ test_framework_GRDBCipher: test_framework_GRDBCipherOSX test_framework_GRDBCiphe
 test_install: test_install_manual test_install_GRDBCipher test_CocoaPodsLint
 
 test_framework_GRDBOSX:
-	xcodebuild \
+	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBOSX \
 	  $(TEST_ACTIONS)
 
 test_framework_GRDBWatchOS:
 	# XCTest is not supported for watchOS: we only make sure that the framework builds.
-	xcodebuild \
+	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBWatchOS \
 	  clean build
@@ -60,21 +64,21 @@ test_framework_GRDBWatchOS:
 test_framework_GRDBiOS: test_framework_GRDBiOS_maxTarget test_framework_GRDBiOS_minTarget
 
 test_framework_GRDBiOS_maxTarget:
-	xcodebuild \
+	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBiOS \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  $(TEST_ACTIONS)
 
 test_framework_GRDBiOS_minTarget:
-	xcodebuild \
+	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBiOS \
 	  -destination $(MIN_IOS_DESTINATION) \
 	  $(TEST_ACTIONS)
 
 test_framework_GRDBCustomSQLiteOSX: SQLiteCustom
-	xcodebuild \
+	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBCustomSQLiteOSX \
 	  $(TEST_ACTIONS)
@@ -82,21 +86,21 @@ test_framework_GRDBCustomSQLiteOSX: SQLiteCustom
 test_framework_GRDBCustomSQLiteiOS: test_framework_GRDBCustomSQLiteiOS_maxTarget test_framework_GRDBCustomSQLiteiOS_minTarget
 
 test_framework_GRDBCustomSQLiteiOS_maxTarget: SQLiteCustom
-	xcodebuild \
+	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBCustomSQLiteiOS \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  $(TEST_ACTIONS)
 
 test_framework_GRDBCustomSQLiteiOS_minTarget: SQLiteCustom
-	xcodebuild \
+	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBCustomSQLiteiOS \
 	  -destination $(MIN_IOS_DESTINATION) \
 	  $(TEST_ACTIONS)
 
 test_framework_GRDBCipherOSX: SQLCipher
-	xcodebuild \
+	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBCipherOSX \
 	  $(TEST_ACTIONS)
@@ -104,25 +108,25 @@ test_framework_GRDBCipherOSX: SQLCipher
 test_framework_GRDBCipheriOS: test_framework_GRDBCipheriOS_maxTarget test_framework_GRDBCipheriOS_minTarget
 
 test_framework_GRDBCipheriOS_maxTarget: SQLCipher
-	xcodebuild \
+	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBCipheriOS \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  $(TEST_ACTIONS)
 
 test_framework_GRDBCipheriOS_minTarget: SQLCipher
-	xcodebuild \
+	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBCipheriOS \
 	  -destination $(MIN_IOS_DESTINATION) \
 	  $(TEST_ACTIONS)
 
 test_framework_SPM:
-	swift package clean
-	swift build
+	$(SWIFT) package clean
+	$(SWIFT) build
 
 test_install_manual:
-	xcodebuild \
+	$(XCODEBUILD) \
 	  -project DemoApps/GRDBDemoiOS/GRDBDemoiOS.xcodeproj \
 	  -scheme GRDBDemoiOS \
 	  -configuration Release \
@@ -130,7 +134,7 @@ test_install_manual:
 	  clean build
 
 test_install_GRDBCipher: SQLCipher
-	xcodebuild \
+	$(XCODEBUILD) \
 	  -project Tests/GRDBCipher/GRDBiOS/GRDBiOS.xcodeproj \
 	  -scheme GRDBiOS \
 	  -configuration Release \
@@ -167,14 +171,14 @@ SQLiteCustom: SQLiteCustom/src/sqlite3.h
 
 # Makes sure the SQLiteCustom/src submodule has been downloaded
 SQLiteCustom/src/sqlite3.h:
-	git submodule update --init SQLiteCustom/src
+	$(GIT) submodule update --init SQLiteCustom/src
 
 # Target that setups SQLCipher
 SQLCipher: SQLCipher/src/sqlite3.h
 
 # Makes sure the SQLCipher/src submodule has been downloaded
 SQLCipher/src/sqlite3.h:
-	git submodule update --init SQLCipher/src
+	$(GIT) submodule update --init SQLCipher/src
 
 
 # Documentation
@@ -187,10 +191,10 @@ ifdef JAZZY
 	  --author 'Gwendal Roué' \
 	  --author_url https://github.com/groue \
 	  --github_url https://github.com/groue/GRDB.swift \
-	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/0.106.0 \
-	  --module-version 0.106.0 \
+	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/0.106.1 \
+	  --module-version 0.106.1 \
 	  --module GRDB \
-	  --root-url http://groue.github.io/GRDB.swift/docs/0.106.0/ \
+	  --root-url http://groue.github.io/GRDB.swift/docs/0.106.1/ \
 	  --output Documentation/Reference \
 	  --podspec GRDB.swift.podspec
 else
