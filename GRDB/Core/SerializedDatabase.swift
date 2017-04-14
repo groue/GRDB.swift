@@ -1,4 +1,7 @@
 import Foundation
+#if os(Linux)
+    import Dispatch
+#endif
 
 /// A class that serializes accesses to a database.
 final class SerializedDatabase {
