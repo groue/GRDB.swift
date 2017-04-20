@@ -176,9 +176,9 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     {
         trackChanges(
             fetchAlongside: { _ in },
-            willChange: willChange.flatMap { callback in { (controller, _) in callback(controller) } },
+            willChange: willChange.map { callback in { (controller, _) in callback(controller) } },
             onChange: onChange,
-            didChange: didChange.flatMap { callback in { (controller, _) in callback(controller) } })
+            didChange: didChange.map { callback in { (controller, _) in callback(controller) } })
     }
 
     /// Registers changes notification callbacks.
