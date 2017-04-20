@@ -527,7 +527,7 @@ extension Row {
     public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Row> {
         // Reuse a single mutable row for performance
         let row = try Row(statement: statement).adapted(with: adapter, layout: statement)
-        return statement.fetchCursor(arguments: arguments) { row }
+        return statement.cursor(arguments: arguments, next: { row })
     }
     
     /// Returns an array of rows fetched from a prepared statement.
@@ -559,7 +559,7 @@ extension Row {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Row? {
         // The cursor reuses a single mutable row. Return an immutable copy.
-        return try fetchCursor(statement, arguments: arguments, adapter: adapter).next().flatMap { $0.copy() }
+        return try fetchCursor(statement, arguments: arguments, adapter: adapter).next().map { $0.copy() }
     }
 }
 

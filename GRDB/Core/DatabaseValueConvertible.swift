@@ -128,14 +128,13 @@ extension DatabaseValueConvertible {
     public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
         // Reuse a single mutable row for performance
         let row = try Row(statement: statement).adapted(with: adapter, layout: statement)
-        return statement.fetchCursor(arguments: arguments) { () -> Self in
+        return statement.cursor(arguments: arguments, next: {
             let dbv: DatabaseValue = row.value(atIndex: 0)
-            if let value = Self.fromDatabaseValue(dbv) {
-                return value
-            } else {
+            guard let value = Self.fromDatabaseValue(dbv) else {
                 throw DatabaseError(resultCode: .SQLITE_ERROR, message: "could not convert database value \(dbv) to \(Self.self)", sql: statement.sql, arguments: arguments)
             }
-        }
+            return value
+        })
     }
     
     /// Returns an array of values fetched from a prepared statement.
@@ -170,7 +169,7 @@ extension DatabaseValueConvertible {
     public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self? {
         // Reuse a single mutable row for performance
         let row = try Row(statement: statement).adapted(with: adapter, layout: statement)
-        let cursor = statement.fetchCursor(arguments: arguments) { () -> Self? in
+        let cursor: DatabaseCursor<Self?> = statement.cursor(arguments: arguments, next: {
             let dbv: DatabaseValue = row.value(atIndex: 0)
             if let value = Self.fromDatabaseValue(dbv) {
                 return value
@@ -179,7 +178,7 @@ extension DatabaseValueConvertible {
             } else {
                 throw DatabaseError(resultCode: .SQLITE_ERROR, message: "could not convert database value \(dbv) to \(Self.self)", sql: statement.sql, arguments: arguments)
             }
-        }
+        })
         return try cursor.next() ?? nil
     }
 }
@@ -341,7 +340,7 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Wrapped?> {
         // Reuse a single mutable row for performance
         let row = try Row(statement: statement).adapted(with: adapter, layout: statement)
-        return statement.fetchCursor(arguments: arguments) { () -> Wrapped? in
+        return statement.cursor(arguments: arguments, next: {
             let dbv: DatabaseValue = row.value(atIndex: 0)
             if let value = Wrapped.fromDatabaseValue(dbv) {
                 return value
@@ -350,7 +349,7 @@ extension Optional where Wrapped: DatabaseValueConvertible {
             } else {
                 throw DatabaseError(resultCode: .SQLITE_ERROR, message: "could not convert database value \(dbv) to \(Wrapped.self)", sql: statement.sql, arguments: arguments)
             }
-        }
+        })
     }
     
     /// Returns an array of optional values fetched from a prepared statement.

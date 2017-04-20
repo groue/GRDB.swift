@@ -61,12 +61,12 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         // We'll read from leftmost column at index 0, unless adapter mangles columns
         let columnIndex = try Int32(adapter?.baseColumnIndex(atIndex: 0, layout: statement) ?? 0)
         let sqliteStatement = statement.sqliteStatement
-        return statement.fetchCursor(arguments: arguments) {
+        return statement.cursor(arguments: arguments, next: {
             if sqlite3_column_type(sqliteStatement, columnIndex) == SQLITE_NULL {
                 throw DatabaseError(resultCode: .SQLITE_ERROR, message: "could not convert database value NULL to \(Self.self)", sql: statement.sql, arguments: arguments)
             }
             return Self.init(sqliteStatement: sqliteStatement, index: columnIndex)
-        }
+        })
     }
     
     /// Returns an array of values fetched from a prepared statement.
@@ -99,12 +99,12 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         // We'll read from leftmost column at index 0, unless adapter mangles columns
         let columnIndex = try Int32(adapter?.baseColumnIndex(atIndex: 0, layout: statement) ?? 0)
         let sqliteStatement = statement.sqliteStatement
-        let cursor = statement.fetchCursor(arguments: arguments) { () -> Self? in
+        let cursor: DatabaseCursor<Self?> = statement.cursor(arguments: arguments, next: {
             if sqlite3_column_type(sqliteStatement, columnIndex) == SQLITE_NULL {
                 return nil
             }
             return Self.init(sqliteStatement: sqliteStatement, index: columnIndex)
-        }
+        })
         return try cursor.next() ?? nil
     }
 }

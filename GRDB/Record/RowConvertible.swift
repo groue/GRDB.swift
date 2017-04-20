@@ -67,11 +67,11 @@ extension RowConvertible {
         // It is the record's responsibility to copy the row if needed.
         // See Record.awakeFromFetch(), for example.
         let row = try Row(statement: statement).adapted(with: adapter, layout: statement)
-        return statement.fetchCursor(arguments: arguments) {
+        return statement.cursor(arguments: arguments, next: {
             var record = self.init(row: row)
             record.awakeFromFetch(row: row)
             return record
-        }
+        })
     }
     
     /// Returns an array of records fetched from a prepared statement.
