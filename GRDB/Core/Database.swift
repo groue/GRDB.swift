@@ -177,9 +177,6 @@ public final class Database {
         case setDefault = "SET DEFAULT"
     }
     
-    /// log function that takes an error message.
-    public typealias LogErrorFunction = (_ resultCode: ResultCode, _ message: String) -> Void
-    
     /// An SQLite threading mode. See https://www.sqlite.org/threadsafe.html.
     enum ThreadingMode {
         case `default`
@@ -220,8 +217,11 @@ public final class Database {
         case cancelledCommit(Error)
     }
     
-    
+    #if !SWIFT_PACKAGE
     // MARK: - Error Log
+    
+    /// log function that takes an error message.
+    public typealias LogErrorFunction = (_ resultCode: ResultCode, _ message: String) -> Void
     
     /// The error logging function.
     ///
@@ -245,6 +245,7 @@ public final class Database {
             log(resultCode, message)
         }
     }()
+    #endif
     
     
     // MARK: - Database Information
@@ -323,8 +324,10 @@ public final class Database {
     fileprivate var updateStatementCache: [String: UpdateStatement] = [:]
     
     init(path: String, configuration: Configuration, schemaCache: DatabaseSchemaCache) throws {
-        // Error log setup must happen before any database connection
-        Database.errorLogSetup
+        #if !SWIFT_PACKAGE
+            // Error log setup must happen before any database connection
+            Database.errorLogSetup
+        #endif
         
         // See https://www.sqlite.org/c3ref/open.html
         var sqliteConnection: SQLiteConnection? = nil
@@ -564,14 +567,14 @@ public final class Database {
             // > be deallocated when the last prepared statement is finalized or the
             // > last sqlite3_backup is finished.
             let code = sqlite3_close_v2(sqliteConnection)
-            if code != SQLITE_OK {
-                // A rare situation where GRDB doesn't fatalError on
-                // unprocessed errors.
-                if let log = logErrorFunction {
+            #if !SWIFT_PACKAGE
+                if code != SQLITE_OK, let log = logErrorFunction {
+                    // A rare situation where GRDB doesn't fatalError on
+                    // unprocessed errors.
                     let message = String(cString: sqlite3_errmsg(sqliteConnection))
                     log(ResultCode(rawValue: code), "could not close database: \(message)")
                 }
-            }
+            #endif
         } else {
             // https://www.sqlite.org/c3ref/close.html
             // > If the database connection is associated with unfinalized prepared
@@ -579,10 +582,10 @@ public final class Database {
             // > sqlite3_close() will leave the database connection open and
             // > return SQLITE_BUSY.
             let code = sqlite3_close(sqliteConnection)
-            if code != SQLITE_OK {
-                // A rare situation where GRDB doesn't fatalError on
-                // unprocessed errors.
-                if let log = logErrorFunction {
+            #if !SWIFT_PACKAGE
+                if code != SQLITE_OK, let log = logErrorFunction {
+                    // A rare situation where GRDB doesn't fatalError on
+                    // unprocessed errors.
                     let message = String(cString: sqlite3_errmsg(sqliteConnection))
                     log(ResultCode(rawValue: code), "could not close database: \(message)")
                     if code == SQLITE_BUSY {
@@ -595,7 +598,7 @@ public final class Database {
                         }
                     }
                 }
-            }
+            #endif
         }
     }
 }
