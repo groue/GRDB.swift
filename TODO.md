@@ -1,3 +1,4 @@
+- [ ] Question RowConvertible.awakeFromFetch
 - [ ] SelectStatement.SelectionInfo is empty for statements like `SELECT COUNT(*) FROM table`. This prevents `DatabaseEventKind.impact(_:)` from returning true when a transaction observer is notified of a change in the table. Fix this.
 - [ ] Is the Support/module.modulemap file still needed?
 - [ ] Make GRDB less stringly-typed: For each API that eats column names, check if it couldn't eat both Column and String. If this requires Column to adopt ExpressibleByStringLiteral, check if it does not introduce awful ambiguities

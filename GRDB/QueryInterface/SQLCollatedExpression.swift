@@ -47,3 +47,19 @@ public struct SQLCollatedExpression {
         return SQLExpressionCollate(expression, collationName: collationName)
     }
 }
+
+extension SQLCollatedExpression : SQLOrderingTerm {
+    
+    /// Returns self.desc
+    public var reversed: SQLOrderingTerm {
+        return desc
+    }
+    
+    /// This method is an implementation detail of the query interface.
+    /// Do not use it directly.
+    ///
+    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    public func orderingTermSQL(_ arguments: inout StatementArguments?) -> String {
+        return sqlExpression.orderingTermSQL(&arguments)
+    }
+}

@@ -214,7 +214,7 @@ private func int64EqualDouble(_ i: Int64, _ d: Double) -> Bool {
 }
 
 
-// MARK: - DatabaseValueConvertible
+// MARK: - DatabaseValueConvertible & SQLExpressible & SQLExpression
 
 /// DatabaseValue adopts DatabaseValueConvertible.
 extension DatabaseValue : DatabaseValueConvertible {
@@ -227,6 +227,9 @@ extension DatabaseValue : DatabaseValueConvertible {
     public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> DatabaseValue? {
         return databaseValue
     }
+}
+
+extension DatabaseValue : SQLExpressible {
     
     /// This property is an implementation detail of the query interface.
     /// Do not use it directly.
@@ -241,6 +244,48 @@ extension DatabaseValue : DatabaseValueConvertible {
     }
 }
 
+/// DatabaseValue adopts SQLExpression.
+extension DatabaseValue : SQLExpression {
+    public func expressionSQL(_ arguments: inout StatementArguments?) -> String {
+        // fast path for NULL
+        if isNull {
+            return "NULL"
+        }
+        
+        if arguments != nil {
+            arguments!.values.append(self)
+            return "?"
+        } else {
+            // Correctness above all: use SQLite to quote the value.
+            // Assume that the Quote function always succeeds
+            return DatabaseQueue().inDatabase { try! String.fetchOne($0, "SELECT QUOTE(?)", arguments: [self])! }
+        }
+    }
+    
+    public var negated: SQLExpression {
+        switch storage {
+        case .null:
+            // SELECT NOT NULL -- NULL
+            return DatabaseValue.null
+        case .int64(let int64):
+            return (int64 == 0).sqlExpression
+        case .double(let double):
+            return (double == 0.0).sqlExpression
+        case .string:
+            // We can't assume all strings are true, and return false:
+            //
+            // SELECT NOT '1' -- 0 (because '1' is turned into the integer 1, which is negated into 0)
+            // SELECT NOT '0' -- 1 (because '0' is turned into the integer 0, which is negated into 1)
+            return SQLExpressionNot(self)
+        case .blob:
+            // We can't assume all blobs are true, and return false:
+            //
+            // SELECT NOT X'31' -- 0 (because X'31' is turned into the string '1', then into integer 1, which is negated into 0)
+            // SELECT NOT X'30' -- 1 (because X'30' is turned into the string '0', then into integer 0, which is negated into 1)
+            return SQLExpressionNot(self)
+        }
+    }
+}
 
 // MARK: - CustomStringConvertible
 

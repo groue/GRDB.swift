@@ -46,11 +46,11 @@ public final class Row {
         return impl.copy(self)
     }
     
-    
     // MARK: - Not Public
     
     let impl: RowImpl
     
+    /// Returns true if and only if the row was fetched from a database.
     var isFetched: Bool {
         return impl.isFetched
     }

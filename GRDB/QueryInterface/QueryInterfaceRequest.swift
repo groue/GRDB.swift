@@ -275,9 +275,9 @@ extension TableMapping {
     public static func all() -> QueryInterfaceRequest<Self> {
         let selection: [SQLSelectable]
         if selectsRowID {
-            selection = [star, Column.rowID]
+            selection = [SQLStar(), Column.rowID]
         } else {
-            selection = [star]
+            selection = [SQLStar()]
         }
         return QueryInterfaceRequest(query: QueryInterfaceSelectQueryDefinition(select: selection, from: .table(name: databaseTableName, alias: nil)))
     }

@@ -1,19 +1,3 @@
-// MARK: - SQLExpressible
-
-/// The protocol for all types that can be turned into an SQL expression.
-///
-/// It is adopted by protocols like DatabaseValueConvertible, and types
-/// like Column.
-///
-/// See https://github.com/groue/GRDB.swift/#the-query-interface
-public protocol SQLExpressible {
-    /// Returns an SQLExpression
-    ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    var sqlExpression: SQLExpression { get }
-}
-
-
 // MARK: - DatabaseValueConvertible
 
 /// Types that adopt DatabaseValueConvertible can be initialized from

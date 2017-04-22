@@ -1,4 +1,5 @@
 import Foundation
+
 #if os(iOS)
     import UIKit
 #endif
@@ -522,7 +523,7 @@ fileprivate func makeFetchFunction<Record, T>(
         var result: Result<(fetchedItems: [Item<Record>], fetchedAlongside: T)>? = nil
         do {
             try databaseWriter.readFromCurrentState { db in
-                result = Result.wrap { try (
+                result = Result { try (
                     fetchedItems: request.fetchAll(db),
                     fetchedAlongside: fetchAlongside(db)) }
                 semaphore.signal()
