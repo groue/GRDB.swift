@@ -1673,6 +1673,7 @@ Before jumping in the low-level wagon, here is the list of all SQLite APIs used 
 - `sqlite3_changes`, `sqlite3_total_changes`: see [Database.changesCount and Database.totalChangesCount](http://groue.github.io/GRDB.swift/docs/0.106.1/Classes/Database.html)
 - `sqlite3_close`, `sqlite3_close_v2`, `sqlite3_next_stmt`, `sqlite3_open_v2`: see [Database Connections](#database-connections)
 - `sqlite3_commit_hook`, `sqlite3_rollback_hook`, `sqlite3_update_hook`: see [Database Changes Observation](#database-changes-observation), [FetchedRecordsController](#fetchedrecordscontroller)
+- `sqlite3_config`: see [Error Log](#error-log)
 - `sqlite3_create_collation_v2`: see [String Comparison](#string-comparison)
 - `sqlite3_create_function_v2`, `sqlite3_result_blob`, `sqlite3_result_double`, `sqlite3_result_error`, `sqlite3_result_error_code`, `sqlite3_result_int64`, `sqlite3_result_null`, `sqlite3_result_text`, `sqlite3_user_data`, `sqlite3_value_blob`, `sqlite3_value_bytes`, `sqlite3_value_double`, `sqlite3_value_int64`, `sqlite3_value_text`, `sqlite3_value_type`: see [Custom SQL Functions](#custom-sql-functions)
 - `sqlite3_db_release_memory`: see [Memory Management](#memory-management)
@@ -4715,6 +4716,12 @@ GRDB can throw [DatabaseError](#databaseerror), [PersistenceError](#persistencee
 
 Considering that a local database is not some JSON loaded from a remote server, GRDB focuses on **trusted databases**. Dealing with [untrusted databases](#how-to-deal-with-untrusted-inputs) requires extra care.
 
+- [DatabaseError](#databaseerror)
+- [PersistenceError](#persistenceerror)
+- [Fatal Errors](#fatal-errors)
+- [How to Deal with Untrusted Inputs](#how-to-deal-with-untrusted-inputs)
+- [Error Log](#error-log)
+
 
 ### DatabaseError
 
@@ -4908,6 +4915,23 @@ if let arguments = StatementArguments(arguments) {
 ```
 
 See [prepared statements](#prepared-statements) and [DatabaseValue](#databasevalue) for more information.
+
+
+### Error Log
+
+**SQLite can be configured to invoke a callback function containing an error code and a terse error message whenever anomalies occur.**
+
+It is recommended that you setup, early in the lifetime of your application, the error logging callback:
+
+```swift
+Database.logError = { (resultCode, message) in
+    NSLog("%@", "SQLite error \(resultCode): \(message)")
+}
+```
+
+See [The Error And Warning Log](https://sqlite.org/errlog.html) for more information.
+
+This GRDB API is not currently available with the [Swift Package Manager](#swift-package-manager).
 
 
 ## Unicode
