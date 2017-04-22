@@ -5,10 +5,10 @@ Release Notes
 
 **New**
 
-- `Database.logErrorFunction` lets you register an error logging function:
+- `Database.logError` lets you register an error logging function:
     
     ```swift
-    Database.logErrorFunction = { resultCode, message in
+    Database.logError = { resultCode, message in
         NSLog("%@", "SQLite error \(resultCode): \(message)")
     }
     ```

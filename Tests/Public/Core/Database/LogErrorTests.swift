@@ -11,11 +11,11 @@ class LogErrorTests: GRDBTestCase {
     
     func testErrorLog() throws {
         // Remember current log function
-        let defaultLogErrorFunction = Database.logErrorFunction
+        let currentLogError = Database.logError
         
         var lastResultCode: ResultCode? = nil
         var lastMessage: String? = nil
-        Database.logErrorFunction = { (resultCode, message) in
+        Database.logError = { (resultCode, message) in
             lastResultCode = resultCode
             lastMessage = message
         }
@@ -27,6 +27,6 @@ class LogErrorTests: GRDBTestCase {
         XCTAssertEqual(lastMessage!, "near \"That\": syntax error")
         
         // Restore current log function
-        Database.logErrorFunction = defaultLogErrorFunction
+        Database.logError = currentLogError
     }
 }

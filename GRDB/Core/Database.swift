@@ -234,12 +234,12 @@ public final class Database {
     /// > advantage of the error logging facility of SQLite in their products,
     /// > as it is very low CPU and memory cost but can be a huge aid
     /// > for debugging.
-    public static var logErrorFunction: LogErrorFunction? = nil
+    public static var logError: LogErrorFunction? = nil
     
     // Use a let variable in order to register the error log callback only once.
     private static let errorLogSetup: () = {
         registerErrorLogCallback { (_, code, message) in
-            guard let log = logErrorFunction else { return }
+            guard let log = logError else { return }
             guard let message = message.map({ String(cString: $0) }) else { return }
             let resultCode = ResultCode(rawValue: code)
             log(resultCode, message)
@@ -568,7 +568,7 @@ public final class Database {
             // > last sqlite3_backup is finished.
             let code = sqlite3_close_v2(sqliteConnection)
             #if !SWIFT_PACKAGE
-                if code != SQLITE_OK, let log = logErrorFunction {
+                if code != SQLITE_OK, let log = logError {
                     // A rare situation where GRDB doesn't fatalError on
                     // unprocessed errors.
                     let message = String(cString: sqlite3_errmsg(sqliteConnection))
@@ -583,7 +583,7 @@ public final class Database {
             // > return SQLITE_BUSY.
             let code = sqlite3_close(sqliteConnection)
             #if !SWIFT_PACKAGE
-                if code != SQLITE_OK, let log = logErrorFunction {
+                if code != SQLITE_OK, let log = logError {
                     // A rare situation where GRDB doesn't fatalError on
                     // unprocessed errors.
                     let message = String(cString: sqlite3_errmsg(sqliteConnection))
