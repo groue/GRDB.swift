@@ -1,6 +1,19 @@
 Release Notes
 =============
 
+## Next Version
+
+**New**
+
+- `Database.logErrorFunction` lets you register an error logging function:
+    
+    ```swift
+    Database.logErrorFunction = { resultCode, message in
+        NSLog("%@", "SQLite error \(resultCode): \(message)")
+    }
+    ```
+
+
 ## 0.106.1
 
 Released April 12, 2017

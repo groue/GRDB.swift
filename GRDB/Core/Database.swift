@@ -177,6 +177,9 @@ public final class Database {
         case setDefault = "SET DEFAULT"
     }
     
+    /// log function that takes an error message.
+    public typealias LogErrorFunction = (_ resultCode: ResultCode, _ message: String) -> Void
+    
     /// An SQLite threading mode. See https://www.sqlite.org/threadsafe.html.
     enum ThreadingMode {
         case `default`
@@ -216,6 +219,32 @@ public final class Database {
         case rollback
         case cancelledCommit(Error)
     }
+    
+    
+    // MARK: - Error Log
+    
+    /// The error logging function.
+    ///
+    /// Quoting https://www.sqlite.org/errlog.html:
+    ///
+    /// > SQLite can be configured to invoke a callback function containing an
+    /// > error code and a terse error message whenever anomalies occur. This
+    /// > mechanism is very helpful in tracking obscure problems that occur
+    /// > rarely and in the field. Application developers are encouraged to take
+    /// > advantage of the error logging facility of SQLite in their products,
+    /// > as it is very low CPU and memory cost but can be a huge aid
+    /// > for debugging.
+    public static var logErrorFunction: LogErrorFunction? = nil
+    
+    // Use a let variable in order to register the error log callback only once.
+    private static let errorLogSetup: () = {
+        registerErrorLogCallback { (_, code, message) in
+            guard let log = logErrorFunction else { return }
+            guard let message = message.map({ String(cString: $0) }) else { return }
+            let resultCode = ResultCode(rawValue: code)
+            log(resultCode, message)
+        }
+    }()
     
     
     // MARK: - Database Information
@@ -294,6 +323,9 @@ public final class Database {
     fileprivate var updateStatementCache: [String: UpdateStatement] = [:]
     
     init(path: String, configuration: Configuration, schemaCache: DatabaseSchemaCache) throws {
+        // Error log setup must happen before any database connection
+        Database.errorLogSetup
+        
         // See https://www.sqlite.org/c3ref/open.html
         var sqliteConnection: SQLiteConnection? = nil
         let code = sqlite3_open_v2(path, &sqliteConnection, configuration.SQLiteOpenFlags, nil)
@@ -358,7 +390,7 @@ public final class Database {
                 }
             }
         } catch {
-            closeConnection(sqliteConnection!)
+            Database.close(connection: sqliteConnection!)
             throw error
         }
         
@@ -389,7 +421,7 @@ public final class Database {
         configuration.SQLiteConnectionWillClose?(sqliteConnection)
         updateStatementCache = [:]
         selectStatementCache = [:]
-        closeConnection(sqliteConnection)
+        Database.close(connection: sqliteConnection)
         isClosed = true
         configuration.SQLiteConnectionDidClose?()
     }
@@ -419,9 +451,9 @@ public final class Database {
         }
         let dbPointer = unsafeBitCast(self, to: UnsafeMutableRawPointer.self)
         sqlite3_trace(sqliteConnection, { (dbPointer, sql) in
-            guard let sql = sql else { return }
+            guard let sql = sql.map({ String(cString: $0) }) else { return }
             let database = unsafeBitCast(dbPointer, to: Database.self)
-            database.configuration.trace!(String(cString: sql))
+            database.configuration.trace!(sql)
             }, dbPointer)
     }
     
@@ -520,44 +552,48 @@ public final class Database {
             }
         }, nil)
     }
-}
-
-private func closeConnection(_ sqliteConnection: SQLiteConnection) {
-    // sqlite3_close_v2 was added in SQLite 3.7.14 http://www.sqlite.org/changes.html#version_3_7_14
-    // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-    if sqlite3_libversion_number() >= 3007014 {
-        // https://www.sqlite.org/c3ref/close.html
-        // > If sqlite3_close_v2() is called with unfinalized prepared
-        // > statements and/or unfinished sqlite3_backups, then the database
-        // > connection becomes an unusable "zombie" which will automatically
-        // > be deallocated when the last prepared statement is finalized or the
-        // > last sqlite3_backup is finished.
-        let code = sqlite3_close_v2(sqliteConnection)
-        if code != SQLITE_OK {
-            // A rare situation where GRDB doesn't fatalError on unprocessed
-            // errors.
-            let message = String(cString: sqlite3_errmsg(sqliteConnection))
-            NSLog("GRDB could not close database with error %@: %@", NSNumber(value: code), NSString(string: message))
-        }
-    } else {
-        // https://www.sqlite.org/c3ref/close.html
-        // > If the database connection is associated with unfinalized prepared
-        // > statements or unfinished sqlite3_backup objects then
-        // > sqlite3_close() will leave the database connection open and
-        // > return SQLITE_BUSY.
-        let code = sqlite3_close(sqliteConnection)
-        if code != SQLITE_OK {
-            // A rare situation where GRDB doesn't fatalError on unprocessed
-            // errors.
-            let message = String(cString: sqlite3_errmsg(sqliteConnection))
-            NSLog("GRDB could not close database with error %@: %@", NSNumber(value: code), NSString(string: message))
-            if code == SQLITE_BUSY {
-                // Let the user know about unfinalized statements that did
-                // prevent the connection from closing properly.
-                var stmt: SQLiteStatement? = sqlite3_next_stmt(sqliteConnection, nil)
-                while stmt != nil {
-                    NSLog("GRDB unfinalized statement: %@", NSString(string: String(validatingUTF8: sqlite3_sql(stmt))!))
-                    stmt = sqlite3_next_stmt(sqliteConnection, stmt)
+    
+    private static func close(connection sqliteConnection: SQLiteConnection) {
+        // sqlite3_close_v2 was added in SQLite 3.7.14 http://www.sqlite.org/changes.html#version_3_7_14
+        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+        if sqlite3_libversion_number() >= 3007014 {
+            // https://www.sqlite.org/c3ref/close.html
+            // > If sqlite3_close_v2() is called with unfinalized prepared
+            // > statements and/or unfinished sqlite3_backups, then the database
+            // > connection becomes an unusable "zombie" which will automatically
+            // > be deallocated when the last prepared statement is finalized or the
+            // > last sqlite3_backup is finished.
+            let code = sqlite3_close_v2(sqliteConnection)
+            if code != SQLITE_OK {
+                // A rare situation where GRDB doesn't fatalError on
+                // unprocessed errors.
+                if let log = logErrorFunction {
+                    let message = String(cString: sqlite3_errmsg(sqliteConnection))
+                    log(ResultCode(rawValue: code), "could not close database: \(message)")
+                }
+            }
+        } else {
+            // https://www.sqlite.org/c3ref/close.html
+            // > If the database connection is associated with unfinalized prepared
+            // > statements or unfinished sqlite3_backup objects then
+            // > sqlite3_close() will leave the database connection open and
+            // > return SQLITE_BUSY.
+            let code = sqlite3_close(sqliteConnection)
+            if code != SQLITE_OK {
+                // A rare situation where GRDB doesn't fatalError on
+                // unprocessed errors.
+                if let log = logErrorFunction {
+                    let message = String(cString: sqlite3_errmsg(sqliteConnection))
+                    log(ResultCode(rawValue: code), "could not close database: \(message)")
+                    if code == SQLITE_BUSY {
+                        // Let the user know about unfinalized statements that did
+                        // prevent the connection from closing properly.
+                        var stmt: SQLiteStatement? = sqlite3_next_stmt(sqliteConnection, nil)
+                        while stmt != nil {
+                            log(ResultCode(rawValue: code), "unfinalized statement: \(String(cString: sqlite3_sql(stmt)))")
+                            stmt = sqlite3_next_stmt(sqliteConnection, stmt)
+                        }
+                    }
                 }
             }
         }

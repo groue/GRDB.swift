@@ -3,4 +3,6 @@ framework module GRDB {
     
     export *
     module * { export * }
+    
+    header "grdb_config.h"
 }
