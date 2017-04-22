@@ -4931,8 +4931,6 @@ Database.logError = { (resultCode, message) in
 
 See [The Error And Warning Log](https://sqlite.org/errlog.html) for more information.
 
-This GRDB API is not currently available with the [Swift Package Manager](#swift-package-manager).
-
 
 ## Unicode
 
