@@ -123,6 +123,8 @@ test_framework_GRDBCipheriOS_minTarget: SQLCipher
 
 test_SPM:
 	$(SWIFT) package clean
+	$(SWIFT) build
+	$(SWIFT) build -c release
 	$(SWIFT) test
 
 test_install_manual:
