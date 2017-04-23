@@ -42,7 +42,7 @@ MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 7,OS=10.3"
 # We test framework test suites, and if GRBD can be installed in an application:
 test: test_framework test_install
 
-test_framework: test_framework_GRDB test_framework_GRDBCustom test_framework_GRDBCipher test_framework_SPM
+test_framework: test_framework_GRDB test_framework_GRDBCustom test_framework_GRDBCipher test_SPM
 test_framework_GRDB: test_framework_GRDBOSX test_framework_GRDBWatchOS test_framework_GRDBiOS
 test_framework_GRDBCustom: test_framework_GRDBCustomSQLiteOSX test_framework_GRDBCustomSQLiteiOS
 test_framework_GRDBCipher: test_framework_GRDBCipherOSX test_framework_GRDBCipheriOS
@@ -121,9 +121,9 @@ test_framework_GRDBCipheriOS_minTarget: SQLCipher
 	  -destination $(MIN_IOS_DESTINATION) \
 	  $(TEST_ACTIONS)
 
-test_framework_SPM:
+test_SPM:
 	$(SWIFT) package clean
-	$(SWIFT) build
+	$(SWIFT) test
 
 test_install_manual:
 	$(XCODEBUILD) \
