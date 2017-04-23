@@ -1,3 +1,4 @@
+#if SQLITE_ENABLE_FTS5
 import XCTest
 import Foundation
 #if USING_SQLCIPHER
@@ -215,3 +216,4 @@ class FTS5WrapperTokenizerTests: GRDBTestCase {
         }
     }
 }
+#endif

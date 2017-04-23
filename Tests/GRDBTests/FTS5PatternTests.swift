@@ -1,3 +1,4 @@
+#if SQLITE_ENABLE_FTS5
 import XCTest
 #if USING_SQLCIPHER
     import GRDBCipher
@@ -161,3 +162,4 @@ class FTS5PatternTests: GRDBTestCase {
         }
     }
 }
+#endif

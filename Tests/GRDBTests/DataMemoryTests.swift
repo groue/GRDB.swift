@@ -1,5 +1,7 @@
 import XCTest
-
+#if SWIFT_PACKAGE
+    import CSQLite
+#endif
 #if USING_SQLCIPHER
     @testable import GRDBCipher
 #elseif USING_CUSTOMSQLITE

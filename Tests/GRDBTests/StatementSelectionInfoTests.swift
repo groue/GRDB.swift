@@ -7,7 +7,7 @@ import XCTest
     @testable import GRDB
 #endif
 
-class StatementInformationTests : GRDBTestCase {
+class StatementSelectionInfoTests : GRDBTestCase {
     
     func testSelectStatement() throws {
         let dbQueue = try makeDatabaseQueue()

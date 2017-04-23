@@ -7,9 +7,9 @@ import XCTest
     @testable import GRDB // @testable so that we can test SchedulingWatchdog
 #endif
 
-class DatabaseSchedulerTests: GRDBTestCase {
+class SchedulingWatchdogTests: GRDBTestCase {
     
-    func testDatabaseScheduler() throws {
+    func testSchedulingWatchdog() throws {
         let dbQueue1 = try makeDatabaseQueue(filename: "db1")
         let dbQueue2 = try makeDatabaseQueue(filename: "db2")
         let dbQueue3 = try makeDatabaseQueue(filename: "db3")

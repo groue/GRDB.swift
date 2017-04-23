@@ -1,3 +1,4 @@
+#if SQLITE_HAS_CODEC
 import XCTest
 import GRDBCipher
 
@@ -370,3 +371,4 @@ class EncryptionTests: GRDBTestCase {
         }
     }
 }
+#endif

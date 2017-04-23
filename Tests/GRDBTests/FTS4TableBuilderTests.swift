@@ -196,7 +196,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
         }
     }
 
-    func testFTS5Synchronization() throws {
+    func testFTS4Synchronization() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "documents") { t in
