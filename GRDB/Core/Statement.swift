@@ -240,7 +240,7 @@ public final class SelectStatement : Statement {
     }
     
     /// Creates a DatabaseCursor
-    func fetchCursor<Element>(arguments: StatementArguments? = nil, element: @escaping () throws -> Element) -> DatabaseCursor<Element> {
+    func cursor<Element>(arguments: StatementArguments? = nil, next element: @escaping () throws -> Element) -> DatabaseCursor<Element> {
         // Check that cursor is built on a valid queue.
         SchedulingWatchdog.preconditionValidQueue(database, "Database was not used on the correct thread.")
         
@@ -253,8 +253,8 @@ public final class SelectStatement : Statement {
     }
     
     /// Creates a cursor whose results are ignored
-    func fetchCursor(arguments: StatementArguments? = nil) -> DatabaseCursor<Void> {
-        return fetchCursor(arguments: arguments) { }
+    func cursor(arguments: StatementArguments? = nil) -> DatabaseCursor<Void> {
+        return cursor(arguments: arguments) { }
     }
 
     /// Information about the table and columns read by a SelectStatement

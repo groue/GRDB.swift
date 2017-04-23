@@ -3,4 +3,6 @@ framework module GRDBCustomSQLite {
     
     export *
     module * { export * }
+    
+    header "grdb_config.h"
 }

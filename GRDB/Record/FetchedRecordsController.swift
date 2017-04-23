@@ -2,6 +2,7 @@ import Foundation
 #if os(Linux)
     import Dispatch
 #endif
+
 #if os(iOS)
     import UIKit
 #endif
@@ -179,9 +180,9 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     {
         trackChanges(
             fetchAlongside: { _ in },
-            willChange: willChange.flatMap { callback in { (controller, _) in callback(controller) } },
+            willChange: willChange.map { callback in { (controller, _) in callback(controller) } },
             onChange: onChange,
-            didChange: didChange.flatMap { callback in { (controller, _) in callback(controller) } })
+            didChange: didChange.map { callback in { (controller, _) in callback(controller) } })
     }
 
     /// Registers changes notification callbacks.
@@ -525,7 +526,7 @@ fileprivate func makeFetchFunction<Record, T>(
         var result: Result<(fetchedItems: [Item<Record>], fetchedAlongside: T)>? = nil
         do {
             try databaseWriter.readFromCurrentState { db in
-                result = Result.wrap { try (
+                result = Result { try (
                     fetchedItems: request.fetchAll(db),
                     fetchedAlongside: fetchAlongside(db)) }
                 semaphore.signal()

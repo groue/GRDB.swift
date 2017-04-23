@@ -5,6 +5,12 @@ import UIKit
 var dbQueue: DatabaseQueue!
 
 func setupDatabase(_ application: UIApplication) throws {
+    // Setup database error log: it's very useful for debugging
+    // See https://github.com/groue/GRDB.swift/#error-log
+    Database.logError = { (resultCode, message) in
+        NSLog("%@", "SQLite error \(resultCode): \(message)")
+    }
+    
     
     // Connect to the database
     // See https://github.com/groue/GRDB.swift/#database-connections

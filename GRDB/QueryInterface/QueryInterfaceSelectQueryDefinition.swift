@@ -102,19 +102,19 @@ struct QueryInterfaceSelectQueryDefinition {
             return trivialCountQuery
         }
         
-        guard let source = source, case .table(name: let tableName, alias: let alias) = source else {
+        guard let source = source, case .table = source else {
             // SELECT ... FROM (something which is not a table)
             return trivialCountQuery
         }
         
         assert(!selection.isEmpty)
         if selection.count == 1 {
-            guard let selectable = self.selection[0].countingSelectable(distinct: isDistinct, from: tableName, aliased: alias) else {
+            guard let count = self.selection[0].count(distinct: isDistinct) else {
                 return trivialCountQuery
             }
             var countQuery = unorderedQuery
             countQuery.isDistinct = false
-            countQuery.selection = [selectable]
+            countQuery.selection = [count.sqlSelectable]
             return countQuery
         } else {
             // SELECT [DISTINCT] expr1, expr2, ... FROM tableName ...
@@ -127,7 +127,7 @@ struct QueryInterfaceSelectQueryDefinition {
             // ->
             // SELECT COUNT(*) FROM tableName ...
             var countQuery = unorderedQuery
-            countQuery.selection = [SQLExpressionCount(star)]
+            countQuery.selection = [SQLExpressionCount(SQLStar())]
             return countQuery
         }
     }
@@ -167,7 +167,7 @@ struct QueryInterfaceSelectQueryDefinition {
     // SELECT COUNT(*) FROM (self)
     private var trivialCountQuery: QueryInterfaceSelectQueryDefinition {
         return QueryInterfaceSelectQueryDefinition(
-            select: [SQLExpressionCount(star)],
+            select: [SQLExpressionCount(SQLStar())],
             from: .query(query: unorderedQuery, alias: nil))
     }
     
@@ -211,6 +211,17 @@ struct SQLLimit {
             return "\(limit) OFFSET \(offset)"
         } else {
             return "\(limit)"
+        }
+    }
+}
+
+extension SQLCount {
+    var sqlSelectable: SQLSelectable {
+        switch self {
+        case .star:
+            return SQLExpressionCount(SQLStar())
+        case .distinct(let expression):
+            return SQLExpressionCountDistinct(expression)
         }
     }
 }

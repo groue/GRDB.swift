@@ -699,11 +699,6 @@ extension SQLBinaryOperator {
     static let or = SQLBinaryOperator("OR")
 }
 
-extension SQLUnaryOperator {
-    /// The `NOT` unary operator
-    public static let not = SQLUnaryOperator("NOT", needsRightSpace: true)
-}
-
 /// A logical SQL expression with the `AND` SQL operator.
 ///
 ///     // favorite AND 0

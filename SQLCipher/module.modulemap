@@ -3,4 +3,6 @@ framework module GRDBCipher {
     
     export *
     module * { export * }
+    
+    header "grdb_config.h"
 }
