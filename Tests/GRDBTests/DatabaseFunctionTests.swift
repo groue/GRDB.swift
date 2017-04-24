@@ -315,7 +315,7 @@ class DatabaseFunctionTests: GRDBTestCase {
     func testFunctionThrowingCustomError() throws {
         let dbQueue = try makeDatabaseQueue()
         let fn = DatabaseFunction("f", argumentCount: 1) { databaseValues in
-            throw NSError(domain: "CustomErrorDomain", code: 123, userInfo: [NSString(string: NSLocalizedDescriptionKey): "custom error message"])
+            throw NSError(domain: "CustomErrorDomain", code: 123, userInfo: [NSLocalizedDescriptionKey: "custom error message"])
         }
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in

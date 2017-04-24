@@ -108,7 +108,11 @@ class FoundationNSNumberTests: GRDBTestCase {
                 XCTFail("Failed to convert from DatabaseValue to NSNumber")
                 return false
             }
+            #if os(Linux)
+            return back.isEqual(value)
+            #else
             return back.isEqual(to: value)
+            #endif
         }
         
         XCTAssertTrue(roundTrip(NSNumber(value: Int32.min + 1)))

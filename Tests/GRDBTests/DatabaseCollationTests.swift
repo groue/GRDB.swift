@@ -46,7 +46,7 @@ class DatabaseCollationTests: GRDBTestCase {
             let length1 = string1.utf8.count
             let length2 = string2.utf8.count
             if length1 == length2 {
-                return (string1 as NSString).compare(string2)
+                return string1.compare(string2)
             } else if length1 < length2 {
                 return .orderedAscending
             } else {

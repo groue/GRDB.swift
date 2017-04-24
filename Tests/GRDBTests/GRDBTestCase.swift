@@ -20,7 +20,7 @@ class GRDBTestCase: XCTestCase {
     // Builds a database queue based on dbConfiguration
     func makeDatabaseQueue(filename: String = "db.sqlite") throws -> DatabaseQueue {
         try FileManager.default.createDirectory(atPath: dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
-        let dbPath = (dbDirectoryPath as NSString).appendingPathComponent(filename)
+        let dbPath = URL(fileURLWithPath: dbDirectoryPath).appendingPathComponent(filename).path
         let dbQueue = try DatabaseQueue(path: dbPath, configuration: dbConfiguration)
         try setup(dbQueue)
         return dbQueue
@@ -29,7 +29,7 @@ class GRDBTestCase: XCTestCase {
     // Builds a database pool based on dbConfiguration
     func makeDatabasePool(filename: String = "db.sqlite") throws -> DatabasePool {
         try FileManager.default.createDirectory(atPath: dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
-        let dbPath = (dbDirectoryPath as NSString).appendingPathComponent(filename)
+        let dbPath = URL(fileURLWithPath: dbDirectoryPath).appendingPathComponent(filename).path
         let dbPool = try DatabasePool(path: dbPath, configuration: dbConfiguration)
         try setup(dbPool)
         return dbPool
@@ -55,7 +55,7 @@ class GRDBTestCase: XCTestCase {
         super.setUp()
         
         let dbPoolDirectoryName = "GRDBTestCase-\(ProcessInfo.processInfo.globallyUniqueString)"
-        dbDirectoryPath = (NSTemporaryDirectory() as NSString).appendingPathComponent(dbPoolDirectoryName)
+        dbDirectoryPath = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(dbPoolDirectoryName).path
         do { try FileManager.default.removeItem(atPath: dbDirectoryPath) } catch { }
         
         dbConfiguration = Configuration()

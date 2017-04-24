@@ -65,7 +65,7 @@ class DatabaseQueueTests: GRDBTestCase {
         // Adding a collation and then removing it should succeed
         let dbQueue = try makeDatabaseQueue()
         let collation = DatabaseCollation("test_collation_foo") { (string1, string2) in
-            return (string1 as NSString).localizedStandardCompare(string2)
+            return string1.localizedStandardCompare(string2)
         }
         dbQueue.add(collation: collation)
         try dbQueue.inDatabase { db in

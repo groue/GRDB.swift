@@ -26,7 +26,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
         collation = DatabaseCollation("localized_case_insensitive") { (lhs, rhs) in
-            return (lhs as NSString).localizedCaseInsensitiveCompare(rhs)
+            return lhs.localizedCaseInsensitiveCompare(rhs)
         }
         dbWriter.add(collation: collation)
         
