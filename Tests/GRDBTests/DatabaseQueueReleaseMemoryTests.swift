@@ -1,4 +1,7 @@
 import XCTest
+#if os(Linux)
+    import Dispatch
+#endif
 #if USING_SQLCIPHER
     @testable import GRDBCipher
 #elseif USING_CUSTOMSQLITE
