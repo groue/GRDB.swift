@@ -9,9 +9,9 @@ import XCTest
 
 class DatabaseQueueTests: GRDBTestCase {
     
-    // Until SPM tests can load resources, disable this test for SPM.
-    #if !SWIFT_PACKAGE
     func testInvalidFileFormat() throws {
+        // Until SPM tests can load resources, disable this test for SPM.
+        #if !SWIFT_PACKAGE
         do {
             let testBundle = Bundle(for: type(of: self))
             let url = testBundle.url(forResource: "Betty", withExtension: "jpeg")!
@@ -27,8 +27,8 @@ class DatabaseQueueTests: GRDBTestCase {
             XCTAssertTrue(error.sql == nil)
             XCTAssertEqual(error.description.lowercased(), "sqlite error 26: file is encrypted or is not a database")
         }
+        #endif
     }
-    #endif
     
     func testAddRemoveFunction() throws {
         // Adding a function and then removing it should succeed

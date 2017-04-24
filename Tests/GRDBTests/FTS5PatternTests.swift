@@ -8,6 +8,7 @@ import XCTest
     import GRDB
 #endif
 
+/// sourcery: disableTests
 class FTS5PatternTests: GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {

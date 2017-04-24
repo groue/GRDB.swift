@@ -15,6 +15,5 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Tests are not working yet on Linux
-#CMD swift build && swift test --parallel
-CMD swift build
+CMD swift build && swift test --parallel
 

@@ -8,6 +8,7 @@ import XCTest
     import GRDB
 #endif
 
+/// sourcery: disableTests
 class FTS5TableBuilderTests: GRDBTestCase {
     
     override func setUp() {

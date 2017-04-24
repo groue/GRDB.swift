@@ -198,6 +198,7 @@ private final class SynonymsTokenizer : FTS5CustomTokenizer {
     }
 }
 
+/// sourcery: disableTests
 class FTS5CustomTokenizerTests: GRDBTestCase {
     
     func testStopWordsTokenizerDatabaseQueue() throws {

@@ -8,6 +8,7 @@ import XCTest
     import GRDB
 #endif
 
+/// sourcery: disableTests
 class FTS5TokenizerTests: GRDBTestCase {
     
     private func match(_ db: Database, _ content: String, _ query: String) -> Bool {

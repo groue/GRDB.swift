@@ -201,6 +201,20 @@ SQLCipher: SQLCipher/src/sqlite3.h
 SQLCipher/src/sqlite3.h:
 	$(GIT) submodule update --init SQLCipher/src
 
+# Code Generation
+# ===============
+sourcery:
+	test -d Packages/Sourcery || ( \
+		SOURCERY=1 $(SWIFT) package fetch && \
+		SOURCERY=1 swift package edit Sourcery --branch tmp && \
+		SOURCERY=1 $(SWIFT) build )
+	.build/debug/sourcery --sources Tests/GRDBTests/ \
+		--templates Packages/Sourcery/Templates/LinuxMain.stencil \
+		--args testimports='@testable import GRDBTests' \
+		--output Tests/LinuxMain.swift
+
+sourcery_clean:
+	test -d Packages/Sourcery && SOURCERY=1 swift package unedit Sourcery
 
 # Documentation
 # =============
@@ -223,4 +237,4 @@ else
 	@exit 1
 endif
 
-.PHONY: doc test SQLCipher SQLiteCustom
+.PHONY: doc sourcery sourcery_clean test SQLCipher SQLiteCustom

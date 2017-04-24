@@ -100,6 +100,7 @@ private final class SynonymsTokenizer : FTS5WrapperTokenizer {
     }
 }
 
+/// sourcery: disableTests
 class FTS5WrapperTokenizerTests: GRDBTestCase {
     
     func testStopWordsTokenizerDatabaseQueue() throws {

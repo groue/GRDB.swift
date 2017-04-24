@@ -13,6 +13,7 @@ import XCTest
     @testable import GRDB       // @testable so that we have access to SQLiteConnectionWillClose
 #endif
 
+/// sourcery: disableTests
 class GRDBTestCase: XCTestCase {
     // The default configuration for tests
     var dbConfiguration: Configuration!

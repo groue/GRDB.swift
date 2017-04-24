@@ -7,6 +7,7 @@ import XCTest
     import GRDB
 #endif
 
+/// sourcery: disableTests
 class RowTestCase: GRDBTestCase {
     
     func assertRowRawValueEqual<T: Equatable>(_ row: Row, index: Int, value: T) {
