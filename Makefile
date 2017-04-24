@@ -127,8 +127,13 @@ test_SPM:
 	$(SWIFT) test
 
 test_docker:
+ifdef DOCKER
 	$(DOCKER) build --tag grdb .
 	$(DOCKER) run --rm grdb
+else
+	@echo Docker must be installed for test_docker
+	@exit 1
+endif
 
 test_install_manual:
 	$(XCODEBUILD) \
