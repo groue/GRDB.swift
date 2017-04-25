@@ -1,5 +1,6 @@
 .git/
 .build/
+Sourcery/
 !.build/checkouts/
 !.build/repositories/
 !.build/workspace-state.json

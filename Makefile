@@ -204,16 +204,20 @@ SQLCipher/src/sqlite3.h:
 # Makes sure the Tests/LinuxMain.swift is up to date
 # Calling 'touch' is necessary because Sourcery doesn't update modification
 # time if file contents weren't changed.
-Tests/LinuxMain.swift: Tests/GRDBTests/*.swift
-	test -d Packages/Sourcery || ( \
-		SOURCERY=1 $(SWIFT) package fetch && \
-		SOURCERY=1 swift package edit Sourcery --branch tmp && \
-		SOURCERY=1 $(SWIFT) build )
-	.build/debug/sourcery --sources Tests/GRDBTests/ \
-		--templates Packages/Sourcery/Templates/LinuxMain.stencil \
+Tests/LinuxMain.swift: Tests/GRDBTests/*.swift | Sourcery/bin/sourcery
+	Sourcery/bin/sourcery --sources Tests/GRDBTests/ \
+		--templates Sourcery/Templates/LinuxMain.stencil \
 		--args testimports='@testable import GRDBTests' \
 		--output $@ \
 		&& touch $@
+
+# Install sourcery
+Sourcery/bin/sourcery:
+	mkdir -p Sourcery
+	cd Sourcery && \
+		curl -L "https://github.com/krzysztofzablocki/Sourcery/releases/download/0.6.0/Sourcery-0.6.0.zip" -o "Sourcery.zip" && \
+		unzip -q Sourcery.zip && \
+		rm -f Sourcery.zip
 
 # Documentation
 # =============
