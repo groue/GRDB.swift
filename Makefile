@@ -126,7 +126,7 @@ test_SPM:
 	$(SWIFT) package clean
 	$(SWIFT) test
 
-test_docker:
+test_docker: Tests/LinuxMain.swift
 ifdef DOCKER
 	$(DOCKER) build --tag grdb .
 	$(DOCKER) run --rm grdb
@@ -201,9 +201,10 @@ SQLCipher: SQLCipher/src/sqlite3.h
 SQLCipher/src/sqlite3.h:
 	$(GIT) submodule update --init SQLCipher/src
 
-# Code Generation
-# ===============
-sourcery:
+# Makes sure the Tests/LinuxMain.swift is up to date
+# Calling 'touch' is necessary because Sourcery doesn't update modification
+# time if file contents weren't changed.
+Tests/LinuxMain.swift: Tests/GRDBTests/*.swift
 	test -d Packages/Sourcery || ( \
 		SOURCERY=1 $(SWIFT) package fetch && \
 		SOURCERY=1 swift package edit Sourcery --branch tmp && \
@@ -211,10 +212,8 @@ sourcery:
 	.build/debug/sourcery --sources Tests/GRDBTests/ \
 		--templates Packages/Sourcery/Templates/LinuxMain.stencil \
 		--args testimports='@testable import GRDBTests' \
-		--output Tests/LinuxMain.swift
-
-sourcery_clean:
-	test -d Packages/Sourcery && SOURCERY=1 swift package unedit Sourcery
+		--output $@ \
+		&& touch $@
 
 # Documentation
 # =============
@@ -237,4 +236,4 @@ else
 	@exit 1
 endif
 
-.PHONY: doc sourcery sourcery_clean test SQLCipher SQLiteCustom
+.PHONY: doc test test_docker SQLCipher SQLiteCustom
