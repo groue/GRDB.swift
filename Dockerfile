@@ -14,7 +14,7 @@ COPY . ./
 RUN swift package fetch
 RUN swift package clean
 
-# Tests are not working yet on Linux
-#CMD swift build && swift test --parallel
-CMD swift build && swift test
+# --parallel
+CMD swift test && \
+    swift test -c release -Xswiftc -enable-testing
 
