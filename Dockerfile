@@ -2,6 +2,11 @@ FROM swift:3.1
 
 WORKDIR /package
 
+# https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/
+RUN apt-get update && \
+    apt-get install -y libsqlite3-dev && \
+    rm -rf /var/lib/apt/lists/*
+
 COPY . ./
 
 # Not neccessary because dependencies are copied from host
@@ -9,11 +14,7 @@ COPY . ./
 RUN swift package fetch
 RUN swift package clean
 
-# https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/
-RUN apt-get update && \
-    apt-get install -y libsqlite3-dev && \
-    rm -rf /var/lib/apt/lists/*
-
 # Tests are not working yet on Linux
-CMD swift build && swift test --parallel
+#CMD swift build && swift test --parallel
+CMD swift build && swift test
 
