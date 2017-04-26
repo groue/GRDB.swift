@@ -196,6 +196,26 @@ class DatabaseErrorTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             try db.create(table: "parents") { $0.column("id", .integer).primaryKey() }
             try db.create(table: "children") { $0.column("parentId", .integer).references("parents") }
+
+            // DatabaseError is Error. Test if it can be caught as Error
+            do {
+                try db.execute("INSERT INTO children (parentId) VALUES (1)")
+            } catch {
+                XCTAssertEqual(DatabaseError.errorDomain, "GRDB.DatabaseError")
+                XCTAssertEqual(error._domain, DatabaseError.errorDomain)
+                // SQLITE_CONSTRAINT_FOREIGNKEY was added in SQLite 3.7.16 http://www.sqlite.org/changes.html#version_3_7_16
+                // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+                if error._code != 19 {
+                    XCTAssertEqual(error._code, 787) // extended SQLITE_CONSTRAINT_FOREIGNKEY
+                } else {
+                    // TODO: check for another extended result code, because we
+                    // didn't prove that extended result codes are activated.
+                }
+            }
+
+            // Test NSError bridging on OS X.
+            // Error is not bridged to NSError on Linux: https://bugs.swift.org/browse/SR-3872
+            #if !os(Linux)
             do {
                 try db.execute("INSERT INTO children (parentId) VALUES (1)")
             } catch let error as NSError {
@@ -210,6 +230,7 @@ class DatabaseErrorTests: GRDBTestCase {
                     // didn't prove that extended result codes are activated.
                 }
             }
+            #endif
         }
     }
 
