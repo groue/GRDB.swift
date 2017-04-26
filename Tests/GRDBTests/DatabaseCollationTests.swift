@@ -9,36 +9,43 @@ import XCTest
 
 class DatabaseCollationTests: GRDBTestCase {
     
-    func testDefaultCollations() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE strings (id INTEGER PRIMARY KEY, name TEXT)")
-            try db.execute("INSERT INTO strings VALUES (1, '1')")
-            try db.execute("INSERT INTO strings VALUES (2, '2')")
-            try db.execute("INSERT INTO strings VALUES (3, '10')")
-            try db.execute("INSERT INTO strings VALUES (4, 'a')")
-            try db.execute("INSERT INTO strings VALUES (5, 'à')")
-            try db.execute("INSERT INTO strings VALUES (6, 'A')")
-            try db.execute("INSERT INTO strings VALUES (7, 'Z')")
-            try db.execute("INSERT INTO strings VALUES (8, 'z')")
-            
-            XCTAssertEqual(
-                try Int.fetchAll(db, "SELECT id FROM strings ORDER BY name COLLATE \(DatabaseCollation.unicodeCompare.name), id"),
-                [1,3,2,6,7,4,5,8])
-            XCTAssertEqual(
-                try Int.fetchAll(db, "SELECT id FROM strings ORDER BY name COLLATE \(DatabaseCollation.caseInsensitiveCompare.name), id"),
-                [1,3,2,4,6,5,7,8])
-            XCTAssertEqual(
-                try Int.fetchAll(db, "SELECT id FROM strings ORDER BY name COLLATE \(DatabaseCollation.localizedCaseInsensitiveCompare.name), id"),
-                [1,3,2,4,6,5,7,8])
-            XCTAssertEqual(
-                try Int.fetchAll(db, "SELECT id FROM strings ORDER BY name COLLATE \(DatabaseCollation.localizedCompare.name), id"),
-                [1,3,2,4,6,5,8,7])
-            XCTAssertEqual(
-                try Int.fetchAll(db, "SELECT id FROM strings ORDER BY name COLLATE \(DatabaseCollation.localizedStandardCompare.name), id"),
-                [1,2,3,4,6,5,8,7])
-        }
-    }
+	func testDefaultCollations() throws {
+		let dbQueue = try makeDatabaseQueue()
+		try dbQueue.inDatabase { db in
+			try db.execute("CREATE TABLE strings (id INTEGER PRIMARY KEY, name TEXT)")
+			
+			let strings = ["1", "2", "10", "a", "à", "A", "Z", "z"]
+			for string in strings {
+				try db.execute("INSERT INTO strings (name) VALUES (?)", arguments: [string])
+			}
+			
+			func assert(collation: DatabaseCollation, ordersLike comparison: (String, String) -> ComparisonResult) throws {
+				let dbStrings = try String.fetchAll(db, "SELECT name FROM strings ORDER BY name COLLATE \(collation.name)")
+				let swiftStrings = strings.sorted { comparison($0, $1) == .orderedAscending }
+				for (dbString, swiftString) in zip(dbStrings, swiftStrings) {
+					XCTAssert(comparison(dbString, swiftString) == .orderedSame)
+				}
+			}
+			
+			try assert(collation: .unicodeCompare, ordersLike: {
+				if $0 < $1 { return .orderedAscending }
+				else if $0 == $1 { return .orderedSame }
+				else { return .orderedDescending }
+			})
+			try assert(collation: .caseInsensitiveCompare, ordersLike: {
+				$0.caseInsensitiveCompare($1)
+			})
+			try assert(collation: .localizedCaseInsensitiveCompare, ordersLike: {
+				$0.localizedCaseInsensitiveCompare($1)
+			})
+			try assert(collation: .localizedCompare, ordersLike: {
+				$0.localizedCompare($1)
+			})
+			try assert(collation: .localizedStandardCompare, ordersLike: {
+				$0.localizedStandardCompare($1)
+			})
+		}
+	}
 
     func testCollation() throws {
         let dbQueue = try makeDatabaseQueue()
