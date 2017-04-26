@@ -70,7 +70,13 @@ extension NSDate : DatabaseValueConvertible {
 
 /// Date is stored in the database using the format
 /// "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone.
-extension Date : DatabaseValueConvertible { }
+extension Date : DatabaseValueConvertible {
+    #if os(Linux)
+    public var databaseValue: DatabaseValue {
+        return storageDateFormatter.string(from: self).databaseValue
+    }
+    #endif
+}
 
 /// The DatabaseDate date formatter for stored dates.
 private let storageDateFormatter: DateFormatter = {
