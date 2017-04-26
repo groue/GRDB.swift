@@ -18,7 +18,7 @@ class DatabaseCoderTests: GRDBTestCase {
             try db.execute("INSERT INTO arrays VALUES (?)", arguments: [DatabaseCoder(NSArray(array: array))])
             
             let row = try Row.fetchOne(db, "SELECT * FROM arrays")!
-            let fetchedArray = ((row.value(named: "array") as DatabaseCoder).object as! NSArray).map { $0 as! Int }
+            let fetchedArray = ((row.value(named: "array") as DatabaseCoder).object as! NSArray).map { Int($0 as! NSNumber) }
             XCTAssertEqual(array, fetchedArray)
         }
     }
