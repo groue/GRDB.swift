@@ -1061,6 +1061,8 @@ Dates are stored using the format "YYYY-MM-DD HH:MM:SS.SSS" in the UTC time zone
 > - Precise enough
 > 
 > Yet this format may not fit your needs. For example, you may want to store dates as timestamps. In this case, store and load Doubles instead of Date, and perform the required conversions.
+>
+> :warning: **Warning**: on Linux the millisecond precision is not guaranteed due to [SR-3158](https://bugs.swift.org/browse/SR-3158). This bug in the Foundation framework has milliseconds both incorrectly stored, and incorrectly read.
 
 
 #### DateComponents
