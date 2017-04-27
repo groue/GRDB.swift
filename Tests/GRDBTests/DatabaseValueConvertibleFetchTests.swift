@@ -106,8 +106,6 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     }
 
     func testFetchCursorStepFailure() throws {
-        let CVersion = String(cString: sqlite3_libversion())
-        print("SQLite version from C API: \(CVersion)")
         let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)
         dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
