@@ -16,15 +16,19 @@ extension NSDate : DatabaseValueConvertible {
     /// Returns a Date initialized from *databaseValue*, if possible.
     public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
         if let databaseDateComponents = DatabaseDateComponents.fromDatabaseValue(databaseValue) {
-            return cast(fromDatabaseDateComponents(databaseDateComponents))
+            return cast(Date.fromDatabaseDateComponents(databaseDateComponents))
         }
         if let julianDayNumber = Double.fromDatabaseValue(databaseValue) {
-            return cast(fromJulianDayNumber(julianDayNumber))
+            return cast(Date.fromJulianDayNumber(julianDayNumber))
         }
         return nil
     }
-    
-    private static func fromJulianDayNumber(_ julianDayNumber: Double) -> Date? {
+}
+
+/// Date is stored in the database using the format
+/// "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone.
+extension Date : DatabaseValueConvertible {
+    fileprivate static func fromJulianDayNumber(_ julianDayNumber: Double) -> Date? {
         // Conversion uses the same algorithm as SQLite: https://www.sqlite.org/src/artifact/8ec787fed4929d8c
         let JD = Int64(julianDayNumber * 86400000)
         let Z = Int(((JD + 43200000)/86400000))
@@ -59,21 +63,28 @@ extension NSDate : DatabaseValueConvertible {
         return UTCCalendar.date(from: dateComponents)!
     }
     
-    private static func fromDatabaseDateComponents(_ databaseDateComponents: DatabaseDateComponents) -> Date? {
+    fileprivate static func fromDatabaseDateComponents(_ databaseDateComponents: DatabaseDateComponents) -> Date? {
         guard databaseDateComponents.format.hasYMDComponents else {
             // Refuse to turn hours without any date information into Date:
             return nil
         }
         return UTCCalendar.date(from: databaseDateComponents.dateComponents)!
     }
-}
 
-/// Date is stored in the database using the format
-/// "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone.
-extension Date : DatabaseValueConvertible {
     #if os(Linux)
     public var databaseValue: DatabaseValue {
         return storageDateFormatter.string(from: self).databaseValue
+    }
+
+    /// Returns a Date initialized from *databaseValue*, if possible.
+    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Date? {
+        if let databaseDateComponents = DatabaseDateComponents.fromDatabaseValue(databaseValue) {
+            return cast(fromDatabaseDateComponents(databaseDateComponents))
+        }
+        if let julianDayNumber = Double.fromDatabaseValue(databaseValue) {
+            return cast(fromJulianDayNumber(julianDayNumber))
+        }
+        return nil
     }
     #endif
 }
