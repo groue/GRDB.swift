@@ -210,7 +210,7 @@ public struct DatabaseError : Error {
     public init(error: Error) {
         switch error {
         case let error as DatabaseError:
-            self.init(resultCode: error.resultCode, message: error.message, sql: error.sql, arguments: error.arguments)
+            self.init(resultCode: error.extendedResultCode, message: error.message, sql: error.sql, arguments: error.arguments)
         default:
             let message: String
             #if os(Linux)
