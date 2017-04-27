@@ -45,17 +45,8 @@ class DatabaseCursorTests: GRDBTestCase {
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                 XCTAssertEqual(error.sql!, "SELECT throw()")
-                #if os(Linux)
-                // "\(customError)" doesn't contain domain and code on Linux, but DatabaseError's message should contain them
-                XCTAssertTrue(error.message!.contains("Custom"))
-                XCTAssertTrue(error.message!.contains(String(0xDEAD)))
-                XCTAssertTrue(error.description.hasPrefix("SQLite error 1 with statement `SELECT throw()`: "))
-                XCTAssertTrue(error.description.contains("Custom"))
-                XCTAssertTrue(error.description.contains(String(0xDEAD)))
-                #else
-                XCTAssertEqual(error.message, "\(customError)")
+                XCTAssertEqual(error.message, DatabaseError(error: customError).message)
                 XCTAssertEqual(error.description, "SQLite error 1 with statement `SELECT throw()`: \(customError)")
-                #endif
             }
         }
     }

@@ -168,7 +168,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     XCTFail()
                 } catch let error as DatabaseError {
                     XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
-                    XCTAssertEqual(error.message, "\(customError)")
+                    XCTAssertEqual(error.message, DatabaseError(error: customError).message)
                     XCTAssertEqual(error.sql!, sql)
                     XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: \(customError)")
                 }
@@ -177,7 +177,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     XCTFail()
                 } catch let error as DatabaseError {
                     XCTAssertEqual(error.resultCode, .SQLITE_MISUSE)
-                    XCTAssertEqual(error.message, "\(customError)")
+                    XCTAssertEqual(error.message, DatabaseError(error: customError).message)
                     XCTAssertEqual(error.sql!, sql)
                     XCTAssertEqual(error.description, "SQLite error 21 with statement `\(sql)`: \(customError)")
                 }
@@ -304,7 +304,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     XCTFail()
                 } catch let error as DatabaseError {
                     XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
-                    XCTAssertEqual(error.message, "\(customError)")
+                    XCTAssertEqual(error.message, DatabaseError(error: customError).message)
                     XCTAssertEqual(error.sql!, sql)
                     XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: \(customError)")
                 }
@@ -442,7 +442,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     XCTFail()
                 } catch let error as DatabaseError {
                     XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
-                    XCTAssertEqual(error.message, "\(customError)")
+                    XCTAssertEqual(error.message, DatabaseError(error: customError).message)
                     XCTAssertEqual(error.sql!, sql)
                     XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: \(customError)")
                 }
@@ -681,7 +681,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                     XCTFail()
                 } catch let error as DatabaseError {
                     XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
-                    XCTAssertEqual(error.message, "\(customError)")
+                    XCTAssertEqual(error.message, DatabaseError(error: customError).message)
                     XCTAssertEqual(error.sql!, sql)
                     XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: \(customError)")
                 }
