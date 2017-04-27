@@ -822,40 +822,12 @@ extension Database {
                             sqlite3_result_blob(context, bytes, Int32(data.count), SQLITE_TRANSIENT)
                         }
                     }
-                } catch let error as DatabaseError {
-                    if let message = error.message {
+                } catch {
+                    let dbError = DatabaseError(error: error)
+                    if let message = dbError.message {
                         sqlite3_result_error(context, message, -1)
                     }
-                    sqlite3_result_error_code(context, error.extendedResultCode.rawValue)
-                } catch let error as NSError { // userInfo is lost on Linux when catching NSError as Error
-                    #if os(Linux)
-                    // On Linux NSError's description contains only localizedDescription and loses domain, code and userInfo.
-                    // Until this is fixed, mimic OS X format:
-                    let userInfoString = "{" + error.userInfo.map { "\($0)=\($1)" }.joined(separator: ", ") + "}"
-                    let message = "Error Domain=\(error.domain) Code=\(error.code) \"\(error.localizedDescription)\" UserInfo=\(userInfoString)"
-                    #else
-                    let message = "\(error)"
-                    #endif
-                    sqlite3_result_error(context, message, -1)
-                } catch {
-                    #if os(Linux)
-                    let userInfoString: String
-                    if let userInfo = error._userInfo {
-                        if let dictionary = userInfo as? NSDictionary {
-                            userInfoString = "{" + dictionary.map { "\($0)=\($1)" }.joined(separator: ", ") + "}"
-                        } else {
-                            userInfoString = "\(userInfo)"
-                        }
-                    } else {
-                        userInfoString = ""
-                    }
-                    // error is used instead of error.localizedDescription because userInfo
-                    // is currently not preserved when bridging NSError to Error on Linux
-                    let message = "Error Domain=\(error._domain) Code=\(error._code) \"\(error)\" UserInfo=\(userInfoString)"
-                    #else
-                    let message = "\(error)"
-                    #endif
-                    sqlite3_result_error(context, message, -1)
+                    sqlite3_result_error_code(context, dbError.extendedResultCode.rawValue)
                 }
             }, nil, nil, nil)
         
