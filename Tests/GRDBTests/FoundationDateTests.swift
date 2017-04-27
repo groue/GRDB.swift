@@ -25,7 +25,10 @@ class FoundationDateTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             
-            let calendar = Calendar(identifier: .gregorian)
+            var calendar = Calendar(identifier: .gregorian)
+            calendar.locale = Locale(identifier: "en_US_POSIX")
+            calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+            
             var dateComponents = DateComponents()
             dateComponents.year = 1973
             dateComponents.month = 9
@@ -41,8 +44,12 @@ class FoundationDateTests : GRDBTestCase {
             }
             
             do {
+                // Test serialization
+                let string = try String.fetchOne(db, "SELECT creationDate FROM dates")!
+                XCTAssertEqual(string, "1973-09-18 10:11:12.123")
+                
+                // Test deserialization
                 let date = try Date.fetchOne(db, "SELECT creationDate FROM dates")!
-                // All components must be preserved, but nanosecond since ISO-8601 stores milliseconds.
                 XCTAssertEqual(calendar.component(.year, from: date), dateComponents.year)
                 XCTAssertEqual(calendar.component(.month, from: date), dateComponents.month)
                 XCTAssertEqual(calendar.component(.day, from: date), dateComponents.day)
