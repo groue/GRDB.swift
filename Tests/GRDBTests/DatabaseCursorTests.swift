@@ -46,7 +46,7 @@ class DatabaseCursorTests: GRDBTestCase {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                 XCTAssertEqual(error.sql!, "SELECT throw()")
                 XCTAssertEqual(error.message, DatabaseError(error: customError).message)
-                XCTAssertEqual(error.description, "SQLite error 1 with statement `SELECT throw()`: \(customError)")
+                XCTAssertEqual(error.description, "SQLite error 1 with statement `SELECT throw()`: \(DatabaseError(error: customError).message!)")
             }
         }
     }
