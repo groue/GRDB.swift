@@ -202,6 +202,47 @@ public struct DatabaseError : Error {
         self.init(resultCode: ResultCode(rawValue: resultCode), message: message, sql: sql, arguments: arguments)
     }
     
+    /// Creates a Database Error from any error.
+    ///
+    /// This method is used by GRDB whenever a user error has to be injected
+    /// into SQLite. This happens, for example, when a custom SQL function
+    /// throws an error.
+    public init(error: Error) {
+        switch error {
+        case let error as DatabaseError:
+            self.init(resultCode: error.resultCode, message: error.message, sql: error.sql, arguments: error.arguments)
+        default:
+            let message: String
+            #if os(Linux)
+                if let error = error as? NSError {
+                    // On Linux NSError's description contains only localizedDescription and loses domain, code and userInfo.
+                    // Until this is fixed, mimic OS X format:
+                    let userInfoString = "{" + error.userInfo.map { "\($0)=\($1)" }.joined(separator: ", ") + "}"
+                    let message = "Error Domain=\(error.domain) Code=\(error.code) \"\(error.localizedDescription)\" UserInfo=\(userInfoString)"
+                } else {
+                    let userInfoString: String
+                    if let userInfo = error._userInfo {
+                        if let dictionary = userInfo as? NSDictionary {
+                            userInfoString = "{" + dictionary.map { "\($0)=\($1)" }.joined(separator: ", ") + "}"
+                        } else {
+                            userInfoString = "\(userInfo)"
+                        }
+                    } else {
+                        userInfoString = ""
+                    }
+                    // error is used instead of error.localizedDescription because userInfo
+                    // is currently not preserved when bridging NSError to Error on Linux
+                    let message = "Error Domain=\(error._domain) Code=\(error._code) \"\(error)\" UserInfo=\(userInfoString)"
+                }
+            #else
+                // Good enough on Darwin platforms
+                message = "\(error)"
+            #endif
+            
+            self.init(resultCode: SQLITE_ERROR, message: message)
+        }
+    }
+    
     // MARK: Not public
     
     /// The query arguments that yielded the error (if relevant).
