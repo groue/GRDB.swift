@@ -188,6 +188,9 @@ public struct DatabaseError : Error {
     
     /// Creates a Database Error
     public init(resultCode: ResultCode = .SQLITE_ERROR, message: String? = nil, sql: String? = nil, arguments: StatementArguments? = nil) {
+        // Forbid DatabaseError from holding SQLITE_OK.
+        GRDBPrecondition(resultCode != .SQLITE_OK, "SQLITE_OK is not an error code")
+        
         self.extendedResultCode = resultCode
         self.message = message
         self.sql = sql
