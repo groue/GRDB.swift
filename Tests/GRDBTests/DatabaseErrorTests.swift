@@ -228,5 +228,22 @@ class DatabaseErrorTests: GRDBTestCase {
             #endif
         }
     }
-
+    
+    func testDatabaseErrorFromNSError() {
+        let error = NSError(domain: "Custom", code: 123, userInfo: [NSLocalizedDescriptionKey: "something wrong did happen"])
+        let dbError = DatabaseError(error: error)
+        XCTAssertEqual(dbError.extendedResultCode, .SQLITE_ERROR)
+        XCTAssert(dbError.message!.contains("Custom"))
+        XCTAssert(dbError.message!.contains("123"))
+        XCTAssert(dbError.message!.contains("something wrong did happen"))
+    }
+    
+    func testDatabaseErrorFromDatabaseError() {
+        let error = DatabaseError(resultCode: .SQLITE_CONSTRAINT_FOREIGNKEY, message: "something wrong did happen", sql: "some SQL", arguments: [1])
+        let dbError = DatabaseError(error: error)
+        XCTAssertEqual(dbError.extendedResultCode, .SQLITE_CONSTRAINT_FOREIGNKEY)
+        XCTAssertEqual(dbError.message, "something wrong did happen")
+        XCTAssertEqual(dbError.sql, "some SQL")
+        XCTAssertEqual(dbError.description, error.description)
+    }
 }

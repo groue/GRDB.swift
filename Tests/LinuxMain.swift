@@ -109,6 +109,8 @@ extension DatabaseErrorTests {
     ("testDatabaseErrorThrownByExecuteMultiStatementContainSQL", testDatabaseErrorThrownByExecuteMultiStatementContainSQL),
     ("testExtendedResultCodesAreActivated", testExtendedResultCodesAreActivated),
     ("testNSErrorBridging", testNSErrorBridging),
+    ("testDatabaseErrorFromNSError", testDatabaseErrorFromNSError),
+    ("testDatabaseErrorFromDatabaseError", testDatabaseErrorFromDatabaseError),
   ]
 }
 extension DatabaseFunctionTests {
