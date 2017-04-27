@@ -218,7 +218,7 @@ public struct DatabaseError : Error {
                     // On Linux NSError's description contains only localizedDescription and loses domain, code and userInfo.
                     // Until this is fixed, mimic OS X format:
                     let userInfoString = "{" + error.userInfo.map { "\($0)=\($1)" }.joined(separator: ", ") + "}"
-                    let message = "Error Domain=\(error.domain) Code=\(error.code) \"\(error.localizedDescription)\" UserInfo=\(userInfoString)"
+                    message = "Error Domain=\(error.domain) Code=\(error.code) \"\(error.localizedDescription)\" UserInfo=\(userInfoString)"
                 } else {
                     let userInfoString: String
                     if let userInfo = error._userInfo {
@@ -232,7 +232,7 @@ public struct DatabaseError : Error {
                     }
                     // error is used instead of error.localizedDescription because userInfo
                     // is currently not preserved when bridging NSError to Error on Linux
-                    let message = "Error Domain=\(error._domain) Code=\(error._code) \"\(error)\" UserInfo=\(userInfoString)"
+                    message = "Error Domain=\(error._domain) Code=\(error._code) \"\(error)\" UserInfo=\(userInfoString)"
                 }
             #else
                 // Good enough on Darwin platforms
