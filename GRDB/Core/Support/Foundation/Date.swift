@@ -13,21 +13,34 @@ extension NSDate : DatabaseValueConvertible {
         #endif
     }
     
-    /// Returns a Date initialized from *databaseValue*, if possible.
+    /// Returns an NSDate initialized from *databaseValue*, if possible.
     public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
         if let databaseDateComponents = DatabaseDateComponents.fromDatabaseValue(databaseValue) {
-            return cast(Date.fromDatabaseDateComponents(databaseDateComponents))
+            guard let date = Date.fromDatabaseDateComponents(databaseDateComponents) else {
+                return nil
+            }
+            #if os(Linux)
+                return cast(NSDate(timeIntervalSince1970: date.timeIntervalSince1970))
+            #else
+                return cast(date)
+            #endif
         }
         if let julianDayNumber = Double.fromDatabaseValue(databaseValue) {
-            return cast(Date.fromJulianDayNumber(julianDayNumber))
+            guard let date = Date.fromJulianDayNumber(julianDayNumber) else {
+                return nil
+            }
+            #if os(Linux)
+                return cast(NSDate(timeIntervalSince1970: date.timeIntervalSince1970))
+            #else
+                return cast(date)
+            #endif
         }
         return nil
     }
 }
 
-/// Date is stored in the database using the format
-/// "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone.
-extension Date : DatabaseValueConvertible {
+extension Date {
+    
     fileprivate static func fromJulianDayNumber(_ julianDayNumber: Double) -> Date? {
         // Conversion uses the same algorithm as SQLite: https://www.sqlite.org/src/artifact/8ec787fed4929d8c
         let JD = Int64(julianDayNumber * 86400000)
@@ -81,8 +94,15 @@ extension Date : DatabaseValueConvertible {
             return UTCCalendar.date(from: databaseDateComponents.dateComponents)!
         #endif
     }
+}
 
+/// Date is stored in the database using the format
+/// "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone.
+extension Date : DatabaseValueConvertible {
+    // ReferenceConvertible support on not available on Linux: we need explicit
+    // DatabaseValueConvertible adoption.
     #if os(Linux)
+    /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
         return storageDateFormatter.string(from: self).databaseValue
     }

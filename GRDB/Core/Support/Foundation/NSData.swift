@@ -6,9 +6,9 @@ extension NSData : DatabaseValueConvertible {
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
         #if os(Linux)
-        return Data._unconditionallyBridgeFromObjectiveC(self).databaseValue
+            return Data._unconditionallyBridgeFromObjectiveC(self).databaseValue
         #else
-        return (self as Data).databaseValue
+            return (self as Data).databaseValue
         #endif
     }
     
@@ -18,6 +18,10 @@ extension NSData : DatabaseValueConvertible {
         guard let data = Data.fromDatabaseValue(databaseValue) else {
             return nil
         }
-        return cast(data)
+        #if os(Linux)
+            return cast(data._bridgeToObjectiveC())
+        #else
+            return cast(data)
+        #endif
     }
 }

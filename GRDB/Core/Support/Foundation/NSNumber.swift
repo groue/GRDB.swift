@@ -68,25 +68,21 @@ extension NSNumber : DatabaseValueConvertible {
         switch databaseValue.storage {
         case .int64(let int64):
             #if os(Linux)
-            // Error: constructing an object of class type 'Self' with a metatype value must use a 'required' initializer
-            // Workaround:
-            let coder = NSCoder()
-            let number = NSNumber(value: int64)
-            number.encode(with: coder)
-            return self.init(coder: coder)
+                // Avoid "constructing an object of class type 'Self' with a
+                // metatype value must use a 'required' initializer" error with
+                // self.init(...)
+                return cast(NSNumber(value: int64))
             #else
-            return self.init(value: int64)
+                return self.init(value: int64)
             #endif
         case .double(let double):
             #if os(Linux)
-            // Error: constructing an object of class type 'Self' with a metatype value must use a 'required' initializer
-            // Workaround:
-            let coder = NSCoder()
-            let number = NSNumber(value: double)
-            number.encode(with: coder)
-            return self.init(coder: coder)
+                // Avoid "constructing an object of class type 'Self' with a
+                // metatype value must use a 'required' initializer" error with
+                // self.init(...)
+                return cast(NSNumber(value: double))
             #else
-            return self.init(value: double)
+                return self.init(value: double)
             #endif
         default:
             return nil

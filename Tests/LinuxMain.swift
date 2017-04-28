@@ -491,7 +491,7 @@ extension FoundationDateComponentsTests {
 }
 extension FoundationDateTests {
   static var allTests: [(String, (FoundationDateTests) -> () throws -> Void)] = [
-    ("testDate", testDate),
+    ("testDateSerialization", testDateSerialization),
     ("testDateIsLexicallyComparableToCURRENT_TIMESTAMP", testDateIsLexicallyComparableToCURRENT_TIMESTAMP),
     ("testDateFromUnparsableString", testDateFromUnparsableString),
     ("testDateDoesNotAcceptFormatHM", testDateDoesNotAcceptFormatHM),
@@ -516,7 +516,7 @@ extension FoundationNSDataTests {
 }
 extension FoundationNSDateTests {
   static var allTests: [(String, (FoundationNSDateTests) -> () throws -> Void)] = [
-    ("testNSDate", testNSDate),
+    ("testNSDateSerialization", testNSDateSerialization),
     ("testNSDateIsLexicallyComparableToCURRENT_TIMESTAMP", testNSDateIsLexicallyComparableToCURRENT_TIMESTAMP),
     ("testNSDateFromUnparsableString", testNSDateFromUnparsableString),
     ("testNSDateDoesNotAcceptFormatHM", testNSDateDoesNotAcceptFormatHM),

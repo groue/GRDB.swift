@@ -64,30 +64,13 @@ class FoundationDateTests : GRDBTestCase {
         try migrator.migrate(dbWriter)
     }
 
-    func testDate() throws {
+    func testDateSerialization() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            
-            do {
-                let date = Date(timeIntervalSince1970: 117195072.1234)
-                try db.execute("INSERT INTO dates (creationDate) VALUES (?)", arguments: [date])
-            }
-            
-            do {
-                // Test serialization
-                let string = try String.fetchOne(db, "SELECT creationDate FROM dates")!
-                XCTAssertEqual(string, "1973-09-18 10:11:12.123")
-                
-                // Test deserialization
-                let date = try Date.fetchOne(db, "SELECT creationDate FROM dates")!
-                assertYear(date, 1973)
-                assertMonth(date, 9)
-                assertDay(date, 18)
-                assertHour(date, 10)
-                assertMinute(date, 11)
-                assertSecond(date, 12)
-                assertMilliseconds(date, 123)
-            }
+            let date = Date(timeIntervalSince1970: 117195072.1234)
+            try db.execute("INSERT INTO dates (creationDate) VALUES (?)", arguments: [date])
+            let string = try String.fetchOne(db, "SELECT creationDate FROM dates")!
+            XCTAssertEqual(string, "1973-09-18 10:11:12.123")
         }
     }
 
@@ -183,7 +166,7 @@ class FoundationDateTests : GRDBTestCase {
         try dbQueue.inDatabase { db in
             try db.execute(
                 "INSERT INTO dates (creationDate) VALUES (?)",
-                arguments: ["2015-07-22 01:02:03.00456"])
+                arguments: ["2015-07-22 01:02:03.004"])
             let date = try Date.fetchOne(db, "SELECT creationDate from dates")!
             assertYear(date, 2015)
             assertMonth(date, 7)
@@ -255,7 +238,7 @@ class FoundationDateTests : GRDBTestCase {
         try dbQueue.inDatabase { db in
             try db.execute(
                 "INSERT INTO dates (creationDate) VALUES (?)",
-                arguments: ["2015-07-22T01:02:03.00456"])
+                arguments: ["2015-07-22T01:02:03.004"])
             let date = try Date.fetchOne(db, "SELECT creationDate from dates")!
             assertYear(date, 2015)
             assertMonth(date, 7)

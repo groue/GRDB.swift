@@ -8,9 +8,9 @@ extension NSUUID : DatabaseValueConvertible {
         var uuidBytes = ContiguousArray(repeating: UInt8(0), count: 16)
         return uuidBytes.withUnsafeMutableBufferPointer { buffer in
             #if os(Linux)
-            getBytes(buffer.baseAddress!)
+                getBytes(buffer.baseAddress!)
             #else
-            getBytes(buffer.baseAddress)
+                getBytes(buffer.baseAddress)
             #endif
             return NSData(bytes: buffer.baseAddress, length: 16).databaseValue
         }
@@ -22,18 +22,36 @@ extension NSUUID : DatabaseValueConvertible {
             return nil
         }
         #if os(Linux)
-        // Error: constructing an object of class type 'Self' with a metatype value must use a 'required' initializer
-        //return self.init(UUIDBytes: UnsafePointer<UInt8>(OpaquePointer(data.bytes)))
-        // Workaround:
-        let coder = NSCoder()
-        let uuid = NSUUID(uuidBytes: data.bytes.assumingMemoryBound(to: UInt8.self))
-        uuid.encode(with: coder)
-        return self.init(coder: coder)
+            return cast(NSUUID.init(uuidBytes: data.bytes.assumingMemoryBound(to: UInt8.self)))
         #else
-        return self.init(uuidBytes: data.bytes.assumingMemoryBound(to: UInt8.self))
+            return self.init(uuidBytes: data.bytes.assumingMemoryBound(to: UInt8.self))
         #endif
     }
 }
 
 /// UUID adopts DatabaseValueConvertible
-extension UUID : DatabaseValueConvertible { }
+extension UUID : DatabaseValueConvertible {
+    // ReferenceConvertible support on not available on Linux: we need explicit
+    // DatabaseValueConvertible adoption.
+    #if os(Linux)
+    /// Returns a value that can be stored in the database.
+    public var databaseValue: DatabaseValue {
+        var uuid = self.uuid
+        return withUnsafePointer(to: &uuid) { pointer in
+            return NSData(bytes: pointer, length: 16).databaseValue
+        }
+    }
+    
+    /// Returns a UUID initialized from *databaseValue*, if possible.
+    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> UUID? {
+        guard let data = Data.fromDatabaseValue(databaseValue), data.count == 16 else {
+            return nil
+        }
+        var uuid: uuid_t = (0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+        withUnsafeMutableBytes(of: &uuid) { buffer in
+            buffer.copyBytes(from: data)
+        }
+        return UUID(uuid: uuid)
+    }
+    #endif
+}
