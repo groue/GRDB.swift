@@ -284,17 +284,19 @@ distclean:
 	$(SWIFT) package reset
 	cd Tests/SPM && $(SWIFT) package reset
 	rm -rf Documentation/Reference
-	rm -rf Tests/Performance/fmdb && git checkout -- Tests/Performance/fmdb
-	rm -rf Tests/Performance/SQLite.swift && git checkout -- Tests/Performance/SQLite.swift
-	rm -rf Tests/Performance/Realm && git checkout -- Tests/Performance/Realm
-	rm -rf SQLCipher/src && git checkout -- SQLCipher/src
-	rm -rf SQLiteCustom/src && git checkout -- SQLiteCustom/src
+	rm -rf Sourcery
+	rm -rf Tests/Performance/fmdb && $(GIT) checkout -- Tests/Performance/fmdb
+	rm -rf Tests/Performance/SQLite.swift && $(GIT) checkout -- Tests/Performance/SQLite.swift
+	rm -rf Tests/Performance/Realm && $(GIT) checkout -- Tests/Performance/Realm
+	rm -rf SQLCipher/src && $(GIT) checkout -- SQLCipher/src
+	rm -rf SQLiteCustom/src && $(GIT) checkout -- SQLiteCustom/src
 	find . -name xcuserdata | xargs rm -rf
 
 clean:
 	$(SWIFT) package reset
 	cd Tests/SPM && $(SWIFT) package reset
 	rm -rf Documentation/Reference
-	cd Tests/Performance/Realm && sh build.sh clean
+	if [ -d SQLCipher/src ]; then cd SQLCipher/src && $(GIT) clean -f; fi
+	if [ -a Tests/Performance/Realm/build.sh ]; then cd Tests/Performance/Realm && sh build.sh clean; fi
 
 .PHONY: clean doc test test_framework_linux SQLCipher SQLiteCustom
