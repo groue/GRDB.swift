@@ -68,7 +68,18 @@ extension Date : DatabaseValueConvertible {
             // Refuse to turn hours without any date information into Date:
             return nil
         }
-        return UTCCalendar.date(from: databaseDateComponents.dateComponents)!
+        #if os(Linux)
+            // Word around https://bugs.swift.org/browse/SR-3158
+            if let nanoseconds = databaseDateComponents.dateComponents.nanosecond {
+                let date = UTCCalendar.date(from: databaseDateComponents.dateComponents)!
+                let seconds = round(date.timeIntervalSince1970) + Double(nanoseconds) / 1e9
+                return Date(timeIntervalSince1970: seconds)
+            } else {
+                return UTCCalendar.date(from: databaseDateComponents.dateComponents)!
+            }
+        #else
+            return UTCCalendar.date(from: databaseDateComponents.dateComponents)!
+        #endif
     }
 
     #if os(Linux)
