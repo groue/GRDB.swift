@@ -65,15 +65,23 @@ class FoundationDateTests : GRDBTestCase {
     }
 
     func testDateSerialization() throws {
+        let datePairs: [(TimeInterval, String)] = [
+            (117195072.1234, "1973-09-18 10:11:12.123"),
+            (117195072.9876, "1973-09-18 10:11:12.988")
+        ]
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            let date = Date(timeIntervalSince1970: 117195072.1234)
-            try db.execute("INSERT INTO dates (creationDate) VALUES (?)", arguments: [date])
-            let string = try String.fetchOne(db, "SELECT creationDate FROM dates")!
-            XCTAssertEqual(string, "1973-09-18 10:11:12.123")
+        for pair in datePairs {
+            try dbQueue.inTransaction { db in
+                let date = Date(timeIntervalSince1970: pair.0)
+                try db.execute("INSERT INTO dates (creationDate) VALUES (?)", arguments: [date])
+                let string = try String.fetchOne(db, "SELECT creationDate FROM dates")!
+                print("\(string) == \(pair.1)")
+                XCTAssertEqual(string, pair.1)
+                return .rollback
+            }
         }
     }
-
+    
     func testDateIsLexicallyComparableToCURRENT_TIMESTAMP() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
