@@ -121,6 +121,19 @@ class GRDBTestCase: XCTestCase {
         XCTAssertTrue(sqlQueries.contains(sql), "Did not execute \(sql)")
     }
     
+    func assertObjCType(of number: NSNumber, equals character: Character) {
+        #if os(Linux)
+            // On Linux objCType returns type letter directly
+            let typeValueString = String(describing: number.objCType)
+            let typeValue = UInt8(strtoul(typeValueString, nil, 0))
+            let type = Character(UnicodeScalar(typeValue))
+            XCTAssertEqual(type, character)
+        #else
+            // On OS X objCType returns pointer to a C string with type letter
+            XCTAssertEqual(String(cString: number.objCType), String(character))
+        #endif
+    }
+    
     func sql(_ databaseReader: DatabaseReader, _ request: Request) -> String {
         return try! databaseReader.unsafeRead { db in
             _ = try Row.fetchOne(db, request)

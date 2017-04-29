@@ -26,7 +26,15 @@ extension NSNumber : DatabaseValueConvertible {
         }
         #endif
         
-        switch String(cString: objCType) {
+        #if os(Linux)
+        let typeValueString = String(describing: objCType)
+        let typeValue = UInt8(strtoul(typeValueString, nil, 0))
+        let type = Character(UnicodeScalar(typeValue))
+        #else
+        let type = String(cString: objCType)
+        #endif
+
+        switch type {
         case "c":
             return Int64(int8Value).databaseValue
         case "C":
