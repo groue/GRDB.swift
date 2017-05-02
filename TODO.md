@@ -1,21 +1,7 @@
-- [ ] Question RowConvertible.awakeFromFetch
-- [ ] SelectStatement.SelectionInfo is empty for statements like `SELECT COUNT(*) FROM table`. This prevents `DatabaseEventKind.impact(_:)` from returning true when a transaction observer is notified of a change in the table. Fix this.
-- [ ] Is the Support/module.modulemap file still needed?
-- [ ] Make GRDB less stringly-typed: For each API that eats column names, check if it couldn't eat both Column and String. If this requires Column to adopt ExpressibleByStringLiteral, check if it does not introduce awful ambiguities
 - [ ] We share the database cache between database pool writers and readers. But what if a writer modifies the database schema within a transaction, and a concurrent reader reads the cache? Bad things, isn't it? Write failing tests first, and fix the bug.
-- [ ] FetchedRecordsController is not reactive:
-    
-    We need to be able to start and stop subscribing to changes made on a request. This means that diffs have to be performed between two arbitraty states of the database, not only between two transactions.
-    
-    And let's lift the restriction on Record: make this able to work on any fetchable type (row, record, value, optional value).
-
-    Being reactive may also address the feature request by @hdlj for FetchedRecordsController throttling
-
-- [ ] Think about supporting Cursor's underestimatedCount, which could speed up Array(cursor) and fetchAll()
-- [ ] Attach databases (this could be the support for fetched records controller caches). Interesting question: what happens when one attaches a non-WAL db to a databasePool?
+- [ ] Attach databases. Interesting question: what happens when one attaches a non-WAL db to a databasePool?
 - [ ] SQLCipher: sqlite3_rekey is discouraged (https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320)
 - [ ] What is the behavior inTransaction and inSavepoint behaviors in case of commit error? Code looks like we do not rollback, leaving the app in a weird state (out of Swift transaction block with a SQLite transaction that may still be opened).
-- [ ] Support for resource values (see https://developer.apple.com/library/ios/qa/qa1719/_index.html)
 - [ ] Query builder
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
     - [ ] date functions
@@ -26,10 +12,25 @@
     - [ ] REGEXP https://www.sqlite.org/lang_expr.html
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
 
+v1.0 checklit
+
+- [ ] Remove RowConvertible.awakeFromFetch()
+- [ ] Document or remove DatabaseCoder
+- [ ] Check scenarios where cached statements aren't performed with the arguments expected by the user (1. produce a cached statement, with some arguments 2. produce the same cached statement, with different arguments 3. run the first statement (with wrong arguments)). Provide eventual fix.
+- [ ] Support [joins](https://github.com/groue/GRDB.swift/issues/176)
+- [ ] Request/TypedRequest:
+    - [ ] Why Request/TypedRequest? What about removing TypedRequest and having a Fetched associated type in Request?
+    - [ ] Don't return AnyRequest and AnyTypedRequest (for example, `SQLRequest("...").bound(to: MyRecord.self)` should not return AnyTypedRequest.
+    - [ ] Question the naming of the `request.bound(to:T.self)` method. Prefer... `request.fetching(T.self)`? `request.of(T.self)`?
+- [ ] Make GRDB less stringly-typed. When a user defines a static list of columns for a record type, those columns should be easier to use:
+    - [ ] Persistable.persistentDictionary requires string keys, doesn't accept columns
+    - [ ] If possible, improve on `Person.filter(Person.email != nil)` or `Person.filter(Person.Column.email != nil)` (see [#186](https://github.com/groue/GRDB.swift/issues/186))
+    - [ ] Check [SE-0166](https://github.com/apple/swift-evolution/blob/master/proposals/0166-swift-archival-serialization.md)
 
 Not sure
 
-- [ ] Check if DatabaseQueue can perform concurrent reads. It's unclear if this is really necessary/useful, when DatabasePool already provides concurrent reads.
+- [ ] Support for resource values (see https://developer.apple.com/library/ios/qa/qa1719/_index.html)
+- [ ] Think about supporting Cursor's underestimatedCount, which could speed up Array(cursor) and fetchAll()
 - [ ] Support for OR ROLLBACK, and mismatch between the Swift depth and the SQLite depth of nested transactions/savepoint:
     
     ```swift
@@ -70,7 +71,6 @@ Not sure
     }
     ```
 
-- [ ] Document or deprecate DatabaseCoder
 - [ ] Support for NSColor/UIColor. Beware UIColor components can go beyond [0, 1.0] in iOS10.
 - [ ] Store dates as timestamp (https://twitter.com/gloparco/status/780948021613912064, https://github.com/groue/GRDB.swift/issues/97)
 
