@@ -5,6 +5,8 @@ Release Notes
 
 **New**
 
+- `SQLRequest` learned how to reuse cached prepared statements: `SQLRequest("SELECT ...", cached: true)`
+
 - `Database.logError` lets you register an error logging function:
     
     ```swift
