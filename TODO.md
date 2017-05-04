@@ -16,7 +16,7 @@ v1.0 checklit
 
 - [ ] Remove RowConvertible.awakeFromFetch()
 - [ ] Document or remove DatabaseCoder
-- [ ] Check scenarios where cached statements aren't performed with the arguments expected by the user (1. produce a cached statement, with some arguments 2. produce the same cached statement, with different arguments 3. run the first statement (with wrong arguments)). Provide eventual fix.
+- [X] Check scenarios where cached statements aren't performed with the arguments expected by the user (1. produce a cached statement, with some arguments 2. produce the same cached statement, with different arguments 3. run the first statement (with wrong arguments)). Provide eventual fix.
 - [ ] Support [joins](https://github.com/groue/GRDB.swift/issues/176)
 - [ ] Request/TypedRequest:
     - [X] Why Request/TypedRequest? What about removing TypedRequest and having a Fetched associated type in Request?
