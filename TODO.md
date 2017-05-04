@@ -19,8 +19,11 @@ v1.0 checklit
 - [ ] Check scenarios where cached statements aren't performed with the arguments expected by the user (1. produce a cached statement, with some arguments 2. produce the same cached statement, with different arguments 3. run the first statement (with wrong arguments)). Provide eventual fix.
 - [ ] Support [joins](https://github.com/groue/GRDB.swift/issues/176)
 - [ ] Request/TypedRequest:
-    - [ ] Why Request/TypedRequest? What about removing TypedRequest and having a Fetched associated type in Request?
-    - [ ] Don't return AnyRequest and AnyTypedRequest (for example, `SQLRequest("...").bound(to: MyRecord.self)` should not return AnyTypedRequest.
+    - [X] Why Request/TypedRequest? What about removing TypedRequest and having a Fetched associated type in Request?
+        We keep TypedRequest because adding an associate Fetched type to Request forces too many APIs to become generic for no real purpose, when one does not use AnyRequest<Void> as a concrete type.
+        Besides, not all requests have a naturel Fetched type: request.fetchCount(db) doesn't care about the type of the request, for example.   
+    - [X] Question AnyRequest and AnyTypedRequest as results (for example, `SQLRequest("...").bound(to: MyRecord.self)` returns AnyTypedRequest).
+        It's not worth the effort to introduce more concrete request types (AdaptedRequest, AdaptedTypedRequest, BoundRequest)
     - [ ] Question the naming of the `request.bound(to:T.self)` method. Prefer... `request.fetching(T.self)`? `request.of(T.self)`?
 - [ ] Make GRDB less stringly-typed. When a user defines a static list of columns for a record type, those columns should be easier to use:
     - [ ] Persistable.persistentDictionary requires string keys, doesn't accept columns
