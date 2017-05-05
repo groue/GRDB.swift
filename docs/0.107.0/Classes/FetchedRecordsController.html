@@ -1,0 +1,1909 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>FetchedRecordsController Class Reference</title>
+    <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    <meta charset='utf-8'>
+    <script src="../js/jquery.min.js" defer></script>
+    <script src="../js/jazzy.js" defer></script>
+    
+  </head>
+  <body>
+    <a name="//apple_ref/swift/Class/FetchedRecordsController" class="dashAnchor"></a>
+    <a title="FetchedRecordsController Class Reference"></a>
+    <header>
+      <div class="content-wrapper">
+        <p><a href="../index.html">GRDB Docs</a> (89% documented)</p>
+        <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
+        <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue%2Egithub%2Eio%2FGRDB%2Eswift%2Fdocs%2F0%2E107%2E0%2Fdocsets%2FGRDB%2Exml"><img src="../img/dash.png"/>Install in Dash</a></p>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <p id="breadcrumbs">
+        <a href="../index.html">GRDB Reference</a>
+        <img id="carat" src="../img/carat.png" />
+        FetchedRecordsController Class Reference
+      </p>
+    </div>
+    <div class="content-wrapper">
+      <nav class="sidebar">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a href="../Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Classes/AnyCursor.html">AnyCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/ColumnDefinition.html">ColumnDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database.html">Database</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/BusyMode.html">– BusyMode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/CheckpointMode.html">– CheckpointMode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/CollationName.html">– CollationName</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/ConflictResolution.html">– ConflictResolution</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/ColumnType.html">– ColumnType</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/ForeignKeyAction.html">– ForeignKeyAction</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/TransactionKind.html">– TransactionKind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/TransactionCompletion.html">– TransactionCompletion</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabaseCollation.html">DatabaseCollation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabaseCursor.html">DatabaseCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabaseFunction.html">DatabaseFunction</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabasePool.html">DatabasePool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabaseQueue.html">DatabaseQueue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/EnumeratedCursor.html">EnumeratedCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FTS3TableDefinition.html">FTS3TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FTS4ColumnDefinition.html">FTS4ColumnDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FTS4TableDefinition.html">FTS4TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FTS5ColumnDefinition.html">FTS5ColumnDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FTS5TableDefinition.html">FTS5TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FetchedRecordsController.html">FetchedRecordsController</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FilterCursor.html">FilterCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FlattenCursor.html">FlattenCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/IteratorCursor.html">IteratorCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/MapCursor.html">MapCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Record.html">Record</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Row.html">Row</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/SelectStatement.html">SelectStatement</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/SelectStatement/SelectionInfo.html">– SelectionInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Statement.html">Statement</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/TableAlteration.html">TableAlteration</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/TableDefinition.html">TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/UpdateStatement.html">UpdateStatement</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Enums.html">Enums</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Enums/DatabaseEventKind.html">DatabaseEventKind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/FetchedRecordChange.html">FetchedRecordChange</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/PersistenceError.html">PersistenceError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/SQLCount.html">SQLCount</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Extensions.html">Extensions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Extensions/Array.html">Array</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Bool.html">Bool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/CGFloat.html">CGFloat</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/ClosedRange.html">ClosedRange</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Column.html">Column</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/CountableClosedRange.html">CountableClosedRange</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/CountableRange.html">CountableRange</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Data.html">Data</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Database.html">Database</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/DatabasePool.html">DatabasePool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/DatabaseQueue.html">DatabaseQueue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Double.html">Double</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Float.html">Float</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int.html">Int</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int32.html">Int32</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int64.html">Int64</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSData.html">NSData</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSDate.html">NSDate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSNull.html">NSNull</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSNumber.html">NSNumber</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSString.html">NSString</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSURL.html">NSURL</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSUUID.html">NSUUID</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Optional.html">Optional</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/QueryInterfaceRequest.html">QueryInterfaceRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Range.html">Range</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/RawRepresentable.html">RawRepresentable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/ReferenceConvertible.html">ReferenceConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Sequence.html">Sequence</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/String.html">String</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/TableMapping.html">TableMapping</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Functions.html">Functions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBop1nFPS_22SQLSpecificExpressible_PS_13SQLExpression_">!(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2neFTGSqPS_14SQLExpressible__PS_22SQLSpecificExpressible__PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2neFTGSqPS_14SQLExpressible__VS_21SQLCollatedExpression_PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2neFTPS_22SQLSpecificExpressible_GSqPS_14SQLExpressible___PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2neFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2neFTPS_22SQLSpecificExpressible_Sb_PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2neFTSbPS_22SQLSpecificExpressible__PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2neFTVS_21SQLCollatedExpressionGSqPS_14SQLExpressible___PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3neeFTGSqPS_14SQLExpressible__PS_22SQLSpecificExpressible__PS_13SQLExpression_">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3neeFTGSqPS_14SQLExpressible__VS_21SQLCollatedExpression_PS_13SQLExpression_">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3neeFTPS_22SQLSpecificExpressible_GSqPS_14SQLExpressible___PS_13SQLExpression_">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3neeFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3neeFTVS_21SQLCollatedExpressionGSqPS_14SQLExpressible___PS_13SQLExpression_">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2aaFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">&amp;&amp;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2aaFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">&amp;&amp;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2aaFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">&amp;&amp;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1mFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">*(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1mFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">*(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1mFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">*(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1pFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">+(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1pFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">+(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1pFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">+(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBop1sFPS_22SQLSpecificExpressible_PS_13SQLExpression_">-(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1sFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">-(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1sFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">-(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1sFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">-(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1dFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">/(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1dFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">/(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1dFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">/(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1lFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1lFTPS_14SQLExpressible_VS_21SQLCollatedExpression_PS_13SQLExpression_">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1lFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1lFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1lFTVS_21SQLCollatedExpressionPS_14SQLExpressible__PS_13SQLExpression_">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2leFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2leFTPS_14SQLExpressible_VS_21SQLCollatedExpression_PS_13SQLExpression_">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2leFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2leFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2leFTVS_21SQLCollatedExpressionPS_14SQLExpressible__PS_13SQLExpression_">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2eeFTGSqPS_14SQLExpressible__PS_22SQLSpecificExpressible__PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2eeFTGSqPS_14SQLExpressible__VS_21SQLCollatedExpression_PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2eeFTPS_22SQLSpecificExpressible_GSqPS_14SQLExpressible___PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2eeFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2eeFTPS_22SQLSpecificExpressible_Sb_PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2eeFTSbPS_22SQLSpecificExpressible__PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2eeFTVS_21SQLCollatedExpressionGSqPS_14SQLExpressible___PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3eeeFTGSqPS_14SQLExpressible__PS_22SQLSpecificExpressible__PS_13SQLExpression_">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3eeeFTGSqPS_14SQLExpressible__VS_21SQLCollatedExpression_PS_13SQLExpression_">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3eeeFTPS_22SQLSpecificExpressible_GSqPS_14SQLExpressible___PS_13SQLExpression_">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3eeeFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi3eeeFTVS_21SQLCollatedExpressionGSqPS_14SQLExpressible___PS_13SQLExpression_">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1gFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1gFTPS_14SQLExpressible_VS_21SQLCollatedExpression_PS_13SQLExpression_">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1gFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1gFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi1gFTVS_21SQLCollatedExpressionPS_14SQLExpressible__PS_13SQLExpression_">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2geFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2geFTPS_14SQLExpressible_VS_21SQLCollatedExpression_PS_13SQLExpression_">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2geFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2geFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2geFTVS_21SQLCollatedExpressionPS_14SQLExpressible__PS_13SQLExpression_">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2qqFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">??(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB3absFPS_22SQLSpecificExpressible_PS_13SQLExpression_">abs(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB7averageFPS_22SQLSpecificExpressible_PS_13SQLExpression_">average(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB5countFPS_13SQLSelectable_PS_13SQLExpression_">count(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB5countFT8distinctPS_22SQLSpecificExpressible__PS_13SQLExpression_">count(distinct:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB21databaseQuestionMarksFT5countSi_SS">databaseQuestionMarks(count:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB6lengthFPS_22SQLSpecificExpressible_PS_13SQLExpression_">length(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB3maxFPS_22SQLSpecificExpressible_PS_13SQLExpression_">max(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB3minFPS_22SQLSpecificExpressible_PS_13SQLExpression_">min(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDB3sumFPS_22SQLSpecificExpressible_PS_13SQLExpression_">sum(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2ooFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">||(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2ooFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">||(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:F4GRDBoi2ooFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">||(_:_:)</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Protocols.html">Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Protocols/Cursor.html">Cursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/DatabaseReader.html">DatabaseReader</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/DatabaseValueConvertible.html">DatabaseValueConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/DatabaseWriter.html">DatabaseWriter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/FTS5CustomTokenizer.html">FTS5CustomTokenizer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/FTS5Tokenizer.html">FTS5Tokenizer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/FTS5WrapperTokenizer.html">FTS5WrapperTokenizer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/LayoutedRowAdapter.html">LayoutedRowAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/MutablePersistable.html">MutablePersistable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/Persistable.html">Persistable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/Request.html">Request</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/RowAdapter.html">RowAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/RowConvertible.html">RowConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/RowLayout.html">RowLayout</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLCollection.html">SQLCollection</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLExpressible.html">SQLExpressible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLExpression.html">SQLExpression</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLOrderingTerm.html">SQLOrderingTerm</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLSelectQuery.html">SQLSelectQuery</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLSelectable.html">SQLSelectable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLSpecificExpressible.html">SQLSpecificExpressible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/StatementColumnConvertible.html">StatementColumnConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/TableMapping.html">TableMapping</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/TransactionObserver.html">TransactionObserver</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/TypedRequest.html">TypedRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/VirtualTableModule.html">VirtualTableModule</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols.html#/s:P4GRDB18_OptionalFetchable">_OptionalFetchable</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Structs.html">Structs</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Structs/AnyRequest.html">AnyRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/AnyTypedRequest.html">AnyTypedRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/Column.html">Column</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ColumnMapping.html">ColumnMapping</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/Configuration.html">Configuration</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseCoder.html">DatabaseCoder</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseDateComponents.html">DatabaseDateComponents</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseDateComponents/Format.html">– Format</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseError.html">DatabaseError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseEvent.html">DatabaseEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseEvent/Kind.html">– Kind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseMigrator.html">DatabaseMigrator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabasePreUpdateEvent.html">DatabasePreUpdateEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabasePreUpdateEvent/Kind.html">– Kind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseValue.html">DatabaseValue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseValue/Storage.html">– Storage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS3.html">FTS3</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS3Pattern.html">FTS3Pattern</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS3TokenizerDescriptor.html">FTS3TokenizerDescriptor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS4.html">FTS4</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5.html">FTS5</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5Pattern.html">FTS5Pattern</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5TokenFlags.html">FTS5TokenFlags</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5Tokenization.html">FTS5Tokenization</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5TokenizerDescriptor.html">FTS5TokenizerDescriptor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FetchedRecordsSectionInfo.html">FetchedRecordsSectionInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/IndexInfo.html">IndexInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/LayoutedColumnMapping.html">LayoutedColumnMapping</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/PersistenceConflictPolicy.html">PersistenceConflictPolicy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/PrimaryKeyInfo.html">PrimaryKeyInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/QueryInterfaceRequest.html">QueryInterfaceRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/RangeRowAdapter.html">RangeRowAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ResultCode.html">ResultCode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/RowIndex.html">RowIndex</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLBinaryOperator.html">SQLBinaryOperator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLCollatedExpression.html">SQLCollatedExpression</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLExpressionBinary.html">SQLExpressionBinary</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLExpressionExists.html">SQLExpressionExists</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLExpressionFunction.html">SQLExpressionFunction</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLExpressionLiteral.html">SQLExpressionLiteral</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLExpressionUnary.html">SQLExpressionUnary</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLFunctionName.html">SQLFunctionName</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLRequest.html">SQLRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLUnaryOperator.html">SQLUnaryOperator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ScopeAdapter.html">ScopeAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/StatementArguments.html">StatementArguments</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SuffixRowAdapter.html">SuffixRowAdapter</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Typealiases.html">Typealiases</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Typealiases.html#/s:4GRDB16SQLiteConnection">SQLiteConnection</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Typealiases.html#/s:4GRDB15SQLiteStatement">SQLiteStatement</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Typealiases.html#/s:4GRDB11SQLiteValue">SQLiteValue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Typealiases.html#/s:4GRDB13TraceFunction">TraceFunction</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Typealiases.html#/s:E4GRDBSq8_Wrapped">_Wrapped</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Associated Types.html">Associated Types</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Associated Types.html#/s:P4GRDB12TypedRequest7Fetched">Fetched</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+        <section>
+          <section class="section">
+            <h1>FetchedRecordsController</h1>
+              <div class="declaration">
+                <div class="language">
+                  <pre class="highlight"><code><span class="kd">public</span> <span class="kd">final</span> <span class="kd">class</span> <span class="kt">FetchedRecordsController</span><span class="o">&lt;</span><span class="kt"><a href="../Classes/Record.html">Record</a></span><span class="p">:</span> <span class="kt"><a href="../Protocols/RowConvertible.html">RowConvertible</a></span><span class="o">&gt;</span></code></pre>
+
+                </div>
+              </div>
+            <p>You use FetchedRecordsController to track changes in the results of an
+SQLite request.</p>
+
+<p>See <a href="https://github.com/groue/GRDB.swift#fetchedrecordscontroller">https://github.com/groue/GRDB.swift#fetchedrecordscontroller</a> for
+more information.</p>
+
+          </section>
+          <section class="section task-group-section">
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Initialization"></a>
+                <a name="//apple_ref/swift/Section/Initialization" class="dashAnchor"></a>
+                <a href="#/Initialization">
+                  <h3 class="section-name">Initialization</h3>
+                </a>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB24FetchedRecordsControllercFzTPS_14DatabaseWriter_3sqlSS9argumentsGSqVS_18StatementArguments_7adapterGSqPS_10RowAdapter__5queueCSo13DispatchQueue12isSameRecordGSqFTxx_Sb__GS0_x_"></a>
+                    <a name="//apple_ref/swift/Method/init(_:sql:arguments:adapter:queue:isSameRecord:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB24FetchedRecordsControllercFzTPS_14DatabaseWriter_3sqlSS9argumentsGSqVS_18StatementArguments_7adapterGSqPS_10RowAdapter__5queueCSo13DispatchQueue12isSameRecordGSqFTxx_Sb__GS0_x_">init(_:sql:arguments:adapter:queue:isSameRecord:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Creates a fetched records controller initialized from a SQL query and
+its eventual arguments.</p>
+
+<pre class="highlight plaintext"><code>let controller = FetchedRecordsController&lt;Wine&gt;(
+    dbQueue,
+    sql: "SELECT * FROM wines WHERE color = ? ORDER BY name",
+    arguments: [Color.red],
+    isSameRecord: { (wine1, wine2) in wine1.id == wine2.id })
+</code></pre>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="n">convenience</span> <span class="nf">init</span><span class="p">(</span><span class="n">_</span> <span class="nv">databaseWriter</span><span class="p">:</span> <span class="kt"><a href="../Protocols/DatabaseWriter.html">DatabaseWriter</a></span><span class="p">,</span> <span class="nv">sql</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">adapter</span><span class="p">:</span> <span class="kt"><a href="../Protocols/RowAdapter.html">RowAdapter</a></span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">queue</span><span class="p">:</span> <span class="kt">DispatchQueue</span> <span class="o">=</span> <span class="o">.</span><span class="n">main</span><span class="p">,</span> <span class="nv">isSameRecord</span><span class="p">:</span> <span class="p">((</span><span class="kt"><a href="../Classes/Record.html">Record</a></span><span class="p">,</span> <span class="kt"><a href="../Classes/Record.html">Record</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span><span class="p">)?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>databaseWriter</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A DatabaseWriter (DatabaseQueue, or DatabasePool)</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>sql</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>An SQL query.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>arguments</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional statement arguments.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>adapter</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional RowAdapter</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>queue</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A serial dispatch queue (defaults to the main queue)</p>
+<p>The fetched records controller tracking callbacks will be notified of changes in this queue. The controller itself must be used from this queue.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>isSameRecord</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional function that compares two records.</p>
+<p>This function should return true if the two records have the same identity. For example, they have the same id.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/FetchedRecordsController.swift#L40-L42">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB24FetchedRecordsControllercuRd__S_12TypedRequestwd__7FetchedzxrFzTPS_14DatabaseWriter_7requestqd__5queueCSo13DispatchQueue12isSameRecordGSqFTxx_Sb__GS0_x_"></a>
+                    <a name="//apple_ref/swift/Method/init(_:request:queue:isSameRecord:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB24FetchedRecordsControllercuRd__S_12TypedRequestwd__7FetchedzxrFzTPS_14DatabaseWriter_7requestqd__5queueCSo13DispatchQueue12isSameRecordGSqFTxx_Sb__GS0_x_">init(_:request:queue:isSameRecord:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Creates a fetched records controller initialized from a fetch request
+from the <a href="https://github.com/groue/GRDB.swift#the-query-interface">Query Interface</a>.</p>
+
+<pre class="highlight plaintext"><code>let request = Wine.order(Column("name"))
+let controller = FetchedRecordsController(
+    dbQueue,
+    request: request,
+    isSameRecord: { (wine1, wine2) in wine1.id == wine2.id })
+</code></pre>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="n">convenience</span> <span class="kd">init</span><span class="o">&lt;</span><span class="kt"><a href="../Protocols/Request.html">Request</a></span><span class="o">&gt;</span><span class="p">(</span><span class="n">_</span> <span class="nv">databaseWriter</span><span class="p">:</span> <span class="kt"><a href="../Protocols/DatabaseWriter.html">DatabaseWriter</a></span><span class="p">,</span> <span class="nv">request</span><span class="p">:</span> <span class="kt"><a href="../Protocols/Request.html">Request</a></span><span class="p">,</span> <span class="nv">queue</span><span class="p">:</span> <span class="kt">DispatchQueue</span> <span class="o">=</span> <span class="o">.</span><span class="n">main</span><span class="p">,</span> <span class="nv">isSameRecord</span><span class="p">:</span> <span class="p">((</span><span class="kt"><a href="../Classes/Record.html">Record</a></span><span class="p">,</span> <span class="kt"><a href="../Classes/Record.html">Record</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span><span class="p">)?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span> <span class="k">throws</span> <span class="k">where</span> <span class="kt"><a href="../Protocols/Request.html">Request</a></span><span class="p">:</span> <span class="kt"><a href="../Protocols/TypedRequest.html">TypedRequest</a></span><span class="p">,</span> <span class="kt"><a href="../Protocols/Request.html">Request</a></span><span class="o">.</span><span class="kt"><a href="../Associated Types.html#/s:P4GRDB12TypedRequest7Fetched">Fetched</a></span> <span class="o">==</span> <span class="kt"><a href="../Classes/Record.html">Record</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>databaseWriter</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A DatabaseWriter (DatabaseQueue, or DatabasePool)</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>request</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A fetch request.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>queue</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A serial dispatch queue (defaults to the main queue)</p>
+<p>The fetched records controller tracking callbacks will be notified of changes in this queue. The controller itself must be used from this queue.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>isSameRecord</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional function that compares two records.</p>
+<p>This function should return true if the two records have the same identity. For example, they have the same id.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/FetchedRecordsController.swift#L66-L72">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB24FetchedRecordsController12performFetchFzT_T_"></a>
+                    <a name="//apple_ref/swift/Method/performFetch()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB24FetchedRecordsController12performFetchFzT_T_">performFetch()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Executes the controller&rsquo;s fetch request.</p>
+
+<p>After executing this method, you can access the the fetched objects with
+the <code><a href="../Classes/FetchedRecordsController.html#/s:vC4GRDB24FetchedRecordsController14fetchedRecordsGSax_">fetchedRecords</a></code> property.</p>
+
+<p>This method must be used from the controller&rsquo;s dispatch queue (the
+main queue unless stated otherwise in the controller&rsquo;s initializer).</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">performFetch</span><span class="p">()</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/FetchedRecordsController.swift#L88-L109">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Configuration"></a>
+                <a name="//apple_ref/swift/Section/Configuration" class="dashAnchor"></a>
+                <a href="#/Configuration">
+                  <h3 class="section-name">Configuration</h3>
+                </a>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:vC4GRDB24FetchedRecordsController14databaseWriterPS_14DatabaseWriter_"></a>
+                    <a name="//apple_ref/swift/Property/databaseWriter" class="dashAnchor"></a>
+                    <a class="token" href="#/s:vC4GRDB24FetchedRecordsController14databaseWriterPS_14DatabaseWriter_">databaseWriter</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The database writer used to fetch records.</p>
+
+<p>The controller registers as a transaction observer in order to respond
+to changes.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">databaseWriter</span><span class="p">:</span> <span class="kt"><a href="../Protocols/DatabaseWriter.html">DatabaseWriter</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/FetchedRecordsController.swift#L118">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:vC4GRDB24FetchedRecordsController5queueCSo13DispatchQueue"></a>
+                    <a name="//apple_ref/swift/Property/queue" class="dashAnchor"></a>
+                    <a class="token" href="#/s:vC4GRDB24FetchedRecordsController5queueCSo13DispatchQueue">queue</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The dispatch queue on which the controller must be used.</p>
+
+<p>Unless specified otherwise at initialization time, it is the main queue.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">queue</span><span class="p">:</span> <span class="kt">DispatchQueue</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/FetchedRecordsController.swift#L123">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB24FetchedRecordsController10setRequestuRd__S_12TypedRequestwd__7FetchedzxrFzqd__T_"></a>
+                    <a name="//apple_ref/swift/Method/setRequest(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB24FetchedRecordsController10setRequestuRd__S_12TypedRequestwd__7FetchedzxrFzqd__T_">setRequest(_:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Updates the fetch request, and eventually notifies the tracking
+callbacks if performFetch() has been called.</p>
+
+<p>This method must be used from the controller&rsquo;s dispatch queue (the
+main queue unless stated otherwise in the controller&rsquo;s initializer).</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="n">setRequest</span><span class="o">&lt;</span><span class="kt"><a href="../Protocols/Request.html">Request</a></span><span class="o">&gt;</span><span class="p">(</span><span class="n">_</span> <span class="nv">request</span><span class="p">:</span> <span class="kt"><a href="../Protocols/Request.html">Request</a></span><span class="p">)</span> <span class="k">throws</span> <span class="k">where</span> <span class="kt"><a href="../Protocols/Request.html">Request</a></span><span class="p">:</span> <span class="kt"><a href="../Protocols/TypedRequest.html">TypedRequest</a></span><span class="p">,</span> <span class="kt"><a href="../Protocols/Request.html">Request</a></span><span class="o">.</span><span class="kt"><a href="../Associated Types.html#/s:P4GRDB12TypedRequest7Fetched">Fetched</a></span> <span class="o">==</span> <span class="kt"><a href="../Classes/Record.html">Record</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/FetchedRecordsController.swift#L130-L152">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB24FetchedRecordsController10setRequestFzT3sqlSS9argumentsGSqVS_18StatementArguments_7adapterGSqPS_10RowAdapter___T_"></a>
+                    <a name="//apple_ref/swift/Method/setRequest(sql:arguments:adapter:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB24FetchedRecordsController10setRequestFzT3sqlSS9argumentsGSqVS_18StatementArguments_7adapterGSqPS_10RowAdapter___T_">setRequest(sql:arguments:adapter:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Updates the fetch request, and eventually notifies the tracking
+callbacks if performFetch() has been called.</p>
+
+<p>This method must be used from the controller&rsquo;s dispatch queue (the
+main queue unless stated otherwise in the controller&rsquo;s initializer).</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">setRequest</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">adapter</span><span class="p">:</span> <span class="kt"><a href="../Protocols/RowAdapter.html">RowAdapter</a></span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/FetchedRecordsController.swift#L159-L161">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB24FetchedRecordsController12trackChangesFT10willChangeGSqFGS0_x_T__8onChangeGSqFTGS0_x_xOS_19FetchedRecordChange_T__9didChangeGSqFGS0_x_T___T_"></a>
+                    <a name="//apple_ref/swift/Method/trackChanges(willChange:onChange:didChange:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB24FetchedRecordsController12trackChangesFT10willChangeGSqFGS0_x_T__8onChangeGSqFTGS0_x_xOS_19FetchedRecordChange_T__9didChangeGSqFGS0_x_T___T_">trackChanges(willChange:onChange:didChange:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Registers changes notification callbacks.</p>
+
+<p>This method must be used from the controller&rsquo;s dispatch queue (the
+main queue unless stated otherwise in the controller&rsquo;s initializer).</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">trackChanges</span><span class="p">(</span>
+        <span class="nv">willChange</span><span class="p">:</span> <span class="p">((</span><span class="kt">FetchedRecordsController</span><span class="o">&lt;</span><span class="kt"><a href="../Classes/Record.html">Record</a></span><span class="o">&gt;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">())?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+        <span class="nv">onChange</span><span class="p">:</span> <span class="p">((</span><span class="kt">FetchedRecordsController</span><span class="o">&lt;</span><span class="kt"><a href="../Classes/Record.html">Record</a></span><span class="o">&gt;</span><span class="p">,</span> <span class="kt"><a href="../Classes/Record.html">Record</a></span><span class="p">,</span> <span class="kt"><a href="../Enums/FetchedRecordChange.html">FetchedRecordChange</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">())?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+        <span class="nv">didChange</span><span class="p">:</span> <span class="p">((</span><span class="kt">FetchedRecordsController</span><span class="o">&lt;</span><span class="kt"><a href="../Classes/Record.html">Record</a></span><span class="o">&gt;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">())?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>willChange</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Invoked before records are updated.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>onChange</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Invoked for each record that has been added, removed, moved, or updated.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>didChange</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Invoked after records have been updated.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/FetchedRecordsController.swift#L173-L183">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB24FetchedRecordsController12trackChangesurFT14fetchAlongsideFzCS_8Databaseqd__10willChangeGSqFTGS0_x_qd___T__8onChangeGSqFTGS0_x_xOS_19FetchedRecordChange_T__9didChangeGSqFTGS0_x_qd___T___T_"></a>
+                    <a name="//apple_ref/swift/Method/trackChanges(fetchAlongside:willChange:onChange:didChange:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB24FetchedRecordsController12trackChangesurFT14fetchAlongsideFzCS_8Databaseqd__10willChangeGSqFTGS0_x_qd___T__8onChangeGSqFTGS0_x_xOS_19FetchedRecordChange_T__9didChangeGSqFTGS0_x_qd___T___T_">trackChanges(fetchAlongside:willChange:onChange:didChange:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Registers changes notification callbacks.</p>
+
+<p>This method must be used from the controller&rsquo;s dispatch queue (the
+main queue unless stated otherwise in the controller&rsquo;s initializer).</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="n">trackChanges</span><span class="o">&lt;</span><span class="kt">T</span><span class="o">&gt;</span><span class="p">(</span>
+        <span class="nv">fetchAlongside</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt"><a href="../Classes/Database.html">Database</a></span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">T</span><span class="p">,</span>
+        <span class="nv">willChange</span><span class="p">:</span> <span class="p">((</span><span class="kt">FetchedRecordsController</span><span class="o">&lt;</span><span class="kt"><a href="../Classes/Record.html">Record</a></span><span class="o">&gt;</span><span class="p">,</span> <span class="n">_</span> <span class="nv">fetchedAlongside</span><span class="p">:</span> <span class="kt">T</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">())?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+        <span class="nv">onChange</span><span class="p">:</span> <span class="p">((</span><span class="kt">FetchedRecordsController</span><span class="o">&lt;</span><span class="kt"><a href="../Classes/Record.html">Record</a></span><span class="o">&gt;</span><span class="p">,</span> <span class="kt"><a href="../Classes/Record.html">Record</a></span><span class="p">,</span> <span class="kt"><a href="../Enums/FetchedRecordChange.html">FetchedRecordChange</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">())?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+        <span class="nv">didChange</span><span class="p">:</span> <span class="p">((</span><span class="kt">FetchedRecordsController</span><span class="o">&lt;</span><span class="kt"><a href="../Classes/Record.html">Record</a></span><span class="o">&gt;</span><span class="p">,</span> <span class="n">_</span> <span class="nv">fetchedAlongside</span><span class="p">:</span> <span class="kt">T</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">())?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>fetchAlongside</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The value returned from this closure is given to willChange and didChange callbacks, as their <code>fetchedAlongside</code> argument. The closure is guaranteed to see the database in the state it has just after eventual changes to the fetched records have been performed. Use it in order to fetch values that must be consistent with the fetched records.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>willChange</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Invoked before records are updated.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>onChange</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Invoked for each record that has been added, removed, moved, or updated.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>didChange</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Invoked after records have been updated.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/FetchedRecordsController.swift#L201-L252">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB24FetchedRecordsController11trackErrorsFFTGS0_x_Ps5Error__T_T_"></a>
+                    <a name="//apple_ref/swift/Method/trackErrors(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB24FetchedRecordsController11trackErrorsFFTGS0_x_Ps5Error__T_T_">trackErrors(_:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Registers an error callback.</p>
+
+<p>Whenever the controller could not look for changes after a transaction
+has potentially modified the tracked request, this error handler is
+called.</p>
+
+<p>The request observation is not stopped, though: future transactions may
+successfully be handled, and the notified changes will then be based on
+the last successful fetch.</p>
+
+<p>This method must be used from the controller&rsquo;s dispatch queue (the
+main queue unless stated otherwise in the controller&rsquo;s initializer).</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">trackErrors</span><span class="p">(</span><span class="n">_</span> <span class="nv">errorHandler</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt">FetchedRecordsController</span><span class="o">&lt;</span><span class="kt"><a href="../Classes/Record.html">Record</a></span><span class="o">&gt;</span><span class="p">,</span> <span class="kt">Error</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">())</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/FetchedRecordsController.swift#L266-L268">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB24FetchedRecordsController30allowBackgroundChangesTrackingFT2inCSo13UIApplication_T_"></a>
+                    <a name="//apple_ref/swift/Method/allowBackgroundChangesTracking(in:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB24FetchedRecordsController30allowBackgroundChangesTrackingFT2inCSo13UIApplication_T_">allowBackgroundChangesTracking(in:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Call this method when changes performed while the application is
+in the background should be processed before the application enters the
+suspended state.</p>
+
+<p>Whenever the tracked request is changed, the fetched records controller
+sets up a background task using
+<code>UIApplication.beginBackgroundTask(expirationHandler:)</code> which is ended
+after the <code>didChange</code> callback has completed.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">allowBackgroundChangesTracking</span><span class="p">(</span><span class="k">in</span> <span class="nv">application</span><span class="p">:</span> <span class="kt">UIApplication</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/FetchedRecordsController.swift#L279-L281">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Accessing%20Records"></a>
+                <a name="//apple_ref/swift/Section/Accessing Records" class="dashAnchor"></a>
+                <a href="#/Accessing%20Records">
+                  <h3 class="section-name">Accessing Records</h3>
+                </a>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:vC4GRDB24FetchedRecordsController14fetchedRecordsGSax_"></a>
+                    <a name="//apple_ref/swift/Property/fetchedRecords" class="dashAnchor"></a>
+                    <a class="token" href="#/s:vC4GRDB24FetchedRecordsController14fetchedRecordsGSax_">fetchedRecords</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The fetched records.</p>
+
+<p>The value of this property is nil until performFetch() has been called.</p>
+
+<p>The records reflect the state of the database after the initial
+call to performFetch, and after each database transaction that affects
+the results of the fetch request.</p>
+
+<p>This property must be used from the controller&rsquo;s dispatch queue (the
+main queue unless stated otherwise in the controller&rsquo;s initializer).</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">fetchedRecords</span><span class="p">:</span> <span class="p">[</span><span class="kt"><a href="../Classes/Record.html">Record</a></span><span class="p">]</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/FetchedRecordsController.swift#L296-L301">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Configuration2"></a>
+                <a name="//apple_ref/swift/Section/Configuration" class="dashAnchor"></a>
+                <a href="#/Configuration2">
+                  <h3 class="section-name">Configuration</h3>
+                </a>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/allowBackgroundChangesTracking(in:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">allowBackgroundChangesTracking(in:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">final</span> <span class="kd">class</span> <span class="kt">FetchedRecordsController</span><span class="o">&lt;</span><span class="kt"><a href="../Classes/Record.html">Record</a></span><span class="p">:</span> <span class="kt"><a href="../Protocols/RowConvertible.html">RowConvertible</a></span><span class="o">&gt;</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Initialization2"></a>
+                <a name="//apple_ref/swift/Section/Initialization" class="dashAnchor"></a>
+                <a href="#/Initialization2">
+                  <h3 class="section-name">Initialization</h3>
+                </a>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:Fe4GRDBRxS_14RowConvertiblexS_12TableMappingrCS_24FetchedRecordsControllercFzTPS_14DatabaseWriter_3sqlSS9argumentsGSqVS_18StatementArguments_7adapterGSqPS_10RowAdapter__5queueCSo13DispatchQueue_GS2_x_"></a>
+                    <a name="//apple_ref/swift/Method/init(_:sql:arguments:adapter:queue:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:Fe4GRDBRxS_14RowConvertiblexS_12TableMappingrCS_24FetchedRecordsControllercFzTPS_14DatabaseWriter_3sqlSS9argumentsGSqVS_18StatementArguments_7adapterGSqPS_10RowAdapter__5queueCSo13DispatchQueue_GS2_x_">init(_:sql:arguments:adapter:queue:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Creates a fetched records controller initialized from a SQL query and
+its eventual arguments.</p>
+
+<pre class="highlight plaintext"><code>let controller = FetchedRecordsController&lt;Wine&gt;(
+    dbQueue,
+    sql: "SELECT * FROM wines WHERE color = ? ORDER BY name",
+    arguments: [Color.red])
+</code></pre>
+
+<p>The records are compared by primary key (single-column primary key,
+compound primary key, or implicit rowid). For a database table which
+has an <code>id</code> primary key, this initializer is equivalent to:</p>
+
+<pre class="highlight plaintext"><code>// Assuming the wines table has an `id` primary key:
+let controller = FetchedRecordsController&lt;Wine&gt;(
+    dbQueue,
+    sql: "SELECT * FROM wines WHERE color = ? ORDER BY name",
+    arguments: [Color.red],
+    isSameRecord: { (wine1, wine2) in wine1.id == wine2.id })
+</code></pre>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="n">convenience</span> <span class="nf">init</span><span class="p">(</span><span class="n">_</span> <span class="nv">databaseWriter</span><span class="p">:</span> <span class="kt"><a href="../Protocols/DatabaseWriter.html">DatabaseWriter</a></span><span class="p">,</span> <span class="nv">sql</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">adapter</span><span class="p">:</span> <span class="kt"><a href="../Protocols/RowAdapter.html">RowAdapter</a></span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">queue</span><span class="p">:</span> <span class="kt">DispatchQueue</span> <span class="o">=</span> <span class="o">.</span><span class="n">main</span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>databaseWriter</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A DatabaseWriter (DatabaseQueue, or DatabasePool)</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>sql</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>An SQL query.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>arguments</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional statement arguments.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>adapter</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Optional RowAdapter</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>queue</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A serial dispatch queue (defaults to the main queue)</p>
+<p>The fetched records controller tracking callbacks will be notified of changes in this queue. The controller itself must be used from this queue.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/FetchedRecordsController.swift#L376-L378">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:Fe4GRDBRxS_14RowConvertiblexS_12TableMappingrCS_24FetchedRecordsControllercuRd__S_12TypedRequestwd__7FetchedzxrFzTPS_14DatabaseWriter_7requestqd__5queueCSo13DispatchQueue_GS2_x_"></a>
+                    <a name="//apple_ref/swift/Method/init(_:request:queue:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:Fe4GRDBRxS_14RowConvertiblexS_12TableMappingrCS_24FetchedRecordsControllercuRd__S_12TypedRequestwd__7FetchedzxrFzTPS_14DatabaseWriter_7requestqd__5queueCSo13DispatchQueue_GS2_x_">init(_:request:queue:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Creates a fetched records controller initialized from a fetch request
+from the <a href="https://github.com/groue/GRDB.swift#the-query-interface">Query Interface</a>.</p>
+
+<pre class="highlight plaintext"><code>let request = Wine.order(Column("name"))
+let controller = FetchedRecordsController(
+    dbQueue,
+    request: request)
+</code></pre>
+
+<p>The records are compared by primary key (single-column primary key,
+compound primary key, or implicit rowid). For a database table which
+has an <code>id</code> primary key, this initializer is equivalent to:</p>
+
+<pre class="highlight plaintext"><code>// Assuming the wines table has an `id` primary key:
+let controller = FetchedRecordsController&lt;Wine&gt;(
+    dbQueue,
+    request: request,
+    isSameRecord: { (wine1, wine2) in wine1.id == wine2.id })
+</code></pre>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="n">convenience</span> <span class="kd">init</span><span class="o">&lt;</span><span class="kt"><a href="../Protocols/Request.html">Request</a></span><span class="o">&gt;</span><span class="p">(</span><span class="n">_</span> <span class="nv">databaseWriter</span><span class="p">:</span> <span class="kt"><a href="../Protocols/DatabaseWriter.html">DatabaseWriter</a></span><span class="p">,</span> <span class="nv">request</span><span class="p">:</span> <span class="kt"><a href="../Protocols/Request.html">Request</a></span><span class="p">,</span> <span class="nv">queue</span><span class="p">:</span> <span class="kt">DispatchQueue</span> <span class="o">=</span> <span class="o">.</span><span class="n">main</span><span class="p">)</span> <span class="k">throws</span> <span class="k">where</span> <span class="kt"><a href="../Protocols/Request.html">Request</a></span><span class="p">:</span> <span class="kt"><a href="../Protocols/TypedRequest.html">TypedRequest</a></span><span class="p">,</span> <span class="kt"><a href="../Protocols/Request.html">Request</a></span><span class="o">.</span><span class="kt"><a href="../Associated Types.html#/s:P4GRDB12TypedRequest7Fetched">Fetched</a></span> <span class="o">==</span> <span class="kt"><a href="../Classes/Record.html">Record</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>databaseWriter</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A DatabaseWriter (DatabaseQueue, or DatabasePool)</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>request</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A fetch request.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>queue</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A serial dispatch queue (defaults to the main queue)</p>
+<p>The fetched records controller tracking callbacks will be notified of changes in this queue. The controller itself must be used from this queue.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/FetchedRecordsController.swift#L406-L409">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Accessing%20Records2"></a>
+                <a name="//apple_ref/swift/Section/Accessing Records" class="dashAnchor"></a>
+                <a href="#/Accessing%20Records2">
+                  <h3 class="section-name">Accessing Records</h3>
+                </a>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC4GRDB24FetchedRecordsController6recordFT2atV10Foundation9IndexPath_x"></a>
+                    <a name="//apple_ref/swift/Method/record(at:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC4GRDB24FetchedRecordsController6recordFT2atV10Foundation9IndexPath_x">record(at:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Returns the object at the given index path.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">record</span><span class="p">(</span><span class="n">at</span> <span class="nv">indexPath</span><span class="p">:</span> <span class="kt">IndexPath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Classes/Record.html">Record</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>indexPath</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>An index path in the fetched records.</p>
+<p>If indexPath does not describe a valid index path in the fetched records, a fatal error is raised.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/FetchedRecordsController.swift#L786-L792">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Querying%20Sections%20Information"></a>
+                <a name="//apple_ref/swift/Section/Querying Sections Information" class="dashAnchor"></a>
+                <a href="#/Querying%20Sections%20Information">
+                  <h3 class="section-name">Querying Sections Information</h3>
+                </a>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:vC4GRDB24FetchedRecordsController8sectionsGSaGVS_25FetchedRecordsSectionInfox__"></a>
+                    <a name="//apple_ref/swift/Property/sections" class="dashAnchor"></a>
+                    <a class="token" href="#/s:vC4GRDB24FetchedRecordsController8sectionsGSaGVS_25FetchedRecordsSectionInfox__">sections</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The sections for the fetched records.</p>
+
+<p>You typically use the sections array when implementing
+UITableViewDataSource methods, such as <code>numberOfSectionsInTableView</code>.</p>
+
+<p>The sections array is never empty, even when there are no fetched
+records. In this case, there is a single empty section.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">sections</span><span class="p">:</span> <span class="p">[</span><span class="kt"><a href="../Structs/FetchedRecordsSectionInfo.html">FetchedRecordsSectionInfo</a></span><span class="o">&lt;</span><span class="kt"><a href="../Classes/Record.html">Record</a></span><span class="o">&gt;</span><span class="p">]</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/FetchedRecordsController.swift#L804-L809">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:Fe4GRDBRxS_18MutablePersistablexS_14RowConvertiblerCS_24FetchedRecordsController9indexPathFT3forx_GSqV10Foundation9IndexPath_"></a>
+                    <a name="//apple_ref/swift/Method/indexPath(for:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:Fe4GRDBRxS_18MutablePersistablexS_14RowConvertiblerCS_24FetchedRecordsController9indexPathFT3forx_GSqV10Foundation9IndexPath_">indexPath(for:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Returns the indexPath of a given record.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">indexPath</span><span class="p">(</span><span class="k">for</span> <span class="nv">record</span><span class="p">:</span> <span class="kt"><a href="../Classes/Record.html">Record</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">IndexPath</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>The index path of  in the fetched records, or nil if record could not be found.</p>
+
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/FetchedRecordsController.swift#L818-L824">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </section>
+        </section>
+        <section id="footer">
+          <p>&copy; 2017 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2017-05-05)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+        </section>
+      </article>
+    </div>
+  </body>
+</div>
+</html>
