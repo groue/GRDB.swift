@@ -5,12 +5,6 @@ import UIKit
 var dbQueue: DatabaseQueue!
 
 func setupDatabase(_ application: UIApplication) throws {
-    // Setup database error log: it's very useful for debugging
-    // See https://github.com/groue/GRDB.swift/#error-log
-    Database.logError = { (resultCode, message) in
-        NSLog("%@", "SQLite error \(resultCode): \(message)")
-    }
-    
     
     // Connect to the database
     // See https://github.com/groue/GRDB.swift/#database-connections
@@ -46,14 +40,17 @@ func setupDatabase(_ application: UIApplication) throws {
             
             t.column("score", .integer).notNull()
         }
-    }
-    
-    migrator.registerMigration("addPersons") { db in
+        
         // Populate the persons table with random data
         for _ in 0..<8 {
             try Person(name: Person.randomName(), score: Person.randomScore()).insert(db)
         }
     }
+    
+//    // Migrations for future application versions will be inserted here:
+//    migrator.registerMigration(...) { db in
+//        ...
+//    }
     
     try migrator.migrate(dbQueue)
 }
