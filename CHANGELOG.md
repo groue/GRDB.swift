@@ -1,13 +1,15 @@
 Release Notes
 =============
 
-## Next Version
+## 0.107.0
+
+Released May 5, 2017
 
 **New**
 
 - `SQLRequest` learned how to reuse cached prepared statements: `SQLRequest("SELECT ...", cached: true)`
 
-- `Database.logError` lets you register an error logging function:
+- `Database.logError` lets you register a global error logging function:
     
     ```swift
     Database.logError = { resultCode, message in
