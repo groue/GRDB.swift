@@ -881,14 +881,12 @@
 method.</p>
 
 <p>Primary key is nil when table has no primary key:</p>
-
 <pre class="highlight plaintext"><code>// CREATE TABLE items (name TEXT)
 let itemPk = try db.primaryKey("items") // nil
 </code></pre>
 
 <p>Primary keys have one or several columns. When the primary key has a single
 column, it may contain the row id:</p>
-
 <pre class="highlight plaintext"><code>// CREATE TABLE persons (
 //   id INTEGER PRIMARY KEY,
 //   name TEXT
@@ -1147,7 +1145,6 @@ applied in order, once and only once.</p>
 <p>When a user upgrades your application, only non-applied migration are run.</p>
 
 <p>Usage:</p>
-
 <pre class="highlight plaintext"><code>var migrator = DatabaseMigrator()
 
 // v1.0 database
@@ -1336,7 +1333,6 @@ try migrator.migrate(dbQueue)
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>FTS3 lets you define <q>fts3</q> virtual tables.</p>
-
 <pre class="highlight plaintext"><code>// CREATE VIRTUAL TABLE documents USING fts3(content)
 try db.create(virtualTable: "documents", using: FTS3()) { t in
     t.column("content")
@@ -1412,7 +1408,6 @@ try db.create(virtualTable: "documents", using: FTS3()) { t in
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An FTS3 tokenizer, suitable for FTS3 and FTS4 table definitions:</p>
-
 <pre class="highlight plaintext"><code>db.create(virtualTable: "books", using: FTS4()) { t in
     t.tokenizer = .simple // FTS3TokenizerDescriptor
 }
@@ -1454,7 +1449,6 @@ try db.create(virtualTable: "documents", using: FTS3()) { t in
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>FTS4 lets you define <q>fts4</q> virtual tables.</p>
-
 <pre class="highlight plaintext"><code>// CREATE VIRTUAL TABLE documents USING fts4(content)
 try db.create(virtualTable: "documents", using: FTS4()) { t in
     t.column("content")
@@ -1840,7 +1834,6 @@ typed request, hiding its specifics.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>ColumnMapping is a row adapter that maps column names.</p>
-
 <pre class="highlight plaintext"><code>let adapter = ColumnMapping(["foo": "bar"])
 let sql = "SELECT 'foo' AS foo, 'bar' AS bar, 'baz' AS baz"
 
@@ -1878,7 +1871,6 @@ try Row.fetchOne(db, sql, adapter: adapter)
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>SuffixRowAdapter is a row adapter that hides the first columns in a row.</p>
-
 <pre class="highlight plaintext"><code>let adapter = SuffixRowAdapter(fromIndex: 2)
 let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
 
@@ -1916,7 +1908,6 @@ try Row.fetchOne(db, sql, adapter: adapter)
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>RangeRowAdapter is a row adapter that only exposes a range of columns.</p>
-
 <pre class="highlight plaintext"><code>let adapter = RangeRowAdapter(1..&lt;3)
 let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz, 4 as qux"
 
@@ -1954,7 +1945,6 @@ try Row.fetchOne(db, sql, adapter: adapter)
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>ScopeAdapter is a row adapter that lets you define scopes on rows.</p>
-
 <pre class="highlight plaintext"><code>// Two adapters
 let fooAdapter = ColumnMapping(["value": "foo"])
 let barAdapter = ColumnMapping(["value": "bar"])
@@ -2014,7 +2004,6 @@ if let barRow = row.scopeed(on: "bar") {
 is eventually evaluated using an SQLite collation.</p>
 
 <p>You create one by calling the SQLSpecificExpressible.collating() method.</p>
-
 <pre class="highlight plaintext"><code>let email: SQLCollatedExpression = Column("email").collating(.nocase)
 
 // SELECT * FROM persons WHERE email = 'arthur@example.com' COLLATE NOCASE
@@ -2065,16 +2054,13 @@ Persons.filter(email == "arthur@example.com")
 Do not use it directly.</p>
 
 <p>See <a href="https://github.com/groue/GRDB.swift/#the-query-interface">https://github.com/groue/GRDB.swift/#the-query-interface</a></p>
-
-<p><a href='#low-level-query-interface' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h1 id='low-level-query-interface'>Low Level Query Interface</h1></p>
+<h1 id='low-level-query-interface' class='heading'>Low Level Query Interface</h1>
 
 <p>SQLExpressionLiteral is an expression built from a raw SQL snippet.</p>
-
 <pre class="highlight plaintext"><code>SQLExpressionLiteral("1 + 2")
 </code></pre>
 
 <p>The SQL literal may contain <code>?</code> and colon-prefixed tokens:</p>
-
 <pre class="highlight plaintext"><code>SQLExpressionLiteral("? + ?", arguments: [1, 2])
 SQLExpressionLiteral(":one + :two", arguments: ["one": 1, "two": 2])
 </code></pre>
@@ -2123,8 +2109,7 @@ SQLExpressionLiteral(":one + :two", arguments: ["one": 1, "two": 2])
 Do not use it directly.</p>
 
 <p>See <a href="https://github.com/groue/GRDB.swift/#the-query-interface">https://github.com/groue/GRDB.swift/#the-query-interface</a></p>
-
-<p><a href='#low-level-query-interface' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h1 id='low-level-query-interface'>Low Level Query Interface</h1></p>
+<h1 id='low-level-query-interface' class='heading'>Low Level Query Interface</h1>
 
 <p>SQLUnaryOperator is a SQLite unary operator.</p>
 
@@ -2161,12 +2146,10 @@ Do not use it directly.</p>
 Do not use it directly.</p>
 
 <p>See <a href="https://github.com/groue/GRDB.swift/#the-query-interface">https://github.com/groue/GRDB.swift/#the-query-interface</a></p>
-
-<p><a href='#low-level-query-interface' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h1 id='low-level-query-interface'>Low Level Query Interface</h1></p>
+<h1 id='low-level-query-interface' class='heading'>Low Level Query Interface</h1>
 
 <p>SQLExpressionUnary is an expression made of an unary operator and
 an operand expression.</p>
-
 <pre class="highlight plaintext"><code>SQLExpressionUnary(.not, Column("favorite"))
 </code></pre>
 
@@ -2214,8 +2197,7 @@ an operand expression.</p>
 Do not use it directly.</p>
 
 <p>See <a href="https://github.com/groue/GRDB.swift/#the-query-interface">https://github.com/groue/GRDB.swift/#the-query-interface</a></p>
-
-<p><a href='#low-level-query-interface' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h1 id='low-level-query-interface'>Low Level Query Interface</h1></p>
+<h1 id='low-level-query-interface' class='heading'>Low Level Query Interface</h1>
 
 <p>SQLBinaryOperator is a SQLite binary operator.</p>
 
@@ -2252,12 +2234,10 @@ Do not use it directly.</p>
 Do not use it directly.</p>
 
 <p>See <a href="https://github.com/groue/GRDB.swift/#the-query-interface">https://github.com/groue/GRDB.swift/#the-query-interface</a></p>
-
-<p><a href='#low-level-query-interface' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h1 id='low-level-query-interface'>Low Level Query Interface</h1></p>
+<h1 id='low-level-query-interface' class='heading'>Low Level Query Interface</h1>
 
 <p>SQLExpressionBinary is an expression made of two expressions joined with a
 binary operator.</p>
-
 <pre class="highlight plaintext"><code>SQLExpressionBinary(.multiply, Column("length"), Column("width"))
 </code></pre>
 
@@ -2305,8 +2285,7 @@ binary operator.</p>
 Do not use it directly.</p>
 
 <p>See <a href="https://github.com/groue/GRDB.swift/#the-query-interface">https://github.com/groue/GRDB.swift/#the-query-interface</a></p>
-
-<p><a href='#low-level-query-interface' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h1 id='low-level-query-interface'>Low Level Query Interface</h1></p>
+<h1 id='low-level-query-interface' class='heading'>Low Level Query Interface</h1>
 
 <p>SQLExpressionExists is an expression that checks if a subquery would return
 rows or not with the <code>EXISTS</code> operator.</p>
@@ -2355,8 +2334,7 @@ rows or not with the <code>EXISTS</code> operator.</p>
 Do not use it directly.</p>
 
 <p>See <a href="https://github.com/groue/GRDB.swift/#the-query-interface">https://github.com/groue/GRDB.swift/#the-query-interface</a></p>
-
-<p><a href='#low-level-query-interface' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h1 id='low-level-query-interface'>Low Level Query Interface</h1></p>
+<h1 id='low-level-query-interface' class='heading'>Low Level Query Interface</h1>
 
 <p>SQLFunctionName is an SQL function name.</p>
 
@@ -2393,11 +2371,9 @@ Do not use it directly.</p>
 Do not use it directly.</p>
 
 <p>See <a href="https://github.com/groue/GRDB.swift/#the-query-interface">https://github.com/groue/GRDB.swift/#the-query-interface</a></p>
-
-<p><a href='#low-level-query-interface' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h1 id='low-level-query-interface'>Low Level Query Interface</h1></p>
+<h1 id='low-level-query-interface' class='heading'>Low Level Query Interface</h1>
 
 <p>SQLExpressionFunction is an SQL function call.</p>
-
 <pre class="highlight plaintext"><code>// ABS(-1)
 SQLExpressionFunction(.abs, [-1.databaseValue])
 </code></pre>
@@ -2455,11 +2431,9 @@ number already assigned</li>
 <li><p><code>:AAAA</code> (e.g. <code>:name</code>): named argument</p></li>
 <li><p><code>$AAAA</code> (e.g. <code>$name</code>): named argument</p></li>
 </ul>
-
-<p><a href='#positional-arguments' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h2 id='positional-arguments'>Positional Arguments</h2></p>
+<h2 id='positional-arguments' class='heading'>Positional Arguments</h2>
 
 <p>To fill question marks placeholders, feed StatementArguments with an array:</p>
-
 <pre class="highlight plaintext"><code>db.execute(
     "INSERT ... (?, ?)",
     arguments: StatementArguments(["Arthur", 41]))
@@ -2469,11 +2443,9 @@ db.execute(
     "INSERT ... (?, ?)",
     arguments: ["Arthur", 41])
 </code></pre>
-
-<p><a href='#named-arguments' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h2 id='named-arguments'>Named Arguments</h2></p>
+<h2 id='named-arguments' class='heading'>Named Arguments</h2>
 
 <p>To fill named arguments, feed StatementArguments with a dictionary:</p>
-
 <pre class="highlight plaintext"><code>db.execute(
     "INSERT ... (:name, :age)",
     arguments: StatementArguments(["name": "Arthur", "age": 41]))
@@ -2483,12 +2455,10 @@ db.execute(
     "INSERT ... (:name, :age)",
     arguments: ["name": "Arthur", "age": 41])
 </code></pre>
-
-<p><a href='#concatenating-arguments' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h2 id='concatenating-arguments'>Concatenating Arguments</h2></p>
+<h2 id='concatenating-arguments' class='heading'>Concatenating Arguments</h2>
 
 <p>Several arguments can be concatenated and mixed with the
 <code>append(contentsOf:)</code> method and the <code>+</code>, <code>&amp;+</code>, <code>+=</code> operators:</p>
-
 <pre class="highlight plaintext"><code>var arguments: StatementArguments = ["Arthur"]
 arguments += [41]
 db.execute("INSERT ... (?, ?)", arguments: arguments)
@@ -2496,25 +2466,21 @@ db.execute("INSERT ... (?, ?)", arguments: arguments)
 
 <p><code>+</code> and <code>+=</code> operators consider that overriding named arguments is a
 programmer error:</p>
-
 <pre class="highlight plaintext"><code>var arguments: StatementArguments = ["name": "Arthur"]
 arguments += ["name": "Barbara"]
 // fatal error: already defined statement argument: name
 </code></pre>
 
 <p><code>&amp;+</code> and <code>append(contentsOf:)</code> allow overriding named arguments:</p>
-
 <pre class="highlight plaintext"><code>var arguments: StatementArguments = ["name": "Arthur"]
 arguments = arguments &amp;+ ["name": "Barbara"]
 print(arguments)
 // Prints ["name": "Barbara"]
 </code></pre>
-
-<p><a href='#mixed-arguments' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h2 id='mixed-arguments'>Mixed Arguments</h2></p>
+<h2 id='mixed-arguments' class='heading'>Mixed Arguments</h2>
 
 <p>When a statement consumes a mix of named and positional arguments, it
 prefers named arguments over positional ones. For example:</p>
-
 <pre class="highlight plaintext"><code>let sql = "SELECT ?2 AS two, :foo AS foo, ?1 AS one, :foo AS foo2, :bar AS bar"
 let row = try Row.fetchOne(db, sql, arguments: [1, 2, "bar"] + ["foo": "foo"])!
 print(row)
@@ -2543,7 +2509,7 @@ print(row)
         </section>
         <section id="footer">
           <p>&copy; 2017 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2017-05-05)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
     </div>

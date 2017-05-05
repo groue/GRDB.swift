@@ -766,11 +766,9 @@ number already assigned</li>
 <li><p><code>:AAAA</code> (e.g. <code>:name</code>): named argument</p></li>
 <li><p><code>$AAAA</code> (e.g. <code>$name</code>): named argument</p></li>
 </ul>
-
-<p><a href='#positional-arguments' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h2 id='positional-arguments'>Positional Arguments</h2></p>
+<h2 id='positional-arguments' class='heading'>Positional Arguments</h2>
 
 <p>To fill question marks placeholders, feed StatementArguments with an array:</p>
-
 <pre class="highlight plaintext"><code>db.execute(
     "INSERT ... (?, ?)",
     arguments: StatementArguments(["Arthur", 41]))
@@ -780,11 +778,9 @@ db.execute(
     "INSERT ... (?, ?)",
     arguments: ["Arthur", 41])
 </code></pre>
-
-<p><a href='#named-arguments' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h2 id='named-arguments'>Named Arguments</h2></p>
+<h2 id='named-arguments' class='heading'>Named Arguments</h2>
 
 <p>To fill named arguments, feed StatementArguments with a dictionary:</p>
-
 <pre class="highlight plaintext"><code>db.execute(
     "INSERT ... (:name, :age)",
     arguments: StatementArguments(["name": "Arthur", "age": 41]))
@@ -794,12 +790,10 @@ db.execute(
     "INSERT ... (:name, :age)",
     arguments: ["name": "Arthur", "age": 41])
 </code></pre>
-
-<p><a href='#concatenating-arguments' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h2 id='concatenating-arguments'>Concatenating Arguments</h2></p>
+<h2 id='concatenating-arguments' class='heading'>Concatenating Arguments</h2>
 
 <p>Several arguments can be concatenated and mixed with the
 <code>append(contentsOf:)</code> method and the <code>+</code>, <code>&amp;+</code>, <code>+=</code> operators:</p>
-
 <pre class="highlight plaintext"><code>var arguments: StatementArguments = ["Arthur"]
 arguments += [41]
 db.execute("INSERT ... (?, ?)", arguments: arguments)
@@ -807,25 +801,21 @@ db.execute("INSERT ... (?, ?)", arguments: arguments)
 
 <p><code>+</code> and <code>+=</code> operators consider that overriding named arguments is a
 programmer error:</p>
-
 <pre class="highlight plaintext"><code>var arguments: StatementArguments = ["name": "Arthur"]
 arguments += ["name": "Barbara"]
 // fatal error: already defined statement argument: name
 </code></pre>
 
 <p><code>&amp;+</code> and <code>append(contentsOf:)</code> allow overriding named arguments:</p>
-
 <pre class="highlight plaintext"><code>var arguments: StatementArguments = ["name": "Arthur"]
 arguments = arguments &amp;+ ["name": "Barbara"]
 print(arguments)
 // Prints ["name": "Barbara"]
 </code></pre>
-
-<p><a href='#mixed-arguments' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h2 id='mixed-arguments'>Mixed Arguments</h2></p>
+<h2 id='mixed-arguments' class='heading'>Mixed Arguments</h2>
 
 <p>When a statement consumes a mix of named and positional arguments, it
 prefers named arguments over positional ones. For example:</p>
-
 <pre class="highlight plaintext"><code>let sql = "SELECT ?2 AS two, :foo AS foo, ?1 AS one, :foo AS foo2, :bar AS bar"
 let row = try Row.fetchOne(db, sql, arguments: [1, 2, "bar"] + ["foo": "foo"])!
 print(row)
@@ -891,7 +881,6 @@ print(row)
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Initializes arguments from a sequence of optional values.</p>
-
 <pre class="highlight plaintext"><code>let values: [DatabaseValueConvertible?] = ["foo", 1, nil]
 db.execute("INSERT ... (?,?,?)", arguments: StatementArguments(values))
 </code></pre>
@@ -918,7 +907,6 @@ db.execute("INSERT ... (?,?,?)", arguments: StatementArguments(values))
                               <td>
                                 <div>
                                   <p>A sequence of DatabaseValueConvertible values.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -928,7 +916,6 @@ db.execute("INSERT ... (?,?,?)", arguments: StatementArguments(values))
                       <div>
                         <h4>Return Value</h4>
                         <p>A StatementArguments.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Statement.swift#L543-L545">Show on GitHub</a>
@@ -950,7 +937,6 @@ db.execute("INSERT ... (?,?,?)", arguments: StatementArguments(values))
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Initializes arguments from a sequence of optional values.</p>
-
 <pre class="highlight plaintext"><code>let values: [String] = ["foo", "bar"]
 db.execute("INSERT ... (?,?)", arguments: StatementArguments(values))
 </code></pre>
@@ -977,7 +963,6 @@ db.execute("INSERT ... (?,?)", arguments: StatementArguments(values))
                               <td>
                                 <div>
                                   <p>A sequence of DatabaseValueConvertible values.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -987,7 +972,6 @@ db.execute("INSERT ... (?,?)", arguments: StatementArguments(values))
                       <div>
                         <h4>Return Value</h4>
                         <p>A StatementArguments.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Statement.swift#L554-L556">Show on GitHub</a>
@@ -1034,7 +1018,6 @@ db.execute("INSERT ... (?,?)", arguments: StatementArguments(values))
                               <td>
                                 <div>
                                   <p>An array</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1044,7 +1027,6 @@ db.execute("INSERT ... (?,?)", arguments: StatementArguments(values))
                       <div>
                         <h4>Return Value</h4>
                         <p>A StatementArguments.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Statement.swift#L564-L573">Show on GitHub</a>
@@ -1078,7 +1060,6 @@ db.execute("INSERT ... (?,?)", arguments: StatementArguments(values))
                       <div class="abstract">
                         <p>Initializes arguments from a sequence of (key, value) dictionary, such as
 a dictionary.</p>
-
 <pre class="highlight plaintext"><code>let values: [String: DatabaseValueConvertible?] = ["firstName": nil, "lastName": "Miller"]
 db.execute("INSERT ... (:firstName, :lastName)", arguments: StatementArguments(values))
 </code></pre>
@@ -1105,7 +1086,6 @@ db.execute("INSERT ... (:firstName, :lastName)", arguments: StatementArguments(v
                               <td>
                                 <div>
                                   <p>A sequence of (key, value) pairs</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1115,7 +1095,6 @@ db.execute("INSERT ... (:firstName, :lastName)", arguments: StatementArguments(v
                       <div>
                         <h4>Return Value</h4>
                         <p>A StatementArguments.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Statement.swift#L586-L588">Show on GitHub</a>
@@ -1138,7 +1117,6 @@ db.execute("INSERT ... (:firstName, :lastName)", arguments: StatementArguments(v
                       <div class="abstract">
                         <p>Initializes arguments from a sequence of (key, value) pairs, such as
 a dictionary.</p>
-
 <pre class="highlight plaintext"><code>let values: [String: DatabaseValueConvertible?] = ["firstName": nil, "lastName": "Miller"]
 db.execute("INSERT ... (:firstName, :lastName)", arguments: StatementArguments(values))
 </code></pre>
@@ -1165,7 +1143,6 @@ db.execute("INSERT ... (:firstName, :lastName)", arguments: StatementArguments(v
                               <td>
                                 <div>
                                   <p>A sequence of (key, value) pairs</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1175,7 +1152,6 @@ db.execute("INSERT ... (:firstName, :lastName)", arguments: StatementArguments(v
                       <div>
                         <h4>Return Value</h4>
                         <p>A StatementArguments.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Statement.swift#L598-L600">Show on GitHub</a>
@@ -1223,7 +1199,6 @@ adopt DatabaseValueConvertible.</p>
                               <td>
                                 <div>
                                   <p>A dictionary.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1233,7 +1208,6 @@ adopt DatabaseValueConvertible.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>A StatementArguments.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Statement.swift#L609-L621">Show on GitHub</a>
@@ -1268,7 +1242,6 @@ adopt DatabaseValueConvertible.</p>
                         <p>Extends statement arguments with other arguments.</p>
 
 <p>Positional arguments (provided as arrays) are concatenated:</p>
-
 <pre class="highlight plaintext"><code>var arguments: StatementArguments = [1]
 arguments.append(contentsOf: [2, 3])
 print(arguments)
@@ -1276,7 +1249,6 @@ print(arguments)
 </code></pre>
 
 <p>Named arguments (provided as dictionaries) are updated:</p>
-
 <pre class="highlight plaintext"><code>var arguments: StatementArguments = ["foo": 1]
 arguments.append(contentsOf: ["bar": 2])
 print(arguments)
@@ -1284,7 +1256,6 @@ print(arguments)
 </code></pre>
 
 <p>Arguments that were replaced, if any, are returned:</p>
-
 <pre class="highlight plaintext"><code>var arguments: StatementArguments = ["foo": 1, "bar": 2]
 let replacedValues = arguments.append(contentsOf: ["foo": 3])
 print(arguments)
@@ -1295,7 +1266,6 @@ print(replacedValues)
 
 <p>You can mix named and positional arguments (see documentation of
 the StatementArguments type for more information about mixed arguments):</p>
-
 <pre class="highlight plaintext"><code>var arguments: StatementArguments = ["foo": 1]
 arguments.append(contentsOf: [2, 3])
 print(arguments)
@@ -1334,14 +1304,12 @@ print(arguments)
 arguments with the right-hand side arguments.</p>
 
 <p>Positional arguments (provided as arrays) are concatenated:</p>
-
 <pre class="highlight plaintext"><code>let arguments: StatementArguments = [1] + [2, 3]
 print(arguments)
 // Prints [1, 2, 3]
 </code></pre>
 
 <p>Named arguments (provided as dictionaries) are updated:</p>
-
 <pre class="highlight plaintext"><code>let arguments: StatementArguments = ["foo": 1] + ["bar": 2]
 print(arguments)
 // Prints ["foo": 1, "bar": 2]
@@ -1349,7 +1317,6 @@ print(arguments)
 
 <p>You can mix named and positional arguments (see documentation of
 the StatementArguments type for more information about mixed arguments):</p>
-
 <pre class="highlight plaintext"><code>let arguments: StatementArguments = ["foo": 1] + [2, 3]
 print(arguments)
 // Prints ["foo": 1, 2, 3]
@@ -1357,7 +1324,6 @@ print(arguments)
 
 <p>If the arguments on the right-hand side has named parameters that are
 already defined on the left, a fatal error is raised:</p>
-
 <pre class="highlight plaintext"><code>let arguments: StatementArguments = ["foo": 1] + ["foo": 2]
 // fatal error: already defined statement argument: foo
 </code></pre>
@@ -1397,14 +1363,12 @@ append(contentsOf:) method.</p>
 arguments with the right-hand side arguments.</p>
 
 <p>Positional arguments (provided as arrays) are concatenated:</p>
-
 <pre class="highlight plaintext"><code>let arguments: StatementArguments = [1] &amp;+ [2, 3]
 print(arguments)
 // Prints [1, 2, 3]
 </code></pre>
 
 <p>Named arguments (provided as dictionaries) are updated:</p>
-
 <pre class="highlight plaintext"><code>let arguments: StatementArguments = ["foo": 1] &amp;+ ["bar": 2]
 print(arguments)
 // Prints ["foo": 1, "bar": 2]
@@ -1412,7 +1376,6 @@ print(arguments)
 
 <p>You can mix named and positional arguments (see documentation of
 the StatementArguments type for more information about mixed arguments):</p>
-
 <pre class="highlight plaintext"><code>let arguments: StatementArguments = ["foo": 1] &amp;+ [2, 3]
 print(arguments)
 // Prints ["foo": 1, 2, 3]
@@ -1420,7 +1383,6 @@ print(arguments)
 
 <p>If a named arguments is defined in both arguments, the right-hand
 side wins:</p>
-
 <pre class="highlight plaintext"><code>let arguments: StatementArguments = ["foo": 1] &amp;+ ["foo": 2]
 print(arguments)
 // Prints ["foo": 2]
@@ -1457,7 +1419,6 @@ print(arguments)
                         <p>Extends the left-hand size arguments with the right-hand side arguments.</p>
 
 <p>Positional arguments (provided as arrays) are concatenated:</p>
-
 <pre class="highlight plaintext"><code>var arguments: StatementArguments = [1]
 arguments += [2, 3]
 print(arguments)
@@ -1465,7 +1426,6 @@ print(arguments)
 </code></pre>
 
 <p>Named arguments (provided as dictionaries) are updated:</p>
-
 <pre class="highlight plaintext"><code>var arguments: StatementArguments = ["foo": 1]
 arguments += ["bar": 2]
 print(arguments)
@@ -1474,7 +1434,6 @@ print(arguments)
 
 <p>You can mix named and positional arguments (see documentation of
 the StatementArguments type for more information about mixed arguments):</p>
-
 <pre class="highlight plaintext"><code>var arguments: StatementArguments = ["foo": 1]
 arguments.append(contentsOf: [2, 3])
 print(arguments)
@@ -1483,7 +1442,6 @@ print(arguments)
 
 <p>If the arguments on the right-hand side has named parameters that are
 already defined on the left, a fatal error is raised:</p>
-
 <pre class="highlight plaintext"><code>var arguments: StatementArguments = ["foo": 1]
 arguments += ["foo": 2]
 // fatal error: already defined statement argument: foo
@@ -1525,7 +1483,6 @@ append(contentsOf:) method.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a StatementArguments from an array literal:</p>
-
 <pre class="highlight plaintext"><code>db.selectRows("SELECT ...", arguments: ["Arthur", 41])
 </code></pre>
 
@@ -1562,7 +1519,6 @@ append(contentsOf:) method.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a StatementArguments from a dictionary literal:</p>
-
 <pre class="highlight plaintext"><code>db.selectRows("SELECT ...", arguments: ["name": "Arthur", "age": 41])
 </code></pre>
 
@@ -1621,7 +1577,7 @@ append(contentsOf:) method.</p>
         </section>
         <section id="footer">
           <p>&copy; 2017 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2017-05-05)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
     </div>

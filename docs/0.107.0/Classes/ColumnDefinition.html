@@ -756,7 +756,6 @@
             <p>The ColumnDefinition class lets you refine a table column.</p>
 
 <p>You get instances of this class when you create or alter a database table:</p>
-
 <pre class="highlight plaintext"><code>try db.create(table: "persons") { t in
     t.column(...)      // ColumnDefinition
 }
@@ -787,7 +786,6 @@ try db.alter(table: "persons") { t in
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Adds a primary key constraint on the column.</p>
-
 <pre class="highlight plaintext"><code>try db.create(table: "persons") { t in
     t.column("id", .integer).primaryKey()
 }
@@ -817,8 +815,8 @@ try db.alter(table: "persons") { t in
                               </td>
                               <td>
                                 <div>
-                                  <p>An optional conflict resolution (see <a href="https://www.sqlite.org/lang_conflict.html">https://www.sqlite.org/lang_conflict.html</a>).</p>
-
+                                  <p>An optional conflict resolution
+(see <a href="https://www.sqlite.org/lang_conflict.html">https://www.sqlite.org/lang_conflict.html</a>).</p>
                                 </div>
                               </td>
                             </tr>
@@ -831,7 +829,6 @@ try db.alter(table: "persons") { t in
                               <td>
                                 <div>
                                   <p>If true, the primary key is autoincremented.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -841,7 +838,6 @@ try db.alter(table: "persons") { t in
                       <div>
                         <h4>Return Value</h4>
                         <p>Self so that you can further refine the column definition.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/QueryInterface/TableDefinition.swift#L552-L555">Show on GitHub</a>
@@ -863,7 +859,6 @@ try db.alter(table: "persons") { t in
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Adds a NOT NULL constraint on the column.</p>
-
 <pre class="highlight plaintext"><code>try db.create(table: "persons") { t in
     t.column("name", .text).notNull()
 }
@@ -892,8 +887,8 @@ try db.alter(table: "persons") { t in
                               </td>
                               <td>
                                 <div>
-                                  <p>An optional conflict resolution (see <a href="https://www.sqlite.org/lang_conflict.html">https://www.sqlite.org/lang_conflict.html</a>).</p>
-
+                                  <p>An optional conflict resolution
+(see <a href="https://www.sqlite.org/lang_conflict.html">https://www.sqlite.org/lang_conflict.html</a>).</p>
                                 </div>
                               </td>
                             </tr>
@@ -903,7 +898,6 @@ try db.alter(table: "persons") { t in
                       <div>
                         <h4>Return Value</h4>
                         <p>Self so that you can further refine the column definition.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/QueryInterface/TableDefinition.swift#L569-L572">Show on GitHub</a>
@@ -925,7 +919,6 @@ try db.alter(table: "persons") { t in
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Adds a UNIQUE constraint on the column.</p>
-
 <pre class="highlight plaintext"><code>try db.create(table: "persons") { t in
     t.column("email", .text).unique()
 }
@@ -954,8 +947,8 @@ try db.alter(table: "persons") { t in
                               </td>
                               <td>
                                 <div>
-                                  <p>An optional conflict resolution (see <a href="https://www.sqlite.org/lang_conflict.html">https://www.sqlite.org/lang_conflict.html</a>).</p>
-
+                                  <p>An optional conflict resolution
+(see <a href="https://www.sqlite.org/lang_conflict.html">https://www.sqlite.org/lang_conflict.html</a>).</p>
                                 </div>
                               </td>
                             </tr>
@@ -965,7 +958,6 @@ try db.alter(table: "persons") { t in
                       <div>
                         <h4>Return Value</h4>
                         <p>Self so that you can further refine the column definition.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/QueryInterface/TableDefinition.swift#L586-L589">Show on GitHub</a>
@@ -987,7 +979,6 @@ try db.alter(table: "persons") { t in
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Adds a CHECK constraint on the column.</p>
-
 <pre class="highlight plaintext"><code>try db.create(table: "persons") { t in
     t.column("name", .text).check { length($0) &gt; 0 }
 }
@@ -1016,8 +1007,8 @@ try db.alter(table: "persons") { t in
                               </td>
                               <td>
                                 <div>
-                                  <p>A closure whose argument is an Column that represents the defined column, and returns the expression to check.</p>
-
+                                  <p>A closure whose argument is an Column that
+represents the defined column, and returns the expression to check.</p>
                                 </div>
                               </td>
                             </tr>
@@ -1027,7 +1018,6 @@ try db.alter(table: "persons") { t in
                       <div>
                         <h4>Return Value</h4>
                         <p>Self so that you can further refine the column definition.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/QueryInterface/TableDefinition.swift#L603-L606">Show on GitHub</a>
@@ -1049,7 +1039,6 @@ try db.alter(table: "persons") { t in
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Adds a CHECK constraint on the column.</p>
-
 <pre class="highlight plaintext"><code>try db.create(table: "persons") { t in
     t.column("name", .text).check(sql: "LENGTH(name) &gt; 0")
 }
@@ -1079,7 +1068,6 @@ try db.alter(table: "persons") { t in
                               <td>
                                 <div>
                                   <p>An SQL snippet.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1089,7 +1077,6 @@ try db.alter(table: "persons") { t in
                       <div>
                         <h4>Return Value</h4>
                         <p>Self so that you can further refine the column definition.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/QueryInterface/TableDefinition.swift#L619-L622">Show on GitHub</a>
@@ -1111,7 +1098,6 @@ try db.alter(table: "persons") { t in
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Defines the default column value.</p>
-
 <pre class="highlight plaintext"><code>try db.create(table: "persons") { t in
     t.column("name", .text).defaults(to: "Anonymous")
 }
@@ -1141,7 +1127,6 @@ try db.alter(table: "persons") { t in
                               <td>
                                 <div>
                                   <p>A DatabaseValueConvertible value.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1151,7 +1136,6 @@ try db.alter(table: "persons") { t in
                       <div>
                         <h4>Return Value</h4>
                         <p>Self so that you can further refine the column definition.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/QueryInterface/TableDefinition.swift#L635-L638">Show on GitHub</a>
@@ -1173,7 +1157,6 @@ try db.alter(table: "persons") { t in
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Defines the default column value.</p>
-
 <pre class="highlight plaintext"><code>try db.create(table: "persons") { t in
     t.column("creationDate", .DateTime).defaults(sql: "CURRENT_TIMESTAMP")
 }
@@ -1203,7 +1186,6 @@ try db.alter(table: "persons") { t in
                               <td>
                                 <div>
                                   <p>An SQL snippet.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1213,7 +1195,6 @@ try db.alter(table: "persons") { t in
                       <div>
                         <h4>Return Value</h4>
                         <p>Self so that you can further refine the column definition.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/QueryInterface/TableDefinition.swift#L651-L654">Show on GitHub</a>
@@ -1263,7 +1244,6 @@ try db.alter(table: "persons") { t in
                               <td>
                                 <div>
                                   <p>An Database.CollationName.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1273,7 +1253,6 @@ try db.alter(table: "persons") { t in
                       <div>
                         <h4>Return Value</h4>
                         <p>Self so that you can further refine the column definition.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/QueryInterface/TableDefinition.swift#L667-L670">Show on GitHub</a>
@@ -1323,7 +1302,6 @@ try db.alter(table: "persons") { t in
                               <td>
                                 <div>
                                   <p>A custom DatabaseCollation.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1333,7 +1311,6 @@ try db.alter(table: "persons") { t in
                       <div>
                         <h4>Return Value</h4>
                         <p>Self so that you can further refine the column definition.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/QueryInterface/TableDefinition.swift#L683-L686">Show on GitHub</a>
@@ -1355,7 +1332,6 @@ try db.alter(table: "persons") { t in
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Defines a foreign key.</p>
-
 <pre class="highlight plaintext"><code>try db.create(table: "books") { t in
     t.column("authorId", .integer).references("authors", onDelete: .cascade)
 }
@@ -1375,7 +1351,6 @@ try db.alter(table: "persons") { t in
                       <div>
                         <h4>Return Value</h4>
                         <p>Self so that you can further refine the column definition.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/QueryInterface/TableDefinition.swift#L706-L709">Show on GitHub</a>
@@ -1389,7 +1364,7 @@ try db.alter(table: "persons") { t in
         </section>
         <section id="footer">
           <p>&copy; 2017 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2017-05-05)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
     </div>

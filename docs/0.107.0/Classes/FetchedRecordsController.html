@@ -785,7 +785,6 @@ more information.</p>
                       <div class="abstract">
                         <p>Creates a fetched records controller initialized from a SQL query and
 its eventual arguments.</p>
-
 <pre class="highlight plaintext"><code>let controller = FetchedRecordsController&lt;Wine&gt;(
     dbQueue,
     sql: "SELECT * FROM wines WHERE color = ? ORDER BY name",
@@ -815,7 +814,6 @@ its eventual arguments.</p>
                               <td>
                                 <div>
                                   <p>A DatabaseWriter (DatabaseQueue, or DatabasePool)</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -828,7 +826,6 @@ its eventual arguments.</p>
                               <td>
                                 <div>
                                   <p>An SQL query.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -841,7 +838,6 @@ its eventual arguments.</p>
                               <td>
                                 <div>
                                   <p>Optional statement arguments.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -854,7 +850,6 @@ its eventual arguments.</p>
                               <td>
                                 <div>
                                   <p>Optional RowAdapter</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -867,8 +862,10 @@ its eventual arguments.</p>
                               <td>
                                 <div>
                                   <p>A serial dispatch queue (defaults to the main queue)</p>
-<p>The fetched records controller tracking callbacks will be notified of changes in this queue. The controller itself must be used from this queue.</p>
 
+<p>The fetched records controller tracking callbacks will be
+notified of changes in this queue. The controller itself must be
+used from this queue.</p>
                                 </div>
                               </td>
                             </tr>
@@ -881,8 +878,9 @@ its eventual arguments.</p>
                               <td>
                                 <div>
                                   <p>Optional function that compares two records.</p>
-<p>This function should return true if the two records have the same identity. For example, they have the same id.</p>
 
+<p>This function should return true if the two records have the
+same identity. For example, they have the same id.</p>
                                 </div>
                               </td>
                             </tr>
@@ -910,7 +908,6 @@ its eventual arguments.</p>
                       <div class="abstract">
                         <p>Creates a fetched records controller initialized from a fetch request
 from the <a href="https://github.com/groue/GRDB.swift#the-query-interface">Query Interface</a>.</p>
-
 <pre class="highlight plaintext"><code>let request = Wine.order(Column("name"))
 let controller = FetchedRecordsController(
     dbQueue,
@@ -940,7 +937,6 @@ let controller = FetchedRecordsController(
                               <td>
                                 <div>
                                   <p>A DatabaseWriter (DatabaseQueue, or DatabasePool)</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -953,7 +949,6 @@ let controller = FetchedRecordsController(
                               <td>
                                 <div>
                                   <p>A fetch request.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -966,8 +961,10 @@ let controller = FetchedRecordsController(
                               <td>
                                 <div>
                                   <p>A serial dispatch queue (defaults to the main queue)</p>
-<p>The fetched records controller tracking callbacks will be notified of changes in this queue. The controller itself must be used from this queue.</p>
 
+<p>The fetched records controller tracking callbacks will be
+notified of changes in this queue. The controller itself must be
+used from this queue.</p>
                                 </div>
                               </td>
                             </tr>
@@ -980,8 +977,9 @@ let controller = FetchedRecordsController(
                               <td>
                                 <div>
                                   <p>Optional function that compares two records.</p>
-<p>This function should return true if the two records have the same identity. For example, they have the same id.</p>
 
+<p>This function should return true if the two records have the
+same identity. For example, they have the same id.</p>
                                 </div>
                               </td>
                             </tr>
@@ -1217,7 +1215,6 @@ main queue unless stated otherwise in the controller&rsquo;s initializer).</p>
                               <td>
                                 <div>
                                   <p>Invoked before records are updated.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1229,8 +1226,8 @@ main queue unless stated otherwise in the controller&rsquo;s initializer).</p>
                               </td>
                               <td>
                                 <div>
-                                  <p>Invoked for each record that has been added, removed, moved, or updated.</p>
-
+                                  <p>Invoked for each record that has been added,
+removed, moved, or updated.</p>
                                 </div>
                               </td>
                             </tr>
@@ -1243,7 +1240,6 @@ main queue unless stated otherwise in the controller&rsquo;s initializer).</p>
                               <td>
                                 <div>
                                   <p>Invoked after records have been updated.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1299,8 +1295,12 @@ main queue unless stated otherwise in the controller&rsquo;s initializer).</p>
                               </td>
                               <td>
                                 <div>
-                                  <p>The value returned from this closure is given to willChange and didChange callbacks, as their <code>fetchedAlongside</code> argument. The closure is guaranteed to see the database in the state it has just after eventual changes to the fetched records have been performed. Use it in order to fetch values that must be consistent with the fetched records.</p>
-
+                                  <p>The value returned from this closure is given to
+willChange and didChange callbacks, as their
+<code>fetchedAlongside</code> argument. The closure is guaranteed to see the
+database in the state it has just after eventual changes to the
+fetched records have been performed. Use it in order to fetch
+values that must be consistent with the fetched records.</p>
                                 </div>
                               </td>
                             </tr>
@@ -1313,7 +1313,6 @@ main queue unless stated otherwise in the controller&rsquo;s initializer).</p>
                               <td>
                                 <div>
                                   <p>Invoked before records are updated.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1325,8 +1324,8 @@ main queue unless stated otherwise in the controller&rsquo;s initializer).</p>
                               </td>
                               <td>
                                 <div>
-                                  <p>Invoked for each record that has been added, removed, moved, or updated.</p>
-
+                                  <p>Invoked for each record that has been added,
+removed, moved, or updated.</p>
                                 </div>
                               </td>
                             </tr>
@@ -1339,7 +1338,6 @@ main queue unless stated otherwise in the controller&rsquo;s initializer).</p>
                               <td>
                                 <div>
                                   <p>Invoked after records have been updated.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1544,7 +1542,6 @@ main queue unless stated otherwise in the controller&rsquo;s initializer).</p>
                       <div class="abstract">
                         <p>Creates a fetched records controller initialized from a SQL query and
 its eventual arguments.</p>
-
 <pre class="highlight plaintext"><code>let controller = FetchedRecordsController&lt;Wine&gt;(
     dbQueue,
     sql: "SELECT * FROM wines WHERE color = ? ORDER BY name",
@@ -1554,7 +1551,6 @@ its eventual arguments.</p>
 <p>The records are compared by primary key (single-column primary key,
 compound primary key, or implicit rowid). For a database table which
 has an <code>id</code> primary key, this initializer is equivalent to:</p>
-
 <pre class="highlight plaintext"><code>// Assuming the wines table has an `id` primary key:
 let controller = FetchedRecordsController&lt;Wine&gt;(
     dbQueue,
@@ -1585,7 +1581,6 @@ let controller = FetchedRecordsController&lt;Wine&gt;(
                               <td>
                                 <div>
                                   <p>A DatabaseWriter (DatabaseQueue, or DatabasePool)</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1598,7 +1593,6 @@ let controller = FetchedRecordsController&lt;Wine&gt;(
                               <td>
                                 <div>
                                   <p>An SQL query.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1611,7 +1605,6 @@ let controller = FetchedRecordsController&lt;Wine&gt;(
                               <td>
                                 <div>
                                   <p>Optional statement arguments.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1624,7 +1617,6 @@ let controller = FetchedRecordsController&lt;Wine&gt;(
                               <td>
                                 <div>
                                   <p>Optional RowAdapter</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1637,8 +1629,10 @@ let controller = FetchedRecordsController&lt;Wine&gt;(
                               <td>
                                 <div>
                                   <p>A serial dispatch queue (defaults to the main queue)</p>
-<p>The fetched records controller tracking callbacks will be notified of changes in this queue. The controller itself must be used from this queue.</p>
 
+<p>The fetched records controller tracking callbacks will be
+notified of changes in this queue. The controller itself must be
+used from this queue.</p>
                                 </div>
                               </td>
                             </tr>
@@ -1666,7 +1660,6 @@ let controller = FetchedRecordsController&lt;Wine&gt;(
                       <div class="abstract">
                         <p>Creates a fetched records controller initialized from a fetch request
 from the <a href="https://github.com/groue/GRDB.swift#the-query-interface">Query Interface</a>.</p>
-
 <pre class="highlight plaintext"><code>let request = Wine.order(Column("name"))
 let controller = FetchedRecordsController(
     dbQueue,
@@ -1676,7 +1669,6 @@ let controller = FetchedRecordsController(
 <p>The records are compared by primary key (single-column primary key,
 compound primary key, or implicit rowid). For a database table which
 has an <code>id</code> primary key, this initializer is equivalent to:</p>
-
 <pre class="highlight plaintext"><code>// Assuming the wines table has an `id` primary key:
 let controller = FetchedRecordsController&lt;Wine&gt;(
     dbQueue,
@@ -1706,7 +1698,6 @@ let controller = FetchedRecordsController&lt;Wine&gt;(
                               <td>
                                 <div>
                                   <p>A DatabaseWriter (DatabaseQueue, or DatabasePool)</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1719,7 +1710,6 @@ let controller = FetchedRecordsController&lt;Wine&gt;(
                               <td>
                                 <div>
                                   <p>A fetch request.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1732,8 +1722,10 @@ let controller = FetchedRecordsController&lt;Wine&gt;(
                               <td>
                                 <div>
                                   <p>A serial dispatch queue (defaults to the main queue)</p>
-<p>The fetched records controller tracking callbacks will be notified of changes in this queue. The controller itself must be used from this queue.</p>
 
+<p>The fetched records controller tracking callbacks will be
+notified of changes in this queue. The controller itself must be
+used from this queue.</p>
                                 </div>
                               </td>
                             </tr>
@@ -1794,8 +1786,9 @@ let controller = FetchedRecordsController&lt;Wine&gt;(
                               <td>
                                 <div>
                                   <p>An index path in the fetched records.</p>
-<p>If indexPath does not describe a valid index path in the fetched records, a fatal error is raised.</p>
 
+<p>If indexPath does not describe a valid index path in the fetched
+records, a fatal error is raised.</p>
                                 </div>
                               </td>
                             </tr>
@@ -1885,8 +1878,8 @@ records. In this case, there is a single empty section.</p>
                       </div>
                       <div>
                         <h4>Return Value</h4>
-                        <p>The index path of  in the fetched records, or nil if record could not be found.</p>
-
+                        <p>The index path of <em>record</em> in the fetched records, or nil
+if record could not be found.</p>
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/FetchedRecordsController.swift#L818-L824">Show on GitHub</a>
@@ -1900,7 +1893,7 @@ records. In this case, there is a single empty section.</p>
         </section>
         <section id="footer">
           <p>&copy; 2017 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2017-05-05)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
     </div>

@@ -773,7 +773,6 @@
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns an expression that evaluates the <code>ABS</code> SQL function.</p>
-
 <pre class="highlight plaintext"><code>// ABS(amount)
 abs(Column("amount"))
 </code></pre>
@@ -818,7 +817,6 @@ abs(Column("amount"))
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns an expression that evaluates the <code>AVG</code> SQL function.</p>
-
 <pre class="highlight plaintext"><code>// AVG(length)
 average(Column("length"))
 </code></pre>
@@ -863,7 +861,6 @@ average(Column("length"))
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns an expression that evaluates the <code>COUNT</code> SQL function.</p>
-
 <pre class="highlight plaintext"><code>// COUNT(email)
 count(Column("email"))
 </code></pre>
@@ -908,7 +905,6 @@ count(Column("email"))
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns an expression that evaluates the <code>COUNT(DISTINCT)</code> SQL function.</p>
-
 <pre class="highlight plaintext"><code>// COUNT(DISTINCT email)
 count(distinct: Column("email"))
 </code></pre>
@@ -953,7 +949,6 @@ count(distinct: Column("email"))
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns an expression that evaluates the <code>IFNULL</code> SQL function.</p>
-
 <pre class="highlight plaintext"><code>// IFNULL(name, 'Anonymous')
 Column("name") ?? "Anonymous"
 </code></pre>
@@ -998,7 +993,6 @@ Column("name") ?? "Anonymous"
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns an expression that evaluates the <code>LENGTH</code> SQL function.</p>
-
 <pre class="highlight plaintext"><code>// LENGTH(name)
 length(Column("name"))
 </code></pre>
@@ -1043,7 +1037,6 @@ length(Column("name"))
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns an expression that evaluates the <code>MAX</code> SQL function.</p>
-
 <pre class="highlight plaintext"><code>// MAX(score)
 max(Column("score"))
 </code></pre>
@@ -1088,7 +1081,6 @@ max(Column("score"))
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns an expression that evaluates the <code>MIN</code> SQL function.</p>
-
 <pre class="highlight plaintext"><code>// MIN(score)
 min(Column("score"))
 </code></pre>
@@ -1133,7 +1125,6 @@ min(Column("score"))
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns an expression that evaluates the <code>SUM</code> SQL function.</p>
-
 <pre class="highlight plaintext"><code>// SUM(amount)
 sum(Column("amount"))
 </code></pre>
@@ -1178,13 +1169,11 @@ sum(Column("amount"))
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>=</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// name = 'Arthur'
 Column("name") == "Arthur"
 </code></pre>
 
 <p>When the right operand is nil, <code>IS NULL</code> is used instead.</p>
-
 <pre class="highlight plaintext"><code>// name IS NULL
 Column("name") == nil
 </code></pre>
@@ -1218,13 +1207,11 @@ Column("name") == nil
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>=</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// name = 'Arthur' COLLATE NOCASE
 Column("name").collating(.nocase) == "Arthur"
 </code></pre>
 
 <p>When the right operand is nil, <code>IS NULL</code> is used instead.</p>
-
 <pre class="highlight plaintext"><code>// name IS NULL
 Column("name").collating(.nocase) == nil
 </code></pre>
@@ -1260,7 +1247,6 @@ Column("name").collating(.nocase) == nil
                         <p>An SQL expression that checks the boolean value of an expression.</p>
 
 <p>The comparison is done with the built-in boolean evaluation of SQLite:</p>
-
 <pre class="highlight plaintext"><code>// validated
 Column("validated") == true
 
@@ -1297,13 +1283,11 @@ Column("validated") == false
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>=</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// 'Arthur' = name
 "Arthur" == Column("name")
 </code></pre>
 
 <p>When the left operand is nil, <code>IS NULL</code> is used instead.</p>
-
 <pre class="highlight plaintext"><code>// name IS NULL
 nil == Column("name")
 </code></pre>
@@ -1337,13 +1321,11 @@ nil == Column("name")
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>=</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// 'Arthur' = name COLLATE NOCASE
 "Arthur" == Column("name").collating(.nocase)
 </code></pre>
 
 <p>When the left operand is nil, <code>IS NULL</code> is used instead.</p>
-
 <pre class="highlight plaintext"><code>// name IS NULL
 nil == Column("name").collating(.nocase)
 </code></pre>
@@ -1379,7 +1361,6 @@ nil == Column("name").collating(.nocase)
                         <p>An SQL expression that checks the boolean value of an expression.</p>
 
 <p>The comparison is done with the built-in boolean evaluation of SQLite:</p>
-
 <pre class="highlight plaintext"><code>// validated
 true == Column("validated")
 
@@ -1416,7 +1397,6 @@ false == Column("validated")
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>=</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// email = login
 Column("email") == Column("login")
 </code></pre>
@@ -1450,13 +1430,11 @@ Column("email") == Column("login")
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>&lt;&gt;</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// name &lt;&gt; 'Arthur'
 Column("name") != "Arthur"
 </code></pre>
 
 <p>When the right operand is nil, <code>IS NOT NULL</code> is used instead.</p>
-
 <pre class="highlight plaintext"><code>// name IS NOT NULL
 Column("name") != nil
 </code></pre>
@@ -1490,13 +1468,11 @@ Column("name") != nil
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>&lt;&gt;</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// name &lt;&gt; 'Arthur' COLLATE NOCASE
 Column("name").collating(.nocase) != "Arthur"
 </code></pre>
 
 <p>When the right operand is nil, <code>IS NOT NULL</code> is used instead.</p>
-
 <pre class="highlight plaintext"><code>// name IS NOT NULL
 Column("name").collating(.nocase) != nil
 </code></pre>
@@ -1532,7 +1508,6 @@ Column("name").collating(.nocase) != nil
                         <p>An SQL expression that checks the boolean value of an expression.</p>
 
 <p>The comparison is done with the built-in boolean evaluation of SQLite:</p>
-
 <pre class="highlight plaintext"><code>// NOT validated
 Column("validated") != true
 
@@ -1569,13 +1544,11 @@ Column("validated") != false
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>&lt;&gt;</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// 'Arthur' &lt;&gt; name
 "Arthur" != Column("name")
 </code></pre>
 
 <p>When the left operand is nil, <code>IS NOT NULL</code> is used instead.</p>
-
 <pre class="highlight plaintext"><code>// name IS NOT NULL
 nil != Column("name")
 </code></pre>
@@ -1609,13 +1582,11 @@ nil != Column("name")
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>&lt;&gt;</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// 'Arthur' &lt;&gt; name COLLATE NOCASE
 "Arthur" != Column("name").collating(.nocase)
 </code></pre>
 
 <p>When the left operand is nil, <code>IS NOT NULL</code> is used instead.</p>
-
 <pre class="highlight plaintext"><code>// name IS NOT NULL
 nil != Column("name").collating(.nocase)
 </code></pre>
@@ -1651,7 +1622,6 @@ nil != Column("name").collating(.nocase)
                         <p>An SQL expression that checks the boolean value of an expression.</p>
 
 <p>The comparison is done with the built-in boolean evaluation of SQLite:</p>
-
 <pre class="highlight plaintext"><code>// NOT validated
 true != Column("validated")
 
@@ -1688,7 +1658,6 @@ false != Column("validated")
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>&lt;&gt;</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// email &lt;&gt; login
 Column("email") != Column("login")
 </code></pre>
@@ -1722,7 +1691,6 @@ Column("email") != Column("login")
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>IS</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// name IS 'Arthur'
 Column("name") === "Arthur"
 </code></pre>
@@ -1756,7 +1724,6 @@ Column("name") === "Arthur"
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>IS</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// name IS 'Arthur' COLLATE NOCASE
 Column("name").collating(.nocase) === "Arthur"
 </code></pre>
@@ -1790,7 +1757,6 @@ Column("name").collating(.nocase) === "Arthur"
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>IS</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// name IS 'Arthur'
 "Arthur" === Column("name")
 </code></pre>
@@ -1824,7 +1790,6 @@ Column("name").collating(.nocase) === "Arthur"
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>IS</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// name IS 'Arthur' COLLATE NOCASE
 "Arthur" === Column("name").collating(.nocase)
 </code></pre>
@@ -1858,7 +1823,6 @@ Column("name").collating(.nocase) === "Arthur"
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>IS</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// email IS login
 Column("email") === Column("login")
 </code></pre>
@@ -1892,7 +1856,6 @@ Column("email") === Column("login")
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>IS NOT</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// name IS NOT 'Arthur'
 Column("name") !== "Arthur"
 </code></pre>
@@ -1926,7 +1889,6 @@ Column("name") !== "Arthur"
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>IS NOT</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// name IS NOT 'Arthur' COLLATE NOCASE
 Column("name").collating(.nocase) !== "Arthur"
 </code></pre>
@@ -1960,7 +1922,6 @@ Column("name").collating(.nocase) !== "Arthur"
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>IS NOT</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// name IS NOT 'Arthur'
 "Arthur" !== Column("name")
 </code></pre>
@@ -1994,7 +1955,6 @@ Column("name").collating(.nocase) !== "Arthur"
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>IS NOT</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// name IS NOT 'Arthur' COLLATE NOCASE
 "Arthur" !== Column("name").collating(.nocase)
 </code></pre>
@@ -2028,7 +1988,6 @@ Column("name").collating(.nocase) !== "Arthur"
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>IS NOT</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// email IS NOT login
 Column("email") !== Column("login")
 </code></pre>
@@ -2073,7 +2032,6 @@ Column("email") !== Column("login")
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>&lt;</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// age &lt; 18
 Column("age") &lt; 18
 </code></pre>
@@ -2107,7 +2065,6 @@ Column("age") &lt; 18
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>&lt;</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// name &lt; 'Arthur' COLLATE NOCASE
 Column("name").collating(.nocase) &lt; "Arthur"
 </code></pre>
@@ -2141,7 +2098,6 @@ Column("name").collating(.nocase) &lt; "Arthur"
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>&lt;</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// 18 &lt; age
 18 &lt; Column("age")
 </code></pre>
@@ -2175,7 +2131,6 @@ Column("name").collating(.nocase) &lt; "Arthur"
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>&lt;</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// 'Arthur' &lt; name COLLATE NOCASE
 "Arthur" &lt; Column("name").collating(.nocase)
 </code></pre>
@@ -2209,7 +2164,6 @@ Column("name").collating(.nocase) &lt; "Arthur"
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>&lt;</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// width &lt; height
 Column("width") &lt; Column("height")
 </code></pre>
@@ -2243,7 +2197,6 @@ Column("width") &lt; Column("height")
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>&lt;=</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// age &lt;= 18
 Column("age") &lt;= 18
 </code></pre>
@@ -2277,7 +2230,6 @@ Column("age") &lt;= 18
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>&lt;=</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// name &lt;= 'Arthur' COLLATE NOCASE
 Column("name").collating(.nocase) &lt;= "Arthur"
 </code></pre>
@@ -2311,7 +2263,6 @@ Column("name").collating(.nocase) &lt;= "Arthur"
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>&lt;=</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// 18 &lt;= age
 18 &lt;= Column("age")
 </code></pre>
@@ -2345,7 +2296,6 @@ Column("name").collating(.nocase) &lt;= "Arthur"
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>&lt;=</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// 'Arthur' &lt;= name COLLATE NOCASE
 "Arthur" &lt;= Column("name").collating(.nocase)
 </code></pre>
@@ -2379,7 +2329,6 @@ Column("name").collating(.nocase) &lt;= "Arthur"
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>&lt;=</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// width &lt;= height
 Column("width") &lt;= Column("height")
 </code></pre>
@@ -2413,7 +2362,6 @@ Column("width") &lt;= Column("height")
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>&gt;</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// age &gt; 18
 Column("age") &gt; 18
 </code></pre>
@@ -2447,7 +2395,6 @@ Column("age") &gt; 18
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>&gt;</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// age &gt; 'Arthur' COLLATE NOCASE
 Column("name").collating(.nocase) &gt; "Arthur"
 </code></pre>
@@ -2481,7 +2428,6 @@ Column("name").collating(.nocase) &gt; "Arthur"
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>&gt;</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// 18 &gt; age
 18 &gt; Column("age")
 </code></pre>
@@ -2515,7 +2461,6 @@ Column("name").collating(.nocase) &gt; "Arthur"
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>&gt;</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// 'Arthur' &gt; name COLLATE NOCASE
 "Arthur" &gt; Column("name").collating(.nocase)
 </code></pre>
@@ -2549,7 +2494,6 @@ Column("name").collating(.nocase) &gt; "Arthur"
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>&gt;</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// width &gt; height
 Column("width") &gt; Column("height")
 </code></pre>
@@ -2583,7 +2527,6 @@ Column("width") &gt; Column("height")
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>&gt;=</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// age &gt;= 18
 Column("age") &gt;= 18
 </code></pre>
@@ -2617,7 +2560,6 @@ Column("age") &gt;= 18
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>&gt;=</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// name &gt;= 'Arthur' COLLATE NOCASE
 Column("name").collating(.nocase) &gt;= "Arthur"
 </code></pre>
@@ -2651,7 +2593,6 @@ Column("name").collating(.nocase) &gt;= "Arthur"
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>&gt;=</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// 18 &gt;= age
 18 &gt;= Column("age")
 </code></pre>
@@ -2685,7 +2626,6 @@ Column("name").collating(.nocase) &gt;= "Arthur"
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>&gt;=</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// 'Arthur' &gt;= age COLLATE NOCASE
 "Arthur" &gt;= Column("age").collating(.nocase)
 </code></pre>
@@ -2719,7 +2659,6 @@ Column("name").collating(.nocase) &gt;= "Arthur"
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL expression that compares two expressions with the <code>&gt;=</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// width &gt;= height
 Column("width") &gt;= Column("height")
 </code></pre>
@@ -2764,7 +2703,6 @@ Column("width") &gt;= Column("height")
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL arithmetic multiplication.</p>
-
 <pre class="highlight plaintext"><code>// width * 2
 Column("width") * 2
 </code></pre>
@@ -2798,7 +2736,6 @@ Column("width") * 2
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL arithmetic multiplication.</p>
-
 <pre class="highlight plaintext"><code>// 2 * width
 2 * Column("width")
 </code></pre>
@@ -2832,7 +2769,6 @@ Column("width") * 2
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL arithmetic multiplication.</p>
-
 <pre class="highlight plaintext"><code>// width * height
 Column("width") * Column("height")
 </code></pre>
@@ -2866,7 +2802,6 @@ Column("width") * Column("height")
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL arithmetic division.</p>
-
 <pre class="highlight plaintext"><code>// width / 2
 Column("width") / 2
 </code></pre>
@@ -2900,7 +2835,6 @@ Column("width") / 2
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL arithmetic division.</p>
-
 <pre class="highlight plaintext"><code>// 2 / width
 2 / Column("width")
 </code></pre>
@@ -2934,7 +2868,6 @@ Column("width") / 2
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL arithmetic division.</p>
-
 <pre class="highlight plaintext"><code>// width / height
 Column("width") / Column("height")
 </code></pre>
@@ -2968,7 +2901,6 @@ Column("width") / Column("height")
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL arithmetic addition.</p>
-
 <pre class="highlight plaintext"><code>// width + 2
 Column("width") + 2
 </code></pre>
@@ -3002,7 +2934,6 @@ Column("width") + 2
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL arithmetic addition.</p>
-
 <pre class="highlight plaintext"><code>// 2 + width
 2 + Column("width")
 </code></pre>
@@ -3036,7 +2967,6 @@ Column("width") + 2
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL arithmetic addition.</p>
-
 <pre class="highlight plaintext"><code>// width + height
 Column("width") + Column("height")
 </code></pre>
@@ -3070,7 +3000,6 @@ Column("width") + Column("height")
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>A negated SQL arithmetic expression.</p>
-
 <pre class="highlight plaintext"><code>// -width
 -Column("width")
 </code></pre>
@@ -3104,7 +3033,6 @@ Column("width") + Column("height")
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL arithmetic substraction.</p>
-
 <pre class="highlight plaintext"><code>// width - 2
 Column("width") - 2
 </code></pre>
@@ -3138,7 +3066,6 @@ Column("width") - 2
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL arithmetic substraction.</p>
-
 <pre class="highlight plaintext"><code>// 2 - width
 2 - Column("width")
 </code></pre>
@@ -3172,7 +3099,6 @@ Column("width") - 2
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL arithmetic substraction.</p>
-
 <pre class="highlight plaintext"><code>// width - height
 Column("width") - Column("height")
 </code></pre>
@@ -3217,7 +3143,6 @@ Column("width") - Column("height")
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>A logical SQL expression with the <code>AND</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// favorite AND 0
 Column("favorite") &amp;&amp; false
 </code></pre>
@@ -3251,7 +3176,6 @@ Column("favorite") &amp;&amp; false
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>A logical SQL expression with the <code>AND</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// 0 AND favorite
 false &amp;&amp; Column("favorite")
 </code></pre>
@@ -3285,7 +3209,6 @@ false &amp;&amp; Column("favorite")
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>A logical SQL expression with the <code>AND</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// email IS NOT NULL AND favorite
 Column("email") != nil &amp;&amp; Column("favorite")
 </code></pre>
@@ -3319,7 +3242,6 @@ Column("email") != nil &amp;&amp; Column("favorite")
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>A logical SQL expression with the <code>OR</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// favorite OR 1
 Column("favorite") || true
 </code></pre>
@@ -3353,7 +3275,6 @@ Column("favorite") || true
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>A logical SQL expression with the <code>OR</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// 0 OR favorite
 true || Column("favorite")
 </code></pre>
@@ -3387,7 +3308,6 @@ true || Column("favorite")
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>A logical SQL expression with the <code>OR</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// email IS NULL OR hidden
 Column("email") == nil || Column("hidden")
 </code></pre>
@@ -3421,13 +3341,11 @@ Column("email") == nil || Column("hidden")
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>A negated logical SQL expression with the <code>NOT</code> SQL operator.</p>
-
 <pre class="highlight plaintext"><code>// NOT hidden
 !Column("hidden")
 </code></pre>
 
 <p>Some expressions may be negated with specific SQL operators:</p>
-
 <pre class="highlight plaintext"><code>// id NOT BETWEEN 1 AND 10
 !((1...10).contains(Column("id")))
 </code></pre>
@@ -3472,7 +3390,6 @@ Column("email") == nil || Column("hidden")
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Return as many question marks separated with commas as the <em>count</em> argument.</p>
-
 <pre class="highlight plaintext"><code>databaseQuestionMarks(count: 3) // "?,?,?"
 </code></pre>
 
@@ -3497,7 +3414,7 @@ Column("email") == nil || Column("hidden")
         </section>
         <section id="footer">
           <p>&copy; 2017 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2017-05-05)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
     </div>

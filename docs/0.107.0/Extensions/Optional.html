@@ -779,7 +779,6 @@
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a cursor over optional values fetched from a prepared statement.</p>
-
 <pre class="highlight plaintext"><code>let statement = try db.makeSelectStatement("SELECT name FROM ...")
 let names = try Optional&lt;String&gt;.fetchCursor(statement) // DatabaseCursor&lt;String?&gt;
 while let name = try names.next() { // String?
@@ -791,7 +790,6 @@ while let name = try names.next() { // String?
 elements are undefined.</p>
 
 <p>The cursor must be iterated in a protected dispath queue.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -820,7 +818,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>The statement to run.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -833,7 +830,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>Optional statement arguments.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -846,7 +842,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>Optional RowAdapter</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -856,7 +851,6 @@ elements are undefined.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>A cursor over fetched optional values.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/DatabaseValueConvertible.swift#L324-L337">Show on GitHub</a>
@@ -878,11 +872,9 @@ elements are undefined.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns an array of optional values fetched from a prepared statement.</p>
-
 <pre class="highlight plaintext"><code>let statement = try db.makeSelectStatement("SELECT name FROM ...")
 let names = try Optional&lt;String&gt;.fetchAll(statement)  // [String?]
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -911,7 +903,6 @@ let names = try Optional&lt;String&gt;.fetchAll(statement)  // [String?]
                               <td>
                                 <div>
                                   <p>The statement to run.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -924,7 +915,6 @@ let names = try Optional&lt;String&gt;.fetchAll(statement)  // [String?]
                               <td>
                                 <div>
                                   <p>Optional statement arguments.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -937,7 +927,6 @@ let names = try Optional&lt;String&gt;.fetchAll(statement)  // [String?]
                               <td>
                                 <div>
                                   <p>Optional RowAdapter</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -947,7 +936,6 @@ let names = try Optional&lt;String&gt;.fetchAll(statement)  // [String?]
                       <div>
                         <h4>Return Value</h4>
                         <p>An array of optional values.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/DatabaseValueConvertible.swift#L350-L352">Show on GitHub</a>
@@ -980,7 +968,6 @@ let names = try Optional&lt;String&gt;.fetchAll(statement)  // [String?]
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a cursor over optional values fetched from a fetch request.</p>
-
 <pre class="highlight plaintext"><code>let nameColumn = Column("name")
 let request = Person.select(nameColumn)
 let names = try Optional&lt;String&gt;.fetchCursor(db, request) // DatabaseCursor&lt;String?&gt;
@@ -993,7 +980,6 @@ while let name = try names.next() { // String?
 elements are undefined.</p>
 
 <p>The cursor must be iterated in a protected dispath queue.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1022,7 +1008,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1035,7 +1020,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>A fetch request.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1045,7 +1029,6 @@ elements are undefined.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>A cursor over fetched optional values.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/DatabaseValueConvertible.swift#L378-L381">Show on GitHub</a>
@@ -1067,12 +1050,10 @@ elements are undefined.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns an array of optional values fetched from a fetch request.</p>
-
 <pre class="highlight plaintext"><code>let nameColumn = Column("name")
 let request = Person.select(nameColumn)
 let names = try Optional&lt;String&gt;.fetchAll(db, request) // [String?]
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1101,7 +1082,6 @@ let names = try Optional&lt;String&gt;.fetchAll(db, request) // [String?]
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1139,7 +1119,6 @@ let names = try Optional&lt;String&gt;.fetchAll(db, request) // [String?]
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a cursor over optional values fetched from an SQL query.</p>
-
 <pre class="highlight plaintext"><code>let names = try Optional&lt;String&gt;.fetchCursor(db, "SELECT name FROM ...") // DatabaseCursor&lt;String?&gt;
 while let name = try names.next() { // String?
     ...
@@ -1150,7 +1129,6 @@ while let name = try names.next() { // String?
 elements are undefined.</p>
 
 <p>The cursor must be iterated in a protected dispath queue.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1179,7 +1157,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1192,7 +1169,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>An SQL query.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1205,7 +1181,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>Optional statement arguments.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1218,7 +1193,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>Optional RowAdapter</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1228,7 +1202,6 @@ elements are undefined.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>A cursor over fetched optional values.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/DatabaseValueConvertible.swift#L420-L422">Show on GitHub</a>
@@ -1250,10 +1223,8 @@ elements are undefined.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns an array of optional values fetched from an SQL query.</p>
-
 <pre class="highlight plaintext"><code>let names = try String.fetchAll(db, "SELECT name FROM ...") // [String?]
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1282,7 +1253,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1295,7 +1265,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>An SQL query.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1307,8 +1276,7 @@ elements are undefined.</p>
                               </td>
                               <td>
                                 <div>
-                                  <p>Optional statement arguments.</p>
-
+                                  
                                 </div>
                               </td>
                             </tr>
@@ -1321,7 +1289,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>Optional RowAdapter</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1331,7 +1298,6 @@ elements are undefined.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>An array of optional values.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/DatabaseValueConvertible.swift#L435-L437">Show on GitHub</a>
@@ -1345,7 +1311,7 @@ elements are undefined.</p>
         </section>
         <section id="footer">
           <p>&copy; 2017 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2017-05-05)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
     </div>

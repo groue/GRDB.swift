@@ -783,7 +783,6 @@
                       <div class="abstract">
                         <p>Returns a new QueryInterfaceRequest with a matching predicate added
 to the eventual set of already applied predicates.</p>
-
 <pre class="highlight plaintext"><code>// SELECT * FROM books WHERE books MATCH '...'
 var request = Book.all()
 request = request.matching(pattern)
@@ -828,8 +827,7 @@ database row.</p>
 Do not use it directly.</p>
 
 <p>See <a href="https://github.com/groue/GRDB.swift/#the-query-interface">https://github.com/groue/GRDB.swift/#the-query-interface</a></p>
-
-<p><a href='#low-level-query-interface' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h1 id='low-level-query-interface'>Low Level Query Interface</h1></p>
+<h1 id='low-level-query-interface' class='heading'>Low Level Query Interface</h1>
 
 <p>See SQLSelectQuery.selectQuerySQL(_)</p>
 
@@ -873,14 +871,12 @@ Do not use it directly.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>A new QueryInterfaceRequest with a new net of selected columns.</p>
-
 <pre class="highlight plaintext"><code>// SELECT id, email FROM persons
 var request = Person.all()
 request = request.select(Column("id"), Column("email"))
 </code></pre>
 
 <p>Any previous selection is replaced:</p>
-
 <pre class="highlight plaintext"><code>// SELECT email FROM persons
 request
     .select(Column("id"))
@@ -916,14 +912,12 @@ request
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>A new QueryInterfaceRequest with a new net of selected columns.</p>
-
 <pre class="highlight plaintext"><code>// SELECT id, email FROM persons
 var request = Person.all()
 request = request.select([Column("id"), Column("email")])
 </code></pre>
 
 <p>Any previous selection is replaced:</p>
-
 <pre class="highlight plaintext"><code>// SELECT email FROM persons
 request
     .select([Column("id")])
@@ -959,14 +953,12 @@ request
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>A new QueryInterfaceRequest with a new net of selected columns.</p>
-
 <pre class="highlight plaintext"><code>// SELECT id, email FROM persons
 var request = Person.all()
 request = request.select(sql: "id, email")
 </code></pre>
 
 <p>Any previous selection is replaced:</p>
-
 <pre class="highlight plaintext"><code>// SELECT email FROM persons
 request
     .select(sql: "id")
@@ -1002,7 +994,6 @@ request
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>A new QueryInterfaceRequest which returns distinct rows.</p>
-
 <pre class="highlight plaintext"><code>// SELECT DISTINCT * FROM persons
 var request = Person.all()
 request = request.distinct()
@@ -1042,7 +1033,6 @@ request = request.distinct()
                       <div class="abstract">
                         <p>A new QueryInterfaceRequest with the provided <em>predicate</em> added to the
 eventual set of already applied predicates.</p>
-
 <pre class="highlight plaintext"><code>// SELECT * FROM persons WHERE email = 'arthur@example.com'
 var request = Person.all()
 request = request.filter(Column("email") == "arthur@example.com")
@@ -1078,7 +1068,6 @@ request = request.filter(Column("email") == "arthur@example.com")
                       <div class="abstract">
                         <p>A new QueryInterfaceRequest with the provided <em>predicate</em> added to the
 eventual set of already applied predicates.</p>
-
 <pre class="highlight plaintext"><code>// SELECT * FROM persons WHERE email = 'arthur@example.com'
 var request = Person.all()
 request = request.filter(sql: "email = ?", arguments: ["arthur@example.com"])
@@ -1265,14 +1254,12 @@ eventual set of already applied predicates.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>A new QueryInterfaceRequest with the provided <em>orderings</em>.</p>
-
 <pre class="highlight plaintext"><code>// SELECT * FROM persons ORDER BY name
 var request = Person.all()
 request = request.order(Column("name"))
 </code></pre>
 
 <p>Any previous ordering is replaced:</p>
-
 <pre class="highlight plaintext"><code>// SELECT * FROM persons ORDER BY name
 request
     .order(Column("email"))
@@ -1308,14 +1295,12 @@ request
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>A new QueryInterfaceRequest with the provided <em>orderings</em>.</p>
-
 <pre class="highlight plaintext"><code>// SELECT * FROM persons ORDER BY name
 var request = Person.all()
 request = request.order([Column("name")])
 </code></pre>
 
 <p>Any previous ordering is replaced:</p>
-
 <pre class="highlight plaintext"><code>// SELECT * FROM persons ORDER BY name
 request
     .order([Column("email")])
@@ -1351,14 +1336,12 @@ request
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>A new QueryInterfaceRequest with the provided <em>sql</em> used for sorting.</p>
-
 <pre class="highlight plaintext"><code>// SELECT * FROM persons ORDER BY name
 var request = Person.all()
 request = request.order(sql: "name")
 </code></pre>
 
 <p>Any previous ordering is replaced:</p>
-
 <pre class="highlight plaintext"><code>// SELECT * FROM persons ORDER BY name
 request
     .order(sql: "email")
@@ -1394,7 +1377,6 @@ request
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>A new QueryInterfaceRequest sorted in reversed order.</p>
-
 <pre class="highlight plaintext"><code>// SELECT * FROM persons ORDER BY name DESC
 var request = Person.all().order(Column("name"))
 request = request.reversed()
@@ -1430,7 +1412,6 @@ request = request.reversed()
                       <div class="abstract">
                         <p>A QueryInterfaceRequest which fetches <em>limit</em> rows, starting
 at <em>offset</em>.</p>
-
 <pre class="highlight plaintext"><code>// SELECT * FROM persons LIMIT 1
 var request = Person.all()
 request = request.limit(1)
@@ -1499,7 +1480,6 @@ request = request.limit(1)
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1537,7 +1517,6 @@ request = request.limit(1)
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Deletes matching rows; returns the number of deleted rows.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1566,7 +1545,6 @@ request = request.limit(1)
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1576,7 +1554,6 @@ request = request.limit(1)
                       <div>
                         <h4>Return Value</h4>
                         <p>The number of deleted rows</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/QueryInterface/QueryInterfaceRequest.swift#L255-L258">Show on GitHub</a>
@@ -1590,7 +1567,7 @@ request = request.limit(1)
         </section>
         <section id="footer">
           <p>&copy; 2017 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2017-05-05)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
     </div>

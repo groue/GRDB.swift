@@ -780,12 +780,10 @@
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Opens the SQLite database at path <em>path</em>.</p>
-
 <pre class="highlight plaintext"><code>let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
 </code></pre>
 
 <p>Database connections get closed when the database pool gets deallocated.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError whenever an SQLite error occurs.
@@ -814,7 +812,6 @@
                               <td>
                                 <div>
                                   <p>The path to the database file.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -827,7 +824,6 @@
                               <td>
                                 <div>
                                   <p>A configuration.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -840,7 +836,6 @@
                               <td>
                                 <div>
                                   <p>The maximum number of readers. Default is 5.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -946,7 +941,6 @@ more information.</p>
                               <td>
                                 <div>
                                   <p>The checkpoint mode (default passive)</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1106,7 +1100,6 @@ enters background.</li>
                       <div class="abstract">
                         <p>Synchronously executes a read-only block in a protected dispatch queue,
 and returns its result. The block is wrapped in a deferred transaction.</p>
-
 <pre class="highlight plaintext"><code>let persons = try dbPool.read { db in
     try Person.fetchAll(...)
 }
@@ -1114,7 +1107,6 @@ and returns its result. The block is wrapped in a deferred transaction.</p>
 
 <p>The block is completely isolated. Eventual concurrent database updates
 are <em>not visible</em> inside the block:</p>
-
 <pre class="highlight plaintext"><code>try dbPool.read { db in
     // Those two values are guaranteed to be equal, even if the
     // `wines` table is modified between the two requests:
@@ -1129,7 +1121,6 @@ try dbPool.read { db in
 </code></pre>
 
 <p>This method is <em>not</em> reentrant.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     The error thrown by the block, or any DatabaseError that would
@@ -1159,7 +1150,6 @@ happen while establishing the read access to the database.
                               <td>
                                 <div>
                                   <p>A block that accesses the database.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1190,7 +1180,6 @@ and returns its result.</p>
 
 <p>The block argument is not isolated: eventual concurrent database updates
 are visible inside the block:</p>
-
 <pre class="highlight plaintext"><code>try dbPool.unsafeRead { db in
     // Those two values may be different because some other thread
     // may have inserted or deleted a wine between the two requests:
@@ -1200,7 +1189,6 @@ are visible inside the block:</p>
 </code></pre>
 
 <p>Cursor iteration is safe, though:</p>
-
 <pre class="highlight plaintext"><code>try dbPool.unsafeRead { db in
     // No concurrent update can mess with this iteration:
     let rows = try Row.fetchCursor(db, "SELECT ...")
@@ -1209,7 +1197,6 @@ are visible inside the block:</p>
 </code></pre>
 
 <p>This method is <em>not</em> reentrant.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     The error thrown by the block, or any DatabaseError that would
@@ -1239,7 +1226,6 @@ happen while establishing the read access to the database.
                               <td>
                                 <div>
                                   <p>A block that accesses the database.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1277,7 +1263,6 @@ happen while establishing the read access to the database.
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Add or redefine an SQL function.</p>
-
 <pre class="highlight plaintext"><code>let fn = DatabaseFunction("succ", argumentCount: 1) { databaseValues in
     let dbv = databaseValues.first!
     guard let int = dbv.value() as Int? else {
@@ -1361,7 +1346,6 @@ try dbPool.read { db in
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Add or redefine a collation.</p>
-
 <pre class="highlight plaintext"><code>let collation = DatabaseCollation("localized_standard") { (string1, string2) in
     return (string1 as NSString).localizedStandardCompare(string2)
 }
@@ -1445,7 +1429,6 @@ and returns its result.</p>
 
 <p>Eventual concurrent database updates are postponed until the block
 has executed.</p>
-
 <pre class="highlight plaintext"><code>try dbPool.write { db in
     try db.execute(...)
 }
@@ -1456,7 +1439,6 @@ from seeing an inconsistent database state, prefer the
 writeInTransaction method.</p>
 
 <p>This method is <em>not</em> reentrant.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     The error thrown by the block.
@@ -1500,7 +1482,6 @@ has executed.</p>
 <p>If the block throws an error, the transaction is rollbacked and the
 error is rethrown. If the block returns .rollback, the transaction is
 also rollbacked, but no error is thrown.</p>
-
 <pre class="highlight plaintext"><code>try dbPool.writeInTransaction { db in
     db.execute(...)
     return .commit
@@ -1508,7 +1489,6 @@ also rollbacked, but no error is thrown.</p>
 </code></pre>
 
 <p>Eventual concurrent readers do not see partial changes:</p>
-
 <pre class="highlight plaintext"><code>dbPool.writeInTransaction { db in
     // Eventually preserve a zero balance
     try db.execute(db, "INSERT INTO credits ...", arguments: [amount])
@@ -1521,7 +1501,6 @@ dbPool.read { db in
 </code></pre>
 
 <p>This method is <em>not</em> reentrant.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     The error thrown by the block, or any error establishing the
@@ -1550,8 +1529,10 @@ transaction.
                               </td>
                               <td>
                                 <div>
-                                  <p>The transaction type (default nil). If nil, the transaction type is configuration.defaultTransactionKind, which itself defaults to .immediate. See <a href="https://www.sqlite.org/lang_transaction.html">https://www.sqlite.org/lang_transaction.html</a> for more information.</p>
-
+                                  <p>The transaction type (default nil). If nil, the transaction
+type is configuration.defaultTransactionKind, which itself
+defaults to .immediate. See <a href="https://www.sqlite.org/lang_transaction.html">https://www.sqlite.org/lang_transaction.html</a>
+for more information.</p>
                                 </div>
                               </td>
                             </tr>
@@ -1563,8 +1544,8 @@ transaction.
                               </td>
                               <td>
                                 <div>
-                                  <p>A block that executes SQL statements and return either .commit or .rollback.</p>
-
+                                  <p>A block that executes SQL statements and return either
+.commit or .rollback.</p>
                                 </div>
                               </td>
                             </tr>
@@ -1640,7 +1621,6 @@ wrapped in a deferred transaction.</p>
 <p>The <em>block</em> argument is guaranteed to see the database in the last
 committed state at the moment this method is called. Eventual concurrent
 database updates are <em>not visible</em> inside the block.</p>
-
 <pre class="highlight plaintext"><code>try dbPool.write { db in
     try db.execute("DELETE FROM persons")
     try dbPool.readFromCurrentState { db in
@@ -1653,7 +1633,6 @@ database updates are <em>not visible</em> inside the block.</p>
 
 <p>This method blocks the current thread until the isolation guarantee has
 been established, and before the block argument has run.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     The error thrown by the block, or any DatabaseError that would
@@ -1683,7 +1662,6 @@ happen while establishing the read access to the database.
                               <td>
                                 <div>
                                   <p>A block that accesses the database.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1702,7 +1680,7 @@ happen while establishing the read access to the database.
         </section>
         <section id="footer">
           <p>&copy; 2017 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2017-05-05)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
     </div>

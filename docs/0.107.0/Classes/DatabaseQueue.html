@@ -780,12 +780,10 @@
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Opens the SQLite database at path <em>path</em>.</p>
-
 <pre class="highlight plaintext"><code>let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 </code></pre>
 
 <p>Database connections get closed when the database queue gets deallocated.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError whenever an SQLite error occurs.
@@ -814,7 +812,6 @@
                               <td>
                                 <div>
                                   <p>The path to the database file.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -827,7 +824,6 @@
                               <td>
                                 <div>
                                   <p>A configuration.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -854,7 +850,6 @@
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Opens an in-memory SQLite database.</p>
-
 <pre class="highlight plaintext"><code>let dbQueue = DatabaseQueue()
 </code></pre>
 
@@ -882,7 +877,6 @@
                               <td>
                                 <div>
                                   <p>A configuration.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -992,14 +986,12 @@
                       <div class="abstract">
                         <p>Synchronously executes a block in a protected dispatch queue, and
 returns its result.</p>
-
 <pre class="highlight plaintext"><code>let persons = try dbQueue.inDatabase { db in
     try Person.fetchAll(...)
 }
 </code></pre>
 
 <p>This method is <em>not</em> reentrant.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     The error thrown by the block.
@@ -1028,7 +1020,6 @@ returns its result.</p>
                               <td>
                                 <div>
                                   <p>A block that accesses the database.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1060,7 +1051,6 @@ inside a transaction.</p>
 <p>If the block throws an error, the transaction is rollbacked and the
 error is rethrown. If the block returns .rollback, the transaction is
 also rollbacked, but no error is thrown.</p>
-
 <pre class="highlight plaintext"><code>try dbQueue.inTransaction { db in
     db.execute(...)
     return .commit
@@ -1068,7 +1058,6 @@ also rollbacked, but no error is thrown.</p>
 </code></pre>
 
 <p>This method is <em>not</em> reentrant.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     The error thrown by the block.
@@ -1096,8 +1085,10 @@ also rollbacked, but no error is thrown.</p>
                               </td>
                               <td>
                                 <div>
-                                  <p>The transaction type (default nil). If nil, the transaction type is configuration.defaultTransactionKind, which itself defaults to .immediate. See <a href="https://www.sqlite.org/lang_transaction.html">https://www.sqlite.org/lang_transaction.html</a> for more information.</p>
-
+                                  <p>The transaction type (default nil). If nil, the transaction
+type is configuration.defaultTransactionKind, which itself
+defaults to .immediate. See <a href="https://www.sqlite.org/lang_transaction.html">https://www.sqlite.org/lang_transaction.html</a>
+for more information.</p>
                                 </div>
                               </td>
                             </tr>
@@ -1109,8 +1100,8 @@ also rollbacked, but no error is thrown.</p>
                               </td>
                               <td>
                                 <div>
-                                  <p>A block that executes SQL statements and return either .commit or .rollback.</p>
-
+                                  <p>A block that executes SQL statements and return either
+.commit or .rollback.</p>
                                 </div>
                               </td>
                             </tr>
@@ -1270,7 +1261,6 @@ enters background.</li>
                       <div class="abstract">
                         <p>Synchronously executes a read-only block in a protected dispatch queue,
 and returns its result.</p>
-
 <pre class="highlight plaintext"><code>let persons = try dbQueue.read { db in
     try Person.fetchAll(...)
 }
@@ -1281,7 +1271,6 @@ and returns its result.</p>
 <p>Starting iOS 8.2, OSX 10.10, and with custom SQLite builds and
 SQLCipher, attempts to write in the database throw a DatabaseError whose
 resultCode is <code>SQLITE_READONLY</code>.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     The error thrown by the block.
@@ -1310,7 +1299,6 @@ resultCode is <code>SQLITE_READONLY</code>.</p>
                               <td>
                                 <div>
                                   <p>A block that accesses the database.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1378,7 +1366,6 @@ resultCode is <code>SQLITE_READONLY</code>.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Add or redefine an SQL function.</p>
-
 <pre class="highlight plaintext"><code>let fn = DatabaseFunction("succ", argumentCount: 1) { databaseValues in
     let dbv = databaseValues.first!
     guard let int = dbv.value() as Int? else {
@@ -1462,7 +1449,6 @@ try dbQueue.inDatabase { db in
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Add or redefine a collation.</p>
-
 <pre class="highlight plaintext"><code>let collation = DatabaseCollation("localized_standard") { (string1, string2) in
     return (string1 as NSString).localizedStandardCompare(string2)
 }
@@ -1632,7 +1618,7 @@ executing on the protected database dispatch queue.</p>
         </section>
         <section id="footer">
           <p>&copy; 2017 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2017-05-05)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
     </div>

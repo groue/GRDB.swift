@@ -754,14 +754,12 @@
                 </div>
               </div>
             <p>Types that adopt RowConvertible can be initialized from a database Row.</p>
-
 <pre class="highlight plaintext"><code>let row = try Row.fetchOne(db, "SELECT ...")!
 let person = Person(row)
 </code></pre>
 
 <p>The protocol comes with built-in methods that allow to fetch cursors,
 arrays, or single records:</p>
-
 <pre class="highlight plaintext"><code>try Person.fetchCursor(db, "SELECT ...", arguments:...) // DatabaseCursor&lt;Person&gt;
 try Person.fetchAll(db, "SELECT ...", arguments:...)    // [Person]
 try Person.fetchOne(db, "SELECT ...", arguments:...)    // Person?
@@ -884,7 +882,6 @@ initialization.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>A cursor over all records fetched from the database.</p>
-
 <pre class="highlight plaintext"><code>let persons = try Person.fetchCursor(db) // DatabaseCursor&lt;Person&gt;
 while let person = try persons.next() {  // Person
     ...
@@ -897,7 +894,6 @@ while let person = try persons.next() {  // Person
 elements are undefined.</p>
 
 <p>The cursor must be iterated in a protected dispath queue.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -926,7 +922,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -936,7 +931,6 @@ elements are undefined.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>A cursor over fetched records.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/RowConvertible+TableMapping.swift#L22-L24">Show on GitHub</a>
@@ -961,10 +955,8 @@ elements are undefined.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An array of all records fetched from the database.</p>
-
 <pre class="highlight plaintext"><code>let persons = try Person.fetchAll(db) // [Person]
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -993,7 +985,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1023,10 +1014,8 @@ elements are undefined.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>The first found record.</p>
-
 <pre class="highlight plaintext"><code>let person = try Person.fetchOne(db) // Person?
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1055,7 +1044,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1096,7 +1084,6 @@ elements are undefined.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a cursor over records, given their primary keys.</p>
-
 <pre class="highlight plaintext"><code>let persons = try Person.fetchCursor(db, keys: [1, 2, 3]) // DatabaseCursor&lt;Person&gt;
 while let person = try persons.next() {
     ...
@@ -1104,7 +1091,6 @@ while let person = try persons.next() {
 </code></pre>
 
 <p>Records are iterated in unspecified order.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1133,7 +1119,6 @@ while let person = try persons.next() {
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1146,7 +1131,6 @@ while let person = try persons.next() {
                               <td>
                                 <div>
                                   <p>A sequence of primary keys.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1156,7 +1140,6 @@ while let person = try persons.next() {
                       <div>
                         <h4>Return Value</h4>
                         <p>A cursor over fetched records.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/RowConvertible+TableMapping.swift#L65-L70">Show on GitHub</a>
@@ -1181,12 +1164,10 @@ while let person = try persons.next() {
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns an array of records, given their primary keys.</p>
-
 <pre class="highlight plaintext"><code>let persons = try Person.fetchAll(db, keys: [1, 2, 3]) // [Person]
 </code></pre>
 
 <p>The order of records in the returned array is undefined.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1215,7 +1196,6 @@ while let person = try persons.next() {
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1228,7 +1208,6 @@ while let person = try persons.next() {
                               <td>
                                 <div>
                                   <p>A sequence of primary keys.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1238,7 +1217,6 @@ while let person = try persons.next() {
                       <div>
                         <h4>Return Value</h4>
                         <p>An array of records.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/RowConvertible+TableMapping.swift#L83-L88">Show on GitHub</a>
@@ -1263,10 +1241,8 @@ while let person = try persons.next() {
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a single record given its primary key.</p>
-
 <pre class="highlight plaintext"><code>let person = try Person.fetchOne(db, key: 123) // Person?
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1295,7 +1271,6 @@ while let person = try persons.next() {
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1308,7 +1283,6 @@ while let person = try persons.next() {
                               <td>
                                 <div>
                                   <p>A primary key value.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1318,7 +1292,6 @@ while let person = try persons.next() {
                       <div>
                         <h4>Return Value</h4>
                         <p>An optional record.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/RowConvertible+TableMapping.swift#L99-L104">Show on GitHub</a>
@@ -1355,7 +1328,6 @@ while let person = try persons.next() {
                       <div class="abstract">
                         <p>Returns a cursor over records identified by the provided unique keys
 (primary key or any key with a unique index on it).</p>
-
 <pre class="highlight plaintext"><code>let persons = try Person.fetchCursor(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]]) // DatabaseCursor&lt;Person&gt;
 while let person = try persons.next() { // Person
     ...
@@ -1363,7 +1335,6 @@ while let person = try persons.next() { // Person
 </code></pre>
 
 <p>Records are iterated in unspecified order.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1392,7 +1363,6 @@ while let person = try persons.next() { // Person
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1405,7 +1375,6 @@ while let person = try persons.next() { // Person
                               <td>
                                 <div>
                                   <p>An array of key dictionaries.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1415,7 +1384,6 @@ while let person = try persons.next() { // Person
                       <div>
                         <h4>Return Value</h4>
                         <p>A cursor over fetched records.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/RowConvertible+TableMapping.swift#L160-L165">Show on GitHub</a>
@@ -1441,12 +1409,10 @@ while let person = try persons.next() { // Person
                       <div class="abstract">
                         <p>Returns an array of records identified by the provided unique keys
 (primary key or any key with a unique index on it).</p>
-
 <pre class="highlight plaintext"><code>let persons = try Person.fetchAll(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]]) // [Person]
 </code></pre>
 
 <p>The order of records in the returned array is undefined.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1475,7 +1441,6 @@ while let person = try persons.next() { // Person
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1488,7 +1453,6 @@ while let person = try persons.next() { // Person
                               <td>
                                 <div>
                                   <p>An array of key dictionaries.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1498,7 +1462,6 @@ while let person = try persons.next() { // Person
                       <div>
                         <h4>Return Value</h4>
                         <p>An array of records.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/RowConvertible+TableMapping.swift#L179-L184">Show on GitHub</a>
@@ -1524,10 +1487,8 @@ while let person = try persons.next() { // Person
                       <div class="abstract">
                         <p>Returns a single record identified by a unique key (the primary key or
 any key with a unique index on it).</p>
-
 <pre class="highlight plaintext"><code>let person = try Person.fetchOne(db, key: ["name": Arthur"]) // Person?
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1556,7 +1517,6 @@ any key with a unique index on it).</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1569,7 +1529,6 @@ any key with a unique index on it).</p>
                               <td>
                                 <div>
                                   <p>A dictionary of values.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1579,7 +1538,6 @@ any key with a unique index on it).</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>An optional record.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/RowConvertible+TableMapping.swift#L196-L198">Show on GitHub</a>
@@ -1615,7 +1573,6 @@ any key with a unique index on it).</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>A cursor over records fetched from a prepared statement.</p>
-
 <pre class="highlight plaintext"><code>let statement = try db.makeSelectStatement("SELECT * FROM persons")
 let persons = try Person.fetchCursor(statement) // DatabaseCursor&lt;Person&gt;
 while let person = try persons.next() { // Person
@@ -1627,7 +1584,6 @@ while let person = try persons.next() { // Person
 elements are undefined.</p>
 
 <p>The cursor must be iterated in a protected dispath queue.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1656,7 +1612,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>The statement to run.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1669,7 +1624,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>Optional statement arguments.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1682,7 +1636,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>Optional RowAdapter</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1692,7 +1645,6 @@ elements are undefined.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>A cursor over fetched records.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/RowConvertible.swift#L65-L75">Show on GitHub</a>
@@ -1717,11 +1669,9 @@ elements are undefined.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns an array of records fetched from a prepared statement.</p>
-
 <pre class="highlight plaintext"><code>let statement = try db.makeSelectStatement("SELECT * FROM persons")
 let persons = try Person.fetchAll(statement) // [Person]
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1750,7 +1700,6 @@ let persons = try Person.fetchAll(statement) // [Person]
                               <td>
                                 <div>
                                   <p>The statement to run.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1763,7 +1712,6 @@ let persons = try Person.fetchAll(statement) // [Person]
                               <td>
                                 <div>
                                   <p>Optional statement arguments.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1776,7 +1724,6 @@ let persons = try Person.fetchAll(statement) // [Person]
                               <td>
                                 <div>
                                   <p>Optional RowAdapter</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1786,7 +1733,6 @@ let persons = try Person.fetchAll(statement) // [Person]
                       <div>
                         <h4>Return Value</h4>
                         <p>An array of records.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/RowConvertible.swift#L88-L90">Show on GitHub</a>
@@ -1811,11 +1757,9 @@ let persons = try Person.fetchAll(statement) // [Person]
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a single record fetched from a prepared statement.</p>
-
 <pre class="highlight plaintext"><code>let statement = try db.makeSelectStatement("SELECT * FROM persons")
 let person = try Person.fetchOne(statement) // Person?
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1844,7 +1788,6 @@ let person = try Person.fetchOne(statement) // Person?
                               <td>
                                 <div>
                                   <p>The statement to run.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1857,7 +1800,6 @@ let person = try Person.fetchOne(statement) // Person?
                               <td>
                                 <div>
                                   <p>Optional statement arguments.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1870,7 +1812,6 @@ let person = try Person.fetchOne(statement) // Person?
                               <td>
                                 <div>
                                   <p>Optional RowAdapter</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1880,7 +1821,6 @@ let person = try Person.fetchOne(statement) // Person?
                       <div>
                         <h4>Return Value</h4>
                         <p>An optional record.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/RowConvertible.swift#L103-L105">Show on GitHub</a>
@@ -1916,7 +1856,6 @@ let person = try Person.fetchOne(statement) // Person?
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a cursor over records fetched from a fetch request.</p>
-
 <pre class="highlight plaintext"><code>let nameColumn = Column("firstName")
 let request = Person.order(nameColumn)
 let identities = try Identity.fetchCursor(db, request) // DatabaseCursor&lt;Identity&gt;
@@ -1929,7 +1868,6 @@ while let identity = try identities.next() { // Identity
 elements are undefined.</p>
 
 <p>The cursor must be iterated in a protected dispath queue.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1958,7 +1896,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1971,7 +1908,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>A fetch request.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1981,7 +1917,6 @@ elements are undefined.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>A cursor over fetched records.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/RowConvertible.swift#L131-L134">Show on GitHub</a>
@@ -2006,12 +1941,10 @@ elements are undefined.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns an array of records fetched from a fetch request.</p>
-
 <pre class="highlight plaintext"><code>let nameColumn = Column("name")
 let request = Person.order(nameColumn)
 let identities = try Identity.fetchAll(db, request) // [Identity]
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -2040,7 +1973,6 @@ let identities = try Identity.fetchAll(db, request) // [Identity]
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2070,12 +2002,10 @@ let identities = try Identity.fetchAll(db, request) // [Identity]
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a single record fetched from a fetch request.</p>
-
 <pre class="highlight plaintext"><code>let nameColumn = Column("name")
 let request = Person.order(nameColumn)
 let identity = try Identity.fetchOne(db, request) // Identity?
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -2104,7 +2034,6 @@ let identity = try Identity.fetchOne(db, request) // Identity?
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2145,7 +2074,6 @@ let identity = try Identity.fetchOne(db, request) // Identity?
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a cursor over records fetched from an SQL query.</p>
-
 <pre class="highlight plaintext"><code>let persons = try Person.fetchCursor(db, "SELECT * FROM persons") // DatabaseCursor&lt;Person&gt;
 while let person = try persons.next() { // Person
     ...
@@ -2156,7 +2084,6 @@ while let person = try persons.next() { // Person
 elements are undefined.</p>
 
 <p>The cursor must be iterated in a protected dispath queue.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -2185,7 +2112,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2198,7 +2124,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>An SQL query.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2211,7 +2136,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>Optional statement arguments.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2224,7 +2148,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>Optional RowAdapter</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2234,7 +2157,6 @@ elements are undefined.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>A cursor over fetched records.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/RowConvertible.swift#L186-L188">Show on GitHub</a>
@@ -2259,10 +2181,8 @@ elements are undefined.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns an array of records fetched from an SQL query.</p>
-
 <pre class="highlight plaintext"><code>let persons = try Person.fetchAll(db, "SELECT * FROM persons") // [Person]
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -2291,7 +2211,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2304,7 +2223,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>An SQL query.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2317,7 +2235,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>Optional statement arguments.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2330,7 +2247,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>Optional RowAdapter</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2340,7 +2256,6 @@ elements are undefined.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>An array of records.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/RowConvertible.swift#L201-L203">Show on GitHub</a>
@@ -2365,10 +2280,8 @@ elements are undefined.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a single record fetched from an SQL query.</p>
-
 <pre class="highlight plaintext"><code>let person = try Person.fetchOne(db, "SELECT * FROM persons") // Person?
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -2397,7 +2310,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2410,7 +2322,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>An SQL query.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2423,7 +2334,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>Optional statement arguments.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2436,7 +2346,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>Optional RowAdapter</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2446,7 +2355,6 @@ elements are undefined.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>An optional record.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/RowConvertible.swift#L216-L218">Show on GitHub</a>
@@ -2460,7 +2368,7 @@ elements are undefined.</p>
         </section>
         <section id="footer">
           <p>&copy; 2017 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2017-05-05)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
     </div>

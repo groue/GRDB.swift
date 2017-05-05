@@ -757,7 +757,6 @@
 
 <p>You don&rsquo;t create instances of this class. Instead, you use the Database
 <code>create(table:)</code> method:</p>
-
 <pre class="highlight plaintext"><code>try db.create(table: "persons") { t in // t is TableDefinition
     t.column(...)
 }
@@ -783,7 +782,6 @@
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Appends a table column.</p>
-
 <pre class="highlight plaintext"><code>try db.create(table: "persons") { t in
     t.column("name", .text)
 }
@@ -813,7 +811,6 @@
                               <td>
                                 <div>
                                   <p>the column name.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -826,7 +823,6 @@
                               <td>
                                 <div>
                                   <p>the column type.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -835,8 +831,8 @@
                       </div>
                       <div>
                         <h4>Return Value</h4>
-                        <p>An ColumnDefinition that allows you to refine the column definition.</p>
-
+                        <p>An ColumnDefinition that allows you to refine the
+column definition.</p>
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/QueryInterface/TableDefinition.swift#L258-L262">Show on GitHub</a>
@@ -858,7 +854,6 @@
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Defines the table primary key.</p>
-
 <pre class="highlight plaintext"><code>try db.create(table: "citizenships") { t in
     t.column("personID", .integer)
     t.column("countryCode", .text)
@@ -891,7 +886,6 @@
                               <td>
                                 <div>
                                   <p>The primary key columns.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -903,8 +897,8 @@
                               </td>
                               <td>
                                 <div>
-                                  <p>An optional conflict resolution (see <a href="https://www.sqlite.org/lang_conflict.html">https://www.sqlite.org/lang_conflict.html</a>).</p>
-
+                                  <p>An optional conflict resolution
+(see <a href="https://www.sqlite.org/lang_conflict.html">https://www.sqlite.org/lang_conflict.html</a>).</p>
                                 </div>
                               </td>
                             </tr>
@@ -931,7 +925,6 @@
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Adds a unique key.</p>
-
 <pre class="highlight plaintext"><code>try db.create(table: "pointOfInterests") { t in
     t.column("latitude", .double)
     t.column("longitude", .double)
@@ -963,7 +956,6 @@
                               <td>
                                 <div>
                                   <p>The unique key columns.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -975,8 +967,8 @@
                               </td>
                               <td>
                                 <div>
-                                  <p>An optional conflict resolution (see <a href="https://www.sqlite.org/lang_conflict.html">https://www.sqlite.org/lang_conflict.html</a>).</p>
-
+                                  <p>An optional conflict resolution
+(see <a href="https://www.sqlite.org/lang_conflict.html">https://www.sqlite.org/lang_conflict.html</a>).</p>
                                 </div>
                               </td>
                             </tr>
@@ -1003,7 +995,6 @@
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Adds a foreign key.</p>
-
 <pre class="highlight plaintext"><code>try db.create(table: "passport") { t in
     t.column("issueDate", .date)
     t.column("personID", .integer)
@@ -1036,7 +1027,6 @@
                               <td>
                                 <div>
                                   <p>The foreign key columns.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1049,7 +1039,6 @@
                               <td>
                                 <div>
                                   <p>The referenced table.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1061,8 +1050,9 @@
                               </td>
                               <td>
                                 <div>
-                                  <p>The columns in the referenced table. If not specified, the columns of the primary key of the referenced table are used.</p>
-
+                                  <p>The columns in the referenced table. If not
+specified, the columns of the primary key of the referenced table
+are used.</p>
                                 </div>
                               </td>
                             </tr>
@@ -1075,7 +1065,6 @@
                               <td>
                                 <div>
                                   <p>Optional action when the referenced row is deleted.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1088,7 +1077,6 @@
                               <td>
                                 <div>
                                   <p>Optional action when the referenced row is updated.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1100,8 +1088,8 @@
                               </td>
                               <td>
                                 <div>
-                                  <p>If true, defines a deferred foreign key constraint. See <a href="https://www.sqlite.org/foreignkeys.html#fk_deferred">https://www.sqlite.org/foreignkeys.html#fk_deferred</a>.</p>
-
+                                  <p>If true, defines a deferred foreign key constraint.
+See <a href="https://www.sqlite.org/foreignkeys.html#fk_deferred">https://www.sqlite.org/foreignkeys.html#fk_deferred</a>.</p>
                                 </div>
                               </td>
                             </tr>
@@ -1128,7 +1116,6 @@
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Adds a CHECK constraint.</p>
-
 <pre class="highlight plaintext"><code>try db.create(table: "persons") { t in
     t.column("personalPhone", .text)
     t.column("workPhone", .text)
@@ -1162,7 +1149,6 @@
                               <td>
                                 <div>
                                   <p>The checked condition</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1189,7 +1175,6 @@
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Adds a CHECK constraint.</p>
-
 <pre class="highlight plaintext"><code>try db.create(table: "persons") { t in
     t.column("personalPhone", .text)
     t.column("workPhone", .text)
@@ -1221,7 +1206,6 @@
                               <td>
                                 <div>
                                   <p>An SQL snippet</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1240,7 +1224,7 @@
         </section>
         <section id="footer">
           <p>&copy; 2017 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2017-05-05)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
     </div>

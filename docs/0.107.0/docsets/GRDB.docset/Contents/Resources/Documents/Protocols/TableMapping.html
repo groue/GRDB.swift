@@ -758,7 +758,6 @@ a database table.</p>
 
 <p>Types that adopt both TableMapping and RowConvertible are granted with
 built-in methods that allow to fetch instances identified by key:</p>
-
 <pre class="highlight plaintext"><code>try Person.fetchOne(db, key: 123)  // Person?
 try Citizenship.fetchOne(db, key: ["personId": 12, "countryId": 45]) // Citizenship?
 </code></pre>
@@ -819,13 +818,11 @@ try Citizenship.fetchOne(db, key: ["personId": 12, "countryId": 45]) // Citizens
 with other columns.</p>
 
 <p>Its default value is false:</p>
-
 <pre class="highlight plaintext"><code>// SELECT * FROM persons
 try Person.fetchAll(db)
 </code></pre>
 
 <p>When true, the rowid column is fetched:</p>
-
 <pre class="highlight plaintext"><code>// SELECT *, rowid FROM persons
 try Person.fetchAll(db)
 </code></pre>
@@ -878,14 +875,12 @@ try Person.fetchAll(db)
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a QueryInterfaceRequest with a matching predicate.</p>
-
 <pre class="highlight plaintext"><code>// SELECT * FROM books WHERE books MATCH '...'
 var request = Book.matching(pattern)
 </code></pre>
 
 <p>If the <code><a href="../Protocols/TableMapping.html#/s:ZvP4GRDB12TableMapping12selectsRowIDSb">selectsRowID</a></code> type property is true, then the selection includes
 the hidden <q>rowid</q> column:</p>
-
 <pre class="highlight plaintext"><code>// SELECT *, rowid FROM books WHERE books MATCH '...'
 var request = Book.matching(pattern)
 </code></pre>
@@ -936,14 +931,12 @@ database row.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Creates a QueryInterfaceRequest which fetches all records.</p>
-
 <pre class="highlight plaintext"><code>// SELECT * FROM persons
 var request = Person.all()
 </code></pre>
 
 <p>If the <code><a href="../Protocols/TableMapping.html#/s:ZvP4GRDB12TableMapping12selectsRowIDSb">selectsRowID</a></code> type property is true, then the selection includes
 the hidden <q>rowid</q> column:</p>
-
 <pre class="highlight plaintext"><code>// SELECT *, rowid FROM persons
 var request = Person.all()
 </code></pre>
@@ -1013,7 +1006,6 @@ var request = Person.all()
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Creates a QueryInterfaceRequest which selects <em>selection</em>.</p>
-
 <pre class="highlight plaintext"><code>// SELECT id, email FROM persons
 var request = Person.select(Column("id"), Column("email"))
 </code></pre>
@@ -1050,7 +1042,6 @@ var request = Person.select(Column("id"), Column("email"))
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Creates a QueryInterfaceRequest which selects <em>selection</em>.</p>
-
 <pre class="highlight plaintext"><code>// SELECT id, email FROM persons
 var request = Person.select([Column("id"), Column("email")])
 </code></pre>
@@ -1087,7 +1078,6 @@ var request = Person.select([Column("id"), Column("email")])
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Creates a QueryInterfaceRequest which selects <em>sql</em>.</p>
-
 <pre class="highlight plaintext"><code>// SELECT id, email FROM persons
 var request = Person.select(sql: "id, email")
 </code></pre>
@@ -1124,14 +1114,12 @@ var request = Person.select(sql: "id, email")
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Creates a QueryInterfaceRequest with the provided <em>predicate</em>.</p>
-
 <pre class="highlight plaintext"><code>// SELECT * FROM persons WHERE email = 'arthur@example.com'
 var request = Person.filter(Column("email") == "arthur@example.com")
 </code></pre>
 
 <p>If the <code><a href="../Protocols/TableMapping.html#/s:ZvP4GRDB12TableMapping12selectsRowIDSb">selectsRowID</a></code> type property is true, then the selection includes
 the hidden <q>rowid</q> column:</p>
-
 <pre class="highlight plaintext"><code>// SELECT *, rowid FROM persons WHERE email = 'arthur@example.com'
 var request = Person.filter(Column("email") == "arthur@example.com")
 </code></pre>
@@ -1168,14 +1156,12 @@ var request = Person.filter(Column("email") == "arthur@example.com")
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Creates a QueryInterfaceRequest with the provided <em>predicate</em>.</p>
-
 <pre class="highlight plaintext"><code>// SELECT * FROM persons WHERE email = 'arthur@example.com'
 var request = Person.filter(sql: "email = ?", arguments: ["arthur@example.com"])
 </code></pre>
 
 <p>If the <code><a href="../Protocols/TableMapping.html#/s:ZvP4GRDB12TableMapping12selectsRowIDSb">selectsRowID</a></code> type property is true, then the selection includes
 the hidden <q>rowid</q> column:</p>
-
 <pre class="highlight plaintext"><code>// SELECT *, rowid FROM persons WHERE email = 'arthur@example.com'
 var request = Person.filter(sql: "email = ?", arguments: ["arthur@example.com"])
 </code></pre>
@@ -1213,14 +1199,12 @@ var request = Person.filter(sql: "email = ?", arguments: ["arthur@example.com"])
                       <div class="abstract">
                         <p>Creates a QueryInterfaceRequest sorted according to the
 provided <em>orderings</em>.</p>
-
 <pre class="highlight plaintext"><code>// SELECT * FROM persons ORDER BY name
 var request = Person.order(Column("name"))
 </code></pre>
 
 <p>If the <code><a href="../Protocols/TableMapping.html#/s:ZvP4GRDB12TableMapping12selectsRowIDSb">selectsRowID</a></code> type property is true, then the selection includes
 the hidden <q>rowid</q> column:</p>
-
 <pre class="highlight plaintext"><code>// SELECT *, rowid FROM persons ORDER BY name
 var request = Person.order(Column("name"))
 </code></pre>
@@ -1258,14 +1242,12 @@ var request = Person.order(Column("name"))
                       <div class="abstract">
                         <p>Creates a QueryInterfaceRequest sorted according to the
 provided <em>orderings</em>.</p>
-
 <pre class="highlight plaintext"><code>// SELECT * FROM persons ORDER BY name
 var request = Person.order([Column("name")])
 </code></pre>
 
 <p>If the <code><a href="../Protocols/TableMapping.html#/s:ZvP4GRDB12TableMapping12selectsRowIDSb">selectsRowID</a></code> type property is true, then the selection includes
 the hidden <q>rowid</q> column:</p>
-
 <pre class="highlight plaintext"><code>// SELECT *, rowid FROM persons ORDER BY name
 var request = Person.order([Column("name")])
 </code></pre>
@@ -1302,14 +1284,12 @@ var request = Person.order([Column("name")])
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Creates a QueryInterfaceRequest sorted according to <em>sql</em>.</p>
-
 <pre class="highlight plaintext"><code>// SELECT * FROM persons ORDER BY name
 var request = Person.order(sql: "name")
 </code></pre>
 
 <p>If the <code><a href="../Protocols/TableMapping.html#/s:ZvP4GRDB12TableMapping12selectsRowIDSb">selectsRowID</a></code> type property is true, then the selection includes
 the hidden <q>rowid</q> column:</p>
-
 <pre class="highlight plaintext"><code>// SELECT *, rowid FROM persons ORDER BY name
 var request = Person.order(sql: "name")
 </code></pre>
@@ -1347,14 +1327,12 @@ var request = Person.order(sql: "name")
                       <div class="abstract">
                         <p>Creates a QueryInterfaceRequest which fetches <em>limit</em> rows, starting at
 <em>offset</em>.</p>
-
 <pre class="highlight plaintext"><code>// SELECT * FROM persons LIMIT 1
 var request = Person.limit(1)
 </code></pre>
 
 <p>If the <code><a href="../Protocols/TableMapping.html#/s:ZvP4GRDB12TableMapping12selectsRowIDSb">selectsRowID</a></code> type property is true, then the selection includes
 the hidden <q>rowid</q> column:</p>
-
 <pre class="highlight plaintext"><code>// SELECT *, rowid FROM persons LIMIT 1
 var request = Person.limit(1)
 </code></pre>
@@ -1425,7 +1403,6 @@ var request = Person.limit(1)
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1466,7 +1443,6 @@ var request = Person.limit(1)
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Deletes all records; returns the number of deleted rows.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1495,7 +1471,6 @@ var request = Person.limit(1)
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1505,7 +1480,6 @@ var request = Person.limit(1)
                       <div>
                         <h4>Return Value</h4>
                         <p>The number of deleted rows</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/TableMapping.swift#L57-L59">Show on GitHub</a>
@@ -1542,7 +1516,6 @@ var request = Person.limit(1)
                       <div class="abstract">
                         <p>Delete records identified by their primary keys; returns the number of
 deleted rows.</p>
-
 <pre class="highlight plaintext"><code>try Person.deleteAll(db, keys: [1, 2, 3])
 </code></pre>
 
@@ -1568,7 +1541,6 @@ deleted rows.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1581,7 +1553,6 @@ deleted rows.</p>
                               <td>
                                 <div>
                                   <p>A sequence of primary keys.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1591,7 +1562,6 @@ deleted rows.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>The number of deleted rows</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/TableMapping.swift#L76-L82">Show on GitHub</a>
@@ -1617,7 +1587,6 @@ deleted rows.</p>
                       <div class="abstract">
                         <p>Delete a record, identified by its primary key; returns whether a
 database row was deleted.</p>
-
 <pre class="highlight plaintext"><code>try Person.deleteOne(db, key: 123)
 </code></pre>
 
@@ -1643,7 +1612,6 @@ database row was deleted.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1656,7 +1624,6 @@ database row was deleted.</p>
                               <td>
                                 <div>
                                   <p>A primary key value.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1666,7 +1633,6 @@ database row was deleted.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>Whether a database row was deleted.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/TableMapping.swift#L94-L99">Show on GitHub</a>
@@ -1703,7 +1669,6 @@ database row was deleted.</p>
                       <div class="abstract">
                         <p>Delete records identified by the provided unique keys (primary key or
 any key with a unique index on it); returns the number of deleted rows.</p>
-
 <pre class="highlight plaintext"><code>try Person.deleteAll(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]])
 </code></pre>
 
@@ -1729,7 +1694,6 @@ any key with a unique index on it); returns the number of deleted rows.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1742,7 +1706,6 @@ any key with a unique index on it); returns the number of deleted rows.</p>
                               <td>
                                 <div>
                                   <p>An array of key dictionaries.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1752,7 +1715,6 @@ any key with a unique index on it); returns the number of deleted rows.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>The number of deleted rows</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/TableMapping.swift#L150-L156">Show on GitHub</a>
@@ -1778,7 +1740,6 @@ any key with a unique index on it); returns the number of deleted rows.</p>
                       <div class="abstract">
                         <p>Delete a record, identified by a unique key (the primary key or any key
 with a unique index on it); returns whether a database row was deleted.</p>
-
 <pre class="highlight plaintext"><code>Person.deleteOne(db, key: ["name": Arthur"])
 </code></pre>
 
@@ -1804,7 +1765,6 @@ with a unique index on it); returns whether a database row was deleted.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1817,7 +1777,6 @@ with a unique index on it); returns whether a database row was deleted.</p>
                               <td>
                                 <div>
                                   <p>A dictionary of values.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1827,7 +1786,6 @@ with a unique index on it); returns whether a database row was deleted.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>Whether a database row was deleted.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/TableMapping.swift#L168-L170">Show on GitHub</a>
@@ -1858,7 +1816,6 @@ with a unique index on it); returns whether a database row was deleted.</p>
                         <p>Returns a function that returns true if and only if two rows have the
 same primary key and both primary keys contain at least one non-null
 value.</p>
-
 <pre class="highlight plaintext"><code>try dbQueue.inDatabase { db in
     let comparator = try Person.primaryKeyRowComparator(db)
     let row0 = Row(["id": nil, "name": "Unsaved"])
@@ -1870,7 +1827,6 @@ value.</p>
     comparator(row1, row3) // false
 }
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError if table does not exist.
@@ -1898,7 +1854,7 @@ value.</p>
         </section>
         <section id="footer">
           <p>&copy; 2017 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2017-05-05)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
     </div>

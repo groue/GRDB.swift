@@ -803,7 +803,6 @@
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns an SQL function.</p>
-
 <pre class="highlight plaintext"><code>let fn = DatabaseFunction("succ", argumentCount: 1) { databaseValues in
     let dbv = databaseValues.first!
     guard let int = dbv.value() as Int? else {
@@ -837,7 +836,6 @@ try Int.fetchOne(db, "SELECT succ(1)")! // 2
                               <td>
                                 <div>
                                   <p>The function name.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -849,8 +847,8 @@ try Int.fetchOne(db, "SELECT succ(1)")! // 2
                               </td>
                               <td>
                                 <div>
-                                  <p>The number of arguments of the function. If omitted, or nil, the function accepts any number of arguments.</p>
-
+                                  <p>The number of arguments of the function. If
+omitted, or nil, the function accepts any number of arguments.</p>
                                 </div>
                               </td>
                             </tr>
@@ -862,8 +860,10 @@ try Int.fetchOne(db, "SELECT succ(1)")! // 2
                               </td>
                               <td>
                                 <div>
-                                  <p>Whether the function is “pure”, which means that its results only depends on its inputs. When a function is pure, SQLite has the opportunity to perform additional optimizations. Default value is false.</p>
-
+                                  <p>Whether the function is <q>pure</q>, which means that its results
+only depends on its inputs. When a function is pure, SQLite has
+the opportunity to perform additional optimizations. Default value
+is false.</p>
                                 </div>
                               </td>
                             </tr>
@@ -875,8 +875,11 @@ try Int.fetchOne(db, "SELECT succ(1)")! // 2
                               </td>
                               <td>
                                 <div>
-                                  <p>A function that takes an array of DatabaseValue arguments, and returns an optional DatabaseValueConvertible such as Int, String, NSDate, etc. The array is guaranteed to have exactly  elements, provided  is not nil.</p>
-
+                                  <p>A function that takes an array of DatabaseValue
+arguments, and returns an optional DatabaseValueConvertible such
+as Int, String, NSDate, etc. The array is guaranteed to have
+exactly <em>argumentCount</em> elements, provided <em>argumentCount</em> is
+not nil.</p>
                                 </div>
                               </td>
                             </tr>
@@ -1014,7 +1017,6 @@ String property.</p>
 <p>This function is automatically added by GRDB to your database
 connections. It is the function used by the query interface&rsquo;s
 capitalized:</p>
-
 <pre class="highlight plaintext"><code>let nameColumn = Column("name")
 let request = Person.select(nameColumn.capitalized)
 let names = try String.fetchAll(dbQueue, request)   // [String]
@@ -1056,7 +1058,6 @@ String property.</p>
 <p>This function is automatically added by GRDB to your database
 connections. It is the function used by the query interface&rsquo;s
 lowercased:</p>
-
 <pre class="highlight plaintext"><code>let nameColumn = Column("name")
 let request = Person.select(nameColumn.lowercased())
 let names = try String.fetchAll(dbQueue, request)   // [String]
@@ -1098,7 +1099,6 @@ String property.</p>
 <p>This function is automatically added by GRDB to your database
 connections. It is the function used by the query interface&rsquo;s
 uppercased:</p>
-
 <pre class="highlight plaintext"><code>let nameColumn = Column("name")
 let request = Person.select(nameColumn.uppercased())
 let names = try String.fetchAll(dbQueue, request)   // [String]
@@ -1144,7 +1144,6 @@ localizedCapitalized String property.</p>
 <p>This function is automatically added by GRDB to your database
 connections. It is the function used by the query interface&rsquo;s
 localizedCapitalized:</p>
-
 <pre class="highlight plaintext"><code>let nameColumn = Column("name")
 let request = Person.select(nameColumn.localizedCapitalized)
 let names = try String.fetchAll(dbQueue, request)   // [String]
@@ -1186,7 +1185,6 @@ localizedLowercased String property.</p>
 <p>This function is automatically added by GRDB to your database
 connections. It is the function used by the query interface&rsquo;s
 localizedLowercased:</p>
-
 <pre class="highlight plaintext"><code>let nameColumn = Column("name")
 let request = Person.select(nameColumn.localizedLowercased)
 let names = try String.fetchAll(dbQueue, request)   // [String]
@@ -1228,7 +1226,6 @@ localizedUppercased String property.</p>
 <p>This function is automatically added by GRDB to your database
 connections. It is the function used by the query interface&rsquo;s
 localizedUppercased:</p>
-
 <pre class="highlight plaintext"><code>let nameColumn = Column("name")
 let request = Person.select(nameColumn.localizedUppercased)
 let names = try String.fetchAll(dbQueue, request)   // [String]
@@ -1255,7 +1252,7 @@ let names = try String.fetchAll(dbQueue, request)   // [String]
         </section>
         <section id="footer">
           <p>&copy; 2017 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2017-05-05)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
     </div>

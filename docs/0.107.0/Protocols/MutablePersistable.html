@@ -836,7 +836,6 @@ updates, which has GRDB generate regular INSERT and UPDATE queries.</p>
 target database table (see TableMapping.databaseTableName()).</p>
 
 <p>In particular, primary key columns, if any, must be included.</p>
-
 <pre class="highlight plaintext"><code>struct Person : MutablePersistable {
     var id: Int64?
     var name: String?
@@ -885,7 +884,6 @@ dispatch queue, with the inserted RowID and the eventual
 INTEGER PRIMARY KEY column name.</p>
 
 <p>This method is optional: the default implementation does nothing.</p>
-
 <pre class="highlight plaintext"><code>struct Person : MutablePersistable {
     var id: Int64?
     var name: String?
@@ -925,7 +923,6 @@ INTEGER PRIMARY KEY column name.</p>
                               <td>
                                 <div>
                                   <p>The inserted rowID.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -938,7 +935,6 @@ INTEGER PRIMARY KEY column name.</p>
                               <td>
                                 <div>
                                   <p>The name of the eventual INTEGER PRIMARY KEY column.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -991,7 +987,6 @@ column name.</p>
 have to implement it. Yet your types can provide their own
 implementation of insert(). In their implementation, it is recommended
 that they invoke the performInsert() method.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError whenever an SQLite error occurs.
@@ -1027,7 +1022,6 @@ that they invoke the performInsert() method.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1065,7 +1059,6 @@ returns without error.</p>
 have to implement it. Yet your types can provide their own
 implementation of update(). In their implementation, it is recommended
 that they invoke the performUpdate() method.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1078,7 +1071,6 @@ match any row in the database.
                       <h4>Default Implementation</h4>
                       <div class="default_impl abstract">
                         <p>Executes an UPDATE statement.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1086,9 +1078,7 @@ PersistenceError.recordNotFound is thrown if the primary key does not
 match any row in the database.
 
 </div>
-
 <p>Executes an UPDATE statement.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1096,9 +1086,7 @@ PersistenceError.recordNotFound is thrown if the primary key does not
 match any row in the database.
 
 </div>
-
 <p>Executes an UPDATE statement.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1129,7 +1117,6 @@ match any row in the database.
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1142,7 +1129,6 @@ match any row in the database.
                               <td>
                                 <div>
                                   <p>The columns to update.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1186,7 +1172,6 @@ database if it returns without error.</p>
 have to implement it. Yet your types can provide their own
 implementation of save(). In their implementation, it is recommended
 that they invoke the performSave() method.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError whenever an SQLite error occurs, or errors
@@ -1224,7 +1209,6 @@ the database.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1259,7 +1243,6 @@ the database.</p>
 have to implement it. Yet your types can provide their own
 implementation of delete(). In their implementation, it is recommended
 that they invoke the performDelete() method.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1295,7 +1278,6 @@ that they invoke the performDelete() method.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1305,7 +1287,6 @@ that they invoke the performDelete() method.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>Whether a database row was deleted.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/Persistable.swift#L190">Show on GitHub</a>
@@ -1336,7 +1317,6 @@ the database.</p>
 have to implement it. Yet your types can provide their own
 implementation of exists(). In their implementation, it is recommended
 that they invoke the performExists() method.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1373,7 +1353,6 @@ the database.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1383,7 +1362,6 @@ the database.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>Whether the primary key matches a row in the database.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/Persistable.swift#L203">Show on GitHub</a>
@@ -1419,7 +1397,6 @@ the database.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Executes an UPDATE statement that updates all table columns.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1450,7 +1427,6 @@ match any row in the database.
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1536,7 +1512,6 @@ that adopt MutablePersistable.</p>
 that adopt MutablePersistable can invoke performUpdate() in their
 implementation of update(). They should not provide their own
 implementation of performUpdate().</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1567,7 +1542,6 @@ match any row in the database.
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1580,7 +1554,6 @@ match any row in the database.
                               <td>
                                 <div>
                                   <p>The columns to update.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1718,7 +1691,7 @@ implementation of performExists().</p>
         </section>
         <section id="footer">
           <p>&copy; 2017 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2017-05-05)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
     </div>

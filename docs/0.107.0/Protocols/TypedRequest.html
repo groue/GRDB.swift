@@ -758,7 +758,6 @@ a database, with an attached type.</p>
 
 <p>Typed requests can fetch if their associated type Fetched is fetchable
 (Row, value, record)</p>
-
 <pre class="highlight plaintext"><code>let request: ... // Some TypedRequest that fetches Person
 try request.fetchCursor(db) // DatabaseCursor&lt;Person&gt;
 try request.fetchAll(db)    // [Person]
@@ -830,7 +829,6 @@ try request.fetchOne(db)    // Person?
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>A cursor over fetched records.</p>
-
 <pre class="highlight plaintext"><code>let request: ... // Some TypedRequest that fetches Person
 let persons = try request.fetchCursor(db) // DatabaseCursor&lt;Person&gt;
 while let person = try persons.next() {   // Person
@@ -842,7 +840,6 @@ while let person = try persons.next() {   // Person
 elements are undefined.</p>
 
 <p>The cursor must be iterated in a protected dispath queue.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -871,7 +868,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -881,7 +877,6 @@ elements are undefined.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>A cursor over fetched records.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Request.swift#L234-L236">Show on GitHub</a>
@@ -906,11 +901,9 @@ elements are undefined.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An array of fetched records.</p>
-
 <pre class="highlight plaintext"><code>let request: ... // Some TypedRequest that fetches Person
 let persons = try request.fetchAll(db) // [Person]
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -939,7 +932,6 @@ let persons = try request.fetchAll(db) // [Person]
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -949,7 +941,6 @@ let persons = try request.fetchAll(db) // [Person]
                       <div>
                         <h4>Return Value</h4>
                         <p>An array of records.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Request.swift#L246-L248">Show on GitHub</a>
@@ -974,11 +965,9 @@ let persons = try request.fetchAll(db) // [Person]
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>The first fetched record.</p>
-
 <pre class="highlight plaintext"><code>let request: ... // Some TypedRequest that fetches Person
 let person = try request.fetchOne(db) // Person?
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1007,7 +996,6 @@ let person = try request.fetchOne(db) // Person?
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1017,7 +1005,6 @@ let person = try request.fetchOne(db) // Person?
                       <div>
                         <h4>Return Value</h4>
                         <p>An optional record.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Request.swift#L258-L260">Show on GitHub</a>
@@ -1053,7 +1040,6 @@ let person = try request.fetchOne(db) // Person?
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>A cursor over fetched values.</p>
-
 <pre class="highlight plaintext"><code>let request: ... // Some TypedRequest that fetches String
 let strings = try request.fetchCursor(db) // DatabaseCursor&lt;String&gt;
 while let string = try strings.next() {   // String
@@ -1065,7 +1051,6 @@ while let string = try strings.next() {   // String
 elements are undefined.</p>
 
 <p>The cursor must be iterated in a protected dispath queue.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1094,7 +1079,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1104,7 +1088,6 @@ elements are undefined.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>A cursor over fetched values.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Request.swift#L283-L285">Show on GitHub</a>
@@ -1129,11 +1112,9 @@ elements are undefined.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An array of fetched values.</p>
-
 <pre class="highlight plaintext"><code>let request: ... // Some TypedRequest that fetches String
 let strings = try request.fetchAll(db) // [String]
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1162,7 +1143,6 @@ let strings = try request.fetchAll(db) // [String]
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1172,7 +1152,6 @@ let strings = try request.fetchAll(db) // [String]
                       <div>
                         <h4>Return Value</h4>
                         <p>An array of values.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Request.swift#L295-L297">Show on GitHub</a>
@@ -1200,11 +1179,9 @@ let strings = try request.fetchAll(db) // [String]
 
 <p>The result is nil if the request returns no row, or if no value can be
 extracted from the first row.</p>
-
 <pre class="highlight plaintext"><code>let request: ... // Some TypedRequest that fetches String
 let string = try request.fetchOne(db) // String?
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1233,7 +1210,6 @@ let string = try request.fetchOne(db) // String?
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1243,7 +1219,6 @@ let string = try request.fetchOne(db) // String?
                       <div>
                         <h4>Return Value</h4>
                         <p>An optional value.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Request.swift#L310-L312">Show on GitHub</a>
@@ -1279,7 +1254,6 @@ let string = try request.fetchOne(db) // String?
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>A cursor over fetched values.</p>
-
 <pre class="highlight plaintext"><code>let request: ... // Some TypedRequest that fetches String
 let strings = try request.fetchCursor(db) // DatabaseCursor&lt;String&gt;
 while let string = try strings.next() {   // String
@@ -1291,7 +1265,6 @@ while let string = try strings.next() {   // String
 elements are undefined.</p>
 
 <p>The cursor must be iterated in a protected dispath queue.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1320,7 +1293,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1330,7 +1302,6 @@ elements are undefined.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>A cursor over fetched values.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Request.swift#L335-L337">Show on GitHub</a>
@@ -1355,11 +1326,9 @@ elements are undefined.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An array of fetched values.</p>
-
 <pre class="highlight plaintext"><code>let request: ... // Some TypedRequest that fetches String
 let strings = try request.fetchAll(db) // [String]
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1388,7 +1357,6 @@ let strings = try request.fetchAll(db) // [String]
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1398,7 +1366,6 @@ let strings = try request.fetchAll(db) // [String]
                       <div>
                         <h4>Return Value</h4>
                         <p>An array of values.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Request.swift#L347-L349">Show on GitHub</a>
@@ -1426,11 +1393,9 @@ let strings = try request.fetchAll(db) // [String]
 
 <p>The result is nil if the request returns no row, or if no value can be
 extracted from the first row.</p>
-
 <pre class="highlight plaintext"><code>let request: ... // Some TypedRequest that fetches String
 let string = try request.fetchOne(db) // String?
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1459,7 +1424,6 @@ let string = try request.fetchOne(db) // String?
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1469,7 +1433,6 @@ let string = try request.fetchOne(db) // String?
                       <div>
                         <h4>Return Value</h4>
                         <p>An optional value.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Request.swift#L362-L364">Show on GitHub</a>
@@ -1505,7 +1468,6 @@ let string = try request.fetchOne(db) // String?
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>A cursor over fetched optional values.</p>
-
 <pre class="highlight plaintext"><code>let request: ... // Some TypedRequest that fetches Optional&lt;String&gt;
 let strings = try request.fetchCursor(db) // DatabaseCursor&lt;String?&gt;
 while let string = try strings.next() {   // String?
@@ -1517,7 +1479,6 @@ while let string = try strings.next() {   // String?
 elements are undefined.</p>
 
 <p>The cursor must be iterated in a protected dispath queue.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1546,7 +1507,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1556,7 +1516,6 @@ elements are undefined.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>A cursor over fetched values.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Request.swift#L397-L399">Show on GitHub</a>
@@ -1581,11 +1540,9 @@ elements are undefined.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An array of fetched optional values.</p>
-
 <pre class="highlight plaintext"><code>let request: ... // Some TypedRequest that fetches Optional&lt;String&gt;
 let strings = try request.fetchAll(db) // [String?]
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1614,7 +1571,6 @@ let strings = try request.fetchAll(db) // [String?]
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1624,7 +1580,6 @@ let strings = try request.fetchAll(db) // [String?]
                       <div>
                         <h4>Return Value</h4>
                         <p>An array of values.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Request.swift#L409-L411">Show on GitHub</a>
@@ -1660,7 +1615,6 @@ let strings = try request.fetchAll(db) // [String?]
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>A cursor over fetched rows.</p>
-
 <pre class="highlight plaintext"><code>let request: ... // Some TypedRequest that fetches Row
 let rows = try request.fetchCursor(db) // DatabaseCursor&lt;Row&gt;
 while let row = try rows.next() {  // Row
@@ -1681,7 +1635,6 @@ row for later use: <code>row.copy()</code>.</p>
 elements are undefined.</p>
 
 <p>The cursor must be iterated in a protected dispath queue.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1710,7 +1663,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1720,7 +1672,6 @@ elements are undefined.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>A cursor over fetched rows.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Request.swift#L443-L445">Show on GitHub</a>
@@ -1745,11 +1696,9 @@ elements are undefined.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An array of fetched rows.</p>
-
 <pre class="highlight plaintext"><code>let request: ... // Some TypedRequest that fetches Row
 let rows = try request.fetchAll(db)
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1778,7 +1727,6 @@ let rows = try request.fetchAll(db)
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1788,7 +1736,6 @@ let rows = try request.fetchAll(db)
                       <div>
                         <h4>Return Value</h4>
                         <p>An array of fetched rows.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Request.swift#L455-L457">Show on GitHub</a>
@@ -1813,11 +1760,9 @@ let rows = try request.fetchAll(db)
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>The first fetched row.</p>
-
 <pre class="highlight plaintext"><code>let request: ... // Some TypedRequest that fetches Row
 let row = try request.fetchOne(db)
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1846,7 +1791,6 @@ let row = try request.fetchOne(db)
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1856,7 +1800,6 @@ let row = try request.fetchOne(db)
                       <div>
                         <h4>Return Value</h4>
                         <p>A,n optional rows.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Request.swift#L467-L469">Show on GitHub</a>
@@ -1870,7 +1813,7 @@ let row = try request.fetchOne(db)
         </section>
         <section id="footer">
           <p>&copy; 2017 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2017-05-05)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
     </div>

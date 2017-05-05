@@ -896,7 +896,6 @@ has been fetched from the database.</p>
 
 <p>This table name is required by the insert, update, save, delete,
 and exists methods.</p>
-
 <pre class="highlight plaintext"><code>class Person : Record {
     override class var databaseTableName: String {
         return "persons"
@@ -918,7 +917,6 @@ and exists methods.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>The name of a database table.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/Record.swift#L57-L60">Show on GitHub</a>
@@ -984,13 +982,11 @@ even if a row was actually inserted without any conflict.</p>
 with other columns.</p>
 
 <p>Its default value is false:</p>
-
 <pre class="highlight plaintext"><code>// SELECT * FROM persons
 try Person.fetchAll(db)
 </code></pre>
 
 <p>When true, the rowid column is fetched:</p>
-
 <pre class="highlight plaintext"><code>// SELECT *, rowid FROM persons
 try Person.fetchAll(db)
 </code></pre>
@@ -1029,7 +1025,6 @@ try Person.fetchAll(db)
 target database table (see Record.databaseTableName()).</p>
 
 <p>In particular, primary key columns, if any, must be included.</p>
-
 <pre class="highlight plaintext"><code>class Person : Record {
     var id: Int64?
     var name: String?
@@ -1077,7 +1072,6 @@ dispatch queue, with the inserted RowID and the eventual
 INTEGER PRIMARY KEY column name.</p>
 
 <p>The implementation of the base Record class does nothing.</p>
-
 <pre class="highlight plaintext"><code>class Person : Record {
     var id: Int64?
     var name: String?
@@ -1110,7 +1104,6 @@ INTEGER PRIMARY KEY column name.</p>
                               <td>
                                 <div>
                                   <p>The inserted rowID.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1123,7 +1116,6 @@ INTEGER PRIMARY KEY column name.</p>
                               <td>
                                 <div>
                                   <p>The name of the eventual INTEGER PRIMARY KEY column.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1178,7 +1170,6 @@ hasPersistentChangedValues flag.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>A copy of self.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/Record.swift#L149-L153">Show on GitHub</a>
@@ -1314,7 +1305,6 @@ returns without error.</p>
 <p>Records whose primary key is declared as <q>INTEGER PRIMARY KEY</q> have
 their id automatically set after successful insertion, if it was nil
 before the insertion.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError whenever an SQLite error occurs.
@@ -1343,7 +1333,6 @@ before the insertion.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1376,7 +1365,6 @@ to false.</p>
 
 <p>This method is guaranteed to have updated a row in the database if it
 returns without error.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1407,7 +1395,6 @@ match any row in the database and record could not be updated.
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1420,7 +1407,6 @@ match any row in the database and record could not be updated.
                               <td>
                                 <div>
                                   <p>The columns to update.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1459,7 +1445,6 @@ to false.</p>
 
 <p>This method is guaranteed to have inserted or updated a row in the
 database if it returns without error.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError whenever an SQLite error occurs, or errors
@@ -1489,7 +1474,6 @@ thrown by update().
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1519,7 +1503,6 @@ thrown by update().
 
 <p>On success, this method sets the <em>hasPersistentChangedValues</em> flag
 to true.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1548,7 +1531,6 @@ to true.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1558,7 +1540,6 @@ to true.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>Whether a database row was deleted.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Record/Record.swift#L348-L356">Show on GitHub</a>
@@ -1572,7 +1553,7 @@ to true.</p>
         </section>
         <section id="footer">
           <p>&copy; 2017 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2017-05-05)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
     </div>

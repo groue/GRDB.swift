@@ -757,7 +757,6 @@
 
 <p>You don&rsquo;t create a database directly. Instead, you use a DatabaseQueue, or
 a DatabasePool:</p>
-
 <pre class="highlight plaintext"><code>let dbQueue = DatabaseQueue(...)
 
 // The Database is the `db` in the closure:
@@ -865,7 +864,6 @@ remains locked for more than the specified duration.</p></li>
 </ul>
 
 <p>To set the busy mode of a database, use Configuration:</p>
-
 <pre class="highlight plaintext"><code>let configuration = Configuration(busyMode: .timeout(1))
 let dbQueue = DatabaseQueue(path: "...", configuration: configuration)
 </code></pre>
@@ -1006,7 +1004,6 @@ let dbQueue = DatabaseQueue(path: "...", configuration: configuration)
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>An SQL column type.</p>
-
 <pre class="highlight plaintext"><code>try db.create(table: "persons") { t in
     t.column("id", .integer).primaryKey()
     t.column("title", .text)
@@ -1400,12 +1397,10 @@ opened.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a new prepared statement that can be reused.</p>
-
 <pre class="highlight plaintext"><code>let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM persons WHERE age &gt; ?")
 let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
 let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError whenever SQLite could not parse the sql query.
@@ -1434,7 +1429,6 @@ let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
                               <td>
                                 <div>
                                   <p>An SQL query.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1444,7 +1438,6 @@ let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
                       <div>
                         <h4>Return Value</h4>
                         <p>A SelectStatement.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Database.swift#L622-L624">Show on GitHub</a>
@@ -1466,7 +1459,6 @@ let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a prepared statement that can be reused.</p>
-
 <pre class="highlight plaintext"><code>let statement = try db.cachedSelectStatement("SELECT COUNT(*) FROM persons WHERE age &gt; ?")
 let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
 let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
@@ -1474,7 +1466,6 @@ let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
 
 <p>The returned statement may have already been used: it may or may not
 contain values for its eventual arguments.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError whenever SQLite could not parse the sql query.
@@ -1503,7 +1494,6 @@ contain values for its eventual arguments.</p>
                               <td>
                                 <div>
                                   <p>An SQL query.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1513,7 +1503,6 @@ contain values for its eventual arguments.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>An UpdateStatement.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Database.swift#L638-L640">Show on GitHub</a>
@@ -1535,12 +1524,10 @@ contain values for its eventual arguments.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a new prepared statement that can be reused.</p>
-
 <pre class="highlight plaintext"><code>let statement = try db.makeUpdateStatement("INSERT INTO persons (name) VALUES (?)")
 try statement.execute(arguments: ["Arthur"])
 try statement.execute(arguments: ["Barbara"])
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError whenever SQLite could not parse the sql query.
@@ -1569,7 +1556,6 @@ try statement.execute(arguments: ["Barbara"])
                               <td>
                                 <div>
                                   <p>An SQL query.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1579,7 +1565,6 @@ try statement.execute(arguments: ["Barbara"])
                       <div>
                         <h4>Return Value</h4>
                         <p>An UpdateStatement.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Database.swift#L659-L661">Show on GitHub</a>
@@ -1601,7 +1586,6 @@ try statement.execute(arguments: ["Barbara"])
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a prepared statement that can be reused.</p>
-
 <pre class="highlight plaintext"><code>let statement = try db.cachedUpdateStatement("INSERT INTO persons (name) VALUES (?)")
 try statement.execute(arguments: ["Arthur"])
 try statement.execute(arguments: ["Barbara"])
@@ -1609,7 +1593,6 @@ try statement.execute(arguments: ["Barbara"])
 
 <p>The returned statement may have already been used: it may or may not
 contain values for its eventual arguments.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError whenever SQLite could not parse the sql query.
@@ -1638,7 +1621,6 @@ contain values for its eventual arguments.</p>
                               <td>
                                 <div>
                                   <p>An SQL query.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1648,7 +1630,6 @@ contain values for its eventual arguments.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>An UpdateStatement.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Database.swift#L675-L677">Show on GitHub</a>
@@ -1670,7 +1651,6 @@ contain values for its eventual arguments.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Executes one or several SQL statements, separated by semi-colons.</p>
-
 <pre class="highlight plaintext"><code>try db.execute(
     "INSERT INTO persons (name) VALUES (:name)",
     arguments: ["name": "Arthur"])
@@ -1683,7 +1663,6 @@ try db.execute(
 </code></pre>
 
 <p>This method may throw a DatabaseError.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError whenever an SQLite error occurs.
@@ -1712,7 +1691,6 @@ try db.execute(
                               <td>
                                 <div>
                                   <p>An SQL query.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1725,7 +1703,6 @@ try db.execute(
                               <td>
                                 <div>
                                   <p>Optional statement arguments.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1756,7 +1733,6 @@ try db.execute(
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Add or redefine an SQL function.</p>
-
 <pre class="highlight plaintext"><code>let fn = DatabaseFunction("succ", argumentCount: 1) { databaseValues in
     let dbv = databaseValues.first!
     guard let int = dbv.value() as Int? else {
@@ -1831,7 +1807,6 @@ try Int.fetchOne(db, "SELECT succ(1)")! // 2
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Add or redefine a collation.</p>
-
 <pre class="highlight plaintext"><code>let collation = DatabaseCollation("localized_standard") { (string1, string2) in
     return (string1 as NSString).localizedStandardCompare(string2)
 }
@@ -1966,7 +1941,6 @@ modified by another connection.</p>
                       <div class="abstract">
                         <p>The primary key for table named <code>tableName</code>; nil if table has no
 primary key.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError if table does not exist.
@@ -2002,7 +1976,6 @@ primary key.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>The number of columns in the table named <code>tableName</code>.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError if table does not exist.
@@ -2110,7 +2083,6 @@ if the columns are the primary key, or if there is a unique index on them.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Executes a block inside a database transaction.</p>
-
 <pre class="highlight plaintext"><code>try dbQueue.inDatabase do {
     try db.inTransaction {
         try db.execute("INSERT ...")
@@ -2123,7 +2095,6 @@ if the columns are the primary key, or if there is a unique index on them.</p>
 error is rethrown.</p>
 
 <p>This method is not reentrant: you can&rsquo;t nest transactions.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     The error thrown by the block.
@@ -2151,8 +2122,10 @@ error is rethrown.</p>
                               </td>
                               <td>
                                 <div>
-                                  <p>The transaction type (default nil). If nil, the transaction type is configuration.defaultTransactionKind, which itself defaults to .immediate. See <a href="https://www.sqlite.org/lang_transaction.html">https://www.sqlite.org/lang_transaction.html</a> for more information.</p>
-
+                                  <p>The transaction type (default nil). If nil, the transaction
+type is configuration.defaultTransactionKind, which itself
+defaults to .immediate. See <a href="https://www.sqlite.org/lang_transaction.html">https://www.sqlite.org/lang_transaction.html</a>
+for more information.</p>
                                 </div>
                               </td>
                             </tr>
@@ -2164,8 +2137,8 @@ error is rethrown.</p>
                               </td>
                               <td>
                                 <div>
-                                  <p>A block that executes SQL statements and return either .commit or .rollback.</p>
-
+                                  <p>A block that executes SQL statements and return either
+.commit or .rollback.</p>
                                 </div>
                               </td>
                             </tr>
@@ -2192,7 +2165,6 @@ error is rethrown.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Executes a block inside a savepoint.</p>
-
 <pre class="highlight plaintext"><code>try dbQueue.inDatabase do {
     try db.inSavepoint {
         try db.execute("INSERT ...")
@@ -2205,7 +2177,6 @@ error is rethrown.</p>
 error is rethrown.</p>
 
 <p>This method is reentrant: you can nest savepoints.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     The error thrown by the block.
@@ -2233,8 +2204,8 @@ error is rethrown.</p>
                               </td>
                               <td>
                                 <div>
-                                  <p>A block that executes SQL statements and return either .commit or .rollback.</p>
-
+                                  <p>A block that executes SQL statements and return
+either .commit or .rollback.</p>
                                 </div>
                               </td>
                             </tr>
@@ -2288,7 +2259,6 @@ stops getting notifications after it is deallocated.</p>
                               <td>
                                 <div>
                                   <p>A transaction observer.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2383,7 +2353,6 @@ stops getting notifications after it is deallocated.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Creates a database table.</p>
-
 <pre class="highlight plaintext"><code>try db.create(table: "pointOfInterests") { t in
     t.column("id", .integer).primaryKey()
     t.column("title", .text)
@@ -2395,7 +2364,6 @@ stops getting notifications after it is deallocated.</p>
 
 <p>See <a href="https://www.sqlite.org/lang_createtable.html">https://www.sqlite.org/lang_createtable.html</a> and
 <a href="https://www.sqlite.org/withoutrowid.html">https://www.sqlite.org/withoutrowid.html</a></p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError whenever an SQLite error occurs.
@@ -2424,7 +2392,6 @@ stops getting notifications after it is deallocated.</p>
                               <td>
                                 <div>
                                   <p>The table name.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2437,7 +2404,6 @@ stops getting notifications after it is deallocated.</p>
                               <td>
                                 <div>
                                   <p>If true, creates a temporary table.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2450,7 +2416,6 @@ stops getting notifications after it is deallocated.</p>
                               <td>
                                 <div>
                                   <p>If false, no error is thrown if table already exists.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2463,7 +2428,6 @@ stops getting notifications after it is deallocated.</p>
                               <td>
                                 <div>
                                   <p>If true, uses WITHOUT ROWID optimization.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2476,7 +2440,6 @@ stops getting notifications after it is deallocated.</p>
                               <td>
                                 <div>
                                   <p>A closure that defines table columns and constraints.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2503,7 +2466,6 @@ stops getting notifications after it is deallocated.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Creates a database table.</p>
-
 <pre class="highlight plaintext"><code>try db.create(table: "pointOfInterests") { t in
     t.column("id", .integer).primaryKey()
     t.column("title", .text)
@@ -2514,7 +2476,6 @@ stops getting notifications after it is deallocated.</p>
 </code></pre>
 
 <p>See <a href="https://www.sqlite.org/lang_createtable.html">https://www.sqlite.org/lang_createtable.html</a></p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError whenever an SQLite error occurs.
@@ -2543,7 +2504,6 @@ stops getting notifications after it is deallocated.</p>
                               <td>
                                 <div>
                                   <p>The table name.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2556,7 +2516,6 @@ stops getting notifications after it is deallocated.</p>
                               <td>
                                 <div>
                                   <p>If true, creates a temporary table.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2569,7 +2528,6 @@ stops getting notifications after it is deallocated.</p>
                               <td>
                                 <div>
                                   <p>If false, no error is thrown if table already exists.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2582,7 +2540,6 @@ stops getting notifications after it is deallocated.</p>
                               <td>
                                 <div>
                                   <p>A closure that defines table columns and constraints.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2611,7 +2568,6 @@ stops getting notifications after it is deallocated.</p>
                         <p>Renames a database table.</p>
 
 <p>See <a href="https://www.sqlite.org/lang_altertable.html">https://www.sqlite.org/lang_altertable.html</a></p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError whenever an SQLite error occurs.
@@ -2647,14 +2603,12 @@ stops getting notifications after it is deallocated.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Modifies a database table.</p>
-
 <pre class="highlight plaintext"><code>try db.alter(table: "persons") { t in
     t.add(column: "url", .text)
 }
 </code></pre>
 
 <p>See <a href="https://www.sqlite.org/lang_altertable.html">https://www.sqlite.org/lang_altertable.html</a></p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError whenever an SQLite error occurs.
@@ -2683,7 +2637,6 @@ stops getting notifications after it is deallocated.</p>
                               <td>
                                 <div>
                                   <p>The table name.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2696,7 +2649,6 @@ stops getting notifications after it is deallocated.</p>
                               <td>
                                 <div>
                                   <p>A closure that defines table alterations.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2725,7 +2677,6 @@ stops getting notifications after it is deallocated.</p>
                         <p>Deletes a database table.</p>
 
 <p>See <a href="https://www.sqlite.org/lang_droptable.html">https://www.sqlite.org/lang_droptable.html</a></p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError whenever an SQLite error occurs.
@@ -2788,14 +2739,12 @@ stops getting notifications after it is deallocated.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Creates an index.</p>
-
 <pre class="highlight plaintext"><code>try db.create(index: "personByEmail", on: "person", columns: ["email"])
 </code></pre>
 
 <p>SQLite can also index expressions (<a href="https://www.sqlite.org/expridx.html">https://www.sqlite.org/expridx.html</a>)
 and use specific collations. To create such an index, use a raw SQL
 query.</p>
-
 <pre class="highlight plaintext"><code>try db.execute("CREATE INDEX ...")
 </code></pre>
 
@@ -2823,7 +2772,6 @@ query.</p>
                               <td>
                                 <div>
                                   <p>The index name.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2836,7 +2784,6 @@ query.</p>
                               <td>
                                 <div>
                                   <p>The name of the indexed table.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2849,7 +2796,6 @@ query.</p>
                               <td>
                                 <div>
                                   <p>The indexed columns.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2862,7 +2808,6 @@ query.</p>
                               <td>
                                 <div>
                                   <p>If true, creates a unique index.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2875,7 +2820,6 @@ query.</p>
                               <td>
                                 <div>
                                   <p>If false, no error is thrown if index already exists.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2902,7 +2846,6 @@ query.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Creates a partial index.</p>
-
 <pre class="highlight plaintext"><code>try db.create(index: "personByEmail", on: "person", columns: ["email"], condition: Column("email") != nil)
 </code></pre>
 
@@ -2931,7 +2874,6 @@ query.</p>
                               <td>
                                 <div>
                                   <p>The index name.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2944,7 +2886,6 @@ query.</p>
                               <td>
                                 <div>
                                   <p>The name of the indexed table.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2957,7 +2898,6 @@ query.</p>
                               <td>
                                 <div>
                                   <p>The indexed columns.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2970,7 +2910,6 @@ query.</p>
                               <td>
                                 <div>
                                   <p>If true, creates a unique index.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2983,7 +2922,6 @@ query.</p>
                               <td>
                                 <div>
                                   <p>If false, no error is thrown if index already exists.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2996,7 +2934,6 @@ query.</p>
                               <td>
                                 <div>
                                   <p>The condition that indexed rows must verify.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -3025,7 +2962,6 @@ query.</p>
                         <p>Deletes a database index.</p>
 
 <p>See <a href="https://www.sqlite.org/lang_dropindex.html">https://www.sqlite.org/lang_dropindex.html</a></p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError whenever an SQLite error occurs.
@@ -3072,12 +3008,10 @@ query.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Creates a virtual database table.</p>
-
 <pre class="highlight plaintext"><code>try db.create(virtualTable: "vocabulary", using: "spellfix1")
 </code></pre>
 
 <p>See <a href="https://www.sqlite.org/lang_createtable.html">https://www.sqlite.org/lang_createtable.html</a></p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError whenever an SQLite error occurs.
@@ -3106,7 +3040,6 @@ query.</p>
                               <td>
                                 <div>
                                   <p>The table name.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -3119,7 +3052,6 @@ query.</p>
                               <td>
                                 <div>
                                   <p>If false, no error is thrown if table already exists.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -3132,7 +3064,6 @@ query.</p>
                               <td>
                                 <div>
                                   <p>The name of an SQLite virtual table module.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -3159,7 +3090,6 @@ query.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Creates a virtual database table.</p>
-
 <pre class="highlight plaintext"><code>let module = ...
 try db.create(virtualTable: "pointOfInterests", using: module) { t in
     ...
@@ -3171,7 +3101,6 @@ argument: refer to this module&rsquo;s documentation.</p>
 
 <p>Use this method to create full-text tables using the FTS3, FTS4, or
 FTS5 modules:</p>
-
 <pre class="highlight plaintext"><code>try db.create(virtualTable: "books", using: FTS4()) { t in
     t.column("title")
     t.column("author")
@@ -3180,7 +3109,6 @@ FTS5 modules:</p>
 </code></pre>
 
 <p>See <a href="https://www.sqlite.org/lang_createtable.html">https://www.sqlite.org/lang_createtable.html</a></p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError whenever an SQLite error occurs.
@@ -3209,7 +3137,6 @@ FTS5 modules:</p>
                               <td>
                                 <div>
                                   <p>The table name.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -3222,7 +3149,6 @@ FTS5 modules:</p>
                               <td>
                                 <div>
                                   <p>If false, no error is thrown if table already exists.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -3235,7 +3161,6 @@ FTS5 modules:</p>
                               <td>
                                 <div>
                                   <p>a VirtualTableModule</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -3248,7 +3173,6 @@ FTS5 modules:</p>
                               <td>
                                 <div>
                                   <p>An optional closure that defines the virtual table.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -3267,7 +3191,7 @@ FTS5 modules:</p>
         </section>
         <section id="footer">
           <p>&copy; 2017 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2017-05-05)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
     </div>

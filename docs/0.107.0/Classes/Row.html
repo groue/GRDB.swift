@@ -1745,7 +1745,6 @@ of column-value pairs in <code>self</code>.</p>
                       <div class="abstract">
                         <p>Returns a scoped row, if the row was fetched along with a row adapter
 that defines this scope.</p>
-
 <pre class="highlight plaintext"><code>// Two adapters
 let fooAdapter = ColumnMapping(["value": "foo"])
 let barAdapter = ColumnMapping(["value": "bar"])
@@ -1808,7 +1807,6 @@ if let barRow = row.scopeed(on: "bar") {
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a cursor over rows fetched from a prepared statement.</p>
-
 <pre class="highlight plaintext"><code>let statement = try db.makeSelectStatement("SELECT ...")
 let rows = try Row.fetchCursor(statement) // DatabaseCursor&lt;Row&gt;
 while let row = try rows.next() { // Row
@@ -1829,7 +1827,6 @@ row for later use: <code>row.copy()</code>.</p>
 elements are undefined.</p>
 
 <p>The cursor must be iterated in a protected dispath queue.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1858,7 +1855,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1871,7 +1867,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>An SQL query.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1884,7 +1879,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>Optional statement arguments.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1897,7 +1891,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>Optional RowAdapter</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1907,7 +1900,6 @@ elements are undefined.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>A cursor over fetched rows.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Row.swift#L527-L531">Show on GitHub</a>
@@ -1929,11 +1921,9 @@ elements are undefined.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns an array of rows fetched from a prepared statement.</p>
-
 <pre class="highlight plaintext"><code>let statement = try db.makeSelectStatement("SELECT ...")
 let rows = try Row.fetchAll(statement)
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -1962,7 +1952,6 @@ let rows = try Row.fetchAll(statement)
                               <td>
                                 <div>
                                   <p>The statement to run.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1975,7 +1964,6 @@ let rows = try Row.fetchAll(statement)
                               <td>
                                 <div>
                                   <p>Optional statement arguments.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1988,7 +1976,6 @@ let rows = try Row.fetchAll(statement)
                               <td>
                                 <div>
                                   <p>Optional RowAdapter</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -1998,7 +1985,6 @@ let rows = try Row.fetchAll(statement)
                       <div>
                         <h4>Return Value</h4>
                         <p>An array of rows.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Row.swift#L544-L547">Show on GitHub</a>
@@ -2020,11 +2006,9 @@ let rows = try Row.fetchAll(statement)
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a single row fetched from a prepared statement.</p>
-
 <pre class="highlight plaintext"><code>let statement = try db.makeSelectStatement("SELECT ...")
 let row = try Row.fetchOne(statement)
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -2053,7 +2037,6 @@ let row = try Row.fetchOne(statement)
                               <td>
                                 <div>
                                   <p>The statement to run.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2066,7 +2049,6 @@ let row = try Row.fetchOne(statement)
                               <td>
                                 <div>
                                   <p>Optional statement arguments.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2079,7 +2061,6 @@ let row = try Row.fetchOne(statement)
                               <td>
                                 <div>
                                   <p>Optional RowAdapter</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2089,7 +2070,6 @@ let row = try Row.fetchOne(statement)
                       <div>
                         <h4>Return Value</h4>
                         <p>An optional row.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Row.swift#L560-L563">Show on GitHub</a>
@@ -2122,7 +2102,6 @@ let row = try Row.fetchOne(statement)
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a cursor over rows fetched from a fetch request.</p>
-
 <pre class="highlight plaintext"><code>let idColumn = Column("id")
 let nameColumn = Column("name")
 let request = Person.select(idColumn, nameColumn)
@@ -2145,7 +2124,6 @@ row for later use: <code>row.copy()</code>.</p>
 elements are undefined.</p>
 
 <p>The cursor must be iterated in a protected dispath queue.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -2174,7 +2152,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2187,7 +2164,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>A fetch request.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2197,7 +2173,6 @@ elements are undefined.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>A cursor over fetched rows.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Row.swift#L599-L602">Show on GitHub</a>
@@ -2219,13 +2194,11 @@ elements are undefined.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns an array of rows fetched from a fetch request.</p>
-
 <pre class="highlight plaintext"><code>let idColumn = Column("id")
 let nameColumn = Column("name")
 let request = Person.select(idColumn, nameColumn)
 let rows = try Row.fetchAll(db, request)
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -2254,7 +2227,6 @@ let rows = try Row.fetchAll(db, request)
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2281,13 +2253,11 @@ let rows = try Row.fetchAll(db, request)
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a single row fetched from a fetch request.</p>
-
 <pre class="highlight plaintext"><code>let idColumn = Column("id")
 let nameColumn = Column("name")
 let request = Person.select(idColumn, nameColumn)
 let row = try Row.fetchOne(db, request)
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -2316,7 +2286,6 @@ let row = try Row.fetchOne(db, request)
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2354,7 +2323,6 @@ let row = try Row.fetchOne(db, request)
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a cursor over rows fetched from an SQL query.</p>
-
 <pre class="highlight plaintext"><code>let rows = try Row.fetchCursor(db, "SELECT id, name FROM persons") // DatabaseCursor&lt;Row&gt;
 while let row = try rows.next() { // Row
     let id: Int64 = row.value(atIndex: 0)
@@ -2374,7 +2342,6 @@ row for later use: <code>row.copy()</code>.</p>
 elements are undefined.</p>
 
 <p>The cursor must be iterated in a protected dispath queue.</p>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -2403,7 +2370,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2416,7 +2382,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>An SQL query.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2429,7 +2394,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>Optional statement arguments.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2442,7 +2406,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>Optional RowAdapter</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2452,7 +2415,6 @@ elements are undefined.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>A cursor over fetched rows.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Row.swift#L665-L667">Show on GitHub</a>
@@ -2474,10 +2436,8 @@ elements are undefined.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns an array of rows fetched from an SQL query.</p>
-
 <pre class="highlight plaintext"><code>let rows = try Row.fetchAll(db, "SELECT ...")
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -2506,7 +2466,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2519,7 +2478,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>An SQL query.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2532,7 +2490,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>Optional statement arguments.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2545,7 +2502,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>Optional RowAdapter</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2555,7 +2511,6 @@ elements are undefined.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>An array of rows.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Row.swift#L680-L682">Show on GitHub</a>
@@ -2577,10 +2532,8 @@ elements are undefined.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a single row fetched from an SQL query.</p>
-
 <pre class="highlight plaintext"><code>let row = try Row.fetchOne(db, "SELECT ...")
 </code></pre>
-
 <div class="aside aside-throws">
     <p class="aside-title">Throws</p>
     A DatabaseError is thrown whenever an SQLite error occurs.
@@ -2609,7 +2562,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>A database connection.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2622,7 +2574,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>An SQL query.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2635,7 +2586,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>Optional statement arguments.</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2648,7 +2598,6 @@ elements are undefined.</p>
                               <td>
                                 <div>
                                   <p>Optional RowAdapter</p>
-
                                 </div>
                               </td>
                             </tr>
@@ -2658,7 +2607,6 @@ elements are undefined.</p>
                       <div>
                         <h4>Return Value</h4>
                         <p>An optional row.</p>
-
                       </div>
                       <div class="slightly-smaller">
                         <a href="https://github.com/groue/GRDB.swift/tree/v0.107.0/GRDB/Core/Row.swift#L695-L697">Show on GitHub</a>
@@ -2685,7 +2633,6 @@ elements are undefined.</p>
                       <div class="abstract">
                         <p>Creates a row initialized with elements. Column order is preserved, and
 duplicated columns names are allowed.</p>
-
 <pre class="highlight plaintext"><code>let row: Row = ["foo": 1, "foo": "bar", "baz": nil]
 print(row)
 // Prints &lt;Row foo:1 foo:"bar" baz:NULL&gt;
@@ -2852,7 +2799,6 @@ print(row)
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns the position immediately after <code>i</code>.</p>
-
 <div class="aside aside-precondition">
     <p class="aside-title">Precondition</p>
     <code>(startIndex..&lt;endIndex).contains(i)</code>
@@ -3013,7 +2959,7 @@ in the same order. Columns are compared in a case-sensitive way.</p>
         </section>
         <section id="footer">
           <p>&copy; 2017 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2017-05-05)</p>
-          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.1</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
     </div>
