@@ -139,18 +139,6 @@ private class PersonWithModifiedCaseColumns: Record {
     }
 }
 
-// PersonWrapper does not call awakeFromFetch on the wrapped record.
-// It should, of course, since the wrapped record may do something in its
-// awakeFromFetch implementation. But here we test that overlooking
-// awakeFromFetch does not break changes tracking.
-private class PersonWrapper : RowConvertible {
-    let person: Person
-    
-    required init(row: Row) {
-        person = Person(row: row)
-    }
-}
-
 class RecordEditedTests: GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
@@ -786,23 +774,6 @@ class RecordEditedTests: GRDBTestCase {
             person.hasPersistentChangedValues = true
             XCTAssertTrue(person.persistentChangedValues.count > 0)            // TODO: compare actual changes
             XCTAssertEqual(person.persistentChangedValues.count, person.copy().persistentChangedValues.count)
-        }
-    }
-
-    func testChangesOfWrappedRecordAfterFullFetch() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            try Person(name: "Arthur", age: 41).insert(db)
-            do {
-                let personWrapper = try PersonWrapper.fetchOne(db, "SELECT * FROM persons")!
-                let changes = personWrapper.person.persistentChangedValues
-                XCTAssertEqual(changes.count, 0)
-            }
-            do {
-                let personWrapper = try PersonWrapper.fetchOne(db, "SELECT * FROM persons", adapter: SuffixRowAdapter(fromIndex: 0))!
-                let changes = personWrapper.person.persistentChangedValues
-                XCTAssertEqual(changes.count, 0)
-            }
         }
     }
 }

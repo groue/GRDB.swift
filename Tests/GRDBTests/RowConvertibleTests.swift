@@ -10,18 +10,12 @@ import XCTest
 private struct Fetched {
     var firstName: String
     var lastName: String
-    var isFetched: Bool = false
 }
 
 extension Fetched : RowConvertible {
     init(row: Row) {
         firstName = row.value(named: "firstName")
         lastName = row.value(named: "lastName")
-        isFetched = false
-    }
-    
-    mutating func awakeFromFetch(row: Row) {
-        isFetched = true
     }
 }
 
@@ -32,7 +26,6 @@ class RowConvertibleTests: GRDBTestCase {
         let s = Fetched(row: row)
         XCTAssertEqual(s.firstName, "Arthur")
         XCTAssertEqual(s.lastName, "Martin")
-        XCTAssertFalse(s.isFetched)
     }
     
     func testFetchCursor() throws {
@@ -42,11 +35,9 @@ class RowConvertibleTests: GRDBTestCase {
                 var record = try cursor.next()!
                 XCTAssertEqual(record.firstName, "Arthur")
                 XCTAssertEqual(record.lastName, "Martin")
-                XCTAssertTrue(record.isFetched)
                 record = try cursor.next()!
                 XCTAssertEqual(record.firstName, "Barbara")
                 XCTAssertEqual(record.lastName, "Gourde")
-                XCTAssertTrue(record.isFetched)
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
             do {
@@ -150,7 +141,6 @@ class RowConvertibleTests: GRDBTestCase {
             func test(_ array: [Fetched]) {
                 XCTAssertEqual(array.map { $0.firstName }, ["Arthur", "Barbara"])
                 XCTAssertEqual(array.map { $0.lastName }, ["Martin", "Gourde"])
-                XCTAssertEqual(array.map { $0.isFetched }, [true, true])
             }
             do {
                 let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 'Barbara', 'Gourde'"
@@ -267,7 +257,6 @@ class RowConvertibleTests: GRDBTestCase {
                 func test(_ record: Fetched?) {
                     XCTAssertEqual(record!.firstName, "Arthur")
                     XCTAssertEqual(record!.lastName, "Martin")
-                    XCTAssertTrue(record!.isFetched)
                 }
                 do {
                     let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName"

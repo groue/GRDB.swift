@@ -11,10 +11,6 @@ open class Record : RowConvertible, TableMapping, Persistable {
     }
     
     /// Creates a Record from a row.
-    ///
-    /// The input row may not come straight from the database. When you want to
-    /// complete your initialization after being fetched, override
-    /// awakeFromFetch(row:).
     required public init(row: Row) {
         if row.isFetched {
             // Take care of the hasPersistentChangedValues flag.
@@ -24,17 +20,6 @@ open class Record : RowConvertible, TableMapping, Persistable {
             // immutable copy.
             referenceRow = row.copy()
         }
-    }
-    
-    /// Do not call this method directly.
-    ///
-    /// This method is called in an arbitrary dispatch queue, after a record
-    /// has been fetched from the database.
-    ///
-    /// Record subclasses have an opportunity to complete their initialization.
-    ///
-    /// *Important*: subclasses must invoke super's implementation.
-    open func awakeFromFetch(row: Row) {
     }
     
     

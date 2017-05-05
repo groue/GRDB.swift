@@ -24,22 +24,9 @@ public protocol RowConvertible {
     /// iteration of a fetch query. If you want to keep the row for later use,
     /// make sure to store a copy: `self.row = row.copy()`.
     init(row: Row)
-    
-    /// Do not call this method directly.
-    ///
-    /// This method is called in an arbitrary dispatch queue, after a record
-    /// has been fetched from the database.
-    ///
-    /// Types that adopt RowConvertible have an opportunity to complete their
-    /// initialization.
-    mutating func awakeFromFetch(row: Row)
 }
 
 extension RowConvertible {
-    
-    /// Default implementation, which does nothing.
-    public func awakeFromFetch(row: Row) { }
-
     
     // MARK: Fetching From SelectStatement
     
@@ -65,13 +52,8 @@ extension RowConvertible {
     public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
         // Reuse a single mutable row for performance.
         // It is the record's responsibility to copy the row if needed.
-        // See Record.awakeFromFetch(), for example.
         let row = try Row(statement: statement).adapted(with: adapter, layout: statement)
-        return statement.cursor(arguments: arguments, next: {
-            var record = self.init(row: row)
-            record.awakeFromFetch(row: row)
-            return record
-        })
+        return statement.cursor(arguments: arguments, next: { self.init(row: row) })
     }
     
     /// Returns an array of records fetched from a prepared statement.

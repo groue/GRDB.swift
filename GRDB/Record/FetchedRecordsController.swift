@@ -950,11 +950,7 @@ private final class Item<T: RowConvertible> : RowConvertible, Equatable {
     let row: Row
     
     // Records are lazily loaded
-    lazy var record: T = {
-        var record = T(row: self.row)
-        record.awakeFromFetch(row: self.row)
-        return record
-    }()
+    lazy var record: T = T(row: self.row)
     
     init(row: Row) {
         self.row = row.copy()

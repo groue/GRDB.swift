@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Version
+
+**Breaking Changes**
+
+- `RowConvertible.awakeFromFetch()` has been removed.
+
+
 ## 0.107.0
 
 Released May 5, 2017

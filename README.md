@@ -1839,10 +1839,6 @@ You can now jump to:
 protocol RowConvertible {
     /// Row initializer
     init(row: Row)
-    
-    /// Optional method which gives adopting types an opportunity to complete
-    /// their initialization after being fetched. Do not call it directly.
-    mutating func awakeFromFetch(row: Row)
 }
 ```
 
