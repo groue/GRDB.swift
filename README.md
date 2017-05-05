@@ -282,7 +282,7 @@ Any pull request that has the `make test_CarthageBuild` command successfully com
 
 5. (WatchOS only). Add `libsqlite3.tbd` to the **Linked Frameworks and Libraries** section of the **General** tab of your extension target.
 
-See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an example of such integration.
+See [GRDBDemoiOS](DemoApps/GRDBDemoiOS/GRDBDemoiOS) for an example of such integration.
 
 
 Database Connections
@@ -4263,7 +4263,7 @@ It looks and behaves very much like [Core Data's NSFetchedResultsController](htt
 
 Given a fetch request, and a type that adopts the [RowConvertible](#rowconvertible-protocol) protocol, such as a subclass of the [Record](#record-class) class, a FetchedRecordsController is able to track changes in the results of the fetch request, notify of those changes, and return the results of the request in a form that is suitable for a table view or a collection view, with one cell per fetched record.
 
-See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an sample app that uses FetchedRecordsController.
+See [GRDBDemoiOS](DemoApps/GRDBDemoiOS/GRDBDemoiOS) for an sample app that uses FetchedRecordsController.
 
 - [Creating the Fetched Records Controller](#creating-the-fetched-records-controller)
 - [Responding to Changes](#responding-to-changes)
@@ -4544,7 +4544,7 @@ controller.trackChanges(
     })
 ```
 
-See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an sample app that uses FetchedRecordsController.
+See [GRDBDemoiOS](DemoApps/GRDBDemoiOS/GRDBDemoiOS) for an sample app that uses FetchedRecordsController.
 
 > :point_up: **Note**: our sample code above uses `unowned` references to the table view controller. This is a safe pattern as long as the table view controller owns the fetched records controller, and is deallocated from the main thread (this is usually the case). In other situations, prefer weak references.
 
@@ -5655,7 +5655,7 @@ Sample Code
 ===========
 
 - The [Documentation](#documentation) is full of GRDB snippets.
-- [GRDBDemoiOS](DemoApps/GRDBDemoiOS): A sample iOS application.
+- [GRDBDemoiOS](DemoApps/GRDBDemoiOS/GRDBDemoiOS): A sample iOS application.
 - [WWDC Companion](https://github.com/groue/WWDCCompanion): A sample iOS application.
 - Check `GRDB.xcworkspace`: it contains GRDB-enabled playgrounds to play with.
 - How to synchronize a database table with a JSON payload: [JSONSynchronization.playground](Playgrounds/JSONSynchronization.playground/Contents.swift)
