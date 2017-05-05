@@ -272,7 +272,7 @@ Any pull request that has the `make test_CarthageBuild` command successfully com
 
 ## Manually
 
-1. [Download](https://github.com/groue/GRDB.swift/releases/tag/0.107.0) a copy of GRDB.swift, or clone its repository and make sure you use the latest tagged version with the `git checkout 0.107.0` command.
+1. [Download](https://github.com/groue/GRDB.swift/releases/tag/0.107.0) a copy of GRDB.swift, or clone its repository and make sure you use the latest tagged version with the `git checkout v0.107.0` command.
 
 2. Embed the `GRDB.xcodeproj` project in your own project.
 
