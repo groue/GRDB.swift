@@ -235,15 +235,19 @@ public final class Database {
     /// > for debugging.
     public static var logError: LogErrorFunction? = nil
     
-    // Use a let variable in order to register the error log callback only once.
-    private static let errorLogSetup: () = {
-        registerErrorLogCallback { (_, code, message) in
-            guard let log = logError else { return }
-            guard let message = message.map({ String(cString: $0) }) else { return }
-            let resultCode = ResultCode(rawValue: code)
-            log(resultCode, message)
+    private static func setupErrorLog() {
+        struct Impl {
+            static let setupErrorLog: () = {
+                registerErrorLogCallback { (_, code, message) in
+                    guard let log = Database.logError else { return }
+                    guard let message = message.map({ String(cString: $0) }) else { return }
+                    let resultCode = ResultCode(rawValue: code)
+                    log(resultCode, message)
+                }
+            }()
         }
-    }()
+        Impl.setupErrorLog
+    }
     
     
     // MARK: - Database Information
@@ -332,7 +336,7 @@ public final class Database {
     
     init(path: String, configuration: Configuration, schemaCache: DatabaseSchemaCache) throws {
         // Error log setup must happen before any database connection
-        Database.errorLogSetup
+        Database.setupErrorLog()
         
         // See https://www.sqlite.org/c3ref/open.html
         var sqliteConnection: SQLiteConnection? = nil
