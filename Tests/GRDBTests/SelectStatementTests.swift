@@ -130,9 +130,7 @@ class SelectStatementTests : GRDBTestCase {
         try dbQueue.inDatabase { db in
             class Observer: TransactionObserver {
                 private var didChange = false
-                private var inDoubt = false
                 var triggered = false
-                var triggeredInDoubt = false
                 let selectionInfo: SelectStatement.SelectionInfo
                 
                 init(selectionInfo: SelectStatement.SelectionInfo) {
@@ -140,13 +138,7 @@ class SelectStatementTests : GRDBTestCase {
                 }
                 
                 func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-                    if let hasImpact = eventKind.impacts(selectionInfo) {
-                        inDoubt = false
-                        return hasImpact
-                    } else {
-                        inDoubt = true
-                        return true
-                    }
+                    return eventKind.impacts(selectionInfo) ?? true
                 }
                 
                 func databaseDidChange(with event: DatabaseEvent) {
@@ -157,14 +149,11 @@ class SelectStatementTests : GRDBTestCase {
                 
                 func databaseDidCommit(_ db: Database) {
                     triggered = didChange
-                    triggeredInDoubt = inDoubt
                     didChange = false
-                    inDoubt = false
                 }
                 
                 func databaseDidRollback(_ db: Database) {
                     didChange = false
-                    inDoubt = false
                 }
                 
                 #if SQLITE_ENABLE_PREUPDATE_HOOK
@@ -174,6 +163,8 @@ class SelectStatementTests : GRDBTestCase {
             
             try db.create(table: "table1") { t in
                 t.column("id", .integer).primaryKey()
+                t.column("id3", .integer).notNull().references("table3", column: "id", onDelete: .cascade, onUpdate: .cascade)
+                t.column("id4", .integer).references("table4", column: "id", onDelete: .setNull, onUpdate: .setNull)
                 t.column("a", .integer)
                 t.column("b", .integer)
             }
@@ -182,10 +173,16 @@ class SelectStatementTests : GRDBTestCase {
                 t.column("a", .integer)
                 t.column("b", .integer)
             }
+            try db.create(table: "table3") { t in
+                t.column("id", .integer).primaryKey()
+            }
+            try db.create(table: "table4") { t in
+                t.column("id", .integer).primaryKey()
+            }
             
             let statements = try [
                 db.makeSelectStatement("SELECT * FROM table1"),
-                db.makeSelectStatement("SELECT id, a FROM table1"),
+                db.makeSelectStatement("SELECT id, id3, a FROM table1"),
                 db.makeSelectStatement("SELECT table1.id, table1.a, table2.a FROM table1 JOIN table2 ON table1.id = table2.id"),
                 
                 // This last request always triggers its observer because its selectionInfo is doubtful.
@@ -199,29 +196,37 @@ class SelectStatementTests : GRDBTestCase {
                 db.add(transactionObserver: observer)
             }
             
-            try db.execute("INSERT INTO table1 (id, a, b) VALUES (NULL, 0, 0)")
+            try db.execute("INSERT INTO table3 (id) VALUES (1)")
+            try db.execute("INSERT INTO table4 (id) VALUES (1)")
+            try db.execute("INSERT INTO table1 (id, a, b, id3, id4) VALUES (NULL, 0, 0, 1, 1)")
             XCTAssertEqual(observers.map { $0.triggered }, [true, true, true, true])
-            XCTAssertEqual(observers.map { $0.triggeredInDoubt }, [false, false, false, true])
             
             try db.execute("INSERT INTO table2 (id, a, b) VALUES (NULL, 0, 0)")
             XCTAssertEqual(observers.map { $0.triggered }, [false, false, true, true])
-            XCTAssertEqual(observers.map { $0.triggeredInDoubt }, [false, false, false, true])
             
             try db.execute("UPDATE table1 SET a = 1")
             XCTAssertEqual(observers.map { $0.triggered }, [true, true, true, true])
-            XCTAssertEqual(observers.map { $0.triggeredInDoubt }, [false, false, false, true])
             
             try db.execute("UPDATE table1 SET b = 1")
             XCTAssertEqual(observers.map { $0.triggered }, [true, false, false, true])
-            XCTAssertEqual(observers.map { $0.triggeredInDoubt }, [false, false, false, true])
             
             try db.execute("UPDATE table2 SET a = 1")
             XCTAssertEqual(observers.map { $0.triggered }, [false, false, true, true])
-            XCTAssertEqual(observers.map { $0.triggeredInDoubt }, [false, false, false, true])
             
             try db.execute("UPDATE table2 SET b = 1")
             XCTAssertEqual(observers.map { $0.triggered }, [false, false, false, true])
-            XCTAssertEqual(observers.map { $0.triggeredInDoubt }, [false, false, false, true])
+            
+            try db.execute("UPDATE table3 SET id = 2 WHERE id = 1")
+            XCTAssertEqual(observers.map { $0.triggered }, [true, true, false, true])
+            
+            try db.execute("UPDATE table4 SET id = 2 WHERE id = 1")
+            XCTAssertEqual(observers.map { $0.triggered }, [true, false, false, true])
+            
+            try db.execute("DELETE FROM table3")
+            XCTAssertEqual(observers.map { $0.triggered }, [true, true, true, true])
+            
+            try db.execute("DELETE FROM table4")
+            XCTAssertEqual(observers.map { $0.triggered }, [true, false, false, true])
         }
     }
 }
