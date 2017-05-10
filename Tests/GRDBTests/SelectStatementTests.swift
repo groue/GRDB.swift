@@ -179,6 +179,10 @@ class SelectStatementTests : GRDBTestCase {
             try db.create(table: "table4") { t in
                 t.column("id", .integer).primaryKey()
             }
+            try db.create(table: "table5") { t in
+                t.column("id", .integer).primaryKey()
+            }
+            try db.execute("CREATE TRIGGER table5trigger AFTER INSERT ON table5 BEGIN DELETE FROM table1; END")
             
             let statements = try [
                 db.makeSelectStatement("SELECT * FROM table1"),
@@ -227,6 +231,9 @@ class SelectStatementTests : GRDBTestCase {
             
             try db.execute("DELETE FROM table4")
             XCTAssertEqual(observers.map { $0.triggered }, [true, false, false, true])
+            
+            try db.execute("INSERT INTO table5 (id) VALUES (NULL)")
+            XCTAssertEqual(observers.map { $0.triggered }, [true, true, true, true])
         }
     }
 }
