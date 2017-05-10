@@ -1,3 +1,4 @@
+- [ ] Request observation and foreign keys
 - [ ] We share the database cache between database pool writers and readers. But what if a writer modifies the database schema within a transaction, and a concurrent reader reads the cache? Bad things, isn't it? Write failing tests first, and fix the bug.
 - [ ] Attach databases. Interesting question: what happens when one attaches a non-WAL db to a databasePool?
 - [ ] SQLCipher: sqlite3_rekey is discouraged (https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320)
