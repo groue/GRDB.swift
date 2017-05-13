@@ -4579,7 +4579,12 @@ try controller.performFetch()
 
 **GRDB can encrypt your database with [SQLCipher](http://sqlcipher.net) v3.4.0.**
 
-This requires a manual installation of GRDB:
+Using CocoaPods
+```ruby
+pod 'GRDB.swift/SQLCipher'
+```
+
+Using a manual installation of GRDB:
 
 1. Clone the GRDB.swift git repository, checkout the latest tagged version, and download SQLCipher sources:
     
@@ -4587,7 +4592,7 @@ This requires a manual installation of GRDB:
     cd [GRDB.swift directory]
     git checkout v0.107.0
     git submodule update --init SQLCipher/src
-    ````
+    ```
     
 2. Embed the `GRDB.xcodeproj` project in your own project.
 
@@ -4595,11 +4600,12 @@ This requires a manual installation of GRDB:
 
 4. Add the `GRDBCipher.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your target.
 
+5. Import `GRDBCipher` module in your project's files
+
+
 **You create and open an encrypted database** by providing a passphrase to your [database connection](#database-connections):
 
 ```swift
-import GRDBCipher
-
 var configuration = Configuration()
 configuration.passphrase = "secret"
 let dbQueue = try DatabaseQueue(path: "...", configuration: configuration)
