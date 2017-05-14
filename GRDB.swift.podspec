@@ -15,18 +15,18 @@ Pod::Spec.new do |s|
 	
 	s.module_map = 'Support/module.modulemap'
 	s.framework = 'Foundation'
-	s.library = 'sqlite3'
-	s.default_subspec = 'standard'
+	s.default_subspec = 'default'
 
-	s.subspec 'standard' do |ss|
+	s.subspec 'default' do |ss|
 		ss.source_files = 'GRDB/**/*.swift', 'Support/*.{c,h}'
+		ss.library = 'sqlite3'
 	end
 
 	s.subspec 'SQLCipher' do |ss|
 		ss.source_files = 'GRDB/**/*.swift', 'Support/*.{c,h}'
 		ss.exclude_files = 'Support/sqlite3.h'
 		ss.xcconfig = {
-			'OTHER_SWIFT_FLAGS' => '$(inherited) -DSQLITE_HAS_CODEC -DUSING_BUILTIN_SQLITE -DUSING_SQLCIPHER',
+			'OTHER_SWIFT_FLAGS' => '$(inherited) -DSQLITE_HAS_CODEC -DUSING_SQLCIPHER',
 			'OTHER_CFLAGS' => '$(inherited) -DSQLITE_HAS_CODEC',
 			'GCC_PREPROCESSOR_DEFINITIONS' => '$(inherited) SQLITE_HAS_CODEC=1'
 		}
