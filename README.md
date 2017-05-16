@@ -4579,7 +4579,8 @@ try controller.performFetch()
 
 **GRDB can encrypt your database with [SQLCipher](http://sqlcipher.net) v3.4.0.**
 
-Using CocoaPods
+Using CocoaPods:
+
 ```ruby
 pod 'GRDB.swift/SQLCipher'
 ```
