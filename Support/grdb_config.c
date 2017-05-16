@@ -1,5 +1,5 @@
 #include <GRDB/grdb_config.h>
-#if SQLITE_HAS_CODEC
+#if SQLITE_HAS_CODEC && defined(COCOAPODS)
     #include <SQLCipher/sqlite3.h>
 #else
     #include <GRDB/sqlite3.h>
