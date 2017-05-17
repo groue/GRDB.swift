@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
 	s.name     = 'GRDBCipher'
-	s.version  = '0.107.0'
+	s.version  = '0.108.0'
 	
 	s.license  = { :type => 'MIT', :file => 'LICENSE' }
 	s.summary  = 'A Swift application toolkit for SQLite databases.'

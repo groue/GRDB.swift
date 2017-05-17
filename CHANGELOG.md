@@ -1,7 +1,7 @@
 Release Notes
 =============
 
-## Next Version
+## 0.108.0
 
 Released May 17, 2017
 
