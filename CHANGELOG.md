@@ -3,6 +3,13 @@ Release Notes
 
 ## Next Version
 
+Released May 17, 2017
+
+**New**
+
+- Use CocoaPods to install GRDB with [SQLCipher](https://github.com/groue/GRDB.swift#encryption).
+
+
 **Breaking Changes**
 
 - `RowConvertible.awakeFromFetch()` has been removed.
