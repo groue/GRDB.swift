@@ -19,12 +19,14 @@ To release a new GRDB version:
     - Documentation/CustomSQLiteBuilds.md
     - Documentation/ExtendingGRDB.md
     - GRDB.swift.podspec
+    - GRDBCipher.podspec
     - README.md
     - Support/Info.plist
 - Commit and tag
 - Push to the master branch
 - Push to the Swift3 branch
-- `pod trunk push --allow-warnings`
+- `pod trunk push --allow-warnings GRDB.swift.podspec`
+- `pod trunk push --allow-warnings GRDBCipher.podspec`
 - `make doc`, and update index.html in the `gh-pages` branch
 - Update http://github.com/groue/GRDBDemo
 - Update http://github.com/groue/WWDCCompanion
