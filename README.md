@@ -4579,7 +4579,14 @@ try controller.performFetch()
 
 **GRDB can encrypt your database with [SQLCipher](http://sqlcipher.net) v3.4.0.**
 
-This requires a manual installation of GRDB:
+You can use [CocoaPods](http://cocoapods.org/) (version 1.1 or higher), and specify in your `Podfile`:
+
+```ruby
+use_frameworks!
+pod 'GRDBCipher'
+```
+
+Alternatively, perform a manual installation of GRDB and SQLCipher:
 
 1. Clone the GRDB.swift git repository, checkout the latest tagged version, and download SQLCipher sources:
     
@@ -4587,13 +4594,14 @@ This requires a manual installation of GRDB:
     cd [GRDB.swift directory]
     git checkout v0.107.0
     git submodule update --init SQLCipher/src
-    ````
+    ```
     
 2. Embed the `GRDB.xcodeproj` project in your own project.
 
 3. Add the `GRDBCipherOSX` or `GRDBCipheriOS` target in the **Target Dependencies** section of the **Build Phases** tab of your application target.
 
 4. Add the `GRDBCipher.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your target.
+
 
 **You create and open an encrypted database** by providing a passphrase to your [database connection](#database-connections):
 
