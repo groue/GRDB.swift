@@ -7,9 +7,4 @@ FOUNDATION_EXPORT double GRDB_VersionNumber;
 FOUNDATION_EXPORT const unsigned char GRDB_VersionString[];
 
 #import <GRDB/GRDB-Bridging.h>
-
-#if SQLITE_HAS_CODEC && defined(COCOAPODS)
-    #import <SQLCipher/sqlite3.h>
-#else
-    #import <GRDB/sqlite3.h>
-#endif
+#import <GRDB/sqlite3.h>
