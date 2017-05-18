@@ -1,5 +1,9 @@
 import XCTest
-import CoreGraphics
+#if os(Linux)
+    import Foundation
+#else
+    import CoreGraphics
+#endif
 #if USING_SQLCIPHER
     import GRDBCipher
 #elseif USING_CUSTOMSQLITE

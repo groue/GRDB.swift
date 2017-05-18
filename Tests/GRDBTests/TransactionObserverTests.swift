@@ -846,9 +846,9 @@ class TransactionObserverTests: GRDBTestCase {
             do {
                 try Artist(name: "Gerhard Richter").save(db)
                 XCTFail("Expected Error")
-            } catch let error as NSError {
-                XCTAssertEqual(error.domain, "foo")
-                XCTAssertEqual(error.code, 0)
+            } catch {
+                XCTAssertEqual(error._domain, "foo")
+                XCTAssertEqual(error._code, 0)
                 #if SQLITE_ENABLE_PREUPDATE_HOOK
                     XCTAssertEqual(observer.willChangeCount, 1)
                 #endif

@@ -5,7 +5,11 @@ extension NSString : DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return (self as String).databaseValue
+        #if os(Linux)
+            return String._unconditionallyBridgeFromObjectiveC(self).databaseValue
+        #else
+            return (self as String).databaseValue
+        #endif
     }
     
     /// Returns an NSString initialized from *databaseValue*, if possible.

@@ -2,6 +2,7 @@
 import XCTest
 import GRDBCipher
 
+/// sourcery: disableTests
 class EncryptionTests: GRDBTestCase {
     
     func testDatabaseQueueWithPassphraseToDatabaseQueueWithPassphrase() throws {

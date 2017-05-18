@@ -8,6 +8,15 @@ extension NSNumber : DatabaseValueConvertible {
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
         // Don't lose precision: store integers that fits in Int64 as Int64
+        #if os(Linux)
+        if let decimal = self as? NSDecimalNumber,
+            decimal == decimal.rounding(accordingToBehavior: integerRoundingBehavior),  // integer
+            decimal.compare(NSDecimalNumber(decimal: Decimal(Int64.max))) != .orderedDescending,   // decimal <= Int64.max
+            decimal.compare(NSDecimalNumber(decimal: Decimal(Int64.min))) != .orderedAscending     // decimal >= Int64.min
+        {
+            return int64Value.databaseValue
+        }
+        #else
         if let decimal = self as? NSDecimalNumber,
             decimal == decimal.rounding(accordingToBehavior: integerRoundingBehavior),  // integer
             decimal.compare(NSDecimalNumber(value: Int64.max)) != .orderedDescending,   // decimal <= Int64.max
@@ -15,8 +24,17 @@ extension NSNumber : DatabaseValueConvertible {
         {
             return int64Value.databaseValue
         }
+        #endif
         
-        switch String(cString: objCType) {
+        #if os(Linux)
+        let typeValueString = String(describing: objCType)
+        let typeValue = UInt8(strtoul(typeValueString, nil, 0))
+        let type = Character(UnicodeScalar(typeValue))
+        #else
+        let type = String(cString: objCType)
+        #endif
+
+        switch type {
         case "c":
             return Int64(int8Value).databaseValue
         case "C":
@@ -57,9 +75,23 @@ extension NSNumber : DatabaseValueConvertible {
     public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
         switch databaseValue.storage {
         case .int64(let int64):
-            return self.init(value: int64)
+            #if os(Linux)
+                // Avoid "constructing an object of class type 'Self' with a
+                // metatype value must use a 'required' initializer" error with
+                // self.init(...)
+                return cast(NSNumber(value: int64))
+            #else
+                return self.init(value: int64)
+            #endif
         case .double(let double):
-            return self.init(value: double)
+            #if os(Linux)
+                // Avoid "constructing an object of class type 'Self' with a
+                // metatype value must use a 'required' initializer" error with
+                // self.init(...)
+                return cast(NSNumber(value: double))
+            #else
+                return self.init(value: double)
+            #endif
         default:
             return nil
         }

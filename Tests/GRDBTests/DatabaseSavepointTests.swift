@@ -98,7 +98,6 @@ class DatabaseSavepointTests: GRDBTestCase {
             try db.create(table: "test") { t in
                 t.column("value", .integer).unique()
             }
-            print(self.lastSQLQuery)
             try db.execute("BEGIN TRANSACTION")
             XCTAssertTrue(db.isInsideTransaction)
             try db.execute("INSERT INTO test (value) VALUES (?)", arguments: [1])

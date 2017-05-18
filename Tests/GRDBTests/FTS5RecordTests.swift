@@ -42,6 +42,7 @@ extension Book : MutablePersistable {
     }
 }
 
+/// sourcery: disableTests
 class FTS5RecordTests: GRDBTestCase {
     
     override func setUp() {

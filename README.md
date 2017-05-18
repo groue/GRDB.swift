@@ -1061,6 +1061,8 @@ Dates are stored using the format "YYYY-MM-DD HH:MM:SS.SSS" in the UTC time zone
 > - Precise enough
 > 
 > Yet this format may not fit your needs. For example, you may want to store dates as timestamps. In this case, store and load Doubles instead of Date, and perform the required conversions.
+>
+> :warning: **Warning**: on Linux the millisecond precision is not guaranteed due to [SR-3158](https://bugs.swift.org/browse/SR-3158). This bug in the Foundation framework has milliseconds both incorrectly stored, and incorrectly read.
 
 
 #### DateComponents
@@ -4975,7 +4977,7 @@ The comparison result comes from a *collating function*, or *collation*. SQLite 
 
 GRDB comes with five extra collations that leverage unicode-aware comparisons based on the standard Swift String comparison functions and operators:
 
-- `unicodeCompare` (uses the built-in `<=` and `==` Swift operators)
+- `unicodeCompare` (uses the built-in `<` and `==` Swift operators)
 - `caseInsensitiveCompare`
 - `localizedCaseInsensitiveCompare`
 - `localizedCompare`
@@ -4997,6 +4999,8 @@ let persons = try Person.order(nameColumn).fetchAll(db)
 ```
 
 > :warning: **Warning**: SQLite *requires* host applications to provide the definition of any collation other than binary, nocase and rtrim. When a database file has to be shared or migrated to another SQLite library of platform (such as the Android version of your application), make sure you provide a compatible collation.
+>
+> :warning: **Warning**: Those collations may be platform-dependent. For example, the Swift `<` and `==` string operators don't behave in the same way on Linux and on Apple operating systems: these inconsistencies have a direct impact on the `unicodeCompare` collation. See [SR-530](https://bugs.swift.org/browse/SR-530) for more information.
 
 If you can't or don't want to define the comparison behavior of a column (see warning above), you can still use an explicit collation in SQL requests and in the [query interface](#the-query-interface):
 

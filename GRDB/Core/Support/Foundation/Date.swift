@@ -6,21 +6,42 @@ extension NSDate : DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
+        #if os(Linux)
+        return storageDateFormatter.string(from: Date(timeIntervalSinceReferenceDate: self.timeIntervalSinceReferenceDate)).databaseValue
+        #else
         return storageDateFormatter.string(from: self as Date).databaseValue
+        #endif
     }
     
-    /// Returns a Date initialized from *databaseValue*, if possible.
+    /// Returns an NSDate initialized from *databaseValue*, if possible.
     public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
         if let databaseDateComponents = DatabaseDateComponents.fromDatabaseValue(databaseValue) {
-            return cast(fromDatabaseDateComponents(databaseDateComponents))
+            guard let date = Date.fromDatabaseDateComponents(databaseDateComponents) else {
+                return nil
+            }
+            #if os(Linux)
+                return cast(NSDate(timeIntervalSince1970: date.timeIntervalSince1970))
+            #else
+                return cast(date)
+            #endif
         }
         if let julianDayNumber = Double.fromDatabaseValue(databaseValue) {
-            return cast(fromJulianDayNumber(julianDayNumber))
+            guard let date = Date.fromJulianDayNumber(julianDayNumber) else {
+                return nil
+            }
+            #if os(Linux)
+                return cast(NSDate(timeIntervalSince1970: date.timeIntervalSince1970))
+            #else
+                return cast(date)
+            #endif
         }
         return nil
     }
+}
+
+extension Date {
     
-    private static func fromJulianDayNumber(_ julianDayNumber: Double) -> Date? {
+    fileprivate static func fromJulianDayNumber(_ julianDayNumber: Double) -> Date? {
         // Conversion uses the same algorithm as SQLite: https://www.sqlite.org/src/artifact/8ec787fed4929d8c
         let JD = Int64(julianDayNumber * 86400000)
         let Z = Int(((JD + 43200000)/86400000))
@@ -55,18 +76,49 @@ extension NSDate : DatabaseValueConvertible {
         return UTCCalendar.date(from: dateComponents)!
     }
     
-    private static func fromDatabaseDateComponents(_ databaseDateComponents: DatabaseDateComponents) -> Date? {
+    fileprivate static func fromDatabaseDateComponents(_ databaseDateComponents: DatabaseDateComponents) -> Date? {
         guard databaseDateComponents.format.hasYMDComponents else {
             // Refuse to turn hours without any date information into Date:
             return nil
         }
-        return UTCCalendar.date(from: databaseDateComponents.dateComponents)!
+        #if os(Linux)
+            // Word around https://bugs.swift.org/browse/SR-3158
+            if let nanoseconds = databaseDateComponents.dateComponents.nanosecond {
+                let date = UTCCalendar.date(from: databaseDateComponents.dateComponents)!
+                let seconds = round(date.timeIntervalSince1970) + Double(nanoseconds) / 1e9
+                return Date(timeIntervalSince1970: seconds)
+            } else {
+                return UTCCalendar.date(from: databaseDateComponents.dateComponents)!
+            }
+        #else
+            return UTCCalendar.date(from: databaseDateComponents.dateComponents)!
+        #endif
     }
 }
 
 /// Date is stored in the database using the format
 /// "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone.
-extension Date : DatabaseValueConvertible { }
+extension Date : DatabaseValueConvertible {
+    // ReferenceConvertible support on not available on Linux: we need explicit
+    // DatabaseValueConvertible adoption.
+    #if os(Linux)
+    /// Returns a value that can be stored in the database.
+    public var databaseValue: DatabaseValue {
+        return storageDateFormatter.string(from: self).databaseValue
+    }
+
+    /// Returns a Date initialized from *databaseValue*, if possible.
+    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Date? {
+        if let databaseDateComponents = DatabaseDateComponents.fromDatabaseValue(databaseValue) {
+            return cast(fromDatabaseDateComponents(databaseDateComponents))
+        }
+        if let julianDayNumber = Double.fromDatabaseValue(databaseValue) {
+            return cast(fromJulianDayNumber(julianDayNumber))
+        }
+        return nil
+    }
+    #endif
+}
 
 /// The DatabaseDate date formatter for stored dates.
 private let storageDateFormatter: DateFormatter = {

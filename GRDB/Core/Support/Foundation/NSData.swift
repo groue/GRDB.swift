@@ -5,7 +5,11 @@ extension NSData : DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return (self as Data).databaseValue
+        #if os(Linux)
+            return Data._unconditionallyBridgeFromObjectiveC(self).databaseValue
+        #else
+            return (self as Data).databaseValue
+        #endif
     }
     
     /// Returns an NSData initialized from *databaseValue*, if it contains
@@ -14,6 +18,10 @@ extension NSData : DatabaseValueConvertible {
         guard let data = Data.fromDatabaseValue(databaseValue) else {
             return nil
         }
-        return cast(data)
+        #if os(Linux)
+            return cast(data._bridgeToObjectiveC())
+        #else
+            return cast(data)
+        #endif
     }
 }

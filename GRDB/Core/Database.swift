@@ -839,13 +839,12 @@ extension Database {
                             sqlite3_result_blob(context, bytes, Int32(data.count), SQLITE_TRANSIENT)
                         }
                     }
-                } catch let error as DatabaseError {
-                    if let message = error.message {
+                } catch {
+                    let dbError = DatabaseError(error: error)
+                    if let message = dbError.message {
                         sqlite3_result_error(context, message, -1)
                     }
-                    sqlite3_result_error_code(context, error.extendedResultCode.rawValue)
-                } catch {
-                    sqlite3_result_error(context, "\(error)", -1)
+                    sqlite3_result_error_code(context, dbError.extendedResultCode.rawValue)
                 }
             }, nil, nil, nil)
         

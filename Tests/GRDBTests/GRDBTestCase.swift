@@ -1,4 +1,7 @@
 import XCTest
+#if os(Linux)
+    import Dispatch
+#endif
 #if SWIFT_PACKAGE
     import CSQLite
 #endif
@@ -10,6 +13,7 @@ import XCTest
     @testable import GRDB       // @testable so that we have access to SQLiteConnectionWillClose
 #endif
 
+/// sourcery: disableTests
 class GRDBTestCase: XCTestCase {
     // The default configuration for tests
     var dbConfiguration: Configuration!
@@ -17,7 +21,7 @@ class GRDBTestCase: XCTestCase {
     // Builds a database queue based on dbConfiguration
     func makeDatabaseQueue(filename: String = "db.sqlite") throws -> DatabaseQueue {
         try FileManager.default.createDirectory(atPath: dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
-        let dbPath = (dbDirectoryPath as NSString).appendingPathComponent(filename)
+        let dbPath = URL(fileURLWithPath: dbDirectoryPath).appendingPathComponent(filename).path
         let dbQueue = try DatabaseQueue(path: dbPath, configuration: dbConfiguration)
         try setup(dbQueue)
         return dbQueue
@@ -26,7 +30,7 @@ class GRDBTestCase: XCTestCase {
     // Builds a database pool based on dbConfiguration
     func makeDatabasePool(filename: String = "db.sqlite") throws -> DatabasePool {
         try FileManager.default.createDirectory(atPath: dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
-        let dbPath = (dbDirectoryPath as NSString).appendingPathComponent(filename)
+        let dbPath = URL(fileURLWithPath: dbDirectoryPath).appendingPathComponent(filename).path
         let dbPool = try DatabasePool(path: dbPath, configuration: dbConfiguration)
         try setup(dbPool)
         return dbPool
@@ -52,7 +56,7 @@ class GRDBTestCase: XCTestCase {
         super.setUp()
         
         let dbPoolDirectoryName = "GRDBTestCase-\(ProcessInfo.processInfo.globallyUniqueString)"
-        dbDirectoryPath = (NSTemporaryDirectory() as NSString).appendingPathComponent(dbPoolDirectoryName)
+        dbDirectoryPath = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(dbPoolDirectoryName).path
         do { try FileManager.default.removeItem(atPath: dbDirectoryPath) } catch { }
         
         dbConfiguration = Configuration()
@@ -115,6 +119,19 @@ class GRDBTestCase: XCTestCase {
     
     func assertDidExecute(sql: String) {
         XCTAssertTrue(sqlQueries.contains(sql), "Did not execute \(sql)")
+    }
+    
+    func assertObjCType(of number: NSNumber, equals character: Character) {
+        #if os(Linux)
+            // On Linux objCType returns type letter directly
+            let typeValueString = String(describing: number.objCType)
+            let typeValue = UInt8(strtoul(typeValueString, nil, 0))
+            let type = Character(UnicodeScalar(typeValue))
+            XCTAssertEqual(type, character)
+        #else
+            // On OS X objCType returns pointer to a C string with type letter
+            XCTAssertEqual(String(cString: number.objCType), String(character))
+        #endif
     }
     
     func sql(_ databaseReader: DatabaseReader, _ request: Request) -> String {

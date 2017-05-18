@@ -1,3 +1,5 @@
+// ReferenceType is not yet implemented on Linux
+#if !os(Linux)
 import Foundation
 
 /// DatabaseValueConvertible is free for ReferenceConvertible types whose
@@ -25,3 +27,4 @@ extension ReferenceConvertible where Self: DatabaseValueConvertible, Self.Refere
         return ReferenceType.fromDatabaseValue(databaseValue).flatMap { cast($0) }
     }
 }
+#endif

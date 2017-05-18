@@ -306,10 +306,32 @@ public final class SelectStatement : Statement {
 
 /// A cursor on a statement
 public final class DatabaseCursor<Element> : Cursor {
+    // When sqlite3_step() returns an error code, what is the result code
+    // returned by the next call of sqlite3_step()?
+    //
+    // Well, it depends on the SQLite version. The result code is usually
+    // SQLITE_MISUSE (as witnessed from versions 3.7.13 to 3.14.0 on iOS, and
+    // up to version 3.18.0 with custom SQLite builds). However SQLite 3.11.0
+    // exhibits a different behavior: it doesn't always return SQLITE_MISUSE,
+    // as demonstrated by Linux tests when run on Ubuntu 16.04.
+    //
+    // We interpret this inconsistency as a glitch in SQLite 3.11.0. See
+    // https://github.com/groue/GRDB.swift/pull/205#issuecomment-297526205 for
+    // more context.
+    //
+    // We want GRDB's DatabaseCursor to exhibit a consistent behavior. We
+    // thus work around SQLite 3.11.0 by locking a cursor on an error state
+    // after the first error code:
+    private enum State {
+        case ready
+        case done
+        case error(DatabaseError)
+    }
+    
     fileprivate let statement: SelectStatement
     private let sqliteStatement: SQLiteStatement
     private let element: () throws -> Element?
-    private var done = false
+    private var state = State.ready
     
     // Fileprivate so that only SelectStatement can instantiate a database cursor
     fileprivate init(statement: SelectStatement, element: @escaping () throws -> Element?) {
@@ -327,19 +349,23 @@ public final class DatabaseCursor<Element> : Cursor {
     ///         let name: String = row.value(atIndex: 1)
     ///     }
     public func next() throws -> Element? {
-        if done {
+        switch state {
+        case .ready:
+            switch sqlite3_step(sqliteStatement) {
+            case SQLITE_DONE:
+                state = .done
+                return nil
+            case SQLITE_ROW:
+                return try element()
+            case let code:
+                state = .error(DatabaseError(resultCode: SQLITE_MISUSE, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments))
+                statement.database.selectStatementDidFail(statement)
+                throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
+            }
+        case .done:
             return nil
-        }
-        
-        switch sqlite3_step(sqliteStatement) {
-        case SQLITE_DONE:
-            done = true
-            return nil
-        case SQLITE_ROW:
-            return try element()
-        case let code:
-            statement.database.selectStatementDidFail(statement)
-            throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
+        case .error(let error):
+            throw error
         }
     }
 }

@@ -196,21 +196,54 @@ class DatabaseErrorTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             try db.create(table: "parents") { $0.column("id", .integer).primaryKey() }
             try db.create(table: "children") { $0.column("parentId", .integer).references("parents") }
-            do {
-                try db.execute("INSERT INTO children (parentId) VALUES (1)")
-            } catch let error as NSError {
+
+            let verifyErrorDomainAndCode: (_ domain: String, _ code: Int) -> () = { domain, code in
                 XCTAssertEqual(DatabaseError.errorDomain, "GRDB.DatabaseError")
-                XCTAssertEqual(error.domain, DatabaseError.errorDomain)
+                XCTAssertEqual(domain, DatabaseError.errorDomain)
                 // SQLITE_CONSTRAINT_FOREIGNKEY was added in SQLite 3.7.16 http://www.sqlite.org/changes.html#version_3_7_16
                 // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-                if error.code != 19 {
-                    XCTAssertEqual(error.code, 787) // extended SQLITE_CONSTRAINT_FOREIGNKEY
+                if code != 19 {
+                    XCTAssertEqual(code, 787) // extended SQLITE_CONSTRAINT_FOREIGNKEY
                 } else {
                     // TODO: check for another extended result code, because we
                     // didn't prove that extended result codes are activated.
                 }
             }
+
+            // DatabaseError is Error. Test if it can be caught as Error
+            do {
+                try db.execute("INSERT INTO children (parentId) VALUES (1)")
+            } catch {
+                verifyErrorDomainAndCode(error._domain, error._code)
+            }
+
+            // Test NSError bridging on OS X.
+            // Error is not bridged to NSError on Linux: https://bugs.swift.org/browse/SR-3872
+            #if !os(Linux)
+            do {
+                try db.execute("INSERT INTO children (parentId) VALUES (1)")
+            } catch let error as NSError {
+                verifyErrorDomainAndCode(error.domain, error.code)
+            }
+            #endif
         }
     }
-
+    
+    func testDatabaseErrorFromNSError() {
+        let error = NSError(domain: "Custom", code: 123, userInfo: [NSLocalizedDescriptionKey: "something wrong did happen"])
+        let dbError = DatabaseError(error: error)
+        XCTAssertEqual(dbError.extendedResultCode, .SQLITE_ERROR)
+        XCTAssert(dbError.message!.contains("Custom"))
+        XCTAssert(dbError.message!.contains("123"))
+        XCTAssert(dbError.message!.contains("something wrong did happen"))
+    }
+    
+    func testDatabaseErrorFromDatabaseError() {
+        let error = DatabaseError(resultCode: .SQLITE_CONSTRAINT_FOREIGNKEY, message: "something wrong did happen", sql: "some SQL", arguments: [1])
+        let dbError = DatabaseError(error: error)
+        XCTAssertEqual(dbError.extendedResultCode, .SQLITE_CONSTRAINT_FOREIGNKEY)
+        XCTAssertEqual(dbError.message, "something wrong did happen")
+        XCTAssertEqual(dbError.sql, "some SQL")
+        XCTAssertEqual(dbError.description, error.description)
+    }
 }

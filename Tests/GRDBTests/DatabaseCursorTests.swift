@@ -44,9 +44,9 @@ class DatabaseCursorTests: GRDBTestCase {
                 XCTFail()
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
-                XCTAssertEqual(error.message, "\(customError)")
                 XCTAssertEqual(error.sql!, "SELECT throw()")
-                XCTAssertEqual(error.description, "SQLite error 1 with statement `SELECT throw()`: \(customError)")
+                XCTAssertEqual(error.message, DatabaseError(error: customError).message)
+                XCTAssertEqual(error.description, "SQLite error 1 with statement `SELECT throw()`: \(DatabaseError(error: customError).message!)")
             }
         }
     }

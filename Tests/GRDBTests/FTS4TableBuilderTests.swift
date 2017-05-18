@@ -187,7 +187,6 @@ class FTS4TableBuilderTests: GRDBTestCase {
                 t.column("content")
                 t.column("lid").asLanguageId()
             }
-            print(sqlQueries)
             assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts4(content, languageid=\"lid\", content=\"\", compress=\"zip\", uncompress=\"unzip\", matchinfo=\"fts3\", prefix=\"2,4\")")
             
             try db.execute("INSERT INTO documents (docid, content, lid) VALUES (?, ?, ?)", arguments: [1, "abc", 0])
