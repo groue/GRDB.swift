@@ -46,10 +46,10 @@ GRDB ships with a **[low-level SQLite API](#sqlite-api)**, and high-level tools 
 - **[Migrations](#migrations)**: transform your database as your application evolves
 - **[Database Changes Observation](#database-changes-observation)**: perform post-commit and post-rollback actions
 - **[Fetched Records Controller](#fetchedrecordscontroller)**: automated tracking of changes in a query results, and UITableView animations
+- **[RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB)**: automated tracking of changes in a query results, based on [RxSwift](https://github.com/ReactiveX/RxSwift)
 - **[Full-Text Search](#full-text-search)**: Perform efficient and customizable full-text searches.
 - **[Encryption](#encryption)** with SQLCipher
 - **[Support for custom SQLite builds](Documentation/CustomSQLiteBuilds.md)**
-- **[Reactive extensions for RxSwift](http://github.com/RxSwiftCommunity/RxGRDB)**
 
 More than a set of tools that leverage SQLite abilities, GRDB is also:
 
@@ -4276,6 +4276,8 @@ It looks and behaves very much like [Core Data's NSFetchedResultsController](htt
 Given a fetch request, and a type that adopts the [RowConvertible](#rowconvertible-protocol) protocol, such as a subclass of the [Record](#record-class) class, a FetchedRecordsController is able to track changes in the results of the fetch request, notify of those changes, and return the results of the request in a form that is suitable for a table view or a collection view, with one cell per fetched record.
 
 See [GRDBDemoiOS](DemoApps/GRDBDemoiOS/GRDBDemoiOS) for an sample app that uses FetchedRecordsController.
+
+See also [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), an [RxSwift](https://github.com/ReactiveX/RxSwift) extension, for a reactive way to track request changes.
 
 - [Creating the Fetched Records Controller](#creating-the-fetched-records-controller)
 - [Responding to Changes](#responding-to-changes)
