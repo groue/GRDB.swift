@@ -32,7 +32,7 @@ public struct FTS3TokenizerDescriptor {
     /// See https://www.sqlite.org/fts3.html#tokenizer
     public static let porter = FTS3TokenizerDescriptor("porter")
     
-    #if USING_CUSTOMSQLITE || USING_SQLCIPHER
+    #if GRDBCUSTOMSQLITE || GRDBCIPHER
     /// The "unicode61" tokenizer.
     ///
     ///     db.create(virtualTable: "books", using: FTS4()) { t in
@@ -91,7 +91,7 @@ public struct FTS3TokenizerDescriptor {
         return FTS3TokenizerDescriptor("unicode61", arguments: arguments)
     }
     
-    #if USING_CUSTOMSQLITE || USING_SQLCIPHER
+    #if GRDBCUSTOMSQLITE || GRDBCIPHER
     func tokenize(_ string: String) -> [String] {
         return _tokenize(string)
     }

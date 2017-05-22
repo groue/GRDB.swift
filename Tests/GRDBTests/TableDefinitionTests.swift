@@ -1,7 +1,7 @@
 import XCTest
-#if USING_SQLCIPHER
+#if GRDBCIPHER
     import GRDBCipher
-#elseif USING_CUSTOMSQLITE
+#elseif GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -460,7 +460,7 @@ class TableDefinitionTests: GRDBTestCase {
     }
     
     func testCreatePartialIndex() throws {
-        #if !USING_CUSTOMSQLITE && !USING_SQLCIPHER
+        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
             guard #available(iOS 8.2, OSX 10.10, *) else {
                 return
             }

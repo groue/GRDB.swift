@@ -16,8 +16,8 @@ Pod::Spec.new do |s|
 	s.source_files = 'GRDB/**/*.swift', 'SQLCipher/*.h', 'Support/grdb_config.{c,h}'
 	s.module_map = 'SQLCipher/module.modulemap'
 	s.xcconfig = {
-		'OTHER_SWIFT_FLAGS' => '$(inherited) -DSQLITE_HAS_CODEC -DUSING_SQLCIPHER',
-		'OTHER_CFLAGS' => '$(inherited) -DSQLITE_HAS_CODEC -DUSING_SQLCIPHER',
+		'OTHER_SWIFT_FLAGS' => '$(inherited) -DSQLITE_HAS_CODEC -DGRDBCIPHER',
+		'OTHER_CFLAGS' => '$(inherited) -DSQLITE_HAS_CODEC -DGRDBCIPHER',
 		'GCC_PREPROCESSOR_DEFINITIONS' => '$(inherited) SQLITE_HAS_CODEC=1'
 	}
 	s.framework = 'Foundation'

@@ -1,7 +1,7 @@
 import XCTest
-#if USING_SQLCIPHER
+#if GRDBCIPHER
     @testable import GRDBCipher // @testable so that we can test SchedulingWatchdog
-#elseif USING_CUSTOMSQLITE
+#elseif GRDBCUSTOMSQLITE
     @testable import GRDBCustomSQLite // @testable so that we can test SchedulingWatchdog
 #else
     @testable import GRDB // @testable so that we can test SchedulingWatchdog

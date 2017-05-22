@@ -1,7 +1,7 @@
 import XCTest
-#if USING_SQLCIPHER
+#if GRDBCIPHER
     import GRDBCipher
-#elseif USING_CUSTOMSQLITE
+#elseif GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -12,7 +12,7 @@ class DatabaseReaderTests : GRDBTestCase {
     func testDatabaseQueueReadPreventsDatabaseModification() throws {
         // query_only pragma was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        #if !USING_CUSTOMSQLITE && !USING_SQLCIPHER
+        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
             guard #available(iOS 8.2, OSX 10.10, *) else {
                 return
             }

@@ -4,7 +4,7 @@ struct Migration {
     let disabledForeignKeyChecks: Bool
     let migrate: (Database) throws -> Void
     
-    #if USING_CUSTOMSQLITE || USING_SQLCIPHER
+    #if GRDBCUSTOMSQLITE || GRDBCIPHER
         init(identifier: String, disabledForeignKeyChecks: Bool = false, migrate: @escaping (Database) throws -> Void) {
             self.identifier = identifier
             self.disabledForeignKeyChecks = disabledForeignKeyChecks

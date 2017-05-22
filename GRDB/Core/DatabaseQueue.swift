@@ -232,7 +232,7 @@ extension DatabaseQueue : DatabaseReader {
     public func read<T>(_ block: (Database) throws -> T) rethrows -> T {
         // query_only pragma was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        #if USING_CUSTOMSQLITE || USING_SQLCIPHER
+        #if GRDBCUSTOMSQLITE || GRDBCIPHER
             return try inDatabase { try readOnly($0, block) }
         #else
             if #available(iOS 8.2, OSX 10.10, *) {
@@ -319,7 +319,7 @@ extension DatabaseQueue : DatabaseWriter {
     public func readFromCurrentState(_ block: @escaping (Database) -> Void) {
         // query_only pragma was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        #if USING_CUSTOMSQLITE || USING_SQLCIPHER
+        #if GRDBCUSTOMSQLITE || GRDBCIPHER
             serializedDatabase.execute { readOnly($0, block) }
         #else
             if #available(iOS 8.2, OSX 10.10, *) {

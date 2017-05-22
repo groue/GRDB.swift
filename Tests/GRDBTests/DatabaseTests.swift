@@ -1,7 +1,7 @@
 import XCTest
-#if USING_SQLCIPHER
+#if GRDBCIPHER
     import GRDBCipher
-#elseif USING_CUSTOMSQLITE
+#elseif GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -262,7 +262,7 @@ class DatabaseTests : GRDBTestCase {
     func testFailedCommitIsRollbacked() throws {
         // PRAGMA defer_foreign_keys = ON was introduced in SQLite 3.12.0 http://www.sqlite.org/changes.html#version_3_8_0
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        #if !USING_CUSTOMSQLITE && !USING_SQLCIPHER
+        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
             guard #available(iOS 8.2, OSX 10.10, *) else {
                 return
             }
