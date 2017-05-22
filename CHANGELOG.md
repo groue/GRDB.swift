@@ -14,6 +14,7 @@ Release Notes
 **Breaking Changes**
 
 - `DatabaseEventKind.impacts(_ selectionInfo:SelectStatement.SelectionInfo)` now returns an non-optional boolean.
+- `DatabaseWriter.availableDatabaseConnection` has been replaced by `DatabaseWriter.unsafeReentrantWrite()`.
     
 
 ## 0.108.0

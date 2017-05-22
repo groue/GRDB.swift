@@ -436,10 +436,20 @@ extension DatabasePool : DatabaseWriter {
         }
     }
     
-    /// Returns an optional database connection. If not nil, the caller is
-    /// executing on the serialized writer dispatch queue.
-    public var availableDatabaseConnection: Database? {
-        return writer.availableDatabaseConnection
+    /// Synchronously executes an update block in a protected dispatch queue,
+    /// and returns its result.
+    ///
+    /// Eventual concurrent database updates are postponed until the block
+    /// has executed.
+    ///
+    ///     try dbPool.unsafeReentrantWrite { db in
+    ///         try db.execute(...)
+    ///     }
+    ///
+    /// This method is reentrant. It should be avoided because it fosters
+    /// dangerous concurrency practices.
+    public func unsafeReentrantWrite<T>(_ block: (Database) throws -> T) rethrows -> T {
+        return try writer.reentrantSync(block)
     }
     
     

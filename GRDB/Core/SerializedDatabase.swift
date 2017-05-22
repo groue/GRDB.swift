@@ -52,8 +52,8 @@ final class SerializedDatabase {
         }
     }
     
-    /// Synchronously executes a block the serialized dispatch queue, and returns
-    /// its result.
+    /// Synchronously executes a block the serialized dispatch queue, and
+    /// returns its result.
     ///
     /// This method is *not* reentrant.
     func sync<T>(_ block: (Database) throws -> T) rethrows -> T {
@@ -96,7 +96,11 @@ final class SerializedDatabase {
         }
     }
     
-    private func reentrantSync<T>(_ block: (Database) throws -> T) rethrows -> T {
+    /// Synchronously executes a block the serialized dispatch queue, and
+    /// returns its result.
+    ///
+    /// This method is reentrant.
+    func reentrantSync<T>(_ block: (Database) throws -> T) rethrows -> T {
         // Three different cases:
         //
         // 1. A database is invoked from some queue like the main queue:

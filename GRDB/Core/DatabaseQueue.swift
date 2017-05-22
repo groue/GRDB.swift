@@ -330,10 +330,17 @@ extension DatabaseQueue : DatabaseWriter {
         #endif
     }
     
-    /// Returns an optional database connection. If not nil, the caller is
-    /// executing on the protected database dispatch queue.
-    public var availableDatabaseConnection: Database? {
-        return serializedDatabase.availableDatabaseConnection
+    /// Synchronously executes a block in a protected dispatch queue, and
+    /// returns its result.
+    ///
+    ///     let persons = try dbQueue.unsafeReentrantWrite { db in
+    ///         try db.execute(...)
+    ///     }
+    ///
+    /// This method is reentrant. It should be avoided because it fosters
+    /// dangerous concurrency practices.
+    public func unsafeReentrantWrite<T>(_ block: (Database) throws -> T) rethrows -> T {
+        return try serializedDatabase.reentrantSync(block)
     }
 }
 

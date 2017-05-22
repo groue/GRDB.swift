@@ -9,19 +9,33 @@ import XCTest
 
 class DatabaseWriterTests : GRDBTestCase {
     
-    func testDatabaseQueueAvailableDatabaseConnection() throws {
+    func testDatabaseQueueUnsafeReentrantWrite() throws {
         let dbQueue = try makeDatabaseQueue()
-        XCTAssertTrue(dbQueue.availableDatabaseConnection == nil)
-        dbQueue.inDatabase { db in
-            XCTAssertTrue(dbQueue.availableDatabaseConnection != nil)
+        try dbQueue.unsafeReentrantWrite { db in
+            try db.create(table: "table1") { t in
+                t.column("id", .integer).primaryKey()
+            }
+            try dbQueue.unsafeReentrantWrite { db in
+                try db.execute("INSERT INTO table1 (id) VALUES (NULL)")
+                try dbQueue.unsafeReentrantWrite { db in
+                    try XCTAssertEqual(Int.fetchOne(db, "SELECT * FROM table1"), 1)
+                }
+            }
         }
     }
     
-    func testDatabasePoolAvailableDatabaseConnection() throws {
+    func testDatabasePoolUnsafeReentrantWrite() throws {
         let dbPool = try makeDatabasePool()
-        XCTAssertTrue(dbPool.availableDatabaseConnection == nil)
-        dbPool.write { db in
-            XCTAssertTrue(dbPool.availableDatabaseConnection != nil)
+        try dbPool.unsafeReentrantWrite { db in
+            try db.create(table: "table1") { t in
+                t.column("id", .integer).primaryKey()
+            }
+            try dbPool.unsafeReentrantWrite { db in
+                try db.execute("INSERT INTO table1 (id) VALUES (NULL)")
+                try dbPool.unsafeReentrantWrite { db in
+                    try XCTAssertEqual(Int.fetchOne(db, "SELECT * FROM table1"), 1)
+                }
+            }
         }
     }
 }
