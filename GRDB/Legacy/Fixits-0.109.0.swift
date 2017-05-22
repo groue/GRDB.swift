@@ -1,4 +1,4 @@
 extension Request {
-    @available(*, unavailable, renamed:"fetching(_:)")
+    @available(*, unavailable, renamed:"asRequest(of:)")
     public func bound<T>(to type: T.Type) -> AnyTypedRequest<T> { preconditionFailure() }
 }

@@ -45,14 +45,15 @@ extension Request {
     /// The returned request can fetch if the type T is fetchable (Row,
     /// value, record).
     ///
+    ///     // minHeight in Double?
     ///     let minHeight = Person
     ///         .select(min(heightColumn))
-    ///         .fetching(Double.self)    // <--
+    ///         .asRequest(of: Double.self)    // <--
     ///         .fetchOne(db)
     ///
     /// - parameter type: The fetched type T
     /// - returns: A typed request bound to type T.
-    public func fetching<T>(_ type: T.Type) -> AnyTypedRequest<T> {
+    public func asRequest<T>(of type: T.Type) -> AnyTypedRequest<T> {
         return AnyTypedRequest { try self.prepare($0) }
     }
     

@@ -3145,9 +3145,25 @@ let maxScore = try Int.fetchOne(db, request) // Int?
 
 let request = Player.select(min(scoreColumn), max(scoreColumn))
 let row = try Row.fetchOne(db, request)!
-let minScore = row.value(atIndex: 0) as Int
-let maxScore = row.value(atIndex: 1) as Int
+let minScore = row.value(atIndex: 0) as Int?
+let maxScore = row.value(atIndex: 1) as Int?
 ```
+
+The examples above can also be rewritten using the `asRequest(of:)` method:
+
+```swift
+let maxScore = try Player.select(max(scoreColumn))
+    .asRequest(of: Int.self)
+    .fetchOne(db)
+
+let row = try Player.select(min(scoreColumn), max(scoreColumn))
+    .asRequest(of: Row.self)
+    .fetchOne(db)!
+let minScore = row.value(atIndex: 0) as Int?
+let maxScore = row.value(atIndex: 1) as Int?
+```
+
+More information about `asRequest(of:)` can be found in the [Custom Requests](#custom-requests) chapter.
 
 
 ## Delete Requests
@@ -3287,7 +3303,7 @@ Rebind the fetched type of requests:
 
 ```swift
 let maxScore = Player.select(max(scoreColumn))
-    .fetching(Int.self)
+    .asRequest(of: Int.self)
     .fetchOne(db)
 ```
 
@@ -3297,7 +3313,7 @@ Bind custom SQL requests to your record types:
 extension Person {
     static func customRequest(...) -> AnyTypedRequest<Person> {
         let request = SQLRequest("SELECT ...", arguments: ...)
-        return request.fetching(Person.self)
+        return request.asRequest(of: Person.self)
     }
 }
 
@@ -3322,7 +3338,7 @@ struct BookAuthorPair : RowConvertible {
             "SELECT books.*, authors.* " +
             "FROM books " +
             "JOIN authors ON authors.id = books.authorID")
-            .fetching(BookAuthorPair.self)
+            .asRequest(of: BookAuthorPair.self)
             .adapted { db in
                 // The scopes are used in init(row:)
                 try ScopeAdapter([
