@@ -38,7 +38,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///         This function should return true if the two records have the
     ///         same identity. For example, they have the same id.
     public convenience init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: DispatchQueue = .main, isSameRecord: ((Record, Record) -> Bool)? = nil) throws {
-        try self.init(databaseWriter, request: SQLRequest(sql, arguments: arguments, adapter: adapter).bound(to: Record.self), queue: queue, isSameRecord: isSameRecord)
+        try self.init(databaseWriter, request: SQLRequest(sql, arguments: arguments, adapter: adapter).asRequest(of: Record.self), queue: queue, isSameRecord: isSameRecord)
     }
     
     /// Creates a fetched records controller initialized from a fetch request
@@ -157,7 +157,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// This method must be used from the controller's dispatch queue (the
     /// main queue unless stated otherwise in the controller's initializer).
     public func setRequest(sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
-        try setRequest(SQLRequest(sql, arguments: arguments, adapter: adapter).bound(to: Record.self))
+        try setRequest(SQLRequest(sql, arguments: arguments, adapter: adapter).asRequest(of: Record.self))
     }
     
     /// Registers changes notification callbacks.
@@ -374,7 +374,7 @@ extension FetchedRecordsController where Record: TableMapping {
     ///         notified of changes in this queue. The controller itself must be
     ///         used from this queue.
     public convenience init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: DispatchQueue = .main) throws {
-        try self.init(databaseWriter, request: SQLRequest(sql, arguments: arguments, adapter: adapter).bound(to: Record.self), queue: queue)
+        try self.init(databaseWriter, request: SQLRequest(sql, arguments: arguments, adapter: adapter).asRequest(of: Record.self), queue: queue)
     }
     
     /// Creates a fetched records controller initialized from a fetch request
@@ -436,8 +436,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     }
     
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        // If impact is unknown, assume true
-        return eventKind.impacts(selectionInfo) ?? true
+        return eventKind.impacts(selectionInfo)
     }
     
     #if SQLITE_ENABLE_PREUPDATE_HOOK

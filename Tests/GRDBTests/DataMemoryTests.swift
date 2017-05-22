@@ -2,9 +2,9 @@ import XCTest
 #if SWIFT_PACKAGE
     import CSQLite
 #endif
-#if USING_SQLCIPHER
+#if GRDBCIPHER
     @testable import GRDBCipher
-#elseif USING_CUSTOMSQLITE
+#elseif GRDBCUSTOMSQLITE
     @testable import GRDBCustomSQLite
 #else
     @testable import GRDB

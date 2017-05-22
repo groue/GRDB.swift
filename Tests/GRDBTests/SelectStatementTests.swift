@@ -1,7 +1,7 @@
 import XCTest
-#if USING_SQLCIPHER
+#if GRDBCIPHER
     import GRDBCipher
-#elseif USING_CUSTOMSQLITE
+#elseif GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -138,7 +138,7 @@ class SelectStatementTests : GRDBTestCase {
                 }
                 
                 func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-                    return eventKind.impacts(selectionInfo) ?? true
+                    return eventKind.impacts(selectionInfo) 
                 }
                 
                 func databaseDidChange(with event: DatabaseEvent) {

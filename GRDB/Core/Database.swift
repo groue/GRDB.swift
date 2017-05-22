@@ -2117,11 +2117,9 @@ public enum DatabaseEventKind {
     
     /// Returns whether event has any impact on tables and columns described
     /// by selectionInfo.
-    ///
-    /// If the result is nil, then the information is unknown.
-    public func impacts(_ selectionInfo: SelectStatement.SelectionInfo) -> Bool? {
+    public func impacts(_ selectionInfo: SelectStatement.SelectionInfo) -> Bool {
         if selectionInfo.isUnknown {
-            return nil
+            return true
         }
         
         switch self {

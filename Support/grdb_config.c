@@ -1,4 +1,4 @@
-#if USING_SQLCIPHER && defined(COCOAPODS)
+#if GRDBCIPHER && defined(COCOAPODS)
     #include <GRDBCipher/grdb_config.h>
     #include <SQLCipher/sqlite3.h>
 #else

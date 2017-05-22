@@ -26,7 +26,16 @@ public protocol DatabaseWriter : DatabaseReader {
     /// This method is *not* reentrant.
     func write<T>(_ block: (Database) throws -> T) rethrows -> T
     
-    
+    /// Synchronously executes a block that takes a database connection, and
+    /// returns its result.
+    ///
+    /// Eventual concurrent database updates are postponed until the block
+    /// has executed.
+    ///
+    /// This method is reentrant. It should be avoided because it fosters
+    /// dangerous concurrency practices.
+    func unsafeReentrantWrite<T>(_ block: (Database) throws -> T) rethrows -> T
+
     // MARK: - Reading from Database
     
     /// Synchronously or asynchronously executes a read-only block that takes a
@@ -92,10 +101,6 @@ public protocol DatabaseWriter : DatabaseReader {
     ///
     /// This method is *not* reentrant.
     func readFromCurrentState(_ block: @escaping (Database) -> Void) throws
-    
-    /// Returns an optional database connection. If not nil, the caller is
-    /// executing on a serialized writer dispatch queue.
-    var availableDatabaseConnection: Database? { get }
 }
 
 extension DatabaseWriter {

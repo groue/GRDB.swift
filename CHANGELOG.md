@@ -1,6 +1,23 @@
 Release Notes
 =============
 
+## Next Version
+
+**Fixed**
+
+- Failed value conversions now consistently crash with a fatal error.
+
+**New**
+
+- `DatabaseValue.losslessConvert()` performs a lossless conversion to a value type.
+
+**Breaking Changes**
+
+- `DatabaseEventKind.impacts(_ selectionInfo:SelectStatement.SelectionInfo)` now returns an non-optional boolean.
+- `DatabaseWriter.availableDatabaseConnection` has been replaced by `DatabaseWriter.unsafeReentrantWrite()`.
+- `Request.bound(to:)` has been renamed `Request.asRequest(of:)`.
+    
+
 ## 0.108.0
 
 Released May 17, 2017

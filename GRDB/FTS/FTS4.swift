@@ -263,7 +263,7 @@ public final class FTS4ColumnDefinition {
         self.isLanguageId = false
     }
     
-    #if USING_CUSTOMSQLITE || USING_SQLCIPHER
+    #if GRDBCUSTOMSQLITE || GRDBCIPHER
     /// Excludes the column from the full-text index.
     ///
     ///     try db.create(virtualTable: "persons", using: FTS4()) { t in

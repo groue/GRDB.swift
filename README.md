@@ -46,10 +46,10 @@ GRDB ships with a **[low-level SQLite API](#sqlite-api)**, and high-level tools 
 - **[Migrations](#migrations)**: transform your database as your application evolves
 - **[Database Changes Observation](#database-changes-observation)**: perform post-commit and post-rollback actions
 - **[Fetched Records Controller](#fetchedrecordscontroller)**: automated tracking of changes in a query results, and UITableView animations
+- **[RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB)**: automated tracking of changes in a query results, based on [RxSwift](https://github.com/ReactiveX/RxSwift)
 - **[Full-Text Search](#full-text-search)**: Perform efficient and customizable full-text searches.
 - **[Encryption](#encryption)** with SQLCipher
 - **[Support for custom SQLite builds](Documentation/CustomSQLiteBuilds.md)**
-- **[Reactive extensions for RxSwift](http://github.com/RxSwiftCommunity/RxGRDB)**
 
 More than a set of tools that leverage SQLite abilities, GRDB is also:
 
@@ -3145,9 +3145,25 @@ let maxScore = try Int.fetchOne(db, request) // Int?
 
 let request = Player.select(min(scoreColumn), max(scoreColumn))
 let row = try Row.fetchOne(db, request)!
-let minScore = row.value(atIndex: 0) as Int
-let maxScore = row.value(atIndex: 1) as Int
+let minScore = row.value(atIndex: 0) as Int?
+let maxScore = row.value(atIndex: 1) as Int?
 ```
+
+The examples above can also be rewritten using the `asRequest(of:)` method:
+
+```swift
+let maxScore = try Player.select(max(scoreColumn))
+    .asRequest(of: Int.self)
+    .fetchOne(db)
+
+let row = try Player.select(min(scoreColumn), max(scoreColumn))
+    .asRequest(of: Row.self)
+    .fetchOne(db)!
+let minScore = row.value(atIndex: 0) as Int?
+let maxScore = row.value(atIndex: 1) as Int?
+```
+
+More information about `asRequest(of:)` can be found in the [Custom Requests](#custom-requests) chapter.
 
 
 ## Delete Requests
@@ -3287,7 +3303,7 @@ Rebind the fetched type of requests:
 
 ```swift
 let maxScore = Player.select(max(scoreColumn))
-    .bound(to: Int.self)
+    .asRequest(of: Int.self)
     .fetchOne(db)
 ```
 
@@ -3297,7 +3313,7 @@ Bind custom SQL requests to your record types:
 extension Person {
     static func customRequest(...) -> AnyTypedRequest<Person> {
         let request = SQLRequest("SELECT ...", arguments: ...)
-        return request.bound(to: Person.self)
+        return request.asRequest(of: Person.self)
     }
 }
 
@@ -3322,7 +3338,7 @@ struct BookAuthorPair : RowConvertible {
             "SELECT books.*, authors.* " +
             "FROM books " +
             "JOIN authors ON authors.id = books.authorID")
-            .bound(to: BookAuthorPair.self)
+            .asRequest(of: BookAuthorPair.self)
             .adapted { db in
                 // The scopes are used in init(row:)
                 try ScopeAdapter([
@@ -4260,6 +4276,8 @@ It looks and behaves very much like [Core Data's NSFetchedResultsController](htt
 Given a fetch request, and a type that adopts the [RowConvertible](#rowconvertible-protocol) protocol, such as a subclass of the [Record](#record-class) class, a FetchedRecordsController is able to track changes in the results of the fetch request, notify of those changes, and return the results of the request in a form that is suitable for a table view or a collection view, with one cell per fetched record.
 
 See [GRDBDemoiOS](DemoApps/GRDBDemoiOS/GRDBDemoiOS) for an sample app that uses FetchedRecordsController.
+
+See also [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), an [RxSwift](https://github.com/ReactiveX/RxSwift) extension, for a reactive way to track request changes.
 
 - [Creating the Fetched Records Controller](#creating-the-fetched-records-controller)
 - [Responding to Changes](#responding-to-changes)

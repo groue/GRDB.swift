@@ -2,7 +2,7 @@ extension Database {
     
     // MARK: - Database Schema
     
-    #if USING_CUSTOMSQLITE || USING_SQLCIPHER
+    #if GRDBCUSTOMSQLITE || GRDBCIPHER
     /// Creates a database table.
     ///
     ///     try db.create(table: "pointOfInterests") { t in
@@ -123,7 +123,7 @@ extension Database {
         try execute("DROP TABLE \(name.quotedDatabaseIdentifier)")
     }
     
-    #if USING_CUSTOMSQLITE || USING_SQLCIPHER
+    #if GRDBCUSTOMSQLITE || GRDBCIPHER
     /// Creates an index.
     ///
     ///     try db.create(index: "personByEmail", on: "person", columns: ["email"])

@@ -61,7 +61,7 @@ public struct DatabaseMigrator {
         registerMigration(Migration(identifier: identifier, migrate: migrate))
     }
     
-    #if USING_CUSTOMSQLITE || USING_SQLCIPHER
+    #if GRDBCUSTOMSQLITE || GRDBCIPHER
         /// Registers an advanced migration, as described at https://www.sqlite.org/lang_altertable.html#otheralter
         ///
         ///     // Add a NOT NULL constraint on persons.name:

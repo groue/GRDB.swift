@@ -31,7 +31,7 @@ public struct FTS3Pattern {
         self.rawPattern = rawPattern
     }
     
-    #if USING_CUSTOMSQLITE || USING_SQLCIPHER
+    #if GRDBCUSTOMSQLITE || GRDBCIPHER
     /// Creates a pattern that matches any token found in the input string;
     /// returns nil if no pattern could be built.
     ///

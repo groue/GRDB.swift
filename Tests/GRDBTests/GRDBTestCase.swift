@@ -2,9 +2,9 @@ import XCTest
 #if SWIFT_PACKAGE
     import CSQLite
 #endif
-#if USING_SQLCIPHER
+#if GRDBCIPHER
     @testable import GRDBCipher // @testable so that we have access to SQLiteConnectionWillClose
-#elseif USING_CUSTOMSQLITE
+#elseif GRDBCUSTOMSQLITE
     @testable import GRDBCustomSQLite // @testable so that we have access to SQLiteConnectionWillClose
 #else
     @testable import GRDB       // @testable so that we have access to SQLiteConnectionWillClose

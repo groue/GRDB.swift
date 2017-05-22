@@ -25,7 +25,7 @@ v1.0 checklit
         Besides, not all requests have a naturel Fetched type: request.fetchCount(db) doesn't care about the type of the request, for example.   
     - [X] Question AnyRequest and AnyTypedRequest as results (for example, `SQLRequest("...").bound(to: MyRecord.self)` returns AnyTypedRequest).
         It's not worth the effort to introduce more concrete request types (AdaptedRequest, AdaptedTypedRequest, BoundRequest)
-    - [ ] Question the naming of the `request.bound(to:T.self)` method. Prefer... `request.fetching(T.self)`? `request.of(T.self)`?
+    - [X] Question the naming of the `request.bound(to:T.self)` method. Prefer... `request..asRequest(of: T.self)`
 - [ ] Make GRDB less stringly-typed. When a user defines a static list of columns for a record type, those columns should be easier to use:
     - [ ] Persistable.persistentDictionary requires string keys, doesn't accept columns
     - [ ] If possible, improve on `Person.filter(Person.email != nil)` or `Person.filter(Person.Column.email != nil)` (see [#186](https://github.com/groue/GRDB.swift/issues/186))
