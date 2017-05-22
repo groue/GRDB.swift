@@ -112,51 +112,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             }
         }
     }
-
-    func testFetchCursorConversionFailure() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            func test(_ cursor: DatabaseCursor<Fetched>, sql: String) throws {
-                var i = try cursor.next()!
-                XCTAssertEqual(i.int, 1)
-                XCTAssertTrue(i.fast)
-                do {
-                    _ = try cursor.next()
-                    XCTFail()
-                } catch let error as DatabaseError {
-                    XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
-                    XCTAssertEqual(error.message, "could not convert database value NULL to \(Fetched.self)")
-                    XCTAssertEqual(error.sql!, sql)
-                    XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: could not convert database value NULL to \(Fetched.self)")
-                }
-                i = try cursor.next()!
-                XCTAssertEqual(i.int, 0)    // SQLite conversion from 'foo' to 0
-                XCTAssertTrue(i.fast)
-                i = try cursor.next()!
-                XCTAssertEqual(i.int, 2)
-                XCTAssertTrue(i.fast)
-                XCTAssertTrue(try cursor.next() == nil) // end
-            }
-            do {
-                let sql = "SELECT 1 UNION ALL SELECT NULL UNION ALL SELECT 'foo' UNION ALL SELECT 2"
-                let statement = try db.makeSelectStatement(sql)
-                try test(Fetched.fetchCursor(db, sql), sql: sql)
-                try test(Fetched.fetchCursor(statement), sql: sql)
-                try test(Fetched.fetchCursor(db, SQLRequest(sql)), sql: sql)
-                try test(SQLRequest(sql).bound(to: Fetched.self).fetchCursor(db), sql: sql)
-            }
-            do {
-                let sql = "SELECT 0, 1 UNION ALL SELECT 0, NULL UNION ALL SELECT 0, 'foo' UNION ALL SELECT 0, 2"
-                let statement = try db.makeSelectStatement(sql)
-                let adapter = SuffixRowAdapter(fromIndex: 1)
-                try test(Fetched.fetchCursor(db, sql, adapter: adapter), sql: sql)
-                try test(Fetched.fetchCursor(statement, adapter: adapter), sql: sql)
-                try test(Fetched.fetchCursor(db, SQLRequest(sql, adapter: adapter)), sql: sql)
-                try test(SQLRequest(sql, adapter: adapter).bound(to: Fetched.self).fetchCursor(db), sql: sql)
-            }
-        }
-    }
-
+    
     func testFetchCursorStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)
@@ -258,41 +214,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             }
         }
     }
-
-    func testFetchAllConversionFailure() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            func test(_ array: @autoclosure () throws -> [Fetched], sql: String) throws {
-                do {
-                    _ = try array()
-                    XCTFail()
-                } catch let error as DatabaseError {
-                    XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
-                    XCTAssertEqual(error.message, "could not convert database value NULL to \(Fetched.self)")
-                    XCTAssertEqual(error.sql!, sql)
-                    XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: could not convert database value NULL to \(Fetched.self)")
-                }
-            }
-            do {
-                let sql = "SELECT 1 UNION ALL SELECT NULL UNION ALL SELECT 2"
-                let statement = try db.makeSelectStatement(sql)
-                try test(Fetched.fetchAll(db, sql), sql: sql)
-                try test(Fetched.fetchAll(statement), sql: sql)
-                try test(Fetched.fetchAll(db, SQLRequest(sql)), sql: sql)
-                try test(SQLRequest(sql).bound(to: Fetched.self).fetchAll(db), sql: sql)
-            }
-            do {
-                let sql = "SELECT 0, 1 UNION ALL SELECT 0, NULL UNION ALL SELECT 0, 2"
-                let statement = try db.makeSelectStatement(sql)
-                let adapter = SuffixRowAdapter(fromIndex: 1)
-                try test(Fetched.fetchAll(db, sql, adapter: adapter), sql: sql)
-                try test(Fetched.fetchAll(statement, adapter: adapter), sql: sql)
-                try test(Fetched.fetchAll(db, SQLRequest(sql, adapter: adapter)), sql: sql)
-                try test(SQLRequest(sql, adapter: adapter).bound(to: Fetched.self).fetchAll(db), sql: sql)
-            }
-        }
-    }
-
+    
     func testFetchAllStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)
@@ -529,49 +451,6 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
         }
     }
 
-    // TODO: this test will become invalid when we have a workaround for
-    // rdar://22852669, since there is can't be any conversion failure with
-    // the sqlite3_column_xxx function family.
-    func testOptionalFetchCursorConversionFailure() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            func test(_ cursor: DatabaseCursor<Fetched?>, sql: String) throws {
-                var i = try cursor.next()!
-                XCTAssertEqual(i!.int, 1)
-                XCTAssertTrue(try cursor.next()! == nil)
-                do {
-                    _ = try cursor.next()
-                    XCTFail()
-                } catch let error as DatabaseError {
-                    XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
-                    XCTAssertEqual(error.message, "could not convert database value \"foo\" to \(Fetched.self)")
-                    XCTAssertEqual(error.sql!, sql)
-                    XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: could not convert database value \"foo\" to \(Fetched.self)")
-                }
-                i = try cursor.next()!
-                XCTAssertEqual(i!.int, 2)
-                XCTAssertTrue(try cursor.next() == nil) // end
-            }
-            do {
-                let sql = "SELECT 1 UNION ALL SELECT NULL UNION ALL SELECT 'foo' UNION ALL SELECT 2"
-                let statement = try db.makeSelectStatement(sql)
-                try test(Optional<Fetched>.fetchCursor(db, sql), sql: sql)
-                try test(Optional<Fetched>.fetchCursor(statement), sql: sql)
-                try test(Optional<Fetched>.fetchCursor(db, SQLRequest(sql)), sql: sql)
-                try test(SQLRequest(sql).bound(to: Optional<Fetched>.self).fetchCursor(db), sql: sql)
-            }
-            do {
-                let sql = "SELECT 0, 1 UNION ALL SELECT 0, NULL UNION ALL SELECT 0, 'foo' UNION ALL SELECT 0, 2"
-                let statement = try db.makeSelectStatement(sql)
-                let adapter = SuffixRowAdapter(fromIndex: 1)
-                try test(Optional<Fetched>.fetchCursor(db, sql, adapter: adapter), sql: sql)
-                try test(Optional<Fetched>.fetchCursor(statement, adapter: adapter), sql: sql)
-                try test(Optional<Fetched>.fetchCursor(db, SQLRequest(sql, adapter: adapter)), sql: sql)
-                try test(SQLRequest(sql, adapter: adapter).bound(to: Optional<Fetched>.self).fetchCursor(db), sql: sql)
-            }
-        }
-    }
-
     func testOptionalFetchCursorCompilationFailure() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -632,44 +511,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             }
         }
     }
-
-    // TODO: this test will become invalid when we have a workaround for
-    // rdar://22852669, since there is can't be any conversion failure with
-    // the sqlite3_column_xxx function family.
-    func testOptionalFetchAllConversionFailure() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            func test(_ array: @autoclosure () throws -> [Fetched?], sql: String) throws {
-                do {
-                    _ = try array()
-                    XCTFail()
-                } catch let error as DatabaseError {
-                    XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
-                    XCTAssertEqual(error.message, "could not convert database value \"foo\" to \(Fetched.self)")
-                    XCTAssertEqual(error.sql!, sql)
-                    XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: could not convert database value \"foo\" to \(Fetched.self)")
-                }
-            }
-            do {
-                let sql = "SELECT 1 UNION ALL SELECT NULL UNION ALL SELECT 'foo' UNION ALL SELECT 2"
-                let statement = try db.makeSelectStatement(sql)
-                try test(Optional<Fetched>.fetchAll(db, sql), sql: sql)
-                try test(Optional<Fetched>.fetchAll(statement), sql: sql)
-                try test(Optional<Fetched>.fetchAll(db, SQLRequest(sql)), sql: sql)
-                try test(SQLRequest(sql).bound(to: Optional<Fetched>.self).fetchAll(db), sql: sql)
-            }
-            do {
-                let sql = "SELECT 0, 1 UNION ALL SELECT 0, NULL UNION ALL SELECT 0, 'foo' UNION ALL SELECT 0, 2"
-                let statement = try db.makeSelectStatement(sql)
-                let adapter = SuffixRowAdapter(fromIndex: 1)
-                try test(Optional<Fetched>.fetchAll(db, sql, adapter: adapter), sql: sql)
-                try test(Optional<Fetched>.fetchAll(statement, adapter: adapter), sql: sql)
-                try test(Optional<Fetched>.fetchAll(db, SQLRequest(sql, adapter: adapter)), sql: sql)
-                try test(SQLRequest(sql, adapter: adapter).bound(to: Optional<Fetched>.self).fetchAll(db), sql: sql)
-            }
-        }
-    }
-
+    
     func testOptionalFetchAllStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)

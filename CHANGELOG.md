@@ -1,6 +1,17 @@
 Release Notes
 =============
 
+## Next Version
+
+**Fixed**
+
+- Failed value conversions now consistently crash with a fatal error.
+
+**New**
+
+- `DatabaseValue.losslessConvert()` performs a lossless conversion to a value type.
+    
+
 ## 0.108.0
 
 Released May 17, 2017

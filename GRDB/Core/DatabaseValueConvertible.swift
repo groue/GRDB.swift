@@ -24,37 +24,6 @@ public protocol DatabaseValueConvertible : SQLExpressible {
     static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self?
 }
 
-extension DatabaseValueConvertible {
-    /// Returns the value, converted to the requested type.
-    ///
-    /// - returns: An optional *Self*.
-    static func convertOptional(from databaseValue: DatabaseValue) -> Self? {
-        // Use fromDatabaseValue first: this allows DatabaseValue to convert NULL to .null.
-        if let value = Self.fromDatabaseValue(databaseValue) {
-            return value
-        }
-        if databaseValue.isNull {
-            // Failed conversion from nil: ok
-            return nil
-        } else {
-            // Failed conversion from a non-null database value: this is data loss, a programmer error.
-            fatalError("could not convert database value \(databaseValue) to \(Self.self)")
-        }
-    }
-
-    /// Returns the value, converted to the requested type.
-    ///
-    /// - returns: A *Self*.
-    static func convert(from databaseValue: DatabaseValue) -> Self {
-        if let value = Self.fromDatabaseValue(databaseValue) {
-            return value
-        }
-        // Failed conversion: programmer error
-        fatalError("could not convert database value \(databaseValue) to \(Self.self)")
-    }
-}
-
-
 // SQLExpressible adoption
 extension DatabaseValueConvertible {
     
@@ -114,10 +83,7 @@ extension DatabaseValueConvertible {
         let row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         return statement.cursor(arguments: arguments, next: {
             let dbv: DatabaseValue = row.value(atIndex: 0)
-            guard let value = Self.fromDatabaseValue(dbv) else {
-                throw DatabaseError(resultCode: .SQLITE_ERROR, message: "could not convert database value \(dbv) to \(Self.self)", sql: statement.sql, arguments: arguments)
-            }
-            return value
+            return dbv.losslessConvert(sql: statement.sql, arguments: arguments) as Self
         })
     }
     
@@ -155,13 +121,7 @@ extension DatabaseValueConvertible {
         let row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         let cursor: DatabaseCursor<Self?> = statement.cursor(arguments: arguments, next: {
             let dbv: DatabaseValue = row.value(atIndex: 0)
-            if let value = Self.fromDatabaseValue(dbv) {
-                return value
-            } else if dbv.isNull {
-                return nil
-            } else {
-                throw DatabaseError(resultCode: .SQLITE_ERROR, message: "could not convert database value \(dbv) to \(Self.self)", sql: statement.sql, arguments: arguments)
-            }
+            return dbv.losslessConvert(sql: statement.sql, arguments: arguments) as Self?
         })
         return try cursor.next() ?? nil
     }
@@ -326,13 +286,7 @@ extension Optional where Wrapped: DatabaseValueConvertible {
         let row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         return statement.cursor(arguments: arguments, next: {
             let dbv: DatabaseValue = row.value(atIndex: 0)
-            if let value = Wrapped.fromDatabaseValue(dbv) {
-                return value
-            } else if dbv.isNull {
-                return nil
-            } else {
-                throw DatabaseError(resultCode: .SQLITE_ERROR, message: "could not convert database value \(dbv) to \(Wrapped.self)", sql: statement.sql, arguments: arguments)
-            }
+            return dbv.losslessConvert(sql: statement.sql, arguments: arguments) as Wrapped?
         })
     }
     

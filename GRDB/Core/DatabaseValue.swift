@@ -214,6 +214,83 @@ private func int64EqualDouble(_ i: Int64, _ d: Double) -> Bool {
 }
 
 
+// MARK: - Lossless conversions
+
+extension DatabaseValue {
+    /// Converts the database value to the type T.
+    ///
+    ///     let dbv = "foo".databaseValue
+    ///     let string = dbv.losslessConvert() as String // "foo"
+    ///
+    /// Conversion is successful if and only if T.fromDatabaseValue returns a
+    /// non-nil value.
+    ///
+    /// This method crashes with a fatal error when conversion fails.
+    ///
+    ///     let dbv = "foo".databaseValue
+    ///     let int = dbv.losslessConvert() as Int // fatalError
+    ///
+    /// - parameters:
+    ///     - sql: Optional SQL statement outputed in the eventual fatal error
+    ///     - arguments: Optional statement arguments outputed in the eventual
+    ///       fatal error.
+    public func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T where T : DatabaseValueConvertible {
+        if let value = T.fromDatabaseValue(self) {
+            return value
+        }
+        // Failed conversion: this is data loss, a programmer error.
+        var error = "could not convert database value \(self) to \(T.self)"
+        if let sql = sql {
+            error += " with statement `\(sql)`"
+        }
+        if let arguments = arguments, !arguments.isEmpty {
+            error += " arguments \(arguments)"
+        }
+        fatalError(error)
+    }
+    
+    /// Converts the database value to the type Optional<T>.
+    ///
+    ///     let dbv = "foo".databaseValue
+    ///     let string = dbv.losslessConvert() as String? // "foo"
+    ///     let null = DatabaseValue.null.losslessConvert() as String? // nil
+    ///
+    /// Conversion is successful if and only if T.fromDatabaseValue returns a
+    /// non-nil value.
+    ///
+    /// This method crashes with a fatal error when conversion fails.
+    ///
+    ///     let dbv = "foo".databaseValue
+    ///     let int = dbv.losslessConvert() as Int? // fatalError
+    ///
+    /// - parameters:
+    ///     - sql: Optional SQL statement outputed in the eventual fatal error
+    ///     - arguments: Optional statement arguments outputed in the eventual
+    ///       fatal error.
+    public func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T? where T : DatabaseValueConvertible {
+        // Use fromDatabaseValue first: this allows DatabaseValue to convert NULL to .null.
+        if let value = T.fromDatabaseValue(self) {
+            return value
+        }
+        if isNull {
+            // Failed conversion from null: ok
+            return nil
+        } else {
+            // Failed conversion from a non-null database value: this is data
+            // loss, a programmer error.
+            var error = "could not convert database value \(self) to \(T.self)"
+            if let sql = sql {
+                error += " with statement `\(sql)`"
+            }
+            if let arguments = arguments, !arguments.isEmpty {
+                error += " arguments \(arguments)"
+            }
+            fatalError(error)
+        }
+    }
+}
+
+
 // MARK: - DatabaseValueConvertible & SQLExpressible & SQLExpression
 
 /// DatabaseValue adopts DatabaseValueConvertible.
