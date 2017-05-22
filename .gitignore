@@ -108,3 +108,4 @@ Tests/CocoaPods/GRDBiOS/Pods
 .build
 Tests/SPM/Packages
 Tests/SPM/Package.pins
+.ruby-version
