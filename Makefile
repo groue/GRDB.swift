@@ -11,7 +11,18 @@ GIT := $(shell command -v git)
 JAZZY := $(shell command -v jazzy)
 POD := $(shell command -v pod)
 SWIFT := $(shell command -v swift)
-XCODEBUILD := $(shell command -v xcodebuild)
+XCODEBUILD := set -o pipefail && $(shell command -v xcodebuild)
+
+# Xcode Version Information
+XCODEVERSION_FULL := $(word 2, $(shell xcodebuild -version))
+XCODEVERSION_MAJOR := $(shell xcodebuild -version 2>&1 | grep Xcode | cut -d' ' -f2 | cut -d'.' -f1)
+XCODEVERSION_MINOR := $(shell xcodebuild -version 2>&1 | grep Xcode | cut -d' ' -f2 | cut -d'.' -f2)
+
+# The Xcode Version, containing only the "MAJOR.MINOR" (ex. "8.3" for Xcode 8.3, 8.3.1, etc.)
+XCODEVERSION := $(XCODEVERSION_MAJOR).$(XCODEVERSION_MINOR)
+
+# Used to determine if xcpretty is available
+XCPRETTY_PATH := $(shell command -v xcpretty 2> /dev/null)
 
 
 # Targets
@@ -35,9 +46,31 @@ MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=8.1"
 
 # xcodebuild destination to run tests on latest iOS (Xcode 8.3)
 MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 7,OS=10.3"
+ifeq ($(XCODEVERSION),8.3)
+	# xcodebuild destination to run tests on latest iOS (Xcode 8.3)
+	# above (default) MAX_IOS_DESTINATION is appropriate
+else ifeq ($(XCODEVERSION),8.2)
+	# xcodebuild destination to run tests on latest iOS (Xcode 8.2)
+	MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 7,OS=10.2”
+else ifeq ($(XCODEVERSION),8.1)
+	# xcodebuild destination to run tests on latest iOS (Xcode 8.1)
+	MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 6s,OS=10.1"
+else
+	# Xcode < 8.1 is not supported
+	# Xcode > 8.3.x may necessitate a new condition above
+	echo "Makefile does not explicitly support Xcode $(XCODEVERSION) ($(XCODEVERSION_FULL)).”
+endif
 
-# xcodebuild destination to run tests on latest iOS (Xcode 8.1)
-# MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 6s,OS=10.1"
+# If xcpretty is available, use it for xcodebuild output
+XCPRETTY = 
+ifdef XCPRETTY_PATH
+	XCPRETTY = | xcpretty -c
+
+	# On Travis-CI, use xcpretty-travis-formatter
+	ifeq ($(TRAVIS),true)
+		XCPRETTY += -f `xcpretty-travis-formatter`
+	endif
+endif
 
 # We test framework test suites, and if GRBD can be installed in an application:
 test: test_framework test_install
@@ -52,14 +85,16 @@ test_framework_GRDBOSX:
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBOSX \
-	  $(TEST_ACTIONS)
+	  $(TEST_ACTIONS) \
+	  $(XCPRETTY)
 
 test_framework_GRDBWatchOS:
 	# XCTest is not supported for watchOS: we only make sure that the framework builds.
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBWatchOS \
-	  clean build
+	  clean build \
+	  $(XCPRETTY)
 
 test_framework_GRDBiOS: test_framework_GRDBiOS_maxTarget test_framework_GRDBiOS_minTarget
 
@@ -68,20 +103,23 @@ test_framework_GRDBiOS_maxTarget:
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBiOS \
 	  -destination $(MAX_IOS_DESTINATION) \
-	  $(TEST_ACTIONS)
+	  $(TEST_ACTIONS) \
+	  $(XCPRETTY)
 
 test_framework_GRDBiOS_minTarget:
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBiOS \
 	  -destination $(MIN_IOS_DESTINATION) \
-	  $(TEST_ACTIONS)
+	  $(TEST_ACTIONS) \
+	  $(XCPRETTY)
 
 test_framework_GRDBCustomSQLiteOSX: SQLiteCustom
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBCustomSQLiteOSX \
-	  $(TEST_ACTIONS)
+	  $(TEST_ACTIONS) \
+	  $(XCPRETTY)
 
 test_framework_GRDBCustomSQLiteiOS: test_framework_GRDBCustomSQLiteiOS_maxTarget test_framework_GRDBCustomSQLiteiOS_minTarget
 
@@ -90,20 +128,23 @@ test_framework_GRDBCustomSQLiteiOS_maxTarget: SQLiteCustom
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBCustomSQLiteiOS \
 	  -destination $(MAX_IOS_DESTINATION) \
-	  $(TEST_ACTIONS)
+	  $(TEST_ACTIONS) \
+	  $(XCPRETTY)
 
 test_framework_GRDBCustomSQLiteiOS_minTarget: SQLiteCustom
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBCustomSQLiteiOS \
 	  -destination $(MIN_IOS_DESTINATION) \
-	  $(TEST_ACTIONS)
+	  $(TEST_ACTIONS) \
+	  $(XCPRETTY)
 
 test_framework_GRDBCipherOSX: SQLCipher
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBCipherOSX \
-	  $(TEST_ACTIONS)
+	  $(TEST_ACTIONS) \
+	  $(XCPRETTY)
 
 test_framework_GRDBCipheriOS: test_framework_GRDBCipheriOS_maxTarget test_framework_GRDBCipheriOS_minTarget
 
@@ -112,14 +153,16 @@ test_framework_GRDBCipheriOS_maxTarget: SQLCipher
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBCipheriOS \
 	  -destination $(MAX_IOS_DESTINATION) \
-	  $(TEST_ACTIONS)
+	  $(TEST_ACTIONS) \
+	  $(XCPRETTY)
 
 test_framework_GRDBCipheriOS_minTarget: SQLCipher
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBCipheriOS \
 	  -destination $(MIN_IOS_DESTINATION) \
-	  $(TEST_ACTIONS)
+	  $(TEST_ACTIONS) \
+	  $(XCPRETTY)
 
 test_SPM:
 	$(SWIFT) package clean
@@ -133,7 +176,8 @@ test_install_manual:
 	  -scheme GRDBDemoiOS \
 	  -configuration Release \
 	  -destination $(MAX_IOS_DESTINATION) \
-	  clean build
+	  clean build \
+	  $(XCPRETTY)
 
 test_install_GRDBCipher: SQLCipher
 	$(XCODEBUILD) \
@@ -141,7 +185,8 @@ test_install_GRDBCipher: SQLCipher
 	  -scheme GRDBiOS \
 	  -configuration Release \
 	  -destination $(MAX_IOS_DESTINATION) \
-	  clean build
+	  clean build \
+	  $(XCPRETTY)
 
 test_install_SPM:
 	cd Tests/SPM && \
