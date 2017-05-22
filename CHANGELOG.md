@@ -1,13 +1,32 @@
 Release Notes
 =============
 
+## Next Version
+
+**Fixed**
+
+- Failed value conversions now consistently crash with a fatal error.
+
+**New**
+
+- `DatabaseValue.losslessConvert()` performs a lossless conversion to a value type.
+
+**Breaking Changes**
+
+- `DatabaseEventKind.impacts(_ selectionInfo:SelectStatement.SelectionInfo)` now returns an non-optional boolean.
+    
+
 ## 0.108.0
 
 Released May 17, 2017
 
 **New**
 
-- Use CocoaPods to install GRDB with [SQLCipher](https://github.com/groue/GRDB.swift#encryption).
+- Use CocoaPods to install GRDB with [SQLCipher](https://github.com/groue/GRDB.swift#encryption):
+    
+    ```ruby
+    pod 'GRDBCipher'
+    ```
 
 
 **Breaking Changes**
