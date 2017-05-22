@@ -11,6 +11,7 @@ GIT := $(shell command -v git)
 JAZZY := $(shell command -v jazzy)
 POD := $(shell command -v pod)
 SWIFT := $(shell command -v swift)
+DOCKER := $(shell command -v docker)
 XCODEBUILD := $(shell command -v xcodebuild)
 
 
@@ -126,6 +127,10 @@ test_SPM:
 	$(SWIFT) build
 	$(SWIFT) build -c release
 	$(SWIFT) test
+
+test_docker:
+	$(DOCKER) build --tag grdb .
+	$(DOCKER) run --rm grdb
 
 test_install_manual:
 	$(XCODEBUILD) \
