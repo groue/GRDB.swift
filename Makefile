@@ -1,10 +1,20 @@
+# Rules
+# =====
+#
+# make test - Run all tests but performance tests
+# make test_performance - Run performance tests
+# make documentation - Generate jazzy documentation
+# make clean - Remove build artifacts
+# make distclean - Restore repository to a pristine state
+
+
 # Requirements
 # ============
 #
+# Xcode 8.3.2, with iOS8.1 Simulator installed
 # CocoaPods ~> 1.2.0 - https://cocoapods.org
 # Carthage ~> 0.20.1 - https://github.com/carthage/carthage
 # Jazzy ~> 0.7.4 - https://github.com/realm/jazzy
-# Xcode 8.3, with iOS8.1 Simulator installed
 
 CARTHAGE := $(shell command -v carthage)
 GIT := $(shell command -v git)
@@ -42,7 +52,8 @@ MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 7,OS=10.3"
 # We test framework test suites, and if GRBD can be installed in an application:
 test: test_framework test_install
 
-test_framework: test_framework_GRDB test_framework_GRDBCustom test_framework_GRDBCipher test_SPM
+test_framework: test_framework_darwin
+test_framework_darwin: test_framework_GRDB test_framework_GRDBCustom test_framework_GRDBCipher test_SPM
 test_framework_GRDB: test_framework_GRDBOSX test_framework_GRDBWatchOS test_framework_GRDBiOS
 test_framework_GRDBCustom: test_framework_GRDBCustomSQLiteOSX test_framework_GRDBCustomSQLiteiOS
 test_framework_GRDBCipher: test_framework_GRDBCipherOSX test_framework_GRDBCipheriOS
@@ -171,6 +182,31 @@ else
 	@exit 1
 endif
 
+test_performance: Realm FMDB SQLite.swift
+	$(XCODEBUILD) \
+	  -project GRDB.xcodeproj \
+	  -scheme GRDBOSXPerformanceTests \
+	  build-for-testing test-without-building
+
+Realm: Tests/Performance/Realm/build/osx/swift-3.1/RealmSwift.framework
+
+# Makes sure the Tests/Performance/Realm submodule has been downloaded, and Realm framework has been built.
+Tests/Performance/Realm/build/osx/swift-3.1/RealmSwift.framework:
+	$(GIT) submodule update --init --recursive Tests/Performance/Realm
+	cd Tests/Performance/Realm && sh build.sh osx-swift
+
+FMDB: Tests/Performance/fmdb/FMDatabase.h
+
+# Makes sure the Tests/Performance/fmdb submodule has been downloaded
+Tests/Performance/fmdb/FMDatabase.h:
+	$(GIT) submodule update --init Tests/Performance/fmdb
+
+SQLite.swift: Tests/Performance/SQLite.swift/SQLite.xcodeproj
+
+# Makes sure the Tests/Performance/SQLite.swift submodule has been downloaded
+Tests/Performance/SQLite.swift/SQLite.xcodeproj:
+	$(GIT) submodule update --init Tests/Performance/SQLite.swift
+
 # Target that setups SQLite custom builds with SQLITE_ENABLE_PREUPDATE_HOOK and
 # SQLITE_ENABLE_FTS5 extra compilation options.
 SQLiteCustom: SQLiteCustom/src/sqlite3.h
@@ -215,4 +251,24 @@ else
 	@exit 1
 endif
 
-.PHONY: doc test SQLCipher SQLiteCustom
+####
+
+distclean:
+	$(SWIFT) package reset
+	cd Tests/SPM && $(SWIFT) package reset
+	rm -rf Documentation/Reference
+	rm -rf Tests/Performance/fmdb && $(GIT) checkout -- Tests/Performance/fmdb
+	rm -rf Tests/Performance/SQLite.swift && $(GIT) checkout -- Tests/Performance/SQLite.swift
+	rm -rf Tests/Performance/Realm && $(GIT) checkout -- Tests/Performance/Realm
+	rm -rf SQLCipher/src && $(GIT) checkout -- SQLCipher/src
+	rm -rf SQLiteCustom/src && $(GIT) checkout -- SQLiteCustom/src
+	find . -name xcuserdata | xargs rm -rf
+
+clean:
+	$(SWIFT) package reset
+	cd Tests/SPM && $(SWIFT) package reset
+	rm -rf Documentation/Reference
+	if [ -d SQLCipher/src ]; then cd SQLCipher/src && $(GIT) clean -f; fi
+	if [ -a Tests/Performance/Realm/build.sh ]; then cd Tests/Performance/Realm && sh build.sh clean; fi
+
+.PHONY: distclean clean doc test SQLCipher SQLiteCustom
