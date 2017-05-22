@@ -3287,7 +3287,7 @@ Rebind the fetched type of requests:
 
 ```swift
 let maxScore = Player.select(max(scoreColumn))
-    .bound(to: Int.self)
+    .fetching(Int.self)
     .fetchOne(db)
 ```
 
@@ -3297,7 +3297,7 @@ Bind custom SQL requests to your record types:
 extension Person {
     static func customRequest(...) -> AnyTypedRequest<Person> {
         let request = SQLRequest("SELECT ...", arguments: ...)
-        return request.bound(to: Person.self)
+        return request.fetching(Person.self)
     }
 }
 
@@ -3322,7 +3322,7 @@ struct BookAuthorPair : RowConvertible {
             "SELECT books.*, authors.* " +
             "FROM books " +
             "JOIN authors ON authors.id = books.authorID")
-            .bound(to: BookAuthorPair.self)
+            .fetching(BookAuthorPair.self)
             .adapted { db in
                 // The scopes are used in init(row:)
                 try ScopeAdapter([

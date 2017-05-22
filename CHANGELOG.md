@@ -15,6 +15,7 @@ Release Notes
 
 - `DatabaseEventKind.impacts(_ selectionInfo:SelectStatement.SelectionInfo)` now returns an non-optional boolean.
 - `DatabaseWriter.availableDatabaseConnection` has been replaced by `DatabaseWriter.unsafeReentrantWrite()`.
+- `Request.bound(to:)` has been renamed `Request.fetching(_:)`.
     
 
 ## 0.108.0

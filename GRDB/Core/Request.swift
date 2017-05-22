@@ -47,12 +47,12 @@ extension Request {
     ///
     ///     let minHeight = Person
     ///         .select(min(heightColumn))
-    ///         .bound(to: Double.self)    // <--
+    ///         .fetching(Double.self)    // <--
     ///         .fetchOne(db)
     ///
     /// - parameter type: The fetched type T
     /// - returns: A typed request bound to type T.
-    public func bound<T>(to type: T.Type) -> AnyTypedRequest<T> {
+    public func fetching<T>(_ type: T.Type) -> AnyTypedRequest<T> {
         return AnyTypedRequest { try self.prepare($0) }
     }
     
