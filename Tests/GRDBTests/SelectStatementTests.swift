@@ -138,7 +138,7 @@ class SelectStatementTests : GRDBTestCase {
                 }
                 
                 func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-                    return eventKind.impacts(selectionInfo) ?? true
+                    return eventKind.impacts(selectionInfo) 
                 }
                 
                 func databaseDidChange(with event: DatabaseEvent) {

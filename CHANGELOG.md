@@ -10,6 +10,10 @@ Release Notes
 **New**
 
 - `DatabaseValue.losslessConvert()` performs a lossless conversion to a value type.
+
+**Breaking Changes**
+
+- `DatabaseEventKind.impacts(_ selectionInfo:SelectStatement.SelectionInfo)` now returns an non-optional boolean.
     
 
 ## 0.108.0
