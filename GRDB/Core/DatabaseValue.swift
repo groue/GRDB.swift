@@ -231,9 +231,10 @@ extension DatabaseValue {
     ///     let int = dbv.losslessConvert() as Int // fatalError
     ///
     /// - parameters:
-    ///     - sql: Optional SQL statement outputed in the eventual fatal error
-    ///     - arguments: Optional statement arguments outputed in the eventual
-    ///       fatal error.
+    ///     - sql: Optional SQL statement that enhances the eventual
+    ///       conversion error
+    ///     - arguments: Optional statement arguments that enhances the eventual
+    ///       conversion error
     public func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T where T : DatabaseValueConvertible {
         if let value = T.fromDatabaseValue(self) {
             return value
@@ -264,9 +265,10 @@ extension DatabaseValue {
     ///     let int = dbv.losslessConvert() as Int? // fatalError
     ///
     /// - parameters:
-    ///     - sql: Optional SQL statement outputed in the eventual fatal error
-    ///     - arguments: Optional statement arguments outputed in the eventual
-    ///       fatal error.
+    ///     - sql: Optional SQL statement that enhances the eventual
+    ///       conversion error
+    ///     - arguments: Optional statement arguments that enhances the eventual
+    ///       conversion error
     public func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T? where T : DatabaseValueConvertible {
         // Use fromDatabaseValue first: this allows DatabaseValue to convert NULL to .null.
         if let value = T.fromDatabaseValue(self) {
