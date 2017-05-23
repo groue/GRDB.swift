@@ -3291,17 +3291,13 @@ try request.fetchOne(db)         // Person?
 - [AnyRequest](http://groue.github.io/GRDB.swift/docs/0.109.0/Structs/AnyRequest.html): a type-erased Request
 - [AnyTypedRequest](http://groue.github.io/GRDB.swift/docs/0.109.0/Structs/AnyTypedRequest.html): a type-erased TypedRequest
 
-Rebind the fetched type of requests:
+Use the `asRequest(of:)` method to define the type fetched by the request:
 
 ```swift
 let maxScore = Player.select(max(scoreColumn))
     .asRequest(of: Int.self)
     .fetchOne(db)
-```
 
-Bind custom SQL requests to your record types:
-
-```swift
 extension Person {
     static func customRequest(...) -> AnyTypedRequest<Person> {
         let request = SQLRequest("SELECT ...", arguments: ...)
@@ -3313,7 +3309,7 @@ try Person.customRequest(...).fetchAll(db)   // [Person]
 try Person.customRequest(...).fetchCount(db) // Int
 ```
 
-Use [row adapters](#row-adapters) to ease the consumption of complex rows:
+Use the `adapted()` method to ease the consumption of complex rows with [row adapters](#row-adapters):
 
 ```swift
 struct BookAuthorPair : RowConvertible {
@@ -3321,6 +3317,7 @@ struct BookAuthorPair : RowConvertible {
     let author: Author
     
     init(row: Row) {
+        // Those scopes are defined by the all() method below
         book = Book(row: row.scoped(on: "books")!)
         author = Author(row: row.scoped(on: "authors")!)
     }
@@ -3332,7 +3329,6 @@ struct BookAuthorPair : RowConvertible {
             "JOIN authors ON authors.id = books.authorID")
             .asRequest(of: BookAuthorPair.self)
             .adapted { db in
-                // The scopes are used in init(row:)
                 try ScopeAdapter([
                     "books": SuffixRowAdapter(fromIndex: 0),
                     "authors": SuffixRowAdapter(fromIndex: db.columnCount(in: "books"))])
