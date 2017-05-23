@@ -3072,14 +3072,18 @@ let arthur = try Person.filter(nameColumn == "Arthur").fetchOne(db) // Person?
 **When the selected columns don't fit the source type**, change your target: any other type that adopts the [RowConvertible](#rowconvertible-protocol) protocol, plain [database rows](#fetching-rows), and even [values](#values):
 
 ```swift
-let request = Player.select(max(scoreColumn))
-let maxScore = try Int.fetchOne(db, request) // Int?
+let maxScore = try Player.select(max(scoreColumn))
+    .asRequest(of: Int.self)
+    .fetchOne(db) // Int?
 
-let request = Player.select(min(scoreColumn), max(scoreColumn))
-let row = try Row.fetchOne(db, request)!
-let minScore = row.value(atIndex: 0) as Int
-let maxScore = row.value(atIndex: 1) as Int
+let row = try Player.select(min(scoreColumn), max(scoreColumn))
+    .asRequest(of: Row.self)
+    .fetchOne(db)!
+let minScore = row.value(atIndex: 0) as Int?
+let maxScore = row.value(atIndex: 1) as Int?
 ```
+
+More information about `asRequest(of:)` can be found in the [Custom Requests](#custom-requests) chapter.
 
 
 ## Fetching By Key
@@ -3140,21 +3144,9 @@ let count = try Person.select(nameColumn, ageColumn).distinct().fetchCount(db)
 **Other aggregated values** can also be selected and fetched (see [SQL Functions](#sql-functions)):
 
 ```swift
-let request = Player.select(max(scoreColumn))
-let maxScore = try Int.fetchOne(db, request) // Int?
-
-let request = Player.select(min(scoreColumn), max(scoreColumn))
-let row = try Row.fetchOne(db, request)!
-let minScore = row.value(atIndex: 0) as Int?
-let maxScore = row.value(atIndex: 1) as Int?
-```
-
-The examples above can also be rewritten using the `asRequest(of:)` method:
-
-```swift
 let maxScore = try Player.select(max(scoreColumn))
     .asRequest(of: Int.self)
-    .fetchOne(db)
+    .fetchOne(db) // Int?
 
 let row = try Player.select(min(scoreColumn), max(scoreColumn))
     .asRequest(of: Row.self)
