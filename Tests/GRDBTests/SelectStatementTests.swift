@@ -1,4 +1,7 @@
 import XCTest
+#if SWIFT_PACKAGE
+    import CSQLite
+#endif
 #if GRDBCIPHER
     import GRDBCipher
 #elseif GRDBCUSTOMSQLITE
