@@ -61,14 +61,14 @@ ifeq ($(XCODEVERSION),8.3)
 	# above (default) MAX_IOS_DESTINATION is appropriate
 else ifeq ($(XCODEVERSION),8.2)
 	# xcodebuild destination to run tests on latest iOS (Xcode 8.2)
-	MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 7,OS=10.2”
+	MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 7,OS=10.2"
 else ifeq ($(XCODEVERSION),8.1)
 	# xcodebuild destination to run tests on latest iOS (Xcode 8.1)
 	MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 6s,OS=10.1"
 else
 	# Xcode < 8.1 is not supported
 	# Xcode > 8.3.x may necessitate a new condition above
-	echo "Makefile does not explicitly support Xcode $(XCODEVERSION) ($(XCODEVERSION_FULL)).”
+	echo "Makefile does not explicitly support Xcode $(XCODEVERSION) ($(XCODEVERSION_FULL))."
 endif
 
 # If xcpretty is available, use it for xcodebuild output
