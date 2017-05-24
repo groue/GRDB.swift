@@ -1471,6 +1471,13 @@ final class StatementCompilationObserver {
     func start() {
         let observerPointer = unsafeBitCast(self, to: UnsafeMutableRawPointer.self)
         sqlite3_set_authorizer(database.sqliteConnection, { (observerPointer, actionCode, cString1, cString2, cString3, cString4) -> Int32 in
+            // print("\(actionCode) \([cString1, cString2, cString3, cString4].flatMap { $0.map({ String(cString: $0) }) })")
+            
+            // https://www.sqlite.org/c3ref/set_authorizer.html:
+            //
+            // > Applications must always be prepared to encounter a NULL
+            // > pointer in any of the third through the sixth parameters of
+            // > the authorization callback.
             switch actionCode {
             case SQLITE_DROP_TABLE, SQLITE_DROP_TEMP_TABLE, SQLITE_DROP_TEMP_VIEW, SQLITE_DROP_VIEW, SQLITE_DETACH, SQLITE_ALTER_TABLE, SQLITE_DROP_VTABLE, SQLITE_CREATE_INDEX, SQLITE_CREATE_TEMP_INDEX, SQLITE_DROP_INDEX, SQLITE_DROP_TEMP_INDEX:
                 let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
@@ -1479,14 +1486,17 @@ final class StatementCompilationObserver {
                 }
                 observer.invalidatesDatabaseSchemaCache = true
             case SQLITE_READ:
+                guard let tableName = cString1.map({ String(cString: $0) }) else { return SQLITE_OK }
+                guard let columnName = cString2.map({ String(cString: $0) }) else { return SQLITE_OK }
                 let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
-                observer.selectionInfo.insert(column: String(cString: cString2!), ofTable: String(cString: cString1!))
+                observer.selectionInfo.insert(column: columnName, ofTable: tableName)
             case SQLITE_INSERT:
+                guard let tableName = cString1.map({ String(cString: $0) }) else { return SQLITE_OK }
                 let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
-                observer.databaseEventKinds.append(.insert(tableName: String(cString: cString1!)))
+                observer.databaseEventKinds.append(.insert(tableName: tableName))
             case SQLITE_DELETE:
+                guard let tableName = cString1.map({ String(cString: $0) }) else { return SQLITE_OK }
                 let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
-                let tableName = String(cString: cString1!)
                 if tableName != "sqlite_master" && !observer.isDropTableStatement {
                     observer.databaseEventKinds.append(.delete(tableName: tableName))
                     // Prevent [truncate optimization](https://www.sqlite.org/lang_delete.html#truncateopt)
@@ -1494,19 +1504,23 @@ final class StatementCompilationObserver {
                     return SQLITE_IGNORE
                 }
             case SQLITE_UPDATE:
+                guard let tableName = cString1.map({ String(cString: $0) }) else { return SQLITE_OK }
+                guard let columnName = cString2.map({ String(cString: $0) }) else { return SQLITE_OK }
                 let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
-                observer.insertUpdateEventKind(tableName: String(cString: cString1!), columnName: String(cString: cString2!))
+                observer.insertUpdateEventKind(tableName: tableName, columnName: columnName)
             case SQLITE_TRANSACTION:
+                guard let rawAction = cString1.map({ String(cString: $0) }) else { return SQLITE_OK }
                 let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
-                let action = UpdateStatement.TransactionStatementInfo.TransactionAction(rawValue: String(cString: cString1!))!
+                let action = UpdateStatement.TransactionStatementInfo.TransactionAction(rawValue: rawAction)!
                 observer.transactionStatementInfo = .transaction(action: action)
             case SQLITE_SAVEPOINT:
+                guard let rawAction = cString1.map({ String(cString: $0) }) else { return SQLITE_OK }
+                guard let savepointName = cString2.map({ String(cString: $0) }) else { return SQLITE_OK }
                 let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
-                let name = String(cString: cString2!)
-                let action = UpdateStatement.TransactionStatementInfo.SavepointAction(rawValue: String(cString: cString1!))!
-                observer.transactionStatementInfo = .savepoint(name: name, action: action)
+                let action = UpdateStatement.TransactionStatementInfo.SavepointAction(rawValue: rawAction)!
+                observer.transactionStatementInfo = .savepoint(name: savepointName, action: action)
             case SQLITE_FUNCTION:
-                let functionName = String(cString: cString2!)
+                guard let functionName = cString2.map({ String(cString: $0) }) else { return SQLITE_OK }
                 if functionName.uppercased() == "COUNT" {
                     // As soon as a request uses the COUNT function, we don't
                     // know which table is involved. For example, the
