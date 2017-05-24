@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Version
+
+**New**
+
+- Upgrade custom SQLite builds to [v3.19.0](http://www.sqlite.org/changes.html) (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib)).
+
+
 ## 0.109.0
 
 Released May 22, 2017
