@@ -189,11 +189,15 @@ class SelectStatementTests : GRDBTestCase {
                 db.makeSelectStatement("SELECT id, id3, a FROM table1"),
                 db.makeSelectStatement("SELECT table1.id, table1.a, table2.a FROM table1 JOIN table2 ON table1.id = table2.id"),
                 
-                // This last request always triggers its observer because its selectionInfo is doubtful.
-                // We need SQLite support in order to avoid this doubt.
-                // TODO: discuss this on SQLite mailing-list.
+                // This last request triggers its observer or not, depending on the SQLite version.
+                // Before SQLite 3.19.0, its selectionInfo is doubtful, and every database change is deemed impactful.
+                // Starting SQLite 3.19.0, it knows that only table1 is involved.
+                //
+                // See doubtfulCountFunction below
                 db.makeSelectStatement("SELECT COUNT(*) FROM table1"),
             ]
+            
+            let doubtfulCountFunction = (sqlite3_libversion_number() < 3019000)
             
             let observers = statements.map { Observer(selectionInfo: $0.selectionInfo) }
             for observer in observers {
@@ -206,7 +210,7 @@ class SelectStatementTests : GRDBTestCase {
             XCTAssertEqual(observers.map { $0.triggered }, [true, true, true, true])
             
             try db.execute("INSERT INTO table2 (id, a, b) VALUES (NULL, 0, 0)")
-            XCTAssertEqual(observers.map { $0.triggered }, [false, false, true, true])
+            XCTAssertEqual(observers.map { $0.triggered }, [false, false, true, doubtfulCountFunction])
             
             try db.execute("UPDATE table1 SET a = 1")
             XCTAssertEqual(observers.map { $0.triggered }, [true, true, true, true])
@@ -215,10 +219,10 @@ class SelectStatementTests : GRDBTestCase {
             XCTAssertEqual(observers.map { $0.triggered }, [true, false, false, true])
             
             try db.execute("UPDATE table2 SET a = 1")
-            XCTAssertEqual(observers.map { $0.triggered }, [false, false, true, true])
+            XCTAssertEqual(observers.map { $0.triggered }, [false, false, true, doubtfulCountFunction])
             
             try db.execute("UPDATE table2 SET b = 1")
-            XCTAssertEqual(observers.map { $0.triggered }, [false, false, false, true])
+            XCTAssertEqual(observers.map { $0.triggered }, [false, false, false, doubtfulCountFunction])
             
             try db.execute("UPDATE table3 SET id = 2 WHERE id = 1")
             XCTAssertEqual(observers.map { $0.triggered }, [true, true, false, true])

@@ -259,11 +259,15 @@ public final class SelectStatement : Statement {
 
     /// Information about the table and columns read by a SelectStatement
     public struct SelectionInfo : CustomStringConvertible {
+        mutating func insert(table: String) {
+            tables.insert(table)
+        }
+        
         mutating func insert(column: String, ofTable table: String) {
-            if selection[table] != nil {
-                selection[table]!.insert(column)
+            if columns[table] != nil {
+                columns[table]!.insert(column)
             } else {
-                selection[table] = [column]
+                columns[table] = [column]
             }
         }
         
@@ -272,12 +276,12 @@ public final class SelectStatement : Statement {
         
         /// Relevant iff isUnknown is false
         func contains(anyColumnFrom table: String) -> Bool {
-            return selection.index(forKey: table) != nil
+            return tables.contains(table) || columns.index(forKey: table) != nil
         }
         
         /// Relevant iff isUnknown is false
         func contains(anyColumnIn columns: Set<String>, from table: String) -> Bool {
-            return !(selection[table]?.isDisjoint(with: columns) ?? true)
+            return tables.contains(table) || !(self.columns[table]?.isDisjoint(with: columns) ?? true)
         }
         
         init() {
@@ -288,7 +292,11 @@ public final class SelectStatement : Statement {
             return self.init(isUnknown: true)
         }
         
-        private var selection: [String: Set<String>] = [:]  // [TableName: Set<ColumnName>]
+        // `SELECT a, b FROM t1` -> ["t1": ["a", "b"]]
+        private var columns: [String: Set<String>] = [:]
+
+        // `SELECT COUNT(*) FROM t1` -> ["t1"]
+        private var tables: Set<String> = []
         
         private init(isUnknown: Bool) {
             self.isUnknown = isUnknown
@@ -296,7 +304,8 @@ public final class SelectStatement : Statement {
         
         /// A textual representation of `self`.
         public var description: String {
-            return selection
+            // TODO: include tables in the description
+            return columns
                 .sorted { $0.key < $1.key }
                 .map { (table, columns) in "\(table)(\(columns.sorted().joined(separator: ", ")))" }
                 .joined(separator: ", ")

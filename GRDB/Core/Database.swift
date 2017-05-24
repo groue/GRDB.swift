@@ -1489,7 +1489,13 @@ final class StatementCompilationObserver {
                 guard let tableName = cString1.map({ String(cString: $0) }) else { return SQLITE_OK }
                 guard let columnName = cString2.map({ String(cString: $0) }) else { return SQLITE_OK }
                 let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
-                observer.selectionInfo.insert(column: columnName, ofTable: tableName)
+                if columnName.isEmpty {
+                    // SELECT COUNT(*) FROM table
+                    observer.selectionInfo.insert(table: tableName)
+                } else {
+                    // SELECT column FROM table
+                    observer.selectionInfo.insert(column: columnName, ofTable: tableName)
+                }
             case SQLITE_INSERT:
                 guard let tableName = cString1.map({ String(cString: $0) }) else { return SQLITE_OK }
                 let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
@@ -1520,14 +1526,17 @@ final class StatementCompilationObserver {
                 let action = UpdateStatement.TransactionStatementInfo.SavepointAction(rawValue: rawAction)!
                 observer.transactionStatementInfo = .savepoint(name: savepointName, action: action)
             case SQLITE_FUNCTION:
+                // Starting SQLite 3.19.0, `SELECT COUNT(*) FROM table` triggers
+                // an authorization callback for SQLITE_READ with an empty
+                // column: http://www.sqlite.org/changes.html#version_3_19_0
+                //
+                // Before SQLite 3.19.0, `SELECT COUNT(*) FROM table` does not
+                // trigger any authorization callback that tells about the
+                // counted table: any use of the COUNT function makes the
+                // selection undetermined.
+                guard sqlite3_libversion_number() < 3019000 else { return SQLITE_OK }
                 guard let functionName = cString2.map({ String(cString: $0) }) else { return SQLITE_OK }
                 if functionName.uppercased() == "COUNT" {
-                    // As soon as a request uses the COUNT function, we don't
-                    // know which table is involved. For example, the
-                    // `SELECT COUNT(*) FROM persons` request never ever tells
-                    // GRDB about the `persons` table.
-                    //
-                    // We ignore the actual selection.
                     let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
                     observer.selectionInfo = SelectStatement.SelectionInfo.unknown()
                 }
