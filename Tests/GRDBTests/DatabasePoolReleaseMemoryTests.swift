@@ -204,55 +204,20 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             }
         }
         
-        // Block 1                  Block 2
-        //                          write {
-        //                              SELECT
-        //                              step
-        //                              >
-        let s1 = DispatchSemaphore(value: 0)
-        // dbPool = nil
-        // >
-        let s2 = DispatchSemaphore(value: 0)
-        //                              step
-        //                              end
-        //                          }
-        
-        let (block1, block2) = { () -> (() -> (), () -> ()) in
-            var dbPool: DatabasePool? = try! makeDatabasePool()
-            try! dbPool!.write { db in
+        var cursor: DatabaseCursor<Int>? = nil
+        do {
+            try! makeDatabasePool().write { db in
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
                 try db.execute("INSERT INTO items (id) VALUES (NULL)")
                 try db.execute("INSERT INTO items (id) VALUES (NULL)")
-            }
-            
-            let block1 = { () in
-                _ = s1.wait(timeout: .distantFuture)
+                cursor = try Int.fetchCursor(db, "SELECT id FROM items")
+                XCTAssertTrue(try cursor!.next() != nil)
                 XCTAssertEqual(openConnectionCount, 1)
-                dbPool = nil
-                XCTAssertEqual(openConnectionCount, 0)
-                s2.signal()
             }
-            let block2 = { [weak dbPool] () in
-                var cursor: DatabaseCursor<Int>? = nil
-                do {
-                    try! dbPool!.write { db in
-                        cursor = try Int.fetchCursor(db, "SELECT id FROM items")
-                        XCTAssertTrue(try cursor!.next() != nil)
-                        s1.signal()
-                    }
-                }
-                _ = s2.wait(timeout: .distantFuture)
-                do {
-                    XCTAssertTrue(try! cursor!.next() != nil)
-                    XCTAssertTrue(try! cursor!.next() == nil)
-                }
-            }
-            return (block1, block2)
-        }()
-        let blocks = [block1, block2]
-        DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
-            blocks[index]()
         }
+        XCTAssertEqual(openConnectionCount, 0)
+        XCTAssertTrue(try! cursor!.next() != nil)
+        XCTAssertTrue(try! cursor!.next() == nil)
     }
     
     func testStatementDoNotRetainDatabaseConnection() throws {
