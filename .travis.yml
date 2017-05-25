@@ -73,7 +73,7 @@ jobs:
       gemfile: .ci/gemfiles/Gemfile.travis
       osx_image: xcode8.3
       env:
-        - TID="GRDB [SPM] (Xcode 8.3, macOS 10.12)"
+        - TID=GRDB [SPM] (Xcode 8.3, macOS 10.12)
       script: make test_SPM
 
     ###########################################
