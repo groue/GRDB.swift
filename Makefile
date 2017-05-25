@@ -179,7 +179,7 @@ test_SPM:
 	$(SWIFT) package clean
 	$(SWIFT) build
 	$(SWIFT) build -c release
-	$(SWIFT) test
+	set -o pipefail && $(SWIFT) test $(XCPRETTY)
 
 test_install_manual:
 	$(XCODEBUILD) \
