@@ -7,6 +7,8 @@
 # make clean - Remove build artifacts
 # make distclean - Restore repository to a pristine state
 
+default: test
+
 
 # Requirements
 # ============
@@ -33,16 +35,6 @@ XCODEVERSION := $(XCODEVERSION_MAJOR).$(XCODEVERSION_MINOR)
 
 # Used to determine if xcpretty is available
 XCPRETTY_PATH := $(shell command -v xcpretty 2> /dev/null)
-
-
-# Targets
-# =======
-#
-# make: run all tests
-# make test: run all tests
-# make doc: generates documentation
-
-default: test
 
 
 # Tests
@@ -296,7 +288,9 @@ else
 	@exit 1
 endif
 
-####
+
+# Cleanup
+# =======
 
 distclean:
 	$(SWIFT) package reset
