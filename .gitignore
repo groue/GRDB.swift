@@ -101,11 +101,13 @@ SQLiteCustom/GRDBCustomSQLite-USER.h
 SQLiteCustom/GRDBCustomSQLite-USER.xcconfig
 
 # CocoaPods test
-Tests/CocoaPods/GRDBiOS/Podfile.lock
-Tests/CocoaPods/GRDBiOS/Pods
+Podfile.lock
+Pods
 
 # SPM
 .build
+Package.pins
 Tests/SPM/Packages
-Tests/SPM/Package.pins
+
+# Ruby
 .ruby-version
