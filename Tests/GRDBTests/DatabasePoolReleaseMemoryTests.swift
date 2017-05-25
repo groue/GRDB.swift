@@ -188,14 +188,12 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         XCTAssertEqual(openConnectionCount, 0)
     }
 
-    func testDatabaseCursorRetainConnection() throws {
+    func testDatabaseCursorRetainSQLiteConnection() throws {
         let countQueue = DispatchQueue(label: "GRDB")
         var openConnectionCount = 0
-        var totalOpenConnectionCount = 0
         
         dbConfiguration.SQLiteConnectionDidOpen = {
             countQueue.sync {
-                totalOpenConnectionCount += 1
                 openConnectionCount += 1
             }
         }
@@ -229,31 +227,24 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             
             let block1 = { () in
                 _ = s1.wait(timeout: .distantFuture)
+                XCTAssertEqual(openConnectionCount, 1)
                 dbPool = nil
+                XCTAssertEqual(openConnectionCount, 0)
                 s2.signal()
             }
             let block2 = { [weak dbPool] () in
-                weak var connection: Database? = nil
                 var cursor: DatabaseCursor<Int>? = nil
                 do {
-                    if let dbPool = dbPool {
-                        try! dbPool.write { db in
-                            connection = db
-                            cursor = try Int.fetchCursor(db, "SELECT id FROM items")
-                            XCTAssertTrue(try cursor!.next() != nil)
-                            s1.signal()
-                        }
-                    } else {
-                        XCTFail("expect non nil dbPool")
+                    try! dbPool!.write { db in
+                        cursor = try Int.fetchCursor(db, "SELECT id FROM items")
+                        XCTAssertTrue(try cursor!.next() != nil)
+                        s1.signal()
                     }
                 }
                 _ = s2.wait(timeout: .distantFuture)
                 do {
-                    XCTAssertTrue(dbPool == nil)
                     XCTAssertTrue(try! cursor!.next() != nil)
                     XCTAssertTrue(try! cursor!.next() == nil)
-                    cursor = nil
-                    XCTAssertTrue(connection == nil)
                 }
             }
             return (block1, block2)
@@ -262,12 +253,6 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
             blocks[index]()
         }
-        
-        // one writer
-        XCTAssertEqual(totalOpenConnectionCount, 1)
-        
-        // All connections are closed
-        XCTAssertEqual(openConnectionCount, 0)
     }
     
     func testStatementDoNotRetainDatabaseConnection() throws {
