@@ -244,9 +244,8 @@ class ConcurrencyTests: GRDBTestCase {
         // Queue 1                              Queue 2
         // BEGIN EXCLUSIVE TRANSACTION
         let s1 = DispatchSemaphore(value: 0)
-        // (Waiting)                            BEGIN EXCLUSIVE TRANSACTION <--- Busy
-        // (Waiting)                            BEGIN EXCLUSIVE TRANSACTION <--- Busy
-        // (Waiting)                            BEGIN EXCLUSIVE TRANSACTION <--- Busy
+        //                                      BEGIN EXCLUSIVE TRANSACTION <--- Busy
+        let s2 = DispatchSemaphore(value: 0)
         // COMMIT
         //                                      BEGIN EXCLUSIVE TRANSACTION
         //                                      COMMIT
@@ -254,7 +253,7 @@ class ConcurrencyTests: GRDBTestCase {
         var numberOfTries = 0
         self.busyCallback = { n in
             numberOfTries = n
-            usleep(10_000) // 0.01s
+            s2.signal()
             return true
         }
         
@@ -266,7 +265,7 @@ class ConcurrencyTests: GRDBTestCase {
             do {
                 try dbQueue1.inTransaction(.exclusive) { db in
                     s1.signal()
-                    usleep(100_000) // 0.1s
+                    _ = s2.wait(timeout: .distantFuture)
                     return .commit
                 }
             }
@@ -386,15 +385,15 @@ class ConcurrencyTests: GRDBTestCase {
         //                                      BEGIN DEFERRED TRANSACTION
         //                                      SELECT * FROM stuffs
         let s2 = DispatchSemaphore(value: 0)
-        // COMMIT <--- Busy                     (Waiting)
-        // COMMIT <--- Busy                     (Waiting)
+        // COMMIT <--- Busy
+        let s3 = DispatchSemaphore(value: 0)
         //                                      COMMIT
         // COMMIT
         
         var numberOfTries = 0
         self.busyCallback = { n in
             numberOfTries = n
-            usleep(10_000) // 0.01s
+            s3.signal()
             return true
         }
         
@@ -427,7 +426,7 @@ class ConcurrencyTests: GRDBTestCase {
                 try dbQueue2.inTransaction(.deferred) { db in
                     _ = try Row.fetchAll(db, "SELECT * FROM stuffs")
                     s2.signal()
-                    usleep(100_000) // 0.1s
+                    _ = s3.wait(timeout: .distantFuture)
                     return .commit
                 }
             }

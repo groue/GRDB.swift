@@ -1,5 +1,4 @@
 - [ ] Upgrade SQLCipher to v3.4.1
-- [ ] Fix flaky test ConcurrencyTests.testBusyCallback (https://travis-ci.org/groue/GRDB.swift/jobs/235336130)
 - [ ] We share the database cache between database pool writers and readers. But what if a writer modifies the database schema within a transaction, and a concurrent reader reads the cache? Bad things, isn't it? Write failing tests first, and fix the bug.
 - [ ] Attach databases. Interesting question: what happens when one attaches a non-WAL db to a databasePool?
 - [ ] SQLCipher: sqlite3_rekey is discouraged (https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320)
