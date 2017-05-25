@@ -2079,6 +2079,9 @@
 		56BF6D2E1DEF47DA006039A3 /* Fixits-Swift2.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Fixits-Swift2.swift"; sourceTree = "<group>"; };
 		56C3F7521CF9F12400F6A361 /* DatabaseSavepointTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseSavepointTests.swift; sourceTree = "<group>"; };
 		56C48E731C9A9923005DF1D9 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
+		56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = GRDBDeploymentTarget.xcconfig; sourceTree = "<group>"; };
+		56C494411ED7269800CC72AF /* GRDBDeploymentTarget.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = GRDBDeploymentTarget.xcconfig; path = SQLCipher/GRDBDeploymentTarget.xcconfig; sourceTree = "<group>"; };
+		56C494421ED726C500CC72AF /* GRDBDeploymentTarget.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = GRDBDeploymentTarget.xcconfig; path = SQLiteCustom/GRDBDeploymentTarget.xcconfig; sourceTree = "<group>"; };
 		56CA21FE1BB414FE009A04C5 /* SQLite.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SQLite.xcodeproj; path = SQLite.swift/SQLite.xcodeproj; sourceTree = "<group>"; };
 		56CA22211BB41565009A04C5 /* PerformanceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PerformanceTests.swift; sourceTree = "<group>"; };
 		56CEB4F01EAA2EFA00BFAF62 /* RowConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowConvertible.swift; sourceTree = "<group>"; };
@@ -2375,6 +2378,7 @@
 			isa = PBXGroup;
 			children = (
 				568BE51F1CB0360500270F93 /* GRDB.xcconfig */,
+				56C494411ED7269800CC72AF /* GRDBDeploymentTarget.xcconfig */,
 				568BE5201CB0360500270F93 /* module.modulemap */,
 				568BE5191CB035A900270F93 /* sqlite3.h */,
 				568E1CB81CB03847008D97A6 /* GRDBCipher.h */,
@@ -2983,6 +2987,7 @@
 				DC2393C61ABE35F8003FF113 /* GRDB-Bridging.h */,
 				DC3773F819C8CBB3004FCF85 /* GRDB.h */,
 				56B8F49A1B4E2F3600C24296 /* GRDB.xcconfig */,
+				56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */,
 				567D10621C9A911C00ACC500 /* GRDBiOS */,
 				567D10641C9A911C00ACC500 /* GRDBOSX */,
 				56F5ABDE1D817B91001F60CB /* GRDBWatchOS */,
@@ -3008,6 +3013,7 @@
 				EED476F41CFD174D0026A4EC /* Customize */,
 				F3BA7FEE1CFB23B7003DC1BA /* GRDB.xcconfig */,
 				F3BA813B1CFB3770003DC1BA /* GRDBCustomSQLite-Testing.xcconfig */,
+				56C494421ED726C500CC72AF /* GRDBDeploymentTarget.xcconfig */,
 				F3BA7FEF1CFB23BF003DC1BA /* module.modulemap */,
 				F3BA7FF01CFB23C9003DC1BA /* sqlite3.h */,
 				F3BA7FF11CFB23D3003DC1BA /* GRDBCustomSQLite.h */,
@@ -5554,6 +5560,7 @@
 /* Begin XCBuildConfiguration section */
 		560C98181C0E22D300BF8471 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
@@ -5564,7 +5571,6 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -5574,6 +5580,7 @@
 		};
 		560C98191C0E22D300BF8471 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -5585,7 +5592,6 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -5609,7 +5615,6 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 3.0;
@@ -5631,7 +5636,6 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_VERSION = 3.0;
@@ -5640,13 +5644,13 @@
 		};
 		560FC5AE1CB00B880014AA8E /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 56C494411ED7269800CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_SWIFT_FLAGS = "-D USING_BUILTIN_SQLITE -D GRDBCIPHER -D SQLITE_HAS_CODEC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipherOSXTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -5656,6 +5660,7 @@
 		};
 		560FC5AF1CB00B880014AA8E /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 56C494411ED7269800CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -5663,7 +5668,6 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_SWIFT_FLAGS = "-D USING_BUILTIN_SQLITE -D GRDBCIPHER -D SQLITE_HAS_CODEC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipherOSXTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -5695,7 +5699,6 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 2.2;
 			};
 			name = Debug;
 		};
@@ -5722,19 +5725,18 @@
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 2.2;
 			};
 			name = Release;
 		};
 		56553C161C3E906C00522B5C /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -5743,6 +5745,7 @@
 		};
 		56553C171C3E906C00522B5C /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -5750,7 +5753,6 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -5760,13 +5762,13 @@
 		};
 		5671566A1CB16729007DC145 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 56C494411ED7269800CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_SWIFT_FLAGS = "-D USING_BUILTIN_SQLITE -D GRDBCIPHER -D GRDBCIPHER_USE_ENCRYPTION -D SQLITE_HAS_CODEC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipherOSXTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -5776,6 +5778,7 @@
 		};
 		5671566B1CB16729007DC145 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 56C494411ED7269800CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -5783,7 +5786,6 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_SWIFT_FLAGS = "-D USING_BUILTIN_SQLITE -D GRDBCIPHER -D GRDBCIPHER_USE_ENCRYPTION -D SQLITE_HAS_CODEC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipherOSXTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -5808,7 +5810,6 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				GCC_NO_COMMON_BLOCKS = YES;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -5835,7 +5836,6 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				GCC_NO_COMMON_BLOCKS = YES;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -5847,12 +5847,12 @@
 		};
 		56AFCA7D1CB1AA9900F48B96 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 56C494411ED7269800CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_SWIFT_FLAGS = "-D USING_BUILTIN_SQLITE -D GRDBCIPHER -D SQLITE_HAS_CODEC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipheriOSTests;
@@ -5863,13 +5863,13 @@
 		};
 		56AFCA7E1CB1AA9900F48B96 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 56C494411ED7269800CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_SWIFT_FLAGS = "-D USING_BUILTIN_SQLITE -D GRDBCIPHER -D SQLITE_HAS_CODEC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipheriOSTests;
@@ -5881,12 +5881,12 @@
 		};
 		56AFCAD51CB1ABC800F48B96 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 56C494411ED7269800CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_SWIFT_FLAGS = "-D USING_BUILTIN_SQLITE -D GRDBCIPHER -D SQLITE_HAS_CODEC -D GRDBCIPHER_USE_ENCRYPTION";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipheriOSEncryptedTests;
@@ -5897,13 +5897,13 @@
 		};
 		56AFCAD61CB1ABC800F48B96 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 56C494411ED7269800CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_SWIFT_FLAGS = "-D USING_BUILTIN_SQLITE -D GRDBCIPHER -D SQLITE_HAS_CODEC -D GRDBCIPHER_USE_ENCRYPTION";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipheriOSEncryptedTests;
@@ -5929,7 +5929,6 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				GCC_NO_COMMON_BLOCKS = YES;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -5956,7 +5955,6 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				GCC_NO_COMMON_BLOCKS = YES;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -5968,12 +5966,12 @@
 		};
 		56E5D7DF1B4D3FEE00430942 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_SWIFT_FLAGS = "-D SQLITE_MODULE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBiOSTests;
@@ -5985,13 +5983,13 @@
 		};
 		56E5D7E01B4D3FEE00430942 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_SWIFT_FLAGS = "-D SQLITE_MODULE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBiOSTests;
@@ -6004,13 +6002,13 @@
 		};
 		56E5D8021B4D422E00430942 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_SWIFT_FLAGS = "-D SQLITE_MODULE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -6021,6 +6019,7 @@
 		};
 		56E5D8031B4D422E00430942 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -6028,7 +6027,6 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_SWIFT_FLAGS = "-D SQLITE_MODULE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -6141,7 +6139,6 @@
 				INFOPLIST_FILE = Support/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 3.0;
@@ -6164,7 +6161,6 @@
 				INFOPLIST_FILE = Support/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_VERSION = 3.0;
@@ -6188,7 +6184,6 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				GCC_NO_COMMON_BLOCKS = YES;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -6216,7 +6211,6 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				GCC_NO_COMMON_BLOCKS = YES;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -6235,7 +6229,6 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCustomSQLite.GRDBCustomSQLiteiOSTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -6254,7 +6247,6 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCustomSQLite.GRDBCustomSQLiteiOSTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -6282,7 +6274,6 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 3.0;
@@ -6307,7 +6298,6 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_VERSION = 3.0;
@@ -6325,7 +6315,6 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCustomSQLiteOSXTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -6345,7 +6334,6 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCustomSQLiteOSXTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;

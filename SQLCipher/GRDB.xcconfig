@@ -1,3 +1,4 @@
+#include "GRDBDeploymentTarget.xcconfig"
 INFOPLIST_FILE = Support/Info.plist
 PRODUCT_NAME = GRDBCipher
 PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.$(PRODUCT_NAME:rfc1034identifier)

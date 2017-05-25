@@ -1,5 +1,6 @@
 CUSTOM_OTHER_SWIFT_FLAGS=   // do not modify
 
+#include "GRDBDeploymentTarget.xcconfig"
 // Build once to generate this file:
 #include "GRDBCustomSQLite-USER.xcconfig"
 #include "src/SQLiteLib-USER.xcconfig"
