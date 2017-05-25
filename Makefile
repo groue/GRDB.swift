@@ -308,6 +308,7 @@ distclean:
 	rm -rf SQLCipher/src && $(GIT) checkout -- SQLCipher/src
 	rm -rf SQLiteCustom/src && $(GIT) checkout -- SQLiteCustom/src
 	find . -name xcuserdata | xargs rm -rf
+	find . -name Package.pins | xargs rm -f
 
 clean:
 	$(SWIFT) package reset
@@ -315,5 +316,6 @@ clean:
 	rm -rf Documentation/Reference
 	if [ -d SQLCipher/src ]; then cd SQLCipher/src && $(GIT) clean -f; fi
 	if [ -a Tests/Performance/Realm/build.sh ]; then cd Tests/Performance/Realm && sh build.sh clean; fi
+	find . -name Package.pins | xargs rm -f
 
 .PHONY: distclean clean doc test SQLCipher SQLiteCustom
