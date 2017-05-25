@@ -437,6 +437,9 @@ class ConcurrencyTests: GRDBTestCase {
         
         _ = group.wait(timeout: .distantFuture)
         
+        // TODO: flaky test
+        // https://travis-ci.org/groue/GRDB.swift/jobs/236100291
+        // https://travis-ci.org/groue/GRDB.swift/jobs/236100305
         XCTAssertTrue(numberOfTries > 0)    // Busy handler has been used.
     }
 }
