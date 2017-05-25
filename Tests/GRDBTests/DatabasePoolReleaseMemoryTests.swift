@@ -188,7 +188,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         XCTAssertEqual(openConnectionCount, 0)
     }
 
-    func testDatabaseIteratorRetainConnection() throws {
+    func testDatabaseCursorRetainConnection() throws {
         let countQueue = DispatchQueue(label: "GRDB")
         var openConnectionCount = 0
         var totalOpenConnectionCount = 0

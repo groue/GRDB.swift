@@ -7,9 +7,9 @@ import XCTest
     @testable import GRDB
 #endif
 
-class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
+class DatabaseQueueReleaseMemoryTests: GRDBTestCase {
     
-    func testDatabaseQueueuDeinitClosesConnection() throws {
+    func testDatabaseQueueDeinitClosesConnection() throws {
         let countQueue = DispatchQueue(label: "GRDB")
         var openConnectionCount = 0
         var totalOpenConnectionCount = 0
@@ -103,7 +103,7 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
         XCTAssertEqual(openConnectionCount, 0)
     }
 
-    func testDatabaseIteratorRetainConnection() throws {
+    func testDatabaseCursorRetainConnection() throws {
         let countQueue = DispatchQueue(label: "GRDB")
         var openConnectionCount = 0
         var totalOpenConnectionCount = 0
