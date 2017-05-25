@@ -462,11 +462,41 @@ public final class Database {
             return
         }
         let dbPointer = unsafeBitCast(self, to: UnsafeMutableRawPointer.self)
-        sqlite3_trace(sqliteConnection, { (dbPointer, sql) in
-            guard let sql = sql.map({ String(cString: $0) }) else { return }
-            let database = unsafeBitCast(dbPointer, to: Database.self)
-            database.configuration.trace!(sql)
+        // sqlite3_trace_v2 and sqlite3_expanded_sql were introduced in SQLite 3.14.0 http://www.sqlite.org/changes.html#version_3_14
+        // It is available from iOS 10.0 and OS X 10.12 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+        #if GRDBCUSTOMSQLITE
+            sqlite3_trace_v2(sqliteConnection, UInt32(SQLITE_TRACE_STMT), { (mask, dbPointer, stmt, unexpandedSQL) -> Int32 in
+                guard let stmt = stmt else { return SQLITE_OK }
+                guard let expandedSQLCString = sqlite3_expanded_sql(OpaquePointer(stmt)) else { return SQLITE_OK }
+                let sql = String(cString: expandedSQLCString)
+                let database = unsafeBitCast(dbPointer, to: Database.self)
+                database.configuration.trace!(sql)
+                return SQLITE_OK
             }, dbPointer)
+        #elseif GRDBCIPHER
+            sqlite3_trace(sqliteConnection, { (dbPointer, sql) in
+                guard let sql = sql.map({ String(cString: $0) }) else { return }
+                let database = unsafeBitCast(dbPointer, to: Database.self)
+                database.configuration.trace!(sql)
+            }, dbPointer)
+        #else
+            if #available(iOS 10.0, OSX 10.12, watchOS 3.0, *) {
+                sqlite3_trace_v2(sqliteConnection, UInt32(SQLITE_TRACE_STMT), { (mask, dbPointer, stmt, unexpandedSQL) -> Int32 in
+                    guard let stmt = stmt else { return SQLITE_OK }
+                    guard let expandedSQLCString = sqlite3_expanded_sql(OpaquePointer(stmt)) else { return SQLITE_OK }
+                    let sql = String(cString: expandedSQLCString)
+                    let database = unsafeBitCast(dbPointer, to: Database.self)
+                    database.configuration.trace!(sql)
+                    return SQLITE_OK
+                }, dbPointer)
+            } else {
+                sqlite3_trace(sqliteConnection, { (dbPointer, sql) in
+                    guard let sql = sql.map({ String(cString: $0) }) else { return }
+                    let database = unsafeBitCast(dbPointer, to: Database.self)
+                    database.configuration.trace!(sql)
+                }, dbPointer)
+            }
+        #endif
     }
     
     private func setupBusyMode() {
