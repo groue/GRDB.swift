@@ -59,8 +59,16 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             // Check SQLite conversions from Text storage:
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Bool?), false)     // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Int?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int8?), 0)         // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int16?), 0)        // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Int32?), 0)        // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Int64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt8?), 0)         // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt16?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt32?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Float?), 0.0)      // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Double?), 0.0)     // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as String?)!, "0")
             XCTAssertEqual((try fetchValue(db, "textAffinity") as String), "0")
@@ -76,8 +84,16 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             // Check SQLite conversions from Text storage:
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Bool?), false)     // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Int?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int8?), 0)         // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int16?), 0)        // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Int32?), 0)        // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Int64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt8?), 0)         // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt16?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt32?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Float?), 0.0)      // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Double?), 0.0)     // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as String?)!, "0")
             XCTAssertEqual((try fetchValue(db, "textAffinity") as String), "0")
@@ -93,8 +109,16 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             // Check SQLite conversions from Text storage:
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Bool?), false)     // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Int?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int8?), 0)         // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int16?), 0)        // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Int32?), 0)        // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Int64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt8?), 0)         // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt16?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt32?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Float?), 0.0)      // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Double?), 0.0)     // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as String?)!, "0")
             XCTAssertEqual((try fetchValue(db, "textAffinity") as String), "0")
@@ -110,8 +134,16 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             // Check SQLite conversions from Text storage:
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Bool?), false)     // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Int?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int8?), 0)         // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int16?), 0)        // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Int32?), 0)        // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Int64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt8?), 0)         // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt16?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt32?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Float?), 0.0)      // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Double?), 0.0)     // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as String?)!, "0.0")
             XCTAssertEqual((try fetchValue(db, "textAffinity") as String), "0.0")
@@ -127,8 +159,16 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             // Check SQLite conversions from Text storage:
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Bool?), true)          // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Int?), 3)              // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int8?), 3)             // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int16?), 3)            // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Int32?), 3)            // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Int64?), 3)            // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt?), 3)              // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt8?), 3)             // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt16?), 3)            // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt32?), 3)            // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt64?), 3)            // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Float?), 300000.0)     // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Double?), 300000.0)    // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as String?)!, "3.0e+5")
             XCTAssertEqual((try fetchValue(db, "textAffinity") as String), "3.0e+5")
@@ -144,8 +184,16 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             // Check SQLite conversions from Text storage:
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Bool?), false)     // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Int?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int8?), 0)         // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int16?), 0)        // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Int32?), 0)        // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Int64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt8?), 0)         // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt16?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt32?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Float?), 0.0)      // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Double?), 0.0)     // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as String?)!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
             XCTAssertEqual((try fetchValue(db, "textAffinity") as String), "'fooéı👨👨🏿🇫🇷🇨🇮'")
@@ -161,8 +209,16 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             // Check SQLite conversions from Blob storage:
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Bool?), false)     // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Int?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int8?), 0)         // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int16?), 0)        // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Int32?), 0)        // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Int64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt8?), 0)         // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt16?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt32?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as UInt64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Float?), 0.0)      // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Double?), 0.0)     // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as String?), "'fooéı👨👨🏿🇫🇷🇨🇮'")   // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "textAffinity") as Data?), "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
@@ -228,10 +284,26 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool), false)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Int?)!, 0)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Int), 0)
-            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32?)!, Int32(0))
-            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32), Int32(0))
-            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64?)!, Int64(0))
-            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64), Int64(0))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int8?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int8), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int16?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int16), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt8?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt8), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt16?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt16), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt32?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt32), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt64?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt64), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Float?)!, 0.0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Float), 0.0)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Double?)!, 0.0)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Double), 0.0)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as String?), "0.0")   // incompatible with DatabaseValue conversion
@@ -249,10 +321,26 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool), false)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Int?)!, 0)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Int), 0)
-            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32?)!, Int32(0))
-            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32), Int32(0))
-            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64?)!, Int64(0))
-            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64), Int64(0))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int8?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int8), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int16?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int16), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt8?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt8), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt16?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt16), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt32?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt32), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt64?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt64), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Float?)!, 0.0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Float), 0.0)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Double?)!, 0.0)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Double), 0.0)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as String?), "0.0")   // incompatible with DatabaseValue conversion
@@ -270,10 +358,26 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool), false)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Int?)!, 0)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Int), 0)
-            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32?)!, Int32(0))
-            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32), Int32(0))
-            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64?)!, Int64(0))
-            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64), Int64(0))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int8?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int8), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int16?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int16), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt8?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt8), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt16?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt16), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt32?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt32), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt64?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt64), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Float?)!, 0.0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Float), 0.0)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Double?)!, 0.0)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Double), 0.0)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as String?), "0.0")   // incompatible with DatabaseValue conversion
@@ -291,12 +395,20 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool), true)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Int?)!, 300000)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Int), 300000)
-            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32?)!, Int32(300000))
-            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32), Int32(300000))
-            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64?)!, Int64(300000))
-            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64), Int64(300000))
-            XCTAssertEqual((try fetchValue(db, "realAffinity") as Double?)!, Double(300000))
-            XCTAssertEqual((try fetchValue(db, "realAffinity") as Double), Double(300000))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32?)!, 300000)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32), 300000)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64?)!, 300000)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64), 300000)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt?)!, 300000)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt), 300000)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt32?)!, 300000)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt32), 300000)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt64?)!, 300000)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt64), 300000)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Float?)!, 300000.0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Float), 300000.0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Double?)!, 300000.0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Double), 300000.0)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as String?), "300000.0")    // incompatible with DatabaseValue conversion
             // Data extraction: precondition failed: could not convert 300000.0 to Data
 //                XCTAssertEqual((try fetchValue(db, "realAffinity") as Data?) == nil)
@@ -310,6 +422,8 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             // Check SQLite conversions from Real storage (avoid Int, Int32 and Int64 since 1.0e20 does not fit)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool?)!, true)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool), true)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Float?)!, 1e20)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Float), 1e20)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Double?)!, 1e20)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Double), 1e20)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as String?), "1.0e+20")   // incompatible with DatabaseValue conversion
@@ -327,12 +441,20 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool), true)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Int?)!, 300000)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Int), 300000)
-            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32?)!, Int32(300000))
-            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32), Int32(300000))
-            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64?)!, Int64(300000))
-            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64), Int64(300000))
-            XCTAssertEqual((try fetchValue(db, "realAffinity") as Double?)!, Double(300000))
-            XCTAssertEqual((try fetchValue(db, "realAffinity") as Double), Double(300000))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32?)!, 300000)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32), 300000)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64?)!, 300000)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64), 300000)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt?)!, 300000)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt), 300000)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt32?)!, 300000)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt32), 300000)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt64?)!, 300000)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt64), 300000)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Float?)!, 300000.0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Float), 300000.0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Double?)!, 300000.0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Double), 300000.0)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as String?), "300000.0")  // incompatible with DatabaseValue conversion
             // Data extraction: precondition failed: could not convert 300000.0 to Data
 //                XCTAssertEqual((try fetchValue(db, "realAffinity") as Data?) == nil)
@@ -346,6 +468,8 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             // Check SQLite conversions from Real storage: (avoid Int, Int32 and Int64 since 1.0e20 does not fit)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool?)!, true)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool), true)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Float?)!, 1e20)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Float), 1e20)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Double?)!, 1e20)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Double), 1e20)
             XCTAssertEqual((try fetchValue(db, "realAffinity") as String?), "1.0e+20")   // incompatible with DatabaseValue conversion
@@ -361,8 +485,16 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             // Check SQLite conversions from Text storage:
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool?), false)     // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Int?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int8?), 0)         // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int16?), 0)        // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32?), 0)        // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt8?), 0)         // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt16?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt32?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Float?), 0.0)      // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Double?), 0.0)     // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "realAffinity") as String?)!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
             XCTAssertEqual((try fetchValue(db, "realAffinity") as String), "'fooéı👨👨🏿🇫🇷🇨🇮'")
@@ -378,8 +510,16 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             // Check SQLite conversions from Blob storage:
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool?), false)     // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Int?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int8?), 0)         // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int16?), 0)        // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32?), 0)        // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt8?), 0)         // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt16?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt32?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as UInt64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Float?), 0.0)      // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Double?), 0.0)     // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "realAffinity") as String?), "'fooéı👨👨🏿🇫🇷🇨🇮'")   // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "realAffinity") as Data?), "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
@@ -405,10 +545,26 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Bool), false)
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int?)!, 0)
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int), 0)
-            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32?)!, Int32(0))
-            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32), Int32(0))
-            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64?)!, Int64(0))
-            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64), Int64(0))
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int8?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int8), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int16?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int16), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt8?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt8), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt16?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt16), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt32?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt32), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt64?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt64), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Float?)!, 0.0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Float), 0.0)
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Double?)!, 0.0)
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Double), 0.0)
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as String?), "0")     // incompatible with DatabaseValue conversion
@@ -426,10 +582,26 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Bool), false)
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int?)!, 0)
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int), 0)
-            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32?)!, Int32(0))
-            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32), Int32(0))
-            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64?)!, Int64(0))
-            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64), Int64(0))
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int8?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int8), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int16?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int16), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt8?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt8), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt16?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt16), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt32?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt32), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt64?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt64), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Float?)!, 0.0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Float), 0.0)
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Double?)!, 0.0)
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Double), 0.0)
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as String?), "0")     // incompatible with DatabaseValue conversion
@@ -447,10 +619,26 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Bool), false)
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int?)!, 0)
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int), 0)
-            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32?)!, Int32(0))
-            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32), Int32(0))
-            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64?)!, Int64(0))
-            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64), Int64(0))
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int8?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int8), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int16?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int16), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt8?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt8), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt16?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt16), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt32?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt32), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt64?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt64), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Float?)!, 0.0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Float), 0.0)
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Double?)!, 0.0)
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Double), 0.0)
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as String?), "0")     // incompatible with DatabaseValue conversion
@@ -468,10 +656,26 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Bool), false)
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int?)!, 0)
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int), 0)
-            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32?)!, Int32(0))
-            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32), Int32(0))
-            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64?)!, Int64(0))
-            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64), Int64(0))
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int8?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int8), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int16?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int16), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt8?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt8), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt16?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt16), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt32?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt32), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt64?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt64), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Float?)!, 0.0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Float), 0.0)
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Double?)!, 0.0)
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Double), 0.0)
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as String?), "0.0")   // incompatible with DatabaseValue conversion
@@ -487,8 +691,16 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             // Check SQLite conversions from Text storage
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Bool?), true)      // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int?), 3)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int8?), 3)         // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int16?), 3)        // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32?), 3)        // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64?), 3)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt?), 3)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt8?), 3)         // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt16?), 3)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt32?), 3)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt64?), 3)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Float?), 300000.0)    // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Double?), 300000.0)    // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as String?)!, "3.0e+5")
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as String), "3.0e+5")
@@ -504,8 +716,16 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             // Check SQLite conversions from Blob storage
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Bool?), false)     // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int8?), 0)         // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int16?), 0)        // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32?), 0)        // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt8?), 0)         // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt16?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt32?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as UInt64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Float?), 0.0)     // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Double?), 0.0)     // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as String?), "'fooéı👨👨🏿🇫🇷🇨🇮'")   // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, "noneAffinity") as Data?), "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
@@ -545,10 +765,26 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             XCTAssertEqual((try fetchValue(db, columnName) as Bool), false)
             XCTAssertEqual((try fetchValue(db, columnName) as Int?)!, 0)
             XCTAssertEqual((try fetchValue(db, columnName) as Int), 0)
-            XCTAssertEqual((try fetchValue(db, columnName) as Int32?)!, Int32(0))
-            XCTAssertEqual((try fetchValue(db, columnName) as Int32), Int32(0))
-            XCTAssertEqual((try fetchValue(db, columnName) as Int64?)!, Int64(0))
-            XCTAssertEqual((try fetchValue(db, columnName) as Int64), Int64(0))
+            XCTAssertEqual((try fetchValue(db, columnName) as Int8?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int8), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int16?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int16), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int32?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int32), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int64?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int64), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt8?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt8), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt16?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt16), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt32?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt32), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt64?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt64), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Float?)!, 0.0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Float), 0.0)
             XCTAssertEqual((try fetchValue(db, columnName) as Double?)!, 0.0)
             XCTAssertEqual((try fetchValue(db, columnName) as Double), 0.0)
             XCTAssertEqual((try fetchValue(db, columnName) as String?), "0")     // incompatible with DatabaseValue conversion
@@ -566,10 +802,26 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             XCTAssertEqual((try fetchValue(db, columnName) as Bool), false)
             XCTAssertEqual((try fetchValue(db, columnName) as Int?)!, 0)
             XCTAssertEqual((try fetchValue(db, columnName) as Int), 0)
-            XCTAssertEqual((try fetchValue(db, columnName) as Int32?)!, Int32(0))
-            XCTAssertEqual((try fetchValue(db, columnName) as Int32), Int32(0))
-            XCTAssertEqual((try fetchValue(db, columnName) as Int64?)!, Int64(0))
-            XCTAssertEqual((try fetchValue(db, columnName) as Int64), Int64(0))
+            XCTAssertEqual((try fetchValue(db, columnName) as Int8?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int8), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int16?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int16), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int32?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int32), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int64?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int64), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt8?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt8), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt16?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt16), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt32?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt32), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt64?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt64), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Float?)!, 0.0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Float), 0.0)
             XCTAssertEqual((try fetchValue(db, columnName) as Double?)!, 0.0)
             XCTAssertEqual((try fetchValue(db, columnName) as Double), 0.0)
             XCTAssertEqual((try fetchValue(db, columnName) as String?), "0")     // incompatible with DatabaseValue conversion
@@ -587,10 +839,26 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             XCTAssertEqual((try fetchValue(db, columnName) as Bool), false)
             XCTAssertEqual((try fetchValue(db, columnName) as Int?)!, 0)
             XCTAssertEqual((try fetchValue(db, columnName) as Int), 0)
-            XCTAssertEqual((try fetchValue(db, columnName) as Int32?)!, Int32(0))
-            XCTAssertEqual((try fetchValue(db, columnName) as Int32), Int32(0))
-            XCTAssertEqual((try fetchValue(db, columnName) as Int64?)!, Int64(0))
-            XCTAssertEqual((try fetchValue(db, columnName) as Int64), Int64(0))
+            XCTAssertEqual((try fetchValue(db, columnName) as Int8?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int8), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int16?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int16), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int32?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int32), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int64?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int64), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt8?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt8), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt16?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt16), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt32?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt32), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt64?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt64), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Float?)!, 0.0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Float), 0.0)
             XCTAssertEqual((try fetchValue(db, columnName) as Double?)!, 0.0)
             XCTAssertEqual((try fetchValue(db, columnName) as Double), 0.0)
             XCTAssertEqual((try fetchValue(db, columnName) as String?), "0")     // incompatible with DatabaseValue conversion
@@ -608,12 +876,20 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             XCTAssertEqual((try fetchValue(db, columnName) as Bool), true)
             XCTAssertEqual((try fetchValue(db, columnName) as Int?)!, 300000)
             XCTAssertEqual((try fetchValue(db, columnName) as Int), 300000)
-            XCTAssertEqual((try fetchValue(db, columnName) as Int32?)!, Int32(300000))
-            XCTAssertEqual((try fetchValue(db, columnName) as Int32), Int32(300000))
-            XCTAssertEqual((try fetchValue(db, columnName) as Int64?)!, Int64(300000))
-            XCTAssertEqual((try fetchValue(db, columnName) as Int64), Int64(300000))
-            XCTAssertEqual((try fetchValue(db, columnName) as Double?)!, Double(300000))
-            XCTAssertEqual((try fetchValue(db, columnName) as Double), Double(300000))
+            XCTAssertEqual((try fetchValue(db, columnName) as Int32?)!, 300000)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int32), 300000)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int64?)!, 300000)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int64), 300000)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt?)!, 300000)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt), 300000)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt32?)!, 300000)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt32), 300000)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt64?)!, 300000)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt64), 300000)
+            XCTAssertEqual((try fetchValue(db, columnName) as Float?)!, 300000.0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Float), 300000.0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Double?)!, 300000.0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Double), 300000.0)
             XCTAssertEqual((try fetchValue(db, columnName) as String?), "300000")    // incompatible with DatabaseValue conversion
             // Data extraction: precondition failed: could not convert 300000 to Data
 //                XCTAssertEqual((try fetchValue(db, columnName) as Data?) == nil)
@@ -627,6 +903,8 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             // Check SQLite conversions from Real storage (avoid Int, Int32 and Int64 since 1.0e20 does not fit)
             XCTAssertEqual((try fetchValue(db, columnName) as Bool?)!, true)
             XCTAssertEqual((try fetchValue(db, columnName) as Bool), true)
+            XCTAssertEqual((try fetchValue(db, columnName) as Float?)!, 1e20)
+            XCTAssertEqual((try fetchValue(db, columnName) as Float), 1e20)
             XCTAssertEqual((try fetchValue(db, columnName) as Double?)!, 1e20)
             XCTAssertEqual((try fetchValue(db, columnName) as Double), 1e20)
             XCTAssertEqual((try fetchValue(db, columnName) as String?), "1.0e+20")   // incompatible with DatabaseValue conversion
@@ -644,12 +922,20 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             XCTAssertEqual((try fetchValue(db, columnName) as Bool), true)
             XCTAssertEqual((try fetchValue(db, columnName) as Int?)!, 300000)
             XCTAssertEqual((try fetchValue(db, columnName) as Int), 300000)
-            XCTAssertEqual((try fetchValue(db, columnName) as Int32?)!, Int32(300000))
-            XCTAssertEqual((try fetchValue(db, columnName) as Int32), Int32(300000))
-            XCTAssertEqual((try fetchValue(db, columnName) as Int64?)!, Int64(300000))
-            XCTAssertEqual((try fetchValue(db, columnName) as Int64), Int64(300000))
-            XCTAssertEqual((try fetchValue(db, columnName) as Double?)!, Double(300000))
-            XCTAssertEqual((try fetchValue(db, columnName) as Double), Double(300000))
+            XCTAssertEqual((try fetchValue(db, columnName) as Int32?)!, 300000)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int32), 300000)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int64?)!, 300000)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int64), 300000)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt?)!, 300000)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt), 300000)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt32?)!, 300000)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt32), 300000)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt64?)!, 300000)
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt64), 300000)
+            XCTAssertEqual((try fetchValue(db, columnName) as Float?)!, 300000.0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Float), 300000.0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Double?)!, 300000.0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Double), 300000.0)
             XCTAssertEqual((try fetchValue(db, columnName) as String?), "300000")    // incompatible with DatabaseValue conversion
             // Data extraction: precondition failed: could not convert 300000 to Data
 //                XCTAssertEqual((try fetchValue(db, columnName) as Data?) == nil)
@@ -663,6 +949,8 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             // Check SQLite conversions from Real storage: (avoid Int, Int32 and Int64 since 1.0e20 does not fit)
             XCTAssertEqual((try fetchValue(db, columnName) as Bool?)!, true)
             XCTAssertEqual((try fetchValue(db, columnName) as Bool), true)
+            XCTAssertEqual((try fetchValue(db, columnName) as Float?)!, 1e20)
+            XCTAssertEqual((try fetchValue(db, columnName) as Float), 1e20)
             XCTAssertEqual((try fetchValue(db, columnName) as Double?)!, 1e20)
             XCTAssertEqual((try fetchValue(db, columnName) as Double), 1e20)
             XCTAssertEqual((try fetchValue(db, columnName) as String?), "1.0e+20")   // incompatible with DatabaseValue conversion
@@ -678,8 +966,16 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             // Check SQLite conversions from Text storage:
             XCTAssertEqual((try fetchValue(db, columnName) as Bool?), false)     // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, columnName) as Int?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as Int8?), 0)         // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as Int16?), 0)        // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, columnName) as Int32?), 0)        // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, columnName) as Int64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt8?), 0)         // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt16?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt32?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as Float?), 0.0)      // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, columnName) as Double?), 0.0)     // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, columnName) as String?)!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
             XCTAssertEqual((try fetchValue(db, columnName) as String), "'fooéı👨👨🏿🇫🇷🇨🇮'")
@@ -695,8 +991,16 @@ class StatementColumnConvertibleTests : GRDBTestCase {
             // Check SQLite conversions from Blob storage:
             XCTAssertEqual((try fetchValue(db, columnName) as Bool?), false)     // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, columnName) as Int?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as Int8?), 0)         // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as Int16?), 0)        // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, columnName) as Int32?), 0)        // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, columnName) as Int64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt8?), 0)         // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt16?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt32?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as UInt64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as Float?), 0.0)      // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, columnName) as Double?), 0.0)     // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, columnName) as String?), "'fooéı👨👨🏿🇫🇷🇨🇮'")   // incompatible with DatabaseValue conversion
             XCTAssertEqual((try fetchValue(db, columnName) as Data?), "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
