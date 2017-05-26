@@ -721,7 +721,7 @@ Make sure to ask for an optional when the value may be NULL:
 let name: String? = row["name"]
 ```
 
-The `value` function returns the type you ask for. See [Values](#values) for more information on supported value types:
+The row gives the types you ask for. See [Values](#values) for more information on supported value types:
 
 ```swift
 let bookCount: Int     = row["bookCount"]
