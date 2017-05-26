@@ -189,12 +189,12 @@ public final class DatabasePool {
     
     // MARK: - Not public
     
-    fileprivate let writer: SerializedDatabase
-    fileprivate var readerConfig: Configuration
-    fileprivate let readerPool: Pool<SerializedDatabase>
+    private let writer: SerializedDatabase
+    private var readerConfig: Configuration
+    private let readerPool: Pool<SerializedDatabase>
     
-    fileprivate var functions = Set<DatabaseFunction>()
-    fileprivate var collations = Set<DatabaseCollation>()
+    private var functions = Set<DatabaseFunction>()
+    private var collations = Set<DatabaseCollation>()
 }
 
 

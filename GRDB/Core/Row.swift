@@ -443,14 +443,14 @@ extension Row {
     
     // MARK: - Helpers
     
-    fileprivate static func statementColumnConvertible<Value: StatementColumnConvertible>(atUncheckedIndex index: Int, in sqliteStatement: SQLiteStatement) -> Value? {
+    private static func statementColumnConvertible<Value: StatementColumnConvertible>(atUncheckedIndex index: Int, in sqliteStatement: SQLiteStatement) -> Value? {
         guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
             return nil
         }
         return Value.init(sqliteStatement: sqliteStatement, index: Int32(index))
     }
     
-    fileprivate static func statementColumnConvertible<Value: StatementColumnConvertible>(atUncheckedIndex index: Int, in sqliteStatement: SQLiteStatement) -> Value {
+    private static func statementColumnConvertible<Value: StatementColumnConvertible>(atUncheckedIndex index: Int, in sqliteStatement: SQLiteStatement) -> Value {
         guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
             // Programmer error
             fatalError("could not convert database value NULL to \(Value.self)")

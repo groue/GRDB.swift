@@ -237,7 +237,7 @@ extension RowConvertible where Self: TableMapping {
         return statement
     }
     
-    fileprivate static var defaultSelection: String {
+    private static var defaultSelection: String {
         if selectsRowID {
             return "*, rowid"
         } else {
