@@ -104,9 +104,9 @@ try dbQueue.inDatabase { db in
     while let row = try rows.next() {
         let title: String = row["title"]
         let isFavorite: Bool = row["favorite"]
-        let coordinate = CLLocationCoordinate2DMake(
-            row["latitude"],
-            row["longitude"])
+        let coordinate = CLLocationCoordinate2D(
+            latitude: row["latitude"],
+            longitude: row["longitude"])
     }
 
     let poiCount = try Int.fetchOne(db, "SELECT COUNT(*) FROM pointOfInterests")! // Int
@@ -137,7 +137,7 @@ try dbQueue.inDatabase { db in
         id: nil,
         title: "Berlin",
         isFavorite: false,
-        coordinate: CLLocationCoordinate2DMake(52.52437, 13.41053))
+        coordinate: CLLocationCoordinate2D(latitude: 52.52437, longitude: 13.41053))
     
     try berlin.insert(db)
     berlin.id // some value
@@ -1855,9 +1855,9 @@ extension PointOfInterest : RowConvertible {
     init(row: Row) {
         id = row["id"]
         title = row["title"]
-        coordinate = CLLocationCoordinate2DMake(
-            row["latitude"],
-            row["longitude"])
+        coordinate = CLLocationCoordinate2D(
+            latitude: row["latitude"],
+            longitude: row["longitude"])
     }
 }
 ```
@@ -1884,11 +1884,11 @@ RowConvertible types usually consume rows by column name:
 ```swift
 extension PointOfInterest : RowConvertible {
     init(row: Row) {
-        id = row["id"]              // "id"
-        title = row["title"]        // "title"
-        coordinate = CLLocationCoordinate2DMake(
-            row["latitude"],        // "latitude"
-            row["longitude"])       // "longitude"
+        id = row["id"]                   // "id"
+        title = row["title"]             // "title"
+        coordinate = CLLocationCoordinate2D(
+            latitude: row["latitude"],   // "latitude"
+            longitude: row["longitude"]) // "longitude"
     }
 }
 ```
@@ -2019,7 +2019,7 @@ extension PointOfInterest : MutablePersistable {
 var paris = PointOfInterest(
     id: nil,
     title: "Paris",
-    coordinate: CLLocationCoordinate2DMake(48.8534100, 2.3488000))
+    coordinate: CLLocationCoordinate2D(latitude: 48.8534100, longitude: 2.3488000))
 
 try paris.insert(db)
 paris.id   // some value
@@ -2220,9 +2220,9 @@ class PointOfInterest : Record {
     required init(row: Row) {
         id = row["id"]
         title = row["title"]
-        coordinate = CLLocationCoordinate2DMake(
-            row["latitude"],
-            row["longitude"])
+        coordinate = CLLocationCoordinate2D(
+            latitude: row["latitude"],
+            longitude: row["longitude"])
         super.init(row: row)
     }
     
