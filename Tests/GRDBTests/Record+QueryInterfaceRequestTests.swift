@@ -20,9 +20,9 @@ private class Reader : Record {
     }
     
     required init(row: Row){
-        self.id = row.value(named: "id")
-        self.name = row.value(named: "name")
-        self.age = row.value(named: "age")
+        self.id = row["id"]
+        self.name = row["name"]
+        self.age = row["age"]
         super.init(row: row)
     }
     

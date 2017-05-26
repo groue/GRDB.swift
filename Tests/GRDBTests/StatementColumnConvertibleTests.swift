@@ -27,19 +27,19 @@ class StatementColumnConvertibleTests : GRDBTestCase {
     }
     
     private func fetchValue<T: DatabaseValueConvertible & StatementColumnConvertible>(_ db: Database, _ columnName: String) throws -> T? {
-        return try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0)
+        return try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()![0]
     }
     
     private func fetchValue<T: DatabaseValueConvertible & StatementColumnConvertible>(_ db: Database, _ columnName: String) throws -> T {
-        return try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0)
+        return try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()![0]
     }
     
     private func fetchValue<T: DatabaseValueConvertible>(_ db: Database, _ columnName: String) throws -> T? {
-        return try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0)
+        return try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()![0]
     }
     
     private func fetchValue<T: DatabaseValueConvertible>(_ db: Database, _ columnName: String) throws -> T {
-        return try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0)
+        return try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()![0]
     }
     
     func testTextAffinity() throws {

@@ -82,7 +82,7 @@ extension DatabaseValueConvertible {
         // Reuse a single mutable row for performance
         let row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         return statement.cursor(arguments: arguments, next: {
-            let dbv: DatabaseValue = row.value(atIndex: 0)
+            let dbv: DatabaseValue = row[0]
             return dbv.losslessConvert(sql: statement.sql, arguments: arguments) as Self
         })
     }
@@ -120,7 +120,7 @@ extension DatabaseValueConvertible {
         // Reuse a single mutable row for performance
         let row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         let cursor: DatabaseCursor<Self?> = statement.cursor(arguments: arguments, next: {
-            let dbv: DatabaseValue = row.value(atIndex: 0)
+            let dbv: DatabaseValue = row[0]
             return dbv.losslessConvert(sql: statement.sql, arguments: arguments) as Self?
         })
         return try cursor.next() ?? nil
@@ -285,7 +285,7 @@ extension Optional where Wrapped: DatabaseValueConvertible {
         // Reuse a single mutable row for performance
         let row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         return statement.cursor(arguments: arguments, next: {
-            let dbv: DatabaseValue = row.value(atIndex: 0)
+            let dbv: DatabaseValue = row[0]
             return dbv.losslessConvert(sql: statement.sql, arguments: arguments) as Wrapped?
         })
     }

@@ -421,8 +421,8 @@ extension TypedRequest where Fetched: Row {
     ///     let request: ... // Some TypedRequest that fetches Row
     ///     let rows = try request.fetchCursor(db) // DatabaseCursor<Row>
     ///     while let row = try rows.next() {  // Row
-    ///         let id: Int64 = row.value(atIndex: 0)
-    ///         let name: String = row.value(atIndex: 1)
+    ///         let id: Int64 = row[0]
+    ///         let name: String = row[1]
     ///     }
     ///
     /// Fetched rows are reused during the cursor iteration: don't turn a row

@@ -38,10 +38,10 @@ private class Person : Record {
     }
     
     required init(row: Row) {
-        id = row.value(named: "id")
-        age = row.value(named: "age")
-        name = row.value(named: "name")
-        creationDate = row.value(named: "creationDate")
+        id = row["id"]
+        age = row["age"]
+        name = row["name"]
+        creationDate = row["creationDate"]
         super.init(row: row)
     }
     
@@ -79,7 +79,7 @@ private class IntegerPropertyOnRealAffinityColumn : Record {
     // Record
     
     required init(row: Row) {
-        value = row.value(named: "value")
+        value = row["value"]
         super.init(row: row)
     }
     
@@ -109,10 +109,10 @@ private class PersonWithModifiedCaseColumns: Record {
     }
     
     required init(row: Row) {
-        id = row.value(named: "ID")
-        age = row.value(named: "AGE")
-        name = row.value(named: "NAME")
-        creationDate = row.value(named: "CREATIONDATE")
+        id = row["ID"]
+        age = row["AGE"]
+        name = row["NAME"]
+        creationDate = row["CREATIONDATE"]
         super.init(row: row)
     }
     
@@ -189,7 +189,7 @@ class RecordEditedTests: GRDBTestCase {
             
             // Load a double...
             let row1 = try Row.fetchOne(db, "SELECT * FROM t")!
-            switch (row1.value(named: "value") as DatabaseValue).storage {
+            switch (row1["value"] as DatabaseValue).storage {
             case .double(let double):
                 XCTAssertEqual(double, 1.0)
             default:
@@ -199,7 +199,7 @@ class RecordEditedTests: GRDBTestCase {
             // Compare to an Int
             let record = try IntegerPropertyOnRealAffinityColumn.fetchOne(db, "SELECT * FROM t")!
             let row2 = Row(record.persistentDictionary)
-            switch (row2.value(named: "value") as DatabaseValue).storage {
+            switch (row2["value"] as DatabaseValue).storage {
             case .int64(let int64):
                 XCTAssertEqual(int64, 1)
             default:

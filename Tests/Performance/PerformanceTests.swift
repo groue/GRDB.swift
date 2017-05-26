@@ -51,16 +51,16 @@ class Item : Record {
     }
     
     required init(row: GRDB.Row) {
-        i0 = row.value(named: "i0")
-        i1 = row.value(named: "i1")
-        i2 = row.value(named: "i2")
-        i3 = row.value(named: "i3")
-        i4 = row.value(named: "i4")
-        i5 = row.value(named: "i5")
-        i6 = row.value(named: "i6")
-        i7 = row.value(named: "i7")
-        i8 = row.value(named: "i8")
-        i9 = row.value(named: "i9")
+        i0 = row["i0"]
+        i1 = row["i1"]
+        i2 = row["i2"]
+        i3 = row["i3"]
+        i4 = row["i4"]
+        i5 = row["i5"]
+        i6 = row["i6"]
+        i7 = row["i7"]
+        i8 = row["i8"]
+        i9 = row["i9"]
         super.init(row: row)
     }
     

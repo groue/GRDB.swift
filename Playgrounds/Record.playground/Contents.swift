@@ -60,9 +60,9 @@ class Person : Record {
 //: 2. How to build a Person from a database row:
     
     required init(row: Row) {
-        id = row.value(named: "id")
-        firstName = row.value(named: "firstName")
-        lastName = row.value(named: "lastName")
+        id = row["id"]
+        firstName = row["firstName"]
+        lastName = row["lastName"]
         super.init(row: row)
     }
     

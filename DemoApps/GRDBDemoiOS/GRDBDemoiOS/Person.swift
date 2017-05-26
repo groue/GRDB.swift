@@ -18,9 +18,9 @@ class Person: Record {
     }
     
     required init(row: Row) {
-        id = row.value(named: "id")
-        name = row.value(named: "name")
-        score = row.value(named: "score")
+        id = row["id"]
+        name = row["name"]
+        score = row["score"]
         super.init(row: row)
     }
     

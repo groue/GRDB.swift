@@ -94,10 +94,10 @@ class TableMappingQueryInterfaceRequestTests: GRDBTestCase {
             let rows = try Row.fetchAll(db, request)
             XCTAssertEqual(lastSQLQuery, "SELECT name, id - 1 FROM \"readers\"")
             XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0].value(atIndex: 0) as String, "Arthur")
-            XCTAssertEqual(rows[0].value(atIndex: 1) as Int64, 0)
-            XCTAssertEqual(rows[1].value(atIndex: 0) as String, "Barbara")
-            XCTAssertEqual(rows[1].value(atIndex: 1) as Int64, 1)
+            XCTAssertEqual(rows[0][0] as String, "Arthur")
+            XCTAssertEqual(rows[0][1] as Int64, 0)
+            XCTAssertEqual(rows[1][0] as String, "Barbara")
+            XCTAssertEqual(rows[1][1] as Int64, 1)
         }
     }
 
@@ -111,10 +111,10 @@ class TableMappingQueryInterfaceRequestTests: GRDBTestCase {
             let rows = try Row.fetchAll(db, request)
             XCTAssertEqual(lastSQLQuery, "SELECT name, id - 1 FROM \"readers\"")
             XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0].value(atIndex: 0) as String, "Arthur")
-            XCTAssertEqual(rows[0].value(atIndex: 1) as Int64, 0)
-            XCTAssertEqual(rows[1].value(atIndex: 0) as String, "Barbara")
-            XCTAssertEqual(rows[1].value(atIndex: 1) as Int64, 1)
+            XCTAssertEqual(rows[0][0] as String, "Arthur")
+            XCTAssertEqual(rows[0][1] as Int64, 0)
+            XCTAssertEqual(rows[1][0] as String, "Barbara")
+            XCTAssertEqual(rows[1][1] as Int64, 1)
         }
     }
 
@@ -128,10 +128,10 @@ class TableMappingQueryInterfaceRequestTests: GRDBTestCase {
             let rows = try Row.fetchAll(db, request)
             XCTAssertEqual(lastSQLQuery, "SELECT name, id - 1 FROM \"readers\"")
             XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0].value(atIndex: 0) as String, "Arthur")
-            XCTAssertEqual(rows[0].value(atIndex: 1) as Int64, 0)
-            XCTAssertEqual(rows[1].value(atIndex: 0) as String, "Barbara")
-            XCTAssertEqual(rows[1].value(atIndex: 1) as Int64, 1)
+            XCTAssertEqual(rows[0][0] as String, "Arthur")
+            XCTAssertEqual(rows[0][1] as Int64, 0)
+            XCTAssertEqual(rows[1][0] as String, "Barbara")
+            XCTAssertEqual(rows[1][1] as Int64, 1)
         }
     }
 
@@ -145,10 +145,10 @@ class TableMappingQueryInterfaceRequestTests: GRDBTestCase {
             let rows = try Row.fetchAll(db, request)
             XCTAssertEqual(lastSQLQuery, "SELECT \"name\", (\"id\" - 1) FROM \"readers\"")
             XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0].value(atIndex: 0) as String, "Arthur")
-            XCTAssertEqual(rows[0].value(atIndex: 1) as Int64, 0)
-            XCTAssertEqual(rows[1].value(atIndex: 0) as String, "Barbara")
-            XCTAssertEqual(rows[1].value(atIndex: 1) as Int64, 1)
+            XCTAssertEqual(rows[0][0] as String, "Arthur")
+            XCTAssertEqual(rows[0][1] as Int64, 0)
+            XCTAssertEqual(rows[1][0] as String, "Barbara")
+            XCTAssertEqual(rows[1][1] as Int64, 1)
         }
     }
 

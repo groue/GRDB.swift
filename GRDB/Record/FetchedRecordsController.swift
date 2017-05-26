@@ -691,7 +691,7 @@ fileprivate func computeChanges<Record>(from s: [Item<Record>], to t: [Item<Reco
             func changedValues(from oldRow: Row, to newRow: Row) -> [String: DatabaseValue] {
                 var changedValues: [String: DatabaseValue] = [:]
                 for (column, newValue) in newRow {
-                    let oldValue: DatabaseValue? = oldRow.value(named: column)
+                    let oldValue: DatabaseValue? = oldRow[column]
                     if newValue != oldValue {
                         changedValues[column] = oldValue
                     }

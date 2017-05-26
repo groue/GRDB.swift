@@ -37,9 +37,9 @@ private class Citizenship : Record {
     }
     
     required init(row: Row) {
-        personName = row.value(named: "personName")
-        countryName = row.value(named: "countryName")
-        native = row.value(named: "native")
+        personName = row["personName"]
+        countryName = row["countryName"]
+        native = row["native"]
         super.init(row: row)
     }
     
@@ -85,7 +85,7 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             
             let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
             for (key, value) in record.persistentDictionary {
-                if let dbv: DatabaseValue = row.value(named: key) {
+                if let dbv: DatabaseValue = row[key] {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
                 } else {
                     XCTFail("Missing column \(key) in fetched row")
@@ -118,7 +118,7 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             
             let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
             for (key, value) in record.persistentDictionary {
-                if let dbv: DatabaseValue = row.value(named: key) {
+                if let dbv: DatabaseValue = row[key] {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
                 } else {
                     XCTFail("Missing column \(key) in fetched row")
@@ -166,7 +166,7 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             
             let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
             for (key, value) in record.persistentDictionary {
-                if let dbv: DatabaseValue = row.value(named: key) {
+                if let dbv: DatabaseValue = row[key] {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
                 } else {
                     XCTFail("Missing column \(key) in fetched row")
@@ -215,7 +215,7 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             
             let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
             for (key, value) in record.persistentDictionary {
-                if let dbv: DatabaseValue = row.value(named: key) {
+                if let dbv: DatabaseValue = row[key] {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
                 } else {
                     XCTFail("Missing column \(key) in fetched row")
@@ -235,7 +235,7 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             
             let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
             for (key, value) in record.persistentDictionary {
-                if let dbv: DatabaseValue = row.value(named: key) {
+                if let dbv: DatabaseValue = row[key] {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
                 } else {
                     XCTFail("Missing column \(key) in fetched row")
@@ -254,7 +254,7 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             
             let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
             for (key, value) in record.persistentDictionary {
-                if let dbv: DatabaseValue = row.value(named: key) {
+                if let dbv: DatabaseValue = row[key] {
                     XCTAssertEqual(dbv, value?.databaseValue ?? .null)
                 } else {
                     XCTFail("Missing column \(key) in fetched row")

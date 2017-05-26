@@ -42,11 +42,11 @@ try dbQueue.inDatabase { db in
 try dbQueue.inDatabase { db in
     let rows = try Row.fetchCursor(db, "SELECT * FROM pointOfInterests")
     while let row = try rows.next() {
-        let title: String = row.value(named: "title")
-        let favorite: Bool = row.value(named: "favorite")
+        let title: String = row["title"]
+        let favorite: Bool = row["favorite"]
         let coordinate = CLLocationCoordinate2DMake(
-            row.value(named: "latitude"),
-            row.value(named: "longitude"))
+            row["latitude"],
+            row["longitude"])
         print("Fetched", title, favorite, coordinate)
     }
     
@@ -67,12 +67,12 @@ struct PointOfInterest {
 // Adopt RowConvertible
 extension PointOfInterest : RowConvertible {
     init(row: Row) {
-        id = row.value(named: "id")
-        title = row.value(named: "title")
-        favorite = row.value(named: "favorite")
+        id = row["id"]
+        title = row["title"]
+        favorite = row["favorite"]
         coordinate = CLLocationCoordinate2DMake(
-            row.value(named: "latitude"),
-            row.value(named: "longitude"))
+            row["latitude"],
+            row["longitude"])
     }
 }
 

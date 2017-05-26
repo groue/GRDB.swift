@@ -49,30 +49,30 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             var rows = try Row.fetchCursor(db, "SELECT NULL")
             while let row = try rows.next() {
-                let one: Fetched? = row.value(atIndex: 0)
+                let one: Fetched? = row[0]
                 XCTAssertTrue(one == nil)
             }
             rows = try Row.fetchCursor(db, "SELECT 1")
             while let row = try rows.next() {
-                let one: Fetched? = row.value(atIndex: 0)
+                let one: Fetched? = row[0]
                 XCTAssertEqual(one!.int, 1)
                 XCTAssertEqual(one!.fast, true)
             }
             rows = try Row.fetchCursor(db, "SELECT 1 AS int")
             while let row = try rows.next() {
-                let one: Fetched? = row.value(named: "int")
+                let one: Fetched? = row["int"]
                 XCTAssertEqual(one!.int, 1)
                 XCTAssertEqual(one!.fast, true)
             }
             rows = try Row.fetchCursor(db, "SELECT 1")
             while let row = try rows.next() {
-                let one: Fetched = row.value(atIndex: 0)
+                let one: Fetched = row[0]
                 XCTAssertEqual(one.int, 1)
                 XCTAssertEqual(one.fast, true)
             }
             rows = try Row.fetchCursor(db, "SELECT 1 AS int")
             while let row = try rows.next() {
-                let one: Fetched = row.value(named: "int")
+                let one: Fetched = row["int"]
                 XCTAssertEqual(one.int, 1)
                 XCTAssertEqual(one.fast, true)
             }

@@ -68,8 +68,8 @@ class RowFromStatementTests : RowTestCase {
                 
                 // Expect fatal error:
                 //
-                // row.value(atIndex: -1)
-                // row.value(atIndex: 3)
+                // row[-1]
+                // row[3]
             }
             XCTAssertTrue(rowFetched)
         }
@@ -157,11 +157,11 @@ class RowFromStatementTests : RowTestCase {
             let rows = try Row.fetchCursor(db, "SELECT NULL, 1, 1.1, 'foo', x'53514C697465'")
             while let row = try rows.next() {
                 rowFetched = true
-                guard case .null = (row.value(atIndex: 0) as DatabaseValue).storage else { XCTFail(); return }
-                guard case .int64(let int64) = (row.value(atIndex: 1) as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
-                guard case .double(let double) = (row.value(atIndex: 2) as DatabaseValue).storage, double == 1.1 else { XCTFail(); return }
-                guard case .string(let string) = (row.value(atIndex: 3) as DatabaseValue).storage, string == "foo" else { XCTFail(); return }
-                guard case .blob(let data) = (row.value(atIndex: 4) as DatabaseValue).storage, data == "SQLite".data(using: .utf8) else { XCTFail(); return }
+                guard case .null = (row[0] as DatabaseValue).storage else { XCTFail(); return }
+                guard case .int64(let int64) = (row[1] as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
+                guard case .double(let double) = (row[2] as DatabaseValue).storage, double == 1.1 else { XCTFail(); return }
+                guard case .string(let string) = (row[3] as DatabaseValue).storage, string == "foo" else { XCTFail(); return }
+                guard case .blob(let data) = (row[4] as DatabaseValue).storage, data == "SQLite".data(using: .utf8) else { XCTFail(); return }
             }
             XCTAssertTrue(rowFetched)
         }
@@ -174,11 +174,11 @@ class RowFromStatementTests : RowTestCase {
             let rows = try Row.fetchCursor(db, "SELECT NULL AS \"null\", 1 AS \"int64\", 1.1 AS \"double\", 'foo' AS \"string\", x'53514C697465' AS \"blob\"")
             while let row = try rows.next() {
                 rowFetched = true
-                guard case .null = (row.value(named: "null") as DatabaseValue).storage else { XCTFail(); return }
-                guard case .int64(let int64) = (row.value(named: "int64") as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
-                guard case .double(let double) = (row.value(named: "double") as DatabaseValue).storage, double == 1.1 else { XCTFail(); return }
-                guard case .string(let string) = (row.value(named: "string") as DatabaseValue).storage, string == "foo" else { XCTFail(); return }
-                guard case .blob(let data) = (row.value(named: "blob") as DatabaseValue).storage, data == "SQLite".data(using: .utf8) else { XCTFail(); return }
+                guard case .null = (row["null"] as DatabaseValue).storage else { XCTFail(); return }
+                guard case .int64(let int64) = (row["int64"] as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
+                guard case .double(let double) = (row["double"] as DatabaseValue).storage, double == 1.1 else { XCTFail(); return }
+                guard case .string(let string) = (row["string"] as DatabaseValue).storage, string == "foo" else { XCTFail(); return }
+                guard case .blob(let data) = (row["blob"] as DatabaseValue).storage, data == "SQLite".data(using: .utf8) else { XCTFail(); return }
             }
             XCTAssertTrue(rowFetched)
         }
@@ -236,12 +236,12 @@ class RowFromStatementTests : RowTestCase {
             let rows = try Row.fetchCursor(db, "SELECT 'foo' AS nAmE")
             while let row = try rows.next() {
                 rowFetched = true
-                XCTAssertEqual(row.value(named: "name") as DatabaseValue, "foo".databaseValue)
-                XCTAssertEqual(row.value(named: "NAME") as DatabaseValue, "foo".databaseValue)
-                XCTAssertEqual(row.value(named: "NaMe") as DatabaseValue, "foo".databaseValue)
-                XCTAssertEqual(row.value(named: "name") as String, "foo")
-                XCTAssertEqual(row.value(named: "NAME") as String, "foo")
-                XCTAssertEqual(row.value(named: "NaMe") as String, "foo")
+                XCTAssertEqual(row["name"] as DatabaseValue, "foo".databaseValue)
+                XCTAssertEqual(row["NAME"] as DatabaseValue, "foo".databaseValue)
+                XCTAssertEqual(row["NaMe"] as DatabaseValue, "foo".databaseValue)
+                XCTAssertEqual(row["name"] as String, "foo")
+                XCTAssertEqual(row["NAME"] as String, "foo")
+                XCTAssertEqual(row["NaMe"] as String, "foo")
             }
             XCTAssertTrue(rowFetched)
         }
@@ -254,12 +254,12 @@ class RowFromStatementTests : RowTestCase {
             let rows = try Row.fetchCursor(db, "SELECT 1 AS name, 2 AS NAME")
             while let row = try rows.next() {
                 rowFetched = true
-                XCTAssertEqual(row.value(named: "name") as DatabaseValue, 1.databaseValue)
-                XCTAssertEqual(row.value(named: "NAME") as DatabaseValue, 1.databaseValue)
-                XCTAssertEqual(row.value(named: "NaMe") as DatabaseValue, 1.databaseValue)
-                XCTAssertEqual(row.value(named: "name") as Int, 1)
-                XCTAssertEqual(row.value(named: "NAME") as Int, 1)
-                XCTAssertEqual(row.value(named: "NaMe") as Int, 1)
+                XCTAssertEqual(row["name"] as DatabaseValue, 1.databaseValue)
+                XCTAssertEqual(row["NAME"] as DatabaseValue, 1.databaseValue)
+                XCTAssertEqual(row["NaMe"] as DatabaseValue, 1.databaseValue)
+                XCTAssertEqual(row["name"] as Int, 1)
+                XCTAssertEqual(row["NAME"] as Int, 1)
+                XCTAssertEqual(row["NaMe"] as Int, 1)
             }
             XCTAssertTrue(rowFetched)
         }
@@ -273,8 +273,8 @@ class RowFromStatementTests : RowTestCase {
             while let row = try rows.next() {
                 rowFetched = true
                 XCTAssertFalse(row.hasColumn("missing"))
-                XCTAssertTrue(row.value(named: "missing") as DatabaseValue? == nil)
-                XCTAssertTrue(row.value(named: "missing") == nil)
+                XCTAssertTrue(row["missing"] as DatabaseValue? == nil)
+                XCTAssertTrue(row["missing"] == nil)
             }
             XCTAssertTrue(rowFetched)
         }
@@ -323,9 +323,9 @@ class RowFromStatementTests : RowTestCase {
                 rowFetched = true
                 let copiedRow = row.copy()
                 XCTAssertEqual(copiedRow.count, 3)
-                XCTAssertEqual(copiedRow.value(named: "a") as Int, 0)
-                XCTAssertEqual(copiedRow.value(named: "b") as Int, 1)
-                XCTAssertEqual(copiedRow.value(named: "c") as Int, 2)
+                XCTAssertEqual(copiedRow["a"] as Int, 0)
+                XCTAssertEqual(copiedRow["b"] as Int, 1)
+                XCTAssertEqual(copiedRow["c"] as Int, 2)
             }
             XCTAssertTrue(rowFetched)
         }
@@ -351,7 +351,7 @@ class RowFromStatementTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let cursor = try Row.fetchCursor(db, "SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3")
-            let values = cursor.map { $0.value(atIndex: 0) as Int }
+            let values = cursor.map { $0[0] as Int }
             XCTAssertEqual(try values.next()!, 1)
             XCTAssertEqual(try values.next()!, 2)
             XCTAssertEqual(try values.next()!, 3)

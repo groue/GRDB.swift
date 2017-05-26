@@ -32,8 +32,8 @@ class BadlyMangledStuff : Record {
     required init(row: Row) {
         // Here user may peek fancy column names that match his SQL queries.
         // However this is not the way to do it (see testBadlyMangledStuff()).
-        id = row.value(named: "mangled_id")
-        name = row.value(named: "mangled_name")
+        id = row["mangled_id"]
+        name = row["mangled_name"]
         super.init(row: row)
     }
     

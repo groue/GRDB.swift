@@ -14,8 +14,8 @@ private struct Fetched {
 
 extension Fetched : RowConvertible {
     init(row: Row) {
-        firstName = row.value(named: "firstName")
-        lastName = row.value(named: "lastName")
+        firstName = row["firstName"]
+        lastName = row["lastName"]
     }
 }
 

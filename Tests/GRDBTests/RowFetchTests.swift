@@ -14,11 +14,11 @@ class RowFetchTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             func test(_ cursor: DatabaseCursor<Row>) throws {
                 var row = try cursor.next()!
-                XCTAssertEqual(row.value(named: "firstName") as String, "Arthur")
-                XCTAssertEqual(row.value(named: "lastName") as String, "Martin")
+                XCTAssertEqual(row["firstName"] as String, "Arthur")
+                XCTAssertEqual(row["lastName"] as String, "Martin")
                 row = try cursor.next()!
-                XCTAssertEqual(row.value(named: "firstName") as String, "Barbara")
-                XCTAssertEqual(row.value(named: "lastName") as String, "Gourde")
+                XCTAssertEqual(row["firstName"] as String, "Barbara")
+                XCTAssertEqual(row["lastName"] as String, "Gourde")
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
             do {
@@ -120,8 +120,8 @@ class RowFetchTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             func test(_ array: [Row]) {
-                XCTAssertEqual(array.map { $0.value(named: "firstName") as String }, ["Arthur", "Barbara"])
-                XCTAssertEqual(array.map { $0.value(named: "lastName") as String }, ["Martin", "Gourde"])
+                XCTAssertEqual(array.map { $0["firstName"] as String }, ["Arthur", "Barbara"])
+                XCTAssertEqual(array.map { $0["lastName"] as String }, ["Martin", "Gourde"])
             }
             do {
                 let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 'Barbara', 'Gourde'"
@@ -236,8 +236,8 @@ class RowFetchTests: GRDBTestCase {
             }
             do {
                 func test(_ row: Row?) {
-                    XCTAssertEqual(row!.value(named: "firstName") as String, "Arthur")
-                    XCTAssertEqual(row!.value(named: "lastName") as String, "Martin")
+                    XCTAssertEqual(row!["firstName"] as String, "Arthur")
+                    XCTAssertEqual(row!["lastName"] as String, "Martin")
                 }
                 do {
                     let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName"

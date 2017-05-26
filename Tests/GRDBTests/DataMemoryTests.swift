@@ -27,7 +27,7 @@ class DataMemoryTests: GRDBTestCase {
                 
                 do {
                     // This data should be copied:
-                    let copiedData: Data = row.value(atIndex: 0)
+                    let copiedData: Data = row[0]
                     copiedData.withUnsafeBytes { copiedBytes in
                         XCTAssertNotEqual(copiedBytes, sqliteBytes)
                     }
@@ -51,7 +51,7 @@ class DataMemoryTests: GRDBTestCase {
                 data.withUnsafeBytes { (dataBytes: UnsafePointer<UInt8>) -> Void in
                     do {
                         // This data should not be copied:
-                        let nonCopiedData: Data = row.value(atIndex: 0)
+                        let nonCopiedData: Data = row[0]
                         nonCopiedData.withUnsafeBytes { nonCopiedBytes in
                             XCTAssertEqual(nonCopiedBytes, dataBytes)
                         }

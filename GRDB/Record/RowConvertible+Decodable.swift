@@ -36,20 +36,20 @@ struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtocol
     /// - throws: `DecodingError.typeMismatch` if the encountered encoded value is not convertible to the requested type.
     /// - throws: `DecodingError.keyNotFound` if `self` does not have an entry for the given key.
     /// - throws: `DecodingError.valueNotFound` if `self` has a null entry for the given key.
-    func decode(_ type: Bool.Type,   forKey key: Key) throws -> Bool   { return row.value(named: key.stringValue) }
-    func decode(_ type: Int.Type,    forKey key: Key) throws -> Int    { return row.value(named: key.stringValue) }
-    func decode(_ type: Int8.Type,   forKey key: Key) throws -> Int8   { return row.value(named: key.stringValue) }
-    func decode(_ type: Int16.Type,  forKey key: Key) throws -> Int16  { return row.value(named: key.stringValue) }
-    func decode(_ type: Int32.Type,  forKey key: Key) throws -> Int32  { return row.value(named: key.stringValue) }
-    func decode(_ type: Int64.Type,  forKey key: Key) throws -> Int64  { return row.value(named: key.stringValue) }
-    func decode(_ type: UInt.Type,   forKey key: Key) throws -> UInt   { return row.value(named: key.stringValue) }
-    func decode(_ type: UInt8.Type,  forKey key: Key) throws -> UInt8  { return row.value(named: key.stringValue) }
-    func decode(_ type: UInt16.Type, forKey key: Key) throws -> UInt16 { return row.value(named: key.stringValue) }
-    func decode(_ type: UInt32.Type, forKey key: Key) throws -> UInt32 { return row.value(named: key.stringValue) }
-    func decode(_ type: UInt64.Type, forKey key: Key) throws -> UInt64 { return row.value(named: key.stringValue) }
-    func decode(_ type: Float.Type,  forKey key: Key) throws -> Float  { return row.value(named: key.stringValue) }
-    func decode(_ type: Double.Type, forKey key: Key) throws -> Double { return row.value(named: key.stringValue) }
-    func decode(_ type: String.Type, forKey key: Key) throws -> String { return row.value(named: key.stringValue) }
+    func decode(_ type: Bool.Type,   forKey key: Key) throws -> Bool   { return row[key.stringValue] }
+    func decode(_ type: Int.Type,    forKey key: Key) throws -> Int    { return row[key.stringValue] }
+    func decode(_ type: Int8.Type,   forKey key: Key) throws -> Int8   { return row[key.stringValue] }
+    func decode(_ type: Int16.Type,  forKey key: Key) throws -> Int16  { return row[key.stringValue] }
+    func decode(_ type: Int32.Type,  forKey key: Key) throws -> Int32  { return row[key.stringValue] }
+    func decode(_ type: Int64.Type,  forKey key: Key) throws -> Int64  { return row[key.stringValue] }
+    func decode(_ type: UInt.Type,   forKey key: Key) throws -> UInt   { return row[key.stringValue] }
+    func decode(_ type: UInt8.Type,  forKey key: Key) throws -> UInt8  { return row[key.stringValue] }
+    func decode(_ type: UInt16.Type, forKey key: Key) throws -> UInt16 { return row[key.stringValue] }
+    func decode(_ type: UInt32.Type, forKey key: Key) throws -> UInt32 { return row[key.stringValue] }
+    func decode(_ type: UInt64.Type, forKey key: Key) throws -> UInt64 { return row[key.stringValue] }
+    func decode(_ type: Float.Type,  forKey key: Key) throws -> Float  { return row[key.stringValue] }
+    func decode(_ type: Double.Type, forKey key: Key) throws -> Double { return row[key.stringValue] }
+    func decode(_ type: String.Type, forKey key: Key) throws -> String { return row[key.stringValue] }
     
     /// Decodes a value of the given type for the given key.
     ///
@@ -77,20 +77,20 @@ struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtocol
     /// - parameter key: The key that the decoded value is associated with.
     /// - returns: A decoded value of the requested type, or `nil` if the `Decoder` does not have an entry associated with the given key, or if the value is a null value.
     /// - throws: `DecodingError.typeMismatch` if the encountered encoded value is not convertible to the requested type.
-    func decodeIfPresent(_ type: Bool.Type,   forKey key: Key) throws -> Bool?   { return row.value(named: key.stringValue) }
-    func decodeIfPresent(_ type: Int.Type,    forKey key: Key) throws -> Int?    { return row.value(named: key.stringValue) }
-    func decodeIfPresent(_ type: Int8.Type,   forKey key: Key) throws -> Int8?   { return row.value(named: key.stringValue) }
-    func decodeIfPresent(_ type: Int16.Type,  forKey key: Key) throws -> Int16?  { return row.value(named: key.stringValue) }
-    func decodeIfPresent(_ type: Int32.Type,  forKey key: Key) throws -> Int32?  { return row.value(named: key.stringValue) }
-    func decodeIfPresent(_ type: Int64.Type,  forKey key: Key) throws -> Int64?  { return row.value(named: key.stringValue) }
-    func decodeIfPresent(_ type: UInt.Type,   forKey key: Key) throws -> UInt?   { return row.value(named: key.stringValue) }
-    func decodeIfPresent(_ type: UInt8.Type,  forKey key: Key) throws -> UInt8?  { return row.value(named: key.stringValue) }
-    func decodeIfPresent(_ type: UInt16.Type, forKey key: Key) throws -> UInt16? { return row.value(named: key.stringValue) }
-    func decodeIfPresent(_ type: UInt32.Type, forKey key: Key) throws -> UInt32? { return row.value(named: key.stringValue) }
-    func decodeIfPresent(_ type: UInt64.Type, forKey key: Key) throws -> UInt64? { return row.value(named: key.stringValue) }
-    func decodeIfPresent(_ type: Float.Type,  forKey key: Key) throws -> Float?  { return row.value(named: key.stringValue) }
-    func decodeIfPresent(_ type: Double.Type, forKey key: Key) throws -> Double? { return row.value(named: key.stringValue) }
-    func decodeIfPresent(_ type: String.Type, forKey key: Key) throws -> String? { return row.value(named: key.stringValue) }
+    func decodeIfPresent(_ type: Bool.Type,   forKey key: Key) throws -> Bool?   { return row[key.stringValue] }
+    func decodeIfPresent(_ type: Int.Type,    forKey key: Key) throws -> Int?    { return row[key.stringValue] }
+    func decodeIfPresent(_ type: Int8.Type,   forKey key: Key) throws -> Int8?   { return row[key.stringValue] }
+    func decodeIfPresent(_ type: Int16.Type,  forKey key: Key) throws -> Int16?  { return row[key.stringValue] }
+    func decodeIfPresent(_ type: Int32.Type,  forKey key: Key) throws -> Int32?  { return row[key.stringValue] }
+    func decodeIfPresent(_ type: Int64.Type,  forKey key: Key) throws -> Int64?  { return row[key.stringValue] }
+    func decodeIfPresent(_ type: UInt.Type,   forKey key: Key) throws -> UInt?   { return row[key.stringValue] }
+    func decodeIfPresent(_ type: UInt8.Type,  forKey key: Key) throws -> UInt8?  { return row[key.stringValue] }
+    func decodeIfPresent(_ type: UInt16.Type, forKey key: Key) throws -> UInt16? { return row[key.stringValue] }
+    func decodeIfPresent(_ type: UInt32.Type, forKey key: Key) throws -> UInt32? { return row[key.stringValue] }
+    func decodeIfPresent(_ type: UInt64.Type, forKey key: Key) throws -> UInt64? { return row[key.stringValue] }
+    func decodeIfPresent(_ type: Float.Type,  forKey key: Key) throws -> Float?  { return row[key.stringValue] }
+    func decodeIfPresent(_ type: Double.Type, forKey key: Key) throws -> Double? { return row[key.stringValue] }
+    func decodeIfPresent(_ type: String.Type, forKey key: Key) throws -> String? { return row[key.stringValue] }
     
     /// Decodes a value of the given type for the given key, if present.
     ///

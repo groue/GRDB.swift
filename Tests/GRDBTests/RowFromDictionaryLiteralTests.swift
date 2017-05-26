@@ -42,7 +42,7 @@ class RowFromDictionaryLiteralTests : RowTestCase {
         // Paramount for tests
         let row: Row = ["a": 0, "a": 1]
         XCTAssertEqual(Array(row.columnNames), ["a", "a"])
-        XCTAssertEqual(row.value(named: "a") as Int, 0)
+        XCTAssertEqual(row["a"] as Int, 0)
     }
     
     func testRowValueAtIndex() {
@@ -69,8 +69,8 @@ class RowFromDictionaryLiteralTests : RowTestCase {
         
         // Expect fatal error:
         //
-        // row.value(atIndex: -1)
-        // row.value(atIndex: 3)
+        // row[-1]
+        // row[3]
     }
     
     func testRowValueNamed() {
@@ -129,21 +129,21 @@ class RowFromDictionaryLiteralTests : RowTestCase {
         let stringIndex = row.distance(from: row.startIndex, to: row.index(where: { $0.column == "string" })!)
         let blobIndex = row.distance(from: row.startIndex, to: row.index(where: { $0.column == "blob" })!)
         
-        guard case .null = (row.value(atIndex: nullIndex) as DatabaseValue).storage else { XCTFail(); return }
-        guard case .int64(let int64) = (row.value(atIndex: int64Index) as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
-        guard case .double(let double) = (row.value(atIndex: doubleIndex) as DatabaseValue).storage, double == 1.1 else { XCTFail(); return }
-        guard case .string(let string) = (row.value(atIndex: stringIndex) as DatabaseValue).storage, string == "foo" else { XCTFail(); return }
-        guard case .blob(let data) = (row.value(atIndex: blobIndex) as DatabaseValue).storage, data == "SQLite".data(using: .utf8) else { XCTFail(); return }
+        guard case .null = (row[nullIndex] as DatabaseValue).storage else { XCTFail(); return }
+        guard case .int64(let int64) = (row[int64Index] as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
+        guard case .double(let double) = (row[doubleIndex] as DatabaseValue).storage, double == 1.1 else { XCTFail(); return }
+        guard case .string(let string) = (row[stringIndex] as DatabaseValue).storage, string == "foo" else { XCTFail(); return }
+        guard case .blob(let data) = (row[blobIndex] as DatabaseValue).storage, data == "SQLite".data(using: .utf8) else { XCTFail(); return }
     }
     
     func testRowDatabaseValueNamed() throws {
         let row: Row = ["null": nil, "int64": 1, "double": 1.1, "string": "foo", "blob": "SQLite".data(using: .utf8)]
         
-        guard case .null = (row.value(named: "null") as DatabaseValue).storage else { XCTFail(); return }
-        guard case .int64(let int64) = (row.value(named: "int64") as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
-        guard case .double(let double) = (row.value(named: "double") as DatabaseValue).storage, double == 1.1 else { XCTFail(); return }
-        guard case .string(let string) = (row.value(named: "string") as DatabaseValue).storage, string == "foo" else { XCTFail(); return }
-        guard case .blob(let data) = (row.value(named: "blob") as DatabaseValue).storage, data == "SQLite".data(using: .utf8) else { XCTFail(); return }
+        guard case .null = (row["null"] as DatabaseValue).storage else { XCTFail(); return }
+        guard case .int64(let int64) = (row["int64"] as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
+        guard case .double(let double) = (row["double"] as DatabaseValue).storage, double == 1.1 else { XCTFail(); return }
+        guard case .string(let string) = (row["string"] as DatabaseValue).storage, string == "foo" else { XCTFail(); return }
+        guard case .blob(let data) = (row["blob"] as DatabaseValue).storage, data == "SQLite".data(using: .utf8) else { XCTFail(); return }
     }
     
     func testRowCount() {
@@ -163,19 +163,19 @@ class RowFromDictionaryLiteralTests : RowTestCase {
     
     func testRowIsCaseInsensitive() {
         let row: Row = ["name": "foo"]
-        XCTAssertEqual(row.value(named: "name") as DatabaseValue, "foo".databaseValue)
-        XCTAssertEqual(row.value(named: "NAME") as DatabaseValue, "foo".databaseValue)
-        XCTAssertEqual(row.value(named: "NaMe") as DatabaseValue, "foo".databaseValue)
-        XCTAssertEqual(row.value(named: "name") as String, "foo")
-        XCTAssertEqual(row.value(named: "NAME") as String, "foo")
-        XCTAssertEqual(row.value(named: "NaMe") as String, "foo")
+        XCTAssertEqual(row["name"] as DatabaseValue, "foo".databaseValue)
+        XCTAssertEqual(row["NAME"] as DatabaseValue, "foo".databaseValue)
+        XCTAssertEqual(row["NaMe"] as DatabaseValue, "foo".databaseValue)
+        XCTAssertEqual(row["name"] as String, "foo")
+        XCTAssertEqual(row["NAME"] as String, "foo")
+        XCTAssertEqual(row["NaMe"] as String, "foo")
     }
     
     func testMissingColumn() {
         let row: Row = ["name": "foo"]
         XCTAssertFalse(row.hasColumn("missing"))
-        XCTAssertTrue(row.value(named: "missing") as DatabaseValue? == nil)
-        XCTAssertTrue(row.value(named: "missing") == nil)
+        XCTAssertTrue(row["missing"] as DatabaseValue? == nil)
+        XCTAssertTrue(row["missing"] == nil)
     }
     
     func testRowHasColumnIsCaseInsensitive() {
@@ -199,9 +199,9 @@ class RowFromDictionaryLiteralTests : RowTestCase {
         
         let copiedRow = row.copy()
         XCTAssertEqual(copiedRow.count, 3)
-        XCTAssertEqual(copiedRow.value(named: "a") as Int, 0)
-        XCTAssertEqual(copiedRow.value(named: "b") as Int, 1)
-        XCTAssertEqual(copiedRow.value(named: "c") as Int, 2)
+        XCTAssertEqual(copiedRow["a"] as Int, 0)
+        XCTAssertEqual(copiedRow["b"] as Int, 1)
+        XCTAssertEqual(copiedRow["c"] as Int, 2)
     }
     
     func testEqualityWithCopy() {

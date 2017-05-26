@@ -35,8 +35,8 @@ private class Item : Record {
     }
     
     required init(row: Row) {
-        name = row.value(named: "name")
-        email = row.value(named: "email")
+        name = row["name"]
+        email = row["email"]
         super.init(row: row)
     }
     

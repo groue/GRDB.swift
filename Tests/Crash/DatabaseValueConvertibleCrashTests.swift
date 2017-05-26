@@ -81,14 +81,14 @@ class DatabaseValueConvertibleCrashTests: GRDBCrashTestCase {
     func testCrashDatabaseValueConvertibleInvalidConversionFromNULL() {
         assertCrash("could not convert NULL to IntConvertible.") {
             let row = Row(["int": nil])
-            _ = row.value(named: "int") as IntConvertible
+            _ = row["int"] as IntConvertible
         }
     }
     
     func testCrashDatabaseValueConvertibleInvalidConversionFromInvalidType() {
         assertCrash("could not convert \"foo\" to IntConvertible") {
             let row = Row(["int": "foo"])
-            _ = row.value(named: "int") as IntConvertible
+            _ = row["int"] as IntConvertible
         }
     }
     

@@ -1260,10 +1260,10 @@ extension Database {
         }
         
         let indexes = try Row.fetchAll(self, "PRAGMA index_list(\(tableName.quotedDatabaseIdentifier))").map { row -> IndexInfo in
-            let indexName: String = row.value(atIndex: 1)
-            let unique: Bool = row.value(atIndex: 2)
+            let indexName: String = row[1]
+            let unique: Bool = row[2]
             let columns = try Row.fetchAll(self, "PRAGMA index_info(\(indexName.quotedDatabaseIdentifier))")
-                .map { ($0.value(atIndex: 0) as Int, $0.value(atIndex: 2) as String) }
+                .map { ($0[0] as Int, $0[2] as String) }
                 .sorted { $0.0 < $1.0 }
                 .map { $0.1 }
             return IndexInfo(name: indexName, columns: columns, unique: unique)
@@ -1324,11 +1324,11 @@ struct ColumnInfo : RowConvertible {
     let primaryKeyIndex: Int
     
     init(row: Row) {
-        name = row.value(named: "name")
-        type = row.value(named: "type")
-        notNull = row.value(named: "notnull")
-        defaultDatabaseValue = row.value(named: "dflt_value")
-        primaryKeyIndex = row.value(named: "pk")
+        name = row["name"]
+        type = row["type"]
+        notNull = row["notnull"]
+        defaultDatabaseValue = row["dflt_value"]
+        primaryKeyIndex = row["pk"]
     }
 }
 

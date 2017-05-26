@@ -17,6 +17,9 @@
          location = "group:TransactionObserver.playground">
       </FileRef>
       <FileRef
+         location = "group:Codable.playground">
+      </FileRef>
+      <FileRef
          location = "group:MyPlayground.playground">
       </FileRef>
    </Group>

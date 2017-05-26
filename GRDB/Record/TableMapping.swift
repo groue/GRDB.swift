@@ -225,9 +225,9 @@ extension TableMapping {
     static func rowPrimaryKey(_ db: Database) throws -> (Row) -> [String: DatabaseValue] {
         if let primaryKey = try db.primaryKey(databaseTableName) {
             let columns = primaryKey.columns
-            return { row in Dictionary(uniqueKeysWithValues: columns.lazy.map { ($0, row.value(named: $0)) }) }
+            return { row in Dictionary(uniqueKeysWithValues: columns.lazy.map { ($0, row[$0]) }) }
         } else if selectsRowID {
-            return { row in [Column.rowID.name: row.value(Column.rowID)] }
+            return { row in [Column.rowID.name: row[Column.rowID]] }
         } else {
             return { _ in [:] }
         }
