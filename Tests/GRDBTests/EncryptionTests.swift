@@ -332,44 +332,49 @@ class EncryptionTests: GRDBTestCase {
             }
         }
     }
-
-    // TODO: restore this test once https://github.com/sqlcipher/sqlcipher/issues/216 is fixed
-//    func testExportPlainTextDatabaseToEncryptedDatabase() throws {
-//        // See https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/868?source_topic_id=939
-//        do {
-//            dbConfiguration.passphrase = nil
-//            let plainTextDBQueue = try makeDatabaseQueue(filename: "plaintext.sqlite")
-//            try plainTextDBQueue.inDatabase { db in
-//                try db.execute("CREATE TABLE data (value INTEGER)")
-//                try db.execute("INSERT INTO data (value) VALUES (1)")
-//            }
-//            
-//            dbConfiguration.passphrase = "secret"
-//            do {
-//                _ = try makeDatabaseQueue(filename: "plaintext.sqlite")
-//            } catch let error as DatabaseError {
-//                XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
-//                XCTAssertEqual(error.message!, "file is encrypted or is not a database")
-//                XCTAssertTrue(error.sql == nil)
-//                XCTAssertEqual(error.description, "SQLite error 26: file is encrypted or is not a database")
-//            }
-//            
-//            let encryptedDBQueue = try makeDatabaseQueue(filename: "encrypted.sqlite")
-//            
-//            try plainTextDBQueue.inDatabase { db in
-//                try db.execute("ATTACH DATABASE ? AS encrypted KEY ?", arguments: [encryptedDBQueue.path, "secret"])
-//                try db.execute("SELECT sqlcipher_export('encrypted')")
-//                try db.execute("DETACH DATABASE encrypted")
-//            }
-//        }
-//        
-//        do {
-//            dbConfiguration.passphrase = "secret"
-//            let dbQueue = try makeDatabaseQueue(filename: "encrypted.sqlite")
-//            try dbQueue.inDatabase { db in
-//                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 1)
-//            }
-//        }
-//    }
+    
+    func testExportPlainTextDatabaseToEncryptedDatabase() throws {
+        // See https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/868?source_topic_id=939
+        do {
+            // https://github.com/sqlcipher/sqlcipher/issues/216
+            // SQLCipher 3.4.1 crashes when sqlcipher_export() is called and a
+            // trace hook has been installed. So we disable query tracing for
+            // this test.
+            dbConfiguration.trace = nil
+            
+            dbConfiguration.passphrase = nil
+            let plainTextDBQueue = try makeDatabaseQueue(filename: "plaintext.sqlite")
+            try plainTextDBQueue.inDatabase { db in
+                try db.execute("CREATE TABLE data (value INTEGER)")
+                try db.execute("INSERT INTO data (value) VALUES (1)")
+            }
+            
+            dbConfiguration.passphrase = "secret"
+            do {
+                _ = try makeDatabaseQueue(filename: "plaintext.sqlite")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
+                XCTAssertEqual(error.message!, "file is encrypted or is not a database")
+                XCTAssertTrue(error.sql == nil)
+                XCTAssertEqual(error.description, "SQLite error 26: file is encrypted or is not a database")
+            }
+            
+            let encryptedDBQueue = try makeDatabaseQueue(filename: "encrypted.sqlite")
+            
+            try plainTextDBQueue.inDatabase { db in
+                try db.execute("ATTACH DATABASE ? AS encrypted KEY ?", arguments: [encryptedDBQueue.path, "secret"])
+                try db.execute("SELECT sqlcipher_export('encrypted')")
+                try db.execute("DETACH DATABASE encrypted")
+            }
+        }
+        
+        do {
+            dbConfiguration.passphrase = "secret"
+            let dbQueue = try makeDatabaseQueue(filename: "encrypted.sqlite")
+            try dbQueue.inDatabase { db in
+                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 1)
+            }
+        }
+    }
 }
 #endif
