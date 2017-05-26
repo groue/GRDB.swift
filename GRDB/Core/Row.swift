@@ -16,7 +16,7 @@ public final class Row {
     
     /// Creates a row from a dictionary of values.
     public convenience init(_ dictionary: [String: DatabaseValueConvertible?]) {
-        self.init(impl: ArrayRowImpl(columns: dictionary.map { ($0, $1?.databaseValue ?? .null) }))
+        self.init(impl: ArrayRowImpl(columns: dictionary.map { ($0.key, $0.value?.databaseValue ?? .null) }))
     }
     
     /// Creates a row from [AnyHashable: Any].
@@ -706,13 +706,13 @@ extension Row : ExpressibleByDictionaryLiteral {
     ///     print(row)
     ///     // Prints <Row foo:1 foo:"bar" baz:NULL>
     public convenience init(dictionaryLiteral elements: (String, DatabaseValueConvertible?)...) {
-        self.init(impl: ArrayRowImpl(columns: elements.map { ($0, $1?.databaseValue ?? .null) }))
+        self.init(impl: ArrayRowImpl(columns: elements.map { ($0.0, $0.1?.databaseValue ?? .null) }))
     }
 }
 
 extension Row : Collection {
     
-    // MARK: - Row as a Collection of (ColumnName, DatabaseValue) Pairs
+    // MARK: - Row as a Collection of (column: String, value: DatabaseValue) Pairs
     
     /// The number of columns in the row.
     public var count: Int {
@@ -731,12 +731,12 @@ extension Row : Collection {
     }
     
     /// Accesses the (ColumnName, DatabaseValue) pair at given index.
-    public subscript(position: RowIndex) -> (String, DatabaseValue) {
+    public subscript(position: RowIndex) -> (column: String, value: DatabaseValue) {
         let index = position.index
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
         return (
-            impl.columnName(atUncheckedIndex: index),
-            impl.databaseValue(atUncheckedIndex: index))
+            column: impl.columnName(atUncheckedIndex: index),
+            value: impl.databaseValue(atUncheckedIndex: index))
     }
     
     /// Returns the position immediately after `i`.
@@ -810,9 +810,7 @@ extension Row: CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
         return "<Row"
-            + map { (column, dbv) in
-                " \(column):\(dbv)"
-                }.joined(separator: "")
+            + map { " \($0.column):\($0.value)" }.joined(separator: "")
             + ">"
     }
 }
@@ -889,7 +887,7 @@ private struct ArrayRowImpl : RowImpl {
     // leftmost column that matches *name*.
     func index(ofColumn name: String) -> Int? {
         let lowercaseName = name.lowercased()
-        return columns.index { (column, _) in column.lowercased() == lowercaseName }
+        return columns.index { $0.0.lowercased() == lowercaseName }
     }
     
     func scoped(on name: String) -> Row? {
@@ -969,7 +967,7 @@ private struct StatementRowImpl : RowImpl {
         self.sqliteStatement = sqliteStatement
         // Optimize row.value(named: "...")
         let lowercaseColumnNames = (0..<sqlite3_column_count(sqliteStatement)).map { String(cString: sqlite3_column_name(sqliteStatement, Int32($0))).lowercased() }
-        self.lowercaseColumnIndexes = Dictionary(keyValueSequence: lowercaseColumnNames.enumerated().map { ($1, $0) }.reversed())
+        self.lowercaseColumnIndexes = Dictionary(uniqueKeysWithValues: lowercaseColumnNames.enumerated().map { ($0.element, $0.offset) }.reversed())
     }
     
     var count: Int {

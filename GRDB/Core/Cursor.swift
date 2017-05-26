@@ -144,7 +144,7 @@ extension Cursor {
     
     /// Returns a cursor over the concatenated results of mapping transform
     /// over self.
-    public func flatMap<SegmentOfResult: Cursor>(_ transform: @escaping (Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<Self, SegmentOfResult>> {
+    public func flatMap<SegmentOfResult>(_ transform: @escaping (Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<Self, SegmentOfResult>> {
         return map(transform).joined()
     }
     
@@ -326,7 +326,7 @@ extension Sequence {
     
     /// Returns a cursor over the concatenated results of mapping transform
     /// over self.
-    public func flatMap<SegmentOfResult: Cursor>(_ transform: @escaping (Iterator.Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<IteratorCursor<Self.Iterator>, SegmentOfResult>> {
+    public func flatMap<SegmentOfResult>(_ transform: @escaping (Iterator.Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<IteratorCursor<Self.Iterator>, SegmentOfResult>> {
         return IteratorCursor(self).flatMap(transform)
     }
 }

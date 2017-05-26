@@ -225,7 +225,7 @@ extension RowConvertible where Self: TableMapping {
                 }
             }
             arguments.append(contentsOf: orderedColumns.map { orderedColumn in
-                dictionary.first { (column, value) in column.lowercased() == orderedColumn.lowercased() }!.value
+                dictionary.first { $0.key.lowercased() == orderedColumn.lowercased() }!.value
             })
             whereClauses.append("(" + (orderedColumns.map { "\($0.quotedDatabaseIdentifier) = ?" } as [String]).joined(separator: " AND ") + ")")
         }

@@ -67,7 +67,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         if let isSameRecord = isSameRecord {
             try self.init(databaseWriter, request: request, queue: queue, itemsAreIdentical: { isSameRecord($0.record, $1.record) })
         } else {
-            try self.init(databaseWriter, request: request, queue: queue, itemsAreIdentical: { _ in false })
+            try self.init(databaseWriter, request: request, queue: queue, itemsAreIdentical: { (_, _) in false })
         }
     }
     
@@ -542,8 +542,8 @@ fileprivate func makeFetchFunction<Record, T>(
             guard let strongObserver = observer else { return }
             guard strongObserver.isValid else { return }
             
-            completion(result!.map { (fetchedItems, fetchedAlongside) in
-                (fetchedItems: fetchedItems, fetchedAlongside: fetchedAlongside, observer: strongObserver)
+            completion(result!.map {
+                (fetchedItems: $0.fetchedItems, fetchedAlongside: $0.fetchedAlongside, observer: strongObserver)
             })
         }
     }

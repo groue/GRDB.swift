@@ -196,7 +196,7 @@ extension TableMapping {
                 }
             }
             arguments.append(contentsOf: orderedColumns.map { orderedColumn in
-                dictionary.first { (column, value) in column.lowercased() == orderedColumn.lowercased() }!.value
+                dictionary.first { $0.key.lowercased() == orderedColumn.lowercased() }!.value
             })
             whereClauses.append("(" + (orderedColumns.map { "\($0.quotedDatabaseIdentifier) = ?" } as [String]).joined(separator: " AND ") + ")")
         }
@@ -225,7 +225,7 @@ extension TableMapping {
     static func rowPrimaryKey(_ db: Database) throws -> (Row) -> [String: DatabaseValue] {
         if let primaryKey = try db.primaryKey(databaseTableName) {
             let columns = primaryKey.columns
-            return { row in Dictionary(keys: columns) { row.value(named: $0) } }
+            return { row in Dictionary(uniqueKeysWithValues: columns.lazy.map { ($0, row.value(named: $0)) }) }
         } else if selectsRowID {
             return { row in [Column.rowID.name: row.value(Column.rowID)] }
         } else {
@@ -253,8 +253,8 @@ extension TableMapping {
         let primaryKey = try rowPrimaryKey(db)
         return { (lhs, rhs) in
             let (lhs, rhs) = (primaryKey(lhs), primaryKey(rhs))
-            guard lhs.contains(where: { !$1.isNull }) else { return false }
-            guard rhs.contains(where: { !$1.isNull }) else { return false }
+            guard lhs.contains(where: { !$0.value.isNull }) else { return false }
+            guard rhs.contains(where: { !$0.value.isNull }) else { return false }
             return lhs == rhs
         }
     }
