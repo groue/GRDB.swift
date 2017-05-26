@@ -611,7 +611,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         for step in steps {
             recorder.transactionExpectation = expectation(description: "expectation")
             try dbQueue.inTransaction { db in
-                try synchronizePersons(db, step.word.characters.enumerated().map { Person(id: Int64($0), name: String($1)) })
+                try synchronizePersons(db, step.word.characters.enumerated().map { Person(id: Int64($0.0), name: String($0.1)) })
                 return .commit
             }
             waitForExpectations(timeout: 1, handler: nil)

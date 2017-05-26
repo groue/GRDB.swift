@@ -967,7 +967,7 @@ private struct StatementRowImpl : RowImpl {
         self.sqliteStatement = sqliteStatement
         // Optimize row.value(named: "...")
         let lowercaseColumnNames = (0..<sqlite3_column_count(sqliteStatement)).map { String(cString: sqlite3_column_name(sqliteStatement, Int32($0))).lowercased() }
-        self.lowercaseColumnIndexes = Dictionary(uniqueKeysWithValues: lowercaseColumnNames.enumerated().map { ($0.element, $0.offset) }.reversed())
+        self.lowercaseColumnIndexes = Dictionary(lowercaseColumnNames.enumerated().map { ($0.element, $0.offset) }, uniquingKeysWith: { (left, _) in left })
     }
     
     var count: Int {

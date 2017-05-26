@@ -48,9 +48,9 @@ class RowFromDictionaryLiteralTests : RowTestCase {
     func testRowValueAtIndex() {
         let row: Row = ["a": 0, "b": 1, "c": 2]
         
-        let aIndex = row.distance(from: row.startIndex, to: row.index(where: { (column, value) in column == "a" })!)
-        let bIndex = row.distance(from: row.startIndex, to: row.index(where: { (column, value) in column == "b" })!)
-        let cIndex = row.distance(from: row.startIndex, to: row.index(where: { (column, value) in column == "c" })!)
+        let aIndex = row.distance(from: row.startIndex, to: row.index(where: { $0.column == "a" })!)
+        let bIndex = row.distance(from: row.startIndex, to: row.index(where: { $0.column == "b" })!)
+        let cIndex = row.distance(from: row.startIndex, to: row.index(where: { $0.column == "c" })!)
         
         // Raw extraction
         assertRowRawValueEqual(row, index: aIndex, value: 0 as Int64)
@@ -123,11 +123,11 @@ class RowFromDictionaryLiteralTests : RowTestCase {
     func testRowDatabaseValueAtIndex() throws {
         let row: Row = ["null": nil, "int64": 1, "double": 1.1, "string": "foo", "blob": "SQLite".data(using: .utf8)]
         
-        let nullIndex = row.distance(from: row.startIndex, to: row.index(where: { (column, value) in column == "null" })!)
-        let int64Index = row.distance(from: row.startIndex, to: row.index(where: { (column, value) in column == "int64" })!)
-        let doubleIndex = row.distance(from: row.startIndex, to: row.index(where: { (column, value) in column == "double" })!)
-        let stringIndex = row.distance(from: row.startIndex, to: row.index(where: { (column, value) in column == "string" })!)
-        let blobIndex = row.distance(from: row.startIndex, to: row.index(where: { (column, value) in column == "blob" })!)
+        let nullIndex = row.distance(from: row.startIndex, to: row.index(where: { $0.column == "null" })!)
+        let int64Index = row.distance(from: row.startIndex, to: row.index(where: { $0.column == "int64" })!)
+        let doubleIndex = row.distance(from: row.startIndex, to: row.index(where: { $0.column == "double" })!)
+        let stringIndex = row.distance(from: row.startIndex, to: row.index(where: { $0.column == "string" })!)
+        let blobIndex = row.distance(from: row.startIndex, to: row.index(where: { $0.column == "blob" })!)
         
         guard case .null = (row.value(atIndex: nullIndex) as DatabaseValue).storage else { XCTFail(); return }
         guard case .int64(let int64) = (row.value(atIndex: int64Index) as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
