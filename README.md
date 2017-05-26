@@ -4583,7 +4583,7 @@ try controller.performFetch()
 
 ## Encryption
 
-**GRDB can encrypt your database with [SQLCipher](http://sqlcipher.net) v3.4.0.**
+**GRDB can encrypt your database with [SQLCipher](http://sqlcipher.net) v3.4.1.**
 
 You can use [CocoaPods](http://cocoapods.org/) (version 1.1 or higher), and specify in your `Podfile`:
 
