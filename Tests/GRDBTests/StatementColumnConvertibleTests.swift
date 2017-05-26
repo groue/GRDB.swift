@@ -26,6 +26,22 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try migrator.migrate(dbWriter)
     }
     
+    private func fetchValue<T: DatabaseValueConvertible & StatementColumnConvertible>(_ db: Database, _ columnName: String) throws -> T? {
+        return try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0)
+    }
+    
+    private func fetchValue<T: DatabaseValueConvertible & StatementColumnConvertible>(_ db: Database, _ columnName: String) throws -> T {
+        return try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0)
+    }
+    
+    private func fetchValue<T: DatabaseValueConvertible>(_ db: Database, _ columnName: String) throws -> T? {
+        return try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0)
+    }
+    
+    private func fetchValue<T: DatabaseValueConvertible>(_ db: Database, _ columnName: String) throws -> T {
+        return try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0)
+    }
+    
     func testTextAffinity() throws {
         // https://www.sqlite.org/datatype3.html
         //
@@ -41,15 +57,15 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: [0 as Int])
             // Check SQLite conversions from Text storage:
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Int?), 0)          // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Int32?), 0)        // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Int64?), 0)        // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as String?)!, "0")
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as String), "0")
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Bool?), false)     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int32?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Double?), 0.0)     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as String?)!, "0")
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as String), "0")
             // Data extraction: precondition failed: could not convert "0" to Data
-            //                XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+            //                XCTAssertEqual((try fetchValue(db, "textAffinity") as Data?) == nil)
             return .rollback
         }
         
@@ -58,15 +74,15 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: [0 as Int64])
             // Check SQLite conversions from Text storage:
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Int?), 0)          // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Int32?), 0)        // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Int64?), 0)        // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as String?)!, "0")
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as String), "0")
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Bool?), false)     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int32?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Double?), 0.0)     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as String?)!, "0")
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as String), "0")
             // Data extraction: precondition failed: could not convert "0" to Data
-            //                XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+            //                XCTAssertEqual((try fetchValue(db, "textAffinity") as Data?) == nil)
             return .rollback
         }
         
@@ -75,15 +91,15 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: [0 as Int32])
             // Check SQLite conversions from Text storage:
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Int?), 0)          // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Int32?), 0)        // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Int64?), 0)        // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as String?)!, "0")
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as String), "0")
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Bool?), false)     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int32?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Double?), 0.0)     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as String?)!, "0")
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as String), "0")
             // Data extraction: precondition failed: could not convert "0" to Data
-            //                XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+            //                XCTAssertEqual((try fetchValue(db, "textAffinity") as Data?) == nil)
             return .rollback
         }
         
@@ -92,15 +108,15 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: [0.0])
             // Check SQLite conversions from Text storage:
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Int?), 0)          // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Int32?), 0)        // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Int64?), 0)        // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as String?)!, "0.0")
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as String), "0.0")
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Bool?), false)     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int32?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Double?), 0.0)     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as String?)!, "0.0")
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as String), "0.0")
             // Data extraction: precondition failed: could not convert "0.0" to Data
-            //                XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+            //                XCTAssertEqual((try fetchValue(db, "textAffinity") as Data?) == nil)
             return .rollback
         }
         
@@ -109,15 +125,15 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: ["3.0e+5"])
             // Check SQLite conversions from Text storage:
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Bool?), true)          // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Int?), 3)              // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Int32?), 3)            // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Int64?), 3)            // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Double?), 300000.0)    // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as String?)!, "3.0e+5")
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as String), "3.0e+5")
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Bool?), true)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int?), 3)              // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int32?), 3)            // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int64?), 3)            // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Double?), 300000.0)    // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as String?)!, "3.0e+5")
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as String), "3.0e+5")
             // Data extraction: precondition failed: could not convert "3.0e+5" to Data
-            //                XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+            //                XCTAssertEqual((try fetchValue(db, "textAffinity") as Data?) == nil)
             return .rollback
         }
         
@@ -126,15 +142,15 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: ["'fooéı👨👨🏿🇫🇷🇨🇮'"])
             // Check SQLite conversions from Text storage:
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Int?), 0)          // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Int32?), 0)        // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Int64?), 0)        // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as String?)!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as String), "'fooéı👨👨🏿🇫🇷🇨🇮'")
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Bool?), false)     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int32?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Double?), 0.0)     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as String?)!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as String), "'fooéı👨👨🏿🇫🇷🇨🇮'")
             // Data extraction: precondition failed: could not convert "'fooéı👨👨🏿🇫🇷🇨🇮'" to Data
-            //                XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+            //                XCTAssertEqual((try fetchValue(db, "textAffinity") as Data?) == nil)
             return .rollback
         }
         
@@ -143,13 +159,13 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: ["'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8)])
             // Check SQLite conversions from Blob storage:
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Int?), 0)          // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Int32?), 0)        // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Int64?), 0)        // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as String?), "'fooéı👨👨🏿🇫🇷🇨🇮'")   // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT textAffinity FROM `values`").next()!.value(atIndex: 0) as Data?), "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Bool?), false)     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int32?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Int64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Double?), 0.0)     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as String?), "'fooéı👨👨🏿🇫🇷🇨🇮'")   // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "textAffinity") as Data?), "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
             return .rollback
         }
     }
@@ -208,19 +224,19 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", arguments: [0 as Int])
             // Check SQLite conversions from Real storage
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Bool?)!, false)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Bool), false)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int?)!, 0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int), 0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int32?)!, Int32(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int32), Int32(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int64?)!, Int64(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int64), Int64(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Double?)!, 0.0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Double), 0.0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as String?), "0.0")   // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool?)!, false)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool), false)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32?)!, Int32(0))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32), Int32(0))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64?)!, Int64(0))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64), Int64(0))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Double?)!, 0.0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Double), 0.0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as String?), "0.0")   // incompatible with DatabaseValue conversion
             // Data extraction: precondition failed: could not convert 0.0 to Data
-//                XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+//                XCTAssertEqual((try fetchValue(db, "realAffinity") as Data?) == nil)
             return .rollback
         }
         
@@ -229,19 +245,19 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", arguments: [0 as Int64])
             // Check SQLite conversions from Real storage
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Bool?)!, false)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Bool), false)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int?)!, 0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int), 0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int32?)!, Int32(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int32), Int32(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int64?)!, Int64(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int64), Int64(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Double?)!, 0.0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Double), 0.0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as String?), "0.0")   // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool?)!, false)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool), false)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32?)!, Int32(0))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32), Int32(0))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64?)!, Int64(0))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64), Int64(0))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Double?)!, 0.0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Double), 0.0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as String?), "0.0")   // incompatible with DatabaseValue conversion
             // Data extraction: precondition failed: could not convert 0.0 to Data
-//                XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+//                XCTAssertEqual((try fetchValue(db, "realAffinity") as Data?) == nil)
             return .rollback
         }
         
@@ -250,19 +266,19 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", arguments: [0 as Int32])
             // Check SQLite conversions from Real storage
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Bool?)!, false)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Bool), false)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int?)!, 0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int), 0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int32?)!, Int32(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int32), Int32(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int64?)!, Int64(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int64), Int64(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Double?)!, 0.0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Double), 0.0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as String?), "0.0")   // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool?)!, false)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool), false)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int), 0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32?)!, Int32(0))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32), Int32(0))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64?)!, Int64(0))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64), Int64(0))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Double?)!, 0.0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Double), 0.0)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as String?), "0.0")   // incompatible with DatabaseValue conversion
             // Data extraction: precondition failed: could not convert 0.0 to Data
-//                XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+//                XCTAssertEqual((try fetchValue(db, "realAffinity") as Data?) == nil)
             return .rollback
         }
         
@@ -271,19 +287,19 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", arguments: [3.0e5])
             // Check SQLite conversions from Real storage
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Bool?)!, true)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Bool), true)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int?)!, 300000)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int), 300000)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int32?)!, Int32(300000))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int32), Int32(300000))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int64?)!, Int64(300000))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int64), Int64(300000))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Double?)!, Double(300000))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Double), Double(300000))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as String?), "300000.0")    // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool?)!, true)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool), true)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int?)!, 300000)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int), 300000)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32?)!, Int32(300000))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32), Int32(300000))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64?)!, Int64(300000))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64), Int64(300000))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Double?)!, Double(300000))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Double), Double(300000))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as String?), "300000.0")    // incompatible with DatabaseValue conversion
             // Data extraction: precondition failed: could not convert 300000.0 to Data
-//                XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+//                XCTAssertEqual((try fetchValue(db, "realAffinity") as Data?) == nil)
             return .rollback
         }
         
@@ -292,13 +308,13 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", arguments: [1.0e20])
             // Check SQLite conversions from Real storage (avoid Int, Int32 and Int64 since 1.0e20 does not fit)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Bool?)!, true)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Bool), true)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Double?)!, 1e20)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Double), 1e20)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as String?), "1.0e+20")   // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool?)!, true)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool), true)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Double?)!, 1e20)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Double), 1e20)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as String?), "1.0e+20")   // incompatible with DatabaseValue conversion
             // Data extraction: precondition failed: could not convert 1e+20 to Data
-//                XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+//                XCTAssertEqual((try fetchValue(db, "realAffinity") as Data?) == nil)
             return .rollback
         }
         
@@ -307,19 +323,19 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", arguments: ["3.0e+5"])
             // Check SQLite conversions from Real storage
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Bool?)!, true)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Bool), true)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int?)!, 300000)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int), 300000)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int32?)!, Int32(300000))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int32), Int32(300000))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int64?)!, Int64(300000))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int64), Int64(300000))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Double?)!, Double(300000))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Double), Double(300000))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as String?), "300000.0")  // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool?)!, true)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool), true)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int?)!, 300000)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int), 300000)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32?)!, Int32(300000))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32), Int32(300000))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64?)!, Int64(300000))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64), Int64(300000))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Double?)!, Double(300000))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Double), Double(300000))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as String?), "300000.0")  // incompatible with DatabaseValue conversion
             // Data extraction: precondition failed: could not convert 300000.0 to Data
-//                XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+//                XCTAssertEqual((try fetchValue(db, "realAffinity") as Data?) == nil)
             return .rollback
         }
         
@@ -328,13 +344,13 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", arguments: ["1.0e+20"])
             // Check SQLite conversions from Real storage: (avoid Int, Int32 and Int64 since 1.0e20 does not fit)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Bool?)!, true)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Bool), true)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Double?)!, 1e20)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Double), 1e20)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as String?), "1.0e+20")   // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool?)!, true)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool), true)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Double?)!, 1e20)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Double), 1e20)
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as String?), "1.0e+20")   // incompatible with DatabaseValue conversion
             // Data extraction: precondition failed: could not convert 1e+20 to Data
-//                XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+//                XCTAssertEqual((try fetchValue(db, "realAffinity") as Data?) == nil)
             return .rollback
         }
         
@@ -343,15 +359,15 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", arguments: ["'fooéı👨👨🏿🇫🇷🇨🇮'"])
             // Check SQLite conversions from Text storage:
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int?), 0)          // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int32?), 0)        // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int64?), 0)        // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as String?)!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as String), "'fooéı👨👨🏿🇫🇷🇨🇮'")
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool?), false)     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Double?), 0.0)     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as String?)!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as String), "'fooéı👨👨🏿🇫🇷🇨🇮'")
             // Data extraction: precondition failed: could not convert "'fooéı👨👨🏿🇫🇷🇨🇮'" to Data
-//                XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+//                XCTAssertEqual((try fetchValue(db, "realAffinity") as Data?) == nil)
             return .rollback
         }
         
@@ -360,13 +376,13 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", arguments: ["'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8)])
             // Check SQLite conversions from Blob storage:
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int?), 0)          // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int32?), 0)        // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Int64?), 0)        // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as String?), "'fooéı👨👨🏿🇫🇷🇨🇮'")   // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT realAffinity FROM `values`").next()!.value(atIndex: 0) as Data?), "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Bool?), false)     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int32?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Int64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Double?), 0.0)     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as String?), "'fooéı👨👨🏿🇫🇷🇨🇮'")   // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "realAffinity") as Data?), "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
             return .rollback
         }
     }
@@ -385,19 +401,19 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: [0 as Int])
             // Check SQLite conversions from Integer storage
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Bool?)!, false)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Bool), false)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int?)!, 0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int), 0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int32?)!, Int32(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int32), Int32(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int64?)!, Int64(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int64), Int64(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Double?)!, 0.0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Double), 0.0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as String?), "0")     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Bool?)!, false)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Bool), false)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32?)!, Int32(0))
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32), Int32(0))
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64?)!, Int64(0))
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64), Int64(0))
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Double?)!, 0.0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Double), 0.0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as String?), "0")     // incompatible with DatabaseValue conversion
             // Data extraction: precondition failed: could not convert 0 to Data
-//                XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+//                XCTAssertEqual((try fetchValue(db, "noneAffinity") as Data?) == nil)
             return .rollback
         }
         
@@ -406,19 +422,19 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: [0 as Int64])
             // Check SQLite conversions from Integer storage
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Bool?)!, false)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Bool), false)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int?)!, 0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int), 0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int32?)!, Int32(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int32), Int32(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int64?)!, Int64(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int64), Int64(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Double?)!, 0.0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Double), 0.0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as String?), "0")     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Bool?)!, false)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Bool), false)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32?)!, Int32(0))
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32), Int32(0))
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64?)!, Int64(0))
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64), Int64(0))
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Double?)!, 0.0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Double), 0.0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as String?), "0")     // incompatible with DatabaseValue conversion
             // Data extraction: precondition failed: could not convert 0 to Data
-//                XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+//                XCTAssertEqual((try fetchValue(db, "noneAffinity") as Data?) == nil)
             return .rollback
         }
         
@@ -427,19 +443,19 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: [0 as Int32])
             // Check SQLite conversions from Integer storage
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Bool?)!, false)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Bool), false)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int?)!, 0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int), 0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int32?)!, Int32(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int32), Int32(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int64?)!, Int64(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int64), Int64(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Double?)!, 0.0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Double), 0.0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as String?), "0")     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Bool?)!, false)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Bool), false)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32?)!, Int32(0))
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32), Int32(0))
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64?)!, Int64(0))
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64), Int64(0))
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Double?)!, 0.0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Double), 0.0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as String?), "0")     // incompatible with DatabaseValue conversion
             // Data extraction: precondition failed: could not convert 0 to Data
-//                XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+//                XCTAssertEqual((try fetchValue(db, "noneAffinity") as Data?) == nil)
             return .rollback
         }
         
@@ -448,19 +464,19 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: [0.0])
             // Check SQLite conversions from Real storage
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Bool?)!, false)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Bool), false)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int?)!, 0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int), 0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int32?)!, Int32(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int32), Int32(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int64?)!, Int64(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int64), Int64(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Double?)!, 0.0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Double), 0.0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as String?), "0.0")   // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Bool?)!, false)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Bool), false)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int?)!, 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int), 0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32?)!, Int32(0))
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32), Int32(0))
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64?)!, Int64(0))
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64), Int64(0))
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Double?)!, 0.0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Double), 0.0)
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as String?), "0.0")   // incompatible with DatabaseValue conversion
             // Data extraction: precondition failed: could not convert 0.0 to Data
-//                XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+//                XCTAssertEqual((try fetchValue(db, "noneAffinity") as Data?) == nil)
             return .rollback
         }
         
@@ -469,15 +485,15 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: ["3.0e+5"])
             // Check SQLite conversions from Text storage
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Bool?), true)      // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int?), 3)          // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int32?), 3)        // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int64?), 3)        // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Double?), 300000.0)    // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as String?)!, "3.0e+5")
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as String), "3.0e+5")
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Bool?), true)      // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int?), 3)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32?), 3)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64?), 3)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Double?), 300000.0)    // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as String?)!, "3.0e+5")
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as String), "3.0e+5")
             // Data extraction: precondition failed: could not convert "3.0e+5" to Data
-//                XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+//                XCTAssertEqual((try fetchValue(db, "noneAffinity") as Data?) == nil)
             return .rollback
         }
         
@@ -486,13 +502,13 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: ["'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8)])
             // Check SQLite conversions from Blob storage
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int?), 0)          // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int32?), 0)        // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Int64?), 0)        // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as String?), "'fooéı👨👨🏿🇫🇷🇨🇮'")   // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT noneAffinity FROM `values`").next()!.value(atIndex: 0) as Data?), "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Bool?), false)     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int32?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Int64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Double?), 0.0)     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as String?), "'fooéı👨👨🏿🇫🇷🇨🇮'")   // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, "noneAffinity") as Data?), "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
             return .rollback
         }
     }
@@ -525,19 +541,19 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: [0 as Int])
             // Check SQLite conversions from Integer storage
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Bool?)!, false)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Bool), false)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int?)!, 0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int), 0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int32?)!, Int32(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int32), Int32(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int64?)!, Int64(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int64), Int64(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Double?)!, 0.0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Double), 0.0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as String?), "0")     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as Bool?)!, false)
+            XCTAssertEqual((try fetchValue(db, columnName) as Bool), false)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int32?)!, Int32(0))
+            XCTAssertEqual((try fetchValue(db, columnName) as Int32), Int32(0))
+            XCTAssertEqual((try fetchValue(db, columnName) as Int64?)!, Int64(0))
+            XCTAssertEqual((try fetchValue(db, columnName) as Int64), Int64(0))
+            XCTAssertEqual((try fetchValue(db, columnName) as Double?)!, 0.0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Double), 0.0)
+            XCTAssertEqual((try fetchValue(db, columnName) as String?), "0")     // incompatible with DatabaseValue conversion
             // Data extraction: precondition failed: could not convert 0 to Data
-//                XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+//                XCTAssertEqual((try fetchValue(db, columnName) as Data?) == nil)
             return .rollback
         }
         
@@ -546,19 +562,19 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: [0 as Int64])
             // Check SQLite conversions from Integer storage
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Bool?)!, false)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Bool), false)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int?)!, 0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int), 0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int32?)!, Int32(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int32), Int32(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int64?)!, Int64(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int64), Int64(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Double?)!, 0.0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Double), 0.0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as String?), "0")     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as Bool?)!, false)
+            XCTAssertEqual((try fetchValue(db, columnName) as Bool), false)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int32?)!, Int32(0))
+            XCTAssertEqual((try fetchValue(db, columnName) as Int32), Int32(0))
+            XCTAssertEqual((try fetchValue(db, columnName) as Int64?)!, Int64(0))
+            XCTAssertEqual((try fetchValue(db, columnName) as Int64), Int64(0))
+            XCTAssertEqual((try fetchValue(db, columnName) as Double?)!, 0.0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Double), 0.0)
+            XCTAssertEqual((try fetchValue(db, columnName) as String?), "0")     // incompatible with DatabaseValue conversion
             // Data extraction: precondition failed: could not convert 0 to Data
-//                XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+//                XCTAssertEqual((try fetchValue(db, columnName) as Data?) == nil)
             return .rollback
         }
         
@@ -567,19 +583,19 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: [0 as Int32])
             // Check SQLite conversions from Integer storage
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Bool?)!, false)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Bool), false)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int?)!, 0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int), 0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int32?)!, Int32(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int32), Int32(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int64?)!, Int64(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int64), Int64(0))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Double?)!, 0.0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Double), 0.0)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as String?), "0")     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as Bool?)!, false)
+            XCTAssertEqual((try fetchValue(db, columnName) as Bool), false)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int?)!, 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int), 0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int32?)!, Int32(0))
+            XCTAssertEqual((try fetchValue(db, columnName) as Int32), Int32(0))
+            XCTAssertEqual((try fetchValue(db, columnName) as Int64?)!, Int64(0))
+            XCTAssertEqual((try fetchValue(db, columnName) as Int64), Int64(0))
+            XCTAssertEqual((try fetchValue(db, columnName) as Double?)!, 0.0)
+            XCTAssertEqual((try fetchValue(db, columnName) as Double), 0.0)
+            XCTAssertEqual((try fetchValue(db, columnName) as String?), "0")     // incompatible with DatabaseValue conversion
             // Data extraction: precondition failed: could not convert 0 to Data
-//                XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+//                XCTAssertEqual((try fetchValue(db, columnName) as Data?) == nil)
             return .rollback
         }
         
@@ -588,19 +604,19 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: [3.0e5])
             // Check SQLite conversions from Integer storage
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Bool?)!, true)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Bool), true)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int?)!, 300000)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int), 300000)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int32?)!, Int32(300000))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int32), Int32(300000))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int64?)!, Int64(300000))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int64), Int64(300000))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Double?)!, Double(300000))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Double), Double(300000))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as String?), "300000")    // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as Bool?)!, true)
+            XCTAssertEqual((try fetchValue(db, columnName) as Bool), true)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int?)!, 300000)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int), 300000)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int32?)!, Int32(300000))
+            XCTAssertEqual((try fetchValue(db, columnName) as Int32), Int32(300000))
+            XCTAssertEqual((try fetchValue(db, columnName) as Int64?)!, Int64(300000))
+            XCTAssertEqual((try fetchValue(db, columnName) as Int64), Int64(300000))
+            XCTAssertEqual((try fetchValue(db, columnName) as Double?)!, Double(300000))
+            XCTAssertEqual((try fetchValue(db, columnName) as Double), Double(300000))
+            XCTAssertEqual((try fetchValue(db, columnName) as String?), "300000")    // incompatible with DatabaseValue conversion
             // Data extraction: precondition failed: could not convert 300000 to Data
-//                XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+//                XCTAssertEqual((try fetchValue(db, columnName) as Data?) == nil)
             return .rollback
         }
         
@@ -609,13 +625,13 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: [1.0e20])
             // Check SQLite conversions from Real storage (avoid Int, Int32 and Int64 since 1.0e20 does not fit)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Bool?)!, true)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Bool), true)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Double?)!, 1e20)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Double), 1e20)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as String?), "1.0e+20")   // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as Bool?)!, true)
+            XCTAssertEqual((try fetchValue(db, columnName) as Bool), true)
+            XCTAssertEqual((try fetchValue(db, columnName) as Double?)!, 1e20)
+            XCTAssertEqual((try fetchValue(db, columnName) as Double), 1e20)
+            XCTAssertEqual((try fetchValue(db, columnName) as String?), "1.0e+20")   // incompatible with DatabaseValue conversion
             // Data extraction: precondition failed: could not convert 1e+20 to Data
-//                XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+//                XCTAssertEqual((try fetchValue(db, columnName) as Data?) == nil)
             return .rollback
         }
         
@@ -624,19 +640,19 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: ["3.0e+5"])
             // Check SQLite conversions from Integer storage
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Bool?)!, true)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Bool), true)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int?)!, 300000)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int), 300000)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int32?)!, Int32(300000))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int32), Int32(300000))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int64?)!, Int64(300000))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int64), Int64(300000))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Double?)!, Double(300000))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Double), Double(300000))
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as String?), "300000")    // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as Bool?)!, true)
+            XCTAssertEqual((try fetchValue(db, columnName) as Bool), true)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int?)!, 300000)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int), 300000)
+            XCTAssertEqual((try fetchValue(db, columnName) as Int32?)!, Int32(300000))
+            XCTAssertEqual((try fetchValue(db, columnName) as Int32), Int32(300000))
+            XCTAssertEqual((try fetchValue(db, columnName) as Int64?)!, Int64(300000))
+            XCTAssertEqual((try fetchValue(db, columnName) as Int64), Int64(300000))
+            XCTAssertEqual((try fetchValue(db, columnName) as Double?)!, Double(300000))
+            XCTAssertEqual((try fetchValue(db, columnName) as Double), Double(300000))
+            XCTAssertEqual((try fetchValue(db, columnName) as String?), "300000")    // incompatible with DatabaseValue conversion
             // Data extraction: precondition failed: could not convert 300000 to Data
-//                XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+//                XCTAssertEqual((try fetchValue(db, columnName) as Data?) == nil)
             return .rollback
         }
         
@@ -645,13 +661,13 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: ["1.0e+20"])
             // Check SQLite conversions from Real storage: (avoid Int, Int32 and Int64 since 1.0e20 does not fit)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Bool?)!, true)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Bool), true)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Double?)!, 1e20)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Double), 1e20)
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as String?), "1.0e+20")   // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as Bool?)!, true)
+            XCTAssertEqual((try fetchValue(db, columnName) as Bool), true)
+            XCTAssertEqual((try fetchValue(db, columnName) as Double?)!, 1e20)
+            XCTAssertEqual((try fetchValue(db, columnName) as Double), 1e20)
+            XCTAssertEqual((try fetchValue(db, columnName) as String?), "1.0e+20")   // incompatible with DatabaseValue conversion
             // Data extraction: precondition failed: could not convert 1e+20 to Data
-//                XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+//                XCTAssertEqual((try fetchValue(db, columnName) as Data?) == nil)
             return .rollback
         }
         
@@ -660,15 +676,15 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: ["'fooéı👨👨🏿🇫🇷🇨🇮'"])
             // Check SQLite conversions from Text storage:
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int?), 0)          // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int32?), 0)        // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int64?), 0)        // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as String?)!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as String), "'fooéı👨👨🏿🇫🇷🇨🇮'")
+            XCTAssertEqual((try fetchValue(db, columnName) as Bool?), false)     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as Int?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as Int32?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as Int64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as Double?), 0.0)     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as String?)!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
+            XCTAssertEqual((try fetchValue(db, columnName) as String), "'fooéı👨👨🏿🇫🇷🇨🇮'")
             // Data extraction: precondition failed: could not convert "'fooéı👨👨🏿🇫🇷🇨🇮'" to Data
-//                XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Data?) == nil)
+//                XCTAssertEqual((try fetchValue(db, columnName) as Data?) == nil)
             return .rollback
         }
         
@@ -677,13 +693,13 @@ class StatementColumnConvertibleTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: ["'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8)])
             // Check SQLite conversions from Blob storage:
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int?), 0)          // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int32?), 0)        // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Int64?), 0)        // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as String?), "'fooéı👨👨🏿🇫🇷🇨🇮'")   // incompatible with DatabaseValue conversion
-            XCTAssertEqual((try Row.fetchCursor(db, "SELECT \(columnName) FROM `values`").next()!.value(atIndex: 0) as Data?), "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
+            XCTAssertEqual((try fetchValue(db, columnName) as Bool?), false)     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as Int?), 0)          // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as Int32?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as Int64?), 0)        // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as Double?), 0.0)     // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as String?), "'fooéı👨👨🏿🇫🇷🇨🇮'")   // incompatible with DatabaseValue conversion
+            XCTAssertEqual((try fetchValue(db, columnName) as Data?), "'fooéı👨👨🏿🇫🇷🇨🇮'".data(using: .utf8))
             return .rollback
         }
     }
