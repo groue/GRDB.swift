@@ -710,9 +710,9 @@ Unlike row arrays that contain copies of the database rows, row cursors are clos
 **Read column values** by index or column name:
 
 ```swift
-let name: String = row[0]                    // 0 is the leftmost column
-let name: String = row["name"]               // Leftmost matching column - lookup is case-insensitive
-let name: String = row.value(Column("name")) // Using query interface's Column
+let name: String = row[0]              // 0 is the leftmost column
+let name: String = row["name"]         // Leftmost matching column - lookup is case-insensitive
+let name: String = row[Column("name")] // Using query interface's Column
 ```
 
 Make sure to ask for an optional when the value may be NULL:
@@ -736,15 +736,15 @@ self.date = row["date"] // Depends on the type of the property.
 You can also use the `as` type casting operator:
 
 ```swift
-row.value(...) as Int
-row.value(...) as Int?
+row[...] as Int
+row[...] as Int?
 ```
 
 > :warning: **Warning**: avoid the `as!` and `as?` operators, because they misbehave in the context of type inference (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
 > 
 > ```swift
-> if let int = row.value(...) as? Int { ... } // BAD - doesn't work
-> if let int = row.value(...) as Int? { ... } // GOOD
+> if let int = row[...] as? Int { ... } // BAD - doesn't work
+> if let int = row[...] as Int? { ... } // GOOD
 > ```
 
 Generally speaking, you can extract the type you need, *provided it can be converted from the underlying SQLite value*:
@@ -846,7 +846,7 @@ let date   = Date.fromDatabaseValue(dbv)       // Date?
 
 ```swift
 let row = try Row.fetchOne(db, "SELECT 'Mom’s birthday'")!
-let dbv: DatabaseValue = row.value(at: 0)
+let dbv: DatabaseValue = row[0]
 let string = String.fromDatabaseValue(dbv) // "Mom’s birthday"
 let int    = Int.fromDatabaseValue(dbv)    // nil
 let date   = Date.fromDatabaseValue(dbv)   // nil
@@ -1000,7 +1000,7 @@ while let row = try rows.next() {
 }
 ```
 
-At each step of the request iteration, the `row.value` method creates *two copies* of the database bytes: one fetched by SQLite, and another, stored in the Swift Data value.
+At each step of the request iteration, the `row["data"]` expression creates *two copies* of the database bytes: one fetched by SQLite, and another, stored in the Swift Data value.
 
 **You have the opportunity to save memory** by not copying the data fetched by SQLite:
 
@@ -1862,7 +1862,7 @@ extension PointOfInterest : RowConvertible {
 }
 ```
 
-See [column values](#column-values) for more information about the `row.value()` method.
+See [column values](#column-values) for more information about the `row[...]` subscript.
 
 > :point_up: **Note**: for performance reasons, the same row argument to `init(row:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
