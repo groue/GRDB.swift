@@ -73,13 +73,14 @@ jobs:
         - TID=GRDBiOS (Xcode 8.3, iOS <MAX>)
       script: make test_framework_GRDBiOS_maxTarget
 
-    ## Test GRDBiOS (Xcode 8.3, iOS <MINIMUM VERSION>))
-    #- stage: Test GRDB
-    #  gemfile: .ci/gemfiles/Gemfile.travis
-    #  osx_image: xcode8.3
-    #  env:
-    #    - TID=GRDBiOS (Xcode 8.3, iOS <MIN>)
-    #  script: make test_framework_GRDBiOS_minTarget
+    # Test GRDBiOS (Xcode 8.3, iOS <MINIMUM VERSION>))
+    - stage: Test GRDB
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode8.3
+      env:
+        - TOOLCHAIN=org.swift.4020170524a
+        - TID=GRDBiOS (Xcode 8.3, iOS <MIN>)
+      script: make test_framework_GRDBiOS_minTarget
 
     ## Test GRDBiOS (Xcode 8.1, iOS 10.1)
     #- stage: Test GRDB
