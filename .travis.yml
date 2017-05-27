@@ -6,6 +6,22 @@ xcode_project: GRDB.xcodeproj
 git:
   submodules: false
 
+#
+# Downloaded Swift Toolchain support
+#
+# 1. Update the URL in the `install_swift_toolchain.sh` install entry below
+#    to the desired download from swift.org (and uncomment).
+#
+# 2. Ensure that the appropriate `TOOLCHAIN` environment variable is
+#    specified for all jobs that should use the downloaded toolchain.
+#    For example:
+#	- TOOLCHAIN=org.swift.4020170524a
+#    (Use the CFBundleIdentifier from the installed Toolchain’s Info.plist
+#    in /Library/Developer/Toolchains/<toolchain>.xctoolchain/Info.plist.)
+#
+# 3. Consider temporarily disabling / commenting-out some of the jobs, as
+#    every job must download the full toolchain (several hundred MB) from swift.org.
+#
 install:
   - .ci/scripts/install_swift_toolchain.sh https://swift.org/builds/swift-4.0-branch/xcode/swift-4.0-DEVELOPMENT-SNAPSHOT-2017-05-24-a/swift-4.0-DEVELOPMENT-SNAPSHOT-2017-05-24-a-osx.pkg
 
@@ -48,13 +64,14 @@ jobs:
     #    - TID=GRDBWatchOS (Xcode 8.3, watchOS)
     #  script: make test_framework_GRDBWatchOS
 
-    ## Test GRDBiOS (Xcode 8.3, iOS <MAXIMUM VERSION>)
-    #- stage: Test GRDB
-    #  gemfile: .ci/gemfiles/Gemfile.travis
-    #  osx_image: xcode8.3
-    #  env:
-    #    - TID=GRDBiOS (Xcode 8.3, iOS <MAX>)
-    #  script: make test_framework_GRDBiOS_maxTarget
+    # Test GRDBiOS (Xcode 8.3, iOS <MAXIMUM VERSION>)
+    - stage: Test GRDB
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode8.3
+      env:
+        - TOOLCHAIN=org.swift.4020170524a
+        - TID=GRDBiOS (Xcode 8.3, iOS <MAX>)
+      script: make test_framework_GRDBiOS_maxTarget
 
     ## Test GRDBiOS (Xcode 8.3, iOS <MINIMUM VERSION>))
     #- stage: Test GRDB
