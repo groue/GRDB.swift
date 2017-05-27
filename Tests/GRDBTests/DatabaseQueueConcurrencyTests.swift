@@ -250,9 +250,9 @@ class ConcurrencyTests: GRDBTestCase {
         //                                      BEGIN EXCLUSIVE TRANSACTION
         //                                      COMMIT
         
-        var numberOfTries = 0
+        var busyCallbackCalled = false
         self.busyCallback = { n in
-            numberOfTries = n
+            busyCallbackCalled = true
             s2.signal()
             return true
         }
@@ -289,7 +289,7 @@ class ConcurrencyTests: GRDBTestCase {
         
         _ = group.wait(timeout: .distantFuture)
         
-        XCTAssertTrue(numberOfTries > 0)    // Busy handler has been used.
+        XCTAssertTrue(busyCallbackCalled)
     }
 
     func testReaderDuringDefaultTransaction() throws {
@@ -390,9 +390,9 @@ class ConcurrencyTests: GRDBTestCase {
         //                                      COMMIT
         // COMMIT
         
-        var numberOfTries = 0
+        var busyCallbackCalled = false
         self.busyCallback = { n in
-            numberOfTries = n
+            busyCallbackCalled = true
             s3.signal()
             return true
         }
@@ -437,9 +437,6 @@ class ConcurrencyTests: GRDBTestCase {
         
         _ = group.wait(timeout: .distantFuture)
         
-        // TODO: flaky test
-        // https://travis-ci.org/groue/GRDB.swift/jobs/236100291
-        // https://travis-ci.org/groue/GRDB.swift/jobs/236100305
-        XCTAssertTrue(numberOfTries > 0)    // Busy handler has been used.
+        XCTAssertTrue(busyCallbackCalled)
     }
 }
