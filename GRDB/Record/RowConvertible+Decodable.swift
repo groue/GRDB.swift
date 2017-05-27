@@ -60,9 +60,8 @@ struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtocol
     /// - throws: `DecodingError.keyNotFound` if `self` does not have an entry for the given key.
     /// - throws: `DecodingError.valueNotFound` if `self` has a null entry for the given key.
     func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T : Decodable {
-        if T.self is DatabaseValueConvertible.Type {
-            let databaseValue: DatabaseValue = row[key.stringValue]
-            return (T.self as! DatabaseValueConvertible.Type).fromDatabaseValue(databaseValue) as! T
+        if let valueType = T.self as? DatabaseValueConvertible.Type {
+            return valueType.fromDatabaseValue(row[key.stringValue]) as! T
         } else if let scopedRow = row.scoped(on: key.stringValue) {
             return try T(from: RowDecoder(row: scopedRow, codingPath: codingPath + [key]))
         } else {
@@ -104,11 +103,10 @@ struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtocol
     /// - returns: A decoded value of the requested type, or `nil` if the `Decoder` does not have an entry associated with the given key, or if the value is a null value.
     /// - throws: `DecodingError.typeMismatch` if the encountered encoded value is not convertible to the requested type.
     func decodeIfPresent<T>(_ type: T.Type, forKey key: Key) throws -> T? where T : Decodable {
-        if T.self is DatabaseValueConvertible.Type {
+        if let valueType = T.self as? DatabaseValueConvertible.Type {
             let column = key.stringValue
             if row.hasColumn(column) {
-                let databaseValue: DatabaseValue = row[column]
-                return (T.self as! DatabaseValueConvertible.Type).fromDatabaseValue(databaseValue) as! T?
+                return valueType.fromDatabaseValue(row[column]) as! T?
             } else {
                 return nil
             }
