@@ -173,6 +173,10 @@ test_framework_GRDBCipheriOS_minTarget: SQLCipher
 	  $(XCPRETTY)
 
 test_SPM:
+ifdef TOOLCHAIN
+	@echo test_SPM does not support specifying a TOOLCHAIN
+	@exit 1
+endif
 	$(SWIFT) package clean
 	$(SWIFT) build
 	$(SWIFT) build -c release
