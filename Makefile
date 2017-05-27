@@ -74,6 +74,11 @@ ifdef XCPRETTY_PATH
 	endif
 endif
 
+# If TOOLCHAIN is specified, add xcodebuild parameter
+ifdef TOOLCHAIN
+	XCODEBUILD += -toolchain $(TOOLCHAIN)
+endif
+
 # We test framework test suites, and if GRBD can be installed in an application:
 test: test_framework test_install
 
