@@ -15,9 +15,13 @@ git:
 # 2. Ensure that the appropriate `TOOLCHAIN` environment variable is
 #    specified for all jobs that should use the downloaded toolchain.
 #    For example:
-#	- TOOLCHAIN=org.swift.4020170524a
+#       - TOOLCHAIN=org.swift.4020170524a
 #    (Use the CFBundleIdentifier from the installed Toolchain’s Info.plist
 #    in /Library/Developer/Toolchains/<toolchain>.xctoolchain/Info.plist.)
+#
+#    Alternatively, it can also be specified at the end of the make command
+#    for the job. For example:
+#       script: make test_framework_GRDBOSX TOOLCHAIN=org.swift.4020170524a
 #
 # 3. Consider temporarily disabling / commenting-out some of the jobs, as
 #    every job must download the full toolchain (several hundred MB) from swift.org.
@@ -101,13 +105,14 @@ jobs:
     ###########################################
     ## Test GRDB (Custom SQLite)
 
-    ## Test GRDBCustomSQLiteOSX (Xcode 8.3)
-    #- stage: Test GRDB + Custom SQLite
-    #  gemfile: .ci/gemfiles/Gemfile.travis
-    #  osx_image: xcode8.3
-    #  env:
-    #    - TID=GRDBCustomSQLiteOSX (Xcode 8.3, macOS 10.12)
-    #  script: make test_framework_GRDBCustomSQLiteOSX
+    # Test GRDBCustomSQLiteOSX (Xcode 8.3)
+    - stage: Test GRDB + Custom SQLite
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode8.3
+      env:
+        - TOOLCHAIN=org.swift.4020170524a
+        - TID=GRDBCustomSQLiteOSX (Xcode 8.3, macOS 10.12)
+      script: make test_framework_GRDBCustomSQLiteOSX
 
     ## Test GRDBCustomSQLiteOSX (Xcode 8.1)
     #- stage: Test GRDB + Custom SQLite
@@ -117,21 +122,23 @@ jobs:
     #    - TID=GRDBCustomSQLiteOSX (Xcode 8.1, macOS 10.12)
     #  script: make test_framework_GRDBCustomSQLiteOSX
 
-    ## Test GRDBCustomSQLiteiOS (Xcode 8.3, iOS <MAXIMUM VERSION>)
-    #- stage: Test GRDB + Custom SQLite
-    #  gemfile: .ci/gemfiles/Gemfile.travis
-    #  osx_image: xcode8.3
-    #  env:
-    #    - TID=GRDBCustomSQLiteiOS (Xcode 8.3, iOS <MAX>)
-    #  script: make test_framework_GRDBCustomSQLiteiOS_maxTarget
+    # Test GRDBCustomSQLiteiOS (Xcode 8.3, iOS <MAXIMUM VERSION>)
+    - stage: Test GRDB + Custom SQLite
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode8.3
+      env:
+        - TOOLCHAIN=org.swift.4020170524a
+        - TID=GRDBCustomSQLiteiOS (Xcode 8.3, iOS <MAX>)
+      script: make test_framework_GRDBCustomSQLiteiOS_maxTarget
 
-    ## Test GRDBCustomSQLiteiOS (Xcode 8.3, iOS <MINIMUM VERSION>))
-    #- stage: Test GRDB + Custom SQLite
-    #  gemfile: .ci/gemfiles/Gemfile.travis
-    #  osx_image: xcode8.3
-    #  env:
-    #    - TID=GRDBCustomSQLiteiOS (Xcode 8.3, iOS <MIN>)
-    #  script: make test_framework_GRDBCustomSQLiteiOS_minTarget
+    # Test GRDBCustomSQLiteiOS (Xcode 8.3, iOS <MINIMUM VERSION>))
+    - stage: Test GRDB + Custom SQLite
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode8.3
+      env:
+        - TOOLCHAIN=org.swift.4020170524a
+        - TID=GRDBCustomSQLiteiOS (Xcode 8.3, iOS <MIN>)
+      script: make test_framework_GRDBCustomSQLiteiOS_minTarget
 
     ## Test GRDBCustomSQLiteiOS (Xcode 8.1, iOS 10.1)
     #- stage: Test GRDB + Custom SQLite
@@ -144,13 +151,14 @@ jobs:
     ###########################################
     ## Test GRDB (SQLCipher)
 
-    ## Test GRDBCipherOSX (Xcode 8.3)
-    #- stage: Test GRDB + SQLCipher
-    #  gemfile: .ci/gemfiles/Gemfile.travis
-    #  osx_image: xcode8.3
-    #  env:
-    #    - TID=GRDBCipherOSX (Xcode 8.3, macOS 10.12)
-    #  script: make test_framework_GRDBCipherOSX
+    # Test GRDBCipherOSX (Xcode 8.3)
+    - stage: Test GRDB + SQLCipher
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode8.3
+      env:
+        - TOOLCHAIN=org.swift.4020170524a
+        - TID=GRDBCipherOSX (Xcode 8.3, macOS 10.12)
+      script: make test_framework_GRDBCipherOSX
 
     ## Test GRDBCipherOSX (Xcode 8.1)
     #- stage: Test GRDB + SQLCipher
@@ -160,21 +168,23 @@ jobs:
     #    - TID=GRDBCipherOSX (Xcode 8.1, macOS 10.12)
     #  script: make test_framework_GRDBCipherOSX
 
-    ## Test GRDBCipheriOS (Xcode 8.3, iOS <MAXIMUM VERSION>)
-    #- stage: Test GRDB + SQLCipher
-    #  gemfile: .ci/gemfiles/Gemfile.travis
-    #  osx_image: xcode8.3
-    #  env:
-    #    - TID=GRDBCipheriOS (Xcode 8.3, iOS <MAX>)
-    #  script: make test_framework_GRDBCipheriOS_maxTarget
+    # Test GRDBCipheriOS (Xcode 8.3, iOS <MAXIMUM VERSION>)
+    - stage: Test GRDB + SQLCipher
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode8.3
+      env:
+        - TOOLCHAIN=org.swift.4020170524a
+        - TID=GRDBCipheriOS (Xcode 8.3, iOS <MAX>)
+      script: make test_framework_GRDBCipheriOS_maxTarget
 
-    ## Test GRDBCipheriOS (Xcode 8.3, iOS <MINIMUM VERSION>))
-    #- stage: Test GRDB + SQLCipher
-    #  gemfile: .ci/gemfiles/Gemfile.travis
-    #  osx_image: xcode8.3
-    #  env:
-    #    - TID=GRDBCipheriOS (Xcode 8.3, iOS <MIN>)
-    #  script: make test_framework_GRDBCipheriOS_minTarget
+    # Test GRDBCipheriOS (Xcode 8.3, iOS <MINIMUM VERSION>))
+    - stage: Test GRDB + SQLCipher
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode8.3
+      env:
+        - TOOLCHAIN=org.swift.4020170524a
+        - TID=GRDBCipheriOS (Xcode 8.3, iOS <MIN>)
+      script: make test_framework_GRDBCipheriOS_minTarget
 
     ## Test GRDBCipheriOS (Xcode 8.1, iOS 10.1)
     #- stage: Test GRDB + SQLCipher
