@@ -1,23 +1,30 @@
+// swift-tools-version:4.0
 import PackageDescription
 
 let package = Package(
     name: "GRDB",
-    dependencies: [
-        .Package(url: "https://github.com/groue/CSQLite.git", majorVersion: 0, minor: 2)
+    products: [
+        .library(name: "GRDB", targets: ["GRDB"])
     ],
-    exclude: [
-        "DemoApps",
-        "Documentation",
-        "GRDB.xcworkspace",
-        "Playgrounds",
-        "SQLCipher",
-        "SQLiteCustom",
-        "Support",
-        "Tests/Carthage",
-        "Tests/CocoaPods",
-        "Tests/Crash",
-        "Tests/GRDBCipher",
-        "Tests/Performance",
-        "Tests/SPM"
-    ]
+    dependencies: [
+        .package(url: "https://github.com/groue/CSQLite.git", from: "0.2.0")
+    ],
+    targets: [
+        .target(name: "GRDB",
+                dependencies: [],
+                path: "GRDB"),
+        .testTarget(name: "GRDBTests",
+                    dependencies: ["GRDB"],
+                    path: "Tests",
+                    exclude: [
+                        "Carthage",
+                        "CocoaPods",
+                        "Crash",
+                        "GRDBCipher",
+                        "Performance",
+                        "SPM"
+                    ]
+            ),
+    ],
+    swiftLanguageVersions: [4]
 )
