@@ -7,7 +7,7 @@ import XCTest
     import GRDB
 #endif
 
-private enum Color: String, Decodable, DatabaseValueConvertible {
+private enum Color: String, DatabaseValueConvertible, Decodable {
     case red, green, blue
 }
 

@@ -160,7 +160,7 @@ struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtocol
     /// - throws: `DecodingError.keyNotFound` if `self` does not have an entry for the given key.
     /// - throws: `DecodingError.valueNotFound` if `self` has a null entry for the given key.
     func superDecoder(forKey key: Key) throws -> Decoder {
-        preconditionFailure("Not implemented")
+        fatalError("Not implemented")
     }
 }
 
