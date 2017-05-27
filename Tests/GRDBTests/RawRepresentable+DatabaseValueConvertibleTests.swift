@@ -7,25 +7,25 @@ import XCTest
     import GRDB
 #endif
 
-enum Color32 : Int32 {
+private enum Color32 : Int32 {
     case red
     case white
     case rose
 }
 
-enum Color64 : Int64 {
+private enum Color64 : Int64 {
     case red
     case white
     case rose
 }
 
-enum Color : Int {
+private enum Color : Int {
     case red
     case white
     case rose
 }
 
-enum Grape : String {
+private enum Grape : String {
     case chardonnay
     case merlot
     case riesling
