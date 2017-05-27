@@ -14,21 +14,21 @@ class DatabaseMigratorTests : GRDBTestCase {
         
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
-            try db.execute(
-                "CREATE TABLE persons (" +
-                    "id INTEGER PRIMARY KEY, " +
-                    "name TEXT" +
-                ")")
+            try db.execute("""
+                CREATE TABLE persons (
+                    id INTEGER PRIMARY KEY,
+                    name TEXT)
+                """)
         }
         migrator.registerMigration("createPets") { db in
-            try db.execute(
-                "CREATE TABLE pets (" +
-                    "id INTEGER PRIMARY KEY, " +
-                    "masterID INTEGER NOT NULL " +
-                    "         REFERENCES persons(id) " +
-                    "         ON DELETE CASCADE ON UPDATE CASCADE, " +
-                    "name TEXT" +
-                ")")
+            try db.execute("""
+                CREATE TABLE pets (
+                    id INTEGER PRIMARY KEY,
+                    masterID INTEGER NOT NULL
+                             REFERENCES persons(id)
+                             ON DELETE CASCADE ON UPDATE CASCADE,
+                    name TEXT)
+                """)
         }
         
         try migrator.migrate(dbQueue)
@@ -53,21 +53,21 @@ class DatabaseMigratorTests : GRDBTestCase {
         
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
-            try db.execute(
-                "CREATE TABLE persons (" +
-                    "id INTEGER PRIMARY KEY, " +
-                    "name TEXT" +
-                ")")
+            try db.execute("""
+                CREATE TABLE persons (
+                    id INTEGER PRIMARY KEY,
+                    name TEXT)
+                """)
         }
         migrator.registerMigration("createPets") { db in
-            try db.execute(
-                "CREATE TABLE pets (" +
-                    "id INTEGER PRIMARY KEY, " +
-                    "masterID INTEGER NOT NULL " +
-                    "         REFERENCES persons(id) " +
-                    "         ON DELETE CASCADE ON UPDATE CASCADE, " +
-                    "name TEXT" +
-                ")")
+            try db.execute("""
+                CREATE TABLE pets (
+                    id INTEGER PRIMARY KEY,
+                    masterID INTEGER NOT NULL
+                             REFERENCES persons(id)
+                             ON DELETE CASCADE ON UPDATE CASCADE,
+                    name TEXT)
+                """)
         }
         
         try migrator.migrate(dbPool)

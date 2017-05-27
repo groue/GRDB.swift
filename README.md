@@ -78,18 +78,20 @@ let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
 
 ```swift
 try dbQueue.inDatabase { db in
-    try db.execute(
-        "CREATE TABLE pointOfInterests (" +
-            "id INTEGER PRIMARY KEY, " +
-            "title TEXT NOT NULL, " +
-            "favorite BOOLEAN NOT NULL DEFAULT 0, " +
-            "latitude DOUBLE NOT NULL, " +
-            "longitude DOUBLE NOT NULL" +
-        ")")
+    try db.execute("""
+        CREATE TABLE pointOfInterests (
+            id INTEGER PRIMARY KEY, 
+            title TEXT NOT NULL, 
+            favorite BOOLEAN NOT NULL DEFAULT 0, 
+            latitude DOUBLE NOT NULL, 
+            longitude DOUBLE NOT NULL)
+        """)
 
-    try db.execute(
-        "INSERT INTO pointOfInterests (title, favorite, latitude, longitude) " +
-        "VALUES (?, ?, ?, ?)",
+    try db.execute("""
+        INSERT INTO pointOfInterests
+            (title, favorite, latitude, longitude) 
+            VALUES (?, ?, ?, ?)
+        """,
         arguments: ["Paris", true, 48.85341, 2.3488])
     
     let parisId = db.lastInsertedRowID
@@ -491,21 +493,22 @@ For example:
 
 ```swift
 try dbQueue.inDatabase { db in
-    try db.execute(
-        "CREATE TABLE persons (" +
-            "id INTEGER PRIMARY KEY," +
-            "name TEXT NOT NULL," +
-            "age INT" +
-        ")")
+    try db.execute("""
+        CREATE TABLE persons (
+            id INTEGER PRIMARY KEY,
+            name TEXT NOT NULL,
+            age INT)
+        """)
 
     try db.execute(
         "INSERT INTO persons (name, age) VALUES (:name, :age)",
         arguments: ["name": "Barbara", "age": 39])
 
     // Join multiple statements with a semicolon:
-    try db.execute(
-        "INSERT INTO persons (name, age) VALUES (?, ?); " +
-        "INSERT INTO persons (name, age) VALUES (?, ?)",
+    try db.execute("""
+        INSERT INTO persons (name, age) VALUES (?, ?);
+        INSERT INTO persons (name, age) VALUES (?, ?)
+        """,
         arguments: ["Arthur", 36, "Barbara", 39])
 }
 ```
@@ -3323,10 +3326,11 @@ struct BookAuthorPair : RowConvertible {
     }
     
     static func all() -> AnyTypedRequest<BookAuthorPair> {
-        return SQLRequest(
-            "SELECT books.*, authors.* " +
-            "FROM books " +
-            "JOIN authors ON authors.id = books.authorID")
+        return SQLRequest("""
+            SELECT books.*, authors.* 
+            FROM books 
+            JOIN authors ON authors.id = books.authorID
+            """)
             .asRequest(of: BookAuthorPair.self)
             .adapted { db in
                 try ScopeAdapter([
@@ -3997,11 +4001,13 @@ let books = Book.matching(pattern).fetchAll(db)
 The solution is to perform a joined request, using raw SQL:
 
 ```swift
-let sql = "SELECT books.* " +
-          "FROM books " +
-          "JOIN books_ft ON " +
-          "books_ft.rowid = books.rowid AND " +
-          "books_ft MATCH ?"
+let sql = """
+    SELECT books.*
+    FROM books
+    JOIN books_ft ON
+        books_ft.rowid = books.rowid AND
+        books_ft MATCH ?
+    """
 let books = Book.fetchAll(db, sql, arguments: [pattern])
 ```
 
@@ -4304,13 +4310,13 @@ let controller = FetchedRecordsController<Person>(
 The fetch request can involve several database tables. The fetched records controller will only track changes in the columns and tables used by the fetch request.
 
 ```swift
-let controller = FetchedRecordsController<Person>(
-    dbQueue,
-    sql: "SELECT persons.name, COUNT(books.id) AS bookCount " +
-         "FROM persons " +
-         "LEFT JOIN books ON books.authorId = persons.id " +
-         "GROUP BY persons.id " +
-         "ORDER BY persons.name")
+let controller = FetchedRecordsController<Person>(dbQueue, sql: """
+    SELECT persons.name, COUNT(books.id) AS bookCount
+    FROM persons
+    LEFT JOIN books ON books.authorId = persons.id
+    GROUP BY persons.id
+    ORDER BY persons.name
+    """)
 ```
 
 
@@ -5455,10 +5461,12 @@ for author in authors {
 Instead, perform *a single query*:
 
 ```swift
-let sql = "SELECT authors.*, COUNT(books.id) AS bookCount " +
-          "FROM authors " +
-          "LEFT JOIN books ON books.authorId = authors.id " +
-          "GROUP BY authors.id"
+let sql = """
+    SELECT authors.*, COUNT(books.id) AS bookCount
+    FROM authors
+    LEFT JOIN books ON books.authorId = authors.id
+    GROUP BY authors.id
+    """
 let authors = try Author.fetchAll(db, sql)
 ```
 

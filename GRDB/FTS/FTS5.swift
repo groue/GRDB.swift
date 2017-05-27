@@ -110,21 +110,24 @@
                     .map { "old.\($0.quotedDatabaseIdentifier)" }
                     .joined(separator: ", ")
                 
-                try db.execute(
-                    "CREATE TRIGGER \("__\(contentTable)_ai".quotedDatabaseIdentifier) AFTER INSERT ON \(content) BEGIN " +
-                        "INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES (\(newContentColumns)); " +
-                    "END")
+                try db.execute("""
+                    CREATE TRIGGER \("__\(contentTable)_ai".quotedDatabaseIdentifier) AFTER INSERT ON \(content) BEGIN
+                        INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES (\(newContentColumns));
+                    END
+                    """)
                 
-                try db.execute(
-                    "CREATE TRIGGER \("__\(contentTable)_ad".quotedDatabaseIdentifier) AFTER DELETE ON \(content) BEGIN " +
-                        "INSERT INTO \(ftsTable)(\(ftsTable), \(ftsColumns)) VALUES('delete', \(oldContentColumns)); " +
-                    "END")
+                try db.execute("""
+                    CREATE TRIGGER \("__\(contentTable)_ad".quotedDatabaseIdentifier) AFTER DELETE ON \(content) BEGIN
+                        INSERT INTO \(ftsTable)(\(ftsTable), \(ftsColumns)) VALUES('delete', \(oldContentColumns));
+                    END
+                    """)
                 
-                try db.execute(
-                    "CREATE TRIGGER \("__\(contentTable)_au".quotedDatabaseIdentifier) AFTER UPDATE ON \(content) BEGIN " +
-                        "INSERT INTO \(ftsTable)(\(ftsTable), \(ftsColumns)) VALUES('delete', \(oldContentColumns)); " +
-                        "INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES (\(newContentColumns)); " +
-                    "END")
+                try db.execute("""
+                    CREATE TRIGGER \("__\(contentTable)_au".quotedDatabaseIdentifier) AFTER UPDATE ON \(content) BEGIN
+                        INSERT INTO \(ftsTable)(\(ftsTable), \(ftsColumns)) VALUES('delete', \(oldContentColumns));
+                        INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES (\(newContentColumns));
+                    END
+                    """)
                 
                 // https://sqlite.org/fts5.html#the_rebuild_command
                 

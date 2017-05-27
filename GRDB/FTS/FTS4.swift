@@ -110,25 +110,29 @@ public struct FTS4 : VirtualTableModule {
             
             let oldRowID = "old.\(rowIDColumn.quotedDatabaseIdentifier)"
             
-            try db.execute(
-                "CREATE TRIGGER \("__\(contentTable)_bu".quotedDatabaseIdentifier) BEFORE UPDATE ON \(content) BEGIN " +
-                    "DELETE FROM \(ftsTable) WHERE docid=\(oldRowID); " +
-                "END")
+            try db.execute("""
+                CREATE TRIGGER \("__\(contentTable)_bu".quotedDatabaseIdentifier) BEFORE UPDATE ON \(content) BEGIN
+                    DELETE FROM \(ftsTable) WHERE docid=\(oldRowID);
+                END
+                """)
             
-            try db.execute(
-                "CREATE TRIGGER \("__\(contentTable)_bd".quotedDatabaseIdentifier) BEFORE DELETE ON \(content) BEGIN " +
-                    "DELETE FROM \(ftsTable) WHERE docid=\(oldRowID); " +
-                "END")
+            try db.execute("""
+                CREATE TRIGGER \("__\(contentTable)_bd".quotedDatabaseIdentifier) BEFORE DELETE ON \(content) BEGIN
+                    DELETE FROM \(ftsTable) WHERE docid=\(oldRowID);
+                END
+                """)
             
-            try db.execute(
-                "CREATE TRIGGER \("__\(contentTable)_au".quotedDatabaseIdentifier) AFTER UPDATE ON \(content) BEGIN " +
-                    "INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES(\(newContentColumns)); " +
-                "END")
+            try db.execute("""
+                CREATE TRIGGER \("__\(contentTable)_au".quotedDatabaseIdentifier) AFTER UPDATE ON \(content) BEGIN
+                    INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES(\(newContentColumns));
+                END
+                """)
             
-            try db.execute(
-                "CREATE TRIGGER \("__\(contentTable)_ai".quotedDatabaseIdentifier) AFTER INSERT ON \(content) BEGIN " +
-                    "INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES(\(newContentColumns)); " +
-                "END")
+            try db.execute("""
+                CREATE TRIGGER \("__\(contentTable)_ai".quotedDatabaseIdentifier) AFTER INSERT ON \(content) BEGIN
+                    INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES(\(newContentColumns));
+                END
+                """)
             
             // https://www.sqlite.org/fts3.html#*fts4rebuidcmd
             

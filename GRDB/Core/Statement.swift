@@ -18,7 +18,9 @@ public class Statement {
     
     /// The SQL query
     public var sql: String {
+        // trim white space and semicolumn for homogeneous output
         return String(cString: sqlite3_sql(sqliteStatement))
+            .trimmingCharacters(in: CharacterSet(charactersIn: ";").union(.whitespacesAndNewlines))
     }
     
     /// The database

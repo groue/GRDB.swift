@@ -21,13 +21,13 @@ private class Citizenship : Record {
     }
     
     static func setup(inDatabase db: Database) throws {
-        try db.execute(
-            "CREATE TABLE citizenships (" +
-                "personName TEXT NOT NULL, " +
-                "countryName TEXT NOT NULL, " +
-                "native BOOLEAN NOT NULL, " +
-                "PRIMARY KEY (personName, countryName)" +
-            ")")
+        try db.execute("""
+            CREATE TABLE citizenships (
+                personName TEXT NOT NULL,
+                countryName TEXT NOT NULL,
+                native BOOLEAN NOT NULL,
+                PRIMARY KEY (personName, countryName))
+            """)
     }
     
     // Record

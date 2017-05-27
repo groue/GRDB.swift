@@ -18,11 +18,11 @@ class Email : Record {
     }
     
     static func setup(inDatabase db: Database) throws {
-        try db.execute(
-            "CREATE TABLE emails (" +
-                "email TEXT NOT NULL PRIMARY KEY ON CONFLICT REPLACE, " +
-                "label TEXT " +
-            ")")
+        try db.execute("""
+            CREATE TABLE emails (
+                email TEXT NOT NULL PRIMARY KEY ON CONFLICT REPLACE,
+                label TEXT)
+            """)
     }
     
     // Record

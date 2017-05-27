@@ -453,13 +453,13 @@ class FetchedRecordsControllerTests: GRDBTestCase {
 
     func testSideTableChange() throws {
         let dbQueue = try makeDatabaseQueue()
-        let controller = try FetchedRecordsController<Person>(
-            dbQueue,
-            sql: ("SELECT persons.*, COUNT(books.id) AS bookCount " +
-                "FROM persons " +
-                "LEFT JOIN books ON books.authorId = persons.id " +
-                "GROUP BY persons.id " +
-                "ORDER BY persons.name"))
+        let controller = try FetchedRecordsController<Person>(dbQueue, sql: """
+            SELECT persons.*, COUNT(books.id) AS bookCount
+            FROM persons
+            LEFT JOIN books ON books.authorId = persons.id
+            GROUP BY persons.id
+            ORDER BY persons.name
+            """)
         let recorder = ChangesRecorder<Person>()
         controller.trackChanges(
             willChange: { recorder.controllerWillChange($0) },

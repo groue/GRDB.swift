@@ -11,23 +11,23 @@
 ///
 ///     // v1.0 database
 ///     migrator.registerMigration("createPersons") { db in
-///         try db.execute(
-///             "CREATE TABLE persons (" +
-///                 "id INTEGER PRIMARY KEY, " +
-///                 "creationDate TEXT, " +
-///                 "name TEXT NOT NULL" +
-///             ")")
+///         try db.execute("""
+///             CREATE TABLE persons (
+///                 id INTEGER PRIMARY KEY,
+///                 creationDate TEXT,
+///                 name TEXT NOT NULL)
+///             """)
 ///     }
 ///
 ///     migrator.registerMigration("createBooks") { db in
-///         try db.execute(
-///             "CREATE TABLE books (" +
-///                 "uuid TEXT PRIMARY KEY, " +
-///                 "ownerID INTEGER NOT NULL " +
-///                 "        REFERENCES persons(id) " +
-///                 "        ON DELETE CASCADE ON UPDATE CASCADE, " +
-///                 "title TEXT NOT NULL" +
-///             ")")
+///         try db.execute("""
+///             CREATE TABLE books (
+///                 uuid TEXT PRIMARY KEY,
+///                 ownerID INTEGER NOT NULL
+///                         REFERENCES persons(id)
+///                         ON DELETE CASCADE ON UPDATE CASCADE,
+///                 title TEXT NOT NULL)
+///             """)
 ///     }
 ///
 ///     // v2.0 database
@@ -45,12 +45,12 @@ public struct DatabaseMigrator {
     /// Registers a migration.
     ///
     ///     migrator.registerMigration("createPersons") { db in
-    ///         try db.execute(
-    ///             "CREATE TABLE persons (" +
-    ///                 "id INTEGER PRIMARY KEY, " +
-    ///                 "creationDate TEXT, " +
-    ///                 "name TEXT NOT NULL" +
-    ///             ")")
+    ///         try db.execute("""
+    ///             CREATE TABLE persons (
+    ///                 id INTEGER PRIMARY KEY,
+    ///                 creationDate TEXT,
+    ///                 name TEXT NOT NULL)
+    ///             """)
     ///     }
     ///
     /// - parameters:
@@ -66,11 +66,12 @@ public struct DatabaseMigrator {
         ///
         ///     // Add a NOT NULL constraint on persons.name:
         ///     migrator.registerMigrationWithDeferredForeignKeyCheck("AddNotNullCheckOnName") { db in
-        ///         try db.execute(
-        ///             "CREATE TABLE new_persons (id INTEGER PRIMARY KEY, name TEXT NOT NULL);" +
-        ///             "INSERT INTO new_persons SELECT * FROM persons;" +
-        ///             "DROP TABLE persons;" +
-        ///             "ALTER TABLE new_persons RENAME TO persons;")
+        ///         try db.execute("""
+        ///             CREATE TABLE new_persons (id INTEGER PRIMARY KEY, name TEXT NOT NULL);
+        ///             INSERT INTO new_persons SELECT * FROM persons;
+        ///             DROP TABLE persons;
+        ///             ALTER TABLE new_persons RENAME TO persons;
+        ///             """)
         ///     }
         ///
         /// While your migration code runs with disabled foreign key checks, those
@@ -90,11 +91,12 @@ public struct DatabaseMigrator {
         ///
         ///     // Add a NOT NULL constraint on persons.name:
         ///     migrator.registerMigrationWithDeferredForeignKeyCheck("AddNotNullCheckOnName") { db in
-        ///         try db.execute(
-        ///             "CREATE TABLE new_persons (id INTEGER PRIMARY KEY, name TEXT NOT NULL);" +
-        ///             "INSERT INTO new_persons SELECT * FROM persons;" +
-        ///             "DROP TABLE persons;" +
-        ///             "ALTER TABLE new_persons RENAME TO persons;")
+        ///         try db.execute("""
+        ///             CREATE TABLE new_persons (id INTEGER PRIMARY KEY, name TEXT NOT NULL);
+        ///             INSERT INTO new_persons SELECT * FROM persons;
+        ///             DROP TABLE persons;
+        ///             ALTER TABLE new_persons RENAME TO persons;
+        ///             """)
         ///     }
         ///
         /// While your migration code runs with disabled foreign key checks, those

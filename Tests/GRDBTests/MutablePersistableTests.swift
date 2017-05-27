@@ -90,17 +90,15 @@ class MutablePersistableTests: GRDBTestCase {
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("setUp") { db in
-            try db.execute(
-                "CREATE TABLE persons (" +
-                    "id INTEGER PRIMARY KEY, " +
-                    "name NOT NULL, " +
-                    "age INTEGER" +
-                ")")
-            try db.execute(
-                "CREATE TABLE countries (" +
-                    "isoCode TEXT NOT NULL PRIMARY KEY, " +
-                    "name TEXT NOT NULL " +
-                ")")
+            try db.execute("""
+                CREATE TABLE persons (
+                    id INTEGER PRIMARY KEY,
+                    name NOT NULL,
+                    age INTEGER);
+                CREATE TABLE countries (
+                    isoCode TEXT NOT NULL PRIMARY KEY,
+                    name TEXT NOT NULL)
+                """)
         }
         try migrator.migrate(dbWriter)
     }

@@ -19,11 +19,11 @@ class Pet : Record {
     }
     
     static func setup(inDatabase db: Database) throws {
-        try db.execute(
-            "CREATE TABLE pets (" +
-                "UUID TEXT NOT NULL PRIMARY KEY, " +
-                "name TEXT NOT NULL" +
-            ")")
+        try db.execute("""
+            CREATE TABLE pets (
+                UUID TEXT NOT NULL PRIMARY KEY,
+                name TEXT NOT NULL)
+            """)
     }
     
     // Record

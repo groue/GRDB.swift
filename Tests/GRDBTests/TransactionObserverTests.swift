@@ -98,11 +98,11 @@ private class Artist : Record {
     }
     
     static func setup(inDatabase db: Database) throws {
-        try db.execute(
-            "CREATE TABLE artists (" +
-                "id INTEGER PRIMARY KEY, " +
-                "name TEXT" +
-            ")")
+        try db.execute("""
+            CREATE TABLE artists (
+                id INTEGER PRIMARY KEY,
+                name TEXT)
+            """)
     }
     
     // Record
@@ -139,12 +139,12 @@ private class Artwork : Record {
     }
     
     static func setup(inDatabase db: Database) throws {
-        try db.execute(
-            "CREATE TABLE artworks (" +
-                "id INTEGER PRIMARY KEY, " +
-                "artistId INTEGER NOT NULL REFERENCES artists(id) ON DELETE CASCADE ON UPDATE CASCADE, " +
-                "title TEXT" +
-            ")")
+        try db.execute("""
+            CREATE TABLE artworks (
+                id INTEGER PRIMARY KEY,
+                artistId INTEGER NOT NULL REFERENCES artists(id) ON DELETE CASCADE ON UPDATE CASCADE,
+                title TEXT)
+            """)
     }
     
     // Record
