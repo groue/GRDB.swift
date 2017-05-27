@@ -94,13 +94,14 @@ jobs:
     #    - TID=GRDBiOS (Xcode 8.1, iOS 10.1)
     #  script: make test_framework_GRDBiOS_maxTarget
 
-    ## Test GRDB [SPM] (Xcode 8.3, macOS 10.12)
-    #- stage: Test GRDB
-    #  gemfile: .ci/gemfiles/Gemfile.travis
-    #  osx_image: xcode8.3
-    #  env:
-    #    - TID=GRDB [SPM] (Xcode 8.3, macOS 10.12)
-    #  script: make test_SPM
+    # Test GRDB [SPM] (Xcode 8.3, macOS 10.12)
+    - stage: Test GRDB
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode8.3
+      env:
+        - TOOLCHAIN=org.swift.4020170524a
+        - TID=GRDB [SPM] (Xcode 8.3, macOS 10.12)
+      script: make test_SPM
 
     ###########################################
     ## Test GRDB (Custom SQLite)
