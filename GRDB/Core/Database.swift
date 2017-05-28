@@ -2368,7 +2368,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
             return impl.copy(self)
         }
         
-        private init(kind: Kind, initialRowID: Int64?, finalRowID: Int64?, impl: DatabasePreUpdateEventImpl) {
+        fileprivate init(kind: Kind, initialRowID: Int64?, finalRowID: Int64?, impl: DatabasePreUpdateEventImpl) {
             self.kind = kind
             self.initialRowID = (kind == .update || kind == .delete ) ? initialRowID : nil
             self.finalRowID = (kind == .update || kind == .insert ) ? finalRowID : nil
