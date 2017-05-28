@@ -7,6 +7,7 @@
 #   ./install_swift_toolchain.sh https://swift.org/builds/swift-4.0-branch/xcode/swift-4.0-DEVELOPMENT-SNAPSHOT-2017-05-24-a/swift-4.0-DEVELOPMENT-SNAPSHOT-2017-05-24-a-osx.pkg
 #
 
+
 ####################################################
 # Swift Toolchain PKG certificate SHA1 fingerprints
 #
@@ -24,8 +25,7 @@ SWIFT_TOOLCHAIN_CERT_3="61 1E 5B 66 2C 59 3A 08 FF 58 D1 4A E2 24 52 D1 98 DF 6C
 
 ####################################################
 
-#set -e
-#set -o xtrace
+
 
 PKGUTIL=$(command -v pkgutil)
 PLISTBUDDY=/usr/libexec/PlistBuddy
@@ -133,5 +133,3 @@ echo "Swift Toolchain installation complete."
 
 ###########
 
-
-#set +e
