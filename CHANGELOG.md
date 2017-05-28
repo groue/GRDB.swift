@@ -7,7 +7,7 @@ Released May 28, 2017
 
 **New**
 
-- Upgrade custom SQLite builds to [v3.19.0](http://www.sqlite.org/changes.html) (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib)).
+- Upgrade custom SQLite builds to [v3.19.2](http://www.sqlite.org/changes.html) (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib)).
 - Upgrade SQLCipher to v3.4.1 ([announcement](https://discuss.zetetic.net/t/sqlcipher-3-4-1-release/1962), [changelog](https://github.com/sqlcipher/sqlcipher/blob/master/CHANGELOG.md))
 - A [large test suite](https://travis-ci.org/groue/GRDB.swift) that runs on Travis-CI, thanks to [@swiftlyfalling](https://github.com/swiftlyfalling) in [PR #213](https://github.com/groue/GRDB.swift/pull/213)
 
