@@ -22,7 +22,7 @@ CARTHAGE := $(shell command -v carthage)
 GIT := $(shell command -v git)
 JAZZY := $(shell command -v jazzy)
 POD := $(shell command -v pod)
-SWIFT := $(shell command -v swift)
+XCRUN := $(shell command -v xcrun)
 XCODEBUILD := set -o pipefail && $(shell command -v xcodebuild)
 
 # Xcode Version Information
@@ -72,6 +72,24 @@ ifdef XCPRETTY_PATH
 	ifeq ($(TRAVIS),true)
 		XCPRETTY += -f `xcpretty-travis-formatter`
 	endif
+endif
+
+ifdef TOOLCHAIN
+	# If TOOLCHAIN is specified, add xcodebuild parameter
+	XCODEBUILD += -toolchain $(TOOLCHAIN)
+
+	# If TOOLCHAIN is specified, get the location of the toolchain’s SWIFT
+	TOOLCHAINSWIFT = $(shell $(XCRUN) --toolchain '$(TOOLCHAIN)' --find swift 2> /dev/null)
+	ifdef TOOLCHAINSWIFT
+		# Update the SWIFT path to the toolchain’s SWIFT
+		SWIFT = $(TOOLCHAINSWIFT)
+	else
+		@echo Cannot find `swift` for specified toolchain.
+		@exit 1
+	endif
+else
+	# If TOOLCHAIN is not specified, use standard Swift
+	SWIFT = $(shell $(XCRUN) --find swift 2> /dev/null)
 endif
 
 # We test framework test suites, and if GRBD can be installed in an application:
