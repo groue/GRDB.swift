@@ -9,6 +9,10 @@ Release Notes
 - Upgrade SQLCipher to v3.4.1 ([announcement](https://discuss.zetetic.net/t/sqlcipher-3-4-1-release/1962), [changelog](https://github.com/sqlcipher/sqlcipher/blob/master/CHANGELOG.md))
 - A [large test suite](https://travis-ci.org/groue/GRDB.swift) that runs on Travis-CI, thanks to [@swiftlyfalling](https://github.com/swiftlyfalling) in [PR #213](https://github.com/groue/GRDB.swift/pull/213)
 
+**Fixed**
+
+- Remove deprecation warning about `sqlite3_trace`() for [custom SQLite builds](https://github.com/groue/GRDB.swift/blob/master/Documentation/CustomSQLiteBuilds.md) (addresses [#100](https://github.com/groue/GRDB.swift/issues/100))
+
 
 ## 0.109.0
 
