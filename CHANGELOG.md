@@ -6,6 +6,7 @@ Release Notes
 **New**
 
 - Upgrade custom SQLite builds to [v3.19.0](http://www.sqlite.org/changes.html) (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib)).
+- Upgrade SQLCipher to v3.4.1 ([announcement](https://discuss.zetetic.net/t/sqlcipher-3-4-1-release/1962), [changelog](https://github.com/sqlcipher/sqlcipher/blob/master/CHANGELOG.md))
 
 
 ## 0.109.0
