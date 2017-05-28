@@ -23,9 +23,6 @@ git:
 #    for the job. For example:
 #       script: make test_framework_GRDBOSX TOOLCHAIN=org.swift.4020170524a
 #
-# 3. Consider temporarily disabling / commenting-out some of the jobs, as
-#    every job must download the full toolchain (several hundred MB) from swift.org.
-#
 install:
   - .ci/scripts/install_swift_toolchain.sh https://swift.org/builds/swift-4.0-branch/xcode/swift-4.0-DEVELOPMENT-SNAPSHOT-2017-05-24-a/swift-4.0-DEVELOPMENT-SNAPSHOT-2017-05-24-a-osx.pkg
 
