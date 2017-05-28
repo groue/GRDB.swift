@@ -195,21 +195,23 @@ jobs:
     ###########################################
     ## Test Installation Methods
 
-    ## Manual Install
-    #- stage: Test Installation
-    #  gemfile: .ci/gemfiles/Gemfile.travis
-    #  osx_image: xcode8.3
-    #  env:
-    #    - TID=Manual Install
-    #  script: make test_install_manual
+    # Manual Install
+    - stage: Test Installation
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode8.3
+      env:
+        - TOOLCHAIN=org.swift.4020170524a
+        - TID=Manual Install
+      script: make test_install_manual
 
-    ## Manual Install (GRDBCipher)
-    #- stage: Test Installation
-    #  gemfile: .ci/gemfiles/Gemfile.travis
-    #  osx_image: xcode8.3
-    #  env:
-    #    - TID=Manual Install (GRDBCipher)
-    #  script: make test_install_GRDBCipher
+    # Manual Install (GRDBCipher)
+    - stage: Test Installation
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode8.3
+      env:
+        - TOOLCHAIN=org.swift.4020170524a
+        - TID=Manual Install (GRDBCipher)
+      script: make test_install_GRDBCipher
 
     ## Cocoapods Lint
     #- stage: Test Installation
