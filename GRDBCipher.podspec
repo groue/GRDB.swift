@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
 	s.name     = 'GRDBCipher'
-	s.version  = '0.109.0'
+	s.version  = '0.110.0'
 	
 	s.license  = { :type => 'MIT', :file => 'LICENSE' }
 	s.summary  = 'A Swift application toolkit for SQLite databases.'
@@ -21,5 +21,5 @@ Pod::Spec.new do |s|
 		'GCC_PREPROCESSOR_DEFINITIONS' => '$(inherited) SQLITE_HAS_CODEC=1'
 	}
 	s.framework = 'Foundation'
-	s.dependency 'SQLCipher', '~> 3.4.0'
+	s.dependency 'SQLCipher', '~> 3.4.1'
 end
