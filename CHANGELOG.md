@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Version
+
+**Breaking Changes**
+
+- `DatabaseCoder` has been removed.
+
+
 ## 0.110.0
 
 Released May 28, 2017
