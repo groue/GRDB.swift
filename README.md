@@ -813,14 +813,14 @@ Generally speaking, you can extract the type you need, *provided it can be conve
 You get DatabaseValue just like other value types:
 
 ```swift
-let dbv: DatabaseValue = row.value(atIndex: 0)
-let dbv: DatabaseValue = row.value(named: "name")
+let dbValue: DatabaseValue = row.value(atIndex: 0)
+let dbValue: DatabaseValue = row.value(named: "name")
 
 // Check for NULL:
-dbv.isNull // Bool
+dbValue.isNull // Bool
 
 // All the five storage classes supported by SQLite:
-switch dbv.storage {
+switch dbValue.storage {
 case .null:                 print("NULL")
 case .int64(let int64):     print("Int64: \(int64)")
 case .double(let double):   print("Double: \(double)")
@@ -832,24 +832,24 @@ case .blob(let data):       print("Data: \(data)")
 You can extract regular [values](#values) (Bool, Int, String, Date, Swift enums, etc.) from DatabaseValue with the [DatabaseValueConvertible.fromDatabaseValue()](#custom-value-types) method:
 
 ```swift
-let dbv: DatabaseValue = row.value(named: "bookCount")
-let bookCount   = Int.fromDatabaseValue(dbv)   // Int?
-let bookCount64 = Int64.fromDatabaseValue(dbv) // Int64?
-let hasBooks    = Bool.fromDatabaseValue(dbv)  // Bool?, false when 0
+let dbValue: DatabaseValue = row.value(named: "bookCount")
+let bookCount   = Int.fromDatabaseValue(dbValue)   // Int?
+let bookCount64 = Int64.fromDatabaseValue(dbValue) // Int64?
+let hasBooks    = Bool.fromDatabaseValue(dbValue)  // Bool?, false when 0
 
-let dbv: DatabaseValue = row.value(named: "date")
-let string = String.fromDatabaseValue(dbv)     // "2015-09-11 18:14:15.123"
-let date   = Date.fromDatabaseValue(dbv)       // Date?
+let dbValue: DatabaseValue = row.value(named: "date")
+let string = String.fromDatabaseValue(dbValue)     // "2015-09-11 18:14:15.123"
+let date   = Date.fromDatabaseValue(dbValue)       // Date?
 ```
 
 `fromDatabaseValue` returns nil for invalid conversions:
 
 ```swift
 let row = try Row.fetchOne(db, "SELECT 'Mom’s birthday'")!
-let dbv: DatabaseValue = row.value(at: 0)
-let string = String.fromDatabaseValue(dbv) // "Mom’s birthday"
-let int    = Int.fromDatabaseValue(dbv)    // nil
-let date   = Date.fromDatabaseValue(dbv)   // nil
+let dbValue: DatabaseValue = row.value(at: 0)
+let string = String.fromDatabaseValue(dbValue) // "Mom’s birthday"
+let int    = Int.fromDatabaseValue(dbValue)    // nil
+let date   = Date.fromDatabaseValue(dbValue)   // nil
 ```
 
 This turns out useful when you process untrusted databases. Compare:
@@ -865,8 +865,8 @@ let date = Date.fromDatabaseValue(row.value(atIndex: 0)) // nil
 Row adopts the standard [Collection](https://developer.apple.com/reference/swift/collection) protocol, and can be seen as a dictionary of [DatabaseValue](#databasevalue):
 
 ```swift
-// All the (columnName, databaseValue) tuples, from left to right:
-for (columnName, databaseValue) in row {
+// All the (columnName, dbValue) tuples, from left to right:
+for (columnName, dbValue) in row {
     ...
 }
 ```
@@ -886,7 +886,7 @@ let row = try Row.fetchOne(db, "SELECT 1 AS foo, 2 AS foo")!
 row.columnNames         // ["foo", "foo"]
 row.databaseValues      // [1, 2]
 row.value(named: "foo") // 1 (leftmost matching column)
-for (columnName, databaseValue) in row { ... } // ("foo", 1), ("foo", 2)
+for (columnName, dbValue) in row { ... } // ("foo", 1), ("foo", 2)
 ```
 
 
@@ -1297,8 +1297,8 @@ protocol DatabaseValueConvertible {
     /// Returns a value that can be stored in the database.
     var databaseValue: DatabaseValue { get }
     
-    /// Returns a value initialized from databaseValue, if possible.
-    static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self?
+    /// Returns a value initialized from dbValue, if possible.
+    static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self?
 }
 ```
 
@@ -1306,7 +1306,7 @@ All types that adopt this protocol can be used like all other [values](#values) 
 
 The `databaseValue` property returns [DatabaseValue](#databasevalue), a type that wraps the five values supported by SQLite: NULL, Int64, Double, String and Data. Since DatabaseValue has no public initializer, use `DatabaseValue.null`, or another type that already adopts the protocol: `1.databaseValue`, `"foo".databaseValue`, etc. Conversion to DatabaseValue *must not* fail.
 
-The `fromDatabaseValue()` factory method returns an instance of your custom type if the databaseValue contains a suitable value. If the databaseValue does not contain a suitable value, such as "foo" for Date, `fromDatabaseValue` *must* return nil (GRDB will interpret this nil result as a conversion error, and react accordingly).
+The `fromDatabaseValue()` factory method returns an instance of your custom type if the database value contains a suitable value. If the database value does not contain a suitable value, such as "foo" for Date, `fromDatabaseValue` *must* return nil (GRDB will interpret this nil result as a conversion error, and react accordingly).
 
 The [GRDB Extension Guide](Documentation/ExtendingGRDB.md) contains sample code that has UIColor adopt DatabaseValueConvertible.
 
@@ -4841,10 +4841,10 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     Solution: fix the contents of the database, or use [DatabaseValue](#databasevalue) to handle all possible cases:
     
     ```swift
-    let dbv: DatabaseValue = row.value(named: "date")
-    if dbv.isNull {
+    let dbValue: DatabaseValue = row.value(named: "date")
+    if dbValue.isNull {
         // Handle NULL
-    if let date = Date.fromDatabaseValue(dbv) {
+    if let date = Date.fromDatabaseValue(dbValue) {
         // Handle valid date
     } else {
         // Handle invalid date
@@ -4912,10 +4912,10 @@ if let arguments = StatementArguments(arguments) {
     var cursor = try Row.fetchCursor(statement)
     while let row = try iterator.next() {
         // Untrusted database content
-        let dbv: DatabaseValue = row.value(atIndex: 0)
-        if dbv.isNull {
+        let dbValue: DatabaseValue = row.value(atIndex: 0)
+        if dbValue.isNull {
             // Handle NULL
-        if let date = Date.fromDatabaseValue(dbv) {
+        if let date = Date.fromDatabaseValue(dbValue) {
             // Handle valid date
         } else {
             // Handle invalid date

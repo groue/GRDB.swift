@@ -8,9 +8,9 @@ extension NSString : DatabaseValueConvertible {
         return (self as String).databaseValue
     }
     
-    /// Returns an NSString initialized from *databaseValue*, if possible.
-    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
-        guard let string = String.fromDatabaseValue(databaseValue) else {
+    /// Returns an NSString initialized from *dbValue*, if possible.
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self? {
+        guard let string = String.fromDatabaseValue(dbValue) else {
             return nil
         }
         return self.init(string: string)

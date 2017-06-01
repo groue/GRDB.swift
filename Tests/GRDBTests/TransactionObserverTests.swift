@@ -185,10 +185,10 @@ class TransactionObserverTests: GRDBTestCase {
     
     private func match(preUpdateEvent event: DatabasePreUpdateEvent, kind: DatabasePreUpdateEvent.Kind, tableName: String, initialRowID: Int64?, finalRowID: Int64?, initialValues: [DatabaseValue]?, finalValues: [DatabaseValue]?, depth: CInt = 0) -> Bool {
     
-        func check(databaseValues values: [DatabaseValue]?, expected: [DatabaseValue]?) -> Bool {
-            if let values = values {
+        func check(_ dbValues: [DatabaseValue]?, expected: [DatabaseValue]?) -> Bool {
+            if let dbValues = dbValues {
                 guard let expected = expected else { return false }
-                return values == expected
+                return dbValues == expected
             }
             else { return expected == nil }
         }
@@ -203,8 +203,8 @@ class TransactionObserverTests: GRDBTestCase {
         guard (event.depth == depth) else { return false }
         guard (event.initialRowID == initialRowID) else { return false }
         guard (event.finalRowID == finalRowID) else { return false }
-        guard check(databaseValues: event.initialDatabaseValues, expected: initialValues) else { return false }
-        guard check(databaseValues: event.finalDatabaseValues, expected: finalValues) else { return false }
+        guard check(event.initialDatabaseValues, expected: initialValues) else { return false }
+        guard check(event.finalDatabaseValues, expected: finalValues) else { return false }
         
         return true
     }

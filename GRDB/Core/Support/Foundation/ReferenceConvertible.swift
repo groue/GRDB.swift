@@ -20,8 +20,8 @@ extension ReferenceConvertible where Self: DatabaseValueConvertible, Self.Refere
         return (self as! ReferenceType).databaseValue
     }
     
-    /// Returns a value initialized from *databaseValue*, if possible.
-    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
-        return ReferenceType.fromDatabaseValue(databaseValue).flatMap { cast($0) }
+    /// Returns a value initialized from *dbValue*, if possible.
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self? {
+        return ReferenceType.fromDatabaseValue(dbValue).flatMap { cast($0) }
     }
 }

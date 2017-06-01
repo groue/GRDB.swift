@@ -45,8 +45,8 @@ class DataMemoryTests: GRDBTestCase {
             }
             
             let row = try Row.fetchOne(db, "SELECT * FROM datas")!
-            let databaseValue = row.first!.1
-            switch databaseValue.storage {
+            let dbValue = row.first!.1
+            switch dbValue.storage {
             case .blob(let data):
                 data.withUnsafeBytes { (dataBytes: UnsafePointer<UInt8>) -> Void in
                     do {

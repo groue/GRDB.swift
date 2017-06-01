@@ -22,9 +22,9 @@ public struct DatabaseCoder: DatabaseValueConvertible {
         return NSKeyedArchiver.archivedData(withRootObject: object).databaseValue
     }
     
-    /// Returns a DatabaseCoder if *databaseValue* contains an archived object.
-    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> DatabaseCoder? {
-        guard let data = Data.fromDatabaseValue(databaseValue) else {
+    /// Returns a DatabaseCoder if *dbValue* contains an archived object.
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> DatabaseCoder? {
+        guard let data = Data.fromDatabaseValue(dbValue) else {
             return nil
         }
         return DatabaseCoder(NSKeyedUnarchiver.unarchiveObject(with: data))

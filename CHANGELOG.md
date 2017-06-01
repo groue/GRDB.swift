@@ -812,8 +812,8 @@ Released September 16, 2016
 - `Row.databaseValue(atIndex:)` and `Row.databaseValue(named:)` have been removed. Use `value(atIndex:)` and `value(named:)` instead:
     
     ```diff
-    -let dbv = row.databaseValue(atIndex: 0)
-    +let dbv: DatabaseValue = row.value(atIndex: 0)
+    -let dbValue = row.databaseValue(atIndex: 0)
+    +let dbValue: DatabaseValue = row.value(atIndex: 0)
     ```
 
 
@@ -918,8 +918,8 @@ Released September 11, 2016
     +    init?(value: Any)
      }
      protocol DatabaseValueConvertible {
-    -    static func fromDatabaseValue(databaseValue: DatabaseValue) -> DatabaseValue?
-    +    static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> DatabaseValue?
+    -    static func fromDatabaseValue(dbValue: DatabaseValue) -> DatabaseValue?
+    +    static func fromDatabaseValue(_ dbValue: DatabaseValue) -> DatabaseValue?
      }
     +extension Data : DatabaseValueConvertible
     +extension Date : DatabaseValueConvertible
@@ -1168,8 +1168,8 @@ Released September 16, 2016
 - `Row.databaseValue(atIndex:)` and `Row.databaseValue(named:)` have been removed. Use `value(atIndex:)` and `value(named:)` instead:
     
     ```diff
-    -let dbv = row.databaseValue(atIndex: 0)
-    +let dbv: DatabaseValue = row.value(atIndex: 0)
+    -let dbValue = row.databaseValue(atIndex: 0)
+    +let dbValue: DatabaseValue = row.value(atIndex: 0)
     ```
     
 
@@ -1657,8 +1657,8 @@ Released May 18, 2016
 - `DatabaseValue.failableValue()` has been removed. Instead, use DatabaseConvertible.fromDatabaseValue():
     
     ```diff
-    -let date = dbv.failableValue() as NSDate?
-    +let date = NSDate.fromDatabaseValue(dbv)
+    -let date = dbValue.failableValue() as NSDate?
+    +let date = NSDate.fromDatabaseValue(dbValue)
     ```
 
 - `Row.databaseValue(named:)` now returns an optional DatabaseValue. It is nil when the column does not exist in the row.
@@ -2769,7 +2769,7 @@ Released September 6, 2015
 **Breaking changes**
 
 - `DatabaseDate` has been removed (replaced by built-in NSDate support).
-- `DatabaseValueConvertible`: `init?(databaseValue:)` has been replaced by `static func fromDatabaseValue(_:) -> Self?`
+- `DatabaseValueConvertible`: `init?(dbValue:)` has been replaced by `static func fromDatabaseValue(_:) -> Self?`
 - `Blob.init(_:)` has been replaced with `Blob.init(data:)` and `Blob.init(dataNoCopy:)`.
 - `RowModel.edited` has been renamed `RowModel.databaseEdited`.
 - `RowModel.databaseTable` has been replaced with `RowModel.databaseTableName()` which returns a String.

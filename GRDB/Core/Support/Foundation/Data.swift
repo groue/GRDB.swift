@@ -11,10 +11,10 @@ extension Data : DatabaseValueConvertible {
         return DatabaseValue(storage: .blob(self))
     }
     
-    /// Returns a Data initialized from *databaseValue*, if it contains
+    /// Returns a Data initialized from *dbValue*, if it contains
     /// a Blob.
-    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Data? {
-        guard case .blob(let data) = databaseValue.storage else {
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Data? {
+        guard case .blob(let data) = dbValue.storage else {
             return nil
         }
         return data

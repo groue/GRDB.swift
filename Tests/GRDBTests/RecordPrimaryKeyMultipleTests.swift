@@ -85,8 +85,8 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             
             let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
             for (key, value) in record.persistentDictionary {
-                if let dbv: DatabaseValue = row.value(named: key) {
-                    XCTAssertEqual(dbv, value?.databaseValue ?? .null)
+                if let dbValue: DatabaseValue = row.value(named: key) {
+                    XCTAssertEqual(dbValue, value?.databaseValue ?? .null)
                 } else {
                     XCTFail("Missing column \(key) in fetched row")
                 }
@@ -118,8 +118,8 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             
             let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
             for (key, value) in record.persistentDictionary {
-                if let dbv: DatabaseValue = row.value(named: key) {
-                    XCTAssertEqual(dbv, value?.databaseValue ?? .null)
+                if let dbValue: DatabaseValue = row.value(named: key) {
+                    XCTAssertEqual(dbValue, value?.databaseValue ?? .null)
                 } else {
                     XCTFail("Missing column \(key) in fetched row")
                 }
@@ -166,8 +166,8 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             
             let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
             for (key, value) in record.persistentDictionary {
-                if let dbv: DatabaseValue = row.value(named: key) {
-                    XCTAssertEqual(dbv, value?.databaseValue ?? .null)
+                if let dbValue: DatabaseValue = row.value(named: key) {
+                    XCTAssertEqual(dbValue, value?.databaseValue ?? .null)
                 } else {
                     XCTFail("Missing column \(key) in fetched row")
                 }
@@ -215,8 +215,8 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             
             let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
             for (key, value) in record.persistentDictionary {
-                if let dbv: DatabaseValue = row.value(named: key) {
-                    XCTAssertEqual(dbv, value?.databaseValue ?? .null)
+                if let dbValue: DatabaseValue = row.value(named: key) {
+                    XCTAssertEqual(dbValue, value?.databaseValue ?? .null)
                 } else {
                     XCTFail("Missing column \(key) in fetched row")
                 }
@@ -235,8 +235,8 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             
             let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
             for (key, value) in record.persistentDictionary {
-                if let dbv: DatabaseValue = row.value(named: key) {
-                    XCTAssertEqual(dbv, value?.databaseValue ?? .null)
+                if let dbValue: DatabaseValue = row.value(named: key) {
+                    XCTAssertEqual(dbValue, value?.databaseValue ?? .null)
                 } else {
                     XCTFail("Missing column \(key) in fetched row")
                 }
@@ -254,8 +254,8 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             
             let row = try Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
             for (key, value) in record.persistentDictionary {
-                if let dbv: DatabaseValue = row.value(named: key) {
-                    XCTAssertEqual(dbv, value?.databaseValue ?? .null)
+                if let dbValue: DatabaseValue = row.value(named: key) {
+                    XCTAssertEqual(dbValue, value?.databaseValue ?? .null)
                 } else {
                     XCTFail("Missing column \(key) in fetched row")
                 }

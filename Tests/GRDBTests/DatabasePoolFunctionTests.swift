@@ -12,8 +12,8 @@ class DatabasePoolFunctionTests: GRDBTestCase {
     func testFunctionIsSharedBetweenWriterAndReaders() throws {
         let dbPool = try makeDatabasePool()
         
-        let function1 = DatabaseFunction("function1", argumentCount: 1, pure: true) { (databaseValues: [DatabaseValue]) in
-            return databaseValues[0]
+        let function1 = DatabaseFunction("function1", argumentCount: 1, pure: true) { (dbValues: [DatabaseValue]) in
+            return dbValues[0]
         }
         
         dbPool.add(function: function1)
@@ -26,7 +26,7 @@ class DatabasePoolFunctionTests: GRDBTestCase {
             XCTAssertEqual(try String.fetchOne(db, "SELECT function1(text) FROM items")!, "a")
         }
         
-        let function2 = DatabaseFunction("function2", argumentCount: 1, pure: true) { (databaseValues: [DatabaseValue]) in
+        let function2 = DatabaseFunction("function2", argumentCount: 1, pure: true) { (dbValues: [DatabaseValue]) in
             return "foo"
         }
         dbPool.add(function: function2)

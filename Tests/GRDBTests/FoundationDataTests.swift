@@ -11,16 +11,16 @@ class FoundationDataTests: GRDBTestCase {
     
     func testDatabaseValueCanNotStoreEmptyData() {
         // SQLite can't store zero-length blob.
-        let databaseValue = Data().databaseValue
-        XCTAssertEqual(databaseValue, DatabaseValue.null)
+        let dbValue = Data().databaseValue
+        XCTAssertEqual(dbValue, DatabaseValue.null)
     }
     
     func testDataDatabaseValueRoundTrip() {
         
         func roundTrip(_ value: Data) -> Bool
         {
-            let databaseValue = value.databaseValue
-            guard let back = Data.fromDatabaseValue(databaseValue) else
+            let dbValue = value.databaseValue
+            guard let back = Data.fromDatabaseValue(dbValue) else
             {
                 XCTFail("Failed to convert from DatabaseValue to Data")
                 return false

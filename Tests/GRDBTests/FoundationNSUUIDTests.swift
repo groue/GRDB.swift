@@ -12,8 +12,8 @@ class FoundationNSUUIDTests: GRDBTestCase {
     func testNSUUIDDatabaseValueRoundTrip() {
         
         func roundTrip(_ value: NSUUID) -> Bool {
-            let databaseValue = value.databaseValue
-            guard let back = NSUUID.fromDatabaseValue(databaseValue) else {
+            let dbValue = value.databaseValue
+            guard let back = NSUUID.fromDatabaseValue(dbValue) else {
                 XCTFail("Failed to convert from DatabaseValue to NSUUID")
                 return false
             }

@@ -25,10 +25,10 @@ class RowCopiedFromStatementTests: RowTestCase {
             var columnNames = [String]()
             var ints = [Int]()
             var bools = [Bool]()
-            for (columnName, databaseValue) in row {
+            for (columnName, dbValue) in row {
                 columnNames.append(columnName)
-                ints.append(Int.fromDatabaseValue(databaseValue)!)
-                bools.append(Bool.fromDatabaseValue(databaseValue)!)
+                ints.append(Int.fromDatabaseValue(dbValue)!)
+                bools.append(Bool.fromDatabaseValue(dbValue)!)
             }
             
             XCTAssertEqual(columnNames, ["a", "b", "c"])

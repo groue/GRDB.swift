@@ -11,8 +11,8 @@ class FoundationNSNullTests: GRDBTestCase {
     
     func testNSNullFromDatabaseValue() {
         // NSNull.fromDatabaseValue always returns nil?
-        let databaseValue = DatabaseValue.null
-        XCTAssertNil(NSNull.fromDatabaseValue(databaseValue))
+        let dbValue = DatabaseValue.null
+        XCTAssertNil(NSNull.fromDatabaseValue(dbValue))
     }
     
     func testNSNullFromDatabaseValueFailure() {

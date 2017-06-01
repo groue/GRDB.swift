@@ -9,7 +9,7 @@ extension NSNull : DatabaseValueConvertible {
     }
     
     /// Returns nil.
-    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self? {
         return nil
     }
 }

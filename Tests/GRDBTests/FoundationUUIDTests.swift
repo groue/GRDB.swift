@@ -12,8 +12,8 @@ class FoundationUUIDTests: GRDBTestCase {
     func testUUIDDatabaseValueRoundTrip() {
         
         func roundTrip(_ value: UUID) -> Bool {
-            let databaseValue = value.databaseValue
-            guard let back = UUID.fromDatabaseValue(databaseValue) else {
+            let dbValue = value.databaseValue
+            guard let back = UUID.fromDatabaseValue(dbValue) else {
                 XCTFail("Failed to convert from DatabaseValue to UUID")
                 return false
             }

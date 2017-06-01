@@ -35,11 +35,11 @@ struct DatabaseTimestamp: DatabaseValueConvertible {
         return date.timeIntervalSince1970.databaseValue
     }
     
-    /// Returns a value initialized from *databaseValue*, if possible.
-    static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> DatabaseTimestamp? {
+    /// Returns a value initialized from *dbValue*, if possible.
+    static func fromDatabaseValue(_ dbValue: DatabaseValue) -> DatabaseTimestamp? {
         // Double itself adopts DatabaseValueConvertible. So let's avoid
         // handling the raw DatabaseValue, and use built-in Double conversion:
-        guard let timeInterval = Double.fromDatabaseValue(databaseValue) else {
+        guard let timeInterval = Double.fromDatabaseValue(dbValue) else {
             // No Double, no Date!
             return nil
         }

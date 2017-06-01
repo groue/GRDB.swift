@@ -11,8 +11,8 @@ struct CustomValueType : DatabaseValueConvertible {
     var databaseValue: DatabaseValue {
         return "CustomValueType".databaseValue
     }
-    static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> CustomValueType? {
-        guard let string = String.fromDatabaseValue(databaseValue), string == "CustomValueType" else {
+    static func fromDatabaseValue(_ dbValue: DatabaseValue) -> CustomValueType? {
+        guard let string = String.fromDatabaseValue(dbValue), string == "CustomValueType" else {
             return nil
         }
         return CustomValueType()
@@ -58,7 +58,7 @@ class DatabaseFunctionTests: GRDBTestCase {
 
     func testFunctionReturningNull() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("f", argumentCount: 0) { databaseValues in
+        let fn = DatabaseFunction("f", argumentCount: 0) { dbValues in
             return nil
         }
         dbQueue.add(function: fn)
@@ -69,7 +69,7 @@ class DatabaseFunctionTests: GRDBTestCase {
 
     func testFunctionReturningInt64() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("f", argumentCount: 0) { databaseValues in
+        let fn = DatabaseFunction("f", argumentCount: 0) { dbValues in
             return Int64(1)
         }
         dbQueue.add(function: fn)
@@ -80,7 +80,7 @@ class DatabaseFunctionTests: GRDBTestCase {
 
     func testFunctionReturningDouble() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("f", argumentCount: 0) { databaseValues in
+        let fn = DatabaseFunction("f", argumentCount: 0) { dbValues in
             return 1e100
         }
         dbQueue.add(function: fn)
@@ -91,7 +91,7 @@ class DatabaseFunctionTests: GRDBTestCase {
 
     func testFunctionReturningString() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("f", argumentCount: 0) { databaseValues in
+        let fn = DatabaseFunction("f", argumentCount: 0) { dbValues in
             return "foo"
         }
         dbQueue.add(function: fn)
@@ -102,7 +102,7 @@ class DatabaseFunctionTests: GRDBTestCase {
 
     func testFunctionReturningData() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("f", argumentCount: 0) { databaseValues in
+        let fn = DatabaseFunction("f", argumentCount: 0) { dbValues in
             return "foo".data(using: .utf8)
         }
         dbQueue.add(function: fn)
@@ -113,7 +113,7 @@ class DatabaseFunctionTests: GRDBTestCase {
 
     func testFunctionReturningCustomValueType() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("f", argumentCount: 0) { databaseValues in
+        let fn = DatabaseFunction("f", argumentCount: 0) { dbValues in
             return CustomValueType()
         }
         dbQueue.add(function: fn)
@@ -126,8 +126,8 @@ class DatabaseFunctionTests: GRDBTestCase {
     
     func testFunctionArgumentNil() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("isNil", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
-            return databaseValues[0].isNull
+        let fn = DatabaseFunction("isNil", argumentCount: 1) { (dbValues: [DatabaseValue]) in
+            return dbValues[0].isNull
         }
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
@@ -141,8 +141,8 @@ class DatabaseFunctionTests: GRDBTestCase {
 
     func testFunctionArgumentInt64() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("asInt64", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
-            return Int64.fromDatabaseValue(databaseValues[0])
+        let fn = DatabaseFunction("asInt64", argumentCount: 1) { (dbValues: [DatabaseValue]) in
+            return Int64.fromDatabaseValue(dbValues[0])
         }
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
@@ -154,8 +154,8 @@ class DatabaseFunctionTests: GRDBTestCase {
 
     func testFunctionArgumentDouble() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("asDouble", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
-            return Double.fromDatabaseValue(databaseValues[0])
+        let fn = DatabaseFunction("asDouble", argumentCount: 1) { (dbValues: [DatabaseValue]) in
+            return Double.fromDatabaseValue(dbValues[0])
         }
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
@@ -167,8 +167,8 @@ class DatabaseFunctionTests: GRDBTestCase {
 
     func testFunctionArgumentString() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("asString", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
-            return String.fromDatabaseValue(databaseValues[0])
+        let fn = DatabaseFunction("asString", argumentCount: 1) { (dbValues: [DatabaseValue]) in
+            return String.fromDatabaseValue(dbValues[0])
         }
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
@@ -179,8 +179,8 @@ class DatabaseFunctionTests: GRDBTestCase {
 
     func testFunctionArgumentBlob() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("asData", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
-            return Data.fromDatabaseValue(databaseValues[0])
+        let fn = DatabaseFunction("asData", argumentCount: 1) { (dbValues: [DatabaseValue]) in
+            return Data.fromDatabaseValue(dbValues[0])
         }
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
@@ -191,8 +191,8 @@ class DatabaseFunctionTests: GRDBTestCase {
 
     func testFunctionArgumentCustomValueType() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("asCustomValueType", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
-            return CustomValueType.fromDatabaseValue(databaseValues[0])
+        let fn = DatabaseFunction("asCustomValueType", argumentCount: 1) { (dbValues: [DatabaseValue]) in
+            return CustomValueType.fromDatabaseValue(dbValues[0])
         }
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
@@ -205,7 +205,7 @@ class DatabaseFunctionTests: GRDBTestCase {
     
     func testFunctionWithoutArgument() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("f", argumentCount: 0) { databaseValues in
+        let fn = DatabaseFunction("f", argumentCount: 0) { dbValues in
             return "foo"
         }
         dbQueue.add(function: fn)
@@ -216,9 +216,9 @@ class DatabaseFunctionTests: GRDBTestCase {
 
     func testFunctionOfOneArgument() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("unicodeUpper", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
-            let dbv = databaseValues[0]
-            guard let string = String.fromDatabaseValue(dbv) else {
+        let fn = DatabaseFunction("unicodeUpper", argumentCount: 1) { (dbValues: [DatabaseValue]) in
+            let dbValue = dbValues[0]
+            guard let string = String.fromDatabaseValue(dbValue) else {
                 return nil
             }
             return string.uppercased()
@@ -233,8 +233,8 @@ class DatabaseFunctionTests: GRDBTestCase {
 
     func testFunctionOfTwoArguments() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("f", argumentCount: 2) { databaseValues in
-            let ints = databaseValues.flatMap { Int.fromDatabaseValue($0) }
+        let fn = DatabaseFunction("f", argumentCount: 2) { dbValues in
+            let ints = dbValues.flatMap { Int.fromDatabaseValue($0) }
             return ints.reduce(0, +)
         }
         dbQueue.add(function: fn)
@@ -245,8 +245,8 @@ class DatabaseFunctionTests: GRDBTestCase {
 
     func testVariadicFunction() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("f") { databaseValues in
-            return databaseValues.count
+        let fn = DatabaseFunction("f") { dbValues in
+            return dbValues.count
         }
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
@@ -260,7 +260,7 @@ class DatabaseFunctionTests: GRDBTestCase {
 
     func testFunctionThrowingDatabaseErrorWithMessage() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("f", argumentCount: 1) { databaseValues in
+        let fn = DatabaseFunction("f", argumentCount: 1) { dbValues in
             throw DatabaseError(message: "custom error message")
         }
         dbQueue.add(function: fn)
@@ -278,7 +278,7 @@ class DatabaseFunctionTests: GRDBTestCase {
 
     func testFunctionThrowingDatabaseErrorWithCode() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("f", argumentCount: 1) { databaseValues in
+        let fn = DatabaseFunction("f", argumentCount: 1) { dbValues in
             throw DatabaseError(resultCode: ResultCode(rawValue: 123))
         }
         dbQueue.add(function: fn)
@@ -296,7 +296,7 @@ class DatabaseFunctionTests: GRDBTestCase {
 
     func testFunctionThrowingDatabaseErrorWithMessageAndCode() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("f", argumentCount: 1) { databaseValues in
+        let fn = DatabaseFunction("f", argumentCount: 1) { dbValues in
             throw DatabaseError(resultCode: ResultCode(rawValue: 123), message: "custom error message")
         }
         dbQueue.add(function: fn)
@@ -314,7 +314,7 @@ class DatabaseFunctionTests: GRDBTestCase {
 
     func testFunctionThrowingCustomError() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("f", argumentCount: 1) { databaseValues in
+        let fn = DatabaseFunction("f", argumentCount: 1) { dbValues in
             throw NSError(domain: "CustomErrorDomain", code: 123, userInfo: [NSString(string: NSLocalizedDescriptionKey): "custom error message"])
         }
         dbQueue.add(function: fn)
@@ -337,7 +337,7 @@ class DatabaseFunctionTests: GRDBTestCase {
     func testFunctionsAreClosures() throws {
         let dbQueue = try makeDatabaseQueue()
         var x = 123
-        let fn = DatabaseFunction("f", argumentCount: 0) { databaseValues in
+        let fn = DatabaseFunction("f", argumentCount: 0) { dbValues in
             return x
         }
         dbQueue.add(function: fn)

@@ -28,8 +28,8 @@ private struct Fetched: DatabaseValueConvertible, StatementColumnConvertible {
         return int.databaseValue
     }
     
-    static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Fetched? {
-        guard let int = Int.fromDatabaseValue(databaseValue) else {
+    static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Fetched? {
+        guard let int = Int.fromDatabaseValue(dbValue) else {
             return nil
         }
         return Fetched(int: int, fast: false)

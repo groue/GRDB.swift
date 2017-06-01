@@ -17,8 +17,8 @@ extension RawRepresentable where Self: DatabaseValueConvertible, Self.RawValue: 
         return rawValue.databaseValue
     }
     
-    /// Returns a value initialized from *databaseValue*, if possible.
-    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
-        return RawValue.fromDatabaseValue(databaseValue).flatMap { self.init(rawValue: $0) }
+    /// Returns a value initialized from *dbValue*, if possible.
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self? {
+        return RawValue.fromDatabaseValue(dbValue).flatMap { self.init(rawValue: $0) }
     }
 }

@@ -9,12 +9,12 @@ extension NSDate : DatabaseValueConvertible {
         return storageDateFormatter.string(from: self as Date).databaseValue
     }
     
-    /// Returns a Date initialized from *databaseValue*, if possible.
-    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
-        if let databaseDateComponents = DatabaseDateComponents.fromDatabaseValue(databaseValue) {
+    /// Returns a Date initialized from *dbValue*, if possible.
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self? {
+        if let databaseDateComponents = DatabaseDateComponents.fromDatabaseValue(dbValue) {
             return cast(fromDatabaseDateComponents(databaseDateComponents))
         }
-        if let julianDayNumber = Double.fromDatabaseValue(databaseValue) {
+        if let julianDayNumber = Double.fromDatabaseValue(dbValue) {
             return cast(fromJulianDayNumber(julianDayNumber))
         }
         return nil

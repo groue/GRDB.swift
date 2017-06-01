@@ -13,8 +13,8 @@ class FoundationNSStringTests: GRDBTestCase {
         
         func roundTrip(_ value: NSString) -> Bool
         {
-            let databaseValue = value.databaseValue
-            guard let back = NSString.fromDatabaseValue(databaseValue) else
+            let dbValue = value.databaseValue
+            guard let back = NSString.fromDatabaseValue(dbValue) else
             {
                 XCTFail("Failed to convert from DatabaseValue to NSString")
                 return false

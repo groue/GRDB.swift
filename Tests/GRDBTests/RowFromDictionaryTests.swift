@@ -21,10 +21,10 @@ class RowFromDictionaryTests : RowTestCase {
         var columnNames = Set<String>()
         var ints = Set<Int>()
         var bools = Set<Bool>()
-        for (columnName, databaseValue) in row {
+        for (columnName, dbValue) in row {
             columnNames.insert(columnName)
-            ints.insert(Int.fromDatabaseValue(databaseValue)!)
-            bools.insert(Bool.fromDatabaseValue(databaseValue)!)
+            ints.insert(Int.fromDatabaseValue(dbValue)!)
+            bools.insert(Bool.fromDatabaseValue(dbValue)!)
         }
         
         XCTAssertEqual(columnNames, ["a", "b", "c"])

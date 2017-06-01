@@ -13,8 +13,8 @@ class FoundationNSURLTests: GRDBTestCase {
         
         func roundTrip(_ value: NSURL) -> Bool
         {
-            let databaseValue = value.databaseValue
-            guard let back = NSURL.fromDatabaseValue(databaseValue) else
+            let dbValue = value.databaseValue
+            guard let back = NSURL.fromDatabaseValue(dbValue) else
             {
                 XCTFail("Failed to convert from DatabaseValue to NSURL")
                 return false

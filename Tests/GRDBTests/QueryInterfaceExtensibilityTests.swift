@@ -105,8 +105,8 @@ class QueryInterfaceExtensibilityTests: GRDBTestCase {
             try db.execute("INSERT INTO records (text) VALUES (?)", arguments: ["foo"])
             
             let request = Record.select(cast(Column("text"), as: .blob))
-            let dbv = try DatabaseValue.fetchOne(db, request)!
-            switch dbv.storage {
+            let dbValue = try DatabaseValue.fetchOne(db, request)!
+            switch dbValue.storage {
             case .blob:
                 break
             default:

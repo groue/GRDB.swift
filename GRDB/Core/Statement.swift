@@ -124,11 +124,11 @@ public class Statement {
         var valuesIterator = arguments.values.makeIterator()
         for (index, argumentName) in sqliteArgumentNames.enumerated() {
             if let argumentName = argumentName, let value = arguments.namedValues[argumentName] {
-                bind(databaseValue: value, at: index)
+                bind(value, at: index)
             } else if let value = valuesIterator.next() {
-                bind(databaseValue: value, at: index)
+                bind(value, at: index)
             } else {
-                bind(databaseValue: .null, at: index)
+                bind(.null, at: index)
             }
         }
     }
@@ -143,15 +143,15 @@ public class Statement {
         // Apply
         reset()
         clearBindings()
-        for (index, databaseValue) in bindings.enumerated() {
-            bind(databaseValue: databaseValue, at: index)
+        for (index, dbValue) in bindings.enumerated() {
+            bind(dbValue, at: index)
         }
     }
     
     // 0-based index
-    private func bind(databaseValue: DatabaseValue, at index: Int) {
+    private func bind(_ dbValue: DatabaseValue, at index: Int) {
         let code: Int32
-        switch databaseValue.storage {
+        switch dbValue.storage {
         case .null:
             code = sqlite3_bind_null(sqliteStatement, Int32(index + 1))
         case .int64(let int64):
@@ -573,10 +573,10 @@ public struct StatementArguments {
     public init?(_ array: [Any]) {
         var values = [DatabaseValueConvertible?]()
         for value in array {
-            guard let databaseValue = DatabaseValue(value: value) else {
+            guard let dbValue = DatabaseValue(value: value) else {
                 return nil
             }
-            values.append(databaseValue)
+            values.append(dbValue)
         }
         self.init(values)
     }
@@ -621,10 +621,10 @@ public struct StatementArguments {
             guard let columnName = key as? String else {
                 return nil
             }
-            guard let databaseValue = DatabaseValue(value: value) else {
+            guard let dbValue = DatabaseValue(value: value) else {
                 return nil
             }
-            initDictionary[columnName] = databaseValue
+            initDictionary[columnName] = dbValue
         }
         self.init(initDictionary)
     }
@@ -796,8 +796,8 @@ public struct StatementArguments {
         let initialValuesCount = values.count
         let bindings = try statement.sqliteArgumentNames.map { argumentName -> DatabaseValue in
             if let argumentName = argumentName {
-                if let databaseValue = namedValues[argumentName] {
-                    return databaseValue
+                if let dbValue = namedValues[argumentName] {
+                    return dbValue
                 } else if values.isEmpty {
                     throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "missing statement argument: \(argumentName)", sql: statement.sql, arguments: nil)
                 } else {

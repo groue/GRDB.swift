@@ -12,7 +12,7 @@ class FetchableParent : DatabaseValueConvertible, CustomStringConvertible {
         return "Parent".databaseValue
     }
     
-    class func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
+    class func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self? {
         return self.init()
     }
     

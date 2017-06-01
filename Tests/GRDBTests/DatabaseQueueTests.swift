@@ -33,9 +33,8 @@ class DatabaseQueueTests: GRDBTestCase {
     func testAddRemoveFunction() throws {
         // Adding a function and then removing it should succeed
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("succ", argumentCount: 1) { databaseValues in
-            let dbv = databaseValues.first!
-            guard let int = Int.fromDatabaseValue(dbv) else {
+        let fn = DatabaseFunction("succ", argumentCount: 1) { dbValues in
+            guard let int = Int.fromDatabaseValue(dbValues[0]) else {
                 return nil
             }
             return int + 1

@@ -16,8 +16,8 @@ private struct IntConvertible: DatabaseValueConvertible {
     var databaseValue: DatabaseValue {
         return int.databaseValue
     }
-    static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> IntConvertible? {
-        guard let int = Int.fromDatabaseValue(databaseValue) else {
+    static func fromDatabaseValue(_ dbValue: DatabaseValue) -> IntConvertible? {
+        guard let int = Int.fromDatabaseValue(dbValue) else {
             return nil
         }
         return IntConvertible(int: int)

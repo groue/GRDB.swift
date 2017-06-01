@@ -95,11 +95,11 @@
             return rawPattern.databaseValue
         }
         
-        /// Returns an FTS5Pattern initialized from *databaseValue*, if it
+        /// Returns an FTS5Pattern initialized from *dbValue*, if it
         /// contains a suitable value.
-        public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> FTS5Pattern? {
+        public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> FTS5Pattern? {
             return String
-                .fromDatabaseValue(databaseValue)
+                .fromDatabaseValue(dbValue)
                 .flatMap { try? FTS5Pattern(rawPattern: $0) }
         }
     }

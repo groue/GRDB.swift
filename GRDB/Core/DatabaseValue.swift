@@ -219,16 +219,16 @@ private func int64EqualDouble(_ i: Int64, _ d: Double) -> Bool {
 extension DatabaseValue {
     /// Converts the database value to the type T.
     ///
-    ///     let dbv = "foo".databaseValue
-    ///     let string = dbv.losslessConvert() as String // "foo"
+    ///     let dbValue = "foo".databaseValue
+    ///     let string = dbValue.losslessConvert() as String // "foo"
     ///
     /// Conversion is successful if and only if T.fromDatabaseValue returns a
     /// non-nil value.
     ///
     /// This method crashes with a fatal error when conversion fails.
     ///
-    ///     let dbv = "foo".databaseValue
-    ///     let int = dbv.losslessConvert() as Int // fatalError
+    ///     let dbValue = "foo".databaseValue
+    ///     let int = dbValue.losslessConvert() as Int // fatalError
     ///
     /// - parameters:
     ///     - sql: Optional SQL statement that enhances the eventual
@@ -252,8 +252,8 @@ extension DatabaseValue {
     
     /// Converts the database value to the type Optional<T>.
     ///
-    ///     let dbv = "foo".databaseValue
-    ///     let string = dbv.losslessConvert() as String? // "foo"
+    ///     let dbValue = "foo".databaseValue
+    ///     let string = dbValue.losslessConvert() as String? // "foo"
     ///     let null = DatabaseValue.null.losslessConvert() as String? // nil
     ///
     /// Conversion is successful if and only if T.fromDatabaseValue returns a
@@ -261,8 +261,8 @@ extension DatabaseValue {
     ///
     /// This method crashes with a fatal error when conversion fails.
     ///
-    ///     let dbv = "foo".databaseValue
-    ///     let int = dbv.losslessConvert() as Int? // fatalError
+    ///     let dbValue = "foo".databaseValue
+    ///     let int = dbValue.losslessConvert() as Int? // fatalError
     ///
     /// - parameters:
     ///     - sql: Optional SQL statement that enhances the eventual
@@ -302,9 +302,9 @@ extension DatabaseValue : DatabaseValueConvertible {
         return self
     }
     
-    /// Returns `databaseValue`
-    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> DatabaseValue? {
-        return databaseValue
+    /// Returns the database value
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> DatabaseValue? {
+        return dbValue
     }
 }
 

@@ -21,8 +21,8 @@ extension Bool: DatabaseValueConvertible, StatementColumnConvertible {
         return (self ? 1 : 0).databaseValue
     }
     
-    /// Returns a Bool initialized from *databaseValue*, if possible.
-    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Bool? {
+    /// Returns a Bool initialized from *dbValue*, if possible.
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Bool? {
         // IMPLEMENTATION NOTE
         //
         // https://www.sqlite.org/lang_expr.html#booleanexpr
@@ -79,7 +79,7 @@ extension Bool: DatabaseValueConvertible, StatementColumnConvertible {
         // the natural boolean storage class, and Real because Numeric affinity
         // store big numbers as Real.
         
-        switch databaseValue.storage {
+        switch dbValue.storage {
         case .int64(let int64):
             return (int64 != 0)
         case .double(let double):
@@ -112,9 +112,9 @@ extension Int: DatabaseValueConvertible, StatementColumnConvertible {
         return Int64(self).databaseValue
     }
     
-    /// Returns an Int initialized from *databaseValue*, if possible.
-    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Int? {
-        switch databaseValue.storage {
+    /// Returns an Int initialized from *dbValue*, if possible.
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Int? {
+        switch dbValue.storage {
         case .int64(let int64):
             return Int(exactly: int64)
         case .double(let double):
@@ -149,9 +149,9 @@ extension Int32: DatabaseValueConvertible, StatementColumnConvertible {
         return Int64(self).databaseValue
     }
     
-    /// Returns an Int32 initialized from *databaseValue*, if possible.
-    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Int32? {
-        switch databaseValue.storage {
+    /// Returns an Int32 initialized from *dbValue*, if possible.
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Int32? {
+        switch dbValue.storage {
         case .int64(let int64):
             return Int32(exactly: int64)
         case .double(let double):
@@ -181,9 +181,9 @@ extension Int64: DatabaseValueConvertible, StatementColumnConvertible {
         return DatabaseValue(storage: .int64(self))
     }
     
-    /// Returns an Int64 initialized from *databaseValue*, if possible.
-    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Int64? {
-        switch databaseValue.storage {
+    /// Returns an Int64 initialized from *dbValue*, if possible.
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Int64? {
+        switch dbValue.storage {
         case .int64(let int64):
             return int64
         case .double(let double):
@@ -213,9 +213,9 @@ extension Double: DatabaseValueConvertible, StatementColumnConvertible {
         return DatabaseValue(storage: .double(self))
     }
     
-    /// Returns a Double initialized from *databaseValue*, if possible.
-    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Double? {
-        switch databaseValue.storage {
+    /// Returns a Double initialized from *dbValue*, if possible.
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Double? {
+        switch dbValue.storage {
         case .int64(let int64):
             return Double(int64)
         case .double(let double):
@@ -243,9 +243,9 @@ extension Float: DatabaseValueConvertible, StatementColumnConvertible {
         return Double(self).databaseValue
     }
     
-    /// Returns a Float initialized from *databaseValue*, if possible.
-    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Float? {
-        switch databaseValue.storage {
+    /// Returns a Float initialized from *dbValue*, if possible.
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Float? {
+        switch dbValue.storage {
         case .int64(let int64):
             return Float(int64)
         case .double(let double):
@@ -273,9 +273,9 @@ extension String: DatabaseValueConvertible, StatementColumnConvertible {
         return DatabaseValue(storage: .string(self))
     }
     
-    /// Returns a String initialized from *databaseValue*, if possible.
-    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> String? {
-        switch databaseValue.storage {
+    /// Returns a String initialized from *dbValue*, if possible.
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> String? {
+        switch dbValue.storage {
         case .string(let string):
             return string
         default:
@@ -300,8 +300,8 @@ extension DatabaseFunction {
     ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn.capitalized)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
-    public static let capitalize = DatabaseFunction("swiftCapitalizedString", argumentCount: 1, pure: true) { databaseValues in
-        guard let string = String.fromDatabaseValue(databaseValues[0]) else {
+    public static let capitalize = DatabaseFunction("swiftCapitalizedString", argumentCount: 1, pure: true) { dbValues in
+        guard let string = String.fromDatabaseValue(dbValues[0]) else {
             return nil
         }
         return string.capitalized
@@ -319,8 +319,8 @@ extension DatabaseFunction {
     ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn.lowercased())
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
-    public static let lowercase = DatabaseFunction("swiftLowercaseString", argumentCount: 1, pure: true) { databaseValues in
-        guard let string = String.fromDatabaseValue(databaseValues[0]) else {
+    public static let lowercase = DatabaseFunction("swiftLowercaseString", argumentCount: 1, pure: true) { dbValues in
+        guard let string = String.fromDatabaseValue(dbValues[0]) else {
             return nil
         }
         return string.lowercased()
@@ -338,8 +338,8 @@ extension DatabaseFunction {
     ///     let nameColumn = Column("name")
     ///     let request = Person.select(nameColumn.uppercased())
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
-    public static let uppercase = DatabaseFunction("swiftUppercaseString", argumentCount: 1, pure: true) { databaseValues in
-        guard let string = String.fromDatabaseValue(databaseValues[0]) else {
+    public static let uppercase = DatabaseFunction("swiftUppercaseString", argumentCount: 1, pure: true) { dbValues in
+        guard let string = String.fromDatabaseValue(dbValues[0]) else {
             return nil
         }
         return string.uppercased()
@@ -360,8 +360,8 @@ extension DatabaseFunction {
     ///     let request = Person.select(nameColumn.localizedCapitalized)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
-    public static let localizedCapitalize = DatabaseFunction("swiftLocalizedCapitalizedString", argumentCount: 1, pure: true) { databaseValues in
-        guard let string = String.fromDatabaseValue(databaseValues[0]) else {
+    public static let localizedCapitalize = DatabaseFunction("swiftLocalizedCapitalizedString", argumentCount: 1, pure: true) { dbValues in
+        guard let string = String.fromDatabaseValue(dbValues[0]) else {
             return nil
         }
         return string.localizedCapitalized
@@ -380,8 +380,8 @@ extension DatabaseFunction {
     ///     let request = Person.select(nameColumn.localizedLowercased)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
-    public static let localizedLowercase = DatabaseFunction("swiftLocalizedLowercaseString", argumentCount: 1, pure: true) { databaseValues in
-        guard let string = String.fromDatabaseValue(databaseValues[0]) else {
+    public static let localizedLowercase = DatabaseFunction("swiftLocalizedLowercaseString", argumentCount: 1, pure: true) { dbValues in
+        guard let string = String.fromDatabaseValue(dbValues[0]) else {
             return nil
         }
         return string.localizedLowercase
@@ -400,8 +400,8 @@ extension DatabaseFunction {
     ///     let request = Person.select(nameColumn.localizedUppercased)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
-    public static let localizedUppercase = DatabaseFunction("swiftLocalizedUppercaseString", argumentCount: 1, pure: true) { databaseValues in
-        guard let string = String.fromDatabaseValue(databaseValues[0]) else {
+    public static let localizedUppercase = DatabaseFunction("swiftLocalizedUppercaseString", argumentCount: 1, pure: true) { dbValues in
+        guard let string = String.fromDatabaseValue(dbValues[0]) else {
             return nil
         }
         return string.localizedUppercase

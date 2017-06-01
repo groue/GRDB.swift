@@ -102,8 +102,8 @@ class FoundationNSNumberTests: GRDBTestCase {
         
         func roundTrip(_ value: NSNumber) -> Bool
         {
-            let databaseValue = value.databaseValue
-            guard let back = NSNumber.fromDatabaseValue(databaseValue) else
+            let dbValue = value.databaseValue
+            guard let back = NSNumber.fromDatabaseValue(dbValue) else
             {
                 XCTFail("Failed to convert from DatabaseValue to NSNumber")
                 return false

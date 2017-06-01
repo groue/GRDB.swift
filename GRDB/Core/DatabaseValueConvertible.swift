@@ -20,8 +20,8 @@ public protocol DatabaseValueConvertible : SQLExpressible {
     /// Returns a value that can be stored in the database.
     var databaseValue: DatabaseValue { get }
     
-    /// Returns a value initialized from *databaseValue*, if possible.
-    static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self?
+    /// Returns a value initialized from *dbValue*, if possible.
+    static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self?
 }
 
 // SQLExpressible adoption
@@ -82,8 +82,8 @@ extension DatabaseValueConvertible {
         // Reuse a single mutable row for performance
         let row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         return statement.cursor(arguments: arguments, next: {
-            let dbv: DatabaseValue = row.value(atIndex: 0)
-            return dbv.losslessConvert(sql: statement.sql, arguments: arguments) as Self
+            let dbValue: DatabaseValue = row.value(atIndex: 0)
+            return dbValue.losslessConvert(sql: statement.sql, arguments: arguments) as Self
         })
     }
     
@@ -120,8 +120,8 @@ extension DatabaseValueConvertible {
         // Reuse a single mutable row for performance
         let row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         let cursor: DatabaseCursor<Self?> = statement.cursor(arguments: arguments, next: {
-            let dbv: DatabaseValue = row.value(atIndex: 0)
-            return dbv.losslessConvert(sql: statement.sql, arguments: arguments) as Self?
+            let dbValue: DatabaseValue = row.value(atIndex: 0)
+            return dbValue.losslessConvert(sql: statement.sql, arguments: arguments) as Self?
         })
         return try cursor.next() ?? nil
     }
@@ -285,8 +285,8 @@ extension Optional where Wrapped: DatabaseValueConvertible {
         // Reuse a single mutable row for performance
         let row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         return statement.cursor(arguments: arguments, next: {
-            let dbv: DatabaseValue = row.value(atIndex: 0)
-            return dbv.losslessConvert(sql: statement.sql, arguments: arguments) as Wrapped?
+            let dbValue: DatabaseValue = row.value(atIndex: 0)
+            return dbValue.losslessConvert(sql: statement.sql, arguments: arguments) as Wrapped?
         })
     }
     

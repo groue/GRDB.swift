@@ -121,11 +121,11 @@ extension FTS3Pattern : DatabaseValueConvertible {
         return rawPattern.databaseValue
     }
     
-    /// Returns an FTS3Pattern initialized from *databaseValue*, if it contains
+    /// Returns an FTS3Pattern initialized from *dbValue*, if it contains
     /// a suitable value.
-    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> FTS3Pattern? {
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> FTS3Pattern? {
         return String
-            .fromDatabaseValue(databaseValue)
+            .fromDatabaseValue(dbValue)
             .flatMap { try? FTS3Pattern(rawPattern: $0) }
     }
 }

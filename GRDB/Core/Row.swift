@@ -29,10 +29,10 @@ public final class Row {
             guard let columnName = key as? String else {
                 return nil
             }
-            guard let databaseValue = DatabaseValue(value: value) else {
+            guard let dbValue = DatabaseValue(value: value) else {
                 return nil
             }
-            initDictionary[columnName] = databaseValue
+            initDictionary[columnName] = dbValue
         }
         self.init(initDictionary)
     }
@@ -801,7 +801,7 @@ extension Row : Hashable {
     /// The hash value
     public var hashValue: Int {
         return columnNames.reduce(0) { (acc, column) in acc ^ column.hashValue } ^
-            databaseValues.reduce(0) { (acc, dbv) in acc ^ dbv.hashValue }
+            databaseValues.reduce(0) { (acc, dbValue) in acc ^ dbValue.hashValue }
     }
 }
 
@@ -810,8 +810,8 @@ extension Row: CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
         return "<Row"
-            + map { (column, dbv) in
-                " \(column):\(dbv)"
+            + map { (column, dbValue) in
+                " \(column):\(dbValue)"
                 }.joined(separator: "")
             + ">"
     }
@@ -820,7 +820,7 @@ extension Row: CustomStringConvertible {
 
 // MARK: - RowIndex
 
-/// Indexes to (columnName, databaseValue) pairs in a database row.
+/// Indexes to (columnName, dbValue) pairs in a database row.
 public struct RowIndex : Comparable {
     let index: Int
     init(_ index: Int) { self.index = index }
@@ -908,12 +908,12 @@ private struct ArrayRowImpl : RowImpl {
 
 /// See Row.init(copiedFromStatementRef:sqliteStatement:)
 private struct StatementCopyRowImpl : RowImpl {
-    let databaseValues: ContiguousArray<DatabaseValue>
+    let dbValues: ContiguousArray<DatabaseValue>
     let columnNames: [String]
     
     init(sqliteStatement: SQLiteStatement, columnNames: [String]) {
         let sqliteStatement = sqliteStatement
-        self.databaseValues = ContiguousArray((0..<sqlite3_column_count(sqliteStatement)).map { DatabaseValue(sqliteStatement: sqliteStatement, index: $0) } as [DatabaseValue])
+        self.dbValues = ContiguousArray((0..<sqlite3_column_count(sqliteStatement)).map { DatabaseValue(sqliteStatement: sqliteStatement, index: $0) } as [DatabaseValue])
         self.columnNames = columnNames
     }
     
@@ -930,7 +930,7 @@ private struct StatementCopyRowImpl : RowImpl {
     }
     
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
-        return databaseValues[index]
+        return dbValues[index]
     }
     
     func columnName(atUncheckedIndex index: Int) -> String {

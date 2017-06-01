@@ -108,9 +108,9 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
         return [dateString, timeString].flatMap { $0 }.joined(separator: " ").databaseValue
     }
     
-    /// Returns a DatabaseDateComponents if *databaseValue* contains a
+    /// Returns a DatabaseDateComponents if *dbValue* contains a
     /// valid date.
-    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> DatabaseDateComponents? {
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> DatabaseDateComponents? {
         // https://www.sqlite.org/lang_datefunc.html
         //
         // Supported formats are:
@@ -127,7 +127,7 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
         // - HH:MM:SS.SSS
         
         // We need a String
-        guard let string = String.fromDatabaseValue(databaseValue) else {
+        guard let string = String.fromDatabaseValue(dbValue) else {
             return nil
         }
         
