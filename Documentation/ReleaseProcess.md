@@ -23,6 +23,7 @@ To release a new GRDB version:
     - README.md
     - Support/Info.plist
 - Commit and tag
+- Check tag authors: `git for-each-ref --format '%(refname) %(authorname)' refs/tags`
 - Push to the master branch
 - Push to the Swift3 branch
 - `pod trunk push --allow-warnings GRDB.swift.podspec`
