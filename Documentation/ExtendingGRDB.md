@@ -117,8 +117,9 @@ Well, you will be able to use UIColor like all other [value types](../../../#val
             super.init(row: row)
         }
         
-        override var persistentDictionary: [String: DatabaseValueConvertible?] {
-            return ["name": name, "color": color]
+        override func encode(to container: inout PersistenceContainer) {
+            container["name"] = name
+            container["color"] = color
         }
     }
     ```

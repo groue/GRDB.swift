@@ -27,13 +27,11 @@ extension Book : MutablePersistable {
     static let databaseTableName = "books"
     static let selectsRowID = true
     
-    var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return [
-            Column.rowID.name: id,
-            "title": title,
-            "author": author,
-            "body": body,
-        ]
+    func encode(to container: inout PersistenceContainer) {
+        container[.rowID] = id
+        container["title"] = title
+        container["author"] = author
+        container["body"] =  body
     }
     
     mutating func didInsert(with rowID: Int64, for column: String?) {

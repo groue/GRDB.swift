@@ -64,8 +64,17 @@ class Item : Record {
         super.init(row: row)
     }
     
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["i0": i0, "i1": i1, "i2": i2, "i3": i3, "i4": i4, "i5": i5, "i6": i6, "i7": i7, "i8": i8, "i9": i9]
+    override func encode(to container: inout PersistenceContainer) {
+        container["i0"] = i0
+        container["i1"] = i1
+        container["i2"] = i2
+        container["i3"] = i3
+        container["i4"] = i4
+        container["i5"] = i5
+        container["i6"] = i6
+        container["i7"] = i7
+        container["i8"] = i8
+        container["i9"] = i9
     }
 }
 

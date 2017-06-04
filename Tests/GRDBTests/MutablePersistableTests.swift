@@ -14,8 +14,11 @@ private struct MutablePersistablePerson : MutablePersistable {
     
     static let databaseTableName = "persons"
     
-    var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["iD": id, "NAme": name, "aGe": age] // various cases
+    func encode(to container: inout PersistenceContainer) {
+        // mangle cases
+        container["iD"] = id
+        container["NAme"] = name
+        container["aGe"] = age
     }
     
     mutating func didInsert(with rowID: Int64, for column: String?) {
@@ -30,8 +33,9 @@ private struct MutablePersistableCountry : MutablePersistable {
     
     static let databaseTableName = "countries"
     
-    var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["isoCode": isoCode, "name": name]
+    func encode(to container: inout PersistenceContainer) {
+        container["isoCode"] = isoCode
+        container["name"] = name
     }
     
     mutating func didInsert(with rowID: Int64, for column: String?) {
@@ -51,8 +55,9 @@ private struct MutablePersistableCustomizedCountry : MutablePersistable {
     
     static let databaseTableName = "countries"
     
-    var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["isoCode": isoCode, "name": name]
+    func encode(to container: inout PersistenceContainer) {
+        container["isoCode"] = isoCode
+        container["name"] = name
     }
     
     mutating func didInsert(with rowID: Int64, for column: String?) {

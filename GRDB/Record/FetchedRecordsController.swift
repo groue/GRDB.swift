@@ -815,7 +815,7 @@ extension FetchedRecordsController where Record: MutablePersistable {
     /// - returns: The index path of *record* in the fetched records, or nil
     ///   if record could not be found.
     public func indexPath(for record: Record) -> IndexPath? {
-        let item = Item<Record>(row: Row(record.persistentDictionary))
+        let item = Item<Record>(row: Row(record))
         guard let fetchedItems = fetchedItems, let index = fetchedItems.index(where: { itemsAreIdentical($0, item) }) else {
             return nil
         }

@@ -38,8 +38,9 @@ class Pet : Record {
         super.init(row: row)
     }
     
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["UUID": UUID, "name": name]
+    override func encode(to container: inout PersistenceContainer) {
+        container["UUID"] = UUID
+        container["name"] = name
     }
 }
 
@@ -75,13 +76,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             try record.insert(db)
             
             let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
-            for (key, value) in record.persistentDictionary {
-                if let dbValue: DatabaseValue = row.value(named: key) {
-                    XCTAssertEqual(dbValue, value?.databaseValue ?? .null)
-                } else {
-                    XCTFail("Missing column \(key) in fetched row")
-                }
-            }
+            assert(record, isEncodedIn: row)
         }
     }
 
@@ -108,13 +103,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             try record.insert(db)
             
             let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
-            for (key, value) in record.persistentDictionary {
-                if let dbValue: DatabaseValue = row.value(named: key) {
-                    XCTAssertEqual(dbValue, value?.databaseValue ?? .null)
-                } else {
-                    XCTFail("Missing column \(key) in fetched row")
-                }
-            }
+            assert(record, isEncodedIn: row)
         }
     }
 
@@ -156,13 +145,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             try record.update(db)
             
             let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
-            for (key, value) in record.persistentDictionary {
-                if let dbValue: DatabaseValue = row.value(named: key) {
-                    XCTAssertEqual(dbValue, value?.databaseValue ?? .null)
-                } else {
-                    XCTFail("Missing column \(key) in fetched row")
-                }
-            }
+            assert(record, isEncodedIn: row)
         }
     }
 
@@ -205,13 +188,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             try record.save(db)
             
             let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
-            for (key, value) in record.persistentDictionary {
-                if let dbValue: DatabaseValue = row.value(named: key) {
-                    XCTAssertEqual(dbValue, value?.databaseValue ?? .null)
-                } else {
-                    XCTFail("Missing column \(key) in fetched row")
-                }
-            }
+            assert(record, isEncodedIn: row)
         }
     }
 
@@ -225,13 +202,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             try record.save(db)   // Actual update
             
             let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
-            for (key, value) in record.persistentDictionary {
-                if let dbValue: DatabaseValue = row.value(named: key) {
-                    XCTAssertEqual(dbValue, value?.databaseValue ?? .null)
-                } else {
-                    XCTFail("Missing column \(key) in fetched row")
-                }
-            }
+            assert(record, isEncodedIn: row)
         }
     }
 
@@ -244,13 +215,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             try record.save(db)
             
             let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
-            for (key, value) in record.persistentDictionary {
-                if let dbValue: DatabaseValue = row.value(named: key) {
-                    XCTAssertEqual(dbValue, value?.databaseValue ?? .null)
-                } else {
-                    XCTFail("Missing column \(key) in fetched row")
-                }
-            }
+            assert(record, isEncodedIn: row)
         }
     }
 

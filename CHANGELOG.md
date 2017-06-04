@@ -8,6 +8,34 @@ Release Notes
 - `DatabaseCoder` has been removed.
 - `QueryInterfaceRequest.exists` has been removed.
 - `QueryInterfaceRequest.contains` has been removed.
+- `MutablePersistable`, the protocol that defines persistence methods, has been changed:
+    
+    ```diff
+     protocol MutablePersistable : TableMapping {
+    -    var persistentDictionary: [String: DatabaseValueConvertible?] { get }
+    +    func encode(to container: inout PersistenceContainer)
+     }
+    ```
+    
+    For example:
+
+    ```diff
+     struct Player : MutablePersistable {
+         let name: String
+         let score: Int
+
+    -    var persistentDictionary: [String: DatabaseValueConvertible?] {
+    -        return [
+    -            "name": name,
+    -            "score": score,
+    -        ]
+    -    }
+    +    func encode(to container: inout PersistenceContainer) {
+    +        container["name"] = name
+    +        container["score"] = score
+    +    }
+     }
+    ```
 
 
 ## 0.110.0

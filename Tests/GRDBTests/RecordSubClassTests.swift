@@ -45,13 +45,11 @@ private class Person : Record {
         super.init(row: row)
     }
     
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return [
-            "id": id,
-            "name": name,
-            "age": age,
-            "creationDate": creationDate,
-        ]
+    override func encode(to container: inout PersistenceContainer) {
+        container["id"] = id
+        container["name"] = name
+        container["age"] = age
+        container["creationDate"] = creationDate
     }
     
     override func insert(_ db: Database) throws {

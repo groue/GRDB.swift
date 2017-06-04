@@ -83,14 +83,12 @@ extension PointOfInterest : TableMapping {
 
 // Adopt MutablePersistable
 extension PointOfInterest : MutablePersistable {
-    var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return [
-            "id": id,
-            "title": title,
-            "favorite": favorite,
-            "latitude": coordinate.latitude,
-            "longitude": coordinate.longitude
-        ]
+    func encode(to container: inout PersistenceContainer) {
+        container["id"] = id
+        container["title"] = title
+        container["favorite"] = favorite
+        container["latitude"] = coordinate.latitude
+        container["longitude"] = coordinate.longitude
     }
     
     mutating func didInsert(with rowID: Int64, for column: String?) {
