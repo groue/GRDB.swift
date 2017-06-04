@@ -1529,6 +1529,8 @@ citizenshipsPk.rowIDColumn // nil
 
 ## Row Adapters
 
+[![Experimental](https://cdn.rawgit.com/groue/GRDB.swift/GRDB1/Documentation/images/experimental.svg)]((#what-are-experimental-features))
+
 **Row adapters let you present database rows in the way expected by the row consumers.**
 
 They basically help two incompatible row interfaces to work together. For example, a row consumer expects a column named "consumed", but the produced row has a column named "produced".
