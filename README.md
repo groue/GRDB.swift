@@ -2937,19 +2937,6 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Event.filter(verifiedUserIds.contains(userIdColumn))
     ```
 
-- `EXISTS (subquery)`, `NOT EXISTS (subquery)`
-    
-    [![Experimental](https://cdn.rawgit.com/groue/GRDB.swift/GRDB1/Documentation/images/experimental.svg)]((#what-are-experimental-features))
-    
-    To check is a subquery would return any row, use the `exists` property on another request:
-    
-    ```swift
-    // SELECT * FROM persons
-    // WHERE EXISTS (SELECT * FROM books
-    //                WHERE books.ownerId = persons.id)
-    Person.filter(Book.filter(sql: "books.ownerId = persons.id").exists)
-    ```
-
 - `LIKE`
     
     The SQLite LIKE operator is available as the `like` method:

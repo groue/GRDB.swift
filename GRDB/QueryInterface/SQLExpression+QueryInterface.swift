@@ -294,59 +294,6 @@ struct SQLExpressionContains : SQLExpression {
     }
 }
 
-// MARK: - SQLExpressionExists
-
-/// This type is an implementation detail of the query interface.
-/// Do not use it directly.
-///
-/// See https://github.com/groue/GRDB.swift/#the-query-interface
-///
-/// # Low Level Query Interface
-///
-/// SQLExpressionExists is an expression that checks if a subquery would return
-/// rows or not with the `EXISTS` operator.
-public struct SQLExpressionExists : SQLExpression {
-    /// The query
-    public let query: SQLSelectQuery
-    
-    /// If true, uses `NOT EXISTS` instead of `EXISTS` operator
-    public let isNegated: Bool
-    
-    /// Creates an expression that checks if a subquery would return rows
-    /// or not with the `EXISTS` operator.
-    public init(_ query: SQLSelectQuery, negated: Bool = false) {
-        self.query = query
-        self.isNegated = negated
-    }
-    
-    /// This function is an implementation detail of the query interface.
-    /// Do not use it directly.
-    ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    ///
-    /// # Low Level Query Interface
-    ///
-    /// See SQLExpression.expressionSQL(_:arguments:)
-    public func expressionSQL(_ arguments: inout StatementArguments?) -> String {
-        return "(" +
-            (isNegated ? "NOT EXISTS (" : "EXISTS (") +
-            query.selectQuerySQL(&arguments)
-            + "))"
-    }
-    
-    /// This property is an implementation detail of the query interface.
-    /// Do not use it directly.
-    ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    ///
-    /// # Low Level Query Interface
-    ///
-    /// See SQLExpression.negated
-    public var negated: SQLExpression {
-        return SQLExpressionExists(query, negated: !isNegated)
-    }
-}
-
 // MARK: - SQLExpressionBetween
 
 /// SQLExpressionBetween is an expression that checks if a values is included
