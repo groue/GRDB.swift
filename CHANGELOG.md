@@ -7,6 +7,7 @@ Release Notes
 
 - `DatabaseCoder` has been removed.
 - `QueryInterfaceRequest.exists` has been removed.
+- `QueryInterfaceRequest.contains` has been removed.
 
 
 ## 0.110.0

@@ -2927,15 +2927,6 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     ```
     
     > :point_up: **Note**: SQLite string comparison, by default, is case-sensitive and not Unicode-aware. See [string comparison](#string-comparison) if you need more control.
-    
-    To check inclusion in a subquery, call the `contains` method on another request:
-    
-    ```swift
-    // SELECT * FROM events
-    //  WHERE userId IN (SELECT id FROM persons WHERE verified)
-    let verifiedUserIds = User.select(idColumn).filter(verifiedColumn)
-    Event.filter(verifiedUserIds.contains(userIdColumn))
-    ```
 
 - `LIKE`
     
