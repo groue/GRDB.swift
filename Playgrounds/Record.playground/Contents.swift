@@ -68,8 +68,10 @@ class Person : Record {
     
 //: 3. The dictionary of values that are stored in the database:
     
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "firstName": firstName, "lastName": lastName]
+    override func encode(to container: inout PersistenceContainer) {
+        container["id"] = id
+        container["firstName"] = firstName
+        container["lastName"] = lastName
     }
     
 //: 4. When relevant, update the person's id after a database row has been inserted:

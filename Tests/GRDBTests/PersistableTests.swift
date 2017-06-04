@@ -13,8 +13,9 @@ private struct PersistablePerson : Persistable {
     
     static let databaseTableName = "persons"
     
-    var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["name": name, "age": age]
+    func encode(to container: inout PersistenceContainer) {
+        container["name"] = name
+        container["age"] = age
     }
 }
 
@@ -31,8 +32,11 @@ private class PersistablePersonClass : Persistable {
     
     static let databaseTableName = "persons"
     
-    var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["ID": id, "naME": name, "Age": age] // various cases
+    func encode(to container: inout PersistenceContainer) {
+        // mangle case
+        container["ID"] = id
+        container["naME"] = name
+        container["Age"] = age
     }
     
     func didInsert(with rowID: Int64, for column: String?) {
@@ -46,8 +50,9 @@ private struct PersistableCountry : Persistable {
     
     static let databaseTableName = "countries"
     
-    var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["isoCode": isoCode, "name": name]
+    func encode(to container: inout PersistenceContainer) {
+        container["isoCode"] = isoCode
+        container["name"] = name
     }
 }
 
@@ -62,8 +67,9 @@ private struct PersistableCustomizedCountry : Persistable {
     
     static let databaseTableName = "countries"
     
-    var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["isoCode": isoCode, "name": name]
+    func encode(to container: inout PersistenceContainer) {
+        container["isoCode"] = isoCode
+        container["name"] = name
     }
     
     func insert(_ db: Database) throws {
@@ -98,8 +104,9 @@ private struct Citizenship : Persistable {
     
     static let databaseTableName = "citizenships"
     
-    var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["countryIsoCode": countryIsoCode, "personID": personID]
+    func encode(to container: inout PersistenceContainer) {
+        container["countryIsoCode"] = countryIsoCode
+        container["personID"] = personID
     }
 }
 

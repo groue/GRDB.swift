@@ -976,8 +976,9 @@ class Link : Record {
         super.init(row: row)
     }
     
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["url": url, "verified": isVerified]
+    override func encode(to container: inout PersistenceContainer) {
+        container["url"] = url
+        container["verified"] = isVerified
     }
 }
 ```
@@ -1865,6 +1866,25 @@ extension PointOfInterest : RowConvertible {
 }
 ```
 
+Rows also accept keys of type `Column`:
+
+```swift
+extension PointOfInterest : RowConvertible {
+    static let idColumn = Column("id")
+    static let titleColumn = Column("title")
+    static let latitudeColumn = Column("latitude")
+    static let longitudeColumn = Column("longitude")
+    
+    init(row: Row) {
+        id = row.value(PointOfInterest.idColumn)
+        title = row.value(PointOfInterest.titleColumn)
+        coordinate = CLLocationCoordinate2DMake(
+            row.value(PointOfInterest.latitudeColumn),
+            row.value(PointOfInterest.longitudeColumn))
+    }
+}
+```
+
 See [column values](#column-values) for more information about the `row.value()` method.
 
 > :point_up: **Note**: for performance reasons, the same row argument to `init(row:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
@@ -1971,8 +1991,8 @@ protocol MutablePersistable : TableMapping {
     /// The name of the database table (from TableMapping)
     static var databaseTableName: String { get }
     
-    /// The values persisted in the database
-    var persistentDictionary: [String: DatabaseValueConvertible?] { get }
+    /// Defines the values persisted in the database
+    func encode(to container: inout PersistenceContainer)
     
     /// Optional method that lets your adopting type store its rowID upon
     /// successful insertion. Don't call it directly: it is called for you.
@@ -1995,7 +2015,7 @@ Yes, two protocols instead of one. Both grant exactly the same advantages. Here 
 
 - Otherwise, stick with `Persistable`. Particularly if your type is a class.
 
-The `persistentDictionary` property returns a dictionary whose keys are column names, and values any DatabaseValueConvertible value (Bool, Int, String, Date, Swift enums, etc.) See [Values](#values) for more information.
+The `encode(to:)` method defines which [values](#values) are stored in database columns.
 
 The optional `didInsert` method lets the adopting type store its rowID after successful insertion. If your table has an INTEGER PRIMARY KEY column, you are likely to define this method. Otherwise, you can safely ignore it. It is called from a protected dispatch queue, and serialized with all database updates.
 
@@ -2005,12 +2025,11 @@ The optional `didInsert` method lets the adopting type store its rowID after suc
 extension PointOfInterest : MutablePersistable {
     
     /// The values persisted in the database
-    var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return [
-            "id": id,
-            "title": title,
-            "latitude": coordinate.latitude,
-            "longitude": coordinate.longitude]
+    func encode(to container: inout PersistenceContainer) {
+        container["id"] = id
+        container["title"] = title
+        container["latitude"] = coordinate.latitude
+        container["longitude"] = coordinate.longitude
     }
     
     // Update id upon successful insertion:
@@ -2028,20 +2047,23 @@ try paris.insert(db)
 paris.id   // some value
 ```
 
-When your record has many columns, the Swift compiler may take a long time compiling the `persistentDictionary` property:
+Persistence containers also accept keys of type `Column`:
 
 ```swift
-// May be long to compile
-var persistentDictionary: [String: DatabaseValueConvertible?] {
-    return [
-        "id": id,
-        "title": title,
-        // many other columns
-    ]
+extension PointOfInterest : MutablePersistable {
+    static let idColumn = Column("id")
+    static let titleColumn = Column("title")
+    static let latitudeColumn = Column("latitude")
+    static let longitudeColumn = Column("longitude")
+    
+    func encode(to container: inout PersistenceContainer) {
+        container[PointOfInterest.idColumn] = id
+        container[PointOfInterest.titleColumn] = title
+        container[PointOfInterest.latitudeColumn] = coordinate.latitude
+        container[PointOfInterest.longitudeColumn] = coordinate.longitude
+    }
 }
 ```
-
-If this happens, check the ["Compilation takes a long time" FAQ](#compilation-takes-a-long-time).
 
 
 ### Persistence Methods
@@ -2230,12 +2252,11 @@ class PointOfInterest : Record {
     }
     
     /// The values persisted in the database
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return [
-            "id": id,
-            "title": title,
-            "latitude": coordinate.latitude,
-            "longitude": coordinate.longitude]
+    override func encode(to container: inout PersistenceContainer) {
+        container["id"] = id
+        container["title"] = title
+        container["latitude"] = coordinate.latitude
+        container["longitude"] = coordinate.longitude
     }
     
     /// Update record ID after a successful insertion
@@ -2370,18 +2391,16 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](#fu
     event.id // some value
     ```
 
-3. Include the rowid in your `persistentDictionary`, and keep it in the `didInsert(with:for:)` method (both from the [Persistable and MutablePersistable](#persistable-protocol) protocols):
+3. Encode the rowid in `encode(to:)`, and keep it in the `didInsert(with:for:)` method (both from the [Persistable and MutablePersistable](#persistable-protocol) protocols):
     
     ```swift
     struct Event : MutablePersistable {
         var id: Int64?
         
-        var persistentDictionary: [String: DatabaseValueConvertible?] {
-            return [
-                "rowid": id,
-                "message": message,
-                "date": date,
-            ]
+        func encode(to container: inout PersistenceContainer) {
+            container[.rowID] = id
+            container["message"] = message
+            container["date"] = date
         }
         
         mutating func didInsert(with rowID: Int64, for column: String?) {
@@ -5474,8 +5493,10 @@ class Person : Record {
         super.init()
     }
     
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "name": name, "email": email] // Dictionary
+    override func encode(to container: inout PersistenceContainer) {
+        container["id"] = id              // String
+        container["name"] = name          // String
+        container["email"] = email        // String
     }
 }
 ```
@@ -5596,44 +5617,6 @@ let string = try dbQueue.inDatabase { db in
     try String.fetchOne(db, ...)
 }
 ```
-
-
-### Compilation takes a long time
-    
-When your [record type](#records) is very slow to compile, it is usually because its `persistentDictionary` property builds a long dictionary literal:
-
-```swift
-var persistentDictionary: [String: DatabaseValueConvertible?] {
-    // Long dictionary literals are slow to compile
-    return [
-        "a": a,
-        "b": b,
-        ...
-}
-```
-
-That's annoying, but the Swift compiler finds it difficult to compile such a dictionary. We can only hope that compiler improves over time.
-
-To speed up compilation, build your dictionary step by step:
-
-```swift
-var persistentDictionary: [String: DatabaseValueConvertible?] {
-    var dict: [String: DatabaseValueConvertible?] = [:]
-    dict.updateValue(a, forKey: "a")
-    dict.updateValue(b, forKey: "b")
-    ...
-    return dict
-}
-```
-
-> :point_up: **Note**: it is important that you use the `updateValue` method, and not the subscript setter:
-> 
-> ```swift
-> // GOOD
-> dict.updateValue(a, forKey: "a")
-> // BAD: when the value is nil, this erases the key instead of setting it to nil.
-> dict["a"] = a
-> ```
 
 
 ### SQLite error 10 "disk I/O error", SQLite error 23 "not authorized"

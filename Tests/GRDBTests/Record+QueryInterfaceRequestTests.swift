@@ -30,8 +30,10 @@ private class Reader : Record {
         return "readers"
     }
     
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "name": name, "age": age]
+    override func encode(to container: inout PersistenceContainer) {
+        container["id"] = id
+        container["name"] = name
+        container["age"] = age
     }
     
     override func didInsert(with rowID: Int64, for column: String?) {

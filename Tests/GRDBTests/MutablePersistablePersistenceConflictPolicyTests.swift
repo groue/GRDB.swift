@@ -12,8 +12,8 @@ private struct DefaultPolicy: MutablePersistable {
     
     static let databaseTableName = "records"
     
-    var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id]
+    func encode(to container: inout PersistenceContainer) {
+        container["id"] = id
     }
     
     mutating func didInsert(with rowID: Int64, for column: String?) {
@@ -27,8 +27,8 @@ private struct MixedPolicy: MutablePersistable {
     static let databaseTableName = "records"
     static let persistenceConflictPolicy = PersistenceConflictPolicy(insert: .fail, update: .rollback)
     
-    var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id]
+    func encode(to container: inout PersistenceContainer) {
+        container["id"] = id
     }
     
     mutating func didInsert(with rowID: Int64, for column: String?) {
@@ -43,8 +43,9 @@ private struct ReplacePolicy: MutablePersistable {
     static let databaseTableName = "records"
     static let persistenceConflictPolicy = PersistenceConflictPolicy(insert: .replace, update: .replace)
     
-    var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "email": email]
+    func encode(to container: inout PersistenceContainer) {
+        container["id"] = id
+        container["email"] = email
     }
     
     mutating func didInsert(with rowID: Int64, for column: String?) {
@@ -58,8 +59,8 @@ private struct IgnorePolicy: MutablePersistable {
     static let databaseTableName = "records"
     static let persistenceConflictPolicy = PersistenceConflictPolicy(insert: .ignore, update: .ignore)
     
-    var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id]
+    func encode(to container: inout PersistenceContainer) {
+        container["id"] = id
     }
     
     mutating func didInsert(with rowID: Int64, for column: String?) {
@@ -73,8 +74,8 @@ private struct FailPolicy: MutablePersistable {
     static let databaseTableName = "records"
     static let persistenceConflictPolicy = PersistenceConflictPolicy(insert: .fail, update: .fail)
     
-    var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id]
+    func encode(to container: inout PersistenceContainer) {
+        container["id"] = id
     }
     
     mutating func didInsert(with rowID: Int64, for column: String?) {
@@ -88,8 +89,8 @@ private struct AbortPolicy: MutablePersistable {
     static let databaseTableName = "records"
     static let persistenceConflictPolicy = PersistenceConflictPolicy(insert: .abort, update: .abort)
     
-    var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id]
+    func encode(to container: inout PersistenceContainer) {
+        container["id"] = id
     }
     
     mutating func didInsert(with rowID: Int64, for column: String?) {
@@ -103,8 +104,8 @@ private struct RollbackPolicy: MutablePersistable {
     static let databaseTableName = "records"
     static let persistenceConflictPolicy = PersistenceConflictPolicy(insert: .rollback, update: .rollback)
     
-    var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id]
+    func encode(to container: inout PersistenceContainer) {
+        container["id"] = id
     }
     
     mutating func didInsert(with rowID: Int64, for column: String?) {

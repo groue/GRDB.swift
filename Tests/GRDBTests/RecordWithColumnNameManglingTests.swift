@@ -37,10 +37,11 @@ class BadlyMangledStuff : Record {
         super.init(row: row)
     }
     
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
+    override func encode(to container: inout PersistenceContainer) {
         // User won't peek fancy column names because he will notice that the
         // generated INSERT query needs actual column names.
-        return ["id": id, "name": name]
+        container["id"] = id
+        container["name"] = name
     }
     
     override func didInsert(with rowID: Int64, for column: String?) {

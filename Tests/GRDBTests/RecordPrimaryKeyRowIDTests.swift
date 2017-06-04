@@ -46,13 +46,11 @@ private class Person : Record {
         super.init(row: row)
     }
     
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return [
-            "id": id,
-            "name": name,
-            "age": age,
-            "creationDate": creationDate,
-        ]
+    override func encode(to container: inout PersistenceContainer) {
+        container["id"] = id
+        container["name"] = name
+        container["age"] = age
+        container["creationDate"] = creationDate
     }
     
     override func insert(_ db: Database) throws {
@@ -89,13 +87,7 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
             XCTAssertTrue(record.id != nil)
             
             let row = try Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
-            for (key, value) in record.persistentDictionary {
-                if let dbValue: DatabaseValue = row.value(named: key) {
-                    XCTAssertEqual(dbValue, value?.databaseValue ?? .null)
-                } else {
-                    XCTFail("Missing column \(key) in fetched row")
-                }
-            }
+            assert(record, isEncodedIn: row)
         }
     }
 
@@ -108,13 +100,7 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
             XCTAssertTrue(record.id != nil)
             
             let row = try Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
-            for (key, value) in record.persistentDictionary {
-                if let dbValue: DatabaseValue = row.value(named: key) {
-                    XCTAssertEqual(dbValue, value?.databaseValue ?? .null)
-                } else {
-                    XCTFail("Missing column \(key) in fetched row")
-                }
-            }
+            assert(record, isEncodedIn: row)
             return .rollback
         }
         // This is debatable, actually.
@@ -128,13 +114,7 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
             try record.insert(db)
             
             let row = try Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
-            for (key, value) in record.persistentDictionary {
-                if let dbValue: DatabaseValue = row.value(named: key) {
-                    XCTAssertEqual(dbValue, value?.databaseValue ?? .null)
-                } else {
-                    XCTFail("Missing column \(key) in fetched row")
-                }
-            }
+            assert(record, isEncodedIn: row)
         }
     }
 
@@ -172,13 +152,7 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
             try record.insert(db)
             
             let row = try Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
-            for (key, value) in record.persistentDictionary {
-                if let dbValue: DatabaseValue = row.value(named: key) {
-                    XCTAssertEqual(dbValue, value?.databaseValue ?? .null)
-                } else {
-                    XCTFail("Missing column \(key) in fetched row")
-                }
-            }
+            assert(record, isEncodedIn: row)
         }
     }
 
@@ -220,13 +194,7 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
             try record.update(db)
             
             let row = try Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
-            for (key, value) in record.persistentDictionary {
-                if let dbValue: DatabaseValue = row.value(named: key) {
-                    XCTAssertEqual(dbValue, value?.databaseValue ?? .null)
-                } else {
-                    XCTFail("Missing column \(key) in fetched row")
-                }
-            }
+            assert(record, isEncodedIn: row)
         }
     }
 
@@ -257,13 +225,7 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
             XCTAssertTrue(record.id != nil)
             
             let row = try Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
-            for (key, value) in record.persistentDictionary {
-                if let dbValue: DatabaseValue = row.value(named: key) {
-                    XCTAssertEqual(dbValue, value?.databaseValue ?? .null)
-                } else {
-                    XCTFail("Missing column \(key) in fetched row")
-                }
-            }
+            assert(record, isEncodedIn: row)
         }
     }
 
@@ -274,13 +236,7 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
             try record.save(db)
             
             let row = try Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
-            for (key, value) in record.persistentDictionary {
-                if let dbValue: DatabaseValue = row.value(named: key) {
-                    XCTAssertEqual(dbValue, value?.databaseValue ?? .null)
-                } else {
-                    XCTFail("Missing column \(key) in fetched row")
-                }
-            }
+            assert(record, isEncodedIn: row)
         }
     }
 
@@ -294,13 +250,7 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
             try record.save(db)   // Actual update
             
             let row = try Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
-            for (key, value) in record.persistentDictionary {
-                if let dbValue: DatabaseValue = row.value(named: key) {
-                    XCTAssertEqual(dbValue, value?.databaseValue ?? .null)
-                } else {
-                    XCTFail("Missing column \(key) in fetched row")
-                }
-            }
+            assert(record, isEncodedIn: row)
         }
     }
 
@@ -313,13 +263,7 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
             try record.save(db)
             
             let row = try Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
-            for (key, value) in record.persistentDictionary {
-                if let dbValue: DatabaseValue = row.value(named: key) {
-                    XCTAssertEqual(dbValue, value?.databaseValue ?? .null)
-                } else {
-                    XCTFail("Missing column \(key) in fetched row")
-                }
-            }
+            assert(record, isEncodedIn: row)
         }
     }
 

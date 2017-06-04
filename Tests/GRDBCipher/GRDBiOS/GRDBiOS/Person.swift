@@ -24,11 +24,10 @@ class Person: Record {
         super.init(row: row)
     }
     
-    override var persistentDictionary: [String : DatabaseValueConvertible?] {
-        return [
-            "id": id,
-            "name": name,
-            "score": score]
+    override func encode(to container: inout PersistenceContainer) {
+        container["id"] = id
+        container["name"] = name
+        container["score"] = score
     }
     
     override func didInsert(with rowID: Int64, for column: String?) {

@@ -26,8 +26,8 @@ private class RecordWithNilPrimaryKey : Record {
         return "records"
     }
     
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": nil]
+    override func encode(to container: inout PersistenceContainer) {
+        container["id"] = nil
     }
 }
 
@@ -36,8 +36,8 @@ private class RecordForTableWithoutPrimaryKey : Record {
         return "records"
     }
     
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["name": "foo"]
+    override func encode(to container: inout PersistenceContainer) {
+        container["name"] = "foo"
     }
 }
 
@@ -46,8 +46,8 @@ private class RecordForTableWithMultipleColumnsPrimaryKey : Record {
         return "records"
     }
     
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["name": "foo"]
+    override func encode(to container: inout PersistenceContainer) {
+        container["name"] = "foo"
     }
 }
 
@@ -56,8 +56,8 @@ private class RecordWithRowIDPrimaryKeyNotExposedInPersistentDictionary : Record
         return "records"
     }
     
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["name": "foo"]
+    override func encode(to container: inout PersistenceContainer) {
+        container["name"] = "foo"
     }
 }
 

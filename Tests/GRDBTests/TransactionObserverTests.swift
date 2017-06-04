@@ -117,8 +117,9 @@ private class Artist : Record {
         super.init(row: row)
     }
     
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "name": name]
+    override func encode(to container: inout PersistenceContainer) {
+        container["id"] = id
+        container["name"] = name
     }
     
     override func didInsert(with rowID: Int64, for column: String?) {
@@ -160,8 +161,10 @@ private class Artwork : Record {
         super.init(row: row)
     }
     
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "artistId": artistId, "title": title]
+    override func encode(to container: inout PersistenceContainer) {
+        container["id"] = id
+        container["artistId"] = artistId
+        container["title"] = title
     }
     
     override func didInsert(with rowID: Int64, for column: String?) {

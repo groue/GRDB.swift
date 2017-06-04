@@ -40,8 +40,9 @@ private class Item : Record {
         super.init(row: row)
     }
     
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["name": name, "email": email]
+    override func encode(to container: inout PersistenceContainer) {
+        container["name"] = name
+        container["email"] = email
     }
     
     override func didInsert(with rowID: Int64, for column: String?) {
