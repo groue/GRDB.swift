@@ -2938,7 +2938,9 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     ```
 
 - `EXISTS (subquery)`, `NOT EXISTS (subquery)`
-
+    
+    [![Experimental](https://cdn.rawgit.com/groue/GRDB.swift/GRDB1/Documentation/images/experimental.svg)]((#what-are-experimental-features))
+    
     To check is a subquery would return any row, use the `exists` property on another request:
     
     ```swift
