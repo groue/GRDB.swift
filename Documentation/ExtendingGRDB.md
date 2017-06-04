@@ -503,20 +503,6 @@ Build a `value BETWEEN min AND max` expression from Swift ranges:
 ```
 
 
-#### The EXISTS Operator
-
-[![Experimental](https://cdn.rawgit.com/groue/GRDB.swift/GRDB1/Documentation/images/experimental.svg)](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-
-Build a `EXISTS(...)` expression from any value that adopts the [SQLSelectQuery](http://groue.github.io/GRDB.swift/docs/0.110.0/Protocols/SQLSelectQuery.html) protocol, like the [query interface requests](../../../#requests):
-
-```swift
-let request = Person.all()
-
-// SQLExpression: EXISTS(SELECT * FROM persons)
-request.exists()
-```
-
-
 #### The COUNT Function
 
 Build a `COUNT(...)` expression from the [count](http://groue.github.io/GRDB.swift/docs/0.110.0/Functions.html) and [count(distinct:)](http://groue.github.io/GRDB.swift/docs/0.110.0/Functions.html) functions:
