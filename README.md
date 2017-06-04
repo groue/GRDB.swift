@@ -2902,9 +2902,9 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Person.filter(!verifiedColumn || ageColumn < 18)
     ```
 
-- `BETWEEN`, `IN`, `IN (subquery)`, `NOT IN`, `NOT IN (subquery)`
+- `BETWEEN`, `IN`, `NOT IN`
     
-    To check inclusion in a collection, call the `contains` method on any Swift sequence:
+    To check inclusion in a Swift sequence (array, set, range…), call the `contains` method:
     
     ```swift
     // SELECT * FROM persons WHERE id IN (1, 2, 3)
@@ -2919,11 +2919,11 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     // SELECT * FROM persons WHERE (age >= 0) AND (age < 18)
     Person.filter((0..<18).contains(ageColumn))
     
-    // SELECT * FROM persons WHERE name BETWEEN 'A' AND 'z'
-    Person.filter(("A"..."z").contains(nameColumn))
+    // SELECT * FROM persons WHERE initial BETWEEN 'A' AND 'N'
+    Person.filter(("A"..."N").contains(initialColumn))
     
-    // SELECT * FROM persons WHERE (name >= 'A') AND (name < 'z')
-    Person.filter(("A"..<"z").contains(nameColumn))
+    // SELECT * FROM persons WHERE (initial >= 'A') AND (initial < 'N')
+    Person.filter(("A"..<"N").contains(initialColumn))
     ```
     
     > :point_up: **Note**: SQLite string comparison, by default, is case-sensitive and not Unicode-aware. See [string comparison](#string-comparison) if you need more control.
