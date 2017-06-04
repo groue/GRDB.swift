@@ -27,19 +27,6 @@ public protocol SQLSelectQuery : Request, SQLCollection {
     func selectQuerySQL(_ arguments: inout StatementArguments?) -> String
 }
 
-extension SQLSelectQuery {
-    
-    /// Returns an SQL expression that checks whether the receiver, as a
-    /// subquery, returns any row.
-    ///
-    ///
-    ///     let request = Person.all()
-    ///     request.exists()   // EXISTS (SELECT * FROM persons)
-    public func exists() -> SQLExpression {
-        return SQLExpressionExists(self)
-    }
-}
-
 
 // MARK: - SQLCollection adoption
 

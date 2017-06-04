@@ -677,17 +677,6 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT \"age\")")
     }
     
-    func testExists() throws {
-        let dbQueue = try makeDatabaseQueue()
-        
-        XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(tableRequest.exists())),
-            "SELECT * FROM \"readers\" WHERE (EXISTS (SELECT * FROM \"readers\"))")
-        XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(!tableRequest.exists())),
-            "SELECT * FROM \"readers\" WHERE (NOT EXISTS (SELECT * FROM \"readers\"))")
-    }
-    
     func testLogicalOperators() throws {
         let dbQueue = try makeDatabaseQueue()
         
