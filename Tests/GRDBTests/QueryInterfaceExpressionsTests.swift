@@ -143,16 +143,6 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(!("A"..."z").contains(Col.name))),
             "SELECT * FROM \"readers\" WHERE (\"name\" NOT BETWEEN 'A' AND 'z')")
-        
-        // Subquery
-        XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(tableRequest.select(Col.id).contains(Col.id))),
-            "SELECT * FROM \"readers\" WHERE (\"id\" IN (SELECT \"id\" FROM \"readers\"))")
-        
-        // Subquery
-        XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(!tableRequest.select(Col.id).contains(Col.id))),
-            "SELECT * FROM \"readers\" WHERE (\"id\" NOT IN (SELECT \"id\" FROM \"readers\"))")
     }
     
     func testContainsWithCollation() throws {

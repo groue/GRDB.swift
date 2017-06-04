@@ -483,15 +483,6 @@ Build a `value IN (...)` expression from any sequence of [values](../../../#valu
 ![1,2,3].contains(Column("id"))
 ```
 
-The most general way to generate an `IN` operator is from any value that adopts the [SQLCollection](http://groue.github.io/GRDB.swift/docs/0.110.0/Protocols/SQLCollection.html) protocol, like the [query interface requests](../../../#requests):
-
-```swift
-let request = Person.select(Column("id"))
-
-// SQLExpression: in IN (SELECT id FROM persons)
-request.contains(Column("id"))
-```
-
 
 #### The BETWEEN Operator
 
