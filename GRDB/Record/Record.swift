@@ -77,25 +77,26 @@ open class Record : RowConvertible, TableMapping, Persistable {
     }
     
 
-    /// The values that should be stored in the database.
+    /// Defines the values persisted in the database.
     ///
-    /// Keys of the returned dictionary must match the column names of the
-    /// target database table (see Record.databaseTableName()).
+    /// Store in the *container* argument all values that should be stored in
+    /// the columns of the database table (see Record.databaseTableName()).
     ///
-    /// In particular, primary key columns, if any, must be included.
+    /// Primary key columns, if any, must be included.
     ///
     ///     class Person : Record {
     ///         var id: Int64?
     ///         var name: String?
     ///
-    ///         override var persistentDictionary: [String: DatabaseValueConvertible?] {
-    ///             return ["id": id, "name": name]
+    ///         override func encode(to container: inout PersistenceContainer) {
+    ///             container["id"] = id
+    ///             container["name"] = name
     ///         }
     ///     }
     ///
-    /// The implementation of the base class Record returns an empty dictionary.
-    open var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return [:]
+    /// The implementation of the base class Record does not store any value in
+    /// the container.
+    open func encode(to container: inout PersistenceContainer) {
     }
     
     /// Notifies the record that it was succesfully inserted.
@@ -124,15 +125,22 @@ open class Record : RowConvertible, TableMapping, Persistable {
     
     // MARK: - Copy
     
-    /// Returns a copy of `self`, initialized from the values of
-    /// persistentDictionary.
+    /// Returns a copy of `self`, initialized from all values encoded in the
+    /// `encode(to:)` method.
     ///
-    /// Note that the eventual primary key is copied, as well as the
-    /// hasPersistentChangedValues flag.
+    /// The eventual primary key is copied, as well as the
+    /// `hasPersistentChangedValues` flag.
     ///
     /// - returns: A copy of self.
     open func copy() -> Self {
-        let copy = type(of: self).init(row: Row(persistentDictionary))
+        let row: Row
+        #if swift(>=3.1)
+            row = Row(self)
+        #else
+            // workaround weird Swift 3.0 glitch
+            row = Row(self as! MutablePersistable)
+        #endif
+        let copy = type(of: self).init(row: row)
         copy.referenceRow = referenceRow
         return copy
     }
@@ -146,10 +154,11 @@ open class Record : RowConvertible, TableMapping, Persistable {
     /// This flag is purely informative, and does not prevent insert(),
     /// update(), and save() from performing their database queries.
     ///
-    /// A record is *edited* if its *persistentDictionary* has been changed
-    /// since last database synchronization (fetch, update, insert). Comparison
-    /// is performed on *values*: setting a property to the same value does not
-    /// trigger the edited flag.
+    /// A record is *edited* if has been changed since last database
+    /// synchronization (fetch, update, insert). Comparison
+    /// is performed between *values* (values stored in the `encode(to:)`
+    /// method, and values loaded from the database). Property setters do not
+    /// trigger this flag.
     ///
     /// You can rely on the Record base class to compute this flag for you, or
     /// you may set it to true or false when you know better. Setting it to
@@ -157,7 +166,7 @@ open class Record : RowConvertible, TableMapping, Persistable {
     /// of the record.
     public var hasPersistentChangedValues: Bool {
         get { return makePersistentChangedValuesIterator().next() != nil }
-        set { referenceRow = newValue ? nil : Row(persistentDictionary) }
+        set { referenceRow = newValue ? nil : Row(self) }
     }
     
     /// A dictionary of changes that have not been saved.
@@ -182,7 +191,7 @@ open class Record : RowConvertible, TableMapping, Persistable {
     // persistentChangedValues properties.
     private func makePersistentChangedValuesIterator() -> AnyIterator<(column: String, old: DatabaseValue?)> {
         let oldRow = referenceRow
-        var newValueIterator = persistentDictionary.makeIterator()
+        var newValueIterator = PersistenceContainer(self).makeIterator()
         return AnyIterator {
             // Loop until we find a change, or exhaust columns:
             while let (column, newValue) = newValueIterator.next() {
@@ -220,21 +229,9 @@ open class Record : RowConvertible, TableMapping, Persistable {
     /// - parameter db: A database connection.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     open func insert(_ db: Database) throws {
-        // The simplest code would be:
-        //
-        //     try performInsert(db)
-        //     hasPersistentChangedValues = false
-        //
-        // But this triggers two calls to persistentDictionary, and this is both
-        // costly, and ambiguous. Costly because persistentDictionary is slow.
-        // Ambiguous because persistentDictionary may return a different value.
-        //
-        // So let's provide our custom implementation of insert, which uses the
-        // same persistentDictionary for both insertion, and change tracking.
-        
         let conflictResolutionForInsert = type(of: self).persistenceConflictPolicy.conflictResolutionForInsert
         let dao = try DAO(db, self)
-        var persistentDictionary = dao.persistentDictionary
+        var persistenceContainer = dao.persistenceContainer
         try dao.insertStatement(onConflict: conflictResolutionForInsert).execute()
         
         if !conflictResolutionForInsert.invalidatesLastInsertedRowID {
@@ -242,23 +239,15 @@ open class Record : RowConvertible, TableMapping, Persistable {
             let rowIDColumn = dao.primaryKey.rowIDColumn
             didInsert(with: rowID, for: rowIDColumn)
             
-            // Update persistentDictionary with inserted id, so that we can
+            // Update persistenceContainer with inserted id, so that we can
             // set hasPersistentChangedValues to false:
             if let rowIDColumn = rowIDColumn {
-                if persistentDictionary[rowIDColumn] != nil {
-                    persistentDictionary[rowIDColumn] = rowID
-                } else {
-                    let rowIDColumn = rowIDColumn.lowercased()
-                    for column in persistentDictionary.keys where column.lowercased() == rowIDColumn {
-                        persistentDictionary[column] = rowID
-                        break
-                    }
-                }
+                persistenceContainer[caseInsensitive: rowIDColumn] = rowID
             }
         }
         
         // Set hasPersistentChangedValues to false
-        referenceRow = Row(persistentDictionary)
+        referenceRow = Row(persistenceContainer)
     }
     
     /// Executes an UPDATE statement.
@@ -280,12 +269,7 @@ open class Record : RowConvertible, TableMapping, Persistable {
         //     try performUpdate(db, columns: columns)
         //     hasPersistentChangedValues = false
         //
-        // But this triggers two calls to persistentDictionary, and this is both
-        // costly, and ambiguous. Costly because persistentDictionary is slow.
-        // Ambiguous because persistentDictionary may return a different value.
-        //
-        // So let's provide our custom implementation of insert, which uses the
-        // same persistentDictionary for both update, and change tracking.
+        // But this would trigger two calls to `encode(to:)`.
         let dao = try DAO(db, self)
         guard let statement = try dao.updateStatement(columns: columns, onConflict: type(of: self).persistenceConflictPolicy.conflictResolutionForUpdate) else {
             // Nil primary key
@@ -297,7 +281,7 @@ open class Record : RowConvertible, TableMapping, Persistable {
         }
         
         // Set hasPersistentChangedValues to false
-        referenceRow = Row(dao.persistentDictionary)
+        referenceRow = Row(dao.persistenceContainer)
     }
     
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in

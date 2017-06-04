@@ -24,8 +24,10 @@ extension Reader : RowConvertible {
 extension Reader : MutablePersistable {
     static let databaseTableName = "readers"
     
-    var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "name": name, "age": age]
+    func encode(to container: inout PersistenceContainer) {
+        container["id"] = id
+        container["name"] = name
+        container["age"] = age
     }
     
     mutating func didInsert(with rowID: Int64, for column: String?) {

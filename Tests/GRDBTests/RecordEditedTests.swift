@@ -45,13 +45,11 @@ private class Person : Record {
         super.init(row: row)
     }
     
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return [
-            "id": id,
-            "name": name,
-            "age": age,
-            "creationDate": creationDate,
-        ]
+    override func encode(to container: inout PersistenceContainer) {
+        container["id"] = id
+        container["name"] = name
+        container["age"] = age
+        container["creationDate"] = creationDate
     }
     
     override func insert(_ db: Database) throws {
@@ -69,7 +67,7 @@ private class Person : Record {
 }
 
 private class IntegerPropertyOnRealAffinityColumn : Record {
-    var value: Int!
+    var value: Int?
     
     init(value: Int?) {
         self.value = value
@@ -83,8 +81,8 @@ private class IntegerPropertyOnRealAffinityColumn : Record {
         super.init(row: row)
     }
     
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["value": value]
+    override func encode(to container: inout PersistenceContainer) {
+        container["value"] = value
     }
 }
 
@@ -116,13 +114,11 @@ private class PersonWithModifiedCaseColumns: Record {
         super.init(row: row)
     }
     
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return [
-            "ID": id,
-            "NAME": name,
-            "AGE": age,
-            "CREATIONDATE": creationDate,
-        ]
+    override func encode(to container: inout PersistenceContainer) {
+        container["ID"] = id
+        container["NAME"] = name
+        container["AGE"] = age
+        container["CREATIONDATE"] = creationDate
     }
     
     override func insert(_ db: Database) throws {
@@ -165,8 +161,8 @@ class RecordEditedTests: GRDBTestCase {
     
     func testRecordIsNotEditedAfterFullFetch() throws {
         // Fetch a record from a row that contains all the columns in
-        // persistentDictionary: An update statement, which only saves the
-        // columns in persistentDictionary would perform no change. So the
+        // persistence container: An update statement, which only saves the
+        // columns in persistence container would perform no change. So the
         // record is not edited.
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -186,34 +182,15 @@ class RecordEditedTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             try db.execute("CREATE TABLE t (value REAL)")
             try db.execute("INSERT INTO t (value) VALUES (1)")
-            
-            // Load a double...
-            let row1 = try Row.fetchOne(db, "SELECT * FROM t")!
-            switch (row1.value(named: "value") as DatabaseValue).storage {
-            case .double(let double):
-                XCTAssertEqual(double, 1.0)
-            default:
-                XCTFail("Unexpected DatabaseValue")
-            }
-            
-            // Compare to an Int
             let record = try IntegerPropertyOnRealAffinityColumn.fetchOne(db, "SELECT * FROM t")!
-            let row2 = Row(record.persistentDictionary)
-            switch (row2.value(named: "value") as DatabaseValue).storage {
-            case .int64(let int64):
-                XCTAssertEqual(int64, 1)
-            default:
-                XCTFail("Unexpected DatabaseValue")
-            }
-            
             XCTAssertFalse(record.hasPersistentChangedValues)
         }
     }
 
     func testRecordIsNotEditedAfterWiderThanFullFetch() throws {
         // Fetch a record from a row that contains all the columns in
-        // persistentDictionary, plus extra ones: An update statement,
-        // which only saves the columns in persistentDictionary would
+        // persistence container, plus extra ones: An update statement,
+        // which only saves the columns in persistence container would
         // perform no change. So the record is not edited.
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -230,8 +207,8 @@ class RecordEditedTests: GRDBTestCase {
 
     func testRecordIsEditedAfterPartialFetch() throws {
         // Fetch a record from a row that does not contain all the columns in
-        // persistentDictionary: An update statement saves the columns in
-        // persistentDictionary, so it may perform unpredictable change.
+        // persistence container: An update statement saves the columns in
+        // persistence container, so it may perform unpredictable change.
         // So the record is edited.
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -262,7 +239,7 @@ class RecordEditedTests: GRDBTestCase {
     }
 
     func testRecordIsEditedAfterValueChange() throws {
-        // Any change in a value exposed in persistentDictionary yields a
+        // Any change in a value exposed in persistence container yields a
         // record that is edited.
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -492,8 +469,8 @@ class RecordEditedTests: GRDBTestCase {
     
     func testChangesAfterFullFetch() throws {
         // Fetch a record from a row that contains all the columns in
-        // persistentDictionary: An update statement, which only saves the
-        // columns in persistentDictionary would perform no change. So the
+        // persistence container: An update statement, which only saves the
+        // columns in persistence container would perform no change. So the
         // record is not edited.
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -529,8 +506,8 @@ class RecordEditedTests: GRDBTestCase {
 
     func testChangesAfterPartialFetch() throws {
         // Fetch a record from a row that does not contain all the columns in
-        // persistentDictionary: An update statement saves the columns in
-        // persistentDictionary, so it may perform unpredictable change.
+        // persistence container: An update statement saves the columns in
+        // persistence container, so it may perform unpredictable change.
         // So the record is edited.
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -589,7 +566,7 @@ class RecordEditedTests: GRDBTestCase {
     }
 
     func testChangesAfterValueChange() throws {
-        // Any change in a value exposed in persistentDictionary yields a
+        // Any change in a value exposed in persistence container yields a
         // record that is edited.
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in

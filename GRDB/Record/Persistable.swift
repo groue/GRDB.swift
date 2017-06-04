@@ -18,19 +18,110 @@ extension PersistenceError : CustomStringConvertible {
     }
 }
 
-private func databaseValue(for column: String, inDictionary dictionary: [String: DatabaseValueConvertible?]) -> DatabaseValue {
-    if let value = dictionary[column] {
-        return value?.databaseValue ?? .null
+
+// MARK: - PersistenceContainer
+
+/// Use persistence containers in the `encode(to:)` method of your
+/// persistable records:
+///
+///     struct Person : MutablePersistable {
+///         var id: Int64?
+///         var name: String?
+///
+///         func encode(to container: inout PersistenceContainer) {
+///             container["id"] = id
+///             container["name"] = name
+///         }
+///     }
+public struct PersistenceContainer {
+    // fileprivate for Row(_:PersistenceContainer)
+    fileprivate var storage: [String: DatabaseValueConvertible?]
+    
+    /// Accesses the value associated with the given column.
+    public subscript(_ column: String) -> DatabaseValueConvertible? {
+        get { return storage[column] ?? nil }
+        set { storage.updateValue(newValue, forKey: column) }
     }
-    let column = column.lowercased()
-    for (key, value) in dictionary where key.lowercased() == column {
-        return value?.databaseValue ?? .null
+    
+    /// Accesses the value associated with the given column.
+    public subscript(_ column: Column) -> DatabaseValueConvertible? {
+        get { return self[column.name] }
+        set { self[column.name] = newValue }
     }
-    return .null
+    
+    init() {
+        storage = [:]
+    }
+    
+    /// Convenience initializer from a record
+    ///
+    ///     // Sweet
+    ///     let container = PersistenceContainer(record)
+    ///
+    ///     // Meh
+    ///     var container = PersistenceContainer()
+    ///     record.encode(to: container)
+    init(_ record: MutablePersistable) {
+        storage = [:]
+        record.encode(to: &self)
+    }
+    
+    /// Columns stored in the container, ordered like values.
+    var columns: [String] {
+        return Array(storage.keys)
+    }
+    
+    /// Values stored in the container, ordered like columns.
+    var values: [DatabaseValueConvertible?] {
+        return Array(storage.values)
+    }
+    
+    /// Accesses the value associated with the given column, in a
+    /// case-insensitive fashion.
+    subscript(caseInsensitive column: String) -> DatabaseValueConvertible? {
+        get {
+            if let value = storage[column] {
+                return value
+            }
+            let lowercaseColumn = column.lowercased()
+            for (key, value) in storage where key.lowercased() == lowercaseColumn {
+                return value
+            }
+            return nil
+        }
+        set {
+            if storage[column] != nil {
+                storage[column] = newValue
+                return
+            }
+            let lowercaseColumn = column.lowercased()
+            for key in storage.keys where key.lowercased() == lowercaseColumn {
+                storage[key] = newValue
+                return
+            }
+            
+            storage[column] = newValue
+        }
+    }
+    
+    var isEmpty: Bool {
+        return storage.isEmpty
+    }
+    
+    /// An iterator over the (column, value) pairs
+    func makeIterator() -> DictionaryIterator<String, DatabaseValueConvertible?> {
+        return storage.makeIterator()
+    }
 }
 
-private func databaseValues(for columns: [String], inDictionary dictionary: [String: DatabaseValueConvertible?]) -> [DatabaseValue] {
-    return columns.map { databaseValue(for: $0, inDictionary: dictionary) }
+extension Row {
+    convenience init(_ record: MutablePersistable) {
+        self.init(PersistenceContainer(record))
+    }
+
+    convenience init(_ container: PersistenceContainer) {
+        self.init(container.storage)
+    }
 }
 
 
@@ -57,12 +148,6 @@ public struct PersistenceConflictPolicy {
 }
 
 /// Types that adopt MutablePersistable can be inserted, updated, and deleted.
-///
-/// This protocol is intented for types that have an INTEGER PRIMARY KEY, and
-/// are interested in the inserted RowID: they can mutate themselves upon
-/// successful insertion with the didInsert(with:for:) method.
-///
-/// The insert() and save() methods are mutating methods.
 public protocol MutablePersistable : TableMapping {
     /// The policy that handles SQLite conflicts when records are inserted
     /// or updated.
@@ -78,22 +163,23 @@ public protocol MutablePersistable : TableMapping {
     /// See https://www.sqlite.org/lang_conflict.html
     static var persistenceConflictPolicy: PersistenceConflictPolicy { get }
     
-    /// Returns the values that should be stored in the database.
+    /// Defines the values persisted in the database.
     ///
-    /// Keys of the returned dictionary must match the column names of the
-    /// target database table (see TableMapping.databaseTableName()).
+    /// Store in the *container* argument all values that should be stored in
+    /// the columns of the database table (see databaseTableName()).
     ///
-    /// In particular, primary key columns, if any, must be included.
+    /// Primary key columns, if any, must be included.
     ///
     ///     struct Person : MutablePersistable {
     ///         var id: Int64?
     ///         var name: String?
     ///
-    ///         var persistentDictionary: [String: DatabaseValueConvertible?] {
-    ///             return ["id": id, "name": name]
+    ///         func encode(to container: inout PersistenceContainer) {
+    ///             container["id"] = id
+    ///             container["name"] = name
     ///         }
     ///     }
-    var persistentDictionary: [String: DatabaseValueConvertible?] { get }
+    func encode(to container: inout PersistenceContainer)
     
     /// Notifies the record that it was succesfully inserted.
     ///
@@ -300,17 +386,15 @@ extension MutablePersistable {
     
     // MARK: - CRUD Internals
     
+    /// Return true if record has a non-null primary key
     fileprivate func canUpdate(_ db: Database) throws -> Bool {
-        // Fail early if database table does not exist.
         let databaseTableName = type(of: self).databaseTableName
-        
-        // Update according to explicit primary key, or implicit rowid.
         let primaryKey = try db.primaryKey(databaseTableName) ?? PrimaryKeyInfo.hiddenRowID
-        
-        // We need a primary key value in the persistentDictionary
-        let persistentDictionary = self.persistentDictionary
-        for column in primaryKey.columns where !databaseValue(for: column, inDictionary: persistentDictionary).isNull {
-            return true
+        let container = PersistenceContainer(self)
+        for column in primaryKey.columns {
+            if let value = container[caseInsensitive: column], !value.databaseValue.isNull {
+                return true
+            }
         }
         return false
     }
@@ -571,7 +655,6 @@ extension Persistable {
     
 }
 
-
 // MARK: - DAO
 
 /// DAO takes care of Persistable CRUD
@@ -583,10 +666,10 @@ final class DAO {
     /// The record
     let record: MutablePersistable
     
-    /// DAO keeps a copy the record's persistentDictionary, so that this
+    /// DAO keeps a copy the record's persistenceContainer, so that this
     /// dictionary is built once whatever the database operation. It is
     /// guaranteed to have at least one (key, value) pair.
-    let persistentDictionary: [String: DatabaseValueConvertible?]
+    let persistenceContainer: PersistenceContainer
     
     /// The table name
     let databaseTableName: String
@@ -595,17 +678,15 @@ final class DAO {
     let primaryKey: PrimaryKeyInfo
     
     init(_ db: Database, _ record: MutablePersistable) throws {
-        // Fail early if database table does not exist.
         let databaseTableName = type(of: record).databaseTableName
         let primaryKey = try db.primaryKey(databaseTableName) ?? PrimaryKeyInfo.hiddenRowID
+        let persistenceContainer = PersistenceContainer(record)
         
-        // Fail early if persistentDictionary is empty
-        let persistentDictionary = record.persistentDictionary
-        GRDBPrecondition(persistentDictionary.count > 0, "\(type(of: record)).persistentDictionary: invalid empty dictionary")
+        GRDBPrecondition(!persistenceContainer.isEmpty, "\(type(of: record)): invalid empty persistence container")
         
         self.db = db
         self.record = record
-        self.persistentDictionary = persistentDictionary
+        self.persistenceContainer = persistenceContainer
         self.databaseTableName = databaseTableName
         self.primaryKey = primaryKey
     }
@@ -614,9 +695,9 @@ final class DAO {
         let query = InsertQuery(
             onConflict: onConflict,
             tableName: databaseTableName,
-            insertedColumns: Array(persistentDictionary.keys))
+            insertedColumns: persistenceContainer.columns)
         let statement = try db.updateStatement(query.sql, fromCache: .grdb)
-        statement.unsafeSetArguments(StatementArguments(persistentDictionary.values))
+        statement.unsafeSetArguments(StatementArguments(persistenceContainer.values))
         return statement
     }
     
@@ -624,16 +705,18 @@ final class DAO {
     func updateStatement(columns: Set<String>, onConflict: Database.ConflictResolution) throws -> UpdateStatement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
-        let primaryKeyValues = databaseValues(for: primaryKeyColumns, inDictionary: persistentDictionary)
+        let primaryKeyValues = primaryKeyColumns.map {
+            persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
+        }
         guard primaryKeyValues.contains(where: { !$0.isNull }) else { return nil }
         
-        let lowercasePersistentColumns = Set(persistentDictionary.keys.map { $0.lowercased() })
+        let lowercasePersistentColumns = Set(persistenceContainer.columns.map { $0.lowercased() })
         let lowercasePrimaryKeyColumns = Set(primaryKeyColumns.map { $0.lowercased() })
         var updatedColumns: [String] = []
         for column in columns {
             let lowercaseColumn = column.lowercased()
-            // Make sure the requested column is present in persistentDictionary
-            GRDBPrecondition(lowercasePersistentColumns.contains(lowercaseColumn), "column \(column) can't be updated because it is missing from persistentDictionary")
+            // Make sure the requested column is present in persistenceContainer
+            GRDBPrecondition(lowercasePersistentColumns.contains(lowercaseColumn), "column \(column) can't be updated because it is missing from persistence container")
             // Don't update primary key columns
             guard !lowercasePrimaryKeyColumns.contains(lowercaseColumn) else { continue }
             updatedColumns.append(column)
@@ -650,7 +733,9 @@ final class DAO {
             // including tables made of a single primary key column.
             updatedColumns = primaryKeyColumns
         }
-        let updatedValues = databaseValues(for: updatedColumns, inDictionary: persistentDictionary)
+        let updatedValues = updatedColumns.map {
+            persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
+        }
         
         let query = UpdateQuery(
             onConflict: onConflict,
@@ -666,7 +751,9 @@ final class DAO {
     func deleteStatement() throws -> UpdateStatement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
-        let primaryKeyValues = databaseValues(for: primaryKeyColumns, inDictionary: persistentDictionary)
+        let primaryKeyValues = primaryKeyColumns.map {
+            persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
+        }
         guard primaryKeyValues.contains(where: { !$0.isNull }) else { return nil }
         
         let query = DeleteQuery(
@@ -681,7 +768,9 @@ final class DAO {
     func existsStatement() throws -> SelectStatement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
-        let primaryKeyValues = databaseValues(for: primaryKeyColumns, inDictionary: persistentDictionary)
+        let primaryKeyValues = primaryKeyColumns.map {
+            persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
+        }
         guard primaryKeyValues.contains(where: { !$0.isNull }) else { return nil }
         
         let query = ExistsQuery(
