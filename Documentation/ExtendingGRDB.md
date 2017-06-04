@@ -208,6 +208,8 @@ Whenever you import a SQL feature to Swift, you'll have to decide: should you pr
 
 ### STRFTIME
 
+[![Experimental](https://cdn.rawgit.com/groue/GRDB.swift/GRDB1/Documentation/images/experimental.svg)]((http://github.com/groue/GRDB.swift#what-are-experimental-features))
+
 The [STRFTIME](https://www.sqlite.org/lang_datefunc.html) SQL function accepts many arguments. We'll simplify it to `strftime(format, date)`, so that we can write:
 
 ```sql
@@ -272,6 +274,8 @@ You may want to compare it to another protocol, SQLExpressible, which will be de
 
 
 ### GLOB
+
+[![Experimental](https://cdn.rawgit.com/groue/GRDB.swift/GRDB1/Documentation/images/experimental.svg)]((http://github.com/groue/GRDB.swift#what-are-experimental-features))
 
 For the [GLOB](https://www.sqlite.org/lang_expr.html#like) operator, we want to define the glob Swift method:
 
@@ -390,6 +394,8 @@ For an example of use, see the [Add a new kind of SQLite expression](#add-a-new-
 
 #### SQLExpressionUnary
 
+[![Experimental](https://cdn.rawgit.com/groue/GRDB.swift/GRDB1/Documentation/images/experimental.svg)]((http://github.com/groue/GRDB.swift#what-are-experimental-features))
+
 SQLExpressionUnary builds an expression by prefixing another expression with an unary operator:
 
 ```swift
@@ -415,6 +421,8 @@ extension SQLUnaryOperator {
 
 #### SQLExpressionBinary
 
+[![Experimental](https://cdn.rawgit.com/groue/GRDB.swift/GRDB1/Documentation/images/experimental.svg)]((http://github.com/groue/GRDB.swift#what-are-experimental-features))
+
 SQLExpressionBinary builds an expression by joining two expressions with a binary operator:
 
 ```swift
@@ -438,6 +446,8 @@ extension SQLBinaryOperator {
 
 
 #### SQLExpressionFunction
+
+[![Experimental](https://cdn.rawgit.com/groue/GRDB.swift/GRDB1/Documentation/images/experimental.svg)]((http://github.com/groue/GRDB.swift#what-are-experimental-features))
 
 SQLExpressionFunction builds an SQL function call:
 
@@ -494,6 +504,8 @@ Build a `value BETWEEN min AND max` expression from Swift ranges:
 
 
 #### The EXISTS Operator
+
+[![Experimental](https://cdn.rawgit.com/groue/GRDB.swift/GRDB1/Documentation/images/experimental.svg)]((http://github.com/groue/GRDB.swift#what-are-experimental-features))
 
 Build a `EXISTS(...)` expression from any value that adopts the [SQLSelectQuery](http://groue.github.io/GRDB.swift/docs/0.110.0/Protocols/SQLSelectQuery.html) protocol, like the [query interface requests](../../../#requests):
 
