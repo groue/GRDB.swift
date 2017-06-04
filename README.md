@@ -5660,7 +5660,7 @@ Since GRDB 1.0, all backwards compatibility guarantees of [semantic versioning](
 
 There is an exception, though: *experimental features*, marked with the ![Experimental](https://cdn.rawgit.com/groue/GRDB.swift/GRDB1/Documentation/images/experimental.svg) badge. Those are advanced features that are too young, or lack user feedback. They are not stabilized yet.
 
-Those experimental features are not protected by semantic versioning, and may break between two minor releases of the library. They may eventually be declared stable, but this will require your feedback: [ask questions and give your point of view](https://github.com/groue/GRDB.swift/issues).
+Those experimental features are not protected by semantic versioning, and may break between two minor releases of the library. To help them becoming stable, [your feedback](https://github.com/groue/GRDB.swift/issues) is greatly appreciated.
 
 
 Sample Code
