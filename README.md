@@ -3301,7 +3301,7 @@ try Person.customRequest(...).fetchAll(db)   // [Person]
 try Person.customRequest(...).fetchCount(db) // Int
 ```
 
-Use the `adapted()` method to ease the consumption of complex rows with [row adapters](#row-adapters):
+[![Experimental](https://cdn.rawgit.com/groue/GRDB.swift/GRDB1/Documentation/images/experimental.svg)]((#what-are-experimental-features)) Use the `adapted()` method to ease the consumption of complex rows with [row adapters](#row-adapters):
 
 ```swift
 struct BookAuthorPair : RowConvertible {
