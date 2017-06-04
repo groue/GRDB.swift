@@ -8,7 +8,7 @@
 /// # Low Level Query Interface
 ///
 /// SQLSelectQuery is the protocol for types that represent a full select query.
-public protocol SQLSelectQuery : Request, SQLCollection {
+public protocol SQLSelectQuery : Request {
     
     /// This function is an implementation detail of the query interface.
     /// Do not use it directly.
@@ -25,24 +25,6 @@ public protocol SQLSelectQuery : Request, SQLCollection {
     /// When the arguments parameter is not nil, then values may be replaced by
     /// `?` or colon-prefixed tokens, and fed into arguments.
     func selectQuerySQL(_ arguments: inout StatementArguments?) -> String
-}
-
-
-// MARK: - SQLCollection adoption
-
-extension SQLSelectQuery {
-    
-    /// This function is an implementation detail of the query interface.
-    /// Do not use it directly.
-    ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    ///
-    /// # Low Level Query Interface
-    ///
-    /// See SQLCollection.collectionSQL(_)
-    public func collectionSQL(_ arguments: inout StatementArguments?) -> String {
-        return selectQuerySQL(&arguments)
-    }
 }
 
 
