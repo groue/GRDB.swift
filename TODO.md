@@ -30,6 +30,7 @@ v1.0 checklit
     - [X] Persistable.persistentDictionary requires string keys, doesn't accept columns
     - [ ] If possible, improve on `Person.filter(Person.email != nil)` or `Person.filter(Person.Column.email != nil)` (see [#186](https://github.com/groue/GRDB.swift/issues/186))
     - [ ] Check [SE-0166](https://github.com/apple/swift-evolution/blob/master/proposals/0166-swift-archival-serialization.md)
+- [ ] Write regression tests for #156 and #157
 
 Not sure
 
