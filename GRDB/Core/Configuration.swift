@@ -39,8 +39,8 @@ public struct Configuration {
     
     /// The default kind of transaction.
     ///
-    /// Default: Immediate
-    public var defaultTransactionKind: Database.TransactionKind = .immediate
+    /// Default: deferred
+    public var defaultTransactionKind: Database.TransactionKind = .deferred
     
     
     // MARK: - Concurrency

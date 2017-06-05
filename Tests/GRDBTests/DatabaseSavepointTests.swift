@@ -387,6 +387,7 @@ class DatabaseSavepointTests: GRDBTestCase {
     }
 
     func testNestedSavepointFromDatabaseWithDefaultImmediateTransactions() throws {
+        dbConfiguration.defaultTransactionKind = .immediate
         let dbQueue = try makeDatabaseQueue()
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
