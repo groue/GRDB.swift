@@ -68,7 +68,7 @@ class DatabaseQueueReleaseMemoryTests: GRDBTestCase {
         //                          }
         
         let (block1, block2) = { () -> (() -> (), () -> ()) in
-            var dbQueue: DatabaseQueue? = try! makeDatabaseQueue()
+            var dbQueue: DatabaseQueue? = try! self.makeDatabaseQueue()
             try! dbQueue!.write { db in
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
             }
@@ -146,7 +146,7 @@ class DatabaseQueueReleaseMemoryTests: GRDBTestCase {
         //                          dbQueue is nil
         
         let (block1, block2) = { () -> (() -> (), () -> ()) in
-            var dbQueue: DatabaseQueue? = try! makeDatabaseQueue()
+            var dbQueue: DatabaseQueue? = try! self.makeDatabaseQueue()
             
             let block1 = { () in
                 _ = s1.wait(timeout: .distantFuture)

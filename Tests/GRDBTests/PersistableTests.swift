@@ -54,11 +54,11 @@ private struct PersistableCountry : Persistable {
 private struct PersistableCustomizedCountry : Persistable {
     var isoCode: String
     var name: String
-    let willInsert: (Void) -> Void
-    let willUpdate: (Void) -> Void
-    let willSave: (Void) -> Void
-    let willDelete: (Void) -> Void
-    let willExists: (Void) -> Void
+    let willInsert: () -> Void
+    let willUpdate: () -> Void
+    let willSave: () -> Void
+    let willDelete: () -> Void
+    let willExists: () -> Void
     
     static let databaseTableName = "countries"
     
