@@ -7,11 +7,7 @@ extension NSUUID : DatabaseValueConvertible {
     public var databaseValue: DatabaseValue {
         var uuidBytes = ContiguousArray(repeating: UInt8(0), count: 16)
         return uuidBytes.withUnsafeMutableBufferPointer { buffer in
-            #if swift(>=3.2)
-                getBytes(buffer.baseAddress!)
-            #else
-                getBytes(buffer.baseAddress)
-            #endif
+            getBytes(buffer.baseAddress!)
             return NSData(bytes: buffer.baseAddress, length: 16).databaseValue
         }
     }
