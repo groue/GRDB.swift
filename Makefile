@@ -13,7 +13,7 @@ default: test
 # Requirements
 # ============
 #
-# Xcode 8.3.2, with iOS8.1 Simulator installed
+# Xcode 8.3.3, with iOS8.1 Simulator installed
 # CocoaPods ~> 1.2.0 - https://cocoapods.org
 # Carthage ~> 0.20.1 - https://github.com/carthage/carthage
 # Jazzy ~> 0.7.4 - https://github.com/realm/jazzy
@@ -46,10 +46,10 @@ TEST_ACTIONS = clean build build-for-testing test-without-building
 # xcodebuild destination to run tests on iOS 8.1 (requires a pre-installed simulator)
 MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=8.1"
 
-# xcodebuild destination to run tests on latest iOS (Xcode 8.3)
-MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 7,OS=10.3"
+# xcodebuild destination to run tests on latest iOS (Xcode 8.3.3)
+MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 7,OS=10.3.1"
 ifeq ($(XCODEVERSION),8.3)
-	# xcodebuild destination to run tests on latest iOS (Xcode 8.3)
+	# xcodebuild destination to run tests on latest iOS (Xcode 8.3.3)
 	# above (default) MAX_IOS_DESTINATION is appropriate
 else ifeq ($(XCODEVERSION),8.2)
 	# xcodebuild destination to run tests on latest iOS (Xcode 8.2)
