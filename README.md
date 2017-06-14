@@ -3398,6 +3398,20 @@ try migrator.migrate(dbQueue) // or migrator.migrate(dbPool)
 
 **The memory of applied migrations is stored in the database itself** (in a reserved table).
 
+To migrate a database up to a specific version, use `migrate(_:upTo:)`:
+
+```swift
+try migrator.migrate(dbQueue, upTo: "v2")
+```
+
+Migrations can only run forward:
+
+```swift
+try migrator.migrate(dbQueue, upTo: "v2")
+try migrator.migrate(dbQueue, upTo: "v1")
+// fatal error: database is already migrated beyond migration "v1"
+```
+
 
 ### Advanced Database Schema Changes
 

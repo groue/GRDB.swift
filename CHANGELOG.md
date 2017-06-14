@@ -3,6 +3,10 @@ Release Notes
 
 ## Next Version
 
+**New**
+
+- `DatabaseMigrator.migrate(_:upTo:)`
+
 **Breaking Changes**
 
 - `DatabaseCoder` has been removed.
