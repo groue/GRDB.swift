@@ -87,6 +87,53 @@ class DatabaseMigratorTests : GRDBTestCase {
         }
     }
 
+    func testMigrateUpTo() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("a") { db in
+            try db.execute("CREATE TABLE a (id INTEGER PRIMARY KEY)")
+        }
+        migrator.registerMigration("b") { db in
+            try db.execute("CREATE TABLE b (id INTEGER PRIMARY KEY)")
+        }
+        migrator.registerMigration("c") { db in
+            try db.execute("CREATE TABLE c (id INTEGER PRIMARY KEY)")
+        }
+        
+        // one step
+        try migrator.migrate(dbQueue, upTo: "a")
+        try dbQueue.inDatabase { db in
+            XCTAssertTrue(try db.tableExists("a"))
+            XCTAssertFalse(try db.tableExists("b"))
+        }
+        
+        // zero step
+        try migrator.migrate(dbQueue, upTo: "a")
+        try dbQueue.inDatabase { db in
+            XCTAssertTrue(try db.tableExists("a"))
+            XCTAssertFalse(try db.tableExists("b"))
+        }
+        
+        // two steps
+        try migrator.migrate(dbQueue, upTo: "c")
+        try dbQueue.inDatabase { db in
+            XCTAssertTrue(try db.tableExists("a"))
+            XCTAssertTrue(try db.tableExists("b"))
+            XCTAssertTrue(try db.tableExists("c"))
+        }
+        
+        // zero step
+        try migrator.migrate(dbQueue, upTo: "c")
+        try migrator.migrate(dbQueue)
+        
+        // fatal error: undefined migration: "missing"
+        // try migrator.migrate(dbQueue, upTo: "missing")
+        
+        // fatal error: database is already migrated beyond migration "b"
+        // try migrator.migrate(dbQueue, upTo: "b")
+    }
+    
     func testMigrationFailureTriggersRollback() throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
