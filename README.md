@@ -3390,13 +3390,17 @@ migrator.registerMigration("v2") { db in
 // migrator.registerMigration("v3") { db in
 //     ...
 // }
-
-try migrator.migrate(dbQueue) // or migrator.migrate(dbPool)
 ```
 
 **Each migration runs in a separate transaction.** Should one throw an error, its transaction is rollbacked, subsequent migrations do not run, and the error is eventually thrown by `migrator.migrate(dbQueue)`.
 
 **The memory of applied migrations is stored in the database itself** (in a reserved table).
+
+You migrate the database up to the latest version with the `migrate(_:)` method:
+
+```swift
+try migrator.migrate(dbQueue) // or migrator.migrate(dbPool)
+```
 
 To migrate a database up to a specific version, use `migrate(_:upTo:)`:
 
