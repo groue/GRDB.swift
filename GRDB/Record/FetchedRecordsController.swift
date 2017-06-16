@@ -63,7 +63,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///
     ///         This function should return true if the two records have the
     ///         same identity. For example, they have the same id.
-    public convenience init<Request>(_ databaseWriter: DatabaseWriter, request: Request, queue: DispatchQueue = .main, isSameRecord: ((Record, Record) -> Bool)? = nil) throws where Request: TypedRequest, Request.Fetched == Record {
+    public convenience init<Request>(_ databaseWriter: DatabaseWriter, request: Request, queue: DispatchQueue = .main, isSameRecord: ((Record, Record) -> Bool)? = nil) throws where Request: TypedRequest, Request.RowDecoder == Record {
         if let isSameRecord = isSameRecord {
             try self.init(databaseWriter, request: request, queue: queue, itemsAreIdentical: { isSameRecord($0.record, $1.record) })
         } else {
@@ -71,7 +71,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         }
     }
     
-    fileprivate init<Request>(_ databaseWriter: DatabaseWriter, request: Request, queue: DispatchQueue, itemsAreIdentical: @escaping ItemComparator<Record>) throws where Request: TypedRequest, Request.Fetched == Record {
+    fileprivate init<Request>(_ databaseWriter: DatabaseWriter, request: Request, queue: DispatchQueue, itemsAreIdentical: @escaping ItemComparator<Record>) throws where Request: TypedRequest, Request.RowDecoder == Record {
         self.request = try databaseWriter.unsafeRead { db in try ObservedRequest(db, request: request) }
         self.databaseWriter = databaseWriter
         self.itemsAreIdentical = itemsAreIdentical
@@ -127,7 +127,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///
     /// This method must be used from the controller's dispatch queue (the
     /// main queue unless stated otherwise in the controller's initializer).
-    public func setRequest<Request>(_ request: Request) throws where Request: TypedRequest, Request.Fetched == Record {
+    public func setRequest<Request>(_ request: Request) throws where Request: TypedRequest, Request.RowDecoder == Record {
         self.request = try databaseWriter.unsafeRead { db in try ObservedRequest(db, request: request) }
         
         // No observer: don't look for changes
@@ -325,7 +325,8 @@ public final class FetchedRecordsController<Record: RowConvertible> {
 }
 
 fileprivate struct ObservedRequest<Record: RowConvertible> : TypedRequest {
-    typealias Fetched = Item<Record>
+    /// The type that can convert raw database rows to fetched values
+    typealias RowDecoder = Item<Record>
     let request: Request
     let selectionInfo: SelectStatement.SelectionInfo
     
@@ -403,7 +404,7 @@ extension FetchedRecordsController where Record: TableMapping {
     ///         The fetched records controller tracking callbacks will be
     ///         notified of changes in this queue. The controller itself must be
     ///         used from this queue.
-    public convenience init<Request>(_ databaseWriter: DatabaseWriter, request: Request, queue: DispatchQueue = .main) throws where Request: TypedRequest, Request.Fetched == Record {
+    public convenience init<Request>(_ databaseWriter: DatabaseWriter, request: Request, queue: DispatchQueue = .main) throws where Request: TypedRequest, Request.RowDecoder == Record {
         let rowComparator = try databaseWriter.unsafeRead { db in try Record.primaryKeyRowComparator(db) }
         try self.init(databaseWriter, request: request, queue: queue, itemsAreIdentical: { rowComparator($0.row, $1.row) })
     }

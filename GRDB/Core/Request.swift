@@ -1,5 +1,4 @@
-/// The protocol for all types that define a way to fetch values from
-/// a database.
+/// The protocol for all types that define a way to fetch database rows.
 ///
 /// Requests can feed the fetching methods of any fetchable type (Row,
 /// value, record):
@@ -40,7 +39,7 @@ extension Request {
 }
 
 extension Request {
-    /// Returns a TypedRequest bound to type T.
+    /// Returns a request bound to type T.
     ///
     /// The returned request can fetch if the type T is fetchable (Row,
     /// value, record).
@@ -58,16 +57,40 @@ extension Request {
     }
     
     /// Returns an adapted request.
-    public func adapted(_ makeAdapter: @escaping (Database) throws -> RowAdapter) -> AnyRequest {
-        return AnyRequest { db in
-            let (statement, adapter) = try self.prepare(db)
-            if let adapter = adapter {
-                return try (statement, ChainedAdapter(first: adapter, second: makeAdapter(db)))
-            } else {
-                return try (statement, makeAdapter(db))
-            }
+    public func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AdaptedRequest<Self> {
+        return AdaptedRequest(self, adapter)
+    }
+}
+
+/// An adapted request.
+public struct AdaptedRequest<Base: Request> : Request {
+    /// Creates an adapted request from a base request and a closure that builds
+    /// a row adapter from a database connection.
+    init(_ base: Base, _ adapter: @escaping (Database) throws -> RowAdapter) {
+        self.base = base
+        self.adapter = adapter
+    }
+    
+    /// A tuple that contains a prepared statement that is ready to be
+    /// executed, and an eventual row adapter.
+    public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
+        let (statement, baseAdapter) = try base.prepare(db)
+        if let baseAdapter = baseAdapter {
+            return try (statement, ChainedAdapter(first: baseAdapter, second: adapter(db)))
+        } else {
+            return try (statement, adapter(db))
         }
     }
+    
+    /// The number of rows fetched by the request.
+    ///
+    /// - parameter db: A database connection.
+    public func fetchCount(_ db: Database) throws -> Int {
+        return try base.fetchCount(db)
+    }
+    
+    private let base: Base
+    private let adapter: (Database) throws -> RowAdapter
 }
 
 /// A type-erased Request.
@@ -154,34 +177,62 @@ public struct SQLRequest : Request {
     private let statementCacheName: Database.StatementCacheName?
 }
 
-/// The protocol for all types that define a way to fetch values from
-/// a database, with an attached type.
+/// The protocol for requests that know how to decode database rows.
 ///
-/// Typed requests can fetch if their associated type Fetched is fetchable
-/// (Row, value, record)
+/// Typed requests can fetch if their associated type RowDecoder is able to
+/// decode rows (Row, value, record)
 ///
+///     struct Person: RowConvertible { ... }
 ///     let request: ... // Some TypedRequest that fetches Person
 ///     try request.fetchCursor(db) // DatabaseCursor<Person>
 ///     try request.fetchAll(db)    // [Person]
 ///     try request.fetchOne(db)    // Person?
 public protocol TypedRequest : Request {
     
-    /// The fetched type
-    associatedtype Fetched
+    /// The type that can convert raw database rows to fetched values
+    associatedtype RowDecoder
 }
 
 extension TypedRequest {
     /// Returns an adapted typed request.
-    public func adapted(_ makeAdapter: @escaping (Database) throws -> RowAdapter) -> AnyTypedRequest<Fetched> {
-        return AnyTypedRequest { db in
-            let (statement, adapter) = try self.prepare(db)
-            if let adapter = adapter {
-                return try (statement, ChainedAdapter(first: adapter, second: makeAdapter(db)))
-            } else {
-                return try (statement, makeAdapter(db))
-            }
+    public func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AdaptedTypedRequest<Self> {
+        return AdaptedTypedRequest(self, adapter)
+    }
+}
+
+/// An adapted typed request.
+public struct AdaptedTypedRequest<Base: TypedRequest> : TypedRequest {
+    
+    /// The type that can convert raw database rows to fetched values
+    public typealias RowDecoder = Base.RowDecoder
+    
+    /// Creates an adapted request from a base request and a closure that builds
+    /// a row adapter from a database connection.
+    init(_ base: Base, _ adapter: @escaping (Database) throws -> RowAdapter) {
+        self.base = base
+        self.adapter = adapter
+    }
+    
+    /// A tuple that contains a prepared statement that is ready to be
+    /// executed, and an eventual row adapter.
+    public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
+        let (statement, baseAdapter) = try base.prepare(db)
+        if let baseAdapter = baseAdapter {
+            return try (statement, ChainedAdapter(first: baseAdapter, second: adapter(db)))
+        } else {
+            return try (statement, adapter(db))
         }
     }
+    
+    /// The number of rows fetched by the request.
+    ///
+    /// - parameter db: A database connection.
+    public func fetchCount(_ db: Database) throws -> Int {
+        return try base.fetchCount(db)
+    }
+    
+    private let base: Base
+    private let adapter: (Database) throws -> RowAdapter
 }
 
 /// A type-erased TypedRequest.
@@ -189,11 +240,11 @@ extension TypedRequest {
 /// An instance of AnyTypedRequest forwards its operations to an underlying
 /// typed request, hiding its specifics.
 public struct AnyTypedRequest<T> : TypedRequest {
-    /// The fetched type
-    public typealias Fetched = T
+    /// The type that can convert raw database rows to fetched values
+    public typealias RowDecoder = T
     
     /// Creates a new request that wraps and forwards operations to `request`.
-    public init<Request>(_ request: Request) where Request: TypedRequest, Request.Fetched == Fetched {
+    public init<Request>(_ request: Request) where Request: TypedRequest, Request.RowDecoder == RowDecoder {
         self._prepare = { try request.prepare($0) }
     }
     
@@ -212,7 +263,7 @@ public struct AnyTypedRequest<T> : TypedRequest {
     private let _prepare: (Database) throws -> (SelectStatement, RowAdapter?)
 }
 
-extension TypedRequest where Fetched: RowConvertible {
+extension TypedRequest where RowDecoder: RowConvertible {
     
     // MARK: Fetching Record and RowConvertible
     
@@ -232,8 +283,8 @@ extension TypedRequest where Fetched: RowConvertible {
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchCursor(_ db: Database) throws -> DatabaseCursor<Fetched> {
-        return try Fetched.fetchCursor(db, self)
+    public func fetchCursor(_ db: Database) throws -> DatabaseCursor<RowDecoder> {
+        return try RowDecoder.fetchCursor(db, self)
     }
     
     /// An array of fetched records.
@@ -244,8 +295,8 @@ extension TypedRequest where Fetched: RowConvertible {
     /// - parameter db: A database connection.
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchAll(_ db: Database) throws -> [Fetched] {
-        return try Fetched.fetchAll(db, self)
+    public func fetchAll(_ db: Database) throws -> [RowDecoder] {
+        return try RowDecoder.fetchAll(db, self)
     }
     
     /// The first fetched record.
@@ -256,12 +307,12 @@ extension TypedRequest where Fetched: RowConvertible {
     /// - parameter db: A database connection.
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchOne(_ db: Database) throws -> Fetched? {
-        return try Fetched.fetchOne(db, self)
+    public func fetchOne(_ db: Database) throws -> RowDecoder? {
+        return try RowDecoder.fetchOne(db, self)
     }
 }
 
-extension TypedRequest where Fetched: DatabaseValueConvertible {
+extension TypedRequest where RowDecoder: DatabaseValueConvertible {
     
     // MARK: Fetching Values
     
@@ -281,8 +332,8 @@ extension TypedRequest where Fetched: DatabaseValueConvertible {
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched values.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchCursor(_ db: Database) throws -> DatabaseCursor<Fetched> {
-        return try Fetched.fetchCursor(db, self)
+    public func fetchCursor(_ db: Database) throws -> DatabaseCursor<RowDecoder> {
+        return try RowDecoder.fetchCursor(db, self)
     }
     
     /// An array of fetched values.
@@ -293,8 +344,8 @@ extension TypedRequest where Fetched: DatabaseValueConvertible {
     /// - parameter db: A database connection.
     /// - returns: An array of values.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchAll(_ db: Database) throws -> [Fetched] {
-        return try Fetched.fetchAll(db, self)
+    public func fetchAll(_ db: Database) throws -> [RowDecoder] {
+        return try RowDecoder.fetchAll(db, self)
     }
     
     /// The first fetched value.
@@ -308,12 +359,12 @@ extension TypedRequest where Fetched: DatabaseValueConvertible {
     /// - parameter db: A database connection.
     /// - returns: An optional value.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchOne(_ db: Database) throws -> Fetched? {
-        return try Fetched.fetchOne(db, self)
+    public func fetchOne(_ db: Database) throws -> RowDecoder? {
+        return try RowDecoder.fetchOne(db, self)
     }
 }
 
-extension TypedRequest where Fetched: DatabaseValueConvertible & StatementColumnConvertible {
+extension TypedRequest where RowDecoder: DatabaseValueConvertible & StatementColumnConvertible {
     
     // MARK: Fetching Values
     
@@ -333,8 +384,8 @@ extension TypedRequest where Fetched: DatabaseValueConvertible & StatementColumn
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched values.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchCursor(_ db: Database) throws -> DatabaseCursor<Fetched> {
-        return try Fetched.fetchCursor(db, self)
+    public func fetchCursor(_ db: Database) throws -> DatabaseCursor<RowDecoder> {
+        return try RowDecoder.fetchCursor(db, self)
     }
     
     /// An array of fetched values.
@@ -345,8 +396,8 @@ extension TypedRequest where Fetched: DatabaseValueConvertible & StatementColumn
     /// - parameter db: A database connection.
     /// - returns: An array of values.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchAll(_ db: Database) throws -> [Fetched] {
-        return try Fetched.fetchAll(db, self)
+    public func fetchAll(_ db: Database) throws -> [RowDecoder] {
+        return try RowDecoder.fetchAll(db, self)
     }
     
     /// The first fetched value.
@@ -360,22 +411,12 @@ extension TypedRequest where Fetched: DatabaseValueConvertible & StatementColumn
     /// - parameter db: A database connection.
     /// - returns: An optional value.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchOne(_ db: Database) throws -> Fetched? {
-        return try Fetched.fetchOne(db, self)
+    public func fetchOne(_ db: Database) throws -> RowDecoder? {
+        return try RowDecoder.fetchOne(db, self)
     }
 }
 
-/// This protocol is an implementation detail of GRDB. Don't use it.
-public protocol _OptionalFetchable {
-    associatedtype _Wrapped
-}
-
-/// This conformance is an implementation detail of GRDB. Don't rely on it.
-extension Optional : _OptionalFetchable {
-    public typealias _Wrapped = Wrapped
-}
-
-extension TypedRequest where Fetched: _OptionalFetchable, Fetched._Wrapped: DatabaseValueConvertible {
+extension TypedRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped: DatabaseValueConvertible {
 
     // MARK: Fetching Optional values
 
@@ -395,8 +436,8 @@ extension TypedRequest where Fetched: _OptionalFetchable, Fetched._Wrapped: Data
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched values.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchCursor(_ db: Database) throws -> DatabaseCursor<Fetched._Wrapped?> {
-        return try Optional<Fetched._Wrapped>.fetchCursor(db, self)
+    public func fetchCursor(_ db: Database) throws -> DatabaseCursor<RowDecoder._Wrapped?> {
+        return try Optional<RowDecoder._Wrapped>.fetchCursor(db, self)
     }
 
     /// An array of fetched optional values.
@@ -407,12 +448,12 @@ extension TypedRequest where Fetched: _OptionalFetchable, Fetched._Wrapped: Data
     /// - parameter db: A database connection.
     /// - returns: An array of values.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchAll(_ db: Database) throws -> [Fetched._Wrapped?] {
-        return try Optional<Fetched._Wrapped>.fetchAll(db, self)
+    public func fetchAll(_ db: Database) throws -> [RowDecoder._Wrapped?] {
+        return try Optional<RowDecoder._Wrapped>.fetchAll(db, self)
     }
 }
 
-extension TypedRequest where Fetched: Row {
+extension TypedRequest where RowDecoder: Row {
 
     // MARK: Fetching Rows
 
