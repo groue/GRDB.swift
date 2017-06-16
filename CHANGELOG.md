@@ -40,6 +40,27 @@ Release Notes
     +    }
      }
     ```
+- `TypedRequest.Fetched` associated type has been replaced by `TypedRequest.RowDecoder`, because the type of the values fetched by a typed request is not meant to be identical to the type that decode database rows.
+    
+    ```diff
+     protocol TypedRequest : Request {
+    -    associatedtype Fetched
+    +    associatedtype RowDecoder
+     }
+    ```
+    
+- `Request.adapted(_:)` and `TypedRequest.adapted(_:)` now return `AdaptedRequest` and `AdaptedTypedRequest` instead of `AnyRequest` and `AnyTypedRequest`.
+    
+    ```diff
+     extension Request {
+    -    func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AnyRequest
+    +    func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AdaptedRequest<Self>
+     }
+     extension TypedRequest {
+    -    func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AnyTypedRequest<Fetched>
+    +    func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AdaptedTypedRequest<Self>
+     }
+    ```
 
 
 ## 0.110.0

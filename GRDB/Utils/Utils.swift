@@ -24,6 +24,16 @@ public func databaseQuestionMarks(count: Int) -> String {
     return Array(repeating: "?", count: count).joined(separator: ",")
 }
 
+/// This protocol is an implementation detail of GRDB. Don't use it.
+public protocol _OptionalProtocol {
+    associatedtype _Wrapped
+}
+
+/// This conformance is an implementation detail of GRDB. Don't rely on it.
+extension Optional : _OptionalProtocol {
+    public typealias _Wrapped = Wrapped
+}
+
 
 // MARK: - Internal
 

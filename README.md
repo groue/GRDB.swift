@@ -3239,8 +3239,7 @@ try Person.customRequest().fetchAll(db) // [Person]
 Unlike QueryInterfaceRequest, these protocols can't delete. But they can fetch and count:
 
 ```swift
-/// The protocol for all types that define a way to fetch values from
-/// a database.
+/// The protocol for all types that define a way to fetch database rows.
 protocol Request {
     /// A tuple that contains a prepared statement that is ready to be
     /// executed, and an eventual row adapter.
@@ -3250,10 +3249,10 @@ protocol Request {
     func fetchCount(_ db: Database) throws -> Int
 }
 
-/// The protocol for typed fetch requests.
+/// The protocol for requests that know how to decode database rows.
 protocol TypedRequest : Request {
-    /// The fetched type
-    associatedtype Fetched
+    /// The type that can convert raw database rows to fetched values
+    associatedtype RowDecoder
 }
 ```
 
@@ -3273,7 +3272,7 @@ try String.fetchAll(db, request) // [String]
 try Person.fetchOne(db, request) // Person?
 ```
 
-A TypedRequest knows exactly what it has to do when its Fetched associated type is fetchable ([Row](#fetching-rows), [value](#value-queries), or [record](#records)):
+A TypedRequest knows exactly what it has to do when its RowDecoder associated type can decode database rows ([Row](#fetching-rows) itself, [values](#value-queries), or [records](#records)):
 
 ```swift
 let request = ...                // Some TypedRequest that fetches Person
@@ -3324,7 +3323,7 @@ struct BookAuthorPair : RowConvertible {
         author = Author(row: row.scoped(on: "authors")!)
     }
     
-    static func all() -> AnyTypedRequest<BookAuthorPair> {
+    static func all() -> AdaptedTypedRequest<AnyTypedRequest<BookAuthorPair>> {
         return SQLRequest(
             "SELECT books.*, authors.* " +
             "FROM books " +

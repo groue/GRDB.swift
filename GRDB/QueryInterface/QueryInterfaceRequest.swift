@@ -2,7 +2,7 @@
 ///
 /// See https://github.com/groue/GRDB.swift#the-query-interface
 public struct QueryInterfaceRequest<T> : TypedRequest {
-    public typealias Fetched = T
+    public typealias RowDecoder = T
     
     let query: QueryInterfaceSelectQueryDefinition
     
