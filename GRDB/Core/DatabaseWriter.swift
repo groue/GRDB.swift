@@ -110,12 +110,12 @@ extension DatabaseWriter {
     /// Add a transaction observer, so that it gets notified of
     /// database changes.
     ///
-    /// The transaction observer is weakly referenced: it is not retained, and
-    /// stops getting notifications after it is deallocated.
-    ///
     /// - parameter transactionObserver: A transaction observer.
-    public func add(transactionObserver: TransactionObserver) {
-        write { $0.add(transactionObserver: transactionObserver) }
+    /// - parameter extent: The duration of the observation. The default is
+    ///   the observer lifetime (observation lasts until observer
+    ///   is deallocated).
+    public func add(transactionObserver: TransactionObserver, extent: Database.TransactionObservationExtent = .observerLifetime) {
+        write { $0.add(transactionObserver: transactionObserver, extent: extent) }
     }
     
     /// Remove a transaction observer.

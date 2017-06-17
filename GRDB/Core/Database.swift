@@ -304,8 +304,8 @@ public final class Database {
     fileprivate var transactionHookState: TransactionHookState = .pending
     
     /// Transaction observers
-    fileprivate var transactionObservers = [WeakTransationObserver]()
-    fileprivate var activeTransactionObservers = [WeakTransationObserver]()  // subset of transactionObservers, set in updateStatementWillExecute
+    fileprivate var transactionObservers = [ManagedTransactionObserver]()
+    fileprivate var activeTransactionObservers = [ManagedTransactionObserver]()  // subset of transactionObservers, set in updateStatementWillExecute
     
     /// See setupBusyMode()
     private var busyCallback: BusyCallback?
@@ -1604,6 +1604,19 @@ final class StatementCompilationObserver {
 // MARK: - Transactions & Savepoint
 
 extension Database {
+    
+    /// The extent of a transaction observation
+    ///
+    /// See Database.add(transactionObserver:extent:)
+    public enum TransactionObservationExtent {
+        /// Observation lasts until observer is deallocated
+        case observerLifetime
+        /// Observation lasts until the next transaction
+        case nextTransaction
+        /// Observation lasts until the database is closed
+        case databaseLifetime
+    }
+    
     /// Executes a block inside a database transaction.
     ///
     ///     try dbQueue.inDatabase do {
@@ -1799,13 +1812,13 @@ extension Database {
     /// Add a transaction observer, so that it gets notified of
     /// database changes.
     ///
-    /// The transaction observer is weakly referenced: it is not retained, and
-    /// stops getting notifications after it is deallocated.
-    ///
     /// - parameter transactionObserver: A transaction observer.
-    public func add(transactionObserver: TransactionObserver) {
+    /// - parameter extent: The duration of the observation. The default is
+    ///   the observer lifetime (observation lasts until observer
+    ///   is deallocated).
+    public func add(transactionObserver: TransactionObserver, extent: TransactionObservationExtent = .observerLifetime) {
         SchedulingWatchdog.preconditionValidQueue(self)
-        transactionObservers.append(WeakTransationObserver(observer: transactionObserver))
+        transactionObservers.append(ManagedTransactionObserver(observer: transactionObserver, extent: extent))
         if transactionObservers.count == 1 {
             installUpdateHook()
         }
@@ -1814,7 +1827,7 @@ extension Database {
     /// Remove a transaction observer.
     public func remove(transactionObserver: TransactionObserver) {
         SchedulingWatchdog.preconditionValidQueue(self)
-        transactionObservers.removeFirst { $0.observer === transactionObserver }
+        transactionObservers.removeFirst { $0.isWrapping(transactionObserver) }
         if transactionObservers.isEmpty {
             uninstallUpdateHook()
         }
@@ -1823,7 +1836,7 @@ extension Database {
     /// Clears references to deallocated observers, and uninstall SQLite update
     /// hooks if there is no remaining observers.
     private func cleanupTransactionObservers() {
-        transactionObservers = transactionObservers.filter { $0.observer != nil }
+        transactionObservers = transactionObservers.filter { $0.isObserving }
         if transactionObservers.isEmpty {
             uninstallUpdateHook()
         }
@@ -1867,7 +1880,6 @@ extension Database {
     func updateStatementWillExecute(_ statement: UpdateStatement) {
         let databaseEventKinds = statement.databaseEventKinds
         activeTransactionObservers = transactionObservers.filter { observer in
-            guard let observer = observer.observer else { return true }
             return databaseEventKinds.index(where: observer.observes) != nil
         }
     }
@@ -1954,9 +1966,7 @@ extension Database {
                         savepointStack.clear()
                         for (event, observers) in eventsBuffer {
                             for observer in observers {
-                                if let observer = observer.observer {
-                                    event.send(to: observer)
-                                }
+                                event.send(to: observer)
                             }
                         }
                     }
@@ -1985,19 +1995,13 @@ extension Database {
     func willCommit() throws {
         let eventsBuffer = savepointStack.eventsBuffer
         savepointStack.clear()
-        
-        var observersForCommit: [TransactionObserver] = transactionObservers.flatMap({ $0.observer })
+
         for (event, observers) in eventsBuffer {
             for observer in observers {
-                if let observer = observer.observer {
-                    event.send(to: observer)
-                    if !observersForCommit.contains(where: { $0 === observer }) {
-                        observersForCommit.append(observer)
-                    }
-                }
+                event.send(to: observer)
             }
         }
-        for observer in observersForCommit {
+        for observer in transactionObservers {
             try observer.databaseWillCommit()
         }
     }
@@ -2010,7 +2014,7 @@ extension Database {
             // Only notify those that are interested in the event, and have been
             // isolated in updateStatementWillExecute().
             for observer in activeTransactionObservers {
-                observer.observer?.databaseWillChange(with: event)
+                observer.databaseWillChange(with: event)
             }
         } else {
             // Buffer both event and the observers that should be notified of the event.
@@ -2026,7 +2030,7 @@ extension Database {
             // Only notify those that are interested in the event, and have been
             // isolated in updateStatementWillExecute().
             for observer in activeTransactionObservers {
-                observer.observer?.databaseDidChange(with: event)
+                observer.databaseDidChange(with: event)
             }
         } else {
             // Buffer both event and the observers that should be notified of the event.
@@ -2040,7 +2044,7 @@ extension Database {
         savepointStack.clear()
         
         for observer in transactionObservers {
-            observer.observer?.databaseDidCommit(self)
+            observer.databaseDidCommit(self)
         }
         cleanupTransactionObservers()
     }
@@ -2052,7 +2056,7 @@ extension Database {
         
         if notifyTransactionObservers {
             for observer in transactionObservers {
-                observer.observer?.databaseDidRollback(self)
+                observer.databaseDidRollback(self)
             }
         }
         cleanupTransactionObservers()
@@ -2172,12 +2176,78 @@ public protocol TransactionObserver : class {
     #endif
 }
 
-/// Database stores WeakTransationObserver so that it does not retain its
-/// transaction observers.
-fileprivate final class WeakTransationObserver {
-    weak var observer: TransactionObserver?
-    init(observer: TransactionObserver) {
-        self.observer = observer
+/// This class manages the observation extent of a transaction observer
+private final class ManagedTransactionObserver : TransactionObserver {
+    let extent: Database.TransactionObservationExtent
+    private weak var weakObserver: TransactionObserver?
+    private var strongObserver: TransactionObserver?
+    private var observer: TransactionObserver? { return strongObserver ?? weakObserver }
+    
+    fileprivate var isObserving: Bool {
+        return observer != nil
+    }
+    
+    init(observer: TransactionObserver, extent: Database.TransactionObservationExtent) {
+        self.extent = extent
+        switch extent {
+        case .observerLifetime:
+            weakObserver = observer
+        case .nextTransaction:
+            // This strong reference will be released in transactionDidComplete()
+            strongObserver = observer
+        case .databaseLifetime:
+            strongObserver = observer
+        }
+    }
+    
+    func isWrapping(_ observer: TransactionObserver) -> Bool {
+        return self.observer === observer
+    }
+    
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+        return observer?.observes(eventsOfKind: eventKind) ?? false
+    }
+    
+    func databaseDidChange(with event: DatabaseEvent) {
+        observer?.databaseDidChange(with: event)
+    }
+    
+    func databaseWillCommit() throws {
+        try observer?.databaseWillCommit()
+    }
+    
+    func databaseDidCommit(_ db: Database) {
+        guard let observer = observer else {
+            return
+        }
+        
+        transactionDidComplete()
+        observer.databaseDidCommit(db)
+    }
+    
+    func databaseDidRollback(_ db: Database) {
+        guard let observer = observer else {
+            return
+        }
+        
+        transactionDidComplete()
+        observer.databaseDidRollback(db)
+    }
+    
+    #if SQLITE_ENABLE_PREUPDATE_HOOK
+    func databaseWillChange(with event: DatabasePreUpdateEvent) {
+        observer?.databaseWillChange(with: event)
+    }
+    #endif
+    
+    private func transactionDidComplete() {
+        switch extent {
+        case .observerLifetime, .databaseLifetime:
+            break
+        case .nextTransaction:
+            weakObserver = nil
+            strongObserver = nil
+        }
     }
 }
 
@@ -2572,7 +2642,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
 ///   rollbacked.
 class SavepointStack {
     /// The buffered events. See Database.didChange(with:)
-    fileprivate var eventsBuffer: [(event: DatabaseEventProtocol, observers: [WeakTransationObserver])] = []
+    fileprivate var eventsBuffer: [(event: DatabaseEventProtocol, observers: [TransactionObserver])] = []
     
     /// The savepoint stack, as an array of tuples (savepointName, index in the eventsBuffer array).
     /// Indexes let us drop rollbacked events from the event buffer.

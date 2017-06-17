@@ -12,10 +12,12 @@ private class Observer : TransactionObserver {
     var events: [DatabaseEvent] = []
     var commitError: Error?
     var deinitBlock: (() -> ())?
+    var didCommitBlock: ((Database) -> ())?
     var observesBlock: (DatabaseEventKind) -> Bool
     
-    init(observes observesBlock: @escaping (DatabaseEventKind) -> Bool = { _ in true }, deinitBlock: (() -> ())? = nil) {
+    init(observes observesBlock: @escaping (DatabaseEventKind) -> Bool = { _ in true }, didCommitBlock: ((Database) -> ())? = nil, deinitBlock: (() -> ())? = nil) {
         self.observesBlock = observesBlock
+        self.didCommitBlock = didCommitBlock
         self.deinitBlock = deinitBlock
     }
     
@@ -74,6 +76,7 @@ private class Observer : TransactionObserver {
             lastCommittedPreUpdateEvents = preUpdateEvents
             preUpdateEvents = []
         #endif
+        didCommitBlock?(db)
     }
     
     func databaseDidRollback(_ db: Database) {
@@ -1107,22 +1110,6 @@ class TransactionObserverTests: GRDBTestCase {
         }
     }
 
-    func testTransactionObserverIsNotRetained() throws {
-        let dbQueue = try makeDatabaseQueue()
-        var observerReleased = false
-        do {
-            let observer = Observer(deinitBlock: { observerReleased = true })
-            withExtendedLifetime(observer) {
-                dbQueue.add(transactionObserver: observer)
-                XCTAssertFalse(observerReleased)
-            }
-        }
-        XCTAssertTrue(observerReleased)
-        try dbQueue.inDatabase { db in
-            try Artist(name: "Gerhard Richter").save(db)
-        }
-    }
-
     func testTransactionObserverAddAndRemove() throws {
         let dbQueue = try makeDatabaseQueue()
         let observer = Observer()
@@ -1173,6 +1160,7 @@ class TransactionObserverTests: GRDBTestCase {
         XCTAssertEqual(observer.didRollbackCount, 0)
     }
 
+    
     // MARK: - Filtered database events
 
     func testFilterDatabaseEvents() throws {
@@ -1270,6 +1258,146 @@ class TransactionObserverTests: GRDBTestCase {
             XCTAssertEqual(observer.didCommitCount, 1)
             XCTAssertEqual(observer.didRollbackCount, 0)
             XCTAssertEqual(observer.lastCommittedEvents.count, 2)
+        }
+    }
+
+    
+    // MARK: - Observation Extent
+    
+    func testDefaultObservationExtent() throws {
+        weak var weakObserver: Observer? = nil
+        let dbQueue = try makeDatabaseQueue()
+        do {
+            let observer = Observer()
+            weakObserver = observer
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.inTransaction { _ in .commit }
+            XCTAssertEqual(observer.didCommitCount, 1)
+            try dbQueue.inTransaction { _ in .commit }
+            XCTAssertEqual(observer.didCommitCount, 2)
+        }
+        XCTAssert(weakObserver == nil)
+    }
+    
+    func testObservationExtentObserverLifetime() throws {
+        weak var weakObserver: Observer? = nil
+        let dbQueue = try makeDatabaseQueue()
+        do {
+            let observer = Observer()
+            weakObserver = observer
+            dbQueue.add(transactionObserver: observer, extent: .observerLifetime)
+            
+            try dbQueue.inTransaction { _ in .commit }
+            XCTAssertEqual(observer.didCommitCount, 1)
+            try dbQueue.inTransaction { _ in .commit }
+            XCTAssertEqual(observer.didCommitCount, 2)
+        }
+        XCTAssert(weakObserver == nil)
+    }
+    
+    func testObservationExtentUntilNextTransaction() throws {
+        weak var weakObserver: Observer? = nil
+        let dbQueue = try makeDatabaseQueue()
+        do {
+            let observer = Observer()
+            weakObserver = observer
+            dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
+        }
+        if let observer = weakObserver {
+            try dbQueue.inTransaction { _ in .commit }
+            XCTAssertEqual(observer.didCommitCount, 1)
+        } else {
+            XCTFail("observer should not be deallocated until next transaction")
+        }
+        XCTAssert(weakObserver == nil)
+    }
+    
+    func testObservationExtentUntilNextTransactionWithRetainedObserver() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let observer = Observer()
+        dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
+        
+        try dbQueue.inTransaction { _ in .commit }
+        XCTAssertEqual(observer.didCommitCount, 1)
+        try dbQueue.inTransaction { _ in .commit }
+        XCTAssertEqual(observer.didCommitCount, 1)
+    }
+    
+    func testObservationExtentUntilNextTransactionWithTriggeredTransaction() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let witness = Observer()
+        let observer = Observer(didCommitBlock: { db in
+            try! db.inTransaction { _ in .commit }
+        })
+        dbQueue.add(transactionObserver: witness)
+        dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
+        
+        try dbQueue.inTransaction { _ in .commit }
+        XCTAssertEqual(observer.didCommitCount, 1)
+        XCTAssertEqual(witness.didCommitCount, 2)
+        try dbQueue.inTransaction { _ in .commit }
+        XCTAssertEqual(observer.didCommitCount, 1)
+        XCTAssertEqual(witness.didCommitCount, 3)
+    }
+    
+    func testObservationExtentUntilNextTransactionAddedDuringTransaction() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let observer = Observer()
+        
+        try dbQueue.inTransaction { db in
+            db.add(transactionObserver: observer, extent: .nextTransaction)
+            return .commit
+        }
+        
+        XCTAssertEqual(observer.didCommitCount, 1)
+        try dbQueue.inTransaction { _ in .commit }
+        XCTAssertEqual(observer.didCommitCount, 1)
+    }
+    
+    func testObservationExtentDatabaseLifetime() throws {
+        // Observer deallocation happens concurrently with database deallocation:
+        //
+        // 1. DatabaseQueue.deinit (main queue)
+        // 2. SerializedDatabase.deinit (main queue)
+        // 3. DispatchQueue.deinit (main queue)
+        // 4. SchedulingWatchDog.deinit (database queue)
+        // 5. Database.deinit (database queue)
+        // 6. Observer.deinit (database queue)
+        let deinitSemaphore = DispatchSemaphore(value: 0)
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            weak var weakObserver: Observer? = nil
+            do {
+                let observer = Observer(deinitBlock: {
+                    deinitSemaphore.signal()
+                })
+                weakObserver = observer
+                dbQueue.add(transactionObserver: observer, extent: .databaseLifetime)
+            }
+            
+            if let observer = weakObserver {
+                try dbQueue.inTransaction { _ in .commit }
+                XCTAssertEqual(observer.didCommitCount, 1)
+            } else {
+                XCTFail("observer should not be deallocated until database is closed")
+            }
+            
+            if let observer = weakObserver {
+                try dbQueue.inTransaction { _ in .commit }
+                XCTAssertEqual(observer.didCommitCount, 2)
+            } else {
+                XCTFail("observer should not be deallocated until database is closed")
+            }
+        } // <- DatabaseQueue.deinit ... Observer.deinit
+        
+        // Wait for observer deallocation
+        switch deinitSemaphore.wait(timeout: .now() + .seconds(60)) {
+        case .success:
+            break
+        case .timedOut:
+            XCTFail("Observer not deallocated")
         }
     }
 }
