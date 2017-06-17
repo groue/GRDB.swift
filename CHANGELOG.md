@@ -6,6 +6,13 @@ Release Notes
 **New**
 
 - `DatabaseMigrator.migrate(_:upTo:)`
+- Transaction observers can specify the extent of their database observation ([documentation](https://github.com/groue/GRDB.swift#observation-extent)):
+    
+    ```swift
+    // New!
+    dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
+    dbQueue.add(transactionObserver: observer, extent: .databaseLifetime)
+    ```
 
 **Breaking Changes**
 

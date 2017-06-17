@@ -4058,6 +4058,11 @@ Happy indexing!
 GRDB puts this SQLite feature to some good use, and lets you observe the database in various ways:
 
 - [TransactionObserver Protocol](#transactionobserver-protocol): The low-level protocol for database observation
+    - [Activate a Transaction Observer](#activate-a-transaction-observer)
+    - [Database Changes And Transactions](#database-changes-and-transactions)
+    - [Filtering Database Events](#filtering-database-events)
+    - [Observation Extent](#observation-extent)
+    - [Support for SQLite Pre-Update Hooks](#support-for-sqlite-pre-update-hooks)
 - [FetchedRecordsController](#fetchedrecordscontroller): Automated tracking of changes in a query results, plus UITableView animations
 - [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB): Automated tracking of changes in a query results, based on [RxSwift](https://github.com/ReactiveX/RxSwift)
 
@@ -4066,7 +4071,7 @@ Database observation requires that a single [database queue](#database-queues) o
 
 ### TransactionObserver Protocol
 
-The `TransactionObserver` protocol lets you **observe database changes**:
+The `TransactionObserver` protocol lets you **observe database changes and transactions**:
 
 ```swift
 protocol TransactionObserver : class {
@@ -4095,14 +4100,26 @@ protocol TransactionObserver : class {
 }
 ```
 
-To activate a transaction observer, add it to the database queue or pool:
+- [Activate a Transaction Observer](#activate-a-transaction-observer)
+- [Database Changes And Transactions](#database-changes-and-transactions)
+- [Filtering Database Events](#filtering-database-events)
+- [Observation Extent](#observation-extent)
+- [Support for SQLite Pre-Update Hooks](#support-for-sqlite-pre-update-hooks)
+
+
+#### Activate a Transaction Observer
+
+**To activate a transaction observer, add it to the database queue or pool:**
 
 ```swift
 let observer = MyObserver()
 dbQueue.add(transactionObserver: observer)
 ```
 
-Database holds weak references to its transaction observers: they are not retained, and stop getting notifications after they are deallocated.
+By default, database holds weak references to its transaction observers: they are not retained, and stop getting notifications after they are deallocated. See [Observation Extent](#observation-extent) for more options.
+
+
+#### Database Changes And Transactions
 
 **A transaction observer is notified of all database changes**: inserts, updates and deletes. This includes indirect changes triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
 
@@ -4179,79 +4196,23 @@ See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e63
 
 **Transaction observers can avoid being notified of some database changes they are not interested in.**
 
-At first sight, this looks somewhat redundant with the checks that observers can perform in their `databaseDidChange` method. But the code below is inefficient:
+The filtering happens in the `observes(eventsOfKind:)` method, which tells whether the observer is interested in specific kinds of changes, or not. For example, here is how an observer can focus on the changes that happen on the "persons" database table:
 
 ```swift
-// BAD: An inefficient way to track the "persons" table:
 class PersonObserver: TransactionObserver {
-    var personsTableModified = false
-    
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        // Observe all events
-        return true
-    }
-    
-    func databaseDidChange(with event: DatabaseEvent) {
-        if event.tableName == "persons" {
-            personsTableModified = true
-        }
-    }
-    
-    func databaseWillCommit() throws { }
-    
-    func databaseDidRollback(_ db: Database) {
-        // Get ready for next transaction
-        personsTableModified = false
-    }
-    
-    func databaseDidCommit(_ db: Database) {
-        if personsTableModified {
-            // Process committed changes to the persons table
-        }
-        
-        // Get ready for next transaction
-        personsTableModified = false
-    }
-}
-```
-
-The `databaseDidChange` method is invoked for each insertion, deletion, and update of individual rows, of any table. When there are many changed rows, the observer will spend of a lot of time performing the same check again and again.
-
-Instead, filter events in the `observes(eventsOfKind:)` method. This will prevent `databaseDidChange` from being called for changes you're not interested into, and is *much more* efficient:
-
-```swift
-// GOOD: An efficient way to track the "persons" table:
-class PersonObserver: TransactionObserver {
-    var personsTableModified = false
-    
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
         // Only observe changes to the "persons" table.
         return eventKind.tableName == "persons"
     }
     
     func databaseDidChange(with event: DatabaseEvent) {
-        personsTableModified = true // Guaranteed
-    }
-    
-    func databaseWillCommit() throws { }
-    
-    func databaseDidRollback(_ db: Database) {
-        // Get ready for next transaction
-        personsTableModified = false
-    }
-    
-    func databaseDidCommit(_ db: Database) {
-        if personsTableModified {
-            // Process committed changes to the persons table
-        }
-        
-        // Get ready for next transaction
-        personsTableModified = false
+        // When this method is called, the observer is guaranteed
+        // that the "persons" table has been modified.
     }
 }
 ```
 
-The `observes(eventsOfKind:)` method is also able to inspect the columns that are about to be changed:
+Generally speaking, the `observes(eventsOfKind:)` method can distinguish insertions from deletions and updates, and is also able to inspect the columns that are about to be changed:
 
 ```swift
 class PersonNameObserver: TransactionObserver {
@@ -4269,10 +4230,7 @@ class PersonNameObserver: TransactionObserver {
 }
 ```
 
-
-#### Pure Transaction Observers
-
-When the `observes(eventsOfKind:)` method returns false for all event kinds, the observer is never notified of individual changes, but it is still notified of commits and rollbacks:
+When the `observes(eventsOfKind:)` method returns false for all event kinds, the observer is still notified of commits and rollbacks:
 
 ```swift
 class PureTransactionObserver: TransactionObserver {
@@ -4281,62 +4239,45 @@ class PureTransactionObserver: TransactionObserver {
         return false
     }
     
-    func databaseDidChange(with event: DatabaseEvent) {
-        // Never called
-    }
-    
-    func databaseWillCommit() throws {
-        // Called before commit
-    }
-    
-    func databaseDidRollback(_ db: Database) {
-        // Called on rollback
-    }
-    
-    func databaseDidCommit(_ db: Database) {
-        // Called on commit
-    }
+    func databaseDidChange(with event: DatabaseEvent) { /* Never called */ }
+    func databaseWillCommit() throws { /* Called before commit */ }
+    func databaseDidRollback(_ db: Database) { /* Called on rollback */ }
+    func databaseDidCommit(_ db: Database) { /* Called on commit */ }
 }
 ```
 
 
-#### Recursive Commits
+#### Observation Extent
 
-When an observer modifies the database right after a successful transaction, it spawns a new transaction at the same time as the previous one is still handled. This triggers recursive calls to the `databaseDidCommit(_:)` method.
+**You can specify how long an observer is notified of database changes and transactions.**
 
-This can happen directly:
+To explicitely stop notifications, use the `remove(transactionObserver:)` method at any time:
 
 ```swift
-class FancyTransactionObserver: TransactionObserver {
-    func databaseDidCommit(_ db: Database) {
-        // Triggers a recursive call to databaseDidCommit(_:)
-        try! db.execute("INSERT ...")
-    }
+// From a database queue or pool:
+dbQueue.remove(transactionObserver: observer)
+
+// From a database connection:
+dbQueue.inDatabase { db in
+    db.remove(transactionObserver: observer)
 }
 ```
 
-Or indirectly:
+Alternatively, use the `extent` parameter of the `add(transactionObserver:extent:)` method:
 
 ```swift
-class VersatileTransactionObserver: TransactionObserver {
-    let onCommit: (Database) -> ()
-    
-    init(_ onCommit: @escaping (Database) -> ()) {
-        self.onCommit = onCommit
-    }
-    
-    func databaseDidCommit(_ db: Database) {
-        onCommit(db)
-    }
-}
-
-let fancyObserver = VersatileTransactionObserver { db in
-    // Triggers a recursive call to databaseDidCommit(_:)
-    try! db.execute("INSERT ...")
-}
+let observer = MyObserver()
+dbQueue.add(transactionObserver: observer) // default
+dbQueue.add(transactionObserver: observer, extent: .observerLifetime)
+dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
+dbQueue.add(transactionObserver: observer, extent: .databaseLifetime)
 ```
 
-**Transaction observers are responsible for avoiding the infinite loop that happens when each commit triggers another one.**
+- The default extent is `.observerLifetime`, which means that the database holds a weak reference to the observer, and that the observation automatically ends when the observer is deallocated. Meanwhile, observer is notified of all changes and transactions.
+
+- `.nextTransaction` guarantees that the observer will be notified of the next transaction, and only this transaction. It won't get any further event after its `databaseDidCommit` or `databaseDidRollback` method is called. The database keeps a strong reference to the observer until the next transaction, so that it doesn't get deallocated before it can handle that transaction.
+
+- `.databaseLifetime` has the database retain and notify the observer until the database connection is closed.
 
 
 #### Support for SQLite Pre-Update Hooks
