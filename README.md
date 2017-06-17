@@ -4119,7 +4119,7 @@ try dbQueue.inTransaction { db in
     // success
     try startMonitoring(db, region)
     
-    // On error, the transaction is rollbacked, the region in not inserted, and
+    // On error, the transaction is rollbacked, the region is not inserted, and
     // the location manager is not invoked.
     try failableMethod(db)
     
