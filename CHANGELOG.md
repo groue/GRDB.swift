@@ -16,9 +16,6 @@ Release Notes
 
 **Breaking Changes**
 
-- `DatabaseCoder` has been removed.
-- `QueryInterfaceRequest.exists` has been removed.
-- `QueryInterfaceRequest.contains` has been removed.
 - `MutablePersistable`, the protocol that defines persistence methods, has been changed:
     
     ```diff
@@ -29,12 +26,12 @@ Release Notes
     ```
     
     For example:
-
+    
     ```diff
      struct Player : MutablePersistable {
          let name: String
          let score: Int
-
+    
     -    var persistentDictionary: [String: DatabaseValueConvertible?] {
     -        return [
     -            "name": name,
@@ -47,6 +44,7 @@ Release Notes
     +    }
      }
     ```
+
 - `TypedRequest.Fetched` associated type has been replaced by `TypedRequest.RowDecoder`, because the type of the values fetched by a typed request is not meant to be identical to the type that decode database rows.
     
     ```diff
@@ -68,6 +66,8 @@ Release Notes
     +    func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AdaptedTypedRequest<Self>
      }
     ```
+
+- `DatabaseCoder`, `QueryInterfaceRequest.exists`, and `QueryInterfaceRequest.contains` have been removed.
 
 
 ## 0.110.0
