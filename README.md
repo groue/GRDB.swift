@@ -4076,7 +4076,7 @@ Database observation requires that a single [database queue](#database-queues) o
 
 It guarantees that its argument closure will be called after database changes have been successfully committed and written to disk.
 
-**A typical use case is the interaction of the database and system resources.** In the example below, a location manager starts monitoring a CLRegion if and only if it has successfully been stored in the database:
+**A typical use case is the interaction of the database and other resources, such as files or system sensors.** In the example below, a [location manager](https://developer.apple.com/documentation/corelocation/cllocationmanager) starts monitoring a CLRegion if and only if it has successfully been stored in the database:
 
 ```swift
 /// Inserts a region in the database, and start monitoring upon
