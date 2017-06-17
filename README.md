@@ -4057,6 +4057,7 @@ Happy indexing!
 
 GRDB puts this SQLite feature to some good use, and lets you observe the database in various ways:
 
+- [After Commit Hook](#after-commit-hook): The simplest way to handle successful transactions.
 - [TransactionObserver Protocol](#transactionobserver-protocol): The low-level protocol for database observation
     - [Activate a Transaction Observer](#activate-a-transaction-observer)
     - [Database Changes And Transactions](#database-changes-and-transactions)
@@ -4067,6 +4068,38 @@ GRDB puts this SQLite feature to some good use, and lets you observe the databas
 - [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB): Automated tracking of changes in a query results, based on [RxSwift](https://github.com/ReactiveX/RxSwift)
 
 Database observation requires that a single [database queue](#database-queues) or [pool](#database-pools) is kept open for all the duration of the database usage.
+
+
+### After Commit Hook
+
+Whenever your applications needs to perform work if and only if a database transaction successfully commits, use the `Database.afterCommit(_:)` method.
+
+It guarantees that its argument closure will be called after database changes have been successfully committed and written to disk.
+
+A typical use case is the interaction of the database and system resources.
+
+In the example below, a location manager starts monitoring a CLRegion if and only if it has successfully been stored in the database:
+
+```swift
+/// Inserts a region in the database, and start monitoring upon
+/// successful insertion.
+func startMonitoring(_ db: Database, region: CLRegion) throws {
+    // Make sure database is inside a transaction
+    try db.inSavePoint {
+        
+        // Save the region in the database...
+        try insert(...)
+        
+        // ... and start monitoring if and only if the insertion is successful:
+        db.afterCommit {
+            // locationManager prefers the main queue:
+            DispatchQueue.main.async {
+                locationManager.startMonitoring(for: region)
+            }
+        }
+    }
+}
+```
 
 
 ### TransactionObserver Protocol

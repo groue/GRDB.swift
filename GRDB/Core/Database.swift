@@ -1833,6 +1833,39 @@ extension Database {
         }
     }
     
+    /// Registers a closure to be executed after the next or current transaction
+    /// successfully commits.
+    ///
+    /// If the transaction is rollbacked, the closure will never be executed.
+    ///
+    /// The closure is eventualy executed in a protected dispatch queue,
+    /// serialized will all database updates.
+    public func afterCommit(_ closure: @escaping () -> ()) {
+        class CommitHandler : TransactionObserver {
+            let closure: () -> ()
+            
+            init(_ closure: @escaping () -> ()) {
+                self.closure = closure
+            }
+            
+            // Ignore individual changes and transaction rollbacks
+            func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { return false }
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+            func databaseWillChange(with event: DatabasePreUpdateEvent) { }
+            #endif
+            func databaseDidChange(with event: DatabaseEvent) { }
+            func databaseWillCommit() throws { }
+            func databaseDidRollback(_ db: Database) { }
+            
+            // On commit, run closure
+            func databaseDidCommit(_ db: Database) {
+                closure()
+            }
+        }
+        
+        add(transactionObserver: CommitHandler(closure), extent: .nextTransaction)
+    }
+    
     /// Clears references to deallocated observers, and uninstall SQLite update
     /// hooks if there is no remaining observers.
     private func cleanupTransactionObservers() {

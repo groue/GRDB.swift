@@ -1313,6 +1313,23 @@ class TransactionObserverTests: GRDBTestCase {
         XCTAssert(weakObserver == nil)
     }
     
+    func testObservationExtentUntilNextTransactionWithRollback() throws {
+        weak var weakObserver: Observer? = nil
+        let dbQueue = try makeDatabaseQueue()
+        do {
+            let observer = Observer()
+            weakObserver = observer
+            dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
+        }
+        if let observer = weakObserver {
+            try dbQueue.inTransaction { _ in .rollback }
+            XCTAssertEqual(observer.didRollbackCount, 1)
+        } else {
+            XCTFail("observer should not be deallocated until next transaction")
+        }
+        XCTAssert(weakObserver == nil)
+    }
+    
     func testObservationExtentUntilNextTransactionWithRetainedObserver() throws {
         let dbQueue = try makeDatabaseQueue()
         let observer = Observer()
