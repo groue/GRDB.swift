@@ -4072,13 +4072,11 @@ Database observation requires that a single [database queue](#database-queues) o
 
 ### After Commit Hook
 
-Whenever your applications needs to perform work if and only if a database transaction successfully commits, use the `Database.afterCommit(_:)` method.
+**Whenever your applications needs to perform work if and only if a database transaction successfully commits, use the `Database.afterCommit(_:)` method.**
 
 It guarantees that its argument closure will be called after database changes have been successfully committed and written to disk.
 
-A typical use case is the interaction of the database and system resources.
-
-In the example below, a location manager starts monitoring a CLRegion if and only if it has successfully been stored in the database:
+**A typical use case is the interaction of the database and system resources.** In the example below, a location manager starts monitoring a CLRegion if and only if it has successfully been stored in the database:
 
 ```swift
 /// Inserts a region in the database, and start monitoring upon
@@ -4087,17 +4085,35 @@ func startMonitoring(_ db: Database, region: CLRegion) throws {
     // Make sure database is inside a transaction
     try db.inSavePoint {
         
-        // Save the region in the database...
+        // Save the region in the database
         try insert(...)
         
-        // ... and start monitoring if and only if the insertion is successful:
+        // Start monitoring if and only if the insertion is
+        // eventually committed
         db.afterCommit {
             // locationManager prefers the main queue:
             DispatchQueue.main.async {
                 locationManager.startMonitoring(for: region)
             }
         }
+        
+        return .commit
     }
+}
+```
+
+The method above won't trigger the location manager if the region is eventually rollbacked (explicitely, or because of a transaction error), as in the sample code below:
+
+```swift
+try dbQueue.inTransaction { db in
+    // success
+    try startMonitoring(db, region)
+    
+    // On error, the transaction is rollbacked, the region in not inserted, and
+    // the location manager is not invoked.
+    try failableMethod(db)
+    
+    return .commit
 }
 ```
 
