@@ -4175,7 +4175,7 @@ do {
 See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd), which shows a transaction observer that notifies of modified database tables with NSNotificationCenter.
 
 
-### Filtering Database Events
+#### Filtering Database Events
 
 **Transaction observers can avoid being notified of some database changes they are not interested in.**
 
@@ -4196,6 +4196,8 @@ class PersonObserver: TransactionObserver {
             personsTableModified = true
         }
     }
+    
+    func databaseWillCommit() throws { }
     
     func databaseDidRollback(_ db: Database) {
         // Get ready for next transaction
@@ -4231,6 +4233,8 @@ class PersonObserver: TransactionObserver {
         personsTableModified = true // Guaranteed
     }
     
+    func databaseWillCommit() throws { }
+    
     func databaseDidRollback(_ db: Database) {
         // Get ready for next transaction
         personsTableModified = false
@@ -4250,7 +4254,7 @@ class PersonObserver: TransactionObserver {
 The `observes(eventsOfKind:)` method is also able to inspect the columns that are about to be changed:
 
 ```swift
-class PersonObserver: TransactionObserver {
+class PersonNameObserver: TransactionObserver {
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
         // Only observe changes to the "name" column of the "persons" table.
         switch eventKind {
@@ -4266,7 +4270,76 @@ class PersonObserver: TransactionObserver {
 ```
 
 
-### Support for SQLite Pre-Update Hooks
+#### Pure Transaction Observers
+
+When the `observes(eventsOfKind:)` method returns false for all event kinds, the observer is never notified of individual changes, but it is still notified of commits and rollbacks:
+
+```swift
+class PureTransactionObserver: TransactionObserver {
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+        // Ignore all individual changes
+        return false
+    }
+    
+    func databaseDidChange(with event: DatabaseEvent) {
+        // Never called
+    }
+    
+    func databaseWillCommit() throws {
+        // Called before commit
+    }
+    
+    func databaseDidRollback(_ db: Database) {
+        // Called on rollback
+    }
+    
+    func databaseDidCommit(_ db: Database) {
+        // Called on commit
+    }
+}
+```
+
+
+#### Recursive Commits
+
+When an observer modifies the database right after a successful transaction, it spawns a new transaction at the same time as the previous one is still handled. This triggers recursive calls to the `databaseDidCommit(_:)` method.
+
+This can happen directly:
+
+```swift
+class FancyTransactionObserver: TransactionObserver {
+    func databaseDidCommit(_ db: Database) {
+        // Triggers a recursive call to databaseDidCommit(_:)
+        try! db.execute("INSERT ...")
+    }
+}
+```
+
+Or indirectly:
+
+```swift
+class VersatileTransactionObserver: TransactionObserver {
+    let onCommit: (Database) -> ()
+    
+    init(_ onCommit: @escaping (Database) -> ()) {
+        self.onCommit = onCommit
+    }
+    
+    func databaseDidCommit(_ db: Database) {
+        onCommit(db)
+    }
+}
+
+let fancyObserver = VersatileTransactionObserver { db in
+    // Triggers a recursive call to databaseDidCommit(_:)
+    try! db.execute("INSERT ...")
+}
+```
+
+**Transaction observers are responsible for avoiding the infinite loop that happens when each commit triggers another one.**
+
+
+#### Support for SQLite Pre-Update Hooks
 
 A [custom SQLite build](Documentation/CustomSQLiteBuilds.md) can activate [SQLite "preupdate hooks"](http://www.sqlite.org/sessions/c3ref/preupdate_count.html). In this case, TransactionObserverType gets an extra callback which lets you observe individual column values in the rows modified by a transaction:
 
