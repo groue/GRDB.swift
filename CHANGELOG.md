@@ -5,7 +5,10 @@ Release Notes
 
 **New**
 
-- `DatabaseMigrator.migrate(_:upTo:)`
+- `DatabaseMigrator.migrate(_:upTo:)`: partially migrate your databases ([documentation](https://github.com/groue/GRDB.swift#migrations))
+
+- `Database.afterCommit(_:)`: the simplest way to handle successful transactions ([documentation](https://github.com/groue/GRDB.swift#after-commit-hook))
+
 - Transaction observers can specify the extent of their database observation ([documentation](https://github.com/groue/GRDB.swift#observation-extent)):
     
     ```swift
