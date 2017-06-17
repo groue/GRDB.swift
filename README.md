@@ -4253,9 +4253,9 @@ See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e63
 
 #### Filtering Database Events
 
-**Transaction observers can avoid being notified of some database changes they are not interested in.**
+**Transaction observers can avoid being notified of database changes they are not interested in.**
 
-The filtering happens in the `observes(eventsOfKind:)` method, which tells whether the observer is interested in specific kinds of changes, or not. For example, here is how an observer can focus on the changes that happen on the "persons" database table:
+The filtering happens in the `observes(eventsOfKind:)` method, which tells whether the observer wants notification of specific kinds of changes, or not. For example, here is how an observer can focus on the changes that happen on the "persons" database table:
 
 ```swift
 class PersonObserver: TransactionObserver {
@@ -4265,8 +4265,8 @@ class PersonObserver: TransactionObserver {
     }
     
     func databaseDidChange(with event: DatabaseEvent) {
-        // When this method is called, the observer is guaranteed
-        // that the "persons" table has been modified.
+        // This method is only called for changes that happen to
+        // the "persons" table.
     }
 }
 ```
