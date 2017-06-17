@@ -4072,9 +4072,19 @@ Database observation requires that a single [database queue](#database-queues) o
 
 ### After Commit Hook
 
-**Whenever your applications needs to perform work if and only if a database transaction successfully commits, use the `Database.afterCommit(_:)` method.**
+**Whenever your applications needs to perform work after a database transaction has successfully committed, use the `Database.afterCommit(_:)` method.**
 
-It guarantees that its argument closure will be called after database changes have been successfully committed and written to disk.
+Its closure argument is called after database changes have been successfully written to disk:
+
+```swift
+dbQueue.inTransaction { db in
+    db.afterCommit {
+        print("success")
+    }
+    ...
+    return .commit // prints "success"
+}
+```
 
 **A typical use case is the interaction of the database and other resources, such as files or system sensors.** In the example below, a [location manager](https://developer.apple.com/documentation/corelocation/cllocationmanager) starts monitoring a CLRegion if and only if it has successfully been stored in the database:
 
@@ -4102,7 +4112,7 @@ func startMonitoring(_ db: Database, region: CLRegion) throws {
 }
 ```
 
-The method above won't trigger the location manager if the region is eventually rollbacked (explicitely, or because of a transaction error), as in the sample code below:
+The method above won't trigger the location manager if the transaction is eventually rollbacked (explicitely, or because of an error), as in the sample code below:
 
 ```swift
 try dbQueue.inTransaction { db in
