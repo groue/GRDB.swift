@@ -1,9 +1,7 @@
 /// A QueryInterfaceRequest describes an SQL query.
 ///
 /// See https://github.com/groue/GRDB.swift#the-query-interface
-public struct QueryInterfaceRequest<T> : TypedRequest {
-    public typealias RowDecoder = T
-    
+public struct QueryInterfaceRequest<T> {
     let query: QueryInterfaceSelectQueryDefinition
     
     init(query: QueryInterfaceSelectQueryDefinition) {
@@ -11,18 +9,20 @@ public struct QueryInterfaceRequest<T> : TypedRequest {
     }
 }
 
-extension QueryInterfaceRequest : SQLSelectQuery {
+extension QueryInterfaceRequest : TypedRequest {
+    public typealias RowDecoder = T
     
-    /// This function is an implementation detail of the query interface.
-    /// Do not use it directly.
+    /// A tuple that contains a prepared statement that is ready to be
+    /// executed, and an eventual row adapter.
+    public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
+        return try query.prepare(db)
+    }
+    
+    /// The number of rows fetched by the request.
     ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    ///
-    /// # Low Level Query Interface
-    ///
-    /// See SQLSelectQuery.selectQuerySQL(_)
-    public func selectQuerySQL(_ arguments: inout StatementArguments?) -> String {
-        return query.selectQuerySQL(&arguments)
+    /// - parameter db: A database connection.
+    public func fetchCount(_ db: Database) throws -> Int {
+        return try query.fetchCount(db)
     }
 }
 
@@ -227,18 +227,6 @@ extension QueryInterfaceRequest {
         var query = self.query
         query.limit = SQLLimit(limit: limit, offset: offset)
         return QueryInterfaceRequest(query: query)
-    }
-}
-
-extension QueryInterfaceRequest {
-    
-    // MARK: Counting
-    
-    /// The number of rows fetched by the request.
-    ///
-    /// - parameter db: A database connection.
-    public func fetchCount(_ db: Database) throws -> Int {
-        return try query.fetchCount(db)
     }
 }
 
