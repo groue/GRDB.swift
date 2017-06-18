@@ -14,6 +14,8 @@ extension QueryInterfaceRequest : TypedRequest {
     
     /// A tuple that contains a prepared statement that is ready to be
     /// executed, and an eventual row adapter.
+    ///
+    /// - parameter db: A database connection.
     public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
         return try query.prepare(db)
     }
