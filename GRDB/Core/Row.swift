@@ -825,10 +825,12 @@ public struct RowIndex : Comparable {
     let index: Int
     init(_ index: Int) { self.index = index }
     
+    /// Equality operator
     public static func == (lhs: RowIndex, rhs: RowIndex) -> Bool {
         return lhs.index == rhs.index
     }
     
+    // Comparison operator
     public static func < (lhs: RowIndex, rhs: RowIndex) -> Bool {
         return lhs.index < rhs.index
     }

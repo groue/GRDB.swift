@@ -1,11 +1,6 @@
 // MARK: - SQLExpression
 
-/// This protocol is an implementation detail of the query interface.
-/// Do not use it directly.
-///
-/// See https://github.com/groue/GRDB.swift/#the-query-interface
-///
-/// # Low Level Query Interface
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
 /// SQLExpression is the protocol for types that represent an SQL expression, as
 /// described at https://www.sqlite.org/lang_expr.html
@@ -23,12 +18,7 @@
 /// - SQLExpressionCollate
 public protocol SQLExpression : SQLSpecificExpressible, SQLSelectable, SQLOrderingTerm {
     
-    /// This function is an implementation detail of the query interface.
-    /// Do not use it directly.
-    ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    ///
-    /// # Low Level Query Interface
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Returns an SQL string that represents the expression.
     ///
@@ -48,12 +38,7 @@ public protocol SQLExpression : SQLSpecificExpressible, SQLSelectable, SQLOrderi
     ///     arguments                             // ["foo'bar"]
     func expressionSQL(_ arguments: inout StatementArguments?) -> String
     
-    /// This property is an implementation detail of the query interface.
-    /// Do not use it directly.
-    ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    ///
-    /// # Low Level Query Interface
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Returns the expression, negated. This property fuels the `!` operator.
     ///
@@ -72,12 +57,7 @@ public protocol SQLExpression : SQLSpecificExpressible, SQLSelectable, SQLOrderi
 
 extension SQLExpression {
     
-    /// This property is an implementation detail of the query interface.
-    /// Do not use it directly.
-    ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    ///
-    /// # Low Level Query Interface
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// The default implementation returns the expression prefixed by `NOT`.
     ///
@@ -93,14 +73,7 @@ extension SQLExpression {
 
 extension SQLExpression {
     
-    /// This property is an implementation detail of the query interface.
-    /// Do not use it directly.
-    ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    ///
-    /// # Low Level Query Interface
-    ///
-    /// See SQLExpressible.sqlExpression
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     public var sqlExpression: SQLExpression {
         return self
     }
@@ -110,14 +83,7 @@ extension SQLExpression {
 
 extension SQLExpression {
     
-    /// This function is an implementation detail of the query interface.
-    /// Do not use it directly.
-    ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    ///
-    /// # Low Level Query Interface
-    ///
-    /// See SQLSelectable.count(distinct:from:aliased:)
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     public func count(distinct: Bool) -> SQLCount? {
         if distinct {
             // SELECT DISTINCT expr FROM tableName ...
