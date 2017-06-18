@@ -42,7 +42,6 @@ public protocol SQLCollection {
 
 extension SQLCollection {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// This method is an implementation detail: do not use it directly.
     ///
     /// Returns a SQLExpressionContains which applies the `IN` operator:
     ///

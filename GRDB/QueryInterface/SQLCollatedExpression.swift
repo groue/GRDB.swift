@@ -50,15 +50,12 @@ public struct SQLCollatedExpression {
 
 extension SQLCollatedExpression : SQLOrderingTerm {
     
-    /// Returns self.desc
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     public var reversed: SQLOrderingTerm {
         return desc
     }
     
-    /// This method is an implementation detail of the query interface.
-    /// Do not use it directly.
-    ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     public func orderingTermSQL(_ arguments: inout StatementArguments?) -> String {
         return sqlExpression.orderingTermSQL(&arguments)
     }

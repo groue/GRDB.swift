@@ -91,10 +91,14 @@ extension LayoutedColumnMapping : RowLayout {
 /// GRBD ships with a ready-made type that adopts this protocol:
 /// LayoutedColumnMapping.
 public protocol LayoutedRowAdapter {
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
     /// A LayoutedColumnMapping that defines how to map a column name to a
     /// column in a base row.
     var mapping: LayoutedColumnMapping { get }
     
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
     /// The layouted row adapters for each scope.
     var scopes: [String: LayoutedRowAdapter] { get }
 }
