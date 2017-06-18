@@ -38,7 +38,6 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
             
             let columns = try db.columns(in: "items")
             XCTAssertEqual(columns.count, 4)
-            // TODO: test more properties
             XCTAssertEqual(columns[0].name, "id")
             XCTAssertEqual(columns[1].name, "email")
             XCTAssertEqual(columns[2].name, "foo")
