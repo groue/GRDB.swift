@@ -9,27 +9,26 @@ class FetchNamedValuesTests: XCTestCase {
     
     func testFMDB() {
         let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
-        let dbQueue = FMDatabaseQueue(path: databasePath)!
+        let dbQueue = FMDatabaseQueue(path: databasePath)
         
         measure {
             var count = 0
             
             dbQueue.inDatabase { db in
-                if let rs = db!.executeQuery("SELECT * FROM items", withArgumentsIn: nil) {
-                    while rs.next() {
-                        _ = rs.long(forColumn: "i0")
-                        _ = rs.long(forColumn: "i1")
-                        _ = rs.long(forColumn: "i2")
-                        _ = rs.long(forColumn: "i3")
-                        _ = rs.long(forColumn: "i4")
-                        _ = rs.long(forColumn: "i5")
-                        _ = rs.long(forColumn: "i6")
-                        _ = rs.long(forColumn: "i7")
-                        _ = rs.long(forColumn: "i8")
-                        _ = rs.long(forColumn: "i9")
-                        
-                        count += 1
-                    }
+                let rs = try! db.executeQuery("SELECT * FROM items", values: nil)
+                while rs.next() {
+                    _ = rs.long(forColumn: "i0")
+                    _ = rs.long(forColumn: "i1")
+                    _ = rs.long(forColumn: "i2")
+                    _ = rs.long(forColumn: "i3")
+                    _ = rs.long(forColumn: "i4")
+                    _ = rs.long(forColumn: "i5")
+                    _ = rs.long(forColumn: "i6")
+                    _ = rs.long(forColumn: "i7")
+                    _ = rs.long(forColumn: "i8")
+                    _ = rs.long(forColumn: "i9")
+                    
+                    count += 1
                 }
             }
             

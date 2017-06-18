@@ -69,16 +69,15 @@ class FetchRecordTests: XCTestCase {
         // Here we test the loading of an array of Records.
         
         let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
-        let dbQueue = FMDatabaseQueue(path: databasePath)!
+        let dbQueue = FMDatabaseQueue(path: databasePath)
         
         measure {
             var items = [Item]()
             dbQueue.inDatabase { db in
-                if let rs = db!.executeQuery("SELECT * FROM items", withArgumentsIn: nil) {
-                    while rs.next() {
-                        let item = Item(dictionary: rs.resultDictionary())
-                        items.append(item)
-                    }
+                let rs = try! db.executeQuery("SELECT * FROM items", values: nil)
+                while rs.next() {
+                    let item = Item(dictionary: rs.resultDictionary!)
+                    items.append(item)
                 }
             }
             XCTAssertEqual(items.count, expectedRowCount)
