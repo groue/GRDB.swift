@@ -4,7 +4,6 @@ extension Array {
     ///     let cursor = try String.fetchCursor(db, "SELECT 'foo' UNION ALL SELECT 'bar'")
     ///     let strings = try Array(cursor) // ["foo", "bar"]
     public init<C: Cursor>(_ cursor: C) throws where C.Element == Element {
-        // TODO: cursors should have an underestimatedCount
         self.init()
         while let element = try cursor.next() {
             append(element)
