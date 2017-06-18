@@ -4310,14 +4310,14 @@ class PureTransactionObserver: TransactionObserver {
 
 **You can specify how long an observer is notified of database changes and transactions.**
 
-To explicitely stop notifications, use the `remove(transactionObserver:)` method at any time:
+The `remove(transactionObserver:)` method explicitely stops notifications, at any time:
 
 ```swift
 // From a database queue or pool:
 dbQueue.remove(transactionObserver: observer)
 
 // From a database connection:
-dbQueue.inDatabase { db in
+dbQueue.inDatabase { db in // or dbPool.write
     db.remove(transactionObserver: observer)
 }
 ```
@@ -4326,10 +4326,20 @@ Alternatively, use the `extent` parameter of the `add(transactionObserver:extent
 
 ```swift
 let observer = MyObserver()
-dbQueue.add(transactionObserver: observer) // default
+
+// From a database queue or pool:
+dbQueue.add(transactionObserver: observer) // default extent
 dbQueue.add(transactionObserver: observer, extent: .observerLifetime)
 dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
 dbQueue.add(transactionObserver: observer, extent: .databaseLifetime)
+
+// From a database connection:
+dbQueue.inDatabase { db in
+    db.add(transactionObserver: observer) // default extent
+    db.add(transactionObserver: observer, extent: .observerLifetime)
+    db.add(transactionObserver: observer, extent: .nextTransaction)
+    db.add(transactionObserver: observer, extent: .databaseLifetime)
+}
 ```
 
 - The default extent is `.observerLifetime`, which means that the database holds a weak reference to the observer, and that the observation automatically ends when the observer is deallocated. Meanwhile, observer is notified of all changes and transactions.
