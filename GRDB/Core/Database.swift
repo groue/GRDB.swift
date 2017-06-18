@@ -2250,21 +2250,13 @@ private final class ManagedTransactionObserver : TransactionObserver {
     }
     
     func databaseDidCommit(_ db: Database) {
-        guard let observer = observer else {
-            return
-        }
-        
         transactionDidComplete()
-        observer.databaseDidCommit(db)
+        observer?.databaseDidCommit(db)
     }
     
     func databaseDidRollback(_ db: Database) {
-        guard let observer = observer else {
-            return
-        }
-        
         transactionDidComplete()
-        observer.databaseDidRollback(db)
+        observer?.databaseDidRollback(db)
     }
     
     #if SQLITE_ENABLE_PREUPDATE_HOOK
