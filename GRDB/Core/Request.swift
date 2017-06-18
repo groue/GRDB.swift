@@ -75,6 +75,8 @@ public struct AdaptedRequest<Base: Request> : Request {
     
     /// A tuple that contains a prepared statement that is ready to be
     /// executed, and an eventual row adapter.
+    ///
+    /// - parameter db: A database connection.
     public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
         let (statement, baseAdapter) = try base.prepare(db)
         if let baseAdapter = baseAdapter {
@@ -113,6 +115,8 @@ public struct AnyRequest : Request {
     
     /// A tuple that contains a prepared statement that is ready to be
     /// executed, and an eventual row adapter.
+    ///
+    /// - parameter db: A database connection.
     public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
         return try _prepare(db)
     }
@@ -160,6 +164,8 @@ public struct SQLRequest : Request {
     
     /// A tuple that contains a prepared statement that is ready to be
     /// executed, and an eventual row adapter.
+    ///
+    /// - parameter db: A database connection.
     public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
         let statement: SelectStatement
         if let statementCacheName = statementCacheName {
@@ -219,6 +225,8 @@ public struct AdaptedTypedRequest<Base: TypedRequest> : TypedRequest {
     
     /// A tuple that contains a prepared statement that is ready to be
     /// executed, and an eventual row adapter.
+    ///
+    /// - parameter db: A database connection.
     public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
         let (statement, baseAdapter) = try base.prepare(db)
         if let baseAdapter = baseAdapter {
@@ -260,6 +268,8 @@ public struct AnyTypedRequest<T> : TypedRequest {
     
     /// A tuple that contains a prepared statement that is ready to be
     /// executed, and an eventual row adapter.
+    ///
+    /// - parameter db: A database connection.
     public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
         return try _prepare(db)
     }

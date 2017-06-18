@@ -1868,8 +1868,8 @@ extension Database {
         add(transactionObserver: CommitHandler(closure), extent: .nextTransaction)
     }
     
-    /// Clears references to deallocated observers, and uninstall SQLite update
-    /// hooks if there is no remaining observers.
+    /// Remove transaction observers that have stopped observing transaction,
+    /// and uninstall SQLite update hooks if there is no remaining observers.
     private func cleanupTransactionObservers() {
         transactionObservers = transactionObservers.filter { $0.isObserving }
         if transactionObservers.isEmpty {

@@ -2015,7 +2015,7 @@ Yes, two protocols instead of one. Both grant exactly the same advantages. Here 
 
 - Otherwise, stick with `Persistable`. Particularly if your type is a class.
 
-The `encode(to:)` method defines which [values](#values) are stored in database columns.
+The `encode(to:)` method defines which [values](#values) (Bool, Int, String, Date, Swift enums, etc.) are assigned to database columns.
 
 The optional `didInsert` method lets the adopting type store its rowID after successful insertion. If your table has an INTEGER PRIMARY KEY column, you are likely to define this method. Otherwise, you can safely ignore it. It is called from a protected dispatch queue, and serialized with all database updates.
 
