@@ -4327,24 +4327,21 @@ Alternatively, use the `extent` parameter of the `add(transactionObserver:extent
 ```swift
 let observer = MyObserver()
 
-// From a database queue or pool:
+// On a database queue or pool:
 dbQueue.add(transactionObserver: observer) // default extent
 dbQueue.add(transactionObserver: observer, extent: .observerLifetime)
 dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
 dbQueue.add(transactionObserver: observer, extent: .databaseLifetime)
 
-// From a database connection:
+// On a database connection:
 dbQueue.inDatabase { db in
-    db.add(transactionObserver: observer) // default extent
-    db.add(transactionObserver: observer, extent: .observerLifetime)
-    db.add(transactionObserver: observer, extent: .nextTransaction)
-    db.add(transactionObserver: observer, extent: .databaseLifetime)
+    db.add(transactionObserver: ...)
 }
 ```
 
-- The default extent is `.observerLifetime`, which means that the database holds a weak reference to the observer, and that the observation automatically ends when the observer is deallocated. Meanwhile, observer is notified of all changes and transactions.
+- The default extent is `.observerLifetime`: the database holds a weak reference to the observer, and the observation automatically ends when the observer is deallocated. Meanwhile, observer is notified of all changes and transactions.
 
-- `.nextTransaction` guarantees that the observer will be notified of the next transaction, and only this transaction. It won't get any further event after its `databaseDidCommit` or `databaseDidRollback` method is called. The database keeps a strong reference to the observer until the next transaction, so that it doesn't get deallocated before it can handle that transaction.
+- `.nextTransaction` activates the observer until the current or next transaction completes. The database keeps a strong reference to the observer until its `databaseDidCommit` or `databaseDidRollback` method is eventually called. Hereafter the observer won't get any further notification.
 
 - `.databaseLifetime` has the database retain and notify the observer until the database connection is closed.
 
