@@ -2226,7 +2226,7 @@ private final class ManagedTransactionObserver : TransactionObserver {
         case .observerLifetime:
             weakObserver = observer
         case .nextTransaction:
-            // This strong reference will be released in transactionDidComplete()
+            // This strong reference will be released in databaseDidCommit() and databaseDidRollback()
             strongObserver = observer
         case .databaseLifetime:
             strongObserver = observer
@@ -2250,13 +2250,29 @@ private final class ManagedTransactionObserver : TransactionObserver {
     }
     
     func databaseDidCommit(_ db: Database) {
-        transactionDidComplete()
-        observer?.databaseDidCommit(db)
+        switch extent {
+        case .observerLifetime, .databaseLifetime:
+            observer?.databaseDidCommit(db)
+        case .nextTransaction:
+            if let observer = self.observer {
+                // make sure observer is no longer notified
+                strongObserver = nil
+                observer.databaseDidCommit(db)
+            }
+        }
     }
     
     func databaseDidRollback(_ db: Database) {
-        transactionDidComplete()
-        observer?.databaseDidRollback(db)
+        switch extent {
+        case .observerLifetime, .databaseLifetime:
+            observer?.databaseDidRollback(db)
+        case .nextTransaction:
+            if let observer = self.observer {
+                // make sure observer is no longer notified
+                strongObserver = nil
+                observer.databaseDidRollback(db)
+            }
+        }
     }
     
     #if SQLITE_ENABLE_PREUPDATE_HOOK
@@ -2264,16 +2280,6 @@ private final class ManagedTransactionObserver : TransactionObserver {
         observer?.databaseWillChange(with: event)
     }
     #endif
-    
-    private func transactionDidComplete() {
-        switch extent {
-        case .observerLifetime, .databaseLifetime:
-            break
-        case .nextTransaction:
-            weakObserver = nil
-            strongObserver = nil
-        }
-    }
 }
 
 /// A kind of database event. See Database.add(transactionObserver:)
