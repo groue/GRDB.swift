@@ -1,5 +1,7 @@
 // MARK: - SQLExpressible
 
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
 /// The protocol for all types that can be turned into an SQL expression.
 ///
 /// It is adopted by protocols like DatabaseValueConvertible, and types
@@ -7,25 +9,19 @@
 ///
 /// See https://github.com/groue/GRDB.swift/#the-query-interface
 public protocol SQLExpressible {
-    /// Returns an SQLExpression
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    /// Returns an SQLExpression
     var sqlExpression: SQLExpression { get }
 }
 
 // MARK: - SQLSpecificExpressible
 
-/// This protocol is an implementation detail of the query interface.
-/// Do not use it directly.
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
-/// See https://github.com/groue/GRDB.swift/#the-query-interface
-///
-/// # Low Level Query Interface
-///
-/// SQLSpecificExpressible is a protocol for all query interface types that can
-/// be turned into an SQL expression. Other types whose existence is not purely
-/// dedicated to the query interface should adopt the SQLExpressible
-/// protocol instead.
+/// SQLSpecificExpressible is a protocol for all database-specific types that can
+/// be turned into an SQL expression. Types whose existence is not purely
+/// dedicated to the database should adopt the SQLExpressible protocol instead.
 ///
 /// For example, Column is a type that only exists to help you build requests,
 /// and it adopts SQLSpecificExpressible.
@@ -56,26 +52,12 @@ public protocol SQLSpecificExpressible : SQLExpressible {
 
 extension SQLExpressible where Self: SQLOrderingTerm {
     
-    /// This property is an implementation detail of the query interface.
-    /// Do not use it directly.
-    ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    ///
-    /// # Low Level Query Interface
-    ///
-    /// See SQLOrderingTerm.reversed
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     public var reversed: SQLOrderingTerm {
         return SQLOrdering.desc(sqlExpression)
     }
     
-    /// This method is an implementation detail of the query interface.
-    /// Do not use it directly.
-    ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    ///
-    /// # Low Level Query Interface
-    ///
-    /// See SQLOrderingTerm.orderingTermSQL(_)
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     public func orderingTermSQL(_ arguments: inout StatementArguments?) -> String {
         return sqlExpression.expressionSQL(&arguments)
     }
@@ -85,39 +67,17 @@ extension SQLExpressible where Self: SQLOrderingTerm {
 
 extension SQLExpressible where Self: SQLSelectable {
     
-    /// This method is an implementation detail of the query interface.
-    /// Do not use it directly.
-    ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    ///
-    /// # Low Level Query Interface
-    ///
-    /// See SQLSelectable.resultColumnSQL(_)
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     public func resultColumnSQL(_ arguments: inout StatementArguments?) -> String {
         return sqlExpression.expressionSQL(&arguments)
     }
     
-    /// This method is an implementation detail of the query interface.
-    /// Do not use it directly.
-    ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    ///
-    /// # Low Level Query Interface
-    ///
-    /// See SQLSelectable.countedSQL(_)
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     public func countedSQL(_ arguments: inout StatementArguments?) -> String {
         return sqlExpression.expressionSQL(&arguments)
     }
     
-    
-    /// This method is an implementation detail of the query interface.
-    /// Do not use it directly.
-    ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    ///
-    /// # Low Level Query Interface
-    ///
-    /// See SQLSelectable.count(distinct:from:aliased:)
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     public func count(distinct: Bool) -> SQLCount? {
         return sqlExpression.count(distinct: distinct)
     }

@@ -1530,8 +1530,6 @@ citizenshipsPk.rowIDColumn // nil
 
 ## Row Adapters
 
-[**:fire: EXPERIMENTAL**](#what-are-experimental-features)
-
 **Row adapters let you present database rows in the way expected by the row consumers.**
 
 They basically help two incompatible row interfaces to work together. For example, a row consumer expects a column named "consumed", but the produced row has a column named "produced".
@@ -1546,7 +1544,7 @@ row.value(named: "consumed") // "Hello"
 row.value(named: "produced") // nil
 ```
 
-Row adapters are values that adopt the [RowAdapter](http://groue.github.io/GRDB.swift/docs/0.110.0/Protocols/RowAdapter.html) protocol. You can implement your own custom adapters, or use one of the four built-in adapters:
+Row adapters are values that adopt the [RowAdapter](http://groue.github.io/GRDB.swift/docs/0.110.0/Protocols/RowAdapter.html) protocol. You can implement your own custom adapters ([**:fire: EXPERIMENTAL**](#what-are-experimental-features)), or use one of the four built-in adapters:
 
 
 ### ColumnMapping

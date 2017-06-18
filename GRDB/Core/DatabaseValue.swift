@@ -310,14 +310,8 @@ extension DatabaseValue : DatabaseValueConvertible {
 
 extension DatabaseValue : SQLExpressible {
     
-    /// This property is an implementation detail of the query interface.
-    /// Do not use it directly.
-    ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    ///
-    /// # Low Level Query Interface
-    ///
-    /// See SQLExpression.sqlExpression
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// This property is an implementation detail: do not use it directly.
     public var sqlExpression: SQLExpression {
         return self
     }

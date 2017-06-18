@@ -93,6 +93,7 @@ public final class Database {
             self.rawValue = rawValue
         }
         
+        /// The hash value
         public var hashValue: Int {
             return rawValue.hashValue
         }
@@ -137,6 +138,7 @@ public final class Database {
             self.rawValue = rawValue
         }
         
+        /// The hash value
         public var hashValue: Int {
             return rawValue.hashValue
         }
@@ -972,7 +974,7 @@ public final class DatabaseFunction {
 }
 
 extension DatabaseFunction : Hashable {
-    /// The hash value.
+    /// The hash value
     public var hashValue: Int {
         return name.hashValue ^ argumentCount.hashValue
     }
@@ -1053,7 +1055,7 @@ public final class DatabaseCollation {
 }
 
 extension DatabaseCollation : Hashable {
-    /// The hash value.
+    /// The hash value
     public var hashValue: Int {
         // We can't compute a hash since the equality is based on the opaque
         // sqlite3_strnicmp SQLite function.

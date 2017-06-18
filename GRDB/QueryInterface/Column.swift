@@ -16,14 +16,8 @@ public struct Column {
 
 extension Column : SQLExpression {
     
-    /// This function is an implementation detail of the query interface.
-    /// Do not use it directly.
-    ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    ///
-    /// # Low Level Query Interface
-    ///
-    /// See SQLExpression.expressionSQL(_:arguments:)
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// This method is an implementation detail: do not use it directly.
     public func expressionSQL(_ arguments: inout StatementArguments?) -> String {
         return name.quotedDatabaseIdentifier
     }
