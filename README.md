@@ -1870,17 +1870,19 @@ Rows also accept keys of type `Column`:
 
 ```swift
 extension PointOfInterest : RowConvertible {
-    static let idColumn = Column("id")
-    static let titleColumn = Column("title")
-    static let latitudeColumn = Column("latitude")
-    static let longitudeColumn = Column("longitude")
+    enum Columns {
+        static let id = Column("id")
+        static let title = Column("title")
+        static let latitude = Column("latitude")
+        static let longitude = Column("longitude")
+    }
     
     init(row: Row) {
-        id = row.value(PointOfInterest.idColumn)
-        title = row.value(PointOfInterest.titleColumn)
+        id = row.value(Columns.id)
+        title = row.value(Columns.title)
         coordinate = CLLocationCoordinate2DMake(
-            row.value(PointOfInterest.latitudeColumn),
-            row.value(PointOfInterest.longitudeColumn))
+            row.value(Columns.latitude),
+            row.value(Columns.longitude))
     }
 }
 ```
@@ -2051,16 +2053,18 @@ Persistence containers also accept keys of type `Column`:
 
 ```swift
 extension PointOfInterest : MutablePersistable {
-    static let idColumn = Column("id")
-    static let titleColumn = Column("title")
-    static let latitudeColumn = Column("latitude")
-    static let longitudeColumn = Column("longitude")
+    enum Columns {
+        static let id = Column("id")
+        static let title = Column("title")
+        static let latitude = Column("latitude")
+        static let longitude = Column("longitude")
+    }
     
     func encode(to container: inout PersistenceContainer) {
-        container[PointOfInterest.idColumn] = id
-        container[PointOfInterest.titleColumn] = title
-        container[PointOfInterest.latitudeColumn] = coordinate.latitude
-        container[PointOfInterest.longitudeColumn] = coordinate.longitude
+        container[Columns.id] = id
+        container[Columns.title] = title
+        container[Columns.latitude] = coordinate.latitude
+        container[Columns.longitude] = coordinate.longitude
     }
 }
 ```

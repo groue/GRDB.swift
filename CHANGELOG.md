@@ -47,6 +47,26 @@ Release Notes
     +    }
      }
     ```
+    
+    Persistence containers can handle keys of type Column:
+    
+    ```swift
+    struct Player : MutablePersistable {
+        let name: String
+        let score: Int
+        
+        enum Columns {
+            static let name = Column("name")
+            static let score = Column("score")
+        }
+        
+        func encode(to container: inout PersistenceContainer) {
+            container[Columns.name] = name
+            container[Columns.score] = score
+        }
+    }
+    ```
+    
 
 - `TypedRequest.Fetched` associated type has been replaced by `TypedRequest.RowDecoder`, because the type of the values fetched by a typed request is not meant to be identical to the type that decode database rows.
     
