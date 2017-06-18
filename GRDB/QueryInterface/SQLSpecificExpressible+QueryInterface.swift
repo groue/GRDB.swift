@@ -35,18 +35,20 @@ extension SQLSpecificExpressible {
 
 extension SQLSpecificExpressible {
     
-    /// This method is an implementation detail of the query interface.
-    /// Do not use it directly.
+    /// Returns a collated expression.
     ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    /// For example:
+    ///
+    ///     Person.filter(Column("email").collating(.nocase) == "contact@example.com")
     public func collating(_ collation: Database.CollationName) -> SQLCollatedExpression {
         return SQLCollatedExpression(sqlExpression, collationName: collation)
     }
     
-    /// This method is an implementation detail of the query interface.
-    /// Do not use it directly.
+    /// Returns a collated expression.
     ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    /// For example:
+    ///
+    ///     Person.filter(Column("name").collating(.localizedStandardCompare) == "Hervé")
     public func collating(_ collation: DatabaseCollation) -> SQLCollatedExpression {
         return SQLCollatedExpression(sqlExpression, collationName: Database.CollationName(collation.name))
     }
