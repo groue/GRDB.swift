@@ -311,7 +311,6 @@ extension DatabaseValue : DatabaseValueConvertible {
 extension DatabaseValue : SQLExpressible {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// This property is an implementation detail: do not use it directly.
     public var sqlExpression: SQLExpression {
         return self
     }
@@ -319,6 +318,7 @@ extension DatabaseValue : SQLExpressible {
 
 /// DatabaseValue adopts SQLExpression.
 extension DatabaseValue : SQLExpression {
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     public func expressionSQL(_ arguments: inout StatementArguments?) -> String {
         // fast path for NULL
         if isNull {
@@ -335,6 +335,7 @@ extension DatabaseValue : SQLExpression {
         }
     }
     
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     public var negated: SQLExpression {
         switch storage {
         case .null:

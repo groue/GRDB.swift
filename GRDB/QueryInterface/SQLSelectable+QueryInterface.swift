@@ -9,7 +9,7 @@ struct SQLStar : SQLSelectable {
         return "*"
     }
     
-    public func count(distinct: Bool) -> SQLCount? {
+    func count(distinct: Bool) -> SQLCount? {
         // SELECT DISTINCT * FROM tableName ...
         guard !distinct else {
             return nil
@@ -42,7 +42,7 @@ struct SQLAliasedExpression : SQLSelectable {
         return expression.countedSQL(&arguments)
     }
     
-    public func count(distinct: Bool) -> SQLCount? {
+    func count(distinct: Bool) -> SQLCount? {
         return expression.count(distinct: distinct)
     }
 }
