@@ -50,27 +50,26 @@ class FetchPositionalValuesTests: XCTestCase {
     
     func testFMDB() {
         let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
-        let dbQueue = FMDatabaseQueue(path: databasePath)!
+        let dbQueue = FMDatabaseQueue(path: databasePath)
         
         measure {
             var count = 0
             
             dbQueue.inDatabase { db in
-                if let rs = db!.executeQuery("SELECT * FROM items", withArgumentsIn: nil) {
-                    while rs.next() {
-                        _ = rs.long(forColumnIndex: 0)
-                        _ = rs.long(forColumnIndex: 1)
-                        _ = rs.long(forColumnIndex: 2)
-                        _ = rs.long(forColumnIndex: 3)
-                        _ = rs.long(forColumnIndex: 4)
-                        _ = rs.long(forColumnIndex: 5)
-                        _ = rs.long(forColumnIndex: 6)
-                        _ = rs.long(forColumnIndex: 7)
-                        _ = rs.long(forColumnIndex: 8)
-                        _ = rs.long(forColumnIndex: 9)
-                        
-                        count += 1
-                    }
+                let rs = try! db.executeQuery("SELECT * FROM items", values: nil)
+                while rs.next() {
+                    _ = rs.long(forColumnIndex: 0)
+                    _ = rs.long(forColumnIndex: 1)
+                    _ = rs.long(forColumnIndex: 2)
+                    _ = rs.long(forColumnIndex: 3)
+                    _ = rs.long(forColumnIndex: 4)
+                    _ = rs.long(forColumnIndex: 5)
+                    _ = rs.long(forColumnIndex: 6)
+                    _ = rs.long(forColumnIndex: 7)
+                    _ = rs.long(forColumnIndex: 8)
+                    _ = rs.long(forColumnIndex: 9)
+                    
+                    count += 1
                 }
             }
             
