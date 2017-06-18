@@ -1835,13 +1835,13 @@ extension Database {
         }
     }
     
-    /// Registers a closure to be executed after the next or current transaction
-    /// successfully commits.
+    /// Registers a closure to be executed after the next or current
+    /// transaction completion.
     ///
-    /// If the transaction is rollbacked, the closure will never be executed.
+    /// If the transaction is rollbacked, the closure is not executed.
     ///
-    /// The closure is eventualy executed in a protected dispatch queue,
-    /// serialized will all database updates.
+    /// If the transaction is committed, the closure is executed in a protected
+    /// dispatch queue, serialized will all database updates.
     public func afterCommit(_ closure: @escaping () -> ()) {
         class CommitHandler : TransactionObserver {
             let closure: () -> ()
