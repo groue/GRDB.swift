@@ -7,6 +7,12 @@ Release Notes
 
 It comes with breaking changes, but the good news is that they are the last (until GRDB 2.0) :sweat_smile:!
 
+- **Requirements have changed: Xcode 8.3+ / Swift 3.1**
+    
+    As a matter of fact, GRDB 1.0 still supports Xcode 8.1 and Swift 3.0. But future versions are free to use Swift 3.1 features, and will require Xcode 8.3+.
+    
+    The targetted operating systems are unchanged: iOS 8.0+ / OSX 10.9+ / watchOS 2.0+
+
 - **[Record types](https://github.com/groue/GRDB.swift#records) have their `persistentDictionary` property replaced with the `encode(to:)` method:**
     
     ```swift
