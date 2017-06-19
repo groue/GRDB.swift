@@ -1,15 +1,61 @@
 Release Notes
 =============
 
-## Next Version
+## 1.0
 
-**New**
+**GRDB 1.0 comes with API stability, enhancements, and general cleanup.**
 
-- `DatabaseMigrator.migrate(_:upTo:)`: partially migrate your databases ([documentation](https://github.com/groue/GRDB.swift#migrations))
+- [Record types](https://github.com/groue/GRDB.swift#records) have better support for applications that declare lists of columns:
+    
+    ```swift
+    class Player : RowConvertible, Persistable {
+        let name: String
+        let score: Int
+        
+        static let databaseTableName = "players"
+        
+        // Declare Player columns
+        enum Columns {
+            static let name = Column("name")
+            static let score = Column("score")
+        }
+        
+        // Use columns in `init(row:)`
+        init(row: Row) {
+            name = row.value(Columns.name)
+            score = row.value(Columns.score)
+        }
+        
+        // Use columns in the new `encode(to:)` method:
+        func encode(to container: inout PersistenceContainer) {
+            container[Columns.name] = name
+            container[Columns.score] = score
+        }
+    }
+    
+    // Use columns in the query interface
+    let hallOfFame = try dbQueue.inDatabase { db in
+        try Player.order(Player.Columns.score.desc).limit(10).fetchAll(db)
+    }
+    ```
 
-- `Database.afterCommit(_:)`: the simplest way to handle successful transactions ([documentation](https://github.com/groue/GRDB.swift#after-commit-hook))
-
-- Transaction observers can specify the extent of their database observation ([documentation](https://github.com/groue/GRDB.swift#observation-extent)):
+- [Database Observation](https://github.com/groue/GRDB.swift#database-changes-observation) has been enhanced:
+    
+    `Database.afterNextTransactionCommit(_:)` is the simplest way to handle successful [transactions](https://github.com/groue/GRDB.swift#transactions-and-savepoints), and synchronize the database with other resources such as files, or system sensors ([documentation](https://github.com/groue/GRDB.swift#after-commit-hook)).
+    
+    ```swift
+    // Make sure the database is inside a transaction
+    db.inSavepoint {
+        // Perform some database job
+        try ...
+        
+        // Register extra job that is only executed after database changes
+        // have been committed and written to disk.
+        db.afterNextTransactionCommit { ... }
+    }
+    ```
+    
+    On the low-level side, applications can now specify the extent of database observation ([documentation](https://github.com/groue/GRDB.swift#observation-extent)):
     
     ```swift
     // New!
@@ -17,7 +63,11 @@ Release Notes
     dbQueue.add(transactionObserver: observer, extent: .databaseLifetime)
     ```
 
+- **`DatabaseMigrator` is easier to test**, with its `DatabaseMigrator.migrate(_:upTo:)` method which partially migrates your databases ([documentation](https://github.com/groue/GRDB.swift#migrations)).
+
 **Breaking Changes**
+
+GRDB 1.0 comes with breaking changes, but the good news is that they are the last (until GRDB 2.0) :sweat_smile:!
 
 - `MutablePersistable`, the protocol that defines persistence methods, has been changed:
     
@@ -28,55 +78,50 @@ Release Notes
      }
     ```
     
-    For example:
-    
-    ```diff
-     struct Player : MutablePersistable {
-         let name: String
-         let score: Int
-    
-    -    var persistentDictionary: [String: DatabaseValueConvertible?] {
-    -        return [
-    -            "name": name,
-    -            "score": score,
-    -        ]
-    -    }
-    +    func encode(to container: inout PersistenceContainer) {
-    +        container["name"] = name
-    +        container["score"] = score
-    +    }
-     }
-    ```
-    
-    Persistence containers can handle keys of type Column:
+    You have to replace the `persistentDictionary` property with the new `encode(to:)` method:
     
     ```swift
     struct Player : MutablePersistable {
         let name: String
         let score: Int
         
+        // Old
+    //    var persistentDictionary: [String: DatabaseValueConvertible?] {
+    //        return [
+    //            "name": name,
+    //            "score": score,
+    //        ]
+    //    }
+        
+        // New
+        func encode(to container: inout PersistenceContainer) {
+            container["name"] = name
+            container["score"] = score
+        }
+    }
+    ```
+    
+    Alternatively, you can use the Column type:
+    
+    ```swift
+    struct Player : MutablePersistable {
+        let name: String
+        let score: Int
+        
+        // Declare Player columns
         enum Columns {
             static let name = Column("name")
             static let score = Column("score")
         }
         
+        // New
         func encode(to container: inout PersistenceContainer) {
             container[Columns.name] = name
             container[Columns.score] = score
         }
     }
     ```
-    
 
-- `TypedRequest.Fetched` associated type has been replaced by `TypedRequest.RowDecoder`, because the type of the values fetched by a typed request is not meant to be identical to the type that decode database rows.
-    
-    ```diff
-     protocol TypedRequest : Request {
-    -    associatedtype Fetched
-    +    associatedtype RowDecoder
-     }
-    ```
-    
 - `Request.adapted(_:)` and `TypedRequest.adapted(_:)` now return `AdaptedRequest` and `AdaptedTypedRequest` instead of `AnyRequest` and `AnyTypedRequest`.
     
     ```diff
@@ -89,8 +134,21 @@ Release Notes
     +    func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AdaptedTypedRequest<Self>
      }
     ```
+    
+    Unless you define custom requests, this change is unlikely to break your code base.
 
-- `DatabaseCoder`, `QueryInterfaceRequest.exists`, and `QueryInterfaceRequest.contains` have been removed.
+- `TypedRequest.Fetched` associated type has been replaced by `TypedRequest.RowDecoder`, because the type of the values fetched by a typed request is not meant to be identical to the type that decode database rows.
+    
+    ```diff
+     protocol TypedRequest : Request {
+    -    associatedtype Fetched
+    +    associatedtype RowDecoder
+     }
+    ```
+    
+    Unless you define custom types that adopt this protocol, this change is unlikely to break your code base.
+    
+- `DatabaseCoder`, `QueryInterfaceRequest.exists`, and `QueryInterfaceRequest.contains` have been removed. Chances are that you didn't use those APIs.
 
 
 ## 0.110.0

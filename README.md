@@ -4074,13 +4074,13 @@ Database observation requires that a single [database queue](#database-queues) o
 
 ### After Commit Hook
 
-**Whenever your applications needs to perform work after a database transaction has successfully committed, use the `Database.afterCommit(_:)` method.**
+**When an application needs to make sure a database transaction has been successfully committed before it executes some work, use the `Database.afterNextTransactionCommit(_:)` method.**
 
 Its closure argument is called after database changes have been successfully written to disk:
 
 ```swift
 dbQueue.inTransaction { db in
-    db.afterCommit {
+    db.afterNextTransactionCommit { db in
         print("success")
     }
     ...
@@ -4088,21 +4088,23 @@ dbQueue.inTransaction { db in
 }
 ```
 
-**A typical use case is the interaction of the database and other resources, such as files or system sensors.** In the example below, a [location manager](https://developer.apple.com/documentation/corelocation/cllocationmanager) starts monitoring a CLRegion if and only if it has successfully been stored in the database:
+**This "after commit hook" helps synchronizing the database with other resources, such as files, or system sensors.**
+
+In the example below, a [location manager](https://developer.apple.com/documentation/corelocation/cllocationmanager) starts monitoring a CLRegion if and only if it has successfully been stored in the database:
 
 ```swift
 /// Inserts a region in the database, and start monitoring upon
 /// successful insertion.
 func startMonitoring(_ db: Database, region: CLRegion) throws {
     // Make sure database is inside a transaction
-    try db.inSavePoint {
+    try db.inSavepoint {
         
         // Save the region in the database
         try insert(...)
         
         // Start monitoring if and only if the insertion is
         // eventually committed
-        db.afterCommit {
+        db.afterNextTransactionCommit { _ in
             // locationManager prefers the main queue:
             DispatchQueue.main.async {
                 locationManager.startMonitoring(for: region)

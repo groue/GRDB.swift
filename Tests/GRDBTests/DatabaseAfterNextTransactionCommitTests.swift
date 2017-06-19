@@ -7,9 +7,9 @@ import XCTest
     import GRDB
 #endif
 
-class DatabaseAfterCommitTests: GRDBTestCase {
+class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
     
-    func testDatabaseAfterCommit() throws {
+    func testDatabaseAfterNextTransactionCommit() throws {
         class Witness { }
         
         let dbQueue = try makeDatabaseQueue()
@@ -19,7 +19,7 @@ class DatabaseAfterCommitTests: GRDBTestCase {
             do {
                 let witness = Witness()
                 deallocationWitness = witness
-                db.afterCommit {
+                db.afterNextTransactionCommit { _ in
                     // use witness
                     withExtendedLifetime(witness, { })
                     transactionCount += 1
@@ -37,7 +37,7 @@ class DatabaseAfterCommitTests: GRDBTestCase {
         }
     }
     
-    func testDatabaseAfterCommitWithRollback() throws {
+    func testDatabaseAfterNextTransactionCommitWithRollback() throws {
         class Witness { }
         
         let dbQueue = try makeDatabaseQueue()
@@ -47,7 +47,7 @@ class DatabaseAfterCommitTests: GRDBTestCase {
             do {
                 let witness = Witness()
                 deallocationWitness = witness
-                db.afterCommit {
+                db.afterNextTransactionCommit { _ in
                     // use witness
                     withExtendedLifetime(witness, { })
                     transactionCount += 1
