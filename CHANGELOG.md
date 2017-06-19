@@ -135,7 +135,7 @@ GRDB 1.0 comes with breaking changes, but the good news is that they are the las
      }
     ```
     
-    Unless you define custom requests, this change is unlikely to break your code base.
+    Unless you define [custom requests](https://github.com/groue/GRDB.swift#custom-requests), this change is unlikely to break your code base.
 
 - `TypedRequest.Fetched` associated type has been replaced by `TypedRequest.RowDecoder`, because the type of the values fetched by a typed request is not meant to be identical to the type that decode database rows.
     
@@ -146,9 +146,9 @@ GRDB 1.0 comes with breaking changes, but the good news is that they are the las
      }
     ```
     
-    Unless you define custom types that adopt this protocol, this change is unlikely to break your code base.
+    Unless you define [custom requests](https://github.com/groue/GRDB.swift#custom-requests) that adopt this protocol, this change is unlikely to break your code base.
     
-- `DatabaseCoder`, `QueryInterfaceRequest.exists`, and `QueryInterfaceRequest.contains` have been removed. Chances are that you didn't use those APIs.
+- `DatabaseCoder`, `QueryInterfaceRequest.exists`, and `QueryInterfaceRequest.contains` have been removed. Chances are that you didn't even know about those APIs.
 
 
 ## 0.110.0
