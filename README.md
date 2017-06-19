@@ -4074,9 +4074,9 @@ Database observation requires that a single [database queue](#database-queues) o
 
 ### After Commit Hook
 
-**When an application needs to make sure a database transaction has been successfully committed before it executes some work, use the `Database.afterNextTransactionCommit(_:)` method.**
+**When your application needs to make sure a database transaction has been successfully committed before it executes some work, use the `Database.afterNextTransactionCommit(_:)` method.**
 
-Its closure argument is called after database changes have been successfully written to disk:
+Its closure argument is called right after database changes have been successfully written to disk:
 
 ```swift
 dbQueue.inTransaction { db in
@@ -4087,6 +4087,8 @@ dbQueue.inTransaction { db in
     return .commit // prints "success"
 }
 ```
+
+The closure runs in a protected dispatch queue, serialized with all database updates.
 
 **This "after commit hook" helps synchronizing the database with other resources, such as files, or system sensors.**
 
