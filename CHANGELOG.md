@@ -137,7 +137,7 @@ GRDB 1.0 comes with breaking changes, but the good news is that they are the las
     
     Unless you define [custom requests](https://github.com/groue/GRDB.swift#custom-requests), this change is unlikely to break your code base.
 
-- `TypedRequest.Fetched` associated type has been replaced by `TypedRequest.RowDecoder`, because the type of the values fetched by a typed request is not meant to be identical to the type that decode database rows.
+- `TypedRequest.Fetched` associated type has been renamed to `TypedRequest.RowDecoder`, in order to better define its semantics. TypedRequest need to be able to decode rows, but the type of the fetched values does not need to be identical to the decoder type.
     
     ```diff
      protocol TypedRequest : Request {
