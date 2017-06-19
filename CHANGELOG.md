@@ -1,7 +1,7 @@
 Release Notes
 =============
 
-## 1.0
+## 1.0 :tada:
 
 **GRDB 1.0 comes with API stability, enhancements, and general cleanup.**
 
