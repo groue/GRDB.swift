@@ -46,20 +46,11 @@ TEST_ACTIONS = clean build build-for-testing test-without-building
 # xcodebuild destination to run tests on iOS 8.1 (requires a pre-installed simulator)
 MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=8.1"
 
-# xcodebuild destination to run tests on latest iOS (Xcode 8.3.3)
-MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 7,OS=10.3.1"
 ifeq ($(XCODEVERSION),8.3)
 	# xcodebuild destination to run tests on latest iOS (Xcode 8.3.3)
-	# above (default) MAX_IOS_DESTINATION is appropriate
-else ifeq ($(XCODEVERSION),8.2)
-	# xcodebuild destination to run tests on latest iOS (Xcode 8.2)
-	MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 7,OS=10.2"
-else ifeq ($(XCODEVERSION),8.1)
-	# xcodebuild destination to run tests on latest iOS (Xcode 8.1)
-	MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 6s,OS=10.1"
+	MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 7,OS=10.3.1"
 else
-	# Xcode < 8.1 is not supported
-	# Xcode > 8.3.x may necessitate a new condition above
+	# Xcode < 8.3 is not supported
 	echo "Makefile does not explicitly support Xcode $(XCODEVERSION) ($(XCODEVERSION_FULL))."
 endif
 
