@@ -81,7 +81,7 @@ It comes with breaking changes, but the good news is that they are the last (unt
 
 Unless you define [custom requests](https://github.com/groue/GRDB.swift#custom-requests), the changes below are unlikely to break your code base:
 
-- `Request.adapted(_:)` and `TypedRequest.adapted(_:)` now return `AdaptedRequest` and `AdaptedTypedRequest` instead of `AnyRequest` and `AnyTypedRequest`.
+- `Request.adapted(_:)` and `TypedRequest.adapted(_:)` now return `AdaptedRequest` and `AdaptedTypedRequest`:
     
     ```diff
      extension Request {
@@ -94,7 +94,7 @@ Unless you define [custom requests](https://github.com/groue/GRDB.swift#custom-r
      }
     ```
 
-- `TypedRequest.Fetched` associated type has been renamed to `TypedRequest.RowDecoder`, in order to better define its semantics. TypedRequest need to be able to decode rows, but the type of the fetched values does not need to be identical to the decoder type.
+- `TypedRequest.Fetched` associated type has been renamed to `TypedRequest.RowDecoder`, in order to better define its semantics. TypedRequest needs to decode rows, but the type of the decoded values does not need to be identical to the decoder type.
     
     ```diff
      protocol TypedRequest : Request {
