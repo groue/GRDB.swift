@@ -7,7 +7,7 @@ Release Notes
 
 It comes with breaking changes, but the good news is that they are the last (until GRDB 2.0) :sweat_smile:!
 
-- [Record types](https://github.com/groue/GRDB.swift#records) have their `persistentDictionary` property replaced with the `encode(to:)` method:
+- **[Record types](https://github.com/groue/GRDB.swift#records) have their `persistentDictionary` property replaced with the `encode(to:)` method:**
     
     ```swift
     struct Player : Persistable {
@@ -59,7 +59,7 @@ It comes with breaking changes, but the good news is that they are the last (unt
     }
     ```
 
-- [Database Observation](https://github.com/groue/GRDB.swift#database-changes-observation) has been enhanced:
+- **[Database Observation](https://github.com/groue/GRDB.swift#database-changes-observation) has been enhanced:**
     
     `Database.afterNextTransactionCommit(_:)` is the simplest way to handle successful [transactions](https://github.com/groue/GRDB.swift#transactions-and-savepoints), and synchronize the database with other resources such as files, or system sensors ([documentation](https://github.com/groue/GRDB.swift#after-commit-hook)).
     
@@ -79,31 +79,54 @@ It comes with breaking changes, but the good news is that they are the last (unt
 
 - **`DatabaseMigrator` is easier to test**, with its `DatabaseMigrator.migrate(_:upTo:)` method which partially migrates your databases ([documentation](https://github.com/groue/GRDB.swift#migrations)).
 
-Unless you define [custom requests](https://github.com/groue/GRDB.swift#custom-requests), the changes below are unlikely to break your code base:
+- On the side of database schema introspection, the new `Database.foreignKeys(on:)` method lists the foreign keys defined on a table.
 
-- `Request.adapted(_:)` and `TypedRequest.adapted(_:)` now return `AdaptedRequest` and `AdaptedTypedRequest`:
-    
-    ```diff
-     extension Request {
-    -    func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AnyRequest
-    +    func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AdaptedRequest<Self>
-     }
-     extension TypedRequest {
-    -    func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AnyTypedRequest<Fetched>
-    +    func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AdaptedTypedRequest<Self>
-     }
-    ```
+**Full list of changes**
 
-- `TypedRequest.Fetched` associated type has been renamed to `TypedRequest.RowDecoder`, in order to better define its semantics. TypedRequest needs to decode rows, but the type of the decoded values does not need to be identical to the decoder type.
-    
-    ```diff
-     protocol TypedRequest : Request {
-    -    associatedtype Fetched
-    +    associatedtype RowDecoder
-     }
-    ```
+```diff
+ class Database {
+-    func add(transactionObserver: TransactionObserver)
++    func add(transactionObserver: TransactionObserver, extent: TransactionObservationExtent = .observerLifetime)
++    func afterNextTransactionCommit(_ closure: @escaping (Database) -> ())
++    func foreignKeys(on tableName: String) throws -> [ForeignKeyInfo]
+ }
 
-Finally, some APIs that you very likely didn't even know about have been removed: `DatabaseCoder`, `QueryInterfaceRequest.exists`, and `QueryInterfaceRequest.contains`.
+-struct DatabaseCoder: DatabaseValueConvertible
+
+ struct DatabaseMigrator {
++    func migrate(_ writer: DatabaseWriter, upTo targetIdentifier: String) throws
+ }
+
+ protocol DatabaseWriter : DatabaseReader {
+-    func add(transactionObserver: TransactionObserver)
++    func add(transactionObserver: TransactionObserver, extent: TransactionObservationExtent = .observerLifetime)
+ }
+
+ protocol MutablePersistable : TableMapping {
+-    var persistentDictionary: [String: DatabaseValueConvertible?] { get }
++    func encode(to container: inout PersistenceContainer)
+ }
+
+ extension QueryInterfaceRequest {
+-    func contains(_ value: SQLExpressible) -> SQLExpression
+-    func exists() -> SQLExpression
+ }
+
+ extension Request {
+-    func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AnyRequest
++    func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AdaptedRequest<Self>
+ }
+
+protocol TypedRequest : Request {
+-    associatedtype Fetched
++    associatedtype RowDecoder
+}
+
+ extension TypedRequest {
+-    func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AnyTypedRequest<Fetched>
++    func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AdaptedTypedRequest<Self>
+ }
+```
 
 
 ## 0.110.0
