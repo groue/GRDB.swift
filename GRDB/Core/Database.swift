@@ -1838,15 +1838,23 @@ extension Database {
     /// Registers a closure to be executed after the next or current
     /// transaction completion.
     ///
+    ///     dbQueue.inTransaction { db in
+    ///         db.afterNextTransactionCommit { _ in
+    ///             print("commit did succeed")
+    ///         }
+    ///         ...
+    ///         return .commit // prints "commit did succeed"
+    ///     }
+    ///
     /// If the transaction is rollbacked, the closure is not executed.
     ///
     /// If the transaction is committed, the closure is executed in a protected
     /// dispatch queue, serialized will all database updates.
-    public func afterCommit(_ closure: @escaping () -> ()) {
+    public func afterNextTransactionCommit(_ closure: @escaping (Database) -> ()) {
         class CommitHandler : TransactionObserver {
-            let closure: () -> ()
+            let closure: (Database) -> ()
             
-            init(_ closure: @escaping () -> ()) {
+            init(_ closure: @escaping (Database) -> ()) {
                 self.closure = closure
             }
             
@@ -1861,7 +1869,7 @@ extension Database {
             
             // On commit, run closure
             func databaseDidCommit(_ db: Database) {
-                closure()
+                closure(db)
             }
         }
         
