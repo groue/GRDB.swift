@@ -3,7 +3,9 @@ Release Notes
 
 ## 1.0 :tada:
 
-**GRDB 1.0 comes with API stability, enhancements, and general cleanup.**
+Released June 20, 2017
+
+**GRDB 1.0 comes with enhancements, and API stability.**
 
 It comes with breaking changes, but the good news is that they are the last (until GRDB 2.0) :sweat_smile:!
 
@@ -83,7 +85,7 @@ It comes with breaking changes, but the good news is that they are the last (unt
     
     On the low-level side, applications can now specify the extent of database observation ([documentation](https://github.com/groue/GRDB.swift#observation-extent)).
 
-- **`DatabaseMigrator` is easier to test**, with its `DatabaseMigrator.migrate(_:upTo:)` method which partially migrates your databases ([documentation](https://github.com/groue/GRDB.swift#migrations)).
+- **DatabaseMigrator is easier to test**, with its `DatabaseMigrator.migrate(_:upTo:)` method which partially migrates your databases ([documentation](https://github.com/groue/GRDB.swift#migrations)).
 
 - On the side of database schema introspection, the new `Database.foreignKeys(on:)` method lists the foreign keys defined on a table.
 
