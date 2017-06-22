@@ -46,41 +46,43 @@ TEST_ACTIONS = clean build build-for-testing test-without-building
 # xcodebuild destination to run tests on iOS 8.1 (requires a pre-installed simulator)
 MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=8.1"
 
-ifeq ($(XCODEVERSION),8.3)
-	# xcodebuild destination to run tests on latest iOS (Xcode 8.3.3)
-	MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 7,OS=10.3.1"
+ifeq ($(XCODEVERSION),9.0)
+  # xcodebuild destination to run tests on latest iOS (Xcode 9.0)
+  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 7,OS=11.0"
+else ifeq ($(XCODEVERSION),8.3)
+  # xcodebuild destination to run tests on latest iOS (Xcode 8.3.3)
+  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 7,OS=10.3.1"
 else
-	# Xcode < 8.3 is not supported
-	echo "Makefile does not explicitly support Xcode $(XCODEVERSION) ($(XCODEVERSION_FULL))."
+  # Xcode < 8.3 is not supported
 endif
 
 # If xcpretty is available, use it for xcodebuild output
 XCPRETTY = 
 ifdef XCPRETTY_PATH
-	XCPRETTY = | xcpretty -c
-
-	# On Travis-CI, use xcpretty-travis-formatter
-	ifeq ($(TRAVIS),true)
-		XCPRETTY += -f `xcpretty-travis-formatter`
-	endif
+  XCPRETTY = | xcpretty -c
+  
+  # On Travis-CI, use xcpretty-travis-formatter
+  ifeq ($(TRAVIS),true)
+    XCPRETTY += -f `xcpretty-travis-formatter`
+  endif
 endif
 
 ifdef TOOLCHAIN
-	# If TOOLCHAIN is specified, add xcodebuild parameter
-	XCODEBUILD += -toolchain $(TOOLCHAIN)
-
-	# If TOOLCHAIN is specified, get the location of the toolchain’s SWIFT
-	TOOLCHAINSWIFT = $(shell $(XCRUN) --toolchain '$(TOOLCHAIN)' --find swift 2> /dev/null)
-	ifdef TOOLCHAINSWIFT
-		# Update the SWIFT path to the toolchain’s SWIFT
-		SWIFT = $(TOOLCHAINSWIFT)
-	else
-		@echo Cannot find `swift` for specified toolchain.
-		@exit 1
-	endif
+  # If TOOLCHAIN is specified, add xcodebuild parameter
+  XCODEBUILD += -toolchain $(TOOLCHAIN)
+  
+  # If TOOLCHAIN is specified, get the location of the toolchain’s SWIFT
+  TOOLCHAINSWIFT = $(shell $(XCRUN) --toolchain '$(TOOLCHAIN)' --find swift 2> /dev/null)
+  ifdef TOOLCHAINSWIFT
+    # Update the SWIFT path to the toolchain’s SWIFT
+    SWIFT = $(TOOLCHAINSWIFT)
+  else
+    @echo Cannot find `swift` for specified toolchain.
+    @exit 1
+  endif
 else
-	# If TOOLCHAIN is not specified, use standard Swift
-	SWIFT = $(shell $(XCRUN) --find swift 2> /dev/null)
+  # If TOOLCHAIN is not specified, use standard Swift
+  SWIFT = $(shell $(XCRUN) --find swift 2> /dev/null)
 endif
 
 # We test framework test suites, and if GRBD can be installed in an application:
