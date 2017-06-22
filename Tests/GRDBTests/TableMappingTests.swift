@@ -9,6 +9,7 @@ import XCTest
 
 class TableMappingTests: GRDBTestCase {
     
+    // Test deprecated method primaryKeyRowComparator
     func testPrimaryKeyRowComparatorWithIntegerPrimaryKey() throws {
         struct Person : TableMapping {
             static let databaseTableName = "persons"
@@ -32,6 +33,7 @@ class TableMappingTests: GRDBTestCase {
         }
     }
     
+    // Test deprecated method primaryKeyRowComparator
     func testPrimaryKeyRowComparatorWithHiddenRowIDPrimaryKey() throws {
         struct Person : TableMapping {
             static let databaseTableName = "persons"

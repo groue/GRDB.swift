@@ -249,6 +249,9 @@ extension TableMapping {
     ///     }
     ///
     /// - throws: A DatabaseError if table does not exist.
+    /// - attention: This method is deprecated. It will be removed is the next
+    ///   major version of the library, without any replacement. 
+    @available(*, deprecated)
     public static func primaryKeyRowComparator(_ db: Database) throws -> (Row, Row) -> Bool {
         let primaryKey = try rowPrimaryKey(db)
         return { (lhs, rhs) in
