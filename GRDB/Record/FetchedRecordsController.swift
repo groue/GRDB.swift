@@ -373,8 +373,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     {
         let (statement, rowAdapter) = try request.prepare(db)
         let selectionInfo = statement.selectionInfo
-        let rowLayout: RowLayout = try rowAdapter?.layoutedAdapter(from: statement).mapping ?? statement
-        let itemsAreIdentical = try itemsAreIdenticalFactory(db, rowLayout)
+        let itemsAreIdentical = try itemsAreIdenticalFactory(db)
         return (selectionInfo, itemsAreIdentical)
     }
 }
@@ -460,7 +459,7 @@ extension FetchedRecordsController where Record: TableMapping {
         // Builds a function that returns true if and only if two items
         // have the same primary key and primary keys contain at least one
         // non-null value.
-        let itemsAreIdenticalFactory: ItemComparatorFactory<Record> = { (db, rowLayout) in
+        let itemsAreIdenticalFactory: ItemComparatorFactory<Record> = { db in
             // Extract primary key columns from database table
             let columns: [String]
             if let primaryKey = try db.primaryKey(Record.databaseTableName) {
@@ -472,21 +471,12 @@ extension FetchedRecordsController where Record: TableMapping {
                 return { _ in false }
             }
             
-            // Turn primary key column names into statement indexes
-            var indexes: [Int] = []
-            for column in columns {
-                guard let index = rowLayout.layoutIndex(ofColumn: column) else {
-                    // primary key is not selected => can't compare rows
-                    return { _ in false }
-                }
-                indexes.append(index)
-            }
-            
             // Compare primary keys
+            assert(!columns.isEmpty)
             return { (lItem, rItem) in
-                for index in indexes {
-                    let lValue: DatabaseValue = lItem.row.value(atIndex: index)
-                    let rValue: DatabaseValue = rItem.row.value(atIndex: index)
+                for column in columns {
+                    let lValue: DatabaseValue = lItem.row.value(named: column)
+                    let rValue: DatabaseValue = rItem.row.value(named: column)
                     if lValue != rValue {
                         // different primary keys
                         return false
@@ -866,7 +856,7 @@ fileprivate func identicalItemArrays<Record>(_ lhs: [Item<Record>], _ rhs: [Item
 // MARK: - UITableView Support
 
 fileprivate typealias ItemComparator<Record: RowConvertible> = (Item<Record>, Item<Record>) -> Bool
-fileprivate typealias ItemComparatorFactory<Record: RowConvertible> = (Database, RowLayout) throws -> ItemComparator<Record>
+fileprivate typealias ItemComparatorFactory<Record: RowConvertible> = (Database) throws -> ItemComparator<Record>
 
 extension FetchedRecordsController {
     
