@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Version
+
+**Fixed**
+
+- `QueryInterfaceRequest.order(_:)` clears the eventual reversed flag, and better reflects the documentation of this method: "Any previous ordering is replaced."
+
+
 ## 1.0 :tada:
 
 Released June 20, 2017

@@ -169,6 +169,7 @@ extension QueryInterfaceRequest {
     ///     // SELECT * FROM persons ORDER BY name
     ///     request
     ///         .order(Column("email"))
+    ///         .reversed()
     ///         .order(Column("name"))
     public func order(_ orderings: SQLOrderingTerm...) -> QueryInterfaceRequest<T> {
         return order(orderings)
