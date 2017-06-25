@@ -219,8 +219,7 @@ public struct AdaptedTypedRequest<Base: TypedRequest> : TypedRequest {
     /// Creates an adapted request from a base request and a closure that builds
     /// a row adapter from a database connection.
     init(_ base: Base, _ adapter: @escaping (Database) throws -> RowAdapter) {
-        self.base = base
-        self.adapter = adapter
+        adaptedRequest = AdaptedRequest(base, adapter)
     }
     
     /// A tuple that contains a prepared statement that is ready to be
@@ -228,23 +227,17 @@ public struct AdaptedTypedRequest<Base: TypedRequest> : TypedRequest {
     ///
     /// - parameter db: A database connection.
     public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-        let (statement, baseAdapter) = try base.prepare(db)
-        if let baseAdapter = baseAdapter {
-            return try (statement, ChainedAdapter(first: baseAdapter, second: adapter(db)))
-        } else {
-            return try (statement, adapter(db))
-        }
+        return try adaptedRequest.prepare(db)
     }
     
     /// The number of rows fetched by the request.
     ///
     /// - parameter db: A database connection.
     public func fetchCount(_ db: Database) throws -> Int {
-        return try base.fetchCount(db)
+        return try adaptedRequest.fetchCount(db)
     }
     
-    private let base: Base
-    private let adapter: (Database) throws -> RowAdapter
+    private let adaptedRequest: AdaptedRequest<Base>
 }
 
 /// A type-erased TypedRequest.
