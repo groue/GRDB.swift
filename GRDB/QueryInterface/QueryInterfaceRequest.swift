@@ -185,10 +185,12 @@ extension QueryInterfaceRequest {
     ///     // SELECT * FROM persons ORDER BY name
     ///     request
     ///         .order([Column("email")])
+    ///         .reversed()
     ///         .order([Column("name")])
     public func order(_ orderings: [SQLOrderingTerm]) -> QueryInterfaceRequest<T> {
         var query = self.query
         query.orderings = orderings
+        query.isReversed = false
         return QueryInterfaceRequest(query: query)
     }
     
