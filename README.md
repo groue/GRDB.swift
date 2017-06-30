@@ -3220,10 +3220,10 @@ Those requests of type `QueryInterfaceRequest` can fetch, count, and delete reco
 
 ```swift
 try request.fetchCursor(db) // DatabaseCursor<Person>
-try request.fetchAll()      // [Person]
-try request.fetchOne()      // Person?
-try request.fetchCount()    // Int
-try request.deleteAll()
+try request.fetchAll(db)    // [Person]
+try request.fetchOne(db)    // Person?
+try request.fetchCount(db)  // Int
+try request.deleteAll(db)
 ```
 
 **When the query interface can not generate the SQL you need**, you can still fallback to [raw SQL](#fetch-queries):
