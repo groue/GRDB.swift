@@ -17,8 +17,9 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("id", .integer).primaryKey()
                 t.column("name", .text)
             }
-            XCTAssertEqual(
-                self.lastSQLQuery,
+            
+            assertEqualSQL(
+                lastSQLQuery,
                 ("CREATE TABLE \"test\" (" +
                     "\"id\" INTEGER PRIMARY KEY, " +
                     "\"name\" TEXT" +
@@ -33,8 +34,8 @@ class TableDefinitionTests: GRDBTestCase {
                 try db.create(table: "test", temporary: true, ifNotExists: true, withoutRowID: true) { t in
                     t.column("id", .integer).primaryKey()
                 }
-                XCTAssertEqual(
-                    self.lastSQLQuery,
+                assertEqualSQL(
+                    lastSQLQuery,
                     ("CREATE TEMPORARY TABLE IF NOT EXISTS \"test\" (" +
                         "\"id\" INTEGER PRIMARY KEY" +
                         ") WITHOUT ROWID") as String)
@@ -42,8 +43,8 @@ class TableDefinitionTests: GRDBTestCase {
                 try db.create(table: "test", temporary: true, ifNotExists: true) { t in
                     t.column("id", .integer).primaryKey()
                 }
-                XCTAssertEqual(
-                    self.lastSQLQuery,
+                assertEqualSQL(
+                    lastSQLQuery,
                     ("CREATE TEMPORARY TABLE IF NOT EXISTS \"test\" (" +
                         "\"id\" INTEGER PRIMARY KEY" +
                         ")") as String)
@@ -51,14 +52,27 @@ class TableDefinitionTests: GRDBTestCase {
         }
     }
 
+    func testUntypedColumn() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            // Simple table creation
+            try db.create(table: "test") { t in
+                t.column("a")
+                t.column("b")
+            }
+            
+            assertEqualSQL(lastSQLQuery, "CREATE TABLE \"test\" (\"a\", \"b\")")
+        }
+    }
+    
     func testColumnPrimaryKeyOptions() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inTransaction { db in
             try db.create(table: "test") { t in
                 t.column("id", .integer).primaryKey(onConflict: .fail)
             }
-            XCTAssertEqual(
-                self.lastSQLQuery,
+            assertEqualSQL(
+                lastSQLQuery,
                 ("CREATE TABLE \"test\" (" +
                     "\"id\" INTEGER PRIMARY KEY ON CONFLICT FAIL" +
                     ")") as String)
@@ -68,8 +82,8 @@ class TableDefinitionTests: GRDBTestCase {
             try db.create(table: "test") { t in
                 t.column("id", .integer).primaryKey(autoincrement: true)
             }
-            XCTAssertEqual(
-                self.lastSQLQuery,
+            assertEqualSQL(
+                lastSQLQuery,
                 ("CREATE TABLE \"test\" (" +
                     "\"id\" INTEGER PRIMARY KEY AUTOINCREMENT" +
                     ")") as String)
@@ -88,8 +102,8 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("e", .integer).notNull(onConflict: .ignore)
                 t.column("f", .integer).notNull(onConflict: .replace)
             }
-            XCTAssertEqual(
-                self.lastSQLQuery,
+            assertEqualSQL(
+                lastSQLQuery,
                 ("CREATE TABLE \"test\" (" +
                     "\"a\" INTEGER NOT NULL, " +
                     "\"b\" INTEGER NOT NULL, " +
@@ -101,6 +115,20 @@ class TableDefinitionTests: GRDBTestCase {
         }
     }
 
+    func testColumnIndexed() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            sqlQueries.removeAll()
+            try db.create(table: "test") { t in
+                t.column("a", .integer).indexed()
+                t.column("b", .integer).indexed()
+            }
+            assertEqualSQL(sqlQueries[0], "CREATE TABLE \"test\" (\"a\" INTEGER, \"b\" INTEGER)")
+            assertEqualSQL(sqlQueries[1], "CREATE INDEX \"test_on_a\" ON \"test\"(\"a\")")
+            assertEqualSQL(sqlQueries[2], "CREATE INDEX \"test_on_b\" ON \"test\"(\"b\")")
+        }
+    }
+    
     func testColumnUnique() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -112,8 +140,8 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("e", .integer).unique(onConflict: .ignore)
                 t.column("f", .integer).unique(onConflict: .replace)
             }
-            XCTAssertEqual(
-                self.lastSQLQuery,
+            assertEqualSQL(
+                lastSQLQuery,
                 ("CREATE TABLE \"test\" (" +
                     "\"a\" INTEGER UNIQUE, " +
                     "\"b\" INTEGER UNIQUE, " +
@@ -133,8 +161,8 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("b", .integer).check(sql: "b <> 2")
                 t.column("c", .integer).check { $0 > 0 }.check { $0 < 10 }
             }
-            XCTAssertEqual(
-                self.lastSQLQuery,
+            assertEqualSQL(
+                lastSQLQuery,
                 ("CREATE TABLE \"test\" (" +
                     "\"a\" INTEGER CHECK ((\"a\" > 0)), " +
                     "\"b\" INTEGER CHECK (b <> 2), " +
@@ -161,8 +189,8 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("d", .integer).defaults(to: "foo".data(using: .utf8)!)
                 t.column("e", .integer).defaults(sql: "NULL")
             }
-            XCTAssertEqual(
-                self.lastSQLQuery,
+            assertEqualSQL(
+                lastSQLQuery,
                 ("CREATE TABLE \"test\" (" +
                     "\"a\" INTEGER DEFAULT 1, " +
                     "\"b\" INTEGER DEFAULT 1.0, " +
@@ -184,8 +212,8 @@ class TableDefinitionTests: GRDBTestCase {
             try db.create(table: "test") { t in
                 t.column("name", .text).collate(.nocase)
             }
-            XCTAssertEqual(
-                self.lastSQLQuery,
+            assertEqualSQL(
+                lastSQLQuery,
                 ("CREATE TABLE \"test\" (" +
                     "\"name\" TEXT COLLATE NOCASE" +
                     ")") as String)
@@ -198,8 +226,8 @@ class TableDefinitionTests: GRDBTestCase {
             try db.create(table: "test") { t in
                 t.column("name", .text).collate(collation)
             }
-            XCTAssertEqual(
-                self.lastSQLQuery,
+            assertEqualSQL(
+                lastSQLQuery,
                 ("CREATE TABLE \"test\" (" +
                     "\"name\" TEXT COLLATE foo" +
                     ")") as String)
@@ -214,17 +242,22 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("name", .text).primaryKey()
                 t.column("email", .text).unique()
             }
+            try db.create(table: "pkless") { t in
+                t.column("email", .text)
+            }
             try db.create(table: "child") { t in
                 t.column("parentName", .text).references("parent", onDelete: .cascade, onUpdate: .cascade)
                 t.column("parentEmail", .text).references("parent", column: "email", onDelete: .restrict, deferred: true)
                 t.column("weird", .text).references("parent", column: "name").references("parent", column: "email")
+                t.column("pklessRowId", .text).references("pkless")
             }
-            XCTAssertEqual(
-                self.lastSQLQuery,
+            assertEqualSQL(
+                lastSQLQuery,
                 ("CREATE TABLE \"child\" (" +
                     "\"parentName\" TEXT REFERENCES \"parent\"(\"name\") ON DELETE CASCADE ON UPDATE CASCADE, " +
                     "\"parentEmail\" TEXT REFERENCES \"parent\"(\"email\") ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED, " +
-                    "\"weird\" TEXT REFERENCES \"parent\"(\"name\") REFERENCES \"parent\"(\"email\")" +
+                    "\"weird\" TEXT REFERENCES \"parent\"(\"name\") REFERENCES \"parent\"(\"email\"), " +
+                    "\"pklessRowId\" TEXT REFERENCES \"pkless\"(\"rowid\")" +
                     ")") as String)
         }
     }
@@ -237,8 +270,8 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("a", .text)
                 t.column("b", .text)
             }
-            XCTAssertEqual(
-                self.lastSQLQuery,
+            assertEqualSQL(
+                lastSQLQuery,
                 ("CREATE TABLE \"test\" (" +
                     "\"a\" TEXT, " +
                     "\"b\" TEXT, " +
@@ -252,8 +285,8 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("a", .text)
                 t.column("b", .text)
             }
-            XCTAssertEqual(
-                self.lastSQLQuery,
+            assertEqualSQL(
+                lastSQLQuery,
                 ("CREATE TABLE \"test\" (" +
                     "\"a\" TEXT, " +
                     "\"b\" TEXT, " +
@@ -273,8 +306,8 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("b", .text)
                 t.column("c", .text)
             }
-            XCTAssertEqual(
-                self.lastSQLQuery,
+            assertEqualSQL(
+                lastSQLQuery,
                 ("CREATE TABLE \"test\" (" +
                     "\"a\" TEXT, " +
                     "\"b\" TEXT, " +
@@ -300,8 +333,8 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("d", .text)
                 t.column("e", .text)
             }
-            XCTAssertEqual(
-                self.lastSQLQuery,
+            assertEqualSQL(
+                lastSQLQuery,
                 ("CREATE TABLE \"child\" (" +
                     "\"c\" TEXT, " +
                     "\"d\" TEXT, " +
@@ -321,8 +354,8 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("a", .integer)
                 t.column("b", .integer)
             }
-            XCTAssertEqual(
-                self.lastSQLQuery,
+            assertEqualSQL(
+                lastSQLQuery,
                 ("CREATE TABLE \"test\" (" +
                     "\"a\" INTEGER, " +
                     "\"b\" INTEGER, " +
@@ -347,8 +380,8 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("id", .integer).primaryKey()
                 t.column("id2", .integer).references("test1")
             }
-            XCTAssertEqual(
-                self.lastSQLQuery,
+            assertEqualSQL(
+                lastSQLQuery,
                 ("CREATE TABLE \"test1\" (" +
                     "\"id\" INTEGER PRIMARY KEY, " +
                     "\"id2\" INTEGER REFERENCES \"test1\"(\"id\")" +
@@ -359,8 +392,8 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("id2", .integer).references("test2")
                 t.primaryKey(["id"])
             }
-            XCTAssertEqual(
-                self.lastSQLQuery,
+            assertEqualSQL(
+                lastSQLQuery,
                 ("CREATE TABLE \"test2\" (" +
                     "\"id\" INTEGER, " +
                     "\"id2\" INTEGER REFERENCES \"test2\"(\"id\"), " +
@@ -375,8 +408,8 @@ class TableDefinitionTests: GRDBTestCase {
                 t.foreignKey(["c", "d"], references: "test3")
                 t.primaryKey(["a", "b"])
             }
-            XCTAssertEqual(
-                self.lastSQLQuery,
+            assertEqualSQL(
+                lastSQLQuery,
                 ("CREATE TABLE \"test3\" (" +
                     "\"a\" INTEGER, " +
                     "\"b\" INTEGER, " +
@@ -384,6 +417,15 @@ class TableDefinitionTests: GRDBTestCase {
                     "\"d\" INTEGER, " +
                     "PRIMARY KEY (\"a\", \"b\"), " +
                     "FOREIGN KEY (\"c\", \"d\") REFERENCES \"test3\"(\"a\", \"b\")" +
+                    ")") as String)
+            
+            try db.create(table: "test4") { t in
+                t.column("parent", .integer).references("test4")
+            }
+            assertEqualSQL(
+                lastSQLQuery,
+                ("CREATE TABLE \"test4\" (" +
+                    "\"parent\" INTEGER REFERENCES \"test4\"(\"rowid\")" +
                     ")") as String)
         }
     }
@@ -398,7 +440,7 @@ class TableDefinitionTests: GRDBTestCase {
             XCTAssertEqual(try db.columnCount(in: "test"), 1)
             
             try db.rename(table: "test", to: "foo")
-            XCTAssertEqual(self.lastSQLQuery, "ALTER TABLE \"test\" RENAME TO \"foo\"")
+            assertEqualSQL(lastSQLQuery, "ALTER TABLE \"test\" RENAME TO \"foo\"")
             XCTAssertFalse(try db.tableExists("test"))
             XCTAssertTrue(try db.tableExists("foo"))
             XCTAssertEqual(try db.columnCount(in: "foo"), 1)
@@ -411,15 +453,20 @@ class TableDefinitionTests: GRDBTestCase {
             try db.create(table: "test") { t in
                 t.column("a", .text)
             }
+            try db.create(table: "alt") { t in
+                t.column("a", .text)
+            }
             
-            self.sqlQueries.removeAll()
+            sqlQueries.removeAll()
             try db.alter(table: "test") { t in
                 t.add(column: "b", .text)
                 t.add(column: "c", .integer).notNull().defaults(to: 1)
+                t.add(column: "d", .text).references("alt")
             }
             
-            XCTAssertEqual(self.sqlQueries[0], "ALTER TABLE \"test\" ADD COLUMN \"b\" TEXT;")
-            XCTAssertEqual(self.sqlQueries[1], " ALTER TABLE \"test\" ADD COLUMN \"c\" INTEGER NOT NULL DEFAULT 1")
+            assertEqualSQL(sqlQueries[sqlQueries.count - 3], "ALTER TABLE \"test\" ADD COLUMN \"b\" TEXT")
+            assertEqualSQL(sqlQueries[sqlQueries.count - 2], "ALTER TABLE \"test\" ADD COLUMN \"c\" INTEGER NOT NULL DEFAULT 1")
+            assertEqualSQL(sqlQueries[sqlQueries.count - 1], "ALTER TABLE \"test\" ADD COLUMN \"d\" TEXT REFERENCES \"alt\"(\"rowid\")")
         }
     }
 
@@ -434,7 +481,7 @@ class TableDefinitionTests: GRDBTestCase {
             XCTAssertEqual(try db.columnCount(in: "test"), 2)
             
             try db.drop(table: "test")
-            XCTAssertEqual(self.lastSQLQuery, "DROP TABLE \"test\"")
+            assertEqualSQL(lastSQLQuery, "DROP TABLE \"test\"")
             XCTAssertFalse(try db.tableExists("test"))
         }
     }
@@ -449,10 +496,10 @@ class TableDefinitionTests: GRDBTestCase {
             }
             
             try db.create(index: "test_on_a", on: "test", columns: ["a"])
-            XCTAssertEqual(self.lastSQLQuery, "CREATE INDEX \"test_on_a\" ON \"test\"(\"a\")")
+            assertEqualSQL(lastSQLQuery, "CREATE INDEX \"test_on_a\" ON \"test\"(\"a\")")
             
             try db.create(index: "test_on_a_b", on: "test", columns: ["a", "b"], unique: true, ifNotExists: true)
-            XCTAssertEqual(self.lastSQLQuery, "CREATE UNIQUE INDEX IF NOT EXISTS \"test_on_a_b\" ON \"test\"(\"a\", \"b\")")
+            assertEqualSQL(lastSQLQuery, "CREATE UNIQUE INDEX IF NOT EXISTS \"test_on_a_b\" ON \"test\"(\"a\", \"b\")")
             
             // Sanity check
             XCTAssertEqual(try Set(db.indexes(on: "test").map { $0.name }), ["test_on_a", "test_on_a_b"])
@@ -475,7 +522,7 @@ class TableDefinitionTests: GRDBTestCase {
             }
             
             try db.create(index: "test_on_a_b", on: "test", columns: ["a", "b"], unique: true, ifNotExists: true, condition: Column("a") == 1)
-            XCTAssertEqual(self.lastSQLQuery, "CREATE UNIQUE INDEX IF NOT EXISTS \"test_on_a_b\" ON \"test\"(\"a\", \"b\") WHERE (\"a\" = 1)")
+            assertEqualSQL(lastSQLQuery, "CREATE UNIQUE INDEX IF NOT EXISTS \"test_on_a_b\" ON \"test\"(\"a\", \"b\") WHERE (\"a\" = 1)")
             
             // Sanity check
             XCTAssertEqual(try Set(db.indexes(on: "test").map { $0.name }), ["test_on_a_b"])
@@ -492,7 +539,7 @@ class TableDefinitionTests: GRDBTestCase {
             try db.create(index: "test_on_name", on: "test", columns: ["name"])
             
             try db.drop(index: "test_on_name")
-            XCTAssertEqual(self.lastSQLQuery, "DROP INDEX \"test_on_name\"")
+            assertEqualSQL(lastSQLQuery, "DROP INDEX \"test_on_name\"")
             
             // Sanity check
             XCTAssertTrue(try db.indexes(on: "test").isEmpty)

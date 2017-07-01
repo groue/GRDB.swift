@@ -2696,11 +2696,15 @@ try db.create(table: "example") { t in ... }
 try db.create(table: "example", temporary: true, ifNotExists: true) { t in
 ```
 
-**Add regular columns** with their name and type (text, integer, double, numeric, boolean, blob, date and datetime) - see [SQLite data types](https://www.sqlite.org/datatype3.html):
+**Add regular columns** with their name and eventual type (text, integer, double, numeric, boolean, blob, date and datetime) - see [SQLite data types](https://www.sqlite.org/datatype3.html):
 
 ```swift
-    // name TEXT,
-    // creationDate DATETIME,
+// CREATE TABLE example (
+//   a,
+//   name TEXT,
+//   creationDate DATETIME,
+try db.create(table: "example") { t in ... }
+    t.column("a")
     t.column("name", .text)
     t.column("creationDate", .datetime)
 ```
@@ -2727,6 +2731,14 @@ Use an individual column as **primary**, **unique**, or **foreign key**. When de
     // countryCode TEXT REFERENCES countries(code) ON DELETE CASCADE,
     t.column("countryCode", .text).references("countries", onDelete: .cascade)
 ```
+
+**Create an index** on the column:
+
+```swift
+    t.column("score", .integer).indexed()
+```
+
+For extra index options, see [Create Indexes](#create-indexes) below.
 
 **Perform integrity checks** on individual columns, and SQLite will only let conforming rows in. In the example below, the `$0` closure variable is a column which lets you build any SQL [expression](#expressions).
 

@@ -128,6 +128,26 @@ class GRDBTestCase: XCTestCase {
         }
     }
     
+    // Compare SQL strings (ignoring leading and trailing white space and semicolons.
+    func assertEqualSQL(_ lhs: String, _ rhs: String, file: StaticString = #file, line: UInt = #line) {
+        // Trim white space and ";"
+        let cs = CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: ";"))
+        XCTAssertEqual(lhs.trimmingCharacters(in: cs), rhs.trimmingCharacters(in: cs), file: file, line: line)
+    }
+    
+    // Compare SQL strings (ignoring leading and trailing white space and semicolons.
+    func assertEqualSQL(_ db: Database, _ request: Request, _ sql: String, file: StaticString = #file, line: UInt = #line) throws {
+        _ = try Row.fetchOne(db, request)
+        assertEqualSQL(lastSQLQuery, sql, file: file, line: line)
+    }
+    
+    // Compare SQL strings (ignoring leading and trailing white space and semicolons.
+    func assertEqualSQL(_ databaseReader: DatabaseReader, _ request: Request, _ sql: String, file: StaticString = #file, line: UInt = #line) throws {
+        try databaseReader.unsafeRead { db in
+            try assertEqualSQL(db, request, sql, file: file, line: line)
+        }
+    }
+    
     func sql(_ databaseReader: DatabaseReader, _ request: Request) -> String {
         return try! databaseReader.unsafeRead { db in
             _ = try Row.fetchOne(db, request)

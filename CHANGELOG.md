@@ -1,6 +1,67 @@
 Release Notes
 =============
 
+## Next Version
+
+**New**
+
+The table creation API has been enhanced:
+
+- SQLite supports untyped columns:
+    
+    ```swift
+    try dbQueue.inDatabase { db in
+        // CREATE TABLE t(a, b)
+        try db.create(table: "t") { t in
+            t.column("a")
+            t.column("b")
+        }
+    }
+    ```
+    
+    This feature addresses [#169](https://github.com/groue/GRDB.swift/issues/169).
+
+- The `indexed()` methods lets you create a non-unique index on a table column:
+    
+    ```swift
+    try dbQueue.inDatabase { db in
+        // CREATE TABLE rounds(score INTEGER)
+        // CREATE INDEX rounds_on_score ON rounds(score)
+        try db.create(table: "rounds") { t in
+            t.column("score", .integer).indexed()
+        }
+    }
+    ```
+    
+- It is now possible to define external and auto references to tables without any explicit primary key. The generated SQL then uses the `rowid` hidden primary key column:
+    
+    ```swift
+    try dbQueue.inDatabase { db in
+        // CREATE TABLE nodes(
+        //   name TEXT,
+        //   parentId INTEGER REFERENCES nodes(rowid)
+        // )
+        try db.create(table: "nodes") { t in
+            t.column("name", .text)
+            t.column("parentId", .integer).references("nodes")
+        }
+    }
+    ```
+
+**API diff**
+
+```diff
+ final class TableDefinition {
+-    func column(_ name: String, _ type: Database.ColumnType) -> ColumnDefinition
++    func column(_ name: String, _ type: Database.ColumnType? = nil) -> ColumnDefinition
+ }
+ 
+ final class ColumnDefinition {
++    @discardableResult func indexed() -> Self
+ }
+```
+
+
 ## 1.1
 
 Released July 1, 2017

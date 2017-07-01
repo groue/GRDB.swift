@@ -251,11 +251,11 @@ public final class TableDefinition {
     /// See https://www.sqlite.org/lang_createtable.html#tablecoldef
     ///
     /// - parameter name: the column name.
-    /// - parameter type: the column type.
+    /// - parameter type: the eventual column type.
     /// - returns: An ColumnDefinition that allows you to refine the
     ///   column definition.
     @discardableResult
-    public func column(_ name: String, _ type: Database.ColumnType) -> ColumnDefinition {
+    public func column(_ name: String, _ type: Database.ColumnType? = nil) -> ColumnDefinition {
         let column = ColumnDefinition(name: name, type: type)
         columns.append(column)
         return column
@@ -358,95 +358,111 @@ public final class TableDefinition {
     }
     
     fileprivate func sql(_ db: Database) throws -> String {
-        var chunks: [String] = []
-        chunks.append("CREATE")
-        if temporary {
-            chunks.append("TEMPORARY")
-        }
-        chunks.append("TABLE")
-        if ifNotExists {
-            chunks.append("IF NOT EXISTS")
-        }
-        chunks.append(name.quotedDatabaseIdentifier)
-        
-        let primaryKeyColumns: [String]
-        if let (columns, _) = primaryKeyConstraint {
-            primaryKeyColumns = columns
-        } else if let index = columns.index(where: { $0.primaryKey != nil }) {
-            primaryKeyColumns = [columns[index].name]
-        } else {
-            primaryKeyColumns = []
-        }
+        var statements: [String] = []
         
         do {
-            var items: [String] = []
-            try items.append(contentsOf: columns.map { try $0.sql(db, tableName: name, primaryKeyColumns: primaryKeyColumns) })
+            var chunks: [String] = []
+            chunks.append("CREATE")
+            if temporary {
+                chunks.append("TEMPORARY")
+            }
+            chunks.append("TABLE")
+            if ifNotExists {
+                chunks.append("IF NOT EXISTS")
+            }
+            chunks.append(name.quotedDatabaseIdentifier)
             
-            if let (columns, conflictResolution) = primaryKeyConstraint {
-                var chunks: [String] = []
-                chunks.append("PRIMARY KEY")
-                chunks.append("(\((columns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
-                if let conflictResolution = conflictResolution {
-                    chunks.append("ON CONFLICT")
-                    chunks.append(conflictResolution.rawValue)
-                }
-                items.append(chunks.joined(separator: " "))
+            let primaryKeyColumns: [String]
+            if let (columns, _) = primaryKeyConstraint {
+                primaryKeyColumns = columns
+            } else if let index = columns.index(where: { $0.primaryKey != nil }) {
+                primaryKeyColumns = [columns[index].name]
+            } else {
+                // WITHOUT ROWID optimization requires a primary key. If the
+                // user sets withoutRowID, but does not define a primary key,
+                // this is undefined behavior.
+                //
+                // We thus can use the rowId column even when the withoutRowID
+                // flag is set ;-)
+                primaryKeyColumns = [Column.rowID.name]
             }
             
-            for (columns, conflictResolution) in uniqueKeyConstraints {
-                var chunks: [String] = []
-                chunks.append("UNIQUE")
-                chunks.append("(\((columns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
-                if let conflictResolution = conflictResolution {
-                    chunks.append("ON CONFLICT")
-                    chunks.append(conflictResolution.rawValue)
+            do {
+                var items: [String] = []
+                try items.append(contentsOf: columns.map { try $0.sql(db, tableName: name, primaryKeyColumns: primaryKeyColumns) })
+                
+                if let (columns, conflictResolution) = primaryKeyConstraint {
+                    var chunks: [String] = []
+                    chunks.append("PRIMARY KEY")
+                    chunks.append("(\((columns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
+                    if let conflictResolution = conflictResolution {
+                        chunks.append("ON CONFLICT")
+                        chunks.append(conflictResolution.rawValue)
+                    }
+                    items.append(chunks.joined(separator: " "))
                 }
-                items.append(chunks.joined(separator: " "))
+                
+                for (columns, conflictResolution) in uniqueKeyConstraints {
+                    var chunks: [String] = []
+                    chunks.append("UNIQUE")
+                    chunks.append("(\((columns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
+                    if let conflictResolution = conflictResolution {
+                        chunks.append("ON CONFLICT")
+                        chunks.append(conflictResolution.rawValue)
+                    }
+                    items.append(chunks.joined(separator: " "))
+                }
+                
+                for (columns, table, destinationColumns, deleteAction, updateAction, deferred) in foreignKeyConstraints {
+                    var chunks: [String] = []
+                    chunks.append("FOREIGN KEY")
+                    chunks.append("(\((columns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
+                    chunks.append("REFERENCES")
+                    if let destinationColumns = destinationColumns {
+                        chunks.append("\(table.quotedDatabaseIdentifier)(\((destinationColumns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
+                    } else if table == name {
+                        chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKeyColumns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
+                    } else if let primaryKey = try db.primaryKey(table) {
+                        chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKey.columns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
+                    } else {
+                        // Programmer error
+                        fatalError("explicit referenced column(s) required, since table \(table) has no primary key")
+                    }
+                    if let deleteAction = deleteAction {
+                        chunks.append("ON DELETE")
+                        chunks.append(deleteAction.rawValue)
+                    }
+                    if let updateAction = updateAction {
+                        chunks.append("ON UPDATE")
+                        chunks.append(updateAction.rawValue)
+                    }
+                    if deferred {
+                        chunks.append("DEFERRABLE INITIALLY DEFERRED")
+                    }
+                    items.append(chunks.joined(separator: " "))
+                }
+                
+                for checkExpression in checkConstraints {
+                    var chunks: [String] = []
+                    chunks.append("CHECK")
+                    chunks.append("(" + checkExpression.sql + ")")
+                    items.append(chunks.joined(separator: " "))
+                }
+                
+                chunks.append("(\(items.joined(separator: ", ")))")
             }
             
-            for (columns, table, destinationColumns, deleteAction, updateAction, deferred) in foreignKeyConstraints {
-                var chunks: [String] = []
-                chunks.append("FOREIGN KEY")
-                chunks.append("(\((columns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
-                chunks.append("REFERENCES")
-                if let destinationColumns = destinationColumns {
-                    chunks.append("\(table.quotedDatabaseIdentifier)(\((destinationColumns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
-                } else if table == name {
-                    chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKeyColumns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
-                } else if let primaryKey = try db.primaryKey(table) {
-                    chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKey.columns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
-                } else {
-                    // Programmer error
-                    fatalError("explicit referenced column(s) required, since table \(table) has no primary key")
-                }
-                if let deleteAction = deleteAction {
-                    chunks.append("ON DELETE")
-                    chunks.append(deleteAction.rawValue)
-                }
-                if let updateAction = updateAction {
-                    chunks.append("ON UPDATE")
-                    chunks.append(updateAction.rawValue)
-                }
-                if deferred {
-                    chunks.append("DEFERRABLE INITIALLY DEFERRED")
-                }
-                items.append(chunks.joined(separator: " "))
+            if withoutRowID {
+                chunks.append("WITHOUT ROWID")
             }
-            
-            for checkExpression in checkConstraints {
-                var chunks: [String] = []
-                chunks.append("CHECK")
-                chunks.append("(" + checkExpression.sql + ")")
-                items.append(chunks.joined(separator: " "))
-            }
-            
-            chunks.append("(\(items.joined(separator: ", ")))")
+            statements.append(chunks.joined(separator: " "))
         }
         
-        if withoutRowID {
-            chunks.append("WITHOUT ROWID")
-        }
-        return chunks.joined(separator: " ")
+        let indexStatements = columns
+            .flatMap { $0.indexDefinition(in: name) }
+            .map { $0.sql() }
+        statements.append(contentsOf: indexStatements)
+        return statements.joined(separator: "; ")
     }
 }
 
@@ -495,9 +511,13 @@ public final class TableAlteration {
             chunks.append("ALTER TABLE")
             chunks.append(name.quotedDatabaseIdentifier)
             chunks.append("ADD COLUMN")
-            try chunks.append(column.sql(db, tableName: nil, primaryKeyColumns: nil))
+            try chunks.append(column.sql(db, tableName: name, primaryKeyColumns: nil))
             let statement = chunks.joined(separator: " ")
             statements.append(statement)
+            
+            if let indexDefinition = column.indexDefinition(in: name) {
+                statements.append(indexDefinition.sql())
+            }
         }
         
         return statements.joined(separator: "; ")
@@ -519,17 +539,22 @@ public final class TableAlteration {
 /// See https://www.sqlite.org/lang_createtable.html and
 /// https://www.sqlite.org/lang_altertable.html
 public final class ColumnDefinition {
+    enum Index {
+        case none
+        case index
+        case unique(Database.ConflictResolution)
+    }
     fileprivate let name: String
-    private let type: Database.ColumnType
+    private let type: Database.ColumnType?
     fileprivate var primaryKey: (conflictResolution: Database.ConflictResolution?, autoincrement: Bool)?
+    private var index: Index = .none
     private var notNullConflictResolution: Database.ConflictResolution?
-    private var uniqueConflictResolution: Database.ConflictResolution?
     private var checkConstraints: [SQLExpression] = []
     private var foreignKeyConstraints: [(table: String, column: String?, deleteAction: Database.ForeignKeyAction?, updateAction: Database.ForeignKeyAction?, deferred: Bool)] = []
     private var defaultExpression: SQLExpression?
     private var collationName: String?
     
-    init(name: String, type: Database.ColumnType) {
+    init(name: String, type: Database.ColumnType?) {
         self.name = name
         self.type = type
     }
@@ -584,7 +609,24 @@ public final class ColumnDefinition {
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
     public func unique(onConflict conflictResolution: Database.ConflictResolution? = nil) -> Self {
-        uniqueConflictResolution = conflictResolution ?? .abort
+        index = .unique(conflictResolution ?? .abort)
+        return self
+    }
+    
+    /// Adds an index of the column.
+    ///
+    ///     try db.create(table: "persons") { t in
+    ///         t.column("email", .text).indexed()
+    ///     }
+    ///
+    /// See https://www.sqlite.org/lang_createtable.html#uniqueconst
+    ///
+    /// - returns: Self so that you can further refine the column definition.
+    @discardableResult
+    public func indexed() -> Self {
+        if case .none = index {
+            self.index = .index
+        }
         return self
     }
     
@@ -708,10 +750,12 @@ public final class ColumnDefinition {
         return self
     }
     
-    fileprivate func sql(_ db: Database, tableName: String?, primaryKeyColumns: [String]?) throws -> String {
+    fileprivate func sql(_ db: Database, tableName: String, primaryKeyColumns: [String]?) throws -> String {
         var chunks: [String] = []
         chunks.append(name.quotedDatabaseIdentifier)
-        chunks.append(type.rawValue)
+        if let type = type {
+            chunks.append(type.rawValue)
+        }
         
         if let (conflictResolution, autoincrement) = primaryKey {
             chunks.append("PRIMARY KEY")
@@ -734,14 +778,19 @@ public final class ColumnDefinition {
             chunks.append(conflictResolution.rawValue)
         }
         
-        switch uniqueConflictResolution {
+        switch index {
         case .none:
             break
-        case .abort?:
-            chunks.append("UNIQUE")
-        case let conflictResolution?:
-            chunks.append("UNIQUE ON CONFLICT")
-            chunks.append(conflictResolution.rawValue)
+        case .unique(let conflictResolution):
+            switch conflictResolution {
+            case .abort:
+                chunks.append("UNIQUE")
+            default:
+                chunks.append("UNIQUE ON CONFLICT")
+                chunks.append(conflictResolution.rawValue)
+            }
+        case .index:
+            break
         }
         
         for checkConstraint in checkConstraints {
@@ -762,14 +811,16 @@ public final class ColumnDefinition {
         for (table, column, deleteAction, updateAction, deferred) in foreignKeyConstraints {
             chunks.append("REFERENCES")
             if let column = column {
+                // explicit reference
                 chunks.append("\(table.quotedDatabaseIdentifier)(\(column.quotedDatabaseIdentifier))")
-            } else if let tableName = tableName, let primaryKeyColumns = primaryKeyColumns, table == tableName {
+            } else if table.lowercased() == tableName.lowercased() {
+                // implicit autoreference
+                let primaryKeyColumns = try primaryKeyColumns ?? db.primaryKey(table)?.columns ?? [Column.rowID.name]
                 chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKeyColumns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
-            } else if let primaryKey = try db.primaryKey(table) {
-                chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKey.columns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
             } else {
-                // Programmer error
-                fatalError("explicit referenced column required, since table \(table) has no primary key")
+                // implicit external reference
+                let primaryKeyColumns = try db.primaryKey(table)?.columns ?? [Column.rowID.name]
+                chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKeyColumns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
             }
             if let deleteAction = deleteAction {
                 chunks.append("ON DELETE")
@@ -785,6 +836,21 @@ public final class ColumnDefinition {
         }
         
         return chunks.joined(separator: " ")
+    }
+    
+    fileprivate func indexDefinition(in table: String) -> IndexDefinition? {
+        switch index {
+        case .none: return nil
+        case .unique: return nil
+        case .index:
+            return IndexDefinition(
+                name: "\(table)_on_\(name)",
+                table: table,
+                columns: [name],
+                unique: false,
+                ifNotExists: false,
+                condition: nil)
+        }
     }
 }
 
