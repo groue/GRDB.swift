@@ -1,7 +1,9 @@
 Release Notes
 =============
 
-## Next Version
+## 1.1
+
+Released July 1, 2017
 
 **New**
 
@@ -36,6 +38,29 @@ Release Notes
 **Fixed**
 
 - `QueryInterfaceRequest.order(_:)` clears the eventual reversed flag, and better reflects the documentation of this method: "Any previous ordering is replaced."
+
+**Deprecated**
+
+- `TableMapping.primaryKeyRowComparator` is deprecated, without any replacement.
+
+**API diff**
+
+```diff
+ final class DatabaseFunction {
++    init<Aggregate: DatabaseAggregate>(_ name: String, argumentCount: Int32? = nil, pure: Bool = false, aggregate: Aggregate.Type)
+ }
+ 
++protocol DatabaseAggregate {
++    init()
++    mutating func step(_ dbValues: [DatabaseValue]) throws
++    func finalize() throws -> DatabaseValueConvertible?
++}
+
+ extension TableMapping {
++    @available(*, deprecated)
+     static func primaryKeyRowComparator(_ db: Database) throws -> (Row, Row) -> Bool
+ }
+```
 
 
 ## 1.0 :tada:
