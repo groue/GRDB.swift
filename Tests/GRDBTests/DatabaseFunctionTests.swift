@@ -7,7 +7,7 @@ import XCTest
     import GRDB
 #endif
 
-struct CustomValueType : DatabaseValueConvertible {
+private struct CustomValueType : DatabaseValueConvertible {
     var databaseValue: DatabaseValue {
         return "CustomValueType".databaseValue
     }
@@ -126,78 +126,78 @@ class DatabaseFunctionTests: GRDBTestCase {
     
     func testFunctionArgumentNil() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("isNil", argumentCount: 1) { (dbValues: [DatabaseValue]) in
+        let fn = DatabaseFunction("f", argumentCount: 1) { (dbValues: [DatabaseValue]) in
             return dbValues[0].isNull
         }
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            XCTAssertTrue(try Bool.fetchOne(db, "SELECT isNil(NULL)")!)
-            XCTAssertFalse(try Bool.fetchOne(db, "SELECT isNil(1)")!)
-            XCTAssertFalse(try Bool.fetchOne(db, "SELECT isNil(1.1)")!)
-            XCTAssertFalse(try Bool.fetchOne(db, "SELECT isNil('foo')")!)
-            XCTAssertFalse(try Bool.fetchOne(db, "SELECT isNil(?)", arguments: ["foo".data(using: .utf8)])!)
+            XCTAssertTrue(try Bool.fetchOne(db, "SELECT f(NULL)")!)
+            XCTAssertFalse(try Bool.fetchOne(db, "SELECT f(1)")!)
+            XCTAssertFalse(try Bool.fetchOne(db, "SELECT f(1.1)")!)
+            XCTAssertFalse(try Bool.fetchOne(db, "SELECT f('foo')")!)
+            XCTAssertFalse(try Bool.fetchOne(db, "SELECT f(?)", arguments: ["foo".data(using: .utf8)])!)
         }
     }
 
     func testFunctionArgumentInt64() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("asInt64", argumentCount: 1) { (dbValues: [DatabaseValue]) in
+        let fn = DatabaseFunction("f", argumentCount: 1) { (dbValues: [DatabaseValue]) in
             return Int64.fromDatabaseValue(dbValues[0])
         }
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            XCTAssertTrue(try Int64.fetchOne(db, "SELECT asInt64(NULL)") == nil)
-            XCTAssertEqual(try Int64.fetchOne(db, "SELECT asInt64(1)")!, 1)
-            XCTAssertEqual(try Int64.fetchOne(db, "SELECT asInt64(1.1)")!, 1)
+            XCTAssertTrue(try Int64.fetchOne(db, "SELECT f(NULL)") == nil)
+            XCTAssertEqual(try Int64.fetchOne(db, "SELECT f(1)")!, 1)
+            XCTAssertEqual(try Int64.fetchOne(db, "SELECT f(1.1)")!, 1)
         }
     }
 
     func testFunctionArgumentDouble() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("asDouble", argumentCount: 1) { (dbValues: [DatabaseValue]) in
+        let fn = DatabaseFunction("f", argumentCount: 1) { (dbValues: [DatabaseValue]) in
             return Double.fromDatabaseValue(dbValues[0])
         }
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            XCTAssertTrue(try Double.fetchOne(db, "SELECT asDouble(NULL)") == nil)
-            XCTAssertEqual(try Double.fetchOne(db, "SELECT asDouble(1)")!, 1.0)
-            XCTAssertEqual(try Double.fetchOne(db, "SELECT asDouble(1.1)")!, 1.1)
+            XCTAssertTrue(try Double.fetchOne(db, "SELECT f(NULL)") == nil)
+            XCTAssertEqual(try Double.fetchOne(db, "SELECT f(1)")!, 1.0)
+            XCTAssertEqual(try Double.fetchOne(db, "SELECT f(1.1)")!, 1.1)
         }
     }
 
     func testFunctionArgumentString() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("asString", argumentCount: 1) { (dbValues: [DatabaseValue]) in
+        let fn = DatabaseFunction("f", argumentCount: 1) { (dbValues: [DatabaseValue]) in
             return String.fromDatabaseValue(dbValues[0])
         }
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            XCTAssertTrue(try String.fetchOne(db, "SELECT asString(NULL)") == nil)
-            XCTAssertEqual(try String.fetchOne(db, "SELECT asString('foo')")!, "foo")
+            XCTAssertTrue(try String.fetchOne(db, "SELECT f(NULL)") == nil)
+            XCTAssertEqual(try String.fetchOne(db, "SELECT f('foo')")!, "foo")
         }
     }
 
     func testFunctionArgumentBlob() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("asData", argumentCount: 1) { (dbValues: [DatabaseValue]) in
+        let fn = DatabaseFunction("f", argumentCount: 1) { (dbValues: [DatabaseValue]) in
             return Data.fromDatabaseValue(dbValues[0])
         }
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            XCTAssertTrue(try Data.fetchOne(db, "SELECT asData(NULL)") == nil)
-            XCTAssertEqual(try Data.fetchOne(db, "SELECT asData(?)", arguments: ["foo".data(using: .utf8)])!, "foo".data(using: .utf8))
+            XCTAssertTrue(try Data.fetchOne(db, "SELECT f(NULL)") == nil)
+            XCTAssertEqual(try Data.fetchOne(db, "SELECT f(?)", arguments: ["foo".data(using: .utf8)])!, "foo".data(using: .utf8))
         }
     }
 
     func testFunctionArgumentCustomValueType() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("asCustomValueType", argumentCount: 1) { (dbValues: [DatabaseValue]) in
+        let fn = DatabaseFunction("f", argumentCount: 1) { (dbValues: [DatabaseValue]) in
             return CustomValueType.fromDatabaseValue(dbValues[0])
         }
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            XCTAssertTrue(try CustomValueType.fetchOne(db, "SELECT asCustomValueType(NULL)") == nil)
-            XCTAssertTrue(try CustomValueType.fetchOne(db, "SELECT asCustomValueType('CustomValueType')") != nil)
+            XCTAssertTrue(try CustomValueType.fetchOne(db, "SELECT f(NULL)") == nil)
+            XCTAssertTrue(try CustomValueType.fetchOne(db, "SELECT f('CustomValueType')") != nil)
         }
     }
 
@@ -211,23 +211,37 @@ class DatabaseFunctionTests: GRDBTestCase {
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
             XCTAssertEqual(try String.fetchOne(db, "SELECT f()")!, "foo")
+            do {
+                try db.execute("SELECT f(1)")
+                XCTFail("Expected error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                XCTAssertEqual(error.message!, "wrong number of arguments to function f()")
+                XCTAssertEqual(error.sql!, "SELECT f(1)")
+                XCTAssertEqual(error.description, "SQLite error 1 with statement `SELECT f(1)`: wrong number of arguments to function f()")
+            }
         }
     }
 
     func testFunctionOfOneArgument() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("unicodeUpper", argumentCount: 1) { (dbValues: [DatabaseValue]) in
-            let dbValue = dbValues[0]
-            guard let string = String.fromDatabaseValue(dbValue) else {
-                return nil
-            }
-            return string.uppercased()
+        let fn = DatabaseFunction("f", argumentCount: 1) { (dbValues: [DatabaseValue]) in
+            String.fromDatabaseValue(dbValues[0]).map { $0.uppercased() }
         }
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
             XCTAssertEqual(try String.fetchOne(db, "SELECT upper(?)", arguments: ["Roué"])!, "ROUé")
-            XCTAssertEqual(try String.fetchOne(db, "SELECT unicodeUpper(?)", arguments: ["Roué"])!, "ROUÉ")
-            XCTAssertTrue(try String.fetchOne(db, "SELECT unicodeUpper(NULL)") == nil)
+            XCTAssertEqual(try String.fetchOne(db, "SELECT f(?)", arguments: ["Roué"])!, "ROUÉ")
+            XCTAssertTrue(try String.fetchOne(db, "SELECT f(NULL)") == nil)
+            do {
+                try db.execute("SELECT f()")
+                XCTFail("Expected error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                XCTAssertEqual(error.message!, "wrong number of arguments to function f()")
+                XCTAssertEqual(error.sql!, "SELECT f()")
+                XCTAssertEqual(error.description, "SQLite error 1 with statement `SELECT f()`: wrong number of arguments to function f()")
+            }
         }
     }
 
@@ -240,6 +254,15 @@ class DatabaseFunctionTests: GRDBTestCase {
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
             XCTAssertEqual(try Int.fetchOne(db, "SELECT f(1, 2)")!, 3)
+            do {
+                try db.execute("SELECT f()")
+                XCTFail("Expected error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                XCTAssertEqual(error.message!, "wrong number of arguments to function f()")
+                XCTAssertEqual(error.sql!, "SELECT f()")
+                XCTAssertEqual(error.description, "SQLite error 1 with statement `SELECT f()`: wrong number of arguments to function f()")
+            }
         }
     }
 
@@ -260,14 +283,13 @@ class DatabaseFunctionTests: GRDBTestCase {
 
     func testFunctionThrowingDatabaseErrorWithMessage() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("f", argumentCount: 1) { dbValues in
+        let fn = DatabaseFunction("f") { dbValues in
             throw DatabaseError(message: "custom error message")
         }
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
             do {
-                try db.execute("CREATE TABLE items (value INT)")
-                try db.execute("INSERT INTO items VALUES (f(1))")
+                try db.execute("SELECT f()")
                 XCTFail("Expected DatabaseError")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
@@ -278,14 +300,13 @@ class DatabaseFunctionTests: GRDBTestCase {
 
     func testFunctionThrowingDatabaseErrorWithCode() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("f", argumentCount: 1) { dbValues in
+        let fn = DatabaseFunction("f") { dbValues in
             throw DatabaseError(resultCode: ResultCode(rawValue: 123))
         }
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
             do {
-                try db.execute("CREATE TABLE items (value INT)")
-                try db.execute("INSERT INTO items VALUES (f(1))")
+                try db.execute("SELECT f()")
                 XCTFail("Expected DatabaseError")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode.rawValue, 123)
@@ -296,14 +317,13 @@ class DatabaseFunctionTests: GRDBTestCase {
 
     func testFunctionThrowingDatabaseErrorWithMessageAndCode() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("f", argumentCount: 1) { dbValues in
+        let fn = DatabaseFunction("f") { dbValues in
             throw DatabaseError(resultCode: ResultCode(rawValue: 123), message: "custom error message")
         }
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
             do {
-                try db.execute("CREATE TABLE items (value INT)")
-                try db.execute("INSERT INTO items VALUES (f(1))")
+                try db.execute("SELECT f()")
                 XCTFail("Expected DatabaseError")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode.rawValue, 123)
@@ -314,14 +334,13 @@ class DatabaseFunctionTests: GRDBTestCase {
 
     func testFunctionThrowingCustomError() throws {
         let dbQueue = try makeDatabaseQueue()
-        let fn = DatabaseFunction("f", argumentCount: 1) { dbValues in
+        let fn = DatabaseFunction("f") { dbValues in
             throw NSError(domain: "CustomErrorDomain", code: 123, userInfo: [NSString(string: NSLocalizedDescriptionKey): "custom error message"])
         }
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
             do {
-                try db.execute("CREATE TABLE items (value INT)")
-                try db.execute("INSERT INTO items VALUES (f(1))")
+                try db.execute("SELECT f()")
                 XCTFail("Expected DatabaseError")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)

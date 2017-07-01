@@ -3,6 +3,36 @@ Release Notes
 
 ## Next Version
 
+**New**
+
+- `DatabaseAggregate` is the protocol for custom aggregate functions (fixes [#236](https://github.com/groue/GRDB.swift/issues/236), [documentation](https://github.com/groue/GRDB.swift#custom-aggregates)):
+    
+    ```swift
+    struct MySum : DatabaseAggregate {
+        var sum: Int = 0
+        
+        mutating func step(_ dbValues: [DatabaseValue]) {
+            if let int = Int.fromDatabaseValue(dbValues[0]) {
+                sum += int
+            }
+        }
+        
+        func finalize() -> DatabaseValueConvertible? {
+            return sum
+        }
+    }
+    
+    let dbQueue = DatabaseQueue()
+    let fn = DatabaseFunction("mysum", argumentCount: 1, aggregate: MySum.self)
+    dbQueue.add(function: fn)
+    try dbQueue.inDatabase { db in
+        try db.execute("CREATE TABLE test(i)")
+        try db.execute("INSERT INTO test(i) VALUES (1)")
+        try db.execute("INSERT INTO test(i) VALUES (2)")
+        try Int.fetchOne(db, "SELECT mysum(i) FROM test")! // 3
+    }
+    ```
+
 **Fixed**
 
 - `QueryInterfaceRequest.order(_:)` clears the eventual reversed flag, and better reflects the documentation of this method: "Any previous ordering is replaced."
