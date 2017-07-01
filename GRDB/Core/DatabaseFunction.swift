@@ -1,3 +1,7 @@
+#if SWIFT_PACKAGE
+    import CSQLite
+#endif
+
 /// An SQL function or aggregate.
 public final class DatabaseFunction {
     public let name: String
