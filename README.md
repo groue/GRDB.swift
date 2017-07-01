@@ -479,7 +479,7 @@ Advanced topics:
 
 - [Custom Value Types](#custom-value-types)
 - [Prepared Statements](#prepared-statements)
-- [Custom SQL Functions](#custom-sql-functions)
+- [Custom SQL Functions and Aggregates](#custom-sql-functions-and-aggregates)
 - [Database Schema Introspection](#database-schema-introspection)
 - [Row Adapters](#row-adapters)
 - [Raw SQLite Pointers](#raw-sqlite-pointers)
@@ -1381,14 +1381,25 @@ let selectStatement = try db.cachedSelectStatement(sql)
 Should a cached prepared statement throw an error, don't reuse it (it is a programmer error). Instead, reload it from the cache.
 
 
-## Custom SQL Functions
+## Custom SQL Functions and Aggregates
 
-**SQLite lets you define SQL functions.**
+**SQLite lets you define SQL functions and aggregates.**
 
-A custom SQL function extends SQLite. It can be used in raw SQL queries. And when SQLite needs to evaluate it, it calls your custom code.
+A custom SQL function or aggregate extends SQLite:
+
+```sql
+SELECT reverse(name) FROM persons;   -- custom function
+SELECT maxLength(name) FROM persons; -- custom aggregate
+```
+
+- [Custom SQL Functions](#custom-sql-functions)
+- [Custom Aggregates](#custom-aggregates)
+
+
+### Custom SQL Functions
 
 ```swift
-let reverseString = DatabaseFunction("reverseString", argumentCount: 1, pure: true) { (values: [DatabaseValue]) in
+let reverse = DatabaseFunction("reverse", argumentCount: 1, pure: true) { (values: [DatabaseValue]) in
     // Extract string value, if any...
     guard let string = String.fromDatabaseValue(values[0]) else {
         return nil
@@ -1396,11 +1407,11 @@ let reverseString = DatabaseFunction("reverseString", argumentCount: 1, pure: tr
     // ... and return reversed string:
     return String(string.characters.reversed())
 }
-dbQueue.add(function: reverseString)   // Or dbPool.add(function: ...)
+dbQueue.add(function: reverse)   // Or dbPool.add(function: ...)
 
 try dbQueue.inDatabase { db in
     // "oof"
-    try String.fetchOne(db, "SELECT reverseString('foo')")!
+    try String.fetchOne(db, "SELECT reverse('foo')")!
 }
 ```
 
@@ -1457,6 +1468,77 @@ Person.select(reverseString.apply(nameColumn))
 
 
 **GRDB ships with built-in SQL functions that perform unicode-aware string transformations.** See [Unicode](#unicode).
+
+
+### Custom Aggregates
+
+Before registering a custom aggregate, you need to define a type that adopts the `DatabaseAggregate` protocol:
+
+```swift
+protocol DatabaseAggregate {
+    // Initializes an aggregate
+    init()
+    
+    // Called at each step of the aggregation
+    mutating func step(_ dbValues: [DatabaseValue]) throws
+    
+    // Returns the final result
+    func finalize() throws -> DatabaseValueConvertible?
+}
+```
+
+For example:
+
+```swift
+struct MaxLength : DatabaseAggregate {
+    var maxLength: Int = 0
+    
+    mutating func step(_ dbValues: [DatabaseValue]) {
+        // At each step, extract string value, if any...
+        guard let string = String.fromDatabaseValue(dbValues[0]) else {
+            return
+        }
+        // ... and update the result
+        let length = string.characters.count
+        if length > maxLength {
+            maxLength = length
+        }
+    }
+    
+    func finalize() -> DatabaseValueConvertible? {
+        return maxLength
+    }
+}
+
+let maxLength = DatabaseFunction(
+    "maxLength",
+    argumentCount: 1,
+    pure: true,
+    aggregate: MaxLength.self)
+
+dbQueue.add(function: maxLength)   // Or dbPool.add(function: ...)
+
+try dbQueue.inDatabase { db in
+    // Some Int
+    try Int.fetchOne(db, "SELECT maxLength(name) FROM persons")!
+}
+```
+
+The `step` method of the aggregate takes an array of [DatabaseValue](#databasevalue). This array contains as many values as the *argumentCount* parameter (or any number of values, when *argumentCount* is omitted).
+
+The `finalize` method of the aggregate returns the final aggregated [value](#values) (Bool, Int, String, Date, Swift enums, etc.).
+
+SQLite has the opportunity to perform additional optimizations when aggregates are "pure", which means that their result only depends on their inputs. So make sure to set the *pure* argument to true when possible.
+
+
+**Use custom aggregates in the [query interface](#the-query-interface):**
+
+```swift
+// SELECT maxLength("name") FROM persons
+Person.select(maxLength.apply(nameColumn))
+    .asRequest(of: Int.self)
+    .fetchOne(db) // Int?
+```
 
 
 ## Database Schema Introspection
@@ -1671,6 +1753,7 @@ try dbQueue.inDatabase { db in
 
 Before jumping in the low-level wagon, here is the list of all SQLite APIs used by GRDB:
 
+- `sqlite3_aggregate_context`, `sqlite3_create_function_v2`, `sqlite3_result_blob`, `sqlite3_result_double`, `sqlite3_result_error`, `sqlite3_result_error_code`, `sqlite3_result_int64`, `sqlite3_result_null`, `sqlite3_result_text`, `sqlite3_user_data`, `sqlite3_value_blob`, `sqlite3_value_bytes`, `sqlite3_value_double`, `sqlite3_value_int64`, `sqlite3_value_text`, `sqlite3_value_type`: see [Custom SQL Functions and Aggregates](#custom-sql-functions-and-aggregates)
 - `sqlite3_backup_finish`, `sqlite3_backup_init`, `sqlite3_backup_step`: see [Backup](#backup)
 - `sqlite3_bind_blob`, `sqlite3_bind_double`, `sqlite3_bind_int64`, `sqlite3_bind_null`, `sqlite3_bind_parameter_count`, `sqlite3_bind_parameter_name`, `sqlite3_bind_text`, `sqlite3_clear_bindings`, `sqlite3_column_blob`, `sqlite3_column_bytes`, `sqlite3_column_count`, `sqlite3_column_double`, `sqlite3_column_int64`, `sqlite3_column_name`, `sqlite3_column_text`, `sqlite3_column_type`, `sqlite3_exec`, `sqlite3_finalize`, `sqlite3_prepare_v2`, `sqlite3_reset`, `sqlite3_step`: see [Executing Updates](#executing-updates), [Fetch Queries](#fetch-queries), [Prepared Statements](#prepared-statements), [Values](#values)
 - `sqlite3_busy_handler`, `sqlite3_busy_timeout`: see [Configuration.busyMode](http://groue.github.io/GRDB.swift/docs/1.0/Structs/Configuration.html)
@@ -1679,7 +1762,6 @@ Before jumping in the low-level wagon, here is the list of all SQLite APIs used 
 - `sqlite3_commit_hook`, `sqlite3_rollback_hook`, `sqlite3_update_hook`: see [TransactionObserver Protocol](#transactionobserver-protocol), [FetchedRecordsController](#fetchedrecordscontroller)
 - `sqlite3_config`: see [Error Log](#error-log)
 - `sqlite3_create_collation_v2`: see [String Comparison](#string-comparison)
-- `sqlite3_create_function_v2`, `sqlite3_result_blob`, `sqlite3_result_double`, `sqlite3_result_error`, `sqlite3_result_error_code`, `sqlite3_result_int64`, `sqlite3_result_null`, `sqlite3_result_text`, `sqlite3_user_data`, `sqlite3_value_blob`, `sqlite3_value_bytes`, `sqlite3_value_double`, `sqlite3_value_int64`, `sqlite3_value_text`, `sqlite3_value_type`: see [Custom SQL Functions](#custom-sql-functions)
 - `sqlite3_db_release_memory`: see [Memory Management](#memory-management)
 - `sqlite3_errcode`, `sqlite3_errmsg`, `sqlite3_errstr`, `sqlite3_extended_result_codes`: see [Error Handling](#error-handling)
 - `sqlite3_key`, `sqlite3_rekey`: see [Encryption](#encryption)
@@ -3039,9 +3121,9 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     > nameColumn.collating(.caseInsensitiveCompare) == name
     > ```
 
-- Custom SQL functions
+- Custom SQL functions and aggregates
     
-    You can apply your own [custom SQL functions](#custom-sql-functions):
+    You can apply your own [custom SQL functions and aggregates](#custom-functions-):
     
     ```swift
     let f = DatabaseFunction("f", ...)
@@ -3276,7 +3358,7 @@ try String.fetchAll(db, request) // [String]
 try Person.fetchOne(db, request) // Person?
 ```
 
-A TypedRequest knows exactly what it has to do when its RowDecoder associated type can decode database rows ([Row](#fetching-rows) itself, [values](#value-queries), or [records](#records)):
+On top of that, a TypedRequest knows exactly what it has to do when its RowDecoder associated type can decode database rows ([Row](#fetching-rows) itself, [values](#value-queries), or [records](#records)):
 
 ```swift
 let request = ...                // Some TypedRequest that fetches Person
@@ -3290,8 +3372,6 @@ try request.fetchOne(db)         // Person?
 
 **To build custom requests**, you can create your own type that adopts the protocols, or derive requests from other requests, or use one of the built-in concrete types:
 
-- [Request](http://groue.github.io/GRDB.swift/docs/1.0/Protocols/Request.html): the protocol for all requests
-- [TypedRequest](http://groue.github.io/GRDB.swift/docs/1.0/Protocols/TypedRequest.html): the protocol for all typed requests
 - [SQLRequest](http://groue.github.io/GRDB.swift/docs/1.0/Structs/SQLRequest.html): a Request built from raw SQL
 - [AnyRequest](http://groue.github.io/GRDB.swift/docs/1.0/Structs/AnyRequest.html): a type-erased Request
 - [AnyTypedRequest](http://groue.github.io/GRDB.swift/docs/1.0/Structs/AnyTypedRequest.html): a type-erased TypedRequest
@@ -5078,7 +5158,7 @@ The `UPPER` and `LOWER` built-in SQLite functions are not unicode-aware:
 try String.fetchOne(db, "SELECT UPPER('Jérôme')")
 ```
 
-GRDB extends SQLite with [SQL functions](#custom-sql-functions) that call the Swift built-in string functions `capitalized`, `lowercased`, `uppercased`, `localizedCapitalized`, `localizedLowercased` and `localizedUppercased`:
+GRDB extends SQLite with [SQL functions](#custom-sql-functions-and-aggregates) that call the Swift built-in string functions `capitalized`, `lowercased`, `uppercased`, `localizedCapitalized`, `localizedLowercased` and `localizedUppercased`:
 
 ```swift
 // "JÉRÔME"

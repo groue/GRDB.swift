@@ -872,116 +872,13 @@ extension Database {
     ///     try Int.fetchOne(db, "SELECT succ(1)")! // 2
     public func add(function: DatabaseFunction) {
         functions.update(with: function)
-        let functionPointer = unsafeBitCast(function, to: UnsafeMutableRawPointer.self)
-        let code = sqlite3_create_function_v2(
-            sqliteConnection,
-            function.name,
-            function.argumentCount,
-            SQLITE_UTF8 | function.eTextRep,
-            functionPointer,
-            { (context, argc, argv) in
-                let function = unsafeBitCast(sqlite3_user_data(context), to: DatabaseFunction.self)
-                do {
-                    let result = try function.function(argc, argv)
-                    switch result.storage {
-                    case .null:
-                        sqlite3_result_null(context)
-                    case .int64(let int64):
-                        sqlite3_result_int64(context, int64)
-                    case .double(let double):
-                        sqlite3_result_double(context, double)
-                    case .string(let string):
-                        sqlite3_result_text(context, string, -1, SQLITE_TRANSIENT)
-                    case .blob(let data):
-                        data.withUnsafeBytes { bytes in
-                            sqlite3_result_blob(context, bytes, Int32(data.count), SQLITE_TRANSIENT)
-                        }
-                    }
-                } catch let error as DatabaseError {
-                    if let message = error.message {
-                        sqlite3_result_error(context, message, -1)
-                    }
-                    sqlite3_result_error_code(context, error.extendedResultCode.rawValue)
-                } catch {
-                    sqlite3_result_error(context, "\(error)", -1)
-                }
-            }, nil, nil, nil)
-        
-        guard code == SQLITE_OK else {
-            // Assume a GRDB bug: there is no point throwing any error.
-            fatalError(DatabaseError(resultCode: code, message: lastErrorMessage).description)
-        }
+        function.install(in: self)
     }
     
     /// Remove an SQL function.
     public func remove(function: DatabaseFunction) {
         functions.remove(function)
-        let code = sqlite3_create_function_v2(
-            sqliteConnection,
-            function.name,
-            function.argumentCount,
-            SQLITE_UTF8 | function.eTextRep,
-            nil, nil, nil, nil, nil)
-        guard code == SQLITE_OK else {
-            // Assume a GRDB bug: there is no point throwing any error.
-            fatalError(DatabaseError(resultCode: code, message: lastErrorMessage).description)
-        }
-    }
-}
-
-
-/// An SQL function.
-public final class DatabaseFunction {
-    public let name: String
-    let argumentCount: Int32
-    let pure: Bool
-    let function: (Int32, UnsafeMutablePointer<OpaquePointer?>?) throws -> DatabaseValue
-    var eTextRep: Int32 { return pure ? SQLITE_DETERMINISTIC : 0 }
-    
-    /// Returns an SQL function.
-    ///
-    ///     let fn = DatabaseFunction("succ", argumentCount: 1) { dbValues in
-    ///         guard let int = Int.fromDatabaseValue(dbValues[0]) else {
-    ///             return nil
-    ///         }
-    ///         return int + 1
-    ///     }
-    ///     db.add(function: fn)
-    ///     try Int.fetchOne(db, "SELECT succ(1)")! // 2
-    ///
-    /// - parameters:
-    ///     - name: The function name.
-    ///     - argumentCount: The number of arguments of the function. If
-    ///       omitted, or nil, the function accepts any number of arguments.
-    ///     - pure: Whether the function is "pure", which means that its results
-    ///       only depends on its inputs. When a function is pure, SQLite has
-    ///       the opportunity to perform additional optimizations. Default value
-    ///       is false.
-    ///     - function: A function that takes an array of DatabaseValue
-    ///       arguments, and returns an optional DatabaseValueConvertible such
-    ///       as Int, String, NSDate, etc. The array is guaranteed to have
-    ///       exactly *argumentCount* elements, provided *argumentCount* is
-    ///       not nil.
-    public init(_ name: String, argumentCount: Int32? = nil, pure: Bool = false, function: @escaping ([DatabaseValue]) throws -> DatabaseValueConvertible?) {
-        self.name = name
-        self.argumentCount = argumentCount ?? -1
-        self.pure = pure
-        self.function = { (argc, argv) in
-            let arguments = (0..<Int(argc)).map { index in DatabaseValue(sqliteValue: argv.unsafelyUnwrapped[index]!) }
-            return try function(arguments)?.databaseValue ?? .null
-        }
-    }
-}
-
-extension DatabaseFunction : Hashable {
-    /// The hash value
-    public var hashValue: Int {
-        return name.hashValue ^ argumentCount.hashValue
-    }
-    
-    /// Two functions are equal if they share the same name and argumentCount.
-    public static func == (lhs: DatabaseFunction, rhs: DatabaseFunction) -> Bool {
-        return lhs.name == rhs.name && lhs.argumentCount == rhs.argumentCount
+        function.uninstall(in: self)
     }
 }
 
