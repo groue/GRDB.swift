@@ -411,7 +411,7 @@ class DatabaseAggregateTests: GRDBTestCase {
     func testAggregateStepThrowingCustomError() throws {
         struct Aggregate : DatabaseAggregate {
             func step(_ dbValues: [DatabaseValue]) throws {
-                throw NSError(domain: "CustomErrorDomain", code: 123, userInfo: [NSString(string: NSLocalizedDescriptionKey): "custom error message"])
+                throw NSError(domain: "CustomErrorDomain", code: 123, userInfo: [NSLocalizedDescriptionKey: "custom error message"])
             }
             func finalize() -> DatabaseValueConvertible? {
                 fatalError()
@@ -502,7 +502,7 @@ class DatabaseAggregateTests: GRDBTestCase {
         struct Aggregate : DatabaseAggregate {
             func step(_ dbValues: [DatabaseValue]) { }
             func finalize() throws -> DatabaseValueConvertible? {
-                throw NSError(domain: "CustomErrorDomain", code: 123, userInfo: [NSString(string: NSLocalizedDescriptionKey): "custom error message"])
+                throw NSError(domain: "CustomErrorDomain", code: 123, userInfo: [NSLocalizedDescriptionKey: "custom error message"])
             }
         }
         let dbQueue = try makeDatabaseQueue()
