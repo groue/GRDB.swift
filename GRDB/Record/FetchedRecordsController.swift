@@ -85,7 +85,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         if let isSameRecord = isSameRecord {
             itemsAreIdenticalFactory = { _ in { isSameRecord($0.record, $1.record) } }
         } else {
-            itemsAreIdenticalFactory = { _ in { _ in false } }
+            itemsAreIdenticalFactory = { _ in { _,_ in false } }
         }
         
         try self.init(
@@ -211,11 +211,33 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         onChange: ((FetchedRecordsController<Record>, Record, FetchedRecordChange) -> ())? = nil,
         didChange: ((FetchedRecordsController<Record>) -> ())? = nil)
     {
+        // I hate you SE-0110.
+        let wrappedWillChange: ((FetchedRecordsController<Record>, Void) -> ())?
+        if let willChange = willChange {
+            wrappedWillChange = { (controller, _) in willChange(controller) }
+        } else {
+            wrappedWillChange = nil
+        }
+        
+        let wrappedDidChange: ((FetchedRecordsController<Record>, Void) -> ())?
+        if let didChange = didChange {
+            wrappedDidChange = { (controller, _) in didChange(controller) }
+        } else {
+            wrappedDidChange = nil
+        }
+        
         trackChanges(
             fetchAlongside: { _ in },
-            willChange: willChange.map { callback in { (controller, _) in callback(controller) } },
+            willChange: wrappedWillChange,
             onChange: onChange,
-            didChange: didChange.map { callback in { (controller, _) in callback(controller) } })
+            didChange: wrappedDidChange)
+        
+        // Without bloody SE-0110:
+//        trackChanges(
+//            fetchAlongside: { _ in },
+//            willChange: willChange.map { callback in { (controller, _) in callback(controller) } },
+//            onChange: onChange,
+//            didChange: didChange.map { callback in { (controller, _) in callback(controller) } })
     }
 
     /// Registers changes notification callbacks.
@@ -468,7 +490,7 @@ extension FetchedRecordsController where Record: TableMapping {
                 columns = [Column.rowID.name]
             } else {
                 // No primary key => can't compare rows
-                return { _ in false }
+                return { _,_ in false }
             }
             
             // Compare primary keys

@@ -1345,7 +1345,7 @@ class TransactionObserverTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         let witness = Observer()
         let observer = Observer(didCommitBlock: { db in
-            try! db.inTransaction { _ in .commit }
+            try! db.inTransaction { .commit }
         })
         dbQueue.add(transactionObserver: witness)
         dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
