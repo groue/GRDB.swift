@@ -37,6 +37,14 @@ class UpdateStatementTests : GRDBTestCase {
             XCTAssertEqual(names, ["Arthur", "Barbara", "Craig", "Daniel"])
         }
     }
+    
+    func testStatementSQL() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try XCTAssertEqual(db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES ('Arthur', ?)").sql, "INSERT INTO persons (name, age) VALUES ('Arthur', ?)")
+            try XCTAssertEqual(db.makeUpdateStatement(" INSERT INTO persons (name, age) VALUES ('Arthur', ?) ; ").sql, "INSERT INTO persons (name, age) VALUES ('Arthur', ?)")
+        }
+    }
 
     func testArrayStatementArguments() throws {
         let dbQueue = try makeDatabaseQueue()
@@ -269,7 +277,7 @@ class UpdateStatementTests : GRDBTestCase {
             }
         }
     }
-
+    
     func testMultipleValidStatementsError() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
