@@ -8,8 +8,8 @@ public final class DatabaseFunction {
     let argumentCount: Int32?
     let pure: Bool
     private let kind: Kind
-    fileprivate var nArg: Int32 { return argumentCount ?? -1 }
-    fileprivate var eTextRep: Int32 { return (SQLITE_UTF8 | (pure ? SQLITE_DETERMINISTIC : 0)) }
+    private var nArg: Int32 { return argumentCount ?? -1 }
+    private var eTextRep: Int32 { return (SQLITE_UTF8 | (pure ? SQLITE_DETERMINISTIC : 0)) }
     
     /// Returns an SQL function.
     ///

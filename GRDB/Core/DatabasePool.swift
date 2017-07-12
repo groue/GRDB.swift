@@ -187,12 +187,12 @@ public final class DatabasePool {
     
     // MARK: - Not public
     
-    fileprivate let writer: SerializedDatabase
-    fileprivate var readerConfig: Configuration
-    fileprivate var readerPool: Pool<SerializedDatabase>! = nil // var and nil-initialized so that we can use `self` when creating readerPool in DatabasePool.init()
+    private let writer: SerializedDatabase
+    private var readerConfig: Configuration
+    private var readerPool: Pool<SerializedDatabase>! = nil // var and nil-initialized so that we can use `self` when creating readerPool in DatabasePool.init()
     
-    fileprivate var functions = Set<DatabaseFunction>()
-    fileprivate var collations = Set<DatabaseCollation>()
+    private var functions = Set<DatabaseFunction>()
+    private var collations = Set<DatabaseCollation>()
 }
 
 
