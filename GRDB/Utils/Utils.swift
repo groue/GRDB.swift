@@ -69,21 +69,3 @@ extension Array {
     }
 }
 
-extension Dictionary {
-    
-    /// Create a dictionary with the keys and values in the given sequence.
-    init<Sequence: Swift.Sequence>(keyValueSequence: Sequence) where Sequence.Iterator.Element == (Key, Value) {
-        self.init(minimumCapacity: keyValueSequence.underestimatedCount)
-        for (key, value) in keyValueSequence {
-            self[key] = value
-        }
-    }
-    
-    /// Create a dictionary from keys and a value builder.
-    init<Sequence: Swift.Sequence>(keys: Sequence, value: (Key) -> Value) where Sequence.Iterator.Element == Key {
-        self.init(minimumCapacity: keys.underestimatedCount)
-        for key in keys {
-            self[key] = value(key)
-        }
-    }
-}
