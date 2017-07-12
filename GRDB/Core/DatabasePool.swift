@@ -62,10 +62,8 @@ public final class DatabasePool {
         // Readers
         readerConfig = configuration
         readerConfig.readonly = true
-        readerConfig.defaultTransactionKind = .deferred // Make it the default. Other transaction kinds are forbidden by SQLite in read-only connections.
-        
-        readerPool = Pool<SerializedDatabase>(maximumCount: configuration.maximumReaderCount)
-        readerPool.makeElement = { [unowned self] in
+        readerConfig.defaultTransactionKind = .deferred // Make it the default for readers. Other transaction kinds are forbidden by SQLite in read-only connections.
+        readerPool = Pool(maximumCount: configuration.maximumReaderCount, makeElement: { [unowned self] in
             let reader = try SerializedDatabase(
                 path: path,
                 configuration: self.readerConfig,
@@ -81,7 +79,7 @@ public final class DatabasePool {
             }
             
             return reader
-        }
+        })
     }
     
     #if os(iOS)
@@ -191,7 +189,7 @@ public final class DatabasePool {
     
     fileprivate let writer: SerializedDatabase
     fileprivate var readerConfig: Configuration
-    fileprivate let readerPool: Pool<SerializedDatabase>
+    fileprivate var readerPool: Pool<SerializedDatabase>! = nil // var and nil-initialized so that we can use `self` when creating readerPool in DatabasePool.init()
     
     fileprivate var functions = Set<DatabaseFunction>()
     fileprivate var collations = Set<DatabaseCollation>()
@@ -250,11 +248,12 @@ extension DatabasePool : DatabaseReader {
     /// - throws: The error thrown by the block, or any DatabaseError that would
     ///   happen while establishing the read access to the database.
     public func read<T>(_ block: (Database) throws -> T) throws -> T {
-        // The block isolation comes from the DEFERRED transaction.
-        // See DatabasePoolTests.testReadMethodIsolationOfBlock().
+        preconditionNotReentrantRead()
         return try readerPool.get { reader in
             try reader.sync { db in
                 var result: T? = nil
+                // The block isolation comes from the DEFERRED transaction.
+                // See DatabasePoolTests.testReadMethodIsolationOfBlock().
                 try db.inTransaction(.deferred) {
                     result = try block(db)
                     return .commit
@@ -291,8 +290,55 @@ extension DatabasePool : DatabaseReader {
     /// - throws: The error thrown by the block, or any DatabaseError that would
     ///   happen while establishing the read access to the database.
     public func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T {
+        preconditionNotReentrantRead()
         return try readerPool.get { reader in
             try reader.sync(block)
+        }
+    }
+    
+    /// Forbid the following code:
+    ///
+    ///     try dbPool.read { _ in
+    ///         try dbPool.read { _ in
+    ///         }
+    ///     }
+    ///
+    /// Why? Because this leads to a dead-lock, when the maximum number of
+    /// readers has been reached. And also because DatabaseQueue forbids
+    /// reentrancy as well, through its own internal SerializedDatabase.
+    ///
+    /// This method is not perfect, because we can't notice the following kind
+    /// of reentrancy:
+    ///
+    ///     try dbPool.read { _ in
+    ///         someQueue.sync {
+    ///             try dbPool.read { _ in
+    ///             }
+    ///         }
+    ///     }
+    private func preconditionNotReentrantRead() {
+        // Look for a reader for which reader.onValidQueue is true, which means
+        // that the current dispatch queue can be used for accessing its
+        // database: this is exactly what we want to prevent.
+        
+        var readers: [SerializedDatabase] = []
+        readerPool.forEach { reader in
+            // We can't check for reader.onValidQueue here because
+            // Pool.forEach() runs its closure argument in some arbitrary
+            // dispatch queue. We thus extract the reader so that we can query
+            // it below.
+            readers.append(reader)
+        }
+        
+        // Now the readers array contains some readers. The pool readers may
+        // already be different, because some other thread may have started 
+        // a new read, for example.
+        //
+        // This doesn't matter: the reader we are looking for is already on
+        // its own dispatch queue. If it exists, is still in use, thus still
+        // in the pool, and thus still relevant for our check:
+        for reader in readers where reader.onValidQueue {
+            fatalError("Database methods are not reentrant.")
         }
     }
     

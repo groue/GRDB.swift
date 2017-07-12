@@ -36,44 +36,59 @@ import Dispatch
 ///     got 1
 ///     got 3
 final class Pool<T> {
-    var makeElement: (() throws -> T)?
-    private var items: [PoolItem<T>] = []
-    private let queue: DispatchQueue         // protects items
+    private struct Item {
+        let element: T
+        var available: Bool
+        
+        init(element: T, available: Bool) {
+            self.element = element
+            self.available = available
+        }
+        
+        mutating func getElementAndMakeUnavailable() -> T {
+            available = false
+            return element
+        }
+    }
+    
+    private let makeElement: () throws -> T
+    private var items: ReadWriteBox<[Item]> = ReadWriteBox([])
     private let semaphore: DispatchSemaphore // limits the number of elements
     
-    init(maximumCount: Int, makeElement: (() throws -> T)? = nil) {
+    init(maximumCount: Int, makeElement: @escaping () throws -> T) {
         GRDBPrecondition(maximumCount > 0, "Pool size must be at least 1")
         self.makeElement = makeElement
-        self.queue = DispatchQueue(label: "GRDB.Pool")
         self.semaphore = DispatchSemaphore(value: maximumCount)
     }
     
-    /// Returns a tuple (element, releaseElement())
-    /// Client MUST call releaseElement() after the element has been used.
+    /// Returns a tuple (element, release)
+    /// Client MUST call release() after the element has been used.
     func get() throws -> (T, () -> ()) {
-        var item: PoolItem<T>! = nil
+        var element: T! = nil
+        var index: Int! = nil
         _ = semaphore.wait(timeout: .distantFuture)
         do {
-            try queue.sync {
-                if let availableItem = items.first(where: { $0.available }) {
-                    item = availableItem
-                    item.available = false
+            try items.write { items in
+                if let availableIndex = items.index(where: { $0.available }) {
+                    index = availableIndex
+                    element = items[index].getElementAndMakeUnavailable()
                 } else {
-                    item = try PoolItem(element: makeElement!(), available: false)
-                    items.append(item)
+                    element = try makeElement()
+                    items.append(Item(element: element, available: false))
+                    index = items.count - 1
                 }
             }
         } catch {
             semaphore.signal()
             throw error
         }
-        let unlock = {
-            self.queue.sync {
-                item.available = true
+        let release = {
+            self.items.write { items in
+                items[index].available = true
             }
             self.semaphore.signal()
         }
-        return (item.element, unlock)
+        return (element, release)
     }
     
     /// Performs a synchronous block with an element. The element turns
@@ -85,9 +100,9 @@ final class Pool<T> {
     }
     
     /// Performs a block on each pool element, available or not.
-    /// The block is run is some arbitrary queue.
+    /// The block is run is some arbitrary dispatch queue.
     func forEach(_ body: (T) throws -> ()) rethrows {
-        try queue.sync {
+        try items.read { items in
             for item in items {
                 try body(item.element)
             }
@@ -102,19 +117,9 @@ final class Pool<T> {
     /// Empty the pool. Currently used items won't be reused.
     /// Eventual block is executed before any other element is dequeued.
     func clear(andThen block: () throws -> ()) rethrows {
-        try queue.sync {
-            items = []
+        try items.write { items in
+            items.removeAll()
             try block()
         }
-    }
-}
-
-private class PoolItem<T> {
-    let element: T
-    var available: Bool
-    
-    init(element: T, available: Bool) {
-        self.element = element
-        self.available = available
     }
 }

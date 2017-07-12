@@ -12,17 +12,17 @@ final class ReadWriteBox<T> {
         self.queue = DispatchQueue(label: "GRDB.ReadWriteBox", attributes: [.concurrent])
     }
     
-    func read<U>(_ block: (T) -> U) -> U {
+    func read<U>(_ block: (T) throws -> U) rethrows -> U {
         var result: U? = nil
-        queue.sync {
-            result = block(self._value)
+        try queue.sync {
+            result = try block(self._value)
         }
         return result!
     }
     
-    func write(_ block: (inout T) -> Void) {
-        queue.sync(flags: [.barrier]) {
-            block(&self._value)
+    func write(_ block: (inout T) throws -> Void) rethrows {
+        try queue.sync(flags: [.barrier]) {
+            try block(&self._value)
         }
     }
     

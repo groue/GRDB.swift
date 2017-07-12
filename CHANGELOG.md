@@ -48,6 +48,22 @@ The table creation API has been enhanced:
     }
     ```
 
+**Fixed**
+
+- `DatabasePool.read`, and `DatabasePool.unsafeRead` now raise a fatal error when used in a reentrant way:
+    
+    ```swift
+    try dbPool.read { db in
+        try dbPool.read { db in // fatal error: "Database methods are not reentrant."
+        }
+    }
+    ```
+    
+    While this change may appear as a breaking change, it is really a fix:
+    
+    - Reentrant reads deadlock as soon as the maximum number of readers has been reached.
+    - The documentation of those methods was already mentionning that those methods are not reentrant.  
+
 **API diff**
 
 ```diff
