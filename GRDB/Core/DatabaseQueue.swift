@@ -189,7 +189,7 @@ public final class DatabaseQueue {
     // > behavior is undefined.
     //
     // This is why we use a serialized database:
-    fileprivate var serializedDatabase: SerializedDatabase
+    private var serializedDatabase: SerializedDatabase
 }
 
 

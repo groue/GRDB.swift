@@ -95,7 +95,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             itemsAreIdenticalFactory: itemsAreIdenticalFactory)
     }
     
-    fileprivate init<Request>(
+    private init<Request>(
         _ databaseWriter: DatabaseWriter,
         request: Request,
         queue: DispatchQueue,
@@ -370,16 +370,16 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     fileprivate var fetchedItems: [Item<Record>]?
     
     /// The record comparator
-    fileprivate var itemsAreIdentical: ItemComparator<Record>
+    private var itemsAreIdentical: ItemComparator<Record>
     
     /// The record comparator factory (support for request change)
-    fileprivate let itemsAreIdenticalFactory: ItemComparatorFactory<Record>
+    private let itemsAreIdenticalFactory: ItemComparatorFactory<Record>
 
     /// The request
     fileprivate var request: Request
     
     /// The observed selection info
-    fileprivate var selectionInfo : SelectStatement.SelectionInfo
+    private var selectionInfo : SelectStatement.SelectionInfo
     
     /// The eventual current database observer
     private var observer: FetchedRecordsObserver<Record>?
@@ -581,7 +581,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
 
 // MARK: - Changes
 
-fileprivate func makeFetchFunction<Record, T>(
+private func makeFetchFunction<Record, T>(
     controller: FetchedRecordsController<Record>,
     fetchAlongside: @escaping (Database) throws -> T,
     willProcessTransaction: @escaping () -> (),
@@ -656,7 +656,7 @@ fileprivate func makeFetchFunction<Record, T>(
     }
 }
 
-fileprivate func makeFetchAndNotifyChangesFunction<Record, T>(
+private func makeFetchAndNotifyChangesFunction<Record, T>(
     controller: FetchedRecordsController<Record>,
     fetchAlongside: @escaping (Database) throws -> T,
     itemsAreIdentical: @escaping ItemComparator<Record>,
@@ -726,7 +726,7 @@ fileprivate func makeFetchAndNotifyChangesFunction<Record, T>(
     }
 }
 
-fileprivate func computeChanges<Record>(from s: [Item<Record>], to t: [Item<Record>], itemsAreIdentical: ItemComparator<Record>) -> [ItemChange<Record>] {
+private func computeChanges<Record>(from s: [Item<Record>], to t: [Item<Record>], itemsAreIdentical: ItemComparator<Record>) -> [ItemChange<Record>] {
     let m = s.count
     let n = t.count
     
@@ -862,7 +862,7 @@ fileprivate func computeChanges<Record>(from s: [Item<Record>], to t: [Item<Reco
     return standardize(changes: d[m][n], itemsAreIdentical: itemsAreIdentical)
 }
 
-fileprivate func identicalItemArrays<Record>(_ lhs: [Item<Record>], _ rhs: [Item<Record>]) -> Bool {
+private func identicalItemArrays<Record>(_ lhs: [Item<Record>], _ rhs: [Item<Record>]) -> Bool {
     guard lhs.count == rhs.count else {
         return false
     }
@@ -877,8 +877,8 @@ fileprivate func identicalItemArrays<Record>(_ lhs: [Item<Record>], _ rhs: [Item
 
 // MARK: - UITableView Support
 
-fileprivate typealias ItemComparator<Record: RowConvertible> = (Item<Record>, Item<Record>) -> Bool
-fileprivate typealias ItemComparatorFactory<Record: RowConvertible> = (Database) throws -> ItemComparator<Record>
+private typealias ItemComparator<Record: RowConvertible> = (Item<Record>, Item<Record>) -> Bool
+private typealias ItemComparatorFactory<Record: RowConvertible> = (Database) throws -> ItemComparator<Record>
 
 extension FetchedRecordsController {
     

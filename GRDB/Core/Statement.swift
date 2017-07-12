@@ -335,7 +335,7 @@ public final class SelectStatement : Statement {
 
 /// A cursor on a statement
 public final class DatabaseCursor<Element> : Cursor {
-    fileprivate let statement: SelectStatement
+    private let statement: SelectStatement
     private let sqliteStatement: SQLiteStatement
     private let element: () throws -> Element?
     private var done = false

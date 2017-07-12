@@ -212,7 +212,7 @@ public final class Database {
     
     /// The states that keep track of transaction completions in order to notify
     /// transaction observers.
-    fileprivate enum TransactionHookState {
+    private enum TransactionHookState {
         case pending
         case commit
         case rollback
@@ -308,23 +308,23 @@ public final class Database {
     }
     
     /// Set by SAVEPOINT/COMMIT/ROLLBACK/RELEASE savepoint statements.
-    fileprivate var savepointStack = SavepointStack()
+    private var savepointStack = SavepointStack()
     
     /// Traces transaction hooks
-    fileprivate var transactionHookState: TransactionHookState = .pending
+    private var transactionHookState: TransactionHookState = .pending
     
     /// Transaction observers
-    fileprivate var transactionObservers = [ManagedTransactionObserver]()
-    fileprivate var activeTransactionObservers = [ManagedTransactionObserver]()  // subset of transactionObservers, set in updateStatementWillExecute
+    private var transactionObservers = [ManagedTransactionObserver]()
+    private var activeTransactionObservers = [ManagedTransactionObserver]()  // subset of transactionObservers, set in updateStatementWillExecute
     
     /// See setupBusyMode()
     private var busyCallback: BusyCallback?
     
     /// Available functions
-    fileprivate var functions = Set<DatabaseFunction>()
+    private var functions = Set<DatabaseFunction>()
     
     /// Available collations
-    fileprivate var collations = Set<DatabaseCollation>()
+    private var collations = Set<DatabaseCollation>()
     
     /// Schema Cache
     var schemaCache: DatabaseSchemaCache    // internal so that it can be tested
@@ -341,8 +341,8 @@ public final class Database {
         case grdb
         case user
     }
-    fileprivate lazy var grdbStatementCache: StatementCache = StatementCache(database: self)
-    fileprivate lazy var userStatementCache: StatementCache = StatementCache(database: self)
+    private lazy var grdbStatementCache: StatementCache = StatementCache(database: self)
+    private lazy var userStatementCache: StatementCache = StatementCache(database: self)
     
     init(path: String, configuration: Configuration, schemaCache: DatabaseSchemaCache) throws {
         // Error log setup must happen before any database connection
@@ -1012,7 +1012,7 @@ extension DatabaseCollation : Hashable {
 
 #if SQLITE_HAS_CODEC
 extension Database {
-    fileprivate class func set(passphrase: String, forConnection sqliteConnection: SQLiteConnection) throws {
+    private class func set(passphrase: String, forConnection sqliteConnection: SQLiteConnection) throws {
         let data = passphrase.data(using: .utf8)!
         let code = data.withUnsafeBytes { bytes in
             sqlite3_key(sqliteConnection, bytes, Int32(data.count))
