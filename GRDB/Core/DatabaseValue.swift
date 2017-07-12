@@ -190,9 +190,9 @@ extension DatabaseValue : Hashable {
         case (.double(let lhs), .double(let rhs)):
             return lhs == rhs
         case (.int64(let lhs), .double(let rhs)):
-            return int64EqualDouble(lhs, rhs)
+            return Int64(exactly: rhs) == lhs
         case (.double(let lhs), .int64(let rhs)):
-            return int64EqualDouble(rhs, lhs)
+            return rhs == Int64(exactly: lhs)
         case (.string(let lhs), .string(let rhs)):
             return lhs == rhs
         case (.blob(let lhs), .blob(let rhs)):
@@ -201,16 +201,6 @@ extension DatabaseValue : Hashable {
             return false
         }
     }
-}
-
-/// Returns true if i and d hold exactly the same value, and if converting one
-/// type to the other does not lose any information.
-private func int64EqualDouble(_ i: Int64, _ d: Double) -> Bool {
-    // See http://stackoverflow.com/questions/33719132/how-to-test-for-lossless-double-integer-conversion/33784296#33784296
-    return (d >= Double(Int64.min))
-        && (d < Double(Int64.max))
-        && (round(d) == d)
-        && (i == Int64(d))
 }
 
 
