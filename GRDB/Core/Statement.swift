@@ -232,7 +232,9 @@ public final class SelectStatement : Statement {
     
     /// Cache for indexOfColumn(). Keys are lowercase.
     private lazy var columnIndexes: [String: Int] = {
-        return Dictionary(keyValueSequence: self.columnNames.enumerated().map { ($1.lowercased(), $0) }.reversed())
+        return Dictionary(
+            self.columnNames.enumerated().map { ($0.element.lowercased(), $0.offset) },
+            uniquingKeysWith: { (left, _) in left }) // keep leftmost indexes
     }()
     
     /// Returns the index of the leftmost column named `name`, in a
@@ -266,11 +268,7 @@ public final class SelectStatement : Statement {
         }
         
         mutating func insert(column: String, ofTable table: String) {
-            if columns[table] != nil {
-                columns[table]!.insert(column)
-            } else {
-                columns[table] = [column]
-            }
+            columns[table, default: []].insert(column)
         }
         
         /// If true, selection is unknown
@@ -595,7 +593,7 @@ public struct StatementArguments {
     /// - parameter sequence: A sequence of (key, value) pairs
     /// - returns: A StatementArguments.
     public init(_ dictionary: [String: DatabaseValueConvertible?]) {
-        namedValues = Dictionary(keys: dictionary.keys) { dictionary[$0]!?.databaseValue ?? .null }
+        namedValues = dictionary.mapValues { $0?.databaseValue ?? .null }
     }
     
     /// Initializes arguments from a sequence of (key, value) pairs, such as
@@ -607,7 +605,7 @@ public struct StatementArguments {
     /// - parameter sequence: A sequence of (key, value) pairs
     /// - returns: A StatementArguments.
     public init<Sequence: Swift.Sequence>(_ sequence: Sequence) where Sequence.Iterator.Element == (String, DatabaseValueConvertible?) {
-        namedValues = Dictionary(keyValueSequence: sequence.map { ($0, $1?.databaseValue ?? .null) })
+        namedValues = Dictionary(uniqueKeysWithValues: sequence.map { ($0.0, $0.1?.databaseValue ?? .null) })
     }
     
     /// Initializes arguments from [AnyHashable: Any].

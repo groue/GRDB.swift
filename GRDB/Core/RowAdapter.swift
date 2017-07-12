@@ -39,10 +39,11 @@ public struct LayoutedColumnMapping {
     ///     try Row.fetchOne(db, "SELECT NULL, 'foo', 'bar'", adapter: FooBarAdapter())
     public init<S: Sequence>(layoutColumns: S) where S.Iterator.Element == (Int, String) {
         self.layoutColumns = Array(layoutColumns)
-        self.lowercaseColumnIndexes = Dictionary(keyValueSequence: layoutColumns
-            .enumerated()
-            .map { ($1.1.lowercased(), $0) }
-            .reversed()) // reversed() so that the the dictionary caches leftmost indexes
+        self.lowercaseColumnIndexes = Dictionary(
+            layoutColumns
+                .enumerated()
+                .map { ($0.element.1.lowercased(), $0.offset) },
+            uniquingKeysWith: { (left, _) in left }) // keep leftmost indexes
     }
     
     func baseColumnIndex(atMappingIndex index: Int) -> Int {
