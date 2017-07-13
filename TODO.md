@@ -13,9 +13,6 @@
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
 - [ ] See how we can use [sqlite3_get_autocommit](https://www.sqlite.org/capi3ref.html#sqlite3_get_autocommit)
 - [ ] Write regression tests for #156 and #157
-- [ ] Prevent dbPool.read { dbPool.read { } } if not done yet
-- [ ] DatabaseReader.unsafeReentrantRead. Make sure DatabaseReader.unsafeReentrantRead *never* dead-locks
-- [ ] Allow encode(to:) not to provide values for all columns. The generated insert/update query must omit such omitted columns.
 
 Not sure
 
