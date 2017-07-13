@@ -5305,7 +5305,7 @@ You can catch those errors and wait for [UIApplicationDelegate.applicationProtec
 - [Guarantees and Rules](#guarantees-and-rules)
 - [Advanced DatabasePool](#advanced-databasepool)
 - [DatabaseWriter and DatabaseReader Protocols](#databasewriter-and-databasereader-protocols)
-- [Unsafe Concurrency](#unsafe-concurrency)
+- [Unsafe Concurrency APIs](#unsafe-concurrency-apis)
 - [Dealing with External Connections](#dealing-with-external-connections)
 
 
@@ -5505,9 +5505,9 @@ However, database queues are not database pools, and DatabaseReader and Database
 DatabaseReader and DatabaseWriter are not a tool for applications that hesitate between DatabaseQueue and DatabasePool, and look for a common API. As seen above, the protocols actually make applications harder to write correctly. Instead, they target reusable agnostic code that has *both* queues and pools in mind. For example, GRDB uses those protocols for [migrations](#migrations) and [FetchedRecordsController](#fetchedrecordscontroller), two tools that accept both queues and pools.
 
 
-### Unsafe Concurrency
+### Unsafe Concurrency APIs
 
-**Database queues, pools, as well as their common protocols `DatabaseReader` and `DatabaseWriter` provide *unsafe* APIs.** Unsafe APIs lift [concurrency guarantees](#guarantees-and-rules), and allow unsafe concurrency patterns.
+**Database queues, pools, as well as their common protocols `DatabaseReader` and `DatabaseWriter` provide *unsafe* APIs.** Unsafe APIs lift [concurrency guarantees](#guarantees-and-rules), and allow advanced yet unsafe patterns.
 
 - **`unsafeRead`**
     

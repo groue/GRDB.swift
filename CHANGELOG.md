@@ -52,7 +52,7 @@ Release Notes
         }
         ```
 
-- `DatabaseQueue`, `DatabasePool` and their common protocol `DatabaseReader` can now perform "unsafe reentrant reads" ([documentation](https://github.com/groue/GRDB.swift#unsafe-concurrency)):
+- `DatabaseQueue`, `DatabasePool` and their common protocol `DatabaseReader` can now perform "unsafe reentrant reads" ([documentation](https://github.com/groue/GRDB.swift#unsafe-concurrency-apis)):
     
     ```swift
     // This is allowed
@@ -79,6 +79,7 @@ Release Notes
     
     - Reentrant reads deadlock as soon as the maximum number of readers has been reached.
     - The documentation of those methods was already mentionning that those methods are not reentrant.  
+
 
 **API diff**
 
