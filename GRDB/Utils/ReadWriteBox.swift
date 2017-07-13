@@ -13,16 +13,14 @@ final class ReadWriteBox<T> {
     }
     
     func read<U>(_ block: (T) throws -> U) rethrows -> U {
-        var result: U? = nil
-        try queue.sync {
-            result = try block(self._value)
+        return try queue.sync {
+            try block(_value)
         }
-        return result!
     }
     
     func write(_ block: (inout T) throws -> Void) rethrows {
         try queue.sync(flags: [.barrier]) {
-            try block(&self._value)
+            try block(&_value)
         }
     }
     
