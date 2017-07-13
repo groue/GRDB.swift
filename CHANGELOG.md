@@ -5,7 +5,7 @@ Release Notes
 
 **New**
 
-- Support for *partial records*. A record is partial when its `encode(to:)` method does not provide values for all table columns. Those records used to raise fatal error when their `update` method was called.
+- Record types that do not provide values for all table columns in their `encode(to:)` method are now supported.
 
 - The table creation API has been enhanced:
 
@@ -37,7 +37,7 @@ Release Notes
         }
         ```
     
-    - It is now possible to define external and auto references to tables without any explicit primary key. The generated SQL then uses the `rowid` hidden primary key column:
+    - It is now possible to define references to tables without any explicit primary key. The generated SQL then uses the `rowid` hidden primary key column:
     
         ```swift
         try dbQueue.inDatabase { db in
@@ -55,8 +55,8 @@ Release Notes
 - `DatabaseQueue`, `DatabasePool` and their common protocol `DatabaseReader` can now perform "unsafe reentrant reads" ([documentation](https://github.com/groue/GRDB.swift#unsafe-concurrency-apis)):
     
     ```swift
-    // This is allowed
-    try dbPool.unsafeReentrantRead { db in
+    try dbPool.read { db in
+        // This is allowed
         try dbPool.unsafeReentrantRead { db in
             ...
         }
@@ -70,15 +70,14 @@ Release Notes
     
     ```swift
     try dbPool.read { db in
-        try dbPool.read { db in // fatal error: "Database methods are not reentrant."
+        // fatal error: "Database methods are not reentrant."
+        try dbPool.read { db in
+            ...
         }
     }
     ```
     
-    While this change may appear as a breaking change, it is really a fix:
-    
-    - Reentrant reads deadlock as soon as the maximum number of readers has been reached.
-    - The documentation of those methods was already mentionning that those methods are not reentrant.  
+    While this change may appear as a breaking change, it is really a fix: reentrant reads deadlock as soon as the maximum number of readers has been reached.
 
 
 **API diff**
