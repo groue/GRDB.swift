@@ -15,6 +15,7 @@
 - [ ] Write regression tests for #156 and #157
 - [ ] Prevent dbPool.read { dbPool.read { } } if not done yet
 - [ ] DatabaseReader.unsafeReentrantRead. Make sure DatabaseReader.unsafeReentrantRead *never* dead-locks
+- [ ] Allow encode(to:) not to provide values for all columns. The generated insert/update query must omit such omitted columns.
 
 Not sure
 
