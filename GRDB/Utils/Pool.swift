@@ -36,18 +36,13 @@ import Dispatch
 ///     got 1
 ///     got 3
 final class Pool<T> {
-    private struct Item {
+    private class Item {
         let element: T
         var available: Bool
         
         init(element: T, available: Bool) {
             self.element = element
             self.available = available
-        }
-        
-        mutating func getElementAndMakeUnavailable() -> T {
-            available = false
-            return element
         }
     }
     
@@ -64,18 +59,17 @@ final class Pool<T> {
     /// Returns a tuple (element, release)
     /// Client MUST call release() after the element has been used.
     func get() throws -> (T, () -> ()) {
-        var element: T! = nil
-        var index: Int! = nil
         _ = semaphore.wait(timeout: .distantFuture)
+        var item: Item! = nil
         do {
             try items.write { items in
-                if let availableIndex = items.index(where: { $0.available }) {
-                    index = availableIndex
-                    element = items[index].getElementAndMakeUnavailable()
+                if let availableItem = items.first(where: { $0.available }) {
+                    item = availableItem
+                    item.available = false
                 } else {
-                    element = try makeElement()
-                    items.append(Item(element: element, available: false))
-                    index = items.count - 1
+                    let element = try makeElement()
+                    item = Item(element: element, available: false)
+                    items.append(item)
                 }
             }
         } catch {
@@ -83,12 +77,14 @@ final class Pool<T> {
             throw error
         }
         let release = {
-            self.items.write { items in
-                items[index].available = true
+            self.items.write { _ in
+                // This is why Item is a class, not a struct: so that we can
+                // release it without having to find in it the items array.
+                item.available = true
             }
             self.semaphore.signal()
         }
-        return (element, release)
+        return (item.element, release)
     }
     
     /// Performs a synchronous block with an element. The element turns
