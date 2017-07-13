@@ -620,4 +620,77 @@ class MutablePersistableTests: GRDBTestCase {
             XCTAssertEqual(existsCount, 2)
         }
     }
+    
+    // MARK: - Misc
+    
+    func testPartiallyEncodedRecord() throws {
+        struct PartialRecord : MutablePersistable {
+            var id: Int64?
+            var a: String
+            
+            static let databaseTableName = "records"
+            
+            func encode(to container: inout PersistenceContainer) {
+                container["id"] = id
+                container["a"] = a
+            }
+            
+            mutating func didInsert(with rowID: Int64, for column: String?) {
+                id = rowID
+            }
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "records") { t in
+                t.column("id", .integer).primaryKey()
+                t.column("a", .text)
+                t.column("b", .text)
+                t.column("c", .integer).notNull().defaults(to: 123)
+            }
+            
+            // Insertion only inserts defined columns
+            var record = PartialRecord(id: nil, a: "foo")
+            try record.insert(db)
+            XCTAssertTrue(
+                ["INSERT INTO \"records\" (\"id\", \"a\") VALUES (NULL,'foo')",
+                 "INSERT INTO \"records\" (\"a\", \"id\") VALUES ('foo',NULL)"]
+                    .contains(lastSQLQuery))
+            XCTAssertEqual(try Row.fetchOne(db, "SELECT * FROM records")!, ["id": 1, "a": "foo", "b": nil, "c": 123])
+            
+            // Update only updates defined columns
+            record.a = "bar"
+            try record.update(db)
+            XCTAssertEqual(lastSQLQuery, "UPDATE \"records\" SET \"a\"='bar' WHERE \"id\"=1")
+            XCTAssertEqual(try Row.fetchOne(db, "SELECT * FROM records")!, ["id": 1, "a": "bar", "b": nil, "c": 123])
+            
+            // Update always update something
+            record.a = "baz"
+            try record.update(db, columns: ["b"])
+            XCTAssertEqual(lastSQLQuery, "UPDATE \"records\" SET \"id\"=1 WHERE \"id\"=1")
+            XCTAssertEqual(try Row.fetchOne(db, "SELECT * FROM records")!, ["id": 1, "a": "bar", "b": nil, "c": 123])
+            
+            // Deletion
+            try record.delete(db)
+            XCTAssertEqual(lastSQLQuery, "DELETE FROM \"records\" WHERE \"id\"=1")
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM records")!, 0)
+            
+            // Expect database errors when missing columns must have a value
+            try db.drop(table: "records")
+            try db.create(table: "records") { t in
+                t.column("id", .integer).primaryKey()
+                t.column("a", .text)
+                t.column("b", .text).notNull()
+            }
+            do {
+                try record.insert(db)
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
+                // actual error message depends on the SQLite version
+                XCTAssertTrue(
+                    ["NOT NULL constraint failed: records.b",
+                     "records.b may not be NULL"].contains(error.message!))
+            }
+        }
+    }
 }

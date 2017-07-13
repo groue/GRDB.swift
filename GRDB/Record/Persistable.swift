@@ -715,8 +715,8 @@ final class DAO {
         var updatedColumns: [String] = []
         for column in columns {
             let lowercaseColumn = column.lowercased()
-            // Make sure the requested column is present in persistenceContainer
-            GRDBPrecondition(lowercasePersistentColumns.contains(lowercaseColumn), "column \(column) can't be updated because it is missing from persistence container")
+            // Don't update columns that are not present in the persistenceContainer
+            guard lowercasePersistentColumns.contains(lowercaseColumn) else { continue }
             // Don't update primary key columns
             guard !lowercasePrimaryKeyColumns.contains(lowercaseColumn) else { continue }
             updatedColumns.append(column)

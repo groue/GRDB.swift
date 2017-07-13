@@ -5,6 +5,8 @@ Release Notes
 
 **New**
 
+- Support for *partial records*. A record is partial when its `encode(to:)` method does not provide values for all table columns. Those records used to raise fatal error when their `update` method was called.
+
 - The table creation API has been enhanced:
 
     - SQLite supports untyped columns:
@@ -18,7 +20,9 @@ Release Notes
             }
         }
         ```
-    
+        
+        Untyped columns behave like decimal, boolean, date columns, and generally all columns with [NUMERIC type affinity](https://sqlite.org/datatype3.html#type_affinity).
+        
         This feature addresses [#169](https://github.com/groue/GRDB.swift/issues/169).
 
     - The `indexed()` methods lets you create a non-unique index on a table column:
