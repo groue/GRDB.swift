@@ -11,14 +11,17 @@ class DatabaseWriterTests : GRDBTestCase {
     
     func testDatabaseQueueUnsafeReentrantWrite() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.unsafeReentrantWrite { db in
-            try db.create(table: "table1") { t in
+        try dbQueue.unsafeReentrantWrite { db1 in
+            try db1.create(table: "table1") { t in
                 t.column("id", .integer).primaryKey()
             }
-            try dbQueue.unsafeReentrantWrite { db in
-                try db.execute("INSERT INTO table1 (id) VALUES (NULL)")
-                try dbQueue.unsafeReentrantWrite { db in
-                    try XCTAssertEqual(Int.fetchOne(db, "SELECT * FROM table1"), 1)
+            try dbQueue.unsafeReentrantWrite { db2 in
+                try db2.execute("INSERT INTO table1 (id) VALUES (NULL)")
+                
+                try dbQueue.unsafeReentrantWrite { db3 in
+                    try XCTAssertEqual(Int.fetchOne(db3, "SELECT * FROM table1"), 1)
+                    XCTAssertTrue(db1 === db2)
+                    XCTAssertTrue(db2 === db3)
                 }
             }
         }
@@ -26,14 +29,17 @@ class DatabaseWriterTests : GRDBTestCase {
     
     func testDatabasePoolUnsafeReentrantWrite() throws {
         let dbPool = try makeDatabasePool()
-        try dbPool.unsafeReentrantWrite { db in
-            try db.create(table: "table1") { t in
+        try dbPool.unsafeReentrantWrite { db1 in
+            try db1.create(table: "table1") { t in
                 t.column("id", .integer).primaryKey()
             }
-            try dbPool.unsafeReentrantWrite { db in
-                try db.execute("INSERT INTO table1 (id) VALUES (NULL)")
-                try dbPool.unsafeReentrantWrite { db in
-                    try XCTAssertEqual(Int.fetchOne(db, "SELECT * FROM table1"), 1)
+            try dbPool.unsafeReentrantWrite { db2 in
+                try db2.execute("INSERT INTO table1 (id) VALUES (NULL)")
+                
+                try dbPool.unsafeReentrantWrite { db3 in
+                    try XCTAssertEqual(Int.fetchOne(db3, "SELECT * FROM table1"), 1)
+                    XCTAssertTrue(db1 === db2)
+                    XCTAssertTrue(db2 === db3)
                 }
             }
         }

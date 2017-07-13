@@ -44,4 +44,28 @@ class DatabaseReaderTests : GRDBTestCase {
         } catch let error as DatabaseError where error.resultCode == .SQLITE_READONLY {
         }
     }
+
+    func testDatabaseQueueUnsafeReentrantRead() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.unsafeReentrantRead { db1 in
+            try dbQueue.unsafeReentrantRead { db2 in
+                try dbQueue.unsafeReentrantRead { db3 in
+                    XCTAssertTrue(db1 === db2)
+                    XCTAssertTrue(db2 === db3)
+                }
+            }
+        }
+    }
+    
+    func testDatabasePoolUnsafeReentrantRead() throws {
+        let dbPool = try makeDatabasePool()
+        try dbPool.unsafeReentrantRead { db1 in
+            try dbPool.unsafeReentrantRead { db2 in
+                try dbPool.unsafeReentrantRead { db3 in
+                    XCTAssertTrue(db1 === db2)
+                    XCTAssertTrue(db2 === db3)
+                }
+            }
+        }
+    }
 }

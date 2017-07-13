@@ -79,6 +79,40 @@ public protocol DatabaseReader : class {
     ///   happen while establishing the read access to the database.
     func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T
     
+    /// Synchronously executes a block that takes a database connection, and
+    /// returns its result.
+    ///
+    /// The two guarantees of the safe `read` method are lifted:
+    ///
+    /// The block argument is not isolated: eventual concurrent database updates
+    /// are visible inside the block:
+    ///
+    ///     try reader.unsafeReentrantRead { db in
+    ///         // Those two values may be different because some other thread
+    ///         // may have inserted or deleted a wine between the two requests:
+    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///     }
+    ///
+    /// Cursor iterations are isolated, though:
+    ///
+    ///     try reader.unsafeReentrantRead { db in
+    ///         // No concurrent update can mess with this iteration:
+    ///         let rows = try Row.fetchCursor(db, "SELECT ...")
+    ///         while let row = try rows.next() { ... }
+    ///     }
+    ///
+    /// The block argument is not prevented from writing (DatabaseQueue, in
+    /// particular, will accept database modifications in `unsafeReentrantRead`).
+    ///
+    /// - parameter block: A block that accesses the database.
+    /// - throws: The error thrown by the block, or any DatabaseError that would
+    ///   happen while establishing the read access to the database.
+    ///
+    /// This method is reentrant. It should be avoided because it fosters
+    /// dangerous concurrency practices.
+    func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T
+    
     
     // MARK: - Functions
     

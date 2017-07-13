@@ -248,6 +248,19 @@ extension DatabaseQueue : DatabaseReader {
         return try inDatabase(block)
     }
     
+    /// Synchronously executes a block in a protected dispatch queue, and
+    /// returns its result.
+    ///
+    ///     try dbQueue.unsafeReentrantRead { db in
+    ///         try db.execute(...)
+    ///     }
+    ///
+    /// This method is reentrant. It should be avoided because it fosters
+    /// dangerous concurrency practices.
+    public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
+        return try serializedDatabase.reentrantSync(block)
+    }
+    
     
     // MARK: - Functions
     
@@ -332,7 +345,7 @@ extension DatabaseQueue : DatabaseWriter {
     /// Synchronously executes a block in a protected dispatch queue, and
     /// returns its result.
     ///
-    ///     let persons = try dbQueue.unsafeReentrantWrite { db in
+    ///     try dbQueue.unsafeReentrantWrite { db in
     ///         try db.execute(...)
     ///     }
     ///

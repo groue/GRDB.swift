@@ -248,7 +248,7 @@ extension DatabasePool : DatabaseReader {
     /// - throws: The error thrown by the block, or any DatabaseError that would
     ///   happen while establishing the read access to the database.
     public func read<T>(_ block: (Database) throws -> T) throws -> T {
-        preconditionNotReentrantRead()
+        GRDBPrecondition(currentReader == nil, "Database methods are not reentrant.")
         return try readerPool.get { reader in
             try reader.sync { db in
                 var result: T? = nil
@@ -290,37 +290,52 @@ extension DatabasePool : DatabaseReader {
     /// - throws: The error thrown by the block, or any DatabaseError that would
     ///   happen while establishing the read access to the database.
     public func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T {
-        preconditionNotReentrantRead()
+        GRDBPrecondition(currentReader == nil, "Database methods are not reentrant.")
         return try readerPool.get { reader in
             try reader.sync(block)
         }
     }
     
-    /// Forbid the following code:
+    /// Synchronously executes a read-only block in a protected dispatch queue,
+    /// and returns its result.
     ///
-    ///     try dbPool.read { _ in
-    ///         try dbPool.read { _ in
-    ///         }
+    /// The block argument is not isolated: eventual concurrent database updates
+    /// are visible inside the block:
+    ///
+    ///     try dbPool.unsafeReentrantRead { db in
+    ///         // Those two values may be different because some other thread
+    ///         // may have inserted or deleted a wine between the two requests:
+    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
     ///     }
     ///
-    /// Why? Because this leads to a dead-lock, when the maximum number of
-    /// readers has been reached. And also because DatabaseQueue forbids
-    /// reentrancy as well, through its own internal SerializedDatabase.
+    /// Cursor iteration is safe, though:
     ///
-    /// This method is not perfect, because we can't notice the following kind
-    /// of reentrancy:
-    ///
-    ///     try dbPool.read { _ in
-    ///         someQueue.sync {
-    ///             try dbPool.read { _ in
-    ///             }
-    ///         }
+    ///     try dbPool.unsafeReentrantRead { db in
+    ///         // No concurrent update can mess with this iteration:
+    ///         let rows = try Row.fetchCursor(db, "SELECT ...")
+    ///         while let row = try rows.next() { ... }
     ///     }
-    private func preconditionNotReentrantRead() {
-        // Look for a reader for which reader.onValidQueue is true, which means
-        // that the current dispatch queue can be used for accessing its
-        // database: this is exactly what we want to prevent.
-        
+    ///
+    /// This method is reentrant. It should be avoided because it fosters
+    /// dangerous concurrency practices.
+    ///
+    /// - parameter block: A block that accesses the database.
+    /// - throws: The error thrown by the block, or any DatabaseError that would
+    ///   happen while establishing the read access to the database.
+    public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
+        if let reader = currentReader {
+            return try reader.reentrantSync(block)
+        } else {
+            return try readerPool.get { reader in
+                try reader.sync(block)
+            }
+        }
+    }
+    
+    /// Returns a reader that can be used from the current dispatch queue,
+    /// if any.
+    private var currentReader: SerializedDatabase? {
         var readers: [SerializedDatabase] = []
         readerPool.forEach { reader in
             // We can't check for reader.onValidQueue here because
@@ -331,15 +346,13 @@ extension DatabasePool : DatabaseReader {
         }
         
         // Now the readers array contains some readers. The pool readers may
-        // already be different, because some other thread may have started 
+        // already be different, because some other thread may have started
         // a new read, for example.
         //
         // This doesn't matter: the reader we are looking for is already on
         // its own dispatch queue. If it exists, is still in use, thus still
         // in the pool, and thus still relevant for our check:
-        for reader in readers where reader.onValidQueue {
-            fatalError("Database methods are not reentrant.")
-        }
+        return readers.first { $0.onValidQueue }
     }
     
     

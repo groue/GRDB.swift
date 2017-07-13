@@ -5305,6 +5305,7 @@ You can catch those errors and wait for [UIApplicationDelegate.applicationProtec
 - [Guarantees and Rules](#guarantees-and-rules)
 - [Advanced DatabasePool](#advanced-databasepool)
 - [DatabaseWriter and DatabaseReader Protocols](#databasewriter-and-databasereader-protocols)
+- [Unsafe Concurrency](#unsafe-concurrency)
 - [Dealing with External Connections](#dealing-with-external-connections)
 
 
@@ -5502,6 +5503,68 @@ However, database queues are not database pools, and DatabaseReader and Database
 - The definition of "current state" in DatabaseWriter.readFromCurrentState is [delicate](http://groue.github.io/GRDB.swift/docs/1.1/Protocols/DatabaseWriter.html#/s:FP4GRDB14DatabaseWriter20readFromCurrentStateFzFCS_8DatabaseT_T_).
 
 DatabaseReader and DatabaseWriter are not a tool for applications that hesitate between DatabaseQueue and DatabasePool, and look for a common API. As seen above, the protocols actually make applications harder to write correctly. Instead, they target reusable agnostic code that has *both* queues and pools in mind. For example, GRDB uses those protocols for [migrations](#migrations) and [FetchedRecordsController](#fetchedrecordscontroller), two tools that accept both queues and pools.
+
+
+### Unsafe Concurrency
+
+**Database queues, pools, as well as their common protocols `DatabaseReader` and `DatabaseWriter` provide *unsafe* APIs.** Unsafe APIs lift [concurrency guarantees](#guarantees-and-rules), and allow unsafe concurrency patterns.
+
+- **`unsafeRead`**
+    
+    The `unsafeRead` method is synchronous, and blocks the current thread until your database statements are executed in a protected dispatch queue. GRDB does just the bare minimum to provide a database connection that can read.
+    
+    When used on a database pool, reads are no longer isolated:
+    
+    ```swift
+    dbPool.unsafeRead { db in
+        // Those two values may be different because some other thread
+        // may have inserted or deleted a person between the two requests:
+        let count1 = try Person.fetchCount(db)
+        let count2 = try Person.fetchCount(db)
+    }
+    ```
+    
+    When used on a datase queue, the closure argument is allowed to write in the database.
+    
+- **`unsafeReentrantRead`**
+    
+    The `unsafeReentrantRead` behaves just as `unsafeRead` (see above), and allows reentrant calls:
+    
+    ```swift
+    dbPool.read { db1 in
+        // No "Database methods are not reentrant" fatal error:
+        dbPool.unsafeReentrantRead { db2 in
+            dbPool.unsafeReentrantRead { db3 in
+                ...
+            }
+        }
+    }
+    ```
+    
+    Reentrant database accesses make it very easy to break the second [safety rule](#guarantees-and-rules), which says: "group related statements within a single call to a DatabaseQueue or DatabasePool database access method.". Using a reentrant method is pretty much likely the sign of a wrong application architecture that needs refactoring.
+    
+    Reentrant methods have been introduced in order to support [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), a set of reactive extensions to GRDB based on [RxSwift](https://github.com/ReactiveX/RxSwift) that need precise scheduling.
+    
+- **`unsafeReentrantWrite`**
+    
+    The `unsafeReentrantWrite` method is synchronous, and blocks the current thread until your database statements are executed in a protected dispatch queue. Writes are serialized: eventual concurrent database updates are postponed until the block has executed.
+    
+    Reentrant calls are allowed:
+    
+    ```swift
+    dbQueue.inDatabase { db1 in
+        // No "Database methods are not reentrant" fatal error:
+        dbQueue.unsafeReentrantWrite { db2 in
+            dbQueue.unsafeReentrantWrite { db3 in
+                ...
+            }
+        }
+    }
+    ```
+    
+    Reentrant database accesses make it very easy to break the second [safety rule](#guarantees-and-rules), which says: "group related statements within a single call to a DatabaseQueue or DatabasePool database access method.". Using a reentrant method is pretty much likely the sign of a wrong application architecture that needs refactoring.
+    
+    Reentrant methods have been introduced in order to support [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), a set of reactive extensions to GRDB based on [RxSwift](https://github.com/ReactiveX/RxSwift) that need precise scheduling.
 
 
 ### Dealing with External Connections
