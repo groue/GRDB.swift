@@ -294,10 +294,18 @@ public final class Database {
     var lastErrorMessage: String? { return String(cString: sqlite3_errmsg(sqliteConnection)) }
     
     /// True if the database connection is currently in a transaction.
-    public var isInsideTransaction: Bool { return isInsideExplicitTransaction || !savepointStack.isEmpty }
-    
-    /// Set by BEGIN/ROLLBACK/COMMIT transaction statements.
-    fileprivate var isInsideExplicitTransaction: Bool = false
+    public var isInsideTransaction: Bool {
+        // https://sqlite.org/c3ref/get_autocommit.html
+        //
+        // > The sqlite3_get_autocommit() interface returns non-zero or zero if
+        // > the given database connection is or is not in autocommit mode,
+        // > respectively.
+        //
+        // > Autocommit mode is on by default. Autocommit mode is disabled by a
+        // > BEGIN statement. Autocommit mode is re-enabled by a COMMIT
+        // > or ROLLBACK.
+        return sqlite3_get_autocommit(sqliteConnection) == 0
+    }
     
     /// Set by SAVEPOINT/COMMIT/ROLLBACK/RELEASE savepoint statements.
     fileprivate var savepointStack = SavepointStack()
@@ -1629,7 +1637,7 @@ extension Database {
         
         if needsRollback {
             do {
-                try rollback(underlyingError: firstError)
+                try rollback()
             } catch {
                 if firstError == nil {
                     firstError = error
@@ -1706,7 +1714,7 @@ extension Database {
         if needsRollback {
             do {
                 if topLevelSavepoint {
-                    try rollback(underlyingError: firstError)
+                    try rollback()
                 } else {
                     // Rollback, and release the savepoint.
                     // Rollback alone is not enough to clear the savepoint from
@@ -1737,36 +1745,48 @@ extension Database {
         }
     }
     
-    private func rollback(underlyingError: Error?) throws {
-        do {
+    private func rollback() throws {
+        // The SQLite documentation contains two related but distinct techniques
+        // to handle rollbacks and errors:
+        //
+        // https://www.sqlite.org/lang_transaction.html#immediate
+        //
+        // > Response To Errors Within A Transaction
+        // >
+        // > If certain kinds of errors occur within a transaction, the
+        // > transaction may or may not be rolled back automatically.
+        // > The errors that can cause an automatic rollback include:
+        // >
+        // > - SQLITE_FULL: database or disk full
+        // > - SQLITE_IOERR: disk I/O error
+        // > - SQLITE_BUSY: database in use by another process
+        // > - SQLITE_NOMEM: out or memory
+        // >
+        // > [...] It is recommended that applications respond to the
+        // > errors listed above by explicitly issuing a ROLLBACK
+        // > command. If the transaction has already been rolled back
+        // > automatically by the error response, then the ROLLBACK
+        // > command will fail with an error, but no harm is caused
+        // > by this.
+        //
+        // https://sqlite.org/c3ref/get_autocommit.html
+        //
+        // > The sqlite3_get_autocommit() interface returns non-zero or zero if
+        // > the given database connection is or is not in autocommit mode,
+        // > respectively.
+        // > 
+        // > [...] If certain kinds of errors occur on a statement within a
+        // > multi-statement transaction (errors including SQLITE_FULL,
+        // > SQLITE_IOERR, SQLITE_NOMEM, SQLITE_BUSY, and SQLITE_INTERRUPT) then
+        // > the transaction might be rolled back automatically. The only way to
+        // > find out whether SQLite automatically rolled back the transaction
+        // > after an error is to use this function.
+        //
+        // The second technique is more robust, because we don't have to guess
+        // which rollback errors should be ignored, and which rollback errors
+        // should be exposed to the library user.
+        if sqlite3_get_autocommit(sqliteConnection) == 0 {
             try execute("ROLLBACK TRANSACTION")
-        } catch {
-            // https://www.sqlite.org/lang_transaction.html#immediate
-            //
-            // > Response To Errors Within A Transaction
-            // >
-            // > If certain kinds of errors occur within a transaction, the
-            // > transaction may or may not be rolled back automatically.
-            // > The errors that can cause an automatic rollback include:
-            // >
-            // > - SQLITE_FULL: database or disk full
-            // > - SQLITE_IOERR: disk I/O error
-            // > - SQLITE_BUSY: database in use by another process
-            // > - SQLITE_NOMEM: out or memory
-            // >
-            // > [...] It is recommended that applications respond to the
-            // > errors listed above by explicitly issuing a ROLLBACK
-            // > command. If the transaction has already been rolled back
-            // > automatically by the error response, then the ROLLBACK
-            // > command will fail with an error, but no harm is caused
-            // > by this.
-            //
-            // TODO: test that isInsideTransaction, savepointStack, transaction
-            // observers, etc. are in good shape when such an implicit rollback
-            // happens.
-            guard let underlyingError = underlyingError as? DatabaseError, [.SQLITE_FULL, .SQLITE_IOERR, .SQLITE_BUSY, .SQLITE_NOMEM].contains(underlyingError.resultCode) else {
-                throw error
-            }
         }
     }
     
@@ -1947,7 +1967,7 @@ extension Database {
             case .transaction(action: let action):
                 switch action {
                 case .begin:
-                    isInsideExplicitTransaction = true
+                    break
                 case .commit:
                     if case .pending = self.transactionHookState {
                         // A COMMIT statement has ended a deferred transaction
@@ -2046,7 +2066,6 @@ extension Database {
     
     /// Transaction hook
     private func didCommit() {
-        isInsideExplicitTransaction = false
         savepointStack.clear()
         
         for observer in transactionObservers {
@@ -2057,7 +2076,6 @@ extension Database {
     
     /// Transaction hook
     private func didRollback(notifyTransactionObservers: Bool) {
-        isInsideExplicitTransaction = false
         savepointStack.clear()
         
         if notifyTransactionObservers {
