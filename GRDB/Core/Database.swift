@@ -1904,9 +1904,11 @@ extension Database {
     }
     
     func updateStatementWillExecute(_ statement: UpdateStatement) {
+        // Grab the transaction observers that are interested in the actions
+        // performed by the statement.
         let databaseEventKinds = statement.databaseEventKinds
         activeTransactionObservers = transactionObservers.filter { observer in
-            return databaseEventKinds.index(where: observer.observes) != nil
+            return databaseEventKinds.contains(where: observer.observes)
         }
     }
     
@@ -2017,7 +2019,7 @@ extension Database {
         }
     }
     
-    /// Transaction hook
+    /// See sqlite3_commit_hook
     func willCommit() throws {
         let eventsBuffer = savepointStack.eventsBuffer
         savepointStack.clear()
@@ -2033,12 +2035,10 @@ extension Database {
     }
     
 #if SQLITE_ENABLE_PREUPDATE_HOOK
-    /// Transaction hook
+    /// See sqlite3_preupdate_hook
     private func willChange(with event: DatabasePreUpdateEvent) {
         if savepointStack.isEmpty {
-            // Don't notify all transactionObservers about the database event.
-            // Only notify those that are interested in the event, and have been
-            // isolated in updateStatementWillExecute().
+            // Notify all interested transactionObservers.
             for observer in activeTransactionObservers {
                 observer.databaseWillChange(with: event)
             }
@@ -2049,12 +2049,10 @@ extension Database {
     }
 #endif
     
-    /// Transaction hook
+    /// See sqlite3_update_hook
     private func didChange(with event: DatabaseEvent) {
         if savepointStack.isEmpty {
-            // Don't notify all transactionObservers about the database event.
-            // Only notify those that are interested in the event, and have been
-            // isolated in updateStatementWillExecute().
+            // Notify all interested transactionObservers.
             for observer in activeTransactionObservers {
                 observer.databaseDidChange(with: event)
             }
@@ -2064,7 +2062,6 @@ extension Database {
         }
     }
     
-    /// Transaction hook
     private func didCommit() {
         savepointStack.clear()
         
@@ -2074,7 +2071,6 @@ extension Database {
         cleanupTransactionObservers()
     }
     
-    /// Transaction hook
     private func didRollback(notifyTransactionObservers: Bool) {
         savepointStack.clear()
         
