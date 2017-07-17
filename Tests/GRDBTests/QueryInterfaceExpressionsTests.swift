@@ -382,7 +382,13 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             sql(dbQueue, tableRequest.filter(Col.age == nil)),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NULL)")
         XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(Col.age == DatabaseValue.null)),
+            "SELECT * FROM \"readers\" WHERE (\"age\" IS NULL)")
+        XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(nil == Col.age)),
+            "SELECT * FROM \"readers\" WHERE (\"age\" IS NULL)")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(DatabaseValue.null == Col.age)),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NULL)")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.age == Col.age)),
@@ -437,6 +443,9 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             sql(dbQueue, tableRequest.filter(Col.name.collating(.nocase) == nil)),
             "SELECT * FROM \"readers\" WHERE (\"name\" IS NULL COLLATE NOCASE)")
         XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(Col.name.collating(.nocase) == DatabaseValue.null)),
+            "SELECT * FROM \"readers\" WHERE (\"name\" IS NULL COLLATE NOCASE)")
+        XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.name.collating(collation) == "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" = 'fOo' COLLATE localized_case_insensitive)")
     }
@@ -467,7 +476,13 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             sql(dbQueue, tableRequest.filter(Col.age != nil)),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT NULL)")
         XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(Col.age != DatabaseValue.null)),
+            "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT NULL)")
+        XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(nil != Col.age)),
+            "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT NULL)")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(DatabaseValue.null != Col.age)),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT NULL)")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.age != Col.age)),
@@ -522,6 +537,9 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             sql(dbQueue, tableRequest.filter(Col.name.collating(.nocase) != nil)),
             "SELECT * FROM \"readers\" WHERE (\"name\" IS NOT NULL COLLATE NOCASE)")
         XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(Col.name.collating(.nocase) != DatabaseValue.null)),
+            "SELECT * FROM \"readers\" WHERE (\"name\" IS NOT NULL COLLATE NOCASE)")
+        XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.name.collating(collation) != "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" <> 'fOo' COLLATE localized_case_insensitive)")
     }
@@ -546,7 +564,13 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             sql(dbQueue, tableRequest.filter(!(Col.age == nil))),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT NULL)")
         XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(!(Col.age == DatabaseValue.null))),
+            "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT NULL)")
+        XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(!(nil == Col.age))),
+            "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT NULL)")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(!(DatabaseValue.null == Col.age))),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT NULL)")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(!(Col.age == Col.age))),
