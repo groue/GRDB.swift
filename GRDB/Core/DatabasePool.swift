@@ -554,8 +554,21 @@ extension DatabasePool : DatabaseWriter {
                 // > transaction, because the reader is seeing a snapshot of
                 // > database file from a prior moment in time.
                 //
-                // This documentation is NOT accurate. SQLite actually defers
-                // isolation until the first SELECT:
+                // OK. But what does "when read transaction starts" mean?
+                //
+                // http://www.sqlite.org/lang_transaction.html
+                //
+                // > Deferred (transaction) means that no locks are acquired on
+                // > the database until the database is first accessed. [...]
+                // > Locks are not acquired until the first read or write
+                // > operation. [...] Because the acquisition of locks is
+                // > deferred until they are needed, it is possible that another
+                // > thread or process could create a separate transaction and
+                // > write to the database after the BEGIN on the current thread
+                // > has executed.
+                //
+                // OK now that's precise. SQLite defers "snapshot isolation"
+                // until the first SELECT:
                 //
                 //     Reader                       Writer
                 //     BEGIN DEFERRED TRANSACTION
@@ -565,10 +578,9 @@ extension DatabasePool : DatabaseWriter {
                 //                                  UPDATE ... (2)
                 //     Here the change (2) is not visible
                 //
-                // This is not the guarantee expected by this method: no change
-                // at all should be visible.
-                //
-                // Workaround: perform an initial read before releasing the
+                // This method needs a stronger guarantee: no change at all
+                // should be visible. We thus have to perform a select that
+                // establishes the snapshot isolation before we can release the
                 // writer queue:
                 //
                 //     Reader                       Writer
