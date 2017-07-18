@@ -257,7 +257,7 @@ public func === (lhs: SQLExpressible?, rhs: SQLSpecificExpressible) -> SQLExpres
 ///     // name IS 'Arthur' COLLATE NOCASE
 ///     "Arthur" === Column("name").collating(.nocase)
 public func === (lhs: SQLExpressible?, rhs: SQLCollatedExpression) -> SQLExpression {
-    return SQLExpressionCollate(lhs == rhs.expression, collationName: rhs.collationName)
+    return SQLExpressionCollate(lhs === rhs.expression, collationName: rhs.collationName)
 }
 
 /// An SQL expression that compares two expressions with the `IS` SQL operator.
