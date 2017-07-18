@@ -95,15 +95,6 @@ public final class Row {
         self.init(impl: StatementCopyRowImpl(sqliteStatement: sqliteStatement, columnNames: statementRef.takeUnretainedValue().columnNames))
     }
     
-    /// Creates a row from the *current state* of the SQLite statement.
-    ///
-    /// The row is implemented on top of StatementCopyRowImpl, which *copies*
-    /// the values from the SQLite statement so that further iteration of the
-    /// statement does not modify the row.
-    convenience init(copiedFromSQLiteStatement sqliteStatement: SQLiteStatement, columnNames: [String]) {
-        self.init(impl: StatementCopyRowImpl(sqliteStatement: sqliteStatement, columnNames: columnNames))
-    }
-    
     init(impl: RowImpl) {
         self.impl = impl
         self.statementRef = nil
