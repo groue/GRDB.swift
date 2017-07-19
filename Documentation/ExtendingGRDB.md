@@ -497,7 +497,7 @@ Build a `value BETWEEN min AND max` expression from Swift ranges:
 
 #### The COUNT Function
 
-Build a `COUNT(...)` expression from the [count](http://groue.github.io/GRDB.swift/docs/1.2.1/Functions.html) and [count(distinct:)](http://groue.github.io/GRDB.swift/docs/1.2.1/Functions.html) functions:
+Build a `COUNT(...)` expression from the [count](http://groue.github.io/GRDB.swift/docs/1.2/Functions.html) and [count(distinct:)](http://groue.github.io/GRDB.swift/docs/1.2/Functions.html) functions:
 
 ```swift
 // SQLExpression: COUNT(email)
@@ -588,4 +588,4 @@ You may want to compare it to another protocol, SQLSpecificExpressible, which ha
 
 > :point_up: **Note**: whenever you extend GRDB with a Swift function, method, or operator, you should generally make sure that its signature contains at least one GRDB-specific type. In the `cast` function, it is Database.ColumnType.
 
-**If SQLExpressionLiteral reveals too limited for your purpose**, you may have to implement a new type that adopts the [SQLExpression](http://groue.github.io/GRDB.swift/docs/1.2.1/Protocols/SQLExpression.html) protocol.
+**If SQLExpressionLiteral reveals too limited for your purpose**, you may have to implement a new type that adopts the [SQLExpression](http://groue.github.io/GRDB.swift/docs/1.2/Protocols/SQLExpression.html) protocol.
