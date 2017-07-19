@@ -538,60 +538,64 @@ extension DatabasePool : DatabaseWriter {
     /// - throws: The error thrown by the block, or any DatabaseError that would
     ///   happen while establishing the read access to the database.
     public func readFromCurrentState(_ block: @escaping (Database) -> Void) throws {
+        // https://www.sqlite.org/isolation.html
+        //
+        // > In WAL mode, SQLite exhibits "snapshot isolation". When a read
+        // > transaction starts, that reader continues to see an unchanging
+        // > "snapshot" of the database file as it existed at the moment in time
+        // > when the read transaction started. Any write transactions that
+        // > commit while the read transaction is active are still invisible to
+        // > the read transaction, because the reader is seeing a snapshot of
+        // > database file from a prior moment in time.
+        //
+        // That's exactly what we need. But what does "when read transaction
+        // starts" mean?
+        //
+        // http://www.sqlite.org/lang_transaction.html
+        //
+        // > Deferred [transaction] means that no locks are acquired on the
+        // > database until the database is first accessed. [...] Locks are not
+        // > acquired until the first read or write operation. [...] Because the
+        // > acquisition of locks is deferred until they are needed, it is
+        // > possible that another thread or process could create a separate
+        // > transaction and write to the database after the BEGIN on the
+        // > current thread has executed.
+        //
+        // Now that's precise enough: SQLite defers "snapshot isolation" until
+        // the first SELECT:
+        //
+        //     Reader                       Writer
+        //     BEGIN DEFERRED TRANSACTION
+        //                                  UPDATE ... (1)
+        //     Here the change (1) is visible
+        //     SELECT ...
+        //                                  UPDATE ... (2)
+        //     Here the change (2) is not visible
+        //
+        // The readFromCurrentState method says that no change should be visible
+        // at all. We thus have to perform a select that establishes the
+        // snapshot isolation before we release the writer queue:
+        //
+        //     Reader                       Writer
+        //     BEGIN DEFERRED TRANSACTION
+        //     SELECT anything
+        //                                  UPDATE ...
+        //     Here the change is not visible by GRDB user
+        
+        // This method must be called from the writing dispatch queue:
         writer.preconditionValidQueue()
+        
+        // The semaphore that blocks the writing dispatch queue until snapshot
+        // isolation has been established:
         let semaphore = DispatchSemaphore(value: 0)
+        
         var readError: Error? = nil
         try readerPool.get { reader in
             reader.async { db in
-                // https://www.sqlite.org/isolation.html
-                //
-                // > In WAL mode, SQLite exhibits "snapshot isolation". When a
-                // > read transaction starts, that reader continues to see an
-                // > unchanging "snapshot" of the database file as it existed at
-                // > the moment in time when the read transaction started.
-                // > Any write transactions that commit while the read
-                // > transaction is active are still invisible to the read
-                // > transaction, because the reader is seeing a snapshot of
-                // > database file from a prior moment in time.
-                //
-                // OK. But what does "when read transaction starts" mean?
-                //
-                // http://www.sqlite.org/lang_transaction.html
-                //
-                // > Deferred (transaction) means that no locks are acquired on
-                // > the database until the database is first accessed. [...]
-                // > Locks are not acquired until the first read or write
-                // > operation. [...] Because the acquisition of locks is
-                // > deferred until they are needed, it is possible that another
-                // > thread or process could create a separate transaction and
-                // > write to the database after the BEGIN on the current thread
-                // > has executed.
-                //
-                // OK now that's precise. SQLite defers "snapshot isolation"
-                // until the first SELECT:
-                //
-                //     Reader                       Writer
-                //     BEGIN DEFERRED TRANSACTION
-                //                                  UPDATE ... (1)
-                //     Here the change (1) is visible
-                //     SELECT ...
-                //                                  UPDATE ... (2)
-                //     Here the change (2) is not visible
-                //
-                // This method needs a stronger guarantee: no change at all
-                // should be visible. We thus have to perform a select that
-                // establishes the snapshot isolation before we can release the
-                // writer queue:
-                //
-                //     Reader                       Writer
-                //     BEGIN DEFERRED TRANSACTION
-                //     SELECT anything -- the work around
-                //                                  UPDATE ...
-                //     Here the change is not visible by GRDB user
                 do {
                     try db.beginTransaction(.deferred)
                     assert(db.isInsideTransaction)
-                    try db.makeSelectStatement("SELECT rootpage FROM sqlite_master").cursor().next() // doesn't work with cached statement
+                    try db.makeSelectStatement("SELECT rootpage FROM sqlite_master").cursor().next()
                 } catch {
                     readError = error
                     semaphore.signal() // Release the writer queue and rethrow error
