@@ -1,6 +1,20 @@
 Release Notes
 =============
 
+## Next Version
+
+**Fixed**
+
+- The [Query Interface](https://github.com/groue/GRDB.swift/#the-query-interface) now generates `IS NULL` SQL snippets for comparisons with `DatabaseValue.null`:
+    
+    ```swift
+    // SELECT * FROM players WHERE email IS NULL
+    Player.filter(Column("email") == DatabaseValue.null)
+    ```
+    
+    It used to generate `= NULL` which would not behave as expected. 
+    
+
 ## 1.2
 
 Released July 13, 2017
