@@ -479,6 +479,7 @@ public final class Database {
                 guard let stmt = stmt else { return SQLITE_OK }
                 guard let expandedSQLCString = sqlite3_expanded_sql(OpaquePointer(stmt)) else { return SQLITE_OK }
                 let sql = String(cString: expandedSQLCString)
+                sqlite3_free(expandedSQLCString)
                 let database = unsafeBitCast(dbPointer, to: Database.self)
                 database.configuration.trace!(sql)
                 return SQLITE_OK
@@ -495,6 +496,7 @@ public final class Database {
                     guard let stmt = stmt else { return SQLITE_OK }
                     guard let expandedSQLCString = sqlite3_expanded_sql(OpaquePointer(stmt)) else { return SQLITE_OK }
                     let sql = String(cString: expandedSQLCString)
+                    sqlite3_free(expandedSQLCString)
                     let database = unsafeBitCast(dbPointer, to: Database.self)
                     database.configuration.trace!(sql)
                     return SQLITE_OK
