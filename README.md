@@ -3,7 +3,7 @@ GRDB.swift [![Swift](https://img.shields.io/badge/swift-3.1-orange.svg?style=fla
 
 ### A toolkit for SQLite databases, with a focus on application development
 
-**Latest release**: July 19, 2017 &bull; version 1.2.1 &bull; [CHANGELOG](CHANGELOG.md)
+**Latest release**: July 20, 2017 &bull; version 1.2.2 &bull; [CHANGELOG](CHANGELOG.md)
 
 **Requirements**: iOS 8.0+ / OSX 10.9+ / watchOS 2.0+ &bull; Xcode 8.3+ &bull; Swift 3.1
 
@@ -275,7 +275,7 @@ Any pull request that has the `make test_CarthageBuild` command successfully com
 
 ## Manually
 
-1. [Download](https://github.com/groue/GRDB.swift/releases/tag/v1.2.1) a copy of GRDB.swift, or clone its repository and make sure you use the latest tagged version with the `git checkout v1.2.1` command.
+1. [Download](https://github.com/groue/GRDB.swift/releases/tag/v1.2.2) a copy of GRDB.swift, or clone its repository and make sure you use the latest tagged version with the `git checkout v1.2.2` command.
 
 2. Embed the `GRDB.xcodeproj` project in your own project.
 
@@ -4811,7 +4811,7 @@ Alternatively, perform a manual installation of GRDB and SQLCipher:
     
     ```sh
     cd [GRDB.swift directory]
-    git checkout v1.2.1
+    git checkout v1.2.2
     git submodule update --init SQLCipher/src
     ```
     

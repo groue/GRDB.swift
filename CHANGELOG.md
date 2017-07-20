@@ -1,11 +1,13 @@
 Release Notes
 =============
 
-## Next Version
+## 1.2.2
+
+Released July 20, 2017
 
 **Fixed**
 
-- The `Configuration.trace` function no longer leaks memory (this bug was introduced in version 0.110.0)
+- The `Configuration.trace` function no longer leaks memory.
 
 
 ## 1.2.1
