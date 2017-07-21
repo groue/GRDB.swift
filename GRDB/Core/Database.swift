@@ -1210,7 +1210,7 @@ extension Database {
     /// If there exists a unique key on columns, return the columns
     /// ordered as the matching index (or primay key). Case of returned columns
     /// is not guaranteed.
-    func columnsForUniqueKey(_ columns: [String], in tableName: String) throws -> [String]? {
+    func columnsForUniqueKey<T: Sequence>(_ columns: T, in tableName: String) throws -> [String]? where T.Iterator.Element == String {
         let primaryKey = try self.primaryKey(tableName) // first, so that we fail early and consistently should the table not exist
         let lowercasedColumns = Set(columns.map { $0.lowercased() })
         if let index = try indexes(on: tableName).first(where: { index in index.isUnique && Set(index.columns.map { $0.lowercased() }) == lowercasedColumns }) {

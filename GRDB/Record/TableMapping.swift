@@ -75,8 +75,13 @@ extension TableMapping {
     static func filter(_ db: Database, keys: [[String: DatabaseValueConvertible?]], fatalErrorOnMissingUniqueIndex: Bool = true) throws -> QueryInterfaceRequest<Self> {
         // SELECT * FROM table WHERE ((a=? AND b=?) OR (c=? AND d=?) OR ...)
         let keyPredicates: [SQLExpression] = try keys.map { key in
+            // Prevent filter(db, keys: [[:]])
             GRDBPrecondition(!key.isEmpty, "Invalid empty key dictionary")
-            guard try db.table(databaseTableName, hasUniqueKey: key.keys) else {
+
+            // Prevent filter(db, keys: [["foo": 1, "bar": 2]]) where
+            // ("foo", "bar") is not a unique key (primary key or columns of a
+            // unique index)
+            guard let orderedColumns = try db.columnsForUniqueKey(key.keys, in: databaseTableName) else {
                 let message = "table \(databaseTableName) has no unique index on column(s) \(key.keys.sorted().joined(separator: ", "))"
                 if fatalErrorOnMissingUniqueIndex {
                     fatalError(message)
@@ -84,7 +89,12 @@ extension TableMapping {
                     throw DatabaseError(resultCode: .SQLITE_MISUSE, message: message)
                 }
             }
-            let columnPredicates: [SQLExpression] = key.map { (column, value) in Column(column) == value }
+            
+            let lowercaseOrderedColumns = orderedColumns.map { $0.lowercased() }
+            let columnPredicates: [SQLExpression] = key
+                // Sort key columns in the same order as the unique index
+                .sorted { (kv1, kv2) in lowercaseOrderedColumns.index(of: kv1.0.lowercased())! < lowercaseOrderedColumns.index(of: kv2.0.lowercased())! }
+                .map { (column, value) in Column(column) == value }
             return SQLBinaryOperator.and.join(columnPredicates)! // not nil because columnPredicates is not empty
         }
         
