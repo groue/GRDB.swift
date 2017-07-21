@@ -13,6 +13,14 @@
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
 - [ ] Write regression tests for #156 and #157
 
+GRDB 2.0
+
+- [ ] Remove all writing powers from TableMapping:
+    - [ ] TableMapping.deleteAll(_:) -> move to MutablePersistable
+    - [ ] TableMapping.deleteAll(_:keys:) -> move to MutablePersistable
+    - [ ] TableMapping.deleteOne(_:key:) -> move to MutablePersistable
+    - [ ] QueryInterfaceRequest.deleteAll(_:) -> require MutablePersistable adoption
+
 Not sure
 
 - [ ] Support for resource values (see https://developer.apple.com/library/ios/qa/qa1719/_index.html)
