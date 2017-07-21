@@ -20,10 +20,10 @@ class RecordUniqueIndexTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             try db.execute("CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, email TEXT UNIQUE)")
             
-            _ = try Person.makeFetchByKeyStatement(db, keys: [["id": nil]])
-            _ = try Person.makeFetchByKeyStatement(db, keys: [["email": nil]])
+            _ = try Person.request(db, keys: [["id": nil]])
+            _ = try Person.request(db, keys: [["email": nil]])
             do {
-                _ = try Person.makeFetchByKeyStatement(db, keys: [["id": nil, "email": nil]], fatalErrorOnMissingUniqueIndex: false)
+                _ = try Person.request(db, keys: [["id": nil, "email": nil]], fatalErrorOnMissingUniqueIndex: false)
                 XCTFail()
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_MISUSE)
@@ -31,7 +31,7 @@ class RecordUniqueIndexTests: GRDBTestCase {
                 XCTAssertEqual(error.description, "SQLite error 21: table persons has no unique index on column(s) email, id")
             }
             do {
-                _ = try Person.makeFetchByKeyStatement(db, keys: [["name": nil]], fatalErrorOnMissingUniqueIndex: false)
+                _ = try Person.request(db, keys: [["name": nil]], fatalErrorOnMissingUniqueIndex: false)
                 XCTFail()
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_MISUSE)

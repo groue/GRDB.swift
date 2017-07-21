@@ -191,6 +191,29 @@ public struct SQLBinaryOperator : Hashable {
     public static func == (lhs: SQLBinaryOperator, rhs: SQLBinaryOperator) -> Bool {
         return lhs.sql == rhs.sql
     }
+    
+    // TODO: make it an extension of Sequence (like joined(separator:)) when Swift can better handle existentials
+    // TODO: make it public eventually
+    func join(_ expressions: [SQLExpression]) -> SQLExpression? {
+        switch expressions.count {
+        case 0:
+            return nil
+        case 1:
+            return expressions[0]
+        default:
+            let literals = expressions.map { $0.literal }
+            let firstLiteral = literals[0]
+            var sql = firstLiteral.sql
+            var arguments = firstLiteral.arguments ?? StatementArguments()
+            for literal in literals.suffix(from: 1) {
+                sql += " \(self.sql) \(literal.sql)"
+                if let args = literal.arguments {
+                    arguments += args
+                }
+            }
+            return SQLExpressionLiteral("(\(sql))", arguments: arguments.isEmpty ? nil : arguments)
+        }
+    }
 }
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
