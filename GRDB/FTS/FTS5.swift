@@ -134,12 +134,9 @@
         
         static func api(_ db: Database) -> UnsafePointer<fts5_api>? {
             do {
-                return try Data.fetchOne(db, "SELECT fts5()").flatMap { data in
-                    guard data.count == MemoryLayout<UnsafePointer<fts5_api>>.size else {
-                        return nil
-                    }
-                    return data.withUnsafeBytes { $0.pointee }
-                }
+                return try Data
+                    .fetchOne(db, "SELECT fts5()")
+                    .flatMap { $0.withUnsafeBytes { $0.pointee } }
             } catch {
                 return nil
             }
