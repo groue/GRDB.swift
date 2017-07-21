@@ -65,8 +65,8 @@ extension TableMapping {
         }
     }
     
-    // If there is no unique index on the columns, the method raises a fatal
-    // (unless fatalErrorOnMissingUniqueIndex is false, for testability).
+    // Raises a fatal error if there is no unique index on the columns (unless
+    // fatalErrorOnMissingUniqueIndex is false, for testability).
     static func filter(_ db: Database, keys: [[String: DatabaseValueConvertible?]], fatalErrorOnMissingUniqueIndex: Bool = true) throws -> QueryInterfaceRequest<Self> {
         // SELECT * FROM table WHERE ((a=? AND b=?) OR (c=? AND d=?) OR ...)
         let keyPredicates: [SQLExpression] = try keys.map { key in
