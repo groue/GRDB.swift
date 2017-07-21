@@ -284,8 +284,10 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             try record2.insert(db)
             
             do {
+                // This method used to return nil, but does no longer.
+                // In GRDB 2.0, it won't return an optional.
                 let cursor = try Citizenship.fetchCursor(db, keys: [])
-                XCTAssertTrue(cursor == nil)
+                try XCTAssertNil(cursor!.next())
             }
             
             do {

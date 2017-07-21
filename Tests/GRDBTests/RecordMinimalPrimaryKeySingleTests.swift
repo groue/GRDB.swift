@@ -260,8 +260,10 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             try record2.insert(db)
             
             do {
+                // This method used to return nil, but does no longer.
+                // In GRDB 2.0, it won't return an optional.
                 let cursor = try MinimalSingle.fetchCursor(db, keys: [])
-                XCTAssertTrue(cursor == nil)
+                try XCTAssertNil(cursor!.next())
             }
             
             do {
@@ -336,8 +338,10 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             
             do {
                 let UUIDs: [String] = []
+                // This method used to return nil, but does no longer.
+                // In GRDB 2.0, it won't return an optional.
                 let cursor = try MinimalSingle.fetchCursor(db, keys: UUIDs)
-                XCTAssertTrue(cursor == nil)
+                try XCTAssertNil(cursor!.next())
             }
             
             do {

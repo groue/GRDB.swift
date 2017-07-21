@@ -277,8 +277,10 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             try record2.insert(db)
             
             do {
+                // This method used to return nil, but does no longer.
+                // In GRDB 2.0, it won't return an optional.
                 let cursor = try Pet.fetchCursor(db, keys: [])
-                XCTAssertTrue(cursor == nil)
+                try XCTAssertNil(cursor!.next())
             }
             
             do {
@@ -349,8 +351,10 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             
             do {
                 let UUIDs: [String] = []
+                // This method used to return nil, but does no longer.
+                // In GRDB 2.0, it won't return an optional.
                 let cursor = try Pet.fetchCursor(db, keys: UUIDs)
-                XCTAssertTrue(cursor == nil)
+                try XCTAssertNil(cursor!.next())
             }
             
             do {

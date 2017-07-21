@@ -34,7 +34,7 @@ class TableMappingDeleteByKeyTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var deleted = try Hacker.deleteOne(db, key: 1)
-            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"hackers\" WHERE \"rowid\" = 1")
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"hackers\" WHERE (\"rowid\" = 1)")
             XCTAssertFalse(deleted)
             
             try db.execute("INSERT INTO hackers (rowid, name) VALUES (?, ?)", arguments: [1, "Arthur"])
@@ -46,7 +46,7 @@ class TableMappingDeleteByKeyTests: GRDBTestCase {
             try db.execute("INSERT INTO hackers (rowid, name) VALUES (?, ?)", arguments: [2, "Barbara"])
             try db.execute("INSERT INTO hackers (rowid, name) VALUES (?, ?)", arguments: [3, "Craig"])
             let deletedCount = try Hacker.deleteAll(db, keys: [2, 3, 4])
-            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"hackers\" WHERE \"rowid\" IN (2,3,4)")
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"hackers\" WHERE (\"rowid\" IN (2, 3, 4))")
             XCTAssertEqual(deletedCount, 2)
             XCTAssertEqual(try Hacker.fetchCount(db), 1)
         }
@@ -56,7 +56,7 @@ class TableMappingDeleteByKeyTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var deleted = try Person.deleteOne(db, key: 1)
-            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"id\" = 1")
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE (\"id\" = 1)")
             XCTAssertFalse(deleted)
             
             try db.execute("INSERT INTO persons (id, name, email) VALUES (?, ?, ?)", arguments: [1, "Arthur", "arthur@example.com"])
@@ -68,7 +68,7 @@ class TableMappingDeleteByKeyTests: GRDBTestCase {
             try db.execute("INSERT INTO persons (id, name, email) VALUES (?, ?, ?)", arguments: [2, "Barbara", "barbara@example.com"])
             try db.execute("INSERT INTO persons (id, name, email) VALUES (?, ?, ?)", arguments: [3, "Craig", "craig@example.com"])
             let deletedCount = try Person.deleteAll(db, keys: [2, 3, 4])
-            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"id\" IN (2,3,4)")
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE (\"id\" IN (2, 3, 4))")
             XCTAssertEqual(deletedCount, 2)
             XCTAssertEqual(try Person.fetchCount(db), 1)
         }
@@ -78,7 +78,7 @@ class TableMappingDeleteByKeyTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var deleted = try Citizenship.deleteOne(db, key: ["personId": 1, "countryIsoCode": "FR"])
-            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"citizenships\" WHERE (\"personId\" = 1 AND \"countryIsoCode\" = 'FR')")
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"citizenships\" WHERE ((\"personId\" = 1) AND (\"countryIsoCode\" = 'FR'))")
             XCTAssertFalse(deleted)
             
             try db.execute("INSERT INTO citizenships (personId, countryIsoCode) VALUES (?, ?)", arguments: [1, "FR"])

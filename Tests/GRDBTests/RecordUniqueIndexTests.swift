@@ -15,15 +15,15 @@ private struct Person : RowConvertible, TableMapping {
 
 class RecordUniqueIndexTests: GRDBTestCase {
     
-    func testFetchOneRequiresUniqueIndex() throws {
+    func testKeyFilterRequiresUniqueIndex() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute("CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, email TEXT UNIQUE)")
             
-            _ = try Person.request(db, keys: [["id": nil]])
-            _ = try Person.request(db, keys: [["email": nil]])
+            _ = try Person.filter(db, keys: [["id": nil]])
+            _ = try Person.filter(db, keys: [["email": nil]])
             do {
-                _ = try Person.request(db, keys: [["id": nil, "email": nil]], fatalErrorOnMissingUniqueIndex: false)
+                _ = try Person.filter(db, keys: [["id": nil, "email": nil]], fatalErrorOnMissingUniqueIndex: false)
                 XCTFail()
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_MISUSE)
@@ -31,33 +31,7 @@ class RecordUniqueIndexTests: GRDBTestCase {
                 XCTAssertEqual(error.description, "SQLite error 21: table persons has no unique index on column(s) email, id")
             }
             do {
-                _ = try Person.request(db, keys: [["name": nil]], fatalErrorOnMissingUniqueIndex: false)
-                XCTFail()
-            } catch let error as DatabaseError {
-                XCTAssertEqual(error.resultCode, .SQLITE_MISUSE)
-                XCTAssertEqual(error.message!, "table persons has no unique index on column(s) name")
-                XCTAssertEqual(error.description, "SQLite error 21: table persons has no unique index on column(s) name")
-            }
-        }
-    }
-    
-    func testDeleteOneRequiresUniqueIndex() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, email TEXT UNIQUE)")
-            
-            _ = try Person.makeDeleteByKeyStatement(db, keys: [["id": nil]])
-            _ = try Person.makeDeleteByKeyStatement(db, keys: [["email": nil]])
-            do {
-                _ = try Person.makeDeleteByKeyStatement(db, keys: [["id": nil, "email": nil]], fatalErrorOnMissingUniqueIndex: false)
-                XCTFail()
-            } catch let error as DatabaseError {
-                XCTAssertEqual(error.resultCode, .SQLITE_MISUSE)
-                XCTAssertEqual(error.message!, "table persons has no unique index on column(s) email, id")
-                XCTAssertEqual(error.description, "SQLite error 21: table persons has no unique index on column(s) email, id")
-            }
-            do {
-                _ = try Person.makeDeleteByKeyStatement(db, keys: [["name": nil]], fatalErrorOnMissingUniqueIndex: false)
+                _ = try Person.filter(db, keys: [["name": nil]], fatalErrorOnMissingUniqueIndex: false)
                 XCTFail()
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_MISUSE)
