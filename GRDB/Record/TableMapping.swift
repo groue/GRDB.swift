@@ -67,6 +67,11 @@ extension TableMapping {
     
     // Raises a fatal error if there is no unique index on the columns (unless
     // fatalErrorOnMissingUniqueIndex is false, for testability).
+    //
+    // TODO: think about
+    // - allowing non unique keys in Type.fetchOne(db, key: ...) ???
+    // - allowing non unique keys in Type.fetchAll/Cursor(db, keys: ...)
+    // - forbidding Player.deleteOne(db, key: ["email": nil]) since this may delete several rows (case of a nullable unique key)
     static func filter(_ db: Database, keys: [[String: DatabaseValueConvertible?]], fatalErrorOnMissingUniqueIndex: Bool = true) throws -> QueryInterfaceRequest<Self> {
         // SELECT * FROM table WHERE ((a=? AND b=?) OR (c=? AND d=?) OR ...)
         let keyPredicates: [SQLExpression] = try keys.map { key in
