@@ -194,6 +194,7 @@ public struct SQLBinaryOperator : Hashable {
     
     // TODO: make it an extension of Sequence (like joined(separator:)) when Swift can better handle existentials
     // TODO: make it public eventually
+    /// Return nil if expressions is empty.
     func join(_ expressions: [SQLExpression]) -> SQLExpression? {
         switch expressions.count {
         case 0:

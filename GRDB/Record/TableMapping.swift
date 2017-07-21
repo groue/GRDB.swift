@@ -57,7 +57,7 @@ extension TableMapping {
         let keys = Array(keys)
         switch keys.count {
         case 0:
-            return filter(false)
+            return none()
         case 1:
             return filter(column == keys[0])
         default:
@@ -68,33 +68,28 @@ extension TableMapping {
     // If there is no unique index on the columns, the method raises a fatal
     // (unless fatalErrorOnMissingUniqueIndex is false, for testability).
     static func filter(_ db: Database, keys: [[String: DatabaseValueConvertible?]], fatalErrorOnMissingUniqueIndex: Bool = true) throws -> QueryInterfaceRequest<Self> {
-        guard keys.count > 0 else {
-            return filter(false)
-        }
-        
-        let databaseTableName = self.databaseTableName
-        let predicates: [SQLExpression] = try keys.map { key in
-            GRDBPrecondition(key.count > 0, "Invalid empty key dictionary")
-            let columns = Array(key.keys)
-            guard let orderedColumns = try db.columnsForUniqueKey(columns, in: databaseTableName) else {
-                let error = DatabaseError(resultCode: .SQLITE_MISUSE, message: "table \(databaseTableName) has no unique index on column(s) \(columns.sorted().joined(separator: ", "))")
+        // SELECT * FROM table WHERE ((a=? AND b=?) OR (c=? AND d=?) OR ...)
+        let keyPredicates: [SQLExpression] = try keys.map { key in
+            GRDBPrecondition(!key.isEmpty, "Invalid empty key dictionary")
+            guard try db.table(databaseTableName, hasUniqueKey: key.keys) else {
+                let message = "table \(databaseTableName) has no unique index on column(s) \(key.keys.sorted().joined(separator: ", "))"
                 if fatalErrorOnMissingUniqueIndex {
-                    // Programmer error
-                    fatalError(error.description)
+                    fatalError(message)
                 } else {
-                    throw error
+                    throw DatabaseError(resultCode: .SQLITE_MISUSE, message: message)
                 }
             }
-            let keyPredicates = orderedColumns.map { column -> SQLExpression in
-                let keyPart = key.first(where: { $0.0.lowercased() == column.lowercased() })!
-                return Column(keyPart.0) == keyPart.1
-            }
-            return SQLBinaryOperator.and.join(keyPredicates)!
+            let columnPredicates: [SQLExpression] = key.map { (column, value) in Column(column) == value }
+            return SQLBinaryOperator.and.join(columnPredicates)! // not nil because columnPredicates is not empty
         }
         
-        return filter(SQLBinaryOperator.or.join(predicates)!)
+        guard let predicate = SQLBinaryOperator.or.join(keyPredicates) else {
+            // No key
+            return none()
+        }
+        
+        return filter(predicate)
     }
-
 }
 
 extension TableMapping {
