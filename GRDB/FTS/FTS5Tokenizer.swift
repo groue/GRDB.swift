@@ -188,9 +188,7 @@
         ///         }
         ///     }
         public func makeTokenizer(_ descriptor: FTS5TokenizerDescriptor) throws -> FTS5Tokenizer {
-            guard let api = FTS5.api(self) else {
-                throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "FTS5 API not found")
-            }
+            let api = try FTS5.api(self)
             
             let xTokenizerPointer: UnsafeMutablePointer<fts5_tokenizer> = .allocate(capacity: 1)
             defer { xTokenizerPointer.deallocate(capacity: 1) }
