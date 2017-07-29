@@ -114,16 +114,63 @@ extension Int: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns an Int initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Int? {
-        switch dbValue.storage {
-        case .int64(let int64):
-            return Int(exactly: int64)
-        case .double(let double):
-            guard double >= Double(Int64.min) else { return nil }
-            guard double < Double(Int64.max) else { return nil }
-            return Int(exactly: Int64(double))
-        default:
-            return nil
+        return Int64.fromDatabaseValue(dbValue).flatMap { Int(exactly: $0) }
+    }
+}
+
+/// Int8 adopts DatabaseValueConvertible and StatementColumnConvertible.
+extension Int8: DatabaseValueConvertible, StatementColumnConvertible {
+    
+    /// Returns a value initialized from a raw SQLite statement pointer.
+    ///
+    /// - parameters:
+    ///     - sqliteStatement: A pointer to an SQLite statement.
+    ///     - index: The column index.
+    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+        let int64 = sqlite3_column_int64(sqliteStatement, index)
+        if let v = Int8(exactly: int64) {
+            self = v
+        } else {
+            fatalError("could not convert database value \(int64) to Int8")
         }
+    }
+    
+    /// Returns a value that can be stored in the database.
+    public var databaseValue: DatabaseValue {
+        return Int64(self).databaseValue
+    }
+    
+    /// Returns an Int8 initialized from *dbValue*, if possible.
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Int8? {
+        return Int64.fromDatabaseValue(dbValue).flatMap { Int8(exactly: $0) }
+    }
+}
+
+/// Int16 adopts DatabaseValueConvertible and StatementColumnConvertible.
+extension Int16: DatabaseValueConvertible, StatementColumnConvertible {
+    
+    /// Returns a value initialized from a raw SQLite statement pointer.
+    ///
+    /// - parameters:
+    ///     - sqliteStatement: A pointer to an SQLite statement.
+    ///     - index: The column index.
+    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+        let int64 = sqlite3_column_int64(sqliteStatement, index)
+        if let v = Int16(exactly: int64) {
+            self = v
+        } else {
+            fatalError("could not convert database value \(int64) to Int16")
+        }
+    }
+    
+    /// Returns a value that can be stored in the database.
+    public var databaseValue: DatabaseValue {
+        return Int64(self).databaseValue
+    }
+    
+    /// Returns an Int16 initialized from *dbValue*, if possible.
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Int16? {
+        return Int64.fromDatabaseValue(dbValue).flatMap { Int16(exactly: $0) }
     }
 }
 
@@ -151,16 +198,7 @@ extension Int32: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns an Int32 initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Int32? {
-        switch dbValue.storage {
-        case .int64(let int64):
-            return Int32(exactly: int64)
-        case .double(let double):
-            guard double >= Double(Int64.min) else { return nil }
-            guard double < Double(Int64.max) else { return nil }
-            return Int32(exactly: Int64(double))
-        default:
-            return nil
-        }
+        return Int64.fromDatabaseValue(dbValue).flatMap { Int32(exactly: $0) }
     }
 }
 
@@ -193,6 +231,146 @@ extension Int64: DatabaseValueConvertible, StatementColumnConvertible {
         default:
             return nil
         }
+    }
+}
+
+/// UInt adopts DatabaseValueConvertible and StatementColumnConvertible.
+extension UInt: DatabaseValueConvertible, StatementColumnConvertible {
+    
+    /// Returns a value initialized from a raw SQLite statement pointer.
+    ///
+    /// - parameters:
+    ///     - sqliteStatement: A pointer to an SQLite statement.
+    ///     - index: The column index.
+    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+        let int64 = sqlite3_column_int64(sqliteStatement, index)
+        if let v = UInt(exactly: int64) {
+            self = v
+        } else {
+            fatalError("could not convert database value \(int64) to Int")
+        }
+    }
+    
+    /// Returns a value that can be stored in the database.
+    public var databaseValue: DatabaseValue {
+        return Int64(self).databaseValue
+    }
+    
+    /// Returns an Int initialized from *dbValue*, if possible.
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> UInt? {
+        return Int64.fromDatabaseValue(dbValue).flatMap { UInt(exactly: $0) }
+    }
+}
+
+/// UInt8 adopts DatabaseValueConvertible and StatementColumnConvertible.
+extension UInt8: DatabaseValueConvertible, StatementColumnConvertible {
+    
+    /// Returns a value initialized from a raw SQLite statement pointer.
+    ///
+    /// - parameters:
+    ///     - sqliteStatement: A pointer to an SQLite statement.
+    ///     - index: The column index.
+    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+        let int64 = sqlite3_column_int64(sqliteStatement, index)
+        if let v = UInt8(exactly: int64) {
+            self = v
+        } else {
+            fatalError("could not convert database value \(int64) to UInt8")
+        }
+    }
+    
+    /// Returns a value that can be stored in the database.
+    public var databaseValue: DatabaseValue {
+        return Int64(self).databaseValue
+    }
+    
+    /// Returns an UInt8 initialized from *dbValue*, if possible.
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> UInt8? {
+        return Int64.fromDatabaseValue(dbValue).flatMap { UInt8(exactly: $0) }
+    }
+}
+
+/// UInt16 adopts DatabaseValueConvertible and StatementColumnConvertible.
+extension UInt16: DatabaseValueConvertible, StatementColumnConvertible {
+    
+    /// Returns a value initialized from a raw SQLite statement pointer.
+    ///
+    /// - parameters:
+    ///     - sqliteStatement: A pointer to an SQLite statement.
+    ///     - index: The column index.
+    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+        let int64 = sqlite3_column_int64(sqliteStatement, index)
+        if let v = UInt16(exactly: int64) {
+            self = v
+        } else {
+            fatalError("could not convert database value \(int64) to UInt16")
+        }
+    }
+    
+    /// Returns a value that can be stored in the database.
+    public var databaseValue: DatabaseValue {
+        return Int64(self).databaseValue
+    }
+    
+    /// Returns an UInt16 initialized from *dbValue*, if possible.
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> UInt16? {
+        return Int64.fromDatabaseValue(dbValue).flatMap { UInt16(exactly: $0) }
+    }
+}
+
+/// UInt32 adopts DatabaseValueConvertible and StatementColumnConvertible.
+extension UInt32: DatabaseValueConvertible, StatementColumnConvertible {
+    
+    /// Returns a value initialized from a raw SQLite statement pointer.
+    ///
+    /// - parameters:
+    ///     - sqliteStatement: A pointer to an SQLite statement.
+    ///     - index: The column index.
+    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+        let int64 = sqlite3_column_int64(sqliteStatement, index)
+        if let v = UInt32(exactly: int64) {
+            self = v
+        } else {
+            fatalError("could not convert database value \(int64) to UInt32")
+        }
+    }
+    
+    /// Returns a value that can be stored in the database.
+    public var databaseValue: DatabaseValue {
+        return Int64(self).databaseValue
+    }
+    
+    /// Returns an UInt32 initialized from *dbValue*, if possible.
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> UInt32? {
+        return Int64.fromDatabaseValue(dbValue).flatMap { UInt32(exactly: $0) }
+    }
+}
+
+/// UInt64 adopts DatabaseValueConvertible and StatementColumnConvertible.
+extension UInt64: DatabaseValueConvertible, StatementColumnConvertible {
+    
+    /// Returns a value initialized from a raw SQLite statement pointer.
+    ///
+    /// - parameters:
+    ///     - sqliteStatement: A pointer to an SQLite statement.
+    ///     - index: The column index.
+    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+        let int64 = sqlite3_column_int64(sqliteStatement, index)
+        if let v = UInt64(exactly: int64) {
+            self = v
+        } else {
+            fatalError("could not convert database value \(int64) to UInt64")
+        }
+    }
+    
+    /// Returns a value that can be stored in the database.
+    public var databaseValue: DatabaseValue {
+        return Int64(self).databaseValue
+    }
+    
+    /// Returns an UInt64 initialized from *dbValue*, if possible.
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> UInt64? {
+        return Int64.fromDatabaseValue(dbValue).flatMap { UInt64(exactly: $0) }
     }
 }
 
