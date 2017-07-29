@@ -350,8 +350,8 @@ public final class DatabaseCursor<Element> : Cursor {
     ///
     ///     let rows = try Row.fetchCursor(db, "SELECT ...") // DatabaseCursor<Row>
     ///     while let row = try rows.next() { // Row
-    ///         let id: Int64 = row.value(atIndex: 0)
-    ///         let name: String = row.value(atIndex: 1)
+    ///         let id: Int64 = row[0]
+    ///         let name: String = row[1]
     ///     }
     public func next() throws -> Element? {
         if done {

@@ -60,7 +60,7 @@ class SchedulingWatchdogTests: GRDBTestCase {
                 try db2.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
                 let rows = try Row.fetchCursor(db1, "SELECT * FROM items")
                 while let row = try rows.next() {
-                    try db2.execute("INSERT INTO items (id) VALUES (?)", arguments: [row.value(named: "id")])
+                    try db2.execute("INSERT INTO items (id) VALUES (?)", arguments: [row["id"]])
                 }
             }
         }
@@ -80,7 +80,7 @@ class SchedulingWatchdogTests: GRDBTestCase {
                 try db2.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
                 let rows = try Row.fetchCursor(db1, "SELECT * FROM items")
                 while let row = try rows.next() {
-                    try db2.execute("INSERT INTO items (id) VALUES (?)", arguments: [row.value(named: "id")])
+                    try db2.execute("INSERT INTO items (id) VALUES (?)", arguments: [row["id"]])
                 }
             }
         }
@@ -100,7 +100,7 @@ class SchedulingWatchdogTests: GRDBTestCase {
                 try db2.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
                 let rows = try Row.fetchCursor(db1, "SELECT * FROM items")
                 while let row = try rows.next() {
-                    try db2.execute("INSERT INTO items (id) VALUES (?)", arguments: [row.value(named: "id")])
+                    try db2.execute("INSERT INTO items (id) VALUES (?)", arguments: [row["id"]])
                 }
             }
         }
@@ -120,7 +120,7 @@ class SchedulingWatchdogTests: GRDBTestCase {
                 try db2.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
                 let rows = try Row.fetchCursor(db1, "SELECT * FROM items")
                 while let row = try rows.next() {
-                    try db2.execute("INSERT INTO items (id) VALUES (?)", arguments: [row.value(named: "id")])
+                    try db2.execute("INSERT INTO items (id) VALUES (?)", arguments: [row["id"]])
                 }
             }
         }

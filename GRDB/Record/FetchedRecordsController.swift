@@ -497,8 +497,8 @@ extension FetchedRecordsController where Record: TableMapping {
             assert(!columns.isEmpty)
             return { (lItem, rItem) in
                 for column in columns {
-                    let lValue: DatabaseValue = lItem.row.value(named: column)
-                    let rValue: DatabaseValue = rItem.row.value(named: column)
+                    let lValue: DatabaseValue = lItem.row[column]
+                    let rValue: DatabaseValue = rItem.row[column]
                     if lValue != rValue {
                         // different primary keys
                         return false
@@ -798,7 +798,7 @@ private func computeChanges<Record>(from s: [Item<Record>], to t: [Item<Record>]
             func changedValues(from oldRow: Row, to newRow: Row) -> [String: DatabaseValue] {
                 var changedValues: [String: DatabaseValue] = [:]
                 for (column, newValue) in newRow {
-                    let oldValue: DatabaseValue? = oldRow.value(named: column)
+                    let oldValue: DatabaseValue? = oldRow[column]
                     if newValue != oldValue {
                         changedValues[column] = oldValue
                     }

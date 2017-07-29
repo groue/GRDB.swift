@@ -46,10 +46,10 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
             XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
-            XCTAssertEqual(rows[0].value(named: "age") as Int, 41)
-            XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
-            XCTAssertEqual(rows[1].value(named: "age") as Int, 38)
+            XCTAssertEqual(rows[0]["name"] as String, "Arthur")
+            XCTAssertEqual(rows[0]["age"] as Int, 41)
+            XCTAssertEqual(rows[1]["name"] as String, "Barbara")
+            XCTAssertEqual(rows[1]["age"] as Int, 38)
         }
     }
 
@@ -84,10 +84,10 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
             XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
-            XCTAssertEqual(rows[0].value(named: "age") as Int, 41)
-            XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
-            XCTAssertEqual(rows[1].value(named: "age") as Int, 38)
+            XCTAssertEqual(rows[0]["name"] as String, "Arthur")
+            XCTAssertEqual(rows[0]["age"] as Int, 41)
+            XCTAssertEqual(rows[1]["name"] as String, "Barbara")
+            XCTAssertEqual(rows[1]["age"] as Int, 38)
         }
     }
 

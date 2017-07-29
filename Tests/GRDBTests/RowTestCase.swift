@@ -11,14 +11,14 @@ class RowTestCase: GRDBTestCase {
     
     func assertRowRawValueEqual<T: Equatable>(_ row: Row, index: Int, value: T) {
         // form 1
-        let v = row.value(atIndex: index)
+        let v = row[index]
         XCTAssertEqual(v as! T, value)
         
         // form 2
-        XCTAssertEqual(row.value(atIndex: index) as! T, value)
+        XCTAssertEqual(row[index] as! T, value)
 
         // form 3
-        if let v = row.value(atIndex: index) as? T {
+        if let v = row[index] as? T {
             XCTAssertEqual(v, value)
         } else {
             XCTFail("expected succesful extraction")
@@ -27,14 +27,14 @@ class RowTestCase: GRDBTestCase {
     
     func assertRowRawValueEqual<T: Equatable>(_ row: Row, name: String, value: T) {
         // form 1
-        let v = row.value(named: name)
+        let v = row[name]
         XCTAssertEqual(v as! T, value)
         
         // form 2
-        XCTAssertEqual(row.value(named: name) as! T, value)
+        XCTAssertEqual(row[name] as! T, value)
         
         // form 3
-        if let v = row.value(named: name) as? T {
+        if let v = row[name] as? T {
             XCTAssertEqual(v, value)
         } else {
             XCTFail("expected succesful extraction")
@@ -43,14 +43,14 @@ class RowTestCase: GRDBTestCase {
     
     func assertRowRawValueEqual<T: Equatable>(_ row: Row, column: Column, value: T) {
         // form 1
-        let v = row.value(column)
+        let v = row[column]
         XCTAssertEqual(v as! T, value)
         
         // form 2
-        XCTAssertEqual(row.value(column) as! T, value)
+        XCTAssertEqual(row[column] as! T, value)
         
         // form 3
-        if let v = row.value(column) as? T {
+        if let v = row[column] as? T {
             XCTAssertEqual(v, value)
         } else {
             XCTFail("expected succesful extraction")
@@ -59,16 +59,16 @@ class RowTestCase: GRDBTestCase {
     
     func assertRowConvertedValueEqual<T: Equatable & DatabaseValueConvertible>(_ row: Row, index: Int, value: T) {
         // form 1
-        XCTAssertEqual(row.value(atIndex: index) as T, value)
+        XCTAssertEqual(row[index] as T, value)
         
         // form 2
-        XCTAssertEqual(row.value(atIndex: index)! as T, value)
+        XCTAssertEqual(row[index]! as T, value)
         
         // form 3
-        XCTAssertEqual((row.value(atIndex: index) as T?)!, value)
+        XCTAssertEqual((row[index] as T?)!, value)
         
         // form 4
-        if let v = row.value(atIndex: index) as T? {
+        if let v = row[index] as T? {
             XCTAssertEqual(v, value)
         } else {
             XCTFail("expected succesful extraction")
@@ -77,16 +77,16 @@ class RowTestCase: GRDBTestCase {
     
     func assertRowConvertedValueEqual<T: Equatable & DatabaseValueConvertible>(_ row: Row, name: String, value: T) {
         // form 1
-        XCTAssertEqual(row.value(named: name) as T, value)
+        XCTAssertEqual(row[name] as T, value)
         
         // form 2
-        XCTAssertEqual(row.value(named: name)! as T, value)
+        XCTAssertEqual(row[name]! as T, value)
         
         // form 3
-        XCTAssertEqual((row.value(named: name) as T?)!, value)
+        XCTAssertEqual((row[name] as T?)!, value)
         
         // form 4
-        if let v = row.value(named: name) as T? {
+        if let v = row[name] as T? {
             XCTAssertEqual(v, value)
         } else {
             XCTFail("expected succesful extraction")
@@ -95,16 +95,16 @@ class RowTestCase: GRDBTestCase {
     
     func assertRowConvertedValueEqual<T: Equatable & DatabaseValueConvertible>(_ row: Row, column: Column, value: T) {
         // form 1
-        XCTAssertEqual(row.value(column) as T, value)
+        XCTAssertEqual(row[column] as T, value)
         
         // form 2
-        XCTAssertEqual(row.value(column)! as T, value)
+        XCTAssertEqual(row[column]! as T, value)
         
         // form 3
-        XCTAssertEqual((row.value(column) as T?)!, value)
+        XCTAssertEqual((row[column] as T?)!, value)
         
         // form 4
-        if let v = row.value(column) as T? {
+        if let v = row[column] as T? {
             XCTAssertEqual(v, value)
         } else {
             XCTFail("expected succesful extraction")
@@ -113,16 +113,16 @@ class RowTestCase: GRDBTestCase {
     
     func assertRowConvertedValueEqual<T: Equatable & DatabaseValueConvertible & StatementColumnConvertible>(_ row: Row, index: Int, value: T) {
         // form 1
-        XCTAssertEqual(row.value(atIndex: index) as T, value)
+        XCTAssertEqual(row[index] as T, value)
         
         // form 2
-        XCTAssertEqual(row.value(atIndex: index)! as T, value)
+        XCTAssertEqual(row[index]! as T, value)
         
         // form 3
-        XCTAssertEqual((row.value(atIndex: index) as T?)!, value)
+        XCTAssertEqual((row[index] as T?)!, value)
         
         // form 4
-        if let v = row.value(atIndex: index) as T? {
+        if let v = row[index] as T? {
             XCTAssertEqual(v, value)
         } else {
             XCTFail("expected succesful extraction")
@@ -131,16 +131,16 @@ class RowTestCase: GRDBTestCase {
     
     func assertRowConvertedValueEqual<T: Equatable & DatabaseValueConvertible & StatementColumnConvertible>(_ row: Row, name: String, value: T) {
         // form 1
-        XCTAssertEqual(row.value(named: name) as T, value)
+        XCTAssertEqual(row[name] as T, value)
         
         // form 2
-        XCTAssertEqual(row.value(named: name)! as T, value)
+        XCTAssertEqual(row[name]! as T, value)
         
         // form 3
-        XCTAssertEqual((row.value(named: name) as T?)!, value)
+        XCTAssertEqual((row[name] as T?)!, value)
         
         // form 4
-        if let v = row.value(named: name) as T? {
+        if let v = row[name] as T? {
             XCTAssertEqual(v, value)
         } else {
             XCTFail("expected succesful extraction")
@@ -149,16 +149,16 @@ class RowTestCase: GRDBTestCase {
     
     func assertRowConvertedValueEqual<T: Equatable & DatabaseValueConvertible & StatementColumnConvertible>(_ row: Row, column: Column, value: T) {
         // form 1
-        XCTAssertEqual(row.value(column) as T, value)
+        XCTAssertEqual(row[column] as T, value)
         
         // form 2
-        XCTAssertEqual(row.value(column)! as T, value)
+        XCTAssertEqual(row[column]! as T, value)
         
         // form 3
-        XCTAssertEqual((row.value(column) as T?)!, value)
+        XCTAssertEqual((row[column] as T?)!, value)
         
         // form 4
-        if let v = row.value(column) as T? {
+        if let v = row[column] as T? {
             XCTAssertEqual(v, value)
         } else {
             XCTFail("expected succesful extraction")

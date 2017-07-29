@@ -38,10 +38,10 @@ private class Person : Record {
     }
     
     required init(row: Row) {
-        id = row.value(named: "id")
-        age = row.value(named: "age")
-        name = row.value(named: "name")
-        creationDate = row.value(named: "creationDate")
+        id = row["id"]
+        age = row["age"]
+        name = row["name"]
+        creationDate = row["creationDate"]
         super.init(row: row)
     }
     
@@ -77,7 +77,7 @@ private class IntegerPropertyOnRealAffinityColumn : Record {
     // Record
     
     required init(row: Row) {
-        value = row.value(named: "value")
+        value = row["value"]
         super.init(row: row)
     }
     
@@ -107,10 +107,10 @@ private class PersonWithModifiedCaseColumns: Record {
     }
     
     required init(row: Row) {
-        id = row.value(named: "ID")
-        age = row.value(named: "AGE")
-        name = row.value(named: "NAME")
-        creationDate = row.value(named: "CREATIONDATE")
+        id = row["ID"]
+        age = row["AGE"]
+        name = row["NAME"]
+        creationDate = row["CREATIONDATE"]
         super.init(row: row)
     }
     

@@ -37,9 +37,9 @@ private class Citizenship : Record {
     }
     
     required init(row: Row) {
-        personName = row.value(named: "personName")
-        countryName = row.value(named: "countryName")
-        native = row.value(named: "native")
+        personName = row["personName"]
+        countryName = row["countryName"]
+        native = row["native"]
         super.init(row: row)
     }
     

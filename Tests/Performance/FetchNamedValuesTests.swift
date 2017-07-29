@@ -46,16 +46,16 @@ class FetchNamedValuesTests: XCTestCase {
             try! dbQueue.inDatabase { db in
                 let rows = try Row.fetchCursor(db, "SELECT * FROM items")
                 while let row = try rows.next() {
-                    _ = row.value(named: "i0") as Int
-                    _ = row.value(named: "i1") as Int
-                    _ = row.value(named: "i2") as Int
-                    _ = row.value(named: "i3") as Int
-                    _ = row.value(named: "i4") as Int
-                    _ = row.value(named: "i5") as Int
-                    _ = row.value(named: "i6") as Int
-                    _ = row.value(named: "i7") as Int
-                    _ = row.value(named: "i8") as Int
-                    _ = row.value(named: "i9") as Int
+                    _ = row["i0"] as Int
+                    _ = row["i1"] as Int
+                    _ = row["i2"] as Int
+                    _ = row["i3"] as Int
+                    _ = row["i4"] as Int
+                    _ = row["i5"] as Int
+                    _ = row["i6"] as Int
+                    _ = row["i7"] as Int
+                    _ = row["i8"] as Int
+                    _ = row["i9"] as Int
                     
                     count += 1
                 }

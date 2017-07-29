@@ -12,8 +12,8 @@ This guide is a step-by-step tour of GRDB extensibility, around a few topics:
     ```swift
     let rows = try Row.fetchCursor(db, "SELECT name, color FROM clothes")
     while let row = try rows.next() {
-        let name: String = row.value(named: "name")
-        let color: UIColor = row.value(named: "color")      // <-- New! UIColor as value
+        let name: String = row["name"]
+        let color: UIColor = row["color"]      // <-- New! UIColor as value
     }
     ```
 
@@ -93,8 +93,8 @@ Well, you will be able to use UIColor like all other [value types](../../../#val
     ```swift
     let rows = try Row.fetchCursor(db, "SELECT * FROM clothes")
     while let row = try rows.next() {
-        let name: String = row.value(named: "name")
-        let color: UIColor = row.value(named: "color")
+        let name: String = row["name"]
+        let color: UIColor = row["color"]
     }
     ```
     
@@ -112,8 +112,8 @@ Well, you will be able to use UIColor like all other [value types](../../../#val
         var color: UIColor
         
         required init(row: Row) {
-            name = row.value(named: "name")
-            color = row.value(named: "color")
+            name = row["name"]
+            color = row["color"]
             super.init(row: row)
         }
         

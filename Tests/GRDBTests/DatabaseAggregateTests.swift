@@ -560,8 +560,8 @@ class DatabaseAggregateTests: GRDBTestCase {
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
             let row = try Row.fetchOne(db, "SELECT f(a), f(b) FROM (SELECT 1 AS a, 2 AS b UNION ALL SELECT 2, 4 UNION ALL SELECT 3, 6)")!
-            XCTAssertEqual(row.value(atIndex: 0), 6)
-            XCTAssertEqual(row.value(atIndex: 1), 12)
+            XCTAssertEqual(row[0], 6)
+            XCTAssertEqual(row[1], 12)
         }
     }
     

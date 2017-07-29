@@ -33,8 +33,8 @@ class Pet : Record {
     }
     
     required init(row: Row) {
-        UUID = row.value(named: "UUID")
-        name = row.value(named: "name")
+        UUID = row["UUID"]
+        name = row["name"]
         super.init(row: row)
     }
     
