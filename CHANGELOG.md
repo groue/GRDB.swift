@@ -1,6 +1,47 @@
 Release Notes
 =============
 
+## Swift 4
+
+**Breaking Changes**
+
+- `Row.value` method has been replaced with subscript notation:
+
+    ```diff
+    -row.value(atIndex: 0)
+    -row.value(named: "id")
+    -row.value(Column("id"))
+    +row[0]
+    +row["id"]
+    +row[Column("id")]
+    ```
+
+**API diff**
+
+```diff
+ class Row {
+-    func value(atIndex index: Int) -> DatabaseValueConvertible?
+-    func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value?
+-    func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value
+-    func value(named columnName: String) -> DatabaseValueConvertible?
+-    func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value?
+-    func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value
+-    func value(_ column: Column) -> DatabaseValueConvertible?
+-    func value<Value: DatabaseValueConvertible>(_ column: Column) -> Value?
+-    func value<Value: DatabaseValueConvertible>(_ column: Column) -> Value
++    subscript(_ index: Int) -> DatabaseValueConvertible?
++    subscript<Value: DatabaseValueConvertible>(_ index: Int) -> Value?
++    subscript<Value: DatabaseValueConvertible>(_ index: Int) -> Value
++    subscript(_ columnName: String) -> DatabaseValueConvertible?
++    subscript<Value: DatabaseValueConvertible>(_ columnName: String) -> Value?
++    subscript<Value: DatabaseValueConvertible>(_ columnName: String) -> Value
++    subscript(_ column: Column) -> DatabaseValueConvertible?
++    subscript<Value: DatabaseValueConvertible>(_ column: Column) -> Value?
++    subscript<Value: DatabaseValueConvertible>(_ column: Column) -> Value
+ }
+```
+
+
 ## Next version
 
 **New**
@@ -1155,7 +1196,7 @@ Released September 16, 2016
     
     ```diff
     -let dbValue = row.databaseValue(atIndex: 0)
-    +let dbValue: DatabaseValue = row.value(atIndex: 0)
+    +let dbValue: DatabaseValue = row[0]
     ```
 
 
@@ -1511,7 +1552,7 @@ Released September 16, 2016
     
     ```diff
     -let dbValue = row.databaseValue(atIndex: 0)
-    +let dbValue: DatabaseValue = row.value(atIndex: 0)
+    +let dbValue: DatabaseValue = row[0]
     ```
     
 

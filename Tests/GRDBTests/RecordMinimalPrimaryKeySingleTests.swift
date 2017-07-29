@@ -29,7 +29,7 @@ class MinimalSingle: Record {
     }
     
     required init(row: Row) {
-        UUID = row.value(named: "UUID")
+        UUID = row["UUID"]
         super.init(row: row)
     }
     

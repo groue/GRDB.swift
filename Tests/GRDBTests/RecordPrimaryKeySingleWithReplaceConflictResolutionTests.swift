@@ -32,8 +32,8 @@ class Email : Record {
     }
     
     required init(row: Row) {
-        email = row.value(named: "email")
-        label = row.value(named: "label")
+        email = row["email"]
+        label = row["label"]
         super.init(row: row)
     }
     

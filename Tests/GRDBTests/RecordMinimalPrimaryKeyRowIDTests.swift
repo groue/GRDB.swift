@@ -29,7 +29,7 @@ class MinimalRowID : Record {
     }
     
     required init(row: Row) {
-        id = row.value(named: "id")
+        id = row["id"]
         super.init(row: row)
     }
     

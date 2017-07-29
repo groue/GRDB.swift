@@ -120,7 +120,7 @@ class GRDBTestCase: XCTestCase {
     func assert(_ record: MutablePersistable, isEncodedIn row: Row) {
         let recordContent = AnySequence({ PersistenceContainer(record).makeIterator() })
         for (column, value) in recordContent {
-            if let dbValue: DatabaseValue = row.value(named: column) {
+            if let dbValue: DatabaseValue = row[column] {
                 XCTAssertEqual(dbValue, value?.databaseValue ?? .null)
             } else {
                 XCTFail("Missing column \(column) in fetched row")

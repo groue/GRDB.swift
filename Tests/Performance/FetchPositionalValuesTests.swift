@@ -87,16 +87,16 @@ class FetchPositionalValuesTests: XCTestCase {
             try! dbQueue.inDatabase { db in
                 let rows = try Row.fetchCursor(db, "SELECT * FROM items")
                 while let row = try rows.next() {
-                    _ = row.value(atIndex: 0) as Int
-                    _ = row.value(atIndex: 1) as Int
-                    _ = row.value(atIndex: 2) as Int
-                    _ = row.value(atIndex: 3) as Int
-                    _ = row.value(atIndex: 4) as Int
-                    _ = row.value(atIndex: 5) as Int
-                    _ = row.value(atIndex: 6) as Int
-                    _ = row.value(atIndex: 7) as Int
-                    _ = row.value(atIndex: 8) as Int
-                    _ = row.value(atIndex: 9) as Int
+                    _ = row[0] as Int
+                    _ = row[1] as Int
+                    _ = row[2] as Int
+                    _ = row[3] as Int
+                    _ = row[4] as Int
+                    _ = row[5] as Int
+                    _ = row[6] as Int
+                    _ = row[7] as Int
+                    _ = row[8] as Int
+                    _ = row[9] as Int
                     
                     count += 1
                 }

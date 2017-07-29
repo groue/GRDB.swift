@@ -115,8 +115,8 @@ private class Artist : Record {
     }
     
     required init(row: Row) {
-        id = row.value(named: "id")
-        name = row.value(named: "name")
+        id = row["id"]
+        name = row["name"]
         super.init(row: row)
     }
     
@@ -158,9 +158,9 @@ private class Artwork : Record {
     }
     
     required init(row: Row) {
-        id = row.value(named: "id")
-        title = row.value(named: "title")
-        artistId = row.value(named: "artistId")
+        id = row["id"]
+        title = row["title"]
+        artistId = row["artistId"]
         super.init(row: row)
     }
     

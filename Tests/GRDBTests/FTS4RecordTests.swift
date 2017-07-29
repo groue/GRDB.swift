@@ -16,10 +16,10 @@ private struct Book {
 
 extension Book : RowConvertible {
     init(row: Row) {
-        id = row.value(Column.rowID)
-        title = row.value(named: "title")
-        author = row.value(named: "author")
-        body = row.value(named: "body")
+        id = row[.rowID]
+        title = row["title"]
+        author = row["author"]
+        body = row["body"]
     }
 }
 

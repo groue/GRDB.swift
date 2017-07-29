@@ -63,10 +63,10 @@ private class Person : Record {
     }
     
     required init(row: Row) {
-        id = row.value(named: "id")
-        name = row.value(named: "name")
-        email = row.value(named: "email")
-        bookCount = row.value(named: "bookCount")
+        id = row["id"]
+        name = row["name"]
+        email = row["email"]
+        bookCount = row["bookCount"]
         super.init(row: row)
     }
     
@@ -91,9 +91,9 @@ private struct Book : RowConvertible {
     var title: String
     
     init(row: Row) {
-        id = row.value(named: "id")
-        authorID = row.value(named: "authorID")
-        title = row.value(named: "title")
+        id = row["id"]
+        authorID = row["authorID"]
+        title = row["title"]
     }
 }
 

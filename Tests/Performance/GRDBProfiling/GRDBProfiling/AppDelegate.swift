@@ -32,16 +32,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         dbQueue.inDatabase { db in
             let rows = try! Row.fetchCursor(db, "SELECT * FROM items")
             while let row = try! rows.next() {
-                let _: Int = row.value(atIndex: 0)
-                let _: Int = row.value(atIndex: 1)
-                let _: Int = row.value(atIndex: 2)
-                let _: Int = row.value(atIndex: 3)
-                let _: Int = row.value(atIndex: 4)
-                let _: Int = row.value(atIndex: 5)
-                let _: Int = row.value(atIndex: 6)
-                let _: Int = row.value(atIndex: 7)
-                let _: Int = row.value(atIndex: 8)
-                let _: Int = row.value(atIndex: 9)
+                let _: Int = row[0]
+                let _: Int = row[1]
+                let _: Int = row[2]
+                let _: Int = row[3]
+                let _: Int = row[4]
+                let _: Int = row[5]
+                let _: Int = row[6]
+                let _: Int = row[7]
+                let _: Int = row[8]
+                let _: Int = row[9]
                 
                 count += 1
             }
@@ -59,16 +59,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         dbQueue.inDatabase { db in
             let rows = try! Row.fetchCursor(db, "SELECT * FROM items")
             while let row = try! rows.next() {
-                let _: Int = row.value(named: "i0")
-                let _: Int = row.value(named: "i1")
-                let _: Int = row.value(named: "i2")
-                let _: Int = row.value(named: "i3")
-                let _: Int = row.value(named: "i4")
-                let _: Int = row.value(named: "i5")
-                let _: Int = row.value(named: "i6")
-                let _: Int = row.value(named: "i7")
-                let _: Int = row.value(named: "i8")
-                let _: Int = row.value(named: "i9")
+                let _: Int = row["i0"]
+                let _: Int = row["i1"]
+                let _: Int = row["i2"]
+                let _: Int = row["i3"]
+                let _: Int = row["i4"]
+                let _: Int = row["i5"]
+                let _: Int = row["i6"]
+                let _: Int = row["i7"]
+                let _: Int = row["i8"]
+                let _: Int = row["i9"]
                 
                 count += 1
             }
@@ -209,16 +209,16 @@ class Item : Record {
     }
     
     required init(row: GRDB.Row) {
-        i0 = row.value(named: "i0")
-        i1 = row.value(named: "i1")
-        i2 = row.value(named: "i2")
-        i3 = row.value(named: "i3")
-        i4 = row.value(named: "i4")
-        i5 = row.value(named: "i5")
-        i6 = row.value(named: "i6")
-        i7 = row.value(named: "i7")
-        i8 = row.value(named: "i8")
-        i9 = row.value(named: "i9")
+        i0 = row["i0"]
+        i1 = row["i1"]
+        i2 = row["i2"]
+        i3 = row["i3"]
+        i4 = row["i4"]
+        i5 = row["i5"]
+        i6 = row["i6"]
+        i7 = row["i7"]
+        i8 = row["i8"]
+        i9 = row["i9"]
         super.init(row: row)
     }
     

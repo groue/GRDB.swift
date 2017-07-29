@@ -38,10 +38,10 @@ private class Person : Record {
     }
     
     required init(row: Row) {
-        id = row.value(named: "id")
-        age = row.value(named: "age")
-        name = row.value(named: "name")
-        creationDate = row.value(named: "creationDate")
+        id = row["id"]
+        age = row["age"]
+        name = row["name"]
+        creationDate = row["creationDate"]
         super.init(row: row)
     }
     
@@ -72,7 +72,7 @@ private class MinimalPersonWithOverrides : Person {
     // Record
     
     required init(row: Row) {
-        extra = row.value(named: "extra")
+        extra = row["extra"]
         super.init(row: row)
     }
 }
@@ -93,7 +93,7 @@ private class PersonWithOverrides : Person {
     // Record
     
     required init(row: Row) {
-        extra = row.value(named: "extra")
+        extra = row["extra"]
         super.init(row: row)
     }
     

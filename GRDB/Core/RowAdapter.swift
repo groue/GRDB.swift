@@ -301,10 +301,10 @@ public struct RangeRowAdapter : RowAdapter {
 ///
 ///     // Scoped rows:
 ///     if let fooRow = row.scoped(on: "foo") {
-///         fooRow.value(named: "value")    // "foo"
+///         fooRow["value"]    // "foo"
 ///     }
 ///     if let barRow = row.scopeed(on: "bar") {
-///         barRow.value(named: "value")    // "bar"
+///         barRow["value"]    // "bar"
 ///     }
 public struct ScopeAdapter : RowAdapter {
     
@@ -391,7 +391,7 @@ struct AdapterRowImpl : RowImpl {
     }
     
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
-        return base.value(atIndex: mapping.baseColumnIndex(atMappingIndex: index))
+        return base[mapping.baseColumnIndex(atMappingIndex: index)]
     }
     
     func dataNoCopy(atUncheckedIndex index:Int) -> Data? {

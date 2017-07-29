@@ -42,10 +42,10 @@ private class Person : Record {
     }
     
     required init(row: Row) {
-        id = row.value(Column.rowID)
-        age = row.value(named: "age")
-        name = row.value(named: "name")
-        creationDate = row.value(named: "creationDate")
+        id = row[.rowID]
+        age = row["age"]
+        name = row["name"]
+        creationDate = row["creationDate"]
         super.init(row: row)
     }
     

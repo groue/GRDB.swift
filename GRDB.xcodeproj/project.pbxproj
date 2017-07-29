@@ -693,6 +693,13 @@
 		568735A21CEDE16C009B9116 /* Betty.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 5687359E1CEDE16C009B9116 /* Betty.jpeg */; };
 		568735A31CEDE16C009B9116 /* Betty.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 5687359E1CEDE16C009B9116 /* Betty.jpeg */; };
 		568735A41CEDE16C009B9116 /* Betty.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 5687359E1CEDE16C009B9116 /* Betty.jpeg */; };
+		56873BEC1F2CB400004D24B4 /* Fixits-1.2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56873BEB1F2CB400004D24B4 /* Fixits-1.2.swift */; };
+		56873BED1F2CB400004D24B4 /* Fixits-1.2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56873BEB1F2CB400004D24B4 /* Fixits-1.2.swift */; };
+		56873BEE1F2CB400004D24B4 /* Fixits-1.2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56873BEB1F2CB400004D24B4 /* Fixits-1.2.swift */; };
+		56873BEF1F2CB400004D24B4 /* Fixits-1.2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56873BEB1F2CB400004D24B4 /* Fixits-1.2.swift */; };
+		56873BF01F2CB400004D24B4 /* Fixits-1.2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56873BEB1F2CB400004D24B4 /* Fixits-1.2.swift */; };
+		56873BF11F2CB400004D24B4 /* Fixits-1.2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56873BEB1F2CB400004D24B4 /* Fixits-1.2.swift */; };
+		56873BF21F2CB400004D24B4 /* Fixits-1.2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56873BEB1F2CB400004D24B4 /* Fixits-1.2.swift */; };
 		568BE5231CB0371D00270F93 /* GRDBCipher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 560FC54D1CB003810014AA8E /* GRDBCipher.framework */; };
 		568E1CB21CB037BA008D97A6 /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = 568BE5191CB035A900270F93 /* sqlite3.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		568E1CB91CB03847008D97A6 /* GRDBCipher-Bridging.h in Headers */ = {isa = PBXBuildFile; fileRef = 568E1CB71CB03847008D97A6 /* GRDBCipher-Bridging.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -1983,6 +1990,7 @@
 		568068301EBBA26100EFB8AA /* SQLRequestTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLRequestTests.swift; sourceTree = "<group>"; };
 		5683C2681B4D445E00296494 /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS8.4.sdk/usr/lib/libsqlite3.dylib; sourceTree = DEVELOPER_DIR; };
 		5687359E1CEDE16C009B9116 /* Betty.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Betty.jpeg; sourceTree = "<group>"; };
+		56873BEB1F2CB400004D24B4 /* Fixits-1.2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Fixits-1.2.swift"; sourceTree = "<group>"; };
 		568BE5191CB035A900270F93 /* sqlite3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sqlite3.h; path = SQLCipher/src/sqlite3.h; sourceTree = "<group>"; };
 		568BE51F1CB0360500270F93 /* GRDB.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = GRDB.xcconfig; path = SQLCipher/GRDB.xcconfig; sourceTree = "<group>"; };
 		568BE5201CB0360500270F93 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; name = module.modulemap; path = SQLCipher/module.modulemap; sourceTree = "<group>"; };
@@ -2861,12 +2869,13 @@
 		56BF6D2B1DEF47DA006039A3 /* Legacy */ = {
 			isa = PBXGroup;
 			children = (
+				56BF6D2E1DEF47DA006039A3 /* Fixits-Swift2.swift */,
 				56BF6D2C1DEF47DA006039A3 /* Fixits-0-84-0.swift */,
 				56BF6D2D1DEF47DA006039A3 /* Fixits-0-90-1.swift */,
 				56F3E7621E67F8C100BF0F01 /* Fixits-0.101.1.swift */,
 				56E06F051E859064008AE2A4 /* Fixits-0.102.0.swift */,
 				56D121591ED34978001347D2 /* Fixits-0.109.0.swift */,
-				56BF6D2E1DEF47DA006039A3 /* Fixits-Swift2.swift */,
+				56873BEB1F2CB400004D24B4 /* Fixits-1.2.swift */,
 			);
 			path = Legacy;
 			sourceTree = "<group>";
@@ -3860,6 +3869,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				56873BED1F2CB400004D24B4 /* Fixits-1.2.swift in Sources */,
 				5698ACE31DA93B7C0056AF8C /* ReferenceConvertible.swift in Sources */,
 				56BF6D3E1DEF47DA006039A3 /* Fixits-Swift2.swift in Sources */,
 				5636E9BD1D22574100B9B05F /* Request.swift in Sources */,
@@ -4127,6 +4137,7 @@
 				565490D01D5AE252005622CB /* NSString.swift in Sources */,
 				565490DF1D5AE252005622CB /* TableDefinition.swift in Sources */,
 				565490B71D5AE236005622CB /* Database.swift in Sources */,
+				56873BF21F2CB400004D24B4 /* Fixits-1.2.swift in Sources */,
 				56BF6D431DEF47DA006039A3 /* Fixits-Swift2.swift in Sources */,
 				565490C01D5AE236005622CB /* DatabaseWriter.swift in Sources */,
 				565490C41D5AE236005622CB /* SchedulingWatchdog.swift in Sources */,
@@ -4318,6 +4329,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				56873BF01F2CB400004D24B4 /* Fixits-1.2.swift in Sources */,
 				5698ACE61DA93B7C0056AF8C /* ReferenceConvertible.swift in Sources */,
 				56BF6D411DEF47DA006039A3 /* Fixits-Swift2.swift in Sources */,
 				5636E9C01D22574100B9B05F /* Request.swift in Sources */,
@@ -4746,6 +4758,7 @@
 				56A238861B9C75030082EB20 /* DatabaseValue.swift in Sources */,
 				56CEB55D1EAA359A00BFAF62 /* SQLOrdering.swift in Sources */,
 				56CEB5641EAA359A00BFAF62 /* SQLSelectable.swift in Sources */,
+				56873BEF1F2CB400004D24B4 /* Fixits-1.2.swift in Sources */,
 				564F9C311F07611600877A00 /* DatabaseFunction.swift in Sources */,
 				56B964A01DA51B4C0002DA19 /* FTS5.swift in Sources */,
 			);
@@ -5021,6 +5034,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				56873BEC1F2CB400004D24B4 /* Fixits-1.2.swift in Sources */,
 				5698ACE21DA93B7C0056AF8C /* ReferenceConvertible.swift in Sources */,
 				56BF6D3D1DEF47DA006039A3 /* Fixits-Swift2.swift in Sources */,
 				5636E9BC1D22574100B9B05F /* Request.swift in Sources */,
@@ -5107,6 +5121,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				56873BF11F2CB400004D24B4 /* Fixits-1.2.swift in Sources */,
 				5698ACE71DA93B7C0056AF8C /* ReferenceConvertible.swift in Sources */,
 				56BF6D421DEF47DA006039A3 /* Fixits-Swift2.swift in Sources */,
 				5636E9C11D22574100B9B05F /* Request.swift in Sources */,
@@ -5326,6 +5341,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				56873BEE1F2CB400004D24B4 /* Fixits-1.2.swift in Sources */,
 				5698ACE41DA93B7C0056AF8C /* ReferenceConvertible.swift in Sources */,
 				56BF6D3F1DEF47DA006039A3 /* Fixits-Swift2.swift in Sources */,
 				5636E9BE1D22574100B9B05F /* Request.swift in Sources */,

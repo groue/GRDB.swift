@@ -15,9 +15,9 @@ private struct Reader {
 
 extension Reader : RowConvertible {
     init(row: Row) {
-        id = row.value(named: "id")
-        name = row.value(named: "name")
-        age = row.value(named: "age")
+        id = row["id"]
+        name = row["name"]
+        age = row["age"]
     }
 }
 
@@ -43,9 +43,9 @@ private struct AltReader {
 
 extension AltReader : RowConvertible {
     init(row: Row) {
-        id = row.value(named: "id")
-        name = row.value(named: "name")
-        age = row.value(named: "age")
+        id = row["id"]
+        name = row["name"]
+        age = row["age"]
     }
 }
 
