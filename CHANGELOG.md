@@ -7,6 +7,18 @@ Release Notes
 
 - Complete support for all signed and unsigned integer types: from Int8 toUInt64, all integers can be stored and loaded from the database.
 
+**API diff**
+
+```diff
++extension Int8: DatabaseValueConvertible, StatementColumnConvertible { }
++extension Int16: DatabaseValueConvertible, StatementColumnConvertible { }
++extension UInt8: DatabaseValueConvertible, StatementColumnConvertible { }
++extension UInt16: DatabaseValueConvertible, StatementColumnConvertible { }
++extension UInt32: DatabaseValueConvertible, StatementColumnConvertible { }
++extension UInt64: DatabaseValueConvertible, StatementColumnConvertible { }
++extension UInt: DatabaseValueConvertible, StatementColumnConvertible { }
+```
+
 
 ## 1.2.2
 
