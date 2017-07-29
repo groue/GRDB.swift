@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next version
+
+**New**
+
+- Complete support for all signed and unsigned integer types: from Int8 toUInt64, all integers can be stored and loaded from the database.
+
+
 ## 1.2.2
 
 Released July 20, 2017
