@@ -247,7 +247,7 @@ extension UInt: DatabaseValueConvertible, StatementColumnConvertible {
         if let v = UInt(exactly: int64) {
             self = v
         } else {
-            fatalError("could not convert database value \(int64) to Int")
+            fatalError("could not convert database value \(int64) to UInt")
         }
     }
     
