@@ -47,12 +47,12 @@ class RecordQueryInterfaceRequestTests: GRDBTestCase {
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createReaders") { db in
-            try db.execute(
-                "CREATE TABLE readers (" +
-                    "id INTEGER PRIMARY KEY, " +
-                    "name TEXT NOT NULL, " +
-                    "age INT" +
-                ")")
+            try db.execute("""
+                CREATE TABLE readers (
+                    id INTEGER PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    age INT)
+                """)
         }
         try migrator.migrate(dbWriter)
     }

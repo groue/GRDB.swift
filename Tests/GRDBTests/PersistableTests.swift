@@ -115,22 +115,18 @@ class PersistableTests: GRDBTestCase {
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("setUp") { db in
-            try db.execute(
-                "CREATE TABLE persons (" +
-                    "id INTEGER PRIMARY KEY, " +
-                    "name TEXT NOT NULL, " +
-                    "age INT NOT NULL " +
-                ")")
-            try db.execute(
-                "CREATE TABLE countries (" +
-                    "isoCode TEXT NOT NULL PRIMARY KEY, " +
-                    "name TEXT NOT NULL " +
-                ")")
-            try db.execute(
-                "CREATE TABLE citizenships (" +
-                    "countryIsoCode TEXT NOT NULL REFERENCES countries(isoCode), " +
-                    "personID INTEGER NOT NULL REFERENCES persons(id)" +
-                ")")
+            try db.execute("""
+                CREATE TABLE persons (
+                    id INTEGER PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    age INT NOT NULL);
+                CREATE TABLE countries (
+                    isoCode TEXT NOT NULL PRIMARY KEY,
+                    name TEXT NOT NULL);
+                CREATE TABLE citizenships (
+                    countryIsoCode TEXT NOT NULL REFERENCES countries(isoCode),
+                    personID INTEGER NOT NULL REFERENCES persons(id));
+                """)
         }
         try migrator.migrate(dbWriter)
     }

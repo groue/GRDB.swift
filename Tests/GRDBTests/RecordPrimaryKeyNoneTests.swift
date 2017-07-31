@@ -21,11 +21,11 @@ private class Item : Record {
     }
     
     static func setup(inDatabase db: Database) throws {
-        try db.execute(
-            "CREATE TABLE items (" +
-                "name TEXT," +
-                "email TEXT UNIQUE" +
-            ")")
+        try db.execute("""
+            CREATE TABLE items (
+                name TEXT,
+                email TEXT UNIQUE)
+            """)
     }
     
     // Record

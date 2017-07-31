@@ -793,11 +793,11 @@ extension Database {
     ///         "INSERT INTO persons (name) VALUES (:name)",
     ///         arguments: ["name": "Arthur"])
     ///
-    ///     try db.execute(
-    ///         "INSERT INTO persons (name) VALUES (?);" +
-    ///         "INSERT INTO persons (name) VALUES (?);" +
-    ///         "INSERT INTO persons (name) VALUES (?);",
-    ///         arguments; ['Arthur', 'Barbara', 'Craig'])
+    ///     try db.execute("""
+    ///         INSERT INTO persons (name) VALUES (?);
+    ///         INSERT INTO persons (name) VALUES (?);
+    ///         INSERT INTO persons (name) VALUES (?);
+    ///         """, arguments; ['Arthur', 'Barbara', 'Craig'])
     ///
     /// This method may throw a DatabaseError.
     ///
