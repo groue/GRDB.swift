@@ -15,13 +15,13 @@ class SelectStatementTests : GRDBTestCase {
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
-            try db.execute(
-                "CREATE TABLE persons (" +
-                    "id INTEGER PRIMARY KEY, " +
-                    "creationDate TEXT, " +
-                    "name TEXT NOT NULL, " +
-                    "age INT" +
-                ")")
+            try db.execute("""
+                CREATE TABLE persons (
+                    id INTEGER PRIMARY KEY,
+                    creationDate TEXT,
+                    name TEXT NOT NULL,
+                    age INT)
+                """)
             
             try db.execute("INSERT INTO persons (name, age) VALUES (?,?)", arguments: ["Arthur", 41])
             try db.execute("INSERT INTO persons (name, age) VALUES (?,?)", arguments: ["Barbara", 26])

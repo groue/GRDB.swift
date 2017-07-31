@@ -149,10 +149,11 @@ class DatabaseErrorTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                try db.execute(
-                    "CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, age INT);" +
-                        "CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT);" +
-                    "INSERT INTO pets (masterId, name) VALUES (1, 'Bobby')")
+                try db.execute("""
+                    CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, age INT);
+                    CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT);
+                    INSERT INTO pets (masterId, name) VALUES (1, 'Bobby')
+                    """)
                 XCTFail()
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)

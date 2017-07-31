@@ -15,13 +15,13 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
-            try db.execute(
-                "CREATE TABLE persons (" +
-                    "id INTEGER PRIMARY KEY, " +
-                    "creationDate TEXT, " +
-                    "name TEXT NOT NULL, " +
-                    "age INT" +
-                ")")
+            try db.execute("""
+                CREATE TABLE persons (
+                    id INTEGER PRIMARY KEY,
+                    creationDate TEXT,
+                    name TEXT NOT NULL,
+                    age INT)
+                """)
         }
         try migrator.migrate(dbWriter)
     }

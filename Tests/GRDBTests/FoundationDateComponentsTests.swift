@@ -12,11 +12,11 @@ class FoundationDateComponentsTests : GRDBTestCase {
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createDates") { db in
-            try db.execute(
-                "CREATE TABLE dates (" +
-                    "ID INTEGER PRIMARY KEY, " +
-                    "creationDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP" +
-                ")")
+            try db.execute("""
+                CREATE TABLE dates (
+                    ID INTEGER PRIMARY KEY,
+                    creationDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)
+                """)
         }
         try migrator.migrate(dbWriter)
     }

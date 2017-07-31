@@ -39,14 +39,14 @@ class DatabaseValueConversionTests : GRDBTestCase {
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
-            try db.execute(
-                "CREATE TABLE `values` (" +
-                    "integerAffinity INTEGER, " +
-                    "textAffinity TEXT, " +
-                    "noneAffinity BLOB, " +
-                    "realAffinity DOUBLE, " +
-                    "numericAffinity NUMERIC" +
-                ")")
+            try db.execute("""
+                CREATE TABLE `values` (
+                    integerAffinity INTEGER,
+                    textAffinity TEXT,
+                    noneAffinity BLOB,
+                    realAffinity DOUBLE,
+                    numericAffinity NUMERIC)
+                """)
         }
         try migrator.migrate(dbWriter)
     }

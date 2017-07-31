@@ -12,13 +12,13 @@ class UpdateStatementTests : GRDBTestCase {
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
-            try db.execute(
-                "CREATE TABLE persons (" +
-                    "id INTEGER PRIMARY KEY, " +
-                    "creationDate TEXT, " +
-                    "name TEXT NOT NULL, " +
-                    "age INT" +
-                ")")
+            try db.execute("""
+                CREATE TABLE persons (
+                    id INTEGER PRIMARY KEY,
+                    creationDate TEXT,
+                    name TEXT NOT NULL,
+                    age INT)
+                """)
         }
         try migrator.migrate(dbWriter)
     }
@@ -212,19 +212,19 @@ class UpdateStatementTests : GRDBTestCase {
     func testExecuteMultipleStatementWithNamedArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inTransaction { db in
-            try db.execute(
-                "INSERT INTO persons (name, age) VALUES ('Arthur', :age1);" +
-                "INSERT INTO persons (name, age) VALUES ('Arthur', :age2);",
-                arguments: ["age1": 41, "age2": 32])
+            try db.execute("""
+                INSERT INTO persons (name, age) VALUES ('Arthur', :age1);
+                INSERT INTO persons (name, age) VALUES ('Arthur', :age2);
+                """, arguments: ["age1": 41, "age2": 32])
             XCTAssertEqual(try Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [32, 41])
             return .rollback
         }
         
         try dbQueue.inTransaction { db in
-            try db.execute(
-                "INSERT INTO persons (name, age) VALUES ('Arthur', :age1);" +
-                "INSERT INTO persons (name, age) VALUES ('Arthur', :age2);",
-                arguments: [41, 32])
+            try db.execute("""
+                INSERT INTO persons (name, age) VALUES ('Arthur', :age1);
+                INSERT INTO persons (name, age) VALUES ('Arthur', :age2);
+                """, arguments: [41, 32])
             XCTAssertEqual(try Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [32, 41])
             return .rollback
         }
@@ -233,19 +233,19 @@ class UpdateStatementTests : GRDBTestCase {
     func testExecuteMultipleStatementWithReusedNamedArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inTransaction { db in
-            try db.execute(
-                "INSERT INTO persons (name, age) VALUES ('Arthur', :age);" +
-                "INSERT INTO persons (name, age) VALUES ('Arthur', :age);",
-                arguments: ["age": 41])
+            try db.execute("""
+                INSERT INTO persons (name, age) VALUES ('Arthur', :age);
+                INSERT INTO persons (name, age) VALUES ('Arthur', :age);
+                """, arguments: ["age": 41])
             XCTAssertEqual(try Int.fetchAll(db, "SELECT age FROM persons"), [41, 41])
             return .rollback
         }
         
         try dbQueue.inTransaction { db in
-            try db.execute(
-                "INSERT INTO persons (name, age) VALUES ('Arthur', :age);" +
-                "INSERT INTO persons (name, age) VALUES ('Arthur', :age);",
-                arguments: ["age": 41])
+            try db.execute("""
+                INSERT INTO persons (name, age) VALUES ('Arthur', :age);
+                INSERT INTO persons (name, age) VALUES ('Arthur', :age);
+                """, arguments: ["age": 41])
             XCTAssertEqual(try Int.fetchAll(db, "SELECT age FROM persons"), [41, 41])
             return .rollback
         }
@@ -254,10 +254,10 @@ class UpdateStatementTests : GRDBTestCase {
     func testExecuteMultipleStatementWithPositionalArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inTransaction { db in
-            try db.execute(
-                "INSERT INTO persons (name, age) VALUES ('Arthur', ?);" +
-                "INSERT INTO persons (name, age) VALUES ('Arthur', ?);",
-                arguments: [41, 32])
+            try db.execute("""
+                INSERT INTO persons (name, age) VALUES ('Arthur', ?);
+                INSERT INTO persons (name, age) VALUES ('Arthur', ?);
+                """, arguments: [41, 32])
             XCTAssertEqual(try Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [32, 41])
             return .rollback
         }
