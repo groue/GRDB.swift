@@ -10,7 +10,7 @@
 ///
 ///     // ... then the RawRepresentable type can freely adopt DatabaseValueConvertible:
 ///     extension Color : DatabaseValueConvertible { /* empty */ }
-extension RawRepresentable where Self: DatabaseValueConvertible, Self.RawValue: DatabaseValueConvertible {
+extension DatabaseValueConvertible where Self: RawRepresentable, Self.RawValue: DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
