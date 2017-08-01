@@ -1815,6 +1815,10 @@ Your custom structs and classes can adopt each protocol individually, and opt in
 - [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key)
 - **[List of Record Methods](#list-of-record-methods)**
 
+**Records, Swift Archival & Serialization**
+
+- [Codable Records](#codable-records)
+
 
 ### Inserting Records
 
@@ -1974,6 +1978,8 @@ See [column values](#column-values) for more information about the `row[]` subsc
 
 > :point_up: **Note**: for performance reasons, the same row argument to `init(row:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
+**The `init(row:)` initializer can be automatically generated** when your type adopts the standard `Decodable` protocol. See [Codable Records](#codable-records) for more information.
+
 RowConvertible allows adopting types to be fetched from SQL queries:
 
 ```swift
@@ -2101,6 +2107,8 @@ Yes, two protocols instead of one. Both grant exactly the same advantages. Here 
 - Otherwise, stick with `Persistable`. Particularly if your type is a class.
 
 The `encode(to:)` method defines which [values](#values) (Bool, Int, String, Date, Swift enums, etc.) are assigned to database columns.
+
+**`encode(to:)` can be automatically generated** when your type adopts the standard `Encodable` protocol. See [Codable Records](#codable-records) for more information.
 
 The optional `didInsert` method lets the adopting type store its rowID after successful insertion. If your table has an INTEGER PRIMARY KEY column, you are likely to define this method. Otherwise, you can safely ignore it. It is called from a protected dispatch queue, and serialized with all database updates.
 
@@ -2586,6 +2594,31 @@ let persons = try Person.fetchAll("SELECT * FROM persons WHERE id = ?", argument
 let statement = try db.makeSelectStatement("SELECT * FROM persons WHERE id = ?")
 let persons = try Person.fetchAll(statement, arguments: [1])  // [Person]
 ```
+
+
+## Codable Records
+
+[Swift Archival & Serialization](https://github.com/apple/swift-evolution/blob/master/proposals/0166-swift-archival-serialization.md) was introduced with Swift 4.
+
+GRDB provides default implementations for [`RowConvertible.init(row:)`](#rowconvertible-protocol) and [`Persistable.encode(to:)`](#persistable-protocol) for record types that also adopt an archival protocol (`Codable`, `Encodable` or `Decodable`). When all their properties are themselves codable, Swift generates the archiving methods, and you don't need to write them down:
+
+```swift
+// This is just enough...
+struct Player: RowConvertible, Persistable, Codable {
+    static let databaseTableName = "players"
+    
+    let name: String
+    let score: Int
+}
+
+// ... so that you can save and fetch players:
+try dbQueue.inDatabase { db in
+    try Player(name: "Arthur", score: 100).insert(db)
+    let players = try Player.fetchAll(db)
+}
+```
+
+> :point_up: **Note**: Some types have a different way to encode and decode themselves in a standard archive vs. the database. For example, [Date](#date-and-datecomponents) saves itself as a numerical timestamp (archive) or a string (database). When such an ambiguity happens, GRDB always favors customized database encoding and decoding.
 
 
 The Query Interface
