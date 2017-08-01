@@ -87,8 +87,7 @@ try dbQueue.inDatabase { db in
           title TEXT NOT NULL,
           favorite BOOLEAN NOT NULL DEFAULT 0,
           latitude DOUBLE NOT NULL,
-          longitude DOUBLE NOT NULL
-        )
+          longitude DOUBLE NOT NULL)
         """)
 
     try db.execute("""
@@ -499,8 +498,7 @@ try dbQueue.inDatabase { db in
         CREATE TABLE persons (
             id INTEGER PRIMARY KEY,
             name TEXT NOT NULL,
-            age INT
-        )
+            age INT)
         """)
 
     try db.execute(
