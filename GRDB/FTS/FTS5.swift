@@ -129,6 +129,7 @@
             }
         }
         
+        // TODO GRDB 2.0: don't throw if fts5() does not access the file system
         static func api(_ db: Database) throws -> UnsafePointer<fts5_api> {
             guard let data = try Data.fetchOne(db, "SELECT fts5()") else {
                 throw DatabaseError(message: "FTS5 is not available")
