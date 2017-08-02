@@ -129,6 +129,7 @@
             }
         }
         
+        // TODO GRDB 2.0: don't throw if fts5() does not access the file system
         static func api(_ db: Database) throws -> UnsafePointer<fts5_api> {
             let sqliteConnection = db.sqliteConnection
             var statement: SQLiteStatement? = nil
