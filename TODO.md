@@ -12,6 +12,10 @@
     - [ ] REGEXP https://www.sqlite.org/lang_expr.html
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
 - [ ] Write regression tests for #156 and #157
+- [ ] SQLite 3.20.0
+    - [ ] Use https://github.com/swiftlyfalling/SQLiteLib/pull/23 when merged
+    - [ ] Update FTS5 (https://www.sqlite.org/fts5.html#extending_fts5)
+    - [ ] Use SQLITE_PREPARE_PERSISTENT for cached statements (https://www.sqlite.org/c3ref/c_prepare_persistent.html)
 
 GRDB 2.0
 
