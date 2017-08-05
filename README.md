@@ -112,12 +112,12 @@ try dbQueue.inDatabase { db in
             longitude: row.value(named: "longitude"))
     }
 
-    let poiCount = try Int.fetchOne(db, "SELECT COUNT(*) FROM pointOfInterests")! // Int
-    let poiTitles = try String.fetchAll(db, "SELECT title FROM pointOfInterests") // [String]
+    let pointCount = try Int.fetchOne(db, "SELECT COUNT(*) FROM pointOfInterests")! // Int
+    let pointTitles = try String.fetchAll(db, "SELECT title FROM pointOfInterests") // [String]
 }
 
 // Extraction
-let poiCount = try dbQueue.inDatabase { db in
+let pointCount = try dbQueue.inDatabase { db in
     try Int.fetchOne(db, "SELECT COUNT(*) FROM pointOfInterests")!
 }
 ```
