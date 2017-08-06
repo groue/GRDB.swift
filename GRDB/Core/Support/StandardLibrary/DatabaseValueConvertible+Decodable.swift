@@ -1,6 +1,6 @@
 private struct DatabaseValueDecodingContainer: SingleValueDecodingContainer {
     let dbValue: DatabaseValue
-    let codingPath: [CodingKey]
+    let codingPath: [CodingKey?]
     
     /// Decodes a null value.
     ///
@@ -51,13 +51,13 @@ private struct DatabaseValueDecodingContainer: SingleValueDecodingContainer {
 private struct DatabaseValueDecoder: Decoder {
     let dbValue: DatabaseValue
     
-    init(dbValue: DatabaseValue, codingPath: [CodingKey]) {
+    init(dbValue: DatabaseValue, codingPath: [CodingKey?]) {
         self.dbValue = dbValue
         self.codingPath = codingPath
     }
     
     // Decoder
-    let codingPath: [CodingKey]
+    let codingPath: [CodingKey?]
     var userInfo: [CodingUserInfoKey : Any] { return [:] }
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
