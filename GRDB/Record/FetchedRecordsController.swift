@@ -370,7 +370,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     fileprivate var fetchedItems: [Item<Record>]?
     
     /// The record comparator
-    private var itemsAreIdentical: ItemComparator<Record>
+    fileprivate var itemsAreIdentical: ItemComparator<Record>
     
     /// The record comparator factory (support for request change)
     private let itemsAreIdenticalFactory: ItemComparatorFactory<Record>
