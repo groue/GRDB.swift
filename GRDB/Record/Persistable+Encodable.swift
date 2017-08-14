@@ -7,7 +7,7 @@ private struct PersistableKeyedEncodingContainer<Key: CodingKey> : KeyedEncoding
     
     /// The path of coding keys taken to get to this point in encoding.
     /// A `nil` value indicates an unkeyed container.
-    var codingPath: [CodingKey] { return [] }
+    var codingPath: [CodingKey?] { return [] }
     
     /// Encodes the given value for the given key.
     ///
@@ -131,7 +131,7 @@ private struct DatabaseValueEncodingContainer : SingleValueEncodingContainer {
 private struct PersistableEncoder : Encoder {
     /// The path of coding keys taken to get to this point in encoding.
     /// A `nil` value indicates an unkeyed container.
-    var codingPath: [CodingKey]
+    var codingPath: [CodingKey?]
     
     /// Any contextual information set by the user for encoding.
     var userInfo: [CodingUserInfoKey : Any] = [:]
@@ -173,7 +173,7 @@ private struct PersistableEncoder : Encoder {
     /// - precondition: May not be called after a prior `self.unkeyedContainer()` call.
     /// - precondition: May not be called after a value has been encoded through a previous `self.singleValueContainer()` call.
     func singleValueContainer() -> SingleValueEncodingContainer {
-        return DatabaseValueEncodingContainer(key: codingPath.last!, encode: encode)
+        return DatabaseValueEncodingContainer(key: codingPath.last!!, encode: encode)
     }
 }
 

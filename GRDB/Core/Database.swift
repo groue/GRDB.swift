@@ -308,23 +308,23 @@ public final class Database {
     }
     
     /// Set by SAVEPOINT/COMMIT/ROLLBACK/RELEASE savepoint statements.
-    private var savepointStack = SavepointStack()
+    fileprivate var savepointStack = SavepointStack()
     
     /// Traces transaction hooks
-    private var transactionHookState: TransactionHookState = .pending
+    fileprivate var transactionHookState: TransactionHookState = .pending
     
     /// Transaction observers
-    private var transactionObservers = [ManagedTransactionObserver]()
-    private var activeTransactionObservers = [ManagedTransactionObserver]()  // subset of transactionObservers, set in updateStatementWillExecute
+    fileprivate var transactionObservers = [ManagedTransactionObserver]()
+    fileprivate var activeTransactionObservers = [ManagedTransactionObserver]()  // subset of transactionObservers, set in updateStatementWillExecute
     
     /// See setupBusyMode()
     private var busyCallback: BusyCallback?
     
     /// Available functions
-    private var functions = Set<DatabaseFunction>()
+    fileprivate var functions = Set<DatabaseFunction>()
     
     /// Available collations
-    private var collations = Set<DatabaseCollation>()
+    fileprivate var collations = Set<DatabaseCollation>()
     
     /// Schema Cache
     var schemaCache: DatabaseSchemaCache    // internal so that it can be tested
@@ -341,8 +341,8 @@ public final class Database {
         case grdb
         case user
     }
-    private lazy var grdbStatementCache: StatementCache = StatementCache(database: self)
-    private lazy var userStatementCache: StatementCache = StatementCache(database: self)
+    fileprivate lazy var grdbStatementCache: StatementCache = StatementCache(database: self)
+    fileprivate lazy var userStatementCache: StatementCache = StatementCache(database: self)
     
     init(path: String, configuration: Configuration, schemaCache: DatabaseSchemaCache) throws {
         // Error log setup must happen before any database connection

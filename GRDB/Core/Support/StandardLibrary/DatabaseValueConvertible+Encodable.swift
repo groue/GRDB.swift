@@ -50,7 +50,7 @@ private struct DatabaseValueEncoder : Encoder {
     
     /// The path of coding keys taken to get to this point in encoding.
     /// A `nil` value indicates an unkeyed container.
-    var codingPath: [CodingKey] { return [] }
+    var codingPath: [CodingKey?] { return [] }
     
     /// Any contextual information set by the user for encoding.
     var userInfo: [CodingUserInfoKey : Any] = [:]
