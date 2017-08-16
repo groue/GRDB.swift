@@ -13,5 +13,16 @@ let package = Package(
     ],
     targets: [
         .target(name: "GRDB", path: "GRDB"),
+        .testTarget(
+            name: "GRDBTests",
+            path: "Tests",
+            exclude: [
+                "Carthage",
+                "CocoaPods",
+                "Crash",
+                "GRDBCipher",
+                "Performance",
+                "SPM"
+            ])
     ]
 )
