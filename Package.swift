@@ -15,6 +15,7 @@ let package = Package(
         .target(name: "GRDB", path: "GRDB"),
         .testTarget(
             name: "GRDBTests",
+            dependencies: ["GRDB"],
             path: "Tests",
             exclude: [
                 "Carthage",
