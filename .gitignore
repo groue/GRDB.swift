@@ -106,7 +106,7 @@ Pods
 
 # SPM
 .build
-Package.pins
+Package.resolved
 Tests/SPM/Packages
 
 # Ruby
