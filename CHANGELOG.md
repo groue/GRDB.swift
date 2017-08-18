@@ -29,6 +29,9 @@ Release Notes
      }
     ```
 
+- `RowConvertible.fetchCursor(_:keys:)` returns a non-optional cursor.
+
+
 **API diff**
 
 ```diff
@@ -60,6 +63,13 @@ Release Notes
  class Record {
 -    open class var selectsRowID: Bool
 +    open class var databaseSelection: [SQLSelectable]
+ }
+ 
+ extension RowConvertible where Self: TableMapping {
+-    static func fetchCursor<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> DatabaseCursor<Self>? where Sequence.Iterator.Element: DatabaseValueConvertible
+-    static func fetchCursor(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> DatabaseCursor<Self>?
++    static func fetchCursor<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> DatabaseCursor<Self> where Sequence.Element: DatabaseValueConvertible
++    static func fetchCursor(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> DatabaseCursor<Self>
  }
  
  protocol TableMapping {

@@ -284,21 +284,19 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             try record2.insert(db)
             
             do {
-                // This method used to return nil, but does no longer.
-                // In GRDB 2.0, it won't return an optional.
                 let cursor = try Citizenship.fetchCursor(db, keys: [])
-                try XCTAssertNil(cursor!.next())
+                try XCTAssertNil(cursor.next())
             }
             
             do {
-                let cursor = try Citizenship.fetchCursor(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": record2.personName, "countryName": record2.countryName]])!
+                let cursor = try Citizenship.fetchCursor(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": record2.personName, "countryName": record2.countryName]])
                 let fetchedRecords = try [cursor.next()!, cursor.next()!]
                 XCTAssertEqual(Set(fetchedRecords.map { $0.personName }), Set([record1.personName, record2.personName]))
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
             
             do {
-                let cursor = try Citizenship.fetchCursor(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": nil, "countryName": nil]])!
+                let cursor = try Citizenship.fetchCursor(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": nil, "countryName": nil]])
                 let fetchedRecord = try cursor.next()!
                 XCTAssertEqual(fetchedRecord.personName, record1.personName)
                 XCTAssertTrue(try cursor.next() == nil) // end

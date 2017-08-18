@@ -252,21 +252,19 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             try record2.insert(db)
             
             do {
-                // This method used to return nil, but does no longer.
-                // In GRDB 2.0, it won't return an optional.
                 let cursor = try MinimalRowID.fetchCursor(db, keys: [])
-                try XCTAssertNil(cursor!.next())
+                try XCTAssertNil(cursor.next())
             }
             
             do {
-                let cursor = try MinimalRowID.fetchCursor(db, keys: [["id": record1.id], ["id": record2.id]])!
+                let cursor = try MinimalRowID.fetchCursor(db, keys: [["id": record1.id], ["id": record2.id]])
                 let fetchedRecords = try [cursor.next()!, cursor.next()!]
                 XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set([record1.id, record2.id]))
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
             
             do {
-                let cursor = try MinimalRowID.fetchCursor(db, keys: [["id": record1.id], ["id": nil]])!
+                let cursor = try MinimalRowID.fetchCursor(db, keys: [["id": record1.id], ["id": nil]])
                 let fetchedRecord = try cursor.next()!
                 XCTAssertEqual(fetchedRecord.id!, record1.id!)
                 XCTAssertTrue(try cursor.next() == nil) // end
@@ -325,15 +323,13 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             
             do {
                 let ids: [Int64] = []
-                // This method used to return nil, but does no longer.
-                // In GRDB 2.0, it won't return an optional.
                 let cursor = try MinimalRowID.fetchCursor(db, keys: ids)
-                try XCTAssertNil(cursor!.next())
+                try XCTAssertNil(cursor.next())
             }
             
             do {
                 let ids = [record1.id!, record2.id!]
-                let cursor = try MinimalRowID.fetchCursor(db, keys: ids)!
+                let cursor = try MinimalRowID.fetchCursor(db, keys: ids)
                 let fetchedRecords = try [cursor.next()!, cursor.next()!]
                 XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
                 XCTAssertTrue(try cursor.next() == nil) // end

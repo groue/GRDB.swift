@@ -63,7 +63,6 @@ extension RowConvertible where Self: TableMapping {
     
     // MARK: Fetching by Single-Column Primary Key
     
-    // TODO GRDB 2.0: make the result non optional
     /// Returns a cursor over records, given their primary keys.
     ///
     ///     let persons = try Person.fetchCursor(db, keys: [1, 2, 3]) // DatabaseCursor<Person>
@@ -78,7 +77,7 @@ extension RowConvertible where Self: TableMapping {
     ///     - keys: A sequence of primary keys.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> DatabaseCursor<Self>? where Sequence.Iterator.Element: DatabaseValueConvertible {
+    public static func fetchCursor<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> DatabaseCursor<Self> where Sequence.Element: DatabaseValueConvertible {
         return try filter(db, keys: keys).fetchCursor(db)
     }
     
@@ -124,7 +123,6 @@ extension RowConvertible where Self: TableMapping {
     
     // MARK: Fetching by Key
     
-    // TODO GRDB 2.0: make the result non optional
     /// Returns a cursor over records identified by the provided unique keys
     /// (primary key or any key with a unique index on it).
     ///
@@ -140,7 +138,7 @@ extension RowConvertible where Self: TableMapping {
     ///     - keys: An array of key dictionaries.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> DatabaseCursor<Self>? {
+    public static func fetchCursor(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> DatabaseCursor<Self> {
         return try filter(db, keys: keys).fetchCursor(db)
     }
     

@@ -260,21 +260,19 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             try record2.insert(db)
             
             do {
-                // This method used to return nil, but does no longer.
-                // In GRDB 2.0, it won't return an optional.
                 let cursor = try MinimalSingle.fetchCursor(db, keys: [])
-                try XCTAssertNil(cursor!.next())
+                try XCTAssertNil(cursor.next())
             }
             
             do {
-                let cursor = try MinimalSingle.fetchCursor(db, keys: [["UUID": record1.UUID], ["UUID": record2.UUID]])!
+                let cursor = try MinimalSingle.fetchCursor(db, keys: [["UUID": record1.UUID], ["UUID": record2.UUID]])
                 let fetchedRecords = try [cursor.next()!, cursor.next()!]
                 XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set([record1.UUID!, record2.UUID!]))
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
             
             do {
-                let cursor = try MinimalSingle.fetchCursor(db, keys: [["UUID": record1.UUID], ["UUID": nil]])!
+                let cursor = try MinimalSingle.fetchCursor(db, keys: [["UUID": record1.UUID], ["UUID": nil]])
                 let fetchedRecord = try cursor.next()!
                 XCTAssertEqual(fetchedRecord.UUID!, record1.UUID!)
                 XCTAssertTrue(try cursor.next() == nil) // end
@@ -338,15 +336,13 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             
             do {
                 let UUIDs: [String] = []
-                // This method used to return nil, but does no longer.
-                // In GRDB 2.0, it won't return an optional.
                 let cursor = try MinimalSingle.fetchCursor(db, keys: UUIDs)
-                try XCTAssertNil(cursor!.next())
+                try XCTAssertNil(cursor.next())
             }
             
             do {
                 let UUIDs = [record1.UUID!, record2.UUID!]
-                let cursor = try MinimalSingle.fetchCursor(db, keys: UUIDs)!
+                let cursor = try MinimalSingle.fetchCursor(db, keys: UUIDs)
                 let fetchedRecords = try [cursor.next()!, cursor.next()!]
                 XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
                 XCTAssertTrue(try cursor.next() == nil) // end

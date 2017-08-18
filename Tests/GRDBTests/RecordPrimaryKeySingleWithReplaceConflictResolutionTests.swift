@@ -266,21 +266,19 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             try record2.insert(db)
             
             do {
-                // This method used to return nil, but does no longer.
-                // In GRDB 2.0, it won't return an optional.
                 let cursor = try Email.fetchCursor(db, keys: [])
-                try XCTAssertNil(cursor!.next())
+                try XCTAssertNil(cursor.next())
             }
             
             do {
-                let cursor = try Email.fetchCursor(db, keys: [["email": record1.email], ["email": record2.email]])!
+                let cursor = try Email.fetchCursor(db, keys: [["email": record1.email], ["email": record2.email]])
                 let fetchedRecords = try [cursor.next()!, cursor.next()!]
                 XCTAssertEqual(Set(fetchedRecords.map { $0.email }), Set([record1.email, record2.email]))
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
             
             do {
-                let cursor = try Email.fetchCursor(db, keys: [["email": record1.email], ["email": nil]])!
+                let cursor = try Email.fetchCursor(db, keys: [["email": record1.email], ["email": nil]])
                 let fetchedRecord = try cursor.next()!
                 XCTAssertEqual(fetchedRecord.email, record1.email)
                 XCTAssertTrue(try cursor.next() == nil) // end
@@ -344,15 +342,13 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             
             do {
                 let emails: [String] = []
-                // This method used to return nil, but does no longer.
-                // In GRDB 2.0, it won't return an optional.
                 let cursor = try Email.fetchCursor(db, keys: emails)
-                try XCTAssertNil(cursor!.next())
+                try XCTAssertNil(cursor.next())
             }
             
             do {
                 let emails = [record1.email!, record2.email!]
-                let cursor = try Email.fetchCursor(db, keys: emails)!
+                let cursor = try Email.fetchCursor(db, keys: emails)
                 let fetchedRecords = try [cursor.next()!, cursor.next()!]
                 XCTAssertEqual(Set(fetchedRecords.map { $0.email! }), Set(emails))
                 XCTAssertTrue(try cursor.next() == nil) // end

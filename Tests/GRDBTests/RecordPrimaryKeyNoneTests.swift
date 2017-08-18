@@ -118,15 +118,13 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
             
             do {
                 let ids: [Int64] = []
-                // This method used to return nil, but does no longer.
-                // In GRDB 2.0, it won't return an optional.
                 let cursor = try Item.fetchCursor(db, keys: ids)
-                try XCTAssertNil(cursor!.next())
+                try XCTAssertNil(cursor.next())
             }
             
             do {
                 let ids = [id1, id2]
-                let cursor = try Item.fetchCursor(db, keys: ids)!
+                let cursor = try Item.fetchCursor(db, keys: ids)
                 let fetchedRecords = try [cursor.next()!, cursor.next()!]
                 XCTAssertEqual(Set(fetchedRecords.map { $0.name! }), Set([record1, record2].map { $0.name! }))
                 XCTAssertTrue(try cursor.next() == nil) // end
