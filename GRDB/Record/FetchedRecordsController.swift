@@ -486,16 +486,14 @@ extension FetchedRecordsController where Record: TableMapping {
             let columns: [String]
             if let primaryKey = try db.primaryKey(Record.databaseTableName) {
                 columns = primaryKey.columns
-            } else if Record.selectsRowID {
-                columns = [Column.rowID.name]
             } else {
-                // No primary key => can't compare rows
-                return { _,_ in false }
+                columns = [Column.rowID.name]
             }
             
             // Compare primary keys
             assert(!columns.isEmpty)
             return { (lItem, rItem) in
+                var notNullValue = false
                 for column in columns {
                     let lValue: DatabaseValue = lItem.row[column]
                     let rValue: DatabaseValue = rItem.row[column]
@@ -503,9 +501,12 @@ extension FetchedRecordsController where Record: TableMapping {
                         // different primary keys
                         return false
                     }
+                    if !lValue.isNull || !rValue.isNull {
+                        notNullValue = true
+                    }
                 }
-                // identical primary keys
-                return true
+                // identical primary keys iff at least one value is not null
+                return notNullValue
             }
         }
         try self.init(

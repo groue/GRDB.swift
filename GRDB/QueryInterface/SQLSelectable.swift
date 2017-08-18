@@ -22,7 +22,7 @@ public enum SQLCount {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Represents COUNT(*)
-    case star
+    case all
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///

@@ -2017,11 +2017,11 @@ Occasionnally, you'll want to write a complex SQL query that uses different colu
 ```swift
 protocol TableMapping {
     static var databaseTableName: String { get }
-    static var selectsRowID: Bool { get }
+    static var databaseSelection: [SQLSelectable] { get }
 }
 ```
 
-The `databaseTableName` type property is the name of a database table. `selectsRowID` is optional, and documented in the [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key) chapter.
+The `databaseTableName` type property is the name of a database table. `databaseSelection` is optional, and documented in the [Columns Selected by a Request](#columns-selected-by-a-request) chapter.
 
 **To use TableMapping**, subclass the [Record](#record-class) class, or adopt it explicitely. For example:
 
@@ -2034,6 +2034,7 @@ extension PointOfInterest : TableMapping {
 Adopting types can be fetched without SQL, using the [query interface](#the-query-interface):
 
 ```swift
+// SELECT * FROM pointOfInterests WHERE name = 'Paris'
 let paris = try PointOfInterest.filter(nameColumn == "Paris").fetchOne(db)
 ```
 
@@ -2437,17 +2438,17 @@ Without primary key, records don't have any identity, and the [persistence metho
 
 When SQLite won't let you provide an explicit primary key (as in [full-text](#full-text-search) tables, for example), you may want to make your record type fully aware of the hidden rowid column:
 
-1. Have the `selectsRowID` static property from the [TableMapping](#tablemapping-protocol) protocol be true.
+1. Have the `databaseSelection` static property (from the [TableMapping](#tablemapping-protocol) protocol) return the hidden rowid column:
     
     ```swift
     struct Event : TableMapping {
-        static let selectsRowID = true
+        static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
     }
     
     // When you subclass Record, you need an override:
     class Book : Record {
-        override class var selectsRowID: Bool {
-            return true
+        override class var databaseSelection: [SQLSelectable] {
+            return [AllColums(), Column.rowID]
         }
     }
     ```
@@ -2670,6 +2671,7 @@ So don't miss the [SQL API](#sqlite-api).
 
 - [Database Schema](#database-schema)
 - [Requests](#requests)
+    - [Columns Selected by a Request](#columns-selected-by-a-request)
 - [Expressions](#expressions)
     - [SQL Operators](#sql-operators)
     - [SQL Functions](#sql-functions)
@@ -3004,6 +3006,50 @@ Person
     .filter(sql: "name = ?", arguments: ["Arthur"])
     .group(sql: "DATE(creationDate)")
 ```
+
+
+### Columns Selected by a Request
+
+By default, query interface requests select all columns:
+
+```swift
+// SELECT * FROM persons
+let request = Person.all()
+```
+
+**The selection can be changed for each individual requests, or for all requests built from a given type.**
+
+To specify the selection of a specific request, use the `select` method:
+
+```swift
+// SELECT id, name FROM persons
+let request = Person.select(Column("id"), Column("name"))
+
+// SELECT *, rowid FROM persons
+let request = Person.select(AllColumns(), Column.rowID)
+```
+
+To specify the default selection for all requests built from a type, define the `databaseSelection` property:
+
+```swift
+struct RestrictedPerson : TableMapping {
+    static let databaseTableName = "persons"
+    static let databaseSelection: [SQLSelectable] = [Column("id"), Column("name")]
+}
+
+struct ExtendedPerson : TableMapping {
+    static let databaseTableName = "persons"
+    static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
+}
+
+// SELECT id, name FROM persons
+let request = RestrictedPerson.all()
+
+// SELECT *, rowid FROM persons
+let request = ExtendedPerson.all()
+```
+
+> :point_up: **Note**: make sure the `databaseSelection` property is explicitely declared as `[SQLSelectable]`. If it is not, the Swift compiler may infer a type which may silently miss the protocol requirement, resulting in sticky `SELECT *` requests.
 
 
 ## Expressions

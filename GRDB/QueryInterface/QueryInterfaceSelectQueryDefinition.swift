@@ -176,7 +176,7 @@ extension QueryInterfaceSelectQueryDefinition : Request {
             // ->
             // SELECT COUNT(*) FROM tableName ...
             var countQuery = unorderedQuery
-            countQuery.selection = [SQLExpressionCount(SQLStar())]
+            countQuery.selection = [SQLExpressionCount(AllColumns())]
             return countQuery
         }
     }
@@ -184,7 +184,7 @@ extension QueryInterfaceSelectQueryDefinition : Request {
     // SELECT COUNT(*) FROM (self)
     private var trivialCountQuery: QueryInterfaceSelectQueryDefinition {
         return QueryInterfaceSelectQueryDefinition(
-            select: [SQLExpressionCount(SQLStar())],
+            select: [SQLExpressionCount(AllColumns())],
             from: .query(query: unorderedQuery, alias: nil))
     }
 }
@@ -227,8 +227,8 @@ struct SQLLimit {
 extension SQLCount {
     var sqlSelectable: SQLSelectable {
         switch self {
-        case .star:
-            return SQLExpressionCount(SQLStar())
+        case .all:
+            return SQLExpressionCount(AllColumns())
         case .distinct(let expression):
             return SQLExpressionCountDistinct(expression)
         }

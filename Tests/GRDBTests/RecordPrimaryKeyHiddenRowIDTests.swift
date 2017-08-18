@@ -33,8 +33,8 @@ private class Person : Record {
     
     // Record
     
-    override class var selectsRowID: Bool {
-        return true
+    override static var databaseSelection: [SQLSelectable] {
+        return [AllColumns(), Column.rowID]
     }
     
     override class var databaseTableName: String {

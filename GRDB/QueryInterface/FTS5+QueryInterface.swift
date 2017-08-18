@@ -12,6 +12,10 @@
         ///
         /// If the search pattern is nil, the request does not match any
         /// database row.
+        ///
+        /// The selection defaults to all columns. This default can be changed for
+        /// all requests by the `TableMapping.databaseSelection` property, or
+        /// for individual requests with the `TableMapping.select` method.
         public func matching(_ pattern: FTS5Pattern?) -> QueryInterfaceRequest<T> {
             switch query.source {
             case .table(let name, let alias)?:
@@ -34,12 +38,6 @@
         /// Returns a QueryInterfaceRequest with a matching predicate.
         ///
         ///     // SELECT * FROM books WHERE books MATCH '...'
-        ///     var request = Book.matching(pattern)
-        ///
-        /// If the `selectsRowID` type property is true, then the selection
-        /// includes the hidden "rowid" column:
-        ///
-        ///     // SELECT *, rowid FROM books WHERE books MATCH '...'
         ///     var request = Book.matching(pattern)
         ///
         /// If the search pattern is nil, the request does not match any

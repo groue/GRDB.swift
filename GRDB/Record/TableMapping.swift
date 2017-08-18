@@ -9,27 +9,51 @@
 ///
 /// TableMapping is adopted by Record.
 public protocol TableMapping {
-    /// The name of the database table
+    /// The name of the database table used to build requests.
+    ///
+    ///     struct Person : TableMapping {
+    ///         static var databaseTableName = "persons"
+    ///     }
+    ///
+    ///     // SELECT * FROM persons
+    ///     try RestrictedPerson.fetchAll(db)
     static var databaseTableName: String { get }
     
-    /// This flag tells whether the hidden "rowid" column should be fetched
-    /// with other columns.
+    /// The default request selection.
     ///
-    /// Its default value is false:
+    /// Unless said otherwise, requests select all columns:
     ///
     ///     // SELECT * FROM persons
     ///     try Person.fetchAll(db)
     ///
-    /// When true, the rowid column is fetched:
+    /// You can provide a custom implementation and provide an explicit list
+    /// of columns:
+    ///
+    ///     struct RestrictedPerson : TableMapping {
+    ///         static var databaseTableName = "persons"
+    ///         static var databaseSelection = [Column("id"), Column("name")]
+    ///     }
+    ///
+    ///     // SELECT id, name FROM persons
+    ///     try RestrictedPerson.fetchAll(db)
+    ///
+    /// You can also add extra columns such as the `rowid` column:
+    ///
+    ///     struct ExtendedPerson : TableMapping {
+    ///         static var databaseTableName = "persons"
+    ///         static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
+    ///     }
     ///
     ///     // SELECT *, rowid FROM persons
-    ///     try Person.fetchAll(db)
-    static var selectsRowID: Bool { get }
+    ///     try ExtendedPerson.fetchAll(db)
+    static var databaseSelection: [SQLSelectable] { get }
 }
 
 extension TableMapping {
-    /// Default value: false.
-    public static var selectsRowID: Bool { return false }
+    /// Default value: `[AllColumns()]`.
+    public static var databaseSelection: [SQLSelectable] {
+        return [AllColumns()]
+    }
 }
 
 extension TableMapping {

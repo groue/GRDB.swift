@@ -25,8 +25,8 @@ extension Book : RowConvertible {
 
 extension Book : MutablePersistable {
     static let databaseTableName = "books"
-    static let selectsRowID = true
-    
+    static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
+
     func encode(to container: inout PersistenceContainer) {
         container[.rowID] = id
         container["title"] = title

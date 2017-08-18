@@ -4,6 +4,7 @@ extension RowConvertible where Self: TableMapping {
     
     /// A cursor over all records fetched from the database.
     ///
+    ///     // SELECT * FROM persons
     ///     let persons = try Person.fetchCursor(db) // DatabaseCursor<Person>
     ///     while let person = try persons.next() {  // Person
     ///         ...
@@ -16,6 +17,10 @@ extension RowConvertible where Self: TableMapping {
     ///
     /// The cursor must be iterated in a protected dispath queue.
     ///
+    /// The selection defaults to all columns. This default can be changed for
+    /// all requests by the `TableMapping.databaseSelection` property, or
+    /// for individual requests with the `TableMapping.select` method.
+    ///
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
@@ -25,7 +30,12 @@ extension RowConvertible where Self: TableMapping {
     
     /// An array of all records fetched from the database.
     ///
+    ///     // SELECT * FROM persons
     ///     let persons = try Person.fetchAll(db) // [Person]
+    ///
+    /// The selection defaults to all columns. This default can be changed for
+    /// all requests by the `TableMapping.databaseSelection` property, or
+    /// for individual requests with the `TableMapping.select` method.
     ///
     /// - parameter db: A database connection.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
@@ -35,7 +45,12 @@ extension RowConvertible where Self: TableMapping {
     
     /// The first found record.
     ///
+    ///     // SELECT * FROM persons
     ///     let person = try Person.fetchOne(db) // Person?
+    ///
+    /// The selection defaults to all columns. This default can be changed for
+    /// all requests by the `TableMapping.databaseSelection` property, or
+    /// for individual requests with the `TableMapping.select` method.
     ///
     /// - parameter db: A database connection.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.

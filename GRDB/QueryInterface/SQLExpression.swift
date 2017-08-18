@@ -94,7 +94,7 @@ extension SQLExpression {
             // SELECT expr FROM tableName ...
             // ->
             // SELECT COUNT(*) FROM tableName ...
-            return .star
+            return .all
         }
     }
 }

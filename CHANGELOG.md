@@ -18,9 +18,24 @@ Release Notes
 
 - The deprecated `TableMapping.primaryKeyRowComparator` method has been removed.
 
+- The `TableMapping.selectsRowID` property has been replaced with `TableMapping.databaseSelection`.
+    
+    To upgrade, replace:
+    
+    ```swift
+     struct Player: TableMapping {
+    -    static let selectsRowID = true
+    +    static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
+     }
+    ```
+
 **API diff**
 
 ```diff
++struct AllColumns {
++    init()
++}
+
  class Row {
 -    func value(atIndex index: Int) -> DatabaseValueConvertible?
 -    func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value?
@@ -41,10 +56,29 @@ Release Notes
 +    subscript<Value: DatabaseValueConvertible>(_ column: Column) -> Value?
 +    subscript<Value: DatabaseValueConvertible>(_ column: Column) -> Value
  }
+ 
+ class Record {
+-    open class var selectsRowID: Bool
++    open class var databaseSelection: [SQLSelectable]
+ }
+ 
+ protocol TableMapping {
+-    static var selectsRowID: Bool { get }
++    static var databaseSelection: [SQLSelectable] { get }
+ }
 
  extension TableMapping {
 -    @available(*, deprecated)
 -    static func primaryKeyRowComparator(_ db: Database) throws -> (Row, Row) -> Bool
+ }
+```
+
+**Experimental API diff**
+
+```diff
+ enum SQLCount {
+-    case star
++    case all
  }
 ```
 

@@ -60,20 +60,37 @@ open class Record : RowConvertible, TableMapping, Persistable {
         return PersistenceConflictPolicy(insert: .abort, update: .abort)
     }
     
-    /// This flag tells whether the hidden "rowid" column should be fetched
-    /// with other columns.
+    /// The default request selection.
     ///
-    /// Its default value is false:
+    /// Unless this method is overriden, requests select all columns:
     ///
     ///     // SELECT * FROM persons
     ///     try Person.fetchAll(db)
     ///
-    /// When true, the rowid column is fetched:
+    /// You can override this property and provide an explicit list
+    /// of columns:
+    ///
+    ///     class RestrictedPerson : Record {
+    ///         override static var databaseSelection: [SQLSelectable] {
+    ///             return [Column("id"), Column("name")]
+    ///         }
+    ///     }
+    ///
+    ///     // SELECT id, name FROM persons
+    ///     try RestrictedPerson.fetchAll(db)
+    ///
+    /// You can also add extra columns such as the `rowid` column:
+    ///
+    ///     class ExtendedPerson : Person {
+    ///         override static var databaseSelection: [SQLSelectable] {
+    ///             return [AllColumns(), Column.rowID]
+    ///         }
+    ///     }
     ///
     ///     // SELECT *, rowid FROM persons
-    ///     try Person.fetchAll(db)
-    open class var selectsRowID: Bool {
-        return false
+    ///     try ExtendedPerson.fetchAll(db)
+    open class var databaseSelection: [SQLSelectable] {
+        return [AllColumns()]
     }
     
 
