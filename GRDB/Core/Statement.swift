@@ -31,7 +31,9 @@ public class Statement {
         self.sqliteStatement = sqliteStatement
     }
     
-    fileprivate init(database: Database, sql: String, observer: StatementCompilationObserver) throws {
+    /// prepFlags are only used when sqlite3_prepare_v3 is available.
+    /// See http://www.sqlite.org/c3ref/prepare.html
+    fileprivate init(database: Database, sql: String, prepFlags: Int32, observer: StatementCompilationObserver) throws {
         SchedulingWatchdog.preconditionValidQueue(database)
         
         observer.start()
@@ -44,7 +46,12 @@ public class Statement {
         sqlCodeUnits.withUnsafeBufferPointer { codeUnits in
             let sqlStart = UnsafePointer<Int8>(codeUnits.baseAddress)!
             var sqlEnd: UnsafePointer<Int8>? = nil
-            code = sqlite3_prepare_v2(database.sqliteConnection, sqlStart, -1, &sqliteStatement, &sqlEnd)
+            // sqlite3_prepare_v3 was introduced in SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
+            #if GRDBCUSTOMSQLITE
+                code = sqlite3_prepare_v3(database.sqliteConnection, sqlStart, -1, UInt32(bitPattern: prepFlags), &sqliteStatement, &sqlEnd)
+            #else
+                code = sqlite3_prepare_v2(database.sqliteConnection, sqlStart, -1, &sqliteStatement, &sqlEnd)
+            #endif
             let remainingData = Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: sqlEnd!), count: sqlStart + sqlCodeUnits.count - sqlEnd! - 1, deallocator: .none)
             remainingSQL = String(data: remainingData, encoding: .utf8)!.trimmingCharacters(in: .whitespacesAndNewlines)
         }
@@ -211,10 +218,12 @@ public final class SelectStatement : Statement {
     /// Information about the table and columns read by a SelectStatement
     public private(set) var selectionInfo: SelectionInfo
     
-    init(database: Database, sql: String) throws {
+    /// prepFlags are only used when sqlite3_prepare_v3 is available.
+    /// See http://www.sqlite.org/c3ref/prepare.html
+    init(database: Database, sql: String, prepFlags: Int32) throws {
         self.selectionInfo = SelectionInfo()
         let observer = StatementCompilationObserver(database)
-        try super.init(database: database, sql: sql, observer: observer)
+        try super.init(database: database, sql: sql, prepFlags: prepFlags, observer: observer)
         Database.preconditionValidSelectStatement(sql: sql, observer: observer)
         self.selectionInfo = observer.selectionInfo
     }
@@ -399,12 +408,14 @@ public final class UpdateStatement : Statement {
         super.init(database: database, sqliteStatement: sqliteStatement)
     }
     
-    init(database: Database, sql: String) throws {
+    /// prepFlags are only used when sqlite3_prepare_v3 is available.
+    /// See http://www.sqlite.org/c3ref/prepare.html
+    init(database: Database, sql: String, prepFlags: Int32) throws {
         self.invalidatesDatabaseSchemaCache = false
         self.databaseEventKinds = []
         
         let observer = StatementCompilationObserver(database)
-        try super.init(database: database, sql: sql, observer: observer)
+        try super.init(database: database, sql: sql, prepFlags: prepFlags, observer: observer)
         self.invalidatesDatabaseSchemaCache = observer.invalidatesDatabaseSchemaCache
         self.transactionStatementInfo = observer.transactionStatementInfo
         self.databaseEventKinds = observer.databaseEventKinds
@@ -864,7 +875,12 @@ struct StatementCache {
             return statement
         }
         
-        let statement = try db.makeSelectStatement(sql)
+        // SQLITE_PREPARE_PERSISTENT was introduced in SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
+        #if GRDBCUSTOMSQLITE
+            let statement = try db.makeSelectStatement(sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
+        #else
+            let statement = try db.makeSelectStatement(sql)
+        #endif
         selectStatements[sql] = statement
         return statement
     }
@@ -874,7 +890,12 @@ struct StatementCache {
             return statement
         }
         
-        let statement = try db.makeUpdateStatement(sql)
+        // SQLITE_PREPARE_PERSISTENT was introduced in SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
+        #if GRDBCUSTOMSQLITE
+            let statement = try db.makeUpdateStatement(sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
+        #else
+            let statement = try db.makeUpdateStatement(sql)
+        #endif
         updateStatements[sql] = statement
         return statement
     }

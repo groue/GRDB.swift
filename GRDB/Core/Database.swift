@@ -693,7 +693,13 @@ extension Database {
     /// - returns: A SelectStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     public func makeSelectStatement(_ sql: String) throws -> SelectStatement {
-        return try SelectStatement(database: self, sql: sql)
+        return try makeSelectStatement(sql, prepFlags: 0)
+    }
+    
+    /// prepFlags are only used when sqlite3_prepare_v3 is available.
+    /// See http://www.sqlite.org/c3ref/prepare.html
+    func makeSelectStatement(_ sql: String, prepFlags: Int32) throws -> SelectStatement {
+        return try SelectStatement(database: self, sql: sql, prepFlags: prepFlags)
     }
     
     /// Returns a prepared statement that can be reused.
@@ -730,7 +736,13 @@ extension Database {
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     public func makeUpdateStatement(_ sql: String) throws -> UpdateStatement {
-        return try UpdateStatement(database: self, sql: sql)
+        return try makeUpdateStatement(sql, prepFlags: 0)
+    }
+    
+    /// prepFlags are only used when sqlite3_prepare_v3 is available.
+    /// See http://www.sqlite.org/c3ref/prepare.html
+    func makeUpdateStatement(_ sql: String, prepFlags: Int32) throws -> UpdateStatement {
+        return try UpdateStatement(database: self, sql: sql, prepFlags: prepFlags)
     }
     
     /// Returns a prepared statement that can be reused.
