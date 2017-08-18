@@ -20,8 +20,8 @@ GRDB 2.0
     - [ ] TableMapping.deleteAll(_:keys:) -> move to MutablePersistable
     - [ ] TableMapping.deleteOne(_:key:) -> move to MutablePersistable
     - [ ] QueryInterfaceRequest.deleteAll(_:) -> require MutablePersistable adoption
-- Let TableMapping define the selected columns, not only if rowID is selected or not.
-- Have RowConvertible.fetchCursor(_:keys:) return a non-optional cursor
+- [X] Let TableMapping define the selected columns, not only if rowID is selected or not.
+- [X] Have RowConvertible.fetchCursor(_:keys:) return a non-optional cursor
 
 Not sure
 
