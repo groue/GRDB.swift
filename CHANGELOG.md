@@ -22,7 +22,7 @@ Release Notes
     
     To upgrade, replace:
     
-    ```swift
+    ```diff
      struct Player: TableMapping {
     -    static let selectsRowID = true
     +    static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
