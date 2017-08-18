@@ -31,6 +31,8 @@ Release Notes
 
 - `RowConvertible.fetchCursor(_:keys:)` returns a non-optional cursor.
 
+- All `TableMapping` methods that would modify the database have moved to `MutablePersistable`, now the only record protocol that is able to write.
+
 
 **API diff**
 
@@ -38,6 +40,20 @@ Release Notes
 +struct AllColumns {
 +    init()
 +}
+
+-extension TableMapping {
++extension MutablePersistable {
+     @discardableResult static func deleteAll(_ db: Database) throws -> Int
+     @discardableResult static func deleteAll<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> Int where Sequence.Element: DatabaseValueConvertible
+     @discardableResult static func deleteOne<PrimaryKeyType: DatabaseValueConvertible>(_ db: Database, key: PrimaryKeyType?) throws -> Bool
+     @discardableResult static func deleteAll(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> Int
+     @discardableResult static func deleteOne(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Bool
+ }
+
+-extension QueryInterfaceRequest {
++extension QueryInterfaceRequest where RowDecoder: MutablePersistable {
+     @discardableResult func deleteAll(_ db: Database) throws -> Int
+ }
 
  class Row {
 -    func value(atIndex index: Int) -> DatabaseValueConvertible?
@@ -78,8 +94,7 @@ Release Notes
  }
 
  extension TableMapping {
--    @available(*, deprecated)
--    static func primaryKeyRowComparator(_ db: Database) throws -> (Row, Row) -> Bool
+-    @available(*, deprecated) static func primaryKeyRowComparator(_ db: Database) throws -> (Row, Row) -> Bool
  }
 ```
 
