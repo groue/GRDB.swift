@@ -5,6 +5,7 @@ Release Notes
 
 **New**
 
+- Upgrade custom SQLite builds to [v3.20.0](http://www.sqlite.org/changes.html) (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib)).
 - Complete support for all signed and unsigned integer types: from Int8 toUInt64, all integers can be stored and loaded from the database.
 
 **API diff**

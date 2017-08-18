@@ -23,9 +23,13 @@ class DatabaseQueueTests: GRDBTestCase {
             XCTFail("Expected error")
         } catch let error as DatabaseError {
             XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
-            XCTAssertEqual(error.message!.lowercased(), "file is encrypted or is not a database") // lowercased: accept multiple SQLite version
+            XCTAssert([
+                "file is encrypted or is not a database",
+                "file is not a database"].contains(error.message!))
             XCTAssertTrue(error.sql == nil)
-            XCTAssertEqual(error.description.lowercased(), "sqlite error 26: file is encrypted or is not a database")
+            XCTAssert([
+                "SQLite error 26: file is encrypted or is not a database",
+                "SQLite error 26: file is not a database"].contains(error.description))
         }
     }
     #endif
