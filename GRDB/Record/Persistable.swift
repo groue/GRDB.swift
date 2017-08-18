@@ -531,7 +531,17 @@ extension MutablePersistable {
     /// Delete records identified by their primary keys; returns the number of
     /// deleted rows.
     ///
+    ///     // DELETE FROM persons WHERE id IN (1, 2, 3)
     ///     try Person.deleteAll(db, keys: [1, 2, 3])
+    ///
+    ///     // DELETE FROM countries WHERE code IN ('FR', 'US', 'DE')
+    ///     try Country.deleteAll(db, keys: ["FR", "US", "DE"])
+    ///
+    /// When the table has no explicit primary key, GRDB uses the hidden
+    /// "rowid" column:
+    ///
+    ///     // DELETE FROM documents WHERE rowid IN (1, 2, 3)
+    ///     try Document.deleteAll(db, keys: [1, 2, 3])
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -550,7 +560,17 @@ extension MutablePersistable {
     /// Delete a record, identified by its primary key; returns whether a
     /// database row was deleted.
     ///
+    ///     // DELETE FROM persons WHERE id = 123
     ///     try Person.deleteOne(db, key: 123)
+    ///
+    ///     // DELETE FROM countries WHERE code = 'FR'
+    ///     try Country.deleteOne(db, key: "FR")
+    ///
+    /// When the table has no explicit primary key, GRDB uses the hidden
+    /// "rowid" column:
+    ///
+    ///     // DELETE FROM documents WHERE rowid = 1
+    ///     try Document.deleteOne(db, key: 1)
     ///
     /// - parameters:
     ///     - db: A database connection.

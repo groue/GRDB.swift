@@ -1804,6 +1804,7 @@ Your custom structs and classes can adopt each protocol individually, and opt in
 
 **Protocols and the Record class**
 
+- [Record Protocols Overview](#record-protocols-overview)
 - [RowConvertible Protocol](#rowconvertible-protocol)
 - [TableMapping Protocol](#tablemapping-protocol)
 - [Persistable Protocol](#persistable-protocol)
@@ -1889,7 +1890,7 @@ let person = try Person.fetchOne(db, key: 1)!
 try person.delete(db)
 ```
 
-The [TableMapping](#tablemapping-protocol) protocol gives you methods that delete according to primary key or any unique index:
+Such records can also delete according to primary key or any unique index:
 
 ```swift
 try Person.deleteOne(db, key: 1)
@@ -1915,12 +1916,73 @@ let personWithEmailCount = try Person.filter(emailColumn != nil).fetchCount(db) 
 
 You can now jump to:
 
+- [Record Protocols Overview](#record-protocols-overview)
 - [RowConvertible Protocol](#rowconvertible-protocol)
 - [TableMapping Protocol](#tablemapping-protocol)
 - [Persistable Protocol](#persistable-protocol)
 - [Record Class](#record-class)
 - [The Query Interface](#the-query-interface)
 
+
+## Record Protocols Overview
+
+**GRDB ships with three record protocols.** Your own types will adopt one or several of them, according to the abilities you want to extend your types with.
+
+- [RowConvertible](#rowconvertible-protocol) is able to **read**: it grants the ability to decode raw database row:
+    
+    ```swift
+    // Without RowConvertible
+    struct PointOfInterest { ... }
+    let pois = try dbQueue.inDatabase { db -> [PointOfInterest] in
+        let rows = try Row.fetchCursor(db, "SELECT * FROM pois")
+        return try rows.map { row in
+            PointOfInterest(
+                id: row["id"],
+                title: row["title"],
+                coordinate: CLLocationCoordinate2D(
+                    latitude: row["latitude"],
+                    longitude: row["longitude"]))
+            )
+        }
+    }
+    
+    // With RowConvertible
+    struct PointOfInterest : RowConvertible { ... }
+    let pois = try dbQueue.inDatabase { db in
+        try PointOfInterest.fetchAll(db, "SELECT * FROM pois")
+    }
+    ```
+    
+    RowConvertible is not able to build SQL requests, though. For that, you also need TableMapping:
+    
+- [TableMapping](#tablemapping-protocol) is able to **build requests without SQL**:
+    
+    ```swift
+    struct PointOfInterest : TableMapping { ... }
+    // SELECT * FROM pointOfInterests ORDER BY title
+    let request = PointOfInterest.order(Column("title"))
+    ```
+    
+    When a type adopts both TableMapping and RowConvertible, it can load from those requests:
+    
+    ```swift
+    struct PointOfInterest : TableMapping, RowConvertible { ... }
+    try dbQueue.inDatabase { db in
+        let pois = try PointOfInterest.order(Column("title")).fetchAll(db)
+        let paris = PointOfInterest.fetchOne(key: 1)
+    }
+    ```
+
+- [Persistable](#persistable-protocol) is able to **write**: it can create, update, and delete rows in the database:
+    
+    ```swift
+    struct PointOfInterest : Persistable { ... }
+    try dbQueue.inDatabase { db in
+        try PointOfInterest.delete(db, key: 1)
+        try PointOfInterest(...).insert(db)
+    }
+    ```
+    
 
 ## RowConvertible Protocol
 
@@ -1991,25 +2053,6 @@ try PointOfInterest.fetchOne(db, "SELECT ...", arguments:...)    // PointOfInter
 See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll` and `fetchOne` methods. See [StatementArguments](http://groue.github.io/GRDB.swift/docs/1.3/Structs/StatementArguments.html) for more information about the query arguments.
 
 
-### RowConvertible and Row Adapters
-
-RowConvertible types usually consume rows by column name:
-
-```swift
-extension PointOfInterest : RowConvertible {
-    init(row: Row) {
-        id = row["id"]                   // "id"
-        title = row["title"]             // "title"
-        coordinate = CLLocationCoordinate2D(
-            latitude: row["latitude"],   // "latitude"
-            longitude: row["longitude"]) // "longitude"
-    }
-}
-```
-
-Occasionnally, you'll want to write a complex SQL query that uses different column names. In this case, [row adapters](#row-adapters) are there to help you mapping raw column names to the names expected by your RowConvertible types.
-
-
 ## TableMapping Protocol
 
 **Adopt the TableMapping protocol** on top of [RowConvertible](#rowconvertible-protocol), and you are granted with the full [query interface](#the-query-interface).
@@ -2038,19 +2081,14 @@ Adopting types can be fetched without SQL, using the [query interface](#the-quer
 let paris = try PointOfInterest.filter(nameColumn == "Paris").fetchOne(db)
 ```
 
-TableMapping can also fetch and delete records by primary key:
+TableMapping can also fetch records by primary key:
 
 ```swift
-// Fetch
 try Person.fetchOne(db, key: 1)              // Person?
 try Person.fetchAll(db, keys: [1, 2, 3])     // [Person]
 
 try Country.fetchOne(db, key: "FR")          // Country?
 try Country.fetchAll(db, keys: ["FR", "US"]) // [Country]
-
-// Delete
-try Person.deleteOne(db, key: 1)
-try Country.deleteAll(db, keys: ["FR", "US"])
 ```
 
 When the table has no explicit primary key, GRDB uses the [hidden "rowid" column](#the-implicit-rowid-primary-key):
@@ -2058,9 +2096,6 @@ When the table has no explicit primary key, GRDB uses the [hidden "rowid" column
 ```swift
 // SELECT * FROM documents WHERE rowid = 1
 try Document.fetchOne(db, key: 1)            // Document?
-
-// DELETE FROM documents WHERE rowid = 1
-try Document.deleteOne(db, key: 1)
 ```
 
 For multiple-column primary keys and unique keys defined by unique indexes, provide a dictionary:
@@ -2068,15 +2103,12 @@ For multiple-column primary keys and unique keys defined by unique indexes, prov
 ```swift
 // SELECT * FROM citizenships WHERE personID = 1 AND countryISOCode = 'FR'
 try Citizenship.fetchOne(db, key: ["personID": 1, "countryISOCode": "FR"]) // Citizenship?
-
-// DELETE FROM persons WHERE email = 'arthur@example.com'
-try Person.deleteOne(db, key: ["email": "arthur@example.com"])
 ```
 
 
 ## Persistable Protocol
 
-**GRDB provides two protocols that let adopting types store themselves in the database:**
+**GRDB provides two protocols that let adopting types create, update, and delete rows in the database:**
 
 ```swift
 protocol MutablePersistable : TableMapping {
@@ -2167,12 +2199,18 @@ extension PointOfInterest : MutablePersistable {
 [Record](#record-class) subclasses and types that adopt [Persistable](#persistable-protocol) are given default implementations for methods that insert, update, and delete:
 
 ```swift
+// Instance methods
 try pointOfInterest.insert(db)               // INSERT
 try pointOfInterest.update(db)               // UPDATE
 try pointOfInterest.update(db, columns: ...) // UPDATE
 try pointOfInterest.save(db)                 // Inserts or updates
 try pointOfInterest.delete(db)               // DELETE
-pointOfInterest.exists(db)                   // Bool
+pointOfInterest.exists(db)
+
+// Type methods
+PointOfInterest.deleteAll(db)                // DELETE
+PointOfInterest.deleteAll(db, keys:...)      // DELETE
+PointOfInterest.deleteOne(db, key:...)       // DELETE
 ```
 
 - `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling) whenever an SQLite integrity check fails.
