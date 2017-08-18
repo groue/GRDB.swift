@@ -1,3 +1,15 @@
+extension Database.ConflictResolution {
+    var invalidatesLastInsertedRowID: Bool {
+        switch self {
+        case .abort, .fail, .rollback, .replace:
+            return false
+        case .ignore:
+            // Statement may have succeeded without inserting any row
+            return true
+        }
+    }
+}
+
 // MARK: - PersistenceError
 
 /// An error thrown by a type that adopts Persistable.
@@ -17,7 +29,6 @@ extension PersistenceError : CustomStringConvertible {
         }
     }
 }
-
 
 // MARK: - PersistenceContainer
 
@@ -124,7 +135,6 @@ extension Row {
     }
 }
 
-
 // MARK: - MutablePersistable
 
 /// The MutablePersistable protocol uses this type in order to handle SQLite
@@ -202,7 +212,6 @@ public protocol MutablePersistable : TableMapping {
     ///     - rowID: The inserted rowID.
     ///     - column: The name of the eventual INTEGER PRIMARY KEY column.
     mutating func didInsert(with rowID: Int64, for column: String?)
-    
     
     // MARK: - CRUD
     
@@ -304,7 +313,6 @@ extension MutablePersistable {
     public mutating func didInsert(with rowID: Int64, for column: String?) {
     }
     
-    
     // MARK: - CRUD
     
     /// Executes an INSERT statement.
@@ -382,7 +390,6 @@ extension MutablePersistable {
     public func exists(_ db: Database) throws -> Bool {
         return try performExists(db)
     }
-    
     
     // MARK: - CRUD Internals
     
@@ -502,15 +509,97 @@ extension MutablePersistable {
     
 }
 
-extension Database.ConflictResolution {
-    var invalidatesLastInsertedRowID: Bool {
-        switch self {
-        case .abort, .fail, .rollback, .replace:
-            return false
-        case .ignore:
-            // Statement may have succeeded without inserting any row
-            return true
+extension MutablePersistable {
+    
+    // MARK: - Deleting All
+    
+    /// Deletes all records; returns the number of deleted rows.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: The number of deleted rows
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    @discardableResult
+    public static func deleteAll(_ db: Database) throws -> Int {
+        return try all().deleteAll(db)
+    }
+}
+
+extension MutablePersistable {
+    
+    // MARK: - Deleting by Single-Column Primary Key
+    
+    /// Delete records identified by their primary keys; returns the number of
+    /// deleted rows.
+    ///
+    ///     try Person.deleteAll(db, keys: [1, 2, 3])
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - keys: A sequence of primary keys.
+    /// - returns: The number of deleted rows
+    @discardableResult
+    public static func deleteAll<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> Int where Sequence.Iterator.Element: DatabaseValueConvertible {
+        let keys = Array(keys)
+        if keys.isEmpty {
+            // Avoid hitting the database
+            return 0
         }
+        return try filter(db, keys: keys).deleteAll(db)
+    }
+    
+    /// Delete a record, identified by its primary key; returns whether a
+    /// database row was deleted.
+    ///
+    ///     try Person.deleteOne(db, key: 123)
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - key: A primary key value.
+    /// - returns: Whether a database row was deleted.
+    @discardableResult
+    public static func deleteOne<PrimaryKeyType: DatabaseValueConvertible>(_ db: Database, key: PrimaryKeyType?) throws -> Bool {
+        guard let key = key else {
+            // Avoid hitting the database
+            return false
+        }
+        return try deleteAll(db, keys: [key]) > 0
+    }
+}
+
+extension MutablePersistable {
+    
+    // MARK: - Deleting by Key
+    
+    /// Delete records identified by the provided unique keys (primary key or
+    /// any key with a unique index on it); returns the number of deleted rows.
+    ///
+    ///     try Person.deleteAll(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]])
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - keys: An array of key dictionaries.
+    /// - returns: The number of deleted rows
+    @discardableResult
+    public static func deleteAll(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> Int {
+        if keys.isEmpty {
+            // Avoid hitting the database
+            return 0
+        }
+        return try filter(db, keys: keys).deleteAll(db)
+    }
+    
+    /// Delete a record, identified by a unique key (the primary key or any key
+    /// with a unique index on it); returns whether a database row was deleted.
+    ///
+    ///     Person.deleteOne(db, key: ["name": Arthur"])
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - key: A dictionary of values.
+    /// - returns: Whether a database row was deleted.
+    @discardableResult
+    public static func deleteOne(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Bool {
+        return try deleteAll(db, keys: [key]) > 0
     }
 }
 

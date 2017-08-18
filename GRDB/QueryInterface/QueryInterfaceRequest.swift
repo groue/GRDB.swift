@@ -235,7 +235,7 @@ extension QueryInterfaceRequest {
     }
 }
 
-extension QueryInterfaceRequest {
+extension QueryInterfaceRequest where RowDecoder: MutablePersistable {
     
     // MARK: Deleting
     

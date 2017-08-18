@@ -7,20 +7,23 @@ import XCTest
     import GRDB
 #endif
 
-private struct Hacker : TableMapping {
+private struct Hacker : MutablePersistable {
     static let databaseTableName = "hackers"
+    func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
 }
 
-private struct Person : TableMapping {
+private struct Person : MutablePersistable {
     static let databaseTableName = "persons"
+    func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
 }
 
-private struct Citizenship : TableMapping {
+private struct Citizenship : MutablePersistable {
     static let databaseTableName = "citizenships"
+    func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
 }
 
 
-class TableMappingDeleteByKeyTests: GRDBTestCase {
+class MutablePersistableDeleteTests: GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
         try dbWriter.write { db in
@@ -134,6 +137,27 @@ class TableMappingDeleteByKeyTests: GRDBTestCase {
             let deletedCount = try Person.deleteAll(db, keys: [["id": 2], ["id": 3], ["id": 4]])
             XCTAssertEqual(deletedCount, 2)
             XCTAssertEqual(try Person.fetchCount(db), 1)
+        }
+    }
+    
+    func testRequestDelete() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        try dbQueue.inDatabase { db in
+            try Person.deleteAll(db)
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\"")
+            
+            try Person.filter(Column("name") == "Arthur").deleteAll(db)
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE (\"name\" = 'Arthur')")
+            
+            try Person.filter(sql: "id = 1").deleteAll(db)
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE id = 1")
+            
+            try Person.select(Column("name")).deleteAll(db)
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\"")
+            
+            try Person.order(Column("name")).deleteAll(db)
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\"")
         }
     }
 }
