@@ -92,7 +92,7 @@ extension RowConvertible where Self: TableMapping {
     ///     - keys: A sequence of primary keys.
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> [Self] where Sequence.Iterator.Element: DatabaseValueConvertible {
+    public static func fetchAll<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> [Self] where Sequence.Element: DatabaseValueConvertible {
         let keys = Array(keys)
         if keys.isEmpty {
             // Avoid hitting the database

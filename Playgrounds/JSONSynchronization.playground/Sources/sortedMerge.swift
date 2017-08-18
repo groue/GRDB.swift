@@ -42,10 +42,10 @@
 public func sortedMerge<LeftSequence: Sequence, RightSequence: Sequence, Key: Comparable>(
     left lSeq: LeftSequence,
     right rSeq: RightSequence,
-    leftKey: @escaping (LeftSequence.Iterator.Element) -> Key,
-    rightKey: @escaping (RightSequence.Iterator.Element) -> Key) -> AnySequence<MergeStep<LeftSequence.Iterator.Element, RightSequence.Iterator.Element>>
+    leftKey: @escaping (LeftSequence.Element) -> Key,
+    rightKey: @escaping (RightSequence.Element) -> Key) -> AnySequence<MergeStep<LeftSequence.Element, RightSequence.Element>>
 {
-    return AnySequence { () -> AnyIterator<MergeStep<LeftSequence.Iterator.Element, RightSequence.Iterator.Element>> in
+    return AnySequence { () -> AnyIterator<MergeStep<LeftSequence.Element, RightSequence.Element>> in
         var (lGen, rGen) = (lSeq.makeIterator(), rSeq.makeIterator())
         var (lOpt, rOpt) = (lGen.next(), rGen.next())
         return AnyIterator {

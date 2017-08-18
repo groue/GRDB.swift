@@ -340,7 +340,7 @@ extension MutablePersistable {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
-    public func update<Sequence: Swift.Sequence>(_ db: Database, columns: Sequence) throws where Sequence.Iterator.Element == Column {
+    public func update<Sequence: Swift.Sequence>(_ db: Database, columns: Sequence) throws where Sequence.Element == Column {
         try update(db, columns: Set(columns.map { $0.name }))
     }
     
@@ -351,7 +351,7 @@ extension MutablePersistable {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
-    public func update<Sequence: Swift.Sequence>(_ db: Database, columns: Sequence) throws where Sequence.Iterator.Element == String {
+    public func update<Sequence: Swift.Sequence>(_ db: Database, columns: Sequence) throws where Sequence.Element == String {
         try update(db, columns: Set(columns))
     }
     
@@ -538,7 +538,7 @@ extension MutablePersistable {
     ///     - keys: A sequence of primary keys.
     /// - returns: The number of deleted rows
     @discardableResult
-    public static func deleteAll<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> Int where Sequence.Iterator.Element: DatabaseValueConvertible {
+    public static func deleteAll<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> Int where Sequence.Element: DatabaseValueConvertible {
         let keys = Array(keys)
         if keys.isEmpty {
             // Avoid hitting the database

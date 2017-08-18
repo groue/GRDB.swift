@@ -72,7 +72,7 @@ extension TableMapping {
     
     // MARK: Key Requests
     
-    static func filter<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> QueryInterfaceRequest<Self> where Sequence.Iterator.Element: DatabaseValueConvertible {
+    static func filter<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> QueryInterfaceRequest<Self> where Sequence.Element: DatabaseValueConvertible {
         let primaryKey = try db.primaryKey(databaseTableName)
         let columns = primaryKey?.columns.map { Column($0) } ?? [Column.rowID]
         GRDBPrecondition(columns.count == 1, "table \(databaseTableName) has multiple columns in its primary key")
