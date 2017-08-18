@@ -31,8 +31,13 @@ public class Statement {
         self.sqliteStatement = sqliteStatement
     }
     
-    /// prepFlags are only used when sqlite3_prepare_v3 is available.
-    /// See http://www.sqlite.org/c3ref/prepare.html
+    /// Creates a prepared statement.
+    ///
+    /// - parameter database: A database connection.
+    /// - parameter sql: An SQL query.
+    /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
+    ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
+    /// - parameter observer: A StatementCompilationObserver
     fileprivate init(database: Database, sql: String, prepFlags: Int32, observer: StatementCompilationObserver) throws {
         SchedulingWatchdog.preconditionValidQueue(database)
         
@@ -218,8 +223,12 @@ public final class SelectStatement : Statement {
     /// Information about the table and columns read by a SelectStatement
     public private(set) var selectionInfo: SelectionInfo
     
-    /// prepFlags are only used when sqlite3_prepare_v3 is available.
-    /// See http://www.sqlite.org/c3ref/prepare.html
+    /// Creates a prepared statement.
+    ///
+    /// - parameter database: A database connection.
+    /// - parameter sql: An SQL query.
+    /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
+    ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
     init(database: Database, sql: String, prepFlags: Int32) throws {
         self.selectionInfo = SelectionInfo()
         let observer = StatementCompilationObserver(database)
@@ -408,8 +417,12 @@ public final class UpdateStatement : Statement {
         super.init(database: database, sqliteStatement: sqliteStatement)
     }
     
-    /// prepFlags are only used when sqlite3_prepare_v3 is available.
-    /// See http://www.sqlite.org/c3ref/prepare.html
+    /// Creates a prepared statement.
+    ///
+    /// - parameter database: A database connection.
+    /// - parameter sql: An SQL query.
+    /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
+    ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
     init(database: Database, sql: String, prepFlags: Int32) throws {
         self.invalidatesDatabaseSchemaCache = false
         self.databaseEventKinds = []
@@ -875,8 +888,16 @@ struct StatementCache {
             return statement
         }
         
-        // SQLITE_PREPARE_PERSISTENT was introduced in SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
         #if GRDBCUSTOMSQLITE
+            // http://www.sqlite.org/c3ref/c_prepare_persistent.html#sqlitepreparepersistent
+            // > The SQLITE_PREPARE_PERSISTENT flag is a hint to the query
+            // > planner that the prepared statement will be retained for a long
+            // > time and probably reused many times.
+            //
+            // This looks like a perfect match for cached statements.
+            //
+            // However SQLITE_PREPARE_PERSISTENT was only introduced in
+            // SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
             let statement = try db.makeSelectStatement(sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
         #else
             let statement = try db.makeSelectStatement(sql)
@@ -890,8 +911,16 @@ struct StatementCache {
             return statement
         }
         
-        // SQLITE_PREPARE_PERSISTENT was introduced in SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
         #if GRDBCUSTOMSQLITE
+            // http://www.sqlite.org/c3ref/c_prepare_persistent.html#sqlitepreparepersistent
+            // > The SQLITE_PREPARE_PERSISTENT flag is a hint to the query
+            // > planner that the prepared statement will be retained for a long
+            // > time and probably reused many times.
+            //
+            // This looks like a perfect match for cached statements.
+            //
+            // However SQLITE_PREPARE_PERSISTENT was only introduced in
+            // SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
             let statement = try db.makeUpdateStatement(sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
         #else
             let statement = try db.makeUpdateStatement(sql)

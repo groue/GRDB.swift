@@ -696,8 +696,17 @@ extension Database {
         return try makeSelectStatement(sql, prepFlags: 0)
     }
     
-    /// prepFlags are only used when sqlite3_prepare_v3 is available.
-    /// See http://www.sqlite.org/c3ref/prepare.html
+    /// Returns a new prepared statement that can be reused.
+    ///
+    ///     let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM persons WHERE age > ?", prepFlags: 0)
+    ///     let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
+    ///     let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
+    ///
+    /// - parameter sql: An SQL query.
+    /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
+    ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
+    /// - returns: A SelectStatement.
+    /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     func makeSelectStatement(_ sql: String, prepFlags: Int32) throws -> SelectStatement {
         return try SelectStatement(database: self, sql: sql, prepFlags: prepFlags)
     }
@@ -739,8 +748,17 @@ extension Database {
         return try makeUpdateStatement(sql, prepFlags: 0)
     }
     
-    /// prepFlags are only used when sqlite3_prepare_v3 is available.
-    /// See http://www.sqlite.org/c3ref/prepare.html
+    /// Returns a new prepared statement that can be reused.
+    ///
+    ///     let statement = try db.makeUpdateStatement("INSERT INTO persons (name) VALUES (?)", prepFlags: 0)
+    ///     try statement.execute(arguments: ["Arthur"])
+    ///     try statement.execute(arguments: ["Barbara"])
+    ///
+    /// - parameter sql: An SQL query.
+    /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
+    ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
+    /// - returns: An UpdateStatement.
+    /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     func makeUpdateStatement(_ sql: String, prepFlags: Int32) throws -> UpdateStatement {
         return try UpdateStatement(database: self, sql: sql, prepFlags: prepFlags)
     }
