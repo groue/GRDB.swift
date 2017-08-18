@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Kind Enum Reference</title>
+    <link rel="stylesheet" type="text/css" href="../../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/highlight.css" />
+    <meta charset='utf-8'>
+    <script src="../../js/jquery.min.js" defer></script>
+    <script src="../../js/jazzy.js" defer></script>
+    
+  </head>
+  <body>
+    <a name="//apple_ref/swift/Enum/Kind" class="dashAnchor"></a>
+    <a title="Kind Enum Reference"></a>
+    <header>
+      <div class="content-wrapper">
+        <p><a href="../../index.html">GRDB Docs</a> (90% documented)</p>
+        <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../../img/gh.png"/>View on GitHub</a></p>
+        <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue%2Egithub%2Eio%2FGRDB%2Eswift%2Fdocs%2F1%2E3%2Fdocsets%2FGRDB%2Exml"><img src="../../img/dash.png"/>Install in Dash</a></p>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <p id="breadcrumbs">
+        <a href="../../index.html">GRDB Reference</a>
+        <img id="carat" src="../../img/carat.png" />
+        Kind Enum Reference
+      </p>
+    </div>
+    <div class="content-wrapper">
+      <nav class="sidebar">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a href="../../Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../../Classes/AnyCursor.html">AnyCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/ColumnDefinition.html">ColumnDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/Database.html">Database</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/Database/BusyMode.html">– BusyMode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/Database/CheckpointMode.html">– CheckpointMode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/Database/CollationName.html">– CollationName</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/Database/ConflictResolution.html">– ConflictResolution</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/Database/ColumnType.html">– ColumnType</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/Database/ForeignKeyAction.html">– ForeignKeyAction</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/Database/TransactionKind.html">– TransactionKind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/Database/TransactionCompletion.html">– TransactionCompletion</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/Database/TransactionObservationExtent.html">– TransactionObservationExtent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/DatabaseCollation.html">DatabaseCollation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/DatabaseCursor.html">DatabaseCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/DatabaseFunction.html">DatabaseFunction</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/DatabasePool.html">DatabasePool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/DatabaseQueue.html">DatabaseQueue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/EnumeratedCursor.html">EnumeratedCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/FTS3TableDefinition.html">FTS3TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/FTS4ColumnDefinition.html">FTS4ColumnDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/FTS4TableDefinition.html">FTS4TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/FTS5ColumnDefinition.html">FTS5ColumnDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/FTS5TableDefinition.html">FTS5TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/FetchedRecordsController.html">FetchedRecordsController</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/FilterCursor.html">FilterCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/FlattenCursor.html">FlattenCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/IteratorCursor.html">IteratorCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/MapCursor.html">MapCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/Record.html">Record</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/Row.html">Row</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/SelectStatement.html">SelectStatement</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/SelectStatement/SelectionInfo.html">– SelectionInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/Statement.html">Statement</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/TableAlteration.html">TableAlteration</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/TableDefinition.html">TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Classes/UpdateStatement.html">UpdateStatement</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../../Enums.html">Enums</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../../Enums/DatabaseEventKind.html">DatabaseEventKind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Enums/FetchedRecordChange.html">FetchedRecordChange</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Enums/PersistenceError.html">PersistenceError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Enums/SQLCount.html">SQLCount</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../../Extensions.html">Extensions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../../Extensions/Array.html">Array</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/Bool.html">Bool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/CGFloat.html">CGFloat</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/ClosedRange.html">ClosedRange</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/Column.html">Column</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/CountableClosedRange.html">CountableClosedRange</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/CountableRange.html">CountableRange</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/Data.html">Data</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/Database.html">Database</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/DatabasePool.html">DatabasePool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/DatabaseQueue.html">DatabaseQueue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/Double.html">Double</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/Float.html">Float</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/Int.html">Int</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/Int16.html">Int16</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/Int32.html">Int32</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/Int64.html">Int64</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/Int8.html">Int8</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/NSData.html">NSData</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/NSDate.html">NSDate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/NSNull.html">NSNull</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/NSNumber.html">NSNumber</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/NSString.html">NSString</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/NSURL.html">NSURL</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/NSUUID.html">NSUUID</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/Optional.html">Optional</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/QueryInterfaceRequest.html">QueryInterfaceRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/Range.html">Range</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/RawRepresentable.html">RawRepresentable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/ReferenceConvertible.html">ReferenceConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/Sequence.html">Sequence</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/String.html">String</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/TableMapping.html">TableMapping</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/UInt.html">UInt</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/UInt16.html">UInt16</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/UInt32.html">UInt32</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/UInt64.html">UInt64</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Extensions/UInt8.html">UInt8</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../../Functions.html">Functions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBop1nFPS_22SQLSpecificExpressible_PS_13SQLExpression_">!(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2neFTGSqPS_14SQLExpressible__PS_22SQLSpecificExpressible__PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2neFTGSqPS_14SQLExpressible__VS_21SQLCollatedExpression_PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2neFTPS_22SQLSpecificExpressible_GSqPS_14SQLExpressible___PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2neFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2neFTPS_22SQLSpecificExpressible_Sb_PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2neFTSbPS_22SQLSpecificExpressible__PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2neFTVS_21SQLCollatedExpressionGSqPS_14SQLExpressible___PS_13SQLExpression_">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi3neeFTGSqPS_14SQLExpressible__PS_22SQLSpecificExpressible__PS_13SQLExpression_">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi3neeFTGSqPS_14SQLExpressible__VS_21SQLCollatedExpression_PS_13SQLExpression_">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi3neeFTPS_22SQLSpecificExpressible_GSqPS_14SQLExpressible___PS_13SQLExpression_">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi3neeFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi3neeFTVS_21SQLCollatedExpressionGSqPS_14SQLExpressible___PS_13SQLExpression_">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2aaFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">&amp;&amp;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2aaFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">&amp;&amp;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2aaFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">&amp;&amp;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi1mFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">*(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi1mFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">*(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi1mFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">*(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi1pFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">+(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi1pFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">+(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi1pFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">+(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBop1sFPS_22SQLSpecificExpressible_PS_13SQLExpression_">-(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi1sFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">-(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi1sFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">-(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi1sFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">-(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi1dFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">/(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi1dFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">/(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi1dFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">/(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi1lFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi1lFTPS_14SQLExpressible_VS_21SQLCollatedExpression_PS_13SQLExpression_">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi1lFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi1lFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi1lFTVS_21SQLCollatedExpressionPS_14SQLExpressible__PS_13SQLExpression_">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2leFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2leFTPS_14SQLExpressible_VS_21SQLCollatedExpression_PS_13SQLExpression_">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2leFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2leFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2leFTVS_21SQLCollatedExpressionPS_14SQLExpressible__PS_13SQLExpression_">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2eeFTGSqPS_14SQLExpressible__PS_22SQLSpecificExpressible__PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2eeFTGSqPS_14SQLExpressible__VS_21SQLCollatedExpression_PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2eeFTPS_22SQLSpecificExpressible_GSqPS_14SQLExpressible___PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2eeFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2eeFTPS_22SQLSpecificExpressible_Sb_PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2eeFTSbPS_22SQLSpecificExpressible__PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2eeFTVS_21SQLCollatedExpressionGSqPS_14SQLExpressible___PS_13SQLExpression_">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi3eeeFTGSqPS_14SQLExpressible__PS_22SQLSpecificExpressible__PS_13SQLExpression_">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi3eeeFTGSqPS_14SQLExpressible__VS_21SQLCollatedExpression_PS_13SQLExpression_">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi3eeeFTPS_22SQLSpecificExpressible_GSqPS_14SQLExpressible___PS_13SQLExpression_">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi3eeeFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi3eeeFTVS_21SQLCollatedExpressionGSqPS_14SQLExpressible___PS_13SQLExpression_">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi1gFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi1gFTPS_14SQLExpressible_VS_21SQLCollatedExpression_PS_13SQLExpression_">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi1gFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi1gFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi1gFTVS_21SQLCollatedExpressionPS_14SQLExpressible__PS_13SQLExpression_">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2geFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2geFTPS_14SQLExpressible_VS_21SQLCollatedExpression_PS_13SQLExpression_">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2geFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2geFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2geFTVS_21SQLCollatedExpressionPS_14SQLExpressible__PS_13SQLExpression_">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2qqFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">??(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDB3absFPS_22SQLSpecificExpressible_PS_13SQLExpression_">abs(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDB7averageFPS_22SQLSpecificExpressible_PS_13SQLExpression_">average(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDB5countFPS_13SQLSelectable_PS_13SQLExpression_">count(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDB5countFT8distinctPS_22SQLSpecificExpressible__PS_13SQLExpression_">count(distinct:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDB21databaseQuestionMarksFT5countSi_SS">databaseQuestionMarks(count:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDB6lengthFPS_22SQLSpecificExpressible_PS_13SQLExpression_">length(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDB3maxFPS_22SQLSpecificExpressible_PS_13SQLExpression_">max(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDB3minFPS_22SQLSpecificExpressible_PS_13SQLExpression_">min(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDB3sumFPS_22SQLSpecificExpressible_PS_13SQLExpression_">sum(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2ooFTPS_14SQLExpressible_PS_22SQLSpecificExpressible__PS_13SQLExpression_">||(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2ooFTPS_22SQLSpecificExpressible_PS0___PS_13SQLExpression_">||(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Functions.html#/s:F4GRDBoi2ooFTPS_22SQLSpecificExpressible_PS_14SQLExpressible__PS_13SQLExpression_">||(_:_:)</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../../Protocols.html">Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../../Protocols/Cursor.html">Cursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/DatabaseAggregate.html">DatabaseAggregate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/DatabaseReader.html">DatabaseReader</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/DatabaseValueConvertible.html">DatabaseValueConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/DatabaseWriter.html">DatabaseWriter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/FTS5CustomTokenizer.html">FTS5CustomTokenizer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/FTS5Tokenizer.html">FTS5Tokenizer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/FTS5WrapperTokenizer.html">FTS5WrapperTokenizer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/LayoutedRowAdapter.html">LayoutedRowAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/MutablePersistable.html">MutablePersistable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/Persistable.html">Persistable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/Request.html">Request</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/RowAdapter.html">RowAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/RowConvertible.html">RowConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/RowLayout.html">RowLayout</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/SQLCollection.html">SQLCollection</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/SQLExpressible.html">SQLExpressible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/SQLExpression.html">SQLExpression</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/SQLOrderingTerm.html">SQLOrderingTerm</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/SQLSelectable.html">SQLSelectable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/SQLSpecificExpressible.html">SQLSpecificExpressible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/StatementColumnConvertible.html">StatementColumnConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/TableMapping.html">TableMapping</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/TransactionObserver.html">TransactionObserver</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/TypedRequest.html">TypedRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols/VirtualTableModule.html">VirtualTableModule</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Protocols.html#/s:P4GRDB17_OptionalProtocol">_OptionalProtocol</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../../Structs.html">Structs</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../../Structs/AdaptedRequest.html">AdaptedRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/AdaptedTypedRequest.html">AdaptedTypedRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/AnyRequest.html">AnyRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/AnyTypedRequest.html">AnyTypedRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/Column.html">Column</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/ColumnMapping.html">ColumnMapping</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/Configuration.html">Configuration</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/DatabaseDateComponents.html">DatabaseDateComponents</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/DatabaseDateComponents/Format.html">– Format</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/DatabaseError.html">DatabaseError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/DatabaseEvent.html">DatabaseEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/DatabaseEvent/Kind.html">– Kind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/DatabaseMigrator.html">DatabaseMigrator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/DatabasePreUpdateEvent.html">DatabasePreUpdateEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/DatabasePreUpdateEvent/Kind.html">– Kind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/DatabaseValue.html">DatabaseValue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/DatabaseValue/Storage.html">– Storage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/FTS3.html">FTS3</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/FTS3Pattern.html">FTS3Pattern</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/FTS3TokenizerDescriptor.html">FTS3TokenizerDescriptor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/FTS4.html">FTS4</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/FTS5.html">FTS5</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/FTS5Pattern.html">FTS5Pattern</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/FTS5TokenFlags.html">FTS5TokenFlags</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/FTS5Tokenization.html">FTS5Tokenization</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/FTS5TokenizerDescriptor.html">FTS5TokenizerDescriptor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/FetchedRecordsSectionInfo.html">FetchedRecordsSectionInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/ForeignKeyInfo.html">ForeignKeyInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/IndexInfo.html">IndexInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/LayoutedColumnMapping.html">LayoutedColumnMapping</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/PersistenceConflictPolicy.html">PersistenceConflictPolicy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/PersistenceContainer.html">PersistenceContainer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/PrimaryKeyInfo.html">PrimaryKeyInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/QueryInterfaceRequest.html">QueryInterfaceRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/RangeRowAdapter.html">RangeRowAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/ResultCode.html">ResultCode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/RowIndex.html">RowIndex</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/SQLBinaryOperator.html">SQLBinaryOperator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/SQLCollatedExpression.html">SQLCollatedExpression</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/SQLExpressionBinary.html">SQLExpressionBinary</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/SQLExpressionFunction.html">SQLExpressionFunction</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/SQLExpressionLiteral.html">SQLExpressionLiteral</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/SQLExpressionUnary.html">SQLExpressionUnary</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/SQLFunctionName.html">SQLFunctionName</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/SQLRequest.html">SQLRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/SQLUnaryOperator.html">SQLUnaryOperator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/ScopeAdapter.html">ScopeAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/StatementArguments.html">StatementArguments</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Structs/SuffixRowAdapter.html">SuffixRowAdapter</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../../Typealiases.html">Typealiases</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../../Typealiases.html#/s:4GRDB16SQLiteConnection">SQLiteConnection</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Typealiases.html#/s:4GRDB15SQLiteStatement">SQLiteStatement</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Typealiases.html#/s:4GRDB11SQLiteValue">SQLiteValue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Typealiases.html#/s:4GRDB13TraceFunction">TraceFunction</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../../Typealiases.html#/s:E4GRDBSq8_Wrapped">_Wrapped</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../../Associated Types.html">Associated Types</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../../Associated Types.html#/s:P4GRDB12TypedRequest10RowDecoder">RowDecoder</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+        <section>
+          <section class="section">
+            <h1>Kind</h1>
+              <div class="declaration">
+                <div class="language">
+                  <pre class="highlight"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">Kind</span><span class="p">:</span> <span class="kt">Int32</span></code></pre>
+
+                </div>
+              </div>
+            <p>An event kind</p>
+
+          </section>
+          <section class="section task-group-section">
+            <div class="task-group">
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FOV4GRDB13DatabaseEvent4Kind6insertFMS1_S1_"></a>
+                    <a name="//apple_ref/swift/Element/insert" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FOV4GRDB13DatabaseEvent4Kind6insertFMS1_S1_">insert</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>SQLITE_INSERT</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="k">case</span> <span class="n">insert</span> <span class="o">=</span> <span class="mi">18</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v1.3.0/GRDB/Core/Database.swift#L2356">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FOV4GRDB13DatabaseEvent4Kind6deleteFMS1_S1_"></a>
+                    <a name="//apple_ref/swift/Element/delete" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FOV4GRDB13DatabaseEvent4Kind6deleteFMS1_S1_">delete</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>SQLITE_DELETE</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="k">case</span> <span class="n">delete</span> <span class="o">=</span> <span class="mi">9</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v1.3.0/GRDB/Core/Database.swift#L2359">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FOV4GRDB13DatabaseEvent4Kind6updateFMS1_S1_"></a>
+                    <a name="//apple_ref/swift/Element/update" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FOV4GRDB13DatabaseEvent4Kind6updateFMS1_S1_">update</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>SQLITE_UPDATE</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="k">case</span> <span class="n">update</span> <span class="o">=</span> <span class="mi">23</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v1.3.0/GRDB/Core/Database.swift#L2362">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </section>
+        </section>
+        <section id="footer">
+          <p>&copy; 2017 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2017-08-18)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.2</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+        </section>
+      </article>
+    </div>
+  </body>
+</div>
+</html>
