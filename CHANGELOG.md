@@ -16,6 +16,8 @@ Release Notes
     +row[Column("id")]
     ```
 
+- The deprecated `TableMapping.primaryKeyRowComparator` method has been removed.
+
 **API diff**
 
 ```diff
@@ -38,6 +40,11 @@ Release Notes
 +    subscript(_ column: Column) -> DatabaseValueConvertible?
 +    subscript<Value: DatabaseValueConvertible>(_ column: Column) -> Value?
 +    subscript<Value: DatabaseValueConvertible>(_ column: Column) -> Value
+ }
+
+ extension TableMapping {
+-    @available(*, deprecated)
+-    static func primaryKeyRowComparator(_ db: Database) throws -> (Row, Row) -> Bool
  }
 ```
 
