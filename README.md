@@ -1921,21 +1921,35 @@ You can now jump to:
 - [TableMapping Protocol](#tablemapping-protocol)
 - [Persistable Protocol](#persistable-protocol)
 - [Record Class](#record-class)
+- [List of Record Methods](#list-of-record-methods)
 - [The Query Interface](#the-query-interface)
 
 
 ## Record Protocols Overview
 
-**GRDB ships with three record protocols.** Your own types will adopt one or several of them, according to the abilities you want to extend your types with.
+**GRDB ships with three record protocols**. Your own types will adopt one or several of them, according to the abilities you want to extend your types with.
 
-- [RowConvertible](#rowconvertible-protocol) is able to **read**: it grants the ability to decode raw database row:
+- [RowConvertible](#rowconvertible-protocol) is able to **read**: it grants the ability to efficiently decode raw database row.
+    
+    Imagine you want to load points of interests from the `pointOfInterests` database table.
+    
+    One way to do it is to load raw database rows:
     
     ```swift
-    // Without RowConvertible
+    // Raw rows
+    let poiRows = try dbQueue.inDatabase { db in
+        try Row.fetchAll(db, "SELECT * FROM pointOfInterests")
+    }
+    ```
+    
+    The problem is that raw rows are not easy to deal with, and you may prefer using a proper `PointOfInterest` type:
+    
+    ```swift
+    // Dedicated model
     struct PointOfInterest { ... }
     let pois = try dbQueue.inDatabase { db -> [PointOfInterest] in
-        let rows = try Row.fetchCursor(db, "SELECT * FROM pois")
-        return try rows.map { row in
+        let rows = try Row.fetchAll(db, "SELECT * FROM pointOfInterests")
+        return rows.map { row in
             PointOfInterest(
                 id: row["id"],
                 title: row["title"],
@@ -1945,11 +1959,40 @@ You can now jump to:
             )
         }
     }
+    ```
     
-    // With RowConvertible
-    struct PointOfInterest : RowConvertible { ... }
+    This code is verbose, and so you define an `init(row:)` initializer:
+    
+    ```swift
+    // Row initializer
+    struct PointOfInterest {
+        init(row: Row) { ... }
+    }
+    let pois = try dbQueue.inDatabase { db -> [PointOfInterest] in
+        let rows = try Row.fetchAll(db, "SELECT * FROM pointOfInterests")
+        return rows.map { PointOfInterest(row: $0) }
+    }
+    ```
+    
+    Now you notice that this code may use a lot of memory when you have many rows: a full array of database rows is created in order to build an array of point of interests. Furthermore, rows that have copied from the database have lost the ability to directly load values from SQLite: that's inefficient. You thus use a [database cursor](#cursors), since they are both lazy and efficient:
+    
+    ```swift
+    // Cursor for efficiency
+    let pois = try dbQueue.inDatabase { db -> [PointOfInterest] in
+        let rowCursor = try Row.fetchCursor(db, "SELECT * FROM pointOfInterests")
+        let poiCursor = rowCursor.map { PointOfInterest(row: $0) }
+        return try Array(poiCursor)
+    }
+    ```
+    
+    That's better. And that's exactly what RowConvertible does, in a single line:
+    
+    ```swift
+    struct PointOfInterest : RowConvertible {
+        init(row: Row) { ... }
+    }
     let pois = try dbQueue.inDatabase { db in
-        try PointOfInterest.fetchAll(db, "SELECT * FROM pois")
+        try PointOfInterest.fetchAll(db, "SELECT * FROM pointOfInterests")
     }
     ```
     
@@ -1969,7 +2012,7 @@ You can now jump to:
     struct PointOfInterest : TableMapping, RowConvertible { ... }
     try dbQueue.inDatabase { db in
         let pois = try PointOfInterest.order(Column("title")).fetchAll(db)
-        let paris = PointOfInterest.fetchOne(key: 1)
+        let paris = try PointOfInterest.fetchOne(key: 1)
     }
     ```
 
@@ -1982,7 +2025,7 @@ You can now jump to:
         try PointOfInterest(...).insert(db)
     }
     ```
-    
+
 
 ## RowConvertible Protocol
 
@@ -2360,7 +2403,7 @@ try person.insert(db)
 
 **Record** is a class that is designed to be subclassed, and provides the full toolkit in one go: fetching and persistence methods, as well as changes tracking (see the [list of record methods](#list-of-record-methods) for an overview).
 
-Record subclasses inherit their features from the [RowConvertible](#rowconvertible-protocol), [TableMapping](#tablemapping-protocol), and [Persistable](#persistable-protocol) protocols. Check their documentation for more information.
+Record subclasses inherit their features from the [RowConvertible, TableMapping, and Persistable](#record-protocols-overview) protocols. Check their documentation for more information.
 
 For example, here is a fully functional Record subclass:
 
@@ -2576,10 +2619,10 @@ This is the list of record methods, along with their required protocols. The [Re
 | `record.exists(db)` | [Persistable](#persistable-protocol) | |
 | **Deleting Records** | | |
 | `try record.delete(db)` | [Persistable](#persistable-protocol) | |
-| `try Type.deleteOne(db, key: ...)` | [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
-| `try Type.deleteAll(db)` | [TableMapping](#tablemapping-protocol) | |
-| `try Type.deleteAll(db, keys: ...)` | [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
-| `try Type.filter(...).deleteAll(db)` | [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
+| `try Type.deleteOne(db, key: ...)` | [Persistable](#persistable-protocol) | <a href="#list-of-record-methods-1">¹</a> |
+| `try Type.deleteAll(db)` | [Persistable](#persistable-protocol) | |
+| `try Type.deleteAll(db, keys: ...)` | [Persistable](#persistable-protocol) | <a href="#list-of-record-methods-1">¹</a> |
+| `try Type.filter(...).deleteAll(db)` | [Persistable](#persistable-protocol) | <a href="#list-of-record-methods-2">²</a> |
 | **Counting Records** | | |
 | `Type.fetchCount(db)` | [TableMapping](#tablemapping-protocol) | |
 | `Type.filter(...).fetchCount(db)` | [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
@@ -2624,14 +2667,14 @@ let count = try request.fetchCount(db)  // Int
 <a name="list-of-record-methods-3">³</a> See [SQL queries](#fetch-queries):
 
 ```swift
-let persons = try Person.fetchAll("SELECT * FROM persons WHERE id = ?", arguments: [1]) // [Person]
+let person = try Person.fetchOne("SELECT * FROM persons WHERE id = ?", arguments: [1]) // Person?
 ```
 
 <a name="list-of-record-methods-4">⁴</a> See [Prepared Statements](#prepared-statements):
 
 ```swift
 let statement = try db.makeSelectStatement("SELECT * FROM persons WHERE id = ?")
-let persons = try Person.fetchAll(statement, arguments: [1])  // [Person]
+let person = try Person.fetchOne(statement, arguments: [1])  // Person?
 ```
 
 
