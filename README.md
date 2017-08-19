@@ -3394,6 +3394,8 @@ let request = Player.filter(emailColumn == nil)
 try request.deleteAll(db)
 ```
 
+> :point_up: **Note** Deletion methods are only available for records that adopts the [Persistable](#persistable-protocol) protocol.
+
 **Deleting records according to their primary key** is also quite common. It has a shortcut which accepts any single-column primary key:
 
 ```swift
