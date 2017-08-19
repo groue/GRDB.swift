@@ -1,14 +1,7 @@
-//
-//  InterfaceController.swift
-//  GRDBDemoWatchOS Extension
-//
-//  Created by Gwendal Roué on 03/04/2017.
-//  Copyright © 2017 Gwendal Roué. All rights reserved.
-//
-
 import WatchKit
 import Foundation
 import GRDB
+import SQLite3
 
 class InterfaceController: WKInterfaceController {
     

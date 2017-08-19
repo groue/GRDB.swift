@@ -1,9 +1,5 @@
 import Foundation
 
-#if SWIFT_PACKAGE
-    import CSQLite
-#endif
-
 // MARK: - Public
 
 extension String {

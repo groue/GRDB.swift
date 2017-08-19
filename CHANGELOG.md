@@ -33,6 +33,8 @@ Release Notes
 
 - All `TableMapping` methods that would modify the database have moved to `MutablePersistable`, now the only record protocol that is able to write.
 
+- WatchOS extension targets no longer need `libsqlite3.tbd` to be added to the *Linked Frameworks and Libraries* section of their *General* tab.
+
 
 **API diff**
 

@@ -1,11 +1,3 @@
-//
-//  ExtensionDelegate.swift
-//  GRDBDemoWatchOS Extension
-//
-//  Created by Gwendal Roué on 03/04/2017.
-//  Copyright © 2017 Gwendal Roué. All rights reserved.
-//
-
 import WatchKit
 
 class ExtensionDelegate: NSObject, WKExtensionDelegate {

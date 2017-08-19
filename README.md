@@ -7,11 +7,7 @@ GRDB.swift [![Swift](https://img.shields.io/badge/swift-3.1-orange.svg?style=fla
 
 **Requirements**: iOS 8.0+ / OSX 10.9+ / watchOS 2.0+ &bull; Xcode 8.3+ &bull; Swift 3.1
 
-- Swift 2.2: use [version 0.80.2](https://github.com/groue/GRDB.swift/tree/v0.80.2)
-- Swift 2.3: use [version 0.81.2](https://github.com/groue/GRDB.swift/tree/v0.81.2)
-- Swift 3.0: use [version 1.0](https://github.com/groue/GRDB.swift/tree/v1.0)
-- Xcode 9 beta, Swift 3.2: use the master branch
-- Xcode 9 beta, Swift 4: use the [Swift4](https://github.com/groue/GRDB.swift/tree/Swift4) branch
+**Other Swift versions**: Swift 2.2 / Xcode 7.3 [v0.80.2](https://github.com/groue/GRDB.swift/tree/v0.80.2) &bull; Swift 2.3 / Xcode 8.0: [v0.81.2](https://github.com/groue/GRDB.swift/tree/v0.81.2) &bull; Swift 3.0 / Xcode 8.0: [v1.0](https://github.com/groue/GRDB.swift/tree/v1.0) &bull; Swift 3.2 / Xcode 9 beta: [v1.3](https://github.com/groue/GRDB.swift/tree/v1.3.0) &bull; Swift 4 / Xcode 9 beta: [Swift4 branch](https://github.com/groue/GRDB.swift/tree/Swift4)
 
 Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
@@ -282,8 +278,6 @@ Any pull request that has the `make test_CarthageBuild` command successfully com
 3. Add the `GRDBOSX`, `GRDBiOS`, or `GRDBWatchOS` target in the **Target Dependencies** section of the **Build Phases** tab of your application target (extension target for WatchOS).
 
 4. Add the `GRDB.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your application target (extension target for WatchOS).
-
-5. (WatchOS only). Add `libsqlite3.tbd` to the **Linked Frameworks and Libraries** section of the **General** tab of your extension target.
 
 See [GRDBDemoiOS](DemoApps/GRDBDemoiOS/GRDBDemoiOS) for an example of such integration.
 
@@ -1684,15 +1678,14 @@ row.scoped(on: "remainder") // <Row c:2 d:3>
 
 **If not all SQLite APIs are exposed in GRDB, you can still use the [SQLite C Interface](https://www.sqlite.org/c3ref/intro.html) and call [SQLite C functions](https://www.sqlite.org/c3ref/funclist.html).**
 
-```swift
-let sqliteVersion = String(cString: sqlite3_libversion())
-```
-
-Those functions are embedded right into the GRDB framework, unless you use GRDB through the Swift Package Manager. In this case, you need to import the `CSQLite` module:
+Those functions are embedded right into the GRDBCustom and GRCBCipher modules. For the "regular" GRDB framework: you'll need to import `SQLite3`, or `CSQLite`, depending on whether you use the Swift Package Manager or not:
 
 ```swift
-// When you use the Swift Package Manager
-import CSQLite
+#if SWIFT_PACKAGE
+    import CSQLite // For Swift Package Manager
+#else
+    import SQLite3 // Otherwise
+#endif
 
 let sqliteVersion = String(cString: sqlite3_libversion())
 ```

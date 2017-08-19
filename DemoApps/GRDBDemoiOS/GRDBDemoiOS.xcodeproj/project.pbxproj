@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5657C36E1E926B05008402E8 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 5657C36D1E926B05008402E8 /* libsqlite3.tbd */; };
 		568E5FC31E926430002582E0 /* Interface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 568E5FC11E926430002582E0 /* Interface.storyboard */; };
 		568E5FC51E926430002582E0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 568E5FC41E926430002582E0 /* Assets.xcassets */; };
 		568E5FCC1E926430002582E0 /* GRDBDemoWatchOS Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 568E5FCB1E926430002582E0 /* GRDBDemoWatchOS Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -243,7 +242,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		5657C36D1E926B05008402E8 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = Platforms/WatchOS.platform/Developer/SDKs/WatchOS3.2.sdk/usr/lib/libsqlite3.tbd; sourceTree = DEVELOPER_DIR; };
 		568E5FBF1E926430002582E0 /* GRDBDemoWatchOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GRDBDemoWatchOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		568E5FC21E926430002582E0 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Interface.storyboard; sourceTree = "<group>"; };
 		568E5FC41E926430002582E0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -273,7 +271,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5657C36E1E926B05008402E8 /* libsqlite3.tbd in Frameworks */,
 				568E5FE41E926547002582E0 /* GRDB.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -289,14 +286,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		5657C36C1E926B05008402E8 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				5657C36D1E926B05008402E8 /* libsqlite3.tbd */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 		568E5FC01E926430002582E0 /* GRDBDemoWatchOS */ = {
 			isa = PBXGroup;
 			children = (
@@ -326,7 +315,6 @@
 				568E5FC01E926430002582E0 /* GRDBDemoWatchOS */,
 				568E5FCF1E926430002582E0 /* GRDBDemoWatchOS Extension */,
 				56B036041E8D9EBE003B6DA4 /* Products */,
-				5657C36C1E926B05008402E8 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};

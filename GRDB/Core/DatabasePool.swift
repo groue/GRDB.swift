@@ -1,11 +1,11 @@
 import Foundation
-
-#if os(iOS)
-    import UIKit
-#endif
-
 #if SWIFT_PACKAGE
     import CSQLite
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+    import SQLite3
+#endif
+#if os(iOS)
+    import UIKit
 #endif
 
 /// A DatabasePool grants concurrent accesses to an SQLite database.
