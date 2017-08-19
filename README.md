@@ -1565,7 +1565,7 @@ for row in try Row.fetchAll(db, "PRAGMA table_info('persons')") {
 }
 ```
 
-GRDB provides five high-level methods as well:
+GRDB provides high-level methods as well:
 
 ```swift
 try db.tableExists("persons")     // Bool, true if the table exists
@@ -1574,42 +1574,6 @@ try db.indexes(on: "persons")     // [IndexInfo], the indexes defined on the tab
 try db.table("persons", hasUniqueKey: ["email"]) // Bool, true if column(s) is a unique key
 try db.foreignKeys(on: "persons") // [ForeignKeyInfo], the foreign keys defined on the table
 try db.primaryKey("persons")      // PrimaryKeyInfo?
-```
-
-Primary key is nil when table has no primary key:
-
-```swift
-// CREATE TABLE items (name TEXT)
-let itemPk = try db.primaryKey("items") // nil
-```
-
-Primary keys have one or several columns. Single-column primary keys may contain the auto-incremented [row id](https://www.sqlite.org/autoinc.html):
-
-```swift
-// CREATE TABLE persons (
-//   id INTEGER PRIMARY KEY,
-//   name TEXT
-// )
-let personPk = try db.primaryKey("persons")!
-personPk.columns     // ["id"]
-personPk.rowIDColumn // "id"
-
-// CREATE TABLE countries (
-//   isoCode TEXT NOT NULL PRIMARY KEY
-//   name TEXT
-// )
-let countryPk = db.primaryKey("countries")!
-countryPk.columns     // ["isoCode"]
-countryPk.rowIDColumn // nil
-
-// CREATE TABLE citizenships (
-//   personID INTEGER NOT NULL REFERENCES persons(id)
-//   countryIsoCode TEXT NOT NULL REFERENCES countries(isoCode)
-//   PRIMARY KEY (personID, countryIsoCode)
-// )
-let citizenshipsPk = db.primaryKey("citizenships")!
-citizenshipsPk.columns     // ["personID", "countryIsoCode"]
-citizenshipsPk.rowIDColumn // nil
 ```
 
 
