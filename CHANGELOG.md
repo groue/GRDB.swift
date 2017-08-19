@@ -1,11 +1,89 @@
 Release Notes
 =============
 
-## Swift 4
+## Next Version
+
+**GRDB 2.0 brings support for Swift 4.** Notable changes are:
+
+- **Use subscript notation when extracting row values** ([documentation](https://github.com/groue/GRDB.swift#column-values)):
+    
+    ```swift
+    let name: String = row[0]              // 0 is the leftmost column
+    let name: String = row["name"]         // Leftmost matching column - lookup is case-insensitive
+    let name: String = row[Column("name")] // Using query interface's Column
+    ```
+
+- **Support for the `Codable` protocol** ([documentation](https://github.com/groue/GRDB.swift#codable-records))
+    
+    Record types that adopt the standard `Codable` protocol are granted with automatic adoption of GRDB record protocols. This means that you no longer have to write boilerplate code :tada::
+    
+    ```swift
+    struct Player : RowConvertible, Persistable, Codable {
+        static let databaseTableName = "players"
+        let name: String
+        let score: Int
+    }
+    
+    // Automatically derived:
+    //
+    // extension Player {
+    //     init(row: Row) {
+    //         name = row["name"]
+    //         score = row["score"]
+    //     }
+    //     
+    //     func encode(to container: inout PersistenceContainer) {
+    //         container["name"] = name
+    //         container["score"] = score
+    //     }
+    // }
+    
+    try dbQueue.inDatabase { db in
+        let arthur = Player(name: "Arthur", score: 100)
+        try arthur.insert(db)
+        let players = try Player.fetchAll(db) // [Players]
+    }
+    ```
+
+- **Record protocols have more precise semantics**: RowConvertible *reads database rows*, TableMapping *builds SQL requests*, and Persistable *writes* ([documentation](https://github.com/groue/GRDB.swift#record-protocols-overview)).
+    
+    This means that with GRDB 2.0, being able to write `Player.fetchAll(db)` does not imply that `Player.deleteAll(db)` is available: you have a better control on the abilities of your record types.
+
+- **Records can now specify the columns they feed from** ([documentation](https://github.com/groue/GRDB.swift#columns-selected-by-a-request)).
+    
+    In previous versions of GRDB, `SELECT *` was the norm. GRDB 2.0 introduces `databaseSelection`, which allows any type to define its preferred set of columns:
+    
+    ```swift
+    struct Player : RowConvertible, TableMapping {
+        let id: Int64
+        let name: String
+        
+        enum Columns {
+            static let id = Column("id")
+            static let name = Column("name")
+        }
+        
+        init(row: Row) {
+            id = row[Columns.id]
+            name = row[Columns.name]
+        }
+        
+        static let databaseTableName = "players"
+        static let databaseSelection: [SQLSelectable] = [Columns.id, Columns.name]
+    }
+    
+    // SELECT id, name FROM players
+    let players = Player.fetchAll(db)
+    ```
+
 
 **Breaking Changes**
 
-- `Row.value` method has been replaced with subscript notation:
+- Requirements have changed: Xcode 9+ / Swift 4
+
+- WatchOS extension targets no longer need `libsqlite3.tbd` to be added to the *Linked Frameworks and Libraries* section of their *General* tab.
+
+- The `Row.value` method has been replaced with subscript notation:
 
     ```diff
     -row.value(atIndex: 0)
@@ -16,7 +94,7 @@ Release Notes
     +row[Column("id")]
     ```
 
-- The deprecated `TableMapping.primaryKeyRowComparator` method has been removed.
+- All `TableMapping` methods that would modify the database have moved to `MutablePersistable`, now the only record protocol that is able to write.
 
 - The `TableMapping.selectsRowID` property has been replaced with `TableMapping.databaseSelection`.
     
@@ -29,11 +107,9 @@ Release Notes
      }
     ```
 
+- The deprecated `TableMapping.primaryKeyRowComparator` method has been removed.
+
 - `RowConvertible.fetchCursor(_:keys:)` returns a non-optional cursor.
-
-- All `TableMapping` methods that would modify the database have moved to `MutablePersistable`, now the only record protocol that is able to write.
-
-- WatchOS extension targets no longer need `libsqlite3.tbd` to be added to the *Linked Frameworks and Libraries* section of their *General* tab.
 
 
 **API diff**
