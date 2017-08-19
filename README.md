@@ -82,7 +82,7 @@ let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
 ```swift
 try dbQueue.inDatabase { db in
     try db.execute("""
-        CREATE TABLE pointOfInterests (
+        CREATE TABLE places (
           id INTEGER PRIMARY KEY,
           title TEXT NOT NULL,
           favorite BOOLEAN NOT NULL DEFAULT 0,
@@ -91,7 +91,7 @@ try dbQueue.inDatabase { db in
         """)
 
     try db.execute("""
-        INSERT INTO pointOfInterests (title, favorite, latitude, longitude)
+        INSERT INTO places (title, favorite, latitude, longitude)
         VALUES (?, ?, ?, ?)
         """, arguments: ["Paris", true, 48.85341, 2.3488])
     
@@ -103,7 +103,7 @@ try dbQueue.inDatabase { db in
 
 ```swift
 try dbQueue.inDatabase { db in
-    let rows = try Row.fetchCursor(db, "SELECT * FROM pointOfInterests")
+    let rows = try Row.fetchCursor(db, "SELECT * FROM places")
     while let row = try rows.next() {
         let title: String = row["title"]
         let isFavorite: Bool = row["favorite"]
@@ -112,31 +112,31 @@ try dbQueue.inDatabase { db in
             longitude: row["longitude"])
     }
 
-    let poiCount = try Int.fetchOne(db, "SELECT COUNT(*) FROM pointOfInterests")! // Int
-    let poiTitles = try String.fetchAll(db, "SELECT title FROM pointOfInterests") // [String]
+    let placeCount = try Int.fetchOne(db, "SELECT COUNT(*) FROM places")! // Int
+    let placeTitles = try String.fetchAll(db, "SELECT title FROM places") // [String]
 }
 
 // Extraction
-let poiCount = try dbQueue.inDatabase { db in
-    try Int.fetchOne(db, "SELECT COUNT(*) FROM pointOfInterests")!
+let placeCount = try dbQueue.inDatabase { db in
+    try Int.fetchOne(db, "SELECT COUNT(*) FROM places")!
 }
 ```
 
 Insert and fetch [records](#records):
 
 ```swift
-struct PointOfInterest {
+struct Place {
     var id: Int64?
     var title: String
     var isFavorite: Bool
     var coordinate: CLLocationCoordinate2D
 }
 
-// snip: turn PointOfInterest into a "record" by adopting the protocols that
+// snip: turn Place into a "record" by adopting the protocols that
 // provide fetching and persistence methods.
 
 try dbQueue.inDatabase { db in
-    var berlin = PointOfInterest(
+    var berlin = Place(
         id: nil,
         title: "Berlin",
         isFavorite: false,
@@ -148,8 +148,8 @@ try dbQueue.inDatabase { db in
     berlin.isFavorite = true
     try berlin.update(db)
     
-    // Fetch [PointOfInterest] from SQL
-    let pois = try PointOfInterest.fetchAll(db, "SELECT * FROM pointOfInterests")
+    // Fetch [Place] from SQL
+    let places = try Place.fetchAll(db, "SELECT * FROM places")
 }
 ```
 
@@ -157,7 +157,7 @@ Avoid SQL with the [query interface](#the-query-interface):
 
 ```swift
 try dbQueue.inDatabase { db in
-    try db.create(table: "pointOfInterests") { t in
+    try db.create(table: "places") { t in
         t.column("id", .integer).primaryKey()
         t.column("title", .text).notNull()
         t.column("favorite", .boolean).notNull().defaults(to: false)
@@ -165,16 +165,16 @@ try dbQueue.inDatabase { db in
         t.column("latitude", .double).notNull()
     }
     
-    // PointOfInterest?
-    let paris = try PointOfInterest.fetchOne(db, key: 1)
+    // Place?
+    let paris = try Place.fetchOne(db, key: 1)
     
-    // PointOfInterest?
+    // Place?
     let titleColumn = Column("title")
-    let berlin = try PointOfInterest.filter(titleColumn == "Berlin").fetchOne(db)
+    let berlin = try Place.filter(titleColumn == "Berlin").fetchOne(db)
     
-    // [PointOfInterest]
+    // [Place]
     let favoriteColumn = Column("favorite")
-    let favoritePois = try PointOfInterest
+    let favoritePlaces = try Place
         .filter(favoriteColumn)
         .order(titleColumn)
         .fetchAll(db)
@@ -332,27 +332,27 @@ SQLite creates the database file if it does not already exist. The connection is
 ```swift
 // Execute database statements:
 try dbQueue.inDatabase { db in
-    try db.create(table: "pointOfInterests") { ... }
-    try PointOfInterest(...).insert(db)
+    try db.create(table: "places") { ... }
+    try Place(...).insert(db)
 }
 
 // Wrap database statements in a transaction:
 try dbQueue.inTransaction { db in
-    if let poi = try PointOfInterest.fetchOne(db, key: 1) {
-        try poi.delete(db)
+    if let place = try Place.fetchOne(db, key: 1) {
+        try place.delete(db)
     }
     return .commit
 }
 
 // Read values:
 try dbQueue.inDatabase { db in
-    let pois = try PointOfInterest.fetchAll(db)
-    let poiCount = try PointOfInterest.fetchCount(db)
+    let places = try Place.fetchAll(db)
+    let placeCount = try Place.fetchCount(db)
 }
 
 // Extract a value from the database:
-let poiCount = try dbQueue.inDatabase { db in
-    try PointOfInterest.fetchCount(db)
+let placeCount = try dbQueue.inDatabase { db in
+    try Place.fetchCount(db)
 }
 ```
 
@@ -398,27 +398,27 @@ SQLite creates the database file if it does not already exist. The connection is
 ```swift
 // Execute database statements:
 try dbPool.write { db in
-    try db.create(table: "pointOfInterests") { ... }
-    try PointOfInterest(...).insert(db)
+    try db.create(table: "places") { ... }
+    try Place(...).insert(db)
 }
 
 // Wrap database statements in a transaction:
 try dbPool.writeInTransaction { db in
-    if let poi = try PointOfInterest.fetchOne(db, key: 1) {
-        try poi.delete(db)
+    if let place = try Place.fetchOne(db, key: 1) {
+        try place.delete(db)
     }
     return .commit
 }
 
 // Read values:
 try dbPool.read { db in
-    let pois = try PointOfInterest.fetchAll(db)
-    let poiCount = try PointOfInterest.fetchCount(db)
+    let places = try Place.fetchAll(db)
+    let placeCount = try Place.fetchCount(db)
 }
 
 // Extract a value from the database:
-let poiCount = try dbPool.read { db in
-    try PointOfInterest.fetchCount(db)
+let placeCount = try dbPool.read { db in
+    try Place.fetchCount(db)
 }
 ```
 
@@ -1781,9 +1781,9 @@ Records
 
 ```swift
 try dbQueue.inDatabase { db in
-    if let poi = try PointOfInterest.fetchOne(db, key: 1) {
-        poi.isFavorite = true
-        try poi.update(db)
+    if let place = try Place.fetchOne(db, key: 1) {
+        place.isFavorite = true
+        try place.update(db)
     }
 }
 ```
@@ -1932,26 +1932,26 @@ You can now jump to:
 
 - [RowConvertible](#rowconvertible-protocol) is able to **read**: it grants the ability to efficiently decode raw database row.
     
-    Imagine you want to load points of interests from the `pointOfInterests` database table.
+    Imagine you want to load places from the `places` database table.
     
     One way to do it is to load raw database rows:
     
     ```swift
     // Raw rows
-    let poiRows = try dbQueue.inDatabase { db in
-        try Row.fetchAll(db, "SELECT * FROM pointOfInterests")
+    let placeRows = try dbQueue.inDatabase { db in
+        try Row.fetchAll(db, "SELECT * FROM places")
     }
     ```
     
-    The problem is that raw rows are not easy to deal with, and you may prefer using a proper `PointOfInterest` type:
+    The problem is that raw rows are not easy to deal with, and you may prefer using a proper `Place` type:
     
     ```swift
     // Dedicated model
-    struct PointOfInterest { ... }
-    let pois = try dbQueue.inDatabase { db -> [PointOfInterest] in
-        let rows = try Row.fetchAll(db, "SELECT * FROM pointOfInterests")
+    struct Place { ... }
+    let places = try dbQueue.inDatabase { db -> [Place] in
+        let rows = try Row.fetchAll(db, "SELECT * FROM places")
         return rows.map { row in
-            PointOfInterest(
+            Place(
                 id: row["id"],
                 title: row["title"],
                 coordinate: CLLocationCoordinate2D(
@@ -1966,34 +1966,34 @@ You can now jump to:
     
     ```swift
     // Row initializer
-    struct PointOfInterest {
+    struct Place {
         init(row: Row) { ... }
     }
-    let pois = try dbQueue.inDatabase { db -> [PointOfInterest] in
-        let rows = try Row.fetchAll(db, "SELECT * FROM pointOfInterests")
-        return rows.map { PointOfInterest(row: $0) }
+    let places = try dbQueue.inDatabase { db -> [Place] in
+        let rows = try Row.fetchAll(db, "SELECT * FROM places")
+        return rows.map { Place(row: $0) }
     }
     ```
     
-    Now you notice that this code may use a lot of memory when you have many rows: a full array of database rows is created in order to build an array of point of interests. Furthermore, rows that have copied from the database have lost the ability to directly load values from SQLite: that's inefficient. You thus use a [database cursor](#cursors), since they are both lazy and efficient:
+    Now you notice that this code may use a lot of memory when you have many rows: a full array of database rows is created in order to build an array of places. Furthermore, rows that have copied from the database have lost the ability to directly load values from SQLite: that's inefficient. You thus use a [database cursor](#cursors), since they are both lazy and efficient:
     
     ```swift
     // Cursor for efficiency
-    let pois = try dbQueue.inDatabase { db -> [PointOfInterest] in
-        let rowCursor = try Row.fetchCursor(db, "SELECT * FROM pointOfInterests")
-        let poiCursor = rowCursor.map { PointOfInterest(row: $0) }
-        return try Array(poiCursor)
+    let places = try dbQueue.inDatabase { db -> [Place] in
+        let rowCursor = try Row.fetchCursor(db, "SELECT * FROM places")
+        let placeCursor = rowCursor.map { Place(row: $0) }
+        return try Array(placeCursor)
     }
     ```
     
     That's better. And that's exactly what RowConvertible does, in a single line:
     
     ```swift
-    struct PointOfInterest : RowConvertible {
+    struct Place : RowConvertible {
         init(row: Row) { ... }
     }
-    let pois = try dbQueue.inDatabase { db in
-        try PointOfInterest.fetchAll(db, "SELECT * FROM pointOfInterests")
+    let places = try dbQueue.inDatabase { db in
+        try Place.fetchAll(db, "SELECT * FROM places")
     }
     ```
     
@@ -2002,28 +2002,28 @@ You can now jump to:
 - [TableMapping](#tablemapping-protocol) is able to **build requests without SQL**:
     
     ```swift
-    struct PointOfInterest : TableMapping { ... }
-    // SELECT * FROM pointOfInterests ORDER BY title
-    let request = PointOfInterest.order(Column("title"))
+    struct Place : TableMapping { ... }
+    // SELECT * FROM places ORDER BY title
+    let request = Place.order(Column("title"))
     ```
     
     When a type adopts both TableMapping and RowConvertible, it can load from those requests:
     
     ```swift
-    struct PointOfInterest : TableMapping, RowConvertible { ... }
+    struct Place : TableMapping, RowConvertible { ... }
     try dbQueue.inDatabase { db in
-        let pois = try PointOfInterest.order(Column("title")).fetchAll(db)
-        let paris = try PointOfInterest.fetchOne(key: 1)
+        let places = try Place.order(Column("title")).fetchAll(db)
+        let paris = try Place.fetchOne(key: 1)
     }
     ```
 
 - [Persistable](#persistable-protocol) is able to **write**: it can create, update, and delete rows in the database:
     
     ```swift
-    struct PointOfInterest : Persistable { ... }
+    struct Place : Persistable { ... }
     try dbQueue.inDatabase { db in
-        try PointOfInterest.delete(db, key: 1)
-        try PointOfInterest(...).insert(db)
+        try Place.delete(db, key: 1)
+        try Place(...).insert(db)
     }
     ```
 
@@ -2042,13 +2042,13 @@ protocol RowConvertible {
 **To use RowConvertible**, subclass the [Record](#record-class) class, or adopt it explicitely. For example:
 
 ```swift
-struct PointOfInterest {
+struct Place {
     var id: Int64?
     var title: String
     var coordinate: CLLocationCoordinate2D
 }
 
-extension PointOfInterest : RowConvertible {
+extension Place : RowConvertible {
     init(row: Row) {
         id = row["id"]
         title = row["title"]
@@ -2062,7 +2062,7 @@ extension PointOfInterest : RowConvertible {
 Rows also accept keys of type `Column`:
 
 ```swift
-extension PointOfInterest : RowConvertible {
+extension Place : RowConvertible {
     enum Columns {
         static let id = Column("id")
         static let title = Column("title")
@@ -2089,9 +2089,9 @@ See [column values](#column-values) for more information about the `row[]` subsc
 RowConvertible allows adopting types to be fetched from SQL queries:
 
 ```swift
-try PointOfInterest.fetchCursor(db, "SELECT ...", arguments:...) // DatabaseCursor<PointOfInterest>
-try PointOfInterest.fetchAll(db, "SELECT ...", arguments:...)    // [PointOfInterest]
-try PointOfInterest.fetchOne(db, "SELECT ...", arguments:...)    // PointOfInterest?
+try Place.fetchCursor(db, "SELECT ...", arguments:...) // DatabaseCursor<Place>
+try Place.fetchAll(db, "SELECT ...", arguments:...)    // [Place]
+try Place.fetchOne(db, "SELECT ...", arguments:...)    // Place?
 ```
 
 See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll` and `fetchOne` methods. See [StatementArguments](http://groue.github.io/GRDB.swift/docs/1.3/Structs/StatementArguments.html) for more information about the query arguments.
@@ -2113,16 +2113,16 @@ The `databaseTableName` type property is the name of a database table. `database
 **To use TableMapping**, subclass the [Record](#record-class) class, or adopt it explicitely. For example:
 
 ```swift
-extension PointOfInterest : TableMapping {
-    static let databaseTableName = "pointOfInterests"
+extension Place : TableMapping {
+    static let databaseTableName = "places"
 }
 ```
 
 Adopting types can be fetched without SQL, using the [query interface](#the-query-interface):
 
 ```swift
-// SELECT * FROM pointOfInterests WHERE name = 'Paris'
-let paris = try PointOfInterest.filter(nameColumn == "Paris").fetchOne(db)
+// SELECT * FROM places WHERE name = 'Paris'
+let paris = try Place.filter(nameColumn == "Paris").fetchOne(db)
 ```
 
 TableMapping can also fetch records by primary key:
@@ -2192,7 +2192,7 @@ The optional `didInsert` method lets the adopting type store its rowID after suc
 **To use those protocols**, subclass the [Record](#record-class) class, or adopt one of them explicitely. For example:
 
 ```swift
-extension PointOfInterest : MutablePersistable {
+extension Place : MutablePersistable {
     
     /// The values persisted in the database
     func encode(to container: inout PersistenceContainer) {
@@ -2208,7 +2208,7 @@ extension PointOfInterest : MutablePersistable {
     }
 }
 
-var paris = PointOfInterest(
+var paris = Place(
     id: nil,
     title: "Paris",
     coordinate: CLLocationCoordinate2D(latitude: 48.8534100, longitude: 2.3488000))
@@ -2220,7 +2220,7 @@ paris.id   // some value
 Persistence containers also accept keys of type `Column`:
 
 ```swift
-extension PointOfInterest : MutablePersistable {
+extension Place : MutablePersistable {
     enum Columns {
         static let id = Column("id")
         static let title = Column("title")
@@ -2244,17 +2244,17 @@ extension PointOfInterest : MutablePersistable {
 
 ```swift
 // Instance methods
-try pointOfInterest.insert(db)               // INSERT
-try pointOfInterest.update(db)               // UPDATE
-try pointOfInterest.update(db, columns: ...) // UPDATE
-try pointOfInterest.save(db)                 // Inserts or updates
-try pointOfInterest.delete(db)               // DELETE
-pointOfInterest.exists(db)
+try place.insert(db)               // INSERT
+try place.update(db)               // UPDATE
+try place.update(db, columns: ...) // UPDATE
+try place.save(db)                 // Inserts or updates
+try place.delete(db)               // DELETE
+place.exists(db)
 
 // Type methods
-PointOfInterest.deleteAll(db)                // DELETE
-PointOfInterest.deleteAll(db, keys:...)      // DELETE
-PointOfInterest.deleteOne(db, key:...)       // DELETE
+Place.deleteAll(db)                // DELETE
+Place.deleteAll(db, keys:...)      // DELETE
+Place.deleteOne(db, key:...)       // DELETE
 ```
 
 - `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling) whenever an SQLite integrity check fails.
@@ -2409,14 +2409,14 @@ Record subclasses inherit their features from the [RowConvertible, TableMapping,
 For example, here is a fully functional Record subclass:
 
 ```swift
-class PointOfInterest : Record {
+class Place : Record {
     var id: Int64?
     var title: String
     var coordinate: CLLocationCoordinate2D
     
     /// The table name
     override class var databaseTableName: String {
-        return "pointOfInterests"
+        return "places"
     }
     
     /// Initialize from a database row
@@ -2778,14 +2778,14 @@ Once granted with a [database connection](#database-connections), you can setup 
 ### Create Tables
 
 ```swift
-// CREATE TABLE pointOfInterests (
+// CREATE TABLE places (
 //   id INTEGER PRIMARY KEY,
 //   title TEXT,
 //   favorite BOOLEAN NOT NULL DEFAULT 0,
 //   latitude DOUBLE NOT NULL,
 //   longitude DOUBLE NOT NULL
 // )
-try db.create(table: "pointOfInterests") { t in
+try db.create(table: "places") { t in
     t.column("id", .integer).primaryKey()
     t.column("title", .text)
     t.column("favorite", .boolean).notNull().defaults(to: false)
@@ -5539,15 +5539,15 @@ Those guarantees hold as long as you follow three rules:
     // SAFE CONCURRENCY
     try dbPool.read { db in  // or dbQueue.inDatabase { ... }
         // Guaranteed to be equal:
-        let count1 = try PointOfInterest.fetchCount(db)
-        let count2 = try PointOfInterest.fetchCount(db)
+        let count1 = try Place.fetchCount(db)
+        let count2 = try Place.fetchCount(db)
     }
     
     // UNSAFE CONCURRENCY
     // Those two values may be different because some other thread may have
     // modified the database between the two blocks:
-    let count1 = try dbPool.read { db in try PointOfInterest.fetchCount(db) }
-    let count2 = try dbPool.read { db in try PointOfInterest.fetchCount(db) }
+    let count1 = try dbPool.read { db in try Place.fetchCount(db) }
+    let count2 = try dbPool.read { db in try Place.fetchCount(db) }
     ```
     
     In the same vein, when you fetch values that depends on some database updates, group them:
@@ -5556,15 +5556,15 @@ Those guarantees hold as long as you follow three rules:
     // SAFE CONCURRENCY
     try dbPool.write { db in
         // The count is guaranteed to be non-zero
-        try PointOfInterest(...).insert(db)
-        let count = try PointOfInterest.fetchCount(db)
+        try Place(...).insert(db)
+        let count = try Place.fetchCount(db)
     }
     
     // UNSAFE CONCURRENCY
     // The count may be zero because some other thread may have performed
     // a deletion between the two blocks:
-    try dbPool.write { db in try PointOfInterest(...).insert(db) }
-    let count = try dbPool.read { db in try PointOfInterest.fetchCount(db) }
+    try dbPool.write { db in try Place(...).insert(db) }
+    let count = try dbPool.read { db in try Place.fetchCount(db) }
     ```
     
     On that last example, see [Advanced DatabasePool](#advanced-databasepool) if you look after extra performance.
