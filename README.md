@@ -1845,10 +1845,11 @@ let persons = try Person.fetchAll(db, "SELECT ...", arguments: ...) // [Person]
 Add the [TableMapping](#tablemapping-protocol) protocol and you can stop writing SQL:
 
 ```swift
-let persons = try Person.filter(emailColumn != nil).order(nameColumn).fetchAll(db) // [Person]
-let person = try Person.fetchOne(db, key: 1)                                       // Person?
-let person = try Person.fetchOne(db, key: ["email": "arthur@example.com"])         // Person?
-let countries = try Country.fetchAll(db, keys: ["FR", "US"])                       // [Country]
+let spain = try Country.fetchOne(db, key: "ES") // Country?
+let persons = try Person                        // [Person]
+    .filter(Column("email") != nil)
+    .order(Column("name"))
+    .fetchAll(db)
 ```
 
 See [fetching methods](#fetching-methods), and the [query interface](#the-query-interface).
