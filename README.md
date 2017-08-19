@@ -7,7 +7,7 @@ GRDB.swift [![Swift](https://img.shields.io/badge/swift-3.1-orange.svg?style=fla
 
 **Requirements**: iOS 8.0+ / OSX 10.9+ / watchOS 2.0+ &bull; Xcode 8.3+ &bull; Swift 3.1
 
-**Other Swift versions**: Swift 2.2, Xcode 7.3: [v0.80.2](https://github.com/groue/GRDB.swift/tree/v0.80.2) &bull; Swift 2.3, Xcode 8.0: [v0.81.2](https://github.com/groue/GRDB.swift/tree/v0.81.2) &bull; Swift 3.0, Xcode 8.0: [v1.0](https://github.com/groue/GRDB.swift/tree/v1.0) &bull; Swift 3.2, Xcode 9 beta: [v1.3](https://github.com/groue/GRDB.swift/tree/v1.3.0) &bull; Swift 4, Xcode 9 beta: [Swift4 branch](https://github.com/groue/GRDB.swift/tree/Swift4)
+**Other Swift versions**: For Swift 2.2 and Xcode 7.3, use [v0.80.2](https://github.com/groue/GRDB.swift/tree/v0.80.2) &bull; Swift 2.3, Xcode 8.0: [v0.81.2](https://github.com/groue/GRDB.swift/tree/v0.81.2) &bull; Swift 3.0, Xcode 8.0: [v1.0](https://github.com/groue/GRDB.swift/tree/v1.0) &bull; Swift 3.2, Xcode 9 beta: [v1.3](https://github.com/groue/GRDB.swift/tree/v1.3.0) &bull; Swift 4, Xcode 9 beta: [Swift4 branch](https://github.com/groue/GRDB.swift/tree/Swift4)
 
 Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
