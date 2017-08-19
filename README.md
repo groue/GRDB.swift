@@ -495,21 +495,21 @@ For example:
 ```swift
 try dbQueue.inDatabase { db in
     try db.execute("""
-        CREATE TABLE persons (
+        CREATE TABLE players (
             id INTEGER PRIMARY KEY,
             name TEXT NOT NULL,
-            age INT)
+            score INT)
         """)
-
+    
     try db.execute(
-        "INSERT INTO persons (name, age) VALUES (:name, :age)",
-        arguments: ["name": "Barbara", "age": 39])
-
+        "INSERT INTO players (name, score) VALUES (:name, :score)",
+        arguments: ["name": "Barbara", "score": 1000])
+    
     // Join multiple statements with a semicolon:
     try db.execute("""
-        INSERT INTO persons (name, age) VALUES (?, ?);
-        INSERT INTO persons (name, age) VALUES (?, ?)
-        """, arguments: ["Arthur", 36, "Barbara", 39])
+        INSERT INTO players (name, score) VALUES (?, ?);
+        INSERT INTO players (name, score) VALUES (?, ?)
+        """, arguments: ["Arthur", 750, "Barbara", 1000])
 }
 ```
 
@@ -521,17 +521,17 @@ Never ever embed values directly in your SQL strings, and always use arguments i
 
 ```swift
 try db.execute(
-    "INSERT INTO persons (name, age) VALUES (?, ?)",
-    arguments: ["Arthur", 36])
-let personId = db.lastInsertedRowID
+    "INSERT INTO players (name, score) VALUES (?, ?)",
+    arguments: ["Arthur", 1000])
+let playerId = db.lastInsertedRowID
 ```
 
 Don't miss [Records](#records), that provide classic **persistence methods**:
 
 ```swift
-let person = Person(name: "Arthur", age: 36)
-try person.insert(db)
-let personId = person.id
+let player = Player(name: "Arthur", score: 1000)
+try player.insert(db)
+let playerId = player.id
 ```
 
 
@@ -597,7 +597,7 @@ try Type.fetchOne(...)    // Type?
 - `fetchAll` returns an **array**:
     
     ```swift
-    let persons = try Person.fetchAll(db, "SELECT ...") // [Person]
+    let players = try Player.fetchAll(db, "SELECT ...") // [Player]
     ```
 
 - `fetchOne` returns a **single optional value**, and consumes a single database row (if any).
@@ -685,7 +685,7 @@ try dbQueue.inDatabase { db in
 }
 
 let rows = try dbQueue.inDatabase { db in
-    try Row.fetchAll(db, "SELECT * FROM persons")
+    try Row.fetchAll(db, "SELECT * FROM players")
 }
 ```
 
@@ -693,11 +693,11 @@ Arguments are optional arrays or dictionaries that fill the positional `?` and c
 
 ```swift
 let rows = try Row.fetchAll(db,
-    "SELECT * FROM persons WHERE name = ?",
+    "SELECT * FROM players WHERE name = ?",
     arguments: ["Arthur"])
 
 let rows = try Row.fetchAll(db,
-    "SELECT * FROM persons WHERE name = :name",
+    "SELECT * FROM players WHERE name = :name",
     arguments: ["name": "Arthur"])
 ```
 
@@ -908,8 +908,8 @@ try dbQueue.inDatabase { db in
     try Optional<Int>.fetchAll(db, "SELECT ...", arguments: ...)    // [Int?]
 }
 
-let personCount = try dbQueue.inDatabase { db in
-    try Int.fetchOne(db, "SELECT COUNT(*) FROM persons")!
+let playerCount = try dbQueue.inDatabase { db in
+    try Int.fetchOne(db, "SELECT COUNT(*) FROM players")!
 }
 ```
 
@@ -918,7 +918,7 @@ let personCount = try dbQueue.inDatabase { db in
 There are many supported value types (Bool, Int, String, Date, Swift enums, etc.). See [Values](#values) for more information:
 
 ```swift
-let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM persons")! // Int
+let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM players")! // Int
 let urls = try URL.fetchAll(db, "SELECT url FROM links")          // [URL]
 ```
 
@@ -1049,7 +1049,7 @@ Here is the support provided by GRDB for the various [date formats](https://www.
 
 ```swift
 try db.execute(
-    "INSERT INTO persons (creationDate, ...) VALUES (?, ...)",
+    "INSERT INTO players (creationDate, ...) VALUES (?, ...)",
     arguments: [Date(), ...])
 
 let creationDate: Date = row["creationDate"]
@@ -1084,7 +1084,7 @@ components.day = 18
 // Store "1973-09-18"
 let dbComponents = DatabaseDateComponents(components, format: .YMD)
 try db.execute(
-    "INSERT INTO persons (birthDate, ...) VALUES (?, ...)",
+    "INSERT INTO players (birthDate, ...) VALUES (?, ...)",
     arguments: [dbComponents, ...])
 
 // Read "1973-09-18"
@@ -1323,10 +1323,10 @@ There are two kinds of prepared statements: **select statements**, and **update 
 
 ```swift
 try dbQueue.inDatabase { db in
-    let updateSQL = "INSERT INTO persons (name, age) VALUES (:name, :age)"
+    let updateSQL = "INSERT INTO players (name, score) VALUES (:name, :score)"
     let updateStatement = try db.makeUpdateStatement(updateSQL)
     
-    let selectSQL = "SELECT * FROM persons WHERE name = ?"
+    let selectSQL = "SELECT * FROM players WHERE name = ?"
     let selectStatement = try db.makeSelectStatement(selectSQL)
 }
 ```
@@ -1334,7 +1334,7 @@ try dbQueue.inDatabase { db in
 The `?` and colon-prefixed keys like `:name` in the SQL query are the statement arguments. You set them with arrays or dictionaries (arguments are actually of type [StatementArguments](http://groue.github.io/GRDB.swift/docs/1.3/Structs/StatementArguments.html), which happens to adopt the ExpressibleByArrayLiteral and ExpressibleByDictionaryLiteral protocols).
 
 ```swift
-updateStatement.arguments = ["name": "Arthur", "age": 41]
+updateStatement.arguments = ["name": "Arthur", "score": 1000]
 selectStatement.arguments = ["Arthur"]
 ```
 
@@ -1348,15 +1348,15 @@ Select statements can be used wherever a raw SQL query string would fit (see [fe
 
 ```swift
 let rows = try Row.fetchCursor(selectStatement)    // DatabaseCursor<Row>
-let persons = try Person.fetchAll(selectStatement) // [Person]
-let person = try Person.fetchOne(selectStatement)  // Person?
+let players = try Player.fetchAll(selectStatement) // [Player]
+let player = try Player.fetchOne(selectStatement)  // Player?
 ```
 
 You can set the arguments at the moment of the statement execution:
 
 ```swift
-try updateStatement.execute(arguments: ["name": "Arthur", "age": 41])
-let person = try Person.fetchOne(selectStatement, arguments: ["Arthur"])
+try updateStatement.execute(arguments: ["name": "Arthur", "score": 1000])
+let player = try Player.fetchOne(selectStatement, arguments: ["Arthur"])
 ```
 
 > :point_up: **Note**: it is a programmer error to reuse a prepared statement that has failed: GRDB may crash if you do so.
@@ -1389,8 +1389,8 @@ Should a cached prepared statement throw an error, don't reuse it (it is a progr
 A custom SQL function or aggregate extends SQLite:
 
 ```sql
-SELECT reverse(name) FROM persons;   -- custom function
-SELECT maxLength(name) FROM persons; -- custom aggregate
+SELECT reverse(name) FROM players;   -- custom function
+SELECT maxLength(name) FROM players; -- custom aggregate
 ```
 
 - [Custom SQL Functions](#custom-sql-functions)
@@ -1463,8 +1463,8 @@ try dbQueue.inDatabase { db in
 **Use custom functions in the [query interface](#the-query-interface):**
 
 ```swift
-// SELECT reverseString("name") FROM persons
-Person.select(reverseString.apply(nameColumn))
+// SELECT reverseString("name") FROM players
+Player.select(reverseString.apply(nameColumn))
 ```
 
 
@@ -1521,7 +1521,7 @@ dbQueue.add(function: maxLength)   // Or dbPool.add(function: ...)
 
 try dbQueue.inDatabase { db in
     // Some Int
-    try Int.fetchOne(db, "SELECT maxLength(name) FROM persons")!
+    try Int.fetchOne(db, "SELECT maxLength(name) FROM players")!
 }
 ```
 
@@ -1535,8 +1535,8 @@ SQLite has the opportunity to perform additional optimizations when aggregates a
 **Use custom aggregates in the [query interface](#the-query-interface):**
 
 ```swift
-// SELECT maxLength("name") FROM persons
-Person.select(maxLength.apply(nameColumn))
+// SELECT maxLength("name") FROM players
+Player.select(maxLength.apply(nameColumn))
     .asRequest(of: Int.self)
     .fetchOne(db) // Int?
 ```
@@ -1547,20 +1547,20 @@ Person.select(maxLength.apply(nameColumn))
 **SQLite provides database schema introspection tools**, such as the [sqlite_master](https://www.sqlite.org/faq.html#q7) table, and the pragma [table_info](https://www.sqlite.org/pragma.html#pragma_table_info):
 
 ```swift
-try db.create(table: "persons") { t in
+try db.create(table: "players") { t in
     t.column("id", .integer).primaryKey()
     t.column("name", .text)
 }
 
-// <Row type:"table" name:"persons" tbl_name:"persons" rootpage:2
-//      sql:"CREATE TABLE persons(id INTEGER PRIMARY KEY, name TEXT)">
+// <Row type:"table" name:"players" tbl_name:"players" rootpage:2
+//      sql:"CREATE TABLE players(id INTEGER PRIMARY KEY, name TEXT)">
 for row in try Row.fetchAll(db, "SELECT * FROM sqlite_master") {
     print(row)
 }
 
 // <Row cid:0 name:"id" type:"INTEGER" notnull:0 dflt_value:NULL pk:1>
 // <Row cid:1 name:"name" type:"TEXT" notnull:0 dflt_value:NULL pk:0>
-for row in try Row.fetchAll(db, "PRAGMA table_info('persons')") {
+for row in try Row.fetchAll(db, "PRAGMA table_info('players')") {
     print(row)
 }
 ```
@@ -1568,12 +1568,12 @@ for row in try Row.fetchAll(db, "PRAGMA table_info('persons')") {
 GRDB provides high-level methods as well:
 
 ```swift
-try db.tableExists("persons")     // Bool, true if the table exists
-try db.columnCount(in: "persons") // Int, the number of columns in table
-try db.indexes(on: "persons")     // [IndexInfo], the indexes defined on the table
-try db.table("persons", hasUniqueKey: ["email"]) // Bool, true if column(s) is a unique key
-try db.foreignKeys(on: "persons") // [ForeignKeyInfo], the foreign keys defined on the table
-try db.primaryKey("persons")      // PrimaryKeyInfo?
+try db.tableExists("players")     // Bool, true if the table exists
+try db.columnCount(in: "players") // Int, the number of columns in table
+try db.indexes(on: "players")     // [IndexInfo], the indexes defined on the table
+try db.table("players", hasUniqueKey: ["email"]) // Bool, true if column(s) is a unique key
+try db.foreignKeys(on: "players") // [ForeignKeyInfo], the foreign keys defined on the table
+try db.primaryKey("players")      // PrimaryKeyInfo?
 ```
 
 
@@ -1790,10 +1790,10 @@ Your custom structs and classes can adopt each protocol individually, and opt in
 To insert a record in the database, subclass the [Record](#record-class) class or adopt the [Persistable](#persistable-protocol) protocol, and call the `insert` method:
 
 ```swift
-class Person : Record { ... }
+class Player : Record { ... }
 
-let person = Person(name: "Arthur", email: "arthur@example.com")
-try person.insert(db)
+let player = Player(name: "Arthur", email: "arthur@example.com")
+try player.insert(db)
 ```
 
 
@@ -1802,15 +1802,15 @@ try person.insert(db)
 [Record](#record-class) subclasses and types that adopt the [RowConvertible](#rowconvertible-protocol) protocol can be fetched from the database:
 
 ```swift
-class Person : Record { ... }
-let persons = try Person.fetchAll(db, "SELECT ...", arguments: ...) // [Person]
+class Player : Record { ... }
+let players = try Player.fetchAll(db, "SELECT ...", arguments: ...) // [Player]
 ```
 
 Add the [TableMapping](#tablemapping-protocol) protocol and you can stop writing SQL:
 
 ```swift
 let spain = try Country.fetchOne(db, key: "ES") // Country?
-let persons = try Person                        // [Person]
+let players = try Player                        // [Player]
     .filter(Column("email") != nil)
     .order(Column("name"))
     .fetchAll(db)
@@ -1824,25 +1824,25 @@ See [fetching methods](#fetching-methods), and the [query interface](#the-query-
 [Record](#record-class) subclasses and types that adopt the [Persistable](#persistable-protocol) protocol can be updated in the database:
 
 ```swift
-let person = try Person.fetchOne(db, key: 1)!
-person.name = "Arthur"
-try person.update(db)
+let player = try Player.fetchOne(db, key: 1)!
+player.name = "Arthur"
+try player.update(db)
 ```
 
 [Record](#record-class) subclasses track changes, so that you can avoid useless updates:
 
 ```swift
-let person = try Person.fetchOne(db, key: 1)!
-person.name = "Arthur"
-if person.hasPersistentChangedValues {
-    try person.update(db)
+let player = try Player.fetchOne(db, key: 1)!
+player.name = "Arthur"
+if player.hasPersistentChangedValues {
+    try player.update(db)
 }
 ```
 
 For batch updates, execute an [SQL query](#executing-updates):
 
 ```swift
-try db.execute("UPDATE persons SET synchronized = 1")
+try db.execute("UPDATE players SET synchronized = 1")
 ```
 
 
@@ -1851,22 +1851,22 @@ try db.execute("UPDATE persons SET synchronized = 1")
 [Record](#record-class) subclasses and types that adopt the [Persistable](#persistable-protocol) protocol can be deleted from the database:
 
 ```swift
-let person = try Person.fetchOne(db, key: 1)!
-try person.delete(db)
+let player = try Player.fetchOne(db, key: 1)!
+try player.delete(db)
 ```
 
 Such records can also delete according to primary key or any unique index:
 
 ```swift
-try Person.deleteOne(db, key: 1)
-try Person.deleteOne(db, key: ["email": "arthur@example.com"])
+try Player.deleteOne(db, key: 1)
+try Player.deleteOne(db, key: ["email": "arthur@example.com"])
 try Country.deleteAll(db, keys: ["FR", "US"])
 ```
 
 For batch deletes, see the [query interface](#the-query-interface):
 
 ```swift
-try Person.filter(emailColumn == nil).deleteAll(db)
+try Player.filter(emailColumn == nil).deleteAll(db)
 ```
 
 
@@ -1875,7 +1875,7 @@ try Person.filter(emailColumn == nil).deleteAll(db)
 [Record](#record-class) subclasses and types that adopt the [TableMapping](#tablemapping-protocol) protocol can be counted:
 
 ```swift
-let personWithEmailCount = try Person.filter(emailColumn != nil).fetchCount(db)  // Int
+let playerWithEmailCount = try Player.filter(emailColumn != nil).fetchCount(db)  // Int
 ```
 
 
@@ -2092,8 +2092,8 @@ let paris = try Place.filter(nameColumn == "Paris").fetchOne(db)
 TableMapping can also fetch records by primary key:
 
 ```swift
-try Person.fetchOne(db, key: 1)              // Person?
-try Person.fetchAll(db, keys: [1, 2, 3])     // [Person]
+try Player.fetchOne(db, key: 1)              // Player?
+try Player.fetchAll(db, keys: [1, 2, 3])     // [Player]
 
 try Country.fetchOne(db, key: "FR")          // Country?
 try Country.fetchAll(db, keys: ["FR", "US"]) // [Country]
@@ -2109,8 +2109,8 @@ try Document.fetchOne(db, key: 1)            // Document?
 For multiple-column primary keys and unique keys defined by unique indexes, provide a dictionary:
 
 ```swift
-// SELECT * FROM citizenships WHERE personID = 1 AND countryISOCode = 'FR'
-try Citizenship.fetchOne(db, key: ["personID": 1, "countryISOCode": "FR"]) // Citizenship?
+// SELECT * FROM citizenships WHERE playerID = 1 AND countryISOCode = 'FR'
+try Citizenship.fetchOne(db, key: ["playerID": 1, "countryISOCode": "FR"]) // Citizenship?
 ```
 
 
@@ -2247,7 +2247,7 @@ For example, it may want to have its UUID automatically set before inserting. Or
 When you subclass [Record](#record-class), you simply have to override the customized method, and call `super`:
 
 ```swift
-class Person : Record {
+class Player : Record {
     var uuid: UUID?
     
     override func insert(_ db: Database) throws {
@@ -2301,36 +2301,36 @@ The [five different policies](https://www.sqlite.org/lang_conflict.html) are: ab
 - At the table level
     
     ```swift
-    // CREATE TABLE persons (
+    // CREATE TABLE players (
     //     id INTEGER PRIMARY KEY,
     //     email TEXT UNIQUE ON CONFLICT REPLACE
     // )
-    try db.create(table: "persons") { t in
+    try db.create(table: "players") { t in
         t.column("id", .integer).primaryKey()
         t.column("email", .text).unique(onConflict: .replace) // <--
     }
     
     // Despite the unique index on email, both inserts succeed.
     // The second insert replaces the first row:
-    try db.execute("INSERT INTO persons (email) VALUES (?)", arguments: ["arthur@example.com"])
-    try db.execute("INSERT INTO persons (email) VALUES (?)", arguments: ["arthur@example.com"])
+    try db.execute("INSERT INTO players (email) VALUES (?)", arguments: ["arthur@example.com"])
+    try db.execute("INSERT INTO players (email) VALUES (?)", arguments: ["arthur@example.com"])
     ```
     
 - At the query level:
     
     ```swift
-    // CREATE TABLE persons (
+    // CREATE TABLE players (
     //     id INTEGER PRIMARY KEY,
     //     email TEXT UNIQUE
     // )
-    try db.create(table: "persons") { t in
+    try db.create(table: "players") { t in
         t.column("id", .integer).primaryKey()
         t.column("email", .text)
     }
     
     // Again, despite the unique index on email, both inserts succeed.
-    try db.execute("INSERT OR REPLACE INTO persons (email) VALUES (?)", arguments: ["arthur@example.com"])
-    try db.execute("INSERT OR REPLACE INTO persons (email) VALUES (?)", arguments: ["arthur@example.com"])
+    try db.execute("INSERT OR REPLACE INTO players (email) VALUES (?)", arguments: ["arthur@example.com"])
+    try db.execute("INSERT OR REPLACE INTO players (email) VALUES (?)", arguments: ["arthur@example.com"])
     ```
 
 When you want to handle conflicts at the query level, specify a custom `persistenceConflictPolicy` in your type that adopts the MutablePersistable or Persistable protocol. It will alter the INSERT and UPDATE queries run by the `insert`, `update` and `save` [persistence methods](#persistence-methods):
@@ -2346,14 +2346,14 @@ protocol MutablePersistable {
     static var persistenceConflictPolicy: PersistenceConflictPolicy { get }
 }
 
-struct Person : MutablePersistable {
+struct Player : MutablePersistable {
     static let persistenceConflictPolicy = PersistenceConflictPolicy(
         insert: .replace,
         update: .replace)
 }
 
-// INSERT OR REPLACE INTO persons (...) VALUES (...)
-try person.insert(db)
+// INSERT OR REPLACE INTO players (...) VALUES (...)
+try player.insert(db)
 ```
 
 > :point_up: **Note**: the `ignore` policy does not play well at all with the `didInsert` method which notifies the rowID of inserted records. Choose your poison:
@@ -2418,27 +2418,27 @@ The `update()` [method](#persistence-methods) always executes an UPDATE statemen
 Avoid it with the `hasPersistentChangedValues` property, which returns whether the record has changes that have not been saved:
 
 ```swift
-// Saves the person if it has changes that have not been saved:
-if person.hasPersistentChangedValues {
-    try person.save(db)
+// Saves the player if it has changes that have not been saved:
+if player.hasPersistentChangedValues {
+    try player.save(db)
 }
 ```
 
 The `hasPersistentChangedValues` flag is false after a record has been fetched or saved into the database. Subsequent modifications may set it, or not: `hasPersistentChangedValues` is based on value comparison. **Setting a property to the same value does not set the changed flag**:
 
 ```swift
-let person = Person(name: "Barbara", age: 35)
-person.hasPersistentChangedValues // true
+let player = Player(name: "Barbara", score: 750)
+player.hasPersistentChangedValues // true
 
-try person.insert(db)
-person.hasPersistentChangedValues // false
+try player.insert(db)
+player.hasPersistentChangedValues // false
 
-person.name = "Barbara"
-person.hasPersistentChangedValues // false
+player.name = "Barbara"
+player.hasPersistentChangedValues // false
 
-person.age = 36
-person.hasPersistentChangedValues // true
-person.persistentChangedValues    // ["age": 35]
+player.score = 1000
+player.hasPersistentChangedValues // true
+player.persistentChangedValues    // ["score": 750]
 ```
 
 For an efficient algorithm which synchronizes the content of a database table with a JSON payload, check [JSONSynchronization.playground](Playgrounds/JSONSynchronization.playground/Contents.swift).
@@ -2616,30 +2616,30 @@ This is the list of record methods, along with their required protocols. The [Re
 <a name="list-of-record-methods-1">¹</a> All unique keys are supported: primary keys (single-column, composite, [implicit RowID](#the-implicit-rowid-primary-key)) and unique indexes:
 
 ```swift
-try Person.fetchOne(db, key: 1)                               // Person?
-try Person.fetchOne(db, key: ["email": "arthur@example.com"]) // Person?
+try Player.fetchOne(db, key: 1)                               // Player?
+try Player.fetchOne(db, key: ["email": "arthur@example.com"]) // Player?
 try Country.fetchAll(db, keys: ["FR", "US"])                  // [Country]
 ```
 
 <a name="list-of-record-methods-2">²</a> See [Fetch Requests](#requests):
 
 ```swift
-let request = Person.filter(emailColumn != nil).order(nameColumn)
-let persons = try request.fetchAll(db)  // [Person]
+let request = Player.filter(emailColumn != nil).order(nameColumn)
+let players = try request.fetchAll(db)  // [Player]
 let count = try request.fetchCount(db)  // Int
 ```
 
 <a name="list-of-record-methods-3">³</a> See [SQL queries](#fetch-queries):
 
 ```swift
-let person = try Person.fetchOne("SELECT * FROM persons WHERE id = ?", arguments: [1]) // Person?
+let player = try Player.fetchOne("SELECT * FROM players WHERE id = ?", arguments: [1]) // Player?
 ```
 
 <a name="list-of-record-methods-4">⁴</a> See [Prepared Statements](#prepared-statements):
 
 ```swift
-let statement = try db.makeSelectStatement("SELECT * FROM persons WHERE id = ?")
-let person = try Person.fetchOne(statement, arguments: [1])  // Person?
+let statement = try db.makeSelectStatement("SELECT * FROM players WHERE id = ?")
+let player = try Player.fetchOne(statement, arguments: [1])  // Player?
 ```
 
 
@@ -2826,9 +2826,9 @@ For extra index options, see [Create Indexes](#create-indexes) below.
 
 ```swift
     // name TEXT CHECK (LENGTH(name) > 0)
-    // age INTEGER CHECK (age > 0)
+    // score INTEGER CHECK (score > 0)
     t.column("name", .text).check { length($0) > 0 }
-    t.column("age", .integer).check(sql: "age > 0")
+    t.column("score", .integer).check(sql: "score > 0")
 ```
 
 Other **table constraints** can involve several columns:
@@ -2859,8 +2859,8 @@ SQLite lets you rename tables, and add columns to existing tables:
 // ALTER TABLE referers RENAME TO referrers
 try db.rename(table: "referers", to: "referrers")
 
-// ALTER TABLE persons ADD COLUMN url TEXT
-try db.alter(table: "persons") { t in
+// ALTER TABLE players ADD COLUMN url TEXT
+try db.alter(table: "players") { t in
     t.add(column: "url", .text)
 }
 ```
@@ -2897,15 +2897,15 @@ Relevant SQLite documentation:
 **The query interface requests** let you fetch values from the database:
 
 ```swift
-let request = Person.filter(emailColumn != nil).order(nameColumn)
-let persons = try request.fetchAll(db)  // [Person]
+let request = Player.filter(emailColumn != nil).order(nameColumn)
+let players = try request.fetchAll(db)  // [Player]
 let count = try request.fetchCount(db)  // Int
 ```
 
 All requests start from **a type** that adopts the `TableMapping` protocol, such as a `Record` subclass (see [Records](#records)):
 
 ```swift
-class Person : Record { ... }
+class Player : Record { ... }
 ```
 
 Declare the table **columns** that you want to use for filtering, or sorting:
@@ -2915,13 +2915,13 @@ let idColumn = Column("id")
 let nameColumn = Column("name")
 ```
 
-You can now build requests with the following methods: `all`, `none`, `select`, `distinct`, `filter`, `matching`, `group`, `having`, `order`, `reversed`, `limit`. All those methods return another request, which you can further refine by applying another method: `Person.select(...).filter(...).order(...)`.
+You can now build requests with the following methods: `all`, `none`, `select`, `distinct`, `filter`, `matching`, `group`, `having`, `order`, `reversed`, `limit`. All those methods return another request, which you can further refine by applying another method: `Player.select(...).filter(...).order(...)`.
 
 - `all()`, `none()`: the requests for all rows, or no row.
 
     ```swift
-    // SELECT * FROM persons
-    Person.all()
+    // SELECT * FROM players
+    Player.all()
     ```
     
     The hidden `rowid` column can be selected as well [when you need it](#the-implicit-rowid-primary-key).
@@ -2929,28 +2929,28 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
 - `select(expression, ...)` defines the selected columns.
     
     ```swift
-    // SELECT id, name FROM persons
-    Person.select(idColumn, nameColumn)
+    // SELECT id, name FROM players
+    Player.select(idColumn, nameColumn)
     
-    // SELECT MAX(age) AS maxAge FROM persons
-    Person.select(max(ageColumn).aliased("maxAge"))
+    // SELECT MAX(score) AS maxScore FROM players
+    Player.select(max(scoreColumn).aliased("maxScore"))
     ```
 
 - `distinct()` performs uniquing.
     
     ```swift
-    // SELECT DISTINCT name FROM persons
-    Person.select(nameColumn).distinct()
+    // SELECT DISTINCT name FROM players
+    Player.select(nameColumn).distinct()
     ```
 
 - `filter(expression)` applies conditions.
     
     ```swift
-    // SELECT * FROM persons WHERE id IN (1, 2, 3)
-    Person.filter([1,2,3].contains(idColumn))
+    // SELECT * FROM players WHERE id IN (1, 2, 3)
+    Player.filter([1,2,3].contains(idColumn))
     
-    // SELECT * FROM persons WHERE (name IS NOT NULL) AND (height > 1.75)
-    Person.filter(nameColumn != nil && heightColumn > 1.75)
+    // SELECT * FROM players WHERE (name IS NOT NULL) AND (height > 1.75)
+    Player.filter(nameColumn != nil && heightColumn > 1.75)
     ```
 
 - `matching(pattern)` performs [full-text search](#full-text-search).
@@ -2966,78 +2966,78 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
 - `group(expression, ...)` groups rows.
     
     ```swift
-    // SELECT name, MAX(age) FROM persons GROUP BY name
-    Person
-        .select(nameColumn, max(ageColumn))
+    // SELECT name, MAX(score) FROM players GROUP BY name
+    Player
+        .select(nameColumn, max(scoreColumn))
         .group(nameColumn)
     ```
 
 - `having(expression)` applies conditions on grouped rows.
     
     ```swift
-    // SELECT name, MAX(age) FROM persons GROUP BY name HAVING MIN(age) >= 18
-    Person
-        .select(nameColumn, max(ageColumn))
-        .group(nameColumn)
-        .having(min(ageColumn) >= 18)
+    // SELECT team, MAX(score) FROM players GROUP BY team HAVING MIN(score) >= 1000
+    Player
+        .select(teamColumn, max(scoreColumn))
+        .group(teamColumn)
+        .having(min(scoreColumn) >= 1000)
     ```
 
 - `order(ordering, ...)` sorts.
     
     ```swift
-    // SELECT * FROM persons ORDER BY name
-    Person.order(nameColumn)
+    // SELECT * FROM players ORDER BY name
+    Player.order(nameColumn)
     
-    // SELECT * FROM persons ORDER BY score DESC, name
-    Person.order(scoreColumn.desc, nameColumn)
+    // SELECT * FROM players ORDER BY score DESC, name
+    Player.order(scoreColumn.desc, nameColumn)
     ```
     
     Each `order` call clears any previous ordering:
     
     ```swift
-    // SELECT * FROM persons ORDER BY name
-    Person.order(scoreColumn).order(nameColumn)
+    // SELECT * FROM players ORDER BY name
+    Player.order(scoreColumn).order(nameColumn)
     ```
 
 - `reversed()` reverses the eventual orderings.
     
     ```swift
-    // SELECT * FROM persons ORDER BY score ASC, name DESC
-    Person.order(scoreColumn.desc, nameColumn).reversed()
+    // SELECT * FROM players ORDER BY score ASC, name DESC
+    Player.order(scoreColumn.desc, nameColumn).reversed()
     ```
     
     If no ordering was specified, the result is ordered by rowID in reverse order.
     
     ```swift
-    // SELECT * FROM persons ORDER BY _rowid_ DESC
-    Person.all().reversed()
+    // SELECT * FROM players ORDER BY _rowid_ DESC
+    Player.all().reversed()
     ```
 
 - `limit(limit, offset: offset)` limits and pages results.
     
     ```swift
-    // SELECT * FROM persons LIMIT 5
-    Person.limit(5)
+    // SELECT * FROM players LIMIT 5
+    Player.limit(5)
     
-    // SELECT * FROM persons LIMIT 5 OFFSET 10
-    Person.limit(5, offset: 10)
+    // SELECT * FROM players LIMIT 5 OFFSET 10
+    Player.limit(5, offset: 10)
     ```
 
 You can refine requests by chaining those methods:
 
 ```swift
-// SELECT * FROM persons WHERE (email IS NOT NULL) ORDER BY name
-Person.order(nameColumn).filter(emailColumn != nil)
+// SELECT * FROM players WHERE (email IS NOT NULL) ORDER BY name
+Player.order(nameColumn).filter(emailColumn != nil)
 ```
 
 The `select`, `order`, `group`, and `limit` methods ignore and replace previously applied selection, orderings, grouping, and limits. On the opposite, `filter`, `matching`, and `having` methods extend the query:
 
 ```swift
-Person                          // SELECT * FROM persons
+Player                          // SELECT * FROM players
     .filter(nameColumn != nil)  // WHERE (name IS NOT NULL)
     .filter(emailColumn != nil) //        AND (email IS NOT NULL)
     .order(nameColumn)          // - ignored -
-    .order(ageColumn)           // ORDER BY age
+    .order(scoreColumn)         // ORDER BY score
     .limit(20, offset: 40)      // - ignored -
     .limit(10)                  // LIMIT 10
 ```
@@ -3046,8 +3046,8 @@ Person                          // SELECT * FROM persons
 Raw SQL snippets are also accepted, with eventual [arguments](http://groue.github.io/GRDB.swift/docs/1.3/Structs/StatementArguments.html):
 
 ```swift
-// SELECT DATE(creationDate), COUNT(*) FROM persons WHERE name = 'Arthur' GROUP BY date(creationDate)
-Person
+// SELECT DATE(creationDate), COUNT(*) FROM players WHERE name = 'Arthur' GROUP BY date(creationDate)
+Player
     .select(sql: "DATE(creationDate), COUNT(*)")
     .filter(sql: "name = ?", arguments: ["Arthur"])
     .group(sql: "DATE(creationDate)")
@@ -3059,8 +3059,8 @@ Person
 By default, query interface requests select all columns:
 
 ```swift
-// SELECT * FROM persons
-let request = Person.all()
+// SELECT * FROM players
+let request = Player.all()
 ```
 
 **The selection can be changed for each individual requests, or for all requests built from a given type.**
@@ -3068,31 +3068,31 @@ let request = Person.all()
 To specify the selection of a specific request, use the `select` method:
 
 ```swift
-// SELECT id, name FROM persons
-let request = Person.select(Column("id"), Column("name"))
+// SELECT id, name FROM players
+let request = Player.select(Column("id"), Column("name"))
 
-// SELECT *, rowid FROM persons
-let request = Person.select(AllColumns(), Column.rowID)
+// SELECT *, rowid FROM players
+let request = Player.select(AllColumns(), Column.rowID)
 ```
 
 To specify the default selection for all requests built from a type, define the `databaseSelection` property:
 
 ```swift
-struct RestrictedPerson : TableMapping {
-    static let databaseTableName = "persons"
+struct RestrictedPlayer : TableMapping {
+    static let databaseTableName = "players"
     static let databaseSelection: [SQLSelectable] = [Column("id"), Column("name")]
 }
 
-struct ExtendedPerson : TableMapping {
-    static let databaseTableName = "persons"
+struct ExtendedPlayer : TableMapping {
+    static let databaseTableName = "players"
     static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
 }
 
-// SELECT id, name FROM persons
-let request = RestrictedPerson.all()
+// SELECT id, name FROM players
+let request = RestrictedPlayer.all()
 
-// SELECT *, rowid FROM persons
-let request = ExtendedPerson.all()
+// SELECT *, rowid FROM players
+let request = ExtendedPlayer.all()
 ```
 
 > :point_up: **Note**: make sure the `databaseSelection` property is explicitely declared as `[SQLSelectable]`. If it is not, the Swift compiler may infer a type which may silently miss the protocol requirement, resulting in sticky `SELECT *` requests.
@@ -3110,14 +3110,14 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Comparison operators are based on the Swift operators `==`, `!=`, `===`, `!==`, `<`, `<=`, `>`, `>=`:
     
     ```swift
-    // SELECT * FROM persons WHERE (name = 'Arthur')
-    Person.filter(nameColumn == "Arthur")
+    // SELECT * FROM players WHERE (name = 'Arthur')
+    Player.filter(nameColumn == "Arthur")
     
-    // SELECT * FROM persons WHERE (name IS NULL)
-    Person.filter(nameColumn == nil)
+    // SELECT * FROM players WHERE (name IS NULL)
+    Player.filter(nameColumn == nil)
     
-    // SELECT * FROM persons WHERE (age IS 18)
-    Person.filter(ageColumn === 18)
+    // SELECT * FROM players WHERE (score IS 1000)
+    Player.filter(scoreColumn === 1000)
     
     // SELECT * FROM rectangles WHERE width < height
     Rectangle.filter(widthColumn < heightColumn)
@@ -3130,7 +3130,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     SQLite arithmetic operators are derived from their Swift equivalent:
     
     ```swift
-    // SELECT ((temperature * 1.8) + 32) AS farenheit FROM persons
+    // SELECT ((temperature * 1.8) + 32) AS farenheit FROM players
     Planet.select((temperatureColumn * 1.8 + 32).aliased("farenheit"))
     ```
     
@@ -3141,8 +3141,8 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     The SQL logical operators are derived from the Swift `&&`, `||` and `!`:
     
     ```swift
-    // SELECT * FROM persons WHERE ((NOT verified) OR (age < 18))
-    Person.filter(!verifiedColumn || ageColumn < 18)
+    // SELECT * FROM players WHERE ((NOT verified) OR (score < 1000))
+    Player.filter(!verifiedColumn || scoreColumn < 1000)
     ```
 
 - `BETWEEN`, `IN`, `NOT IN`
@@ -3150,23 +3150,23 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     To check inclusion in a Swift sequence (array, set, range…), call the `contains` method:
     
     ```swift
-    // SELECT * FROM persons WHERE id IN (1, 2, 3)
-    Person.filter([1, 2, 3].contains(idColumn))
+    // SELECT * FROM players WHERE id IN (1, 2, 3)
+    Player.filter([1, 2, 3].contains(idColumn))
     
-    // SELECT * FROM persons WHERE id NOT IN (1, 2, 3)
-    Person.filter(![1, 2, 3].contains(idColumn))
+    // SELECT * FROM players WHERE id NOT IN (1, 2, 3)
+    Player.filter(![1, 2, 3].contains(idColumn))
     
-    // SELECT * FROM persons WHERE age BETWEEN 0 AND 17
-    Person.filter((0...17).contains(ageColumn))
+    // SELECT * FROM players WHERE score BETWEEN 0 AND 1000
+    Player.filter((0...1000).contains(scoreColumn))
     
-    // SELECT * FROM persons WHERE (age >= 0) AND (age < 18)
-    Person.filter((0..<18).contains(ageColumn))
+    // SELECT * FROM players WHERE (score >= 0) AND (score < 1000)
+    Player.filter((0..<1000).contains(scoreColumn))
     
-    // SELECT * FROM persons WHERE initial BETWEEN 'A' AND 'N'
-    Person.filter(("A"..."N").contains(initialColumn))
+    // SELECT * FROM players WHERE initial BETWEEN 'A' AND 'N'
+    Player.filter(("A"..."N").contains(initialColumn))
     
-    // SELECT * FROM persons WHERE (initial >= 'A') AND (initial < 'N')
-    Person.filter(("A"..<"N").contains(initialColumn))
+    // SELECT * FROM players WHERE (initial >= 'A') AND (initial < 'N')
+    Player.filter(("A"..<"N").contains(initialColumn))
     ```
     
     > :point_up: **Note**: SQLite string comparison, by default, is case-sensitive and not Unicode-aware. See [string comparison](#string-comparison) if you need more control.
@@ -3176,8 +3176,8 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     The SQLite LIKE operator is available as the `like` method:
     
     ```swift
-    // SELECT * FROM persons WHERE (email LIKE '%@example.com')
-    Person.filter(emailColumn.like("%@example.com"))
+    // SELECT * FROM players WHERE (email LIKE '%@example.com')
+    Player.filter(emailColumn.like("%@example.com"))
     ```
     
     > :point_up: **Note**: the SQLite LIKE operator is case-unsensitive but not Unicode-aware. For example, the expression `'a' LIKE 'A'` is true but `'æ' LIKE 'Æ'` is false.
@@ -3215,14 +3215,14 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Those are based on the `abs`, `average`, `count`, `length`, `max`, `min` and `sum` Swift functions:
     
     ```swift
-    // SELECT MIN(age), MAX(age) FROM persons
-    Person.select(min(ageColumn), max(ageColumn))
+    // SELECT MIN(score), MAX(score) FROM players
+    Player.select(min(scoreColumn), max(scoreColumn))
     
-    // SELECT COUNT(name) FROM persons
-    Person.select(count(nameColumn))
+    // SELECT COUNT(name) FROM players
+    Player.select(count(nameColumn))
     
-    // SELECT COUNT(DISTINCT name) FROM persons
-    Person.select(count(distinct: nameColumn))
+    // SELECT COUNT(DISTINCT name) FROM players
+    Player.select(count(distinct: nameColumn))
     ```
 
 - `IFNULL`
@@ -3230,11 +3230,11 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Use the Swift `??` operator:
     
     ```swift
-    // SELECT IFNULL(name, 'Anonymous') FROM persons
-    Person.select(nameColumn ?? "Anonymous")
+    // SELECT IFNULL(name, 'Anonymous') FROM players
+    Player.select(nameColumn ?? "Anonymous")
     
-    // SELECT IFNULL(name, email) FROM persons
-    Person.select(nameColumn ?? emailColumn)
+    // SELECT IFNULL(name, email) FROM players
+    Player.select(nameColumn ?? emailColumn)
     ```
 
 - `LOWER`, `UPPER`
@@ -3244,7 +3244,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Instead, GRDB extends SQLite with SQL functions that call the Swift built-in string functions `capitalized`, `lowercased`, `uppercased`, `localizedCapitalized`, `localizedLowercased` and `localizedUppercased`:
     
     ```swift
-    Person.select(nameColumn.uppercased())
+    Player.select(nameColumn.uppercased())
     ```
     
     > :point_up: **Note**: When *comparing* strings, you'd rather use a [collation](#string-comparison):
@@ -3266,8 +3266,8 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     ```swift
     let f = DatabaseFunction("f", ...)
     
-    // SELECT f(name) FROM persons
-    Person.select(f.apply(nameColumn))
+    // SELECT f(name) FROM players
+    Player.select(f.apply(nameColumn))
     ```
 
     
@@ -3276,13 +3276,13 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
 Once you have a request, you can fetch the records at the origin of the request:
 
 ```swift
-// Some request based on `Person`
-let request = Person.filter(...)... // QueryInterfaceRequest<Person>
+// Some request based on `Player`
+let request = Player.filter(...)... // QueryInterfaceRequest<Player>
 
-// Fetch persons:
-try request.fetchCursor(db) // DatabaseCursor<Person>
-try request.fetchAll(db)    // [Person]
-try request.fetchOne(db)    // Person?
+// Fetch players:
+try request.fetchCursor(db) // DatabaseCursor<Player>
+try request.fetchAll(db)    // [Player]
+try request.fetchOne(db)    // Player?
 ```
 
 See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll` and `fetchOne` methods.
@@ -3290,8 +3290,8 @@ See [fetching methods](#fetching-methods) for information about the `fetchCursor
 For example:
 
 ```swift
-let allPersons = try Person.fetchAll(db)                            // [Person]
-let arthur = try Person.filter(nameColumn == "Arthur").fetchOne(db) // Person?
+let allPlayers = try Player.fetchAll(db)                            // [Player]
+let arthur = try Player.filter(nameColumn == "Arthur").fetchOne(db) // Player?
 ```
 
 
@@ -3317,13 +3317,13 @@ More information about `asRequest(of:)` can be found in the [Custom Requests](#c
 **Fetching records according to their primary key** is a very common task. It has a shortcut which accepts any single-column primary key:
 
 ```swift
-// SELECT * FROM persons WHERE id = 1
-try Person.fetchOne(db, key: 1)              // Person?
+// SELECT * FROM players WHERE id = 1
+try Player.fetchOne(db, key: 1)              // Player?
 
-// SELECT * FROM persons WHERE id IN (1, 2, 3)
-try Person.fetchAll(db, keys: [1, 2, 3])     // [Person]
+// SELECT * FROM players WHERE id IN (1, 2, 3)
+try Player.fetchAll(db, keys: [1, 2, 3])     // [Player]
 
-// SELECT * FROM persons WHERE isoCode = 'FR'
+// SELECT * FROM players WHERE isoCode = 'FR'
 try Country.fetchOne(db, key: "FR")          // Country?
 
 // SELECT * FROM countries WHERE isoCode IN ('FR', 'US')
@@ -3340,11 +3340,11 @@ try Document.fetchOne(db, key: 1)            // Document?
 For multiple-column primary keys and unique keys defined by unique indexes, provide a dictionary:
 
 ```swift
-// SELECT * FROM citizenships WHERE personID = 1 AND countryISOCode = 'FR'
-try Citizenship.fetchOne(db, key: ["personID": 1, "countryISOCode": "FR"]) // Citizenship?
+// SELECT * FROM citizenships WHERE playerID = 1 AND countryISOCode = 'FR'
+try Citizenship.fetchOne(db, key: ["playerID": 1, "countryISOCode": "FR"]) // Citizenship?
 
-// SELECT * FROM persons WHERE email = 'arthur@example.com'
-try Person.fetchOne(db, key: ["email": "arthur@example.com"])              // Person?
+// SELECT * FROM players WHERE email = 'arthur@example.com'
+try Player.fetchOne(db, key: ["email": "arthur@example.com"])              // Player?
 ```
 
 
@@ -3353,17 +3353,17 @@ try Person.fetchOne(db, key: ["email": "arthur@example.com"])              // Pe
 **Requests can count.** The `fetchCount()` method returns the number of rows that would be returned by a fetch request:
 
 ```swift
-// SELECT COUNT(*) FROM persons
-let count = try Person.fetchCount(db) // Int
+// SELECT COUNT(*) FROM players
+let count = try Player.fetchCount(db) // Int
 
-// SELECT COUNT(*) FROM persons WHERE email IS NOT NULL
-let count = try Person.filter(emailColumn != nil).fetchCount(db)
+// SELECT COUNT(*) FROM players WHERE email IS NOT NULL
+let count = try Player.filter(emailColumn != nil).fetchCount(db)
 
-// SELECT COUNT(DISTINCT name) FROM persons
-let count = try Person.select(nameColumn).distinct().fetchCount(db)
+// SELECT COUNT(DISTINCT name) FROM players
+let count = try Player.select(nameColumn).distinct().fetchCount(db)
 
-// SELECT COUNT(*) FROM (SELECT DISTINCT name, age FROM persons)
-let count = try Person.select(nameColumn, ageColumn).distinct().fetchCount(db)
+// SELECT COUNT(*) FROM (SELECT DISTINCT name, score FROM players)
+let count = try Player.select(nameColumn, scoreColumn).distinct().fetchCount(db)
 ```
 
 
@@ -3389,21 +3389,21 @@ More information about `asRequest(of:)` can be found in the [Custom Requests](#c
 **Requests can delete records**, with the `deleteAll()` method:
 
 ```swift
-// DELETE FROM persons WHERE email IS NULL
-let request = Person.filter(emailColumn == nil)
+// DELETE FROM players WHERE email IS NULL
+let request = Player.filter(emailColumn == nil)
 try request.deleteAll(db)
 ```
 
 **Deleting records according to their primary key** is also quite common. It has a shortcut which accepts any single-column primary key:
 
 ```swift
-// DELETE FROM persons WHERE id = 1
-try Person.deleteOne(db, key: 1)
+// DELETE FROM players WHERE id = 1
+try Player.deleteOne(db, key: 1)
 
-// DELETE FROM persons WHERE id IN (1, 2, 3)
-try Person.deleteAll(db, keys: [1, 2, 3])
+// DELETE FROM players WHERE id IN (1, 2, 3)
+try Player.deleteAll(db, keys: [1, 2, 3])
 
-// DELETE FROM persons WHERE isoCode = 'FR'
+// DELETE FROM players WHERE isoCode = 'FR'
 try Country.deleteOne(db, key: "FR")
 
 // DELETE FROM countries WHERE isoCode IN ('FR', 'US')
@@ -3420,11 +3420,11 @@ try Document.deleteOne(db, key: 1)
 For multiple-column primary keys and unique keys defined by unique indexes, provide a dictionary:
 
 ```swift
-// DELETE FROM citizenships WHERE personID = 1 AND countryISOCode = 'FR'
-try Citizenship.deleteOne(db, key: ["personID": 1, "countryISOCode": "FR"])
+// DELETE FROM citizenships WHERE playerID = 1 AND countryISOCode = 'FR'
+try Citizenship.deleteOne(db, key: ["playerID": 1, "countryISOCode": "FR"])
 
-// DELETE FROM persons WHERE email = 'arthur@example.com'
-Person.deleteOne(db, key: ["email": "arthur@example.com"])
+// DELETE FROM players WHERE email = 'arthur@example.com'
+Player.deleteOne(db, key: ["email": "arthur@example.com"])
 ```
 
 
@@ -3433,15 +3433,15 @@ Person.deleteOne(db, key: ["email": "arthur@example.com"])
 Until now, we have seen [requests](#requests) created from any type that adopts the [TableMapping](#tablemapping-protocol) protocol:
 
 ```swift
-let request = Person.all()  // QueryInterfaceRequest<Person>
+let request = Player.all()  // QueryInterfaceRequest<Player>
 ```
 
 Those requests of type `QueryInterfaceRequest` can fetch, count, and delete records:
 
 ```swift
-try request.fetchCursor(db) // DatabaseCursor<Person>
-try request.fetchAll(db)    // [Person]
-try request.fetchOne(db)    // Person?
+try request.fetchCursor(db) // DatabaseCursor<Player>
+try request.fetchAll(db)    // [Player]
+try request.fetchOne(db)    // Player?
 try request.fetchCount(db)  // Int
 try request.deleteAll(db)
 ```
@@ -3450,14 +3450,14 @@ try request.deleteAll(db)
 
 ```swift
 // Custom SQL is always welcome
-try Person.fetchAll(db, "SELECT ...")   // [Person]
+try Player.fetchAll(db, "SELECT ...")   // [Player]
 ```
 
 But you may prefer to bring some elegance back in, and build custom requests on top of the `Request` and `TypedRequest` protocols:
 
 ```swift
 // No custom SQL in sight
-try Person.customRequest().fetchAll(db) // [Person]
+try Player.customRequest().fetchAll(db) // [Player]
 ```
 
 Unlike QueryInterfaceRequest, these protocols can't delete. But they can fetch and count:
@@ -3493,16 +3493,16 @@ A Request doesn't know what to fetch, but it can feed the [fetching methods](#fe
 let request: Request = ...
 try Row.fetchCursor(db, request) // DatabaseCursor<Row>
 try String.fetchAll(db, request) // [String]
-try Person.fetchOne(db, request) // Person?
+try Player.fetchOne(db, request) // Player?
 ```
 
 On top of that, a TypedRequest knows exactly what it has to do when its RowDecoder associated type can decode database rows ([Row](#fetching-rows) itself, [values](#value-queries), or [records](#records)):
 
 ```swift
-let request = ...                // Some TypedRequest that fetches Person
-try request.fetchCursor(db)      // DatabaseCursor<Person>
-try request.fetchAll(db)         // [Person]
-try request.fetchOne(db)         // Person?
+let request = ...                // Some TypedRequest that fetches Player
+try request.fetchCursor(db)      // DatabaseCursor<Player>
+try request.fetchAll(db)         // [Player]
+try request.fetchOne(db)         // Player?
 ```
 
 
@@ -3521,15 +3521,15 @@ let maxScore = Player.select(max(scoreColumn))
     .asRequest(of: Int.self)
     .fetchOne(db)
 
-extension Person {
-    static func customRequest(...) -> AnyTypedRequest<Person> {
+extension Player {
+    static func customRequest(...) -> AnyTypedRequest<Player> {
         let request = SQLRequest("SELECT ...", arguments: ...)
-        return request.asRequest(of: Person.self)
+        return request.asRequest(of: Player.self)
     }
 }
 
-try Person.customRequest(...).fetchAll(db)   // [Person]
-try Person.customRequest(...).fetchCount(db) // Int
+try Player.customRequest(...).fetchAll(db)   // [Player]
+try Player.customRequest(...).fetchCount(db) // Int
 ```
 
 [**:fire: EXPERIMENTAL**](#what-are-experimental-features): Use the `adapted()` method to ease the consumption of complex rows with [row adapters](#row-adapters):
@@ -3596,14 +3596,14 @@ var migrator = DatabaseMigrator()
 
 // v1 database
 migrator.registerMigration("v1") { db in
-    try db.create(table: "persons") { t in ... }
+    try db.create(table: "players") { t in ... }
     try db.create(table: "books") { t in ... }
     try db.create(index: ...)
 }
 
 // v2 database
 migrator.registerMigration("v2") { db in
-    try db.alter(table: "persons") { t in ... }
+    try db.alter(table: "players") { t in ... }
 }
 
 // Migrations for future versions will be inserted here:
@@ -3646,15 +3646,15 @@ SQLite does not support many schema changes, and won't let you drop a table colu
 Yet any kind of schema change is still possible. The SQLite documentation explains in detail how to do so: https://www.sqlite.org/lang_altertable.html#otheralter. This technique requires the temporary disabling of foreign key checks, and is supported by the `registerMigrationWithDeferredForeignKeyCheck` function:
 
 ```swift
-// Add a NOT NULL constraint on persons.name:
+// Add a NOT NULL constraint on players.name:
 migrator.registerMigrationWithDeferredForeignKeyCheck("AddNotNullCheckOnName") { db in
-    try db.create(table: "new_persons") { t in
+    try db.create(table: "new_players") { t in
         t.column("id", .integer).primaryKey()
         t.column("name", .text).notNull()
     }
-    try db.execute("INSERT INTO new_persons SELECT * FROM persons")
-    try db.drop(table: "persons")
-    try db.rename(table: "new_persons", to: "persons")
+    try db.execute("INSERT INTO new_players SELECT * FROM players")
+    try db.drop(table: "players")
+    try db.rename(table: "new_players", to: "players")
 }
 ```
 
@@ -4484,18 +4484,18 @@ See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e63
 
 **Transaction observers can avoid being notified of database changes they are not interested in.**
 
-The filtering happens in the `observes(eventsOfKind:)` method, which tells whether the observer wants notification of specific kinds of changes, or not. For example, here is how an observer can focus on the changes that happen on the "persons" database table:
+The filtering happens in the `observes(eventsOfKind:)` method, which tells whether the observer wants notification of specific kinds of changes, or not. For example, here is how an observer can focus on the changes that happen on the "players" database table:
 
 ```swift
-class PersonObserver: TransactionObserver {
+class PlayerObserver: TransactionObserver {
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        // Only observe changes to the "persons" table.
-        return eventKind.tableName == "persons"
+        // Only observe changes to the "players" table.
+        return eventKind.tableName == "players"
     }
     
     func databaseDidChange(with event: DatabaseEvent) {
         // This method is only called for changes that happen to
-        // the "persons" table.
+        // the "players" table.
     }
 }
 ```
@@ -4503,16 +4503,16 @@ class PersonObserver: TransactionObserver {
 Generally speaking, the `observes(eventsOfKind:)` method can distinguish insertions from deletions and updates, and is also able to inspect the columns that are about to be changed:
 
 ```swift
-class PersonNameObserver: TransactionObserver {
+class PlayerScoreObserver: TransactionObserver {
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        // Only observe changes to the "name" column of the "persons" table.
+        // Only observe changes to the "score" column of the "players" table.
         switch eventKind {
         case .insert(let tableName):
-            return tableName == "persons"
+            return tableName == "players"
         case .delete(let tableName):
-            return tableName == "persons"
+            return tableName == "players"
         case .update(let tableName, let columnNames):
-            return tableName == "persons" && columnNames.contains("name")
+            return tableName == "players" && columnNames.contains("score")
         }
     }
 }
@@ -4627,32 +4627,32 @@ When you initialize a fetched records controller, you provide the following mand
 - A fetch request
 
 ```swift
-class Person : Record { ... }
+class Player : Record { ... }
 let dbQueue = DatabaseQueue(...)    // Or DatabasePool
 
 // Using a Request from the Query Interface:
 let controller = FetchedRecordsController(
     dbQueue,
-    request: Person.order(Column("name")))
+    request: Player.order(Column("name")))
 
 // Using SQL, and eventual arguments:
-let controller = FetchedRecordsController<Person>(
+let controller = FetchedRecordsController<Player>(
     dbQueue,
-    sql: "SELECT * FROM persons ORDER BY name WHERE countryIsoCode = ?",
+    sql: "SELECT * FROM players ORDER BY name WHERE countryIsoCode = ?",
     arguments: ["FR"])
 ```
 
 The fetch request can involve several database tables. The fetched records controller will only track changes in the columns and tables used by the fetch request.
 
 ```swift
-let controller = FetchedRecordsController<Person>(
+let controller = FetchedRecordsController<Player>(
     dbQueue,
     sql: """
-        SELECT persons.name, COUNT(books.id) AS bookCount
-        FROM persons
-        LEFT JOIN books ON books.authorId = persons.id
-        GROUP BY persons.id
-        ORDER BY persons.name
+        SELECT players.name, COUNT(books.id) AS bookCount
+        FROM players
+        LEFT JOIN books ON books.authorId = players.id
+        GROUP BY players.id
+        ORDER BY players.name
         """)
 ```
 
@@ -4673,14 +4673,14 @@ Changes are not reflected until they are applied in the database by a successful
 
 ```swift
 try dbQueue.inTransaction { db in
-    try person1.insert(db)
-    try person2.insert(db)
+    try player1.insert(db)
+    try player2.insert(db)
     return .commit         // Explicit transaction
 }
 
 try dbQueue.inDatabase { db in
-    try person1.insert(db) // Implicit transaction
-    try person2.insert(db) // Implicit transaction
+    try player1.insert(db) // Implicit transaction
+    try player2.insert(db) // Implicit transaction
 }
 ```
 
@@ -4713,7 +4713,7 @@ See [Implementing Table View Updates](#implementing-table-view-updates) for more
 
 ```swift
 controller.trackChanges { controller in
-    let newPersons = controller.fetchedRecords // [Person]
+    let newPlayers = controller.fetchedRecords // [Player]
 }
 ```
 
@@ -4722,12 +4722,12 @@ Callbacks have the fetched record controller itself as an argument: use it in or
 ```swift
 // BAD: memory leak
 controller.trackChanges { _ in
-    let newPersons = controller.fetchedRecords
+    let newPlayers = controller.fetchedRecords
 }
 
 // GOOD
 controller.trackChanges { controller in
-    let newPersons = controller.fetchedRecords
+    let newPlayers = controller.fetchedRecords
 }
 ```
 
@@ -4741,7 +4741,7 @@ To avoid inconsistencies, provide a `fetchAlongside` argument to the `trackChang
 controller.trackChanges(
     fetchAlongside: { db in
         // Fetch any extra value, for example the number of fetched records:
-        return try Person.fetchCount(db)
+        return try Player.fetchCount(db)
     },
     didChange: { (controller, count) in
         // The extra value is the second argument.
@@ -4764,7 +4764,7 @@ controller.trackErrors { (controller, error) in
 You can change a fetched records controller's fetch request or SQL query.
 
 ```swift
-controller.setRequest(Person.order(Column("name")))
+controller.setRequest(Player.order(Column("name")))
 controller.setRequest(sql: "SELECT ...", arguments: ...)
 ```
 
@@ -4776,7 +4776,7 @@ The [notification callbacks](#the-changes-notifications) are notified of eventua
 
 ```swift
 // Change request on the main thread:
-controller.setRequest(Person.order(Column("name")))
+controller.setRequest(Player.order(Column("name")))
 // Here callbacks have not been called yet.
 // You can cancel them, and refresh records immediately:
 try controller.performFetch()
@@ -4789,10 +4789,10 @@ FetchedRecordsController let you feed table and collection views, and keep them 
 For nice animated updates, a fetched records controller needs to recognize identical records between two different result sets. When records adopt the [TableMapping](#tablemapping-protocol) protocol, they are automatically compared according to their primary key:
 
 ```swift
-class Person : TableMapping { ... }
+class Player : TableMapping { ... }
 let controller = FetchedRecordsController(
     dbQueue,
-    request: Person.all())
+    request: Player.all())
 ```
 
 For other types, the fetched records controller needs you to be more explicit:
@@ -4801,7 +4801,7 @@ For other types, the fetched records controller needs you to be more explicit:
 let controller = FetchedRecordsController(
     dbQueue,
     request: ...,
-    isSameRecord: { (person1, person2) in person1.id == person2.id })
+    isSameRecord: { (player1, player2) in player1.id == player2.id })
 ```
 
 
@@ -4905,7 +4905,7 @@ When the database itself can be read and modified from [any thread](#database-co
 ```swift
 // Change database on the main thread:
 try dbQueue.inDatabase { db in
-    try Person(...).insert(db)
+    try Player(...).insert(db)
 }
 // Here callbacks have not been called yet.
 // You can cancel them, and refresh records immediately:
@@ -5148,7 +5148,7 @@ do {
 
 ```swift
 do {
-    try person.update(db)
+    try player.update(db)
 } catch PersistenceError.recordNotFound {
     // There was nothing to update
 }
@@ -5197,14 +5197,14 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
 - **The database can't guarantee that the code does what it says:**
 
     ```swift
-    // fatal error: table persons has no unique index on column email
-    try Person.deleteOne(db, key: ["email": "arthur@example.com"])
+    // fatal error: table players has no unique index on column email
+    try Player.deleteOne(db, key: ["email": "arthur@example.com"])
     ```
     
-    Solution: add a unique index to the persons.email column, or use the `deleteAll` method to make it clear that you may delete more than one row:
+    Solution: add a unique index to the players.email column, or use the `deleteAll` method to make it clear that you may delete more than one row:
     
     ```swift
-    try Person.filter(Column("email") == "arthur@example.com").deleteAll(db)
+    try Player.filter(Column("email") == "arthur@example.com").deleteAll(db)
     ```
 
 - **Database connections are not reentrant:**
@@ -5312,7 +5312,7 @@ try String.fetchOne(db, "SELECT \(uppercased.name)('Jérôme')")
 Those unicode-aware string functions are also readily available in the [query interface](#sql-functions):
 
 ```
-Person.select(nameColumn.uppercased)
+Player.select(nameColumn.uppercased)
 ```
 
 
@@ -5333,7 +5333,7 @@ GRDB comes with five extra collations that leverage unicode-aware comparisons ba
 A collation can be applied to a table column. All comparisons involving this column will then automatically trigger the comparison function:
     
 ```swift
-try db.create(table: "persons") { t in
+try db.create(table: "players") { t in
     // Guarantees case-insensitive email unicity
     t.column("email", .text).unique().collate(.nocase)
     
@@ -5341,8 +5341,8 @@ try db.create(table: "persons") { t in
     t.column("name", .text).collate(.localizedCaseInsensitiveCompare)
 }
 
-// Persons are sorted in a localized case insensitive way:
-let persons = try Person.order(nameColumn).fetchAll(db)
+// Players are sorted in a localized case insensitive way:
+let players = try Player.order(nameColumn).fetchAll(db)
 ```
 
 > :warning: **Warning**: SQLite *requires* host applications to provide the definition of any collation other than binary, nocase and rtrim. When a database file has to be shared or migrated to another SQLite library of platform (such as the Android version of your application), make sure you provide a compatible collation.
@@ -5351,9 +5351,9 @@ If you can't or don't want to define the comparison behavior of a column (see wa
 
 ```swift
 let collation = DatabaseCollation.localizedCaseInsensitiveCompare
-let persons = try Person.fetchAll(db,
-    "SELECT * FROM persons ORDER BY name COLLATE \(collation.name))")
-let persons = try Person.order(nameColumn.collating(collation)).fetchAll(db)
+let players = try Player.fetchAll(db,
+    "SELECT * FROM players ORDER BY name COLLATE \(collation.name))")
+let players = try Player.order(nameColumn.collating(collation)).fetchAll(db)
 ```
 
 
@@ -5456,8 +5456,8 @@ GRDB ships with two concurrency modes:
     ```swift
     try dbPool.read { db in // or dbQueue.inDatabase { ... }
         // Guaranteed to be equal
-        let count1 = try Person.fetchCount(db)
-        let count2 = try Person.fetchCount(db)
+        let count1 = try Player.fetchCount(db)
+        let count2 = try Player.fetchCount(db)
     }
     ```
 
@@ -5563,11 +5563,11 @@ When your application modifies the database, and then reads some value that depe
 
 ```swift
 try dbPool.write { db in
-    // Increment the number of persons
-    try Person(...).insert(db)
+    // Increment the number of players
+    try Player(...).insert(db)
     
-    // Read the number of persons. The writer queue is still locked :-(
-    let count = try Person.fetchCount(db)
+    // Read the number of players. The writer queue is still locked :-(
+    let count = try Player.fetchCount(db)
 }
 ```
 
@@ -5576,12 +5576,12 @@ A wrong solution is to chain a write then a read, as below. Don't do that, becau
 ```swift
 // WRONG
 try dbPool.write { db in
-    // Increment the number of persons
-    try Person(...).insert(db)
+    // Increment the number of players
+    try Player(...).insert(db)
 }
 try dbPool.read { db in
     // Read some random value :-(
-    let count = try Person.fetchCount(db)
+    let count = try Player.fetchCount(db)
 }
 ```
 
@@ -5590,31 +5590,31 @@ The correct solution is the `readFromCurrentState` method, which must be called 
 ```swift
 // CORRECT
 try dbPool.write { db in
-    // Increment the number of persons
-    try Person(...).insert(db)
+    // Increment the number of players
+    try Player(...).insert(db)
     
     try dbPool.readFromCurrentState { db
-        // Read the number of persons. The writer queue has been unlocked :-)
-        let count = try Person.fetchCount(db)
+        // Read the number of players. The writer queue has been unlocked :-)
+        let count = try Player.fetchCount(db)
     }
 }
 ```
 
 `readFromCurrentState` blocks until it can guarantee its closure argument an isolated access to the last committed state of the database. It then asynchronously executes the closure. If the isolated access can't be established, `readFromCurrentState` throws an error, and the closure is not executed.
 
-The closure can run concurrently with eventual updates performed after `readFromCurrentState`: those updates won't be visible from within the closure. In the example below, the number of persons is guaranteed to be non-zero, even though it is fetched concurrently with the person deletion:
+The closure can run concurrently with eventual updates performed after `readFromCurrentState`: those updates won't be visible from within the closure. In the example below, the number of players is guaranteed to be non-zero, even though it is fetched concurrently with the player deletion:
 
 ```swift
 try dbPool.write { db in
-    // Increment the number of persons
-    try Person(...).insert(db)
+    // Increment the number of players
+    try Player(...).insert(db)
     
     try dbPool.readFromCurrentState { db
         // Guaranteed to be non-zero
-        let count = try Person.fetchCount(db)
+        let count = try Player.fetchCount(db)
     }
     
-    try Person.deleteAll(db)
+    try Player.deleteAll(db)
 }
 ```
 
@@ -5649,9 +5649,9 @@ DatabaseReader and DatabaseWriter are not a tool for applications that hesitate 
     ```swift
     dbPool.unsafeRead { db in
         // Those two values may be different because some other thread
-        // may have inserted or deleted a person between the two requests:
-        let count1 = try Person.fetchCount(db)
-        let count2 = try Person.fetchCount(db)
+        // may have inserted or deleted a player between the two requests:
+        let count1 = try Player.fetchCount(db)
+        let count2 = try Player.fetchCount(db)
     }
     ```
     
@@ -5764,15 +5764,15 @@ Performing multiple updates to the database is much faster when executed inside 
 ```swift
 // Inefficient
 try dbQueue.inDatabase { db in
-    for person in persons {
-        try person.insert(db)
+    for player in players {
+        try player.insert(db)
     }
 }
 
 // Efficient
 try dbQueue.inTransaction { db in
-    for person in persons {
-        try person.insert(db)
+    for player in players {
+        try player.insert(db)
     }
     return .Commit
 }
@@ -5787,14 +5787,14 @@ Obviously, no code is faster than any code.
 **Don't fetch columns you don't use**
 
 ```swift
-// SELECT * FROM persons
-try Person.fetchAll(db)
+// SELECT * FROM players
+try Player.fetchAll(db)
 
-// SELECT id, name FROM persons
-try Person.select(idColumn, nameColumn).fetchAll(db)
+// SELECT id, name FROM players
+try Player.select(idColumn, nameColumn).fetchAll(db)
 ```
 
-If your Person type can't be built without other columns (it has non-optional properties for other columns), *do define and use a different type*.
+If your Player type can't be built without other columns (it has non-optional properties for other columns), *do define and use a different type*.
 
 
 **Don't fetch rows you don't use**
@@ -5803,11 +5803,11 @@ Use [fetchOne](#fetching-methods) when you need a single value, and otherwise li
 
 ```swift
 // Wrong way: this code may discard hundreds of useless database rows
-let persons = try Person.order(scoreColumn.desc).fetchAll(db)
-let hallOfFame = persons.prefix(5)
+let players = try Player.order(scoreColumn.desc).fetchAll(db)
+let hallOfFame = players.prefix(5)
 
 // Better way
-let hallOfFame = try Person.order(scoreColumn.desc).limit(5).fetchAll(db)
+let hallOfFame = try Player.order(scoreColumn.desc).limit(5).fetchAll(db)
 ```
 
 
@@ -5831,8 +5831,8 @@ When the overwritten values are the same as the existing ones, it's thus better 
 The [Record](#record-class) class can help you: it provides [changes tracking](#changes-tracking):
 
 ```swift
-if person.hasPersistentChangedValues {
-    try person.update(db)
+if player.hasPersistentChangedValues {
+    try player.update(db)
 }
 ```
 
@@ -5887,7 +5887,7 @@ The String and Dictionary Swift types are better avoided when you look for the b
 Now GRDB [records](#records), for your convenience, do use strings and dictionaries:
 
 ```swift
-class Person : Record {
+class Player : Record {
     var id: Int64?
     var name: String
     var email: String
@@ -5913,17 +5913,17 @@ For example, when fetching values, prefer loading columns by index:
 
 ```swift
 // Strings & dictionaries
-let persons = try Person.fetchAll(db)
+let players = try Player.fetchAll(db)
 
 // Column indexes
-// SELECT id, name, email FROM persons
-let request = Person.select(idColumn, nameColumn, emailColumn)
+// SELECT id, name, email FROM players
+let request = Player.select(idColumn, nameColumn, emailColumn)
 let rows = try Row.fetchCursor(db, request)
 while let row = try rows.next() {
     let id: Int64 = row[0]
     let name: String = row[1]
     let email: String = row[2]
-    let person = Person(id: id, name: name, email: email)
+    let player = Player(id: id, name: name, email: email)
     ...
 }
 ```
@@ -5932,17 +5932,17 @@ When inserting values, use reusable [prepared statements](#prepared-statements),
 
 ```swift
 // Strings & dictionaries
-for person in persons {
-    try person.insert(db)
+for player in players {
+    try player.insert(db)
 }
 
 // Prepared statement
-let insertStatement = db.prepareStatement("INSERT INTO persons (name, email) VALUES (?, ?)")
-for person in persons {
+let insertStatement = db.prepareStatement("INSERT INTO players (name, email) VALUES (?, ?)")
+for player in players {
     // Only use the unsafe arguments setter if you are sure that you provide
     // all statement arguments. A mistake can store unexpected values in
     // the database.
-    insertStatement.unsafeSetArguments([person.name, person.email])
+    insertStatement.unsafeSetArguments([player.name, player.email])
     try insertStatement.execute()
 }
 ```
