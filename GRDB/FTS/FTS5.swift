@@ -129,8 +129,7 @@
             }
         }
         
-        // TODO GRDB 2.0: don't throw if fts5() does not access the file system
-        static func api(_ db: Database) throws -> UnsafePointer<fts5_api> {
+        static func api(_ db: Database) -> UnsafePointer<fts5_api> {
             let sqliteConnection = db.sqliteConnection
             var statement: SQLiteStatement? = nil
             var api: UnsafePointer<fts5_api>? = nil
@@ -138,14 +137,17 @@
             
             let code = sqlite3_prepare_v3(db.sqliteConnection, "SELECT fts5(?)", -1, 0, &statement, nil)
             guard code == SQLITE_OK else {
-                throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
+                fatalError("FTS5 is not available")
             }
             defer { sqlite3_finalize(statement) }
             type.utf8Start.withMemoryRebound(to: Int8.self, capacity: type.utf8CodeUnitCount) { typePointer in
                 _ = sqlite3_bind_pointer(statement, 1, &api, typePointer, nil)
             }
             sqlite3_step(statement)
-            return api!
+            guard let result = api else {
+                fatalError("FTS5 is not available")
+            }
+            return result
         }
     }
     

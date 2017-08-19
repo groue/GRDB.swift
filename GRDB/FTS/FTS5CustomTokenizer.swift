@@ -55,8 +55,7 @@
         ///     class MyTokenizer : FTS5CustomTokenizer { ... }
         ///     db.add(tokenizer: MyTokenizer.self)
         public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) {
-            // TODO GRDB 2.0: let this method throw when FTS5 can't be loaded
-            let api = try! FTS5.api(self)
+            let api = FTS5.api(self)
             
             // Swift won't let the @convention(c) xCreate() function below create
             // an instance of the generic Tokenizer type.

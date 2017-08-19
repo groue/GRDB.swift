@@ -188,7 +188,7 @@
         ///         }
         ///     }
         public func makeTokenizer(_ descriptor: FTS5TokenizerDescriptor) throws -> FTS5Tokenizer {
-            let api = try FTS5.api(self)
+            let api = FTS5.api(self)
             
             let xTokenizerPointer: UnsafeMutablePointer<fts5_tokenizer> = .allocate(capacity: 1)
             defer { xTokenizerPointer.deallocate(capacity: 1) }
