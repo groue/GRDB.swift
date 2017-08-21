@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		561E8D251BB12783000EFBBA /* ProfilingDatabase.sqlite in Resources */ = {isa = PBXBuildFile; fileRef = 561E8D241BB12783000EFBBA /* ProfilingDatabase.sqlite */; };
+		564C5B4E1F48936B00176870 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 564C5B4D1F48936B00176870 /* GRDB.framework */; };
+		564C5B4F1F48936B00176870 /* GRDB.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 564C5B4D1F48936B00176870 /* GRDB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		56537C761BA8871A00E87787 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56537C751BA8871A00E87787 /* AppDelegate.swift */; };
 		56537C781BA8871A00E87787 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56537C771BA8871A00E87787 /* ViewController.swift */; };
 		56537C7A1BA8871A00E87787 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 56537C791BA8871A00E87787 /* Assets.xcassets */; };
@@ -15,143 +17,151 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		562393151DEB59CD00A6B01F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 565490A01D5A4798005622CB;
-			remoteInfo = GRDBWatchOS;
-		};
-		56537C8B1BA8874F00E87787 /* PBXContainerItemProxy */ = {
+		564C5B671F489B8A00176870 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = DC3773F319C8CBB3004FCF85;
 			remoteInfo = GRDBOSX;
 		};
-		56537C8D1BA8874F00E87787 /* PBXContainerItemProxy */ = {
+		564C5B691F489B8A00176870 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 56E5D7F91B4D422D00430942;
 			remoteInfo = GRDBOSXTests;
 		};
-		56537C8F1BA8874F00E87787 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 56E5D7CA1B4D3FED00430942;
-			remoteInfo = GRDBiOS;
-		};
-		56537C911BA8874F00E87787 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 56E5D7D31B4D3FEE00430942;
-			remoteInfo = GRDBiOSTests;
-		};
-		56537C931BA8875800E87787 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = DC3773F219C8CBB3004FCF85;
-			remoteInfo = GRDBOSX;
-		};
-		5657AAD31D107A65006283EF /* PBXContainerItemProxy */ = {
+		564C5B6B1F489B8A00176870 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 560C981A1C0E22D300BF8471;
 			remoteInfo = GRDBOSXPerformanceTests;
 		};
-		5657AAD51D107A65006283EF /* PBXContainerItemProxy */ = {
+		564C5B6D1F489B8A00176870 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 56553C181C3E906C00522B5C;
 			remoteInfo = GRDBOSXCrashTests;
 		};
-		5657AAD71D107A65006283EF /* PBXContainerItemProxy */ = {
+		564C5B6F1F489B8A00176870 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 560FC54D1CB003810014AA8E;
 			remoteInfo = GRDBCipherOSX;
 		};
-		5657AAD91D107A65006283EF /* PBXContainerItemProxy */ = {
+		564C5B711F489B8A00176870 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 560FC5B01CB00B880014AA8E;
 			remoteInfo = GRDBCipherOSXTests;
 		};
-		5657AADB1D107A65006283EF /* PBXContainerItemProxy */ = {
+		564C5B731F489B8A00176870 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 5671566C1CB16729007DC145;
 			remoteInfo = GRDBCipherOSXEncryptedTests;
 		};
-		5657AADD1D107A65006283EF /* PBXContainerItemProxy */ = {
+		564C5B751F489B8A00176870 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = F3BA805A1CFB2BB2003DC1BA;
 			remoteInfo = GRDBCustomSQLiteOSX;
 		};
-		5657AADF1D107A65006283EF /* PBXContainerItemProxy */ = {
+		564C5B771F489B8A00176870 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = F3BA809B1CFB2F6F003DC1BA;
 			remoteInfo = GRDBCustomSQLiteOSXTests;
 		};
-		5657AAE11D107A65006283EF /* PBXContainerItemProxy */ = {
+		564C5B791F489B8A00176870 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 56E5D7CA1B4D3FED00430942;
+			remoteInfo = GRDBiOS;
+		};
+		564C5B7B1F489B8A00176870 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 56E5D7D31B4D3FEE00430942;
+			remoteInfo = GRDBiOSTests;
+		};
+		564C5B7D1F489B8A00176870 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 56AFCA231CB1A8BB00F48B96;
 			remoteInfo = GRDBCipheriOS;
 		};
-		5657AAE31D107A65006283EF /* PBXContainerItemProxy */ = {
+		564C5B7F1F489B8A00176870 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 56AFCA7F1CB1AA9900F48B96;
 			remoteInfo = GRDBCipheriOSTests;
 		};
-		5657AAE51D107A65006283EF /* PBXContainerItemProxy */ = {
+		564C5B811F489B8A00176870 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 56AFCAD71CB1ABC800F48B96;
 			remoteInfo = GRDBCipheriOSEncryptedTests;
 		};
-		5657AAE71D107A65006283EF /* PBXContainerItemProxy */ = {
+		564C5B831F489B8A00176870 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = F3BA7FFE1CFB25E4003DC1BA;
 			remoteInfo = GRDBCustomSQLiteiOS;
 		};
-		5657AAE91D107A65006283EF /* PBXContainerItemProxy */ = {
+		564C5B851F489B8A00176870 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = F3BA80411CFB2AD7003DC1BA;
 			remoteInfo = GRDBCustomSQLiteiOSTests;
 		};
+		564C5B871F489B8A00176870 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 565490A01D5A4798005622CB;
+			remoteInfo = GRDBWatchOS;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		564C5B501F48936B00176870 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				564C5B4F1F48936B00176870 /* GRDB.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		561E8D241BB12783000EFBBA /* ProfilingDatabase.sqlite */ = {isa = PBXFileReference; lastKnownFileType = file; path = ProfilingDatabase.sqlite; sourceTree = "<group>"; };
+		564C5B4D1F48936B00176870 /* GRDB.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = GRDB.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		56537C721BA8871A00E87787 /* GRDBProfiling.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GRDBProfiling.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		56537C751BA8871A00E87787 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		56537C771BA8871A00E87787 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		56537C791BA8871A00E87787 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		56537C7C1BA8871A00E87787 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		56537C7E1BA8871A00E87787 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		56537C841BA8874F00E87787 /* GRDB.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GRDB.xcodeproj; path = ../../GRDB.xcodeproj; sourceTree = "<group>"; };
+		56537C841BA8874F00E87787 /* GRDB.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GRDB.xcodeproj; path = ../../../GRDB.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -159,18 +169,44 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				564C5B4E1F48936B00176870 /* GRDB.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		564C5B541F489B8A00176870 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				564C5B681F489B8A00176870 /* GRDB.framework */,
+				564C5B6A1F489B8A00176870 /* GRDBOSXTests.xctest */,
+				564C5B6C1F489B8A00176870 /* GRDBOSXPerformanceTests.xctest */,
+				564C5B6E1F489B8A00176870 /* GRDBOSXCrashTests.xctest */,
+				564C5B701F489B8A00176870 /* GRDBCipher.framework */,
+				564C5B721F489B8A00176870 /* GRDBCipherOSXTests.xctest */,
+				564C5B741F489B8A00176870 /* GRDBCipherOSXEncryptedTests.xctest */,
+				564C5B761F489B8A00176870 /* GRDBCustomSQLite.framework */,
+				564C5B781F489B8A00176870 /* GRDBCustomSQLiteOSXTests.xctest */,
+				564C5B7A1F489B8A00176870 /* GRDB.framework */,
+				564C5B7C1F489B8A00176870 /* GRDBiOSTests.xctest */,
+				564C5B7E1F489B8A00176870 /* GRDBCipher.framework */,
+				564C5B801F489B8A00176870 /* GRDBCipheriOSTests.xctest */,
+				564C5B821F489B8A00176870 /* GRDBCipheriOSEncryptedTests.xctest */,
+				564C5B841F489B8A00176870 /* GRDBCustomSQLite.framework */,
+				564C5B861F489B8A00176870 /* GRDBCustomSQLiteiOSTests.xctest */,
+				564C5B881F489B8A00176870 /* GRDB.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		56537C691BA8871A00E87787 = {
 			isa = PBXGroup;
 			children = (
 				56537C841BA8874F00E87787 /* GRDB.xcodeproj */,
 				56537C741BA8871A00E87787 /* GRDBProfiling */,
 				56537C731BA8871A00E87787 /* Products */,
+				564C5B4D1F48936B00176870 /* GRDB.framework */,
 			);
 			sourceTree = "<group>";
 		};
@@ -195,30 +231,6 @@
 			path = GRDBProfiling;
 			sourceTree = "<group>";
 		};
-		56537C851BA8874F00E87787 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				56537C8C1BA8874F00E87787 /* GRDB.framework */,
-				56537C8E1BA8874F00E87787 /* GRDBTests.xctest */,
-				5657AAD41D107A65006283EF /* GRDBOSXPerformanceTests.xctest */,
-				5657AAD61D107A65006283EF /* GRDBOSXCrashTests.xctest */,
-				5657AAD81D107A65006283EF /* GRDBCipher.framework */,
-				5657AADA1D107A65006283EF /* GRDBTests.xctest */,
-				5657AADC1D107A65006283EF /* GRDBCipherOSXEncryptedTests.xctest */,
-				5657AADE1D107A65006283EF /* GRDBCustomSQLite.framework */,
-				5657AAE01D107A65006283EF /* GRDBCustomSQLiteOSXTests.xctest */,
-				56537C901BA8874F00E87787 /* GRDB.framework */,
-				56537C921BA8874F00E87787 /* GRDBTests.xctest */,
-				5657AAE21D107A65006283EF /* GRDBCipher.framework */,
-				5657AAE41D107A65006283EF /* GRDBTests.xctest */,
-				5657AAE61D107A65006283EF /* GRDBTests.xctest */,
-				5657AAE81D107A65006283EF /* GRDBCustomSQLite.framework */,
-				5657AAEA1D107A65006283EF /* GRDBCustomSQLiteiOSTests.xctest */,
-				562393161DEB59CD00A6B01F /* GRDB.framework */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -229,11 +241,11 @@
 				56537C6E1BA8871A00E87787 /* Sources */,
 				56537C6F1BA8871A00E87787 /* Frameworks */,
 				56537C701BA8871A00E87787 /* Resources */,
+				564C5B501F48936B00176870 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				56537C941BA8875800E87787 /* PBXTargetDependency */,
 			);
 			name = GRDBProfiling;
 			productName = GRDBProfiling;
@@ -268,7 +280,7 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = 56537C851BA8874F00E87787 /* Products */;
+					ProductGroup = 564C5B541F489B8A00176870 /* Products */;
 					ProjectRef = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
 				},
 			);
@@ -280,123 +292,123 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		562393161DEB59CD00A6B01F /* GRDB.framework */ = {
+		564C5B681F489B8A00176870 /* GRDB.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
 			path = GRDB.framework;
-			remoteRef = 562393151DEB59CD00A6B01F /* PBXContainerItemProxy */;
+			remoteRef = 564C5B671F489B8A00176870 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		56537C8C1BA8874F00E87787 /* GRDB.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = GRDB.framework;
-			remoteRef = 56537C8B1BA8874F00E87787 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		56537C8E1BA8874F00E87787 /* GRDBTests.xctest */ = {
+		564C5B6A1F489B8A00176870 /* GRDBOSXTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
-			path = GRDBTests.xctest;
-			remoteRef = 56537C8D1BA8874F00E87787 /* PBXContainerItemProxy */;
+			path = GRDBOSXTests.xctest;
+			remoteRef = 564C5B691F489B8A00176870 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		56537C901BA8874F00E87787 /* GRDB.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = GRDB.framework;
-			remoteRef = 56537C8F1BA8874F00E87787 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		56537C921BA8874F00E87787 /* GRDBTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = GRDBTests.xctest;
-			remoteRef = 56537C911BA8874F00E87787 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		5657AAD41D107A65006283EF /* GRDBOSXPerformanceTests.xctest */ = {
+		564C5B6C1F489B8A00176870 /* GRDBOSXPerformanceTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
 			path = GRDBOSXPerformanceTests.xctest;
-			remoteRef = 5657AAD31D107A65006283EF /* PBXContainerItemProxy */;
+			remoteRef = 564C5B6B1F489B8A00176870 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		5657AAD61D107A65006283EF /* GRDBOSXCrashTests.xctest */ = {
+		564C5B6E1F489B8A00176870 /* GRDBOSXCrashTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
 			path = GRDBOSXCrashTests.xctest;
-			remoteRef = 5657AAD51D107A65006283EF /* PBXContainerItemProxy */;
+			remoteRef = 564C5B6D1F489B8A00176870 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		5657AAD81D107A65006283EF /* GRDBCipher.framework */ = {
+		564C5B701F489B8A00176870 /* GRDBCipher.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
 			path = GRDBCipher.framework;
-			remoteRef = 5657AAD71D107A65006283EF /* PBXContainerItemProxy */;
+			remoteRef = 564C5B6F1F489B8A00176870 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		5657AADA1D107A65006283EF /* GRDBTests.xctest */ = {
+		564C5B721F489B8A00176870 /* GRDBCipherOSXTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
-			path = GRDBTests.xctest;
-			remoteRef = 5657AAD91D107A65006283EF /* PBXContainerItemProxy */;
+			path = GRDBCipherOSXTests.xctest;
+			remoteRef = 564C5B711F489B8A00176870 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		5657AADC1D107A65006283EF /* GRDBCipherOSXEncryptedTests.xctest */ = {
+		564C5B741F489B8A00176870 /* GRDBCipherOSXEncryptedTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
 			path = GRDBCipherOSXEncryptedTests.xctest;
-			remoteRef = 5657AADB1D107A65006283EF /* PBXContainerItemProxy */;
+			remoteRef = 564C5B731F489B8A00176870 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		5657AADE1D107A65006283EF /* GRDBCustomSQLite.framework */ = {
+		564C5B761F489B8A00176870 /* GRDBCustomSQLite.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
 			path = GRDBCustomSQLite.framework;
-			remoteRef = 5657AADD1D107A65006283EF /* PBXContainerItemProxy */;
+			remoteRef = 564C5B751F489B8A00176870 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		5657AAE01D107A65006283EF /* GRDBCustomSQLiteOSXTests.xctest */ = {
+		564C5B781F489B8A00176870 /* GRDBCustomSQLiteOSXTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
 			path = GRDBCustomSQLiteOSXTests.xctest;
-			remoteRef = 5657AADF1D107A65006283EF /* PBXContainerItemProxy */;
+			remoteRef = 564C5B771F489B8A00176870 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		5657AAE21D107A65006283EF /* GRDBCipher.framework */ = {
+		564C5B7A1F489B8A00176870 /* GRDB.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = GRDB.framework;
+			remoteRef = 564C5B791F489B8A00176870 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		564C5B7C1F489B8A00176870 /* GRDBiOSTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = GRDBiOSTests.xctest;
+			remoteRef = 564C5B7B1F489B8A00176870 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		564C5B7E1F489B8A00176870 /* GRDBCipher.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
 			path = GRDBCipher.framework;
-			remoteRef = 5657AAE11D107A65006283EF /* PBXContainerItemProxy */;
+			remoteRef = 564C5B7D1F489B8A00176870 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		5657AAE41D107A65006283EF /* GRDBTests.xctest */ = {
+		564C5B801F489B8A00176870 /* GRDBCipheriOSTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
-			path = GRDBTests.xctest;
-			remoteRef = 5657AAE31D107A65006283EF /* PBXContainerItemProxy */;
+			path = GRDBCipheriOSTests.xctest;
+			remoteRef = 564C5B7F1F489B8A00176870 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		5657AAE61D107A65006283EF /* GRDBTests.xctest */ = {
+		564C5B821F489B8A00176870 /* GRDBCipheriOSEncryptedTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
-			path = GRDBTests.xctest;
-			remoteRef = 5657AAE51D107A65006283EF /* PBXContainerItemProxy */;
+			path = GRDBCipheriOSEncryptedTests.xctest;
+			remoteRef = 564C5B811F489B8A00176870 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		5657AAE81D107A65006283EF /* GRDBCustomSQLite.framework */ = {
+		564C5B841F489B8A00176870 /* GRDBCustomSQLite.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
 			path = GRDBCustomSQLite.framework;
-			remoteRef = 5657AAE71D107A65006283EF /* PBXContainerItemProxy */;
+			remoteRef = 564C5B831F489B8A00176870 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		5657AAEA1D107A65006283EF /* GRDBCustomSQLiteiOSTests.xctest */ = {
+		564C5B861F489B8A00176870 /* GRDBCustomSQLiteiOSTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
 			path = GRDBCustomSQLiteiOSTests.xctest;
-			remoteRef = 5657AAE91D107A65006283EF /* PBXContainerItemProxy */;
+			remoteRef = 564C5B851F489B8A00176870 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		564C5B881F489B8A00176870 /* GRDB.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = GRDB.framework;
+			remoteRef = 564C5B871F489B8A00176870 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -425,14 +437,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		56537C941BA8875800E87787 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = GRDBOSX;
-			targetProxy = 56537C931BA8875800E87787 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		56537C7B1BA8871A00E87787 /* Main.storyboard */ = {
@@ -490,7 +494,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -536,7 +540,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 			};
