@@ -420,11 +420,13 @@ Database pools allow several threads to access the database at the same time:
 
 - When you don't need to modify the database, prefer the `read` method, because several threads can perform reads in parallel.
     
-    The total number of concurrent reads is limited. When the maximum number has been reached, a read waits for another read to complete. That maximum number can be [configured](#databasepool-configuration).
+    Reads are generally non-blocking, unless the maximum number of concurrent reads has been reached. In this case, a read has to wait for another read to complete. That maximum number can be [configured](#databasepool-configuration).
 
-- Conversely, writes are serialized. They don't block reads, but GRDB guarantees `read` closures an immutable view of the last committed state of the database.
+- Unlike reads, writes are serialized. There is never more than a single thread that is writing into the database.
     
-    :point_up: To provide `read` closures an immutable view of the last executed writing block *as a whole*, use `writeInTransaction` instead of `write`.
+- Reads are guaranteed an immutable view of the last committed state of the database, regardless of concurrent writes. This kind of isolation is called "snapshot isolation".
+    
+    To provide `read` closures an immutable view of the last executed writing block *as a whole*, use `writeInTransaction` instead of `write`.
 
 **A database pool needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency](#concurrency) chapter.
 
