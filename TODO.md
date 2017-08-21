@@ -23,7 +23,7 @@ GRDB 2.0
     - [X] Documentation
 - [X] Let TableMapping define the selected columns, not only if rowID is selected or not.
 - [X] Have RowConvertible.fetchCursor(_:keys:) return a non-optional cursor
-- [?] Make PersistenceEncoder a protocol
+- [?] Make PersistenceContainer a protocol
 - [?] Split DatabaseCursor into several cursor types, if performance is improved.
 
 Not sure
