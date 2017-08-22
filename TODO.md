@@ -25,6 +25,7 @@ GRDB 2.0
 - [X] Have RowConvertible.fetchCursor(_:keys:) return a non-optional cursor
 - [?] Make PersistenceContainer a protocol
 - [?] Split DatabaseCursor into several cursor types, if performance is improved.
+- [ ] Read https://littlebitesofcocoa.com/316-codable-dates
 
 Not sure
 
