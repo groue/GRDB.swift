@@ -1947,7 +1947,10 @@ You can now jump to:
     ```swift
     // Row initializer
     struct Place {
-        init(row: Row) { ... }
+        init(row: Row) {
+            id = row["id"]
+            ...
+        }
     }
     func fetchPlaces(_ db: Database) throws -> [Place] {
         let rows = try Row.fetchAll(db, "SELECT * FROM places")
