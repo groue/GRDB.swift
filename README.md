@@ -623,7 +623,7 @@ Unlike arrays, cursors returned by `fetchCursor()` load their results step after
 
 ```swift
 try dbQueue.inDatabase { db in
-    // Cursor or Player
+    // Cursor of Player
     let players = Player.fetchCursor(db, "SELECT ...")
     while let player = players.next() {
         // use player
@@ -646,10 +646,10 @@ If you don't see, or don't care about the difference, use arrays. If you care ab
 **There are several cursor types**, depending on the type of fetched values (database [row](#row-queries), simple [value](#value-queries), or custom [record](#records)):
 
 ```swift
-Row.fetchCursor(...)  // RowCursor
-Int.fetchCursor(...)  // ColumnCursor<Int>
-Date.fetchCursor(...) // MapCursor<RowCursor, Date>
-Player(...)           // MapCursor<RowCursor, Player>
+Row.fetchCursor(...)    // RowCursor
+Int.fetchCursor(...)    // ColumnCursor<Int>
+Date.fetchCursor(...)   // MapCursor<RowCursor, Date>
+Player.fetchCursor(...) // MapCursor<RowCursor, Player>
 ```
 
 All cursor types adopt the [Cursor](http://groue.github.io/GRDB.swift/docs/1.3/Protocols/Cursor.html) protocol, which looks a lot like standard [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol) of Swift.
