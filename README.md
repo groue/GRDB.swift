@@ -637,7 +637,7 @@ Both arrays and cursors can iterate over database results. How do you choose one
 - Cursors iterate in a lazy fashion, and don't consume much memory.
 - Cursors can not be used on any thread: you must consume them in a protected database queue.
 - Cursors can be iterated only one time.
-- Cursors are granted with direct access to SQLite: you can especially expect the best performance from cursors of raw database rows and some primitive types like `Int`, `String`, or `Bool`.
+- Cursors are granted with direct access to SQLite: you can especially expect the best performance from cursors of raw database rows and some primitive types like `Int`, `String`, or `Bool` that adopt the [StatementColumnConvertible](http://groue.github.io/GRDB.swift/docs/1.3/Protocols/StatementColumnConvertible.html) protocol.
 
 If you don't see, or don't care about the difference, use arrays. If you care about memory and performance, use cursors when appropriate.
 
