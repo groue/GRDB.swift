@@ -1,4 +1,4 @@
-GRDB.swift 2.0 [![Swift](https://img.shields.io/badge/swift-4-orange.svg?style=flat)](https://developer.apple.com/swift/) [![Platforms](https://img.shields.io/cocoapods/p/GRDB.swift.svg)](https://developer.apple.com/swift/) [![License](https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000)](/LICENSE) [![Build Status](https://travis-ci.org/groue/GRDB.swift.svg?branch=master)](https://travis-ci.org/groue/GRDB.swift)
+GRDB 2.0 [![Swift](https://img.shields.io/badge/swift-4-orange.svg?style=flat)](https://developer.apple.com/swift/) [![Platforms](https://img.shields.io/cocoapods/p/GRDB.swift.svg)](https://developer.apple.com/swift/) [![License](https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000)](/LICENSE) [![Build Status](https://travis-ci.org/groue/GRDB.swift.svg?branch=master)](https://travis-ci.org/groue/GRDB.swift)
 ==========
 
 ### A toolkit for SQLite databases, with a focus on application development
@@ -238,7 +238,7 @@ See [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) for the installa
 
 ## CocoaPods
 
-[CocoaPods](http://cocoapods.org/) is a dependency manager for Xcode projects. To use GRDB.swift with CocoaPods (version 1.2 or higher), specify in your `Podfile`:
+[CocoaPods](http://cocoapods.org/) is a dependency manager for Xcode projects. To use GRDB with CocoaPods (version 1.2 or higher), specify in your `Podfile`:
 
 ```ruby
 use_frameworks!
@@ -248,7 +248,7 @@ pod 'GRDB.swift'
 
 ## Swift Package Manager
 
-The [Swift Package Manager](https://swift.org/package-manager/) automates the distribution of Swift code. To use GRDB.swift with SPM, add a dependency to your `Package.swift` file:
+The [Swift Package Manager](https://swift.org/package-manager/) automates the distribution of Swift code. To use GRDB with SPM, add a dependency to your `Package.swift` file:
 
 ```swift
 let package = Package(
@@ -271,7 +271,7 @@ Any pull request that has the `make test_CarthageBuild` command successfully com
 
 ## Manually
 
-1. [Download](https://github.com/groue/GRDB.swift/releases/tag/v1.3.0) a copy of GRDB.swift, or clone its repository and make sure you use the latest tagged version with the `git checkout v1.3.0` command.
+1. [Download](https://github.com/groue/GRDB.swift/releases/tag/v1.3.0) a copy of GRDB, or clone its repository and make sure you use the latest tagged version with the `git checkout v1.3.0` command.
 
 2. Embed the `GRDB.xcodeproj` project in your own project.
 
@@ -4958,10 +4958,10 @@ pod 'GRDBCipher'
 
 Alternatively, perform a manual installation of GRDB and SQLCipher:
 
-1. Clone the GRDB.swift git repository, checkout the latest tagged version, and download SQLCipher sources:
+1. Clone the GRDB git repository, checkout the latest tagged version, and download SQLCipher sources:
     
     ```sh
-    cd [GRDB.swift directory]
+    cd [GRDB directory]
     git checkout v1.3.0
     git submodule update --init SQLCipher/src
     ```

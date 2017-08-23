@@ -11,10 +11,10 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
 
 **To install GRDB with a custom SQLite build:**
 
-1. Clone the GRDB.swift git repository, checkout the latest tagged version, and download SQLite sources:
+1. Clone the GRDB git repository, checkout the latest tagged version, and download SQLite sources:
     
     ```sh
-    cd [GRDB.swift directory]
+    cd [GRDB directory]
     git checkout v1.3.0
     git submodule update --init SQLiteCustom/src
     ````
