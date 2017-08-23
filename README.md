@@ -612,7 +612,7 @@ The `fetchAll()` method returns a regular Swift array, that you iterate like all
 ```swift
 try dbQueue.inDatabase { db in
     // [Player]
-    let players = Player.fetchAll(db, "SELECT ...")
+    let players = try Player.fetchAll(db, "SELECT ...")
     for player in players {
         // use player
     }
@@ -624,8 +624,8 @@ Unlike arrays, cursors returned by `fetchCursor()` load their results step after
 ```swift
 try dbQueue.inDatabase { db in
     // Cursor of Player
-    let players = Player.fetchCursor(db, "SELECT ...")
-    while let player = players.next() {
+    let players = try Player.fetchCursor(db, "SELECT ...")
+    while let player = try players.next() {
         // use player
     }
 }

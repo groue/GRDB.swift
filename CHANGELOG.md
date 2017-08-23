@@ -116,6 +116,18 @@ Release Notes
 - `RowConvertible.fetchCursor(_:keys:)` returns a non-optional cursor.
 
 
+**Documentation diff**
+
+- [Installation instructions for WatchOS](https://github.com/groue/GRDB.swift#installation) have been updated.
+- The [description of database pools](https://github.com/groue/GRDB.swift#database-pools) has been enhanced.
+- The [description of cursors](https://github.com/groue/GRDB.swift#cursors) has been enhanced.
+- The [Usage of raw SQLite pointers](https://github.com/groue/GRDB.swift#raw-sqlite-pointers) chapter has been updated for the new `SQLite3` standard module.
+- A new [Record Protocols Overview](https://github.com/groue/GRDB.swift#record-protocols-overview) chapter has been added.
+- A new [Codable Records](https://github.com/groue/GRDB.swift#codable-records) chapter has been added.
+- A new [Columns Selected by a Request](https://github.com/groue/GRDB.swift#columns-selected-by-a-request) chapter describes the new `TableMapping.databaseSelection` property.
+- The [Exposing the RowID Column](https://github.com/groue/GRDB.swift#exposing-the-rowid-column) chapter has been updated for the new `TableMapping.databaseSelection` property.
+
+
 **API diff**
 
 ```diff
