@@ -223,8 +223,8 @@ extension DatabasePool : DatabaseReader {
     /// Synchronously executes a read-only block in a protected dispatch queue,
     /// and returns its result. The block is wrapped in a deferred transaction.
     ///
-    ///     let persons = try dbPool.read { db in
-    ///         try Person.fetchAll(...)
+    ///     let players = try dbPool.read { db in
+    ///         try Player.fetchAll(...)
     ///     }
     ///
     /// The block is completely isolated. Eventual concurrent database updates
@@ -523,12 +523,12 @@ extension DatabasePool : DatabaseWriter {
     /// database updates are *not visible* inside the block.
     ///
     ///     try dbPool.write { db in
-    ///         try db.execute("DELETE FROM persons")
+    ///         try db.execute("DELETE FROM players")
     ///         try dbPool.readFromCurrentState { db in
     ///             // Guaranteed to be zero
-    ///             try Int.fetchOne(db, "SELECT COUNT(*) FROM persons")!
+    ///             try Int.fetchOne(db, "SELECT COUNT(*) FROM players")!
     ///         }
-    ///         try db.execute("INSERT INTO persons ...")
+    ///         try db.execute("INSERT INTO players ...")
     ///     }
     ///
     /// This method blocks the current thread until the isolation guarantee has

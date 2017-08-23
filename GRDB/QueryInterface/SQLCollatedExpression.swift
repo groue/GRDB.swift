@@ -5,8 +5,8 @@
 ///
 ///     let email: SQLCollatedExpression = Column("email").collating(.nocase)
 ///
-///     // SELECT * FROM persons WHERE email = 'arthur@example.com' COLLATE NOCASE
-///     Persons.filter(email == "arthur@example.com")
+///     // SELECT * FROM players WHERE email = 'arthur@example.com' COLLATE NOCASE
+///     Players.filter(email == "arthur@example.com")
 public struct SQLCollatedExpression {
     /// The tainted expression
     public let expression: SQLExpression
@@ -18,8 +18,8 @@ public struct SQLCollatedExpression {
     ///
     ///     let email: SQLCollatedExpression = Column("email").collating(.nocase)
     ///
-    ///     // SELECT * FROM persons ORDER BY email COLLATE NOCASE ASC
-    ///     Persons.order(email.asc)
+    ///     // SELECT * FROM players ORDER BY email COLLATE NOCASE ASC
+    ///     Players.order(email.asc)
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public var asc: SQLOrderingTerm {
@@ -30,8 +30,8 @@ public struct SQLCollatedExpression {
     ///
     ///     let email: SQLCollatedExpression = Column("email").collating(.nocase)
     ///
-    ///     // SELECT * FROM persons ORDER BY email COLLATE NOCASE DESC
-    ///     Persons.order(email.desc)
+    ///     // SELECT * FROM players ORDER BY email COLLATE NOCASE DESC
+    ///     Players.order(email.desc)
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public var desc: SQLOrderingTerm {

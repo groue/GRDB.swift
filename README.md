@@ -579,15 +579,15 @@ let wines = try dbQueue.inDatabase { db in
 **Throughout GRDB**, you can always fetch *cursors*, *arrays*, or *single values* of any fetchable type (database [row](#row-queries), simple [value](#value-queries), or custom [record](#records)):
 
 ```swift
-try Type.fetchCursor(...) // DatabaseCursor<Type>
-try Type.fetchAll(...)    // [Type]
-try Type.fetchOne(...)    // Type?
+try Row.fetchCursor(...) // A Cursor of Row
+try Row.fetchAll(...)    // [Row]
+try Row.fetchOne(...)    // Row?
 ```
 
 - `fetchCursor` returns a **[cursor](#cursors)** over fetched values:
     
     ```swift
-    let rows = try Row.fetchCursor(db, "SELECT ...") // DatabaseCursor<Row>
+    let rows = try Row.fetchCursor(db, "SELECT ...") // A Cursor of Row
     ```
     
 - `fetchAll` returns an **array**:
@@ -607,43 +607,52 @@ try Type.fetchOne(...)    // Type?
 
 **Whenever you consume several rows from the database, you can fetch a Cursor, or an Array**.
 
-Arrays contain copies of database values and may be consumed on any thread. But they can take a lot of memory. Conversely, cursors iterate over database results in a lazy fashion, don't consume much memory, and are generally more efficient. But they must be consumed in a [protected dispatch queue](#database-connections):
+The `fetchAll()` method returns a regular Swift array, that you iterate like all other arrays:
 
 ```swift
-let rows = try Row.fetchAll(db, "SELECT ...")    // [Row]
-let rows = try Row.fetchCursor(db, "SELECT ...") // DatabaseCursor<Row>
-```
-
-
-A common way to iterate over the elements of a cursor is to use a `while` loop:
-
-```swift
-let rows = try Row.fetchCursor(db, "SELECT ...")
-while let row = try rows.next() {
-    let url: URL = row["url"]
-    print(url)
+try dbQueue.inDatabase { db in
+    let players = Player.fetchAll(db, "SELECT ...")
+    for player in players {
+        // use player
+    }
 }
 ```
 
-You can also use the `forEach` method:
+Unlike arrays, cursors returned by `fetchCursor()` load their results step after step:
 
 ```swift
-try rows.forEach { row in
-    let url: URL = row["url"]
-    print(url)
+try dbQueue.inDatabase { db in
+    let players = Player.fetchCursor(db, "SELECT ...")
+    while let player = players.next() {
+        // use player
+    }
 }
 ```
 
-Don't modify the fetched results during a cursor iteration:
+Both arrays and cursors can iterate over database results. How do you choose one or the other? Look at the differences:
+
+- Arrays contain copies of database values and may be consumed on any thread.
+- Arrays can take a lot of memory, if the number of fetched results is high.
+- Arrays can be iterated many times.
+- Cursors iterate in a lazy fashion, and don't consume much memory.
+- Cursors can not be used on any thread: you must consume them in a protected database queue.
+- Cursors can be iterated only one time.
+- Cursors are granted with direct access to SQLite: you can especially expect the best performance from cursors of raw database rows and some primitive types like `Int`, `String`, or `Bool`.
+
+If you don't see, or don't care about the difference, use arrays. If you care about memory and performance, use cursors when appropriate.
+
+**There are several cursor types**, depending on the type of fetched values (database [row](#row-queries), simple [value](#value-queries), or custom [record](#records)):
 
 ```swift
-// Undefined behavior
-while let row = try rows.next() {
-    try db.execute("DELETE ...")
-}
+Row.fetchCursor(...)  // RowCursor
+Int.fetchCursor(...)  // ColumnCursor<Int>
+Date.fetchCursor(...) // MapCursor<RowCursor, Date>
+Player(...)           // MapCursor<RowCursor, Player>
 ```
 
-Cursors come with default implementations for many operations similar to those defined by [lazy sequences of the Swift Standard Library](https://developer.apple.com/reference/swift/lazysequenceprotocol): `contains`, `enumerated`, `filter`, `first`, `flatMap`, `forEach`, `joined`, `map`, `reduce`:
+All cursor types adopt the [Cursor](http://groue.github.io/GRDB.swift/docs/1.3/Protocols/Cursor.html) protocol, which looks a lot like standard [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol) of Swift.
+
+As such, Cursor comes with default implementations for many methods: `contains`, `enumerated`, `filter`, `first`, `flatMap`, `forEach`, `joined`, `map`, `reduce`:
 
 ```swift
 // Enumerate all Github links
@@ -652,6 +661,17 @@ try URL.fetchCursor(db, "SELECT url FROM links")
     .enumerated()
     .forEach { (index, url) in ... }
 ```
+
+> :point_up: Don't modify the fetched results during a cursor iteration:
+> 
+> ```swift
+> // Undefined behavior
+> while let place = try places.next() {
+>     try db.execute("DELETE ...")
+> }
+> ```
+>
+> :point_up: **Don't turn a cursor of `Row` into an array**. You would not get the distinct rows you expect. To get a array of rows, use `Row.fetchAll(...)`. Generally speaking, make sure you copy a row whenever you extract it from a cursor for later use: `row.copy()`.
 
 
 ### Row Queries
@@ -668,7 +688,7 @@ Fetch **cursors** of rows, **arrays**, or **single** rows (see [fetching methods
 
 ```swift
 try dbQueue.inDatabase { db in
-    try Row.fetchCursor(db, "SELECT ...", arguments: ...) // DatabaseCursor<Row>
+    try Row.fetchCursor(db, "SELECT ...", arguments: ...) // A Cursor of Row
     try Row.fetchAll(db, "SELECT ...", arguments: ...)    // [Row]
     try Row.fetchOne(db, "SELECT ...", arguments: ...)    // Row?
     
@@ -701,7 +721,7 @@ See [Values](#values) for more information on supported arguments types (Bool, I
 
 Unlike row arrays that contain copies of the database rows, row cursors are close to the SQLite metal, and require a little care:
 
-> :point_up: **Don't turn a row cursor into an array**, with `Array(rowCursor)` for example: you would not get the distinct rows you expect. To get a row array, use `Row.fetchAll(...)`. Generally speaking, make sure you copy a row whenever you extract it from a cursor for later use: `row.copy()`.
+> :point_up: **Don't turn a cursor of `Row` into an array**. You would not get the distinct rows you expect. To get a array of rows, use `Row.fetchAll(...)`. Generally speaking, make sure you copy a row whenever you extract it from a cursor for later use: `row.copy()`.
 
 
 #### Column Values
@@ -895,12 +915,12 @@ Instead of rows, you can directly fetch **[values](#values)**. Like rows, fetch 
 
 ```swift
 try dbQueue.inDatabase { db in
-    try Int.fetchCursor(db, "SELECT ...", arguments: ...) // DatabaseCursor<Int>
+    try Int.fetchCursor(db, "SELECT ...", arguments: ...) // A Cursor of Int
     try Int.fetchAll(db, "SELECT ...", arguments: ...)    // [Int]
     try Int.fetchOne(db, "SELECT ...", arguments: ...)    // Int?
     
     // When database may contain NULL:
-    try Optional<Int>.fetchCursor(db, "SELECT ...", arguments: ...) // DatabaseCursor<Int?>
+    try Optional<Int>.fetchCursor(db, "SELECT ...", arguments: ...) // A Cursor of Int?
     try Optional<Int>.fetchAll(db, "SELECT ...", arguments: ...)    // [Int?]
 }
 
@@ -1343,7 +1363,7 @@ try updateStatement.execute()
 Select statements can be used wherever a raw SQL query string would fit (see [fetch queries](#fetch-queries)):
 
 ```swift
-let rows = try Row.fetchCursor(selectStatement)    // DatabaseCursor<Row>
+let rows = try Row.fetchCursor(selectStatement)    // A Cursor of Row
 let players = try Player.fetchAll(selectStatement) // [Player]
 let player = try Player.fetchOne(selectStatement)  // Player?
 ```
@@ -2048,7 +2068,7 @@ See [column values](#column-values) for more information about the `row[]` subsc
 RowConvertible allows adopting types to be fetched from SQL queries:
 
 ```swift
-try Place.fetchCursor(db, "SELECT ...", arguments:...) // DatabaseCursor<Place>
+try Place.fetchCursor(db, "SELECT ...", arguments:...) // A Cursor of Place
 try Place.fetchAll(db, "SELECT ...", arguments:...)    // [Place]
 try Place.fetchOne(db, "SELECT ...", arguments:...)    // Place?
 ```
@@ -3275,7 +3295,7 @@ Once you have a request, you can fetch the records at the origin of the request:
 let request = Player.filter(...)... // QueryInterfaceRequest<Player>
 
 // Fetch players:
-try request.fetchCursor(db) // DatabaseCursor<Player>
+try request.fetchCursor(db) // A Cursor of Player
 try request.fetchAll(db)    // [Player]
 try request.fetchOne(db)    // Player?
 ```
@@ -3436,7 +3456,7 @@ let request = Player.all()  // QueryInterfaceRequest<Player>
 Those requests of type `QueryInterfaceRequest` can fetch, count, and delete records:
 
 ```swift
-try request.fetchCursor(db) // DatabaseCursor<Player>
+try request.fetchCursor(db) // A Cursor of Player
 try request.fetchAll(db)    // [Player]
 try request.fetchOne(db)    // Player?
 try request.fetchCount(db)  // Int
@@ -3488,7 +3508,7 @@ A Request doesn't know what to fetch, but it can feed the [fetching methods](#fe
 
 ```swift
 let request: Request = ...
-try Row.fetchCursor(db, request) // DatabaseCursor<Row>
+try Row.fetchCursor(db, request) // A Cursor of Row
 try String.fetchAll(db, request) // [String]
 try Player.fetchOne(db, request) // Player?
 ```
@@ -3497,7 +3517,7 @@ On top of that, a TypedRequest knows exactly what it has to do when its RowDecod
 
 ```swift
 let request = ...                // Some TypedRequest that fetches Player
-try request.fetchCursor(db)      // DatabaseCursor<Player>
+try request.fetchCursor(db)      // A Cursor of Player
 try request.fetchAll(db)         // [Player]
 try request.fetchOne(db)         // Player?
 ```

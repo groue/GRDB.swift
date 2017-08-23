@@ -39,7 +39,7 @@ extension SQLSpecificExpressible {
     ///
     /// For example:
     ///
-    ///     Person.filter(Column("email").collating(.nocase) == "contact@example.com")
+    ///     Player.filter(Column("email").collating(.nocase) == "contact@example.com")
     public func collating(_ collation: Database.CollationName) -> SQLCollatedExpression {
         return SQLCollatedExpression(sqlExpression, collationName: collation)
     }
@@ -48,7 +48,7 @@ extension SQLSpecificExpressible {
     ///
     /// For example:
     ///
-    ///     Person.filter(Column("name").collating(.localizedStandardCompare) == "Hervé")
+    ///     Player.filter(Column("name").collating(.localizedStandardCompare) == "Hervé")
     public func collating(_ collation: DatabaseCollation) -> SQLCollatedExpression {
         return SQLCollatedExpression(sqlExpression, collationName: Database.CollationName(collation.name))
     }

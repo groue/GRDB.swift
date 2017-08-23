@@ -151,7 +151,7 @@ extension SQLSpecificExpressible {
     /// capitalized String property. It is NULL for non-String arguments.
     ///
     ///     let nameColumn = Column("name")
-    ///     let request = Person.select(nameColumn.capitalized)
+    ///     let request = Player.select(nameColumn.capitalized)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     public var capitalized: SQLExpression {
         return DatabaseFunction.capitalize.apply(sqlExpression)
@@ -161,7 +161,7 @@ extension SQLSpecificExpressible {
     /// lowercased String property. It is NULL for non-String arguments.
     ///
     ///     let nameColumn = Column("name")
-    ///     let request = Person.select(nameColumn.lowercased())
+    ///     let request = Player.select(nameColumn.lowercased())
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     public var lowercased: SQLExpression {
         return DatabaseFunction.lowercase.apply(sqlExpression)
@@ -171,7 +171,7 @@ extension SQLSpecificExpressible {
     /// uppercased String property. It is NULL for non-String arguments.
     ///
     ///     let nameColumn = Column("name")
-    ///     let request = Person.select(nameColumn.uppercased())
+    ///     let request = Player.select(nameColumn.uppercased())
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     public var uppercased: SQLExpression {
         return DatabaseFunction.uppercase.apply(sqlExpression)
@@ -183,7 +183,7 @@ extension SQLSpecificExpressible {
     /// localizedCapitalized String property. It is NULL for non-String arguments.
     ///
     ///     let nameColumn = Column("name")
-    ///     let request = Person.select(nameColumn.localizedCapitalized)
+    ///     let request = Player.select(nameColumn.localizedCapitalized)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
     public var localizedCapitalized: SQLExpression {
@@ -194,7 +194,7 @@ extension SQLSpecificExpressible {
     /// localizedLowercased String property. It is NULL for non-String arguments.
     ///
     ///     let nameColumn = Column("name")
-    ///     let request = Person.select(nameColumn.localizedLowercased)
+    ///     let request = Player.select(nameColumn.localizedLowercased)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
     public var localizedLowercased: SQLExpression {
@@ -205,7 +205,7 @@ extension SQLSpecificExpressible {
     /// localizedUppercased String property. It is NULL for non-String arguments.
     ///
     ///     let nameColumn = Column("name")
-    ///     let request = Person.select(nameColumn.localizedUppercased)
+    ///     let request = Player.select(nameColumn.localizedUppercased)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
     public var localizedUppercased: SQLExpression {

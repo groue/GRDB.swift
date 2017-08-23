@@ -284,7 +284,7 @@
     ///
     /// You get instances of this class when you create an FTS5 table:
     ///
-    ///     try db.create(virtualTable: "persons", using: FTS5()) { t in
+    ///     try db.create(virtualTable: "documents", using: FTS5()) { t in
     ///         t.column("content")      // FTS5ColumnDefinition
     ///     }
     ///
@@ -300,7 +300,7 @@
         
         /// Excludes the column from the full-text index.
         ///
-        ///     try db.create(virtualTable: "persons", using: FTS5()) { t in
+        ///     try db.create(virtualTable: "documents", using: FTS5()) { t in
         ///         t.column("a")
         ///         t.column("b").notIndexed()
         ///     }

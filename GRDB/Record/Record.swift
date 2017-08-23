@@ -30,9 +30,9 @@ open class Record : RowConvertible, TableMapping, Persistable {
     /// This table name is required by the insert, update, save, delete,
     /// and exists methods.
     ///
-    ///     class Person : Record {
+    ///     class Player : Record {
     ///         override class var databaseTableName: String {
-    ///             return "persons"
+    ///             return "players"
     ///         }
     ///     }
     ///
@@ -64,31 +64,31 @@ open class Record : RowConvertible, TableMapping, Persistable {
     ///
     /// Unless this method is overriden, requests select all columns:
     ///
-    ///     // SELECT * FROM persons
-    ///     try Person.fetchAll(db)
+    ///     // SELECT * FROM players
+    ///     try Player.fetchAll(db)
     ///
     /// You can override this property and provide an explicit list
     /// of columns:
     ///
-    ///     class RestrictedPerson : Record {
+    ///     class RestrictedPlayer : Record {
     ///         override static var databaseSelection: [SQLSelectable] {
     ///             return [Column("id"), Column("name")]
     ///         }
     ///     }
     ///
-    ///     // SELECT id, name FROM persons
-    ///     try RestrictedPerson.fetchAll(db)
+    ///     // SELECT id, name FROM players
+    ///     try RestrictedPlayer.fetchAll(db)
     ///
     /// You can also add extra columns such as the `rowid` column:
     ///
-    ///     class ExtendedPerson : Person {
+    ///     class ExtendedPlayer : Player {
     ///         override static var databaseSelection: [SQLSelectable] {
     ///             return [AllColumns(), Column.rowID]
     ///         }
     ///     }
     ///
-    ///     // SELECT *, rowid FROM persons
-    ///     try ExtendedPerson.fetchAll(db)
+    ///     // SELECT *, rowid FROM players
+    ///     try ExtendedPlayer.fetchAll(db)
     open class var databaseSelection: [SQLSelectable] {
         return [AllColumns()]
     }
@@ -101,7 +101,7 @@ open class Record : RowConvertible, TableMapping, Persistable {
     ///
     /// Primary key columns, if any, must be included.
     ///
-    ///     class Person : Record {
+    ///     class Player : Record {
     ///         var id: Int64?
     ///         var name: String?
     ///
@@ -124,7 +124,7 @@ open class Record : RowConvertible, TableMapping, Persistable {
     ///
     /// The implementation of the base Record class does nothing.
     ///
-    ///     class Person : Record {
+    ///     class Player : Record {
     ///         var id: Int64?
     ///         var name: String?
     ///

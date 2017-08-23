@@ -35,7 +35,7 @@ extension PersistenceError : CustomStringConvertible {
 /// Use persistence containers in the `encode(to:)` method of your
 /// persistable records:
 ///
-///     struct Person : MutablePersistable {
+///     struct Player : MutablePersistable {
 ///         var id: Int64?
 ///         var name: String?
 ///
@@ -180,7 +180,7 @@ public protocol MutablePersistable : TableMapping {
     ///
     /// Primary key columns, if any, must be included.
     ///
-    ///     struct Person : MutablePersistable {
+    ///     struct Player : MutablePersistable {
     ///         var id: Int64?
     ///         var name: String?
     ///
@@ -199,7 +199,7 @@ public protocol MutablePersistable : TableMapping {
     ///
     /// This method is optional: the default implementation does nothing.
     ///
-    ///     struct Person : MutablePersistable {
+    ///     struct Player : MutablePersistable {
     ///         var id: Int64?
     ///         var name: String?
     ///
@@ -531,8 +531,8 @@ extension MutablePersistable {
     /// Delete records identified by their primary keys; returns the number of
     /// deleted rows.
     ///
-    ///     // DELETE FROM persons WHERE id IN (1, 2, 3)
-    ///     try Person.deleteAll(db, keys: [1, 2, 3])
+    ///     // DELETE FROM players WHERE id IN (1, 2, 3)
+    ///     try Player.deleteAll(db, keys: [1, 2, 3])
     ///
     ///     // DELETE FROM countries WHERE code IN ('FR', 'US', 'DE')
     ///     try Country.deleteAll(db, keys: ["FR", "US", "DE"])
@@ -560,8 +560,8 @@ extension MutablePersistable {
     /// Delete a record, identified by its primary key; returns whether a
     /// database row was deleted.
     ///
-    ///     // DELETE FROM persons WHERE id = 123
-    ///     try Person.deleteOne(db, key: 123)
+    ///     // DELETE FROM players WHERE id = 123
+    ///     try Player.deleteOne(db, key: 123)
     ///
     ///     // DELETE FROM countries WHERE code = 'FR'
     ///     try Country.deleteOne(db, key: "FR")
@@ -593,7 +593,7 @@ extension MutablePersistable {
     /// Delete records identified by the provided unique keys (primary key or
     /// any key with a unique index on it); returns the number of deleted rows.
     ///
-    ///     try Person.deleteAll(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]])
+    ///     try Player.deleteAll(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]])
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -611,7 +611,7 @@ extension MutablePersistable {
     /// Delete a record, identified by a unique key (the primary key or any key
     /// with a unique index on it); returns whether a database row was deleted.
     ///
-    ///     Person.deleteOne(db, key: ["name": Arthur"])
+    ///     Player.deleteOne(db, key: ["name": Arthur"])
     ///
     /// - parameters:
     ///     - db: A database connection.

@@ -4,9 +4,9 @@
 /// value, record):
 ///
 ///     let request: Request = ...
-///     try Row.fetchCursor(db, request) // DatabaseCursor<Row>
+///     try Row.fetchCursor(db, request) // RowCursor
 ///     try String.fetchAll(db, request) // [String]
-///     try Person.fetchOne(db, request) // Person?
+///     try Player.fetchOne(db, request) // Player?
 public protocol Request {
     /// A tuple that contains a prepared statement that is ready to be
     /// executed, and an eventual row adapter.
@@ -44,10 +44,10 @@ extension Request {
     /// The returned request can fetch if the type T is fetchable (Row,
     /// value, record).
     ///
-    ///     // minHeight in Double?
-    ///     let minHeight = Person
-    ///         .select(min(heightColumn))
-    ///         .asRequest(of: Double.self)    // <--
+    ///     // Int?
+    ///     let maxScore = Player
+    ///         .select(max(scoreColumn))
+    ///         .asRequest(of: Int.self)    // <--
     ///         .fetchOne(db)
     ///
     /// - parameter type: The fetched type T
@@ -129,8 +129,8 @@ public struct SQLRequest : Request {
     /// Creates a new request from an SQL string, optional arguments, and
     /// optional row adapter.
     ///
-    ///     let request = SQLRequest("SELECT * FROM persons")
-    ///     let request = SQLRequest("SELECT * FROM persons WHERE id = ?", arguments: [1])
+    ///     let request = SQLRequest("SELECT * FROM players")
+    ///     let request = SQLRequest("SELECT * FROM players WHERE id = ?", arguments: [1])
     ///
     /// - parameters:
     ///     - sql: An SQL query.
@@ -146,8 +146,8 @@ public struct SQLRequest : Request {
     /// Creates a new request from an SQL string, optional arguments, and
     /// optional row adapter.
     ///
-    ///     let request = SQLRequest("SELECT * FROM persons")
-    ///     let request = SQLRequest("SELECT * FROM persons WHERE id = ?", arguments: [1])
+    ///     let request = SQLRequest("SELECT * FROM players")
+    ///     let request = SQLRequest("SELECT * FROM players WHERE id = ?", arguments: [1])
     ///
     /// - parameters:
     ///     - sql: An SQL query.
@@ -190,11 +190,11 @@ public struct SQLRequest : Request {
 /// Typed requests can fetch if their associated type RowDecoder is able to
 /// decode rows (Row, value, record)
 ///
-///     struct Person: RowConvertible { ... }
-///     let request: ... // Some TypedRequest that fetches Person
-///     try request.fetchCursor(db) // DatabaseCursor<Person>
-///     try request.fetchAll(db)    // [Person]
-///     try request.fetchOne(db)    // Person?
+///     struct Player: RowConvertible { ... }
+///     let request: ... // Some TypedRequest that fetches Player
+///     try request.fetchCursor(db) // Cursor of Player
+///     try request.fetchAll(db)    // [Player]
+///     try request.fetchOne(db)    // Player?
 public protocol TypedRequest : Request {
     
     /// The type that can convert raw database rows to fetched values
@@ -276,9 +276,9 @@ extension TypedRequest where RowDecoder: RowConvertible {
     
     /// A cursor over fetched records.
     ///
-    ///     let request: ... // Some TypedRequest that fetches Person
-    ///     let persons = try request.fetchCursor(db) // DatabaseCursor<Person>
-    ///     while let person = try persons.next() {   // Person
+    ///     let request: ... // Some TypedRequest that fetches Player
+    ///     let players = try request.fetchCursor(db) // Cursor of Player
+    ///     while let player = try players.next() {   // Player
     ///         ...
     ///     }
     ///
@@ -290,14 +290,14 @@ extension TypedRequest where RowDecoder: RowConvertible {
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchCursor(_ db: Database) throws -> DatabaseCursor<RowDecoder> {
+    public func fetchCursor(_ db: Database) throws -> MapCursor<RowCursor, RowDecoder> {
         return try RowDecoder.fetchCursor(db, self)
     }
     
     /// An array of fetched records.
     ///
-    ///     let request: ... // Some TypedRequest that fetches Person
-    ///     let persons = try request.fetchAll(db) // [Person]
+    ///     let request: ... // Some TypedRequest that fetches Player
+    ///     let players = try request.fetchAll(db) // [Player]
     ///
     /// - parameter db: A database connection.
     /// - returns: An array of records.
@@ -308,8 +308,8 @@ extension TypedRequest where RowDecoder: RowConvertible {
     
     /// The first fetched record.
     ///
-    ///     let request: ... // Some TypedRequest that fetches Person
-    ///     let person = try request.fetchOne(db) // Person?
+    ///     let request: ... // Some TypedRequest that fetches Player
+    ///     let player = try request.fetchOne(db) // Player?
     ///
     /// - parameter db: A database connection.
     /// - returns: An optional record.
@@ -326,7 +326,7 @@ extension TypedRequest where RowDecoder: DatabaseValueConvertible {
     /// A cursor over fetched values.
     ///
     ///     let request: ... // Some TypedRequest that fetches String
-    ///     let strings = try request.fetchCursor(db) // DatabaseCursor<String>
+    ///     let strings = try request.fetchCursor(db) // Cursor of String
     ///     while let string = try strings.next() {   // String
     ///         ...
     ///     }
@@ -339,7 +339,7 @@ extension TypedRequest where RowDecoder: DatabaseValueConvertible {
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched values.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchCursor(_ db: Database) throws -> DatabaseCursor<RowDecoder> {
+    public func fetchCursor(_ db: Database) throws -> MapCursor<RowCursor, RowDecoder> {
         return try RowDecoder.fetchCursor(db, self)
     }
     
@@ -378,7 +378,7 @@ extension TypedRequest where RowDecoder: DatabaseValueConvertible & StatementCol
     /// A cursor over fetched values.
     ///
     ///     let request: ... // Some TypedRequest that fetches String
-    ///     let strings = try request.fetchCursor(db) // DatabaseCursor<String>
+    ///     let strings = try request.fetchCursor(db) // Cursor of String
     ///     while let string = try strings.next() {   // String
     ///         ...
     ///     }
@@ -391,7 +391,7 @@ extension TypedRequest where RowDecoder: DatabaseValueConvertible & StatementCol
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched values.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchCursor(_ db: Database) throws -> DatabaseCursor<RowDecoder> {
+    public func fetchCursor(_ db: Database) throws -> ColumnCursor<RowDecoder> {
         return try RowDecoder.fetchCursor(db, self)
     }
     
@@ -430,7 +430,7 @@ extension TypedRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped:
     /// A cursor over fetched optional values.
     ///
     ///     let request: ... // Some TypedRequest that fetches Optional<String>
-    ///     let strings = try request.fetchCursor(db) // DatabaseCursor<String?>
+    ///     let strings = try request.fetchCursor(db) // Cursor of String?
     ///     while let string = try strings.next() {   // String?
     ///         ...
     ///     }
@@ -443,10 +443,47 @@ extension TypedRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped:
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched values.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchCursor(_ db: Database) throws -> DatabaseCursor<RowDecoder._Wrapped?> {
+    public func fetchCursor(_ db: Database) throws -> MapCursor<RowCursor, RowDecoder._Wrapped?> {
         return try Optional<RowDecoder._Wrapped>.fetchCursor(db, self)
     }
 
+    /// An array of fetched optional values.
+    ///
+    ///     let request: ... // Some TypedRequest that fetches Optional<String>
+    ///     let strings = try request.fetchAll(db) // [String?]
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: An array of values.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchAll(_ db: Database) throws -> [RowDecoder._Wrapped?] {
+        return try Optional<RowDecoder._Wrapped>.fetchAll(db, self)
+    }
+}
+
+extension TypedRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped: DatabaseValueConvertible & StatementColumnConvertible {
+    
+    // MARK: Fetching Optional values
+    
+    /// A cursor over fetched optional values.
+    ///
+    ///     let request: ... // Some TypedRequest that fetches Optional<String>
+    ///     let strings = try request.fetchCursor(db) // Cursor of String?
+    ///     while let string = try strings.next() {   // String?
+    ///         ...
+    ///     }
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
+    ///
+    /// The cursor must be iterated in a protected dispath queue.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A cursor over fetched values.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchCursor(_ db: Database) throws -> NullableColumnCursor<RowDecoder._Wrapped> {
+        return try Optional<RowDecoder._Wrapped>.fetchCursor(db, self)
+    }
+    
     /// An array of fetched optional values.
     ///
     ///     let request: ... // Some TypedRequest that fetches Optional<String>
@@ -467,7 +504,7 @@ extension TypedRequest where RowDecoder: Row {
     /// A cursor over fetched rows.
     ///
     ///     let request: ... // Some TypedRequest that fetches Row
-    ///     let rows = try request.fetchCursor(db) // DatabaseCursor<Row>
+    ///     let rows = try request.fetchCursor(db) // RowCursor
     ///     while let row = try rows.next() {  // Row
     ///         let id: Int64 = row[0]
     ///         let name: String = row[1]
@@ -489,7 +526,7 @@ extension TypedRequest where RowDecoder: Row {
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchCursor(_ db: Database) throws -> DatabaseCursor<Row> {
+    public func fetchCursor(_ db: Database) throws -> RowCursor {
         return try Row.fetchCursor(db, self)
     }
 

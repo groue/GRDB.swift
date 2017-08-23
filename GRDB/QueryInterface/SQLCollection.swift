@@ -28,12 +28,6 @@ public protocol SQLCollection {
     ///
     /// Returns an expression that check whether the collection contains
     /// the expression.
-    ///
-    /// The default implementation returns a SQLExpressionContains which applies
-    /// the `IN` operator:
-    ///
-    ///     let request = Person.select(Column("id"))
-    ///     request.contains(Column("id"))   // id IN (SELECT id FROM persons)
     func contains(_ value: SQLExpressible) -> SQLExpression
 }
 
@@ -43,10 +37,7 @@ public protocol SQLCollection {
 extension SQLCollection {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
-    /// Returns a SQLExpressionContains which applies the `IN` operator:
-    ///
-    ///     let request = Person.select(Column("id"))
-    ///     request.contains(Column("id"))   // id IN (SELECT id FROM persons)
+    /// Returns a SQLExpressionContains which applies the `IN` SQL operator.
     public func contains(_ value: SQLExpressible) -> SQLExpression {
         return SQLExpressionContains(value, self)
     }

@@ -9,6 +9,7 @@ import XCTest
 
 class DatabaseCursorTests: GRDBTestCase {
     
+    // TODO: this test should be duplicated for all cursor types
     func testNextReturnsNilAfterExhaustion() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -33,6 +34,7 @@ class DatabaseCursorTests: GRDBTestCase {
         }
     }
 
+    // TODO: this test should be duplicated for all cursor types
     func testStepError() throws {
         let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)
@@ -51,6 +53,7 @@ class DatabaseCursorTests: GRDBTestCase {
         }
     }
 
+    // TODO: this test should be duplicated for all cursor types
     func testStepDatabaseError() throws {
         let dbQueue = try makeDatabaseQueue()
         let customError = DatabaseError(resultCode: ResultCode(rawValue: 0xDEAD), message: "custom error")

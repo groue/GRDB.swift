@@ -331,8 +331,8 @@ extension SQLBinaryOperator {
 
 /// An SQL expression that compares two expressions with the `<` SQL operator.
 ///
-///     // age < 18
-///     Column("age") < 18
+///     // score < 18
+///     Column("score") < 18
 public func < (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpression {
     return SQLExpressionBinary(.lessThan, lhs.sqlExpression, rhs.sqlExpression)
 }
@@ -347,8 +347,8 @@ public func < (lhs: SQLCollatedExpression, rhs: SQLExpressible) -> SQLExpression
 
 /// An SQL expression that compares two expressions with the `<` SQL operator.
 ///
-///     // 18 < age
-///     18 < Column("age")
+///     // 18 < score
+///     18 < Column("score")
 public func < (lhs: SQLExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
     return SQLExpressionBinary(.lessThan, lhs.sqlExpression, rhs.sqlExpression)
 }
@@ -371,8 +371,8 @@ public func < (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQLE
 
 /// An SQL expression that compares two expressions with the `<=` SQL operator.
 ///
-///     // age <= 18
-///     Column("age") <= 18
+///     // score <= 18
+///     Column("score") <= 18
 public func <= (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpression {
     return SQLExpressionBinary(.lessThanOrEqual, lhs.sqlExpression, rhs.sqlExpression)
 }
@@ -387,8 +387,8 @@ public func <= (lhs: SQLCollatedExpression, rhs: SQLExpressible) -> SQLExpressio
 
 /// An SQL expression that compares two expressions with the `<=` SQL operator.
 ///
-///     // 18 <= age
-///     18 <= Column("age")
+///     // 18 <= score
+///     18 <= Column("score")
 public func <= (lhs: SQLExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
     return SQLExpressionBinary(.lessThanOrEqual, lhs.sqlExpression, rhs.sqlExpression)
 }
@@ -411,15 +411,15 @@ public func <= (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQL
 
 /// An SQL expression that compares two expressions with the `>` SQL operator.
 ///
-///     // age > 18
-///     Column("age") > 18
+///     // score > 18
+///     Column("score") > 18
 public func > (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpression {
     return SQLExpressionBinary(.greaterThan, lhs.sqlExpression, rhs.sqlExpression)
 }
 
 /// An SQL expression that compares two expressions with the `>` SQL operator.
 ///
-///     // age > 'Arthur' COLLATE NOCASE
+///     // name > 'Arthur' COLLATE NOCASE
 ///     Column("name").collating(.nocase) > "Arthur"
 public func > (lhs: SQLCollatedExpression, rhs: SQLExpressible) -> SQLExpression {
     return SQLExpressionCollate(lhs.expression > rhs, collationName: lhs.collationName)
@@ -427,8 +427,8 @@ public func > (lhs: SQLCollatedExpression, rhs: SQLExpressible) -> SQLExpression
 
 /// An SQL expression that compares two expressions with the `>` SQL operator.
 ///
-///     // 18 > age
-///     18 > Column("age")
+///     // 18 > score
+///     18 > Column("score")
 public func > (lhs: SQLExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
     return SQLExpressionBinary(.greaterThan, lhs.sqlExpression, rhs.sqlExpression)
 }
@@ -451,8 +451,8 @@ public func > (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQLE
 
 /// An SQL expression that compares two expressions with the `>=` SQL operator.
 ///
-///     // age >= 18
-///     Column("age") >= 18
+///     // score >= 18
+///     Column("score") >= 18
 public func >= (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpression {
     return SQLExpressionBinary(.greaterThanOrEqual, lhs.sqlExpression, rhs.sqlExpression)
 }
@@ -467,16 +467,16 @@ public func >= (lhs: SQLCollatedExpression, rhs: SQLExpressible) -> SQLExpressio
 
 /// An SQL expression that compares two expressions with the `>=` SQL operator.
 ///
-///     // 18 >= age
-///     18 >= Column("age")
+///     // 18 >= score
+///     18 >= Column("score")
 public func >= (lhs: SQLExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
     return SQLExpressionBinary(.greaterThanOrEqual, lhs.sqlExpression, rhs.sqlExpression)
 }
 
 /// An SQL expression that compares two expressions with the `>=` SQL operator.
 ///
-///     // 'Arthur' >= age COLLATE NOCASE
-///     "Arthur" >= Column("age").collating(.nocase)
+///     // 'Arthur' >= name COLLATE NOCASE
+///     "Arthur" >= Column("name").collating(.nocase)
 public func >= (lhs: SQLExpressible, rhs: SQLCollatedExpression) -> SQLExpression {
     return SQLExpressionCollate(lhs >= rhs.expression, collationName: rhs.collationName)
 }

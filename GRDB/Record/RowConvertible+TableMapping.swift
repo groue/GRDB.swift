@@ -4,9 +4,9 @@ extension RowConvertible where Self: TableMapping {
     
     /// A cursor over all records fetched from the database.
     ///
-    ///     // SELECT * FROM persons
-    ///     let persons = try Person.fetchCursor(db) // DatabaseCursor<Person>
-    ///     while let person = try persons.next() {  // Person
+    ///     // SELECT * FROM players
+    ///     let players = try Player.fetchCursor(db) // Cursor of Player
+    ///     while let player = try players.next() {  // Player
     ///         ...
     ///     }
     ///
@@ -24,14 +24,14 @@ extension RowConvertible where Self: TableMapping {
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database) throws -> DatabaseCursor<Self> {
+    public static func fetchCursor(_ db: Database) throws -> MapCursor<RowCursor, Self> {
         return try all().fetchCursor(db)
     }
     
     /// An array of all records fetched from the database.
     ///
-    ///     // SELECT * FROM persons
-    ///     let persons = try Person.fetchAll(db) // [Person]
+    ///     // SELECT * FROM players
+    ///     let players = try Player.fetchAll(db) // [Player]
     ///
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableMapping.databaseSelection` property, or
@@ -45,8 +45,8 @@ extension RowConvertible where Self: TableMapping {
     
     /// The first found record.
     ///
-    ///     // SELECT * FROM persons
-    ///     let person = try Person.fetchOne(db) // Person?
+    ///     // SELECT * FROM players
+    ///     let player = try Player.fetchOne(db) // Player?
     ///
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableMapping.databaseSelection` property, or
@@ -65,8 +65,8 @@ extension RowConvertible where Self: TableMapping {
     
     /// Returns a cursor over records, given their primary keys.
     ///
-    ///     let persons = try Person.fetchCursor(db, keys: [1, 2, 3]) // DatabaseCursor<Person>
-    ///     while let person = try persons.next() {
+    ///     let players = try Player.fetchCursor(db, keys: [1, 2, 3]) // Cursor of Player
+    ///     while let player = try players.next() { // Player
     ///         ...
     ///     }
     ///
@@ -77,13 +77,13 @@ extension RowConvertible where Self: TableMapping {
     ///     - keys: A sequence of primary keys.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> DatabaseCursor<Self> where Sequence.Element: DatabaseValueConvertible {
+    public static func fetchCursor<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> MapCursor<RowCursor, Self> where Sequence.Element: DatabaseValueConvertible {
         return try filter(db, keys: keys).fetchCursor(db)
     }
     
     /// Returns an array of records, given their primary keys.
     ///
-    ///     let persons = try Person.fetchAll(db, keys: [1, 2, 3]) // [Person]
+    ///     let players = try Player.fetchAll(db, keys: [1, 2, 3]) // [Player]
     ///
     /// The order of records in the returned array is undefined.
     ///
@@ -103,7 +103,7 @@ extension RowConvertible where Self: TableMapping {
     
     /// Returns a single record given its primary key.
     ///
-    ///     let person = try Person.fetchOne(db, key: 123) // Person?
+    ///     let player = try Player.fetchOne(db, key: 123) // Player?
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -126,8 +126,8 @@ extension RowConvertible where Self: TableMapping {
     /// Returns a cursor over records identified by the provided unique keys
     /// (primary key or any key with a unique index on it).
     ///
-    ///     let persons = try Person.fetchCursor(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]]) // DatabaseCursor<Person>
-    ///     while let person = try persons.next() { // Person
+    ///     let players = try Player.fetchCursor(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]]) // Cursor of Player
+    ///     while let player = try players.next() { // Player
     ///         ...
     ///     }
     ///
@@ -138,14 +138,14 @@ extension RowConvertible where Self: TableMapping {
     ///     - keys: An array of key dictionaries.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> DatabaseCursor<Self> {
+    public static func fetchCursor(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> MapCursor<RowCursor, Self> {
         return try filter(db, keys: keys).fetchCursor(db)
     }
     
     /// Returns an array of records identified by the provided unique keys
     /// (primary key or any key with a unique index on it).
     ///
-    ///     let persons = try Person.fetchAll(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]]) // [Person]
+    ///     let players = try Player.fetchAll(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]]) // [Player]
     ///
     /// The order of records in the returned array is undefined.
     ///
@@ -166,7 +166,7 @@ extension RowConvertible where Self: TableMapping {
     /// Returns a single record identified by a unique key (the primary key or
     /// any key with a unique index on it).
     ///
-    ///     let person = try Person.fetchOne(db, key: ["name": Arthur"]) // Person?
+    ///     let player = try Player.fetchOne(db, key: ["name": Arthur"]) // Player?
     ///
     /// - parameters:
     ///     - db: A database connection.

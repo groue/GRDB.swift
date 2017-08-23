@@ -107,6 +107,10 @@ Release Notes
      }
     ```
 
+- The `DatabaseCursor` type has been removed, and replaced with several concrete types that all adopt the `Cursor` protocol. Those new types allow dedicated optimizations depending on the type of the fetched elements.
+    
+    If your application has code that depends on `DatabaseCursor`, make it target the new concrete types, or make it generic on the `Cursor` protocol, just like you'd write generic methods on the Swift `Sequence` protocol.
+
 - The deprecated `TableMapping.primaryKeyRowComparator` method has been removed.
 
 - `RowConvertible.fetchCursor(_:keys:)` returns a non-optional cursor.
@@ -115,24 +119,6 @@ Release Notes
 **API diff**
 
 ```diff
-+struct AllColumns {
-+    init()
-+}
-
--extension TableMapping {
-+extension MutablePersistable {
-     @discardableResult static func deleteAll(_ db: Database) throws -> Int
-     @discardableResult static func deleteAll<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> Int where Sequence.Element: DatabaseValueConvertible
-     @discardableResult static func deleteOne<PrimaryKeyType: DatabaseValueConvertible>(_ db: Database, key: PrimaryKeyType?) throws -> Bool
-     @discardableResult static func deleteAll(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> Int
-     @discardableResult static func deleteOne(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Bool
- }
-
--extension QueryInterfaceRequest {
-+extension QueryInterfaceRequest where RowDecoder: MutablePersistable {
-     @discardableResult func deleteAll(_ db: Database) throws -> Int
- }
-
  class Row {
 -    func value(atIndex index: Int) -> DatabaseValueConvertible?
 -    func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value?
@@ -153,22 +139,83 @@ Release Notes
 +    subscript<Value: DatabaseValueConvertible>(_ column: Column) -> Value?
 +    subscript<Value: DatabaseValueConvertible>(_ column: Column) -> Value
  }
- 
+
+-extension TableMapping {
++extension MutablePersistable {
+     @discardableResult static func deleteAll(_ db: Database) throws -> Int
+     @discardableResult static func deleteAll<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> Int where Sequence.Element: DatabaseValueConvertible
+     @discardableResult static func deleteOne<PrimaryKeyType: DatabaseValueConvertible>(_ db: Database, key: PrimaryKeyType?) throws -> Bool
+     @discardableResult static func deleteAll(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> Int
+     @discardableResult static func deleteOne(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Bool
+ }
+-extension QueryInterfaceRequest {
++extension QueryInterfaceRequest where RowDecoder: MutablePersistable {
+     @discardableResult func deleteAll(_ db: Database) throws -> Int
+ }
+
+ protocol TableMapping {
+-    static var selectsRowID: Bool { get }
++    static var databaseSelection: [SQLSelectable] { get }
+ }
  class Record {
 -    open class var selectsRowID: Bool
 +    open class var databaseSelection: [SQLSelectable]
  }
- 
- extension RowConvertible where Self: TableMapping {
--    static func fetchCursor<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> DatabaseCursor<Self>? where Sequence.Iterator.Element: DatabaseValueConvertible
--    static func fetchCursor(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> DatabaseCursor<Self>?
-+    static func fetchCursor<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> DatabaseCursor<Self> where Sequence.Element: DatabaseValueConvertible
-+    static func fetchCursor(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> DatabaseCursor<Self>
++struct AllColumns {
++    init()
++}
+
+-protocol DatabaseCursor { }
++final class ColumnCursor<Value: StatementColumnConvertible> : Cursor { }
++final class NullableColumnCursor<Value: StatementColumnConvertible> : Cursor { }
++final class RowCursor : Cursor { }
++final class StatementCursor: Cursor { }
+ extension DatabaseValueConvertible {
+-    static func fetchCursor(...) throws -> DatabaseCursor<Self>
++    static func fetchCursor(...) throws -> MapCursor<RowCursor, Self>
  }
- 
- protocol TableMapping {
--    static var selectsRowID: Bool { get }
-+    static var databaseSelection: [SQLSelectable] { get }
+ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
++    static func fetchCursor(...) throws -> ColumnCursor<Self>
+ }
+ extension Optional where Wrapped: DatabaseValueConvertible {
+-    static func fetchCursor(...) throws -> DatabaseCursor<Wrapped?>
++    static func fetchCursor(...) throws -> MapCursor<RowCursor, Wrapped?>
+ }
+ extension Optional where Wrapped: DatabaseValueConvertible & StatementColumnConvertible {
++    static func fetchCursor(...) throws -> NullableColumnCursor<Wrapped>
+ }
+ extension Row {
+-    static func fetchCursor(...) throws -> DatabaseCursor<Row>
++    static func fetchCursor(...) throws -> RowCursor
+ }
+ extension RowConvertible where Self: TableMapping {
+-    static func fetchCursor(...) throws -> DatabaseCursor<Self>?
++    static func fetchCursor(...) throws -> MapCursor<RowCursor, Self>
+ }
+ final class SelectStatement : Statement {
++    func cursor(arguments: StatementArguments? = nil) -> StatementCursor
+ }
+ extension TypedRequest where RowDecoder: RowConvertible {
+-    func fetchCursor(_ db: Database) throws -> DatabaseCursor<RowDecoder>
++    func fetchCursor(_ db: Database) throws -> MapCursor<RowCursor, RowDecoder>
+ }
+ extension TypedRequest where RowDecoder: DatabaseValueConvertible {
+-    func fetchCursor(_ db: Database) throws -> DatabaseCursor<RowDecoder>
++    func fetchCursor(_ db: Database) throws -> MapCursor<RowCursor, RowDecoder>
+ }
+ extension TypedRequest where RowDecoder: DatabaseValueConvertible & StatementColumnConvertible {
++    func fetchCursor(_ db: Database) throws -> ColumnCursor<RowDecoder>
+ }
+ extension TypedRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped: DatabaseValueConvertible {
+-    func fetchCursor(_ db: Database) throws -> DatabaseCursor<RowDecoder._Wrapped?>
++    func fetchCursor(_ db: Database) throws -> MapCursor<RowCursor, RowDecoder._Wrapped?>
+ }
+ extension TypedRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped: DatabaseValueConvertible & StatementColumnConvertible {
++    func fetchCursor(_ db: Database) throws -> NullableColumnCursor<RowDecoder._Wrapped>
+ }
+ extension TypedRequest where RowDecoder: Row {
+-    func fetchCursor(_ db: Database) throws -> DatabaseCursor<Row>
++    func fetchCursor(_ db: Database) throws -> RowCursor
  }
 
  extension TableMapping {

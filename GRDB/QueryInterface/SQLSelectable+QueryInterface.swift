@@ -7,13 +7,13 @@
 ///
 /// For example:
 ///
-///     struct Person : TableMapping {
-///         static var databaseTableName = "persons"
+///     struct Player : TableMapping {
+///         static var databaseTableName = "players"
 ///         static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
 ///     }
 ///
-///     // SELECT *, rowid FROM persons
-///     let request = Person.all()
+///     // SELECT *, rowid FROM players
+///     let request = Player.all()
 public struct AllColumns {
     ///
     public init() { }

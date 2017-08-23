@@ -242,7 +242,7 @@ public final class FTS4TableDefinition {
 ///
 /// You get instances of this class when you create an FTS4 table:
 ///
-///     try db.create(virtualTable: "persons", using: FTS4()) { t in
+///     try db.create(virtualTable: "documents", using: FTS4()) { t in
 ///         t.column("content")      // FTS4ColumnDefinition
 ///     }
 ///
@@ -261,7 +261,7 @@ public final class FTS4ColumnDefinition {
     #if GRDBCUSTOMSQLITE || GRDBCIPHER
     /// Excludes the column from the full-text index.
     ///
-    ///     try db.create(virtualTable: "persons", using: FTS4()) { t in
+    ///     try db.create(virtualTable: "documents", using: FTS4()) { t in
     ///         t.column("a")
     ///         t.column("b").notIndexed()
     ///     }
@@ -279,7 +279,7 @@ public final class FTS4ColumnDefinition {
     #else
     /// Excludes the column from the full-text index.
     ///
-    ///     try db.create(virtualTable: "persons", using: FTS4()) { t in
+    ///     try db.create(virtualTable: "documents", using: FTS4()) { t in
     ///         t.column("a")
     ///         t.column("b").notIndexed()
     ///     }
@@ -299,7 +299,7 @@ public final class FTS4ColumnDefinition {
     
     /// Uses the column as the Int32 language id hidden column.
     ///
-    ///     try db.create(virtualTable: "persons", using: FTS4()) { t in
+    ///     try db.create(virtualTable: "documents", using: FTS4()) { t in
     ///         t.column("a")
     ///         t.column("lid").asLanguageId()
     ///     }

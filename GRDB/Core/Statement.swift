@@ -199,12 +199,21 @@ public class Statement {
         }
     }
 
-    fileprivate func prepare(withArguments arguments: StatementArguments?) throws {
+    fileprivate func prepare(withArguments arguments: StatementArguments?) {
+        // Force arguments validity: it is a programmer error to provide
+        // arguments that do not match the statement.
         if let arguments = arguments {
-            try setArgumentsWithValidation(arguments)
+            try! setArgumentsWithValidation(arguments)
         } else if argumentsNeedValidation {
-            try validate(arguments: self.arguments)
+            try! validate(arguments: self.arguments)
         }
+    }
+    
+    /// Utility function for cursors
+    func cursorReset(arguments: StatementArguments? = nil) {
+        SchedulingWatchdog.preconditionValidQueue(database)
+        prepare(withArguments: arguments)
+        reset()
     }
 }
 
@@ -216,7 +225,7 @@ public class Statement {
 /// You create SelectStatement with the Database.makeSelectStatement() method:
 ///
 ///     try dbQueue.inDatabase { db in
-///         let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM persons WHERE age > ?")
+///         let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM players WHERE score > ?")
 ///         let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
 ///         let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
 ///     }
@@ -262,22 +271,11 @@ public final class SelectStatement : Statement {
         return columnIndexes[name.lowercased()]
     }
     
-    /// Creates a DatabaseCursor
-    func cursor<Element>(arguments: StatementArguments? = nil, next element: @escaping () throws -> Element) -> DatabaseCursor<Element> {
-        // Check that cursor is built on a valid queue.
-        SchedulingWatchdog.preconditionValidQueue(database, "Database was not used on the correct thread.")
-        
-        // Force arguments validity: it is a programmer error to provide
-        // arguments that do not match the statement.
-        try! prepare(withArguments: arguments)
-        
-        reset()
-        return DatabaseCursor(statement: self, element: element)
-    }
-    
-    /// Creates a cursor whose results are ignored
-    func cursor(arguments: StatementArguments? = nil) -> DatabaseCursor<Void> {
-        return cursor(arguments: arguments) { }
+    /// Creates a cursor over the statement. This cursor does not produce any
+    /// value, and is only intended to give access to the sqlite3_step()
+    /// low-level function.
+    public func cursor(arguments: StatementArguments? = nil) -> StatementCursor {
+        return StatementCursor(statement: self, arguments: arguments)
     }
 
     /// Information about the table and columns read by a SelectStatement
@@ -332,39 +330,33 @@ public final class SelectStatement : Statement {
     }
 }
 
-/// A cursor on a statement
-public final class DatabaseCursor<Element> : Cursor {
+/// A cursor that iterates a database statement without producing any value.
+/// For example:
+///
+///     try dbQueue.inDatabase { db in
+///         let statement = db.makeSelectStatement("SELECT * FROM players")
+///         let cursor: StatementCursor = statement.cursor()
+///     }
+public final class StatementCursor: Cursor {
     private let statement: SelectStatement
     private let sqliteStatement: SQLiteStatement
-    private let element: () throws -> Element?
     private var done = false
     
-    // Fileprivate so that only SelectStatement can instantiate a database cursor
-    fileprivate init(statement: SelectStatement, element: @escaping () throws -> Element?) {
+    // Use SelectStatement.cursor() instead
+    init(statement: SelectStatement, arguments: StatementArguments? = nil) {
+        statement.cursorReset(arguments: arguments)
         self.statement = statement
         self.sqliteStatement = statement.sqliteStatement
-        self.element = element
     }
     
-    /// Advances to the next element and returns it, or `nil` if no next element
-    /// exists. Once nil has been returned, all subsequent calls return nil.
-    ///
-    ///     let rows = try Row.fetchCursor(db, "SELECT ...") // DatabaseCursor<Row>
-    ///     while let row = try rows.next() { // Row
-    ///         let id: Int64 = row[0]
-    ///         let name: String = row[1]
-    ///     }
-    public func next() throws -> Element? {
-        if done {
-            return nil
-        }
-        
+    public func next() throws -> Void? {
+        if done { return nil }
         switch sqlite3_step(sqliteStatement) {
         case SQLITE_DONE:
             done = true
             return nil
         case SQLITE_ROW:
-            return try element()
+            return .some(())
         case let code:
             statement.database.selectStatementDidFail(statement)
             throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
@@ -380,7 +372,7 @@ public final class DatabaseCursor<Element> : Cursor {
 /// You create UpdateStatement with the Database.makeUpdateStatement() method:
 ///
 ///     try dbQueue.inTransaction { db in
-///         let statement = try db.makeUpdateStatement("INSERT INTO persons (name) VALUES (?)")
+///         let statement = try db.makeUpdateStatement("INSERT INTO players (name) VALUES (?)")
 ///         try statement.execute(arguments: ["Arthur"])
 ///         try statement.execute(arguments: ["Barbara"])
 ///         return .commit
@@ -439,11 +431,7 @@ public final class UpdateStatement : Statement {
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(arguments: StatementArguments? = nil) throws {
         SchedulingWatchdog.preconditionValidQueue(database)
-        
-        // Force arguments validity: it is a programmer error to provide
-        // arguments that do not match the statement.
-        try! prepare(withArguments: arguments)
-        
+        prepare(withArguments: arguments)
         reset()
         database.updateStatementWillExecute(self)
         
@@ -518,13 +506,13 @@ public final class UpdateStatement : Statement {
 /// To fill named arguments, feed StatementArguments with a dictionary:
 ///
 ///     db.execute(
-///         "INSERT ... (:name, :age)",
-///         arguments: StatementArguments(["name": "Arthur", "age": 41]))
+///         "INSERT ... (:name, :score)",
+///         arguments: StatementArguments(["name": "Arthur", "score": 41]))
 ///
 ///     // Dictionary literals are automatically converted:
 ///     db.execute(
-///         "INSERT ... (:name, :age)",
-///         arguments: ["name": "Arthur", "age": 41])
+///         "INSERT ... (:name, :score)",
+///         arguments: ["name": "Arthur", "score": 41])
 ///
 /// ## Concatenating Arguments
 ///
@@ -855,7 +843,7 @@ extension StatementArguments : ExpressibleByArrayLiteral {
 extension StatementArguments : ExpressibleByDictionaryLiteral {
     /// Returns a StatementArguments from a dictionary literal:
     ///
-    ///     db.selectRows("SELECT ...", arguments: ["name": "Arthur", "age": 41])
+    ///     db.selectRows("SELECT ...", arguments: ["name": "Arthur", "score": 41])
     public init(dictionaryLiteral elements: (String, DatabaseValueConvertible?)...) {
         self.init(elements)
     }

@@ -48,8 +48,8 @@ extension RowConvertible where Self: TableMapping {
     public static func fetch(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) -> Any { preconditionFailure() }
 }
 
-@available(*, unavailable, message:"DatabaseSequence has been replaced by DatabaseCursor.")
+@available(*, unavailable, message:"DatabaseSequence has been replaced by Cursor.")
 public struct DatabaseSequence<T> { }
 
-@available(*, unavailable, message:"DatabaseIterator has been replaced by DatabaseCursor.")
+@available(*, unavailable, message:"DatabaseIterator has been replaced by Cursor.")
 public struct DatabaseIterator<T> { }

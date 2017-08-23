@@ -478,7 +478,7 @@ extension DatabaseFunction {
     /// capitalized:
     ///
     ///     let nameColumn = Column("name")
-    ///     let request = Person.select(nameColumn.capitalized)
+    ///     let request = Player.select(nameColumn.capitalized)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     public static let capitalize = DatabaseFunction("swiftCapitalizedString", argumentCount: 1, pure: true) { dbValues in
         guard let string = String.fromDatabaseValue(dbValues[0]) else {
@@ -497,7 +497,7 @@ extension DatabaseFunction {
     /// lowercased:
     ///
     ///     let nameColumn = Column("name")
-    ///     let request = Person.select(nameColumn.lowercased())
+    ///     let request = Player.select(nameColumn.lowercased())
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     public static let lowercase = DatabaseFunction("swiftLowercaseString", argumentCount: 1, pure: true) { dbValues in
         guard let string = String.fromDatabaseValue(dbValues[0]) else {
@@ -516,7 +516,7 @@ extension DatabaseFunction {
     /// uppercased:
     ///
     ///     let nameColumn = Column("name")
-    ///     let request = Person.select(nameColumn.uppercased())
+    ///     let request = Player.select(nameColumn.uppercased())
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     public static let uppercase = DatabaseFunction("swiftUppercaseString", argumentCount: 1, pure: true) { dbValues in
         guard let string = String.fromDatabaseValue(dbValues[0]) else {
@@ -537,7 +537,7 @@ extension DatabaseFunction {
     /// localizedCapitalized:
     ///
     ///     let nameColumn = Column("name")
-    ///     let request = Person.select(nameColumn.localizedCapitalized)
+    ///     let request = Player.select(nameColumn.localizedCapitalized)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
     public static let localizedCapitalize = DatabaseFunction("swiftLocalizedCapitalizedString", argumentCount: 1, pure: true) { dbValues in
@@ -557,7 +557,7 @@ extension DatabaseFunction {
     /// localizedLowercased:
     ///
     ///     let nameColumn = Column("name")
-    ///     let request = Person.select(nameColumn.localizedLowercased)
+    ///     let request = Player.select(nameColumn.localizedLowercased)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
     public static let localizedLowercase = DatabaseFunction("swiftLocalizedLowercaseString", argumentCount: 1, pure: true) { dbValues in
@@ -577,7 +577,7 @@ extension DatabaseFunction {
     /// localizedUppercased:
     ///
     ///     let nameColumn = Column("name")
-    ///     let request = Person.select(nameColumn.localizedUppercased)
+    ///     let request = Player.select(nameColumn.localizedUppercased)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
     public static let localizedUppercase = DatabaseFunction("swiftLocalizedUppercaseString", argumentCount: 1, pure: true) { dbValues in
@@ -613,7 +613,7 @@ extension DatabaseCollation {
     ///
     ///     let collationName = DatabaseCollation.caseInsensitiveCompare.name
     ///     dbQueue.execute(
-    ///         "CREATE TABLE persons (" +
+    ///         "CREATE TABLE players (" +
     ///             "name TEXT COLLATE \(collationName)" +
     ///         ")"
     ///     )
@@ -631,7 +631,7 @@ extension DatabaseCollation {
     ///
     ///     let collationName = DatabaseCollation.caseInsensitiveCompare.name
     ///     dbQueue.execute(
-    ///         "CREATE TABLE persons (" +
+    ///         "CREATE TABLE players (" +
     ///             "name TEXT COLLATE \(collationName)" +
     ///         ")"
     ///     )
@@ -649,7 +649,7 @@ extension DatabaseCollation {
     ///
     ///     let collationName = DatabaseCollation.localizedCaseInsensitiveCompare.name
     ///     dbQueue.execute(
-    ///         "CREATE TABLE persons (" +
+    ///         "CREATE TABLE players (" +
     ///             "name TEXT COLLATE \(collationName)" +
     ///         ")"
     ///     )
@@ -667,7 +667,7 @@ extension DatabaseCollation {
     ///
     ///     let collationName = DatabaseCollation.localizedCompare.name
     ///     dbQueue.execute(
-    ///         "CREATE TABLE persons (" +
+    ///         "CREATE TABLE players (" +
     ///             "name TEXT COLLATE \(collationName)" +
     ///         ")"
     ///     )
@@ -685,7 +685,7 @@ extension DatabaseCollation {
     ///
     ///     let collationName = DatabaseCollation.localizedStandardCompare.name
     ///     dbQueue.execute(
-    ///         "CREATE TABLE persons (" +
+    ///         "CREATE TABLE players (" +
     ///             "name TEXT COLLATE \(collationName)" +
     ///         ")"
     ///     )

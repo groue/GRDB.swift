@@ -70,8 +70,8 @@ public final class DatabaseQueue {
     /// Synchronously executes a block in a protected dispatch queue, and
     /// returns its result.
     ///
-    ///     let persons = try dbQueue.inDatabase { db in
-    ///         try Person.fetchAll(...)
+    ///     let players = try dbQueue.inDatabase { db in
+    ///         try Player.fetchAll(...)
     ///     }
     ///
     /// This method is *not* reentrant.
@@ -217,8 +217,8 @@ extension DatabaseQueue : DatabaseReader {
     /// Synchronously executes a read-only block in a protected dispatch queue,
     /// and returns its result.
     ///
-    ///     let persons = try dbQueue.read { db in
-    ///         try Person.fetchAll(...)
+    ///     let players = try dbQueue.read { db in
+    ///         try Player.fetchAll(...)
     ///     }
     ///
     /// This method is *not* reentrant.

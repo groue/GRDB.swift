@@ -53,12 +53,12 @@ public protocol DatabaseWriter : DatabaseReader {
     ///   state is the last committed state.
     ///
     ///         try writer.write { db in
-    ///             try db.execute("DELETE FROM persons")
+    ///             try db.execute("DELETE FROM players")
     ///             try writer.readFromCurrentState { db in
     ///                 // Guaranteed to be zero
-    ///                 try Int.fetchOne(db, "SELECT COUNT(*) FROM persons")!
+    ///                 try Int.fetchOne(db, "SELECT COUNT(*) FROM players")!
     ///             }
-    ///             try db.execute("INSERT INTO persons ...")
+    ///             try db.execute("INSERT INTO players ...")
     ///         }
     ///
     /// - When this method is called inside an uncommitted transation, the
@@ -71,12 +71,12 @@ public protocol DatabaseWriter : DatabaseReader {
     ///     the database in its last committed state.
     ///
     ///         try dbPool.write { db in
-    ///             try db.execute("DELETE FROM persons")
+    ///             try db.execute("DELETE FROM players")
     ///             db.inTransaction {
-    ///                 try db.execute("INSERT INTO persons ...")
+    ///                 try db.execute("INSERT INTO players ...")
     ///                 try dbPool.readFromCurrentState { db in
     ///                     // Zero
-    ///                     try Int.fetchOne(db, "SELECT COUNT(*) FROM persons")!
+    ///                     try Int.fetchOne(db, "SELECT COUNT(*) FROM players")!
     ///                 }
     ///                 return .commit
     ///             }
@@ -88,12 +88,12 @@ public protocol DatabaseWriter : DatabaseReader {
     ///     is run after the select.
     ///
     ///         try dbQueue.write { db in
-    ///             try db.execute("DELETE FROM persons")
+    ///             try db.execute("DELETE FROM players")
     ///             db.inTransaction {
-    ///                 try db.execute("INSERT INTO persons ...")
+    ///                 try db.execute("INSERT INTO players ...")
     ///                 try dbQueue.readFromCurrentState { db in
     ///                     // One
-    ///                     try Int.fetchOne(db, "SELECT COUNT(*) FROM persons")!
+    ///                     try Int.fetchOne(db, "SELECT COUNT(*) FROM players")!
     ///                 }
     ///                 return .commit
     ///             }

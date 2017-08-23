@@ -1,19 +1,19 @@
 /// Types that adopt RowConvertible can be initialized from a database Row.
 ///
 ///     let row = try Row.fetchOne(db, "SELECT ...")!
-///     let person = Person(row)
+///     let player = Player(row)
 ///
 /// The protocol comes with built-in methods that allow to fetch cursors,
 /// arrays, or single records:
 ///
-///     try Person.fetchCursor(db, "SELECT ...", arguments:...) // DatabaseCursor<Person>
-///     try Person.fetchAll(db, "SELECT ...", arguments:...)    // [Person]
-///     try Person.fetchOne(db, "SELECT ...", arguments:...)    // Person?
+///     try Player.fetchCursor(db, "SELECT ...", arguments:...) // Cursor of Player
+///     try Player.fetchAll(db, "SELECT ...", arguments:...)    // [Player]
+///     try Player.fetchOne(db, "SELECT ...", arguments:...)    // Player?
 ///
 ///     let statement = try db.makeSelectStatement("SELECT ...")
-///     try Person.fetchCursor(statement, arguments:...) // DatabaseCursor<Person>
-///     try Person.fetchAll(statement, arguments:...)    // [Person]
-///     try Person.fetchOne(statement, arguments:...)    // Person?
+///     try Player.fetchCursor(statement, arguments:...) // Cursor of Player
+///     try Player.fetchAll(statement, arguments:...)    // [Player]
+///     try Player.fetchOne(statement, arguments:...)    // Player?
 ///
 /// RowConvertible is adopted by Record.
 public protocol RowConvertible {
@@ -32,9 +32,9 @@ extension RowConvertible {
     
     /// A cursor over records fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT * FROM persons")
-    ///     let persons = try Person.fetchCursor(statement) // DatabaseCursor<Person>
-    ///     while let person = try persons.next() { // Person
+    ///     let statement = try db.makeSelectStatement("SELECT * FROM players")
+    ///     let players = try Player.fetchCursor(statement) // Cursor of Player
+    ///     while let player = try players.next() { // Player
     ///         ...
     ///     }
     ///
@@ -49,17 +49,14 @@ extension RowConvertible {
     ///     - adapter: Optional RowAdapter
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
-        // Reuse a single mutable row for performance.
-        // It is the record's responsibility to copy the row if needed.
-        let row = try Row(statement: statement).adapted(with: adapter, layout: statement)
-        return statement.cursor(arguments: arguments, next: { self.init(row: row) })
+    public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, Self> {
+        return try Row.fetchCursor(statement, arguments: arguments, adapter: adapter).map { self.init(row: $0) }
     }
     
     /// Returns an array of records fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT * FROM persons")
-    ///     let persons = try Person.fetchAll(statement) // [Person]
+    ///     let statement = try db.makeSelectStatement("SELECT * FROM players")
+    ///     let players = try Player.fetchAll(statement) // [Player]
     ///
     /// - parameters:
     ///     - statement: The statement to run.
@@ -73,8 +70,8 @@ extension RowConvertible {
     
     /// Returns a single record fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT * FROM persons")
-    ///     let person = try Person.fetchOne(statement) // Person?
+    ///     let statement = try db.makeSelectStatement("SELECT * FROM players")
+    ///     let player = try Player.fetchOne(statement) // Player?
     ///
     /// - parameters:
     ///     - statement: The statement to run.
@@ -94,8 +91,8 @@ extension RowConvertible {
     /// Returns a cursor over records fetched from a fetch request.
     ///
     ///     let nameColumn = Column("firstName")
-    ///     let request = Person.order(nameColumn)
-    ///     let identities = try Identity.fetchCursor(db, request) // DatabaseCursor<Identity>
+    ///     let request = Player.order(nameColumn)
+    ///     let identities = try Identity.fetchCursor(db, request) // Cursor of Identity
     ///     while let identity = try identities.next() { // Identity
     ///         ...
     ///     }
@@ -110,7 +107,7 @@ extension RowConvertible {
     ///     - request: A fetch request.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database, _ request: Request) throws -> DatabaseCursor<Self> {
+    public static func fetchCursor(_ db: Database, _ request: Request) throws -> MapCursor<RowCursor, Self> {
         let (statement, adapter) = try request.prepare(db)
         return try fetchCursor(statement, adapter: adapter)
     }
@@ -118,7 +115,7 @@ extension RowConvertible {
     /// Returns an array of records fetched from a fetch request.
     ///
     ///     let nameColumn = Column("name")
-    ///     let request = Person.order(nameColumn)
+    ///     let request = Player.order(nameColumn)
     ///     let identities = try Identity.fetchAll(db, request) // [Identity]
     ///
     /// - parameter db: A database connection.
@@ -131,7 +128,7 @@ extension RowConvertible {
     /// Returns a single record fetched from a fetch request.
     ///
     ///     let nameColumn = Column("name")
-    ///     let request = Person.order(nameColumn)
+    ///     let request = Player.order(nameColumn)
     ///     let identity = try Identity.fetchOne(db, request) // Identity?
     ///
     /// - parameter db: A database connection.
@@ -148,8 +145,8 @@ extension RowConvertible {
     
     /// Returns a cursor over records fetched from an SQL query.
     ///
-    ///     let persons = try Person.fetchCursor(db, "SELECT * FROM persons") // DatabaseCursor<Person>
-    ///     while let person = try persons.next() { // Person
+    ///     let players = try Player.fetchCursor(db, "SELECT * FROM players") // Cursor of Player
+    ///     while let player = try players.next() { // Player
     ///         ...
     ///     }
     ///
@@ -165,13 +162,13 @@ extension RowConvertible {
     ///     - adapter: Optional RowAdapter
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseCursor<Self> {
+    public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, Self> {
         return try fetchCursor(db, SQLRequest(sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of records fetched from an SQL query.
     ///
-    ///     let persons = try Person.fetchAll(db, "SELECT * FROM persons") // [Person]
+    ///     let players = try Player.fetchAll(db, "SELECT * FROM players") // [Player]
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -186,7 +183,7 @@ extension RowConvertible {
     
     /// Returns a single record fetched from an SQL query.
     ///
-    ///     let person = try Person.fetchOne(db, "SELECT * FROM persons") // Person?
+    ///     let player = try Player.fetchOne(db, "SELECT * FROM players") // Player?
     ///
     /// - parameters:
     ///     - db: A database connection.

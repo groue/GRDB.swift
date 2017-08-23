@@ -358,10 +358,10 @@ public protocol DatabaseAggregate {
     /// aggregate function.
     ///
     ///    -- One value
-    ///    SELECT maxLength(name) FROM persons
+    ///    SELECT maxLength(name) FROM players
     ///
     ///    -- Two values
-    ///    SELECT maxFullNameLength(firstName, lastName) FROM persons
+    ///    SELECT maxFullNameLength(firstName, lastName) FROM players
     ///
     /// This method is never called after the finalize() method has been called.
     mutating func step(_ dbValues: [DatabaseValue]) throws

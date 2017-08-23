@@ -187,7 +187,8 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         // All connections are closed
         XCTAssertEqual(openConnectionCount, 0)
     }
-
+    
+    // TODO: this test should be duplicated for all cursor types
     func testDatabaseCursorRetainSQLiteConnection() throws {
         let countQueue = DispatchQueue(label: "GRDB")
         var openConnectionCount = 0
@@ -204,7 +205,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             }
         }
         
-        var cursor: DatabaseCursor<Int>? = nil
+        var cursor: ColumnCursor<Int>? = nil
         do {
             try! makeDatabasePool().write { db in
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")

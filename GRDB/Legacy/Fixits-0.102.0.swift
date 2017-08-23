@@ -4,6 +4,6 @@ extension Database {
 }
 
 extension DatabaseValue {
-    @available(*, unavailable, message:"DatabaseSequence has been replaced by DatabaseCursor.")
+    @available(*, unavailable, message:"DatabaseSequence has been replaced by Cursor.")
     public func value() -> Any { preconditionFailure() }
 }

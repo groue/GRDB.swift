@@ -86,7 +86,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
     func testFetchCursor() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            func test(_ cursor: DatabaseCursor<Fetched>) throws {
+            func test<C: Cursor>(_ cursor: C) throws where C.Element == Fetched {
                 var i = try cursor.next()!
                 XCTAssertEqual(i.int, 1)
                 XCTAssertTrue(i.fast)
@@ -120,7 +120,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
         let customError = NSError(domain: "Custom", code: 0xDEAD)
         dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
         try dbQueue.inDatabase { db in
-            func test(_ cursor: DatabaseCursor<Fetched>, sql: String) throws {
+            func test<C: Cursor>(_ cursor: C, sql: String) throws where C.Element == Fetched {
                 do {
                     _ = try cursor.next()
                     XCTFail()
@@ -161,7 +161,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
     func testFetchCursorCompilationFailure() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            func test(_ cursor: @autoclosure () throws -> DatabaseCursor<Fetched>, sql: String) throws {
+            func test<C: Cursor>(_ cursor: @autoclosure () throws -> C, sql: String) throws where C.Element == Fetched {
                 do {
                     _ = try cursor()
                     XCTFail()
@@ -426,10 +426,10 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
     func testOptionalFetchCursor() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            func test(_ cursor: DatabaseCursor<Fetched?>) throws {
+            func test<C: Cursor>(_ cursor: C) throws where C.Element == Fetched? {
                 let i = try cursor.next()!
                 XCTAssertEqual(i!.int, 1)
-                // XCTAssertTrue(i!.fast) // TODO: uncomment when we have a workaround for rdar://22852669
+                XCTAssertTrue(i!.fast)
                 XCTAssertTrue(try cursor.next()! == nil)
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
@@ -456,7 +456,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
     func testOptionalFetchCursorCompilationFailure() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            func test(_ cursor: @autoclosure () throws -> DatabaseCursor<Fetched?>, sql: String) throws {
+            func test<C: Cursor>(_ cursor: @autoclosure () throws -> C, sql: String) throws where C.Element == Fetched? {
                 do {
                     _ = try cursor()
                     XCTFail()
@@ -491,7 +491,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             func test(_ array: [Fetched?]) {
                 XCTAssertEqual(array.count, 2)
                 XCTAssertEqual(array[0]!.int, 1)
-                // XCTAssertTrue(array[0]!.fast) // TODO: uncomment when we have a workaround for rdar://22852669
+                XCTAssertTrue(array[0]!.fast)
                 XCTAssertTrue(array[1] == nil)
             }
             do {

@@ -122,7 +122,7 @@ public final class Database {
     
     /// An SQL column type.
     ///
-    ///     try db.create(table: "persons") { t in
+    ///     try db.create(table: "players") { t in
     ///         t.column("id", .integer).primaryKey()
     ///         t.column("title", .text)
     ///     }
@@ -686,7 +686,7 @@ extension Database {
     
     /// Returns a new prepared statement that can be reused.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM persons WHERE age > ?")
+    ///     let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM players WHERE score > ?")
     ///     let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
     ///     let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
     ///
@@ -699,7 +699,7 @@ extension Database {
     
     /// Returns a new prepared statement that can be reused.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM persons WHERE age > ?", prepFlags: 0)
+    ///     let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM players WHERE score > ?", prepFlags: 0)
     ///     let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
     ///     let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
     ///
@@ -714,7 +714,7 @@ extension Database {
     
     /// Returns a prepared statement that can be reused.
     ///
-    ///     let statement = try db.cachedSelectStatement("SELECT COUNT(*) FROM persons WHERE age > ?")
+    ///     let statement = try db.cachedSelectStatement("SELECT COUNT(*) FROM players WHERE score > ?")
     ///     let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
     ///     let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
     ///
@@ -738,7 +738,7 @@ extension Database {
     
     /// Returns a new prepared statement that can be reused.
     ///
-    ///     let statement = try db.makeUpdateStatement("INSERT INTO persons (name) VALUES (?)")
+    ///     let statement = try db.makeUpdateStatement("INSERT INTO players (name) VALUES (?)")
     ///     try statement.execute(arguments: ["Arthur"])
     ///     try statement.execute(arguments: ["Barbara"])
     ///
@@ -751,7 +751,7 @@ extension Database {
     
     /// Returns a new prepared statement that can be reused.
     ///
-    ///     let statement = try db.makeUpdateStatement("INSERT INTO persons (name) VALUES (?)", prepFlags: 0)
+    ///     let statement = try db.makeUpdateStatement("INSERT INTO players (name) VALUES (?)", prepFlags: 0)
     ///     try statement.execute(arguments: ["Arthur"])
     ///     try statement.execute(arguments: ["Barbara"])
     ///
@@ -766,7 +766,7 @@ extension Database {
     
     /// Returns a prepared statement that can be reused.
     ///
-    ///     let statement = try db.cachedUpdateStatement("INSERT INTO persons (name) VALUES (?)")
+    ///     let statement = try db.cachedUpdateStatement("INSERT INTO players (name) VALUES (?)")
     ///     try statement.execute(arguments: ["Arthur"])
     ///     try statement.execute(arguments: ["Barbara"])
     ///
@@ -791,13 +791,13 @@ extension Database {
     /// Executes one or several SQL statements, separated by semi-colons.
     ///
     ///     try db.execute(
-    ///         "INSERT INTO persons (name) VALUES (:name)",
+    ///         "INSERT INTO players (name) VALUES (:name)",
     ///         arguments: ["name": "Arthur"])
     ///
     ///     try db.execute("""
-    ///         INSERT INTO persons (name) VALUES (?);
-    ///         INSERT INTO persons (name) VALUES (?);
-    ///         INSERT INTO persons (name) VALUES (?);
+    ///         INSERT INTO players (name) VALUES (?);
+    ///         INSERT INTO players (name) VALUES (?);
+    ///         INSERT INTO players (name) VALUES (?);
     ///         """, arguments; ['Arthur', 'Barbara', 'Craig'])
     ///
     /// This method may throw a DatabaseError.
@@ -1095,17 +1095,17 @@ extension Database {
         // > column in the primary key for columns that are part of the primary
         // > key.
         //
-        // CREATE TABLE persons (
+        // CREATE TABLE players (
         //   id INTEGER PRIMARY KEY,
-        //   firstName TEXT,
-        //   lastName TEXT)
+        //   name TEXT,
+        //   score INTEGER)
         //
-        // PRAGMA table_info("persons")
+        // PRAGMA table_info("players")
         //
-        // cid | name      | type    | notnull | dflt_value | pk |
-        // 0   | id        | INTEGER | 0       | NULL       | 1  |
-        // 1   | firstName | TEXT    | 0       | NULL       | 0  |
-        // 2   | lastName  | TEXT    | 0       | NULL       | 0  |
+        // cid | name  | type    | notnull | dflt_value | pk |
+        // 0   | id    | INTEGER | 0       | NULL       | 1  |
+        // 1   | name  | TEXT    | 0       | NULL       | 0  |
+        // 2   | score | INTEGER | 0       | NULL       | 0  |
         
         let columns = try self.columns(in: tableName)
         
@@ -1183,18 +1183,18 @@ extension Database {
         // > column in the primary key for columns that are part of the primary
         // > key.
         //
-        // CREATE TABLE persons (
+        // CREATE TABLE players (
         //   id INTEGER PRIMARY KEY,
         //   firstName TEXT,
         //   lastName TEXT)
         //
-        // PRAGMA table_info("persons")
+        // PRAGMA table_info("players")
         //
-        // cid | name      | type    | notnull | dflt_value | pk |
-        // 0   | id        | INTEGER | 0       | NULL       | 1  |
-        // 1   | firstName | TEXT    | 0       | NULL       | 0  |
-        // 2   | lastName  | TEXT    | 0       | NULL       | 0  |
-        
+        // cid | name  | type    | notnull | dflt_value | pk |
+        // 0   | id    | INTEGER | 0       | NULL       | 1  |
+        // 1   | name  | TEXT    | 0       | NULL       | 0  |
+        // 2   | score | INTEGER | 0       | NULL       | 0  |
+
         if sqlite3_libversion_number() < 3008005 {
             // Work around a bug in SQLite where PRAGMA table_info would
             // return a result even after the table was deleted.
@@ -1317,17 +1317,17 @@ extension Database {
 
 /// A column of a table
 struct ColumnInfo : RowConvertible {
-    // CREATE TABLE persons (
+    // CREATE TABLE players (
     //   id INTEGER PRIMARY KEY,
     //   firstName TEXT,
     //   lastName TEXT)
     //
-    // PRAGMA table_info("persons")
+    // PRAGMA table_info("players")
     //
-    // cid | name      | type    | notnull | dflt_value | pk |
-    // 0   | id        | INTEGER | 0       | NULL       | 1  |
-    // 1   | firstName | TEXT    | 0       | NULL       | 0  |
-    // 2   | lastName  | TEXT    | 0       | NULL       | 0  |
+    // cid | name  | type    | notnull | dflt_value | pk |
+    // 0   | id    | INTEGER | 0       | NULL       | 1  |
+    // 1   | name  | TEXT    | 0       | NULL       | 0  |
+    // 2   | score | INTEGER | 0       | NULL       | 0  |
     let name: String
     let type: String
     let notNull: Bool
@@ -1374,13 +1374,13 @@ public struct IndexInfo {
 /// Primary keys have one or several columns. When the primary key has a single
 /// column, it may contain the row id:
 ///
-///     // CREATE TABLE persons (
+///     // CREATE TABLE citizens (
 ///     //   id INTEGER PRIMARY KEY,
 ///     //   name TEXT
 ///     // )
-///     let personPk = try db.primaryKey("persons")!
-///     personPk.columns     // ["id"]
-///     personPk.rowIDColumn // "id"
+///     let citizenPk = try db.primaryKey("citizens")!
+///     citizenPk.columns     // ["id"]
+///     citizenPk.rowIDColumn // "id"
 ///
 ///     // CREATE TABLE countries (
 ///     //   isoCode TEXT NOT NULL PRIMARY KEY
@@ -1391,12 +1391,12 @@ public struct IndexInfo {
 ///     countryPk.rowIDColumn // nil
 ///
 ///     // CREATE TABLE citizenships (
-///     //   personID INTEGER NOT NULL REFERENCES persons(id)
+///     //   citizenID INTEGER NOT NULL REFERENCES citizens(id)
 ///     //   countryIsoCode TEXT NOT NULL REFERENCES countries(isoCode)
-///     //   PRIMARY KEY (personID, countryIsoCode)
+///     //   PRIMARY KEY (citizenID, countryIsoCode)
 ///     // )
 ///     let citizenshipsPk = db.primaryKey("citizenships")!
-///     citizenshipsPk.columns     // ["personID", "countryIsoCode"]
+///     citizenshipsPk.columns     // ["citizenID", "countryIsoCode"]
 ///     citizenshipsPk.rowIDColumn // nil
 public struct PrimaryKeyInfo {
     private enum Impl {
