@@ -1918,18 +1918,17 @@ You can now jump to:
     One way to do it is to load raw database rows:
     
     ```swift
-    // Raw rows
-    let placeRows = try dbQueue.inDatabase { db in
-        try Row.fetchAll(db, "SELECT * FROM places")
+    func fetchPlaceRows(_ db: Database) throws -> [Row] {
+        return try Row.fetchAll(db, "SELECT * FROM places")
     }
     ```
     
-    The problem is that raw rows are not easy to deal with, and you may prefer using a proper `Place` type:
+    The problem is that [raw rows](#row-queries) are not easy to deal with, and you may prefer using a proper `Place` type:
     
     ```swift
     // Dedicated model
     struct Place { ... }
-    let places = try dbQueue.inDatabase { db -> [Place] in
+    func fetchPlaces(_ db: Database) throws -> [Place] {
         let rows = try Row.fetchAll(db, "SELECT * FROM places")
         return rows.map { row in
             Place(
@@ -1950,7 +1949,7 @@ You can now jump to:
     struct Place {
         init(row: Row) { ... }
     }
-    let places = try dbQueue.inDatabase { db -> [Place] in
+    func fetchPlaces(_ db: Database) throws -> [Place] {
         let rows = try Row.fetchAll(db, "SELECT * FROM places")
         return rows.map { Place(row: $0) }
     }
@@ -1960,7 +1959,7 @@ You can now jump to:
     
     ```swift
     // Cursor for efficiency
-    let places = try dbQueue.inDatabase { db -> [Place] in
+    func fetchPlaces(_ db: Database) throws -> [Place] {
         let rowCursor = try Row.fetchCursor(db, "SELECT * FROM places")
         let placeCursor = rowCursor.map { Place(row: $0) }
         return try Array(placeCursor)
@@ -1973,8 +1972,8 @@ You can now jump to:
     struct Place : RowConvertible {
         init(row: Row) { ... }
     }
-    let places = try dbQueue.inDatabase { db in
-        try Place.fetchAll(db, "SELECT * FROM places")
+    func fetchPlaces(_ db: Database) throws -> [Place] {
+        return try Place.fetchAll(db, "SELECT * FROM places")
     }
     ```
     
