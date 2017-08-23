@@ -1,8 +1,11 @@
 import XCTest
+import SQLite3
 import GRDB
+#if GRBD_COMPARE
 import SQLite
 import CoreData
 import RealmSwift
+#endif
 
 private let expectedRowCount = 100_000
 
@@ -65,6 +68,22 @@ class FetchRecordTests: XCTestCase {
         sqlite3_close(connection)
     }
     
+    func testGRDB() throws {
+        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
+        let dbQueue = try DatabaseQueue(path: databasePath)
+        
+        measure {
+            let items = try! dbQueue.inDatabase { db in
+                try Item.fetchAll(db, "SELECT * FROM items")
+            }
+            XCTAssertEqual(items.count, expectedRowCount)
+            XCTAssertEqual(items[0].i0, 0)
+            XCTAssertEqual(items[1].i1, 1)
+            XCTAssertEqual(items[expectedRowCount-1].i9, expectedRowCount-1)
+        }
+    }
+    
+    #if GRBD_COMPARE
     func testFMDB() {
         // Here we test the loading of an array of Records.
         
@@ -79,21 +98,6 @@ class FetchRecordTests: XCTestCase {
                     let item = Item(dictionary: rs.resultDictionary!)
                     items.append(item)
                 }
-            }
-            XCTAssertEqual(items.count, expectedRowCount)
-            XCTAssertEqual(items[0].i0, 0)
-            XCTAssertEqual(items[1].i1, 1)
-            XCTAssertEqual(items[expectedRowCount-1].i9, expectedRowCount-1)
-        }
-    }
-
-    func testGRDB() throws {
-        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
-        let dbQueue = try DatabaseQueue(path: databasePath)
-        
-        measure {
-            let items = try! dbQueue.inDatabase { db in
-                try Item.fetchAll(db, "SELECT * FROM items")
             }
             XCTAssertEqual(items.count, expectedRowCount)
             XCTAssertEqual(items[0].i0, 0)
@@ -181,4 +185,5 @@ class FetchRecordTests: XCTestCase {
             XCTAssertEqual(count, expectedRowCount)
         }
     }
+    #endif
 }

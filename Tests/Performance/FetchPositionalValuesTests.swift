@@ -1,6 +1,9 @@
 import XCTest
+import SQLite3
 import GRDB
+#if GRBD_COMPARE
 import SQLite
+#endif
 
 private let expectedRowCount = 100_000
 
@@ -48,35 +51,6 @@ class FetchPositionalValuesTests: XCTestCase {
         sqlite3_close(connection)
     }
     
-    func testFMDB() {
-        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
-        let dbQueue = FMDatabaseQueue(path: databasePath)
-        
-        measure {
-            var count = 0
-            
-            dbQueue.inDatabase { db in
-                let rs = try! db.executeQuery("SELECT * FROM items", values: nil)
-                while rs.next() {
-                    _ = rs.long(forColumnIndex: 0)
-                    _ = rs.long(forColumnIndex: 1)
-                    _ = rs.long(forColumnIndex: 2)
-                    _ = rs.long(forColumnIndex: 3)
-                    _ = rs.long(forColumnIndex: 4)
-                    _ = rs.long(forColumnIndex: 5)
-                    _ = rs.long(forColumnIndex: 6)
-                    _ = rs.long(forColumnIndex: 7)
-                    _ = rs.long(forColumnIndex: 8)
-                    _ = rs.long(forColumnIndex: 9)
-                    
-                    count += 1
-                }
-            }
-            
-            XCTAssertEqual(count, expectedRowCount)
-        }
-    }
-    
     func testGRDB() throws {
         let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
         let dbQueue = try DatabaseQueue(path: databasePath)
@@ -97,6 +71,36 @@ class FetchPositionalValuesTests: XCTestCase {
                     _ = row[7] as Int
                     _ = row[8] as Int
                     _ = row[9] as Int
+                    
+                    count += 1
+                }
+            }
+            
+            XCTAssertEqual(count, expectedRowCount)
+        }
+    }
+    
+    #if GRBD_COMPARE
+    func testFMDB() {
+        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
+        let dbQueue = FMDatabaseQueue(path: databasePath)
+        
+        measure {
+            var count = 0
+            
+            dbQueue.inDatabase { db in
+                let rs = try! db.executeQuery("SELECT * FROM items", values: nil)
+                while rs.next() {
+                    _ = rs.long(forColumnIndex: 0)
+                    _ = rs.long(forColumnIndex: 1)
+                    _ = rs.long(forColumnIndex: 2)
+                    _ = rs.long(forColumnIndex: 3)
+                    _ = rs.long(forColumnIndex: 4)
+                    _ = rs.long(forColumnIndex: 5)
+                    _ = rs.long(forColumnIndex: 6)
+                    _ = rs.long(forColumnIndex: 7)
+                    _ = rs.long(forColumnIndex: 8)
+                    _ = rs.long(forColumnIndex: 9)
                     
                     count += 1
                 }
@@ -132,5 +136,5 @@ class FetchPositionalValuesTests: XCTestCase {
             XCTAssertEqual(count, expectedRowCount)
         }
     }
-    
+    #endif
 }

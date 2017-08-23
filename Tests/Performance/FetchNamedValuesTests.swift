@@ -1,40 +1,13 @@
 import XCTest
 import GRDB
+#if GRBD_COMPARE
 import SQLite
+#endif
 
 private let expectedRowCount = 100_000
 
 /// Here we test the extraction of values by column name.
 class FetchNamedValuesTests: XCTestCase {
-    
-    func testFMDB() {
-        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
-        let dbQueue = FMDatabaseQueue(path: databasePath)
-        
-        measure {
-            var count = 0
-            
-            dbQueue.inDatabase { db in
-                let rs = try! db.executeQuery("SELECT * FROM items", values: nil)
-                while rs.next() {
-                    _ = rs.long(forColumn: "i0")
-                    _ = rs.long(forColumn: "i1")
-                    _ = rs.long(forColumn: "i2")
-                    _ = rs.long(forColumn: "i3")
-                    _ = rs.long(forColumn: "i4")
-                    _ = rs.long(forColumn: "i5")
-                    _ = rs.long(forColumn: "i6")
-                    _ = rs.long(forColumn: "i7")
-                    _ = rs.long(forColumn: "i8")
-                    _ = rs.long(forColumn: "i9")
-                    
-                    count += 1
-                }
-            }
-            
-            XCTAssertEqual(count, expectedRowCount)
-        }
-    }
     
     func testGRDB() throws {
         let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
@@ -56,6 +29,36 @@ class FetchNamedValuesTests: XCTestCase {
                     _ = row["i7"] as Int
                     _ = row["i8"] as Int
                     _ = row["i9"] as Int
+                    
+                    count += 1
+                }
+            }
+            
+            XCTAssertEqual(count, expectedRowCount)
+        }
+    }
+    
+    #if GRBD_COMPARE
+    func testFMDB() {
+        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
+        let dbQueue = FMDatabaseQueue(path: databasePath)
+        
+        measure {
+            var count = 0
+            
+            dbQueue.inDatabase { db in
+                let rs = try! db.executeQuery("SELECT * FROM items", values: nil)
+                while rs.next() {
+                    _ = rs.long(forColumn: "i0")
+                    _ = rs.long(forColumn: "i1")
+                    _ = rs.long(forColumn: "i2")
+                    _ = rs.long(forColumn: "i3")
+                    _ = rs.long(forColumn: "i4")
+                    _ = rs.long(forColumn: "i5")
+                    _ = rs.long(forColumn: "i6")
+                    _ = rs.long(forColumn: "i7")
+                    _ = rs.long(forColumn: "i8")
+                    _ = rs.long(forColumn: "i9")
                     
                     count += 1
                 }
@@ -90,5 +93,5 @@ class FetchNamedValuesTests: XCTestCase {
             XCTAssertEqual(count, expectedRowCount)
         }
     }
-    
+    #endif
 }

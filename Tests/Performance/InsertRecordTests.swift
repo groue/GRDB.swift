@@ -1,7 +1,9 @@
 import XCTest
 import GRDB
+#if GRBD_COMPARE
 import CoreData
 import RealmSwift
+#endif
 
 private let insertedRowCount = 20_000
 
@@ -39,6 +41,7 @@ class InsertRecordTests: XCTestCase {
         }
     }
     
+    #if GRBD_COMPARE
     func testCoreData() {
         let databaseFileName = "GRDBPerformanceTests-\(ProcessInfo.processInfo.globallyUniqueString).sqlite"
         let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
@@ -86,4 +89,5 @@ class InsertRecordTests: XCTestCase {
             }
         }
     }
+    #endif
 }

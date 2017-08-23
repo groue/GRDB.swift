@@ -15,14 +15,40 @@ let insertedRowCount = 20_000
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        fetchPositionalValues()
-        fetchNamedValues()
-        fetchRecords()
-        insertPositionalValues()
-        insertNamedValues()
-        insertRecords()
+        {
+            fetchIntCursor()
+            fetchMappedIntCursor()
+        }()
+        fetchIntCursor()
+        fetchMappedIntCursor()
+//        fetchPositionalValues()
+//        fetchNamedValues()
+//        fetchRecords()
+//        insertPositionalValues()
+//        insertNamedValues()
+//        insertRecords()
+    }
+    
+    func fetchIntCursor() {
+        let databasePath = Bundle(for: type(of: self)).path(forResource: "ProfilingDatabase", ofType: "sqlite")!
+        let dbQueue = try! DatabaseQueue(path: databasePath)
+        dbQueue.inDatabase { db in
+            let ints = try! Int.fetchCursor(db, "SELECT i0 FROM items")
+            while let _ = try! ints.next() {
+            }
+        }
     }
 
+    func fetchMappedIntCursor() {
+        let databasePath = Bundle(for: type(of: self)).path(forResource: "ProfilingDatabase", ofType: "sqlite")!
+        let dbQueue = try! DatabaseQueue(path: databasePath)
+        dbQueue.inDatabase { db in
+            let ints = try! Row.fetchCursor(db, "SELECT i0 FROM items").map { $0[0] as Int }
+            while let _ = try! ints.next() {
+            }
+        }
+    }
+    
     func fetchPositionalValues() {
         let databasePath = Bundle(for: type(of: self)).path(forResource: "ProfilingDatabase", ofType: "sqlite")!
         let dbQueue = try! DatabaseQueue(path: databasePath)

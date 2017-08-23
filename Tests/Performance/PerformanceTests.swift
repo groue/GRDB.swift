@@ -1,21 +1,8 @@
 import GRDB
+#if GRBD_COMPARE
 import SQLite
 import RealmSwift
-
-
-// MARK:- SQLite
-
-let itemsTable = Table("items")
-let i0Column = Expression<Int>("i0")
-let i1Column = Expression<Int>("i1")
-let i2Column = Expression<Int>("i2")
-let i3Column = Expression<Int>("i3")
-let i4Column = Expression<Int>("i4")
-let i5Column = Expression<Int>("i5")
-let i6Column = Expression<Int>("i6")
-let i7Column = Expression<Int>("i7")
-let i8Column = Expression<Int>("i8")
-let i9Column = Expression<Int>("i9")
+#endif
 
 
 // MARK:- GRDB
@@ -78,6 +65,22 @@ class Item : Record {
     }
 }
 
+#if GRBD_COMPARE
+
+// MARK:- SQLite
+
+let itemsTable = Table("items")
+let i0Column = Expression<Int>("i0")
+let i1Column = Expression<Int>("i1")
+let i2Column = Expression<Int>("i2")
+let i3Column = Expression<Int>("i3")
+let i4Column = Expression<Int>("i4")
+let i5Column = Expression<Int>("i5")
+let i6Column = Expression<Int>("i6")
+let i7Column = Expression<Int>("i7")
+let i8Column = Expression<Int>("i8")
+let i9Column = Expression<Int>("i9")
+
 
 // MARK:- FMDB
 
@@ -128,3 +131,5 @@ class RealmItem : RealmSwift.Object {
         self.i9 = i9
     }
 }
+
+#endif

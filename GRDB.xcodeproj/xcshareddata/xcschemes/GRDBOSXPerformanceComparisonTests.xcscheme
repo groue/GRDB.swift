@@ -7,7 +7,7 @@
       buildImplicitDependencies = "YES">
    </BuildAction>
    <TestAction
-      buildConfiguration = "Release"
+      buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       language = ""
@@ -17,9 +17,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "560C97CF1C0E22D300BF8471"
-               BuildableName = "GRDBOSXPerformanceTests.xctest"
-               BlueprintName = "GRDBOSXPerformanceTests"
+               BlueprintIdentifier = "56439B2D1F4CA1DC0066043F"
+               BuildableName = "GRDBOSXPerformanceComparisonTests.xctest"
+               BlueprintName = "GRDBOSXPerformanceComparisonTests"
                ReferencedContainer = "container:GRDB.xcodeproj">
             </BuildableReference>
          </TestableReference>
