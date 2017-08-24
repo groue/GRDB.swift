@@ -177,7 +177,7 @@ Release Notes
 +    init()
 +}
 
--protocol DatabaseCursor { }
+-final class DatabaseCursor { }
 +final class ColumnCursor<Value: StatementColumnConvertible> : Cursor { }
 +final class NullableColumnCursor<Value: StatementColumnConvertible> : Cursor { }
 +final class RowCursor : Cursor { }
