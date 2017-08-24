@@ -649,7 +649,7 @@ If you don't see, or don't care about the difference, use arrays. If you care ab
 Row.fetchCursor(...)    // RowCursor
 Int.fetchCursor(...)    // ColumnCursor<Int>
 Date.fetchCursor(...)   // MapCursor<RowCursor, Date>
-Player.fetchCursor(...) // MapCursor<RowCursor, Player>
+Player.fetchCursor(...) // RecordCursor<Player>
 ```
 
 All cursor types adopt the [Cursor](http://groue.github.io/GRDB.swift/docs/1.3/Protocols/Cursor.html) protocol, which looks a lot like standard [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol) of Swift.

@@ -290,7 +290,7 @@ extension TypedRequest where RowDecoder: RowConvertible {
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchCursor(_ db: Database) throws -> MapCursor<RowCursor, RowDecoder> {
+    public func fetchCursor(_ db: Database) throws -> RecordCursor<RowDecoder> {
         return try RowDecoder.fetchCursor(db, self)
     }
     

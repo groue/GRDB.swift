@@ -180,6 +180,7 @@ Release Notes
 -final class DatabaseCursor { }
 +final class ColumnCursor<Value: StatementColumnConvertible> : Cursor { }
 +final class NullableColumnCursor<Value: StatementColumnConvertible> : Cursor { }
++final class RecordCursor<Record: RowConvertible> : Cursor { }
 +final class RowCursor : Cursor { }
 +final class StatementCursor: Cursor { }
  extension DatabaseValueConvertible {
@@ -202,14 +203,14 @@ Release Notes
  }
  extension RowConvertible where Self: TableMapping {
 -    static func fetchCursor(...) throws -> DatabaseCursor<Self>?
-+    static func fetchCursor(...) throws -> MapCursor<RowCursor, Self>
++    static func fetchCursor(...) throws -> RecordCursor<Self>
  }
  final class SelectStatement : Statement {
 +    func cursor(arguments: StatementArguments? = nil) -> StatementCursor
  }
  extension TypedRequest where RowDecoder: RowConvertible {
 -    func fetchCursor(_ db: Database) throws -> DatabaseCursor<RowDecoder>
-+    func fetchCursor(_ db: Database) throws -> MapCursor<RowCursor, RowDecoder>
++    func fetchCursor(_ db: Database) throws -> RecordCursor<RowDecoder>
  }
  extension TypedRequest where RowDecoder: DatabaseValueConvertible {
 -    func fetchCursor(_ db: Database) throws -> DatabaseCursor<RowDecoder>

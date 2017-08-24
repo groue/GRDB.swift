@@ -1,3 +1,9 @@
+#if SWIFT_PACKAGE
+    import CSQLite
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+    import SQLite3
+#endif
+
 /// Types that adopt RowConvertible can be initialized from a database Row.
 ///
 ///     let row = try Row.fetchOne(db, "SELECT ...")!
@@ -26,6 +32,40 @@ public protocol RowConvertible {
     init(row: Row)
 }
 
+/// A cursor of records. For example:
+///
+///     struct Player : RowConvertible { ... }
+///     try dbQueue.inDatabase { db in
+///         let players: RecordCursor<Player> = try Player.fetchCursor(db, "SELECT * FROM players")
+///     }
+public final class RecordCursor<Record: RowConvertible> : Cursor {
+    private let statement: SelectStatement
+    private let row: Row // Reused for performance
+    private let sqliteStatement: SQLiteStatement
+    private var done = false
+    
+    init(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
+        statement.cursorReset(arguments: arguments)
+        self.statement = statement
+        self.row = try Row(statement: statement).adapted(with: adapter, layout: statement)
+        self.sqliteStatement = statement.sqliteStatement
+    }
+    
+    public func next() throws -> Record? {
+        if done { return nil }
+        switch sqlite3_step(sqliteStatement) {
+        case SQLITE_DONE:
+            done = true
+            return nil
+        case SQLITE_ROW:
+            return Record(row: row)
+        case let code:
+            statement.database.selectStatementDidFail(statement)
+            throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
+        }
+    }
+}
+
 extension RowConvertible {
     
     // MARK: Fetching From SelectStatement
@@ -49,8 +89,8 @@ extension RowConvertible {
     ///     - adapter: Optional RowAdapter
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, Self> {
-        return try Row.fetchCursor(statement, arguments: arguments, adapter: adapter).map { self.init(row: $0) }
+    public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> RecordCursor<Self> {
+        return try RecordCursor(statement: statement, arguments: arguments, adapter: adapter)
     }
     
     /// Returns an array of records fetched from a prepared statement.
@@ -107,7 +147,7 @@ extension RowConvertible {
     ///     - request: A fetch request.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database, _ request: Request) throws -> MapCursor<RowCursor, Self> {
+    public static func fetchCursor(_ db: Database, _ request: Request) throws -> RecordCursor<Self> {
         let (statement, adapter) = try request.prepare(db)
         return try fetchCursor(statement, adapter: adapter)
     }
@@ -162,7 +202,7 @@ extension RowConvertible {
     ///     - adapter: Optional RowAdapter
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, Self> {
+    public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> RecordCursor<Self> {
         return try fetchCursor(db, SQLRequest(sql, arguments: arguments, adapter: adapter))
     }
     

@@ -24,7 +24,7 @@ extension RowConvertible where Self: TableMapping {
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database) throws -> MapCursor<RowCursor, Self> {
+    public static func fetchCursor(_ db: Database) throws -> RecordCursor<Self> {
         return try all().fetchCursor(db)
     }
     
@@ -77,7 +77,7 @@ extension RowConvertible where Self: TableMapping {
     ///     - keys: A sequence of primary keys.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> MapCursor<RowCursor, Self> where Sequence.Element: DatabaseValueConvertible {
+    public static func fetchCursor<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> RecordCursor<Self> where Sequence.Element: DatabaseValueConvertible {
         return try filter(db, keys: keys).fetchCursor(db)
     }
     
@@ -138,7 +138,7 @@ extension RowConvertible where Self: TableMapping {
     ///     - keys: An array of key dictionaries.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> MapCursor<RowCursor, Self> {
+    public static func fetchCursor(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> RecordCursor<Self> {
         return try filter(db, keys: keys).fetchCursor(db)
     }
     
