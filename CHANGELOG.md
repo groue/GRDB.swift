@@ -76,8 +76,19 @@ Release Notes
     let players = Player.fetchAll(db)
     ```
 
+### New
 
-**Breaking Changes**
+- Persistable records can export themselves as dictionaries:
+    
+    ```swift
+    let player = try Player.fetchOne(db, key: 1)
+    let dict = player.databaseDictionary()
+    print(dict)
+    // Prints {"id": 1, "name": "Arthur", "score": 1000}
+    ```
+
+
+### Breaking Changes
 
 - Requirements have changed: Xcode 9+ / Swift 4
 
@@ -116,7 +127,7 @@ Release Notes
 - `RowConvertible.fetchCursor(_:keys:)` returns a non-optional cursor.
 
 
-**Documentation diff**
+### Documentation diff
 
 - [Installation instructions for WatchOS](https://github.com/groue/GRDB.swift#installation) have been updated.
 - The [description of database pools](https://github.com/groue/GRDB.swift#database-pools) has been enhanced.
@@ -128,7 +139,7 @@ Release Notes
 - The [Exposing the RowID Column](https://github.com/groue/GRDB.swift#exposing-the-rowid-column) chapter has been updated for the new `TableMapping.databaseSelection` property.
 
 
-**API diff**
+### API diff
 
 ```diff
  class Row {
@@ -238,7 +249,7 @@ Release Notes
  }
 ```
 
-**Experimental API diff**
+### Experimental API diff
 
 ```diff
  enum SQLCount {

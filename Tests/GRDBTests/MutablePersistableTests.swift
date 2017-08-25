@@ -271,7 +271,12 @@ class MutablePersistableTests: GRDBTestCase {
             XCTAssertFalse(try person.exists(db))
         }
     }
-
+    
+    func testMutablePersistablePersonDatabaseDictionary() {
+        let person = MutablePersistablePerson(id: nil, name: "Arthur", age: 24)
+        let dict = person.databaseDictionary().mapValues { $0?.databaseValue ?? .null }
+        XCTAssertEqual(dict, ["iD": DatabaseValue.null, "NAme": "Arthur".databaseValue, "aGe": 24.databaseValue])
+    }
 
     // MARK: - MutablePersistableCountry
     

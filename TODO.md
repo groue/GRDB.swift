@@ -15,7 +15,6 @@
 
 GRDB 2.0
 
-- [ ] Expose a way to serialize a Record into some container. Goal: let RxGRDB observe a single record (which means extracting its primary key from encore(in:))
 - [ ] New concrete cursors
     - [ ] check performance improvements
     - [ ] document

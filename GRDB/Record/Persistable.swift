@@ -49,12 +49,20 @@ public struct PersistenceContainer {
     fileprivate var storage: [String: DatabaseValueConvertible?]
     
     /// Accesses the value associated with the given column.
+    ///
+    /// It is undefined behavior to set different values for the same column.
+    /// Column names are case insensitive, so defining both "name" and "NAME"
+    /// is considered undefined behavior.
     public subscript(_ column: String) -> DatabaseValueConvertible? {
         get { return storage[column] ?? nil }
         set { storage.updateValue(newValue, forKey: column) }
     }
     
     /// Accesses the value associated with the given column.
+    ///
+    /// It is undefined behavior to set different values for the same column.
+    /// Column names are case insensitive, so defining both "name" and "NAME"
+    /// is considered undefined behavior.
     public subscript(_ column: Column) -> DatabaseValueConvertible? {
         get { return self[column.name] }
         set { self[column.name] = newValue }
@@ -189,6 +197,10 @@ public protocol MutablePersistable : TableMapping {
     ///             container["name"] = name
     ///         }
     ///     }
+    ///
+    /// It is undefined behavior to set different values for the same column.
+    /// Column names are case insensitive, so defining both "name" and "NAME"
+    /// is considered undefined behavior.
     func encode(to container: inout PersistenceContainer)
     
     /// Notifies the record that it was succesfully inserted.
@@ -296,6 +308,14 @@ public protocol MutablePersistable : TableMapping {
     /// - returns: Whether the primary key matches a row in the database.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     func exists(_ db: Database) throws -> Bool
+}
+
+extension MutablePersistable {
+    /// Returns a dictionary whose keys are the columns encoded in the
+    /// `encode(to:)` method.
+    public func databaseDictionary() -> [String: DatabaseValueConvertible?] {
+        return PersistenceContainer(self).storage
+    }
 }
 
 extension MutablePersistable {
