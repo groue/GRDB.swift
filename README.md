@@ -633,11 +633,11 @@ try dbQueue.inDatabase { db in
 
 Both arrays and cursors can iterate over database results. How do you choose one or the other? Look at the differences:
 
-- Arrays contain copies of database values and may be consumed on any thread.
-- Arrays can take a lot of memory, if the number of fetched results is high.
+- Arrays may be consumed on any thread.
+- Arrays contain copies of database values. They can take a lot of memory, when there are many fetched results.
 - Arrays can be iterated many times.
-- Cursors iterate in a lazy fashion, and don't consume much memory.
 - Cursors can not be used on any thread: you must consume them in a protected database queue.
+- Cursors iterate database results in a lazy fashion, and don't consume much memory.
 - Cursors can be iterated only one time.
 - Cursors are granted with direct access to SQLite: you can especially expect the best performance from cursors of raw database rows and some primitive types like `Int`, `String`, or `Bool` that adopt the [StatementColumnConvertible](http://groue.github.io/GRDB.swift/docs/1.3/Protocols/StatementColumnConvertible.html) protocol.
 
@@ -648,13 +648,11 @@ If you don't see, or don't care about the difference, use arrays. If you care ab
 ```swift
 Row.fetchCursor(...)    // RowCursor
 Int.fetchCursor(...)    // ColumnCursor<Int>
-URL.fetchCursor(...)    // DatabaseValueCursor<URL>
+Date.fetchCursor(...)   // DatabaseValueCursor<Date>
 Player.fetchCursor(...) // RecordCursor<Player>
 ```
 
-All cursor types adopt the [Cursor](http://groue.github.io/GRDB.swift/docs/1.3/Protocols/Cursor.html) protocol, which looks a lot like standard [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol) of Swift.
-
-As such, Cursor comes with default implementations for many methods: `contains`, `enumerated`, `filter`, `first`, `flatMap`, `forEach`, `joined`, `map`, `reduce`:
+All cursor types adopt the [Cursor](http://groue.github.io/GRDB.swift/docs/1.3/Protocols/Cursor.html) protocol, which looks a lot like standard [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol) of Swift. As such, cursors come with many methods: `contains`, `enumerated`, `filter`, `first`, `flatMap`, `forEach`, `joined`, `map`, `reduce`:
 
 ```swift
 // Enumerate all Github links
