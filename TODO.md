@@ -15,16 +15,7 @@
 
 GRDB 2.0
 
-- [X] Remove all writing powers from TableMapping:
-    - [X] TableMapping.deleteAll(_:) -> move to MutablePersistable
-    - [X] TableMapping.deleteAll(_:keys:) -> move to MutablePersistable
-    - [X] TableMapping.deleteOne(_:key:) -> move to MutablePersistable
-    - [X] QueryInterfaceRequest.deleteAll(_:) -> require MutablePersistable adoption
-    - [X] Documentation
-- [X] Let TableMapping define the selected columns, not only if rowID is selected or not.
-- [X] Have RowConvertible.fetchCursor(_:keys:) return a non-optional cursor
-- [?] Make PersistenceContainer a protocol
-- [?] Split DatabaseCursor into several cursor types, if performance is improved.
+- [ ] Expose a way to serialize a Record into some container. Goal: let RxGRDB observe a single record (which means extracting its primary key from encore(in:))
 - [ ] New concrete cursors
     - [ ] check performance improvements
     - [ ] document
