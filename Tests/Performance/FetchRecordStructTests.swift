@@ -10,7 +10,7 @@ import RealmSwift
 private let expectedRowCount = 100_000
 
 /// Here we test the extraction of models from rows
-class FetchRecordTests: XCTestCase {
+class FetchRecordStructTests: XCTestCase {
 
     func testSQLite() {
         let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
@@ -33,13 +33,13 @@ class FetchRecordTests: XCTestCase {
             let index8 = Int32(columnNames.index(of: "i8")!)
             let index9 = Int32(columnNames.index(of: "i9")!)
             
-            var items = [Item]()
+            var items = [ItemStruct]()
             loop: while true {
                 switch sqlite3_step(statement) {
                 case 101 /*SQLITE_DONE*/:
                     break loop
                 case 100 /*SQLITE_ROW*/:
-                    let item = Item(
+                    let item = ItemStruct(
                         i0: Int(sqlite3_column_int64(statement, index0)),
                         i1: Int(sqlite3_column_int64(statement, index1)),
                         i2: Int(sqlite3_column_int64(statement, index2)),
@@ -74,7 +74,7 @@ class FetchRecordTests: XCTestCase {
         
         measure {
             let items = try! dbQueue.inDatabase { db in
-                try Item.fetchAll(db, "SELECT * FROM items")
+                try ItemStruct.fetchAll(db, "SELECT * FROM items")
             }
             XCTAssertEqual(items.count, expectedRowCount)
             XCTAssertEqual(items[0].i0, 0)
@@ -91,11 +91,11 @@ class FetchRecordTests: XCTestCase {
         let dbQueue = FMDatabaseQueue(path: databasePath)
         
         measure {
-            var items = [Item]()
+            var items = [ItemStruct]()
             dbQueue.inDatabase { db in
                 let rs = try! db.executeQuery("SELECT * FROM items", values: nil)
                 while rs.next() {
-                    let item = Item(dictionary: rs.resultDictionary!)
+                    let item = ItemStruct(dictionary: rs.resultDictionary!)
                     items.append(item)
                 }
             }
@@ -111,9 +111,9 @@ class FetchRecordTests: XCTestCase {
         let db = try Connection(databasePath)
         
         measure {
-            var items = [Item]()
+            var items = [ItemStruct]()
             for row in try! db.prepare(itemsTable) {
-                let item = Item(
+                let item = ItemStruct(
                     i0: row[i0Column],
                     i1: row[i1Column],
                     i2: row[i2Column],
@@ -130,59 +130,6 @@ class FetchRecordTests: XCTestCase {
             XCTAssertEqual(items[0].i0, 0)
             XCTAssertEqual(items[1].i1, 1)
             XCTAssertEqual(items[expectedRowCount-1].i9, expectedRowCount-1)
-        }
-    }
-    
-    func testCoreData() throws {
-        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceCoreDataTests", ofType: "sqlite")!
-        let modelURL = Bundle(for: type(of: self)).url(forResource: "PerformanceModel", withExtension: "momd")!
-        let mom = NSManagedObjectModel(contentsOf: modelURL)!
-        let psc = NSPersistentStoreCoordinator(managedObjectModel: mom)
-        try psc.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil, at: URL(fileURLWithPath: databasePath), options: nil)
-        let moc = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
-        moc.persistentStoreCoordinator = psc
-        
-        measure {
-            let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Item")
-            let items = try! moc.fetch(request)
-            for item in items {
-                let item = item as AnyObject
-                _ = item.value(forKey: "i0")
-                _ = item.value(forKey: "i1")
-                _ = item.value(forKey: "i2")
-                _ = item.value(forKey: "i3")
-                _ = item.value(forKey: "i4")
-                _ = item.value(forKey: "i5")
-                _ = item.value(forKey: "i6")
-                _ = item.value(forKey: "i7")
-                _ = item.value(forKey: "i8")
-                _ = item.value(forKey: "i9")
-            }
-            XCTAssertEqual(items.count, expectedRowCount)
-        }
-    }
-    
-    func testRealm() throws {
-        let databaseURL = Bundle(for: type(of: self)).url(forResource: "PerformanceRealmTests", withExtension: "realm")!
-        let realm = try Realm(fileURL: databaseURL)
-        
-        measure {
-            let items = realm.objects(RealmItem.self)
-            var count = 0
-            for item in items {
-                count += 1
-                _ = item.i0
-                _ = item.i1
-                _ = item.i2
-                _ = item.i3
-                _ = item.i4
-                _ = item.i5
-                _ = item.i6
-                _ = item.i7
-                _ = item.i8
-                _ = item.i9
-            }
-            XCTAssertEqual(count, expectedRowCount)
         }
     }
     #endif

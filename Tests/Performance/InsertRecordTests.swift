@@ -34,7 +34,7 @@ class InsertRecordTests: XCTestCase {
             
             try! dbQueue.inTransaction { db in
                 for i in 0..<insertedRowCount {
-                    try Item(i0: i, i1: i, i2: i, i3: i, i4: i, i5: i, i6: i, i7: i, i8: i, i9: i).insert(db)
+                    try ItemClass(i0: i, i1: i, i2: i, i3: i, i4: i, i5: i, i6: i, i7: i, i8: i, i9: i).insert(db)
                 }
                 return .commit
             }

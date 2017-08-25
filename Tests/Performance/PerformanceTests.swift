@@ -7,7 +7,46 @@ import RealmSwift
 
 // MARK:- GRDB
 
-class Item : Record {
+struct ItemStruct : RowConvertible {
+    var i0: Int
+    var i1: Int
+    var i2: Int
+    var i3: Int
+    var i4: Int
+    var i5: Int
+    var i6: Int
+    var i7: Int
+    var i8: Int
+    var i9: Int
+    
+    init(i0: Int, i1: Int, i2: Int, i3: Int, i4: Int, i5: Int, i6: Int, i7: Int, i8: Int, i9: Int) {
+        self.i0 = i0
+        self.i1 = i1
+        self.i2 = i2
+        self.i3 = i3
+        self.i4 = i4
+        self.i5 = i5
+        self.i6 = i6
+        self.i7 = i7
+        self.i8 = i8
+        self.i9 = i9
+    }
+    
+    init(row: GRDB.Row) {
+        i0 = row["i0"]
+        i1 = row["i1"]
+        i2 = row["i2"]
+        i3 = row["i3"]
+        i4 = row["i4"]
+        i5 = row["i5"]
+        i6 = row["i6"]
+        i7 = row["i7"]
+        i8 = row["i8"]
+        i9 = row["i9"]
+    }
+}
+
+class ItemClass : Record {
     var i0: Int
     var i1: Int
     var i2: Int
@@ -84,7 +123,7 @@ let i9Column = Expression<Int>("i9")
 
 // MARK:- FMDB
 
-extension Item {
+extension ItemClass {
     
     convenience init(dictionary: [AnyHashable: Any]) {
         self.init(
