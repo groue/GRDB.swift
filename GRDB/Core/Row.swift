@@ -500,10 +500,10 @@ public final class RowCursor : Cursor {
     private var done = false
     
     init(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
-        statement.cursorReset(arguments: arguments)
         self.statement = statement
         self.row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         self.sqliteStatement = statement.sqliteStatement
+        statement.cursorReset(arguments: arguments)
     }
     
     public func next() throws -> Row? {

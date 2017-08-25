@@ -344,9 +344,9 @@ public final class StatementCursor: Cursor {
     
     // Use SelectStatement.cursor() instead
     init(statement: SelectStatement, arguments: StatementArguments? = nil) {
-        statement.cursorReset(arguments: arguments)
         self.statement = statement
         self.sqliteStatement = statement.sqliteStatement
+        statement.cursorReset(arguments: arguments)
     }
     
     public func next() throws -> Void? {

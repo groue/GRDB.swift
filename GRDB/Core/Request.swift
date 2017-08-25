@@ -339,7 +339,7 @@ extension TypedRequest where RowDecoder: DatabaseValueConvertible {
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched values.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchCursor(_ db: Database) throws -> MapCursor<RowCursor, RowDecoder> {
+    public func fetchCursor(_ db: Database) throws -> DatabaseValueCursor<RowDecoder> {
         return try RowDecoder.fetchCursor(db, self)
     }
     
@@ -443,7 +443,7 @@ extension TypedRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped:
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched values.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchCursor(_ db: Database) throws -> MapCursor<RowCursor, RowDecoder._Wrapped?> {
+    public func fetchCursor(_ db: Database) throws -> NullableDatabaseValueCursor<RowDecoder._Wrapped> {
         return try Optional<RowDecoder._Wrapped>.fetchCursor(db, self)
     }
 

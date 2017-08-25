@@ -648,7 +648,7 @@ If you don't see, or don't care about the difference, use arrays. If you care ab
 ```swift
 Row.fetchCursor(...)    // RowCursor
 Int.fetchCursor(...)    // ColumnCursor<Int>
-Date.fetchCursor(...)   // MapCursor<RowCursor, Date>
+URL.fetchCursor(...)    // DatabaseValueCursor<URL>
 Player.fetchCursor(...) // RecordCursor<Player>
 ```
 

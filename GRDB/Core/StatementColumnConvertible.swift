@@ -59,18 +59,18 @@ public protocol StatementColumnConvertible {
 ///             print(name)
 ///         }
 ///     }
-public final class ColumnCursor<Value: StatementColumnConvertible> : Cursor {
+public final class ColumnCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> : Cursor {
     private let statement: SelectStatement
     private let sqliteStatement: SQLiteStatement
     private let columnIndex: Int32
     private var done = false
     
     init(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
-        statement.cursorReset(arguments: arguments)
         self.statement = statement
         // We'll read from leftmost column at index 0, unless adapter mangles columns
         self.columnIndex = try Int32(adapter?.baseColumnIndex(atIndex: 0, layout: statement) ?? 0)
         self.sqliteStatement = statement.sqliteStatement
+        statement.cursorReset(arguments: arguments)
     }
     
     public func next() throws -> Value? {
@@ -104,18 +104,18 @@ public final class ColumnCursor<Value: StatementColumnConvertible> : Cursor {
 ///             print(email ?? "<NULL>")
 ///         }
 ///     }
-public final class NullableColumnCursor<Value: StatementColumnConvertible> : Cursor {
+public final class NullableColumnCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> : Cursor {
     private let statement: SelectStatement
     private let sqliteStatement: SQLiteStatement
     private let columnIndex: Int32
     private var done = false
     
     init(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
-        statement.cursorReset(arguments: arguments)
         self.statement = statement
         // We'll read from leftmost column at index 0, unless adapter mangles columns
         self.columnIndex = try Int32(adapter?.baseColumnIndex(atIndex: 0, layout: statement) ?? 0)
         self.sqliteStatement = statement.sqliteStatement
+        statement.cursorReset(arguments: arguments)
     }
     
     public func next() throws -> Value?? {
@@ -196,6 +196,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     /// - returns: An optional value.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self? {
+        // fetchOne returns nil if there is no row, or if there is a row with a null value
         let cursor = try NullableColumnCursor<Self>(statement: statement, arguments: arguments, adapter: adapter)
         return try cursor.next() ?? nil
     }

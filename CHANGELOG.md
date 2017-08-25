@@ -178,21 +178,23 @@ Release Notes
 +}
 
 -final class DatabaseCursor { }
-+final class ColumnCursor<Value: StatementColumnConvertible> : Cursor { }
-+final class NullableColumnCursor<Value: StatementColumnConvertible> : Cursor { }
++final class ColumnCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> : Cursor { }
++final class DatabaseValueCursor<Value: DatabaseValueConvertible> : Cursor { }
++final class NullableColumnCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> : Cursor { }
++final class NullableDatabaseValueCursor<Value: DatabaseValueConvertible> : Cursor { }
 +final class RecordCursor<Record: RowConvertible> : Cursor { }
 +final class RowCursor : Cursor { }
 +final class StatementCursor: Cursor { }
  extension DatabaseValueConvertible {
 -    static func fetchCursor(...) throws -> DatabaseCursor<Self>
-+    static func fetchCursor(...) throws -> MapCursor<RowCursor, Self>
++    static func fetchCursor(...) throws -> DatabaseValueCursor<Self>
  }
  extension DatabaseValueConvertible where Self: StatementColumnConvertible {
 +    static func fetchCursor(...) throws -> ColumnCursor<Self>
  }
  extension Optional where Wrapped: DatabaseValueConvertible {
 -    static func fetchCursor(...) throws -> DatabaseCursor<Wrapped?>
-+    static func fetchCursor(...) throws -> MapCursor<RowCursor, Wrapped?>
++    static func fetchCursor(...) throws -> NullableDatabaseValueCursor<Wrapped>
  }
  extension Optional where Wrapped: DatabaseValueConvertible & StatementColumnConvertible {
 +    static func fetchCursor(...) throws -> NullableColumnCursor<Wrapped>
@@ -214,14 +216,14 @@ Release Notes
  }
  extension TypedRequest where RowDecoder: DatabaseValueConvertible {
 -    func fetchCursor(_ db: Database) throws -> DatabaseCursor<RowDecoder>
-+    func fetchCursor(_ db: Database) throws -> MapCursor<RowCursor, RowDecoder>
++    func fetchCursor(_ db: Database) throws -> DatabaseValueCursor<RowDecoder>
  }
  extension TypedRequest where RowDecoder: DatabaseValueConvertible & StatementColumnConvertible {
 +    func fetchCursor(_ db: Database) throws -> ColumnCursor<RowDecoder>
  }
  extension TypedRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped: DatabaseValueConvertible {
 -    func fetchCursor(_ db: Database) throws -> DatabaseCursor<RowDecoder._Wrapped?>
-+    func fetchCursor(_ db: Database) throws -> MapCursor<RowCursor, RowDecoder._Wrapped?>
++    func fetchCursor(_ db: Database) throws -> NullableDatabaseValueCursor<RowDecoder._Wrapped>
  }
  extension TypedRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped: DatabaseValueConvertible & StatementColumnConvertible {
 +    func fetchCursor(_ db: Database) throws -> NullableColumnCursor<RowDecoder._Wrapped>
