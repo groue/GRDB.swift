@@ -204,7 +204,7 @@ test_install_GRDBCipher: SQLCipher
 
 test_install_SPM:
 	cd Tests/SPM && \
-	$(SWIFT) package reset && \
+	( if [ -a .build ] && [ -a Package.resolved ]; then $(SWIFT) package reset; fi ) && \
 	rm -rf Packages/GRDB && \
 	$(SWIFT) package edit GRDB --revision master && \
 	rm -rf Packages/GRDB && \
@@ -304,8 +304,8 @@ endif
 # =======
 
 distclean:
-	$(SWIFT) package reset
-	cd Tests/SPM && $(SWIFT) package reset
+	( if [ -a .build ] && [ -a Package.resolved ]; then $(SWIFT) package reset; fi )
+	cd Tests/SPM && ( if  [ -a .build ] && [ -a Package.resolved ]; then $(SWIFT) package reset; fi )
 	rm -rf Documentation/Reference
 	rm -rf Tests/Performance/fmdb && $(GIT) checkout -- Tests/Performance/fmdb
 	rm -rf Tests/Performance/SQLite.swift && $(GIT) checkout -- Tests/Performance/SQLite.swift
