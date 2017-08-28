@@ -82,7 +82,7 @@ Release Notes
     
     ```swift
     let player = try Player.fetchOne(db, key: 1)
-    let dict = player.databaseDictionary()
+    let dict = player.databaseDictionary() // [String: DatabaseValue]
     print(dict)
     // Prints {"id": 1, "name": "Arthur", "score": 1000}
     ```
