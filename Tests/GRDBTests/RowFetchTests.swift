@@ -4,6 +4,11 @@ import XCTest
 #elseif GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
+    #if SWIFT_PACKAGE
+        import CSQLite
+        #else
+        import SQLite3
+    #endif
     import GRDB
 #endif
 
@@ -12,7 +17,10 @@ class RowFetchTests: GRDBTestCase {
     func testFetchCursor() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            func test<C: Cursor>(_ cursor: C) throws where C.Element == Row {
+            func test(_ cursor: RowCursor) throws {
+                // Check that RowCursor gives access to the raw SQLite API
+                XCTAssertEqual(String(cString: sqlite3_column_name(cursor.statement.sqliteStatement, 0)), "firstName")
+                
                 var row = try cursor.next()!
                 XCTAssertEqual(row["firstName"] as String, "Arthur")
                 XCTAssertEqual(row["lastName"] as String, "Martin")
@@ -46,7 +54,7 @@ class RowFetchTests: GRDBTestCase {
         let customError = NSError(domain: "Custom", code: 0xDEAD)
         dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
         try dbQueue.inDatabase { db in
-            func test<C: Cursor>(_ cursor: C, sql: String) throws where C.Element == Row {
+            func test(_ cursor: RowCursor, sql: String) throws {
                 do {
                     _ = try cursor.next()
                     XCTFail()
@@ -87,7 +95,7 @@ class RowFetchTests: GRDBTestCase {
     func testFetchCursorCompilationFailure() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            func test<C: Cursor>(_ cursor: @autoclosure () throws -> C, sql: String) throws where C.Element == Row {
+            func test(_ cursor: @autoclosure () throws -> RowCursor, sql: String) throws {
                 do {
                     _ = try cursor()
                     XCTFail()

@@ -267,7 +267,7 @@ public final class SelectStatement : Statement {
     
     /// Returns the index of the leftmost column named `name`, in a
     /// case-insensitive way.
-    func index(ofColumn name: String) -> Int? {
+    public func index(ofColumn name: String) -> Int? {
         return columnIndexes[name.lowercased()]
     }
     
@@ -338,7 +338,7 @@ public final class SelectStatement : Statement {
 ///         let cursor: StatementCursor = statement.cursor()
 ///     }
 public final class StatementCursor: Cursor {
-    private let statement: SelectStatement
+    public let statement: SelectStatement
     private let sqliteStatement: SQLiteStatement
     private var done = false
     

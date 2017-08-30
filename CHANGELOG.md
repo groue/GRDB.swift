@@ -163,6 +163,10 @@ Release Notes
 +    subscript<Value: DatabaseValueConvertible>(_ column: Column) -> Value
  }
 
+ class SelectStatement {
++    func index(ofColumn columnName: String) -> Int?
+ }
+ 
 -extension TableMapping {
 +extension MutablePersistable {
      @discardableResult static func deleteAll(_ db: Database) throws -> Int
@@ -194,8 +198,12 @@ Release Notes
 +final class NullableColumnCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> : Cursor { }
 +final class NullableDatabaseValueCursor<Value: DatabaseValueConvertible> : Cursor { }
 +final class RecordCursor<Record: RowConvertible> : Cursor { }
-+final class RowCursor : Cursor { }
-+final class StatementCursor: Cursor { }
++final class RowCursor : Cursor {
++    let statement: SelectStatement
++}
++final class StatementCursor: Cursor {
++    let statement: SelectStatement
++}
  extension DatabaseValueConvertible {
 -    static func fetchCursor(...) throws -> DatabaseCursor<Self>
 +    static func fetchCursor(...) throws -> DatabaseValueCursor<Self>

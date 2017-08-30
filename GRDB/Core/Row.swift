@@ -494,9 +494,9 @@ extension Row {
 ///         let rows: RowCursor = try Row.fetchCursor(db, "SELECT * FROM players")
 ///     }
 public final class RowCursor : Cursor {
-    private let statement: SelectStatement
-    private let row: Row // Reused for performance
+    public let statement: SelectStatement
     private let sqliteStatement: SQLiteStatement
+    private let row: Row // Reused for performance
     private var done = false
     
     init(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
