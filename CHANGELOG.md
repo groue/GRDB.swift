@@ -78,6 +78,8 @@ Release Notes
 
 ### New
 
+New features have been added in order to plug a few holes and support the [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB) and [GRDBObjc](http://github.com/groue/GRDBObjc) companion projects:
+
 - Persistable records can export themselves as dictionaries:
     
     ```swift
@@ -85,6 +87,32 @@ Release Notes
     let dict = player.databaseDictionary() // [String: DatabaseValue]
     print(dict)
     // Prints {"id": 1, "name": "Arthur", "score": 1000}
+    ```
+    
+    This dictionary supports generic SQLite tools, and is not intended as a general encoding purpose because it contains values of type DatabaseValue. For example, dates are encoded as SQLite-friendly strings.
+
+- Prepared statements know the index of their columns:
+    
+    ```swift
+    let statement = try db.makeSelectStatement("SELECT a, b FROM t")
+    statement.index(ofColumn: "b")  // 1
+    ```
+
+- Statement arguments have an empty initializer: `StatementArguments()`.
+
+- Prepared statements expose a StatementCursor which does not output any value, and simply executes `sqlite3_step()` as it is iterated:
+    
+    ```swift
+    let statement = try db.makeSelectStatement("SELECT ...")
+    let cursor = statement.cursor()
+    while let _ = try cursor.next() { ... }
+    ```
+
+- Row cursors and StatementCursor expose their underlying statement:
+    
+    ```swift
+    let rows = try Row.fetchCursor(db, "SELECT ...")
+    let statement = rows.statement
     ```
 
 
@@ -165,6 +193,10 @@ Release Notes
 
  class SelectStatement {
 +    func index(ofColumn columnName: String) -> Int?
+ }
+ 
+ struct StatementArguments {
++    init()
  }
  
 -extension TableMapping {

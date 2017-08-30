@@ -553,9 +553,15 @@ public struct StatementArguments {
     }
     
     
+    // MARK: Empty Arguments
+    
+    /// Creates empty StatementArguments.
+    public init() {
+    }
+    
     // MARK: Positional Arguments
     
-    /// Initializes arguments from a sequence of optional values.
+    /// Creates statement arguments from a sequence of optional values.
     ///
     ///     let values: [DatabaseValueConvertible?] = ["foo", 1, nil]
     ///     db.execute("INSERT ... (?,?,?)", arguments: StatementArguments(values))
@@ -566,7 +572,7 @@ public struct StatementArguments {
         values = sequence.map { $0?.databaseValue ?? .null }
     }
     
-    /// Initializes arguments from a sequence of optional values.
+    /// Creates statement arguments from a sequence of optional values.
     ///
     ///     let values: [String] = ["foo", "bar"]
     ///     db.execute("INSERT ... (?,?)", arguments: StatementArguments(values))
@@ -577,9 +583,8 @@ public struct StatementArguments {
         values = sequence.map { $0.databaseValue }
     }
     
-    /// Initializes arguments from [Any].
-    ///
-    /// The result is nil unless all objects adopt DatabaseValueConvertible.
+    /// Creates statement arguments from any array. The result is nil unless all
+    /// array elements adopt DatabaseValueConvertible.
     ///
     /// - parameter array: An array
     /// - returns: A StatementArguments.
@@ -597,8 +602,8 @@ public struct StatementArguments {
     
     // MARK: Named Arguments
     
-    /// Initializes arguments from a sequence of (key, value) dictionary, such as
-    /// a dictionary.
+    /// Creates statement arguments from a sequence of (key, value) dictionary,
+    /// such as a dictionary.
     ///
     ///     let values: [String: DatabaseValueConvertible?] = ["firstName": nil, "lastName": "Miller"]
     ///     db.execute("INSERT ... (:firstName, :lastName)", arguments: StatementArguments(values))
@@ -609,8 +614,8 @@ public struct StatementArguments {
         namedValues = dictionary.mapValues { $0?.databaseValue ?? .null }
     }
     
-    /// Initializes arguments from a sequence of (key, value) pairs, such as
-    /// a dictionary.
+    /// Creates statement arguments from a sequence of (key, value) pairs, such
+    /// as a dictionary.
     ///
     ///     let values: [String: DatabaseValueConvertible?] = ["firstName": nil, "lastName": "Miller"]
     ///     db.execute("INSERT ... (:firstName, :lastName)", arguments: StatementArguments(values))
@@ -621,7 +626,7 @@ public struct StatementArguments {
         namedValues = Dictionary(uniqueKeysWithValues: sequence.map { ($0.0, $0.1?.databaseValue ?? .null) })
     }
     
-    /// Initializes arguments from [AnyHashable: Any].
+    /// Creates statement arguments from [AnyHashable: Any].
     ///
     /// The result is nil unless all dictionary keys are strings, and values
     /// adopt DatabaseValueConvertible.
@@ -801,9 +806,6 @@ public struct StatementArguments {
     
     var values: [DatabaseValue] = []
     var namedValues: [String: DatabaseValue] = [:]
-    
-    init() {
-    }
     
     mutating func consume(_ statement: Statement, allowingRemainingValues: Bool) throws -> [DatabaseValue] {
         let initialValuesCount = values.count
