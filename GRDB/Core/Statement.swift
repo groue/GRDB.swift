@@ -556,7 +556,7 @@ public struct StatementArguments {
     // MARK: Empty Arguments
     
     /// Creates empty StatementArguments.
-    public init() {
+    init() {
     }
     
     // MARK: Positional Arguments

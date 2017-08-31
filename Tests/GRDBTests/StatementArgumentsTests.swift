@@ -23,11 +23,6 @@ class StatementArgumentsTests: GRDBTestCase {
         try migrator.migrate(dbWriter)
     }
     
-    func testEmptyStementArguments() {
-        let arguments = StatementArguments()
-        XCTAssert(arguments.isEmpty)
-    }
-    
     func testPositionalStatementArgumentsValidation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in

@@ -98,8 +98,6 @@ New features have been added in order to plug a few holes and support the [RxGRD
     statement.index(ofColumn: "b")  // 1
     ```
 
-- Statement arguments have an empty initializer: `StatementArguments()`.
-
 - Prepared statements expose a StatementCursor which does not output any value, and simply executes `sqlite3_step()` as it is iterated:
     
     ```swift
@@ -193,10 +191,6 @@ New features have been added in order to plug a few holes and support the [RxGRD
 
  class SelectStatement {
 +    func index(ofColumn columnName: String) -> Int?
- }
- 
- struct StatementArguments {
-+    init()
  }
  
 -extension TableMapping {
