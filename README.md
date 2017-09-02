@@ -53,10 +53,10 @@ GRDB ships with:
 - [Encryption](#encryption)
 - [Support for Custom SQLite Builds](Documentation/CustomSQLiteBuilds.md)
 
-Companion libraries enhance and extend GRDB:
+Companion libraries that enhance and extend GRDB:
 
-- **[RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB)**: track database changes in a reactive way, with [RxSwift](https://github.com/ReactiveX/RxSwift).
-- **[GRDBObjc](https://github.com/groue/GRDBObjc): FMDB-compatible bindings to GRDB.
+- [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB): track database changes in a reactive way, with [RxSwift](https://github.com/ReactiveX/RxSwift).
+- [GRDBObjc](https://github.com/groue/GRDBObjc): FMDB-compatible bindings to GRDB.
 
 More than a set of tools that leverage SQLite abilities, GRDB is also:
 
