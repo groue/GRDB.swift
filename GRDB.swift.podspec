@@ -13,6 +13,7 @@ Pod::Spec.new do |s|
 	s.osx.deployment_target = '10.9'
 	s.watchos.deployment_target = '2.0'
 	
+	s.pod_target_xcconfig = { 'SWIFT_VERSION' => '4.0' }
 	s.source_files = 'GRDB/**/*.swift', 'Support/*.{c,h}'
 	s.module_map = 'Support/module.modulemap'
 	s.framework = 'Foundation'
