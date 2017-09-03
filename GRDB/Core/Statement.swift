@@ -274,7 +274,7 @@ public final class SelectStatement : Statement {
     /// Creates a cursor over the statement. This cursor does not produce any
     /// value, and is only intended to give access to the sqlite3_step()
     /// low-level function.
-    public func cursor(arguments: StatementArguments? = nil) -> StatementCursor {
+    func cursor(arguments: StatementArguments? = nil) -> StatementCursor {
         return StatementCursor(statement: self, arguments: arguments)
     }
 
@@ -343,7 +343,7 @@ public final class StatementCursor: Cursor {
     private var done = false
     
     // Use SelectStatement.cursor() instead
-    init(statement: SelectStatement, arguments: StatementArguments? = nil) {
+    fileprivate init(statement: SelectStatement, arguments: StatementArguments? = nil) {
         self.statement = statement
         self.sqliteStatement = statement.sqliteStatement
         statement.cursorReset(arguments: arguments)

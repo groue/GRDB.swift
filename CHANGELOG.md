@@ -76,6 +76,7 @@ Release Notes
     let players = Player.fetchAll(db)
     ```
 
+
 ### New
 
 New features have been added in order to plug a few holes and support the [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB) and [GRDBObjc](http://github.com/groue/GRDBObjc) companion projects:
@@ -98,15 +99,7 @@ New features have been added in order to plug a few holes and support the [RxGRD
     statement.index(ofColumn: "b")  // 1
     ```
 
-- Prepared statements expose a StatementCursor which does not output any value, and simply executes `sqlite3_step()` as it is iterated:
-    
-    ```swift
-    let statement = try db.makeSelectStatement("SELECT ...")
-    let cursor = statement.cursor()
-    while let _ = try cursor.next() { ... }
-    ```
-
-- Row cursors and StatementCursor expose their underlying statement:
+- Row cursors (of type RowCursor) expose their underlying statement:
     
     ```swift
     let rows = try Row.fetchCursor(db, "SELECT ...")
@@ -227,9 +220,6 @@ New features have been added in order to plug a few holes and support the [RxGRD
 +final class RowCursor : Cursor {
 +    let statement: SelectStatement
 +}
-+final class StatementCursor: Cursor {
-+    let statement: SelectStatement
-+}
  extension DatabaseValueConvertible {
 -    static func fetchCursor(...) throws -> DatabaseCursor<Self>
 +    static func fetchCursor(...) throws -> DatabaseValueCursor<Self>
@@ -251,9 +241,6 @@ New features have been added in order to plug a few holes and support the [RxGRD
  extension RowConvertible where Self: TableMapping {
 -    static func fetchCursor(...) throws -> DatabaseCursor<Self>?
 +    static func fetchCursor(...) throws -> RecordCursor<Self>
- }
- final class SelectStatement : Statement {
-+    func cursor(arguments: StatementArguments? = nil) -> StatementCursor
  }
  extension TypedRequest where RowDecoder: RowConvertible {
 -    func fetchCursor(_ db: Database) throws -> DatabaseCursor<RowDecoder>
