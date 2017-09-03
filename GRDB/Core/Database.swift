@@ -472,7 +472,7 @@ public final class Database {
         guard configuration.trace != nil else {
             return
         }
-        let dbPointer = unsafeBitCast(self, to: UnsafeMutableRawPointer.self)
+        let dbPointer = Unmanaged.passUnretained(self).toOpaque()
         // sqlite3_trace_v2 and sqlite3_expanded_sql were introduced in SQLite 3.14.0 http://www.sqlite.org/changes.html#version_3_14
         // It is available from iOS 10.0 and OS X 10.12 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         #if GRDBCUSTOMSQLITE
@@ -481,15 +481,15 @@ public final class Database {
                 guard let expandedSQLCString = sqlite3_expanded_sql(OpaquePointer(stmt)) else { return SQLITE_OK }
                 let sql = String(cString: expandedSQLCString)
                 sqlite3_free(expandedSQLCString)
-                let database = unsafeBitCast(dbPointer, to: Database.self)
-                database.configuration.trace!(sql)
+                let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
+                db.configuration.trace!(sql)
                 return SQLITE_OK
             }, dbPointer)
         #elseif GRDBCIPHER
             sqlite3_trace(sqliteConnection, { (dbPointer, sql) in
                 guard let sql = sql.map({ String(cString: $0) }) else { return }
-                let database = unsafeBitCast(dbPointer, to: Database.self)
-                database.configuration.trace!(sql)
+                let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
+                db.configuration.trace!(sql)
             }, dbPointer)
         #else
             if #available(iOS 10.0, OSX 10.12, watchOS 3.0, *) {
@@ -498,15 +498,15 @@ public final class Database {
                     guard let expandedSQLCString = sqlite3_expanded_sql(OpaquePointer(stmt)) else { return SQLITE_OK }
                     let sql = String(cString: expandedSQLCString)
                     sqlite3_free(expandedSQLCString)
-                    let database = unsafeBitCast(dbPointer, to: Database.self)
-                    database.configuration.trace!(sql)
+                    let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
+                    db.configuration.trace!(sql)
                     return SQLITE_OK
                 }, dbPointer)
             } else {
                 sqlite3_trace(sqliteConnection, { (dbPointer, sql) in
                     guard let sql = sql.map({ String(cString: $0) }) else { return }
-                    let database = unsafeBitCast(dbPointer, to: Database.self)
-                    database.configuration.trace!(sql)
+                    let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
+                    db.configuration.trace!(sql)
                 }, dbPointer)
             }
         #endif
@@ -523,12 +523,12 @@ public final class Database {
             
         case .callback(let callback):
             busyCallback = callback
-            let dbPointer = unsafeBitCast(self, to: UnsafeMutableRawPointer.self)
+            let dbPointer = Unmanaged.passUnretained(self).toOpaque()
             sqlite3_busy_handler(
                 sqliteConnection,
                 { (dbPointer, numberOfTries) in
-                    let database = unsafeBitCast(dbPointer, to: Database.self)
-                    let callback = database.busyCallback!
+                    let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
+                    let callback = db.busyCallback!
                     return callback(Int(numberOfTries)) ? 1 : 0
                 },
                 dbPointer)
@@ -556,10 +556,10 @@ public final class Database {
     }
     
     private func setupTransactionHooks() {
-        let dbPointer = unsafeBitCast(self, to: UnsafeMutableRawPointer.self)
-        
+        let dbPointer = Unmanaged.passUnretained(self).toOpaque()
+
         sqlite3_commit_hook(sqliteConnection, { dbPointer in
-            let db = unsafeBitCast(dbPointer, to: Database.self)
+            let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
             do {
                 try db.willCommit()
                 db.transactionHookState = .commit
@@ -574,7 +574,7 @@ public final class Database {
         
         
         sqlite3_rollback_hook(sqliteConnection, { dbPointer in
-            let db = unsafeBitCast(dbPointer, to: Database.self)
+            let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
             switch db.transactionHookState {
             case .cancelledCommit:
                 // Next step: updateStatementDidFail()
@@ -938,14 +938,14 @@ extension Database {
     ///     try db.execute("CREATE TABLE files (name TEXT COLLATE localized_standard")
     public func add(collation: DatabaseCollation) {
         collations.update(with: collation)
-        let collationPointer = unsafeBitCast(collation, to: UnsafeMutableRawPointer.self)
+        let collationPointer = Unmanaged.passUnretained(collation).toOpaque()
         let code = sqlite3_create_collation_v2(
             sqliteConnection,
             collation.name,
             SQLITE_UTF8,
             collationPointer,
             { (collationPointer, length1, buffer1, length2, buffer2) -> Int32 in
-                let collation = unsafeBitCast(collationPointer, to: DatabaseCollation.self)
+                let collation = Unmanaged<DatabaseCollation>.fromOpaque(collationPointer!).takeUnretainedValue()
                 return Int32(collation.function(length1, buffer1, length2, buffer2).rawValue)
             }, nil)
         guard code == SQLITE_OK else {
@@ -1500,7 +1500,7 @@ final class StatementCompilationObserver {
     
     // Call this method before calling sqlite3_prepare_v2()
     func start() {
-        let observerPointer = unsafeBitCast(self, to: UnsafeMutableRawPointer.self)
+        let observerPointer = Unmanaged.passUnretained(self).toOpaque()
         sqlite3_set_authorizer(database.sqliteConnection, { (observerPointer, actionCode, cString1, cString2, cString3, cString4) -> Int32 in
             // print("\(actionCode) \([cString1, cString2, cString3, cString4].flatMap { $0.map({ String(cString: $0) }) })")
             
@@ -1511,7 +1511,7 @@ final class StatementCompilationObserver {
             // > the authorization callback.
             switch actionCode {
             case SQLITE_DROP_TABLE, SQLITE_DROP_TEMP_TABLE, SQLITE_DROP_TEMP_VIEW, SQLITE_DROP_VIEW, SQLITE_DETACH, SQLITE_ALTER_TABLE, SQLITE_DROP_VTABLE, SQLITE_CREATE_INDEX, SQLITE_CREATE_TEMP_INDEX, SQLITE_DROP_INDEX, SQLITE_DROP_TEMP_INDEX:
-                let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
+                let observer = Unmanaged<StatementCompilationObserver>.fromOpaque(observerPointer!).takeUnretainedValue()
                 if actionCode == SQLITE_DROP_TABLE || actionCode == SQLITE_DROP_VTABLE {
                     observer.isDropTableStatement = true
                 }
@@ -1519,7 +1519,7 @@ final class StatementCompilationObserver {
             case SQLITE_READ:
                 guard let tableName = cString1.map({ String(cString: $0) }) else { return SQLITE_OK }
                 guard let columnName = cString2.map({ String(cString: $0) }) else { return SQLITE_OK }
-                let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
+                let observer = Unmanaged<StatementCompilationObserver>.fromOpaque(observerPointer!).takeUnretainedValue()
                 if columnName.isEmpty {
                     // SELECT COUNT(*) FROM table
                     observer.selectionInfo.insert(table: tableName)
@@ -1529,11 +1529,11 @@ final class StatementCompilationObserver {
                 }
             case SQLITE_INSERT:
                 guard let tableName = cString1.map({ String(cString: $0) }) else { return SQLITE_OK }
-                let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
+                let observer = Unmanaged<StatementCompilationObserver>.fromOpaque(observerPointer!).takeUnretainedValue()
                 observer.databaseEventKinds.append(.insert(tableName: tableName))
             case SQLITE_DELETE:
                 guard let tableName = cString1.map({ String(cString: $0) }) else { return SQLITE_OK }
-                let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
+                let observer = Unmanaged<StatementCompilationObserver>.fromOpaque(observerPointer!).takeUnretainedValue()
                 if tableName != "sqlite_master" && !observer.isDropTableStatement {
                     observer.databaseEventKinds.append(.delete(tableName: tableName))
                     // Prevent [truncate optimization](https://www.sqlite.org/lang_delete.html#truncateopt)
@@ -1543,17 +1543,17 @@ final class StatementCompilationObserver {
             case SQLITE_UPDATE:
                 guard let tableName = cString1.map({ String(cString: $0) }) else { return SQLITE_OK }
                 guard let columnName = cString2.map({ String(cString: $0) }) else { return SQLITE_OK }
-                let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
+                let observer = Unmanaged<StatementCompilationObserver>.fromOpaque(observerPointer!).takeUnretainedValue()
                 observer.insertUpdateEventKind(tableName: tableName, columnName: columnName)
             case SQLITE_TRANSACTION:
                 guard let rawAction = cString1.map({ String(cString: $0) }) else { return SQLITE_OK }
-                let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
+                let observer = Unmanaged<StatementCompilationObserver>.fromOpaque(observerPointer!).takeUnretainedValue()
                 let action = UpdateStatement.TransactionStatementInfo.TransactionAction(rawValue: rawAction)!
                 observer.transactionStatementInfo = .transaction(action: action)
             case SQLITE_SAVEPOINT:
                 guard let rawAction = cString1.map({ String(cString: $0) }) else { return SQLITE_OK }
                 guard let savepointName = cString2.map({ String(cString: $0) }) else { return SQLITE_OK }
-                let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
+                let observer = Unmanaged<StatementCompilationObserver>.fromOpaque(observerPointer!).takeUnretainedValue()
                 let action = UpdateStatement.TransactionStatementInfo.SavepointAction(rawValue: rawAction)!
                 observer.transactionStatementInfo = .savepoint(name: savepointName, action: action)
             case SQLITE_FUNCTION:
@@ -1568,7 +1568,7 @@ final class StatementCompilationObserver {
                 guard sqlite3_libversion_number() < 3019000 else { return SQLITE_OK }
                 guard let functionName = cString2.map({ String(cString: $0) }) else { return SQLITE_OK }
                 if functionName.uppercased() == "COUNT" {
-                    let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
+                    let observer = Unmanaged<StatementCompilationObserver>.fromOpaque(observerPointer!).takeUnretainedValue()
                     observer.selectionInfo = SelectStatement.SelectionInfo.unknown()
                 }
             default:
@@ -2116,9 +2116,9 @@ extension Database {
     }
     
     private func installUpdateHook() {
-        let dbPointer = unsafeBitCast(self, to: UnsafeMutableRawPointer.self)
+        let dbPointer = Unmanaged.passUnretained(self).toOpaque()
         sqlite3_update_hook(sqliteConnection, { (dbPointer, updateKind, databaseNameCString, tableNameCString, rowID) in
-            let db = unsafeBitCast(dbPointer, to: Database.self)
+            let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
             db.didChange(with: DatabaseEvent(
                 kind: DatabaseEvent.Kind(rawValue: updateKind)!,
                 rowID: rowID,
@@ -2128,7 +2128,7 @@ extension Database {
         
         #if SQLITE_ENABLE_PREUPDATE_HOOK
             sqlite3_preupdate_hook(sqliteConnection, { (dbPointer, databaseConnection, updateKind, databaseNameCString, tableNameCString, initialRowID, finalRowID) in
-                let db = unsafeBitCast(dbPointer, to: Database.self)
+                let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
                 db.willChange(with: DatabasePreUpdateEvent(
                     connection: databaseConnection!,
                     kind: DatabasePreUpdateEvent.Kind(rawValue: updateKind)!,

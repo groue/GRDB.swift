@@ -136,6 +136,7 @@ class DatabaseFunctionTests: GRDBTestCase {
             XCTAssertFalse(try Bool.fetchOne(db, "SELECT f(1.1)")!)
             XCTAssertFalse(try Bool.fetchOne(db, "SELECT f('foo')")!)
             XCTAssertFalse(try Bool.fetchOne(db, "SELECT f(?)", arguments: ["foo".data(using: .utf8)])!)
+            XCTAssertFalse(try Bool.fetchOne(db, "SELECT f(?)", arguments: [Data()])!)
         }
     }
 
@@ -186,6 +187,7 @@ class DatabaseFunctionTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             XCTAssertTrue(try Data.fetchOne(db, "SELECT f(NULL)") == nil)
             XCTAssertEqual(try Data.fetchOne(db, "SELECT f(?)", arguments: ["foo".data(using: .utf8)])!, "foo".data(using: .utf8))
+            XCTAssertEqual(try Data.fetchOne(db, "SELECT f(?)", arguments: [Data()])!, Data())
         }
     }
 

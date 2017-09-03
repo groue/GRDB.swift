@@ -110,9 +110,12 @@ public struct DatabaseValue {
         case SQLITE_TEXT:
             storage = .string(String(cString: sqlite3_value_text(sqliteValue)!))
         case SQLITE_BLOB:
-            let bytes = unsafeBitCast(sqlite3_value_blob(sqliteValue), to: UnsafePointer<UInt8>.self)
-            let count = Int(sqlite3_value_bytes(sqliteValue))
-            storage = .blob(Data(bytes: bytes, count: count)) // copy bytes
+            if let bytes = sqlite3_value_blob(sqliteValue) {
+                let count = Int(sqlite3_value_bytes(sqliteValue))
+                storage = .blob(Data(bytes: bytes, count: count)) // copy bytes
+            } else {
+                storage = .blob(Data())
+            }
         case let type:
             // Assume a GRDB bug: there is no point throwing any error.
             fatalError("Unexpected SQLite value type: \(type)")
@@ -131,9 +134,12 @@ public struct DatabaseValue {
         case SQLITE_TEXT:
             storage = .string(String(cString: sqlite3_column_text(sqliteStatement, Int32(index))))
         case SQLITE_BLOB:
-            let bytes = unsafeBitCast(sqlite3_column_blob(sqliteStatement, Int32(index)), to: UnsafePointer<UInt8>.self)
-            let count = Int(sqlite3_column_bytes(sqliteStatement, Int32(index)))
-            storage = .blob(Data(bytes: bytes, count: count)) // copy bytes
+            if let bytes = sqlite3_column_blob(sqliteStatement, Int32(index)) {
+                let count = Int(sqlite3_column_bytes(sqliteStatement, Int32(index)))
+                storage = .blob(Data(bytes: bytes, count: count)) // copy bytes
+            } else {
+                storage = .blob(Data())
+            }
         case let type:
             // Assume a GRDB bug: there is no point throwing any error.
             fatalError("Unexpected SQLite column type: \(type)")
