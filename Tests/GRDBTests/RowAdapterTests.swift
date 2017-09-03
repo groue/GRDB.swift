@@ -114,12 +114,21 @@ class AdapterRowTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let data = "foo".data(using: .utf8)!
-            let adapter = ColumnMapping(["a": "basea"])
-            let row = try Row.fetchOne(db, "SELECT ? AS basea", arguments: [data], adapter: adapter)!
+            let emptyData = Data()
+            let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
+            let row = try Row.fetchOne(db, "SELECT ? AS basea, ? AS baseb, ? AS basec", arguments: [data, emptyData, nil], adapter: adapter)!
             
             XCTAssertEqual(row.dataNoCopy(atIndex: 0), data)
             XCTAssertEqual(row.dataNoCopy(named: "a"), data)
             XCTAssertEqual(row.dataNoCopy(Column("a")), data)
+            
+            XCTAssertEqual(row.dataNoCopy(atIndex: 1), emptyData)
+            XCTAssertEqual(row.dataNoCopy(named: "b"), emptyData)
+            XCTAssertEqual(row.dataNoCopy(Column("b")), emptyData)
+            
+            XCTAssertNil(row.dataNoCopy(atIndex: 2))
+            XCTAssertNil(row.dataNoCopy(named: "c"))
+            XCTAssertNil(row.dataNoCopy(Column("c")))
         }
     }
 

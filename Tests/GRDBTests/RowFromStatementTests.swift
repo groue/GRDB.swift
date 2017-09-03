@@ -137,14 +137,23 @@ class RowFromStatementTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let data = "foo".data(using: .utf8)!
+            let emptyData = Data()
             var rowFetched = false
-            let rows = try Row.fetchCursor(db, "SELECT ? AS a", arguments: [data])
+            let rows = try Row.fetchCursor(db, "SELECT ? AS a, ? AS b, ? AS c", arguments: [data, emptyData, nil])
             while let row = try rows.next() {
                 rowFetched = true
                 
                 XCTAssertEqual(row.dataNoCopy(atIndex: 0), data)
                 XCTAssertEqual(row.dataNoCopy(named: "a"), data)
                 XCTAssertEqual(row.dataNoCopy(Column("a")), data)
+                
+                XCTAssertEqual(row.dataNoCopy(atIndex: 1), emptyData)
+                XCTAssertEqual(row.dataNoCopy(named: "b"), emptyData)
+                XCTAssertEqual(row.dataNoCopy(Column("b")), emptyData)
+                
+                XCTAssertNil(row.dataNoCopy(atIndex: 2))
+                XCTAssertNil(row.dataNoCopy(named: "c"))
+                XCTAssertNil(row.dataNoCopy(Column("c")))
             }
             XCTAssertTrue(rowFetched)
         }

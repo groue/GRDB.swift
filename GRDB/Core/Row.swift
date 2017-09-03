@@ -1014,7 +1014,7 @@ private struct StatementRowImpl : RowImpl {
             return nil
         }
         guard let bytes = sqlite3_column_blob(sqliteStatement, Int32(index)) else {
-            return nil
+            return Data()
         }
         let count = Int(sqlite3_column_bytes(sqliteStatement, Int32(index)))
         return Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: bytes), count: count, deallocator: .none)

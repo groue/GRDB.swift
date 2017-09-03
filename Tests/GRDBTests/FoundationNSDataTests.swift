@@ -9,10 +9,11 @@ import XCTest
 
 class FoundationNSDataTests: GRDBTestCase {
     
-    func testDatabaseValueCanNotStoreEmptyData() {
-        // SQLite can't store zero-length blob.
+    func testDatabaseValueOfEmptyData() {
+        // Previous versions of GRDB would turn zero-length data into null
+        // database values. Not any longer.
         let dbValue = NSData().databaseValue
-        XCTAssertEqual(dbValue, DatabaseValue.null)
+        XCTAssertFalse(dbValue.isNull)
     }
     
     func testNSDataDatabaseValueRoundTrip() {
@@ -29,6 +30,7 @@ class FoundationNSDataTests: GRDBTestCase {
         }
         
         XCTAssertTrue(roundTrip(NSData(data: "bar".data(using: .utf8)!)))
+        XCTAssertTrue(roundTrip(NSData()))
     }
     
     func testNSDataFromDatabaseValueFailure() {

@@ -77,6 +77,11 @@ Release Notes
     ```
 
 
+### Fixed
+
+- GRDB is now able to store and load zero-length blobs.
+
+
 ### New
 
 New features have been added in order to plug a few holes and support the [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB) and [GRDBObjc](http://github.com/groue/GRDBObjc) companion projects:

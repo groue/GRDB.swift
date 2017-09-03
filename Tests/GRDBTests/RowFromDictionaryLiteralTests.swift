@@ -112,12 +112,29 @@ class RowFromDictionaryLiteralTests : RowTestCase {
     }
     
     func testDataNoCopy() {
-        let data = "foo".data(using: .utf8)!
-        let row: Row = ["a": data]
-        
-        XCTAssertEqual(row.dataNoCopy(atIndex: 0), data)
-        XCTAssertEqual(row.dataNoCopy(named: "a"), data)
-        XCTAssertEqual(row.dataNoCopy(Column("a")), data)
+        do {
+            let data = "foo".data(using: .utf8)!
+            let row: Row = ["a": data]
+            
+            XCTAssertEqual(row.dataNoCopy(atIndex: 0), data)
+            XCTAssertEqual(row.dataNoCopy(named: "a"), data)
+            XCTAssertEqual(row.dataNoCopy(Column("a")), data)
+        }
+        do {
+            let emptyData = Data()
+            let row: Row = ["a": emptyData]
+            
+            XCTAssertEqual(row.dataNoCopy(atIndex: 0), emptyData)
+            XCTAssertEqual(row.dataNoCopy(named: "a"), emptyData)
+            XCTAssertEqual(row.dataNoCopy(Column("a")), emptyData)
+        }
+        do {
+            let row: Row = ["a": nil]
+            
+            XCTAssertNil(row.dataNoCopy(atIndex: 0))
+            XCTAssertNil(row.dataNoCopy(named: "a"))
+            XCTAssertNil(row.dataNoCopy(Column("a")))
+        }
     }
     
     func testRowDatabaseValueAtIndex() throws {

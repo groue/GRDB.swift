@@ -95,9 +95,6 @@ public struct DatabaseValue {
     // MARK: - Not Public
     
     init(storage: Storage) {
-        // This initializer is not public because Storage is not a safe type:
-        // one can create a Storage of zero-length Data, which is invalid
-        // because SQLite can't store zero-length blobs.
         self.storage = storage
     }
     

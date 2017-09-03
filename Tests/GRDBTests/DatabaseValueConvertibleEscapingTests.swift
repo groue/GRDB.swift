@@ -31,7 +31,7 @@ class DatabaseValueConvertibleEscapingTests: GRDBTestCase {
     }
     
     func testBlob() {
-        XCTAssertEqual("".data(using: .utf8)!.databaseValue.sql, "NULL")
+        XCTAssertEqual("".data(using: .utf8)!.databaseValue.sql, "X''")
         XCTAssertEqual("foo".data(using: .utf8)!.databaseValue.sql, "X'666F6F'")
     }
 }
