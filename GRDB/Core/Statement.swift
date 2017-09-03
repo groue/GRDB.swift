@@ -176,12 +176,8 @@ public class Statement {
         case .string(let string):
             code = sqlite3_bind_text(sqliteStatement, Int32(index + 1), string, -1, SQLITE_TRANSIENT)
         case .blob(let data):
-            if data.isEmpty {
-                code = sqlite3_bind_zeroblob(sqliteStatement, Int32(index + 1), 0)
-            } else {
-                code = data.withUnsafeBytes { bytes in
-                    sqlite3_bind_blob(sqliteStatement, Int32(index + 1), bytes, Int32(data.count), SQLITE_TRANSIENT)
-                }
+            code = data.withUnsafeBytes { bytes in
+                sqlite3_bind_blob(sqliteStatement, Int32(index + 1), bytes, Int32(data.count), SQLITE_TRANSIENT)
             }
         }
         
