@@ -37,24 +37,27 @@ It comes with [up-to-date documentation](#documentation), [general articles](htt
 
 ## Features
 
-GRDB ships with a **[low-level SQLite API](#sqlite-api)**, and high-level tools that help dealing with databases:
+GRDB ships with:
 
-- **[Records](#records)**: fetching and persistence methods for your custom structs and class hierarchies
-- **[Query Interface](#the-query-interface)**: a swift way to avoid the SQL language
-- **[WAL Mode Support](#database-pools)**: that means extra performance for multi-threaded applications
-- **[Migrations](#migrations)**: transform your database as your application evolves
-- **[Database Changes Observation](#database-changes-observation)**: perform post-commit and post-rollback actions
-- **[Fetched Records Controller](#fetchedrecordscontroller)**: automated tracking of changes in a query results, and UITableView animations
-- **[RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB)**: automated tracking of changes in a query results, based on [RxSwift](https://github.com/ReactiveX/RxSwift)
-- **[Full-Text Search](#full-text-search)**: Perform efficient and customizable full-text searches.
-- **[Encryption](#encryption)** with SQLCipher
-- **[Support for custom SQLite builds](Documentation/CustomSQLiteBuilds.md)**
+- [Access to raw SQL and SQLite](#sqlite-api)
+- [Records](#records): fetching and persistence methods for your custom structs and class hierarchies
+- [Query Interface](#the-query-interface): a swift way to avoid the SQL language
+- [WAL Mode Support](#database-pools): extra performance for multi-threaded applications
+- [Migrations](#migrations): transform your database as your application evolves
+- [Database Observation](#database-changes-observation): track database transactions, get notified of database changes
+- [Full-Text Search](#full-text-search)
+- [Encryption](#encryption)
+- [Support for Custom SQLite Builds](Documentation/CustomSQLiteBuilds.md)
+
+Companion libraries that enhance and extend GRDB:
+
+- [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB): track database changes in a reactive way, with [RxSwift](https://github.com/ReactiveX/RxSwift).
+- [GRDBObjc](https://github.com/groue/GRDBObjc): FMDB-compatible bindings to GRDB.
 
 More than a set of tools that leverage SQLite abilities, GRDB is also:
 
 - **Safer**: read the blog post [Four different ways to handle SQLite concurrency](https://medium.com/@gwendal.roue/four-different-ways-to-handle-sqlite-concurrency-db3bcc74d00e)
-- **Faster**: see [Comparing the Performances of Swift SQLite libraries](https://github.com/groue/GRDB.swift/wiki/Performance)
-- Well [documented](#documentation) & tested
+- **Faster**: see [Comparing the Performances of Swift SQLite libraries](https://github.com/groue/GRDB.swift/wiki/Performance) for a comparison between raw SQLite, FMDB, SQLite.swift, Core Data, Realm, and GRDB.
 
 For a general overview of how a protocol-oriented library impacts database accesses, have a look at [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3).
 
