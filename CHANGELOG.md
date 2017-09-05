@@ -217,12 +217,23 @@ New features have been added in order to plug a few holes and support the [RxGRD
 +}
 
 -final class DatabaseCursor { }
-+final class ColumnCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> : Cursor { }
-+final class DatabaseValueCursor<Value: DatabaseValueConvertible> : Cursor { }
-+final class NullableColumnCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> : Cursor { }
-+final class NullableDatabaseValueCursor<Value: DatabaseValueConvertible> : Cursor { }
-+final class RecordCursor<Record: RowConvertible> : Cursor { }
++final class ColumnCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> : Cursor {
++    typealias Element = Value
++}
++final class DatabaseValueCursor<Value: DatabaseValueConvertible> : Cursor  {
++    typealias Element = Value
++}
++final class NullableColumnCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> : Cursor  {
++    typealias Element = Value?
++}
++final class NullableDatabaseValueCursor<Value: DatabaseValueConvertible> : Cursor  {
++    typealias Element = Value?
++}
++final class RecordCursor<Record: RowConvertible> : Cursor  {
++    typealias Element = Record
++}
 +final class RowCursor : Cursor {
++    typealias Element = Row
 +    let statement: SelectStatement
 +}
  extension DatabaseValueConvertible {

@@ -658,11 +658,17 @@ Player.fetchCursor(...) // RecordCursor<Player>
 All cursor types adopt the [Cursor](http://groue.github.io/GRDB.swift/docs/1.3/Protocols/Cursor.html) protocol, which looks a lot like standard [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol) of Swift. As such, cursors come with many methods: `contains`, `enumerated`, `filter`, `first`, `flatMap`, `forEach`, `joined`, `map`, `reduce`:
 
 ```swift
-// Enumerate all Github links
-try URL.fetchCursor(db, "SELECT url FROM links")
+// Iterate all Github links
+try URL
+    .fetchCursor(db, "SELECT url FROM links")
     .filter { url in url.host == "github.com" }
-    .enumerated()
-    .forEach { (index, url) in ... }
+    .forEach { url in ... }
+
+// Turn a cursor into an array:
+let cursor = URL
+    .fetchCursor(db, "SELECT url FROM links")
+    .filter { url in url.host == "github.com" }
+let githubURLs = try Array(cursor) // [URL]
 ```
 
 > :point_up: Don't modify the fetched results during a cursor iteration:
@@ -1970,7 +1976,7 @@ You can now jump to:
     }
     ```
     
-    That's better. And that's exactly what RowConvertible does, in a single line:
+    That's better. And that's what RowConvertible does, with a little performance bonus, and in a single line:
     
     ```swift
     struct Place : RowConvertible {
