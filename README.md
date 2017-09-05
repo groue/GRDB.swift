@@ -1065,7 +1065,7 @@ Here is the support provided by GRDB for the various [date formats](https://www.
 
 ¹ Dates are stored and read in the UTC time zone. Missing components are assumed to be zero.
 
-² GRDB 2.0 interprets numerical values as timestamps that fuel `Date(timeIntervalSince1970:)`. Previous GRDB versions used to interpret numbers as [julian days](https://en.wikipedia.org/wiki/Julian_day). GRDB 2.0 still supports julian days remains, with the `Date(julianDay:)` initializer.
+² GRDB 2.0 interprets numerical values as timestamps that fuel `Date(timeIntervalSince1970:)`. Previous GRDB versions used to interpret numbers as [julian days](https://en.wikipedia.org/wiki/Julian_day). GRDB 2.0 still supports julian days, with the `Date(julianDay:)` initializer.
 
 
 #### Date
