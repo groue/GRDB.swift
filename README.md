@@ -1060,12 +1060,12 @@ Here is the support provided by GRDB for the various [date formats](https://www.
 | HH:MM                        |              |   Read/Write   |
 | HH:MM:SS                     |              |   Read/Write   |
 | HH:MM:SS.SSS                 |              |   Read/Write   |
-| Julian Day Number            |     Read ²   |                |
+| Timestamps since unix epoch  |     Read ²   |                |
 | `now`                        |              |                |
 
 ¹ Dates are stored and read in the UTC time zone. Missing components are assumed to be zero.
 
-² See https://en.wikipedia.org/wiki/Julian_day
+² GRDB 2.0 interprets numerical values as timestamps that fuel `Date(timeIntervalSince1970:)`. Previous GRDB versions used to interpret numbers as [julian days](https://en.wikipedia.org/wiki/Julian_day). GRDB 2.0 still supports julian days remains, with the `Date(julianDay:)` initializer.
 
 
 #### Date

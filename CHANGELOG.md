@@ -129,6 +129,8 @@ New features have been added in order to plug a few holes and support the [RxGRD
     +row[Column("id")]
     ```
 
+- Date and NSDate now interpret numerical database values as timestamps that fuel `Date(timeIntervalSince1970:)`. Previous version of GRDB would interpret numbers as [julian days](https://en.wikipedia.org/wiki/Julian_day) (a date representation supported by SQLite). Support for julian days remains, with the `Date(julianDay:)` initializer.
+
 - All `TableMapping` methods that would modify the database have moved to `MutablePersistable`, now the only record protocol that is able to write.
 
 - The `TableMapping.selectsRowID` property has been replaced with `TableMapping.databaseSelection`.
@@ -156,6 +158,7 @@ New features have been added in order to plug a few holes and support the [RxGRD
 - [Installation instructions for WatchOS](https://github.com/groue/GRDB.swift#installation) have been updated.
 - The [description of database pools](https://github.com/groue/GRDB.swift#database-pools) has been enhanced.
 - The [description of cursors](https://github.com/groue/GRDB.swift#cursors) has been enhanced.
+- The [Date and DateComponents](https://github.com/groue/GRDB.swift#date-and-datecomponents) chapter has been updated for the new support for unix timestamps.
 - The [Usage of raw SQLite pointers](https://github.com/groue/GRDB.swift#raw-sqlite-pointers) chapter has been updated for the new `SQLite3` standard module.
 - A new [Record Protocols Overview](https://github.com/groue/GRDB.swift#record-protocols-overview) chapter has been added.
 - A new [Codable Records](https://github.com/groue/GRDB.swift#codable-records) chapter has been added.

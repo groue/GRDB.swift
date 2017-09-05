@@ -90,6 +90,23 @@ class FoundationDateTests : GRDBTestCase {
         XCTAssertTrue(Date.fromDatabaseValue("01:02:03.00456".databaseValue) == nil)
     }
     
+    func testDateFromJulianDayNumber() throws {
+        // 00:30:00.0 UT January 1, 2013 according to https://en.wikipedia.org/wiki/Julian_day
+        let jdn = 2_456_293.520833
+        guard let date = Date(julianDay: jdn) else {
+            XCTFail()
+            return
+        }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        XCTAssertEqual(calendar.component(.year, from: date), 2013)
+        XCTAssertEqual(calendar.component(.month, from: date), 1)
+        XCTAssertEqual(calendar.component(.day, from: date), 1)
+        XCTAssertEqual(calendar.component(.hour, from: date), 0)
+        XCTAssertEqual(calendar.component(.minute, from: date), 29) // actual SQLite result
+        XCTAssertEqual(calendar.component(.second, from: date), 59) // actual SQLite result
+    }
+    
     func testDateAcceptsFormatYMD() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -166,26 +183,26 @@ class FoundationDateTests : GRDBTestCase {
         }
     }
 
-    func testDateAcceptsJulianDayNumber() throws {
+    func testDateAcceptsTimestamp() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            // 00:30:00.0 UT January 1, 2013 according to https://en.wikipedia.org/wiki/Julian_day
             try db.execute(
                 "INSERT INTO dates (creationDate) VALUES (?)",
-                arguments: [2_456_293.520833])
+                arguments: [1437526920])
             
-            let string = try String.fetchOne(db, "SELECT datetime(creationDate) from dates")!
-            XCTAssertEqual(string, "2013-01-01 00:29:59")
+            let string = try String.fetchOne(db, "SELECT datetime(creationDate, 'unixepoch') from dates")!
+            XCTAssertEqual(string, "2015-07-22 01:02:00")
             
             let date = try Date.fetchOne(db, "SELECT creationDate from dates")!
             var calendar = Calendar(identifier: .gregorian)
             calendar.timeZone = TimeZone(secondsFromGMT: 0)!
-            XCTAssertEqual(calendar.component(.year, from: date), 2013)
-            XCTAssertEqual(calendar.component(.month, from: date), 1)
-            XCTAssertEqual(calendar.component(.day, from: date), 1)
-            XCTAssertEqual(calendar.component(.hour, from: date), 0)
-            XCTAssertEqual(calendar.component(.minute, from: date), 29)
-            XCTAssertEqual(calendar.component(.second, from: date), 59)
+            XCTAssertEqual(calendar.component(.year, from: date), 2015)
+            XCTAssertEqual(calendar.component(.month, from: date), 7)
+            XCTAssertEqual(calendar.component(.day, from: date), 22)
+            XCTAssertEqual(calendar.component(.hour, from: date), 1)
+            XCTAssertEqual(calendar.component(.minute, from: date), 2)
+            XCTAssertEqual(calendar.component(.second, from: date), 0)
+            XCTAssertEqual(calendar.component(.nanosecond, from: date), 0)
         }
     }
 
