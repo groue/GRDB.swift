@@ -301,6 +301,28 @@ open class Record : RowConvertible, TableMapping, Persistable {
         referenceRow = Row(dao.persistenceContainer)
     }
     
+    /// If the record has been changed, executes an UPDATE statement so that
+    /// those changes and only those changes are saved in the database.
+    ///
+    /// On success, this method sets the *hasPersistentChangedValues* flag
+    /// to false.
+    ///
+    /// This method is guaranteed to have saved the eventual changes in the
+    /// database if it returns without error.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter columns: The columns to update.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    ///   PersistenceError.recordNotFound is thrown if the primary key does not
+    ///   match any row in the database and record could not be updated.
+    final public func updateChanges(_ db: Database) throws {
+        let changedColumns = Set(persistentChangedValues.keys)
+        guard !changedColumns.isEmpty else {
+            return
+        }
+        try update(db, columns: changedColumns)
+    }
+    
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
     /// the database.
     ///

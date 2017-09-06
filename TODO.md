@@ -19,6 +19,7 @@ GRDB 2.0
     - [ ] check performance improvements
     - [ ] document
 - [ ] Test new adoption of StatementColumnConvertible by Data. Add support for NSData if possible/needed.
+- [ ] Document Record.updateChanges(_:)
 
 Not sure
 
