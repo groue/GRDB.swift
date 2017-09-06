@@ -143,7 +143,6 @@ class RecordEditedTests: GRDBTestCase {
         try migrator.migrate(dbWriter)
     }
     
-    
     func testRecordIsEditedAfterInit() {
         // Create a Record. No fetch has happen, so we don't know if it is
         // identical to its eventual row in the database. So it is edited.
@@ -751,6 +750,50 @@ class RecordEditedTests: GRDBTestCase {
             person.hasPersistentChangedValues = true
             XCTAssertTrue(person.persistentChangedValues.count > 0)            // TODO: compare actual changes
             XCTAssertEqual(person.persistentChangedValues.count, person.copy().persistentChangedValues.count)
+        }
+    }
+    
+    func testUpdateChangedColumns() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let person = Person(name: "Arthur", age: 41)
+            
+            do {
+                XCTAssertTrue(person.hasPersistentChangedValues)
+                try person.updateChangedColumns(db)
+                XCTFail("Expected PersistenceError")
+            } catch is PersistenceError { }
+            
+            try person.insert(db)
+
+            // Nothing to update
+            let initialChangesCount = db.totalChangesCount
+            XCTAssertFalse(person.hasPersistentChangedValues)
+            try person.updateChangedColumns(db)
+            XCTAssertEqual(db.totalChangesCount, initialChangesCount)
+            
+            // Nothing to update
+            person.age = 41
+            XCTAssertFalse(person.hasPersistentChangedValues)
+            try person.updateChangedColumns(db)
+            XCTAssertEqual(db.totalChangesCount, initialChangesCount)
+            
+            // Update single column
+            person.age = 42
+            XCTAssertEqual(Set(person.persistentChangedValues.keys), ["age"])
+            try person.updateChangedColumns(db)
+            XCTAssertEqual(db.totalChangesCount, initialChangesCount + 1)
+            XCTAssertEqual(lastSQLQuery, "UPDATE \"persons\" SET \"age\"=42 WHERE \"id\"=1")
+            
+            // Update two columns
+            person.name = "Barbara"
+            person.age = 43
+            XCTAssertEqual(Set(person.persistentChangedValues.keys), ["age", "name"])
+            try person.updateChangedColumns(db)
+            XCTAssertEqual(db.totalChangesCount, initialChangesCount + 2)
+            let fetchedPerson = try Person.fetchOne(db, key: person.id)
+            XCTAssertEqual(fetchedPerson?.name, person.name)
+            XCTAssertEqual(fetchedPerson?.age, person.age)
         }
     }
 }
