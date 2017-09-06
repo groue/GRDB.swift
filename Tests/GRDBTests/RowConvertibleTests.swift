@@ -31,7 +31,7 @@ class RowConvertibleTests: GRDBTestCase {
     func testFetchCursor() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            func test<C: Cursor>(_ cursor: C) throws where C.Element == Fetched {
+            func test(_ cursor: RecordCursor<Fetched>) throws {
                 var record = try cursor.next()!
                 XCTAssertEqual(record.firstName, "Arthur")
                 XCTAssertEqual(record.lastName, "Martin")
@@ -65,7 +65,7 @@ class RowConvertibleTests: GRDBTestCase {
         let customError = NSError(domain: "Custom", code: 0xDEAD)
         dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
         try dbQueue.inDatabase { db in
-            func test<C: Cursor>(_ cursor: C, sql: String) throws where C.Element == Fetched {
+            func test(_ cursor: RecordCursor<Fetched>, sql: String) throws {
                 do {
                     _ = try cursor.next()
                     XCTFail()
@@ -106,7 +106,7 @@ class RowConvertibleTests: GRDBTestCase {
     func testFetchCursorCompilationFailure() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            func test<C: Cursor>(_ cursor: @autoclosure () throws -> C, sql: String) throws where C.Element == Fetched {
+            func test(_ cursor: @autoclosure () throws -> RecordCursor<Fetched>, sql: String) throws {
                 do {
                     _ = try cursor()
                     XCTFail()

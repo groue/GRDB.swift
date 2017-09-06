@@ -86,7 +86,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
     func testFetchCursor() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            func test<C: Cursor>(_ cursor: C) throws where C.Element == Fetched {
+            func test(_ cursor: ColumnCursor<Fetched>) throws {
                 var i = try cursor.next()!
                 XCTAssertEqual(i.int, 1)
                 XCTAssertTrue(i.fast)
@@ -120,7 +120,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
         let customError = NSError(domain: "Custom", code: 0xDEAD)
         dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
         try dbQueue.inDatabase { db in
-            func test<C: Cursor>(_ cursor: C, sql: String) throws where C.Element == Fetched {
+            func test(_ cursor: ColumnCursor<Fetched>, sql: String) throws {
                 do {
                     _ = try cursor.next()
                     XCTFail()
@@ -161,7 +161,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
     func testFetchCursorCompilationFailure() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            func test<C: Cursor>(_ cursor: @autoclosure () throws -> C, sql: String) throws where C.Element == Fetched {
+            func test(_ cursor: @autoclosure () throws -> ColumnCursor<Fetched>, sql: String) throws {
                 do {
                     _ = try cursor()
                     XCTFail()
@@ -426,7 +426,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
     func testOptionalFetchCursor() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            func test<C: Cursor>(_ cursor: C) throws where C.Element == Fetched? {
+            func test(_ cursor: NullableColumnCursor<Fetched>) throws {
                 let i = try cursor.next()!
                 XCTAssertEqual(i!.int, 1)
                 XCTAssertTrue(i!.fast)
@@ -456,7 +456,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
     func testOptionalFetchCursorCompilationFailure() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            func test<C: Cursor>(_ cursor: @autoclosure () throws -> C, sql: String) throws where C.Element == Fetched? {
+            func test(_ cursor: @autoclosure () throws -> NullableColumnCursor<Fetched>, sql: String) throws {
                 do {
                     _ = try cursor()
                     XCTFail()
