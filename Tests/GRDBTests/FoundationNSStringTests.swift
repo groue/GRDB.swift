@@ -9,6 +9,21 @@ import XCTest
 
 class FoundationNSStringTests: GRDBTestCase {
     
+    func testNSStringDatabaseRoundTrip() throws {
+        let dbQueue = try makeDatabaseQueue()
+        func roundTrip(_ value: NSString) throws -> Bool {
+            guard let back = try dbQueue.inDatabase({ try NSString.fetchOne($0, "SELECT ?", arguments: [value]) }) else {
+                XCTFail()
+                return false
+            }
+            return back == value
+        }
+        
+        XCTAssertTrue(try roundTrip(NSString(string: "")))
+        XCTAssertTrue(try roundTrip(NSString(string: "foo")))
+        XCTAssertTrue(try roundTrip(NSString(string: "'fooéı👨👨🏿🇫🇷🇨🇮'")))
+    }
+    
     func testNSStringDatabaseValueRoundTrip() {
         
         func roundTrip(_ value: NSString) -> Bool
@@ -22,7 +37,9 @@ class FoundationNSStringTests: GRDBTestCase {
             return back.isEqual(value)
         }
 
+        XCTAssertTrue(roundTrip(NSString(string: "")))
         XCTAssertTrue(roundTrip(NSString(string: "foo")))
+        XCTAssertTrue(roundTrip(NSString(string: "'fooéı👨👨🏿🇫🇷🇨🇮'")))
     }
     
     func testNSStringFromStringDatabaseValueSuccess() {
@@ -30,7 +47,7 @@ class FoundationNSStringTests: GRDBTestCase {
         XCTAssertEqual(NSString.fromDatabaseValue(databaseValue_String), "foo")
     }
     
-    func testNSNumberFromDatabaseValueFailure() {
+    func testNSStringFromDatabaseValueFailure() {
         let databaseValue_Null = DatabaseValue.null
         let databaseValue_Int64 = Int64(1).databaseValue
         let databaseValue_Double = Double(100000.1).databaseValue

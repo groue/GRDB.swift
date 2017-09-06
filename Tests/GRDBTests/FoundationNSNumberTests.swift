@@ -98,6 +98,20 @@ class FoundationNSNumberTests: GRDBTestCase {
         XCTAssertEqual(Bool.fromDatabaseValue(dbv_bool_false), false)
     }
     
+    func testNSNumberDatabaseRoundTrip() throws {
+        let dbQueue = try makeDatabaseQueue()
+        func roundTrip(_ value: NSNumber) throws -> Bool {
+            guard let back = try dbQueue.inDatabase({ try NSNumber.fetchOne($0, "SELECT ?", arguments: [value]) }) else {
+                XCTFail()
+                return false
+            }
+            return back == value
+        }
+        
+        XCTAssertTrue(try roundTrip(NSNumber(value: Int32.min + 1)))
+        XCTAssertTrue(try roundTrip(NSNumber(value: Double(10000000.01))))
+    }
+    
     func testNSNumberDatabaseValueRoundTrip() {
         
         func roundTrip(_ value: NSNumber) -> Bool

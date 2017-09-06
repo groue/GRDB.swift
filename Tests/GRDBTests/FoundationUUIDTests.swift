@@ -9,6 +9,20 @@ import XCTest
 
 class FoundationUUIDTests: GRDBTestCase {
     
+    func testUUIDDatabaseRoundTrip() throws {
+        let dbQueue = try makeDatabaseQueue()
+        func roundTrip(_ value: UUID) throws -> Bool {
+            guard let back = try dbQueue.inDatabase({ try UUID.fetchOne($0, "SELECT ?", arguments: [value]) }) else {
+                XCTFail()
+                return false
+            }
+            return back == value
+        }
+        
+        XCTAssertTrue(try roundTrip(UUID(uuidString: "56e7d8d3-e9e4-48b6-968e-8d102833af00")!))
+        XCTAssertTrue(try roundTrip(UUID()))
+    }
+    
     func testUUIDDatabaseValueRoundTrip() {
         
         func roundTrip(_ value: UUID) -> Bool {

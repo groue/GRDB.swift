@@ -9,6 +9,20 @@ import XCTest
 
 class FoundationURLTests: GRDBTestCase {
     
+    func testURLDatabaseRoundTrip() throws {
+        let dbQueue = try makeDatabaseQueue()
+        func roundTrip(_ value: URL) throws -> Bool {
+            guard let back = try dbQueue.inDatabase({ try URL.fetchOne($0, "SELECT ?", arguments: [value]) }) else {
+                XCTFail()
+                return false
+            }
+            return back == value
+        }
+        
+        XCTAssertTrue(try roundTrip(URL(string: "https://github.com/groue/GRDB.swift")!))
+        XCTAssertTrue(try roundTrip(URL(fileURLWithPath: NSTemporaryDirectory())))
+    }
+    
     func testURLDatabaseValueRoundTrip() {
         
         func roundTrip(_ value: URL) -> Bool

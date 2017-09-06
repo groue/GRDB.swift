@@ -9,8 +9,13 @@ import XCTest
 
 class FoundationNSNullTests: GRDBTestCase {
     
+    func testNSNullDatabaseValue() {
+        let dbValue = NSNull().databaseValue
+        XCTAssert(dbValue.isNull)
+    }
+    
     func testNSNullFromDatabaseValue() {
-        // NSNull.fromDatabaseValue always returns nil?
+        // NSNull.fromDatabaseValue always returns nil
         let dbValue = DatabaseValue.null
         XCTAssertNil(NSNull.fromDatabaseValue(dbValue))
     }

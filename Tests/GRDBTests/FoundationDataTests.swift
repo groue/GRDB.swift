@@ -9,11 +9,18 @@ import XCTest
 
 class FoundationDataTests: GRDBTestCase {
     
-    func testDatabaseValueOfEmptyData() {
-        // Previous versions of GRDB would turn zero-length data into null
-        // database values. Not any longer.
-        let dbValue = Data().databaseValue
-        XCTAssertFalse(dbValue.isNull)
+    func testDataDatabaseRoundTrip() throws {
+        let dbQueue = try makeDatabaseQueue()
+        func roundTrip(_ value: Data) throws -> Bool {
+            guard let back = try dbQueue.inDatabase({ try Data.fetchOne($0, "SELECT ?", arguments: [value]) }) else {
+                XCTFail()
+                return false
+            }
+            return back == value
+        }
+        
+        XCTAssertTrue(try roundTrip(Data()))
+        XCTAssertTrue(try roundTrip("bar".data(using: .utf8)!))
     }
     
     func testDataDatabaseValueRoundTrip() {
