@@ -11,6 +11,19 @@ extension Array {
     }
 }
 
+extension Set {
+    /// Creates a set containing the elements of a cursor.
+    ///
+    ///     let cursor = try String.fetchCursor(db, "SELECT 'foo' UNION ALL SELECT 'foo'")
+    ///     let strings = try Set(cursor) // ["foo"]
+    public init<C: Cursor>(_ cursor: C) throws where C.Element == Element {
+        self.init()
+        while let element = try cursor.next() {
+            insert(element)
+        }
+    }
+}
+
 /// A type that supplies the values of some external resource, one at a time.
 ///
 /// ## Overview

@@ -255,6 +255,9 @@ public final class Database {
     
     // MARK: - Database Information
     
+    /// The list of compile options used when building SQLite
+    static let sqliteCompileOptions: Set<String> = DatabaseQueue().inDatabase { try! Set(String.fetchCursor($0, "PRAGMA COMPILE_OPTIONS")) }
+    
     /// The database configuration
     public let configuration: Configuration
     

@@ -81,7 +81,6 @@ Release Notes
 
 - GRDB is now able to store and load zero-length blobs.
 
-
 ### New
 
 New features have been added in order to plug a few holes and support the [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB) and [GRDBObjc](http://github.com/groue/GRDBObjc) companion projects:
@@ -94,8 +93,15 @@ New features have been added in order to plug a few holes and support the [RxGRD
     print(dict)
     // Prints {"id": 1, "name": "Arthur", "score": 1000}
     ```
+
+- Query interface requests learned how to limit the number of deleted rows:
     
-    This dictionary supports generic SQLite tools, and is not intended as a general encoding purpose because it contains values of type DatabaseValue. For example, dates are encoded as SQLite-friendly strings.
+    ```swift
+    // Delete the worse ten players:
+    // DELETE FROM players ORDER BY score LIMIT 10
+    let request = Player.order(scoreColumn).limit(10)
+    try request.deleteAll(db)
+    ```
 
 - Prepared statements know the index of their columns:
     
@@ -109,6 +115,12 @@ New features have been added in order to plug a few holes and support the [RxGRD
     ```swift
     let rows = try Row.fetchCursor(db, "SELECT ...")
     let statement = rows.statement
+    ```
+
+- One can build a Set from a cursor:
+    
+    ```swift
+    let strings = try Set(String.fetchCursor(...))
     ```
 
 
@@ -217,6 +229,10 @@ New features have been added in order to plug a few holes and support the [RxGRD
  }
 +struct AllColumns {
 +    init()
++}
+
++extension Set {
++    init<C: Cursor>(_ cursor: C) throws where C.Element == Element
 +}
 
 -final class DatabaseCursor { }
