@@ -178,7 +178,6 @@ private struct PersistableEncoder : Encoder {
 }
 
 extension MutablePersistable where Self: Encodable {
-    /// TODO
     public func encode(to container: inout PersistenceContainer) {
         // The inout container parameter won't enter an escaping closure since
         // SE-0035: https://github.com/apple/swift-evolution/blob/master/proposals/0035-limit-inout-capture.md
