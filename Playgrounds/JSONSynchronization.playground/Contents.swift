@@ -21,42 +21,46 @@ let dbQueue = DatabaseQueue(configuration: configuration)
 // Create a database table
 
 try dbQueue.inDatabase { db in
-    try db.execute(
-        "CREATE TABLE persons (" +
-            "id INTEGER PRIMARY KEY, " +
-            "name TEXT " +
-        ")")
+    try db.create(table: "players") { t in
+        t.column("id", .integer).primaryKey()
+        t.column("name", .text)
+        t.column("score", .integer)
+    }
 }
 
 
-// Define the Person subclass of GRDB's Record.
+// Define the Player subclass of GRDB's Record.
 //
 // Record provides change tracking that helps avoiding useless
 // UPDATE statements.
-class Person : Record {
-    var id: Int64?
-    var name: String?
+class Player : Record {
+    var id: Int64
+    var name: String
+    var score: Int
     
     func update(from json: [String: Any]) {
-        id = (json["id"] as! NSNumber).int64Value
-        name = (json["name"] as! String)
+        id = json["id"] as! Int64
+        name = json["name"] as! String
+        score = json["score"] as! Int
     }
     
     // Record overrides
     
     override class var databaseTableName: String {
-        return "persons"
+        return "players"
     }
     
     required init(row: Row) {
         id = row["id"]
         name = row["name"]
+        score = row["score"]
         super.init(row: row)
     }
     
     override func encode(to container: inout PersistenceContainer) {
         container["id"] = id
         container["name"] = name
+        container["score"] = score
     }
     
     override func didInsert(with rowID: Int64, for column: String?) {
@@ -65,88 +69,90 @@ class Person : Record {
 }
 
 
-// Synchronizes the persons table with a JSON payload
-func synchronizePersons(with jsonString: String, in db: Database) throws {
+// Synchronizes the players table with a JSON payload
+func synchronizePlayers(with jsonString: String, in db: Database) throws {
     let jsonData = jsonString.data(using: .utf8)!
     let json = try JSONSerialization.jsonObject(with: jsonData, options: []) as! [String: Any]
     
-    // A support function that extracts an ID from a JSON person.
-    func jsonPersonId(_ jsonPerson: [String: Any]) -> Int64 {
-        return (jsonPerson["id"] as! NSNumber).int64Value
+    // A support function that extracts an ID from a JSON player.
+    func jsonPlayerId(_ jsonPlayer: [String: Any]) -> Int64 {
+        return (jsonPlayer["id"] as! NSNumber).int64Value
     }
     
-    // Sort JSON persons by id:
-    let jsonPersons = (json["persons"] as! [[String: Any]]).sorted {
-        return jsonPersonId($0) < jsonPersonId($1)
+    // Sort JSON players by id:
+    let jsonPlayers = (json["players"] as! [[String: Any]]).sorted {
+        return jsonPlayerId($0) < jsonPlayerId($1)
     }
     
-    // Sort database persons by id:
-    let persons = try Person.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+    // Sort database players by id:
+    let players = try Player.fetchAll(db, "SELECT * FROM players ORDER BY id")
     
     // Now that both lists are sorted by id, we can compare them with
     // the sortedMerge() function (see https://gist.github.com/groue/7e8510849ded36f7d770).
     //
-    // We'll delete, insert or update persons, depending on their presence
+    // We'll delete, insert or update players, depending on their presence
     // in either lists.
     for mergeStep in sortedMerge(
-        left: persons,          // Database persons
-        right: jsonPersons,     // JSON persons
-        leftKey: { $0.id! },    // The id of a database person
-        rightKey: jsonPersonId) // The id of a JSON person
+        left: players,          // Database players
+        right: jsonPlayers,     // JSON players
+        leftKey: { $0.id },     // The id of a database player
+        rightKey: jsonPlayerId) // The id of a JSON player
     {
         switch mergeStep {
-        case .left(let person):
-            // Delete database person without matching JSON person:
-            try person.delete(db)
-        case .right(let jsonPerson):
-            // Insert JSON person without matching database person:
-            let row = Row(jsonPerson)! // Granted JSON keys are database columns
-            let person = Person(row: row)
-            try person.insert(db)
-        case .common(let person, let jsonPerson):
-            // Update database person with its JSON counterpart:
-            person.update(from: jsonPerson)
-            if person.hasPersistentChangedValues {
-                try person.update(db)
-            }
+        case .left(let player):
+            // Delete database player without matching JSON player:
+            try player.delete(db)
+        case .right(let jsonPlayer):
+            // Insert JSON player without matching database player:
+            let row = Row(jsonPlayer)! // Granted JSON keys are database columns
+            let player = Player(row: row)
+            try player.insert(db)
+        case .common(let player, let jsonPlayer):
+            // Update database player with its JSON counterpart:
+            player.update(from: jsonPlayer)
+            try player.updateChanges(db)
         }
     }
 }
 
 do {
-    let jsonString =
-    "{ \"persons\": [" +
-        "{ \"id\": 1, \"name\": \"Arthur\"}, " +
-        "{ \"id\": 2, \"name\": \"Barbara\"}, " +
-        "{ \"id\": 3, \"name\": \"Craig\"}, " +
-        "]" +
-    "}"
+    let jsonString = """
+    {
+        "players": [
+            { "id": 1, "name": "Arthur", "score": 1000},
+            { "id": 2, "name": "Barbara", "score": 2000},
+            { "id": 3, "name": "Craig", "score": 500},
+        ]
+    }
+    """
     print("---\nImport \(jsonString)")
     try dbQueue.inTransaction { db in
-        // SELECT * FROM persons ORDER BY id
-        // INSERT INTO "persons" ("id","name") VALUES (1,'Arthur')
-        // INSERT INTO "persons" ("id","name") VALUES (2,'Barbara')
-        // INSERT INTO "persons" ("id","name") VALUES (3,'Craig')
-        try synchronizePersons(with: jsonString, in: db)
+        // SELECT * FROM players ORDER BY id
+        // INSERT INTO "players" ("id", "name", "score") VALUES (1,'Arthur',1000)
+        // INSERT INTO "players" ("id", "name", "score") VALUES (2,'Barbara',2000)
+        // INSERT INTO "players" ("id", "name", "score") VALUES (3,'Craig',500)
+        try synchronizePlayers(with: jsonString, in: db)
         return .commit
     }
 }
 
 do {
-    let jsonString =
-    "{ \"persons\": [" +
-        "{ \"id\": 2, \"name\": \"Barbie\"}, " +
-        "{ \"id\": 3, \"name\": \"Craig\"}, " +
-        "{ \"id\": 4, \"name\": \"Daniel\"}, " +
-        "]" +
-    "}"
+    let jsonString = """
+    {
+        "players": [
+            { "id": 2, "name": "Barbara", "score": 3000},
+            { "id": 3, "name": "Craig", "score": 500},
+            { "id": 4, "name": "Daniel", "score": 1500},
+        ]
+    }
+    """
     print("---\nImport \(jsonString)")
     try dbQueue.inTransaction { db in
-        // SELECT * FROM persons ORDER BY id
-        // DELETE FROM "persons" WHERE "id"=1
-        // UPDATE "persons" SET "name"='Barbie' WHERE "id"=2
-        // INSERT INTO "persons" ("id","name") VALUES (4,'Daniel')
-        try synchronizePersons(with: jsonString, in: db)
+        // SELECT * FROM players ORDER BY id
+        // DELETE FROM "players" WHERE "id"=1
+        // UPDATE "players" SET "score"=3000 WHERE "id"=2
+        // INSERT INTO "players" ("id", "name", "score") VALUES (4,'Daniel',1500)
+        try synchronizePlayers(with: jsonString, in: db)
         return .commit
     }
 }

@@ -920,7 +920,7 @@ row["foo"]         // 1 (leftmost matching column)
 for (columnName, dbValue) in row { ... } // ("foo", 1), ("foo", 2)
 ```
 
-**When you build a dictionary from a row**, you have to disambiguate identical columns, and choose how to present values. For example:
+**When you build a dictionary from a row**, you have to disambiguate identical columns, and choose how to present database values. For example:
 
 - A `[String: DatabaseValue]` dictionary that keeps leftmost value in case of duplicated column name:
 
