@@ -1525,7 +1525,7 @@ final class StatementCompilationObserver {
                 let observer = Unmanaged<StatementCompilationObserver>.fromOpaque(observerPointer!).takeUnretainedValue()
                 if columnName.isEmpty {
                     // SELECT COUNT(*) FROM table
-                    observer.selectionInfo.insert(table: tableName)
+                    observer.selectionInfo.insert(allColumnsOfTable: tableName)
                 } else {
                     // SELECT column FROM table
                     observer.selectionInfo.insert(column: columnName, ofTable: tableName)
@@ -2320,10 +2320,6 @@ public enum DatabaseEventKind {
     /// Returns whether event has any impact on tables and columns described
     /// by selectionInfo.
     public func impacts(_ selectionInfo: SelectStatement.SelectionInfo) -> Bool {
-        if selectionInfo.isUnknown {
-            return true
-        }
-        
         switch self {
         case .delete(let tableName):
             return selectionInfo.contains(anyColumnFrom: tableName)

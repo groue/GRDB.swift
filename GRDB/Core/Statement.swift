@@ -280,7 +280,7 @@ public final class SelectStatement : Statement {
 
     /// Information about the table and columns read by a SelectStatement
     public struct SelectionInfo : CustomStringConvertible {
-        mutating func insert(table: String) {
+        mutating func insert(allColumnsOfTable table: String) {
             tables.insert(table)
         }
         
@@ -288,16 +288,15 @@ public final class SelectStatement : Statement {
             columns[table, default: []].insert(column)
         }
         
-        /// If true, selection is unknown
-        let isUnknown: Bool
-        
-        /// Relevant iff isUnknown is false
+        /// Returns true if isUnknown is true
         func contains(anyColumnFrom table: String) -> Bool {
+            if isUnknown { return true }
             return tables.contains(table) || columns.index(forKey: table) != nil
         }
         
-        /// Relevant iff isUnknown is false
+        /// Returns true if isUnknown is true
         func contains(anyColumnIn columns: Set<String>, from table: String) -> Bool {
+            if isUnknown { return true }
             return tables.contains(table) || !(self.columns[table]?.isDisjoint(with: columns) ?? true)
         }
         
@@ -308,6 +307,9 @@ public final class SelectStatement : Statement {
         static func unknown() -> SelectionInfo {
             return self.init(isUnknown: true)
         }
+        
+        /// If true, selection is unknown
+        private let isUnknown: Bool
         
         // `SELECT a, b FROM t1` -> ["t1": ["a", "b"]]
         private var columns: [String: Set<String>] = [:]
@@ -321,11 +323,19 @@ public final class SelectStatement : Statement {
         
         /// A textual representation of `self`.
         public var description: String {
-            // TODO: include tables in the description
-            return columns
-                .sorted { $0.key < $1.key }
-                .map { (table, columns) in "\(table)(\(columns.sorted().joined(separator: ", ")))" }
-                .joined(separator: ", ")
+            if isUnknown {
+                return "unknown"
+            }
+            return tables.union(columns.keys)
+                .sorted()
+                .map { table -> String in
+                    if let columns = columns[table] {
+                        return "\(table)(\(columns.sorted().joined(separator: ",")))"
+                    } else {
+                        return "\(table)(*)"
+                    }
+                }
+                .joined(separator: ",")
         }
     }
 }

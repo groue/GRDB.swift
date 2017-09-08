@@ -203,6 +203,12 @@ class SelectStatementTests : GRDBTestCase {
             let doubtfulCountFunction = (sqlite3_libversion_number() < 3019000)
             
             let observers = statements.map { Observer(selectionInfo: $0.selectionInfo) }
+            if doubtfulCountFunction {
+                XCTAssertEqual(observers.map { $0.selectionInfo.description }, ["table1(a,b,id,id3,id4)","table1(a,id,id3)", "table1(a,id),table2(a,id)", "unknown"])
+            } else {
+                XCTAssertEqual(observers.map { $0.selectionInfo.description }, ["table1(a,b,id,id3,id4)","table1(a,id,id3)", "table1(a,id),table2(a,id)", "table1(*)"])
+            }
+            
             for observer in observers {
                 db.add(transactionObserver: observer)
             }
