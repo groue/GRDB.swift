@@ -818,7 +818,7 @@ Generally speaking, you can extract the type you need, *provided it can be conve
     row[0] as Date   // fatal error: could not convert "Mom’s birthday" to Date.
     ```
     
-    This fatal error can be avoided with the [DatabaseValueConvertible.fromDatabaseValue()](#custom-value-types) method.
+    This fatal error can be avoided: see [Fatal Errors](#fatal-errors).
     
 - **SQLite has a weak type system, and provides [convenience conversions](https://www.sqlite.org/c3ref/column_blob.html) that can turn Blob to String, String to Int, etc.**
     
@@ -5211,11 +5211,14 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     let name: String? = row["name"]
     ```
 
-- **The code asks for a Date, when the database contains garbage:**
+- **Conversion from database value to Swift type fails:**
     
     ```swift
     // fatal error: could not convert "Mom’s birthday" to Date.
-    let date: Date? = row["date"]
+    let date: Date = row["date"]
+    
+    // fatal error: could not convert "" to URL.
+    let url: URL = row["url"]
     ```
     
     Solution: fix the contents of the database, or use [DatabaseValue](#databasevalue) to handle all possible cases:
