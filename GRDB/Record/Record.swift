@@ -315,7 +315,7 @@ open class Record : RowConvertible, TableMapping, Persistable {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database and record could not be updated.
-    final public func updateChangedColumns(_ db: Database) throws {
+    final public func updateChanges(_ db: Database) throws {
         let changedColumns = Set(persistentChangedValues.keys)
         guard !changedColumns.isEmpty else {
             return

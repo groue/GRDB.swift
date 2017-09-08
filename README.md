@@ -2234,10 +2234,11 @@ extension Place : MutablePersistable {
 
 ```swift
 // Instance methods
+try place.save(db)                 // Inserts or updates
 try place.insert(db)               // INSERT
 try place.update(db)               // UPDATE
 try place.update(db, columns: ...) // UPDATE
-try place.save(db)                 // Inserts or updates
+try place.updateChanges(db)        // Available for the Record class only
 try place.delete(db)               // DELETE
 place.exists(db)
 
@@ -2247,9 +2248,9 @@ Place.deleteAll(db, keys:...)      // DELETE
 Place.deleteOne(db, key:...)       // DELETE
 ```
 
-- `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling) whenever an SQLite integrity check fails.
+- `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling).
 
-- `update` can also throw a PersistenceError of type recordNotFound, should the update fail because there is no matching row in the database.
+- `update` and `updateChanges` can also throw a [PersistenceError](#persistenceerror), should the update fail because there is no matching row in the database.
     
     When saving an object that may or may not already exist in the database, prefer the `save` method:
 
@@ -2444,10 +2445,17 @@ The `update()` [method](#persistence-methods) always executes an UPDATE statemen
 Avoid it with the `hasPersistentChangedValues` property, which returns whether the record has changes that have not been saved:
 
 ```swift
-// Saves the player if it has changes that have not been saved:
+// Insert or update the player if it has unsaved changes
 if player.hasPersistentChangedValues {
     try player.save(db)
 }
+```
+
+You can also use the `updateChanges` method, which performs an update of the changed columns (and does nothing if record has no change):
+
+```swift
+// Update the unsaved player changes
+try player.updateChanges(db)
 ```
 
 The `hasPersistentChangedValues` flag is false after a record has been fetched or saved into the database. Subsequent modifications may set it, or not: `hasPersistentChangedValues` is based on value comparison. **Setting a property to the same value does not set the changed flag**:
@@ -2638,6 +2646,7 @@ This is the list of record methods, along with their required protocols. The [Re
 | **Changes Tracking** | | |
 | `record.hasPersistentChangedValues` | [Record](#record-class) | |
 | `record.persistentChangedValues` | [Record](#record-class) | |
+| `record.updateChanges(db)` | [Record](#record-class) | |
 
 <a name="list-of-record-methods-1">¹</a> All unique keys are supported: primary keys (single-column, composite, [implicit RowID](#the-implicit-rowid-primary-key)) and unique indexes:
 
