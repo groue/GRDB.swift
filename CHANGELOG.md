@@ -167,12 +167,13 @@ New features have been added in order to plug a few holes and support the [RxGRD
 
 ### Documentation diff
 
-- [Installation instructions for WatchOS](https://github.com/groue/GRDB.swift#installation) have been updated.
-- The [description of database pools](https://github.com/groue/GRDB.swift#database-pools) has been enhanced.
-- The [description of cursors](https://github.com/groue/GRDB.swift#cursors) has been enhanced.
+- [WatchOS installation procedure](https://github.com/groue/GRDB.swift#installation) has been updated with new instructions.
+- The [introduction to multithreading with database pools](https://github.com/groue/GRDB.swift#database-pools) has been enhanced.
+- The [Rows as Dictionaries](https://github.com/groue/GRDB.swift#rows-as-dictionaries) chapter has been enhanced with instructions for converting a row into a dictionary.
+- The [description of cursors](https://github.com/groue/GRDB.swift#cursors) better explains how to choose between a cursor and an array.
 - The [Date and DateComponents](https://github.com/groue/GRDB.swift#date-and-datecomponents) chapter has been updated for the new support for unix timestamps.
-- The [Fatal Errors](https://github.com/groue/GRDB.swift#fatal-errors) chapter has an enhanced description of conversion errors.
-- The [Usage of raw SQLite pointers](https://github.com/groue/GRDB.swift#raw-sqlite-pointers) chapter has been updated for the new `SQLite3` standard module.
+- The [Fatal Errors](https://github.com/groue/GRDB.swift#fatal-errors) chapter has an enhanced description of value conversion errors and how to handle them.
+- The [Usage of raw SQLite pointers](https://github.com/groue/GRDB.swift#raw-sqlite-pointers) chapter has been updated for the new `SQLite3` standard module that comes with Swift4.
 - A new [Record Protocols Overview](https://github.com/groue/GRDB.swift#record-protocols-overview) chapter has been added.
 - A new [Codable Records](https://github.com/groue/GRDB.swift#codable-records) chapter has been added.
 - A new [Columns Selected by a Request](https://github.com/groue/GRDB.swift#columns-selected-by-a-request) chapter describes the new `TableMapping.databaseSelection` property.

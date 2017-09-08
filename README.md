@@ -847,6 +847,9 @@ let dbValue: DatabaseValue = row["name"]
 // Check for NULL:
 dbValue.isNull // Bool
 
+// The stored value:
+dbValue.storage.value // Int64, Double, String, Data, or nil
+
 // All the five storage classes supported by SQLite:
 switch dbValue.storage {
 case .null:                 print("NULL")
@@ -907,7 +910,7 @@ let row = Row(["name": "foo", "date": nil])
 let row = Row(/* [AnyHashable: Any] */) // nil if invalid dictionary
 ```
 
-Yet rows are not real dictionaries: they are ordered, and may contain duplicate keys:
+Yet rows are not real dictionaries: they may contain duplicate columns:
 
 ```swift
 let row = try Row.fetchOne(db, "SELECT 1 AS foo, 2 AS foo")!
@@ -916,6 +919,36 @@ row.databaseValues // [1, 2]
 row["foo"]         // 1 (leftmost matching column)
 for (columnName, dbValue) in row { ... } // ("foo", 1), ("foo", 2)
 ```
+
+**When you build a dictionary from a row**, you have to disambiguate identical columns, and choose how to present values. For example:
+
+- A `[String: DatabaseValue]` dictionary that keeps leftmost value in case of duplicated column name:
+
+    ```swift
+    let dict = Dictionary(row, uniquingKeysWith: { $0 })
+    ```
+
+- A `[String: AnyObject]` dictionary which keeps rightmost value in case of duplicated column name. This dictionary is identical to FMResultSet's resultDictionary from FMDB. It contains NSNull values for null columns, and can be shared with Objective-C:
+
+    ```swift
+    let dict = Dictionary(
+        row.map { (column, dbValue) in
+            (column, dbValue.storage.value as AnyObject)
+        },
+        uniquingKeysWith: { $1 })
+    ```
+
+- A `[String: Any]` dictionary that can feed, for example, JSONSerialization:
+    
+    ```swift
+    let dict = Dictionary(
+        row.map { (column, dbValue) in
+            (column, dbValue.storage.value)
+        },
+        uniquingKeysWith: { $0 })
+    ```
+
+See the documentation of [`Dictionary.init(_:uniquingKeysWith:)`](https://developer.apple.com/documentation/swift/dictionary/2892961-init) for more information.
 
 
 ### Value Queries
