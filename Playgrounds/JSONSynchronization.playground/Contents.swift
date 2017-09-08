@@ -85,7 +85,7 @@ func synchronizePlayers(with jsonString: String, in db: Database) throws {
     }
     
     // Sort database players by id:
-    let players = try Player.fetchAll(db, "SELECT * FROM players ORDER BY id")
+    let players = try Player.order(Column("id")).fetchAll(db)
     
     // Now that both lists are sorted by id, we can compare them with
     // the sortedMerge() function (see https://gist.github.com/groue/7e8510849ded36f7d770).
@@ -104,7 +104,7 @@ func synchronizePlayers(with jsonString: String, in db: Database) throws {
             try player.delete(db)
         case .right(let jsonPlayer):
             // Insert JSON player without matching database player:
-            let row = Row(jsonPlayer)! // Granted JSON keys are database columns
+            let row = Row(jsonPlayer)! // Assume JSON keys are database columns
             let player = Player(row: row)
             try player.insert(db)
         case .common(let player, let jsonPlayer):
