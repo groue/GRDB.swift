@@ -159,17 +159,21 @@ class MutablePersistableDeleteTests: GRDBTestCase {
             try Person.order(Column("name")).deleteAll(db)
             XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\"")
             
-            try Person.limit(1).deleteAll(db)
-            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" LIMIT 1")
-            
-            try Person.order(Column("name")).limit(1).deleteAll(db)
-            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" ORDER BY \"name\" LIMIT 1")
-            
-            try Person.order(Column("name")).limit(1, offset: 2).reversed().deleteAll(db)
-            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" ORDER BY \"name\" DESC LIMIT 1 OFFSET 2")
-            
-            try Person.limit(1, offset: 2).reversed().deleteAll(db)
-            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" ORDER BY \"rowid\" DESC LIMIT 1 OFFSET 2")
+            // TODO: find out when ENABLE_UPDATE_DELETE_LIMIT is not there.
+            // iOS8.1 can't run those tests, for example.
+            if try String.fetchAll(db, "PRAGMA COMPILE_OPTIONS").contains("ENABLE_UPDATE_DELETE_LIMIT") {
+                try Person.limit(1).deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" LIMIT 1")
+                
+                try Person.order(Column("name")).limit(1).deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" ORDER BY \"name\" LIMIT 1")
+                
+                try Person.order(Column("name")).limit(1, offset: 2).reversed().deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" ORDER BY \"name\" DESC LIMIT 1 OFFSET 2")
+                
+                try Person.limit(1, offset: 2).reversed().deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" ORDER BY \"rowid\" DESC LIMIT 1 OFFSET 2")
+            }
         }
     }
 }
