@@ -208,3 +208,44 @@ extension DatabaseReader {
         }
     }
 }
+
+/// A type-erased DatabaseReader
+///
+/// Instances of AnyDatabaseReader forward their methods to an arbitrary
+/// underlying database reader.
+public final class AnyDatabaseReader : DatabaseReader {
+    private let base: DatabaseReader
+    
+    /// Creates a database reader that wraps a base database reader.
+    public init(_ base: DatabaseReader) {
+        self.base = base
+    }
+    
+    public func read<T>(_ block: (Database) throws -> T) throws -> T {
+        return try base.read(block)
+    }
+    
+    public func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T {
+        return try base.unsafeRead(block)
+    }
+    
+    public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
+        return try base.unsafeReentrantRead(block)
+    }
+    
+    public func add(function: DatabaseFunction) {
+        base.add(function: function)
+    }
+    
+    public func remove(function: DatabaseFunction) {
+        base.remove(function: function)
+    }
+    
+    public func add(collation: DatabaseCollation) {
+        base.add(collation: collation)
+    }
+    
+    public func remove(collation: DatabaseCollation) {
+        base.remove(collation: collation)
+    }
+}

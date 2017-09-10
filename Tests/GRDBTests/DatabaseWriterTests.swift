@@ -44,4 +44,10 @@ class DatabaseWriterTests : GRDBTestCase {
             }
         }
     }
+    
+    func testAnyDatabaseWriter() {
+        // This test passes if this code compiles.
+        let writer: DatabaseWriter = DatabaseQueue()
+        let _: DatabaseWriter = AnyDatabaseWriter(writer)
+    }
 }

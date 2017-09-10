@@ -123,6 +123,8 @@ New features have been added in order to plug a few holes and support the [RxGRD
     let strings = try Set(String.fetchCursor(...))
     ```
 
+- The new `AnyDatabaseReader` and `AnyDatabaseWriter` type erasers help dealing with the `DatabaseReader` and `DatabaseWriter` protocols.
+
 
 ### Breaking Changes
 
@@ -305,6 +307,13 @@ New features have been added in order to plug a few holes and support the [RxGRD
  extension TableMapping {
 -    @available(*, deprecated) static func primaryKeyRowComparator(_ db: Database) throws -> (Row, Row) -> Bool
  }
+
++final class AnyDatabaseReader : DatabaseReader {
++     init(_ base: DatabaseReader)
++}
++final class AnyDatabaseWriter : DatabaseWriter {
++     init(_ base: DatabaseWriter)
++}
 ```
 
 ### Experimental API diff

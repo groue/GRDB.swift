@@ -123,3 +123,56 @@ extension DatabaseWriter {
         write { $0.remove(transactionObserver: transactionObserver) }
     }
 }
+
+/// A type-erased DatabaseWriter
+///
+/// Instances of AnyDatabaseWriter forward their methods to an arbitrary
+/// underlying database writer.
+public final class AnyDatabaseWriter : DatabaseWriter {
+    private let base: DatabaseWriter
+    
+    /// Creates a database writer that wraps a base database writer.
+    public init(_ base: DatabaseWriter) {
+        self.base = base
+    }
+    
+    public func read<T>(_ block: (Database) throws -> T) throws -> T {
+        return try base.read(block)
+    }
+
+    public func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T {
+        return try base.unsafeRead(block)
+    }
+
+    public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
+        return try base.unsafeReentrantRead(block)
+    }
+
+    public func add(function: DatabaseFunction) {
+        base.add(function: function)
+    }
+
+    public func remove(function: DatabaseFunction) {
+        base.remove(function: function)
+    }
+
+    public func add(collation: DatabaseCollation) {
+        base.add(collation: collation)
+    }
+
+    public func remove(collation: DatabaseCollation) {
+        base.remove(collation: collation)
+    }
+
+    public func write<T>(_ block: (Database) throws -> T) rethrows -> T {
+        return try base.write(block)
+    }
+
+    public func unsafeReentrantWrite<T>(_ block: (Database) throws -> T) rethrows -> T {
+        return try base.unsafeReentrantWrite(block)
+    }
+
+    public func readFromCurrentState(_ block: @escaping (Database) -> Void) throws {
+        try base.readFromCurrentState(block)
+    }
+}
