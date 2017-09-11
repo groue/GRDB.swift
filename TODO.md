@@ -16,6 +16,7 @@
 GRDB 2.0
 
 - [ ] Document Record.updateChanges(_:)
+- [ ] WIP on diff algorithms in RxGRDB needs access to MutablePersistable.databaseDictionary. The problem is that one should not need a writing protocol just to read. So consider introducing a new DatabaseEncodable protocol above MutablePersistable. It does not grant any writing methods. But it has encode(to:) and databaseDictionary.
 
 Not sure
 
