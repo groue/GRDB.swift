@@ -311,9 +311,8 @@ public protocol MutablePersistable : TableMapping {
 }
 
 extension MutablePersistable {
-    /// Returns a dictionary whose keys are the columns encoded in the
-    /// `encode(to:)` method.
-    public func databaseDictionary() -> [String: DatabaseValue] {
+    /// A dictionary whose keys are the columns encoded in the `encode(to:)` method.
+    public var databaseDictionary: [String: DatabaseValue] {
         return PersistenceContainer(self).storage.mapValues { $0?.databaseValue ?? .null }
     }
 }

@@ -2647,6 +2647,7 @@ This is the list of record methods, along with their required protocols. The [Re
 | `try record.save(db)` | [Persistable](#persistable-protocol) | |
 | `try record.update(db)` | [Persistable](#persistable-protocol) | |
 | `try record.update(db, columns: ...)` | [Persistable](#persistable-protocol) | |
+| `record.databaseDictionary` | [Persistable](#persistable-protocol) | |
 | **Checking Record Existence** | | |
 | `record.exists(db)` | [Persistable](#persistable-protocol) | |
 | **Deleting Records** | | |

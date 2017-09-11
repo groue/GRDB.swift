@@ -89,7 +89,7 @@ New features have been added in order to plug a few holes and support the [RxGRD
     
     ```swift
     let player = try Player.fetchOne(db, key: 1)
-    let dict = player.databaseDictionary() // [String: DatabaseValue]
+    let dict = player.databaseDictionary // [String: DatabaseValue]
     print(dict)
     // Prints {"id": 1, "name": "Arthur", "score": 1000}
     ```
@@ -209,6 +209,10 @@ New features have been added in order to plug a few holes and support the [RxGRD
  class SelectStatement {
 +    func index(ofColumn columnName: String) -> Int?
  }
+ 
++extension MutablePersistable {
++    var databaseDictionary: [String: DatabaseValue]
++}
  
 -extension TableMapping {
 +extension MutablePersistable {
