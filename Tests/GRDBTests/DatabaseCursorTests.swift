@@ -64,10 +64,11 @@ class DatabaseCursorTests: GRDBTestCase {
                 _ = try cursor.next()
                 XCTFail()
             } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode.rawValue, 0xAD)
                 XCTAssertEqual(error.extendedResultCode.rawValue, 0xDEAD)
                 XCTAssertEqual(error.message, "custom error")
                 XCTAssertEqual(error.sql!, "SELECT throw()")
-                XCTAssertEqual(error.description, "SQLite error 57005 with statement `SELECT throw()`: custom error")
+                XCTAssertEqual(error.description, "SQLite error 173 with statement `SELECT throw()`: custom error")
             }
         }
     }

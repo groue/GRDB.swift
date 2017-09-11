@@ -223,7 +223,7 @@ public struct DatabaseError : Error {
 extension DatabaseError: CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
-        var description = "SQLite error \(extendedResultCode.rawValue)"
+        var description = "SQLite error \(resultCode.rawValue)"
         if let sql = sql {
             description += " with statement `\(sql)`"
         }
