@@ -31,12 +31,16 @@ try dbQueue.inDatabase { db in
 
 // Define the Player subclass of GRDB's Record.
 //
-// Record provides change tracking that helps avoiding useless
-// UPDATE statements.
+// Record provides change tracking that helps avoiding useless UPDATE statements.
 class Player : Record {
     var id: Int64
     var name: String
     var score: Int
+    
+    convenience init(json: [String : Any]) {
+        // For convenience, assume JSON keys are database columns, and reuse row initializer
+        self.init(row: Row(json)!)
+    }
     
     func update(from json: [String: Any]) {
         id = json["id"] as! Int64
@@ -104,8 +108,7 @@ func synchronizePlayers(with jsonString: String, in db: Database) throws {
             try player.delete(db)
         case .right(let jsonPlayer):
             // Insert JSON player without matching database player:
-            let row = Row(jsonPlayer)! // Assume JSON keys are database columns
-            let player = Player(row: row)
+            let player = Player(json: jsonPlayer)
             try player.insert(db)
         case .common(let player, let jsonPlayer):
             // Update database player with its JSON counterpart:
