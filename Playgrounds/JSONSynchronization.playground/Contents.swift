@@ -76,7 +76,7 @@ func synchronizePlayers(with jsonString: String, in db: Database) throws {
     
     // A support function that extracts an ID from a JSON player.
     func jsonPlayerId(_ jsonPlayer: [String: Any]) -> Int64 {
-        return (jsonPlayer["id"] as! NSNumber).int64Value
+        return jsonPlayer["id"] as! Int64
     }
     
     // Sort JSON players by id:
@@ -126,13 +126,12 @@ do {
     }
     """
     print("---\nImport \(jsonString)")
-    try dbQueue.inTransaction { db in
+    try dbQueue.inDatabase { db in
         // SELECT * FROM players ORDER BY id
         // INSERT INTO "players" ("id", "name", "score") VALUES (1,'Arthur',1000)
         // INSERT INTO "players" ("id", "name", "score") VALUES (2,'Barbara',2000)
         // INSERT INTO "players" ("id", "name", "score") VALUES (3,'Craig',500)
         try synchronizePlayers(with: jsonString, in: db)
-        return .commit
     }
 }
 
@@ -147,12 +146,11 @@ do {
     }
     """
     print("---\nImport \(jsonString)")
-    try dbQueue.inTransaction { db in
+    try dbQueue.inDatabase { db in
         // SELECT * FROM players ORDER BY id
         // DELETE FROM "players" WHERE "id"=1
         // UPDATE "players" SET "score"=3000 WHERE "id"=2
         // INSERT INTO "players" ("id", "name", "score") VALUES (4,'Daniel',1500)
         try synchronizePlayers(with: jsonString, in: db)
-        return .commit
     }
 }
