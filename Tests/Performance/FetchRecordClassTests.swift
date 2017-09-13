@@ -1,7 +1,7 @@
 import XCTest
 import SQLite3
 import GRDB
-#if GRBD_COMPARE
+#if GRDB_COMPARE
 import SQLite
 import CoreData
 import RealmSwift
@@ -83,7 +83,7 @@ class FetchRecordClassTests: XCTestCase {
         }
     }
     
-    #if GRBD_COMPARE
+    #if GRDB_COMPARE
     func testCoreData() throws {
         let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceCoreDataTests", ofType: "sqlite")!
         let modelURL = Bundle(for: type(of: self)).url(forResource: "PerformanceModel", withExtension: "momd")!

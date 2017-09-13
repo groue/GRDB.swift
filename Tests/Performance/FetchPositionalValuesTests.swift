@@ -1,7 +1,7 @@
 import XCTest
 import SQLite3
 import GRDB
-#if GRBD_COMPARE
+#if GRDB_COMPARE
 import SQLite
 #endif
 
@@ -80,7 +80,7 @@ class FetchPositionalValuesTests: XCTestCase {
         }
     }
     
-    #if GRBD_COMPARE
+    #if GRDB_COMPARE
     func testFMDB() {
         let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
         let dbQueue = FMDatabaseQueue(path: databasePath)

@@ -1,7 +1,7 @@
 import XCTest
 import SQLite3
 import GRDB
-#if GRBD_COMPARE
+#if GRDB_COMPARE
 import SQLite
 import CoreData
 import RealmSwift
@@ -83,7 +83,7 @@ class FetchRecordStructTests: XCTestCase {
         }
     }
     
-    #if GRBD_COMPARE
+    #if GRDB_COMPARE
     func testFMDB() {
         // Here we test the loading of an array of Records.
         

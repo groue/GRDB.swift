@@ -1,6 +1,6 @@
 import XCTest
 import GRDB
-#if GRBD_COMPARE
+#if GRDB_COMPARE
 import SQLite
 #endif
 
@@ -40,7 +40,7 @@ class InsertNamedValuesTests: XCTestCase {
         }
     }
     
-    #if GRBD_COMPARE
+    #if GRDB_COMPARE
     func testFMDB() {
         let databaseFileName = "GRDBPerformanceTests-\(ProcessInfo.processInfo.globallyUniqueString).sqlite"
         let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)

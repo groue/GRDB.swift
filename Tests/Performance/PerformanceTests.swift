@@ -1,5 +1,5 @@
 import GRDB
-#if GRBD_COMPARE
+#if GRDB_COMPARE
 import SQLite
 import RealmSwift
 #endif
@@ -43,6 +43,19 @@ struct ItemStruct : RowConvertible {
         i7 = row["i7"]
         i8 = row["i8"]
         i9 = row["i9"]
+    }
+
+    init(dictionary: [AnyHashable: Any]) {
+        i0 = dictionary["i0"] as! Int
+        i1 = dictionary["i1"] as! Int
+        i2 = dictionary["i2"] as! Int
+        i3 = dictionary["i3"] as! Int
+        i4 = dictionary["i4"] as! Int
+        i5 = dictionary["i5"] as! Int
+        i6 = dictionary["i6"] as! Int
+        i7 = dictionary["i7"] as! Int
+        i8 = dictionary["i8"] as! Int
+        i9 = dictionary["i9"] as! Int
     }
 }
 
@@ -104,7 +117,7 @@ class ItemClass : Record {
     }
 }
 
-#if GRBD_COMPARE
+#if GRDB_COMPARE
 
 // MARK:- SQLite
 
@@ -145,16 +158,16 @@ extension ItemClass {
 // MARK: - Realm
 
 class RealmItem : RealmSwift.Object {
-    dynamic var i0: Int = 0
-    dynamic var i1: Int = 0
-    dynamic var i2: Int = 0
-    dynamic var i3: Int = 0
-    dynamic var i4: Int = 0
-    dynamic var i5: Int = 0
-    dynamic var i6: Int = 0
-    dynamic var i7: Int = 0
-    dynamic var i8: Int = 0
-    dynamic var i9: Int = 0
+    @objc dynamic var i0: Int = 0
+    @objc dynamic var i1: Int = 0
+    @objc dynamic var i2: Int = 0
+    @objc dynamic var i3: Int = 0
+    @objc dynamic var i4: Int = 0
+    @objc dynamic var i5: Int = 0
+    @objc dynamic var i6: Int = 0
+    @objc dynamic var i7: Int = 0
+    @objc dynamic var i8: Int = 0
+    @objc dynamic var i9: Int = 0
 
     convenience init(i0: Int, i1: Int, i2: Int, i3: Int, i4: Int, i5: Int, i6: Int, i7: Int, i8: Int, i9: Int) {
         self.init()
