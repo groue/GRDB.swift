@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
 	s.watchos.deployment_target = '2.0'
 	
 	s.pod_target_xcconfig = { 'SWIFT_VERSION' => '4.0' }
-	s.source_files = 'GRDB/**/*.swift', 'Support/*.{c,h}'
+	s.source_files = 'GRDB/**/*.swift', 'Support/*.h'
 	s.module_map = 'Support/module.modulemap'
 	s.framework = 'Foundation'
 	s.library = 'sqlite3'

@@ -48,12 +48,9 @@ MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=8.1"
 
 ifeq ($(XCODEVERSION),9.0)
   # xcodebuild destination to run tests on latest iOS (Xcode 9.0)
-  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 7,OS=11.0"
-else ifeq ($(XCODEVERSION),8.3)
-  # xcodebuild destination to run tests on latest iOS (Xcode 8.3.3)
-  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 7,OS=10.3.1"
+  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=11.0"
 else
-  # Xcode < 8.3 is not supported
+  # Xcode < 9.0 is not supported
 endif
 
 # If xcpretty is available, use it for xcodebuild output

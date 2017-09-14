@@ -14,12 +14,12 @@ Pod::Spec.new do |s|
 	s.watchos.deployment_target = '2.0'
 	
 	s.pod_target_xcconfig = { 'SWIFT_VERSION' => '4.0' }
-	s.source_files = 'GRDB/**/*.swift', 'SQLCipher/*.h', 'Support/grdb_config.{c,h}'
+	s.source_files = 'GRDB/**/*.swift', 'SQLCipher/*.h', 'Support/grdb_config.h'
 	s.module_map = 'SQLCipher/module.modulemap'
 	s.xcconfig = {
-		'OTHER_SWIFT_FLAGS' => '$(inherited) -DSQLITE_HAS_CODEC -DGRDBCIPHER',
+		'OTHER_SWIFT_FLAGS' => '$(inherited) -D SQLITE_HAS_CODEC -D GRDBCIPHER',
 		'OTHER_CFLAGS' => '$(inherited) -DSQLITE_HAS_CODEC -DGRDBCIPHER',
-		'GCC_PREPROCESSOR_DEFINITIONS' => '$(inherited) SQLITE_HAS_CODEC=1'
+		'GCC_PREPROCESSOR_DEFINITIONS' => '$(inherited) SQLITE_HAS_CODEC=1 GRDBCIPHER=1'
 	}
 	s.framework = 'Foundation'
 	s.dependency 'SQLCipher', '~> 3.4.1'
