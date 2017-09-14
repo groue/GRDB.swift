@@ -303,6 +303,11 @@ endif
 distclean:
 	$(GIT) reset --hard
 	$(GIT) clean -dffx .
+	rm -rf Tests/Performance/fmdb && $(GIT) checkout -- Tests/Performance/fmdb
+	rm -rf Tests/Performance/SQLite.swift && $(GIT) checkout -- Tests/Performance/SQLite.swift
+	rm -rf Tests/Performance/Realm && $(GIT) checkout -- Tests/Performance/Realm
+	rm -rf SQLCipher/src && $(GIT) checkout -- SQLCipher/src
+	rm -rf SQLiteCustom/src && $(GIT) checkout -- SQLiteCustom/src
 
 clean:
 	$(SWIFT) package reset
