@@ -301,16 +301,8 @@ endif
 # =======
 
 distclean:
-	( if [ -a .build ] && [ -a Package.resolved ]; then $(SWIFT) package reset; fi )
-	cd Tests/SPM && ( if  [ -a .build ] && [ -a Package.resolved ]; then $(SWIFT) package reset; fi )
-	rm -rf Documentation/Reference
-	rm -rf Tests/Performance/fmdb && $(GIT) checkout -- Tests/Performance/fmdb
-	rm -rf Tests/Performance/SQLite.swift && $(GIT) checkout -- Tests/Performance/SQLite.swift
-	rm -rf Tests/Performance/Realm && $(GIT) checkout -- Tests/Performance/Realm
-	rm -rf SQLCipher/src && $(GIT) checkout -- SQLCipher/src
-	rm -rf SQLiteCustom/src && $(GIT) checkout -- SQLiteCustom/src
-	find . -name xcuserdata | xargs rm -rf
-	find . -name Package.resolved | xargs rm -f
+	$(GIT) reset --hard
+	$(GIT) clean -dffx .
 
 clean:
 	$(SWIFT) package reset
