@@ -23,7 +23,7 @@ class DatabaseQueueSchemaCacheTests : GRDBTestCase {
         
         try dbQueue.inDatabase { db in
             // Warm cache
-            let primaryKey = try db.primaryKey("items")!
+            let primaryKey = try db.primaryKey("items")
             XCTAssertEqual(primaryKey.rowIDColumn, "id")
             
             // Assert that cache is warmed

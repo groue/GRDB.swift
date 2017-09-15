@@ -422,11 +422,9 @@ public final class TableDefinition {
                         chunks.append("\(table.quotedDatabaseIdentifier)(\((destinationColumns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
                     } else if table == name {
                         chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKeyColumns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
-                    } else if let primaryKey = try db.primaryKey(table) {
-                        chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKey.columns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
                     } else {
-                        // Programmer error
-                        fatalError("explicit referenced column(s) required, since table \(table) has no primary key")
+                        let primaryKey = try db.primaryKey(table)
+                        chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKey.columns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
                     }
                     if let deleteAction = deleteAction {
                         chunks.append("ON DELETE")
@@ -815,11 +813,11 @@ public final class ColumnDefinition {
                 chunks.append("\(table.quotedDatabaseIdentifier)(\(column.quotedDatabaseIdentifier))")
             } else if table.lowercased() == tableName.lowercased() {
                 // implicit autoreference
-                let primaryKeyColumns = try primaryKeyColumns ?? db.primaryKey(table)?.columns ?? [Column.rowID.name]
+                let primaryKeyColumns = try primaryKeyColumns ?? db.primaryKey(table).columns
                 chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKeyColumns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
             } else {
                 // implicit external reference
-                let primaryKeyColumns = try db.primaryKey(table)?.columns ?? [Column.rowID.name]
+                let primaryKeyColumns = try db.primaryKey(table).columns
                 chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKeyColumns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
             }
             if let deleteAction = deleteAction {

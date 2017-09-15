@@ -33,7 +33,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
         
         try dbPool.read { db in
             // Warm cache in a reader
-            let primaryKey = try db.primaryKey("items")!
+            let primaryKey = try db.primaryKey("items")
             XCTAssertEqual(primaryKey.rowIDColumn, "id")
             
             let columns = try db.columns(in: "items")

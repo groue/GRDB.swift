@@ -483,12 +483,7 @@ extension FetchedRecordsController where Record: TableMapping {
         // non-null value.
         let itemsAreIdenticalFactory: ItemComparatorFactory<Record> = { db in
             // Extract primary key columns from database table
-            let columns: [String]
-            if let primaryKey = try db.primaryKey(Record.databaseTableName) {
-                columns = primaryKey.columns
-            } else {
-                columns = [Column.rowID.name]
-            }
+            let columns = try db.primaryKey(Record.databaseTableName).columns
             
             // Compare primary keys
             assert(!columns.isEmpty)

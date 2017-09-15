@@ -415,7 +415,7 @@ extension MutablePersistable {
     /// Return true if record has a non-null primary key
     fileprivate func canUpdate(_ db: Database) throws -> Bool {
         let databaseTableName = type(of: self).databaseTableName
-        let primaryKey = try db.primaryKey(databaseTableName) ?? PrimaryKeyInfo.hiddenRowID
+        let primaryKey = try db.primaryKey(databaseTableName)
         let container = PersistenceContainer(self)
         for column in primaryKey.columns {
             if let value = container[caseInsensitive: column], !value.databaseValue.isNull {
@@ -807,7 +807,7 @@ final class DAO {
     
     init(_ db: Database, _ record: MutablePersistable) throws {
         let databaseTableName = type(of: record).databaseTableName
-        let primaryKey = try db.primaryKey(databaseTableName) ?? PrimaryKeyInfo.hiddenRowID
+        let primaryKey = try db.primaryKey(databaseTableName)
         let persistenceContainer = PersistenceContainer(record)
         
         GRDBPrecondition(!persistenceContainer.isEmpty, "\(type(of: record)): invalid empty persistence container")

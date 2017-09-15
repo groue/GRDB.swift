@@ -95,7 +95,7 @@ public struct FTS4 : VirtualTableModule {
         case .synchronized(let contentTable):
             // https://www.sqlite.org/fts3.html#_external_content_fts4_tables_
             
-            let rowIDColumn = (try? db.primaryKey(contentTable))??.rowIDColumn ?? "rowid"
+            let rowIDColumn = try db.primaryKey(contentTable).rowIDColumn ?? Column.rowID.name
             let ftsTable = tableName.quotedDatabaseIdentifier
             let content = contentTable.quotedDatabaseIdentifier
             let indexedColumns = definition.columns.map { $0.name }

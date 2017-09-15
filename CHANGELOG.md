@@ -45,10 +45,6 @@ Release Notes
     }
     ```
 
-- **Record protocols have more precise semantics**: RowConvertible *reads database rows*, TableMapping *builds SQL requests*, and Persistable *writes* ([documentation](https://github.com/groue/GRDB.swift#record-protocols-overview)).
-    
-    This means that with GRDB 2.0, being able to write `Player.fetchAll(db)` does not imply that `Player.deleteAll(db)` is available: you have a better control on the abilities of your record types.
-
 - **Records can now specify the columns they feed from** ([documentation](https://github.com/groue/GRDB.swift#columns-selected-by-a-request)).
     
     In previous versions of GRDB, `SELECT *` was the norm. GRDB 2.0 introduces `databaseSelection`, which allows any type to define its preferred set of columns:
@@ -75,6 +71,10 @@ Release Notes
     // SELECT id, name FROM players
     let players = Player.fetchAll(db)
     ```
+
+- **Record protocols have more precise semantics**: RowConvertible *reads database rows*, TableMapping *builds SQL requests*, and Persistable *writes* ([documentation](https://github.com/groue/GRDB.swift#record-protocols-overview)).
+    
+    This means that with GRDB 2.0, being able to write `Player.fetchAll(db)` does not imply that `Player.deleteAll(db)` is available: you have a better control on the abilities of your record types.
 
 
 ### Fixed
@@ -162,9 +162,11 @@ New features have been added in order to plug a few holes and support the [RxGRD
     
     If your application has code that depends on `DatabaseCursor`, make it target the new concrete types, or make it generic on the `Cursor` protocol, just like you'd write generic methods on the Swift `Sequence` protocol.
 
-- The deprecated `TableMapping.primaryKeyRowComparator` method has been removed.
-
 - `RowConvertible.fetchCursor(_:keys:)` returns a non-optional cursor.
+
+- `Database.primaryKey(_:)` returns a non-optional PrimaryKeyInfo. When a table has no explicit primary key, the result is the hidden rowid column.
+
+- The deprecated `TableMapping.primaryKeyRowComparator` method has been removed.
 
 
 ### Documentation diff
@@ -238,6 +240,14 @@ New features have been added in order to plug a few holes and support the [RxGRD
 +struct AllColumns {
 +    init()
 +}
+
+ class Database {
+-    func primaryKey(_ tableName: String) throws -> PrimaryKeyInfo?
++    func primaryKey(_ tableName: String) throws -> PrimaryKeyInfo
+ }
+ struct PrimaryKeyInfo {
++    var isRowID: Bool { get }
+ }
 
 +extension Set {
 +    init<C: Cursor>(_ cursor: C) throws where C.Element == Element

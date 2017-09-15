@@ -1075,11 +1075,14 @@ extension Database {
         return try Row.fetchOne(self, "SELECT 1 FROM (SELECT sql, type, name FROM sqlite_master UNION SELECT sql, type, name FROM sqlite_temp_master) WHERE type = 'table' AND LOWER(name) = ?", arguments: [tableName.lowercased()]) != nil
     }
     
-    /// The primary key for table named `tableName`; nil if table has no
-    /// primary key.
+    /// The primary key for table named `tableName`.
+    ///
+    /// All tables have a primary key, even when it is not explicit. When a
+    /// table has no explicit primary key, the result is the hidden
+    /// "rowid" column.
     ///
     /// - throws: A DatabaseError if table does not exist.
-    public func primaryKey(_ tableName: String) throws -> PrimaryKeyInfo? {
+    public func primaryKey(_ tableName: String) throws -> PrimaryKeyInfo {
         SchedulingWatchdog.preconditionValidQueue(self)
         
         if let primaryKey = schemaCache.primaryKey(tableName) {
@@ -1112,15 +1115,15 @@ extension Database {
         
         let columns = try self.columns(in: tableName)
         
-        let primaryKey: PrimaryKeyInfo?
+        let primaryKey: PrimaryKeyInfo
         let pkColumns = columns
             .filter { $0.primaryKeyIndex > 0 }
             .sorted { $0.primaryKeyIndex < $1.primaryKeyIndex }
         
         switch pkColumns.count {
         case 0:
-            // No primary key column
-            primaryKey = nil
+            // No explicit primary key => primary key is hidden rowID column
+            primaryKey = .hiddenRowID
         case 1:
             // Single column
             let pkColumn = pkColumns.first!
@@ -1247,19 +1250,12 @@ extension Database {
     func columnsForUniqueKey<T: Sequence>(_ columns: T, in tableName: String) throws -> [String]? where T.Iterator.Element == String {
         let primaryKey = try self.primaryKey(tableName) // first, so that we fail early and consistently should the table not exist
         let lowercasedColumns = Set(columns.map { $0.lowercased() })
+        if Set(primaryKey.columns.map { $0.lowercased() }) == lowercasedColumns {
+            return primaryKey.columns
+        }
         if let index = try indexes(on: tableName).first(where: { index in index.isUnique && Set(index.columns.map { $0.lowercased() }) == lowercasedColumns }) {
             // There is an explicit unique index on the columns
             return index.columns
-        }
-        if let lowercasedColumn = lowercasedColumns.first, lowercasedColumns.count == 1 {
-            if let rowIDColumnName = primaryKey?.rowIDColumn, rowIDColumnName.lowercased() == lowercasedColumn {
-                // An explicit INTEGER PRIMARY KEY column is a unique key.
-                return [rowIDColumnName]
-            }
-            if try primaryKey == nil && ["rowid", "oid", "_rowid_"].contains(lowercasedColumn) && !self.columns(in: tableName).map({ $0.name.lowercased() }).contains(lowercasedColumn) {
-                // A rowid, oid or _rowid_ column is a unique key when there is no explicit primary key and the column is not already used.
-                return [lowercasedColumn]
-            }
         }
         return nil
     }
@@ -1301,7 +1297,7 @@ extension Database {
             
             let completeMapping: [(origin: String, destination: String)]
             if orderedMapping.contains(where: { (_, destination) in destination == nil }) {
-                let pk = try primaryKey(destinationTable)!
+                let pk = try primaryKey(destinationTable)
                 completeMapping = zip(pk.columns, orderedMapping).map { (pkColumn, arrow) in
                     (origin: arrow.origin, destination: pkColumn)
                 }
@@ -1366,41 +1362,45 @@ public struct IndexInfo {
     }
 }
 
-/// You get primary keys from table names, with the Database.primaryKey(_)
-/// method.
+/// Primary keys are returned from the Database.primaryKey(_:) method.
 ///
-/// Primary key is nil when table has no primary key:
+/// When the table's primary key is the rowid:
 ///
 ///     // CREATE TABLE items (name TEXT)
-///     let itemPk = try db.primaryKey("items") // nil
-///
-/// Primary keys have one or several columns. When the primary key has a single
-/// column, it may contain the row id:
+///     let pk = try db.primaryKey("items")
+///     pk.columns     // ["rowid"]
+///     pk.rowIDColumn // nil
+///     pk.isRowID     // true
 ///
 ///     // CREATE TABLE citizens (
 ///     //   id INTEGER PRIMARY KEY,
 ///     //   name TEXT
 ///     // )
-///     let citizenPk = try db.primaryKey("citizens")!
-///     citizenPk.columns     // ["id"]
-///     citizenPk.rowIDColumn // "id"
+///     let pk = try db.primaryKey("citizens")!
+///     pk.columns     // ["id"]
+///     pk.rowIDColumn // "id"
+///     pk.isRowID     // true
+///
+/// When the table's primary key is not the rowid:
 ///
 ///     // CREATE TABLE countries (
 ///     //   isoCode TEXT NOT NULL PRIMARY KEY
 ///     //   name TEXT
 ///     // )
-///     let countryPk = db.primaryKey("countries")!
-///     countryPk.columns     // ["isoCode"]
-///     countryPk.rowIDColumn // nil
+///     let pk = db.primaryKey("countries")!
+///     pk.columns     // ["isoCode"]
+///     pk.rowIDColumn // nil
+///     pk.isRowID     // false
 ///
 ///     // CREATE TABLE citizenships (
 ///     //   citizenID INTEGER NOT NULL REFERENCES citizens(id)
 ///     //   countryIsoCode TEXT NOT NULL REFERENCES countries(isoCode)
 ///     //   PRIMARY KEY (citizenID, countryIsoCode)
 ///     // )
-///     let citizenshipsPk = db.primaryKey("citizenships")!
-///     citizenshipsPk.columns     // ["citizenID", "countryIsoCode"]
-///     citizenshipsPk.rowIDColumn // nil
+///     let pk = db.primaryKey("citizenships")!
+///     pk.columns     // ["citizenID", "countryIsoCode"]
+///     pk.rowIDColumn // nil
+///     pk.isRowID     // false
 public struct PrimaryKeyInfo {
     private enum Impl {
         /// The hidden rowID.
@@ -1449,6 +1449,18 @@ public struct PrimaryKeyInfo {
             return column
         case .regular:
             return nil
+        }
+    }
+    
+    /// When true, the primary key is the rowid:
+    public var isRowID: Bool {
+        switch impl {
+        case .hiddenRowID:
+            return true
+        case .rowID(let column):
+            return true
+        case .regular:
+            return false
         }
     }
 }
