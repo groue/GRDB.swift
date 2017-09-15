@@ -1457,7 +1457,7 @@ public struct PrimaryKeyInfo {
         switch impl {
         case .hiddenRowID:
             return true
-        case .rowID(let column):
+        case .rowID:
             return true
         case .regular:
             return false
