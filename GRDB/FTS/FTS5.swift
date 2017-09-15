@@ -62,7 +62,7 @@
                 }
             case .synchronized(let contentTable):
                 arguments.append("content=\(contentTable.sqlExpression.sql)")
-                if let rowIDColumn = try db.primaryKey(contentTable)?.rowIDColumn {
+                if let rowIDColumn = try db.primaryKey(contentTable).rowIDColumn {
                     arguments.append("content_rowid=\(rowIDColumn.sqlExpression.sql)")
                 }
             }
@@ -93,7 +93,7 @@
             case .synchronized(let contentTable):
                 // https://sqlite.org/fts5.html#external_content_tables
                 
-                let rowIDColumn = (try? db.primaryKey(contentTable))??.rowIDColumn ?? "rowid"
+                let rowIDColumn = try db.primaryKey(contentTable).rowIDColumn ?? Column.rowID.name
                 let ftsTable = tableName.quotedDatabaseIdentifier
                 let content = contentTable.quotedDatabaseIdentifier
                 let indexedColumns = definition.columns.map { $0.name }
