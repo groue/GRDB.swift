@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
 	s.name     = 'GRDBCipher'
-	s.version  = '2.0.0-alpha.1'
+	s.version  = '2.0'
 	
 	s.license  = { :type => 'MIT', :file => 'LICENSE' }
 	s.summary  = 'A Swift application toolkit for SQLite databases.'
@@ -13,7 +13,6 @@ Pod::Spec.new do |s|
 	s.osx.deployment_target = '10.9'
 	s.watchos.deployment_target = '2.0'
 	
-	s.pod_target_xcconfig = { 'SWIFT_VERSION' => '4.0' }
 	s.source_files = 'GRDB/**/*.swift', 'SQLCipher/*.h', 'Support/grdb_config.h'
 	s.module_map = 'SQLCipher/module.modulemap'
 	s.xcconfig = {

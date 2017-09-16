@@ -1,7 +1,9 @@
 Release Notes
 =============
 
-## Next Version
+## 2.0
+
+Released September 16, 2017
 
 **GRDB 2.0 brings support for Swift 4.** Notable changes are:
 
@@ -80,6 +82,7 @@ Release Notes
 ### Fixed
 
 - GRDB is now able to store and load zero-length blobs.
+
 
 ### New
 
