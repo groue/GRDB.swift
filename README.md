@@ -3,11 +3,18 @@ GRDB 2.0 [![Swift](https://img.shields.io/badge/swift-4-orange.svg?style=flat)](
 
 ### A toolkit for SQLite databases, with a focus on application development
 
-**Latest release**: [CHANGELOG](CHANGELOG.md)
+**Latest release**: September 16, 2017 • version 2.0 • [CHANGELOG](CHANGELOG.md)
 
 **Requirements**: iOS 8.0+ / OSX 10.9+ / watchOS 2.0+ &bull; Swift 4.0 / Xcode 9+
 
-**Other Swift versions**: For Swift 2.2 and Xcode 7.3, use [v0.80.2](https://github.com/groue/GRDB.swift/tree/v0.80.2) &bull; Swift 2.3, Xcode 8.0: [v0.81.2](https://github.com/groue/GRDB.swift/tree/v0.81.2) &bull; Swift 3.0, Xcode 8.0: [v1.0](https://github.com/groue/GRDB.swift/tree/v1.0) &bull; Swift 3.1, Xcode 8.3: [v1.3](https://github.com/groue/GRDB.swift/tree/v1.3.0) &bull; Swift 3.2, Xcode 9 beta: [v1.3](https://github.com/groue/GRDB.swift/tree/v1.3.0)
+| Swift version | GRDB version                                                |
+| ------------- | ----------------------------------------------------------- |
+| Swift 2.2     | [v0.80.2](https://github.com/groue/GRDB.swift/tree/v0.80.2) |
+| Swift 2.3     | [v0.81.2](https://github.com/groue/GRDB.swift/tree/v0.81.2) |
+| Swift 3.0     | [v1.0](https://github.com/groue/GRDB.swift/tree/v1.0)       |
+| Swift 3.1     | [v1.3](https://github.com/groue/GRDB.swift/tree/v1.3.0)     |
+| Swift 3.2     | [v1.3](https://github.com/groue/GRDB.swift/tree/v1.3.0)     |
+| Swift 4       | [v2.0](https://github.com/groue/GRDB.swift/tree/v2.0)       |
 
 Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
