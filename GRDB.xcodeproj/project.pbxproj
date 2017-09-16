@@ -42,7 +42,7 @@
 		560A37AF1C90A8D800949E71 /* DatabasePoolCrashTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560A37AE1C90A8D800949E71 /* DatabasePoolCrashTests.swift */; };
 		560C97C81BFD0B8400BF8471 /* DatabaseFunctionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560C97C61BFD0B8400BF8471 /* DatabaseFunctionTests.swift */; };
 		560C98141C0E22D300BF8471 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC3773F319C8CBB3004FCF85 /* GRDB.framework */; };
-		560C98231C0E23BB00BF8471 /* InsertRecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BB86121BA9886D001F9168 /* InsertRecordTests.swift */; };
+		560C98231C0E23BB00BF8471 /* InsertRecordClassTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BB86121BA9886D001F9168 /* InsertRecordClassTests.swift */; };
 		560C98241C0E23BB00BF8471 /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CA22211BB41565009A04C5 /* PerformanceTests.swift */; };
 		560D92401C672C3E00F4F92B /* DatabaseValueConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560D923E1C672C3E00F4F92B /* DatabaseValueConvertible.swift */; };
 		560D92411C672C3E00F4F92B /* DatabaseValueConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560D923E1C672C3E00F4F92B /* DatabaseValueConvertible.swift */; };
@@ -326,7 +326,7 @@
 		5636E9C01D22574100B9B05F /* Request.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5636E9BB1D22574100B9B05F /* Request.swift */; };
 		5636E9C11D22574100B9B05F /* Request.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5636E9BB1D22574100B9B05F /* Request.swift */; };
 		56439B331F4CA1DC0066043F /* FMDatabase.m in Sources */ = {isa = PBXBuildFile; fileRef = 56BB86191BA988F2001F9168 /* FMDatabase.m */; };
-		56439B341F4CA1DC0066043F /* InsertRecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BB86121BA9886D001F9168 /* InsertRecordTests.swift */; };
+		56439B341F4CA1DC0066043F /* InsertRecordClassTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BB86121BA9886D001F9168 /* InsertRecordClassTests.swift */; };
 		56439B351F4CA1DC0066043F /* FMDatabaseAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 56BB861B1BA988F2001F9168 /* FMDatabaseAdditions.m */; };
 		56439B361F4CA1DC0066043F /* FetchRecordClassTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DE7B2B1C41311900861EB8 /* FetchRecordClassTests.swift */; };
 		56439B371F4CA1DC0066043F /* FMResultSet.m in Sources */ = {isa = PBXBuildFile; fileRef = 56BB86221BA988F2001F9168 /* FMResultSet.m */; };
@@ -1417,6 +1417,8 @@
 		56D507631F6BAE8600AE1C5B /* PrimaryKeyInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D5075D1F6BAE8600AE1C5B /* PrimaryKeyInfoTests.swift */; };
 		56D507641F6BAE8600AE1C5B /* PrimaryKeyInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D5075D1F6BAE8600AE1C5B /* PrimaryKeyInfoTests.swift */; };
 		56D507651F6BAE8600AE1C5B /* PrimaryKeyInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D5075D1F6BAE8600AE1C5B /* PrimaryKeyInfoTests.swift */; };
+		56D507831F6D7B2E00AE1C5B /* InsertRecordStructTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D507821F6D7A4500AE1C5B /* InsertRecordStructTests.swift */; };
+		56D507841F6D7B2F00AE1C5B /* InsertRecordStructTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D507821F6D7A4500AE1C5B /* InsertRecordStructTests.swift */; };
 		56D51D001EA789FA0074638A /* RowConvertible+TableMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D51CFF1EA789FA0074638A /* RowConvertible+TableMapping.swift */; };
 		56D51D011EA789FA0074638A /* RowConvertible+TableMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D51CFF1EA789FA0074638A /* RowConvertible+TableMapping.swift */; };
 		56D51D021EA789FA0074638A /* RowConvertible+TableMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D51CFF1EA789FA0074638A /* RowConvertible+TableMapping.swift */; };
@@ -2073,7 +2075,7 @@
 		5687359E1CEDE16C009B9116 /* Betty.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Betty.jpeg; sourceTree = "<group>"; };
 		56873BEB1F2CB400004D24B4 /* Fixits-1.2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Fixits-1.2.swift"; sourceTree = "<group>"; };
 		568BE5191CB035A900270F93 /* sqlite3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sqlite3.h; path = SQLCipher/src/sqlite3.h; sourceTree = "<group>"; };
-		568BE51F1CB0360500270F93 /* GRDB.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = GRDB.xcconfig; path = SQLCipher/GRDB.xcconfig; sourceTree = "<group>"; };
+		568BE51F1CB0360500270F93 /* GRDBCipher.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = GRDBCipher.xcconfig; path = SQLCipher/GRDBCipher.xcconfig; sourceTree = "<group>"; };
 		568BE5201CB0360500270F93 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; name = module.modulemap; path = SQLCipher/module.modulemap; sourceTree = "<group>"; };
 		568E1CB71CB03847008D97A6 /* GRDBCipher-Bridging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "GRDBCipher-Bridging.h"; path = "SQLCipher/GRDBCipher-Bridging.h"; sourceTree = "<group>"; };
 		568E1CB81CB03847008D97A6 /* GRDBCipher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GRDBCipher.h; path = SQLCipher/GRDBCipher.h; sourceTree = "<group>"; };
@@ -2172,7 +2174,7 @@
 		56B964C21DA521450002DA19 /* FTS5TableBuilderTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS5TableBuilderTests.swift; sourceTree = "<group>"; };
 		56BB6EA81D3009B100A1CA52 /* SchedulingWatchdog.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SchedulingWatchdog.swift; sourceTree = "<group>"; };
 		56BB86111BA9886D001F9168 /* PerformanceTests.sqlite */ = {isa = PBXFileReference; lastKnownFileType = file; path = PerformanceTests.sqlite; sourceTree = "<group>"; };
-		56BB86121BA9886D001F9168 /* InsertRecordTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InsertRecordTests.swift; sourceTree = "<group>"; };
+		56BB86121BA9886D001F9168 /* InsertRecordClassTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InsertRecordClassTests.swift; sourceTree = "<group>"; };
 		56BB86181BA988F2001F9168 /* FMDatabase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FMDatabase.h; sourceTree = "<group>"; };
 		56BB86191BA988F2001F9168 /* FMDatabase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FMDatabase.m; sourceTree = "<group>"; };
 		56BB861A1BA988F2001F9168 /* FMDatabaseAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FMDatabaseAdditions.h; sourceTree = "<group>"; };
@@ -2208,6 +2210,7 @@
 		56D121591ED34978001347D2 /* Fixits-0.109.0.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Fixits-0.109.0.swift"; sourceTree = "<group>"; };
 		56D3BE701F4EB1900034C6D2 /* FetchRecordStructTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchRecordStructTests.swift; sourceTree = "<group>"; };
 		56D5075D1F6BAE8600AE1C5B /* PrimaryKeyInfoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimaryKeyInfoTests.swift; sourceTree = "<group>"; };
+		56D507821F6D7A4500AE1C5B /* InsertRecordStructTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsertRecordStructTests.swift; sourceTree = "<group>"; };
 		56D51CFF1EA789FA0074638A /* RowConvertible+TableMapping.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "RowConvertible+TableMapping.swift"; sourceTree = "<group>"; };
 		56DAA2D11DE99DAB006E10C8 /* DatabaseCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseCursorTests.swift; sourceTree = "<group>"; };
 		56DAA2DA1DE9C827006E10C8 /* Cursor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Cursor.swift; sourceTree = "<group>"; };
@@ -2494,7 +2497,7 @@
 		560FC54F1CB0047D0014AA8E /* GRDBCipher */ = {
 			isa = PBXGroup;
 			children = (
-				568BE51F1CB0360500270F93 /* GRDB.xcconfig */,
+				568BE51F1CB0360500270F93 /* GRDBCipher.xcconfig */,
 				56C494411ED7269800CC72AF /* GRDBDeploymentTarget.xcconfig */,
 				568BE5201CB0360500270F93 /* module.modulemap */,
 				568BE5191CB035A900270F93 /* sqlite3.h */,
@@ -2911,7 +2914,8 @@
 				56D3BE701F4EB1900034C6D2 /* FetchRecordStructTests.swift */,
 				56DE7B251C412FDA00861EB8 /* InsertNamedValuesTests.swift */,
 				56DE7B231C412F7E00861EB8 /* InsertPositionalValuesTests.swift */,
-				56BB86121BA9886D001F9168 /* InsertRecordTests.swift */,
+				56BB86121BA9886D001F9168 /* InsertRecordClassTests.swift */,
+				56D507821F6D7A4500AE1C5B /* InsertRecordStructTests.swift */,
 				56CA22211BB41565009A04C5 /* PerformanceTests.swift */,
 				56B8C2401CA1758F00510325 /* Realm.framework */,
 				56B8C2411CA1758F00510325 /* RealmSwift.framework */,
@@ -3938,9 +3942,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				56D3BE711F4EB1A00034C6D2 /* FetchRecordStructTests.swift in Sources */,
-				560C98231C0E23BB00BF8471 /* InsertRecordTests.swift in Sources */,
+				560C98231C0E23BB00BF8471 /* InsertRecordClassTests.swift in Sources */,
 				56DE7B2C1C41311900861EB8 /* FetchRecordClassTests.swift in Sources */,
 				56DE7B281C41302500861EB8 /* FetchNamedValuesTests.swift in Sources */,
+				56D507831F6D7B2E00AE1C5B /* InsertRecordStructTests.swift in Sources */,
 				56DE7B241C412F7E00861EB8 /* InsertPositionalValuesTests.swift in Sources */,
 				560C98241C0E23BB00BF8471 /* PerformanceTests.swift in Sources */,
 				56DE7B261C412FDA00861EB8 /* InsertNamedValuesTests.swift in Sources */,
@@ -4181,12 +4186,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				56439B331F4CA1DC0066043F /* FMDatabase.m in Sources */,
-				56439B341F4CA1DC0066043F /* InsertRecordTests.swift in Sources */,
+				56439B341F4CA1DC0066043F /* InsertRecordClassTests.swift in Sources */,
 				56439B351F4CA1DC0066043F /* FMDatabaseAdditions.m in Sources */,
 				56439B361F4CA1DC0066043F /* FetchRecordClassTests.swift in Sources */,
 				56439B371F4CA1DC0066043F /* FMResultSet.m in Sources */,
 				56439B381F4CA1DC0066043F /* FetchNamedValuesTests.swift in Sources */,
 				56439B391F4CA1DC0066043F /* InsertPositionalValuesTests.swift in Sources */,
+				56D507841F6D7B2F00AE1C5B /* InsertRecordStructTests.swift in Sources */,
 				56439B3A1F4CA1DC0066043F /* FMDatabaseQueue.m in Sources */,
 				56439B3B1F4CA1DC0066043F /* FMDatabasePool.m in Sources */,
 				56439B3C1F4CA1DC0066043F /* PerformanceTests.swift in Sources */,
@@ -5849,7 +5855,7 @@
 		};
 		560FC54B1CB003810014AA8E /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 568BE51F1CB0360500270F93 /* GRDB.xcconfig */;
+			baseConfigurationReference = 568BE51F1CB0360500270F93 /* GRDBCipher.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -5869,7 +5875,7 @@
 		};
 		560FC54C1CB003810014AA8E /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 568BE51F1CB0360500270F93 /* GRDB.xcconfig */;
+			baseConfigurationReference = 568BE51F1CB0360500270F93 /* GRDBCipher.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -6083,7 +6089,7 @@
 		};
 		56AFCA211CB1A8BB00F48B96 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 568BE51F1CB0360500270F93 /* GRDB.xcconfig */;
+			baseConfigurationReference = 568BE51F1CB0360500270F93 /* GRDBCipher.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -6107,7 +6113,7 @@
 		};
 		56AFCA221CB1A8BB00F48B96 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 568BE51F1CB0360500270F93 /* GRDB.xcconfig */;
+			baseConfigurationReference = 568BE51F1CB0360500270F93 /* GRDBCipher.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;

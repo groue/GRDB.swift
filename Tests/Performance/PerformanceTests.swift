@@ -7,7 +7,7 @@ import RealmSwift
 
 // MARK:- GRDB
 
-struct ItemStruct : RowConvertible {
+struct ItemStruct : RowConvertible, Persistable {
     var i0: Int
     var i1: Int
     var i2: Int
@@ -43,6 +43,21 @@ struct ItemStruct : RowConvertible {
         i7 = row["i7"]
         i8 = row["i8"]
         i9 = row["i9"]
+    }
+    
+    static let databaseTableName = "items"
+    
+    func encode(to container: inout PersistenceContainer) {
+        container["i0"] = i0
+        container["i1"] = i1
+        container["i2"] = i2
+        container["i3"] = i3
+        container["i4"] = i4
+        container["i5"] = i5
+        container["i6"] = i6
+        container["i7"] = i7
+        container["i8"] = i8
+        container["i9"] = i9
     }
 
     init(dictionary: [AnyHashable: Any]) {

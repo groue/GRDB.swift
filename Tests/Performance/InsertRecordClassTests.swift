@@ -8,7 +8,7 @@ import RealmSwift
 private let insertedRowCount = 20_000
 
 // Here we insert records.
-class InsertRecordTests: XCTestCase {
+class InsertRecordClassTests: XCTestCase {
     
     func testGRDB() {
         let databaseFileName = "GRDBPerformanceTests-\(ProcessInfo.processInfo.globallyUniqueString).sqlite"

@@ -3,8 +3,6 @@ import SQLite3
 import GRDB
 #if GRDB_COMPARE
 import SQLite
-import CoreData
-import RealmSwift
 #endif
 
 private let expectedRowCount = 100_000
