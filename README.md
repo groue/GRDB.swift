@@ -6041,7 +6041,6 @@ FAQ
 - [How do I close a database connection?](#how-do-i-close-a-database-connection)
 - [How do I open a database stored as a resource of my application?](#how-do-i-open-a-database-stored-as-a-resource-of-my-application)
 - [Generic parameter 'T' could not be inferred](#generic-parameter-t-could-not-be-inferred)
-- [Compilation takes a long time](#compilation-takes-a-long-time)
 - [SQLite error 10 "disk I/O error", SQLite error 23 "not authorized"](#sqlite-error-10-disk-io-error-sqlite-error-23-not-authorized)
 - [What Are Experimental Features?](#what-are-experimental-features)
 
