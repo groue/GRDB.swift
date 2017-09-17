@@ -3,14 +3,14 @@ Release Notes
 
 ## 2.0.1
 
-Released September 17, 2017
+Released September 17, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.0...v2.0.1)
 
 **Fixed**: restored support for Swift Package Manager
 
 
 ## 2.0
 
-Released September 16, 2017
+Released September 16, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v1.3.0...v2.0)
 
 **GRDB 2.0 brings support for Swift 4.** Notable changes are:
 
@@ -352,7 +352,7 @@ New features have been added in order to plug a few holes and support the [RxGRD
 
 ## 1.3.0
 
-Released August 18, 2017
+Released August 18, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v1.2.2...v1.3.0)
 
 **New**
 
@@ -374,7 +374,7 @@ Released August 18, 2017
 
 ## 1.2.2
 
-Released July 20, 2017
+Released July 20, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v1.2.1...v1.2.2)
 
 **Fixed**
 
@@ -383,7 +383,7 @@ Released July 20, 2017
 
 ## 1.2.1
 
-Released July 19, 2017
+Released July 19, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v1.2...v1.2.1)
 
 **Fixed**
 
@@ -400,7 +400,7 @@ Released July 19, 2017
 
 ## 1.2
 
-Released July 13, 2017
+Released July 13, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v1.1...v1.2)
 
 **New**
 
@@ -499,7 +499,7 @@ Released July 13, 2017
 
 ## 1.1
 
-Released July 1, 2017
+Released July 1, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v1.0...v1.1)
 
 **New**
 
