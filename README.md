@@ -5178,7 +5178,7 @@ do {
     error.sql
     
     // Full error description:
-    // "SQLite error 787 with statement `INSERT INTO pets (masterId, name)
+    // "SQLite error 19 with statement `INSERT INTO pets (masterId, name)
     //  VALUES (?, ?)` arguments [1, "Bobby"]: FOREIGN KEY constraint failed""
     error.description
 }
