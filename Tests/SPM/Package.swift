@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "SPM",
     dependencies: [
-        .package(url: "https://github.com/groue/GRDB.swift.git", from: "1.2.0"),
+        .package(url: "https://github.com/groue/GRDB.swift.git", from: "2.0.1"),
     ],
     targets: [
         .target(name: "SPM", dependencies: ["GRDB"]),

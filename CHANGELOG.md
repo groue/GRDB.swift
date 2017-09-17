@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## 2.0.1
+
+Released September 17, 2017
+
+**Fixed**: restored support for Swift Package Manager
+
+
 ## 2.0
 
 Released September 16, 2017
