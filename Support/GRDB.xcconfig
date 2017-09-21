@@ -3,3 +3,6 @@ INFOPLIST_FILE = Support/Info.plist
 PRODUCT_NAME = GRDB
 PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.$(PRODUCT_NAME:rfc1034identifier)
 MODULEMAP_FILE = $(SRCROOT)/Support/module.modulemap
+
+// Slow compilation hunt:
+// OTHER_SWIFT_FLAGS = $(inherited) -Xfrontend -warn-long-expression-type-checking=100 -Xfrontend -warn-long-function-bodies=100
