@@ -2653,15 +2653,17 @@ This is the list of record methods, along with their required protocols. The [Re
 | `record.save(db)` | [Persistable](#persistable-protocol) | |
 | `record.update(db)` | [Persistable](#persistable-protocol) | |
 | `record.update(db, columns: ...)` | [Persistable](#persistable-protocol) | |
-| `record.databaseDictionary` | [Persistable](#persistable-protocol) | |
-| **Checking Record Existence** | | |
-| `record.exists(db)` | [Persistable](#persistable-protocol) | |
+| `record.updateChanges(db)` | [Record](#record-class) | |
 | **Deleting Records** | | |
 | `record.delete(db)` | [Persistable](#persistable-protocol) | |
 | `Type.deleteOne(db, key: ...)` | [Persistable](#persistable-protocol) | <a href="#list-of-record-methods-1">¹</a> |
 | `Type.deleteAll(db)` | [Persistable](#persistable-protocol) | |
 | `Type.deleteAll(db, keys: ...)` | [Persistable](#persistable-protocol) | <a href="#list-of-record-methods-1">¹</a> |
 | `Type.filter(...).deleteAll(db)` | [Persistable](#persistable-protocol) | <a href="#list-of-record-methods-2">²</a> |
+| **Checking Record Existence** | | |
+| `record.exists(db)` | [Persistable](#persistable-protocol) | |
+| **Convert Record to Dictionary** | | |
+| `record.databaseDictionary` | [Persistable](#persistable-protocol) | |
 | **Counting Records** | | |
 | `Type.fetchCount(db)` | [TableMapping](#tablemapping-protocol) | |
 | `Type.filter(...).fetchCount(db)` | [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
@@ -2686,7 +2688,6 @@ This is the list of record methods, along with their required protocols. The [Re
 | **Changes Tracking** | | |
 | `record.hasPersistentChangedValues` | [Record](#record-class) | |
 | `record.persistentChangedValues` | [Record](#record-class) | |
-| `record.updateChanges(db)` | [Record](#record-class) | |
 
 <a name="list-of-record-methods-1">¹</a> All unique keys are supported: primary keys (single-column, composite, [implicit RowID](#the-implicit-rowid-primary-key)) and unique indexes:
 
