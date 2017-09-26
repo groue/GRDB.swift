@@ -2649,19 +2649,19 @@ This is the list of record methods, along with their required protocols. The [Re
 | Method | Protocols | Notes |
 | ------ | --------- | :---: |
 | **Inserting and Updating Records** | | |
-| `try record.insert(db)` | [Persistable](#persistable-protocol) | |
-| `try record.save(db)` | [Persistable](#persistable-protocol) | |
-| `try record.update(db)` | [Persistable](#persistable-protocol) | |
-| `try record.update(db, columns: ...)` | [Persistable](#persistable-protocol) | |
+| `record.insert(db)` | [Persistable](#persistable-protocol) | |
+| `record.save(db)` | [Persistable](#persistable-protocol) | |
+| `record.update(db)` | [Persistable](#persistable-protocol) | |
+| `record.update(db, columns: ...)` | [Persistable](#persistable-protocol) | |
 | `record.databaseDictionary` | [Persistable](#persistable-protocol) | |
 | **Checking Record Existence** | | |
 | `record.exists(db)` | [Persistable](#persistable-protocol) | |
 | **Deleting Records** | | |
-| `try record.delete(db)` | [Persistable](#persistable-protocol) | |
-| `try Type.deleteOne(db, key: ...)` | [Persistable](#persistable-protocol) | <a href="#list-of-record-methods-1">¹</a> |
-| `try Type.deleteAll(db)` | [Persistable](#persistable-protocol) | |
-| `try Type.deleteAll(db, keys: ...)` | [Persistable](#persistable-protocol) | <a href="#list-of-record-methods-1">¹</a> |
-| `try Type.filter(...).deleteAll(db)` | [Persistable](#persistable-protocol) | <a href="#list-of-record-methods-2">²</a> |
+| `record.delete(db)` | [Persistable](#persistable-protocol) | |
+| `Type.deleteOne(db, key: ...)` | [Persistable](#persistable-protocol) | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.deleteAll(db)` | [Persistable](#persistable-protocol) | |
+| `Type.deleteAll(db, keys: ...)` | [Persistable](#persistable-protocol) | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.filter(...).deleteAll(db)` | [Persistable](#persistable-protocol) | <a href="#list-of-record-methods-2">²</a> |
 | **Counting Records** | | |
 | `Type.fetchCount(db)` | [TableMapping](#tablemapping-protocol) | |
 | `Type.filter(...).fetchCount(db)` | [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
