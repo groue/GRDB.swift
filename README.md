@@ -14,7 +14,7 @@ GRDB 2.0 [![Swift](https://img.shields.io/badge/swift-4-orange.svg?style=flat)](
 | Swift 3       | [v1.0](https://github.com/groue/GRDB.swift/tree/v1.0)       |
 | Swift 3.1     | [v1.3.0](https://github.com/groue/GRDB.swift/tree/v1.3.0)   |
 | Swift 3.2     | [v1.3.0](https://github.com/groue/GRDB.swift/tree/v1.3.0)   |
-| Swift 4       | [v2.0.1](https://github.com/groue/GRDB.swift/tree/v2.0.1)   |
+| **Swift 4**   | **v2.0.1**                                                  |
 
 Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
