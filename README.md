@@ -5268,7 +5268,7 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     let dbValue: DatabaseValue = row["date"]
     if dbValue.isNull {
         // Handle NULL
-    if let date = Date.fromDatabaseValue(dbValue) {
+    } else if let date = Date.fromDatabaseValue(dbValue) {
         // Handle valid date
     } else {
         // Handle invalid date
