@@ -27,6 +27,10 @@ Compared to [SQLite.swift](http://github.com/stephencelis/SQLite.swift) or [FMDB
 
 It comes with [up-to-date documentation](#documentation), [general articles](https://medium.com/@gwendal.roue), [sample code](#sample-code), and a lot of interesting resolved issues that may answer your eventual [questions](https://github.com/groue/GRDB.swift/issues?utf8=✓&q=is%3Aissue%20label%3Aquestion) and foster [best practices](https://github.com/groue/GRDB.swift/issues?q=is%3Aissue+label%3A%22best+practices%22).
 
+For more information, check out:
+
+- [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md) The reasons why GRDB could become your favorite database library.
+- [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3) The architecture of a GRDB-powered application.
 
 
 ---
@@ -65,8 +69,6 @@ More than a set of tools that leverage SQLite abilities, GRDB is also:
 
 - **Safer**: read the blog post [Four different ways to handle SQLite concurrency](https://medium.com/@gwendal.roue/four-different-ways-to-handle-sqlite-concurrency-db3bcc74d00e)
 - **Faster**: see [Comparing the Performances of Swift SQLite libraries](https://github.com/groue/GRDB.swift/wiki/Performance) for a comparison between raw SQLite, FMDB, SQLite.swift, Core Data, Realm, and GRDB.
-
-For a general overview of how a protocol-oriented library impacts database accesses, have a look at [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3).
 
 
 ## Usage
