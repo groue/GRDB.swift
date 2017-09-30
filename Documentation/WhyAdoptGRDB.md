@@ -207,7 +207,7 @@ let maximumScore: Int? = try Int.fetchOne(db, """
     SELECT MAX(score) FROM players
     """)
     
-let exAequoCount: Int = try Int.fetchOne(db, """
+let exAequoCount: Int? = try Int.fetchOne(db, """
     SELECT COUNT(*) FROM players WHERE score = ?
     """, arguments: [maximumScore])
 ```
