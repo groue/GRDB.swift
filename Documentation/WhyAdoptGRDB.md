@@ -10,7 +10,7 @@ We'll start with a few [core principles](#core-principles), so that you see wher
 
 ### It is generally easier to access a database through "record types".
 
-This is because a database row is not an easy type to deal with, and will never be, compared to a regular model. `player.name` looks and feels more natural than `playerRow[nameColumn]`, isn't it?
+This is because a database row is not an easy type to deal with, and will never be, compared to a regular model. `player.name` looks and feels more natural than `playerRow[nameColumn]`, doesn't it?
 
 The reputation of "active records" and ORMs has been tarnished by the recent focus on immutability, memory safety, and functional idioms that comes with languages like Swift and Rust. Features of 1st-generation records such as auto-updating, uniquing, lazy loading of relations, etc. are now considered harmful.
 
