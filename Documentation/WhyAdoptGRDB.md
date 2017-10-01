@@ -160,7 +160,7 @@ The more threats are handled by the application, the more skilled and careful a 
 | SQLite.swift | :white_check_mark: | Handled by the application | Handled by the application | UI is blocked when developer opts in for isolation and data consistency |
 | Core Data | Handled by the application, because of the constant threat of conflict errors | :white_check_mark: | Handled by the application, and it is very difficult because of the subtleties of Core Data's conflict policies | I honestly can't tell |
 | GRDB's DatabaseQueue | :white_check_mark: | :white_check_mark: | Handled by the application | UI is blocked |
-| GRDB's DatabasePool | :white_check_mark: | :white_check_mark: | Handled by the application | UI is not blocked unless the maximum number of readers has been reached |
+| GRDB's DatabasePool | :white_check_mark: | :white_check_mark: | Handled by the application | :white_check_mark: (as long as the maximum number of readers has not been reached) |
 
 I had to omit Realm and FCModel from the list, because I don't know them well enough. Yet I'd bet that Realm shares some behaviors with Core Data, and FCModel shares some behaviors with FMDatabaseQueue.
 
