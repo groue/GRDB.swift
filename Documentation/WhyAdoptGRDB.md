@@ -158,7 +158,7 @@ The more threats are handled by the application, the more skilled and careful a 
 | FMDB's FMDatabase | Handled by the application | Handled by the application | Handled by the application | Handled by the application |
 | FMDB's FMDatabaseQueue | :white_check_mark: | :white_check_mark: | Handled by the application | UI is blocked |
 | SQLite.swift | :white_check_mark: | Handled by the application | Handled by the application | Handled by the application |
-| Core Data | Handled by the application, because of the constant threat of conflict errors | :white_check_mark: | Handled by the application, and it is very difficult because of the subtleties of Core Data's conflict policies | I honestly can't tell |
+| Core Data | Handled by the application, because of the constant threat of conflict errors | :white_check_mark: | Handled by the application, and it is very difficult because of the subtleties of Core Data's conflict policies | Handled by the application |
 | GRDB's DatabaseQueue | :white_check_mark: | :white_check_mark: | Handled by the application | UI is blocked |
 | GRDB's DatabasePool | :white_check_mark: | :white_check_mark: | Handled by the application | :white_check_mark: (as long as the maximum number of readers has not been reached) |
 
