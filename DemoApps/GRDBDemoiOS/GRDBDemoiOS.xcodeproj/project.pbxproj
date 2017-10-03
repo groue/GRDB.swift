@@ -20,7 +20,7 @@
 		56B0360C1E8D9EBE003B6DA4 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 56B0360A1E8D9EBE003B6DA4 /* Main.storyboard */; };
 		56B0360E1E8D9EBE003B6DA4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 56B0360D1E8D9EBE003B6DA4 /* Assets.xcassets */; };
 		56B036111E8D9EBE003B6DA4 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 56B0360F1E8D9EBE003B6DA4 /* LaunchScreen.storyboard */; };
-		56B0361B1E8D9F38003B6DA4 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B036191E8D9F38003B6DA4 /* Database.swift */; };
+		56B0361B1E8D9F38003B6DA4 /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B036191E8D9F38003B6DA4 /* AppDatabase.swift */; };
 		56B0361C1E8D9F38003B6DA4 /* Person.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B0361A1E8D9F38003B6DA4 /* Person.swift */; };
 		56B036221E8D9F4C003B6DA4 /* DemoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B0361E1E8D9F4C003B6DA4 /* DemoViewController.swift */; };
 		56B036231E8D9F4C003B6DA4 /* PersonEditionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B0361F1E8D9F4C003B6DA4 /* PersonEditionViewController.swift */; };
@@ -31,6 +31,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		563BD2F01F8364C1006A5390 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 56439B501F4CA1DC0066043F;
+			remoteInfo = GRDBOSXPerformanceComparisonTests;
+		};
 		568E5FCD1E926430002582E0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 56B035FB1E8D9EBE003B6DA4 /* Project object */;
@@ -257,7 +264,7 @@
 		56B0360D1E8D9EBE003B6DA4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		56B036101E8D9EBE003B6DA4 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		56B036121E8D9EBE003B6DA4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		56B036191E8D9F38003B6DA4 /* Database.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
+		56B036191E8D9F38003B6DA4 /* AppDatabase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDatabase.swift; sourceTree = "<group>"; };
 		56B0361A1E8D9F38003B6DA4 /* Person.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Person.swift; sourceTree = "<group>"; };
 		56B0361E1E8D9F4C003B6DA4 /* DemoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DemoViewController.swift; sourceTree = "<group>"; };
 		56B0361F1E8D9F4C003B6DA4 /* PersonEditionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersonEditionViewController.swift; sourceTree = "<group>"; };
@@ -332,7 +339,7 @@
 			isa = PBXGroup;
 			children = (
 				56B036061E8D9EBE003B6DA4 /* AppDelegate.swift */,
-				56B036191E8D9F38003B6DA4 /* Database.swift */,
+				56B036191E8D9F38003B6DA4 /* AppDatabase.swift */,
 				56B0361A1E8D9F38003B6DA4 /* Person.swift */,
 				56B0361D1E8D9F3D003B6DA4 /* Controllers */,
 				56B0360A1E8D9EBE003B6DA4 /* Main.storyboard */,
@@ -360,6 +367,7 @@
 				56B0363B1E8D9F79003B6DA4 /* GRDB.framework */,
 				56B0363D1E8D9F79003B6DA4 /* GRDBOSXTests.xctest */,
 				56B0363F1E8D9F79003B6DA4 /* GRDBOSXPerformanceTests.xctest */,
+				563BD2F11F8364C1006A5390 /* GRDBOSXPerformanceComparisonTests.xctest */,
 				56B036411E8D9F79003B6DA4 /* GRDBOSXCrashTests.xctest */,
 				56B036431E8D9F79003B6DA4 /* GRDBCipher.framework */,
 				56B036451E8D9F79003B6DA4 /* GRDBCipherOSXTests.xctest */,
@@ -494,6 +502,13 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		563BD2F11F8364C1006A5390 /* GRDBOSXPerformanceComparisonTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = GRDBOSXPerformanceComparisonTests.xctest;
+			remoteRef = 563BD2F01F8364C1006A5390 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		56B0363B1E8D9F79003B6DA4 /* GRDB.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
@@ -660,7 +675,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				56B0361C1E8D9F38003B6DA4 /* Person.swift in Sources */,
-				56B0361B1E8D9F38003B6DA4 /* Database.swift in Sources */,
+				56B0361B1E8D9F38003B6DA4 /* AppDatabase.swift in Sources */,
 				56B036071E8D9EBE003B6DA4 /* AppDelegate.swift in Sources */,
 				56B036241E8D9F4C003B6DA4 /* PersonsViewController.swift in Sources */,
 				56B036231E8D9F4C003B6DA4 /* PersonEditionViewController.swift in Sources */,

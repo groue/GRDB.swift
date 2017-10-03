@@ -363,7 +363,7 @@ let placeCount = try dbQueue.inDatabase { db in
 
 **A database queue needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency](#concurrency) chapter.
 
-See [DemoApps/GRDBDemoiOS/Database.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift) for a sample code that sets up a database queue on iOS.
+See [DemoApps/GRDBDemoiOS/AppDatabase.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/AppDatabase.swift) for a sample code that sets up a database queue on iOS.
 
 
 ### DatabaseQueue Configuration
@@ -443,7 +443,7 @@ Database pools allow several threads to access the database at the same time:
 
 See [Advanced DatabasePool](#advanced-databasepool) for more DatabasePool hotness.
 
-For a sample code that sets up a database pool on iOS, see [DemoApps/GRDBDemoiOS/Database.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift), and replace DatabaseQueue with DatabasePool.
+For a sample code that sets up a database pool on iOS, see [DemoApps/GRDBDemoiOS/AppDatabase.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/AppDatabase.swift), and replace DatabaseQueue with DatabasePool.
 
 
 ### DatabasePool Configuration
@@ -5552,7 +5552,7 @@ Those guarantees hold as long as you follow three rules:
     
     This means that opening a new connection each time you access the database is probably a very bad idea. Do share a single connection instead.
     
-    See, for example, [DemoApps/GRDBDemoiOS/Database.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift) for a sample code that properly sets up a single database queue that is available throughout the application.
+    See, for example, [DemoApps/GRDBDemoiOS/AppDatabase.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/AppDatabase.swift) for a sample code that properly sets up a single database queue that is available throughout the application.
     
     If there are several instances of database queues or pools that access the same database, a multi-threaded application will eventually face "database is locked" errors. See [Dealing with External Connections](#dealing-with-external-connections).
     
