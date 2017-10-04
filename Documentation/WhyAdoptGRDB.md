@@ -12,9 +12,9 @@ We'll start with a few [core principles](#core-principles), so that you see wher
 
 This is because a database row is not an easy type to deal with, and will never be, compared to a regular model. `player.name` looks and feels more natural than `playerRow[nameColumn]`, doesn't it?
 
-The reputation of "active records" and ORMs has been tarnished by the recent focus on immutability, memory safety, and functional idioms that comes with languages like Swift and Rust. Features of 1st-generation records such as auto-updating, uniquing, lazy loading of relations, etc. are now considered harmful.
+The reputation of "active records" and ORMs has been tarnished by the recent focus on immutability, memory safety, and functional idioms that comes with languages like Swift and Rust. Features of 1st-generation records such as auto-updating, uniquing, lazy loading of relations, etc. are now considered ill-advised, if not plain harmful because of the multi-threading headaches they cause.
 
-Yet recent ORMs such as Rust's [Diesel] have shown that it is possible to build modern and safe record types. GRDB belongs to this family.
+Yet recent ORMs such as Rust's [Diesel] have shown that it is possible to build record types that behave as plain and simple values. GRDB belongs to this family.
 
 
 ### Raw SQL is sometimes the correct tool for the job.
