@@ -712,7 +712,38 @@ extension Database {
     /// - returns: A SelectStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     func makeSelectStatement(_ sql: String, prepFlags: Int32) throws -> SelectStatement {
-        return try SelectStatement(database: self, sql: sql, prepFlags: prepFlags)
+        let observer = StatementCompilationObserver(self)
+        observer.start()
+        defer { observer.stop() }
+        
+        var statement: SelectStatement? = nil
+        let sqlCodeUnits = sql.utf8CString
+        var remainingSQL = ""
+        try sqlCodeUnits.withUnsafeBufferPointer { codeUnits in
+            let statementStart = UnsafePointer<Int8>(codeUnits.baseAddress)!
+            var statementEnd: UnsafePointer<Int8>? = nil
+            do {
+                statement = try SelectStatement(
+                    database: self,
+                    statementStart: statementStart,
+                    statementEnd: &statementEnd,
+                    prepFlags: prepFlags,
+                    observer: observer)
+            } catch is EmptyStatementError {
+                throw DatabaseError(resultCode: .SQLITE_ERROR, message: "empty statement", sql: sql, arguments: nil)
+            }
+            let remainingData = Data(
+                bytesNoCopy: UnsafeMutableRawPointer(mutating: statementEnd!),
+                count: statementStart + sqlCodeUnits.count - statementEnd! - 1,
+                deallocator: .none)
+            remainingSQL = String(data: remainingData, encoding: .utf8)!.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        
+        guard remainingSQL.isEmpty else {
+            throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Multiple statements found. To execute multiple statements, use Database.execute() instead.", sql: sql, arguments: nil)
+        }
+
+        return statement!
     }
     
     /// Returns a prepared statement that can be reused.
@@ -764,7 +795,38 @@ extension Database {
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     func makeUpdateStatement(_ sql: String, prepFlags: Int32) throws -> UpdateStatement {
-        return try UpdateStatement(database: self, sql: sql, prepFlags: prepFlags)
+        let observer = StatementCompilationObserver(self)
+        observer.start()
+        defer { observer.stop() }
+        
+        var statement: UpdateStatement? = nil
+        let sqlCodeUnits = sql.utf8CString
+        var remainingSQL = ""
+        try sqlCodeUnits.withUnsafeBufferPointer { codeUnits in
+            let statementStart = UnsafePointer<Int8>(codeUnits.baseAddress)!
+            var statementEnd: UnsafePointer<Int8>? = nil
+            do {
+                statement = try UpdateStatement(
+                    database: self,
+                    statementStart: statementStart,
+                    statementEnd: &statementEnd,
+                    prepFlags: prepFlags,
+                    observer: observer)
+            } catch is EmptyStatementError {
+                throw DatabaseError(resultCode: .SQLITE_ERROR, message: "empty statement", sql: sql, arguments: nil)
+            }
+            let remainingData = Data(
+                bytesNoCopy: UnsafeMutableRawPointer(mutating: statementEnd!),
+                count: statementStart + sqlCodeUnits.count - statementEnd! - 1,
+                deallocator: .none)
+            remainingSQL = String(data: remainingData, encoding: .utf8)!.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        
+        guard remainingSQL.isEmpty else {
+            throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Multiple statements found. To execute multiple statements, use Database.execute() instead.", sql: sql, arguments: nil)
+        }
+        
+        return statement!
     }
     
     /// Returns a prepared statement that can be reused.
@@ -811,11 +873,8 @@ extension Database {
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(_ sql: String, arguments: StatementArguments? = nil) throws {
         // This method is like sqlite3_exec (https://www.sqlite.org/c3ref/exec.html)
-        // It adds support for arguments.
-        
-        SchedulingWatchdog.preconditionValidQueue(self)
-        
-        // The tricky part is to consume arguments as statements are executed.
+        // It adds support for arguments, and the tricky part is to consume
+        // arguments as statements are executed.
         //
         // Here we build two functions:
         // - consumeArguments returns arguments for a statement
@@ -835,61 +894,37 @@ extension Database {
             }
         }
         
-        
         // Execute statements
         
-        let sqlCodeUnits = sql.utf8CString
-        var error: Error?
-        
-        // During the execution of sqlite3_prepare_v2, the observer listens to
-        // authorization callbacks in order to recognize "interesting"
-        // statements. See updateStatementDidExecute().
         let observer = StatementCompilationObserver(self)
         observer.start()
+        defer { observer.stop() }
         
-        sqlCodeUnits.withUnsafeBufferPointer { codeUnits in
+        let sqlCodeUnits = sql.utf8CString
+        try sqlCodeUnits.withUnsafeBufferPointer { codeUnits in
             let sqlStart = UnsafePointer<Int8>(codeUnits.baseAddress)!
             let sqlEnd = sqlStart + sqlCodeUnits.count
             var statementStart = sqlStart
             while statementStart < sqlEnd - 1 {
-                observer.reset()
                 var statementEnd: UnsafePointer<Int8>? = nil
-                var sqliteStatement: SQLiteStatement? = nil
-                let code = sqlite3_prepare_v2(sqliteConnection, statementStart, -1, &sqliteStatement, &statementEnd)
-                guard code == SQLITE_OK else {
-                    error = DatabaseError(resultCode: code, message: lastErrorMessage, sql: sql)
-                    break
-                }
-                
-                guard sqliteStatement != nil else {
-                    // The remaining string contains only whitespace
-                    assert(String(data: Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: statementStart), count: statementEnd! - statementStart, deallocator: .none), encoding: .utf8)!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                    break
-                }
                 
                 do {
-                    let statement = UpdateStatement(
+                    let statement = try UpdateStatement(
                         database: self,
-                        sqliteStatement: sqliteStatement!,
-                        invalidatesDatabaseSchemaCache: observer.invalidatesDatabaseSchemaCache,
-                        transactionStatementInfo: observer.transactionStatementInfo,
-                        databaseEventKinds: observer.databaseEventKinds)
+                        statementStart: statementStart,
+                        statementEnd: &statementEnd,
+                        prepFlags: 0,
+                        observer: observer)
+                    
                     let arguments = try consumeArguments(statement)
                     statement.unsafeSetArguments(arguments)
                     try statement.execute()
-                } catch let statementError {
-                    error = statementError
+                    
+                    statementStart = statementEnd!
+                } catch is EmptyStatementError {
                     break
                 }
-                
-                statementStart = statementEnd!
             }
-        }
-        
-        observer.stop()
-        
-        if let error = error {
-            throw error
         }
         
         // Force arguments validity: it is a programmer error to provide

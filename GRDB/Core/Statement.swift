@@ -8,6 +8,10 @@ import Foundation
 /// A raw SQLite statement, suitable for the SQLite C API.
 public typealias SQLiteStatement = OpaquePointer
 
+/// An error emitted when one tries to compile an empty statement.
+struct EmptyStatementError : Error {
+}
+
 /// A statement represents an SQL query.
 ///
 /// It is the base class of UpdateStatement that executes *update statements*,
@@ -27,53 +31,47 @@ public class Statement {
     /// The database
     unowned let database: Database
     
-    init(database: Database, sqliteStatement: SQLiteStatement) {
-        self.database = database
-        self.sqliteStatement = sqliteStatement
-    }
-    
     /// Creates a prepared statement.
     ///
     /// - parameter database: A database connection.
-    /// - parameter sql: An SQL query.
+    /// - parameter statementStart: A pointer to a UTF-8 encoded C string
+    ///   containing SQL.
+    /// - parameter statementEnd: Upon success, the pointer to the next
+    ///   statement in the C string.
     /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
     ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
-    /// - parameter observer: A StatementCompilationObserver
-    fileprivate init(database: Database, sql: String, prepFlags: Int32, observer: StatementCompilationObserver) throws {
+    /// - throws: DatabaseError in case of compilation error, and
+    ///   EmptyStatementError if the compiled string is blank or empty.
+    init(database: Database, statementStart: UnsafePointer<Int8>, statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>, prepFlags: Int32) throws {
         SchedulingWatchdog.preconditionValidQueue(database)
         
-        observer.start()
-        defer { observer.stop() }
-        
-        let sqlCodeUnits = sql.utf8CString
         var sqliteStatement: SQLiteStatement? = nil
-        var code: Int32 = 0
-        var remainingSQL = ""
-        sqlCodeUnits.withUnsafeBufferPointer { codeUnits in
-            let sqlStart = UnsafePointer<Int8>(codeUnits.baseAddress)!
-            var sqlEnd: UnsafePointer<Int8>? = nil
-            // sqlite3_prepare_v3 was introduced in SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
-            #if GRDBCUSTOMSQLITE
-                code = sqlite3_prepare_v3(database.sqliteConnection, sqlStart, -1, UInt32(bitPattern: prepFlags), &sqliteStatement, &sqlEnd)
-            #else
-                code = sqlite3_prepare_v2(database.sqliteConnection, sqlStart, -1, &sqliteStatement, &sqlEnd)
-            #endif
-            let remainingData = Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: sqlEnd!), count: sqlStart + sqlCodeUnits.count - sqlEnd! - 1, deallocator: .none)
-            remainingSQL = String(data: remainingData, encoding: .utf8)!.trimmingCharacters(in: .whitespacesAndNewlines)
-        }
+        // sqlite3_prepare_v3 was introduced in SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
+        #if GRDBCUSTOMSQLITE
+            let code = sqlite3_prepare_v3(database.sqliteConnection, statementStart, -1, UInt32(bitPattern: prepFlags), &sqliteStatement, statementEnd)
+        #else
+            let code = sqlite3_prepare_v2(database.sqliteConnection, statementStart, -1, &sqliteStatement, &statementEnd)
+        #endif
         
         guard code == SQLITE_OK else {
-            throw DatabaseError(resultCode: code, message: database.lastErrorMessage, sql: sql)
+            throw DatabaseError(resultCode: code, message: database.lastErrorMessage, sql: String(cString: statementStart))
         }
         
-        guard remainingSQL.isEmpty else {
-            sqlite3_finalize(sqliteStatement)
-            throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Multiple statements found. To execute multiple statements, use Database.execute() instead.", sql: sql, arguments: nil)
+        guard let statement = sqliteStatement else {
+            // Sanity check: verify that the string contains only whitespace
+            assert(String(data: Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: statementStart), count: statementEnd.pointee! - statementStart, deallocator: .none), encoding: .utf8)!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            
+            // I wish we could simply return nil, and make this initializer failable.
+            //
+            // Unfortunately, there is a Swift bug with failable+throwing initializers:
+            // https://bugs.swift.org/browse/SR-6067
+            //
+            // We thus use sentinel error for empty statements.
+            throw EmptyStatementError()
         }
         
         self.database = database
-        self.sqliteStatement = sqliteStatement!
-        
+        self.sqliteStatement = statement
     }
     
     deinit {
@@ -236,13 +234,23 @@ public final class SelectStatement : Statement {
     /// Creates a prepared statement.
     ///
     /// - parameter database: A database connection.
-    /// - parameter sql: An SQL query.
+    /// - parameter statementStart: A pointer to a UTF-8 encoded C string
+    ///   containing SQL.
+    /// - parameter statementEnd: Upon success, the pointer to the next
+    ///   statement in the C string.
     /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
     ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
-    init(database: Database, sql: String, prepFlags: Int32) throws {
+    /// - observer: A StatementCompilationObserver
+    /// - throws: DatabaseError in case of compilation error, and
+    ///   EmptyStatementError if the compiled string is blank or empty.
+    init(database: Database, statementStart: UnsafePointer<Int8>, statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>, prepFlags: Int32, observer: StatementCompilationObserver) throws {
+        observer.reset()
         self.selectionInfo = SelectionInfo()
-        let observer = StatementCompilationObserver(database)
-        try super.init(database: database, sql: sql, prepFlags: prepFlags, observer: observer)
+        try super.init(
+            database: database,
+            statementStart: statementStart,
+            statementEnd: statementEnd,
+            prepFlags: prepFlags)
         Database.preconditionValidSelectStatement(sql: sql, observer: observer)
         self.selectionInfo = observer.selectionInfo
     }
@@ -411,25 +419,27 @@ public final class UpdateStatement : Statement {
     private(set) var transactionStatementInfo: TransactionStatementInfo?
     private(set) var databaseEventKinds: [DatabaseEventKind]
     
-    init(database: Database, sqliteStatement: SQLiteStatement, invalidatesDatabaseSchemaCache: Bool, transactionStatementInfo: TransactionStatementInfo?, databaseEventKinds: [DatabaseEventKind]) {
-        self.invalidatesDatabaseSchemaCache = invalidatesDatabaseSchemaCache
-        self.transactionStatementInfo = transactionStatementInfo
-        self.databaseEventKinds = databaseEventKinds
-        super.init(database: database, sqliteStatement: sqliteStatement)
-    }
-    
     /// Creates a prepared statement.
     ///
     /// - parameter database: A database connection.
-    /// - parameter sql: An SQL query.
+    /// - parameter statementStart: A pointer to a UTF-8 encoded C string
+    ///   containing SQL.
+    /// - parameter statementEnd: Upon success, the pointer to the next
+    ///   statement in the C string.
     /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
     ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
-    init(database: Database, sql: String, prepFlags: Int32) throws {
+    /// - observer: A StatementCompilationObserver
+    /// - throws: DatabaseError in case of compilation error, and
+    ///   EmptyStatementError if the compiled string is blank or empty.
+    init(database: Database, statementStart: UnsafePointer<Int8>, statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>, prepFlags: Int32, observer: StatementCompilationObserver) throws {
+        observer.reset()
         self.invalidatesDatabaseSchemaCache = false
         self.databaseEventKinds = []
-        
-        let observer = StatementCompilationObserver(database)
-        try super.init(database: database, sql: sql, prepFlags: prepFlags, observer: observer)
+        try super.init(
+            database: database,
+            statementStart: statementStart,
+            statementEnd: statementEnd,
+            prepFlags: prepFlags)
         self.invalidatesDatabaseSchemaCache = observer.invalidatesDatabaseSchemaCache
         self.transactionStatementInfo = observer.transactionStatementInfo
         self.databaseEventKinds = observer.databaseEventKinds
