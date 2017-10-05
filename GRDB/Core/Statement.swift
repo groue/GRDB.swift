@@ -240,19 +240,18 @@ public final class SelectStatement : Statement {
     ///   statement in the C string.
     /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
     ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
-    /// - observer: A StatementCompilationObserver
+    /// - authorizer: A StatementCompilationAuthorizer
     /// - throws: DatabaseError in case of compilation error, and
     ///   EmptyStatementError if the compiled string is blank or empty.
-    init(database: Database, statementStart: UnsafePointer<Int8>, statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>, prepFlags: Int32, observer: StatementCompilationObserver) throws {
-        observer.reset()
+    init(database: Database, statementStart: UnsafePointer<Int8>, statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>, prepFlags: Int32, authorizer: StatementCompilationAuthorizer) throws {
         self.selectionInfo = SelectionInfo()
         try super.init(
             database: database,
             statementStart: statementStart,
             statementEnd: statementEnd,
             prepFlags: prepFlags)
-        Database.preconditionValidSelectStatement(sql: sql, observer: observer)
-        self.selectionInfo = observer.selectionInfo
+        Database.preconditionValidSelectStatement(sql: sql, authorizer: authorizer)
+        self.selectionInfo = authorizer.selectionInfo
     }
     
     /// The number of columns in the resulting rows.
@@ -428,11 +427,10 @@ public final class UpdateStatement : Statement {
     ///   statement in the C string.
     /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
     ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
-    /// - observer: A StatementCompilationObserver
+    /// - authorizer: A StatementCompilationAuthorizer
     /// - throws: DatabaseError in case of compilation error, and
     ///   EmptyStatementError if the compiled string is blank or empty.
-    init(database: Database, statementStart: UnsafePointer<Int8>, statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>, prepFlags: Int32, observer: StatementCompilationObserver) throws {
-        observer.reset()
+    init(database: Database, statementStart: UnsafePointer<Int8>, statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>, prepFlags: Int32, authorizer: StatementCompilationAuthorizer) throws {
         self.invalidatesDatabaseSchemaCache = false
         self.databaseEventKinds = []
         try super.init(
@@ -440,9 +438,9 @@ public final class UpdateStatement : Statement {
             statementStart: statementStart,
             statementEnd: statementEnd,
             prepFlags: prepFlags)
-        self.invalidatesDatabaseSchemaCache = observer.invalidatesDatabaseSchemaCache
-        self.transactionStatementInfo = observer.transactionStatementInfo
-        self.databaseEventKinds = observer.databaseEventKinds
+        self.invalidatesDatabaseSchemaCache = authorizer.invalidatesDatabaseSchemaCache
+        self.transactionStatementInfo = authorizer.transactionStatementInfo
+        self.databaseEventKinds = authorizer.databaseEventKinds
     }
     
     /// Executes the SQL query.
