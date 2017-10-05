@@ -266,7 +266,7 @@ class DatabaseAggregateTests: GRDBTestCase {
         struct Aggregate : DatabaseAggregate {
             var result: DatabaseValueConvertible?
             mutating func step(_ dbValues: [DatabaseValue]) {
-                result = String.fromDatabaseValue(dbValues[0]).map { $0.uppercased() }
+                result = String.fromDatabaseValue(dbValues[0])?.uppercased()
             }
             func finalize() -> DatabaseValueConvertible? {
                 return result
