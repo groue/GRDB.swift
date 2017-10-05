@@ -50,7 +50,7 @@ public class Statement {
         #if GRDBCUSTOMSQLITE
             let code = sqlite3_prepare_v3(database.sqliteConnection, statementStart, -1, UInt32(bitPattern: prepFlags), &sqliteStatement, statementEnd)
         #else
-            let code = sqlite3_prepare_v2(database.sqliteConnection, statementStart, -1, &sqliteStatement, &statementEnd)
+            let code = sqlite3_prepare_v2(database.sqliteConnection, statementStart, -1, &sqliteStatement, statementEnd)
         #endif
         
         guard code == SQLITE_OK else {
