@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## 2.0.2
+
+Released October 5, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.0.1...v2.0.2)
+
+**Fixed**: `DROP TABLE` statements would not drop tables when run through a prepared statement.
+
+
 ## 2.0.1
 
 Released September 17, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.0...v2.0.1)
