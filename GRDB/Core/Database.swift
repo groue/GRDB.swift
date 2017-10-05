@@ -331,7 +331,7 @@ public final class Database {
     private var collations = Set<DatabaseCollation>()
     
     /// Current authorizer
-    private var authorizer: StatementAuthorizer? {
+    var authorizer: StatementAuthorizer? {
         didSet {
             switch (oldValue, authorizer) {
             case (.some, nil):
@@ -1541,10 +1541,12 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
     /// Not nil if a statement is a BEGIN/COMMIT/ROLLBACK/RELEASE transaction/savepoint statement.
     var transactionStatementInfo: UpdateStatement.TransactionStatementInfo?
     
-    var isDropTableStatement = false
+    var needsTruncateOptimizationPreventionDuringExecution = false
+    
+    private var isDropTableStatement = false
     
     func authorize(_ actionCode: Int32, _ cString1: UnsafePointer<Int8>?, _ cString2: UnsafePointer<Int8>?, _ cString3: UnsafePointer<Int8>?, _ cString4: UnsafePointer<Int8>?) -> Int32 {
-        print("StatementCompilationAuthorizer: \(actionCode) \([cString1, cString2, cString3, cString4].flatMap { $0.map({ String(cString: $0) }) })")
+        // print("StatementCompilationAuthorizer: \(actionCode) \([cString1, cString2, cString3, cString4].flatMap { $0.map({ String(cString: $0) }) })")
         
         switch actionCode {
         case SQLITE_DROP_TABLE, SQLITE_DROP_TEMP_TABLE, SQLITE_DROP_TEMP_VIEW, SQLITE_DROP_VIEW, SQLITE_DETACH, SQLITE_ALTER_TABLE, SQLITE_DROP_VTABLE, SQLITE_CREATE_INDEX, SQLITE_CREATE_TEMP_INDEX, SQLITE_DROP_INDEX, SQLITE_DROP_TEMP_INDEX:
@@ -1569,14 +1571,12 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
             databaseEventKinds.append(.insert(tableName: tableName))
             return SQLITE_OK
         case SQLITE_DELETE:
-            guard !isDropTableStatement else {
-                return SQLITE_OK
-            }
-            guard let tableName = cString1.map({ String(cString: $0) }), tableName != "sqlite_master" else {
-                return SQLITE_OK
-            }
+            guard !isDropTableStatement else { return SQLITE_OK }
+            guard let tableName = cString1.map({ String(cString: $0) }), tableName != "sqlite_master" else { return SQLITE_OK }
             databaseEventKinds.append(.delete(tableName: tableName))
             // Prevent the [truncate optimization](https://www.sqlite.org/lang_delete.html#truncateopt)
+            // See TruncateOptimizationBlocker
+            needsTruncateOptimizationPreventionDuringExecution = true
             return SQLITE_IGNORE
         case SQLITE_UPDATE:
             guard let tableName = cString1.map({ String(cString: $0) }) else { return SQLITE_OK }
@@ -1627,33 +1627,19 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
     }
 }
 
-final class UpdateStatementExecutionAuthorizer : StatementAuthorizer {
-    // This authorizer prevents the [truncate optimization](https://www.sqlite.org/lang_delete.html#truncateopt)
-    // which makes transaction observers unable to observe individual deletions
-    // when user runs `DELETE FROM t` statements.
-    var isDropTableStatement = false
-    
+/// This authorizer prevents the [truncate optimization](https://www.sqlite.org/lang_delete.html#truncateopt)
+/// which makes transaction observers unable to observe individual deletions
+/// when user runs `DELETE FROM t` statements.
+//
+/// Warning: to perform well, this authorizer requires that:
+//
+/// - It is used during statement execution, not during statement compilation.
+/// - Statement compilation was authorized with a StatementCompilationAuthorizer
+///   that has set its needsTruncateOptimizationPreventionDuringExecution flag.
+final class TruncateOptimizationBlocker : StatementAuthorizer {
     func authorize(_ actionCode: Int32, _ cString1: UnsafePointer<Int8>?, _ cString2: UnsafePointer<Int8>?, _ cString3: UnsafePointer<Int8>?, _ cString4: UnsafePointer<Int8>?) -> Int32 {
-        print("UpdateStatementExecutionAuthorizer: \(actionCode) \([cString1, cString2, cString3, cString4].flatMap { $0.map({ String(cString: $0) }) })")
-        
-        switch actionCode {
-        case SQLITE_DROP_TABLE, SQLITE_DROP_VTABLE:
-            isDropTableStatement = true
-            return SQLITE_OK
-        case SQLITE_DELETE:
-            guard !isDropTableStatement else {
-                return SQLITE_OK
-            }
-            guard let tableName = cString1.map({ String(cString: $0) }), tableName != "sqlite_master" else {
-                return SQLITE_OK
-            }
-            // Prevent [truncate optimization](https://www.sqlite.org/lang_delete.html#truncateopt)
-            // so that transaction authorizers can observe individual deletions.
-            print("SQLITE_IGNORE")
-            return SQLITE_IGNORE
-        default:
-            return SQLITE_OK
-        }
+        // print("TruncateOptimizationBlocker: \(actionCode) \([cString1, cString2, cString3, cString4].flatMap { $0.map({ String(cString: $0) }) })")
+        return (actionCode == SQLITE_DELETE) ? SQLITE_IGNORE : SQLITE_OK
     }
 }
 
@@ -1995,10 +1981,6 @@ extension Database {
         activeTransactionObservers = transactionObservers.filter { observer in
             return databaseEventKinds.contains(where: observer.observes)
         }
-        
-        // Prevent [truncate optimization](https://www.sqlite.org/lang_delete.html#truncateopt)
-        // so that transaction observers can observe individual deletions.
-        authorizer = UpdateStatementExecutionAuthorizer()
     }
     
     func selectStatementDidFail(_ statement: SelectStatement) {
@@ -2014,7 +1996,6 @@ extension Database {
     /// Some failed statements interest transaction observers.
     func updateStatementDidFail(_ statement: UpdateStatement) throws {
         // Wait for next statement
-        authorizer = nil
         activeTransactionObservers = []
         
         // Reset transactionHookState before didRollback eventually executes
@@ -2048,7 +2029,6 @@ extension Database {
     /// transaction observers, and others modify the savepoint stack.
     func updateStatementDidExecute(_ statement: UpdateStatement) {
         // Wait for next statement
-        authorizer = nil
         activeTransactionObservers = []
         
         if statement.invalidatesDatabaseSchemaCache {

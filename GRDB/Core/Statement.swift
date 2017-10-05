@@ -415,6 +415,11 @@ public final class UpdateStatement : Statement {
     /// If true, the database schema cache gets invalidated after this statement
     /// is executed.
     private(set) var invalidatesDatabaseSchemaCache: Bool
+    
+    /// If true, the statement needs support from TruncateOptimizationBlocker
+    /// when executed
+    private(set) var needsTruncateOptimizationPreventionDuringExecution: Bool
+
     private(set) var transactionStatementInfo: TransactionStatementInfo?
     private(set) var databaseEventKinds: [DatabaseEventKind]
     
@@ -432,6 +437,7 @@ public final class UpdateStatement : Statement {
     ///   EmptyStatementError if the compiled string is blank or empty.
     init(database: Database, statementStart: UnsafePointer<Int8>, statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>, prepFlags: Int32, authorizer: StatementCompilationAuthorizer) throws {
         self.invalidatesDatabaseSchemaCache = false
+        self.needsTruncateOptimizationPreventionDuringExecution = false
         self.databaseEventKinds = []
         try super.init(
             database: database,
@@ -439,6 +445,7 @@ public final class UpdateStatement : Statement {
             statementEnd: statementEnd,
             prepFlags: prepFlags)
         self.invalidatesDatabaseSchemaCache = authorizer.invalidatesDatabaseSchemaCache
+        self.needsTruncateOptimizationPreventionDuringExecution = authorizer.needsTruncateOptimizationPreventionDuringExecution
         self.transactionStatementInfo = authorizer.transactionStatementInfo
         self.databaseEventKinds = authorizer.databaseEventKinds
     }
@@ -452,6 +459,10 @@ public final class UpdateStatement : Statement {
         prepare(withArguments: arguments)
         reset()
         database.updateStatementWillExecute(self)
+        
+        if needsTruncateOptimizationPreventionDuringExecution {
+            database.authorizer = TruncateOptimizationBlocker()
+        }
         
         while true {
             switch sqlite3_step(sqliteStatement) {
@@ -475,15 +486,13 @@ public final class UpdateStatement : Statement {
                 continue
                 
             case SQLITE_DONE:
+                database.authorizer = nil
                 database.updateStatementDidExecute(self)
                 return
                 
             case let code:
-                // Failure
-                //
-                // Let database rethrow eventual transaction observer error:
+                database.authorizer = nil
                 try database.updateStatementDidFail(self)
-                
                 throw DatabaseError(resultCode: code, message: database.lastErrorMessage, sql: sql, arguments: self.arguments) // Error uses self.arguments, not the optional arguments parameter.
             }
         }
