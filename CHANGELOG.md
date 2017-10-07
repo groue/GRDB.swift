@@ -114,7 +114,7 @@ New features have been added in order to plug a few holes and support the [RxGRD
 - Query interface requests learned how to limit the number of deleted rows:
     
     ```swift
-    // Delete the worse ten players:
+    // Delete the last ten players:
     // DELETE FROM players ORDER BY score LIMIT 10
     let request = Player.order(scoreColumn).limit(10)
     try request.deleteAll(db)
