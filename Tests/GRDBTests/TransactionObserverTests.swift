@@ -315,46 +315,6 @@ class TransactionObserverTests: GRDBTestCase {
         }
     }
 
-    func testTruncateOptimization() throws {
-        // https://www.sqlite.org/c3ref/update_hook.html
-        //
-        // > In the current implementation, the update hook is not invoked [...]
-        // > when rows are deleted using the truncate optimization.
-        //
-        // https://www.sqlite.org/lang_delete.html#truncateopt
-        //
-        // > When the WHERE is omitted from a DELETE statement and the table
-        // > being deleted has no triggers, SQLite uses an optimization to erase
-        // > the entire table content without having to visit each row of the
-        // > table individually.
-        //
-        // Here we test that the truncate optimization does not prevent
-        // transaction observers from observing individual deletions.
-        
-        let dbQueue = try makeDatabaseQueue()
-        let observer = Observer()
-        dbQueue.add(transactionObserver: observer)
-        
-        try dbQueue.inDatabase { db in
-            let artist1 = Artist(name: "Gerhard Richter")
-            let artist2 = Artist(name: "Vincent Fournier")
-            try artist1.insert(db)
-            try artist2.insert(db)
-            
-            try db.execute("DELETE FROM artists")
-            
-            XCTAssertEqual(observer.lastCommittedEvents.count, 2)
-            let artist1DeleteEvent = observer.lastCommittedEvents.filter {
-                self.match(event: $0, kind: .delete, tableName: "artists", rowId: artist1.id!)
-                }.first
-            XCTAssertTrue(artist1DeleteEvent != nil)
-            let artist2DeleteEvent = observer.lastCommittedEvents.filter {
-                self.match(event: $0, kind: .delete, tableName: "artists", rowId: artist1.id!)
-                }.first
-            XCTAssertTrue(artist2DeleteEvent != nil)
-        }
-    }
-
     func testCascadingDeleteEvents() throws {
         let dbQueue = try makeDatabaseQueue()
         let observer = Observer()

@@ -307,20 +307,4 @@ class UpdateStatementTests : GRDBTestCase {
             }
         }
     }
-    
-    func testDropTablePreparedStatement() throws {
-        // In v2.0.1...
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            XCTAssertFalse(try db.tableExists("t"))
-            try db.execute("CREATE TABLE t(a)")
-            XCTAssertTrue(try db.tableExists("t"))
-            try db.execute("DROP TABLE t")                          // ... this would drop the table
-            XCTAssertFalse(try db.tableExists("t"))
-            try db.execute("CREATE TABLE t(a)")
-            XCTAssertTrue(try db.tableExists("t"))
-            try db.makeUpdateStatement("DROP TABLE t").execute()    // ... but this would not. WTF??? Hence this regression test.
-            XCTAssertFalse(try db.tableExists("t"))
-        }
-    }
 }
