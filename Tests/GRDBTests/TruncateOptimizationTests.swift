@@ -36,14 +36,17 @@ class TruncateOptimizationTests: GRDBTestCase {
             return true
         }
         
+        #if SQLITE_ENABLE_PREUPDATE_HOOK
+        func databaseWillChange(with event: DatabasePreUpdateEvent) { }
+        #endif
+        
         func databaseDidChange(with event: DatabaseEvent) {
             if case .delete = event.kind {
                 deletionEvents[event.tableName, default: 0] += 1
             }
         }
         
-        func databaseWillCommit() throws {
-        }
+        func databaseWillCommit() throws { }
         
         func databaseDidCommit(_ db: Database) {
             if !deletionEvents.isEmpty {
