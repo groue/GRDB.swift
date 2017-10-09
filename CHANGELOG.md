@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## 2.0.3
+
+Released October 9, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.0.2...v2.0.3)
+
+**Fixed**: Record types that conform to Encodable now encode their null columns.
+
+
 ## 2.0.2
 
 Released October 5, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.0.1...v2.0.2)

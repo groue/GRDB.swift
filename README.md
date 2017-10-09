@@ -3,7 +3,7 @@ GRDB 2.0 [![Swift](https://img.shields.io/badge/swift-4-orange.svg?style=flat)](
 
 ### A toolkit for SQLite databases, with a focus on application development
 
-**Latest release**: October 5, 2017 • version 2.0.2 • [CHANGELOG](CHANGELOG.md)
+**Latest release**: October 9, 2017 • version 2.0.3 • [CHANGELOG](CHANGELOG.md)
 
 **Requirements**: iOS 8.0+ / OSX 10.9+ / watchOS 2.0+ &bull; Swift 4.0 / Xcode 9+
 
@@ -14,7 +14,7 @@ GRDB 2.0 [![Swift](https://img.shields.io/badge/swift-4-orange.svg?style=flat)](
 | Swift 3       | [v1.0](https://github.com/groue/GRDB.swift/tree/v1.0)       |
 | Swift 3.1     | [v1.3.0](https://github.com/groue/GRDB.swift/tree/v1.3.0)   |
 | Swift 3.2     | [v1.3.0](https://github.com/groue/GRDB.swift/tree/v1.3.0)   |
-| **Swift 4**   | **v2.0.2**                                                  |
+| **Swift 4**   | **v2.0.3**                                                  |
 
 Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
@@ -265,7 +265,7 @@ The [Swift Package Manager](https://swift.org/package-manager/) automates the di
 ```swift
 let package = Package(
     dependencies: [
-        .package(url: "https://github.com/groue/GRDB.swift.git", from: "2.0.2")
+        .package(url: "https://github.com/groue/GRDB.swift.git", from: "2.0.3")
     ]
 )
 ```
@@ -282,7 +282,7 @@ Any pull request that has the `make test_CarthageBuild` command successfully com
 
 ## Manually
 
-1. [Download](https://github.com/groue/GRDB.swift/releases/tag/v2.0.2) a copy of GRDB, or clone its repository and make sure you use the latest tagged version with the `git checkout v2.0.2` command.
+1. [Download](https://github.com/groue/GRDB.swift/releases/tag/v2.0.3) a copy of GRDB, or clone its repository and make sure you use the latest tagged version with the `git checkout v2.0.3` command.
 
 2. Embed the `GRDB.xcodeproj` project in your own project.
 
@@ -5021,7 +5021,7 @@ Alternatively, perform a manual installation of GRDB and SQLCipher:
     
     ```sh
     cd [GRDB directory]
-    git checkout v2.0.2
+    git checkout v2.0.3
     git submodule update --init SQLCipher/src
     ```
     
