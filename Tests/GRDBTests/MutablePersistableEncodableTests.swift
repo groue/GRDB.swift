@@ -27,8 +27,9 @@ extension MutablePersistableEncodableTests {
             }
             
             var value = Struct(value: "foo")
-            try value.insert(db)
+            assert(value, isEncodedIn: ["value": "foo"])
             
+            try value.insert(db)
             let string = try String.fetchOne(db, "SELECT value FROM t1")!
             XCTAssertEqual(string, "foo")
         }
@@ -56,8 +57,9 @@ extension MutablePersistableEncodableTests {
             }
             
             var value = Struct(value: "foo")
-            try value.insert(db)
+            assert(value, isEncodedIn: ["someColumn": "foo (Encodable)"])
             
+            try value.insert(db)
             let string = try String.fetchOne(db, "SELECT someColumn FROM t1")!
             XCTAssertEqual(string, "foo (Encodable)")
         }
@@ -80,8 +82,9 @@ extension MutablePersistableEncodableTests {
             }
             
             var value = Struct(value: "foo")
-            try value.insert(db)
+            assert(value, isEncodedIn: ["value": "foo (MutablePersistable)"])
             
+            try value.insert(db)
             let string = try String.fetchOne(db, "SELECT value FROM t1")!
             XCTAssertEqual(string, "foo (MutablePersistable)")
         }
@@ -109,8 +112,9 @@ extension MutablePersistableEncodableTests {
         
         try dbQueue.inTransaction { db in
             var value = Struct(int64: 123, optionalInt64: 456)
-            try value.insert(db)
+            assert(value, isEncodedIn: ["int64": 123, "optionalInt64": 456])
             
+            try value.insert(db)
             let row = try Row.fetchOne(db, "SELECT * FROM t1")!
             XCTAssertEqual(row, ["int64": 123, "optionalInt64": 456])
             return .rollback
@@ -118,8 +122,9 @@ extension MutablePersistableEncodableTests {
     
         try dbQueue.inTransaction { db in
             var value = Struct(int64: 123, optionalInt64: nil)
-            try value.insert(db)
+            assert(value, isEncodedIn: ["int64": 123, "optionalInt64": nil])
             
+            try value.insert(db)
             let row = try Row.fetchOne(db, "SELECT * FROM t1")!
             XCTAssertEqual(row, ["int64": 123, "optionalInt64": nil])
             return .rollback
@@ -152,8 +157,9 @@ extension MutablePersistableEncodableTests {
         
         try dbQueue.inTransaction { db in
             var value = Struct(value: Value(string: "foo"), optionalValue: Value(string: "bar"))
-            try value.insert(db)
+            assert(value, isEncodedIn: ["value": "foo", "optionalValue": "bar"])
             
+            try value.insert(db)
             let row = try Row.fetchOne(db, "SELECT * FROM t1")!
             XCTAssertEqual(row, ["value": "foo", "optionalValue": "bar"])
             return .rollback
@@ -161,8 +167,9 @@ extension MutablePersistableEncodableTests {
         
         try dbQueue.inTransaction { db in
             var value = Struct(value: Value(string: "foo"), optionalValue: nil)
-            try value.insert(db)
+            assert(value, isEncodedIn: ["value": "foo", "optionalValue": nil])
             
+            try value.insert(db)
             let row = try Row.fetchOne(db, "SELECT * FROM t1")!
             XCTAssertEqual(row, ["value": "foo", "optionalValue": nil])
             return .rollback
@@ -204,8 +211,9 @@ extension MutablePersistableEncodableTests {
         
         try dbQueue.inTransaction { db in
             var value = Struct(value: Value(nestedValue: NestedValue(string: "foo")), optionalValue: Value(nestedValue: NestedValue(string: "bar")))
-            try value.insert(db)
+            assert(value, isEncodedIn: ["value": "foo", "optionalValue": "bar"])
             
+            try value.insert(db)
             let row = try Row.fetchOne(db, "SELECT * FROM t1")!
             XCTAssertEqual(row, ["value": "foo", "optionalValue": "bar"])
             return .rollback
@@ -213,8 +221,9 @@ extension MutablePersistableEncodableTests {
         
         try dbQueue.inTransaction { db in
             var value = Struct(value: Value(nestedValue: NestedValue(string: "foo")), optionalValue: nil)
-            try value.insert(db)
+            assert(value, isEncodedIn: ["value": "foo", "optionalValue": nil])
             
+            try value.insert(db)
             let row = try Row.fetchOne(db, "SELECT * FROM t1")!
             XCTAssertEqual(row, ["value": "foo", "optionalValue": nil])
             return .rollback
@@ -247,8 +256,9 @@ extension MutablePersistableEncodableTests {
         
         try dbQueue.inTransaction { db in
             var value = Struct(value: .foo, optionalValue: .bar)
-            try value.insert(db)
+            assert(value, isEncodedIn: ["value": "foo", "optionalValue": "bar"])
             
+            try value.insert(db)
             let row = try Row.fetchOne(db, "SELECT * FROM t1")!
             XCTAssertEqual(row, ["value": "foo", "optionalValue": "bar"])
             return .rollback
@@ -256,8 +266,9 @@ extension MutablePersistableEncodableTests {
         
         try dbQueue.inTransaction { db in
             var value = Struct(value: .foo, optionalValue: nil)
-            try value.insert(db)
+            assert(value, isEncodedIn: ["value": "foo", "optionalValue": nil])
             
+            try value.insert(db)
             let row = try Row.fetchOne(db, "SELECT * FROM t1")!
             XCTAssertEqual(row, ["value": "foo", "optionalValue": nil])
             return .rollback
@@ -308,8 +319,9 @@ extension MutablePersistableEncodableTests {
         
         try dbQueue.inTransaction { db in
             var value = Struct(value: Value(string: "foo"), optionalValue: Value(string: "bar"))
-            try value.insert(db)
+            assert(value, isEncodedIn: ["value": "foo (DatabaseValueConvertible)", "optionalValue": "bar (DatabaseValueConvertible)"])
             
+            try value.insert(db)
             let row = try Row.fetchOne(db, "SELECT * FROM t1")!
             XCTAssertEqual(row, ["value": "foo (DatabaseValueConvertible)", "optionalValue": "bar (DatabaseValueConvertible)"])
             return .rollback
@@ -317,8 +329,9 @@ extension MutablePersistableEncodableTests {
         
         try dbQueue.inTransaction { db in
             var value = Struct(value: Value(string: "foo"), optionalValue: nil)
-            try value.insert(db)
+            assert(value, isEncodedIn: ["value": "foo (DatabaseValueConvertible)", "optionalValue": nil])
             
+            try value.insert(db)
             let row = try Row.fetchOne(db, "SELECT * FROM t1")!
             XCTAssertEqual(row, ["value": "foo (DatabaseValueConvertible)", "optionalValue": nil])
             return .rollback
@@ -370,8 +383,9 @@ extension MutablePersistableEncodableTests {
             }
             
             let value = StructWithURL(url: URL(string: "https://github.com")!)
-            try value.insert(db)
+            assert(value, isEncodedIn: ["url": value.url])
             
+            try value.insert(db)
             let dbValue = try DatabaseValue.fetchOne(db, "SELECT url FROM t1")!
             XCTAssert(dbValue.storage.value is String)
             let fetchedURL = URL.fromDatabaseValue(dbValue)!
@@ -392,8 +406,9 @@ extension MutablePersistableEncodableTests {
             }
             
             let value = StructWithUUID(uuid: UUID())
-            try value.insert(db)
+            assert(value, isEncodedIn: ["uuid": value.uuid])
             
+            try value.insert(db)
             let dbValue = try DatabaseValue.fetchOne(db, "SELECT uuid FROM t1")!
             XCTAssert(dbValue.storage.value is Data)
             let fetchedUUID = UUID.fromDatabaseValue(dbValue)!
