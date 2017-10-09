@@ -28,7 +28,6 @@ private struct PersistableKeyedEncodingContainer<Key: CodingKey> : KeyedEncoding
     mutating func encode(_ value: Float, forKey key: Key) throws { encode(value, key.stringValue) }
     mutating func encode(_ value: Double, forKey key: Key) throws { encode(value, key.stringValue) }
     mutating func encode(_ value: String, forKey key: Key) throws { encode(value, key.stringValue) }
-    mutating func encodeNil(forKey key: Key) throws { encode(nil, key.stringValue) }
 
     /// Encodes the given value for the given key.
     ///
@@ -44,6 +43,24 @@ private struct PersistableKeyedEncodingContainer<Key: CodingKey> : KeyedEncoding
             try value.encode(to: PersistableEncoder(codingPath: [key], encode: encode))
         }
     }
+    
+    // Provide explicit encoding of optionals, because default implementation does not encode nil values.
+    mutating func encodeNil(forKey key: Key) throws { encode(nil, key.stringValue) }
+    mutating func encodeIfPresent(_ value: Bool?, forKey key: Key) throws { if let value = value { try encode(value, forKey: key) } else { try encodeNil(forKey: key) } }
+    mutating func encodeIfPresent(_ value: Int?, forKey key: Key) throws { if let value = value { try encode(value, forKey: key) } else { try encodeNil(forKey: key) } }
+    mutating func encodeIfPresent(_ value: Int8?, forKey key: Key) throws { if let value = value { try encode(value, forKey: key) } else { try encodeNil(forKey: key) } }
+    mutating func encodeIfPresent(_ value: Int16?, forKey key: Key) throws { if let value = value { try encode(value, forKey: key) } else { try encodeNil(forKey: key) } }
+    mutating func encodeIfPresent(_ value: Int32?, forKey key: Key) throws { if let value = value { try encode(value, forKey: key) } else { try encodeNil(forKey: key) } }
+    mutating func encodeIfPresent(_ value: Int64?, forKey key: Key) throws { if let value = value { try encode(value, forKey: key) } else { try encodeNil(forKey: key) } }
+    mutating func encodeIfPresent(_ value: UInt?, forKey key: Key) throws { if let value = value { try encode(value, forKey: key) } else { try encodeNil(forKey: key) } }
+    mutating func encodeIfPresent(_ value: UInt8?, forKey key: Key) throws { if let value = value { try encode(value, forKey: key) } else { try encodeNil(forKey: key) } }
+    mutating func encodeIfPresent(_ value: UInt16?, forKey key: Key) throws { if let value = value { try encode(value, forKey: key) } else { try encodeNil(forKey: key) } }
+    mutating func encodeIfPresent(_ value: UInt32?, forKey key: Key) throws { if let value = value { try encode(value, forKey: key) } else { try encodeNil(forKey: key) } }
+    mutating func encodeIfPresent(_ value: UInt64?, forKey key: Key) throws { if let value = value { try encode(value, forKey: key) } else { try encodeNil(forKey: key) } }
+    mutating func encodeIfPresent(_ value: Float?, forKey key: Key) throws { if let value = value { try encode(value, forKey: key) } else { try encodeNil(forKey: key) } }
+    mutating func encodeIfPresent(_ value: Double?, forKey key: Key) throws { if let value = value { try encode(value, forKey: key) } else { try encodeNil(forKey: key) } }
+    mutating func encodeIfPresent(_ value: String?, forKey key: Key) throws { if let value = value { try encode(value, forKey: key) } else { try encodeNil(forKey: key) } }
+    mutating func encodeIfPresent<T>(_ value: T?, forKey key: Key) throws where T : Encodable { if let value = value { try encode(value, forKey: key) } else { try encodeNil(forKey: key) } }
     
     /// Stores a keyed encoding container for the given key and returns it.
     ///
@@ -189,6 +206,8 @@ extension MutablePersistable where Self: Encodable {
                 try! self.encode(to: encoder)
             }
         }
-        encode { (value, key) in container[key] = value }
+        encode { (value, key) in
+            container[key] = value
+        }
     }
 }
