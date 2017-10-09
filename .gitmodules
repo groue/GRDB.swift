@@ -9,7 +9,7 @@
 	url = https://github.com/realm/realm-cocoa.git
 [submodule "SQLCipher/src"]
 	path = SQLCipher/src
-	url = https://github.com/groue/sqlcipher.git
+	url = https://github.com/darrenclark/sqlcipher.git
 [submodule "SQLiteCustom/src"]
 	path = SQLiteCustom/src
-	url = https://github.com/swiftlyfalling/SQLiteLib
+	url = https://github.com/darrenclark/SQLiteLib
