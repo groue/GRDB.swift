@@ -13,10 +13,9 @@
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
 - [ ] Write regression tests for #156 and #157
 
-GRDB 2.0
+GRDB 3.0
 
-- [ ] Document Record.updateChanges(_:)
-- [ ] WIP on diff algorithms in RxGRDB needs access to MutablePersistable.databaseDictionary. The problem is that one should not need a writing protocol just to read. So consider introducing a new DatabaseEncodable protocol above MutablePersistable. It does not grant any writing methods. But it has encode(to:) and databaseDictionary.
+- [ ] Rename Request to DatabaseRequest, SQLiteRequest, SQLRequest, because Request is a bad name: https://github.com/swift-server/http/pull/7#issuecomment-308448528
 
 Not sure
 
