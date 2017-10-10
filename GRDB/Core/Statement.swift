@@ -105,7 +105,7 @@ public class Statement {
             guard let cString = sqlite3_bind_parameter_name(self.sqliteStatement, Int32($0 + 1)) else {
                 return nil
             }
-            return String(String(cString: cString).characters.dropFirst()) // Drop initial ":", "@", "$"
+            return String(String(cString: cString).dropFirst()) // Drop initial ":", "@", "$"
         }
     }()
     

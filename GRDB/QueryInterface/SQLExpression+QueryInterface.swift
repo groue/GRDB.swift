@@ -462,9 +462,8 @@ struct SQLExpressionCollate : SQLExpression {
     
     func expressionSQL(_ arguments: inout StatementArguments?) -> String {
         let sql = expression.expressionSQL(&arguments)
-        let chars = sql.characters
-        if chars.last! == ")" {
-            return String(chars.prefix(upTo: chars.index(chars.endIndex, offsetBy: -1))) + " COLLATE " + collationName.rawValue + ")"
+        if sql.last! == ")" {
+            return String(sql.prefix(upTo: sql.index(sql.endIndex, offsetBy: -1))) + " COLLATE " + collationName.rawValue + ")"
         } else {
             return sql + " COLLATE " + collationName.rawValue
         }
