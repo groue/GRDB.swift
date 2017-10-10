@@ -1549,10 +1549,11 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
         // print("StatementCompilationAuthorizer: \(actionCode) \([cString1, cString2, cString3, cString4].flatMap { $0.map({ String(cString: $0) }) })")
         
         switch actionCode {
-        case SQLITE_DROP_TABLE, SQLITE_DROP_TEMP_TABLE, SQLITE_DROP_TEMP_VIEW, SQLITE_DROP_VIEW, SQLITE_DETACH, SQLITE_ALTER_TABLE, SQLITE_DROP_VTABLE, SQLITE_CREATE_INDEX, SQLITE_CREATE_TEMP_INDEX, SQLITE_DROP_INDEX, SQLITE_DROP_TEMP_INDEX:
-            if actionCode == SQLITE_DROP_TABLE || actionCode == SQLITE_DROP_VTABLE {
-                isDropTableStatement = true
-            }
+        case SQLITE_DROP_TABLE, SQLITE_DROP_VTABLE:
+            isDropTableStatement = true
+            invalidatesDatabaseSchemaCache = true
+            return SQLITE_OK
+        case SQLITE_DROP_TEMP_TABLE, SQLITE_DROP_TEMP_VIEW, SQLITE_DROP_VIEW, SQLITE_DETACH, SQLITE_ALTER_TABLE, SQLITE_CREATE_INDEX, SQLITE_CREATE_TEMP_INDEX, SQLITE_DROP_INDEX, SQLITE_DROP_TEMP_INDEX:
             invalidatesDatabaseSchemaCache = true
             return SQLITE_OK
         case SQLITE_READ:
@@ -1572,10 +1573,11 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
             return SQLITE_OK
         case SQLITE_DELETE:
             guard !isDropTableStatement else { return SQLITE_OK }
-            guard let tableName = cString1.map({ String(cString: $0) }), tableName != "sqlite_master" else { return SQLITE_OK }
-            databaseEventKinds.append(.delete(tableName: tableName))
+            guard let cString1 = cString1 else { return SQLITE_OK }
+            guard strcmp(cString1, "sqlite_master") != 0 else { return SQLITE_OK }
+            databaseEventKinds.append(.delete(tableName: String(cString: cString1)))
             // Prevent the [truncate optimization](https://www.sqlite.org/lang_delete.html#truncateopt)
-            // See TruncateOptimizationBlocker
+            // See also TruncateOptimizationBlocker
             needsTruncateOptimizationPreventionDuringExecution = true
             return SQLITE_IGNORE
         case SQLITE_UPDATE:
