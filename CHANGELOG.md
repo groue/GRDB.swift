@@ -3,10 +3,14 @@ Release Notes
 
 ## Next version
 
+**New**
+
+- GRDBCipher can now build from command line ([groue/sqlcipher/pull/1](https://github.com/groue/sqlcipher/pull/1) by  [Darren Clark](https://github.com/darrenclark))
+- Upgrade custom SQLite builds to [v3.20.1](http://www.sqlite.org/changes.html) (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib)).
+
 **Fixed**
 
 - `DROP TABLE` statements would not drop temporary tables.
-- Fixed sqlcipher builds from command line ([groue/sqlcipher/pull/1](https://github.com/groue/sqlcipher/pull/1) by  [Darren Clark](https://github.com/darrenclark))
 
 
 ## 2.0.3
