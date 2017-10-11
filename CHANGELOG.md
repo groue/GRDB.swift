@@ -3,7 +3,10 @@ Release Notes
 
 ## Next version
 
-**Fixed**: `DROP TABLE` statements would not drop temporary tables.
+**Fixed**
+
+- `DROP TABLE` statements would not drop temporary tables.
+- Fixed sqlcipher builds from command line ([groue/sqlcipher/pull/1](https://github.com/groue/sqlcipher/pull/1) by  [Darren Clark](https://github.com/darrenclark))
 
 
 ## 2.0.3
