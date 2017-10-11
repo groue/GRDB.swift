@@ -20,8 +20,15 @@ class TruncateOptimizationTests: GRDBTestCase {
     // > the entire table content without having to visit each row of the
     // > table individually.
     //
-    // Here we test that the truncate optimization does not prevent
+    // We  will thus test that the truncate optimization does not prevent
     // transaction observers from observing individual deletions.
+    //
+    // But that's not enough: preventing the truncate optimization requires GRDB
+    // to fiddle with sqlite3_set_authorizer. When badly done, this can prevent
+    // DROP TABLE statements from dropping tables. SQLite3 authorizers are
+    // invoked during both compilation and execution of SQL statements. We will
+    // thus test that DROP TABLE statements perform as expected when compilation
+    // and execution are grouped, and when they are performed separately.
 
     class DeletionObserver : TransactionObserver {
         private var notify: ([String: Int]) -> Void
@@ -112,15 +119,6 @@ class TruncateOptimizationTests: GRDBTestCase {
     }
     
     func testDropTable() throws {
-        // Preventing the truncate optimization requires GRDB to fiddle with
-        // sqlite3_set_authorizer. When badly done, this can prevent DROP TABLE
-        // statements from dropping tables.
-        //
-        // SQLite3 authorizers can perform during both compilation and
-        // execution of statements.
-        //
-        // Here we test that grouping compilation and execution of DROP TABLE
-        // statement does the right thing.
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute("CREATE TABLE t(a)")
@@ -131,18 +129,51 @@ class TruncateOptimizationTests: GRDBTestCase {
     }
     
     func testDropTableWithPreparedStatement() throws {
-        // Preventing the truncate optimization requires GRDB to fiddle with
-        // sqlite3_set_authorizer. When badly done, this can prevent DROP TABLE
-        // statements from dropping tables.
-        //
-        // SQLite3 authorizers can perform during both compilation and
-        // execution of statements.
-        //
-        // Here we test that splitting compilation from execution of DROP TABLE
-        // statement does the right thing.
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute("CREATE TABLE t(a)")
+            try db.execute("INSERT INTO t VALUES (NULL)")
+            let dropStatement = try db.makeUpdateStatement("DROP TABLE t") // compile...
+            try dropStatement.execute() // ... then execute
+            try XCTAssertFalse(db.tableExists("t"))
+        }
+    }
+    
+    func testDropTemporaryTable() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TEMPORARY TABLE t(a)")
+            try db.execute("INSERT INTO t VALUES (NULL)")
+            try db.execute("DROP TABLE t") // compile + execute
+            try XCTAssertFalse(db.tableExists("t"))
+        }
+    }
+    
+    func testDropTemporaryTableWithPreparedStatement() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TEMPORARY TABLE t(a)")
+            try db.execute("INSERT INTO t VALUES (NULL)")
+            let dropStatement = try db.makeUpdateStatement("DROP TABLE t") // compile...
+            try dropStatement.execute() // ... then execute
+            try XCTAssertFalse(db.tableExists("t"))
+        }
+    }
+    
+    func testDropVirtualTable() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE VIRTUAL TABLE t USING fts3(a)")
+            try db.execute("INSERT INTO t VALUES (NULL)")
+            try db.execute("DROP TABLE t") // compile + execute
+            try XCTAssertFalse(db.tableExists("t"))
+        }
+    }
+    
+    func testDropVirtualTableWithPreparedStatement() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE VIRTUAL TABLE t USING fts3(a)")
             try db.execute("INSERT INTO t VALUES (NULL)")
             let dropStatement = try db.makeUpdateStatement("DROP TABLE t") // compile...
             try dropStatement.execute() // ... then execute
