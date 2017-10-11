@@ -142,9 +142,11 @@ jobs:
       script: make test_install_SPM
 
     # Carthage Build
-    - stage: Carthage
+    - stage: Test Installation
       osx_image: xcode9
       before_install:
         - brew update
         - brew outdated carthage || brew upgrade carthage
+      env:
+        - TID=Carthages
       script: make test_CarthageBuild
