@@ -1,6 +1,11 @@
 Release Notes
 =============
 
+## Next version
+
+**Fixed**: `DROP TABLE` statements would not drop temporary tables.
+
+
 ## 2.0.3
 
 Released October 9, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.0.2...v2.0.3)
