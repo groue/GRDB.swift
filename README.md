@@ -2514,7 +2514,7 @@ place.id // A unique id
 ```
 
 
-> :point_up: **Note**: Some types have a different way to encode and decode themselves in a standard archive vs. the database. For example, [Date](#date-and-datecomponents) saves itself as a numerical timestamp (archive) or a string (database). When such an ambiguity happens, GRDB always favors customized database encoding and decoding.
+> :point_up: **Note**: Some values have a different way to encode and decode themselves in a standard archive vs. the database. For example, [Date](#date-and-datecomponents) saves itself as a numerical timestamp (archive) or a string (database). When such an ambiguity happens, GRDB always favors customized database encoding and decoding.
 
 
 ## Record Class
