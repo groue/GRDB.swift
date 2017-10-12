@@ -2521,7 +2521,45 @@ place.id // A unique id
 
 ## Record Class
 
-**Record** is a class that is designed to be subclassed. It inherits its features from the [RowConvertible, TableMapping, and Persistable](#record-protocols-overview) protocols. On top of that, it adds changes tracking, described below:
+**Record** is a class that is designed to be subclassed. It inherits its features from the [RowConvertible, TableMapping, and Persistable](#record-protocols-overview) protocols. On top of that, it adds [changes tracking](#changes-tracking).
+
+Record subclasses define their custom database relationship by overriding database methods:
+
+```swift
+class Place : Record {
+    var id: Int64?
+    var title: String
+    var coordinate: CLLocationCoordinate2D
+    
+    /// The table name
+    override class var databaseTableName: String {
+        return "places"
+    }
+    
+    /// Initialize from a database row
+    required init(row: Row) {
+        id = row["id"]
+        title = row["title"]
+        coordinate = CLLocationCoordinate2D(
+            latitude: row["latitude"],
+            longitude: row["longitude"])
+        super.init(row: row)
+    }
+    
+    /// The values persisted in the database
+    override func encode(to container: inout PersistenceContainer) {
+        container["id"] = id
+        container["title"] = title
+        container["latitude"] = coordinate.latitude
+        container["longitude"] = coordinate.longitude
+    }
+    
+    /// When relevant, update record ID after a successful insertion
+    override func didInsert(with rowID: Int64, for column: String?) {
+        id = rowID
+    }
+}
+```
 
 
 ### Changes Tracking
