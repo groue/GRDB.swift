@@ -2454,7 +2454,7 @@ try dbQueue.inDatabase { db in
 }
 ```
 
-GRDB support for Codable only wprks for "flat" records, whose stored properties are all simple [values](#values) (Bool, Int, String, Date, Swift enums, etc.) For example, the following record is not flat:
+GRDB support for Codable only works for "flat" records, whose stored properties are all simple [values](#values) (Bool, Int, String, Date, Swift enums, etc.) For example, the following record is not flat:
 
 ```swift
 // Can't take profit from Codable code generation:
