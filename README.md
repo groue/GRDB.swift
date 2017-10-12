@@ -1844,8 +1844,8 @@ Your custom structs and classes can adopt each protocol individually, and opt in
 - [Record Class](#record-class)
     - [Changes Tracking](#changes-tracking)
 - [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key)
-- **[List of Record Methods](#list-of-record-methods)**
-
+- [List of Record Methods](#list-of-record-methods)
+- [The Query Interface](#the-query-interface)
 
 
 ### Inserting Records
@@ -1942,13 +1942,19 @@ let playerWithEmailCount = try Player.filter(emailColumn != nil).fetchCount(db) 
 ```
 
 
-You can now jump to:
+Details follow:
 
 - [Record Protocols Overview](#record-protocols-overview)
 - [RowConvertible Protocol](#rowconvertible-protocol)
 - [TableMapping Protocol](#tablemapping-protocol)
 - [Persistable Protocol](#persistable-protocol)
+    - [Persistence Methods](#persistence-methods)
+    - [Customizing the Persistence Methods](#customizing-the-persistence-methods)
+    - [Conflict Resolution](#conflict-resolution)
+- [Codable Records](#codable-records)
 - [Record Class](#record-class)
+    - [Changes Tracking](#changes-tracking)
+- [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key)
 - [List of Record Methods](#list-of-record-methods)
 - [The Query Interface](#the-query-interface)
 
