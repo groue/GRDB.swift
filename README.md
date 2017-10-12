@@ -933,7 +933,7 @@ for (columnName, dbValue) in row { ... } // ("foo", 1), ("foo", 2)
 - A `[String: DatabaseValue]` dictionary that keeps leftmost value in case of duplicated column name:
 
     ```swift
-    let dict = Dictionary(row, uniquingKeysWith: { $0 })
+    let dict = Dictionary(row, uniquingKeysWith: { (left, _) in left })
     ```
 
 - A `[String: AnyObject]` dictionary which keeps rightmost value in case of duplicated column name. This dictionary is identical to FMResultSet's resultDictionary from FMDB. It contains NSNull values for null columns, and can be shared with Objective-C:
@@ -943,7 +943,7 @@ for (columnName, dbValue) in row { ... } // ("foo", 1), ("foo", 2)
         row.map { (column, dbValue) in
             (column, dbValue.storage.value as AnyObject)
         },
-        uniquingKeysWith: { $1 })
+        uniquingKeysWith: { (_, right) in right })
     ```
 
 - A `[String: Any]` dictionary that can feed, for example, JSONSerialization:
@@ -953,7 +953,7 @@ for (columnName, dbValue) in row { ... } // ("foo", 1), ("foo", 2)
         row.map { (column, dbValue) in
             (column, dbValue.storage.value)
         },
-        uniquingKeysWith: { $0 })
+        uniquingKeysWith: { (left, _) in left })
     ```
 
 See the documentation of [`Dictionary.init(_:uniquingKeysWith:)`](https://developer.apple.com/documentation/swift/dictionary/2892961-init) for more information.
