@@ -2474,8 +2474,8 @@ struct Place: RowConvertible, Persistable, Codable {
     
     // Stored properties are all plain values:
     var title: String
-    var latitude: CLLocationDegree
-    var longitude: CLLocationDegree
+    var latitude: CLLocationDegrees
+    var longitude: CLLocationDegrees
     
     // Complex properties are computed properties:
     var coordinate: CLLocationCoordinate2D {
@@ -2500,8 +2500,8 @@ struct Place: RowConvertible, MutablePersistable, Codable {
     
     var id: Int64?      // <- the row id
     var title: String
-    var latitude: CLLocationDegree
-    var longitude: CLLocationDegree
+    var latitude: CLLocationDegrees
+    var longitude: CLLocationDegrees
     var coordinate: CLLocationCoordinate2D { ... }
     
     mutating func didInsert(with rowID: Int64, for column: String?) {
