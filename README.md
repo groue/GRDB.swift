@@ -1840,14 +1840,12 @@ Your custom structs and classes can adopt each protocol individually, and opt in
     - [Persistence Methods](#persistence-methods)
     - [Customizing the Persistence Methods](#customizing-the-persistence-methods)
     - [Conflict Resolution](#conflict-resolution)
+- [Codable Records](#codable-records)
 - [Record Class](#record-class)
     - [Changes Tracking](#changes-tracking)
 - [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key)
 - **[List of Record Methods](#list-of-record-methods)**
 
-**Records, Swift Archival & Serialization**
-
-- [Codable Records](#codable-records)
 
 
 ### Inserting Records
@@ -2432,54 +2430,101 @@ try player.insert(db)
 > :warning: **Warning**: [`ON CONFLICT REPLACE`](https://www.sqlite.org/lang_conflict.html) may delete rows so that inserts and updates can succeed. Those deletions are not reported to [transaction observers](#transactionobserver-protocol) (this might change in a future release of SQLite).
 
 
-## Record Class
+## Codable Records
 
-**Record** is a class that is designed to be subclassed, and provides the full toolkit in one go: fetching and persistence methods, as well as changes tracking (see the [list of record methods](#list-of-record-methods) for an overview).
+[Swift Archival & Serialization](https://github.com/apple/swift-evolution/blob/master/proposals/0166-swift-archival-serialization.md) was introduced with Swift 4.
 
-Record subclasses inherit their features from the [RowConvertible, TableMapping, and Persistable](#record-protocols-overview) protocols. Check their documentation for more information.
-
-For example, here is a fully functional Record subclass:
+GRDB provides default implementations for [`RowConvertible.init(row:)`](#rowconvertible-protocol) and [`Persistable.encode(to:)`](#persistable-protocol) for record types that also adopt an archival protocol (`Codable`, `Encodable` or `Decodable`). When all their properties are themselves codable, Swift generates the archiving methods, and you don't need to write them down:
 
 ```swift
-class Place : Record {
-    var id: Int64?
+// This is just enough...
+struct Player: RowConvertible, Persistable, Codable {
+    static let databaseTableName = "players"
+    
+    let name: String
+    let score: Int
+}
+
+// ... so that you can save and fetch players:
+try dbQueue.inDatabase { db in
+    try Player(name: "Arthur", score: 100).insert(db)
+    let players = try Player.fetchAll(db)
+}
+```
+
+GRDB support for Codable only wprks for "flat" records, whose stored properties are all simple [values](#values) (Bool, Int, String, Date, Swift enums, etc.) For example, the following record is not flat:
+
+```swift
+// Can't take profit from Codable code generation:
+struct Place: RowConvertible, Persistable, Codable {
+    static let databaseTableName = "places"
+    
     var title: String
-    var coordinate: CLLocationCoordinate2D
+    var coordinate: CLLocationCoordinate2D // <- Not a simple value
+}
+```
+
+Make it flat, as below, and you'll be granted with all Codable and GRDB advantages:
+
+```swift
+struct Place: RowConvertible, Persistable, Codable {
+    static let databaseTableName = "places"
     
-    /// The table name
-    override class var databaseTableName: String {
-        return "places"
-    }
+    // Stored properties are all plain values:
+    var title: String
+    var latitude: CLLocationDegree
+    var longitude: CLLocationDegree
     
-    /// Initialize from a database row
-    required init(row: Row) {
-        id = row["id"]
-        title = row["title"]
-        coordinate = CLLocationCoordinate2D(
-            latitude: row["latitude"],
-            longitude: row["longitude"])
-        super.init(row: row)
-    }
-    
-    /// The values persisted in the database
-    override func encode(to container: inout PersistenceContainer) {
-        container["id"] = id
-        container["title"] = title
-        container["latitude"] = coordinate.latitude
-        container["longitude"] = coordinate.longitude
-    }
-    
-    /// Update record ID after a successful insertion
-    override func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    // Complex properties are computed properties:
+    var coordinate: CLLocationCoordinate2D {
+        get {
+            return CLLocationCoordinate2D(
+                latitude: latitude,
+                longitude: longitude)
+        }
+        set {
+            latitude = newValue.latitude
+            longitude = newValue.longitude
+        }
     }
 }
 ```
 
+As documented with the [Persistable](#persistable-protocol) protocol, have you struct records use MutablePersistable instead of Persistable when they store their automatically incremented row id:
+
+```swift
+struct Place: RowConvertible, MutablePersistable, Codable {
+    static let databaseTableName = "places"
+    
+    var id: Int64?      // <- the row id
+    var title: String
+    var latitude: CLLocationDegree
+    var longitude: CLLocationDegree
+    var coordinate: CLLocationCoordinate2D { ... }
+    
+    mutating func didInsert(with rowID: Int64, for column: String?) {
+        // Update id after insertion
+        id = rowID
+    }
+}
+
+var place = Place(id: nil, ...)
+try place.insert(db)
+place.id // A unique id
+```
+
+
+> :point_up: **Note**: Some types have a different way to encode and decode themselves in a standard archive vs. the database. For example, [Date](#date-and-datecomponents) saves itself as a numerical timestamp (archive) or a string (database). When such an ambiguity happens, GRDB always favors customized database encoding and decoding.
+
+
+## Record Class
+
+**Record** is a class that is designed to be subclassed. It inherits its features from the [RowConvertible, TableMapping, and Persistable](#record-protocols-overview) protocols. On top of that, it adds changes tracking, described below:
+
 
 ### Changes Tracking
 
-**The [Record](#record-class) class provides changes tracking.**
+**Record instances know if they have been modified since they were last fetched.**
 
 The `update()` [method](#persistence-methods) always executes an UPDATE statement. When the record has not been edited, this costly database access is generally useless.
 
@@ -2719,31 +2764,6 @@ let player = try Player.fetchOne("SELECT * FROM players WHERE id = ?", arguments
 let statement = try db.makeSelectStatement("SELECT * FROM players WHERE id = ?")
 let player = try Player.fetchOne(statement, arguments: [1])  // Player?
 ```
-
-
-## Codable Records
-
-[Swift Archival & Serialization](https://github.com/apple/swift-evolution/blob/master/proposals/0166-swift-archival-serialization.md) was introduced with Swift 4.
-
-GRDB provides default implementations for [`RowConvertible.init(row:)`](#rowconvertible-protocol) and [`Persistable.encode(to:)`](#persistable-protocol) for record types that also adopt an archival protocol (`Codable`, `Encodable` or `Decodable`). When all their properties are themselves codable, Swift generates the archiving methods, and you don't need to write them down:
-
-```swift
-// This is just enough...
-struct Player: RowConvertible, Persistable, Codable {
-    static let databaseTableName = "players"
-    
-    let name: String
-    let score: Int
-}
-
-// ... so that you can save and fetch players:
-try dbQueue.inDatabase { db in
-    try Player(name: "Arthur", score: 100).insert(db)
-    let players = try Player.fetchAll(db)
-}
-```
-
-> :point_up: **Note**: Some types have a different way to encode and decode themselves in a standard archive vs. the database. For example, [Date](#date-and-datecomponents) saves itself as a numerical timestamp (archive) or a string (database). When such an ambiguity happens, GRDB always favors customized database encoding and decoding.
 
 
 The Query Interface
