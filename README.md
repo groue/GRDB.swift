@@ -4857,6 +4857,8 @@ controller.trackChanges { controller in
 }
 ```
 
+> :warning: **Warning**: notification of individual record changes (the `onChange` callback) has FetchedRecordsController use a diffing algorithm that has a high complexity, a high memory consumption, and is thus **not suited for large result sets**. One hundred rows is probably OK, but one thousand is probably not. If your application experiences problems with large lists, see [Issue 263](https://github.com/groue/GRDB.swift/issues/263) for more information.
+
 Callbacks have the fetched record controller itself as an argument: use it in order to avoid memory leaks:
 
 ```swift
@@ -5029,7 +5031,9 @@ controller.trackChanges(
     })
 ```
 
-See [GRDBDemoiOS](DemoApps/GRDBDemoiOS/GRDBDemoiOS) for an sample app that uses FetchedRecordsController.
+> :warning: **Warning**: notification of individual record changes (the `onChange` callback) has FetchedRecordsController use a diffing algorithm that has a high complexity, a high memory consumption, and is thus **not suited for large result sets**. One hundred rows is probably OK, but one thousand is probably not. If your application experiences problems with large lists, see [Issue 263](https://github.com/groue/GRDB.swift/issues/263) for more information.
+
+See [GRDBDemoiOS](DemoApps/GRDBDemoiOS/GRDBDemoiOS) for an sample app that uses FetchedRecordsController to animate a table view.
 
 > :point_up: **Note**: our sample code above uses `unowned` references to the table view controller. This is a safe pattern as long as the table view controller owns the fetched records controller, and is deallocated from the main thread (this is usually the case). In other situations, prefer weak references.
 
