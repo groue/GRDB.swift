@@ -141,11 +141,10 @@ jobs:
         - TID=SPM
       script: make test_install_SPM
 
-    ## The following doesn’t work, as `make test_CarthageBuild` does not yet work.
-    ## Carthage Build
-    #- stage: Carthage
-    #  osx_image: xcode9
-    #  before_install:
-    #    - brew update
-    #    - brew outdated carthage || brew upgrade carthage
-    #  script: make test_CarthageBuild
+    # Carthage Build
+    - stage: Carthage
+      osx_image: xcode9
+      before_install:
+        - brew update
+        - brew outdated carthage || brew upgrade carthage
+      script: make test_CarthageBuild
