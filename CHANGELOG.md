@@ -25,7 +25,7 @@ Release Notes
 
 ```diff
 extension Request {
-+    func asSQLRequest(_ db: Database, cached: Bool = true) throws -> SQLRequest
++    func asSQLRequest(_ db: Database, cached: Bool = false) throws -> SQLRequest
 }
 struct SQLRequest {
 +    let sql: String
