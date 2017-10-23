@@ -44,7 +44,7 @@ extension Request {
     ///     - cached: Defaults to false. If true, the request reuses a cached
     ///       prepared statement.
     /// - returns: A SQLRequest
-    public func asSQLRequest(_ db: Database, cached: Bool = true) throws -> SQLRequest {
+    public func asSQLRequest(_ db: Database, cached: Bool = false) throws -> SQLRequest {
         let (statement, adapter) = try prepare(db)
         return SQLRequest(statement.sql, arguments: statement.arguments, adapter: adapter, cached: cached)
     }
