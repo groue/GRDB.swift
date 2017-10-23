@@ -6108,6 +6108,7 @@ FAQ
 - [How do I create a database in my application?](#how-do-i-create-a-database-in-my-application)
 - [How do I open a database stored as a resource of my application?](#how-do-i-open-a-database-stored-as-a-resource-of-my-application)
 - [How do I close a database connection?](#how-do-i-close-a-database-connection)
+- [How do I print a request as SQL?](#how-do-i-print-a-request-as-sql)
 - [Generic parameter 'T' could not be inferred](#generic-parameter-t-could-not-be-inferred)
 - [SQLite error 10 "disk I/O error", SQLite error 23 "not authorized"](#sqlite-error-10-disk-io-error-sqlite-error-23-not-authorized)
 - [What Are Experimental Features?](#what-are-experimental-features)
@@ -6159,6 +6160,43 @@ let dbQueue = try DatabaseQueue(path: dbPath)
 Database connections are managed by [database queues](#database-queues) and [pools](#database-pools). A connection is closed when its database queue or pool is deallocated, and all usages of this connection are completed.
 
 Database accesses that run in background threads postpone the closing of connections.
+
+
+### How do I print a request as SQL?
+
+When you want to debug a request that does not deliver the expected results, you may want to print the SQL that is actually executed.
+
+Use the `asSQLRequest` method:
+
+```swift
+try dbQueue.inDatabase { db in
+    let request = Wine
+        .filter(Column("origin") == "Burgundy")
+        .order(Column("price")
+    
+    let sqlRequest = try request.asSQLRequest(db)
+    print(sqlRequest.sql)
+    // Prints SELECT * FROM wines WHERE origin = ? ORDER BY price
+    print(sqlRequest.arguments)
+    // Prints ["Burgundy"]
+}
+```
+
+Another option is to setup a tracing function that will print out all SQL requests executed by your application. You provide the trace function when you connect to the database:
+
+```swift
+var config = Configuration()
+config.trace = { print("SQL: \($0)") } // Prints all SQL statements
+let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
+
+try dbQueue.inDatabase { db in
+    let wines = Wine
+        .filter(Column("origin") == "Burgundy")
+        .order(Column("price")
+        .fetchAll(db)
+    // Prints SELECT * FROM wines WHERE origin = 'Burgundy' ORDER BY price
+}
+```
 
 
 ### Generic parameter 'T' could not be inferred
