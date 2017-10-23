@@ -275,9 +275,9 @@ Note that Linux is not currently supported.
 
 ## Carthage
 
-Carthage does not support the variety of frameworks built by GRDB (standard SQLite, custom SQLite, SQLCipher).
+Carthage can build GRDB frameworks, but it can also inexplicably fail. This installation method is thus *unsupported*.
 
-Any pull request that has the `make test_CarthageBuild` command successfully complete will be greatly appreciated, though. Bring your local Xcode guru!
+If you decide to use Carthage despite this warning, and get any Carthage-related error, please open an issue in the [Carthage repo](https://github.com/Carthage/Carthage/issues), ask [Stack Overflow](http://stackoverflow.com), summon your local Xcode guru, or submit a pull request that has the `make test_CarthageBuild` command succeed 100% of the time (one time is not enough). See [#262](https://github.com/groue/GRDB.swift/pull/262) for more information.
 
 
 ## Manually
