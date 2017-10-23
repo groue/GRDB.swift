@@ -7,11 +7,32 @@ Release Notes
 
 - GRDBCipher can now build from command line ([groue/sqlcipher/pull/1](https://github.com/groue/sqlcipher/pull/1) by  [Darren Clark](https://github.com/darrenclark))
 - Upgrade custom SQLite builds to [v3.20.1](http://www.sqlite.org/changes.html) (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib)).
+- The new method `Request.asSQLRequest` allows to inspect the sql and arguments of any request:
+    
+    ```swift
+    let request = Player.all()
+    let sql = try request.asSQLRequest().sql
+    print(sql) // Prints "SELECT * FROM players"
+    ```
+    
+- StatementArguments adopts Equatable
 
 **Fixed**
 
 - `DROP TABLE` statements would not drop temporary tables.
 
+### API diff
+
+```diff
+extension Request {
++    func asSQLRequest(_ db: Database, cached: Bool = true) throws -> SQLRequest
+}
+struct SQLRequest {
++    let sql: String
++    let arguments: StatementArguments?
++    let adapter: RowAdapter?
+}
+```
 
 ## 2.0.3
 

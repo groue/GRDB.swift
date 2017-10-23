@@ -50,4 +50,19 @@ class SQLRequestTests: GRDBTestCase {
             XCTAssertTrue(statement1 === statement2)
         }
     }
+    
+    func testAsSQLRequest() throws {
+        struct CustomRequest: Request {
+            func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
+                return try SQLRequest("SELECT ?, ?", arguments: [1, "foo"]).prepare(db)
+            }
+        }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request = CustomRequest()
+            let sqlRequest = try request.asSQLRequest(db)
+            XCTAssertEqual(sqlRequest.sql, "SELECT ?, ?")
+            XCTAssertEqual(sqlRequest.arguments, [1, "foo"])
+        }
+    }
 }

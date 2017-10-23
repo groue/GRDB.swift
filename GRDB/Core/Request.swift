@@ -36,6 +36,18 @@ extension Request {
         let sql = "SELECT COUNT(*) FROM (\(statement.sql))"
         return try Int.fetchOne(db, sql, arguments: statement.arguments)!
     }
+    
+    /// Returns an SQLRequest.
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - cached: Defaults to false. If true, the request reuses a cached
+    ///       prepared statement.
+    /// - returns: A SQLRequest
+    public func asSQLRequest(_ db: Database, cached: Bool = true) throws -> SQLRequest {
+        let (statement, adapter) = try prepare(db)
+        return SQLRequest(statement.sql, arguments: statement.arguments, adapter: adapter, cached: cached)
+    }
 }
 
 extension Request {
@@ -126,6 +138,11 @@ public struct AnyRequest : Request {
 
 /// A Request built from raw SQL.
 public struct SQLRequest : Request {
+    public let sql: String
+    public let arguments: StatementArguments?
+    public let adapter: RowAdapter?
+    private let statementCacheName: Database.StatementCacheName?
+    
     /// Creates a new request from an SQL string, optional arguments, and
     /// optional row adapter.
     ///
@@ -178,11 +195,6 @@ public struct SQLRequest : Request {
         }
         return (statement, adapter)
     }
-    
-    private let sql: String
-    private let arguments: StatementArguments?
-    private let adapter: RowAdapter?
-    private let statementCacheName: Database.StatementCacheName?
 }
 
 /// The protocol for requests that know how to decode database rows.

@@ -574,6 +574,8 @@ public final class UpdateStatement : Statement {
 ///     print(row)
 ///     // Prints <Row two:2 foo:"foo" one:1 foo2:"foo" bar:"bar">
 public struct StatementArguments {
+    var values: [DatabaseValue] = []
+    var namedValues: [String: DatabaseValue] = [:]
     
     public var isEmpty: Bool {
         return values.isEmpty && namedValues.isEmpty
@@ -831,9 +833,6 @@ public struct StatementArguments {
     
     // MARK: Not Public
     
-    var values: [DatabaseValue] = []
-    var namedValues: [String: DatabaseValue] = [:]
-    
     mutating func consume(_ statement: Statement, allowingRemainingValues: Bool) throws -> [DatabaseValue] {
         let initialValuesCount = values.count
         let bindings = try statement.sqliteArgumentNames.map { argumentName -> DatabaseValue in
@@ -886,6 +885,14 @@ extension StatementArguments : CustomStringConvertible {
             return "\(String(reflecting: key)): \(value)"
         }
         return "[" + (namedValuesDescriptions + valuesDescriptions).joined(separator: ", ") + "]"
+    }
+}
+
+extension StatementArguments : Equatable {
+    public static func == (lhs: StatementArguments, rhs: StatementArguments) -> Bool {
+        if lhs.values != rhs.values { return false }
+        if lhs.namedValues != rhs.namedValues { return false }
+        return true
     }
 }
 
