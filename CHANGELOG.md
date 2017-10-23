@@ -3,7 +3,7 @@ Release Notes
 
 ## Next version
 
-**New**
+### New
 
 - GRDBCipher can now build from command line ([groue/sqlcipher/pull/1](https://github.com/groue/sqlcipher/pull/1) by  [Darren Clark](https://github.com/darrenclark))
 - Upgrade custom SQLite builds to [v3.20.1](http://www.sqlite.org/changes.html) (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib)).
@@ -17,9 +17,18 @@ Release Notes
     
 - StatementArguments adopts Equatable
 
-**Fixed**
+
+### Fixed
 
 - `DROP TABLE` statements would not drop temporary tables.
+
+
+### Documentation Diff
+
+- New FAQ: [How do I create a database in my application?](https://github.com/groue/GRDB.swift/blob/master/README.md#how-do-i-create-a-database-in-my-application)
+- New FAQ: [How do I print a request as SQL?](https://github.com/groue/GRDB.swift/blob/master/README.md#how-do-i-print-a-request-as-sql)
+- The [Codable Record](https://github.com/groue/GRDB.swift/blob/master/README.md#codable-records) chapter has been enhanced with more sample code.
+
 
 ### API diff
 
@@ -33,6 +42,7 @@ struct SQLRequest {
 +    let adapter: RowAdapter?
 }
 ```
+
 
 ## 2.0.3
 
@@ -226,7 +236,7 @@ New features have been added in order to plug a few holes and support the [RxGRD
 - The deprecated `TableMapping.primaryKeyRowComparator` method has been removed.
 
 
-### Documentation diff
+### Documentation Diff
 
 - [WatchOS installation procedure](https://github.com/groue/GRDB.swift#installation) has been updated with new instructions.
 - The [introduction to multithreading with database pools](https://github.com/groue/GRDB.swift#database-pools) has been enhanced.
