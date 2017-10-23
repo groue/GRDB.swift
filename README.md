@@ -5553,24 +5553,25 @@ For example, to explicitely use [complete](https://developer.apple.com/reference
 
 ```swift
 // Paths
-let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
-let directoryPath = (documentsPath as NSString).appendingPathComponent("database")
-let databasePath = (directoryPath as NSString).appendingPathComponent("db.sqlite")
+let fileManager = FileManager.default
+let directoryURL = try fileManager
+    .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+    .appendingPathComponent("database", isDirectory: true)
+let databaseURL = directoryURL.appendingPathComponent("db.sqlite")
 
 // Create directory if needed
-let fm = FileManager.default
 var isDirectory: ObjCBool = false
-if !fm.fileExists(atPath: directoryPath, isDirectory: &isDirectory) {
-    try fm.createDirectory(atPath: directoryPath, withIntermediateDirectories: false)
+if !fileManager.fileExists(atPath: directoryURL.path, isDirectory: &isDirectory) {
+    try fileManager.createDirectory(atPath: directoryURL.path, withIntermediateDirectories: false)
 } else if !isDirectory.boolValue {
     throw NSError(domain: NSCocoaErrorDomain, code: NSFileWriteFileExistsError, userInfo: nil)
 }
 
 // Enable data protection
-try fm.setAttributes([.protectionKey : FileProtectionType.complete], ofItemAtPath: directoryPath)
+try fileManager.setAttributes([.protectionKey : FileProtectionType.complete], ofItemAtPath: directoryURL.path)
 
 // Open database
-let dbQueue = try DatabaseQueue(path: databasePath)
+let dbQueue = try DatabaseQueue(path: databaseURL.path)
 ```
 
 When a database is protected, an application that runs in the background on a locked device won't be able to read or write from it. Instead, it will get [DatabaseError](#error-handling) with code [`SQLITE_IOERR`](https://www.sqlite.org/rescode.html#ioerr) (10) "disk I/O error", or [`SQLITE_AUTH`](https://www.sqlite.org/rescode.html#auth) (23) "not authorized".
@@ -6104,18 +6105,26 @@ for player in players {
 FAQ
 ===
 
-- [How do I close a database connection?](#how-do-i-close-a-database-connection)
+- [How do I create a database in my application?](#how-do-i-create-a-database-in-my-application)
 - [How do I open a database stored as a resource of my application?](#how-do-i-open-a-database-stored-as-a-resource-of-my-application)
+- [How do I close a database connection?](#how-do-i-close-a-database-connection)
 - [Generic parameter 'T' could not be inferred](#generic-parameter-t-could-not-be-inferred)
 - [SQLite error 10 "disk I/O error", SQLite error 23 "not authorized"](#sqlite-error-10-disk-io-error-sqlite-error-23-not-authorized)
 - [What Are Experimental Features?](#what-are-experimental-features)
 
 
-### How do I close a database connection?
-    
-Database connections are managed by [database queues](#database-queues) and [pools](#database-pools). A connection is closed when its database queue or pool is deallocated, and all usages of this connection are completed.
+### How do I create a database in my application?
 
-Database accesses that run in background threads postpone the closing of connections.
+This question assumes that your application has to create a new database from scratch. If your app has to open an existing database that is embedded inside your application as a resource, see [How do I open a database stored as a resource of my application?](#how-do-i-open-a-database-stored-as-a-resource-of-my-application) instead.
+
+The database has to be stored in a valid place where it can be created and modified. For example, in the [Application Support directory](https://developer.apple.com/library/content/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html):
+
+```swift
+let databaseURL = try FileManager.default
+    .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+    .appendingPathComponent("db.sqlite")
+let dbQueue = try DatabaseQueue(path: databaseURL.path)
+```
 
 
 ### How do I open a database stored as a resource of my application?
@@ -6129,18 +6138,27 @@ let dbPath = Bundle.main.path(forResource: "db", ofType: "sqlite")!
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: configuration)
 ```
 
-If the application should modify the database, you need to copy it to a place where it can be modified. For example, in the Documents folder. Only then, open a [connection](#database-connections):
+If the application should modify the database, you need to copy it to a place where it can be modified. For example, in the [Application Support directory](https://developer.apple.com/library/content/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html). Only then, open a [connection](#database-connections):
 
 ```swift
-let fm = FileManager.default
-let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
-let dbPath = (documentsPath as NSString).appendingPathComponent("db.sqlite")
-if !fm.fileExists(atPath: dbPath) {
+let fileManager = FileManager.default
+let dbPath = try fileManager
+    .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+    .appendingPathComponent("db.sqlite")
+    .path
+if !fileManager.fileExists(atPath: dbPath) {
     let dbResourcePath = Bundle.main.path(forResource: "db", ofType: "sqlite")!
-    try fm.copyItem(atPath: dbResourcePath, toPath: dbPath)
+    try fileManager.copyItem(atPath: dbResourcePath, toPath: dbPath)
 }
 let dbQueue = try DatabaseQueue(path: dbPath)
 ```
+
+
+### How do I close a database connection?
+    
+Database connections are managed by [database queues](#database-queues) and [pools](#database-pools). A connection is closed when its database queue or pool is deallocated, and all usages of this connection are completed.
+
+Database accesses that run in background threads postpone the closing of connections.
 
 
 ### Generic parameter 'T' could not be inferred

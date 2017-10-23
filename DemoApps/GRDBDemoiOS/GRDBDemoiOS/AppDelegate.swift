@@ -14,9 +14,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     private func setupDatabase(_ application: UIApplication) throws {
-        let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first! as NSString
-        let databasePath = documentsPath.appendingPathComponent("db.sqlite")
-        dbQueue = try AppDatabase.openDatabase(atPath: databasePath)
+        let databaseURL = try FileManager.default
+            .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+            .appendingPathComponent("db.sqlite")
+        dbQueue = try AppDatabase.openDatabase(atPath: databaseURL.path)
 
         // Be a nice iOS citizen, and don't consume too much memory
         // See https://github.com/groue/GRDB.swift/#memory-management
