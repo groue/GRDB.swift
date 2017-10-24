@@ -13,7 +13,7 @@ Released October 24, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/comp
     
     ```swift
     let request = Player.all()
-    let sql = try request.asSQLRequest().sql
+    let sql = try request.asSQLRequest(db).sql
     print(sql) // Prints "SELECT * FROM players"
     ```
     
