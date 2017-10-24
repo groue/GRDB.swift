@@ -141,7 +141,9 @@ jobs:
         - TID=SPM
       script: make test_install_SPM
 
-    # # Carthage Build
+    ## Carthage Build
+    ## Commented out until `make test_CarthageBuild` performs *reliably*.
+    ## See https://github.com/groue/GRDB.swift/pull/262
     # - stage: Test Installation
     #   osx_image: xcode9
     #   before_install:
