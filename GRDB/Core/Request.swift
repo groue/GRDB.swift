@@ -37,13 +37,13 @@ extension Request {
         return try Int.fetchOne(db, sql, arguments: statement.arguments)!
     }
     
-    /// Returns an SQLRequest.
+    /// Returns an equivalent SQLRequest.
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - cached: Defaults to false. If true, the request reuses a cached
     ///       prepared statement.
-    /// - returns: A SQLRequest
+    /// - returns: An SQLRequest
     public func asSQLRequest(_ db: Database, cached: Bool = false) throws -> SQLRequest {
         let (statement, adapter) = try prepare(db)
         return SQLRequest(statement.sql, arguments: statement.arguments, adapter: adapter, cached: cached)
