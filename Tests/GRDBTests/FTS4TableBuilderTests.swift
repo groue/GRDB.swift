@@ -120,7 +120,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "documents", using: FTS4()) { t in
-                t.tokenizer = .unicode61(tokenCharacters: Set(".-".characters))
+                t.tokenizer = .unicode61(tokenCharacters: Set(".-"))
             }
             assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts4(tokenize=unicode61 \"tokenchars=-.\")")
         }
