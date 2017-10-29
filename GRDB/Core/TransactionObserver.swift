@@ -226,7 +226,6 @@ class DatabaseObservationBroker {
         }
     }
     
-    /// Some failed statements interest transaction observers.
     func updateStatementDidFail(_ statement: UpdateStatement) throws {
         // Wait for next statement
         activeTransactionObservations = []
@@ -250,8 +249,6 @@ class DatabaseObservationBroker {
         }
     }
     
-    /// Some succeeded statements invalidate the database cache, others interest
-    /// transaction observers, and others modify the savepoint stack.
     func updateStatementDidExecute(_ statement: UpdateStatement) {
         // Wait for next statement
         activeTransactionObservations = []
