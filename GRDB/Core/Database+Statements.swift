@@ -1,3 +1,5 @@
+import Foundation
+
 // MARK: - Prepared Statements
 
 extension Database {
