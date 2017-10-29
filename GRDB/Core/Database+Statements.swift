@@ -263,7 +263,7 @@ extension Database {
     /// database cache), or RELEASE SAVEPOINT (which alters the savepoint stack)
     static func preconditionValidSelectStatement(sql: String, authorizer: StatementCompilationAuthorizer) {
         GRDBPrecondition(authorizer.invalidatesDatabaseSchemaCache == false, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
-        GRDBPrecondition(authorizer.transactionStatementInfo == nil, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
+        GRDBPrecondition(authorizer.transactionEffect == nil, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
         
         // Don't check for authorizer.databaseEventKinds.isEmpty
         //

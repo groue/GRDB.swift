@@ -73,7 +73,22 @@ extension Database {
     }
 }
 
-// This class is responsible for transaction observers
+/// This class provides core support for transaction observers.
+///
+/// Broker knows about transaction commits and rollbacks, through
+/// sqlite3_commit_hook and sqlite3_rollback_hook.
+///
+/// Broker knows about the statements that modify the transaction and savepoints
+/// state of the database connection (BEGIN/COMMIT/ROLLBACK/RELEASE), through
+/// UpdateStatement.transactionEffect. This property has been computed at
+/// statement compilation time by StatementCompilationAuthorizer,
+/// through sqlite3_set_authorizer.
+///
+/// Broker knows about individual database changes (row insertions, updates,
+/// and deletions) through sqlite3_update_hook and sqlite3_preupdate_hook.
+/// In order to be notified of all row deletions, the [truncate optimization](https://www.sqlite.org/lang_delete.html#truncateopt)
+/// is disabled by StatementCompilationAuthorizer and TruncateOptimizationBlocker
+/// through sqlite3_set_authorizer.
 class DatabaseObservationBroker {
     unowned var database: Database
     var savepointStack = SavepointStack()
@@ -169,46 +184,44 @@ class DatabaseObservationBroker {
         // Wait for next statement
         activeTransactionObservations = []
         
-        if let transactionStatementInfo = statement.transactionStatementInfo {
+        if let transactionEffect = statement.transactionEffect {
             // Statement has modified transaction/savepoint state
-            
-            switch transactionStatementInfo {
-            case .transaction(action: let action):
-                switch action {
-                case .begin:
-                    break
-                case .commit:
-                    if case .none = self.transactionState {
-                        // A COMMIT statement has ended a deferred transaction
-                        // that did not open, and sqlite_commit_hook was not
-                        // called.
-                        //
-                        //  BEGIN DEFERRED TRANSACTION
-                        //  COMMIT
-                        self.transactionState = .commit
-                    }
-                case .rollback:
-                    break
+            switch transactionEffect {
+            case .beginTransaction:
+                break
+                
+            case .commitTransaction:
+                if case .none = self.transactionState {
+                    // A COMMIT statement has ended a deferred transaction
+                    // that did not open, and sqlite_commit_hook was not
+                    // called.
+                    //
+                    //  BEGIN DEFERRED TRANSACTION
+                    //  COMMIT
+                    self.transactionState = .commit
                 }
-            case .savepoint(name: let name, action: let action):
-                switch action {
-                case .begin:
-                    savepointStack.savepointDidStart(name)
-                case .release:
-                    savepointStack.statementDidRelease(name)
-                    if savepointStack.isEmpty {
-                        // Notify buffered events
-                        let eventsBuffer = savepointStack.eventsBuffer
-                        savepointStack.clear()
-                        for (event, observations) in eventsBuffer {
-                            for observation in observations {
-                                event.send(to: observation)
-                            }
+                
+            case .rollbackTransaction:
+                break
+                
+            case .beginSavepoint(let name):
+                savepointStack.savepointDidBegin(name)
+                
+            case .releaseSavepoint(let name):
+                savepointStack.savepointDidRelease(name)
+                if savepointStack.isEmpty {
+                    // Notify buffered events
+                    let eventsBuffer = savepointStack.eventsBuffer
+                    savepointStack.clear()
+                    for (event, observations) in eventsBuffer {
+                        for observation in observations {
+                            event.send(to: observation)
                         }
                     }
-                case .rollback:
-                    savepointStack.savepointDidRollback(name)
                 }
+                
+            case .rollbackSavepoint(let name):
+                savepointStack.savepointDidRollback(name)
             }
         }
         
@@ -903,7 +916,7 @@ class SavepointStack {
         savepoints.removeAll()
     }
     
-    func savepointDidStart(_ name: String) {
+    func savepointDidBegin(_ name: String) {
         savepoints.append((name: name.lowercased(), index: eventsBuffer.count))
     }
     
@@ -932,7 +945,7 @@ class SavepointStack {
     // > transaction stack and releases savepoints backwards in time until it
     // > releases a savepoint with a matching savepoint-name. Prior savepoints,
     // > even savepoints with matching savepoint-names, are unchanged.
-    func statementDidRelease(_ name: String) {
+    func savepointDidRelease(_ name: String) {
         let name = name.lowercased()
         while let pair = savepoints.last, pair.name != name {
             savepoints.removeLast()

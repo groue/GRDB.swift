@@ -416,21 +416,13 @@ public final class StatementCursor: Cursor {
 ///         return .commit
 ///     }
 public final class UpdateStatement : Statement, AuthorizedStatement {
-    enum TransactionStatementInfo {
-        enum SavepointAction : String {
-            case begin = "BEGIN"
-            case release = "RELEASE"
-            case rollback = "ROLLBACK"
-        }
-        
-        enum TransactionAction : String {
-            case begin = "BEGIN"
-            case commit = "COMMIT"
-            case rollback = "ROLLBACK"
-        }
-        
-        case transaction(action: TransactionAction)
-        case savepoint(name: String, action: SavepointAction)
+    enum TransactionEffect {
+        case beginTransaction
+        case commitTransaction
+        case rollbackTransaction
+        case beginSavepoint(String)
+        case releaseSavepoint(String)
+        case rollbackSavepoint(String)
     }
     
     /// If true, the database schema cache gets invalidated after this statement
@@ -441,7 +433,7 @@ public final class UpdateStatement : Statement, AuthorizedStatement {
     /// when executed
     private(set) var needsTruncateOptimizationPreventionDuringExecution: Bool
 
-    private(set) var transactionStatementInfo: TransactionStatementInfo?
+    private(set) var transactionEffect: TransactionEffect?
     private(set) var databaseEventKinds: [DatabaseEventKind]
     
     /// Creates a prepared statement.
@@ -473,7 +465,7 @@ public final class UpdateStatement : Statement, AuthorizedStatement {
             prepFlags: prepFlags)
         self.invalidatesDatabaseSchemaCache = authorizer.invalidatesDatabaseSchemaCache
         self.needsTruncateOptimizationPreventionDuringExecution = authorizer.needsTruncateOptimizationPreventionDuringExecution
-        self.transactionStatementInfo = authorizer.transactionStatementInfo
+        self.transactionEffect = authorizer.transactionEffect
         self.databaseEventKinds = authorizer.databaseEventKinds
     }
     

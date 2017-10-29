@@ -24,7 +24,7 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
     
     /// Not nil if a statement is a BEGIN/COMMIT/ROLLBACK/RELEASE transaction or
     /// savepoint statement.
-    var transactionStatementInfo: UpdateStatement.TransactionStatementInfo?
+    var transactionEffect: UpdateStatement.TransactionEffect?
     
     /// True if statement may trigger the truncate optimization
     var needsTruncateOptimizationPreventionDuringExecution = false
@@ -86,16 +86,26 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
             return SQLITE_OK
             
         case SQLITE_TRANSACTION:
-            guard let rawAction = cString1.map({ String(cString: $0) }) else { return SQLITE_OK }
-            let action = UpdateStatement.TransactionStatementInfo.TransactionAction(rawValue: rawAction)!
-            transactionStatementInfo = .transaction(action: action)
+            guard let cString1 = cString1 else { return SQLITE_OK }
+            if strcmp(cString1, "BEGIN") == 0 {
+                transactionEffect = .beginTransaction
+            } else if strcmp(cString1, "COMMIT") == 0 {
+                transactionEffect = .commitTransaction
+            } else if strcmp(cString1, "ROLLBACK") == 0 {
+                transactionEffect = .rollbackTransaction
+            }
             return SQLITE_OK
             
         case SQLITE_SAVEPOINT:
-            guard let rawAction = cString1.map({ String(cString: $0) }) else { return SQLITE_OK }
-            guard let savepointName = cString2.map({ String(cString: $0) }) else { return SQLITE_OK }
-            let action = UpdateStatement.TransactionStatementInfo.SavepointAction(rawValue: rawAction)!
-            transactionStatementInfo = .savepoint(name: savepointName, action: action)
+            guard let cString1 = cString1 else { return SQLITE_OK }
+            guard let name = cString2.map({ String(cString: $0) }) else { return SQLITE_OK }
+            if strcmp(cString1, "BEGIN") == 0 {
+                transactionEffect = .beginSavepoint(name)
+            } else if strcmp(cString1, "RELEASE") == 0 {
+                transactionEffect = .releaseSavepoint(name)
+            } else if strcmp(cString1, "ROLLBACK") == 0 {
+                transactionEffect = .rollbackSavepoint(name)
+            }
             return SQLITE_OK
             
         case SQLITE_FUNCTION:
