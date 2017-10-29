@@ -77,7 +77,7 @@ extension Database {
 class DatabaseObservationBroker {
     unowned var database: Database
     var savepointStack = SavepointStack()
-    var transactionHookState: TransactionHookState = .pending
+    var transactionState: TransactionState = .none
     var transactionObservations = [TransactionObservation]()
     var activeTransactionObservations = [TransactionObservation]()
     
@@ -91,12 +91,12 @@ class DatabaseObservationBroker {
         sqlite3_commit_hook(database.sqliteConnection, { brokerPointer in
             let broker = Unmanaged<DatabaseObservationBroker>.fromOpaque(brokerPointer!).takeUnretainedValue()
             do {
-                try broker.willCommit()
-                broker.transactionHookState = .commit
+                try broker.databaseWillCommit()
+                broker.transactionState = .commit
                 // Next step: updateStatementDidExecute()
                 return 0
             } catch {
-                broker.transactionHookState = .cancelledCommit(error)
+                broker.transactionState = .cancelledCommit(error)
                 // Next step: sqlite3_rollback_hook callback
                 return 1
             }
@@ -105,12 +105,12 @@ class DatabaseObservationBroker {
         
         sqlite3_rollback_hook(database.sqliteConnection, { brokerPointer in
             let broker = Unmanaged<DatabaseObservationBroker>.fromOpaque(brokerPointer!).takeUnretainedValue()
-            switch broker.transactionHookState {
+            switch broker.transactionState {
             case .cancelledCommit:
                 // Next step: updateStatementDidFail()
                 break
             default:
-                broker.transactionHookState = .rollback
+                broker.transactionState = .rollback
                 // Next step: updateStatementDidExecute()
             }
         }, brokerPointer)
@@ -144,19 +144,19 @@ class DatabaseObservationBroker {
         // Wait for next statement
         activeTransactionObservations = []
         
-        // Reset transactionHookState before didRollback eventually executes
-        // other statements.
-        let transactionHookState = self.transactionHookState
-        self.transactionHookState = .pending
+        // Reset transactionState before databaseDidRollback eventually
+        // executes other statements.
+        let transactionState = self.transactionState
+        self.transactionState = .none
         
-        switch transactionHookState {
+        switch transactionState {
         case .rollback:
             // Don't notify observers because we're in a failed implicit
             // transaction here (like an INSERT which fails with
             // SQLITE_CONSTRAINT error)
-            didRollback(notifyTransactionObservers: false)
+            databaseDidRollback(notifyTransactionObservers: false)
         case .cancelledCommit(let error):
-            didRollback(notifyTransactionObservers: true)
+            databaseDidRollback(notifyTransactionObservers: true)
             throw error
         default:
             break
@@ -170,20 +170,22 @@ class DatabaseObservationBroker {
         activeTransactionObservations = []
         
         if let transactionStatementInfo = statement.transactionStatementInfo {
+            // Statement has modified transaction/savepoint state
+            
             switch transactionStatementInfo {
             case .transaction(action: let action):
                 switch action {
                 case .begin:
                     break
                 case .commit:
-                    if case .pending = self.transactionHookState {
+                    if case .none = self.transactionState {
                         // A COMMIT statement has ended a deferred transaction
                         // that did not open, and sqlite_commit_hook was not
                         // called.
                         //
                         //  BEGIN DEFERRED TRANSACTION
                         //  COMMIT
-                        self.transactionHookState = .commit
+                        self.transactionState = .commit
                     }
                 case .rollback:
                     break
@@ -195,6 +197,7 @@ class DatabaseObservationBroker {
                 case .release:
                     savepointStack.statementDidRelease(name)
                     if savepointStack.isEmpty {
+                        // Notify buffered events
                         let eventsBuffer = savepointStack.eventsBuffer
                         savepointStack.clear()
                         for (event, observations) in eventsBuffer {
@@ -209,39 +212,24 @@ class DatabaseObservationBroker {
             }
         }
         
-        // Reset transactionHookState before didCommit or didRollback eventually
-        // execute other statements.
-        let transactionHookState = self.transactionHookState
-        self.transactionHookState = .pending
+        // Reset transactionState before databaseDidCommit or
+        // databaseDidRollback eventually execute other statements.
+        let transactionState = self.transactionState
+        self.transactionState = .none
         
-        switch transactionHookState {
+        switch transactionState {
         case .commit:
-            didCommit()
+            databaseDidCommit()
         case .rollback:
-            didRollback(notifyTransactionObservers: true)
+            databaseDidRollback(notifyTransactionObservers: true)
         default:
             break
         }
     }
     
-    /// See sqlite3_commit_hook
-    func willCommit() throws {
-        let eventsBuffer = savepointStack.eventsBuffer
-        savepointStack.clear()
-
-        for (event, observations) in eventsBuffer {
-            for observation in observations {
-                event.send(to: observation)
-            }
-        }
-        for observation in transactionObservations {
-            try observation.databaseWillCommit()
-        }
-    }
-    
 #if SQLITE_ENABLE_PREUPDATE_HOOK
-    /// See sqlite3_preupdate_hook
-    private func willChange(with event: DatabasePreUpdateEvent) {
+    // Called from sqlite3_preupdate_hook
+    private func databaseWillChange(with event: DatabasePreUpdateEvent) {
         if savepointStack.isEmpty {
             // Notify now
             for observation in activeTransactionObservations {
@@ -254,8 +242,8 @@ class DatabaseObservationBroker {
     }
 #endif
     
-    /// See sqlite3_update_hook
-    private func didChange(with event: DatabaseEvent) {
+    // Called from sqlite3_update_hook
+    private func databaseDidChange(with event: DatabaseEvent) {
         if savepointStack.isEmpty {
             // Notify now
             for observation in activeTransactionObservations {
@@ -267,7 +255,26 @@ class DatabaseObservationBroker {
         }
     }
     
-    private func didCommit() {
+    // Called from sqlite3_commit_hook
+    private func databaseWillCommit() throws {
+        // Time to send all buffered events
+        
+        let eventsBuffer = savepointStack.eventsBuffer
+        savepointStack.clear()
+        
+        for (event, observations) in eventsBuffer {
+            for observation in observations {
+                event.send(to: observation)
+            }
+        }
+        
+        for observation in transactionObservations {
+            try observation.databaseWillCommit()
+        }
+    }
+    
+    // Called from updateStatementDidExecute
+    private func databaseDidCommit() {
         savepointStack.clear()
         
         for observation in transactionObservations {
@@ -276,7 +283,8 @@ class DatabaseObservationBroker {
         cleanupTransactionObservations()
     }
     
-    private func didRollback(notifyTransactionObservers: Bool) {
+    // Called from updateStatementDidExecute or updateStatementDidFails
+    private func databaseDidRollback(notifyTransactionObservers: Bool) {
         savepointStack.clear()
         
         if notifyTransactionObservers {
@@ -291,7 +299,7 @@ class DatabaseObservationBroker {
         let brokerPointer = Unmanaged.passUnretained(self).toOpaque()
         sqlite3_update_hook(database.sqliteConnection, { (brokerPointer, updateKind, databaseNameCString, tableNameCString, rowID) in
             let broker = Unmanaged<DatabaseObservationBroker>.fromOpaque(brokerPointer!).takeUnretainedValue()
-            broker.didChange(with: DatabaseEvent(
+            broker.databaseDidChange(with: DatabaseEvent(
                 kind: DatabaseEvent.Kind(rawValue: updateKind)!,
                 rowID: rowID,
                 databaseNameCString: databaseNameCString,
@@ -301,7 +309,7 @@ class DatabaseObservationBroker {
         #if SQLITE_ENABLE_PREUPDATE_HOOK
             sqlite3_preupdate_hook(database.sqliteConnection, { (brokerPointer, databaseConnection, updateKind, databaseNameCString, tableNameCString, initialRowID, finalRowID) in
                 let broker = Unmanaged<DatabaseObservationBroker>.fromOpaque(brokerPointer!).takeUnretainedValue()
-                broker.willChange(with: DatabasePreUpdateEvent(
+                broker.databaseWillChange(with: DatabasePreUpdateEvent(
                     connection: databaseConnection!,
                     kind: DatabasePreUpdateEvent.Kind(rawValue: updateKind)!,
                     initialRowID: initialRowID,
@@ -328,10 +336,9 @@ class DatabaseObservationBroker {
         }
     }
     
-    /// The states that keep track of transaction completions in order to notify
-    /// transaction observers.
-    enum TransactionHookState {
-        case pending
+    /// The states that keep track of transaction completions
+    enum TransactionState {
+        case none
         case commit
         case rollback
         case cancelledCommit(Error)
