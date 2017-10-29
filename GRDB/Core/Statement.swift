@@ -271,7 +271,10 @@ public final class SelectStatement : Statement, AuthorizedStatement {
             statementStart: statementStart,
             statementEnd: statementEnd,
             prepFlags: prepFlags)
-        Database.preconditionValidSelectStatement(sql: sql, authorizer: authorizer)
+        
+        GRDBPrecondition(authorizer.invalidatesDatabaseSchemaCache == false, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
+        GRDBPrecondition(authorizer.transactionEffect == nil, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
+        
         self.selectionInfo = authorizer.selectionInfo
     }
     

@@ -183,40 +183,6 @@ extension Database {
         // arguments that do not match the statement.
         try! validateRemainingArguments()   // throws if there are remaining arguments.
     }
-
-    func updateStatementWillExecute(_ statement: UpdateStatement) {
-        observationBroker.updateStatementWillExecute(statement)
-    }
-    
-    func updateStatementDidExecute(_ statement: UpdateStatement) {
-        if statement.invalidatesDatabaseSchemaCache {
-            clearSchemaCache()
-        }
-        
-        observationBroker.updateStatementDidExecute(statement)
-    }
-    
-    func updateStatementDidFail(_ statement: UpdateStatement) throws {
-        // Failed statements can not be reused, because sqlite3_reset won't
-        // be able to restore the statement to its initial state:
-        // https://www.sqlite.org/c3ref/reset.html
-        //
-        // So make sure we clear this statement from the cache.
-        internalStatementCache.remove(statement)
-        publicStatementCache.remove(statement)
-        
-        try observationBroker.updateStatementDidFail(statement)
-    }
-    
-    func selectStatementDidFail(_ statement: SelectStatement) {
-        // Failed statements can not be reused, because sqlite3_reset won't
-        // be able to restore the statement to its initial state:
-        // https://www.sqlite.org/c3ref/reset.html
-        //
-        // So make sure we clear this statement from the cache.
-        internalStatementCache.remove(statement)
-        publicStatementCache.remove(statement)
-    }
     
     private func makeStatement<Statement: AuthorizedStatement>(_ sql: String, prepFlags: Int32) throws -> Statement {
         let statementCompilationAuthorizer = StatementCompilationAuthorizer()
@@ -252,39 +218,41 @@ extension Database {
         
         return statement!
     }
+}
+
+extension Database {
+
+    func updateStatementWillExecute(_ statement: UpdateStatement) {
+        observationBroker.updateStatementWillExecute(statement)
+    }
     
-    /// Checks that a SQL query is valid for a select statement.
-    ///
-    /// Select statements do not call database.updateStatementDidExecute().
-    /// Here we make sure that the update statements we track are not hidden in
-    /// a select statement.
-    ///
-    /// An INSERT statement will pass, but not DROP TABLE (which invalidates the
-    /// database cache), or RELEASE SAVEPOINT (which alters the savepoint stack)
-    static func preconditionValidSelectStatement(sql: String, authorizer: StatementCompilationAuthorizer) {
-        GRDBPrecondition(authorizer.invalidatesDatabaseSchemaCache == false, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
-        GRDBPrecondition(authorizer.transactionEffect == nil, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
+    func updateStatementDidExecute(_ statement: UpdateStatement) {
+        if statement.invalidatesDatabaseSchemaCache {
+            clearSchemaCache()
+        }
         
-        // Don't check for authorizer.databaseEventKinds.isEmpty
+        observationBroker.updateStatementDidExecute(statement)
+    }
+    
+    func updateStatementDidFail(_ statement: UpdateStatement) throws {
+        // Failed statements can not be reused, because sqlite3_reset won't
+        // be able to restore the statement to its initial state:
+        // https://www.sqlite.org/c3ref/reset.html
         //
-        // When authorizer.databaseEventKinds.isEmpty is NOT empty, this means
-        // that the database is changed by the statement.
+        // So make sure we clear this statement from the cache.
+        internalStatementCache.remove(statement)
+        publicStatementCache.remove(statement)
+        
+        try observationBroker.updateStatementDidFail(statement)
+    }
+    
+    func selectStatementDidFail(_ statement: SelectStatement) {
+        // Failed statements can not be reused, because sqlite3_reset won't
+        // be able to restore the statement to its initial state:
+        // https://www.sqlite.org/c3ref/reset.html
         //
-        // It thus looks like the statement should be performed by an
-        // UpdateStatement, not a SelectStatement: transaction authorizers are not
-        // notified of database changes when they are executed by
-        // a SelectStatement.
-        //
-        // However https://github.com/groue/GRDB.swift/issues/80 and
-        // https://github.com/groue/GRDB.swift/issues/82 have shown that SELECT
-        // statements on virtual tables can generate database changes.
-        //
-        // :-(
-        //
-        // OK, this is getting very difficult to protect the user against
-        // himself: just give up, and allow SelectStatement to execute database
-        // changes. We'll cope with eventual troubles later, when they occur.
-        //
-        // GRDBPrecondition(authorizer.databaseEventKinds.isEmpty, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
+        // So make sure we clear this statement from the cache.
+        internalStatementCache.remove(statement)
+        publicStatementCache.remove(statement)
     }
 }
