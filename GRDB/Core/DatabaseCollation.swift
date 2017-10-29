@@ -1,3 +1,5 @@
+import Foundation
+
 /// A Collation is a string comparison function used by SQLite.
 public final class DatabaseCollation {
     public let name: String
