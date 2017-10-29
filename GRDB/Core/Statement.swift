@@ -12,6 +12,16 @@ public typealias SQLiteStatement = OpaquePointer
 struct EmptyStatementError : Error {
 }
 
+/// A common protocol for UpdateStatement and SelectStatement
+protocol AuthorizedStatement {
+    init(
+        database: Database,
+        statementStart: UnsafePointer<Int8>,
+        statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>,
+        prepFlags: Int32,
+        authorizer: StatementCompilationAuthorizer) throws
+}
+
 /// A statement represents an SQL query.
 ///
 /// It is the base class of UpdateStatement that executes *update statements*,
@@ -42,7 +52,12 @@ public class Statement {
     ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
     /// - throws: DatabaseError in case of compilation error, and
     ///   EmptyStatementError if the compiled string is blank or empty.
-    init(database: Database, statementStart: UnsafePointer<Int8>, statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>, prepFlags: Int32) throws {
+    init(
+        database: Database,
+        statementStart: UnsafePointer<Int8>,
+        statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>,
+        prepFlags: Int32) throws
+    {
         SchedulingWatchdog.preconditionValidQueue(database)
         
         var sqliteStatement: SQLiteStatement? = nil
@@ -227,7 +242,7 @@ public class Statement {
 ///         let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
 ///         let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
 ///     }
-public final class SelectStatement : Statement {
+public final class SelectStatement : Statement, AuthorizedStatement {
     /// Information about the table and columns read by a SelectStatement
     public private(set) var selectionInfo: SelectionInfo
     
@@ -243,7 +258,13 @@ public final class SelectStatement : Statement {
     /// - authorizer: A StatementCompilationAuthorizer
     /// - throws: DatabaseError in case of compilation error, and
     ///   EmptyStatementError if the compiled string is blank or empty.
-    init(database: Database, statementStart: UnsafePointer<Int8>, statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>, prepFlags: Int32, authorizer: StatementCompilationAuthorizer) throws {
+    init(
+        database: Database,
+        statementStart: UnsafePointer<Int8>,
+        statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>,
+        prepFlags: Int32,
+        authorizer: StatementCompilationAuthorizer) throws
+    {
         self.selectionInfo = SelectionInfo()
         try super.init(
             database: database,
@@ -394,7 +415,7 @@ public final class StatementCursor: Cursor {
 ///         try statement.execute(arguments: ["Barbara"])
 ///         return .commit
 ///     }
-public final class UpdateStatement : Statement {
+public final class UpdateStatement : Statement, AuthorizedStatement {
     enum TransactionStatementInfo {
         enum SavepointAction : String {
             case begin = "BEGIN"
@@ -435,7 +456,13 @@ public final class UpdateStatement : Statement {
     /// - authorizer: A StatementCompilationAuthorizer
     /// - throws: DatabaseError in case of compilation error, and
     ///   EmptyStatementError if the compiled string is blank or empty.
-    init(database: Database, statementStart: UnsafePointer<Int8>, statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>, prepFlags: Int32, authorizer: StatementCompilationAuthorizer) throws {
+    init(
+        database: Database,
+        statementStart: UnsafePointer<Int8>,
+        statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>,
+        prepFlags: Int32,
+        authorizer: StatementCompilationAuthorizer) throws
+    {
         self.invalidatesDatabaseSchemaCache = false
         self.needsTruncateOptimizationPreventionDuringExecution = false
         self.databaseEventKinds = []
