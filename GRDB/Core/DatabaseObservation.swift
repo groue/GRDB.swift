@@ -73,22 +73,88 @@ extension Database {
     }
 }
 
-/// This class provides core support for transaction observers.
+/// This class provides support for transaction observers.
 ///
-/// Broker knows about transaction commits and rollbacks, through
-/// sqlite3_commit_hook and sqlite3_rollback_hook.
+/// Let's have a detailed look at how a transaction observer is notified:
 ///
-/// Broker knows about the statements that modify the transaction and savepoints
-/// state of the database connection (BEGIN/COMMIT/ROLLBACK/RELEASE), through
-/// UpdateStatement.transactionEffect. This property has been computed at
-/// statement compilation time by StatementCompilationAuthorizer,
-/// through sqlite3_set_authorizer.
+///     class MyObserver: TransactionObserver {
+///         func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool
+///         func databaseDidChange(with event: DatabaseEvent)
+///         func databaseWillCommit() throws
+///         func databaseDidCommit(_ db: Database)
+///         func databaseDidRollback(_ db: Database)
+///     }
 ///
-/// Broker knows about individual database changes (row insertions, updates,
-/// and deletions) through sqlite3_update_hook and sqlite3_preupdate_hook.
-/// In order to be notified of all row deletions, the [truncate optimization](https://www.sqlite.org/lang_delete.html#truncateopt)
-/// is disabled by StatementCompilationAuthorizer and TruncateOptimizationBlocker
-/// through sqlite3_set_authorizer.
+/// First observer is added, and a transaction is started. At this point,
+/// there's not much to say:
+///
+///     let observer = MyObserver()
+///     dbQueue.add(transactionObserver: observer)
+///     dbQueue.inDatabase { db in
+///         try db.execute("BEGIN TRANSACTION")
+///
+/// Then a statement is executed:
+///
+///         try db.execute("INSERT INTO documents ...")
+///
+/// The observation process starts when the statement is *compiled*:
+/// sqlite3_set_authorizer tells that the statement performs insertion into the
+/// `documents` table. Generally speaking, statements may have many effects, by
+/// the mean of foreign key actions and SQL triggers. SQLite takes care of
+/// exposing all those effects to sqlite3_set_authorizer.
+///
+/// When the statement is *about to be executed*, the broker queries the
+/// observer.observes(eventsOfKind:) method. If it returns true, the observer is
+/// *activated*.
+///
+/// During the statement *execution*, SQLite tells that a row has been inserted
+/// through sqlite3_update_hook: the broker calls the observer.databaseDidChange(with:)
+/// method, if and only if the observer has been activated at the previous step.
+///
+/// Now a savepoint is started:
+///
+///         try db.execute("SAVEPOINT foo")
+///
+/// Statement compilation has sqlite3_set_authorizer tell that this statement
+/// begins a "foo" savepoint.
+///
+/// After the statement *has been executed*, the broker knows that the SQLite
+/// [savepoint stack](https://www.sqlite.org/lang_savepoint.html) contains the
+/// "foo" savepoint.
+///
+/// Then another statement is executed:
+///
+///         try db.execute("INSERT INTO documents ...")
+///
+/// This time, when the statement is *executed* and SQLite tells that a row has
+/// been inserted, the broker buffers the change event instead of immediately
+/// notifying the activated observers. That is because the savepoint can be
+/// rollbacked, and GRDB guarantees observers that they are only notified of
+/// changes that have an opportunity to be committed.
+///
+/// The savepoint is released:
+///
+///         try db.execute("RELEASE SAVEPOINT foo")
+///
+/// Statement compilation has sqlite3_set_authorizer tell that this statement
+/// releases the "foo" savepoint.
+///
+/// After the statement *has been executed*, the broker knows that the SQLite
+/// [savepoint stack](https://www.sqlite.org/lang_savepoint.html) is now empty,
+/// and notifies the buffered changes to activated observers.
+///
+/// Finally the transaction is committed:
+///
+///         try db.execute("COMMIT")
+///
+/// During the statement *execution*, SQlite tells the broker that the
+/// transaction is about to be committed through sqlite3_commit_hook. The broker
+/// invokes observer.databaseWillCommit(). If the observer throws an error, the
+/// broker asks SQLite to rollback the transaction. Otherwise, the broker lets
+/// the transaction complete.
+///
+/// After the statement *has been executed*, the broker calls
+/// observer.databaseDidCommit().
 class DatabaseObservationBroker {
     unowned var database: Database
     var savepointStack = SavepointStack()
