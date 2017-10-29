@@ -1,3 +1,9 @@
+#if SWIFT_PACKAGE
+    import CSQLite
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+    import SQLite3
+#endif
+
 /// A protocol around sqlite3_set_authorizer
 protocol StatementAuthorizer : class {
     func authorize(

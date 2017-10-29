@@ -1,4 +1,9 @@
 import Foundation
+#if SWIFT_PACKAGE
+    import CSQLite
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+    import SQLite3
+#endif
 
 /// A Collation is a string comparison function used by SQLite.
 public final class DatabaseCollation {

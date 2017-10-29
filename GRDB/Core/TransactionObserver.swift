@@ -1,3 +1,9 @@
+#if SWIFT_PACKAGE
+    import CSQLite
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+    import SQLite3
+#endif
+
 // MARK: - Database Observation
 
 extension Database {
