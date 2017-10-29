@@ -824,7 +824,7 @@ final class DAO {
             onConflict: onConflict,
             tableName: databaseTableName,
             insertedColumns: persistenceContainer.columns)
-        let statement = try db.updateStatement(query.sql, fromCache: .grdb)
+        let statement = try db.internalCachedUpdateStatement(query.sql)
         statement.unsafeSetArguments(StatementArguments(persistenceContainer.values))
         return statement
     }
@@ -870,7 +870,7 @@ final class DAO {
             tableName: databaseTableName,
             updatedColumns: updatedColumns,
             conditionColumns: primaryKeyColumns)
-        let statement = try db.updateStatement(query.sql, fromCache: .grdb)
+        let statement = try db.internalCachedUpdateStatement(query.sql)
         statement.unsafeSetArguments(StatementArguments(updatedValues + primaryKeyValues))
         return statement
     }
@@ -887,7 +887,7 @@ final class DAO {
         let query = DeleteQuery(
             tableName: databaseTableName,
             conditionColumns: primaryKeyColumns)
-        let statement = try db.updateStatement(query.sql, fromCache: .grdb)
+        let statement = try db.internalCachedUpdateStatement(query.sql)
         statement.unsafeSetArguments(StatementArguments(primaryKeyValues))
         return statement
     }
@@ -904,7 +904,7 @@ final class DAO {
         let query = ExistsQuery(
             tableName: databaseTableName,
             conditionColumns: primaryKeyColumns)
-        let statement = try db.selectStatement(query.sql, fromCache: .grdb)
+        let statement = try db.internalCachedSelectStatement(query.sql)
         statement.unsafeSetArguments(StatementArguments(primaryKeyValues))
         return statement
     }

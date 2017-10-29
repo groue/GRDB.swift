@@ -329,8 +329,8 @@ extension Database {
         // https://www.sqlite.org/c3ref/reset.html
         //
         // So make sure we clear this statement from the cache.
-        grdbStatementCache.remove(statement)
-        userStatementCache.remove(statement)
+        internalStatementCache.remove(statement)
+        publicStatementCache.remove(statement)
     }
     
     /// Some failed statements interest transaction observers.
@@ -348,8 +348,8 @@ extension Database {
         // https://www.sqlite.org/c3ref/reset.html
         //
         // So make sure we clear this statement from the cache.
-        grdbStatementCache.remove(statement)
-        userStatementCache.remove(statement)
+        internalStatementCache.remove(statement)
+        publicStatementCache.remove(statement)
         
         switch transactionHookState {
         case .rollback:

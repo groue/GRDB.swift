@@ -14,8 +14,8 @@ extension Database {
         // the automatic statement recompilation (see https://www.sqlite.org/c3ref/prepare.html)
         // because the automatic statement recompilation only happens a
         // limited number of times.
-        grdbStatementCache.clear()
-        userStatementCache.clear()
+        internalStatementCache.clear()
+        publicStatementCache.clear()
     }
     
     /// Returns whether a table exists.

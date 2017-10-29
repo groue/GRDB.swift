@@ -74,15 +74,12 @@ extension Database {
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     public func cachedSelectStatement(_ sql: String) throws -> SelectStatement {
-        return try selectStatement(sql, fromCache: .user)
+        return try publicStatementCache.selectStatement(sql)
     }
     
-    /// Returns a prepared statement that can be reused.
-    func selectStatement(_ sql: String, fromCache cacheName: StatementCacheName) throws -> SelectStatement {
-        switch cacheName {
-        case .grdb: return try grdbStatementCache.selectStatement(sql)
-        case .user: return try userStatementCache.selectStatement(sql)
-        }
+    /// Returns a cached statement that does not conflict with user's statements.
+    func internalCachedSelectStatement(_ sql: String) throws -> SelectStatement {
+        return try internalStatementCache.selectStatement(sql)
     }
     
     /// Returns a new prepared statement that can be reused.
@@ -157,15 +154,12 @@ extension Database {
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     public func cachedUpdateStatement(_ sql: String) throws -> UpdateStatement {
-        return try updateStatement(sql, fromCache: .grdb)
+        return try publicStatementCache.updateStatement(sql)
     }
     
-    /// Returns a prepared statement that can be reused.
-    func updateStatement(_ sql: String, fromCache cacheName: StatementCacheName) throws -> UpdateStatement {
-        switch cacheName {
-        case .grdb: return try grdbStatementCache.updateStatement(sql)
-        case .user: return try userStatementCache.updateStatement(sql)
-        }
+    /// Returns a cached statement that does not conflict with user's statements.
+    func internalCachedUpdateStatement(_ sql: String) throws -> UpdateStatement {
+        return try internalStatementCache.updateStatement(sql)
     }
     
     /// Executes one or several SQL statements, separated by semi-colons.
