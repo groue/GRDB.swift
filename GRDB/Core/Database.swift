@@ -560,6 +560,207 @@ extension Database {
     }
 }
 
+// MARK: - Transactions & Savepoint
+
+extension Database {
+    /// Executes a block inside a database transaction.
+    ///
+    ///     try dbQueue.inDatabase do {
+    ///         try db.inTransaction {
+    ///             try db.execute("INSERT ...")
+    ///             return .commit
+    ///         }
+    ///     }
+    ///
+    /// If the block throws an error, the transaction is rollbacked and the
+    /// error is rethrown.
+    ///
+    /// This method is not reentrant: you can't nest transactions.
+    ///
+    /// - parameters:
+    ///     - kind: The transaction type (default nil). If nil, the transaction
+    ///       type is configuration.defaultTransactionKind, which itself
+    ///       defaults to .immediate. See https://www.sqlite.org/lang_transaction.html
+    ///       for more information.
+    ///     - block: A block that executes SQL statements and return either
+    ///       .commit or .rollback.
+    /// - throws: The error thrown by the block.
+    public func inTransaction(_ kind: TransactionKind? = nil, _ block: () throws -> TransactionCompletion) throws {
+        // Begin transaction
+        try beginTransaction(kind ?? configuration.defaultTransactionKind)
+        
+        // Now that transaction has begun, we'll rollback in case of error.
+        // But we'll throw the first caught error, so that user knows
+        // what happened.
+        var firstError: Error? = nil
+        let needsRollback: Bool
+        do {
+            let completion = try block()
+            switch completion {
+            case .commit:
+                try commit()
+                needsRollback = false
+            case .rollback:
+                needsRollback = true
+            }
+        } catch {
+            firstError = error
+            needsRollback = true
+        }
+        
+        if needsRollback {
+            do {
+                try rollback()
+            } catch {
+                if firstError == nil {
+                    firstError = error
+                }
+            }
+        }
+
+        if let firstError = firstError {
+            throw firstError
+        }
+    }
+    
+    /// Executes a block inside a savepoint.
+    ///
+    ///     try dbQueue.inDatabase do {
+    ///         try db.inSavepoint {
+    ///             try db.execute("INSERT ...")
+    ///             return .commit
+    ///         }
+    ///     }
+    ///
+    /// If the block throws an error, the savepoint is rollbacked and the
+    /// error is rethrown.
+    ///
+    /// This method is reentrant: you can nest savepoints.
+    ///
+    /// - parameter block: A block that executes SQL statements and return
+    ///   either .commit or .rollback.
+    /// - throws: The error thrown by the block.
+    public func inSavepoint(_ block: () throws -> TransactionCompletion) throws {
+        // By default, top level SQLite savepoints open a deferred transaction.
+        //
+        // But GRDB database configuration mandates a default transaction kind
+        // that we have to honor.
+        //
+        // So when the default GRDB transaction kind is not deferred, we open a
+        // transaction instead
+        if !isInsideTransaction && configuration.defaultTransactionKind != .deferred {
+            return try inTransaction(configuration.defaultTransactionKind, block)
+        }
+
+        // If the savepoint is top-level, we'll use ROLLBACK TRANSACTION in
+        // order to perform the special error handling of rollbacks (see
+        // the rollback method).
+        let topLevelSavepoint = !isInsideTransaction
+        
+        // Begin savepoint
+        //
+        // We use a single name for savepoints because there is no need
+        // using unique savepoint names. User could still mess with them
+        // with raw SQL queries, but let's assume that it is unlikely that
+        // the user uses "grdb" as a savepoint name.
+        try execute("SAVEPOINT grdb")
+        
+        // Now that savepoint has begun, we'll rollback in case of error.
+        // But we'll throw the first caught error, so that user knows
+        // what happened.
+        var firstError: Error? = nil
+        let needsRollback: Bool
+        do {
+            let completion = try block()
+            switch completion {
+            case .commit:
+                try execute("RELEASE SAVEPOINT grdb")
+                needsRollback = false
+            case .rollback:
+                needsRollback = true
+            }
+        } catch {
+            firstError = error
+            needsRollback = true
+        }
+        
+        if needsRollback {
+            do {
+                if topLevelSavepoint {
+                    try rollback()
+                } else {
+                    // Rollback, and release the savepoint.
+                    // Rollback alone is not enough to clear the savepoint from
+                    // the SQLite savepoint stack.
+                    try execute("ROLLBACK TRANSACTION TO SAVEPOINT grdb")
+                    try execute("RELEASE SAVEPOINT grdb")
+                }
+            } catch {
+                if firstError == nil {
+                    firstError = error
+                }
+            }
+        }
+        
+        if let firstError = firstError {
+            throw firstError
+        }
+    }
+    
+    func beginTransaction(_ kind: TransactionKind) throws {
+        try execute("BEGIN \(kind.rawValue) TRANSACTION")
+    }
+    
+    private func rollback() throws {
+        // The SQLite documentation contains two related but distinct techniques
+        // to handle rollbacks and errors:
+        //
+        // https://www.sqlite.org/lang_transaction.html#immediate
+        //
+        // > Response To Errors Within A Transaction
+        // >
+        // > If certain kinds of errors occur within a transaction, the
+        // > transaction may or may not be rolled back automatically.
+        // > The errors that can cause an automatic rollback include:
+        // >
+        // > - SQLITE_FULL: database or disk full
+        // > - SQLITE_IOERR: disk I/O error
+        // > - SQLITE_BUSY: database in use by another process
+        // > - SQLITE_NOMEM: out or memory
+        // >
+        // > [...] It is recommended that applications respond to the
+        // > errors listed above by explicitly issuing a ROLLBACK
+        // > command. If the transaction has already been rolled back
+        // > automatically by the error response, then the ROLLBACK
+        // > command will fail with an error, but no harm is caused
+        // > by this.
+        //
+        // https://sqlite.org/c3ref/get_autocommit.html
+        //
+        // > The sqlite3_get_autocommit() interface returns non-zero or zero if
+        // > the given database connection is or is not in autocommit mode,
+        // > respectively.
+        // >
+        // > [...] If certain kinds of errors occur on a statement within a
+        // > multi-statement transaction (errors including SQLITE_FULL,
+        // > SQLITE_IOERR, SQLITE_NOMEM, SQLITE_BUSY, and SQLITE_INTERRUPT) then
+        // > the transaction might be rolled back automatically. The only way to
+        // > find out whether SQLite automatically rolled back the transaction
+        // > after an error is to use this function.
+        //
+        // The second technique is more robust, because we don't have to guess
+        // which rollback errors should be ignored, and which rollback errors
+        // should be exposed to the library user.
+        if sqlite3_get_autocommit(sqliteConnection) == 0 {
+            try execute("ROLLBACK TRANSACTION")
+        }
+    }
+    
+    func commit() throws {
+        try execute("COMMIT TRANSACTION")
+    }
+}
+
 // MARK: - Memory Management
 
 extension Database {
@@ -759,10 +960,10 @@ extension Database {
     }
     
     /// An SQLite transaction kind. See https://www.sqlite.org/lang_transaction.html
-    public enum TransactionKind {
-        case deferred
-        case immediate
-        case exclusive
+    public enum TransactionKind : String {
+        case deferred = "DEFERRED"
+        case immediate = "IMMEDIATE"
+        case exclusive = "EXCLUSIVE"
     }
 }
 
