@@ -101,8 +101,8 @@ public final class Database {
     
     // Caches
     var schemaCache: DatabaseSchemaCache    // internal so that it can be tested
-    lazy var internalStatementCache: StatementCache = StatementCache(database: self)
-    lazy var publicStatementCache: StatementCache = StatementCache(database: self)
+    lazy var internalStatementCache = StatementCache(database: self)
+    lazy var publicStatementCache = StatementCache(database: self)
     
     // Errors
     var lastErrorCode: ResultCode { return ResultCode(rawValue: sqlite3_errcode(sqliteConnection)) }
@@ -127,11 +127,8 @@ public final class Database {
         }
     }
     
-    // Transaction & save point management
-    var savepointStack = SavepointStack()
-    var transactionHookState: TransactionHookState = .pending
-    var transactionObservers = [ManagedTransactionObserver]()
-    var activeTransactionObservers = [ManagedTransactionObserver]()
+    // Transaction observers management
+    lazy var observationBroker = DatabaseObservationBroker(self)
     
     /// The list of compile options used when building SQLite
     static let sqliteCompileOptions: Set<String> = DatabaseQueue().inDatabase { try! Set(String.fetchCursor($0, "PRAGMA COMPILE_OPTIONS")) }
@@ -281,7 +278,7 @@ extension Database {
         setupBusyMode()
         setupDefaultFunctions()
         setupDefaultCollations()
-        setupTransactionHooks()
+        observationBroker.setup()
     }
     
     private func setupTrace() {
@@ -376,37 +373,6 @@ extension Database {
         add(collation: .localizedCaseInsensitiveCompare)
         add(collation: .localizedCompare)
         add(collation: .localizedStandardCompare)
-    }
-    
-    private func setupTransactionHooks() {
-        let dbPointer = Unmanaged.passUnretained(self).toOpaque()
-        
-        sqlite3_commit_hook(sqliteConnection, { dbPointer in
-            let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
-            do {
-                try db.willCommit()
-                db.transactionHookState = .commit
-                // Next step: updateStatementDidExecute()
-                return 0
-            } catch {
-                db.transactionHookState = .cancelledCommit(error)
-                // Next step: sqlite3_rollback_hook callback
-                return 1
-            }
-        }, dbPointer)
-        
-        
-        sqlite3_rollback_hook(sqliteConnection, { dbPointer in
-            let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
-            switch db.transactionHookState {
-            case .cancelledCommit:
-                // Next step: updateStatementDidFail()
-                break
-            default:
-                db.transactionHookState = .rollback
-                // Next step: updateStatementDidExecute()
-            }
-        }, dbPointer)
     }
 }
 

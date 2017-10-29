@@ -1,3 +1,5 @@
+// MARK: - Database Observation
+
 extension Database {
     /// Add a transaction observer, so that it gets notified of
     /// database changes.
@@ -8,19 +10,13 @@ extension Database {
     ///   is deallocated).
     public func add(transactionObserver: TransactionObserver, extent: TransactionObservationExtent = .observerLifetime) {
         SchedulingWatchdog.preconditionValidQueue(self)
-        transactionObservers.append(ManagedTransactionObserver(observer: transactionObserver, extent: extent))
-        if transactionObservers.count == 1 {
-            installUpdateHook()
-        }
+        observationBroker.add(transactionObserver: transactionObserver, extent: extent)
     }
     
     /// Remove a transaction observer.
     public func remove(transactionObserver: TransactionObserver) {
         SchedulingWatchdog.preconditionValidQueue(self)
-        transactionObservers.removeFirst { $0.isWrapping(transactionObserver) }
-        if transactionObservers.isEmpty {
-            uninstallUpdateHook()
-        }
+        observationBroker.remove(transactionObserver: transactionObserver)
     }
     
     /// Registers a closure to be executed after the next or current
@@ -64,86 +60,94 @@ extension Database {
         add(transactionObserver: CommitHandler(closure), extent: .nextTransaction)
     }
     
-    /// Remove transaction observers that have stopped observing transaction,
-    /// and uninstall SQLite update hooks if there is no remaining observers.
-    private func cleanupTransactionObservers() {
-        transactionObservers = transactionObservers.filter { $0.isObserving }
-        if transactionObservers.isEmpty {
+    /// The extent of a transaction observation
+    ///
+    /// See Database.add(transactionObserver:extent:)
+    public enum TransactionObservationExtent {
+        /// Observation lasts until observer is deallocated
+        case observerLifetime
+        /// Observation lasts until the next transaction
+        case nextTransaction
+        /// Observation lasts until the database is closed
+        case databaseLifetime
+    }
+}
+
+// This class is responsible for transaction observers
+class DatabaseObservationBroker {
+    unowned var database: Database
+    var savepointStack = SavepointStack()
+    var transactionHookState: TransactionHookState = .pending
+    var transactionObservations = [TransactionObservation]()
+    var activeTransactionObservations = [TransactionObservation]()
+    
+    init(_ database: Database) {
+        self.database = database
+    }
+    
+    func setup() {
+        let brokerPointer = Unmanaged.passUnretained(self).toOpaque()
+        
+        sqlite3_commit_hook(database.sqliteConnection, { brokerPointer in
+            let broker = Unmanaged<DatabaseObservationBroker>.fromOpaque(brokerPointer!).takeUnretainedValue()
+            do {
+                try broker.willCommit()
+                broker.transactionHookState = .commit
+                // Next step: updateStatementDidExecute()
+                return 0
+            } catch {
+                broker.transactionHookState = .cancelledCommit(error)
+                // Next step: sqlite3_rollback_hook callback
+                return 1
+            }
+        }, brokerPointer)
+        
+        
+        sqlite3_rollback_hook(database.sqliteConnection, { brokerPointer in
+            let broker = Unmanaged<DatabaseObservationBroker>.fromOpaque(brokerPointer!).takeUnretainedValue()
+            switch broker.transactionHookState {
+            case .cancelledCommit:
+                // Next step: updateStatementDidFail()
+                break
+            default:
+                broker.transactionHookState = .rollback
+                // Next step: updateStatementDidExecute()
+            }
+        }, brokerPointer)
+    }
+    
+    func add(transactionObserver: TransactionObserver, extent: Database.TransactionObservationExtent) {
+        transactionObservations.append(TransactionObservation(observer: transactionObserver, extent: extent))
+        if transactionObservations.count == 1 {
+            installUpdateHook()
+        }
+    }
+    
+    func remove(transactionObserver: TransactionObserver) {
+        transactionObservations.removeFirst { $0.isWrapping(transactionObserver) }
+        if transactionObservations.isEmpty {
             uninstallUpdateHook()
         }
     }
     
-    /// Checks that a SQL query is valid for a select statement.
-    ///
-    /// Select statements do not call database.updateStatementDidExecute().
-    /// Here we make sure that the update statements we track are not hidden in
-    /// a select statement.
-    ///
-    /// An INSERT statement will pass, but not DROP TABLE (which invalidates the
-    /// database cache), or RELEASE SAVEPOINT (which alters the savepoint stack)
-    static func preconditionValidSelectStatement(sql: String, authorizer: StatementCompilationAuthorizer) {
-        GRDBPrecondition(authorizer.invalidatesDatabaseSchemaCache == false, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
-        GRDBPrecondition(authorizer.transactionStatementInfo == nil, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
-        
-        // Don't check for authorizer.databaseEventKinds.isEmpty
-        //
-        // When authorizer.databaseEventKinds.isEmpty is NOT empty, this means
-        // that the database is changed by the statement.
-        //
-        // It thus looks like the statement should be performed by an
-        // UpdateStatement, not a SelectStatement: transaction authorizers are not
-        // notified of database changes when they are executed by
-        // a SelectStatement.
-        //
-        // However https://github.com/groue/GRDB.swift/issues/80 and
-        // https://github.com/groue/GRDB.swift/issues/82 have shown that SELECT
-        // statements on virtual tables can generate database changes.
-        //
-        // :-(
-        //
-        // OK, this is getting very difficult to protect the user against
-        // himself: just give up, and allow SelectStatement to execute database
-        // changes. We'll cope with eventual troubles later, when they occur.
-        //
-        // GRDBPrecondition(authorizer.databaseEventKinds.isEmpty, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
-    }
-    
     func updateStatementWillExecute(_ statement: UpdateStatement) {
-        // Grab the transaction observers that are interested in the actions
+        // Activate the transaction observers that are interested in the actions
         // performed by the statement.
         let databaseEventKinds = statement.databaseEventKinds
-        activeTransactionObservers = transactionObservers.filter { observer in
+        activeTransactionObservations = transactionObservations.filter { observer in
             return databaseEventKinds.contains(where: observer.observes)
         }
-    }
-    
-    func selectStatementDidFail(_ statement: SelectStatement) {
-        // Failed statements can not be reused, because sqlite3_reset won't
-        // be able to restore the statement to its initial state:
-        // https://www.sqlite.org/c3ref/reset.html
-        //
-        // So make sure we clear this statement from the cache.
-        internalStatementCache.remove(statement)
-        publicStatementCache.remove(statement)
     }
     
     /// Some failed statements interest transaction observers.
     func updateStatementDidFail(_ statement: UpdateStatement) throws {
         // Wait for next statement
-        activeTransactionObservers = []
+        activeTransactionObservations = []
         
         // Reset transactionHookState before didRollback eventually executes
         // other statements.
         let transactionHookState = self.transactionHookState
         self.transactionHookState = .pending
-        
-        // Failed statements can not be reused, because sqlite3_reset won't
-        // be able to restore the statement to its initial state:
-        // https://www.sqlite.org/c3ref/reset.html
-        //
-        // So make sure we clear this statement from the cache.
-        internalStatementCache.remove(statement)
-        publicStatementCache.remove(statement)
         
         switch transactionHookState {
         case .rollback:
@@ -163,11 +167,7 @@ extension Database {
     /// transaction observers, and others modify the savepoint stack.
     func updateStatementDidExecute(_ statement: UpdateStatement) {
         // Wait for next statement
-        activeTransactionObservers = []
-        
-        if statement.invalidatesDatabaseSchemaCache {
-            clearSchemaCache()
-        }
+        activeTransactionObservations = []
         
         if let transactionStatementInfo = statement.transactionStatementInfo {
             switch transactionStatementInfo {
@@ -191,20 +191,20 @@ extension Database {
             case .savepoint(name: let name, action: let action):
                 switch action {
                 case .begin:
-                    savepointStack.beginSavepoint(named: name)
+                    savepointStack.savepointDidStart(name)
                 case .release:
-                    savepointStack.releaseSavepoint(named: name)
+                    savepointStack.statementDidRelease(name)
                     if savepointStack.isEmpty {
                         let eventsBuffer = savepointStack.eventsBuffer
                         savepointStack.clear()
-                        for (event, observers) in eventsBuffer {
-                            for observer in observers {
-                                event.send(to: observer)
+                        for (event, observations) in eventsBuffer {
+                            for observation in observations {
+                                event.send(to: observation)
                             }
                         }
                     }
                 case .rollback:
-                    savepointStack.rollbackSavepoint(named: name)
+                    savepointStack.savepointDidRollback(name)
                 }
             }
         }
@@ -229,13 +229,13 @@ extension Database {
         let eventsBuffer = savepointStack.eventsBuffer
         savepointStack.clear()
 
-        for (event, observers) in eventsBuffer {
-            for observer in observers {
-                event.send(to: observer)
+        for (event, observations) in eventsBuffer {
+            for observation in observations {
+                event.send(to: observation)
             }
         }
-        for observer in transactionObservers {
-            try observer.databaseWillCommit()
+        for observation in transactionObservations {
+            try observation.databaseWillCommit()
         }
     }
     
@@ -243,13 +243,13 @@ extension Database {
     /// See sqlite3_preupdate_hook
     private func willChange(with event: DatabasePreUpdateEvent) {
         if savepointStack.isEmpty {
-            // Notify all interested transactionObservers.
-            for observer in activeTransactionObservers {
-                observer.databaseWillChange(with: event)
+            // Notify now
+            for observation in activeTransactionObservations {
+                observation.databaseWillChange(with: event)
             }
         } else {
-            // Buffer both event and the observers that should be notified of the event.
-            savepointStack.eventsBuffer.append((event: event.copy(), observers: activeTransactionObservers))
+            // Buffer
+            savepointStack.eventsBuffer.append((event: event.copy(), observations: activeTransactionObservations))
         }
     }
 #endif
@@ -257,78 +257,75 @@ extension Database {
     /// See sqlite3_update_hook
     private func didChange(with event: DatabaseEvent) {
         if savepointStack.isEmpty {
-            // Notify all interested transactionObservers.
-            for observer in activeTransactionObservers {
-                observer.databaseDidChange(with: event)
+            // Notify now
+            for observation in activeTransactionObservations {
+                observation.databaseDidChange(with: event)
             }
         } else {
-            // Buffer both event and the observers that should be notified of the event.
-            savepointStack.eventsBuffer.append((event: event.copy(), observers: activeTransactionObservers))
+            // Buffer
+            savepointStack.eventsBuffer.append((event: event.copy(), observations: activeTransactionObservations))
         }
     }
     
     private func didCommit() {
         savepointStack.clear()
         
-        for observer in transactionObservers {
-            observer.databaseDidCommit(self)
+        for observation in transactionObservations {
+            observation.databaseDidCommit(database)
         }
-        cleanupTransactionObservers()
+        cleanupTransactionObservations()
     }
     
     private func didRollback(notifyTransactionObservers: Bool) {
         savepointStack.clear()
         
         if notifyTransactionObservers {
-            for observer in transactionObservers {
-                observer.databaseDidRollback(self)
+            for observation in transactionObservations {
+                observation.databaseDidRollback(database)
             }
         }
-        cleanupTransactionObservers()
+        cleanupTransactionObservations()
     }
     
     private func installUpdateHook() {
-        let dbPointer = Unmanaged.passUnretained(self).toOpaque()
-        sqlite3_update_hook(sqliteConnection, { (dbPointer, updateKind, databaseNameCString, tableNameCString, rowID) in
-            let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
-            db.didChange(with: DatabaseEvent(
+        let brokerPointer = Unmanaged.passUnretained(self).toOpaque()
+        sqlite3_update_hook(database.sqliteConnection, { (brokerPointer, updateKind, databaseNameCString, tableNameCString, rowID) in
+            let broker = Unmanaged<DatabaseObservationBroker>.fromOpaque(brokerPointer!).takeUnretainedValue()
+            broker.didChange(with: DatabaseEvent(
                 kind: DatabaseEvent.Kind(rawValue: updateKind)!,
                 rowID: rowID,
                 databaseNameCString: databaseNameCString,
                 tableNameCString: tableNameCString))
-        }, dbPointer)
+        }, brokerPointer)
         
         #if SQLITE_ENABLE_PREUPDATE_HOOK
-            sqlite3_preupdate_hook(sqliteConnection, { (dbPointer, databaseConnection, updateKind, databaseNameCString, tableNameCString, initialRowID, finalRowID) in
-                let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
-                db.willChange(with: DatabasePreUpdateEvent(
+            sqlite3_preupdate_hook(database.sqliteConnection, { (brokerPointer, databaseConnection, updateKind, databaseNameCString, tableNameCString, initialRowID, finalRowID) in
+                let broker = Unmanaged<DatabaseObservationBroker>.fromOpaque(brokerPointer!).takeUnretainedValue()
+                broker.willChange(with: DatabasePreUpdateEvent(
                     connection: databaseConnection!,
                     kind: DatabasePreUpdateEvent.Kind(rawValue: updateKind)!,
                     initialRowID: initialRowID,
                     finalRowID: finalRowID,
                     databaseNameCString: databaseNameCString,
                     tableNameCString: tableNameCString))
-            }, dbPointer)
+            }, brokerPointer)
         #endif
     }
     
     private func uninstallUpdateHook() {
-        sqlite3_update_hook(sqliteConnection, nil, nil)
+        sqlite3_update_hook(database.sqliteConnection, nil, nil)
         #if SQLITE_ENABLE_PREUPDATE_HOOK
-            sqlite3_preupdate_hook(sqliteConnection, nil, nil)
+            sqlite3_preupdate_hook(database.sqliteConnection, nil, nil)
         #endif
     }
     
-    /// The extent of a transaction observation
-    ///
-    /// See Database.add(transactionObserver:extent:)
-    public enum TransactionObservationExtent {
-        /// Observation lasts until observer is deallocated
-        case observerLifetime
-        /// Observation lasts until the next transaction
-        case nextTransaction
-        /// Observation lasts until the database is closed
-        case databaseLifetime
+    /// Remove transaction observers that have stopped observing transaction,
+    /// and uninstall SQLite update hooks if there is no remaining observers.
+    private func cleanupTransactionObservations() {
+        transactionObservations = transactionObservations.filter { $0.isObserving }
+        if transactionObservations.isEmpty {
+            uninstallUpdateHook()
+        }
     }
     
     /// The states that keep track of transaction completions in order to notify
@@ -422,7 +419,7 @@ public protocol TransactionObserver : class {
 }
 
 /// This class manages the observation extent of a transaction observer
-final class ManagedTransactionObserver {
+final class TransactionObservation {
     let extent: Database.TransactionObservationExtent
     private weak var weakObserver: TransactionObserver?
     private var strongObserver: TransactionObserver?
@@ -467,7 +464,9 @@ final class ManagedTransactionObserver {
             observer?.databaseDidCommit(db)
         case .nextTransaction:
             if let observer = self.observer {
-                // make sure observer is no longer notified
+                // Observer most not get any further notification.
+                // So we "forget" the observer before its `databaseDidCommit`
+                // implementation eventually triggers another database change.
                 strongObserver = nil
                 observer.databaseDidCommit(db)
             }
@@ -480,7 +479,9 @@ final class ManagedTransactionObserver {
             observer?.databaseDidRollback(db)
         case .nextTransaction:
             if let observer = self.observer {
-                // make sure observer is no longer notified
+                // Observer most not get any further notification.
+                // So we "forget" the observer before its `databaseDidRollback`
+                // implementation eventually triggers another database change.
                 strongObserver = nil
                 observer.databaseDidRollback(db)
             }
@@ -533,7 +534,7 @@ extension DatabaseEventKind {
 }
 
 protocol DatabaseEventProtocol {
-    func send(to observer: ManagedTransactionObserver)
+    func send(to observer: TransactionObservation)
 }
 
 /// A database event, notified to TransactionObserver.
@@ -589,7 +590,7 @@ public struct DatabaseEvent {
 }
 
 extension DatabaseEvent : DatabaseEventProtocol {
-    func send(to observer: ManagedTransactionObserver) {
+    func send(to observer: TransactionObservation) {
         observer.databaseDidChange(with: self)
     }
 }
@@ -742,7 +743,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
     }
     
     extension DatabasePreUpdateEvent : DatabaseEventProtocol {
-        func send(to observer: ManagedTransactionObserver) {
+        func send(to observer: TransactionObservation) {
             observer.databaseWillChange(with: self)
         }
     }
@@ -881,12 +882,13 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
 ///   rollbacked.
 class SavepointStack {
     /// The buffered events. See Database.didChange(with:)
-    fileprivate var eventsBuffer: [(event: DatabaseEventProtocol, observers: [ManagedTransactionObserver])] = []
+    var eventsBuffer: [(event: DatabaseEventProtocol, observations: [TransactionObservation])] = []
     
     /// The savepoint stack, as an array of tuples (savepointName, index in the eventsBuffer array).
     /// Indexes let us drop rollbacked events from the event buffer.
     private var savepoints: [(name: String, index: Int)] = []
     
+    /// If true, there is no current save point.
     var isEmpty: Bool { return savepoints.isEmpty }
     
     func clear() {
@@ -894,7 +896,7 @@ class SavepointStack {
         savepoints.removeAll()
     }
     
-    func beginSavepoint(named name: String) {
+    func savepointDidStart(_ name: String) {
         savepoints.append((name: name.lowercased(), index: eventsBuffer.count))
     }
     
@@ -907,7 +909,7 @@ class SavepointStack {
     // > command does not match any SAVEPOINT on the stack, then the ROLLBACK
     // > command fails with an error and leaves the state of the
     // > database unchanged.
-    func rollbackSavepoint(named name: String) {
+    func savepointDidRollback(_ name: String) {
         let name = name.lowercased()
         while let pair = savepoints.last, pair.name != name {
             savepoints.removeLast()
@@ -923,7 +925,7 @@ class SavepointStack {
     // > transaction stack and releases savepoints backwards in time until it
     // > releases a savepoint with a matching savepoint-name. Prior savepoints,
     // > even savepoints with matching savepoint-names, are unchanged.
-    func releaseSavepoint(named name: String) {
+    func statementDidRelease(_ name: String) {
         let name = name.lowercased()
         while let pair = savepoints.last, pair.name != name {
             savepoints.removeLast()
