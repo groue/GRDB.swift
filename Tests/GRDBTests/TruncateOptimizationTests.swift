@@ -227,4 +227,89 @@ class TruncateOptimizationTests: GRDBTestCase {
         }
     }
     
+    func testDropIndex() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE t(a)")
+            try db.execute("CREATE INDEX i ON t(a)")
+            try db.execute("DROP INDEX i") // compile + execute
+            try XCTAssert(db.indexes(on: "t").isEmpty)
+        }
+    }
+    
+    func testDropIndexViewWithPreparedStatement() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE t(a)")
+            try db.execute("CREATE INDEX i ON t(a)")
+            try db.execute("INSERT INTO t VALUES (1)")
+            let dropStatement = try db.makeUpdateStatement("DROP INDEX i") // compile...
+            try dropStatement.execute() // ... then execute
+            try XCTAssert(db.indexes(on: "t").isEmpty)
+        }
+    }
+    
+    func testDropTemporaryIndex() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TEMPORARY TABLE t(a)")
+            try db.execute("CREATE INDEX i ON t(a)")
+            try db.execute("DROP INDEX i") // compile + execute
+            try XCTAssert(db.indexes(on: "t").isEmpty)
+        }
+    }
+    
+    func testDropTemporaryIndexViewWithPreparedStatement() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TEMPORARY TABLE t(a)")
+            try db.execute("CREATE INDEX i ON t(a)")
+            try db.execute("INSERT INTO t VALUES (1)")
+            let dropStatement = try db.makeUpdateStatement("DROP INDEX i") // compile...
+            try dropStatement.execute() // ... then execute
+            try XCTAssert(db.indexes(on: "t").isEmpty)
+        }
+    }
+    
+    func testDropTrigger() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE t(a)")
+            try db.execute("CREATE TRIGGER r INSERT ON t BEGIN DELETE FROM t; END")
+            try db.execute("DROP TRIGGER r") // compile + execute
+            try XCTAssertFalse(db.triggerExists("r"))
+        }
+    }
+    
+    func testDropTriggerWithPreparedStatement() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE t(a)")
+            try db.execute("CREATE TRIGGER r INSERT ON t BEGIN DELETE FROM t; END")
+            let dropStatement = try db.makeUpdateStatement("DROP TRIGGER r") // compile...
+            try dropStatement.execute() // ... then execute
+            try XCTAssertFalse(db.triggerExists("r"))
+        }
+    }
+    
+    func testDropTemporaryTrigger() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE t(a)")
+            try db.execute("CREATE TEMPORARY TRIGGER r INSERT ON t BEGIN DELETE FROM t; END")
+            try db.execute("DROP TRIGGER r") // compile + execute
+            try XCTAssertFalse(db.triggerExists("r"))
+        }
+    }
+    
+    func testDropTemporaryTriggerWithPreparedStatement() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE t(a)")
+            try db.execute("CREATE TEMPORARY TRIGGER r INSERT ON t BEGIN DELETE FROM t; END")
+            let dropStatement = try db.makeUpdateStatement("DROP TRIGGER r") // compile...
+            try dropStatement.execute() // ... then execute
+            try XCTAssertFalse(db.triggerExists("r"))
+        }
+    }
 }
