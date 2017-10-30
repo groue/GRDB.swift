@@ -48,12 +48,19 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
         // print("StatementCompilationAuthorizer: \(actionCode) \([cString1, cString2, cString3, cString4].flatMap { $0.map({ String(cString: $0) }) })")
         
         switch actionCode {
-        case SQLITE_DROP_TABLE, SQLITE_DROP_VTABLE, SQLITE_DROP_TEMP_TABLE, SQLITE_DROP_TEMP_VIEW, SQLITE_DROP_VIEW:
+        case SQLITE_DROP_TABLE, SQLITE_DROP_VTABLE, SQLITE_DROP_TEMP_TABLE,
+             SQLITE_DROP_INDEX, SQLITE_DROP_TEMP_INDEX:
             isDropStatement = true
             invalidatesDatabaseSchemaCache = true
             return SQLITE_OK
             
-        case SQLITE_DETACH, SQLITE_ALTER_TABLE, SQLITE_CREATE_INDEX, SQLITE_CREATE_TEMP_INDEX, SQLITE_DROP_INDEX, SQLITE_DROP_TEMP_INDEX:
+        case SQLITE_DROP_VIEW, SQLITE_DROP_TEMP_VIEW,
+             SQLITE_DROP_TRIGGER, SQLITE_CREATE_TEMP_TRIGGER:
+            isDropStatement = true
+            return SQLITE_OK
+            
+        case SQLITE_DETACH, SQLITE_ALTER_TABLE,
+             SQLITE_CREATE_INDEX, SQLITE_CREATE_TEMP_INDEX:
             invalidatesDatabaseSchemaCache = true
             return SQLITE_OK
             
