@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Version
+
+**New**
+
+- `Database.viewExists(_:)` returns whether a view exists in the database.
+
+
 ## 2.1.0
 
 Released October 24, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.0.3...v2.1.0)

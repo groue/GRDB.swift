@@ -30,6 +30,12 @@ extension Database {
         return try Row.fetchOne(self, "SELECT 1 FROM (SELECT sql, type, name FROM sqlite_master UNION SELECT sql, type, name FROM sqlite_temp_master) WHERE type = 'table' AND LOWER(name) = ?", arguments: [tableName.lowercased()]) != nil
     }
     
+    /// Returns whether a view exists.
+    public func viewExists(_ tableName: String) throws -> Bool {
+        // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)
+        return try Row.fetchOne(self, "SELECT 1 FROM (SELECT sql, type, name FROM sqlite_master UNION SELECT sql, type, name FROM sqlite_temp_master) WHERE type = 'view' AND LOWER(name) = ?", arguments: [tableName.lowercased()]) != nil
+    }
+
     /// The primary key for table named `tableName`.
     ///
     /// All tables have a primary key, even when it is not explicit. When a
