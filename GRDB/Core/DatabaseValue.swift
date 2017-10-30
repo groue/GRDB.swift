@@ -11,6 +11,11 @@ import Foundation
 ///
 /// See https://www.sqlite.org/datatype3.html
 public struct DatabaseValue {
+    /// The SQLite storage
+    public let storage: Storage
+    
+    /// The NULL DatabaseValue.
+    public static let null = DatabaseValue(storage: .null)
     
     /// An SQLite storage (NULL, INTEGER, REAL, TEXT, BLOB).
     public enum Storage : Equatable {
@@ -62,12 +67,6 @@ public struct DatabaseValue {
         }
     }
     
-    /// The SQLite storage
-    public let storage: Storage
-    
-    /// The NULL DatabaseValue.
-    public static let null = DatabaseValue(storage: .null)
-    
     /// Creates a DatabaseValue from Any.
     ///
     /// The result is nil unless object adopts DatabaseValueConvertible.
@@ -77,7 +76,6 @@ public struct DatabaseValue {
         }
         self = convertible.databaseValue
     }
-    
     
     // MARK: - Extracting Value
     
@@ -90,7 +88,6 @@ public struct DatabaseValue {
             return false
         }
     }
-    
     
     // MARK: - Not Public
     
@@ -147,10 +144,8 @@ public struct DatabaseValue {
     }
 }
 
-
 // MARK: - Hashable & Equatable
 
-/// DatabaseValue adopts Hashable.
 extension DatabaseValue : Hashable {
     
     /// The hash value
@@ -206,7 +201,6 @@ extension DatabaseValue : Hashable {
         }
     }
 }
-
 
 // MARK: - Lossless conversions
 
@@ -286,10 +280,6 @@ extension DatabaseValue {
     }
 }
 
-
-// MARK: - DatabaseValueConvertible & SQLExpressible & SQLExpression
-
-/// DatabaseValue adopts DatabaseValueConvertible.
 extension DatabaseValue : DatabaseValueConvertible {
     /// Returns self
     public var databaseValue: DatabaseValue {
@@ -303,14 +293,12 @@ extension DatabaseValue : DatabaseValueConvertible {
 }
 
 extension DatabaseValue : SQLExpressible {
-    
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     public var sqlExpression: SQLExpression {
         return self
     }
 }
 
-/// DatabaseValue adopts SQLExpression.
 extension DatabaseValue : SQLExpression {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     public func expressionSQL(_ arguments: inout StatementArguments?) -> String {
@@ -355,11 +343,7 @@ extension DatabaseValue : SQLExpression {
     }
 }
 
-// MARK: - CustomStringConvertible
-
-/// DatabaseValue adopts CustomStringConvertible.
 extension DatabaseValue : CustomStringConvertible {
-    /// A textual representation of `self`.
     public var description: String {
         switch storage {
         case .null:

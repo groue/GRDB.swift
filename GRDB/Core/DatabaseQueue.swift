@@ -6,6 +6,22 @@ import UIKit
 
 /// A DatabaseQueue serializes access to an SQLite database.
 public final class DatabaseQueue {
+    private var serializedDatabase: SerializedDatabase
+    #if os(iOS)
+    private weak var application: UIApplication?
+    #endif
+
+    // MARK: - Configuration
+    
+    /// The database configuration
+    public var configuration: Configuration {
+        return serializedDatabase.configuration
+    }
+    
+    /// The path to the database file; it is ":memory:" for in-memory databases.
+    public var path: String {
+        return serializedDatabase.path
+    }
     
     // MARK: - Initializers
     
@@ -50,22 +66,11 @@ public final class DatabaseQueue {
         NotificationCenter.default.removeObserver(self)
     }
     #endif
-    
-    
-    // MARK: - Configuration
-    
-    /// The database configuration
-    public var configuration: Configuration {
-        return serializedDatabase.configuration
-    }
-    
-    /// The path to the database file; it is ":memory:" for in-memory databases.
-    public var path: String {
-        return serializedDatabase.path
-    }
-    
-    
-    // MARK: - Database access
+}
+
+// MARK: - Database Access
+
+extension DatabaseQueue {
     
     /// Synchronously executes a block in a protected dispatch queue, and
     /// returns its result.
@@ -111,9 +116,11 @@ public final class DatabaseQueue {
             }
         }
     }
-    
-    
-    // MARK: - Memory management
+}
+
+// MARK: - Memory management
+
+extension DatabaseQueue {
     
     /// Free as much memory as possible.
     ///
@@ -123,7 +130,6 @@ public final class DatabaseQueue {
     public func releaseMemory() {
         inDatabase { $0.releaseMemory() }
     }
-    
     
     #if os(iOS)
     /// Listens to UIApplicationDidEnterBackgroundNotification and
@@ -139,8 +145,6 @@ public final class DatabaseQueue {
         center.addObserver(self, selector: #selector(DatabaseQueue.applicationDidReceiveMemoryWarning(_:)), name: .UIApplicationDidReceiveMemoryWarning, object: nil)
         center.addObserver(self, selector: #selector(DatabaseQueue.applicationDidEnterBackground(_:)), name: .UIApplicationDidEnterBackground, object: nil)
     }
-    
-    private var application: UIApplication?
     
     @objc private func applicationDidEnterBackground(_ notification: NSNotification) {
         guard let application = application else {
@@ -168,37 +172,13 @@ public final class DatabaseQueue {
         }
     }
     #endif
-    
-    
-    // MARK: - Not public
-
-    // https://www.sqlite.org/isolation.html
-    //
-    // > Within a single database connection X, a SELECT statement always
-    // > sees all changes to the database that are completed prior to the
-    // > start of the SELECT statement, whether committed or uncommitted.
-    // > And the SELECT statement obviously does not see any changes that
-    // > occur after the SELECT statement completes. But what about changes
-    // > that occur while the SELECT statement is running? What if a SELECT
-    // > statement is started and the sqlite3_step() interface steps through
-    // > roughly half of its output, then some UPDATE statements are run by
-    // > the application that modify the table that the SELECT statement is
-    // > reading, then more calls to sqlite3_step() are made to finish out
-    // > the SELECT statement? Will the later steps of the SELECT statement
-    // > see the changes made by the UPDATE or not? The answer is that this
-    // > behavior is undefined.
-    //
-    // This is why we use a serialized database:
-    private var serializedDatabase: SerializedDatabase
 }
 
-
-// =========================================================================
 // MARK: - Encryption
 
 #if SQLITE_HAS_CODEC
     extension DatabaseQueue {
-        
+
         /// Changes the passphrase of an encrypted database
         public func change(passphrase: String) throws {
             try inDatabase { try $0.change(passphrase: passphrase) }
@@ -207,7 +187,6 @@ public final class DatabaseQueue {
 #endif
 
 
-// =========================================================================
 // MARK: - DatabaseReader
 
 extension DatabaseQueue : DatabaseReader {
@@ -307,8 +286,6 @@ extension DatabaseQueue : DatabaseReader {
     }
 }
 
-
-// =========================================================================
 // MARK: - DatabaseWriter
 
 extension DatabaseQueue : DatabaseWriter {
@@ -356,19 +333,13 @@ extension DatabaseQueue : DatabaseWriter {
     }
 }
 
-// Wraps the block between two `PRAGMA query_only` statements.
-//
-// This method is unsafe because the two calls to `PRAGMA query_only` are
-// not guaranteed to be serialized (some other thread could mess with this).
 private func readOnly<T>(_ db: Database, _ block: (Database) throws -> T) rethrows -> T {
-    if db.configuration.readonly {
+    guard !db.configuration.readonly else {
         return try block(db)
-    } else {
-        try! db.execute("PRAGMA query_only = 1")    // Assume can't fail
-        let result = try block(db)
-        try! db.execute("PRAGMA query_only = 0")    // Assume can't fail
-        return result
     }
+    
+    // Assume those pragmas never fail
+    try! db.execute("PRAGMA query_only = 1")
+    defer { try! db.execute("PRAGMA query_only = 0") }
+    return try block(db)
 }
-
-

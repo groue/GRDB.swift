@@ -7,6 +7,21 @@ import Foundation
 
 /// A database row.
 public final class Row {
+    let impl: RowImpl
+    
+    /// Unless we are producing a row array, we use a single row when iterating
+    /// a statement:
+    ///
+    ///     let rows = try Row.fetchCursor(db, "SELECT ...")
+    ///     let players = try Player.fetchAll(db, "SELECT ...")
+    ///
+    /// This row keeps an unmanaged reference to the statement, and a handle to
+    /// the sqlite statement, so that we avoid many retain/release invocations.
+    ///
+    /// The statementRef is released in deinit.
+    let statementRef: Unmanaged<SelectStatement>?
+    let sqliteStatement: SQLiteStatement?
+    
     /// The number of columns in the row.
     public let count: Int
 
@@ -51,25 +66,10 @@ public final class Row {
     
     // MARK: - Not Public
     
-    let impl: RowImpl
-    
     /// Returns true if and only if the row was fetched from a database.
     var isFetched: Bool {
         return impl.isFetched
     }
-    
-    /// Unless we are producing a row array, we use a single row when iterating
-    /// a statement:
-    ///
-    ///     let rows = try Row.fetchCursor(db, "SELECT ...")
-    ///     let players = try Player.fetchAll(db, "SELECT ...")
-    ///
-    /// This row keeps an unmanaged reference to the statement, and a handle to
-    /// the sqlite statement, so that we avoid many retain/release invocations.
-    ///
-    /// The statementRef is released in deinit.
-    let statementRef: Unmanaged<SelectStatement>?
-    let sqliteStatement: SQLiteStatement?
     
     deinit {
         statementRef?.release()
@@ -830,7 +830,6 @@ extension Row : Hashable {
 
 /// Row adopts CustomStringConvertible.
 extension Row: CustomStringConvertible {
-    /// A textual representation of `self`.
     public var description: String {
         return "<Row"
             + map { (column, dbValue) in

@@ -1004,8 +1004,6 @@ public enum FetchedRecordChange {
 }
 
 extension FetchedRecordChange: CustomStringConvertible {
-    
-    /// A textual representation of `self`.
     public var description: String {
         switch self {
         case .insertion(let indexPath):

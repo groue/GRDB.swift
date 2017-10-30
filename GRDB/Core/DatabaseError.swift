@@ -5,7 +5,7 @@ import Foundation
     import SQLite3
 #endif
 
-public struct ResultCode : RawRepresentable, Equatable, CustomStringConvertible {
+public struct ResultCode : RawRepresentable {
     public let rawValue: Int32
     
     public init(rawValue: Int32) {
@@ -23,24 +23,6 @@ public struct ResultCode : RawRepresentable, Equatable, CustomStringConvertible 
     
     var isPrimary: Bool {
         return self == primaryResultCode
-    }
-    
-    public var description: String {
-        // sqlite3_errstr was added in SQLite 3.7.15 http://www.sqlite.org/changes.html#version_3_7_15
-        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        #if GRDBCUSTOMSQLITE || GRDBCIPHER
-            return "\(rawValue) (\(String(cString: sqlite3_errstr(rawValue))))"
-        #else
-            if #available(iOS 8.2, OSX 10.10, OSXApplicationExtension 10.10, iOSApplicationExtension 8.2, *) {
-                return "\(rawValue) (\(String(cString: sqlite3_errstr(rawValue))))"
-            } else {
-                return "\(rawValue)"
-            }
-        #endif
-    }
-    
-    public static func == (_ lhs: ResultCode, _ rhs: ResultCode) -> Bool {
-        return lhs.rawValue == rhs.rawValue
     }
     
     /// Returns true if the code on the left matches the code on the right.
@@ -155,7 +137,28 @@ public struct ResultCode : RawRepresentable, Equatable, CustomStringConvertible 
     public static let SQLITE_WARNING_AUTOINDEX       = ResultCode(rawValue: (SQLITE_WARNING.rawValue | (1<<8)))
     public static let SQLITE_AUTH_USER               = ResultCode(rawValue: (SQLITE_AUTH.rawValue | (1<<8)))
     public static let SQLITE_OK_LOAD_PERMANENTLY     = ResultCode(rawValue: (SQLITE_OK.rawValue | (1<<8)))
+}
 
+extension ResultCode : Equatable {
+    public static func == (_ lhs: ResultCode, _ rhs: ResultCode) -> Bool {
+        return lhs.rawValue == rhs.rawValue
+    }
+}
+
+extension ResultCode : CustomStringConvertible {
+    public var description: String {
+        // sqlite3_errstr was added in SQLite 3.7.15 http://www.sqlite.org/changes.html#version_3_7_15
+        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+        #if GRDBCUSTOMSQLITE || GRDBCIPHER
+            return "\(rawValue) (\(String(cString: sqlite3_errstr(rawValue))))"
+        #else
+            if #available(iOS 8.2, OSX 10.10, OSXApplicationExtension 10.10, iOSApplicationExtension 8.2, *) {
+                return "\(rawValue) (\(String(cString: sqlite3_errstr(rawValue))))"
+            } else {
+                return "\(rawValue)"
+            }
+        #endif
+    }
 }
 
 /// DatabaseError wraps an SQLite error.
@@ -221,7 +224,6 @@ public struct DatabaseError : Error {
 }
 
 extension DatabaseError: CustomStringConvertible {
-    /// A textual representation of `self`.
     public var description: String {
         var description = "SQLite error \(resultCode.rawValue)"
         if let sql = sql {

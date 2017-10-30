@@ -126,7 +126,7 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
             guard sqlite3_libversion_number() < 3019000 else { return SQLITE_OK }
             guard let cString2 = cString2 else { return SQLITE_OK }
             if sqlite3_stricmp(cString2, "COUNT") == 0 {
-                selectionInfo = .unknown()
+                selectionInfo = .unknown
             }
             return SQLITE_OK
             

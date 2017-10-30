@@ -21,7 +21,6 @@ public enum PersistenceError: Error {
 }
 
 extension PersistenceError : CustomStringConvertible {
-    /// A textual representation of `self`.
     public var description: String {
         switch self {
         case .recordNotFound(let persistable):

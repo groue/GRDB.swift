@@ -150,7 +150,7 @@ public class Statement {
         clearBindings()
         
         var valuesIterator = arguments.values.makeIterator()
-        for (index, argumentName) in sqliteArgumentNames.enumerated() {
+        for (index, argumentName) in zip(Int32(1)..., sqliteArgumentNames) {
             if let argumentName = argumentName, let value = arguments.namedValues[argumentName] {
                 bind(value, at: index)
             } else if let value = valuesIterator.next() {
@@ -171,26 +171,26 @@ public class Statement {
         // Apply
         reset()
         clearBindings()
-        for (index, dbValue) in bindings.enumerated() {
+        for (index, dbValue) in zip(Int32(1)..., bindings) {
             bind(dbValue, at: index)
         }
     }
     
-    // 0-based index
-    private func bind(_ dbValue: DatabaseValue, at index: Int) {
+    // 1-based index
+    private func bind(_ dbValue: DatabaseValue, at index: Int32) {
         let code: Int32
         switch dbValue.storage {
         case .null:
-            code = sqlite3_bind_null(sqliteStatement, Int32(index + 1))
+            code = sqlite3_bind_null(sqliteStatement, index)
         case .int64(let int64):
-            code = sqlite3_bind_int64(sqliteStatement, Int32(index + 1), int64)
+            code = sqlite3_bind_int64(sqliteStatement, index, int64)
         case .double(let double):
-            code = sqlite3_bind_double(sqliteStatement, Int32(index + 1), double)
+            code = sqlite3_bind_double(sqliteStatement, index, double)
         case .string(let string):
-            code = sqlite3_bind_text(sqliteStatement, Int32(index + 1), string, -1, SQLITE_TRANSIENT)
+            code = sqlite3_bind_text(sqliteStatement, index, string, -1, SQLITE_TRANSIENT)
         case .blob(let data):
             code = data.withUnsafeBytes { bytes in
-                sqlite3_bind_blob(sqliteStatement, Int32(index + 1), bytes, Int32(data.count), SQLITE_TRANSIENT)
+                sqlite3_bind_blob(sqliteStatement, index, bytes, Int32(data.count), SQLITE_TRANSIENT)
             }
         }
         
@@ -220,13 +220,6 @@ public class Statement {
         } else if argumentsNeedValidation {
             try! validate(arguments: self.arguments)
         }
-    }
-    
-    /// Utility function for cursors
-    func cursorReset(arguments: StatementArguments? = nil) {
-        SchedulingWatchdog.preconditionValidQueue(database)
-        prepare(withArguments: arguments)
-        reset()
     }
 }
 
@@ -279,17 +272,17 @@ public final class SelectStatement : Statement, AuthorizedStatement {
     }
     
     /// The number of columns in the resulting rows.
-    public lazy var columnCount: Int = {
-        Int(sqlite3_column_count(self.sqliteStatement))
-    }()
+    public var columnCount: Int {
+        return Int(sqlite3_column_count(self.sqliteStatement))
+    }
     
     /// The column names, ordered from left to right.
     public lazy var columnNames: [String] = {
         let sqliteStatement = self.sqliteStatement
-        return (0..<self.columnCount).map { (index: Int) -> String in String(cString: sqlite3_column_name(sqliteStatement, Int32(index))) }
+        return (0..<Int32(self.columnCount)).map { String(cString: sqlite3_column_name(sqliteStatement, $0)) }
     }()
     
-    /// Cache for indexOfColumn(). Keys are lowercase.
+    /// Cache for index(ofColumn:). Keys are lowercase.
     private lazy var columnIndexes: [String: Int] = {
         return Dictionary(
             self.columnNames.enumerated().map { ($0.element.lowercased(), $0.offset) },
@@ -308,9 +301,31 @@ public final class SelectStatement : Statement, AuthorizedStatement {
     func cursor(arguments: StatementArguments? = nil) -> StatementCursor {
         return StatementCursor(statement: self, arguments: arguments)
     }
-
+    
+    /// Utility function for cursors
+    func cursorReset(arguments: StatementArguments? = nil) {
+        SchedulingWatchdog.preconditionValidQueue(database)
+        prepare(withArguments: arguments)
+        reset()
+    }
+    
     /// Information about the table and columns read by a SelectStatement
     public struct SelectionInfo : CustomStringConvertible {
+        /// Selection is unknown when a statement uses the COUNT function,
+        /// and SQLite version < 3.19:
+        ///
+        /// `SELECT COUNT(*) FROM t1` -> unknown selection
+        private let isUnknown: Bool
+        
+        /// `SELECT a, b FROM t1` -> ["t1": ["a", "b"]]
+        private var columns: [String: Set<String>] = [:]
+        
+        /// `SELECT COUNT(*) FROM t1` -> ["t1"]
+        private var tables: Set<String> = []
+        
+        /// The unknown selection
+        static let unknown = SelectionInfo(isUnknown: true)
+        
         mutating func insert(allColumnsOfTable table: String) {
             tables.insert(table)
         }
@@ -335,24 +350,10 @@ public final class SelectStatement : Statement, AuthorizedStatement {
             self.init(isUnknown: false)
         }
         
-        static func unknown() -> SelectionInfo {
-            return self.init(isUnknown: true)
-        }
-        
-        /// If true, selection is unknown
-        private let isUnknown: Bool
-        
-        // `SELECT a, b FROM t1` -> ["t1": ["a", "b"]]
-        private var columns: [String: Set<String>] = [:]
-
-        // `SELECT COUNT(*) FROM t1` -> ["t1"]
-        private var tables: Set<String> = []
-        
         private init(isUnknown: Bool) {
             self.isUnknown = isUnknown
         }
         
-        /// A textual representation of `self`.
         public var description: String {
             if isUnknown {
                 return "unknown"
@@ -900,7 +901,6 @@ extension StatementArguments : ExpressibleByDictionaryLiteral {
 }
 
 extension StatementArguments : CustomStringConvertible {
-    /// A textual representation of `self`.
     public var description: String {
         let valuesDescriptions = values.map { $0.description }
         let namedValuesDescriptions = namedValues.map { (key, value) -> String in
