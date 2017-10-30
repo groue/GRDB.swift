@@ -180,4 +180,51 @@ class TruncateOptimizationTests: GRDBTestCase {
             try XCTAssertFalse(db.tableExists("t"))
         }
     }
+    
+    func testDropView() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE t(a)")
+            try db.execute("CREATE VIEW v AS SELECT * FROM t")
+            try db.execute("INSERT INTO t VALUES (NULL)")
+            try db.execute("DROP VIEW v") // compile + execute
+            try XCTAssertFalse(db.viewExists("v"))
+        }
+    }
+    
+    func testDropViewWithPreparedStatement() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE t(a)")
+            try db.execute("CREATE VIEW v AS SELECT * FROM t")
+            try db.execute("INSERT INTO t VALUES (NULL)")
+            let dropStatement = try db.makeUpdateStatement("DROP VIEW v") // compile...
+            try dropStatement.execute() // ... then execute
+            try XCTAssertFalse(db.viewExists("v"))
+        }
+    }
+    
+    func testDropTemporaryView() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE t(a)")
+            try db.execute("CREATE TEMPORARY VIEW v AS SELECT * FROM t")
+            try db.execute("INSERT INTO t VALUES (NULL)")
+            try db.execute("DROP VIEW v") // compile + execute
+            try XCTAssertFalse(db.viewExists("v"))
+        }
+    }
+    
+    func testDropTemporaryViewWithPreparedStatement() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE t(a)")
+            try db.execute("CREATE TEMPORARY VIEW v AS SELECT * FROM t")
+            try db.execute("INSERT INTO t VALUES (NULL)")
+            let dropStatement = try db.makeUpdateStatement("DROP VIEW v") // compile...
+            try dropStatement.execute() // ... then execute
+            try XCTAssertFalse(db.viewExists("v"))
+        }
+    }
+    
 }
