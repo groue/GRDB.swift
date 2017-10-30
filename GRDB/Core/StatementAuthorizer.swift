@@ -35,7 +35,7 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
     /// True if statement may trigger the truncate optimization
     var needsTruncateOptimizationPreventionDuringExecution = false
     
-    private var isDropTableStatement = false
+    private var isDropStatement = false
     
     func authorize(
         _ actionCode: Int32,
@@ -48,12 +48,12 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
         // print("StatementCompilationAuthorizer: \(actionCode) \([cString1, cString2, cString3, cString4].flatMap { $0.map({ String(cString: $0) }) })")
         
         switch actionCode {
-        case SQLITE_DROP_TABLE, SQLITE_DROP_VTABLE, SQLITE_DROP_TEMP_TABLE:
-            isDropTableStatement = true
+        case SQLITE_DROP_TABLE, SQLITE_DROP_VTABLE, SQLITE_DROP_TEMP_TABLE, SQLITE_DROP_TEMP_VIEW, SQLITE_DROP_VIEW:
+            isDropStatement = true
             invalidatesDatabaseSchemaCache = true
             return SQLITE_OK
             
-        case SQLITE_DROP_TEMP_VIEW, SQLITE_DROP_VIEW, SQLITE_DETACH, SQLITE_ALTER_TABLE, SQLITE_CREATE_INDEX, SQLITE_CREATE_TEMP_INDEX, SQLITE_DROP_INDEX, SQLITE_DROP_TEMP_INDEX:
+        case SQLITE_DETACH, SQLITE_ALTER_TABLE, SQLITE_CREATE_INDEX, SQLITE_CREATE_TEMP_INDEX, SQLITE_DROP_INDEX, SQLITE_DROP_TEMP_INDEX:
             invalidatesDatabaseSchemaCache = true
             return SQLITE_OK
             
@@ -75,7 +75,7 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
             return SQLITE_OK
             
         case SQLITE_DELETE:
-            guard !isDropTableStatement else { return SQLITE_OK }
+            if isDropStatement { return SQLITE_OK }
             guard let cString1 = cString1 else { return SQLITE_OK }
             guard strcmp(cString1, "sqlite_master") != 0 else { return SQLITE_OK }
             guard strcmp(cString1, "sqlite_temp_master") != 0 else { return SQLITE_OK }
