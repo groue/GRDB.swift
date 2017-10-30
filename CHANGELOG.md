@@ -6,6 +6,7 @@ Release Notes
 **New**
 
 - `Database.viewExists(_:)` returns whether a view exists in the database.
+- `Database.triggerExists(_:)` returns whether a view exists in the database.
 
 
 ## 2.1.0

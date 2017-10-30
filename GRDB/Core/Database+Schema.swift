@@ -31,9 +31,15 @@ extension Database {
     }
     
     /// Returns whether a view exists.
-    public func viewExists(_ tableName: String) throws -> Bool {
+    public func viewExists(_ viewName: String) throws -> Bool {
         // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)
-        return try Row.fetchOne(self, "SELECT 1 FROM (SELECT sql, type, name FROM sqlite_master UNION SELECT sql, type, name FROM sqlite_temp_master) WHERE type = 'view' AND LOWER(name) = ?", arguments: [tableName.lowercased()]) != nil
+        return try Row.fetchOne(self, "SELECT 1 FROM (SELECT sql, type, name FROM sqlite_master UNION SELECT sql, type, name FROM sqlite_temp_master) WHERE type = 'view' AND LOWER(name) = ?", arguments: [viewName.lowercased()]) != nil
+    }
+    
+    /// Returns whether a trigger exists.
+    public func triggerExists(_ triggerName: String) throws -> Bool {
+        // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)
+        return try Row.fetchOne(self, "SELECT 1 FROM (SELECT sql, type, name FROM sqlite_master UNION SELECT sql, type, name FROM sqlite_temp_master) WHERE type = 'trigger' AND LOWER(name) = ?", arguments: [triggerName.lowercased()]) != nil
     }
 
     /// The primary key for table named `tableName`.
