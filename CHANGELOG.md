@@ -6,7 +6,21 @@ Release Notes
 **New**
 
 - `Database.viewExists(_:)` returns whether a view exists in the database.
-- `Database.triggerExists(_:)` returns whether a view exists in the database.
+- `Database.triggerExists(_:)` returns whether a trigger exists in the database.
+- [Transaction observers](https://github.com/groue/GRDB.swift/blob/master/README.md#transactionobserver-protocol) are no longer notified of empty deferred transactions, because SQLite does not consider that any transaction was started at all:
+    
+    ```sql
+    -- Nothing happened
+    BEGIN TRANSACTION
+    COMMIT
+    ```
+    
+    Yet, those empty transactions still count for the [afterNextTransactionCommit](https://github.com/groue/GRDB.swift/blob/master/README.md#after-commit-hook) database method, and the `.nextTransaction` [observation extent](https://github.com/groue/GRDB.swift/blob/master/README.md#observation-extent).
+
+
+**Fixed**
+
+- `DROP VIEW` statements would not drop views ([#267](https://github.com/groue/GRDB.swift/issues/267))
 
 
 ## 2.1.0
