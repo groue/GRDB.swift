@@ -4496,7 +4496,7 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-> :point_up: **Note**: for SQLite, empty deferred transactions are no transaction at all. In this case, the transaction callback is never executed:
+> :point_up: **Note**: for SQLite, empty [deferred](#transaction-kinds) transactions are no transaction at all. In this case, the transaction callback is never executed:
 > 
 > ```swift
 > // Empty deferred transaction
@@ -4727,7 +4727,7 @@ dbQueue.inDatabase { db in
 
 - `.databaseLifetime` has the database retain and notify the observer until the database connection is closed.
 
-> :point_up: **Note**: for SQLite, empty deferred transactions are no transaction at all. In this case, an observer added with the `.nextTransaction` extent is never notified of any transaction:
+> :point_up: **Note**: for SQLite, empty [deferred](#transaction-kinds) transactions are no transaction at all. In this case, an observer added with the `.nextTransaction` extent is never notified of any transaction:
 > 
 > ```swift
 > // Empty deferred transaction
