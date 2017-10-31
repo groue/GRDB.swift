@@ -976,6 +976,20 @@ class TransactionObserverTests: GRDBTestCase {
         XCTAssertEqual(observer.didRollbackCount, 0)
     }
     
+    func testEmptyDeferredTransactionRollback() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let observer = Observer()
+        dbQueue.add(transactionObserver: observer)
+        try dbQueue.inTransaction(.deferred) { _ in .rollback }
+        #if SQLITE_ENABLE_PREUPDATE_HOOK
+            XCTAssertEqual(observer.willChangeCount, 0)
+        #endif
+        XCTAssertEqual(observer.didChangeCount, 0)
+        XCTAssertEqual(observer.willCommitCount, 0)
+        XCTAssertEqual(observer.didCommitCount, 0)
+        XCTAssertEqual(observer.didRollbackCount, 1)
+    }
+    
     func testEmptyImmediateTransaction() throws {
         let dbQueue = try makeDatabaseQueue()
         let observer = Observer()
@@ -990,6 +1004,20 @@ class TransactionObserverTests: GRDBTestCase {
         XCTAssertEqual(observer.didRollbackCount, 0)
     }
     
+    func testEmptyImmediateTransactionRollback() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let observer = Observer()
+        dbQueue.add(transactionObserver: observer)
+        try dbQueue.inTransaction(.immediate) { _ in .rollback }
+        #if SQLITE_ENABLE_PREUPDATE_HOOK
+            XCTAssertEqual(observer.willChangeCount, 0)
+        #endif
+        XCTAssertEqual(observer.didChangeCount, 0)
+        XCTAssertEqual(observer.willCommitCount, 0)
+        XCTAssertEqual(observer.didCommitCount, 0)
+        XCTAssertEqual(observer.didRollbackCount, 1)
+    }
+    
     func testEmptyExclusiveTransaction() throws {
         let dbQueue = try makeDatabaseQueue()
         let observer = Observer()
@@ -1002,6 +1030,20 @@ class TransactionObserverTests: GRDBTestCase {
         XCTAssertEqual(observer.willCommitCount, 1)
         XCTAssertEqual(observer.didCommitCount, 1)
         XCTAssertEqual(observer.didRollbackCount, 0)
+    }
+    
+    func testEmptyExclusiveTransactionRollback() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let observer = Observer()
+        dbQueue.add(transactionObserver: observer)
+        try dbQueue.inTransaction(.exclusive) { _ in .rollback }
+        #if SQLITE_ENABLE_PREUPDATE_HOOK
+            XCTAssertEqual(observer.willChangeCount, 0)
+        #endif
+        XCTAssertEqual(observer.didChangeCount, 0)
+        XCTAssertEqual(observer.willCommitCount, 0)
+        XCTAssertEqual(observer.didCommitCount, 0)
+        XCTAssertEqual(observer.didRollbackCount, 1)
     }
     
     // MARK: - Multiple observers
