@@ -1,9 +1,9 @@
 import Foundation
 
-// MARK: - Prepared Statements
-
 extension Database {
-    
+
+    // MARK: - Statements
+
     /// Returns a new prepared statement that can be reused.
     ///
     ///     let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM players WHERE score > ?")

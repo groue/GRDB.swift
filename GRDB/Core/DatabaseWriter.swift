@@ -136,6 +136,8 @@ public final class AnyDatabaseWriter : DatabaseWriter {
         self.base = base
     }
     
+    // MARK: - Reading from Database
+
     public func read<T>(_ block: (Database) throws -> T) throws -> T {
         return try base.read(block)
     }
@@ -148,21 +150,11 @@ public final class AnyDatabaseWriter : DatabaseWriter {
         return try base.unsafeReentrantRead(block)
     }
 
-    public func add(function: DatabaseFunction) {
-        base.add(function: function)
+    public func readFromCurrentState(_ block: @escaping (Database) -> Void) throws {
+        try base.readFromCurrentState(block)
     }
 
-    public func remove(function: DatabaseFunction) {
-        base.remove(function: function)
-    }
-
-    public func add(collation: DatabaseCollation) {
-        base.add(collation: collation)
-    }
-
-    public func remove(collation: DatabaseCollation) {
-        base.remove(collation: collation)
-    }
+    // MARK: - Writing in Database
 
     public func write<T>(_ block: (Database) throws -> T) rethrows -> T {
         return try base.write(block)
@@ -171,8 +163,24 @@ public final class AnyDatabaseWriter : DatabaseWriter {
     public func unsafeReentrantWrite<T>(_ block: (Database) throws -> T) rethrows -> T {
         return try base.unsafeReentrantWrite(block)
     }
-
-    public func readFromCurrentState(_ block: @escaping (Database) -> Void) throws {
-        try base.readFromCurrentState(block)
+    
+    // MARK: - Functions
+    
+    public func add(function: DatabaseFunction) {
+        base.add(function: function)
+    }
+    
+    public func remove(function: DatabaseFunction) {
+        base.remove(function: function)
+    }
+    
+    // MARK: - Collations
+    
+    public func add(collation: DatabaseCollation) {
+        base.add(collation: collation)
+    }
+    
+    public func remove(collation: DatabaseCollation) {
+        base.remove(collation: collation)
     }
 }

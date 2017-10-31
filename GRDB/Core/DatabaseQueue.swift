@@ -68,10 +68,10 @@ public final class DatabaseQueue {
     #endif
 }
 
-// MARK: - Database Access
-
 extension DatabaseQueue {
-    
+
+    // MARK: - Database Access
+
     /// Synchronously executes a block in a protected dispatch queue, and
     /// returns its result.
     ///
@@ -118,10 +118,10 @@ extension DatabaseQueue {
     }
 }
 
-// MARK: - Memory management
-
 extension DatabaseQueue {
-    
+
+    // MARK: - Memory management
+
     /// Free as much memory as possible.
     ///
     /// This method blocks the current thread until all database accesses are completed.
@@ -174,10 +174,10 @@ extension DatabaseQueue {
     #endif
 }
 
-// MARK: - Encryption
-
 #if SQLITE_HAS_CODEC
     extension DatabaseQueue {
+
+        // MARK: - Encryption
 
         /// Changes the passphrase of an encrypted database
         public func change(passphrase: String) throws {
@@ -186,13 +186,10 @@ extension DatabaseQueue {
     }
 #endif
 
-
-// MARK: - DatabaseReader
-
 extension DatabaseQueue : DatabaseReader {
     
     // MARK: - DatabaseReader Protocol Adoption
-    
+
     /// Synchronously executes a read-only block in a protected dispatch queue,
     /// and returns its result.
     ///
@@ -240,7 +237,6 @@ extension DatabaseQueue : DatabaseReader {
         return try serializedDatabase.reentrantSync(block)
     }
     
-    
     // MARK: - Functions
     
     /// Add or redefine an SQL function.
@@ -264,7 +260,6 @@ extension DatabaseQueue : DatabaseReader {
         inDatabase { $0.remove(function: function) }
     }
     
-    
     // MARK: - Collations
     
     /// Add or redefine a collation.
@@ -286,12 +281,10 @@ extension DatabaseQueue : DatabaseReader {
     }
 }
 
-// MARK: - DatabaseWriter
-
 extension DatabaseQueue : DatabaseWriter {
     
     // MARK: - DatabaseWriter Protocol Adoption
-    
+
     /// Alias for `inDatabase`. See `DatabaseWriter.write`.
     public func write<T>(_ block: (Database) throws -> T) rethrows -> T {
         return try inDatabase(block)

@@ -4,10 +4,10 @@
     import SQLite3
 #endif
 
-// MARK: - Database Schema
-
 extension Database {
-    
+
+    // MARK: - Database Schema
+
     /// Clears the database schema cache.
     ///
     /// You may need to clear the cache manually if the database schema is

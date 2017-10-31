@@ -221,6 +221,8 @@ public final class AnyDatabaseReader : DatabaseReader {
         self.base = base
     }
     
+    // MARK: - Reading from Database
+    
     public func read<T>(_ block: (Database) throws -> T) throws -> T {
         return try base.read(block)
     }
@@ -233,6 +235,8 @@ public final class AnyDatabaseReader : DatabaseReader {
         return try base.unsafeReentrantRead(block)
     }
     
+    // MARK: - Functions
+    
     public func add(function: DatabaseFunction) {
         base.add(function: function)
     }
@@ -240,6 +244,8 @@ public final class AnyDatabaseReader : DatabaseReader {
     public func remove(function: DatabaseFunction) {
         base.remove(function: function)
     }
+    
+    // MARK: - Collations
     
     public func add(collation: DatabaseCollation) {
         base.add(collation: collation)

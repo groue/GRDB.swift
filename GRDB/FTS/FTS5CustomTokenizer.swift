@@ -38,7 +38,7 @@
     
     extension Database {
         
-        // MARK: - Custom FTS5 Tokenizers
+        // MARK: - FTS5
         
         private class FTS5TokenizerConstructor {
             let db: Database

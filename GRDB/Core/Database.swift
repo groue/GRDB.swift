@@ -175,9 +175,10 @@ public final class Database {
     }
 }
 
-// MARK: - Database Opening
-
 extension Database {
+
+    // MARK: - Database Opening
+    
     /// Registers the public Database.logError function as the global SQLite
     /// error log, with sqlite3_config(SQLITE_CONFIG_LOG).
     ///
@@ -267,9 +268,10 @@ extension Database {
     }
 }
 
-// MARK: - Database Setup
-
 extension Database {
+
+    // MARK: - Database Setup
+    
     /// This method must be called after database initialization
     func setup() throws {
         // Setup trace first, so that setup queries are traced.
@@ -376,9 +378,10 @@ extension Database {
     }
 }
 
-// MARK: - Database Closing
-
 extension Database {
+
+    // MARK: - Database Closing
+    
     /// This method must be called before database deallocation
     func close() {
         SchedulingWatchdog.preconditionValidQueue(self)
@@ -462,9 +465,10 @@ extension Database {
     #endif
 }
 
-// MARK: - Functions
-
 extension Database {
+
+    // MARK: - Functions
+    
     /// Add or redefine an SQL function.
     ///
     ///     let fn = DatabaseFunction("succ", argumentCount: 1) { dbValues in
@@ -487,9 +491,10 @@ extension Database {
     }
 }
 
-// MARK: - Collations
-
 extension Database {
+
+    // MARK: - Collations
+    
     /// Add or redefine a collation.
     ///
     ///     let collation = DatabaseCollation("localized_standard") { (string1, string2) in
@@ -526,9 +531,10 @@ extension Database {
     }
 }
 
-// MARK: - Transactions & Savepoint
-
 extension Database {
+
+    // MARK: - Transactions & Savepoint
+    
     /// Executes a block inside a database transaction.
     ///
     ///     try dbQueue.inDatabase do {
@@ -727,9 +733,10 @@ extension Database {
     }
 }
 
-// MARK: - Memory Management
-
 extension Database {
+
+    // MARK: - Memory Management
+    
     func releaseMemory() {
         sqlite3_db_release_memory(sqliteConnection)
         schemaCache.clear()
@@ -738,10 +745,11 @@ extension Database {
     }
 }
 
-// MARK: - Encryption
-
 #if SQLITE_HAS_CODEC
     extension Database {
+
+        // MARK: - Encryption
+        
         func change(passphrase: String) throws {
             // FIXME: sqlite3_rekey is discouraged.
             //
@@ -762,8 +770,6 @@ extension Database {
         }
     }
 #endif
-
-// MARK: - Public Database Types
 
 extension Database {
     
@@ -932,8 +938,6 @@ extension Database {
         case exclusive = "EXCLUSIVE"
     }
 }
-
-// MARK: - Internal Database Types
 
 extension Database {
     /// An SQLite threading mode. See https://www.sqlite.org/threadsafe.html.

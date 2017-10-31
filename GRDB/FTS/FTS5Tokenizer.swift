@@ -106,8 +106,9 @@
     }
     
     extension Database {
-        /// MARK: - FTS5 Tokenizers
         
+        // MARK: - FTS5
+
         /// Private type that makes a pre-registered FTS5 tokenizer available
         /// through the FTS5Tokenizer protocol.
         private final class FTS5RegisteredTokenizer : FTS5Tokenizer {

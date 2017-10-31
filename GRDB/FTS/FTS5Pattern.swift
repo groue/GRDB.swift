@@ -77,6 +77,8 @@
 
     extension Database {
         
+        // MARK: - FTS5
+        
         /// Creates a pattern from a raw pattern string; throws DatabaseError on
         /// invalid syntax.
         ///

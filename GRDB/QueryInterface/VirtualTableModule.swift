@@ -39,7 +39,7 @@ public protocol VirtualTableModule {
 
 extension Database {
     
-    // MARK: - Database Schema: Virtual Table
+    // MARK: - Database Schema
     
     /// Creates a virtual database table.
     ///

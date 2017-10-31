@@ -4,9 +4,10 @@
     import SQLite3
 #endif
 
-// MARK: - Database Observation
-
 extension Database {
+
+    // MARK: - Database Observation
+    
     /// Add a transaction observer, so that it gets notified of
     /// database changes.
     ///

@@ -110,10 +110,10 @@ public final class DatabasePool {
     #endif
 }
 
-// MARK: - WAL Checkpoints
-
 extension DatabasePool {
-    
+
+    // MARK: - WAL Checkpoints
+
     /// Runs a WAL checkpoint
     ///
     /// See https://www.sqlite.org/wal.html and
@@ -134,10 +134,10 @@ extension DatabasePool {
     }
 }
 
-// MARK: - Memory management
-
 extension DatabasePool {
-    
+
+    // MARK: - Memory management
+
     /// Free as much memory as possible.
     ///
     /// This method blocks the current thread until all database accesses are completed.
@@ -196,10 +196,11 @@ extension DatabasePool {
     #endif
 }
 
-// MARK: - Encryption
-
 #if SQLITE_HAS_CODEC
     extension DatabasePool {
+
+        // MARK: - Encryption
+        
         /// Changes the passphrase of an encrypted database
         public func change(passphrase: String) throws {
             try readerPool.clear(andThen: {
@@ -210,12 +211,10 @@ extension DatabasePool {
     }
 #endif
 
-// MARK: - DatabaseReader
-
 extension DatabasePool : DatabaseReader {
     
-    // MARK: - Read From Database
-    
+    // MARK: - Reading from Database
+
     /// Synchronously executes a read-only block in a protected dispatch queue,
     /// and returns its result. The block is wrapped in a deferred transaction.
     ///
@@ -351,7 +350,6 @@ extension DatabasePool : DatabaseReader {
         return readers.first { $0.onValidQueue }
     }
     
-    
     // MARK: - Functions
     
     /// Add or redefine an SQL function.
@@ -383,7 +381,6 @@ extension DatabasePool : DatabaseReader {
         }
     }
     
-    
     // MARK: - Collations
     
     /// Add or redefine a collation.
@@ -412,8 +409,6 @@ extension DatabasePool : DatabaseReader {
         }
     }
 }
-
-// MARK: - DatabaseWriter
 
 extension DatabasePool : DatabaseWriter {
     
