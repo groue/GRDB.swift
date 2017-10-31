@@ -961,8 +961,49 @@ class TransactionObserverTests: GRDBTestCase {
             XCTAssertEqual(observer.didRollbackCount, 0)
         }
     }
-
-
+    
+    func testEmptyDeferredTransaction() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let observer = Observer()
+        dbQueue.add(transactionObserver: observer)
+        try dbQueue.inTransaction(.deferred) { _ in .commit }
+        #if SQLITE_ENABLE_PREUPDATE_HOOK
+            XCTAssertEqual(observer.willChangeCount, 0)
+        #endif
+        XCTAssertEqual(observer.didChangeCount, 0)
+        XCTAssertEqual(observer.willCommitCount, 1)
+        XCTAssertEqual(observer.didCommitCount, 1)
+        XCTAssertEqual(observer.didRollbackCount, 0)
+    }
+    
+    func testEmptyImmediateTransaction() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let observer = Observer()
+        dbQueue.add(transactionObserver: observer)
+        try dbQueue.inTransaction(.immediate) { _ in .commit }
+        #if SQLITE_ENABLE_PREUPDATE_HOOK
+            XCTAssertEqual(observer.willChangeCount, 0)
+        #endif
+        XCTAssertEqual(observer.didChangeCount, 0)
+        XCTAssertEqual(observer.willCommitCount, 1)
+        XCTAssertEqual(observer.didCommitCount, 1)
+        XCTAssertEqual(observer.didRollbackCount, 0)
+    }
+    
+    func testEmptyExclusiveTransaction() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let observer = Observer()
+        dbQueue.add(transactionObserver: observer)
+        try dbQueue.inTransaction(.exclusive) { _ in .commit }
+        #if SQLITE_ENABLE_PREUPDATE_HOOK
+            XCTAssertEqual(observer.willChangeCount, 0)
+        #endif
+        XCTAssertEqual(observer.didChangeCount, 0)
+        XCTAssertEqual(observer.willCommitCount, 1)
+        XCTAssertEqual(observer.didCommitCount, 1)
+        XCTAssertEqual(observer.didRollbackCount, 0)
+    }
+    
     // MARK: - Multiple observers
 
     func testInsertEventIsNotifiedToAllObservers() throws {
@@ -1064,6 +1105,138 @@ class TransactionObserverTests: GRDBTestCase {
                 XCTAssertEqual(observer3.willChangeCount, 1)
             #endif
             XCTAssertEqual(observer3.didChangeCount, 1)
+            XCTAssertEqual(observer3.willCommitCount, 0)
+            XCTAssertEqual(observer3.didCommitCount, 0)
+            XCTAssertEqual(observer3.didRollbackCount, 1)
+        }
+    }
+
+    func testEmptyDeferredTransactionRollbackCausedBySecondTransactionObserverOutOfThree() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let observer1 = Observer()
+        let observer2 = Observer()
+        let observer3 = Observer()
+        observer2.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
+        
+        dbQueue.add(transactionObserver: observer1)
+        dbQueue.add(transactionObserver: observer2)
+        dbQueue.add(transactionObserver: observer3)
+        
+        do {
+            try dbQueue.inTransaction(.deferred) { _ in .commit }
+            XCTFail("Expected Error")
+        } catch let error as NSError {
+            XCTAssertEqual(error.domain, "foo")
+            XCTAssertEqual(error.code, 0)
+            
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer1.willChangeCount, 0)
+            #endif
+            XCTAssertEqual(observer1.didChangeCount, 0)
+            XCTAssertEqual(observer1.willCommitCount, 1)
+            XCTAssertEqual(observer1.didCommitCount, 0)
+            XCTAssertEqual(observer1.didRollbackCount, 1)
+            
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer2.willChangeCount, 0)
+            #endif
+            XCTAssertEqual(observer2.didChangeCount, 0)
+            XCTAssertEqual(observer2.willCommitCount, 1)
+            XCTAssertEqual(observer2.didCommitCount, 0)
+            XCTAssertEqual(observer2.didRollbackCount, 1)
+            
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer3.willChangeCount, 0)
+            #endif
+            XCTAssertEqual(observer3.didChangeCount, 0)
+            XCTAssertEqual(observer3.willCommitCount, 0)
+            XCTAssertEqual(observer3.didCommitCount, 0)
+            XCTAssertEqual(observer3.didRollbackCount, 1)
+        }
+    }
+
+    func testEmptyImmediateTransactionRollbackCausedBySecondTransactionObserverOutOfThree() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let observer1 = Observer()
+        let observer2 = Observer()
+        let observer3 = Observer()
+        observer2.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
+        
+        dbQueue.add(transactionObserver: observer1)
+        dbQueue.add(transactionObserver: observer2)
+        dbQueue.add(transactionObserver: observer3)
+        
+        do {
+            try dbQueue.inTransaction(.immediate) { _ in .commit }
+            XCTFail("Expected Error")
+        } catch let error as NSError {
+            XCTAssertEqual(error.domain, "foo")
+            XCTAssertEqual(error.code, 0)
+            
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer1.willChangeCount, 0)
+            #endif
+            XCTAssertEqual(observer1.didChangeCount, 0)
+            XCTAssertEqual(observer1.willCommitCount, 1)
+            XCTAssertEqual(observer1.didCommitCount, 0)
+            XCTAssertEqual(observer1.didRollbackCount, 1)
+            
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer2.willChangeCount, 0)
+            #endif
+            XCTAssertEqual(observer2.didChangeCount, 0)
+            XCTAssertEqual(observer2.willCommitCount, 1)
+            XCTAssertEqual(observer2.didCommitCount, 0)
+            XCTAssertEqual(observer2.didRollbackCount, 1)
+            
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer3.willChangeCount, 0)
+            #endif
+            XCTAssertEqual(observer3.didChangeCount, 0)
+            XCTAssertEqual(observer3.willCommitCount, 0)
+            XCTAssertEqual(observer3.didCommitCount, 0)
+            XCTAssertEqual(observer3.didRollbackCount, 1)
+        }
+    }
+
+    func testEmptyExclusiveTransactionRollbackCausedBySecondTransactionObserverOutOfThree() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let observer1 = Observer()
+        let observer2 = Observer()
+        let observer3 = Observer()
+        observer2.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
+        
+        dbQueue.add(transactionObserver: observer1)
+        dbQueue.add(transactionObserver: observer2)
+        dbQueue.add(transactionObserver: observer3)
+        
+        do {
+            try dbQueue.inTransaction(.immediate) { _ in .commit }
+            XCTFail("Expected Error")
+        } catch let error as NSError {
+            XCTAssertEqual(error.domain, "foo")
+            XCTAssertEqual(error.code, 0)
+            
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer1.willChangeCount, 0)
+            #endif
+            XCTAssertEqual(observer1.didChangeCount, 0)
+            XCTAssertEqual(observer1.willCommitCount, 1)
+            XCTAssertEqual(observer1.didCommitCount, 0)
+            XCTAssertEqual(observer1.didRollbackCount, 1)
+            
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer2.willChangeCount, 0)
+            #endif
+            XCTAssertEqual(observer2.didChangeCount, 0)
+            XCTAssertEqual(observer2.willCommitCount, 1)
+            XCTAssertEqual(observer2.didCommitCount, 0)
+            XCTAssertEqual(observer2.didRollbackCount, 1)
+            
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer3.willChangeCount, 0)
+            #endif
+            XCTAssertEqual(observer3.didChangeCount, 0)
             XCTAssertEqual(observer3.willCommitCount, 0)
             XCTAssertEqual(observer3.didCommitCount, 0)
             XCTAssertEqual(observer3.didRollbackCount, 1)
