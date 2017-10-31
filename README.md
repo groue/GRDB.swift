@@ -4627,6 +4627,15 @@ do {
 > :point_up: **Note**: all callbacks are called in a protected dispatch queue, and serialized with all database updates.
 >
 > :point_up: **Note**: the databaseDidChange(with:) and databaseWillCommit() callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
+>
+> :point_up: **Note**: for SQLite, empty [deferred](#transaction-kinds) transactions are no transaction at all. In this case, transaction observers are not notified:
+> 
+> ```swift
+> // Empty deferred transaction does not notify transaction observers
+> dbQueue.inTransaction { db in
+>     return .commit
+> }
+> ```
 
 [FetchedRecordsController](#fetchedrecordscontroller) and [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB) are based on the TransactionObserver protocol.
 
