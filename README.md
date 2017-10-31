@@ -4496,6 +4496,19 @@ try dbQueue.inTransaction { db in
 }
 ```
 
+> :point_up: **Note**: for SQLite, empty deferred transactions are no transaction at all. In this case, the transaction callback is never executed:
+
+    ```swift
+    // Empty deferred transaction
+    dbQueue.inTransaction { db in
+        db.afterNextTransactionCommit { db in
+            // Never executed
+            print("success")
+        }
+        return .commit
+    }
+    ```
+
 
 ### TransactionObserver Protocol
 
@@ -4713,6 +4726,17 @@ dbQueue.inDatabase { db in
 - `.nextTransaction` activates the observer until the current or next transaction completes. The database keeps a strong reference to the observer until its `databaseDidCommit` or `databaseDidRollback` method is eventually called. Hereafter the observer won't get any further notification.
 
 - `.databaseLifetime` has the database retain and notify the observer until the database connection is closed.
+
+> :point_up: **Note**: for SQLite, empty deferred transactions are no transaction at all. In this case, an observer added with the `.nextTransaction` extent is never notified of any transaction:
+
+    ```swift
+    // Empty deferred transaction
+    dbQueue.inTransaction { db in
+        // Observer is never notified of any transaction
+        db.add(transactionObserver: observer, extent: .nextTransaction)
+        return .commit
+    }
+    ```
 
 
 #### Support for SQLite Pre-Update Hooks
