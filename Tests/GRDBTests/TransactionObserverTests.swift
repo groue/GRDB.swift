@@ -971,8 +971,8 @@ class TransactionObserverTests: GRDBTestCase {
             XCTAssertEqual(observer.willChangeCount, 0)
         #endif
         XCTAssertEqual(observer.didChangeCount, 0)
-        XCTAssertEqual(observer.willCommitCount, 1)
-        XCTAssertEqual(observer.didCommitCount, 1)
+        XCTAssertEqual(observer.willCommitCount, 0)
+        XCTAssertEqual(observer.didCommitCount, 0)
         XCTAssertEqual(observer.didRollbackCount, 0)
     }
     
@@ -1113,45 +1113,14 @@ class TransactionObserverTests: GRDBTestCase {
 
     func testEmptyDeferredTransactionRollbackCausedBySecondTransactionObserverOutOfThree() throws {
         let dbQueue = try makeDatabaseQueue()
-        let observer1 = Observer()
-        let observer2 = Observer()
-        let observer3 = Observer()
-        observer2.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
-        
-        dbQueue.add(transactionObserver: observer1)
-        dbQueue.add(transactionObserver: observer2)
-        dbQueue.add(transactionObserver: observer3)
+        let observer = Observer()
+        observer.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
+        dbQueue.add(transactionObserver: observer)
         
         do {
             try dbQueue.inTransaction(.deferred) { _ in .commit }
-            XCTFail("Expected Error")
-        } catch let error as NSError {
-            XCTAssertEqual(error.domain, "foo")
-            XCTAssertEqual(error.code, 0)
-            
-            #if SQLITE_ENABLE_PREUPDATE_HOOK
-                XCTAssertEqual(observer1.willChangeCount, 0)
-            #endif
-            XCTAssertEqual(observer1.didChangeCount, 0)
-            XCTAssertEqual(observer1.willCommitCount, 1)
-            XCTAssertEqual(observer1.didCommitCount, 0)
-            XCTAssertEqual(observer1.didRollbackCount, 1)
-            
-            #if SQLITE_ENABLE_PREUPDATE_HOOK
-                XCTAssertEqual(observer2.willChangeCount, 0)
-            #endif
-            XCTAssertEqual(observer2.didChangeCount, 0)
-            XCTAssertEqual(observer2.willCommitCount, 1)
-            XCTAssertEqual(observer2.didCommitCount, 0)
-            XCTAssertEqual(observer2.didRollbackCount, 1)
-            
-            #if SQLITE_ENABLE_PREUPDATE_HOOK
-                XCTAssertEqual(observer3.willChangeCount, 0)
-            #endif
-            XCTAssertEqual(observer3.didChangeCount, 0)
-            XCTAssertEqual(observer3.willCommitCount, 0)
-            XCTAssertEqual(observer3.didCommitCount, 0)
-            XCTAssertEqual(observer3.didRollbackCount, 1)
+        } catch {
+            XCTFail("Unexpected Error: \(error)")
         }
     }
 
@@ -1405,9 +1374,15 @@ class TransactionObserverTests: GRDBTestCase {
             weakObserver = observer
             dbQueue.add(transactionObserver: observer)
             
-            try dbQueue.inTransaction { _ in .commit }
+            try dbQueue.inTransaction { db in
+                try db.execute("CREATE TABLE t(a)")
+                return .commit
+            }
             XCTAssertEqual(observer.didCommitCount, 1)
-            try dbQueue.inTransaction { _ in .commit }
+            try dbQueue.inTransaction { db in
+                try db.execute("DROP TABLE t")
+                return .commit
+            }
             XCTAssertEqual(observer.didCommitCount, 2)
         }
         XCTAssert(weakObserver == nil)
@@ -1421,9 +1396,15 @@ class TransactionObserverTests: GRDBTestCase {
             weakObserver = observer
             dbQueue.add(transactionObserver: observer, extent: .observerLifetime)
             
-            try dbQueue.inTransaction { _ in .commit }
+            try dbQueue.inTransaction { db in
+                try db.execute("CREATE TABLE t(a)")
+                return .commit
+            }
             XCTAssertEqual(observer.didCommitCount, 1)
-            try dbQueue.inTransaction { _ in .commit }
+            try dbQueue.inTransaction { db in
+                try db.execute("DROP TABLE t")
+                return .commit
+            }
             XCTAssertEqual(observer.didCommitCount, 2)
         }
         XCTAssert(weakObserver == nil)
@@ -1438,7 +1419,10 @@ class TransactionObserverTests: GRDBTestCase {
             dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
         }
         if let observer = weakObserver {
-            try dbQueue.inTransaction { _ in .commit }
+            try dbQueue.inTransaction { db in
+                try db.execute("CREATE TABLE t(a)")
+                return .commit
+            }
             XCTAssertEqual(observer.didCommitCount, 1)
         } else {
             XCTFail("observer should not be deallocated until next transaction")
@@ -1468,9 +1452,15 @@ class TransactionObserverTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
         
-        try dbQueue.inTransaction { _ in .commit }
+        try dbQueue.inTransaction { db in
+            try db.execute("CREATE TABLE t(a)")
+            return .commit
+        }
         XCTAssertEqual(observer.didCommitCount, 1)
-        try dbQueue.inTransaction { _ in .commit }
+        try dbQueue.inTransaction { db in
+            try db.execute("DROP TABLE t")
+            return .commit
+        }
         XCTAssertEqual(observer.didCommitCount, 1)
     }
     
@@ -1478,15 +1468,25 @@ class TransactionObserverTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         let witness = Observer()
         let observer = Observer(didCommitBlock: { db in
-            try! db.inTransaction { .commit }
+            try! db.inTransaction {
+                try db.execute("CREATE TABLE t2(a)")
+                try db.execute("DROP TABLE t2")
+                return .commit
+            }
         })
         dbQueue.add(transactionObserver: witness)
         dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
         
-        try dbQueue.inTransaction { _ in .commit }
+        try dbQueue.inTransaction { db in
+            try db.execute("CREATE TABLE t(a)")
+            return .commit
+        }
         XCTAssertEqual(observer.didCommitCount, 1)
         XCTAssertEqual(witness.didCommitCount, 2)
-        try dbQueue.inTransaction { _ in .commit }
+        try dbQueue.inTransaction { db in
+            try db.execute("DROP TABLE t")
+            return .commit
+        }
         XCTAssertEqual(observer.didCommitCount, 1)
         XCTAssertEqual(witness.didCommitCount, 3)
     }
@@ -1496,13 +1496,49 @@ class TransactionObserverTests: GRDBTestCase {
         let observer = Observer()
         
         try dbQueue.inTransaction { db in
+            try db.execute("CREATE TABLE t(a)")
             db.add(transactionObserver: observer, extent: .nextTransaction)
             return .commit
         }
         
         XCTAssertEqual(observer.didCommitCount, 1)
-        try dbQueue.inTransaction { _ in .commit }
+        try dbQueue.inTransaction { db in
+            try db.execute("DROP TABLE t")
+            return .commit
+        }
         XCTAssertEqual(observer.didCommitCount, 1)
+    }
+    
+    func testObservationExtentUntilNextTransactionWithEmptyDeferredTransaction() throws {
+        weak var weakObserver: Observer? = nil
+        let dbQueue = try makeDatabaseQueue()
+        do {
+            let observer = Observer()
+            weakObserver = observer
+            dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
+        }
+        if let observer = weakObserver {
+            try dbQueue.inTransaction(.deferred) { _ in .commit }
+            XCTAssertEqual(observer.didCommitCount, 0)
+        } else {
+            XCTFail("observer should not be deallocated until next transaction")
+        }
+        XCTAssert(weakObserver == nil)
+    }
+    
+    func testObservationExtentUntilNextTransactionWithEmptyDeferredTransactionAndRetainedObserver() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let observer = Observer()
+        dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
+        
+        try dbQueue.inTransaction(.deferred) { _ in .commit }
+        XCTAssertEqual(observer.didCommitCount, 0)
+        
+        try dbQueue.inTransaction { db in
+            try db.execute("CREATE TABLE t(a)")
+            return .commit
+        }
+        XCTAssertEqual(observer.didCommitCount, 0)
     }
     
     func testObservationExtentDatabaseLifetime() throws {
@@ -1528,14 +1564,20 @@ class TransactionObserverTests: GRDBTestCase {
             }
             
             if let observer = weakObserver {
-                try dbQueue.inTransaction { _ in .commit }
+                try dbQueue.inTransaction { db in
+                    try db.execute("CREATE TABLE t(a)")
+                    return .commit
+                }
                 XCTAssertEqual(observer.didCommitCount, 1)
             } else {
                 XCTFail("observer should not be deallocated until database is closed")
             }
             
             if let observer = weakObserver {
-                try dbQueue.inTransaction { _ in .commit }
+                try dbQueue.inTransaction { db in
+                    try db.execute("DROP TABLE t")
+                    return .commit
+                }
                 XCTAssertEqual(observer.didCommitCount, 2)
             } else {
                 XCTFail("observer should not be deallocated until database is closed")
