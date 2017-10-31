@@ -261,13 +261,33 @@ class DatabaseObservationBroker {
                 
             case .commitTransaction:
                 if case .none = self.transactionState {
-                    // A COMMIT statement has ended a deferred transaction
-                    // that did not open, and sqlite_commit_hook was not
-                    // called.
+                    // A COMMIT statement has ended an empty deferred
+                    // transaction. For SQLite, no transaction has ever begun:
                     //
-                    //  BEGIN DEFERRED TRANSACTION
-                    //  COMMIT
-                    self.transactionState = .commit
+                    //   BEGIN DEFERRED TRANSACTION
+                    //   COMMIT
+                    //
+                    // We don't need to tell transaction observers about it.
+                    //
+                    // But we have to take care of the .nextTransaction
+                    // observation extent. In the sample code below, the
+                    // observer must not be notified of the second transaction,
+                    // because this is the intent of the programmer:
+                    //
+                    //   // Register an observer for next transaction only
+                    //   let observer = Observer()
+                    //   dbQueue.add(transactionObserver:observer, extent: .nextTransaction)
+                    //
+                    //   try dbQueue.inTransaction(.deferred) { db in
+                    //       return .commit
+                    //   }
+                    //
+                    //   // Must not notify observer
+                    //   try dbQueue.inTransaction(.deferred) { db in
+                    //       try db.execute("...")
+                    //       return .commit
+                    //   }
+                    emptyDeferredTransactionDidCommit()
                 }
                 
             case .rollbackTransaction:
@@ -361,6 +381,14 @@ class DatabaseObservationBroker {
         
         for observation in transactionObservations {
             observation.databaseDidCommit(database)
+        }
+        cleanupTransactionObservations()
+    }
+    
+    // Called from updateStatementDidExecute
+    private func emptyDeferredTransactionDidCommit() {
+        for observation in transactionObservations {
+            observation.emptyDeferredTransactionDidCommit(database)
         }
         cleanupTransactionObservations()
     }
@@ -559,6 +587,16 @@ final class TransactionObservation {
                 strongObserver = nil
                 observer.databaseDidCommit(db)
             }
+        }
+    }
+    
+    func emptyDeferredTransactionDidCommit(_ db: Database) {
+        switch extent {
+        case .observerLifetime, .databaseLifetime:
+            break
+        case .nextTransaction:
+            // Observer most not get any further notification.
+            strongObserver = nil
         }
     }
 
