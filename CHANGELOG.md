@@ -7,20 +7,19 @@ Release Notes
 
 - `Database.viewExists(_:)` returns whether a view exists in the database.
 - `Database.triggerExists(_:)` returns whether a trigger exists in the database.
-- [Transaction observers](https://github.com/groue/GRDB.swift/blob/master/README.md#transactionobserver-protocol) are no longer notified of empty deferred transactions, because SQLite does not consider that any transaction was started at all:
-    
-    ```sql
-    -- Nothing happened
-    BEGIN TRANSACTION
-    COMMIT
-    ```
-    
-    Yet, those empty transactions still count for the [afterNextTransactionCommit](https://github.com/groue/GRDB.swift/blob/master/README.md#after-commit-hook) database method, and the `.nextTransaction` [observation extent](https://github.com/groue/GRDB.swift/blob/master/README.md#observation-extent).
-
 
 **Fixed**
 
 - `DROP VIEW` statements would not drop views ([#267](https://github.com/groue/GRDB.swift/issues/267))
+- GRDB used to incorrectly send incomplete transaction notifications to [transaction observers](https://github.com/groue/GRDB.swift/blob/master/README.md#transactionobserver-protocol) in the case of empty deferred transactions. This is no longer the case. Since empty deferred transactions have SQLite consider that no transaction started at all, they are no longer notified to transaction observers:
+
+    ```sql
+    -- Nothing happens, and thus no notification is sent
+    BEGIN TRANSACTION
+    COMMIT
+    ```
+    
+    Those empty deferred transactions still count for the [afterNextTransactionCommit](https://github.com/groue/GRDB.swift/blob/master/README.md#after-commit-hook) database method, and the `.nextTransaction` [observation extent](https://github.com/groue/GRDB.swift/blob/master/README.md#observation-extent).
 
 
 ## 2.1.0
