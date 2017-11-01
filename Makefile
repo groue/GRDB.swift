@@ -46,8 +46,11 @@ TEST_ACTIONS = clean build build-for-testing test-without-building
 # xcodebuild destination to run tests on iOS 8.1 (requires a pre-installed simulator)
 MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=8.1"
 
-ifeq ($(XCODEVERSION),9.0)
-  # xcodebuild destination to run tests on latest iOS (Xcode 9.0)
+ifeq ($(XCODEVERSION),9.2)
+  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=11.2"
+else ifeq ($(XCODEVERSION),9.1)
+ MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=11.1"
+else ifeq ($(XCODEVERSION),9.0)
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=11.0"
 else
   # Xcode < 9.0 is not supported
