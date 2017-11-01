@@ -169,7 +169,7 @@ class FTS5TokenizerTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "documents", using: FTS5()) { t in
-                t.tokenizer = .unicode61(tokenCharacters: Set(".-".characters))
+                t.tokenizer = .unicode61(tokenCharacters: Set(".-"))
                 t.column("content")
             }
             
