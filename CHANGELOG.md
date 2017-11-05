@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Version
+
+**New**
+
+- Upgrade custom SQLite builds to [v3.21.0](http://www.sqlite.org/changes.html) (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib)).
+
+
 ## 2.2.0
 
 Released October 31, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.1.0...v2.2.0)
