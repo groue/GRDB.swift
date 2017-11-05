@@ -1,7 +1,9 @@
 Release Notes
 =============
 
-## Next Version
+## 2.3.0
+
+Released November 5, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.2.0...v2.3.0)
 
 **New**
 
