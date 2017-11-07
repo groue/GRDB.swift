@@ -4496,19 +4496,6 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-> :point_up: **Note**: for SQLite, empty [deferred](#transaction-kinds) transactions are no transaction at all. In this case, the transaction callback is never executed:
-> 
-> ```swift
-> // Empty deferred transaction
-> dbQueue.inTransaction { db in
->     db.afterNextTransactionCommit { db in
->         // Never executed
->         print("success")
->     }
->     return .commit
-> }
-> ```
-
 
 ### TransactionObserver Protocol
 
@@ -4627,15 +4614,6 @@ do {
 > :point_up: **Note**: all callbacks are called in a protected dispatch queue, and serialized with all database updates.
 >
 > :point_up: **Note**: the databaseDidChange(with:) and databaseWillCommit() callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
->
-> :point_up: **Note**: for SQLite, empty [deferred](#transaction-kinds) transactions are no transaction at all. In this case, transaction observers are not notified:
-> 
-> ```swift
-> // Empty deferred transaction does not notify transaction observers
-> dbQueue.inTransaction { db in
->     return .commit
-> }
-> ```
 
 
 [FetchedRecordsController](#fetchedrecordscontroller) and [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB) are based on the TransactionObserver protocol.
@@ -4737,16 +4715,6 @@ dbQueue.inDatabase { db in
 
 - `.databaseLifetime` has the database retain and notify the observer until the database connection is closed.
 
-> :point_up: **Note**: for SQLite, empty [deferred](#transaction-kinds) transactions are no transaction at all. In this case, an observer added with the `.nextTransaction` extent is never notified of any transaction:
-> 
-> ```swift
-> // Empty deferred transaction
-> dbQueue.inTransaction { db in
->     // Observer is never notified of any transaction
->     db.add(transactionObserver: observer, extent: .nextTransaction)
->     return .commit
-> }
-> ```
 
 #### Support for SQLite Pre-Update Hooks
 
