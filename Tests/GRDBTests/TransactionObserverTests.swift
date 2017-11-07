@@ -176,7 +176,7 @@ private class Artwork : Record {
 }
 
 class TransactionObserverTests: GRDBTestCase {
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    private func setupArtistDatabase(in dbWriter: DatabaseWriter) throws {
         try dbWriter.write { db in
             try Artist.setup(inDatabase: db)
             try Artwork.setup(inDatabase: db)
@@ -217,10 +217,423 @@ class TransactionObserverTests: GRDBTestCase {
     
     #endif
     
+    // MARK: - Transaction completion
+    
+    func testTransactionCompletions() throws {
+        // implicit transaction
+        try assertTransaction(start: "", end: "CREATE TABLE t(a)", isNotifiedAs: .commit)
+        
+        // explicit commit
+        try assertTransaction(start: "BEGIN DEFERRED TRANSACTION", end: "COMMIT", isNotifiedAs: .commit)
+        try assertTransaction(start: "BEGIN DEFERRED TRANSACTION; CREATE TABLE t(a)", end: "COMMIT", isNotifiedAs: .commit)
+        try assertTransaction(start: "BEGIN IMMEDIATE TRANSACTION", end: "COMMIT", isNotifiedAs: .commit)
+        try assertTransaction(start: "BEGIN IMMEDIATE TRANSACTION; CREATE TABLE t(a)", end: "COMMIT", isNotifiedAs: .commit)
+        try assertTransaction(start: "BEGIN EXCLUSIVE TRANSACTION", end: "COMMIT", isNotifiedAs: .commit)
+        try assertTransaction(start: "BEGIN EXCLUSIVE TRANSACTION; CREATE TABLE t(a)", end: "COMMIT", isNotifiedAs: .commit)
+        try assertTransaction(start: "SAVEPOINT test", end: "COMMIT", isNotifiedAs: .commit)
+        try assertTransaction(start: "SAVEPOINT test; CREATE TABLE t(a)", end: "COMMIT", isNotifiedAs: .commit)
+        try assertTransaction(start: "SAVEPOINT test; ROLLBACK TRANSACTION TO SAVEPOINT test", end: "RELEASE SAVEPOINT test", isNotifiedAs: .commit)
+        try assertTransaction(start: "SAVEPOINT test; CREATE TABLE t(a); ROLLBACK TRANSACTION TO SAVEPOINT test", end: "RELEASE SAVEPOINT test", isNotifiedAs: .commit)
+        try assertTransaction(start: "SAVEPOINT test", end: "RELEASE SAVEPOINT test", isNotifiedAs: .commit)
+        try assertTransaction(start: "SAVEPOINT test; CREATE TABLE t(a)", end: "RELEASE SAVEPOINT test", isNotifiedAs: .commit)
+        
+        // explicit rollback
+        try assertTransaction(start: "BEGIN DEFERRED TRANSACTION", end: "ROLLBACK", isNotifiedAs: .rollback)
+        try assertTransaction(start: "BEGIN DEFERRED TRANSACTION; CREATE TABLE t(a)", end: "ROLLBACK", isNotifiedAs: .rollback)
+        try assertTransaction(start: "BEGIN IMMEDIATE TRANSACTION", end: "ROLLBACK", isNotifiedAs: .rollback)
+        try assertTransaction(start: "BEGIN IMMEDIATE TRANSACTION; CREATE TABLE t(a)", end: "ROLLBACK", isNotifiedAs: .rollback)
+        try assertTransaction(start: "BEGIN EXCLUSIVE TRANSACTION", end: "ROLLBACK", isNotifiedAs: .rollback)
+        try assertTransaction(start: "BEGIN EXCLUSIVE TRANSACTION; CREATE TABLE t(a)", end: "ROLLBACK", isNotifiedAs: .rollback)
+        try assertTransaction(start: "SAVEPOINT test", end: "ROLLBACK", isNotifiedAs: .rollback)
+        try assertTransaction(start: "SAVEPOINT test; CREATE TABLE t(a)", end: "ROLLBACK", isNotifiedAs: .rollback)
+    }
+    
+    private func assertTransaction(start startSQL: String, end endSQL: String, isNotifiedAs expectedCompletion: Database.TransactionCompletion) throws {
+        try assertTransaction_registerBefore(start: startSQL, end: endSQL, isNotifiedAs: expectedCompletion)
+        try assertTransaction_registerBetween(start: startSQL, end: endSQL, isNotifiedAs: expectedCompletion)
+        try assertTransaction_extentDefault(start: startSQL, end: endSQL, isNotifiedAs: expectedCompletion)
+        try assertTransaction_extentObserverLifetime(start: startSQL, end: endSQL, isNotifiedAs: expectedCompletion)
+        try assertTransaction_extentUntilNextTransaction_weakObserver(start: startSQL, end: endSQL, isNotifiedAs: expectedCompletion)
+        try assertTransaction_extentUntilNextTransaction_retainedObserver(start: startSQL, end: endSQL, isNotifiedAs: expectedCompletion)
+        try assertTransaction_extentUntilNextTransaction_triggeredTransaction(start: startSQL, end: endSQL, isNotifiedAs: expectedCompletion)
+        try assertTransaction_extentDatabaseLifeTime(start: startSQL, end: endSQL, isNotifiedAs: expectedCompletion)
+        try assertTransaction_throwingObserver(start: startSQL, end: endSQL, isNotifiedAs: expectedCompletion)
+    }
+    
+    private func assertTransaction_registerBefore(start startSQL: String, end endSQL: String, isNotifiedAs expectedCompletion: Database.TransactionCompletion) throws {
+        let extents: [Database.TransactionObservationExtent] = [.observerLifetime, .databaseLifetime, .nextTransaction]
+        for extent in extents {
+            let dbQueue = try makeDatabaseQueue()
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer, extent: extent)
+            try dbQueue.inDatabase {  db in
+                try db.execute(startSQL)
+                try db.execute(endSQL)
+            }
+            switch expectedCompletion {
+            case .commit:
+                XCTAssertEqual(observer.willCommitCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didCommitCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didRollbackCount, 0, "\(startSQL); \(endSQL)")
+            case .rollback:
+                XCTAssertEqual(observer.willCommitCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didCommitCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didRollbackCount, 1, "\(startSQL); \(endSQL)")
+            }
+        }
+    }
+    
+    private func assertTransaction_registerBetween(start startSQL: String, end endSQL: String, isNotifiedAs expectedCompletion: Database.TransactionCompletion) throws {
+        let extents: [Database.TransactionObservationExtent] = [.observerLifetime, .databaseLifetime, .nextTransaction]
+        for extent in extents {
+            let dbQueue = try makeDatabaseQueue()
+            let observer = Observer()
+            try dbQueue.inDatabase { db in
+                try db.execute(startSQL)
+                db.add(transactionObserver: observer, extent: extent)
+                try db.execute(endSQL)
+            }
+            switch expectedCompletion {
+            case .commit:
+                XCTAssertEqual(observer.willCommitCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didCommitCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didRollbackCount, 0, "\(startSQL); \(endSQL)")
+            case .rollback:
+                XCTAssertEqual(observer.willCommitCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didCommitCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didRollbackCount, 1, "\(startSQL); \(endSQL)")
+            }
+        }
+    }
+    
+    private func assertTransaction_extentDefault(start startSQL: String, end endSQL: String, isNotifiedAs expectedCompletion: Database.TransactionCompletion) throws {
+        weak var weakObserver: Observer? = nil
+        let dbQueue = try makeDatabaseQueue()
+        do {
+            let observer = Observer()
+            weakObserver = observer
+            dbQueue.add(transactionObserver: observer)
+            try dbQueue.inDatabase {  db in
+                try db.execute(startSQL)
+                try db.execute(endSQL)
+            }
+            switch expectedCompletion {
+            case .commit:
+                XCTAssertEqual(observer.willCommitCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didCommitCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didRollbackCount, 0, "\(startSQL); \(endSQL)")
+            case .rollback:
+                XCTAssertEqual(observer.willCommitCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didCommitCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didRollbackCount, 1, "\(startSQL); \(endSQL)")
+            }
+            try dbQueue.inTransaction { db in
+                try db.execute("DROP TABLE IF EXISTS t; CREATE TABLE t(a)")
+                return .commit
+            }
+            switch expectedCompletion {
+            case .commit:
+                XCTAssertEqual(observer.willCommitCount, 2, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didCommitCount, 2, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didRollbackCount, 0, "\(startSQL); \(endSQL)")
+            case .rollback:
+                XCTAssertEqual(observer.willCommitCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didCommitCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didRollbackCount, 1, "\(startSQL); \(endSQL)")
+            }
+        }
+        XCTAssert(weakObserver == nil)
+    }
+    
+    func assertTransaction_extentObserverLifetime(start startSQL: String, end endSQL: String, isNotifiedAs expectedCompletion: Database.TransactionCompletion) throws {
+        weak var weakObserver: Observer? = nil
+        let dbQueue = try makeDatabaseQueue()
+        do {
+            let observer = Observer()
+            weakObserver = observer
+            dbQueue.add(transactionObserver: observer, extent: .observerLifetime)
+            try dbQueue.inDatabase {  db in
+                try db.execute(startSQL)
+                try db.execute(endSQL)
+            }
+            switch expectedCompletion {
+            case .commit:
+                XCTAssertEqual(observer.willCommitCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didCommitCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didRollbackCount, 0, "\(startSQL); \(endSQL)")
+            case .rollback:
+                XCTAssertEqual(observer.willCommitCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didCommitCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didRollbackCount, 1, "\(startSQL); \(endSQL)")
+            }
+            try dbQueue.inTransaction { db in
+                try db.execute("DROP TABLE IF EXISTS t; CREATE TABLE t(a)")
+                return .commit
+            }
+            switch expectedCompletion {
+            case .commit:
+                XCTAssertEqual(observer.willCommitCount, 2, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didCommitCount, 2, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didRollbackCount, 0, "\(startSQL); \(endSQL)")
+            case .rollback:
+                XCTAssertEqual(observer.willCommitCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didCommitCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didRollbackCount, 1, "\(startSQL); \(endSQL)")
+            }
+        }
+        XCTAssert(weakObserver == nil)
+    }
+    
+    func assertTransaction_extentUntilNextTransaction_weakObserver(start startSQL: String, end endSQL: String, isNotifiedAs expectedCompletion: Database.TransactionCompletion) throws {
+        weak var weakObserver: Observer? = nil
+        let dbQueue = try makeDatabaseQueue()
+        do {
+            let observer = Observer()
+            weakObserver = observer
+            dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
+        }
+        if let observer = weakObserver {
+            try dbQueue.inDatabase {  db in
+                try db.execute(startSQL)
+                try db.execute(endSQL)
+            }
+            switch expectedCompletion {
+            case .commit:
+                XCTAssertEqual(observer.willCommitCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didCommitCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didRollbackCount, 0, "\(startSQL); \(endSQL)")
+            case .rollback:
+                XCTAssertEqual(observer.willCommitCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didCommitCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(observer.didRollbackCount, 1, "\(startSQL); \(endSQL)")
+            }
+        } else {
+            XCTFail("observer should not be deallocated until next transaction")
+        }
+        XCTAssert(weakObserver == nil)
+    }
+    
+    func assertTransaction_extentUntilNextTransaction_retainedObserver(start startSQL: String, end endSQL: String, isNotifiedAs expectedCompletion: Database.TransactionCompletion) throws {
+        let dbQueue = try makeDatabaseQueue()
+        let observer = Observer()
+        dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
+        
+        try dbQueue.inDatabase {  db in
+            try db.execute(startSQL)
+            try db.execute(endSQL)
+        }
+        switch expectedCompletion {
+        case .commit:
+            XCTAssertEqual(observer.willCommitCount, 1, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(observer.didCommitCount, 1, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(observer.didRollbackCount, 0, "\(startSQL); \(endSQL)")
+        case .rollback:
+            XCTAssertEqual(observer.willCommitCount, 0, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(observer.didCommitCount, 0, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(observer.didRollbackCount, 1, "\(startSQL); \(endSQL)")
+        }
+        try dbQueue.inTransaction { db in
+            try db.execute("DROP TABLE IF EXISTS t; CREATE TABLE t(a)")
+            return .commit
+        }
+        switch expectedCompletion {
+        case .commit:
+            XCTAssertEqual(observer.willCommitCount, 1, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(observer.didCommitCount, 1, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(observer.didRollbackCount, 0, "\(startSQL); \(endSQL)")
+        case .rollback:
+            XCTAssertEqual(observer.willCommitCount, 0, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(observer.didCommitCount, 0, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(observer.didRollbackCount, 1, "\(startSQL); \(endSQL)")
+        }
+    }
+    
+    func assertTransaction_extentUntilNextTransaction_triggeredTransaction(start startSQL: String, end endSQL: String, isNotifiedAs expectedCompletion: Database.TransactionCompletion) throws {
+        let dbQueue = try makeDatabaseQueue()
+        let witness = Observer()
+        let observer = Observer(didCommitBlock: { db in
+            try! db.inTransaction {
+                try db.execute("DROP TABLE IF EXISTS t; CREATE TABLE t(a)")
+                return .commit
+            }
+        })
+        dbQueue.add(transactionObserver: witness)
+        dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
+        
+        try dbQueue.inDatabase {  db in
+            try db.execute(startSQL)
+            try db.execute(endSQL)
+        }
+        switch expectedCompletion {
+        case .commit:
+            XCTAssertEqual(observer.willCommitCount, 1, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(observer.didCommitCount, 1, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(observer.didRollbackCount, 0, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(witness.willCommitCount, 2, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(witness.didCommitCount, 2, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(witness.didRollbackCount, 0, "\(startSQL); \(endSQL)")
+        case .rollback:
+            XCTAssertEqual(observer.willCommitCount, 0, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(observer.didCommitCount, 0, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(observer.didRollbackCount, 1, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(witness.willCommitCount, 0, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(witness.didCommitCount, 0, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(witness.didRollbackCount, 1, "\(startSQL); \(endSQL)")
+        }
+
+        try dbQueue.inTransaction { db in
+            try db.execute("DROP TABLE IF EXISTS t; CREATE TABLE t(a)")
+            return .commit
+        }
+        switch expectedCompletion {
+        case .commit:
+            XCTAssertEqual(observer.willCommitCount, 1, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(observer.didCommitCount, 1, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(observer.didRollbackCount, 0, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(witness.willCommitCount, 3, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(witness.didCommitCount, 3, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(witness.didRollbackCount, 0, "\(startSQL); \(endSQL)")
+        case .rollback:
+            XCTAssertEqual(observer.willCommitCount, 0, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(observer.didCommitCount, 0, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(observer.didRollbackCount, 1, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(witness.willCommitCount, 1, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(witness.didCommitCount, 1, "\(startSQL); \(endSQL)")
+            XCTAssertEqual(witness.didRollbackCount, 1, "\(startSQL); \(endSQL)")
+        }
+    }
+    
+    func assertTransaction_extentDatabaseLifeTime(start startSQL: String, end endSQL: String, isNotifiedAs expectedCompletion: Database.TransactionCompletion) throws {
+        // Observer deallocation happens concurrently with database deallocation:
+        //
+        // 1. DatabaseQueue.deinit (main queue)
+        // 2. SerializedDatabase.deinit (main queue)
+        // 3. DispatchQueue.deinit (main queue)
+        // 4. SchedulingWatchDog.deinit (database queue)
+        // 5. Database.deinit (database queue)
+        // 6. Observer.deinit (database queue)
+        let deinitSemaphore = DispatchSemaphore(value: 0)
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            weak var weakObserver: Observer? = nil
+            do {
+                let observer = Observer(deinitBlock: {
+                    deinitSemaphore.signal()
+                })
+                weakObserver = observer
+                dbQueue.add(transactionObserver: observer, extent: .databaseLifetime)
+            }
+            
+            if let observer = weakObserver {
+                try dbQueue.inDatabase {  db in
+                    try db.execute(startSQL)
+                    try db.execute(endSQL)
+                }
+                switch expectedCompletion {
+                case .commit:
+                    XCTAssertEqual(observer.willCommitCount, 1, "\(startSQL); \(endSQL)")
+                    XCTAssertEqual(observer.didCommitCount, 1, "\(startSQL); \(endSQL)")
+                    XCTAssertEqual(observer.didRollbackCount, 0, "\(startSQL); \(endSQL)")
+                case .rollback:
+                    XCTAssertEqual(observer.willCommitCount, 0, "\(startSQL); \(endSQL)")
+                    XCTAssertEqual(observer.didCommitCount, 0, "\(startSQL); \(endSQL)")
+                    XCTAssertEqual(observer.didRollbackCount, 1, "\(startSQL); \(endSQL)")
+                }
+            } else {
+                XCTFail("observer should not be deallocated until database is closed")
+            }
+            
+            if let observer = weakObserver {
+                try dbQueue.inTransaction { db in
+                    try db.execute("DROP TABLE IF EXISTS t; CREATE TABLE t(a)")
+                    return .commit
+                }
+                switch expectedCompletion {
+                case .commit:
+                    XCTAssertEqual(observer.willCommitCount, 2, "\(startSQL); \(endSQL)")
+                    XCTAssertEqual(observer.didCommitCount, 2, "\(startSQL); \(endSQL)")
+                    XCTAssertEqual(observer.didRollbackCount, 0, "\(startSQL); \(endSQL)")
+                case .rollback:
+                    XCTAssertEqual(observer.willCommitCount, 1, "\(startSQL); \(endSQL)")
+                    XCTAssertEqual(observer.didCommitCount, 1, "\(startSQL); \(endSQL)")
+                    XCTAssertEqual(observer.didRollbackCount, 1, "\(startSQL); \(endSQL)")
+                }
+            } else {
+                XCTFail("observer should not be deallocated until database is closed")
+            }
+        } // <- DatabaseQueue.deinit ... Observer.deinit
+        
+        // Wait for observer deallocation
+        switch deinitSemaphore.wait(timeout: .now() + .seconds(60)) {
+        case .success:
+            break
+        case .timedOut:
+            XCTFail("Observer not deallocated")
+        }
+    }
+    
+    func assertTransaction_throwingObserver(start startSQL: String, end endSQL: String, isNotifiedAs expectedCompletion: Database.TransactionCompletion) throws {
+        let extents: [Database.TransactionObservationExtent] = [.observerLifetime, .databaseLifetime, .nextTransaction]
+        for extent in extents {
+            let dbQueue = try makeDatabaseQueue()
+            let observer1 = Observer()
+            let observer2 = Observer()
+            let observer3 = Observer()
+            struct TestError : Error { }
+            observer2.commitError = TestError()
+            
+            dbQueue.add(transactionObserver: observer1, extent: extent)
+            dbQueue.add(transactionObserver: observer2, extent: extent)
+            dbQueue.add(transactionObserver: observer3, extent: extent)
+            
+            do {
+                try dbQueue.inDatabase {  db in
+                    try db.execute(startSQL)
+                    try db.execute(endSQL)
+                }
+                switch expectedCompletion {
+                case .commit:
+                    XCTFail("Expected Error")
+                case .rollback:
+                    XCTAssertEqual(observer1.willCommitCount, 0, "\(startSQL); \(endSQL)")
+                    XCTAssertEqual(observer1.didCommitCount, 0, "\(startSQL); \(endSQL)")
+                    XCTAssertEqual(observer1.didRollbackCount, 1, "\(startSQL); \(endSQL)")
+                    
+                    XCTAssertEqual(observer2.willCommitCount, 0, "\(startSQL); \(endSQL)")
+                    XCTAssertEqual(observer2.didCommitCount, 0, "\(startSQL); \(endSQL)")
+                    XCTAssertEqual(observer2.didRollbackCount, 1, "\(startSQL); \(endSQL)")
+                    
+                    XCTAssertEqual(observer3.willCommitCount, 0, "\(startSQL); \(endSQL)")
+                    XCTAssertEqual(observer3.didCommitCount, 0, "\(startSQL); \(endSQL)")
+                    XCTAssertEqual(observer3.didRollbackCount, 1, "\(startSQL); \(endSQL)")
+                }
+            } catch let error as TestError {
+                switch expectedCompletion {
+                case .commit:
+                    XCTAssertEqual(observer1.willCommitCount, 1)
+                    XCTAssertEqual(observer1.didCommitCount, 0)
+                    XCTAssertEqual(observer1.didRollbackCount, 1)
+                    
+                    XCTAssertEqual(observer2.willCommitCount, 1)
+                    XCTAssertEqual(observer2.didCommitCount, 0)
+                    XCTAssertEqual(observer2.didRollbackCount, 1)
+                    
+                    XCTAssertEqual(observer3.willCommitCount, 0)
+                    XCTAssertEqual(observer3.didCommitCount, 0)
+                    XCTAssertEqual(observer3.didRollbackCount, 1)
+                case .rollback:
+                    throw error
+                }
+            }
+        }
+    }
+    
     // MARK: - Events
     
     func testInsertEvent() throws {
         let dbQueue = try makeDatabaseQueue()
+        try setupArtistDatabase(in: dbQueue)
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
@@ -251,6 +664,7 @@ class TransactionObserverTests: GRDBTestCase {
 
     func testUpdateEvent() throws {
         let dbQueue = try makeDatabaseQueue()
+        try setupArtistDatabase(in: dbQueue)
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
@@ -286,6 +700,7 @@ class TransactionObserverTests: GRDBTestCase {
 
     func testDeleteEvent() throws {
         let dbQueue = try makeDatabaseQueue()
+        try setupArtistDatabase(in: dbQueue)
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
@@ -317,6 +732,7 @@ class TransactionObserverTests: GRDBTestCase {
 
     func testCascadingDeleteEvents() throws {
         let dbQueue = try makeDatabaseQueue()
+        try setupArtistDatabase(in: dbQueue)
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
@@ -381,6 +797,7 @@ class TransactionObserverTests: GRDBTestCase {
 
     func testImplicitTransactionCommit() throws {
         let dbQueue = try makeDatabaseQueue()
+        try setupArtistDatabase(in: dbQueue)
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
@@ -401,6 +818,7 @@ class TransactionObserverTests: GRDBTestCase {
 
     func testCascadeWithImplicitTransactionCommit() throws {
         let dbQueue = try makeDatabaseQueue()
+        try setupArtistDatabase(in: dbQueue)
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
@@ -475,6 +893,7 @@ class TransactionObserverTests: GRDBTestCase {
 
     func testExplicitTransactionCommit() throws {
         let dbQueue = try makeDatabaseQueue()
+        try setupArtistDatabase(in: dbQueue)
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
@@ -576,6 +995,7 @@ class TransactionObserverTests: GRDBTestCase {
 
     func testCascadeWithExplicitTransactionCommit() throws {
         let dbQueue = try makeDatabaseQueue()
+        try setupArtistDatabase(in: dbQueue)
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
@@ -704,6 +1124,7 @@ class TransactionObserverTests: GRDBTestCase {
 
     func testExplicitTransactionRollback() throws {
         let dbQueue = try makeDatabaseQueue()
+        try setupArtistDatabase(in: dbQueue)
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
@@ -732,6 +1153,7 @@ class TransactionObserverTests: GRDBTestCase {
 
     func testImplicitTransactionRollbackCausedByDatabaseError() throws {
         let dbQueue = try makeDatabaseQueue()
+        try setupArtistDatabase(in: dbQueue)
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
@@ -767,6 +1189,7 @@ class TransactionObserverTests: GRDBTestCase {
 
     func testExplicitTransactionRollbackCausedByDatabaseError() throws {
         let dbQueue = try makeDatabaseQueue()
+        try setupArtistDatabase(in: dbQueue)
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
@@ -804,6 +1227,7 @@ class TransactionObserverTests: GRDBTestCase {
 
     func testImplicitTransactionRollbackCausedByTransactionObserver() throws {
         let dbQueue = try makeDatabaseQueue()
+        try setupArtistDatabase(in: dbQueue)
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
@@ -828,6 +1252,7 @@ class TransactionObserverTests: GRDBTestCase {
 
     func testExplicitTransactionRollbackCausedByTransactionObserver() throws {
         let dbQueue = try makeDatabaseQueue()
+        try setupArtistDatabase(in: dbQueue)
         let observer = Observer()
         observer.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
         dbQueue.add(transactionObserver: observer)
@@ -857,6 +1282,7 @@ class TransactionObserverTests: GRDBTestCase {
 
     func testImplicitTransactionRollbackCausedByDatabaseErrorSuperseedTransactionObserver() throws {
         let dbQueue = try makeDatabaseQueue()
+        try setupArtistDatabase(in: dbQueue)
         let observer = Observer()
         observer.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
         dbQueue.add(transactionObserver: observer)
@@ -893,6 +1319,7 @@ class TransactionObserverTests: GRDBTestCase {
 
     func testExplicitTransactionRollbackCausedByDatabaseErrorSuperseedTransactionObserver() throws {
         let dbQueue = try makeDatabaseQueue()
+        try setupArtistDatabase(in: dbQueue)
         let observer = Observer()
         observer.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
         dbQueue.add(transactionObserver: observer)
@@ -962,94 +1389,11 @@ class TransactionObserverTests: GRDBTestCase {
         }
     }
     
-    func testEmptyDeferredTransaction() throws {
-        let dbQueue = try makeDatabaseQueue()
-        let observer = Observer()
-        dbQueue.add(transactionObserver: observer)
-        try dbQueue.inTransaction(.deferred) { _ in .commit }
-        #if SQLITE_ENABLE_PREUPDATE_HOOK
-            XCTAssertEqual(observer.willChangeCount, 0)
-        #endif
-        XCTAssertEqual(observer.didChangeCount, 0)
-        XCTAssertEqual(observer.willCommitCount, 0)
-        XCTAssertEqual(observer.didCommitCount, 0)
-        XCTAssertEqual(observer.didRollbackCount, 0)
-    }
-    
-    func testEmptyDeferredTransactionRollback() throws {
-        let dbQueue = try makeDatabaseQueue()
-        let observer = Observer()
-        dbQueue.add(transactionObserver: observer)
-        try dbQueue.inTransaction(.deferred) { _ in .rollback }
-        #if SQLITE_ENABLE_PREUPDATE_HOOK
-            XCTAssertEqual(observer.willChangeCount, 0)
-        #endif
-        XCTAssertEqual(observer.didChangeCount, 0)
-        XCTAssertEqual(observer.willCommitCount, 0)
-        XCTAssertEqual(observer.didCommitCount, 0)
-        XCTAssertEqual(observer.didRollbackCount, 1)
-    }
-    
-    func testEmptyImmediateTransaction() throws {
-        let dbQueue = try makeDatabaseQueue()
-        let observer = Observer()
-        dbQueue.add(transactionObserver: observer)
-        try dbQueue.inTransaction(.immediate) { _ in .commit }
-        #if SQLITE_ENABLE_PREUPDATE_HOOK
-            XCTAssertEqual(observer.willChangeCount, 0)
-        #endif
-        XCTAssertEqual(observer.didChangeCount, 0)
-        XCTAssertEqual(observer.willCommitCount, 1)
-        XCTAssertEqual(observer.didCommitCount, 1)
-        XCTAssertEqual(observer.didRollbackCount, 0)
-    }
-    
-    func testEmptyImmediateTransactionRollback() throws {
-        let dbQueue = try makeDatabaseQueue()
-        let observer = Observer()
-        dbQueue.add(transactionObserver: observer)
-        try dbQueue.inTransaction(.immediate) { _ in .rollback }
-        #if SQLITE_ENABLE_PREUPDATE_HOOK
-            XCTAssertEqual(observer.willChangeCount, 0)
-        #endif
-        XCTAssertEqual(observer.didChangeCount, 0)
-        XCTAssertEqual(observer.willCommitCount, 0)
-        XCTAssertEqual(observer.didCommitCount, 0)
-        XCTAssertEqual(observer.didRollbackCount, 1)
-    }
-    
-    func testEmptyExclusiveTransaction() throws {
-        let dbQueue = try makeDatabaseQueue()
-        let observer = Observer()
-        dbQueue.add(transactionObserver: observer)
-        try dbQueue.inTransaction(.exclusive) { _ in .commit }
-        #if SQLITE_ENABLE_PREUPDATE_HOOK
-            XCTAssertEqual(observer.willChangeCount, 0)
-        #endif
-        XCTAssertEqual(observer.didChangeCount, 0)
-        XCTAssertEqual(observer.willCommitCount, 1)
-        XCTAssertEqual(observer.didCommitCount, 1)
-        XCTAssertEqual(observer.didRollbackCount, 0)
-    }
-    
-    func testEmptyExclusiveTransactionRollback() throws {
-        let dbQueue = try makeDatabaseQueue()
-        let observer = Observer()
-        dbQueue.add(transactionObserver: observer)
-        try dbQueue.inTransaction(.exclusive) { _ in .rollback }
-        #if SQLITE_ENABLE_PREUPDATE_HOOK
-            XCTAssertEqual(observer.willChangeCount, 0)
-        #endif
-        XCTAssertEqual(observer.didChangeCount, 0)
-        XCTAssertEqual(observer.willCommitCount, 0)
-        XCTAssertEqual(observer.didCommitCount, 0)
-        XCTAssertEqual(observer.didRollbackCount, 1)
-    }
-    
     // MARK: - Multiple observers
 
     func testInsertEventIsNotifiedToAllObservers() throws {
         let dbQueue = try makeDatabaseQueue()
+        try setupArtistDatabase(in: dbQueue)
         let observer1 = Observer()
         let observer2 = Observer()
         dbQueue.add(transactionObserver: observer1)
@@ -1101,161 +1445,10 @@ class TransactionObserverTests: GRDBTestCase {
             }
         }
     }
-
-    func testExplicitTransactionRollbackCausedBySecondTransactionObserverOutOfThree() throws {
-        let dbQueue = try makeDatabaseQueue()
-        let observer1 = Observer()
-        let observer2 = Observer()
-        let observer3 = Observer()
-        observer2.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
-        
-        dbQueue.add(transactionObserver: observer1)
-        dbQueue.add(transactionObserver: observer2)
-        dbQueue.add(transactionObserver: observer3)
-        
-        do {
-            try dbQueue.inTransaction { db in
-                do {
-                    try Artist(name: "Gerhard Richter").save(db)
-                } catch {
-                    XCTFail("Unexpected Error")
-                }
-                return .commit
-            }
-            XCTFail("Expected Error")
-        } catch let error as NSError {
-            XCTAssertEqual(error.domain, "foo")
-            XCTAssertEqual(error.code, 0)
-            
-            #if SQLITE_ENABLE_PREUPDATE_HOOK
-                XCTAssertEqual(observer1.willChangeCount, 1)
-            #endif
-            XCTAssertEqual(observer1.didChangeCount, 1)
-            XCTAssertEqual(observer1.willCommitCount, 1)
-            XCTAssertEqual(observer1.didCommitCount, 0)
-            XCTAssertEqual(observer1.didRollbackCount, 1)
-            
-            #if SQLITE_ENABLE_PREUPDATE_HOOK
-                XCTAssertEqual(observer2.willChangeCount, 1)
-            #endif
-            XCTAssertEqual(observer2.didChangeCount, 1)
-            XCTAssertEqual(observer2.willCommitCount, 1)
-            XCTAssertEqual(observer2.didCommitCount, 0)
-            XCTAssertEqual(observer2.didRollbackCount, 1)
-            
-            #if SQLITE_ENABLE_PREUPDATE_HOOK
-                XCTAssertEqual(observer3.willChangeCount, 1)
-            #endif
-            XCTAssertEqual(observer3.didChangeCount, 1)
-            XCTAssertEqual(observer3.willCommitCount, 0)
-            XCTAssertEqual(observer3.didCommitCount, 0)
-            XCTAssertEqual(observer3.didRollbackCount, 1)
-        }
-    }
-
-    func testEmptyDeferredTransactionRollbackCausedBySecondTransactionObserverOutOfThree() throws {
-        let dbQueue = try makeDatabaseQueue()
-        let observer = Observer()
-        observer.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
-        dbQueue.add(transactionObserver: observer)
-        
-        do {
-            try dbQueue.inTransaction(.deferred) { _ in .commit }
-        } catch {
-            XCTFail("Unexpected Error: \(error)")
-        }
-    }
-
-    func testEmptyImmediateTransactionRollbackCausedBySecondTransactionObserverOutOfThree() throws {
-        let dbQueue = try makeDatabaseQueue()
-        let observer1 = Observer()
-        let observer2 = Observer()
-        let observer3 = Observer()
-        observer2.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
-        
-        dbQueue.add(transactionObserver: observer1)
-        dbQueue.add(transactionObserver: observer2)
-        dbQueue.add(transactionObserver: observer3)
-        
-        do {
-            try dbQueue.inTransaction(.immediate) { _ in .commit }
-            XCTFail("Expected Error")
-        } catch let error as NSError {
-            XCTAssertEqual(error.domain, "foo")
-            XCTAssertEqual(error.code, 0)
-            
-            #if SQLITE_ENABLE_PREUPDATE_HOOK
-                XCTAssertEqual(observer1.willChangeCount, 0)
-            #endif
-            XCTAssertEqual(observer1.didChangeCount, 0)
-            XCTAssertEqual(observer1.willCommitCount, 1)
-            XCTAssertEqual(observer1.didCommitCount, 0)
-            XCTAssertEqual(observer1.didRollbackCount, 1)
-            
-            #if SQLITE_ENABLE_PREUPDATE_HOOK
-                XCTAssertEqual(observer2.willChangeCount, 0)
-            #endif
-            XCTAssertEqual(observer2.didChangeCount, 0)
-            XCTAssertEqual(observer2.willCommitCount, 1)
-            XCTAssertEqual(observer2.didCommitCount, 0)
-            XCTAssertEqual(observer2.didRollbackCount, 1)
-            
-            #if SQLITE_ENABLE_PREUPDATE_HOOK
-                XCTAssertEqual(observer3.willChangeCount, 0)
-            #endif
-            XCTAssertEqual(observer3.didChangeCount, 0)
-            XCTAssertEqual(observer3.willCommitCount, 0)
-            XCTAssertEqual(observer3.didCommitCount, 0)
-            XCTAssertEqual(observer3.didRollbackCount, 1)
-        }
-    }
-
-    func testEmptyExclusiveTransactionRollbackCausedBySecondTransactionObserverOutOfThree() throws {
-        let dbQueue = try makeDatabaseQueue()
-        let observer1 = Observer()
-        let observer2 = Observer()
-        let observer3 = Observer()
-        observer2.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
-        
-        dbQueue.add(transactionObserver: observer1)
-        dbQueue.add(transactionObserver: observer2)
-        dbQueue.add(transactionObserver: observer3)
-        
-        do {
-            try dbQueue.inTransaction(.immediate) { _ in .commit }
-            XCTFail("Expected Error")
-        } catch let error as NSError {
-            XCTAssertEqual(error.domain, "foo")
-            XCTAssertEqual(error.code, 0)
-            
-            #if SQLITE_ENABLE_PREUPDATE_HOOK
-                XCTAssertEqual(observer1.willChangeCount, 0)
-            #endif
-            XCTAssertEqual(observer1.didChangeCount, 0)
-            XCTAssertEqual(observer1.willCommitCount, 1)
-            XCTAssertEqual(observer1.didCommitCount, 0)
-            XCTAssertEqual(observer1.didRollbackCount, 1)
-            
-            #if SQLITE_ENABLE_PREUPDATE_HOOK
-                XCTAssertEqual(observer2.willChangeCount, 0)
-            #endif
-            XCTAssertEqual(observer2.didChangeCount, 0)
-            XCTAssertEqual(observer2.willCommitCount, 1)
-            XCTAssertEqual(observer2.didCommitCount, 0)
-            XCTAssertEqual(observer2.didRollbackCount, 1)
-            
-            #if SQLITE_ENABLE_PREUPDATE_HOOK
-                XCTAssertEqual(observer3.willChangeCount, 0)
-            #endif
-            XCTAssertEqual(observer3.didChangeCount, 0)
-            XCTAssertEqual(observer3.willCommitCount, 0)
-            XCTAssertEqual(observer3.didCommitCount, 0)
-            XCTAssertEqual(observer3.didRollbackCount, 1)
-        }
-    }
-
+    
     func testTransactionObserverAddAndRemove() throws {
         let dbQueue = try makeDatabaseQueue()
+        try setupArtistDatabase(in: dbQueue)
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
@@ -1309,6 +1502,7 @@ class TransactionObserverTests: GRDBTestCase {
 
     func testFilterDatabaseEvents() throws {
         let dbQueue = try makeDatabaseQueue()
+        try setupArtistDatabase(in: dbQueue)
         
         do {
             let observer = Observer(observes: { _ in false })
@@ -1402,236 +1596,6 @@ class TransactionObserverTests: GRDBTestCase {
             XCTAssertEqual(observer.didCommitCount, 1)
             XCTAssertEqual(observer.didRollbackCount, 0)
             XCTAssertEqual(observer.lastCommittedEvents.count, 2)
-        }
-    }
-
-    
-    // MARK: - Observation Extent
-    
-    func testDefaultObservationExtent() throws {
-        weak var weakObserver: Observer? = nil
-        let dbQueue = try makeDatabaseQueue()
-        do {
-            let observer = Observer()
-            weakObserver = observer
-            dbQueue.add(transactionObserver: observer)
-            
-            try dbQueue.inTransaction { db in
-                try db.execute("CREATE TABLE t(a)")
-                return .commit
-            }
-            XCTAssertEqual(observer.didCommitCount, 1)
-            try dbQueue.inTransaction { db in
-                try db.execute("DROP TABLE t")
-                return .commit
-            }
-            XCTAssertEqual(observer.didCommitCount, 2)
-        }
-        XCTAssert(weakObserver == nil)
-    }
-    
-    func testObservationExtentObserverLifetime() throws {
-        weak var weakObserver: Observer? = nil
-        let dbQueue = try makeDatabaseQueue()
-        do {
-            let observer = Observer()
-            weakObserver = observer
-            dbQueue.add(transactionObserver: observer, extent: .observerLifetime)
-            
-            try dbQueue.inTransaction { db in
-                try db.execute("CREATE TABLE t(a)")
-                return .commit
-            }
-            XCTAssertEqual(observer.didCommitCount, 1)
-            try dbQueue.inTransaction { db in
-                try db.execute("DROP TABLE t")
-                return .commit
-            }
-            XCTAssertEqual(observer.didCommitCount, 2)
-        }
-        XCTAssert(weakObserver == nil)
-    }
-    
-    func testObservationExtentUntilNextTransaction() throws {
-        weak var weakObserver: Observer? = nil
-        let dbQueue = try makeDatabaseQueue()
-        do {
-            let observer = Observer()
-            weakObserver = observer
-            dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
-        }
-        if let observer = weakObserver {
-            try dbQueue.inTransaction { db in
-                try db.execute("CREATE TABLE t(a)")
-                return .commit
-            }
-            XCTAssertEqual(observer.didCommitCount, 1)
-        } else {
-            XCTFail("observer should not be deallocated until next transaction")
-        }
-        XCTAssert(weakObserver == nil)
-    }
-    
-    func testObservationExtentUntilNextTransactionWithRollback() throws {
-        weak var weakObserver: Observer? = nil
-        let dbQueue = try makeDatabaseQueue()
-        do {
-            let observer = Observer()
-            weakObserver = observer
-            dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
-        }
-        if let observer = weakObserver {
-            try dbQueue.inTransaction { _ in .rollback }
-            XCTAssertEqual(observer.didRollbackCount, 1)
-        } else {
-            XCTFail("observer should not be deallocated until next transaction")
-        }
-        XCTAssert(weakObserver == nil)
-    }
-    
-    func testObservationExtentUntilNextTransactionWithRetainedObserver() throws {
-        let dbQueue = try makeDatabaseQueue()
-        let observer = Observer()
-        dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
-        
-        try dbQueue.inTransaction { db in
-            try db.execute("CREATE TABLE t(a)")
-            return .commit
-        }
-        XCTAssertEqual(observer.didCommitCount, 1)
-        try dbQueue.inTransaction { db in
-            try db.execute("DROP TABLE t")
-            return .commit
-        }
-        XCTAssertEqual(observer.didCommitCount, 1)
-    }
-    
-    func testObservationExtentUntilNextTransactionWithTriggeredTransaction() throws {
-        let dbQueue = try makeDatabaseQueue()
-        let witness = Observer()
-        let observer = Observer(didCommitBlock: { db in
-            try! db.inTransaction {
-                try db.execute("CREATE TABLE t2(a)")
-                try db.execute("DROP TABLE t2")
-                return .commit
-            }
-        })
-        dbQueue.add(transactionObserver: witness)
-        dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
-        
-        try dbQueue.inTransaction { db in
-            try db.execute("CREATE TABLE t(a)")
-            return .commit
-        }
-        XCTAssertEqual(observer.didCommitCount, 1)
-        XCTAssertEqual(witness.didCommitCount, 2)
-        try dbQueue.inTransaction { db in
-            try db.execute("DROP TABLE t")
-            return .commit
-        }
-        XCTAssertEqual(observer.didCommitCount, 1)
-        XCTAssertEqual(witness.didCommitCount, 3)
-    }
-    
-    func testObservationExtentUntilNextTransactionAddedDuringTransaction() throws {
-        let dbQueue = try makeDatabaseQueue()
-        let observer = Observer()
-        
-        try dbQueue.inTransaction { db in
-            try db.execute("CREATE TABLE t(a)")
-            db.add(transactionObserver: observer, extent: .nextTransaction)
-            return .commit
-        }
-        
-        XCTAssertEqual(observer.didCommitCount, 1)
-        try dbQueue.inTransaction { db in
-            try db.execute("DROP TABLE t")
-            return .commit
-        }
-        XCTAssertEqual(observer.didCommitCount, 1)
-    }
-    
-    func testObservationExtentUntilNextTransactionWithEmptyDeferredTransaction() throws {
-        weak var weakObserver: Observer? = nil
-        let dbQueue = try makeDatabaseQueue()
-        do {
-            let observer = Observer()
-            weakObserver = observer
-            dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
-        }
-        if let observer = weakObserver {
-            try dbQueue.inTransaction(.deferred) { _ in .commit }
-            XCTAssertEqual(observer.didCommitCount, 0)
-        } else {
-            XCTFail("observer should not be deallocated until next transaction")
-        }
-        XCTAssert(weakObserver == nil)
-    }
-    
-    func testObservationExtentUntilNextTransactionWithEmptyDeferredTransactionAndRetainedObserver() throws {
-        let dbQueue = try makeDatabaseQueue()
-        let observer = Observer()
-        dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
-        
-        try dbQueue.inTransaction(.deferred) { _ in .commit }
-        XCTAssertEqual(observer.didCommitCount, 0)
-        
-        try dbQueue.inTransaction { db in
-            try db.execute("CREATE TABLE t(a)")
-            return .commit
-        }
-        XCTAssertEqual(observer.didCommitCount, 0)
-    }
-    
-    func testObservationExtentDatabaseLifetime() throws {
-        // Observer deallocation happens concurrently with database deallocation:
-        //
-        // 1. DatabaseQueue.deinit (main queue)
-        // 2. SerializedDatabase.deinit (main queue)
-        // 3. DispatchQueue.deinit (main queue)
-        // 4. SchedulingWatchDog.deinit (database queue)
-        // 5. Database.deinit (database queue)
-        // 6. Observer.deinit (database queue)
-        let deinitSemaphore = DispatchSemaphore(value: 0)
-        
-        do {
-            let dbQueue = try makeDatabaseQueue()
-            weak var weakObserver: Observer? = nil
-            do {
-                let observer = Observer(deinitBlock: {
-                    deinitSemaphore.signal()
-                })
-                weakObserver = observer
-                dbQueue.add(transactionObserver: observer, extent: .databaseLifetime)
-            }
-            
-            if let observer = weakObserver {
-                try dbQueue.inTransaction { db in
-                    try db.execute("CREATE TABLE t(a)")
-                    return .commit
-                }
-                XCTAssertEqual(observer.didCommitCount, 1)
-            } else {
-                XCTFail("observer should not be deallocated until database is closed")
-            }
-            
-            if let observer = weakObserver {
-                try dbQueue.inTransaction { db in
-                    try db.execute("DROP TABLE t")
-                    return .commit
-                }
-                XCTAssertEqual(observer.didCommitCount, 2)
-            } else {
-                XCTFail("observer should not be deallocated until database is closed")
-            }
-        } // <- DatabaseQueue.deinit ... Observer.deinit
-        
-        // Wait for observer deallocation
-        switch deinitSemaphore.wait(timeout: .now() + .seconds(60)) {
-        case .success:
-            break
-        case .timedOut:
-            XCTFail("Observer not deallocated")
         }
     }
 }

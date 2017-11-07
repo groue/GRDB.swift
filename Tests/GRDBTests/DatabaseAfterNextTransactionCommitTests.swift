@@ -9,7 +9,41 @@ import XCTest
 
 class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
     
-    func testDatabaseAfterNextTransactionCommit() throws {
+    func testTransactionCompletions() throws {
+        // implicit transaction
+        try assertTransaction(start: "", end: "CREATE TABLE t(a)", isNotifiedAs: .commit)
+        
+        // explicit commit
+        try assertTransaction(start: "BEGIN DEFERRED TRANSACTION", end: "COMMIT", isNotifiedAs: .commit)
+        try assertTransaction(start: "BEGIN DEFERRED TRANSACTION; CREATE TABLE t(a)", end: "COMMIT", isNotifiedAs: .commit)
+        try assertTransaction(start: "BEGIN IMMEDIATE TRANSACTION", end: "COMMIT", isNotifiedAs: .commit)
+        try assertTransaction(start: "BEGIN IMMEDIATE TRANSACTION; CREATE TABLE t(a)", end: "COMMIT", isNotifiedAs: .commit)
+        try assertTransaction(start: "BEGIN EXCLUSIVE TRANSACTION", end: "COMMIT", isNotifiedAs: .commit)
+        try assertTransaction(start: "BEGIN EXCLUSIVE TRANSACTION; CREATE TABLE t(a)", end: "COMMIT", isNotifiedAs: .commit)
+        try assertTransaction(start: "SAVEPOINT test", end: "COMMIT", isNotifiedAs: .commit)
+        try assertTransaction(start: "SAVEPOINT test; CREATE TABLE t(a)", end: "COMMIT", isNotifiedAs: .commit)
+        try assertTransaction(start: "SAVEPOINT test; ROLLBACK TRANSACTION TO SAVEPOINT test", end: "RELEASE SAVEPOINT test", isNotifiedAs: .commit)
+        try assertTransaction(start: "SAVEPOINT test; CREATE TABLE t(a); ROLLBACK TRANSACTION TO SAVEPOINT test", end: "RELEASE SAVEPOINT test", isNotifiedAs: .commit)
+        try assertTransaction(start: "SAVEPOINT test", end: "RELEASE SAVEPOINT test", isNotifiedAs: .commit)
+        try assertTransaction(start: "SAVEPOINT test; CREATE TABLE t(a)", end: "RELEASE SAVEPOINT test", isNotifiedAs: .commit)
+        
+        // explicit rollback
+        try assertTransaction(start: "BEGIN DEFERRED TRANSACTION", end: "ROLLBACK", isNotifiedAs: .rollback)
+        try assertTransaction(start: "BEGIN DEFERRED TRANSACTION; CREATE TABLE t(a)", end: "ROLLBACK", isNotifiedAs: .rollback)
+        try assertTransaction(start: "BEGIN IMMEDIATE TRANSACTION", end: "ROLLBACK", isNotifiedAs: .rollback)
+        try assertTransaction(start: "BEGIN IMMEDIATE TRANSACTION; CREATE TABLE t(a)", end: "ROLLBACK", isNotifiedAs: .rollback)
+        try assertTransaction(start: "BEGIN EXCLUSIVE TRANSACTION", end: "ROLLBACK", isNotifiedAs: .rollback)
+        try assertTransaction(start: "BEGIN EXCLUSIVE TRANSACTION; CREATE TABLE t(a)", end: "ROLLBACK", isNotifiedAs: .rollback)
+        try assertTransaction(start: "SAVEPOINT test", end: "ROLLBACK", isNotifiedAs: .rollback)
+        try assertTransaction(start: "SAVEPOINT test; CREATE TABLE t(a)", end: "ROLLBACK", isNotifiedAs: .rollback)
+    }
+    
+    func assertTransaction(start startSQL: String, end endSQL: String, isNotifiedAs expectedCompletion: Database.TransactionCompletion) throws {
+        try assertTransaction_registerBefore(start: startSQL, end: endSQL, isNotifiedAs: expectedCompletion)
+        try assertTransaction_registerBetween(start: startSQL, end: endSQL, isNotifiedAs: expectedCompletion)
+    }
+    
+    func assertTransaction_registerBefore(start startSQL: String, end endSQL: String, isNotifiedAs expectedCompletion: Database.TransactionCompletion) throws {
         class Witness { }
         
         let dbQueue = try makeDatabaseQueue()
@@ -26,29 +60,39 @@ class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
                 }
             }
             
+            XCTAssertNotNil(deallocationWitness)
             XCTAssertEqual(transactionCount, 0)
-            
-            try db.inTransaction {
-                try db.execute("CREATE TABLE t(a)")
-                return .commit
+            try db.execute(startSQL)
+            try db.execute(endSQL)
+            switch expectedCompletion {
+            case .commit:
+                XCTAssertEqual(transactionCount, 1, "\(startSQL); \(endSQL)")
+            case .rollback:
+                XCTAssertEqual(transactionCount, 0, "\(startSQL); \(endSQL)")
             }
-            XCTAssertEqual(transactionCount, 1)
             XCTAssertNil(deallocationWitness)
             
             try db.inTransaction {
-                try db.execute("DROP TABLE t")
+                try db.execute("DROP TABLE IF EXISTS t; CREATE TABLE t(a); ")
                 return .commit
             }
-            XCTAssertEqual(transactionCount, 1)
+            switch expectedCompletion {
+            case .commit:
+                XCTAssertEqual(transactionCount, 1, "\(startSQL); \(endSQL)")
+            case .rollback:
+                XCTAssertEqual(transactionCount, 0, "\(startSQL); \(endSQL)")
+            }
         }
     }
     
-    func testDatabaseAfterNextTransactionWithEmptyDeferredTransaction() throws {
+    func assertTransaction_registerBetween(start startSQL: String, end endSQL: String, isNotifiedAs expectedCompletion: Database.TransactionCompletion) throws {
         class Witness { }
         
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var transactionCount = 0
+            try db.execute(startSQL)
+            
             weak var deallocationWitness: Witness? = nil
             do {
                 let witness = Witness()
@@ -60,51 +104,27 @@ class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
                 }
             }
             
+            XCTAssertNotNil(deallocationWitness)
             XCTAssertEqual(transactionCount, 0)
-            
-            try db.inTransaction(.deferred) { .commit }
-            XCTAssertEqual(transactionCount, 0)
+            try db.execute(endSQL)
+            switch expectedCompletion {
+            case .commit:
+                XCTAssertEqual(transactionCount, 1, "\(startSQL); \(endSQL)")
+            case .rollback:
+                XCTAssertEqual(transactionCount, 0, "\(startSQL); \(endSQL)")
+            }
             XCTAssertNil(deallocationWitness)
             
             try db.inTransaction {
-                try db.execute("CREATE TABLE t(a)")
+                try db.execute("DROP TABLE IF EXISTS t; CREATE TABLE t(a); ")
                 return .commit
             }
-            XCTAssertEqual(transactionCount, 0)
-        }
-    }
-    
-    func testDatabaseAfterNextTransactionCommitWithRollback() throws {
-        class Witness { }
-        
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            var transactionCount = 0
-            weak var deallocationWitness: Witness? = nil
-            do {
-                let witness = Witness()
-                deallocationWitness = witness
-                db.afterNextTransactionCommit { _ in
-                    // use witness
-                    withExtendedLifetime(witness, { })
-                    transactionCount += 1
-                }
+            switch expectedCompletion {
+            case .commit:
+                XCTAssertEqual(transactionCount, 1, "\(startSQL); \(endSQL)")
+            case .rollback:
+                XCTAssertEqual(transactionCount, 0, "\(startSQL); \(endSQL)")
             }
-            
-            XCTAssertEqual(transactionCount, 0)
-            
-            try db.inTransaction {
-                try db.execute("CREATE TABLE t(a)")
-                return .rollback
-            }
-            XCTAssertEqual(transactionCount, 0)
-            XCTAssertNil(deallocationWitness)
-            
-            try db.inTransaction {
-                try db.execute("CREATE TABLE t(a)")
-                return .commit
-            }
-            XCTAssertEqual(transactionCount, 0)
         }
     }
 }
