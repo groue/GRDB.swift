@@ -5,7 +5,19 @@ Release Notes
 
 **Fixed**
 
-- GRDB 2.2.0 has introduced a fix in the way [transaction observers](https://github.com/groue/GRDB.swift/blob/master/README.md#transactionobserver-protocol) are notified of empty deferred transactions (`BEGIN; COMMIT;`). Here is a fix of the fix. Now all transactions, including empty deferred transactions, are notified to transaction observers. This includes transactions opened via savepoints.
+- GRDB 2.2.0 has introduced a fix in the way [transaction observers](https://github.com/groue/GRDB.swift/blob/master/README.md#transactionobserver-protocol) are notified of empty deferred transactions (`BEGIN; COMMIT;`). That fix was incomplete, and inconsistent.
+    
+    Now all transactions are notified to transaction observers. Including empty degenerated transactions such as:
+    
+    ```swift
+    try db.inTransaction { .commit }
+    try db.inSavepoint { .commit }
+    try db.execute("BEGIN; COMMIT;")
+    try db.execute("SAVEPOINT foo; RELEASE SAVEPOINT foo;")
+    ```
+    
+    For a detailed rationale, see [820bc87](https://github.com/groue/GRDB.swift/commit/820bc87cfeee701743da852f3634e2c695e911ee#diff-3e791e9db648cd302590c9b86c70757fR376).
+
 
 ## 2.3.0
 
