@@ -228,12 +228,12 @@ extension Database {
         observationBroker.updateStatementWillExecute(statement)
     }
     
-    func updateStatementDidExecute(_ statement: UpdateStatement) {
+    func updateStatementDidExecute(_ statement: UpdateStatement) throws {
         if statement.invalidatesDatabaseSchemaCache {
             clearSchemaCache()
         }
         
-        observationBroker.updateStatementDidExecute(statement)
+        try observationBroker.updateStatementDidExecute(statement)
     }
     
     func updateStatementDidFail(_ statement: UpdateStatement) throws {

@@ -250,45 +250,24 @@ class DatabaseObservationBroker {
         }
     }
     
-    func updateStatementDidExecute(_ statement: UpdateStatement) {
+    func updateStatementDidExecute(_ statement: UpdateStatement) throws {
         // Wait for next statement
         activeTransactionObservations = []
         
+        // Has statement any effect on transaction/savepoints?
         if let transactionEffect = statement.transactionEffect {
-            // Statement has modified transaction/savepoint state
             switch transactionEffect {
             case .beginTransaction:
                 break
                 
-            case .commitTransaction:
-                if case .none = self.transactionState {
-                    // A COMMIT statement has ended an empty deferred
-                    // transaction. For SQLite, no transaction has ever begun:
+            case .commitTransaction:                    // 1. A COMMIT statement has been executed
+                if case .none = self.transactionState { // 2. sqlite3_commit_hook was not triggered
+                    // 1+2 mean that an empty deferred transaction has been completed:
                     //
-                    //   BEGIN DEFERRED TRANSACTION
-                    //   COMMIT
+                    //   BEGIN DEFERRED TRANSACTION; COMMIT
                     //
-                    // We don't need to tell transaction observers about it.
-                    //
-                    // But we have to take care of the .nextTransaction
-                    // observation extent. In the sample code below, the
-                    // observer must not be notified of the second transaction,
-                    // because this is the intent of the programmer:
-                    //
-                    //   // Register an observer for next transaction only
-                    //   let observer = Observer()
-                    //   dbQueue.add(transactionObserver:observer, extent: .nextTransaction)
-                    //
-                    //   try dbQueue.inTransaction(.deferred) { db in
-                    //       return .commit
-                    //   }
-                    //
-                    //   // Must not notify observer
-                    //   try dbQueue.inTransaction(.deferred) { db in
-                    //       try db.execute("...")
-                    //       return .commit
-                    //   }
-                    emptyDeferredTransactionDidCommit()
+                    // This special case has a dedicated handling:
+                    return try emptyDeferredTransactionDidCommit()
                 }
                 
             case .rollbackTransaction:
@@ -297,17 +276,22 @@ class DatabaseObservationBroker {
             case .beginSavepoint(let name):
                 savepointStack.savepointDidBegin(name)
                 
-            case .releaseSavepoint(let name):
+            case .releaseSavepoint(let name):          // 1. A RELEASE SAVEPOINT statement has been executed
                 savepointStack.savepointDidRelease(name)
+                
+                if case .none = self.transactionState, // 2. sqlite3_commit_hook was not triggered
+                    !database.isInsideTransaction      // 3. database is no longer inside a transaction
+                {
+                    // 1+2+3 mean that an empty deferred transaction has been completed:
+                    //
+                    //   SAVEPOINT foo; RELEASE SAVEPOINT foo
+                    //
+                    // This special case has a dedicated handling:
+                    return try emptyDeferredTransactionDidCommit()
+                }
+                
                 if savepointStack.isEmpty {
-                    // Notify buffered events
-                    let eventsBuffer = savepointStack.eventsBuffer
-                    savepointStack.clear()
-                    for (event, observations) in eventsBuffer {
-                        for observation in observations {
-                            event.send(to: observation)
-                        }
-                    }
+                    notifyBufferedEvents()
                 }
                 
             case .rollbackSavepoint(let name):
@@ -358,10 +342,15 @@ class DatabaseObservationBroker {
         }
     }
     
-    // Called from sqlite3_commit_hook
+    // Called from sqlite3_commit_hook and emptyDeferredTransactionDidCommit()
     private func databaseWillCommit() throws {
-        // Time to send all buffered events
-        
+        notifyBufferedEvents()
+        for observation in transactionObservations {
+            try observation.databaseWillCommit()
+        }
+    }
+    
+    private func notifyBufferedEvents() {
         let eventsBuffer = savepointStack.eventsBuffer
         savepointStack.clear()
         
@@ -369,10 +358,6 @@ class DatabaseObservationBroker {
             for observation in observations {
                 event.send(to: observation)
             }
-        }
-        
-        for observation in transactionObservations {
-            try observation.databaseWillCommit()
         }
     }
     
@@ -387,11 +372,45 @@ class DatabaseObservationBroker {
     }
     
     // Called from updateStatementDidExecute
-    private func emptyDeferredTransactionDidCommit() {
-        for observation in transactionObservations {
-            observation.emptyDeferredTransactionDidCommit(database)
+    private func emptyDeferredTransactionDidCommit() throws {
+        // A statement that ends a transaction has been executed. But for
+        // SQLite, no transaction at all has started, and sqlite3_commit_hook
+        // was not triggered:
+        //
+        //   try db.execute("BEGIN DEFERRED TRANSACTION")
+        //   try db.execute("COMMIT") // <- no sqlite3_commit_hook callback invocation
+        //
+        // Should we tell transaction observers of this transaction, or not?
+        // The code says that a transaction was open, but SQLite says the
+        // opposite. How do we lift this ambiguity? Should we notify of
+        // *transactions expressed in the code*, or *SQLite transactions* only?
+        //
+        // If we would notify of SQLite transactions only, then we'd notify of
+        // all transactions expressed in the code, but empty deferred
+        // transaction. This means that we'd make an exception. And exceptions
+        // are the recipe for both surprise and confusion.
+        //
+        // For example, is the code below expected to print "did commit"?
+        //
+        //   db.afterNextTransactionCommit { _ in print("did commit") }
+        //   try db.inTransaction {
+        //       performSomeTask(db)
+        //       return .commit
+        //   }
+        //
+        // Yes it is. And the only way to make it reliably print "did commit" is
+        // to behave consistently, regardless of the implementation of the
+        // `performSomeTask` function. Even if the `performSomeTask` is empty,
+        // even if we actually execute an empty deferred transaction.
+        //
+        // For better or for worse, let's simulate a transaction:
+        do {
+            try databaseWillCommit()
+            databaseDidCommit()
+        } catch {
+            databaseDidRollback(notifyTransactionObservers: true)
+            throw error
         }
-        cleanupTransactionObservations()
     }
     
     // Called from updateStatementDidExecute or updateStatementDidFails
@@ -591,16 +610,6 @@ final class TransactionObservation {
         }
     }
     
-    func emptyDeferredTransactionDidCommit(_ db: Database) {
-        switch extent {
-        case .observerLifetime, .databaseLifetime:
-            break
-        case .nextTransaction:
-            // Observer most not get any further notification.
-            strongObserver = nil
-        }
-    }
-
     func databaseDidRollback(_ db: Database) {
         switch extent {
         case .observerLifetime, .databaseLifetime:

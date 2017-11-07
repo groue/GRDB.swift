@@ -510,7 +510,7 @@ public final class UpdateStatement : Statement, AuthorizedStatement {
                 
             case SQLITE_DONE:
                 database.authorizer = nil
-                database.updateStatementDidExecute(self)
+                try database.updateStatementDidExecute(self)
                 return
                 
             case let code:
