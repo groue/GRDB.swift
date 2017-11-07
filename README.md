@@ -2439,15 +2439,18 @@ try player.insert(db)
 GRDB provides default implementations for [`RowConvertible.init(row:)`](#rowconvertible-protocol) and [`Persistable.encode(to:)`](#persistable-protocol) for record types that also adopt an archival protocol (`Codable`, `Encodable` or `Decodable`). When all their properties are themselves codable, Swift generates the archiving methods, and you don't need to write them down:
 
 ```swift
-// This is just enough...
-struct Player: RowConvertible, Persistable, Codable {
-    static let databaseTableName = "players"
-    
+// Declare a plain Codable struct or class...
+struct Player: Codable {
     let name: String
     let score: Int
 }
 
-// ... so that you can save and fetch players:
+// Adopt Record protocols...
+extension Player: RowConvertible, Persistable {
+    static let databaseTableName = "players"
+}
+
+// ...and you can save and fetch players:
 try dbQueue.inDatabase { db in
     try Player(name: "Arthur", score: 100).insert(db)
     let players = try Player.fetchAll(db)
@@ -2462,22 +2465,20 @@ struct Place: RowConvertible, Persistable, Codable {
     static let databaseTableName = "places"
     
     var title: String
-    var coordinate: CLLocationCoordinate2D // <- Not a simple value
+    var coordinate: CLLocationCoordinate2D // <- Not a simple value!
 }
 ```
 
 Make it flat, as below, and you'll be granted with all Codable and GRDB advantages:
 
 ```swift
-struct Place: RowConvertible, Persistable, Codable {
-    static let databaseTableName = "places"
-    
-    // Stored properties are all plain values:
+struct Place: Codable {
+    // Stored properties are plain values:
     var title: String
     var latitude: CLLocationDegrees
     var longitude: CLLocationDegrees
     
-    // Complex properties are computed properties:
+    // Complex property is computed:
     var coordinate: CLLocationCoordinate2D {
         get {
             return CLLocationCoordinate2D(
@@ -2490,19 +2491,26 @@ struct Place: RowConvertible, Persistable, Codable {
         }
     }
 }
+
+// Free database support!
+extension Place: RowConvertible, Persistable {
+    static let databaseTableName = "places"
+}
 ```
 
-As documented with the [Persistable](#persistable-protocol) protocol, have you struct records use MutablePersistable instead of Persistable when they store their automatically incremented row id:
+As documented with the [Persistable](#persistable-protocol) protocol, have your struct records use MutablePersistable instead of Persistable when they store their automatically incremented row id:
 
 ```swift
-struct Place: RowConvertible, MutablePersistable, Codable {
-    static let databaseTableName = "places"
-    
+struct Place: Codable {
     var id: Int64?      // <- the row id
     var title: String
     var latitude: CLLocationDegrees
     var longitude: CLLocationDegrees
     var coordinate: CLLocationCoordinate2D { ... }
+}
+
+extension Place: RowConvertible, MutablePersistable {
+    static let databaseTableName = "places"
     
     mutating func didInsert(with rowID: Int64, for column: String?) {
         // Update id after insertion
