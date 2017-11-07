@@ -17,18 +17,18 @@ class GRDBTestCase: XCTestCase {
     var dbConfiguration: Configuration!
     
     // Builds a database queue based on dbConfiguration
-    func makeDatabaseQueue(filename: String = "db.sqlite") throws -> DatabaseQueue {
+    func makeDatabaseQueue(filename: String? = nil) throws -> DatabaseQueue {
         try FileManager.default.createDirectory(atPath: dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
-        let dbPath = (dbDirectoryPath as NSString).appendingPathComponent(filename)
+        let dbPath = (dbDirectoryPath as NSString).appendingPathComponent(filename ?? ProcessInfo.processInfo.globallyUniqueString)
         let dbQueue = try DatabaseQueue(path: dbPath, configuration: dbConfiguration)
         try setup(dbQueue)
         return dbQueue
     }
     
     // Builds a database pool based on dbConfiguration
-    func makeDatabasePool(filename: String = "db.sqlite") throws -> DatabasePool {
+    func makeDatabasePool(filename: String? = nil) throws -> DatabasePool {
         try FileManager.default.createDirectory(atPath: dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
-        let dbPath = (dbDirectoryPath as NSString).appendingPathComponent(filename)
+        let dbPath = (dbDirectoryPath as NSString).appendingPathComponent(filename ?? ProcessInfo.processInfo.globallyUniqueString)
         let dbPool = try DatabasePool(path: dbPath, configuration: dbConfiguration)
         try setup(dbPool)
         return dbPool

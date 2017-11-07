@@ -39,7 +39,7 @@ class ConcurrencyTests: GRDBTestCase {
     }
 
     func testDeferredTransactionConcurrency() throws {
-        let dbQueue1 = try makeDatabaseQueue()
+        let dbQueue1 = try makeDatabaseQueue(filename: "test.sqlite")
         #if GRDBCIPHER_USE_ENCRYPTION
             // Work around SQLCipher bug when two connections are open to the
             // same empty database: make sure the database is not empty before
@@ -48,7 +48,7 @@ class ConcurrencyTests: GRDBTestCase {
                 try db.execute("CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
             }
         #endif
-        let dbQueue2 = try makeDatabaseQueue()
+        let dbQueue2 = try makeDatabaseQueue(filename: "test.sqlite")
         
         // Queue 1                              Queue 2
         // BEGIN DEFERRED TRANSACTION
@@ -118,8 +118,8 @@ class ConcurrencyTests: GRDBTestCase {
     }
 
     func testExclusiveTransactionConcurrency() throws {
-        let dbQueue1 = try makeDatabaseQueue()
-        let dbQueue2 = try makeDatabaseQueue()
+        let dbQueue1 = try makeDatabaseQueue(filename: "test.sqlite")
+        let dbQueue2 = try makeDatabaseQueue(filename: "test.sqlite")
         
         // Queue 1                              Queue 2
         // BEGIN EXCLUSIVE TRANSACTION
@@ -174,8 +174,8 @@ class ConcurrencyTests: GRDBTestCase {
     }
 
     func testImmediateTransactionConcurrency() throws {
-        let dbQueue1 = try makeDatabaseQueue()
-        let dbQueue2 = try makeDatabaseQueue()
+        let dbQueue1 = try makeDatabaseQueue(filename: "test.sqlite")
+        let dbQueue2 = try makeDatabaseQueue(filename: "test.sqlite")
         
         // Queue 1                              Queue 2
         // BEGIN IMMEDIATE TRANSACTION
@@ -230,7 +230,7 @@ class ConcurrencyTests: GRDBTestCase {
     }
 
     func testBusyCallback() throws {
-        let dbQueue1 = try makeDatabaseQueue()
+        let dbQueue1 = try makeDatabaseQueue(filename: "test.sqlite")
         #if GRDBCIPHER_USE_ENCRYPTION
             // Work around SQLCipher bug when two connections are open to the
             // same empty database: make sure the database is not empty before
@@ -239,7 +239,7 @@ class ConcurrencyTests: GRDBTestCase {
                 try db.execute("CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
             }
         #endif
-        let dbQueue2 = try makeDatabaseQueue()
+        let dbQueue2 = try makeDatabaseQueue(filename: "test.sqlite")
         
         // Queue 1                              Queue 2
         // BEGIN EXCLUSIVE TRANSACTION
@@ -293,7 +293,7 @@ class ConcurrencyTests: GRDBTestCase {
     }
 
     func testReaderDuringDefaultTransaction() throws {
-        let dbQueue1 = try makeDatabaseQueue()
+        let dbQueue1 = try makeDatabaseQueue(filename: "test.sqlite")
         #if GRDBCIPHER_USE_ENCRYPTION
             // Work around SQLCipher bug when two connections are open to the
             // same empty database: make sure the database is not empty before
@@ -302,7 +302,7 @@ class ConcurrencyTests: GRDBTestCase {
                 try db.execute("CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
             }
         #endif
-        let dbQueue2 = try makeDatabaseQueue()
+        let dbQueue2 = try makeDatabaseQueue(filename: "test.sqlite")
         
         // Here we test that a reader can read while a writer is writing.
         
@@ -359,7 +359,7 @@ class ConcurrencyTests: GRDBTestCase {
     }
 
     func testReaderInDeferredTransactionDuringDefaultTransaction() throws {
-        let dbQueue1 = try makeDatabaseQueue()
+        let dbQueue1 = try makeDatabaseQueue(filename: "test.sqlite")
         #if GRDBCIPHER_USE_ENCRYPTION
             // Work around SQLCipher bug when two connections are open to the
             // same empty database: make sure the database is not empty before
@@ -368,7 +368,7 @@ class ConcurrencyTests: GRDBTestCase {
                 try db.execute("CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
             }
         #endif
-        let dbQueue2 = try makeDatabaseQueue()
+        let dbQueue2 = try makeDatabaseQueue(filename: "test.sqlite")
         
         // The `SELECT * FROM stuffs` statement of Queue 2 prevents Queue 1
         // from committing with SQLITE_BUSY.

@@ -12,12 +12,12 @@ class DatabaseQueueReadOnlyTests : GRDBTestCase {
     func testReadOnlyDatabaseCanNotBeModified() throws {
         // Create database
         do {
-            _ = try makeDatabaseQueue()
+            _ = try makeDatabaseQueue(filename: "test.sqlite")
         }
         
         // Open it again, readonly
         dbConfiguration.readonly = true
-        let dbQueue = try makeDatabaseQueue()
+        let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
         let statement = try dbQueue.inDatabase { db in
             try db.makeUpdateStatement("CREATE TABLE items (id INTEGER PRIMARY KEY)")
         }

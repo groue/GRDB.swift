@@ -10,9 +10,9 @@ import XCTest
 class SchedulingWatchdogTests: GRDBTestCase {
     
     func testSchedulingWatchdog() throws {
-        let dbQueue1 = try makeDatabaseQueue(filename: "db1")
-        let dbQueue2 = try makeDatabaseQueue(filename: "db2")
-        let dbQueue3 = try makeDatabaseQueue(filename: "db3")
+        let dbQueue1 = try makeDatabaseQueue()
+        let dbQueue2 = try makeDatabaseQueue()
+        let dbQueue3 = try makeDatabaseQueue()
         
         var db1: Database! = nil
         var db2: Database! = nil
@@ -51,8 +51,8 @@ class SchedulingWatchdogTests: GRDBTestCase {
     }
 
     func testDatabaseQueueFromDatabaseQueue() throws {
-        let dbQueue1 = try makeDatabaseQueue(filename: "db1")
-        let dbQueue2 = try makeDatabaseQueue(filename: "db2")
+        let dbQueue1 = try makeDatabaseQueue()
+        let dbQueue2 = try makeDatabaseQueue()
         try dbQueue1.inDatabase { db1 in
             try db1.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
             try db1.execute("INSERT INTO items (id) VALUES (NULL)")
@@ -71,8 +71,8 @@ class SchedulingWatchdogTests: GRDBTestCase {
     }
 
     func testDatabaseQueueFromDatabasePool() throws {
-        let dbPool1 = try makeDatabasePool(filename: "db1")
-        let dbQueue2 = try makeDatabaseQueue(filename: "db2")
+        let dbPool1 = try makeDatabasePool()
+        let dbQueue2 = try makeDatabaseQueue()
         try dbPool1.write { db1 in
             try db1.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
             try db1.execute("INSERT INTO items (id) VALUES (NULL)")
@@ -91,8 +91,8 @@ class SchedulingWatchdogTests: GRDBTestCase {
     }
 
     func testDatabasePoolFromDatabaseQueue() throws {
-        let dbQueue1 = try makeDatabaseQueue(filename: "db1")
-        let dbPool2 = try makeDatabasePool(filename: "db2")
+        let dbQueue1 = try makeDatabaseQueue()
+        let dbPool2 = try makeDatabasePool()
         try dbQueue1.inDatabase { db1 in
             try db1.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
             try db1.execute("INSERT INTO items (id) VALUES (NULL)")
@@ -111,8 +111,8 @@ class SchedulingWatchdogTests: GRDBTestCase {
     }
 
     func testDatabasePoolFromDatabasePool() throws {
-        let dbPool1 = try makeDatabasePool(filename: "db1")
-        let dbPool2 = try makeDatabasePool(filename: "db2")
+        let dbPool1 = try makeDatabasePool()
+        let dbPool2 = try makeDatabasePool()
         try dbPool1.write { db1 in
             try db1.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
             try db1.execute("INSERT INTO items (id) VALUES (NULL)")
