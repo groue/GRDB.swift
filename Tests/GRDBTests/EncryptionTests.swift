@@ -7,7 +7,7 @@ class EncryptionTests: GRDBTestCase {
     func testDatabaseQueueWithPassphraseToDatabaseQueueWithPassphrase() throws {
         do {
             dbConfiguration.passphrase = "secret"
-            let dbQueue = try makeDatabaseQueue()
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE data (value INTEGER)")
                 try db.execute("INSERT INTO data (value) VALUES (1)")
@@ -16,7 +16,7 @@ class EncryptionTests: GRDBTestCase {
         
         do {
             dbConfiguration.passphrase = "secret"
-            let dbQueue = try makeDatabaseQueue()
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
                 XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 1)
             }
@@ -26,7 +26,7 @@ class EncryptionTests: GRDBTestCase {
     func testDatabaseQueueWithPassphraseToDatabaseQueueWithoutPassphrase() throws {
         do {
             dbConfiguration.passphrase = "secret"
-            let dbQueue = try makeDatabaseQueue()
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE data (value INTEGER)")
                 try db.execute("INSERT INTO data (value) VALUES (1)")
@@ -36,7 +36,7 @@ class EncryptionTests: GRDBTestCase {
         do {
             dbConfiguration.passphrase = nil
             do {
-                _ = try makeDatabaseQueue()
+                _ = try makeDatabaseQueue(filename: "test.sqlite")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                 XCTAssertEqual(error.message!, "file is encrypted or is not a database")
@@ -49,7 +49,7 @@ class EncryptionTests: GRDBTestCase {
     func testDatabaseQueueWithPassphraseToDatabaseQueueWithWrongPassphrase() throws {
         do {
             dbConfiguration.passphrase = "secret"
-            let dbQueue = try makeDatabaseQueue()
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE data (value INTEGER)")
                 try db.execute("INSERT INTO data (value) VALUES (1)")
@@ -59,7 +59,7 @@ class EncryptionTests: GRDBTestCase {
         do {
             dbConfiguration.passphrase = "wrong"
             do {
-                _ = try makeDatabaseQueue()
+                _ = try makeDatabaseQueue(filename: "test.sqlite")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                 XCTAssertEqual(error.message!, "file is encrypted or is not a database")
@@ -72,7 +72,7 @@ class EncryptionTests: GRDBTestCase {
     func testDatabaseQueueWithPassphraseToDatabaseQueueWithNewPassphrase() throws {
         do {
             dbConfiguration.passphrase = "secret"
-            let dbQueue = try makeDatabaseQueue()
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE data (value INTEGER)")
                 try db.execute("INSERT INTO data (value) VALUES (1)")
@@ -81,7 +81,7 @@ class EncryptionTests: GRDBTestCase {
         
         do {
             dbConfiguration.passphrase = "secret"
-            let dbQueue = try makeDatabaseQueue()
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.change(passphrase: "newSecret")
             try dbQueue.inDatabase { db in
                 try db.execute("INSERT INTO data (value) VALUES (2)")
@@ -93,7 +93,7 @@ class EncryptionTests: GRDBTestCase {
         
         do {
             dbConfiguration.passphrase = "newSecret"
-            let dbQueue = try makeDatabaseQueue()
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
                 XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 2)
             }
@@ -103,7 +103,7 @@ class EncryptionTests: GRDBTestCase {
     func testDatabaseQueueWithPassphraseToDatabasePoolWithPassphrase() throws {
         do {
             dbConfiguration.passphrase = "secret"
-            let dbQueue = try makeDatabaseQueue()
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE data (value INTEGER)")
                 try db.execute("INSERT INTO data (value) VALUES (1)")
@@ -112,7 +112,7 @@ class EncryptionTests: GRDBTestCase {
         
         do {
             dbConfiguration.passphrase = "secret"
-            let dbPool = try makeDatabasePool()
+            let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.read { db in
                 XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 1)
             }
@@ -122,7 +122,7 @@ class EncryptionTests: GRDBTestCase {
     func testDatabaseQueueWithPassphraseToDatabasePoolWithoutPassphrase() throws {
         do {
             dbConfiguration.passphrase = "secret"
-            let dbQueue = try makeDatabaseQueue()
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE data (value INTEGER)")
                 try db.execute("INSERT INTO data (value) VALUES (1)")
@@ -132,7 +132,7 @@ class EncryptionTests: GRDBTestCase {
         do {
             dbConfiguration.passphrase = nil
             do {
-                _ = try makeDatabasePool()
+                _ = try makeDatabasePool(filename: "test.sqlite")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                 XCTAssertEqual(error.message!, "file is encrypted or is not a database")
@@ -145,7 +145,7 @@ class EncryptionTests: GRDBTestCase {
     func testDatabaseQueueWithPassphraseToDatabasePoolWithWrongPassphrase() throws {
         do {
             dbConfiguration.passphrase = "secret"
-            let dbQueue = try makeDatabaseQueue()
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE data (value INTEGER)")
                 try db.execute("INSERT INTO data (value) VALUES (1)")
@@ -155,7 +155,7 @@ class EncryptionTests: GRDBTestCase {
         do {
             dbConfiguration.passphrase = "wrong"
             do {
-                _ = try makeDatabasePool()
+                _ = try makeDatabasePool(filename: "test.sqlite")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                 XCTAssertEqual(error.message!, "file is encrypted or is not a database")
@@ -168,7 +168,7 @@ class EncryptionTests: GRDBTestCase {
     func testDatabaseQueueWithPassphraseToDatabasePoolWithNewPassphrase() throws {
         do {
             dbConfiguration.passphrase = "secret"
-            let dbQueue = try makeDatabaseQueue()
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE data (value INTEGER)")
                 try db.execute("INSERT INTO data (value) VALUES (1)")
@@ -177,7 +177,7 @@ class EncryptionTests: GRDBTestCase {
         
         do {
             dbConfiguration.passphrase = "secret"
-            let dbPool = try makeDatabasePool()
+            let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.change(passphrase: "newSecret")
             try dbPool.write { db in
                 try db.execute("INSERT INTO data (value) VALUES (2)")
@@ -187,7 +187,7 @@ class EncryptionTests: GRDBTestCase {
         
         do {
             dbConfiguration.passphrase = "newSecret"
-            let dbPool = try makeDatabasePool()
+            let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.read { db in
                 XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 2)
             }
@@ -197,7 +197,7 @@ class EncryptionTests: GRDBTestCase {
     func testDatabasePoolWithPassphraseToDatabasePoolWithPassphrase() throws {
         do {
             dbConfiguration.passphrase = "secret"
-            let dbPool = try makeDatabasePool()
+            let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.write { db in
                 try db.execute("CREATE TABLE data (value INTEGER)")
                 try db.execute("INSERT INTO data (value) VALUES (1)")
@@ -206,7 +206,7 @@ class EncryptionTests: GRDBTestCase {
         
         do {
             dbConfiguration.passphrase = "secret"
-            let dbPool = try makeDatabasePool()
+            let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.read { db in
                 XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 1)
             }
@@ -216,7 +216,7 @@ class EncryptionTests: GRDBTestCase {
     func testDatabasePoolWithPassphraseToDatabasePoolWithoutPassphrase() throws {
         do {
             dbConfiguration.passphrase = "secret"
-            let dbPool = try makeDatabasePool()
+            let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.write { db in
                 try db.execute("CREATE TABLE data (value INTEGER)")
                 try db.execute("INSERT INTO data (value) VALUES (1)")
@@ -226,7 +226,7 @@ class EncryptionTests: GRDBTestCase {
         do {
             dbConfiguration.passphrase = nil
             do {
-                _ = try makeDatabasePool()
+                _ = try makeDatabasePool(filename: "test.sqlite")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                 XCTAssertEqual(error.message!, "file is encrypted or is not a database")
@@ -239,7 +239,7 @@ class EncryptionTests: GRDBTestCase {
     func testDatabasePoolWithPassphraseToDatabasePoolWithWrongPassphrase() throws {
         do {
             dbConfiguration.passphrase = "secret"
-            let dbPool = try makeDatabasePool()
+            let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.write { db in
                 try db.execute("CREATE TABLE data (value INTEGER)")
                 try db.execute("INSERT INTO data (value) VALUES (1)")
@@ -249,7 +249,7 @@ class EncryptionTests: GRDBTestCase {
         do {
             dbConfiguration.passphrase = "wrong"
             do {
-                _ = try makeDatabasePool()
+                _ = try makeDatabasePool(filename: "test.sqlite")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                 XCTAssertEqual(error.message!, "file is encrypted or is not a database")
@@ -263,7 +263,7 @@ class EncryptionTests: GRDBTestCase {
         
         do {
             dbConfiguration.passphrase = "secret"
-            let dbPool = try makeDatabasePool()
+            let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.write { db in
                 try db.execute("CREATE TABLE data (value INTEGER)")
                 try db.execute("INSERT INTO data (value) VALUES (1)")
@@ -272,7 +272,7 @@ class EncryptionTests: GRDBTestCase {
         
         do {
             dbConfiguration.passphrase = "secret"
-            let dbPool = try makeDatabasePool()
+            let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.change(passphrase: "newSecret")
             try dbPool.write { db in
                 try db.execute("INSERT INTO data (value) VALUES (2)")
@@ -282,7 +282,7 @@ class EncryptionTests: GRDBTestCase {
         
         do {
             dbConfiguration.passphrase = "newSecret"
-            let dbPool = try makeDatabasePool()
+            let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.read { db in
                 XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 2)
             }
@@ -292,7 +292,7 @@ class EncryptionTests: GRDBTestCase {
     func testDatabaseQueueWithPragmaPassphraseToDatabaseQueueWithPassphrase() throws {
         do {
             dbConfiguration.passphrase = nil
-            let dbQueue = try makeDatabaseQueue()
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
                 try db.execute("PRAGMA key = 'secret'")
                 try db.execute("CREATE TABLE data (value INTEGER)")
@@ -302,7 +302,7 @@ class EncryptionTests: GRDBTestCase {
         
         do {
             dbConfiguration.passphrase = "secret"
-            let dbQueue = try makeDatabaseQueue()
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
                 XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 1)
             }
@@ -312,7 +312,7 @@ class EncryptionTests: GRDBTestCase {
     func testDatabaseQueueWithPragmaPassphraseToDatabaseQueueWithoutPassphrase() throws {
         do {
             dbConfiguration.passphrase = nil
-            let dbQueue = try makeDatabaseQueue()
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
                 try db.execute("PRAGMA key = 'secret'")
                 try db.execute("CREATE TABLE data (value INTEGER)")
@@ -323,7 +323,7 @@ class EncryptionTests: GRDBTestCase {
         do {
             dbConfiguration.passphrase = nil
             do {
-                _ = try makeDatabaseQueue()
+                _ = try makeDatabaseQueue(filename: "test.sqlite")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                 XCTAssertEqual(error.message!, "file is encrypted or is not a database")
