@@ -90,87 +90,38 @@ private class Observer : TransactionObserver {
     }
 }
 
-private class Artist : Record {
+private final class Artist: Codable {
     var id: Int64?
     var name: String?
     
-    init(id: Int64? = nil, name: String?) {
+    init(id: Int64?, name: String?) {
         self.id = id
         self.name = name
-        super.init()
     }
-    
-    static func setup(inDatabase db: Database) throws {
-        try db.execute("""
-            CREATE TABLE artists (
-                id INTEGER PRIMARY KEY,
-                name TEXT)
-            """)
-    }
-    
-    // Record
-    
-    override class var databaseTableName: String {
-        return "artists"
-    }
-    
-    required init(row: Row) {
-        id = row["id"]
-        name = row["name"]
-        super.init(row: row)
-    }
-    
-    override func encode(to container: inout PersistenceContainer) {
-        container["id"] = id
-        container["name"] = name
-    }
-    
-    override func didInsert(with rowID: Int64, for column: String?) {
+}
+
+extension Artist : RowConvertible, Persistable {
+    static let databaseTableName = "artists"
+    func didInsert(with rowID: Int64, for column: String?) {
         self.id = rowID
     }
 }
 
-private class Artwork : Record {
+private final class Artwork : Codable {
     var id: Int64?
     var artistId: Int64?
     var title: String?
     
-    init(id: Int64? = nil, title: String?, artistId: Int64? = nil) {
+    init(id: Int64?, artistId: Int64?, title: String?) {
         self.id = id
-        self.title = title
         self.artistId = artistId
-        super.init()
+        self.title = title
     }
-    
-    static func setup(inDatabase db: Database) throws {
-        try db.execute("""
-            CREATE TABLE artworks (
-                id INTEGER PRIMARY KEY,
-                artistId INTEGER NOT NULL REFERENCES artists(id) ON DELETE CASCADE ON UPDATE CASCADE,
-                title TEXT)
-            """)
-    }
-    
-    // Record
-    
-    override class var databaseTableName: String {
-        return "artworks"
-    }
-    
-    required init(row: Row) {
-        id = row["id"]
-        title = row["title"]
-        artistId = row["artistId"]
-        super.init(row: row)
-    }
-    
-    override func encode(to container: inout PersistenceContainer) {
-        container["id"] = id
-        container["artistId"] = artistId
-        container["title"] = title
-    }
-    
-    override func didInsert(with rowID: Int64, for column: String?) {
+}
+
+extension Artwork : RowConvertible, Persistable {
+    static let databaseTableName = "artworks"
+    func didInsert(with rowID: Int64, for column: String?) {
         self.id = rowID
     }
 }
@@ -178,8 +129,15 @@ private class Artwork : Record {
 class TransactionObserverTests: GRDBTestCase {
     private func setupArtistDatabase(in dbWriter: DatabaseWriter) throws {
         try dbWriter.write { db in
-            try Artist.setup(inDatabase: db)
-            try Artwork.setup(inDatabase: db)
+            try db.execute("""
+            CREATE TABLE artists (
+                id INTEGER PRIMARY KEY,
+                name TEXT);
+            CREATE TABLE artworks (
+                id INTEGER PRIMARY KEY,
+                artistId INTEGER NOT NULL REFERENCES artists(id) ON DELETE CASCADE ON UPDATE CASCADE,
+                title TEXT)
+            """)
         }
     }
     
@@ -638,7 +596,7 @@ class TransactionObserverTests: GRDBTestCase {
         dbQueue.add(transactionObserver: observer)
         
         try dbQueue.inDatabase { db in
-            let artist = Artist(name: "Gerhard Richter")
+            let artist = Artist(id: nil, name: "Gerhard Richter")
             
             //
             try artist.save(db)
@@ -669,7 +627,7 @@ class TransactionObserverTests: GRDBTestCase {
         dbQueue.add(transactionObserver: observer)
         
         try dbQueue.inDatabase { db in
-            let artist = Artist(name: "Gerhard Richter")
+            let artist = Artist(id: nil, name: "Gerhard Richter")
             try artist.save(db)
             artist.name = "Vincent Fournier"
             
@@ -705,7 +663,7 @@ class TransactionObserverTests: GRDBTestCase {
         dbQueue.add(transactionObserver: observer)
         
         try dbQueue.inDatabase { db in
-            let artist = Artist(name: "Gerhard Richter")
+            let artist = Artist(id: nil, name: "Gerhard Richter")
             try artist.save(db)
             
             //
@@ -737,11 +695,11 @@ class TransactionObserverTests: GRDBTestCase {
         dbQueue.add(transactionObserver: observer)
         
         try dbQueue.inDatabase { db in
-            let artist = Artist(name: "Gerhard Richter")
+            let artist = Artist(id: nil, name: "Gerhard Richter")
             try artist.save(db)
-            let artwork1 = Artwork(title: "Cloud", artistId: artist.id)
+            let artwork1 = Artwork(id: nil, artistId: artist.id, title: "Cloud")
             try artwork1.save(db)
-            let artwork2 = Artwork(title: "Ema (Nude on a Staircase)", artistId: artist.id)
+            let artwork2 = Artwork(id: nil, artistId: artist.id, title: "Ema (Nude on a Staircase)")
             try artwork2.save(db)
             
             //
@@ -801,7 +759,7 @@ class TransactionObserverTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
-        let artist = Artist(name: "Gerhard Richter")
+        let artist = Artist(id: nil, name: "Gerhard Richter")
         
         try dbQueue.inDatabase { db in
             observer.resetCounts()
@@ -822,9 +780,9 @@ class TransactionObserverTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
-        let artist = Artist(name: "Gerhard Richter")
-        let artwork1 = Artwork(title: "Cloud")
-        let artwork2 = Artwork(title: "Ema (Nude on a Staircase)")
+        let artist = Artist(id: nil, name: "Gerhard Richter")
+        let artwork1 = Artwork(id: nil, artistId: nil, title: "Cloud")
+        let artwork2 = Artwork(id: nil, artistId: nil, title: "Ema (Nude on a Staircase)")
         
         try dbQueue.inDatabase { db in
             try artist.save(db)
@@ -897,9 +855,9 @@ class TransactionObserverTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
-        let artist = Artist(name: "Gerhard Richter")
-        let artwork1 = Artwork(title: "Cloud")
-        let artwork2 = Artwork(title: "Ema (Nude on a Staircase)")
+        let artist = Artist(id: nil, name: "Gerhard Richter")
+        let artwork1 = Artwork(id: nil, artistId: nil, title: "Cloud")
+        let artwork2 = Artwork(id: nil, artistId: nil, title: "Ema (Nude on a Staircase)")
         
         try dbQueue.inTransaction { db in
             observer.resetCounts()
@@ -999,9 +957,9 @@ class TransactionObserverTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
-        let artist = Artist(name: "Gerhard Richter")
-        let artwork1 = Artwork(title: "Cloud")
-        let artwork2 = Artwork(title: "Ema (Nude on a Staircase)")
+        let artist = Artist(id: nil, name: "Gerhard Richter")
+        let artwork1 = Artwork(id: nil, artistId: nil, title: "Cloud")
+        let artwork2 = Artwork(id: nil, artistId: nil, title: "Ema (Nude on a Staircase)")
         
         try dbQueue.inTransaction { db in
             try artist.save(db)
@@ -1128,9 +1086,9 @@ class TransactionObserverTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
-        let artist = Artist(name: "Gerhard Richter")
-        let artwork1 = Artwork(title: "Cloud")
-        let artwork2 = Artwork(title: "Ema (Nude on a Staircase)")
+        let artist = Artist(id: nil, name: "Gerhard Richter")
+        let artwork1 = Artwork(id: nil, artistId: nil, title: "Cloud")
+        let artwork2 = Artwork(id: nil, artistId: nil, title: "Ema (Nude on a Staircase)")
         
         try dbQueue.inTransaction { db in
             try artist.save(db)
@@ -1160,7 +1118,7 @@ class TransactionObserverTests: GRDBTestCase {
         do {
             try dbQueue.inDatabase { db in
                 do {
-                    try Artwork(title: "meh").save(db)
+                    try Artwork(id: nil, artistId: nil, title: "meh").save(db)
                     XCTFail("Expected Error")
                 } catch let error as DatabaseError {
                     XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
@@ -1196,7 +1154,7 @@ class TransactionObserverTests: GRDBTestCase {
         do {
             try dbQueue.inTransaction { db in
                 do {
-                    try Artwork(title: "meh").save(db)
+                    try Artwork(id: nil, artistId: nil, title: "meh").save(db)
                     XCTFail("Expected Error")
                 } catch let error as DatabaseError {
                     // Immediate constraint check has failed.
@@ -1234,7 +1192,7 @@ class TransactionObserverTests: GRDBTestCase {
         observer.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
         dbQueue.inDatabase { db in
             do {
-                try Artist(name: "Gerhard Richter").save(db)
+                try Artist(id: nil, name: "Gerhard Richter").save(db)
                 XCTFail("Expected Error")
             } catch let error as NSError {
                 XCTAssertEqual(error.domain, "foo")
@@ -1260,7 +1218,7 @@ class TransactionObserverTests: GRDBTestCase {
         do {
             try dbQueue.inTransaction { db in
                 do {
-                    try Artist(name: "Gerhard Richter").save(db)
+                    try Artist(id: nil, name: "Gerhard Richter").save(db)
                 } catch {
                     XCTFail("Unexpected Error")
                 }
@@ -1290,7 +1248,7 @@ class TransactionObserverTests: GRDBTestCase {
         do {
             try dbQueue.inDatabase { db in
                 do {
-                    try Artwork(title: "meh").save(db)
+                    try Artwork(id: nil, artistId: nil, title: "meh").save(db)
                     XCTFail("Expected Error")
                 } catch let error as DatabaseError {
                     XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
@@ -1327,7 +1285,7 @@ class TransactionObserverTests: GRDBTestCase {
         do {
             try dbQueue.inTransaction { db in
                 do {
-                    try Artwork(title: "meh").save(db)
+                    try Artwork(id: nil, artistId: nil, title: "meh").save(db)
                     XCTFail("Expected Error")
                 } catch let error as DatabaseError {
                     // Immediate constraint check has failed.
@@ -1400,7 +1358,7 @@ class TransactionObserverTests: GRDBTestCase {
         dbQueue.add(transactionObserver: observer2)
         
         try dbQueue.inDatabase { db in
-            let artist = Artist(name: "Gerhard Richter")
+            let artist = Artist(id: nil, name: "Gerhard Richter")
             
             //
             try artist.save(db)
@@ -1453,7 +1411,7 @@ class TransactionObserverTests: GRDBTestCase {
         dbQueue.add(transactionObserver: observer)
         
         try dbQueue.inDatabase { db in
-            let artist = Artist(name: "Gerhard Richter")
+            let artist = Artist(id: nil, name: "Gerhard Richter")
             
             //
             try artist.save(db)
@@ -1481,7 +1439,7 @@ class TransactionObserverTests: GRDBTestCase {
         
         try dbQueue.inTransaction { db in
             do {
-                try Artist(name: "Vincent Fournier").save(db)
+                try Artist(id: nil, name: "Vincent Fournier").save(db)
             } catch {
                 XCTFail("Unexpected Error")
             }
@@ -1509,7 +1467,7 @@ class TransactionObserverTests: GRDBTestCase {
             dbQueue.add(transactionObserver: observer)
             
             try dbQueue.inTransaction { db in
-                let artist = Artist(name: "Gerhard Richter")
+                let artist = Artist(id: nil, name: "Gerhard Richter")
                 try artist.insert(db)
                 try artist.update(db)
                 try artist.delete(db)
@@ -1528,7 +1486,7 @@ class TransactionObserverTests: GRDBTestCase {
             dbQueue.add(transactionObserver: observer)
             
             try dbQueue.inTransaction { db in
-                let artist = Artist(name: "Gerhard Richter")
+                let artist = Artist(id: nil, name: "Gerhard Richter")
                 try artist.insert(db)
                 try artist.update(db)
                 try artist.delete(db)
@@ -1556,7 +1514,7 @@ class TransactionObserverTests: GRDBTestCase {
             dbQueue.add(transactionObserver: observer)
             
             try dbQueue.inTransaction { db in
-                let artist = Artist(name: "Gerhard Richter")
+                let artist = Artist(id: nil, name: "Gerhard Richter")
                 try artist.insert(db)
                 try artist.update(db)
                 try artist.delete(db)
@@ -1584,7 +1542,7 @@ class TransactionObserverTests: GRDBTestCase {
             dbQueue.add(transactionObserver: observer)
             
             try dbQueue.inTransaction { db in
-                let artist = Artist(name: "Gerhard Richter")
+                let artist = Artist(id: nil, name: "Gerhard Richter")
                 try artist.insert(db)
                 try artist.update(db)
                 try artist.delete(db)
@@ -1599,3 +1557,4 @@ class TransactionObserverTests: GRDBTestCase {
         }
     }
 }
+
