@@ -74,7 +74,7 @@ public class Statement {
         
         guard let statement = sqliteStatement else {
             // Sanity check: verify that the string contains only whitespace
-            assert(String(data: Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: statementStart), count: statementEnd.pointee! - statementStart, deallocator: .none), encoding: .utf8)!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            assert(String(data: Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: statementStart), count: statementEnd.pointee! - statementStart, deallocator: .none), encoding: .utf8)!.trimmingCharacters(in: CharacterSet(charactersIn: ";").union(.whitespacesAndNewlines)).isEmpty)
             
             // I wish we could simply return nil, and make this initializer failable.
             //
