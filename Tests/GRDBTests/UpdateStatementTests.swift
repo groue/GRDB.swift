@@ -182,6 +182,17 @@ class UpdateStatementTests : GRDBTestCase {
         XCTAssertEqual(index, 3 + 3)
     }
 
+    func testExecuteNothing() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("")
+            try db.execute(" ")
+            try db.execute(";")
+            try db.execute(";;")
+            try db.execute(" \n;\t; ")
+        }
+    }
+    
     func testExecuteMultipleStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -209,6 +220,15 @@ class UpdateStatementTests : GRDBTestCase {
         }
     }
 
+    func testExecuteMultipleStatementWithPlentyOfSemicolonsAndWhiteSpace() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(" ;; CREATE TABLE wines (name TEXT, color INT);\n;\t; CREATE TABLE books (name TEXT, age INT);\n \t")
+            XCTAssertTrue(try db.tableExists("wines"))
+            XCTAssertTrue(try db.tableExists("books"))
+        }
+    }
+    
     func testExecuteMultipleStatementWithNamedArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inTransaction { db in
