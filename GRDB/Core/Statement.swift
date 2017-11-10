@@ -8,6 +8,9 @@ import Foundation
 /// A raw SQLite statement, suitable for the SQLite C API.
 public typealias SQLiteStatement = OpaquePointer
 
+/// Statements are separated by semicolons and white spaces
+let statementSeparatorCharacterSet = CharacterSet(charactersIn: ";").union(.whitespacesAndNewlines)
+
 /// An error emitted when one tries to compile an empty statement.
 struct EmptyStatementError : Error {
 }
@@ -35,10 +38,9 @@ public class Statement {
     public var sql: String {
         // trim white space and semicolumn for homogeneous output
         return String(cString: sqlite3_sql(sqliteStatement))
-            .trimmingCharacters(in: CharacterSet(charactersIn: ";").union(.whitespacesAndNewlines))
+            .trimmingCharacters(in: statementSeparatorCharacterSet)
     }
     
-    /// The database
     unowned let database: Database
     
     /// Creates a prepared statement.
@@ -74,7 +76,7 @@ public class Statement {
         
         guard let statement = sqliteStatement else {
             // Sanity check: verify that the string contains only whitespace
-            assert(String(data: Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: statementStart), count: statementEnd.pointee! - statementStart, deallocator: .none), encoding: .utf8)!.trimmingCharacters(in: CharacterSet(charactersIn: ";").union(.whitespacesAndNewlines)).isEmpty)
+            assert(String(data: Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: statementStart), count: statementEnd.pointee! - statementStart, deallocator: .none), encoding: .utf8)!.trimmingCharacters(in: statementSeparatorCharacterSet).isEmpty)
             
             // I wish we could simply return nil, and make this initializer failable.
             //

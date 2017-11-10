@@ -28,7 +28,7 @@ class UpdateStatementTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.makeUpdateStatement("INSERT INTO persons (name) VALUES ('Arthur');").execute()
             try db.makeUpdateStatement("INSERT INTO persons (name) VALUES ('Barbara')\n \t").execute()
-            try db.makeUpdateStatement("INSERT INTO persons (name) VALUES ('Craig');").execute()
+            try db.makeUpdateStatement("INSERT INTO persons (name) VALUES ('Craig'); ; ;").execute()
             try db.makeUpdateStatement("INSERT INTO persons (name) VALUES ('Daniel');\n \t").execute()
             return .commit
         }

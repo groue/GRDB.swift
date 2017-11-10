@@ -211,7 +211,7 @@ extension Database {
                 bytesNoCopy: UnsafeMutableRawPointer(mutating: statementEnd!),
                 count: statementStart + sqlCodeUnits.count - statementEnd! - 1,
                 deallocator: .none)
-            remainingSQL = String(data: remainingData, encoding: .utf8)!.trimmingCharacters(in: .whitespacesAndNewlines)
+            remainingSQL = String(data: remainingData, encoding: .utf8)!.trimmingCharacters(in: statementSeparatorCharacterSet)
         }
         
         guard remainingSQL.isEmpty else {
