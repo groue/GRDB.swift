@@ -12,12 +12,12 @@
     - [ ] REGEXP https://www.sqlite.org/lang_expr.html
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
 - [ ] Write regression tests for #156 and #157
-- [ ] Truncate optimization: tests for drop temp table, drop view, drop temp view
-- [ ] "Documents" and "Application Support" directories: see https://github.com/ccgus/fmdb/commit/7ebbfd055c48d75dfb0119abbd9b5fc2f9001b9f#diff-2f831b88cf9e6758355acd8f88f7d996R16
 
 GRDB 3.0
 
-- [ ] Rename Request to DatabaseRequest, SQLiteRequest, SQLRequest, because Request is a bad name: https://github.com/swift-server/http/pull/7#issuecomment-308448528
+- [ ] Rename Request to FetchRequest, because Request is a bad name: https://github.com/swift-server/http/pull/7#issuecomment-308448528
+- [ ] Rename RowConvertible, TableMapping, MutablePersistable and Persistable so that their names contain Record: FetchableRecord, TableRecord, MutablePersistableRecord, PersistableRecord?
+- [ ] Not sure: Consider introducing RowDecodable and RowEncodable on top of FetchableRecord and MutablePersistableRecord. This would allow keeping fetching and persistence methods private in some files.
 
 Not sure
 
