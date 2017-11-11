@@ -179,6 +179,7 @@ test_framework_GRDBCipheriOS_minTarget: SQLCipher
 	  $(XCPRETTY)
 
 test_SPM:
+	# Add sanitizers when available: https://twitter.com/simjp/status/929140877540278272
 	$(SWIFT) package clean
 	$(SWIFT) build
 	$(SWIFT) build -c release
