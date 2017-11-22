@@ -16,7 +16,7 @@
 
 ## Environment
 
-**GRDB flavor(s):** (GRDB, GRDBCipher, CustomGRDB?)
+**GRDB flavor(s):** (GRDB, GRDBCipher, GRDBCustom?)
 **GRDB version:**
 **Installation method:** (CocoaPods, SPM, manual?)
 **Xcode version:**
