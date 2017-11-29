@@ -495,7 +495,7 @@ public final class TableAlteration {
     /// - returns: An ColumnDefinition that allows you to refine the
     ///   column definition.
     @discardableResult
-    public func add(column name: String, _ type: Database.ColumnType) -> ColumnDefinition {
+    public func add(column name: String, _ type: Database.ColumnType? = nil) -> ColumnDefinition {
         let column = ColumnDefinition(name: name, type: type)
         addedColumns.append(column)
         return column
