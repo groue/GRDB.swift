@@ -1,6 +1,19 @@
 Release Notes
 =============
 
+## Next Version
+
+**New**
+
+- It is now possible to add an untyped column to an existing table ([#280](https://github.com/groue/GRDB.swift/pull/280)):
+    
+    ```swift
+    try db.alter(table: "players") { t in
+        t.add(column: "score")
+    }
+    ```
+
+
 ## 2.3.1
 
 Released November 8, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.3.0...v2.3.1)
