@@ -190,6 +190,8 @@ class UpdateStatementTests : GRDBTestCase {
             try db.execute(";")
             try db.execute(";;")
             try db.execute(" \n;\t; ")
+            try db.execute("-- comment")
+            try db.execute("-- comment\\n; -----ignored")
         }
     }
     
@@ -220,10 +222,19 @@ class UpdateStatementTests : GRDBTestCase {
         }
     }
 
-    func testExecuteMultipleStatementWithPlentyOfSemicolonsAndWhiteSpace() throws {
+    func testExecuteMultipleStatementWithPlentyOfSemicolonsAndWhiteSpaceAndComments() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute(" ;; CREATE TABLE wines (name TEXT, color INT);\n;\t; CREATE TABLE books (name TEXT, age INT);\n \t")
+            try db.execute("""
+                ;;
+                CREATE TABLE wines ( -- create a table
+                name TEXT, -- the name
+                color INT);
+                ;\t;
+                -- create another table
+                CREATE TABLE books (name TEXT, age INT); \
+                 \t; ;
+                """)
             XCTAssertTrue(try db.tableExists("wines"))
             XCTAssertTrue(try db.tableExists("books"))
         }
