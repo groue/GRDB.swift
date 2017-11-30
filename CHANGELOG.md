@@ -3,6 +3,8 @@ Release Notes
 
 ## Next Version
 
+[diff](https://github.com/groue/GRDB.swift/compare/v2.3.1...master)
+
 **New**
 
 - It is now possible to add an untyped column to an existing table ([#280](https://github.com/groue/GRDB.swift/pull/280)):
