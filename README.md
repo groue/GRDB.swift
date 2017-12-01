@@ -4363,11 +4363,47 @@ try db.create(virtualTable: "books_ft", using: FTS4()) { t in // or FTS5()
 }
 ```
 
-The eventual content already present in the regular table is indexed, and every insert, update or delete that happens in the regular table is automatically applied to the full-text index by the mean of SQL triggers.
+The eventual content already present in the regular table is indexed, and every insert, update or delete that happens in the regular table is automatically applied to the full-text index.
 
 For more information, see the SQLite documentation about external content tables: [FTS4](https://www.sqlite.org/fts3.html#_external_content_fts4_tables_), [FTS5](https://sqlite.org/fts5.html#external_content_tables).
 
 See also [WWDC Companion](https://github.com/groue/WWDCCompanion), a sample app that uses external content tables to store, display, and let the user search the WWDC sessions.
+
+
+#### Deleting Synchronized Full-Text Tables
+
+Synchronization of Full-text tables with their content table happens by the mean of SQL triggers.
+
+SQLite automatically deletes those triggers when the content (not full-text) table is dropped.
+
+However, those triggers remain after the full-text table has been deleted. Unless they are deleted, too, they will prevent future insertion, updates, and deletions in the content table, and the creation of a new full-text table.
+
+To delete those triggers, use the `dropFTS4SynchronizationTriggers` or `dropFTS5SynchronizationTriggers` methods:
+
+```swift
+// Create tables
+try db.create(table: "books") { t in
+    ...
+}
+try db.create(virtualTable: "books_ft", using: FTS4()) { t in
+    t.synchronize(withTable: "books")
+    ...
+}
+
+// Drop full-text table
+try db.drop(table: "books_ft")
+try db.dropFTS4SynchronizationTriggers(forTable: "books_ft")
+```
+
+> :warning: **Warning**: there was a bug in GRDB up to version 2.3.1 included, which created triggers with a wrong name. If it is possible that the full-text table was created by an old version of GRDB, then delete the synchronization triggers **twice**: once with the name of the deleted full-text table, and once with the name of the content table:
+>
+> ```swift
+> // Drop full-text table
+> try db.drop(table: "books_ft")
+> try db.dropFTS4SynchronizationTriggers(forTable: "books_ft")
+> try db.dropFTS4SynchronizationTriggers(forTable: "books") // Support for GRDB <= 2.3.1
+> ```
+
 
 
 #### Querying External Content Full-Text Tables
