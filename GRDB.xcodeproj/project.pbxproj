@@ -3440,6 +3440,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 56E5D7DB1B4D3FEE00430942 /* Build configuration list for PBXNativeTarget "GRDBiOS" */;
 			buildPhases = (
+				565D08B81FD1848D007E446F /* Prevent Xcode Warnings For Missing Files */,
 				56E5D7C51B4D3FED00430942 /* Sources */,
 				56E5D7C61B4D3FED00430942 /* Frameworks */,
 				56E5D7C71B4D3FED00430942 /* Headers */,
@@ -3895,6 +3896,24 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		565D08B81FD1848D007E446F /* Prevent Xcode Warnings For Missing Files */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"",
+			);
+			name = "Prevent Xcode Warnings For Missing Files";
+			outputPaths = (
+				"$(SRCROOT)/SQLiteCustom/GRDBCustomSQLite-USER.h",
+				"$(SRCROOT)/SQLiteCustom/GRDBCustomSQLite-USER.xcconfig",
+				"$(SRCROOT)/SQLiteCustom/src/SQLiteLib-USER.xcconfig",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make preventXcodeWarningsForMissingFiles";
+		};
 		EED476F01CFD0B290026A4EC /* Copy .example configuration files (if no USER customizations exist) */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
