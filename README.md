@@ -4372,7 +4372,7 @@ See also [WWDC Companion](https://github.com/groue/WWDCCompanion), a sample app 
 
 #### Deleting Synchronized Full-Text Tables
 
-Synchronization of Full-text tables with their content table happens by the mean of SQL triggers.
+Synchronization of full-text tables with their content table happens by the mean of SQL triggers.
 
 SQLite automatically deletes those triggers when the content (not full-text) table is dropped.
 
