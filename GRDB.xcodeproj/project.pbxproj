@@ -3274,6 +3274,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 560FC54A1CB003810014AA8E /* Build configuration list for PBXNativeTarget "GRDBCipherOSX" */;
 			buildPhases = (
+				565D08CC1FD185F9007E446F /* Prevent Xcode Warnings For Missing Files */,
 				560FC51A1CB003810014AA8E /* Sources */,
 				560FC5441CB003810014AA8E /* Frameworks */,
 				560FC5461CB003810014AA8E /* Headers */,
@@ -3331,6 +3332,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 565490B31D5A4798005622CB /* Build configuration list for PBXNativeTarget "GRDBWatchOS" */;
 			buildPhases = (
+				565D08CE1FD18601007E446F /* Prevent Xcode Warnings For Missing Files */,
 				5654909B1D5A4798005622CB /* Sources */,
 				5654909C1D5A4798005622CB /* Frameworks */,
 				5654909D1D5A4798005622CB /* Headers */,
@@ -3385,6 +3387,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 56AFCA201CB1A8BB00F48B96 /* Build configuration list for PBXNativeTarget "GRDBCipheriOS" */;
 			buildPhases = (
+				565D08CD1FD185FE007E446F /* Prevent Xcode Warnings For Missing Files */,
 				56AFC9EF1CB1A8BB00F48B96 /* Sources */,
 				56AFCA1A1CB1A8BB00F48B96 /* Frameworks */,
 				56AFCA1C1CB1A8BB00F48B96 /* Headers */,
@@ -3495,6 +3498,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = DC37740919C8CBB3004FCF85 /* Build configuration list for PBXNativeTarget "GRDBOSX" */;
 			buildPhases = (
+				565D08CB1FD185F6007E446F /* Prevent Xcode Warnings For Missing Files */,
 				DC3773EE19C8CBB3004FCF85 /* Sources */,
 				DC3773EF19C8CBB3004FCF85 /* Frameworks */,
 				DC3773F019C8CBB3004FCF85 /* Headers */,
@@ -3903,6 +3907,74 @@
 			);
 			inputPaths = (
 				"",
+			);
+			name = "Prevent Xcode Warnings For Missing Files";
+			outputPaths = (
+				"$(SRCROOT)/SQLiteCustom/GRDBCustomSQLite-USER.h",
+				"$(SRCROOT)/SQLiteCustom/GRDBCustomSQLite-USER.xcconfig",
+				"$(SRCROOT)/SQLiteCustom/src/SQLiteLib-USER.xcconfig",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make preventXcodeWarningsForMissingFiles";
+		};
+		565D08CB1FD185F6007E446F /* Prevent Xcode Warnings For Missing Files */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Prevent Xcode Warnings For Missing Files";
+			outputPaths = (
+				"$(SRCROOT)/SQLiteCustom/GRDBCustomSQLite-USER.h",
+				"$(SRCROOT)/SQLiteCustom/GRDBCustomSQLite-USER.xcconfig",
+				"$(SRCROOT)/SQLiteCustom/src/SQLiteLib-USER.xcconfig",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make preventXcodeWarningsForMissingFiles";
+		};
+		565D08CC1FD185F9007E446F /* Prevent Xcode Warnings For Missing Files */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Prevent Xcode Warnings For Missing Files";
+			outputPaths = (
+				"$(SRCROOT)/SQLiteCustom/GRDBCustomSQLite-USER.h",
+				"$(SRCROOT)/SQLiteCustom/GRDBCustomSQLite-USER.xcconfig",
+				"$(SRCROOT)/SQLiteCustom/src/SQLiteLib-USER.xcconfig",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make preventXcodeWarningsForMissingFiles";
+		};
+		565D08CD1FD185FE007E446F /* Prevent Xcode Warnings For Missing Files */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Prevent Xcode Warnings For Missing Files";
+			outputPaths = (
+				"$(SRCROOT)/SQLiteCustom/GRDBCustomSQLite-USER.h",
+				"$(SRCROOT)/SQLiteCustom/GRDBCustomSQLite-USER.xcconfig",
+				"$(SRCROOT)/SQLiteCustom/src/SQLiteLib-USER.xcconfig",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make preventXcodeWarningsForMissingFiles";
+		};
+		565D08CE1FD18601007E446F /* Prevent Xcode Warnings For Missing Files */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
 			);
 			name = "Prevent Xcode Warnings For Missing Files";
 			outputPaths = (
