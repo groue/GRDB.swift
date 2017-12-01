@@ -15,6 +15,7 @@ Release Notes
     }
     ```
 
+- The `Database.dropFTS4SynchronizationTriggers` & `Database.dropFTS5SynchronizationTriggers` method help cleaning up synchronized full-text table ([documentation](https://github.com/groue/GRDB.swift/blob/master/README.md#deleting-synchronized-full-text-tables))
 
 ## 2.3.1
 
