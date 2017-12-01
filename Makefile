@@ -311,6 +311,12 @@ endif
 # Cleanup
 # =======
 
+# Fix for https://github.com/groue/GRDB.swift/issues/275
+preventXcodeWarningsForMissingFiles: SQLiteCustom/src/sqlite3.h
+	if [ ! -f SQLiteCustom/GRDBCustomSQLite-USER.h ]; then cp -f SQLiteCustom/GRDBCustomSQLite-USER.h.example SQLiteCustom/GRDBCustomSQLite-USER.h; fi
+	if [ ! -f SQLiteCustom/GRDBCustomSQLite-USER.xcconfig ]; then cp -f SQLiteCustom/GRDBCustomSQLite-USER.xcconfig.example SQLiteCustom/GRDBCustomSQLite-USER.xcconfig; fi
+	if [ ! -f SQLiteCustom/src/SQLiteLib-USER.xcconfig ]; then cp -f SQLiteCustom/src/SQLiteLib-USER.xcconfig.example SQLiteCustom/src/SQLiteLib-USER.xcconfig; fi
+
 distclean:
 	$(GIT) reset --hard
 	$(GIT) clean -dffx .
