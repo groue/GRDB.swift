@@ -4376,9 +4376,9 @@ Synchronization of Full-text tables with their content table happens by the mean
 
 SQLite automatically deletes those triggers when the content (not full-text) table is dropped.
 
-However, those triggers remain after the full-text table has been deleted. Unless they are deleted, too, they will prevent future insertion, updates, and deletions in the content table, and the creation of a new full-text table.
+However, those triggers remain after the full-text table has been dropped. Unless they are dropped too, they will prevent future insertion, updates, and deletions in the content table, and the creation of a new full-text table.
 
-To delete those triggers, use the `dropFTS4SynchronizationTriggers` or `dropFTS5SynchronizationTriggers` methods:
+To drop those triggers, use the `dropFTS4SynchronizationTriggers` or `dropFTS5SynchronizationTriggers` methods:
 
 ```swift
 // Create tables
