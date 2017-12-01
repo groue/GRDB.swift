@@ -229,4 +229,63 @@ class FTS4TableBuilderTests: GRDBTestCase {
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["bar"])!, 1)
         }
     }
+
+    func testFTS4SynchronizationCleanup() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "documents") { t in
+                t.column("id", .integer).primaryKey()
+                t.column("content", .text)
+            }
+            try db.execute("INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
+            try db.create(virtualTable: "ft_documents", using: FTS4()) { t in
+                t.synchronize(withTable: "documents")
+                t.column("content")
+            }
+            
+            try db.drop(table: "ft_documents")
+            try db.dropFTS4SynchronizationTriggers(forTable: "ft_documents")
+            
+            // It is possible to modify the content table
+            try db.execute("UPDATE documents SET content = ?", arguments: ["bar"])
+            try db.execute("INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
+            try db.execute("DELETE FROM documents WHERE content = ?", arguments: ["foo"])
+            
+            // It is possible to recreate the FT table
+            try db.create(virtualTable: "ft_documents", using: FTS4()) { t in
+                t.synchronize(withTable: "documents")
+                t.column("content")
+            }
+        }
+    }
+
+    func testFTS4SynchronizationCleanupWithLegacySupport() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "documents") { t in
+                t.column("id", .integer).primaryKey()
+                t.column("content", .text)
+            }
+            try db.execute("INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
+            try db.create(virtualTable: "ft_documents", using: FTS4()) { t in
+                t.synchronize(withTable: "documents")
+                t.column("content")
+            }
+            
+            try db.drop(table: "ft_documents")
+            try db.dropFTS4SynchronizationTriggers(forTable: "documents") // legacy GRDB <= 2.3.1
+            try db.dropFTS4SynchronizationTriggers(forTable: "ft_documents")
+            
+            // It is possible to modify the content table
+            try db.execute("UPDATE documents SET content = ?", arguments: ["bar"])
+            try db.execute("INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
+            try db.execute("DELETE FROM documents WHERE content = ?", arguments: ["foo"])
+            
+            // It is possible to recreate the FT table
+            try db.create(virtualTable: "ft_documents", using: FTS4()) { t in
+                t.synchronize(withTable: "documents")
+                t.column("content")
+            }
+        }
+    }
 }
