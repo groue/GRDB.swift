@@ -5134,7 +5134,7 @@ Alternatively, perform a manual installation of GRDB and SQLCipher:
     git submodule update --init SQLCipher/src
     ```
     
-2. Embed the `GRDB.xcodeproj` project in your own project.
+2. Embed the `GRDBCipher.xcodeproj` project in your own project.
 
 3. Add the `GRDBCipherOSX` or `GRDBCipheriOS` target in the **Target Dependencies** section of the **Build Phases** tab of your application target.
 
