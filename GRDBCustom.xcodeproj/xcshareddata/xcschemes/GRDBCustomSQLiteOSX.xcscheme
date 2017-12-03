@@ -60,7 +60,7 @@
             BlueprintIdentifier = "F3BA80591CFB2BB2003DC1BA"
             BuildableName = "GRDBCustomSQLite.framework"
             BlueprintName = "GRDBCustomSQLiteOSX"
-            ReferencedContainer = "container:GRDB.xcodeproj">
+            ReferencedContainer = "container:GRDBCustom.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>

@@ -84,7 +84,7 @@
             BlueprintIdentifier = "56AFC9EE1CB1A8BB00F48B96"
             BuildableName = "GRDBCipher.framework"
             BlueprintName = "GRDBCipheriOS"
-            ReferencedContainer = "container:GRDB.xcodeproj">
+            ReferencedContainer = "container:GRDBCipher.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
