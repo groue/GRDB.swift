@@ -14,10 +14,24 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "560FC5191CB003810014AA8E"
-               BuildableName = "GRDBCipher.framework"
-               BlueprintName = "GRDBCipherOSX"
-               ReferencedContainer = "container:GRDB.xcodeproj">
+               BlueprintIdentifier = "F3BA7FFD1CFB25E4003DC1BA"
+               BuildableName = "GRDBCustomSQLite.framework"
+               BlueprintName = "GRDBCustomSQLiteiOS"
+               ReferencedContainer = "container:GRDBCustom.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "F3BA80401CFB2AD7003DC1BA"
+               BuildableName = "GRDBCustomSQLiteiOSTests.xctest"
+               BlueprintName = "GRDBCustomSQLiteiOSTests"
+               ReferencedContainer = "container:GRDBCustom.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -26,36 +40,27 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      language = ""
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
          <TestableReference
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "560FC55D1CB00B880014AA8E"
-               BuildableName = "GRDBCipherOSXTests.xctest"
-               BlueprintName = "GRDBCipherOSXTests"
-               ReferencedContainer = "container:GRDB.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "567156191CB16729007DC145"
-               BuildableName = "GRDBCipherOSXEncryptedTests.xctest"
-               BlueprintName = "GRDBCipherOSXEncryptedTests"
-               ReferencedContainer = "container:GRDB.xcodeproj">
+               BlueprintIdentifier = "F3BA80401CFB2AD7003DC1BA"
+               BuildableName = "GRDBCustomSQLiteiOSTests.xctest"
+               BlueprintName = "GRDBCustomSQLiteiOSTests"
+               ReferencedContainer = "container:GRDBCustom.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "560FC5191CB003810014AA8E"
-            BuildableName = "GRDBCipher.framework"
-            BlueprintName = "GRDBCipherOSX"
-            ReferencedContainer = "container:GRDB.xcodeproj">
+            BlueprintIdentifier = "F3BA7FFD1CFB25E4003DC1BA"
+            BuildableName = "GRDBCustomSQLite.framework"
+            BlueprintName = "GRDBCustomSQLiteiOS"
+            ReferencedContainer = "container:GRDBCustom.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -65,6 +70,7 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      language = ""
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
       ignoresPersistentStateOnLaunch = "NO"
@@ -74,10 +80,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "560FC5191CB003810014AA8E"
-            BuildableName = "GRDBCipher.framework"
-            BlueprintName = "GRDBCipherOSX"
-            ReferencedContainer = "container:GRDB.xcodeproj">
+            BlueprintIdentifier = "F3BA7FFD1CFB25E4003DC1BA"
+            BuildableName = "GRDBCustomSQLite.framework"
+            BlueprintName = "GRDBCustomSQLiteiOS"
+            ReferencedContainer = "container:GRDBCustom.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -92,10 +98,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "560FC5191CB003810014AA8E"
-            BuildableName = "GRDBCipher.framework"
-            BlueprintName = "GRDBCipherOSX"
-            ReferencedContainer = "container:GRDB.xcodeproj">
+            BlueprintIdentifier = "F3BA7FFD1CFB25E4003DC1BA"
+            BuildableName = "GRDBCustomSQLite.framework"
+            BlueprintName = "GRDBCustomSQLiteiOS"
+            ReferencedContainer = "container:GRDBCustom.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </ProfileAction>
