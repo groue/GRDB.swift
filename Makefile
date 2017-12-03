@@ -130,7 +130,7 @@ test_framework_GRDBiOS_minTarget:
 
 test_framework_GRDBCustomSQLiteOSX: SQLiteCustom
 	$(XCODEBUILD) \
-	  -project GRDB.xcodeproj \
+	  -project GRDBCustom.xcodeproj \
 	  -scheme GRDBCustomSQLiteOSX \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
@@ -139,7 +139,7 @@ test_framework_GRDBCustomSQLiteiOS: test_framework_GRDBCustomSQLiteiOS_maxTarget
 
 test_framework_GRDBCustomSQLiteiOS_maxTarget: SQLiteCustom
 	$(XCODEBUILD) \
-	  -project GRDB.xcodeproj \
+	  -project GRDBCustom.xcodeproj \
 	  -scheme GRDBCustomSQLiteiOS \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  $(TEST_ACTIONS) \
@@ -147,7 +147,7 @@ test_framework_GRDBCustomSQLiteiOS_maxTarget: SQLiteCustom
 
 test_framework_GRDBCustomSQLiteiOS_minTarget: SQLiteCustom
 	$(XCODEBUILD) \
-	  -project GRDB.xcodeproj \
+	  -project GRDBCustom.xcodeproj \
 	  -scheme GRDBCustomSQLiteiOS \
 	  -destination $(MIN_IOS_DESTINATION) \
 	  $(TEST_ACTIONS) \
@@ -155,7 +155,7 @@ test_framework_GRDBCustomSQLiteiOS_minTarget: SQLiteCustom
 
 test_framework_GRDBCipherOSX: SQLCipher
 	$(XCODEBUILD) \
-	  -project GRDB.xcodeproj \
+	  -project GRDBCipher.xcodeproj \
 	  -scheme GRDBCipherOSX \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
@@ -164,7 +164,7 @@ test_framework_GRDBCipheriOS: test_framework_GRDBCipheriOS_maxTarget test_framew
 
 test_framework_GRDBCipheriOS_maxTarget: SQLCipher
 	$(XCODEBUILD) \
-	  -project GRDB.xcodeproj \
+	  -project GRDBCipher.xcodeproj \
 	  -scheme GRDBCipheriOS \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  $(TEST_ACTIONS) \
@@ -172,7 +172,7 @@ test_framework_GRDBCipheriOS_maxTarget: SQLCipher
 
 test_framework_GRDBCipheriOS_minTarget: SQLCipher
 	$(XCODEBUILD) \
-	  -project GRDB.xcodeproj \
+	  -project GRDBCipher.xcodeproj \
 	  -scheme GRDBCipheriOS \
 	  -destination $(MIN_IOS_DESTINATION) \
 	  $(TEST_ACTIONS) \

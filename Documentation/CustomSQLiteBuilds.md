@@ -60,7 +60,7 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
         #  !! MODIFY THESE TO MATCH YOUR PROJECT HIERARCHY !!
         #######################################################
         
-        # The path to the folder containing GRDB.xcodeproj:
+        # The path to the folder containing GRDBCustom.xcodeproj:
         GRDB_SOURCE_PATH="${PROJECT_DIR}/GRDB"
         
         # The path to your custom "SQLiteLib-USER.xcconfig":
@@ -107,7 +107,7 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
         
         Modify the top of `GRDBCustomSQLite-INSTALL.sh` file so that it contains correct paths.
 
-5. Embed the `GRDB.xcodeproj` project in your own project.
+5. Embed the `GRDBCustom.xcodeproj` project in your own project.
 
 6. Add the `GRDBCustomSQLiteOSX` or `GRDBCustomSQLiteiOS` target in the **Target Dependencies** section of the **Build Phases** tab of your **application target**.
 
