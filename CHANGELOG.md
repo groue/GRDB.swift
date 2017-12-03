@@ -15,6 +15,9 @@ Release Notes
     }
     ```
 
+**Breaking Change**
+
+This version comes with a breaking change that affects users who manually embed the GRDBCipher and GRDBCustom frameworks in their projects. This change does not affect users of the GRDB framework, or users of GRDBCipher through CocoaPods. Now, instead of embedding the GRDB.xcodeproj project, you have to embed the GRDBCipher.xcodeproj or  GRDBCustom.xcodeproj. Please have a look at the updated [Encryption](https://github.com/groue/GRDB.swift/blob/master/README.md#encryption) and [Custom SQLite Builds](https://github.com/groue/GRDB.swift/blob/master/Documentation/CustomSQLiteBuilds.md) documentation chapters.
 
 ## 2.3.1
 
