@@ -111,13 +111,13 @@
                     .joined(separator: ", ")
                 
                 try db.execute("""
-                    CREATE TRIGGER \("__\(contentTable)_ai".quotedDatabaseIdentifier) AFTER INSERT ON \(content) BEGIN
+                    CREATE TRIGGER \("__\(tableName)_ai".quotedDatabaseIdentifier) AFTER INSERT ON \(content) BEGIN
                         INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES (\(newContentColumns));
                     END;
-                    CREATE TRIGGER \("__\(contentTable)_ad".quotedDatabaseIdentifier) AFTER DELETE ON \(content) BEGIN
+                    CREATE TRIGGER \("__\(tableName)_ad".quotedDatabaseIdentifier) AFTER DELETE ON \(content) BEGIN
                         INSERT INTO \(ftsTable)(\(ftsTable), \(ftsColumns)) VALUES('delete', \(oldContentColumns));
                     END;
-                    CREATE TRIGGER \("__\(contentTable)_au".quotedDatabaseIdentifier) AFTER UPDATE ON \(content) BEGIN
+                    CREATE TRIGGER \("__\(tableName)_au".quotedDatabaseIdentifier) AFTER UPDATE ON \(content) BEGIN
                         INSERT INTO \(ftsTable)(\(ftsTable), \(ftsColumns)) VALUES('delete', \(oldContentColumns));
                         INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES (\(newContentColumns));
                     END;
@@ -318,5 +318,16 @@
     extension Column {
         /// The FTS5 rank column
         public static let rank = Column("rank")
+    }
+
+    extension Database {
+        /// Deletes the synchronization triggers for a synchronized FTS5 table
+        public func dropFTS5SynchronizationTriggers(forTable tableName: String) throws {
+            try execute("""
+                DROP TRIGGER IF EXISTS \("__\(tableName)_ai".quotedDatabaseIdentifier);
+                DROP TRIGGER IF EXISTS \("__\(tableName)_ad".quotedDatabaseIdentifier);
+                DROP TRIGGER IF EXISTS \("__\(tableName)_au".quotedDatabaseIdentifier);
+                """)
+        }
     }
 #endif
