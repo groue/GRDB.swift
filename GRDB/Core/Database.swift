@@ -46,7 +46,20 @@ public final class Database {
     /// > advantage of the error logging facility of SQLite in their products,
     /// > as it is very low CPU and memory cost but can be a huge aid
     /// > for debugging.
-    public static var logError: LogErrorFunction? = nil
+    public static var logError: LogErrorFunction? = nil {
+        didSet {
+            if let logError = logError {
+                registerErrorLogCallback { (_, code, message) in
+                    guard let logError = Database.logError else { return }
+                    guard let message = message.map({ String(cString: $0) }) else { return }
+                    let resultCode = ResultCode(rawValue: code)
+                    logError(resultCode, message)
+                }
+            } else {
+                registerErrorLogCallback(nil)
+            }
+        }
+    }
     
     /// The database configuration
     public let configuration: Configuration
@@ -145,9 +158,6 @@ public final class Database {
     // MARK: - Initializer
 
     init(path: String, configuration: Configuration, schemaCache: DatabaseSchemaCache) throws {
-        // Setup the global SQLite error log before connecting to the database.
-        Database.setupGlobalErrorLog()
-        
         let sqliteConnection = try Database.openConnection(path: path, flags: configuration.SQLiteOpenFlags)
         do {
             try Database.activateExtendedCodes(sqliteConnection)
@@ -178,26 +188,6 @@ public final class Database {
 extension Database {
 
     // MARK: - Database Opening
-    
-    /// Registers the public Database.logError function as the global SQLite
-    /// error log, with sqlite3_config(SQLITE_CONFIG_LOG).
-    ///
-    /// See https://sqlite.org/c3ref/c_config_covering_index_scan.html#sqliteconfiglog
-    private static func setupGlobalErrorLog() {
-        // We use a Swift static variable as a way to ensure that the error log
-        // is registered once and only once.
-        struct Impl {
-            static let setupErrorLog: () = {
-                registerErrorLogCallback { (_, code, message) in
-                    guard let log = Database.logError else { return }
-                    guard let message = message.map({ String(cString: $0) }) else { return }
-                    let resultCode = ResultCode(rawValue: code)
-                    log(resultCode, message)
-                }
-            }()
-        }
-        Impl.setupErrorLog
-    }
     
     private static func openConnection(path: String, flags: Int32) throws -> SQLiteConnection {
         // See https://www.sqlite.org/c3ref/open.html
