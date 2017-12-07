@@ -307,7 +307,7 @@ extension Database {
                 db.configuration.trace!(sql)
             }, dbPointer)
         #else
-            if #available(iOS 10.0, OSX 10.12, watchOS 3.0, *) {
+            if #available(iOS 10.0, OSX 10.12, watchOS 3.0, tvOS 10.0, *) {
                 sqlite3_trace_v2(sqliteConnection, UInt32(SQLITE_TRACE_STMT), { (mask, dbPointer, stmt, unexpandedSQL) -> Int32 in
                     guard let stmt = stmt else { return SQLITE_OK }
                     guard let expandedSQLCString = sqlite3_expanded_sql(OpaquePointer(stmt)) else { return SQLITE_OK }
