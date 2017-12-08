@@ -50,8 +50,17 @@ class GRDBTestCase: XCTestCase {
         return sqlQueries.last!
     }
     
+    var lastResultCode: ResultCode? = nil
+    var lastMessage: String? = nil
+    
     override func setUp() {
         super.setUp()
+        
+        // Must be set prior to any databaase connection
+        Database.logError = { [weak self] (resultCode, message) in
+            self?.lastResultCode = resultCode
+            self?.lastMessage = message
+        }
         
         let dbPoolDirectoryName = "GRDBTestCase-\(ProcessInfo.processInfo.globallyUniqueString)"
         dbDirectoryPath = (NSTemporaryDirectory() as NSString).appendingPathComponent(dbPoolDirectoryName)
