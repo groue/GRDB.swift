@@ -48,7 +48,7 @@ public final class Database {
     /// > for debugging.
     public static var logError: LogErrorFunction? = nil {
         didSet {
-            if let logError = logError {
+            if logError != nil {
                 registerErrorLogCallback { (_, code, message) in
                     guard let logError = Database.logError else { return }
                     guard let message = message.map({ String(cString: $0) }) else { return }
