@@ -5466,13 +5466,15 @@ See [prepared statements](#prepared-statements) and [DatabaseValue](#databaseval
 
 **SQLite can be configured to invoke a callback function containing an error code and a terse error message whenever anomalies occur.**
 
-It is recommended that you setup, early in the lifetime of your application, the error logging callback:
+This global error callback must be configured early in the lifetime of your application:
 
 ```swift
 Database.logError = { (resultCode, message) in
     NSLog("%@", "SQLite error \(resultCode): \(message)")
 }
 ```
+
+> :warning: **Warning**: Database.logError must be set before any database connection is opened. This includes the connections that your application opens with GRDB, but also connections opened by other tools, such as third-party libraries. Setting it after a connection has been opened is an SQLite misuse, and has no effect.
 
 See [The Error And Warning Log](https://sqlite.org/errlog.html) for more information.
 

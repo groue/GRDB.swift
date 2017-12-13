@@ -12,6 +12,10 @@ import XCTest
     @testable import GRDB       // @testable so that we have access to SQLiteConnectionWillClose
 #endif
 
+// Support for Database.logError
+var lastResultCode: ResultCode? = nil
+var lastMessage: String? = nil
+
 class GRDBTestCase: XCTestCase {
     // The default configuration for tests
     var dbConfiguration: Configuration!
@@ -52,6 +56,12 @@ class GRDBTestCase: XCTestCase {
     
     override func setUp() {
         super.setUp()
+        
+        // Must be set prior to any databaase connection
+        Database.logError = { [weak self] (resultCode, message) in
+            lastResultCode = resultCode
+            lastMessage = message
+        }
         
         let dbPoolDirectoryName = "GRDBTestCase-\(ProcessInfo.processInfo.globallyUniqueString)"
         dbDirectoryPath = (NSTemporaryDirectory() as NSString).appendingPathComponent(dbPoolDirectoryName)
