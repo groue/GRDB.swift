@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Version
+
+**Fixed**
+
+- [#284](https://github.com/groue/GRDB.swift/pull/284): fixes a misuse of the sqlite3_config() function when configuring the global SQLite [Error Log](https://github.com/groue/GRDB.swift/blob/master/README.md#error-log)
+
+
 ## 2.4.0
 
 Released December 3, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.3.1...v2.4.0)
