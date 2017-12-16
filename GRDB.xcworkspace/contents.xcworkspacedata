@@ -24,6 +24,21 @@
       </FileRef>
    </Group>
    <FileRef
+      location = "group:CHANGELOG.md">
+   </FileRef>
+   <FileRef
+      location = "group:README.md">
+   </FileRef>
+   <FileRef
+      location = "group:TODO.md">
+   </FileRef>
+   <FileRef
+      location = "group:Documentation/ReleaseProcess.md">
+   </FileRef>
+   <FileRef
+      location = "group:Makefile">
+   </FileRef>
+   <FileRef
       location = "group:GRDB.xcodeproj">
    </FileRef>
    <FileRef
