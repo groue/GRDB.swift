@@ -58,7 +58,7 @@ class GRDBTestCase: XCTestCase {
         super.setUp()
         
         // Must be set prior to any databaase connection
-        Database.logError = { [weak self] (resultCode, message) in
+        Database.logError = { (resultCode, message) in
             lastResultCode = resultCode
             lastMessage = message
         }
