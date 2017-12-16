@@ -10,7 +10,7 @@ puts <<-REPORT
 
 *Last updated #{Date.today.strftime('%B %-d, %Y')}*
 
-Below are performance benchmarks made on for [GRDB 2.4.0](https://github.com/groue/GRDB.swift), [FMDB 2.7.4](https://github.com/ccgus/fmdb), and [SQLite.swift 0.11.4](https://github.com/stephencelis/SQLite.swift). They are compared to Core Data, [Realm 3.0.2](https://realm.io) and the raw use of the SQLite C API from Swift.
+Below are performance benchmarks made on for [GRDB 2.4.1](https://github.com/groue/GRDB.swift), [FMDB 2.7.4](https://github.com/ccgus/fmdb), and [SQLite.swift 0.11.4](https://github.com/stephencelis/SQLite.swift). They are compared to Core Data, [Realm 3.0.2](https://realm.io) and the raw use of the SQLite C API from Swift.
 
 This report was generated on a MacBook Pro (15-inch, Late 2016), with Xcode 9.2, by running the following command:
 
