@@ -21,7 +21,6 @@ GRDB 3.0
 
 Not sure
 
-- [ ] Support for resource values (see https://developer.apple.com/library/ios/qa/qa1719/_index.html)
 - [ ] Think about supporting Cursor's underestimatedCount, which could speed up Array(cursor) and fetchAll()
 - [ ] Support for OR ROLLBACK, and mismatch between the Swift depth and the SQLite depth of nested transactions/savepoint:
     
@@ -62,14 +61,6 @@ Not sure
         return .commit  // Should throw an error since transaction has been rollbacked and user's intent can not be applied
     }
     ```
-
-- [ ] Support for NSColor/UIColor. Beware UIColor components can go beyond [0, 1.0] in iOS10.
-- [ ] Store dates as timestamp (https://twitter.com/gloparco/status/780948021613912064, https://github.com/groue/GRDB.swift/issues/97)
-
-
-Require changes in the Swift language:
-
-- [ ] Specific and optimized Optional<StatementColumnConvertible>.fetch... methods when http://openradar.appspot.com/22852669 is fixed.
 
 
 Requires recompilation of SQLite:
