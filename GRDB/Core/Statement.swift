@@ -15,16 +15,6 @@ let statementSeparatorCharacterSet = CharacterSet(charactersIn: ";").union(.whit
 struct EmptyStatementError : Error {
 }
 
-/// A common protocol for UpdateStatement and SelectStatement
-protocol AuthorizedStatement {
-    init(
-        database: Database,
-        statementStart: UnsafePointer<Int8>,
-        statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>,
-        prepFlags: Int32,
-        authorizer: StatementCompilationAuthorizer) throws
-}
-
 /// A statement represents an SQL query.
 ///
 /// It is the base class of UpdateStatement that executes *update statements*,
@@ -222,6 +212,73 @@ public class Statement {
     }
 }
 
+// MARK: - AuthorizedStatement
+
+/// A common protocol for UpdateStatement and SelectStatement
+protocol AuthorizedStatement {
+    // This initializer should be a required initializer of Statement.
+    //
+    // But Swift requires this required initializer to be public:
+    // https://bugs.swift.org/browse/SR-2347
+    //
+    // We work around SR-2347 with this internal protocol.
+    init(
+        database: Database,
+        statementStart: UnsafePointer<Int8>,
+        statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>,
+        prepFlags: Int32,
+        authorizer: StatementCompilationAuthorizer) throws
+}
+
+extension AuthorizedStatement {
+    // Static function instead of an initializer because initializer doesn't
+    // compile due to the "capturing of an uninitialized self" in
+    // `sqlCodeUnits.withUnsafeBufferPointer`.
+    static func prepare(sql: String, prepFlags: Int32, in database: Database) throws -> Self {
+        let authorizer = StatementCompilationAuthorizer()
+        database.authorizer = authorizer
+        defer { database.authorizer = nil }
+        
+        let sqlCodeUnits = sql.utf8CString
+        return try sqlCodeUnits.withUnsafeBufferPointer { codeUnits in
+            let statementStart = UnsafePointer<Int8>(codeUnits.baseAddress)!
+            var statementEnd: UnsafePointer<Int8>? = nil
+            let statement: Self
+            do {
+                statement = try self.init(
+                    database: database,
+                    statementStart: statementStart,
+                    statementEnd: &statementEnd,
+                    prepFlags: prepFlags,
+                    authorizer: authorizer)
+            } catch is EmptyStatementError {
+                throw DatabaseError(
+                    resultCode: .SQLITE_ERROR,
+                    message: "empty statement",
+                    sql: sql,
+                    arguments: nil)
+            }
+            
+            let remainingData = Data(
+                bytesNoCopy: UnsafeMutableRawPointer(mutating: statementEnd!),
+                count: statementStart + sqlCodeUnits.count - statementEnd! - 1,
+                deallocator: .none)
+            
+            let remainingSQL = String(data: remainingData, encoding: .utf8)!
+                .trimmingCharacters(in: statementSeparatorCharacterSet)
+            
+            guard remainingSQL.isEmpty else {
+                throw DatabaseError(
+                    resultCode: .SQLITE_MISUSE,
+                    message: "Multiple statements found. To execute multiple statements, use Database.execute() instead.",
+                    sql: sql,
+                    arguments: nil)
+            }
+            
+            return statement
+        }
+    }
+}
 
 // MARK: - SelectStatement
 

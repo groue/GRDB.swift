@@ -14,7 +14,7 @@ extension Database {
     /// - returns: A SelectStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     public func makeSelectStatement(_ sql: String) throws -> SelectStatement {
-        return try makeStatement(sql, prepFlags: 0)
+        return try SelectStatement.prepare(sql: sql, prepFlags: 0, in: self)
     }
     
     /// Returns a new prepared statement that can be reused.
@@ -29,7 +29,7 @@ extension Database {
     /// - returns: A SelectStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     func makeSelectStatement(_ sql: String, prepFlags: Int32) throws -> SelectStatement {
-        return try makeStatement(sql, prepFlags: prepFlags)
+        return try SelectStatement.prepare(sql: sql, prepFlags: prepFlags, in: self)
     }
     
     /// Returns a prepared statement that can be reused.
@@ -63,7 +63,7 @@ extension Database {
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     public func makeUpdateStatement(_ sql: String) throws -> UpdateStatement {
-        return try makeStatement(sql, prepFlags: 0)
+        return try UpdateStatement.prepare(sql: sql, prepFlags: 0, in: self)
     }
     
     /// Returns a new prepared statement that can be reused.
@@ -78,7 +78,7 @@ extension Database {
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     func makeUpdateStatement(_ sql: String, prepFlags: Int32) throws -> UpdateStatement {
-        return try makeStatement(sql, prepFlags: prepFlags)
+        return try UpdateStatement.prepare(sql: sql, prepFlags: prepFlags, in: self)
     }
     
     /// Returns a prepared statement that can be reused.
@@ -184,41 +184,6 @@ extension Database {
         // Force arguments validity: it is a programmer error to provide
         // arguments that do not match the statement.
         try! validateRemainingArguments()   // throws if there are remaining arguments.
-    }
-    
-    private func makeStatement<Statement: AuthorizedStatement>(_ sql: String, prepFlags: Int32) throws -> Statement {
-        let statementCompilationAuthorizer = StatementCompilationAuthorizer()
-        authorizer = statementCompilationAuthorizer
-        defer { authorizer = nil }
-        
-        var statement: Statement? = nil
-        let sqlCodeUnits = sql.utf8CString
-        var remainingSQL = ""
-        try sqlCodeUnits.withUnsafeBufferPointer { codeUnits in
-            let statementStart = UnsafePointer<Int8>(codeUnits.baseAddress)!
-            var statementEnd: UnsafePointer<Int8>? = nil
-            do {
-                statement = try Statement(
-                    database: self,
-                    statementStart: statementStart,
-                    statementEnd: &statementEnd,
-                    prepFlags: prepFlags,
-                    authorizer: statementCompilationAuthorizer)
-            } catch is EmptyStatementError {
-                throw DatabaseError(resultCode: .SQLITE_ERROR, message: "empty statement", sql: sql, arguments: nil)
-            }
-            let remainingData = Data(
-                bytesNoCopy: UnsafeMutableRawPointer(mutating: statementEnd!),
-                count: statementStart + sqlCodeUnits.count - statementEnd! - 1,
-                deallocator: .none)
-            remainingSQL = String(data: remainingData, encoding: .utf8)!.trimmingCharacters(in: statementSeparatorCharacterSet)
-        }
-        
-        guard remainingSQL.isEmpty else {
-            throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Multiple statements found. To execute multiple statements, use Database.execute() instead.", sql: sql, arguments: nil)
-        }
-        
-        return statement!
     }
 }
 
