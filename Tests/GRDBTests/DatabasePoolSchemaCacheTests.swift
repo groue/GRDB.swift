@@ -137,4 +137,68 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
             blocks[index]()
         }
     }
+    
+    func testReaderWriterCache() throws {
+        // This test checks that the schema cache follows snapshot isolation
+        dbConfiguration.trace = { print($0) }
+        let dbPool = try makeDatabasePool()
+        
+        // writer                   reader
+        // CREATE TABLE foo
+        // table exists: true
+        // >
+        let s1 = DispatchSemaphore(value: 0)
+        //                          table exists: true
+        //                          <
+        let s2 = DispatchSemaphore(value: 0)
+        // DROP TABLE foo
+        // table exists: false
+        // >
+        let s3 = DispatchSemaphore(value: 0)
+        //                          table exists: true
+        //                          <
+        let s4 = DispatchSemaphore(value: 0)
+        // table exists: false
+
+        let block1 = { () in
+            try! dbPool.write { db in
+                try db.execute("CREATE TABLE foo(id INTEGER PRIMARY KEY)")
+                // warm cache if needed
+                _ = try db.primaryKey("foo")
+                // cache contains the primary key
+                XCTAssertNotNil(db.schemaCache.primaryKey("foo"))
+                s1.signal()
+                _ = s2.wait(timeout: .distantFuture)
+                try db.execute("DROP TABLE foo")
+                // cache does not contain the primary key
+                XCTAssertNil(db.schemaCache.primaryKey("foo"))
+                s3.signal()
+                _ = s4.wait(timeout: .distantFuture)
+                // cache does not contain the primary key
+                XCTAssertNil(db.schemaCache.primaryKey("foo"))
+            }
+        }
+        let block2 = { () in
+            _ = s1.wait(timeout: .distantFuture)
+            try! dbPool.read { db in
+                // activate snapshot isolation so that foo table is visible during the whole read. Any read is enough.
+                try db.makeSelectStatement("SELECT * FROM sqlite_master").cursor().next()
+                // warm cache if needed
+                _ = try db.primaryKey("foo")
+                // cache contains the primary key
+                XCTAssertNotNil(db.schemaCache.primaryKey("foo"))
+                s2.signal()
+                _ = s3.wait(timeout: .distantFuture)
+                // cache contains the primary key
+                XCTAssertNotNil(db.schemaCache.primaryKey("foo"))
+                // warm cache if needed
+                _ = try db.primaryKey("foo")
+                s4.signal()
+            }
+        }
+        let blocks = [block1, block2]
+        DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
+            blocks[index]()
+        }
+    }
 }
