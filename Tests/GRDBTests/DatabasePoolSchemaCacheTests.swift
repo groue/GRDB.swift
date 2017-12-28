@@ -138,7 +138,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
         }
     }
     
-    func testReaderWriterCache() throws {
+    func testCacheVersionning() throws {
         // This test checks that the schema cache follows snapshot isolation
         dbConfiguration.trace = { print($0) }
         let dbPool = try makeDatabasePool()
