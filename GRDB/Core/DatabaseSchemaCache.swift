@@ -1,9 +1,4 @@
-/// The protocol for schema cache.
-///
-/// This protocol must not contain values that are valid for a single connection
-/// only, because several connections can share the same schema cache.
-///
-/// Statements can't be cached here, for example.
+/// The protocol for database schema cache.
 protocol DatabaseSchemaCache {
     mutating func clear()
     
@@ -21,13 +16,13 @@ protocol DatabaseSchemaCache {
 }
 
 /// A thread-unsafe database schema cache
-final class SimpleDatabaseSchemaCache: DatabaseSchemaCache {
+struct SimpleDatabaseSchemaCache: DatabaseSchemaCache {
     private var primaryKeys: [String: PrimaryKeyInfo] = [:]
     private var columns: [String: [ColumnInfo]] = [:]
     private var indexes: [String: [IndexInfo]] = [:]
     private var foreignKeys: [String: [ForeignKeyInfo]] = [:]
     
-    func clear() {
+    mutating func clear() {
         primaryKeys = [:]
         columns = [:]
         indexes = [:]
@@ -38,7 +33,7 @@ final class SimpleDatabaseSchemaCache: DatabaseSchemaCache {
         return primaryKeys[table]
     }
     
-    func set(primaryKey: PrimaryKeyInfo, forTable table: String) {
+    mutating func set(primaryKey: PrimaryKeyInfo, forTable table: String) {
         primaryKeys[table] = primaryKey
     }
     
@@ -46,7 +41,7 @@ final class SimpleDatabaseSchemaCache: DatabaseSchemaCache {
         return columns[table]
     }
     
-    func set(columns: [ColumnInfo], forTable table: String) {
+    mutating func set(columns: [ColumnInfo], forTable table: String) {
         self.columns[table] = columns
     }
     
@@ -54,7 +49,7 @@ final class SimpleDatabaseSchemaCache: DatabaseSchemaCache {
         return indexes[table]
     }
     
-    func set(indexes: [IndexInfo], forTable table: String) {
+    mutating func set(indexes: [IndexInfo], forTable table: String) {
         self.indexes[table] = indexes
     }
     
@@ -62,48 +57,24 @@ final class SimpleDatabaseSchemaCache: DatabaseSchemaCache {
         return foreignKeys[table]
     }
     
-    func set(foreignKeys: [ForeignKeyInfo], forTable table: String) {
+    mutating func set(foreignKeys: [ForeignKeyInfo], forTable table: String) {
         self.foreignKeys[table] = foreignKeys
     }
 }
 
-/// A thread-safe database schema cache
-final class SharedDatabaseSchemaCache: DatabaseSchemaCache {
-    private let cache = ReadWriteBox(SimpleDatabaseSchemaCache())
+/// An always empty database schema cache
+struct EmptyDatabaseSchemaCache: DatabaseSchemaCache {
+    func clear() { }
     
-    func clear() {
-        cache.write { $0.clear() }
-    }
+    func primaryKey(_ table: String) -> PrimaryKeyInfo? { return nil }
+    mutating func set(primaryKey: PrimaryKeyInfo, forTable table: String) { }
     
-    func primaryKey(_ table: String) -> PrimaryKeyInfo? {
-        return cache.read { $0.primaryKey(table) }
-    }
+    func columns(in table: String) -> [ColumnInfo]? { return nil }
+    mutating func set(columns: [ColumnInfo], forTable table: String) { }
     
-    func set(primaryKey: PrimaryKeyInfo, forTable table: String) {
-        cache.write { $0.set(primaryKey: primaryKey, forTable: table) }
-    }
+    func indexes(on table: String) -> [IndexInfo]? { return nil }
+    mutating func set(indexes: [IndexInfo], forTable table: String) { }
     
-    func columns(in table: String) -> [ColumnInfo]? {
-        return cache.read { $0.columns(in: table) }
-    }
-    
-    func set(columns: [ColumnInfo], forTable table: String) {
-        cache.write { $0.set(columns: columns, forTable: table) }
-    }
-    
-    func indexes(on table: String) -> [IndexInfo]? {
-        return cache.read { $0.indexes(on: table) }
-    }
-    
-    func set(indexes: [IndexInfo], forTable table: String) {
-        cache.write { $0.set(indexes: indexes, forTable: table) }
-    }
-    
-    func foreignKeys(on table: String) -> [ForeignKeyInfo]? {
-        return cache.read { $0.foreignKeys(on: table) }
-    }
-    
-    func set(foreignKeys: [ForeignKeyInfo], forTable table: String) {
-        cache.write { $0.set(foreignKeys: foreignKeys, forTable: table) }
-    }
+    func foreignKeys(on table: String) -> [ForeignKeyInfo]? { return nil }
+    mutating func set(foreignKeys: [ForeignKeyInfo], forTable table: String) { }
 }

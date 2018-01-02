@@ -44,14 +44,11 @@ public final class DatabasePool {
     public init(path: String, configuration: Configuration = Configuration()) throws {
         GRDBPrecondition(configuration.maximumReaderCount > 0, "configuration.maximumReaderCount must be at least 1")
         
-        // Writer and readers share the same database schema cache
-        let sharedSchemaCache = SharedDatabaseSchemaCache()
-        
         // Writer
         writer = try SerializedDatabase(
             path: path,
             configuration: configuration,
-            schemaCache: sharedSchemaCache)
+            schemaCache: SimpleDatabaseSchemaCache())
         
         // Activate WAL Mode unless readonly
         if !configuration.readonly {
@@ -84,7 +81,7 @@ public final class DatabasePool {
             let reader = try SerializedDatabase(
                 path: path,
                 configuration: self.readerConfig,
-                schemaCache: sharedSchemaCache)
+                schemaCache: SimpleDatabaseSchemaCache())
             
             reader.sync { db in
                 for function in self.functions {
@@ -250,6 +247,8 @@ extension DatabasePool : DatabaseReader {
                 // The block isolation comes from the DEFERRED transaction.
                 // See DatabasePoolTests.testReadMethodIsolationOfBlock().
                 try db.inTransaction(.deferred) {
+                    // Reset the schema cache before running user code in snapshot isolation
+                    db.schemaCache = SimpleDatabaseSchemaCache()
                     result = try block(db)
                     return .commit
                 }
@@ -287,7 +286,11 @@ extension DatabasePool : DatabaseReader {
     public func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T {
         GRDBPrecondition(currentReader == nil, "Database methods are not reentrant.")
         return try readerPool.get { reader in
-            try reader.sync(block)
+            try reader.sync { db in
+                // No schema cache when snapshot isolation is not established
+                db.schemaCache = EmptyDatabaseSchemaCache()
+                return try block(db)
+            }
         }
     }
     
@@ -323,7 +326,11 @@ extension DatabasePool : DatabaseReader {
             return try reader.reentrantSync(block)
         } else {
             return try readerPool.get { reader in
-                try reader.sync(block)
+                try reader.sync { db in
+                    // No schema cache when snapshot isolation is not established
+                    db.schemaCache = EmptyDatabaseSchemaCache()
+                    return try block(db)
+                }
             }
         }
     }
@@ -590,7 +597,11 @@ extension DatabasePool : DatabaseWriter {
                     return
                 }
                 semaphore.signal() // We can release the writer queue now that we are isolated for good
+                
+                // Reset the schema cache before running user code in snapshot isolation
+                db.schemaCache = SimpleDatabaseSchemaCache()
                 block(db)
+                
                 _ = try? db.commit() // Ignore commit error
             }
         }

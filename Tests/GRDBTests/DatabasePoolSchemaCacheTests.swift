@@ -33,28 +33,9 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
         
         try dbPool.read { db in
             // Warm cache in a reader
-            let primaryKey = try db.primaryKey("items")
-            XCTAssertEqual(primaryKey.rowIDColumn, "id")
-            
-            let columns = try db.columns(in: "items")
-            XCTAssertEqual(columns.count, 4)
-            XCTAssertEqual(columns[0].name, "id")
-            XCTAssertEqual(columns[1].name, "email")
-            XCTAssertEqual(columns[2].name, "foo")
-            XCTAssertEqual(columns[3].name, "bar")
-            
-            let indexes = try db.indexes(on: "items")
-            XCTAssertEqual(indexes.count, 2)
-            for index in indexes {
-                switch index.name {
-                case "foobar":
-                    XCTAssertEqual(index.columns, ["foo", "bar"])
-                    XCTAssertFalse(index.isUnique)
-                default:
-                    XCTAssertEqual(index.columns, ["email"])
-                    XCTAssertTrue(index.isUnique)
-                }
-            }
+            _ = try db.primaryKey("items")
+            _ = try db.columns(in: "items")
+            _ = try db.indexes(on: "items")
             
             // Assert that reader cache is warmed
             XCTAssertTrue(db.schemaCache.primaryKey("items") != nil)
@@ -62,7 +43,12 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
             XCTAssertTrue(db.schemaCache.indexes(on: "items") != nil)
         }
         
-        dbPool.write { db in
+        try dbPool.write { db in
+            // Warm cache in the writer
+            _ = try db.primaryKey("items")
+            _ = try db.columns(in: "items")
+            _ = try db.indexes(on: "items")
+            
             // Assert that writer cache is warmed
             XCTAssertTrue(db.schemaCache.primaryKey("items") != nil)
             XCTAssertTrue(db.schemaCache.columns(in: "items") != nil)
@@ -138,8 +124,9 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
         }
     }
     
-    func testCacheVersionning() throws {
-        // This test checks that the schema cache follows snapshot isolation
+    func testCacheSnapshotIsolation() throws {
+        // This test checks that the schema cache follows snapshot isolation.
+        // and that writer and readers do not naively share the same cache.
         dbConfiguration.trace = { print($0) }
         let dbPool = try makeDatabasePool()
         
@@ -163,7 +150,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
         let block1 = { () in
             try! dbPool.write { db in
                 try db.execute("CREATE TABLE foo(id INTEGER PRIMARY KEY)")
-                // warm cache if needed
+                // warm cache
                 _ = try db.primaryKey("foo")
                 // cache contains the primary key
                 XCTAssertNotNil(db.schemaCache.primaryKey("foo"))
@@ -183,7 +170,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
             try! dbPool.read { db in
                 // activate snapshot isolation so that foo table is visible during the whole read. Any read is enough.
                 try db.makeSelectStatement("SELECT * FROM sqlite_master").cursor().next()
-                // warm cache if needed
+                // warm cache
                 _ = try db.primaryKey("foo")
                 // cache contains the primary key
                 XCTAssertNotNil(db.schemaCache.primaryKey("foo"))
@@ -199,6 +186,32 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
         let blocks = [block1, block2]
         DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
             blocks[index]()
+        }
+    }
+    
+    func testUnsafeReaderHasNoDatabaseCache() throws {
+        let dbPool = try makeDatabasePool()
+        
+        try dbPool.write { db in
+            try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY, email TEXT UNIQUE, foo INT, bar DOUBLE)")
+            try db.execute("CREATE INDEX foobar ON items(foo, bar)")
+        }
+        
+        try dbPool.unsafeRead { db in
+            // Assert that a cache is empty
+            XCTAssertTrue(db.schemaCache.primaryKey("items") == nil)
+            XCTAssertTrue(db.schemaCache.columns(in: "items") == nil)
+            XCTAssertTrue(db.schemaCache.indexes(on: "items") == nil)
+            
+            // Warm cache in a reader
+            _ = try db.primaryKey("items")
+            _ = try db.columns(in: "items")
+            _ = try db.indexes(on: "items")
+            
+            // Assert that a reader cache is still empty
+            XCTAssertTrue(db.schemaCache.primaryKey("items") == nil)
+            XCTAssertTrue(db.schemaCache.columns(in: "items") == nil)
+            XCTAssertTrue(db.schemaCache.indexes(on: "items") == nil)
         }
     }
 }
