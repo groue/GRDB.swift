@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Version
+
+**Fixed**
+
+- When using a database pool, the schema introspection methods used to return wrong values whenever the database schema was concurrently read and modified. This has been fixed.
+
+
 ## 2.4.1
 
 Released December 16, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.4.0...v2.4.1)
