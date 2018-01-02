@@ -14,7 +14,7 @@ extension Database {
     /// - returns: A SelectStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     public func makeSelectStatement(_ sql: String) throws -> SelectStatement {
-        return try SelectStatement.prepare(sql: sql, prepFlags: 0, in: self)
+        return try makeSelectStatement(sql, prepFlags: 0)
     }
     
     /// Returns a new prepared statement that can be reused.
@@ -63,7 +63,7 @@ extension Database {
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     public func makeUpdateStatement(_ sql: String) throws -> UpdateStatement {
-        return try UpdateStatement.prepare(sql: sql, prepFlags: 0, in: self)
+        return try makeUpdateStatement(sql, prepFlags: 0)
     }
     
     /// Returns a new prepared statement that can be reused.
