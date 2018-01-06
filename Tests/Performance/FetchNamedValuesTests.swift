@@ -41,7 +41,7 @@ class FetchNamedValuesTests: XCTestCase {
     #if GRDB_COMPARE
     func testFMDB() {
         let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
-        let dbQueue = FMDatabaseQueue(path: databasePath)
+        let dbQueue = FMDatabaseQueue(path: databasePath)!
         
         measure {
             var count = 0

@@ -86,7 +86,7 @@ class FetchRecordStructTests: XCTestCase {
         // Here we test the loading of an array of Records.
         
         let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
-        let dbQueue = FMDatabaseQueue(path: databasePath)
+        let dbQueue = FMDatabaseQueue(path: databasePath)!
         
         measure {
             var items = [ItemStruct]()
