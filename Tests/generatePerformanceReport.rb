@@ -2,15 +2,40 @@
 gem 'json'
 require 'json'
 require 'date'
+require 'rexml/document'
 
-tests = JSON.parse(STDIN.read)
+# Extract CFBundleShortVersionString from a plist file
+def info_plist_version(path)
+  REXML::Document.new(File.read(path))
+    .root
+    .elements["//key[text()='CFBundleShortVersionString']"]
+    .next_element
+    .text
+end
+
+def formatted_sample(samples, test, lib)
+  sample = samples["#{test}Tests"]["test#{lib}"]
+  return '¹' unless sample # n/a
+  '%.2f' % sample
+end
+
+def formatted_samples(samples, test)
+  libs = %w{GRDB SQLite FMDB SQLiteSwift CoreData Realm}
+  libs.map { |lib| formatted_sample(samples, test, lib) || '¹' }
+end
+
+samples = JSON.parse(STDIN.read)
+grdb_version = info_plist_version('Support/Info.plist')
+fmdb_version = info_plist_version('Tests/Performance/fmdb/src/fmdb/Info.plist')
+sqlite_swift_version = info_plist_version('Tests/Performance/SQLite.swift/Sources/SQLite/Info.plist')
+realm_version = info_plist_version('Tests/Performance/Realm/build/osx/Realm.framework/Versions/A/Resources/Info.plist')
 
 puts <<-REPORT
 # Comparing the Performances of Swift SQLite libraries
 
 *Last updated #{Date.today.strftime('%B %-d, %Y')}*
 
-Below are performance benchmarks made on for [GRDB 2.4.1](https://github.com/groue/GRDB.swift), [FMDB 2.7.4](https://github.com/ccgus/fmdb), and [SQLite.swift 0.11.4](https://github.com/stephencelis/SQLite.swift). They are compared to Core Data, [Realm 3.0.2](https://realm.io) and the raw use of the SQLite C API from Swift.
+Below are performance benchmarks made on for [GRDB #{grdb_version}](https://github.com/groue/GRDB.swift), [FMDB #{fmdb_version}](https://github.com/ccgus/fmdb), and [SQLite.swift #{sqlite_swift_version}](https://github.com/stephencelis/SQLite.swift). They are compared to Core Data, [Realm #{realm_version}](https://realm.io) and the raw use of the SQLite C API from Swift.
 
 This report was generated on a MacBook Pro (15-inch, Late 2016), with Xcode 9.2, by running the following command:
 
@@ -27,20 +52,20 @@ All tests use the default settings of each library. For each library, we:
 
 As a bottom line, the raw SQLite C API is used as efficiently as possible, without any error checking.
 
-|                    | Raw SQLite |     FMDB |      GRDB| SQLite.swift |  Core Data | Realm |
-|:------------------ | ----------:| --------:| --------:| ------------:| ----------:| -----:|
-| **Column indexes** |            |          |          |              |            |       |
-| Fetch              | *#{tests['FetchPositionalValuesTests']['testSQLite']}* | **#{tests['FetchPositionalValuesTests']['testFMDB']}** | **#{tests['FetchPositionalValuesTests']['testGRDB']}** | #{tests['FetchPositionalValuesTests']['testSQLiteSwift']} | ¹ | ¹ |
-| Insert             | *#{tests['InsertPositionalValuesTests']['testSQLite']}* | #{tests['InsertPositionalValuesTests']['testFMDB']} | **#{tests['InsertPositionalValuesTests']['testGRDB']}** | #{tests['InsertPositionalValuesTests']['testSQLiteSwift']} | ¹ | ¹ |
-| **Column names**   |            |          |          |              |            |       |
-| Fetch              |          ¹ | #{tests['FetchNamedValuesTests']['testFMDB']} | **#{tests['FetchNamedValuesTests']['testGRDB']}** | #{tests['FetchNamedValuesTests']['testSQLiteSwift']} | ¹ | ¹ |
-| Insert             |          ¹ | #{tests['InsertNamedValuesTests']['testFMDB']} | **#{tests['InsertNamedValuesTests']['testGRDB']}** | #{tests['InsertNamedValuesTests']['testSQLiteSwift']} | ¹ | ¹ |
-| **Records**        |            |          |          |              |            |       |
-| Fetch              | *#{tests['FetchRecordStructTests']['testSQLite']}* | #{tests['FetchRecordStructTests']['testFMDB']} | **#{tests['FetchRecordStructTests']['testGRDB']}** | #{tests['FetchRecordStructTests']['testSQLiteSwift']} | ¹ | ¹ |
-| Insert             |          ¹ |        ¹ | **#{tests['InsertRecordStructTests']['testGRDB']}** | ¹ | ¹ | ¹ |
-| **Records with change tracking** | |       |          |              |            |       |
-| Fetch              |          ¹ |        ¹ | **#{tests['FetchRecordClassTests']['testGRDB']}** | ¹ | #{tests['FetchRecordClassTests']['testCoreData']} | #{tests['FetchRecordClassTests']['testRealm']} |
-| Insert             |          ¹ |        ¹ | **#{tests['InsertRecordClassTests']['testGRDB']}** | ¹ | #{tests['InsertRecordClassTests']['testCoreData']} | #{tests['InsertRecordClassTests']['testRealm']} |
+|                                  | GRDB | Raw SQLite | FMDB | SQLite.swift | Core Data | Realm |
+|:-------------------------------- | ----:| ----------:| ----:| ------------:| ---------:| -----:|
+| **Column indexes**               |      |            |      |              |           |       |
+| Fetch                            | #{formatted_samples(samples, 'FetchPositionalValues').join(" | ")} |
+| Insert                           | #{formatted_samples(samples, 'InsertPositionalValues').join(" | ")} |
+| **Column names**                 |      |            |      |              |           |       |
+| Fetch                            | #{formatted_samples(samples, 'FetchNamedValues').join(" | ")} |
+| Insert                           | #{formatted_samples(samples, 'InsertNamedValues').join(" | ")} |
+| **Records**                      |      |            |      |              |           |       |
+| Fetch                            | #{formatted_samples(samples, 'FetchRecordStruct').join(" | ")} |
+| Insert                           | #{formatted_samples(samples, 'InsertRecordStruct').join(" | ")} |
+| **Records with change tracking** |      |            |      |              |           |       |
+| Fetch                            | #{formatted_samples(samples, 'FetchRecordClass').join(" | ")} |
+| Insert                           | #{formatted_samples(samples, 'InsertRecordClass').join(" | ")} |
 
 ¹ Not applicable
 
