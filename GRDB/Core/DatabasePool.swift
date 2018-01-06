@@ -511,7 +511,8 @@ extension DatabasePool : DatabaseWriter {
     /// Asynchronously executes a read-only block in a protected dispatch queue,
     /// wrapped in a deferred transaction.
     ///
-    /// This method must be called from the writing dispatch queue.
+    /// This method must be called from the writing dispatch queue, outside of a
+    /// transaction. You'll get a fatal error otherwise.
     ///
     /// The *block* argument is guaranteed to see the database in the last
     /// committed state at the moment this method is called. Eventual concurrent
@@ -577,8 +578,11 @@ extension DatabasePool : DatabaseWriter {
         //                                  UPDATE ...
         //     Here the change is not visible by GRDB user
         
-        // This method must be called from the writing dispatch queue:
-        writer.preconditionValidQueue()
+        // Check that we're on the writer queue...
+        writer.execute { db in
+            // ... and that no transaction is opened.
+            GRDBPrecondition(!db.isInsideTransaction, "readFromCurrentState must not be called from inside a transaction.")
+        }
         
         // The semaphore that blocks the writing dispatch queue until snapshot
         // isolation has been established:

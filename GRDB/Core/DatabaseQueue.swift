@@ -296,20 +296,28 @@ extension DatabaseQueue : DatabaseWriter {
     /// SQLCipher, attempts to write in the database throw a DatabaseError whose
     /// resultCode is `SQLITE_READONLY`.
     ///
-    /// This method must be called from the protected database dispatch queue.
+    /// This method must be called from the protected database dispatch queue,
+    /// outside of a transaction. You'll get a fatal error otherwise.
+    ///
     /// See `DatabaseWriter.readFromCurrentState`.
     public func readFromCurrentState(_ block: @escaping (Database) -> Void) {
-        // query_only pragma was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
-        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        #if GRDBCUSTOMSQLITE || GRDBCIPHER
-            serializedDatabase.execute { readOnly($0, block) }
-        #else
-            if #available(iOS 8.2, OSX 10.10, *) {
-                serializedDatabase.execute { readOnly($0, block) }
-            } else {
-                serializedDatabase.execute(block)
-            }
-        #endif
+        // Check that we're on the correct queue...
+        serializedDatabase.execute { db in
+            // ... and that no transaction is opened.
+            GRDBPrecondition(!db.isInsideTransaction, "readFromCurrentState must not be called from inside a transaction.")
+            
+            // query_only pragma was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
+            // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+            #if GRDBCUSTOMSQLITE || GRDBCIPHER
+                readOnly(db, block)
+            #else
+                if #available(iOS 8.2, OSX 10.10, *) {
+                    readOnly(db, block)
+                } else {
+                    block(db)
+                }
+            #endif
+        }
     }
     
     /// Synchronously executes a block in a protected dispatch queue, and
