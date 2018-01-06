@@ -806,7 +806,7 @@
             <h1 id='grdb-2-a-href-https-developer-apple-com-swift-img-src-https-img-shields-io-badge-swift-4-orange-svg-style-flat-alt-swift-a-a-href-https-developer-apple-com-swift-img-src-https-img-shields-io-cocoapods-p-grdb-swift-svg-alt-platforms-a-a-href-license-img-src-https-img-shields-io-github-license-groue-grdb-swift-svg-maxage-2592000-alt-license-a-a-href-https-travis-ci-org-groue-grdb-swift-img-src-https-travis-ci-org-groue-grdb-swift-svg-branch-master-alt-build-status-a' class='heading'>GRDB 2 <a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/badge/swift-4-orange.svg?style=flat" alt="Swift"></a> <a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/cocoapods/p/GRDB.swift.svg" alt="Platforms"></a> <a href="/LICENSE"><img src="https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000" alt="License"></a> <a href="https://travis-ci.org/groue/GRDB.swift"><img src="https://travis-ci.org/groue/GRDB.swift.svg?branch=master" alt="Build Status"></a></h1>
 <h3 id='a-toolkit-for-sqlite-databases-with-a-focus-on-application-development' class='heading'>A toolkit for SQLite databases, with a focus on application development</h3>
 
-<p><strong>Latest release</strong>: December 3, 2017 • version 2.4.0 • <a href="CHANGELOG.md">CHANGELOG</a></p>
+<p><strong>Latest release</strong>: January 5, 2018 • version 2.4.2 • <a href="CHANGELOG.md">CHANGELOG</a></p>
 
 <p><strong>Requirements</strong>: iOS 8.0+ / OSX 10.9+ / watchOS 2.0+ &bull; Swift 4.0 / Xcode 9+</p>
 
@@ -838,7 +838,7 @@
 </tr>
 <tr>
 <td><strong>Swift 4</strong></td>
-<td><strong>v2.4.0</strong></td>
+<td><strong>v2.4.2</strong></td>
 </tr>
 </tbody></table>
 
@@ -1080,7 +1080,7 @@
 <p>The <a href="https://swift.org/package-manager/">Swift Package Manager</a> automates the distribution of Swift code. To use GRDB with SPM, add a dependency to your <code>Package.swift</code> file:</p>
 <pre class="highlight swift"><code><span class="k">let</span> <span class="nv">package</span> <span class="o">=</span> <span class="kt">Package</span><span class="p">(</span>
     <span class="nv">dependencies</span><span class="p">:</span> <span class="p">[</span>
-        <span class="o">.</span><span class="nf">package</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="s">"https://github.com/groue/GRDB.swift.git"</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="s">"2.4.0"</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">package</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="s">"https://github.com/groue/GRDB.swift.git"</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="s">"2.4.2"</span><span class="p">)</span>
     <span class="p">]</span>
 <span class="p">)</span>
 </code></pre>
@@ -1094,7 +1094,7 @@
 <h2 id='manually' class='heading'>Manually</h2>
 
 <ol>
-<li><p><a href="https://github.com/groue/GRDB.swift/releases/tag/v2.4.0">Download</a> a copy of GRDB, or clone its repository and make sure you use the latest tagged version with the <code>git checkout v2.4.0</code> command.</p></li>
+<li><p><a href="https://github.com/groue/GRDB.swift/releases/tag/v2.4.2">Download</a> a copy of GRDB, or clone its repository and make sure you use the latest tagged version with the <code>git checkout v2.4.2</code> command.</p></li>
 <li><p>Embed the <code>GRDB.xcodeproj</code> project in your own project.</p></li>
 <li><p>Add the <code>GRDBOSX</code>, <code>GRDBiOS</code>, or <code>GRDBWatchOS</code> target in the <strong>Target Dependencies</strong> section of the <strong>Build Phases</strong> tab of your application target (extension target for WatchOS).</p></li>
 <li><p>Add the <code>GRDB.framework</code> from the targetted platform to the <strong>Embedded Binaries</strong> section of the <strong>General</strong>  tab of your application target (extension target for WatchOS).</p></li>
@@ -5675,7 +5675,7 @@ the fetch.</p>
 <ol>
 <li><p>Clone the GRDB git repository, checkout the latest tagged version, and download SQLCipher sources:</p>
 <pre class="highlight shell"><code><span class="nb">cd</span> <span class="o">[</span>GRDB directory]
-git checkout v2.4.0
+git checkout v2.4.2
 git submodule update --init SQLCipher/src
 </code></pre></li>
 <li><p>Embed the <code>GRDBCipher.xcodeproj</code> project in your own project.</p></li>
@@ -5958,11 +5958,15 @@ git submodule update --init SQLCipher/src
 
 <p><strong>SQLite can be configured to invoke a callback function containing an error code and a terse error message whenever anomalies occur.</strong></p>
 
-<p>It is recommended that you setup, early in the lifetime of your application, the error logging callback:</p>
+<p>This global error callback must be configured early in the lifetime of your application:</p>
 <pre class="highlight swift"><code><span class="kt">Database</span><span class="o">.</span><span class="n">logError</span> <span class="o">=</span> <span class="p">{</span> <span class="p">(</span><span class="n">resultCode</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span> <span class="k">in</span>
     <span class="kt">NSLog</span><span class="p">(</span><span class="s">"%@"</span><span class="p">,</span> <span class="s">"SQLite error </span><span class="se">\(</span><span class="n">resultCode</span><span class="se">)</span><span class="s">: </span><span class="se">\(</span><span class="n">message</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre>
+
+<blockquote>
+<p>:warning: <strong>Warning</strong>: Database.logError must be set before any database connection is opened. This includes the connections that your application opens with GRDB, but also connections opened by other tools, such as third-party libraries. Setting it after a connection has been opened is an SQLite misuse, and has no effect.</p>
+</blockquote>
 
 <p>See <a href="https://sqlite.org/errlog.html">The Error And Warning Log</a> for more information.</p>
 <h2 id='unicode' class='heading'>Unicode</h2>
@@ -6266,7 +6270,6 @@ dbQueue.setupMemoryManagement(in: UIApplication.sharedApplication())
 <ul>
 <li>Pools are less forgiving than queues when one overlooks a transaction (see <a href="#guarantees-and-rules">concurrency rule 3</a>).</li>
 <li>DatabaseWriter.readFromCurrentState is synchronous, or asynchronous, depending on whether it is run by a queue or a pool (see <a href="#advanced-databasepool">advanced DatabasePool</a>). It thus requires higher libDispatch skills, and more complex synchronization code.</li>
-<li>The definition of <q>current state</q> in DatabaseWriter.readFromCurrentState is <a href="http://groue.github.io/GRDB.swift/docs/2.4/Protocols/DatabaseWriter.html#/s:FP4GRDB14DatabaseWriter20readFromCurrentStateFzFCS_8DatabaseT_T_">delicate</a>.</li>
 </ul>
 
 <p>DatabaseReader and DatabaseWriter are not a tool for applications that hesitate between DatabaseQueue and DatabasePool, and look for a common API. As seen above, the protocols actually make applications harder to write correctly. Instead, they target generic code that has <em>both</em> queues and pools in mind. The built-in AnyDatabaseReader and AnyDatabaseWriter type erasers serve the same purpose.</p>
@@ -6694,7 +6697,7 @@ dbQueue.setupMemoryManagement(in: UIApplication.sharedApplication())
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2017 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2017-12-03)</p>
+          <p>&copy; 2018 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2018-01-06)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.9.0</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

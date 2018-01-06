@@ -2,420 +2,420 @@
   "warnings": [
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 820,
+      "line": 810,
       "symbol": "Database.CheckpointMode.passive",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 820,
+      "line": 810,
       "symbol": "Database.CheckpointMode.passive",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 820,
+      "line": 810,
       "symbol": "Database.CheckpointMode.passive",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 821,
+      "line": 811,
       "symbol": "Database.CheckpointMode.full",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 821,
+      "line": 811,
       "symbol": "Database.CheckpointMode.full",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 821,
+      "line": 811,
       "symbol": "Database.CheckpointMode.full",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 822,
+      "line": 812,
       "symbol": "Database.CheckpointMode.restart",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 822,
+      "line": 812,
       "symbol": "Database.CheckpointMode.restart",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 822,
+      "line": 812,
       "symbol": "Database.CheckpointMode.restart",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 823,
+      "line": 813,
       "symbol": "Database.CheckpointMode.truncate",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 823,
+      "line": 813,
       "symbol": "Database.CheckpointMode.truncate",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 823,
+      "line": 813,
       "symbol": "Database.CheckpointMode.truncate",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 836,
+      "line": 826,
       "symbol": "Database.CollationName.init(_:)",
       "symbol_kind": "source.lang.swift.decl.function.method.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 836,
+      "line": 826,
       "symbol": "Database.CollationName.init(_:)",
       "symbol_kind": "source.lang.swift.decl.function.method.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 836,
+      "line": 826,
       "symbol": "Database.CollationName.init(_:)",
       "symbol_kind": "source.lang.swift.decl.function.method.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 870,
+      "line": 860,
       "symbol": "Database.ColumnType.init(_:)",
       "symbol_kind": "source.lang.swift.decl.function.method.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 870,
+      "line": 860,
       "symbol": "Database.ColumnType.init(_:)",
       "symbol_kind": "source.lang.swift.decl.function.method.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 870,
+      "line": 860,
       "symbol": "Database.ColumnType.init(_:)",
       "symbol_kind": "source.lang.swift.decl.function.method.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 908,
+      "line": 898,
       "symbol": "Database.ConflictResolution.rollback",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 908,
+      "line": 898,
       "symbol": "Database.ConflictResolution.rollback",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 908,
+      "line": 898,
       "symbol": "Database.ConflictResolution.rollback",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 909,
+      "line": 899,
       "symbol": "Database.ConflictResolution.abort",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 909,
+      "line": 899,
       "symbol": "Database.ConflictResolution.abort",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 909,
+      "line": 899,
       "symbol": "Database.ConflictResolution.abort",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 910,
+      "line": 900,
       "symbol": "Database.ConflictResolution.fail",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 910,
+      "line": 900,
       "symbol": "Database.ConflictResolution.fail",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 910,
+      "line": 900,
       "symbol": "Database.ConflictResolution.fail",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 911,
+      "line": 901,
       "symbol": "Database.ConflictResolution.ignore",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 911,
+      "line": 901,
       "symbol": "Database.ConflictResolution.ignore",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 911,
+      "line": 901,
       "symbol": "Database.ConflictResolution.ignore",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 912,
+      "line": 902,
       "symbol": "Database.ConflictResolution.replace",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 912,
+      "line": 902,
       "symbol": "Database.ConflictResolution.replace",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 912,
+      "line": 902,
       "symbol": "Database.ConflictResolution.replace",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 919,
+      "line": 909,
       "symbol": "Database.ForeignKeyAction.cascade",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 919,
+      "line": 909,
       "symbol": "Database.ForeignKeyAction.cascade",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 919,
+      "line": 909,
       "symbol": "Database.ForeignKeyAction.cascade",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 920,
+      "line": 910,
       "symbol": "Database.ForeignKeyAction.restrict",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 920,
+      "line": 910,
       "symbol": "Database.ForeignKeyAction.restrict",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 920,
+      "line": 910,
       "symbol": "Database.ForeignKeyAction.restrict",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 921,
+      "line": 911,
       "symbol": "Database.ForeignKeyAction.setNull",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 921,
+      "line": 911,
       "symbol": "Database.ForeignKeyAction.setNull",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 921,
+      "line": 911,
       "symbol": "Database.ForeignKeyAction.setNull",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 922,
+      "line": 912,
       "symbol": "Database.ForeignKeyAction.setDefault",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 922,
+      "line": 912,
       "symbol": "Database.ForeignKeyAction.setDefault",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 922,
+      "line": 912,
       "symbol": "Database.ForeignKeyAction.setDefault",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 930,
+      "line": 920,
       "symbol": "Database.TransactionCompletion.commit",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 930,
+      "line": 920,
       "symbol": "Database.TransactionCompletion.commit",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 930,
+      "line": 920,
       "symbol": "Database.TransactionCompletion.commit",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 931,
+      "line": 921,
       "symbol": "Database.TransactionCompletion.rollback",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 931,
+      "line": 921,
       "symbol": "Database.TransactionCompletion.rollback",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 931,
+      "line": 921,
       "symbol": "Database.TransactionCompletion.rollback",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 936,
+      "line": 926,
       "symbol": "Database.TransactionKind.deferred",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 936,
+      "line": 926,
       "symbol": "Database.TransactionKind.deferred",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 936,
+      "line": 926,
       "symbol": "Database.TransactionKind.deferred",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 937,
+      "line": 927,
       "symbol": "Database.TransactionKind.immediate",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 937,
+      "line": 927,
       "symbol": "Database.TransactionKind.immediate",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 937,
+      "line": 927,
       "symbol": "Database.TransactionKind.immediate",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 938,
+      "line": 928,
       "symbol": "Database.TransactionKind.exclusive",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 938,
+      "line": 928,
       "symbol": "Database.TransactionKind.exclusive",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database.swift",
-      "line": 938,
+      "line": 928,
       "symbol": "Database.TransactionKind.exclusive",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
@@ -2438,42 +2438,42 @@
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Statement.swift",
-      "line": 382,
+      "line": 439,
       "symbol": "StatementCursor.statement",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Statement.swift",
-      "line": 382,
+      "line": 439,
       "symbol": "StatementCursor.statement",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Statement.swift",
-      "line": 382,
+      "line": 439,
       "symbol": "StatementCursor.statement",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Statement.swift",
-      "line": 602,
+      "line": 659,
       "symbol": "StatementArguments.isEmpty",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Statement.swift",
-      "line": 602,
+      "line": 659,
       "symbol": "StatementArguments.isEmpty",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Statement.swift",
-      "line": 602,
+      "line": 659,
       "symbol": "StatementArguments.isEmpty",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
