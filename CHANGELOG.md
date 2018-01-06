@@ -1,11 +1,14 @@
 Release Notes
 =============
 
-## Next Version
+## 2.4.2
+
+Released January 6, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.4.1...v2.4.2)
 
 **Fixed**
 
-- When using a database pool, the schema introspection methods used to return wrong values whenever the database schema was concurrently read and modified. This has been fixed.
+- When using a database pool, the schema introspection methods could return wrong values whenever the database schema was concurrently read and modified. This has been fixed.
+- `DatabasePool.readFromCurrentState` no longer accepts to spawn a reader when a transaction is currently opened on the writer connection.
 
 
 ## 2.4.1
