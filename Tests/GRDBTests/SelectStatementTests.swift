@@ -244,7 +244,7 @@ class SelectStatementTests : GRDBTestCase {
             
             try db.execute("INSERT INTO table4 (id) VALUES (1)")
             try db.execute("DELETE FROM table4")
-            XCTAssertEqual(observers.map { $0.triggered }, [false, false, false, false])
+            XCTAssertEqual(observers.map { $0.triggered }, [false, false, false, doubtfulCountFunction])
             
             try db.execute("DELETE FROM table3")
             XCTAssertEqual(observers.map { $0.triggered }, [true, true, true, true])
