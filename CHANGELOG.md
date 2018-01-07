@@ -1,6 +1,12 @@
 Release Notes
 =============
 
+## Next Version
+
+**Fixed**
+
+- The `databaseDidChange` method of [transaction observers](https://github.com/groue/GRDB.swift/blob/master/README.md#transactionobserver-protocol) is now only notified of events filtered by the `observes(eventsOfKind:)` method. Previous versions of GRDB would sometimes let other events through.
+
 ## 2.4.2
 
 Released January 6, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.4.1...v2.4.2)
