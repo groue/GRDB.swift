@@ -1556,5 +1556,74 @@ class TransactionObserverTests: GRDBTestCase {
             XCTAssertEqual(observer.lastCommittedEvents.count, 2)
         }
     }
+    
+    func testComplexFilteredDatabaseEvents() throws {
+        // When a statement impact several tables, only filtered events are
+        // notified
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            
+            // Observe deletions in table b
+            let observer = Observer(observes: { eventKind in
+                if case .delete(tableName: let tableName) = eventKind {
+                    return tableName == "b"
+                }
+                return false
+            })
+            dbQueue.add(transactionObserver: observer)
+            
+            // Delete from a and trigger b deletion
+            try dbQueue.inTransaction { db in
+                try db.execute("""
+                CREATE TABLE a(id INTEGER PRIMARY KEY);
+                CREATE TABLE b(id INTEGER PRIMARY KEY REFERENCES a(id) ON DELETE CASCADE);
+                INSERT INTO a (id) VALUES (42);
+                INSERT INTO b (id) VALUES (42);
+                DELETE FROM a;
+                """)
+                return .commit
+            }
+            
+            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 1)
+            XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .delete, tableName: "b", rowId: 42))
+        }
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            
+            // Observe deletions in table b
+            let observer = Observer(observes: { eventKind in
+                if case .delete(tableName: let tableName) = eventKind {
+                    return tableName == "b"
+                }
+                return false
+            })
+            dbQueue.add(transactionObserver: observer)
+            
+            // Insert into c and trigger b deletion
+            try dbQueue.inTransaction { db in
+                try db.execute("""
+                CREATE TABLE a(id INTEGER PRIMARY KEY);
+                CREATE TABLE b(id INTEGER PRIMARY KEY);
+                CREATE TABLE c(id INTEGER);
+                INSERT INTO b (id) VALUES (42);
+                CREATE TRIGGER t AFTER INSERT ON c BEGIN DELETE FROM b; END;
+                INSERT INTO c (id) VALUES (1);
+                """)
+                return .commit
+            }
+            
+            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 1)
+            XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .delete, tableName: "b", rowId: 42))
+        }
+    }
 }
 

@@ -167,7 +167,7 @@ class DatabaseObservationBroker {
     var savepointStack = SavepointStack()
     var transactionState: TransactionState = .none
     var transactionObservations = [TransactionObservation]()
-    var activeTransactionObservations = [TransactionObservation]()
+    var activeTransactionObservations = [(TransactionObservation, DatabaseEventPredicate)]()
     
     init(_ database: Database) {
         self.database = database
@@ -222,9 +222,16 @@ class DatabaseObservationBroker {
         // Activate the transaction observers that are interested in the actions
         // performed by the statement.
         let databaseEventKinds = statement.databaseEventKinds
-        activeTransactionObservations = transactionObservations.filter { observer in
-            return databaseEventKinds.contains(where: observer.observes)
+        var activeTransactionObservations: [(TransactionObservation, DatabaseEventPredicate)] = []
+        
+        for observation in transactionObservations {
+            let kinds = databaseEventKinds.filter(observation.observes)
+            if kinds.isEmpty { continue }
+            let predicate: DatabaseEventPredicate = { event in kinds.contains { kind in event.isOfKind(kind) } }
+            activeTransactionObservations.append((observation, predicate))
         }
+        
+        self.activeTransactionObservations = activeTransactionObservations
     }
     
     func updateStatementDidFail(_ statement: UpdateStatement) throws {
@@ -319,7 +326,7 @@ class DatabaseObservationBroker {
     private func databaseWillChange(with event: DatabasePreUpdateEvent) {
         if savepointStack.isEmpty {
             // Notify now
-            for observation in activeTransactionObservations {
+            for (observation, predicate) in activeTransactionObservations where predicate(event) {
                 observation.databaseWillChange(with: event)
             }
         } else {
@@ -333,7 +340,7 @@ class DatabaseObservationBroker {
     private func databaseDidChange(with event: DatabaseEvent) {
         if savepointStack.isEmpty {
             // Notify now
-            for observation in activeTransactionObservations {
+            for (observation, predicate) in activeTransactionObservations where predicate(event) {
                 observation.databaseDidChange(with: event)
             }
         } else {
@@ -355,7 +362,7 @@ class DatabaseObservationBroker {
         savepointStack.clear()
         
         for (event, observations) in eventsBuffer {
-            for observation in observations {
+            for (observation, predicate) in observations where predicate(event) {
                 event.send(to: observation)
             }
         }
@@ -656,7 +663,6 @@ public enum DatabaseEventKind {
             return selectionInfo.contains(anyColumnIn: updatedColumnNames, from: tableName)
         }
     }
-
 }
 
 extension DatabaseEventKind {
@@ -672,6 +678,7 @@ extension DatabaseEventKind {
 
 protocol DatabaseEventProtocol {
     func send(to observer: TransactionObservation)
+    func isOfKind(_ databaseEventKind: DatabaseEventKind) -> Bool
 }
 
 /// A database event, notified to TransactionObserver.
@@ -688,6 +695,8 @@ public struct DatabaseEvent {
         /// SQLITE_UPDATE
         case update = 23
     }
+    
+    private let impl: DatabaseEventImpl
     
     /// The event kind
     public let kind: Kind
@@ -722,13 +731,21 @@ public struct DatabaseEvent {
     init(kind: Kind, rowID: Int64, databaseNameCString: UnsafePointer<Int8>?, tableNameCString: UnsafePointer<Int8>?) {
         self.init(kind: kind, rowID: rowID, impl: MetalDatabaseEventImpl(databaseNameCString: databaseNameCString, tableNameCString: tableNameCString))
     }
-    
-    private let impl: DatabaseEventImpl
 }
 
 extension DatabaseEvent : DatabaseEventProtocol {
     func send(to observer: TransactionObservation) {
         observer.databaseDidChange(with: self)
+    }
+    
+    func isOfKind(_ databaseEventKind: DatabaseEventKind) -> Bool {
+        switch (kind, databaseEventKind) {
+        case (.insert, .insert(let tableName)): return self.tableName == tableName
+        case (.delete, .delete(let tableName)): return self.tableName == tableName
+        case (.update, .update(let tableName, _)): return self.tableName == tableName
+        default:
+            return false
+        }
     }
 }
 
@@ -883,6 +900,16 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
         func send(to observer: TransactionObservation) {
             observer.databaseWillChange(with: self)
         }
+        
+        func isOfKind(_ databaseEventKind: DatabaseEventKind) -> Bool {
+            switch (kind, databaseEventKind) {
+            case (.insert, .insert(let tableName)): return self.tableName == tableName
+            case (.delete, .delete(let tableName)): return self.tableName == tableName
+            case (.update, .update(let tableName, _)): return self.tableName == tableName
+            default:
+                return false
+            }
+        }
     }
     
     /// Protocol for internal implementation of DatabaseEvent
@@ -1008,6 +1035,8 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
 
 #endif
 
+typealias DatabaseEventPredicate = (DatabaseEventProtocol) -> Bool
+
 /// The SQLite savepoint stack is described at
 /// https://www.sqlite.org/lang_savepoint.html
 ///
@@ -1019,7 +1048,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
 ///   rollbacked.
 class SavepointStack {
     /// The buffered events. See Database.didChange(with:)
-    var eventsBuffer: [(event: DatabaseEventProtocol, observations: [TransactionObservation])] = []
+    var eventsBuffer: [(event: DatabaseEventProtocol, observations: [(TransactionObservation, DatabaseEventPredicate)])] = []
     
     /// The savepoint stack, as an array of tuples (savepointName, index in the eventsBuffer array).
     /// Indexes let us drop rollbacked events from the event buffer.

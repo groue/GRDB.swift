@@ -166,8 +166,8 @@ class SelectStatementTests : GRDBTestCase {
             
             try db.create(table: "table1") { t in
                 t.column("id", .integer).primaryKey()
-                t.column("id3", .integer).notNull().references("table3", column: "id", onDelete: .cascade, onUpdate: .cascade)
-                t.column("id4", .integer).references("table4", column: "id", onDelete: .setNull, onUpdate: .setNull)
+                t.column("id3", .integer).references("table3", column: "id", onDelete: .cascade, onUpdate: .cascade)
+                t.column("id4", .integer).references("table4", column: "id", onDelete: .setNull, onUpdate: .cascade)
                 t.column("a", .integer)
                 t.column("b", .integer)
             }
@@ -185,7 +185,7 @@ class SelectStatementTests : GRDBTestCase {
             try db.create(table: "table5") { t in
                 t.column("id", .integer).primaryKey()
             }
-            try db.execute("CREATE TRIGGER table5trigger AFTER INSERT ON table5 BEGIN DELETE FROM table1; END")
+            try db.execute("CREATE TRIGGER table5trigger AFTER INSERT ON table5 BEGIN INSERT INTO table1 (id3, id4, a, b) VALUES (NULL, NULL, 0, 0); END")
             
             let statements = try [
                 db.makeSelectStatement("SELECT * FROM table1"),
@@ -239,11 +239,15 @@ class SelectStatementTests : GRDBTestCase {
             try db.execute("UPDATE table4 SET id = 2 WHERE id = 1")
             XCTAssertEqual(observers.map { $0.triggered }, [true, false, false, true])
             
-            try db.execute("DELETE FROM table3")
-            XCTAssertEqual(observers.map { $0.triggered }, [true, true, true, true])
-            
             try db.execute("DELETE FROM table4")
             XCTAssertEqual(observers.map { $0.triggered }, [true, false, false, true])
+            
+            try db.execute("INSERT INTO table4 (id) VALUES (1)")
+            try db.execute("DELETE FROM table4")
+            XCTAssertEqual(observers.map { $0.triggered }, [false, false, false, false])
+            
+            try db.execute("DELETE FROM table3")
+            XCTAssertEqual(observers.map { $0.triggered }, [true, true, true, true])
             
             try db.execute("INSERT INTO table5 (id) VALUES (NULL)")
             XCTAssertEqual(observers.map { $0.triggered }, [true, true, true, true])
