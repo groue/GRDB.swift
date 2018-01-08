@@ -223,7 +223,13 @@ class DatabaseObservationBroker {
         // performed by the statement.
         let databaseEventKinds = statement.databaseEventKinds
         
-        if databaseEventKinds.count == 1 {
+        switch databaseEventKinds.count {
+        case 0:
+            // Statement has no effect on any database table.
+            //
+            // For example: PRAGMA foreign_keys = ON
+            break
+        case 1:
             // We'll execute a simple statement without any side effect.
             // Eventual database events will thus all have the same kind. All
             // detabase events can be notified to interested observers without
@@ -235,7 +241,7 @@ class DatabaseObservationBroker {
                 guard databaseEventKinds.contains(where: observation.observes) else { return nil }
                 return (observation, .true)
             }
-        } else {
+        default:
             // We'll execute a complex statement with side effects performed by
             // an SQL trigger, or a foreign key action. Eventual database events
             // may not all have the same kind: we need to check each event kind
