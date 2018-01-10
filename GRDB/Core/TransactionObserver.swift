@@ -166,8 +166,8 @@ class DatabaseObservationBroker {
     unowned var database: Database
     var savepointStack = SavepointStack()
     var transactionState: TransactionState = .none
-    var observations = [TransactionObservation]()
-    var statementObservations = [(TransactionObservation, DatabaseEventPredicate)]()
+    var transactionObservations: [TransactionObservation] = []
+    var statementObservations: [StatementObservation] = []
     
     init(_ database: Database) {
         self.database = database
@@ -205,22 +205,25 @@ class DatabaseObservationBroker {
     }
     
     func add(transactionObserver: TransactionObserver, extent: Database.TransactionObservationExtent) {
-        observations.append(TransactionObservation(observer: transactionObserver, extent: extent))
-        if observations.count == 1 {
+        transactionObservations.append(TransactionObservation(observer: transactionObserver, extent: extent))
+        if transactionObservations.count == 1 {
             installUpdateHook()
         }
     }
     
     func remove(transactionObserver: TransactionObserver) {
-        observations.removeFirst { $0.isWrapping(transactionObserver) }
-        if observations.isEmpty {
+        transactionObservations.removeFirst { $0.isWrapping(transactionObserver) }
+        if transactionObservations.isEmpty {
             uninstallUpdateHook()
         }
     }
     
     func updateStatementWillExecute(_ statement: UpdateStatement) {
-        // Activate the transaction observers that are interested in the actions
-        // performed by the statement.
+        // Fill statementObservations with observations that are interested in
+        // the kind of events performed by the statement.
+        //
+        // Those statementObservations will be notified of individual changes
+        // in databaseWillChange() and databaseDidChange().
         let databaseEventKinds = statement.databaseEventKinds
         
         switch databaseEventKinds.count {
@@ -228,36 +231,40 @@ class DatabaseObservationBroker {
             // Statement has no effect on any database table.
             //
             // For example: PRAGMA foreign_keys = ON
-            break
+            statementObservations = []
         case 1:
             // We'll execute a simple statement without any side effect.
             // Eventual database events will thus all have the same kind. All
-            // detabase events can be notified to interested observers without
-            // any kind checking.
+            // detabase events can be notified to interested observations.
             //
-            // For example, if an observer observes all deletions in the table
-            // T, then all events generated from DELETE FROM T are notified:
-            statementObservations = observations.flatMap { observation in
-                guard databaseEventKinds.contains(where: observation.observes) else { return nil }
-                return (observation, .true)
+            // For example, if one observes all deletions in the table T, then
+            // all individual deletions of DELETE FROM T are notified:
+            statementObservations = transactionObservations.flatMap { observation in
+                guard databaseEventKinds.contains(where: observation.observes) else {
+                    // observation is not interested
+                    return nil
+                }
+                // observation will be notified of all individual events
+                return (observation, DatabaseEventPredicate.true)
             }
         default:
             // We'll execute a complex statement with side effects performed by
-            // an SQL trigger, or a foreign key action. Eventual database events
-            // may not all have the same kind: we need to check each event kind
-            // before notifying interested observers.
+            // an SQL trigger or a foreign key action. Eventual database events
+            // may not all have the same kind: we need to filter them before
+            // notifying interested observations.
             //
             // For example, if DELETE FROM T1 generates deletions in T1 and T2
-            // by the mean of foreign key action, then an observer that
-            // observes all deletions in the table T1 must only be notified of
-            // deletions in T1, not deletions in T2:
-            statementObservations = observations.flatMap { observation in
+            // by the mean of a foreign key action, then when one only observes
+            // deletions in T1, one must not be notified of deletions in T2:
+            statementObservations = transactionObservations.flatMap { observation in
                 let observedKinds = databaseEventKinds.filter(observation.observes)
-                if observedKinds.isEmpty { return nil }
-                let predicate = DatabaseEventPredicate.function { event in
-                    observedKinds.contains { event.isOfKind($0) }
+                if observedKinds.isEmpty {
+                    // observation is not interested
+                    return nil
                 }
-                return (observation, predicate)
+                // observation will only be notified of individual events that
+                // match one of the observed kinds.
+                return (observation, DatabaseEventPredicate.matching(observedKinds))
             }
         }
     }
@@ -380,7 +387,7 @@ class DatabaseObservationBroker {
     // Called from sqlite3_commit_hook and emptyDeferredTransactionDidCommit()
     private func databaseWillCommit() throws {
         notifyBufferedEvents()
-        for observation in observations {
+        for observation in transactionObservations {
             try observation.databaseWillCommit()
         }
     }
@@ -400,7 +407,7 @@ class DatabaseObservationBroker {
     private func databaseDidCommit() {
         savepointStack.clear()
         
-        for observation in observations {
+        for observation in transactionObservations {
             observation.databaseDidCommit(database)
         }
         cleanupTransactionObservations()
@@ -453,7 +460,7 @@ class DatabaseObservationBroker {
         savepointStack.clear()
         
         if notifyTransactionObservers {
-            for observation in observations {
+            for observation in transactionObservations {
                 observation.databaseDidRollback(database)
             }
         }
@@ -495,8 +502,8 @@ class DatabaseObservationBroker {
     /// Remove transaction observers that have stopped observing transaction,
     /// and uninstall SQLite update hooks if there is no remaining observers.
     private func cleanupTransactionObservations() {
-        observations = observations.filter { $0.isObserving }
-        if observations.isEmpty {
+        transactionObservations = transactionObservations.filter { $0.isObserving }
+        if transactionObservations.isEmpty {
             uninstallUpdateHook()
         }
     }
@@ -706,7 +713,7 @@ extension DatabaseEventKind {
 
 protocol DatabaseEventProtocol {
     func send(to observer: TransactionObservation)
-    func isOfKind(_ databaseEventKind: DatabaseEventKind) -> Bool
+    func matchesKind(_ databaseEventKind: DatabaseEventKind) -> Bool
 }
 
 /// A database event, notified to TransactionObserver.
@@ -766,7 +773,7 @@ extension DatabaseEvent : DatabaseEventProtocol {
         observer.databaseDidChange(with: self)
     }
     
-    func isOfKind(_ databaseEventKind: DatabaseEventKind) -> Bool {
+    func matchesKind(_ databaseEventKind: DatabaseEventKind) -> Bool {
         switch (kind, databaseEventKind) {
         case (.insert, .insert(let tableName)): return self.tableName == tableName
         case (.delete, .delete(let tableName)): return self.tableName == tableName
@@ -929,7 +936,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
             observer.databaseWillChange(with: self)
         }
         
-        func isOfKind(_ databaseEventKind: DatabaseEventKind) -> Bool {
+        func matchesKind(_ databaseEventKind: DatabaseEventKind) -> Bool {
             switch (kind, databaseEventKind) {
             case (.insert, .insert(let tableName)): return self.tableName == tableName
             case (.delete, .delete(let tableName)): return self.tableName == tableName
@@ -1063,17 +1070,24 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
 
 #endif
 
+// A predicate that filters database events
 enum DatabaseEventPredicate {
+    // Yes filter
     case `true`
-    case function((DatabaseEventProtocol) -> Bool)
+    // Only events that match one of those kinds
+    case matching([DatabaseEventKind])
     
     func evaluate(_ event: DatabaseEventProtocol) -> Bool {
         switch self {
-        case .true: return true
-        case .function(let f): return f(event)
+        case .true:
+            return true
+        case .matching(let kinds):
+            return kinds.contains { event.matchesKind($0) }
         }
     }
 }
+
+typealias StatementObservation = (TransactionObservation, DatabaseEventPredicate)
 
 /// The SQLite savepoint stack is described at
 /// https://www.sqlite.org/lang_savepoint.html
@@ -1085,8 +1099,8 @@ enum DatabaseEventPredicate {
 ///   notifying transaction observers of database events that could be
 ///   rollbacked.
 class SavepointStack {
-    /// The buffered events. See Database.didChange(with:)
-    var eventsBuffer: [(event: DatabaseEventProtocol, statementObservations: [(TransactionObservation, DatabaseEventPredicate)])] = []
+    /// The buffered events (see DatabaseObservationBroker.databaseDidChange(with:))
+    var eventsBuffer: [(event: DatabaseEventProtocol, statementObservations: [StatementObservation])] = []
     
     /// The savepoint stack, as an array of tuples (savepointName, index in the eventsBuffer array).
     /// Indexes let us drop rollbacked events from the event buffer.
