@@ -59,7 +59,7 @@ class FTS5PatternTests: GRDBTestCase {
     func testInvalidFTS5Pattern() throws {
         let dbQueue = try makeDatabaseQueue()
         dbQueue.inDatabase { db in
-            let invalidRawPatterns = ["", "?!", "^", "^foo", "NOT", "(", "AND", "OR", "\"", "missing:foo"]
+            let invalidRawPatterns = ["", "?!", "^", "NOT", "(", "AND", "OR", "\"", "missing:foo"]
             for rawPattern in invalidRawPatterns {
                 do {
                     _ = try db.makeFTS5Pattern(rawPattern: rawPattern, forTable: "books")
