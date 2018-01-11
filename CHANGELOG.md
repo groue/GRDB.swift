@@ -26,9 +26,10 @@ Release Notes
     let player = try request.fetchOne(db)    // Player?
     ```
     
-    This feature has been introduced in order to ease the tracking of a particular database row with [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB):
-
+    This feature has been introduced in order to ease the use of [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB):
+    
     ```swift
+    // New
     Player.filter(key: 1).rx
         .fetchOne(in: dbQueue)
         .subscribe(onNext: { player: Player? in
