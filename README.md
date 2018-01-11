@@ -3498,34 +3498,30 @@ try Player.fetchOne(db, key: ["email": "arthur@example.com"])              // Pl
 ```swift
 // SELECT * FROM players WHERE id = 1
 let request = Player.filter(key: 1)
+let player = try request.fetchOne(db)    // Player?
 
 // SELECT * FROM players WHERE id IN (1, 2, 3)
 let request = Player.filter(keys: [1, 2, 3])
+let players = try request.fetchAll(db)   // [Player]
 
 // SELECT * FROM players WHERE isoCode = 'FR'
 let request = Country.filter(key: "FR")
+let country = try request.fetchOne(db)   // Country?
 
 // SELECT * FROM countries WHERE isoCode IN ('FR', 'US')
 let request = Country.filter(keys: ["FR", "US"])
+let countries = try request.fetchAll(db) // [Country]
 
 // SELECT * FROM citizenships WHERE playerID = 1 AND countryISOCode = 'FR'
 let request = Citizenship.filter(key: ["playerID": 1, "countryISOCode": "FR"])
+let citizenship = request.fetchOne(db)   // Citizenship?
 
 // SELECT * FROM players WHERE email = 'arthur@example.com'
 let request = Player.filter(key: ["email": "arthur@example.com"])
-```
-
-You then fetch from those requests as usual:
-
-```swift
-let request = Player.filter(key: 1)
 let player = try request.fetchOne(db)    // Player?
-
-let request = Country.filter(keys: ["FR", "US"])
-let countries = try request.fetchAll(db) // [Country]
 ```
 
-Such requests can help observing the database with [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB):
+Those requests help observing the database with [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB):
 
 ```swift
 Player.filter(key: 1).rx

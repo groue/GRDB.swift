@@ -20,6 +20,10 @@ Release Notes
     // SELECT * FROM countries WHERE isoCode IN ('FR', 'US')
     let request = Country.filter(keys: ["FR", "US"])
     let countries = try request.fetchAll(db) // [Country]
+    
+    // SELECT * FROM players WHERE email = 'arthur@example.com'
+    let request = Player.filter(key: ["email": "arthur@example.com"])
+    let player = try request.fetchOne(db)    // Player?
     ```
     
     This feature has been introduced in order to ease the tracking of a particular database row with [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB):
