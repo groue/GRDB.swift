@@ -78,7 +78,7 @@ extension RowConvertible where Self: TableMapping {
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> RecordCursor<Self> where Sequence.Element: DatabaseValueConvertible {
-        return try filter(db, keys: keys).fetchCursor(db)
+        return try filter(keys: keys).fetchCursor(db)
     }
     
     /// Returns an array of records, given their primary keys.
@@ -98,7 +98,7 @@ extension RowConvertible where Self: TableMapping {
             // Avoid hitting the database
             return []
         }
-        return try filter(db, keys: keys).fetchAll(db)
+        return try filter(keys: keys).fetchAll(db)
     }
     
     /// Returns a single record given its primary key.
@@ -115,7 +115,7 @@ extension RowConvertible where Self: TableMapping {
             // Avoid hitting the database
             return nil
         }
-        return try filter(db, keys: [key]).fetchOne(db)
+        return try filter(key: key).fetchOne(db)
     }
 }
 

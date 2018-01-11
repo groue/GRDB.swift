@@ -105,10 +105,12 @@ extension QueryInterfaceRequest {
     ///     request = request.filter(Column("email") == "arthur@example.com")
     public func filter(_ predicate: SQLExpressible) -> QueryInterfaceRequest<T> {
         var query = self.query
-        if let whereExpression = query.whereExpression {
-            query.whereExpression = whereExpression && predicate.sqlExpression
-        } else {
-            query.whereExpression = predicate.sqlExpression
+        query.wherePromise = query.wherePromise.map { (db, expression) in
+            if let expression = expression {
+                return expression && predicate.sqlExpression
+            } else {
+                return predicate.sqlExpression
+            }
         }
         return QueryInterfaceRequest(query: query)
     }
@@ -235,6 +237,62 @@ extension QueryInterfaceRequest {
     }
 }
 
+extension QueryInterfaceRequest where T: TableMapping {
+    
+    /// Creates a QueryInterfaceRequest with the provided primary key *predicate*.
+    ///
+    ///     // SELECT * FROM players WHERE id IN 1
+    ///     var request = Player.all()
+    ///     request = request.filter(key: 1)
+    ///
+    /// The selection defaults to all columns. This default can be changed for
+    /// all requests by the `TableMapping.databaseSelection` property, or
+    /// for individual requests with the `TableMapping.select` method.
+    public func filter<PrimaryKeyType: DatabaseValueConvertible>(key: PrimaryKeyType?) -> QueryInterfaceRequest<T> {
+        guard let key = key else {
+            return T.none()
+        }
+        
+        return filter(keys: [key])
+    }
+
+    /// Creates a QueryInterfaceRequest with the provided primary key *predicate*.
+    ///
+    ///     // SELECT * FROM players WHERE id IN (1, 2, 3)
+    ///     var request = Player.all()
+    ///     request = request.filter(keys: [1, 2, 3])
+    ///
+    /// The selection defaults to all columns. This default can be changed for
+    /// all requests by the `TableMapping.databaseSelection` property, or
+    /// for individual requests with the `TableMapping.select` method.
+    public func filter<Sequence: Swift.Sequence>(keys: Sequence) -> QueryInterfaceRequest<T> where Sequence.Element: DatabaseValueConvertible {
+        var query = self.query
+        
+        let keys = Array(keys)
+        let makePredicate: (Column) -> SQLExpression
+        switch keys.count {
+        case 0:
+            return T.none()
+        case 1:
+            makePredicate = { $0 == keys[0] }
+        default:
+            makePredicate = { keys.contains($0) }
+        }
+
+        query.wherePromise = query.wherePromise.map { (db, expression) in
+            let primaryKey = try db.primaryKey(T.databaseTableName)
+            GRDBPrecondition(primaryKey.columns.count == 1, "Requesting by key requires a single-column primary key in the table \(T.databaseTableName)")
+            let keyPredicate = makePredicate(Column(primaryKey.columns[0]))
+            if let expression = expression {
+                return expression && keyPredicate
+            } else {
+                return keyPredicate
+            }
+        }
+        return QueryInterfaceRequest(query: query)
+    }
+}
+
 extension QueryInterfaceRequest where RowDecoder: MutablePersistable {
     
     // MARK: Deleting
@@ -306,6 +364,31 @@ extension TableMapping {
     /// for individual requests with the `TableMapping.select` method.
     public static func filter(_ predicate: SQLExpressible) -> QueryInterfaceRequest<Self> {
         return all().filter(predicate)
+    }
+    
+    
+    /// Creates a QueryInterfaceRequest with the provided primary key *predicate*.
+    ///
+    ///     // SELECT * FROM players WHERE id IN 1
+    ///     let request = Player.filter(key: 1)
+    ///
+    /// The selection defaults to all columns. This default can be changed for
+    /// all requests by the `TableMapping.databaseSelection` property, or
+    /// for individual requests with the `TableMapping.select` method.
+    public static func filter<PrimaryKeyType: DatabaseValueConvertible>(key: PrimaryKeyType?) -> QueryInterfaceRequest<Self> {
+        return all().filter(key: key)
+    }
+    
+    /// Creates a QueryInterfaceRequest with the provided primary key *predicate*.
+    ///
+    ///     // SELECT * FROM players WHERE id IN (1, 2, 3)
+    ///     let request = Player.filter(keys: [1, 2, 3])
+    ///
+    /// The selection defaults to all columns. This default can be changed for
+    /// all requests by the `TableMapping.databaseSelection` property, or
+    /// for individual requests with the `TableMapping.select` method.
+    public static func filter<Sequence: Swift.Sequence>(keys: Sequence) -> QueryInterfaceRequest<Self> where Sequence.Element: DatabaseValueConvertible {
+        return all().filter(keys: keys)
     }
     
     /// Creates a QueryInterfaceRequest with the provided *predicate*.

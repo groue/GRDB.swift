@@ -72,23 +72,6 @@ extension TableMapping {
     
     // MARK: Key Requests
     
-    static func filter<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> QueryInterfaceRequest<Self> where Sequence.Element: DatabaseValueConvertible {
-        let primaryKey = try db.primaryKey(databaseTableName)
-        let columns = primaryKey.columns.map { Column($0) }
-        GRDBPrecondition(columns.count == 1, "table \(databaseTableName) has multiple columns in its primary key")
-        let column = columns[0]
-        
-        let keys = Array(keys)
-        switch keys.count {
-        case 0:
-            return none()
-        case 1:
-            return filter(column == keys[0])
-        default:
-            return filter(keys.contains(column))
-        }
-    }
-    
     // Raises a fatal error if there is no unique index on the columns (unless
     // fatalErrorOnMissingUniqueIndex is false, for testability).
     //

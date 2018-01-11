@@ -572,7 +572,7 @@ extension MutablePersistable {
             // Avoid hitting the database
             return 0
         }
-        return try filter(db, keys: keys).deleteAll(db)
+        return try filter(keys: keys).deleteAll(db)
     }
     
     /// Delete a record, identified by its primary key; returns whether a
