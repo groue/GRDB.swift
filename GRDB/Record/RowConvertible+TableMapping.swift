@@ -139,7 +139,7 @@ extension RowConvertible where Self: TableMapping {
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> RecordCursor<Self> {
-        return try filter(db, keys: keys).fetchCursor(db)
+        return try filter(keys: keys).fetchCursor(db)
     }
     
     /// Returns an array of records identified by the provided unique keys
@@ -155,12 +155,11 @@ extension RowConvertible where Self: TableMapping {
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchAll(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> [Self] {
-        let keys = Array(keys)
         if keys.isEmpty {
             // Avoid hitting the database
             return []
         }
-        return try filter(db, keys: keys).fetchAll(db)
+        return try filter(keys: keys).fetchAll(db)
     }
     
     /// Returns a single record identified by a unique key (the primary key or
@@ -173,7 +172,11 @@ extension RowConvertible where Self: TableMapping {
     ///     - key: A dictionary of values.
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Self? {
-        return try filter(db, keys: [key]).fetchOne(db)
+    public static func fetchOne(_ db: Database, key: [String: DatabaseValueConvertible?]?) throws -> Self? {
+        guard let key = key else {
+            // Avoid hitting the database
+            return nil
+        }
+        return try filter(key: key).fetchOne(db)
     }
 }

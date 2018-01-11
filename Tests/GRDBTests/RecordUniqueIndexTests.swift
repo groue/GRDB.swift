@@ -15,29 +15,13 @@ private struct Person : RowConvertible, TableMapping {
 
 class RecordUniqueIndexTests: GRDBTestCase {
     
-    func testKeyFilterRequiresUniqueIndex() throws {
+    func testKeyFilterAcceptsUniqueIndex() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute("CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, email TEXT UNIQUE)")
             
-            _ = try Person.filter(db, keys: [["id": nil]])
-            _ = try Person.filter(db, keys: [["email": nil]])
-            do {
-                _ = try Person.filter(db, keys: [["id": nil, "email": nil]], fatalErrorOnMissingUniqueIndex: false)
-                XCTFail()
-            } catch let error as DatabaseError {
-                XCTAssertEqual(error.resultCode, .SQLITE_MISUSE)
-                XCTAssertEqual(error.message!, "table persons has no unique index on column(s) email, id")
-                XCTAssertEqual(error.description, "SQLite error 21: table persons has no unique index on column(s) email, id")
-            }
-            do {
-                _ = try Person.filter(db, keys: [["name": nil]], fatalErrorOnMissingUniqueIndex: false)
-                XCTFail()
-            } catch let error as DatabaseError {
-                XCTAssertEqual(error.resultCode, .SQLITE_MISUSE)
-                XCTAssertEqual(error.message!, "table persons has no unique index on column(s) name")
-                XCTAssertEqual(error.description, "SQLite error 21: table persons has no unique index on column(s) name")
-            }
+            _ = try Person.filter(keys: [["id": nil]]).fetchOne(db)
+            _ = try Person.filter(keys: [["email": nil]]).fetchOne(db)
         }
     }
 }

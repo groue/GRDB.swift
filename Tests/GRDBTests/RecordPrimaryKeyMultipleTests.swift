@@ -344,6 +344,78 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
         }
     }
 
+    
+    // MARK: - Fetch With Key Request
+    
+    func testFetchCursorWithKeysRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = Citizenship(personName: "Arthur", countryName: "France", native: true)
+            try record1.insert(db)
+            let record2 = Citizenship(personName: "Barbara", countryName: "France", native: false)
+            try record2.insert(db)
+            
+            do {
+                let cursor = try Citizenship.filter(keys: []).fetchCursor(db)
+                try XCTAssertNil(cursor.next())
+            }
+            
+            do {
+                let cursor = try Citizenship.filter(keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": record2.personName, "countryName": record2.countryName]]).fetchCursor(db)
+                let fetchedRecords = try [cursor.next()!, cursor.next()!]
+                XCTAssertEqual(Set(fetchedRecords.map { $0.personName }), Set([record1.personName, record2.personName]))
+                XCTAssertTrue(try cursor.next() == nil) // end
+            }
+            
+            do {
+                let cursor = try Citizenship.filter(keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": nil, "countryName": nil]]).fetchCursor(db)
+                let fetchedRecord = try cursor.next()!
+                XCTAssertEqual(fetchedRecord.personName, record1.personName)
+                XCTAssertTrue(try cursor.next() == nil) // end
+            }
+        }
+    }
+    
+    func testFetchAllWithKeysRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = Citizenship(personName: "Arthur", countryName: "France", native: true)
+            try record1.insert(db)
+            let record2 = Citizenship(personName: "Barbara", countryName: "France", native: false)
+            try record2.insert(db)
+            
+            do {
+                let fetchedRecords = try Citizenship.filter(keys: []).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let fetchedRecords = try Citizenship.filter(keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": record2.personName, "countryName": record2.countryName]]).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map { $0.personName }), Set([record1.personName, record2.personName]))
+            }
+            
+            do {
+                let fetchedRecords = try Citizenship.filter(keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": nil, "countryName": nil]]).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 1)
+                XCTAssertEqual(fetchedRecords.first!.personName, record1.personName!)
+            }
+        }
+    }
+
+    func testFetchOneWithKeyRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
+            try record.insert(db)
+            
+            let fetchedRecord = try Citizenship.filter(key: ["personName": record.personName, "countryName": record.countryName]).fetchOne(db)!
+            XCTAssertTrue(fetchedRecord.personName == record.personName)
+            XCTAssertTrue(fetchedRecord.countryName == record.countryName)
+            XCTAssertTrue(fetchedRecord.native == record.native)
+        }
+    }
+
 
     // MARK: - Exists
 

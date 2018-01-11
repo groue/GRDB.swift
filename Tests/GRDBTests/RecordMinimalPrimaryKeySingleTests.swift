@@ -321,6 +321,81 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
         }
     }
 
+    
+    // MARK: - Fetch With Key Request
+    
+    func testFetchCursorWithKeysRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = MinimalSingle()
+            record1.UUID = "theUUID1"
+            try record1.insert(db)
+            let record2 = MinimalSingle()
+            record2.UUID = "theUUID2"
+            try record2.insert(db)
+            
+            do {
+                let cursor = try MinimalSingle.filter(keys: []).fetchCursor(db)
+                try XCTAssertNil(cursor.next())
+            }
+            
+            do {
+                let cursor = try MinimalSingle.filter(keys: [["UUID": record1.UUID], ["UUID": record2.UUID]]).fetchCursor(db)
+                let fetchedRecords = try [cursor.next()!, cursor.next()!]
+                XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set([record1.UUID!, record2.UUID!]))
+                XCTAssertTrue(try cursor.next() == nil) // end
+            }
+            
+            do {
+                let cursor = try MinimalSingle.filter(keys: [["UUID": record1.UUID], ["UUID": nil]]).fetchCursor(db)
+                let fetchedRecord = try cursor.next()!
+                XCTAssertEqual(fetchedRecord.UUID!, record1.UUID!)
+                XCTAssertTrue(try cursor.next() == nil) // end
+            }
+        }
+    }
+    
+    func testFetchAllWithKeysRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = MinimalSingle()
+            record1.UUID = "theUUID1"
+            try record1.insert(db)
+            let record2 = MinimalSingle()
+            record2.UUID = "theUUID2"
+            try record2.insert(db)
+            
+            do {
+                let fetchedRecords = try MinimalSingle.filter(keys: []).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let fetchedRecords = try MinimalSingle.filter(keys: [["UUID": record1.UUID], ["UUID": record2.UUID]]).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set([record1.UUID!, record2.UUID!]))
+            }
+            
+            do {
+                let fetchedRecords = try MinimalSingle.filter(keys: [["UUID": record1.UUID], ["UUID": nil]]).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 1)
+                XCTAssertEqual(fetchedRecords.first!.UUID, record1.UUID!)
+            }
+        }
+    }
+    
+    func testFetchOneWithKeyRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = MinimalSingle()
+            record.UUID = "theUUID"
+            try record.insert(db)
+            
+            let fetchedRecord = try MinimalSingle.filter(key: ["UUID": record.UUID]).fetchOne(db)!
+            XCTAssertTrue(fetchedRecord.UUID == record.UUID)
+        }
+    }
+
 
     // MARK: - Fetch With Primary Key
     
@@ -390,6 +465,80 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             
             do {
                 let fetchedRecord = try MinimalSingle.fetchOne(db, key: record.UUID)!
+                XCTAssertTrue(fetchedRecord.UUID == record.UUID)
+            }
+        }
+    }
+
+    
+    // MARK: - Fetch With Primary Key Request
+    
+    func testFetchCursorWithPrimaryKeysRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = MinimalSingle()
+            record1.UUID = "theUUID1"
+            try record1.insert(db)
+            let record2 = MinimalSingle()
+            record2.UUID = "theUUID2"
+            try record2.insert(db)
+            
+            do {
+                let UUIDs: [String] = []
+                let cursor = try MinimalSingle.filter(keys: UUIDs).fetchCursor(db)
+                try XCTAssertNil(cursor.next())
+            }
+            
+            do {
+                let UUIDs = [record1.UUID!, record2.UUID!]
+                let cursor = try MinimalSingle.filter(keys: UUIDs).fetchCursor(db)
+                let fetchedRecords = try [cursor.next()!, cursor.next()!]
+                XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
+                XCTAssertTrue(try cursor.next() == nil) // end
+            }
+        }
+    }
+    
+    func testFetchAllWithPrimaryKeysRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = MinimalSingle()
+            record1.UUID = "theUUID1"
+            try record1.insert(db)
+            let record2 = MinimalSingle()
+            record2.UUID = "theUUID2"
+            try record2.insert(db)
+            
+            do {
+                let UUIDs: [String] = []
+                let fetchedRecords = try MinimalSingle.filter(keys: UUIDs).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let UUIDs = [record1.UUID!, record2.UUID!]
+                let fetchedRecords = try MinimalSingle.filter(keys: UUIDs).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
+            }
+        }
+    }
+    
+    func testFetchOneWithPrimaryKeyRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = MinimalSingle()
+            record.UUID = "theUUID"
+            try record.insert(db)
+            
+            do {
+                let id: String? = nil
+                let fetchedRecord = try MinimalSingle.filter(key: id).fetchOne(db)
+                XCTAssertTrue(fetchedRecord == nil)
+            }
+            
+            do {
+                let fetchedRecord = try MinimalSingle.filter(key: record.UUID).fetchOne(db)!
                 XCTAssertTrue(fetchedRecord.UUID == record.UUID)
             }
         }

@@ -1,27 +1,14 @@
 // MARK: - QueryInterfaceSelectQueryDefinition
 
-// Badly named, I know
 struct DatabasePromise<T> {
-    private enum Future {
-        case value(T)
-        case function((Database) throws -> T)
-    }
-    
-    private var future: Future
+    let resolve: (Database) throws -> T
     
     init(value: T) {
-        self.future = .value(value)
+        self.resolve = { _ in value }
     }
     
-    init(_ function: @escaping (Database) throws -> T) {
-        self.future = .function(function)
-    }
-    
-    func resolve(_ db: Database) throws -> T {
-        switch future {
-        case .value(let value): return value
-        case .function(let f): return try f(db)
-        }
+    init(_ resolve: @escaping (Database) throws -> T) {
+        self.resolve = resolve
     }
     
     func map(_ transform: @escaping (Database, T) throws -> T) -> DatabasePromise {
@@ -62,6 +49,12 @@ struct QueryInterfaceSelectQueryDefinition {
         self.isReversed = isReversed
         self.havingExpression = havingExpression
         self.limit = limit
+    }
+    
+    func mapWhereExpression(_ transform: @escaping (Database, SQLExpression?) throws -> SQLExpression?) -> QueryInterfaceSelectQueryDefinition {
+        var query = self
+        query.wherePromise = query.wherePromise.map(transform)
+        return query
     }
     
     func sql(_ db: Database, _ arguments: inout StatementArguments?) throws -> String {

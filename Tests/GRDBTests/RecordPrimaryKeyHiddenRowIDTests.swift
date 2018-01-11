@@ -390,6 +390,79 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
         }
     }
 
+    
+    // MARK: - Fetch With Key Request
+    
+    func testFetchCursorWithKeysRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = Person(name: "Arthur")
+            try record1.insert(db)
+            let record2 = Person(name: "Barbara")
+            try record2.insert(db)
+            
+            do {
+                let cursor = try Person.filter(keys: []).fetchCursor(db)
+                try XCTAssertNil(cursor.next())
+            }
+            
+            do {
+                let cursor = try Person.filter(keys: [["rowid": record1.id], ["rowid": record2.id]]).fetchCursor(db)
+                let fetchedRecords = try [cursor.next()!, cursor.next()!]
+                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set([record1.id, record2.id]))
+                XCTAssertTrue(try cursor.next() == nil) // end
+            }
+            
+            do {
+                let cursor = try Person.filter(keys: [["rowid": record1.id], ["rowid": nil]]).fetchCursor(db)
+                let fetchedRecord = try cursor.next()!
+                XCTAssertEqual(fetchedRecord.id!, record1.id!)
+                XCTAssertTrue(try cursor.next() == nil) // end
+            }
+        }
+    }
+    
+    func testFetchAllWithKeysRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = Person(name: "Arthur")
+            try record1.insert(db)
+            let record2 = Person(name: "Barbara")
+            try record2.insert(db)
+            
+            do {
+                let fetchedRecords = try Person.filter(keys: []).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let fetchedRecords = try Person.filter(keys: [["rowid": record1.id], ["rowid": record2.id]]).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set([record1.id, record2.id]))
+            }
+            
+            do {
+                let fetchedRecords = try Person.filter(keys: [["rowid": record1.id], ["rowid": nil]]).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 1)
+                XCTAssertEqual(fetchedRecords.first!.id, record1.id!)
+            }
+        }
+    }
+    
+    func testFetchOneWithKeyRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Person(name: "Arthur")
+            try record.insert(db)
+            
+            let fetchedRecord = try Person.filter(key: ["rowid": record.id]).fetchOne(db)!
+            XCTAssertTrue(fetchedRecord.id == record.id)
+            XCTAssertTrue(fetchedRecord.name == record.name)
+            XCTAssertTrue(fetchedRecord.age == record.age)
+            XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+        }
+    }
+
 
     // MARK: - Fetch With Primary Key
     
@@ -454,6 +527,78 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             
             do {
                 let fetchedRecord = try Person.fetchOne(db, key: record.id)!
+                XCTAssertTrue(fetchedRecord.id == record.id)
+                XCTAssertTrue(fetchedRecord.name == record.name)
+                XCTAssertTrue(fetchedRecord.age == record.age)
+                XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+            }
+        }
+    }
+
+    
+    // MARK: - Fetch With Primary Key Request
+    
+    func testFetchCursorWithPrimaryKeysRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = Person(name: "Arthur")
+            try record1.insert(db)
+            let record2 = Person(name: "Barbara")
+            try record2.insert(db)
+            
+            do {
+                let ids: [Int64] = []
+                let cursor = try Person.filter(keys: ids).fetchCursor(db)
+                try XCTAssertNil(cursor.next())
+            }
+            
+            do {
+                let ids = [record1.id!, record2.id!]
+                let cursor = try Person.filter(keys: ids).fetchCursor(db)
+                let fetchedRecords = try [cursor.next()!, cursor.next()!]
+                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
+                XCTAssertTrue(try cursor.next() == nil) // end
+            }
+        }
+    }
+    
+    func testFetchAllWithPrimaryKeysRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = Person(name: "Arthur")
+            try record1.insert(db)
+            let record2 = Person(name: "Barbara")
+            try record2.insert(db)
+            
+            do {
+                let ids: [Int64] = []
+                let fetchedRecords = try Person.filter(keys: ids).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let ids = [record1.id!, record2.id!]
+                let fetchedRecords = try Person.filter(keys: ids).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
+            }
+        }
+    }
+    
+    func testFetchOneWithPrimaryKeyRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Person(name: "Arthur")
+            try record.insert(db)
+            
+            do {
+                let id: Int64? = nil
+                let fetchedRecord = try Person.filter(key: id).fetchOne(db)
+                XCTAssertTrue(fetchedRecord == nil)
+            }
+            
+            do {
+                let fetchedRecord = try Person.filter(key: record.id).fetchOne(db)!
                 XCTAssertTrue(fetchedRecord.id == record.id)
                 XCTAssertTrue(fetchedRecord.name == record.name)
                 XCTAssertTrue(fetchedRecord.age == record.age)

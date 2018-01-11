@@ -104,15 +104,13 @@ extension QueryInterfaceRequest {
     ///     var request = Player.all()
     ///     request = request.filter(Column("email") == "arthur@example.com")
     public func filter(_ predicate: SQLExpressible) -> QueryInterfaceRequest<T> {
-        var query = self.query
-        query.wherePromise = query.wherePromise.map { (db, expression) in
+        return QueryInterfaceRequest(query: query.mapWhereExpression { (db, expression) in
             if let expression = expression {
                 return expression && predicate.sqlExpression
             } else {
                 return predicate.sqlExpression
             }
-        }
-        return QueryInterfaceRequest(query: query)
+        })
     }
     
     /// A new QueryInterfaceRequest with the provided *predicate* added to the
@@ -241,7 +239,7 @@ extension QueryInterfaceRequest where T: TableMapping {
     
     /// Creates a QueryInterfaceRequest with the provided primary key *predicate*.
     ///
-    ///     // SELECT * FROM players WHERE id IN 1
+    ///     // SELECT * FROM players WHERE id = 1
     ///     var request = Player.all()
     ///     request = request.filter(key: 1)
     ///
@@ -266,8 +264,6 @@ extension QueryInterfaceRequest where T: TableMapping {
     /// all requests by the `TableMapping.databaseSelection` property, or
     /// for individual requests with the `TableMapping.select` method.
     public func filter<Sequence: Swift.Sequence>(keys: Sequence) -> QueryInterfaceRequest<T> where Sequence.Element: DatabaseValueConvertible {
-        var query = self.query
-        
         let keys = Array(keys)
         let makePredicate: (Column) -> SQLExpression
         switch keys.count {
@@ -279,17 +275,82 @@ extension QueryInterfaceRequest where T: TableMapping {
             makePredicate = { keys.contains($0) }
         }
 
-        query.wherePromise = query.wherePromise.map { (db, expression) in
+        return QueryInterfaceRequest(query: query.mapWhereExpression { (db, expression) in
             let primaryKey = try db.primaryKey(T.databaseTableName)
             GRDBPrecondition(primaryKey.columns.count == 1, "Requesting by key requires a single-column primary key in the table \(T.databaseTableName)")
-            let keyPredicate = makePredicate(Column(primaryKey.columns[0]))
+            let keysPredicate = makePredicate(Column(primaryKey.columns[0]))
             if let expression = expression {
-                return expression && keyPredicate
+                return expression && keysPredicate
             } else {
-                return keyPredicate
+                return keysPredicate
             }
+        })
+    }
+    
+    /// Creates a QueryInterfaceRequest with the provided primary key *predicate*.
+    ///
+    ///     // SELECT * FROM passports WHERE personId = 1 AND countryCode = 'FR'
+    ///     var request = Player.all()
+    ///     request = request.filter(key: ["personId": 1, "countryCode": "FR"])
+    ///
+    /// When executed, this request raises a fatal error if there is no unique
+    /// index on the key columns.
+    ///
+    /// The selection defaults to all columns. This default can be changed for
+    /// all requests by the `TableMapping.databaseSelection` property, or
+    /// for individual requests with the `TableMapping.select` method.
+    public func filter(key: [String: DatabaseValueConvertible?]?) -> QueryInterfaceRequest<T> {
+        guard let key = key else {
+            return T.none()
         }
-        return QueryInterfaceRequest(query: query)
+        
+        return filter(keys: [key])
+    }
+    
+    /// Creates a QueryInterfaceRequest with the provided primary key *predicate*.
+    ///
+    ///     // SELECT * FROM passports WHERE (personId = 1 AND countryCode = 'FR') OR ...
+    ///     let request = Passport.filter(keys: [["personId": 1, "countryCode": "FR"], ...])
+    ///
+    /// When executed, this request raises a fatal error if there is no unique
+    /// index on the key columns.
+    ///
+    /// The selection defaults to all columns. This default can be changed for
+    /// all requests by the `TableMapping.databaseSelection` property, or
+    /// for individual requests with the `TableMapping.select` method.
+    public func filter(keys: [[String: DatabaseValueConvertible?]]) -> QueryInterfaceRequest<T> {
+        guard !keys.isEmpty else {
+            return T.none()
+        }
+        
+        return QueryInterfaceRequest(query: query.mapWhereExpression { (db, expression) in
+            let keyPredicates: [SQLExpression] = try keys.map { key in
+                // Prevent filter(db, keys: [[:]])
+                GRDBPrecondition(!key.isEmpty, "Invalid empty key dictionary")
+                
+                // Prevent filter(keys: [["foo": 1, "bar": 2]]) where
+                // ("foo", "bar") is not a unique key (primary key or columns of a
+                // unique index)
+                guard let orderedColumns = try db.columnsForUniqueKey(key.keys, in: T.databaseTableName) else {
+                    fatalError("table \(T.databaseTableName) has no unique index on column(s) \(key.keys.sorted().joined(separator: ", "))")
+                }
+                
+                let lowercaseOrderedColumns = orderedColumns.map { $0.lowercased() }
+                let columnPredicates: [SQLExpression] = key
+                    // Sort key columns in the same order as the unique index
+                    .sorted { (kv1, kv2) in lowercaseOrderedColumns.index(of: kv1.0.lowercased())! < lowercaseOrderedColumns.index(of: kv2.0.lowercased())! }
+                    .map { (column, value) in Column(column) == value }
+                return SQLBinaryOperator.and.join(columnPredicates)! // not nil because columnPredicates is not empty
+            }
+            
+            let keysPredicate = SQLBinaryOperator.or.join(keyPredicates)! // not nil because keys is not emmpty
+            
+            if let expression = expression {
+                return expression && keysPredicate
+            } else {
+                return keysPredicate
+            }
+        })
     }
 }
 
@@ -366,10 +427,9 @@ extension TableMapping {
         return all().filter(predicate)
     }
     
-    
     /// Creates a QueryInterfaceRequest with the provided primary key *predicate*.
     ///
-    ///     // SELECT * FROM players WHERE id IN 1
+    ///     // SELECT * FROM players WHERE id = 1
     ///     let request = Player.filter(key: 1)
     ///
     /// The selection defaults to all columns. This default can be changed for
@@ -388,6 +448,36 @@ extension TableMapping {
     /// all requests by the `TableMapping.databaseSelection` property, or
     /// for individual requests with the `TableMapping.select` method.
     public static func filter<Sequence: Swift.Sequence>(keys: Sequence) -> QueryInterfaceRequest<Self> where Sequence.Element: DatabaseValueConvertible {
+        return all().filter(keys: keys)
+    }
+    
+    /// Creates a QueryInterfaceRequest with the provided primary key *predicate*.
+    ///
+    ///     // SELECT * FROM passports WHERE personId = 1 AND countryCode = 'FR'
+    ///     let request = Passport.filter(key: ["personId": 1, "countryCode": "FR"])
+    ///
+    /// When executed, this request raises a fatal error if there is no unique
+    /// index on the key columns.
+    ///
+    /// The selection defaults to all columns. This default can be changed for
+    /// all requests by the `TableMapping.databaseSelection` property, or
+    /// for individual requests with the `TableMapping.select` method.
+    public static func filter(key: [String: DatabaseValueConvertible?]) -> QueryInterfaceRequest<Self> {
+        return all().filter(key: key)
+    }
+    
+    /// Creates a QueryInterfaceRequest with the provided primary key *predicate*.
+    ///
+    ///     // SELECT * FROM passports WHERE (personId = 1 AND countryCode = 'FR') OR ...
+    ///     let request = Passport.filter(keys: [["personId": 1, "countryCode": "FR"], ...])
+    ///
+    /// When executed, this request raises a fatal error if there is no unique
+    /// index on the key columns.
+    ///
+    /// The selection defaults to all columns. This default can be changed for
+    /// all requests by the `TableMapping.databaseSelection` property, or
+    /// for individual requests with the `TableMapping.select` method.
+    public static func filter(keys: [[String: DatabaseValueConvertible?]]) -> QueryInterfaceRequest<Self> {
         return all().filter(keys: keys)
     }
     

@@ -327,6 +327,81 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
         }
     }
 
+    
+    // MARK: - Fetch With Key Request
+    
+    func testFetchCursorWithKeysRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = Email()
+            record1.email = "me@domain.com"
+            try record1.insert(db)
+            let record2 = Email()
+            record2.email = "you@domain.com"
+            try record2.insert(db)
+            
+            do {
+                let cursor = try Email.filter(keys: []).fetchCursor(db)
+                try XCTAssertNil(cursor.next())
+            }
+            
+            do {
+                let cursor = try Email.filter(keys: [["email": record1.email], ["email": record2.email]]).fetchCursor(db)
+                let fetchedRecords = try [cursor.next()!, cursor.next()!]
+                XCTAssertEqual(Set(fetchedRecords.map { $0.email }), Set([record1.email, record2.email]))
+                XCTAssertTrue(try cursor.next() == nil) // end
+            }
+            
+            do {
+                let cursor = try Email.filter(keys: [["email": record1.email], ["email": nil]]).fetchCursor(db)
+                let fetchedRecord = try cursor.next()!
+                XCTAssertEqual(fetchedRecord.email, record1.email)
+                XCTAssertTrue(try cursor.next() == nil) // end
+            }
+        }
+    }
+    
+    func testFetchAllWithKeysRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = Email()
+            record1.email = "me@domain.com"
+            try record1.insert(db)
+            let record2 = Email()
+            record2.email = "you@domain.com"
+            try record2.insert(db)
+            
+            do {
+                let fetchedRecords = try Email.filter(keys: []).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let fetchedRecords = try Email.filter(keys: [["email": record1.email], ["email": record2.email]]).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map { $0.email }), Set([record1.email, record2.email]))
+            }
+            
+            do {
+                let fetchedRecords = try Email.filter(keys: [["email": record1.email], ["email": nil]]).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 1)
+                XCTAssertEqual(fetchedRecords.first!.email, record1.email!)
+            }
+        }
+    }
+
+    func testFetchOneWithKeyRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Email()
+            record.email = "me@domain.com"
+            try record.insert(db)
+            
+            let fetchedRecord = try Email.filter(key: ["email": record.email]).fetchOne(db)!
+            XCTAssertTrue(fetchedRecord.email == record.email)
+        }
+    }
+
 
     // MARK: - Fetch With Primary Key
     
@@ -396,6 +471,80 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             
             do {
                 let fetchedRecord = try Email.fetchOne(db, key: record.email)!
+                XCTAssertTrue(fetchedRecord.email == record.email)
+            }
+        }
+    }
+
+    
+    // MARK: - Fetch With Primary Key Request
+    
+    func testFetchCursorWithPrimaryKeysRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = Email()
+            record1.email = "me@domain.com"
+            try record1.insert(db)
+            let record2 = Email()
+            record2.email = "you@domain.com"
+            try record2.insert(db)
+            
+            do {
+                let emails: [String] = []
+                let cursor = try Email.filter(keys: emails).fetchCursor(db)
+                try XCTAssertNil(cursor.next())
+            }
+            
+            do {
+                let emails = [record1.email!, record2.email!]
+                let cursor = try Email.filter(keys: emails).fetchCursor(db)
+                let fetchedRecords = try [cursor.next()!, cursor.next()!]
+                XCTAssertEqual(Set(fetchedRecords.map { $0.email! }), Set(emails))
+                XCTAssertTrue(try cursor.next() == nil) // end
+            }
+        }
+    }
+    
+    func testFetchAllWithPrimaryKeysRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = Email()
+            record1.email = "me@domain.com"
+            try record1.insert(db)
+            let record2 = Email()
+            record2.email = "you@domain.com"
+            try record2.insert(db)
+            
+            do {
+                let emails: [String] = []
+                let fetchedRecords = try Email.filter(keys: emails).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let emails = [record1.email!, record2.email!]
+                let fetchedRecords = try Email.filter(keys: emails).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map { $0.email }), Set(emails))
+            }
+        }
+    }
+    
+    func testFetchOneWithPrimaryKeyRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Email()
+            record.email = "me@domain.com"
+            try record.insert(db)
+            
+            do {
+                let id: String? = nil
+                let fetchedRecord = try Email.filter(key: id).fetchOne(db)
+                XCTAssertTrue(fetchedRecord == nil)
+            }
+            
+            do {
+                let fetchedRecord = try Email.filter(key: record.email).fetchOne(db)!
                 XCTAssertTrue(fetchedRecord.email == record.email)
             }
         }

@@ -103,6 +103,20 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
         }
     }
 
+    
+    // MARK: - Fetch With Key Request
+    
+    func testFetchOneWithKeyRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Item(email: "item@example.com")
+            try record.insert(db)
+            
+            let fetchedRecord = try Item.filter(key: ["email": record.email]).fetchOne(db)!
+            XCTAssertTrue(fetchedRecord.email == record.email)
+        }
+    }
+
 
     // MARK: - Fetch With Primary Key
     
@@ -172,6 +186,80 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
             
             do {
                 let fetchedRecord = try Item.fetchOne(db, key: id)!
+                XCTAssertTrue(fetchedRecord.name == record.name)
+            }
+        }
+    }
+
+    
+    // MARK: - Fetch With Primary Key Request
+    
+    func testFetchCursorWithPrimaryKeysRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = Item(name: "Table")
+            try record1.insert(db)
+            let id1 = db.lastInsertedRowID
+            let record2 = Item(name: "Chair")
+            try record2.insert(db)
+            let id2 = db.lastInsertedRowID
+            
+            do {
+                let ids: [Int64] = []
+                let cursor = try Item.filter(keys: ids).fetchCursor(db)
+                try XCTAssertNil(cursor.next())
+            }
+            
+            do {
+                let ids = [id1, id2]
+                let cursor = try Item.filter(keys: ids).fetchCursor(db)
+                let fetchedRecords = try [cursor.next()!, cursor.next()!]
+                XCTAssertEqual(Set(fetchedRecords.map { $0.name! }), Set([record1, record2].map { $0.name! }))
+                XCTAssertTrue(try cursor.next() == nil) // end
+            }
+        }
+    }
+    
+    func testFetchAllWithPrimaryKeysRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = Item(name: "Table")
+            try record1.insert(db)
+            let id1 = db.lastInsertedRowID
+            let record2 = Item(name: "Chair")
+            try record2.insert(db)
+            let id2 = db.lastInsertedRowID
+            
+            do {
+                let ids: [Int64] = []
+                let fetchedRecords = try Item.filter(keys: ids).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let ids = [id1, id2]
+                let fetchedRecords = try Item.filter(keys: ids).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map { $0.name! }), Set([record1, record2].map { $0.name! }))
+            }
+        }
+    }
+    
+    func testFetchOneWithPrimaryKeyRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Item(name: "Table")
+            try record.insert(db)
+            let id = db.lastInsertedRowID
+            
+            do {
+                let id: Int64? = nil
+                let fetchedRecord = try Item.filter(key: id).fetchOne(db)
+                XCTAssertTrue(fetchedRecord == nil)
+            }
+            
+            do {
+                let fetchedRecord = try Item.filter(key: id).fetchOne(db)!
                 XCTAssertTrue(fetchedRecord.name == record.name)
             }
         }
