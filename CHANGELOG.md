@@ -3,9 +3,60 @@ Release Notes
 
 ## Next Version
 
-**Fixed**
+### Fixed
 
 - The `databaseDidChange` method of [transaction observers](https://github.com/groue/GRDB.swift/blob/master/README.md#transactionobserver-protocol) is now only notified of events filtered by the `observes(eventsOfKind:)` method. Previous versions of GRDB would sometimes let other events through.
+- [Transaction observers](https://github.com/groue/GRDB.swift/blob/master/README.md#transactionobserver-protocol) used to be notified of some database changes they were not interested into, in case of complex statements with side effects (foreign key cascades or sql triggers). This has been fixed.
+
+
+### New
+
+- The query interface has learned to build requests from any key (primary keys and unique keys) ([documentation](https://github.com/groue/GRDB.swift/blob/master/README.md#fetching-by-key)):
+    
+    ```swift
+    // SELECT * FROM players WHERE id = 1
+    let request = Player.filter(key: 1)
+    let player = try request.fetchOne(db)    // Player?
+    
+    // SELECT * FROM countries WHERE isoCode IN ('FR', 'US')
+    let request = Country.filter(keys: ["FR", "US"])
+    let countries = try request.fetchAll(db) // [Country]
+    ```
+    
+    This feature has been introduced in order to ease the tracking of a particular database row with [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB):
+
+    ```swift
+    Player.filter(key: 1).rx
+        .fetchOne(in: dbQueue)
+        .subscribe(onNext: { player: Player? in
+            print("Player 1 has changed")
+        })
+    ```
+
+
+### API diff
+
+```diff
+ extension TableMapping {
++    static func filter<PrimaryKeyType: DatabaseValueConvertible>(key: PrimaryKeyType?) -> QueryInterfaceRequest<Self>
++    static func filter<Sequence: Swift.Sequence>(keys: Sequence) -> QueryInterfaceRequest<Self> where Sequence.Element: DatabaseValueConvertible
++    static func filter(key: [String: DatabaseValueConvertible?]?) -> QueryInterfaceRequest<Self>
++    static func filter(keys: [[String: DatabaseValueConvertible?]]) -> QueryInterfaceRequest<Self>
+ }
+ 
+ extension QueryInterfaceRequest where T: TableMapping {
++    func filter<PrimaryKeyType: DatabaseValueConvertible>(key: PrimaryKeyType?) -> QueryInterfaceRequest<T>
++    func filter<Sequence: Swift.Sequence>(keys: Sequence) -> QueryInterfaceRequest<T> where Sequence.Element: DatabaseValueConvertible
++    func filter(key: [String: DatabaseValueConvertible?]?) -> QueryInterfaceRequest<T>
++    func filter(keys: [[String: DatabaseValueConvertible?]]) -> QueryInterfaceRequest<T>
+ }
+ 
+ extension RowConvertible where Self: TableMapping {
+-    static func fetchOne(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Self?
++    static func fetchOne(_ db: Database, key: [String: DatabaseValueConvertible?]?) throws -> Self?
+ }
+```
+
 
 ## 2.4.2
 
@@ -131,14 +182,14 @@ Released October 24, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/comp
 ### API diff
 
 ```diff
-extension Request {
+ extension Request {
 +    func asSQLRequest(_ db: Database, cached: Bool = false) throws -> SQLRequest
 }
 struct SQLRequest {
 +    let sql: String
 +    let arguments: StatementArguments?
 +    let adapter: RowAdapter?
-}
+ }
 ```
 
 

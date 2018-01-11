@@ -3493,6 +3493,48 @@ try Citizenship.fetchOne(db, key: ["playerID": 1, "countryISOCode": "FR"]) // Ci
 try Player.fetchOne(db, key: ["email": "arthur@example.com"])              // Player?
 ```
 
+**When you want to build a request and plan to fetch from it later**, use the `filter(key:)` and `filter(keys:)` methods:
+
+```swift
+// SELECT * FROM players WHERE id = 1
+let request = Player.filter(key: 1)
+
+// SELECT * FROM players WHERE id IN (1, 2, 3)
+let request = Player.filter(keys: [1, 2, 3])
+
+// SELECT * FROM players WHERE isoCode = 'FR'
+let request = Country.filter(key: "FR")
+
+// SELECT * FROM countries WHERE isoCode IN ('FR', 'US')
+let request = Country.filter(keys: ["FR", "US"])
+
+// SELECT * FROM citizenships WHERE playerID = 1 AND countryISOCode = 'FR'
+let request = Citizenship.filter(key: ["playerID": 1, "countryISOCode": "FR"])
+
+// SELECT * FROM players WHERE email = 'arthur@example.com'
+let request = Player.filter(key: ["email": "arthur@example.com"])
+```
+
+You then fetch from those requests as usual:
+
+```swift
+let request = Player.filter(key: 1)
+let player = try request.fetchOne(db)    // Player?
+
+let request = Country.filter(keys: ["FR", "US"])
+let countries = try request.fetchAll(db) // [Country]
+```
+
+Such requests can help observing the database with [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB):
+
+```swift
+Player.filter(key: 1).rx
+    .fetchOne(in: dbQueue)
+    .subscribe(onNext: { player: Player? in
+        print("Player 1 has changed")
+    })
+```
+
 
 ## Fetching Aggregated Values
 

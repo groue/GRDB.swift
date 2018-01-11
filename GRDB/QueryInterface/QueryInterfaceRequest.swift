@@ -462,7 +462,7 @@ extension TableMapping {
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableMapping.databaseSelection` property, or
     /// for individual requests with the `TableMapping.select` method.
-    public static func filter(key: [String: DatabaseValueConvertible?]) -> QueryInterfaceRequest<Self> {
+    public static func filter(key: [String: DatabaseValueConvertible?]?) -> QueryInterfaceRequest<Self> {
         return all().filter(key: key)
     }
     
