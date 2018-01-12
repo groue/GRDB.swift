@@ -3099,6 +3099,22 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.filter(nameColumn != nil && heightColumn > 1.75)
     ```
 
+- `filter(key:)` and `filter(keys:)` apply conditions on primary keys and unique keys:
+    
+    ```swift
+    // SELECT * FROM players WHERE id = 1
+    Player.filter(key: 1)
+    
+    // SELECT * FROM countries WHERE isoCode IN ('FR', 'US')
+    Country.filter(keys: ["FR", "US"])
+    
+    // SELECT * FROM citizenships WHERE playerID = 1 AND countryISOCode = 'FR'
+    Citizenship.filter(key: ["playerID": 1, "countryISOCode": "FR"])
+    
+    // SELECT * FROM players WHERE email = 'arthur@example.com'
+    Player.filter(key: ["email": "arthur@example.com"])
+    ```
+
 - `matching(pattern)` performs [full-text search](#full-text-search).
     
     ```swift
