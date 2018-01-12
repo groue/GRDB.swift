@@ -343,7 +343,7 @@ extension QueryInterfaceRequest where T: TableMapping {
                 return SQLBinaryOperator.and.join(columnPredicates)! // not nil because columnPredicates is not empty
             }
             
-            let keysPredicate = SQLBinaryOperator.or.join(keyPredicates)! // not nil because keys is not emmpty
+            let keysPredicate = SQLBinaryOperator.or.join(keyPredicates)! // not nil because keyPredicates is not empty
             
             if let expression = expression {
                 return expression && keysPredicate
