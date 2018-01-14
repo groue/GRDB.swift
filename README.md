@@ -4832,7 +4832,7 @@ class PlayerObserver: TransactionObserver {
 }
 ```
 
-After `ignoreDatabaseChangesUntilNextTransaction()`, the `databaseDidChange(with:)` method will not be called until the next transaction. This method must be called from the `databaseDidChange(with:)` method. It helps GRDB optimizing database observation. 
+After `ignoreDatabaseChangesUntilNextTransaction()`, the `databaseDidChange(with:)` method will not be called until the next transaction. This helps GRDB optimizing database observation. 
 
 
 #### Support for SQLite Pre-Update Hooks
