@@ -51,11 +51,7 @@ extension Database {
             
             // Ignore individual changes and transaction rollbacks
             func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { return false }
-            #if SQLITE_ENABLE_PREUPDATE_HOOK
-            func databaseWillChange(with event: DatabasePreUpdateEvent) { }
-            #endif
             func databaseDidChange(with event: DatabaseEvent) { }
-            func databaseWillCommit() throws { }
             func databaseDidRollback(_ db: Database) { }
             
             // On commit, run closure
@@ -665,6 +661,16 @@ public protocol TransactionObserver : class {
 }
 
 extension TransactionObserver {
+    /// Default implementation does nothing
+    public func databaseWillCommit() throws {
+    }
+
+    #if SQLITE_ENABLE_PREUPDATE_HOOK
+    /// Default implementation does nothing
+    public func databaseWillChange(with event: DatabasePreUpdateEvent) {
+    }
+    #endif
+
     /// After this method has been called, the `databaseDidChange(with:)`
     /// method won't be called until the next transaction.
     ///

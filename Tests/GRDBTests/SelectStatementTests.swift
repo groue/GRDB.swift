@@ -148,8 +148,6 @@ class SelectStatementTests : GRDBTestCase {
                     didChange = true
                 }
                 
-                func databaseWillCommit() throws { }
-                
                 func databaseDidCommit(_ db: Database) {
                     triggered = didChange
                     didChange = false
@@ -158,10 +156,6 @@ class SelectStatementTests : GRDBTestCase {
                 func databaseDidRollback(_ db: Database) {
                     didChange = false
                 }
-                
-                #if SQLITE_ENABLE_PREUPDATE_HOOK
-                func databaseWillChange(with event: DatabasePreUpdateEvent) { }
-                #endif
             }
             
             try db.create(table: "table1") { t in

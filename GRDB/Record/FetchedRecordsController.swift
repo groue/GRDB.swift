@@ -560,9 +560,6 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     }
     
     /// Part of the TransactionObserverType protocol
-    func databaseWillCommit() throws { }
-    
-    /// Part of the TransactionObserverType protocol
     func databaseDidRollback(_ db: Database) {
         needsComputeChanges = false
     }

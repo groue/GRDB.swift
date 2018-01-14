@@ -42,9 +42,6 @@ private class Observer : TransactionObserver {
         allRecordedEvents.append(event.copy())
     }
     
-    func databaseWillCommit() throws {
-    }
-    
     func databaseDidCommit(_ db: Database) {
     }
     
