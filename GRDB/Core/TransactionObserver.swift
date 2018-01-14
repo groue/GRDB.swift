@@ -563,13 +563,18 @@ public protocol TransactionObserver : class {
     
     /// Notifies a database change (insert, update, or delete).
     ///
-    /// The change is pending until the end of the current transaction, notified
-    /// to databaseWillCommit, databaseDidCommit and databaseDidRollback.
+    /// The change is pending until the current transaction ends. See
+    /// databaseWillCommit, databaseDidCommit and databaseDidRollback.
     ///
-    /// This method is called on the database queue.
+    /// This method is called in a protected dispatch queue, serialized will all
+    /// database updates.
     ///
     /// The event is only valid for the duration of this method call. If you
-    /// need to keep it longer, store a copy of its properties.
+    /// need to keep it longer, store a copy: `event.copy()`
+    ///
+    /// The observer has an opportunity to stop receiving further change events
+    /// from the current transaction by calling the
+    /// ignoreDatabaseChangesUntilNextTransaction() method.
     ///
     /// - warning: this method must not change the database.
     func databaseDidChange(with event: DatabaseEvent)
@@ -606,32 +611,52 @@ public protocol TransactionObserver : class {
     /// This callback is mostly useful for calculating detailed change
     /// information for a row, and provides the initial / final values.
     ///
-    /// This method is called on the database queue.
+    /// This method is called in a protected dispatch queue, serialized will all
+    /// database updates.
     ///
     /// The event is only valid for the duration of this method call. If you
-    /// need to keep it longer, store a copy of its properties.
+    /// need to keep it longer, store a copy: `event.copy()`
     ///
     /// - warning: this method must not change the database.
     ///
-    /// Availability Info:
+    /// **Availability Info**
     ///
-    ///     Requires SQLite 3.13.0 +
-    ///     Compiled with option SQLITE_ENABLE_PREUPDATE_HOOK
+    /// Requires SQLite 3.13.0 +
+    /// Compiled with option SQLITE_ENABLE_PREUPDATE_HOOK
     ///
-    ///     As of OSX 10.11.5, and iOS 9.3.2, the built-in SQLite library
-    ///     does not have this enabled, so you'll need to compile your own
-    ///     copy using GRDBCustomSQLite. See the README.md in /SQLiteCustom/
+    /// As of OSX 10.11.5, and iOS 9.3.2, the built-in SQLite library
+    /// does not have this enabled, so you'll need to compile your own
+    /// copy using GRDBCustomSQLite. See https://github.com/groue/GRDB.swift/blob/master/Documentation/CustomSQLiteBuilds.md
     ///
-    ///     The databaseDidChangeWithEvent callback is always available,
-    ///     and may provide most/all of what you need.
-    ///     (For example, FetchedRecordsController is built without using
-    ///     this functionality.)
-    ///
+    /// The databaseDidChangeWithEvent callback is always available,
+    /// and may provide most/all of what you need.
+    /// (For example, FetchedRecordsController is built without databaseWillChange)
     func databaseWillChange(with event: DatabasePreUpdateEvent)
     #endif
 }
 
 extension TransactionObserver {
+    /// After this method has been called, the `databaseDidChange(with:)`
+    /// method won't be called until the next transaction.
+    ///
+    /// It must be called from `databaseDidChange(with:)`.
+    ///
+    /// For example:
+    ///
+    ///     class PlayerObserver: TransactionObserver {
+    ///         var playersTableWasModified = false
+    ///
+    ///         func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+    ///             return eventKind.tableName == "players"
+    ///         }
+    ///
+    ///         func databaseDidChange(with event: DatabaseEvent) {
+    ///             playersTableWasModified = true
+    ///
+    ///             // It is pointless to keep on tracking further changes:
+    ///             ignoreDatabaseChangesUntilNextTransaction()
+    ///         }
+    ///     }
     public func ignoreDatabaseChangesUntilNextTransaction() {
         guard let broker = SchedulingWatchdog.currentDatabaseObservationBroker else {
             fatalError("ignoreDatabaseChangesUntilNextTransaction must be called from the databaseDidChange method")
