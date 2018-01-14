@@ -90,7 +90,7 @@ final class SerializedDatabase {
         
         // Case 3
         return try queue.sync {
-            try SchedulingWatchdog.current!.allowing(databases: watchdog.allowedDatabases) {
+            try SchedulingWatchdog.current!.inheritingAllowedDatabases(from: watchdog) {
                 try block(db)
             }
         }
@@ -136,7 +136,7 @@ final class SerializedDatabase {
         
         // Case 3
         return try queue.sync {
-            try SchedulingWatchdog.current!.allowing(databases: watchdog.allowedDatabases) {
+            try SchedulingWatchdog.current!.inheritingAllowedDatabases(from: watchdog) {
                 try block(db)
             }
         }
@@ -151,7 +151,7 @@ final class SerializedDatabase {
     
     /// Returns true if any only if the current dispatch queue is valid.
     var onValidQueue: Bool {
-        return SchedulingWatchdog.allows(db)
+        return SchedulingWatchdog.current?.allows(db) ?? false
     }
     
     /// Executes the block in the current queue.

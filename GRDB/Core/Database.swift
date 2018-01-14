@@ -270,7 +270,7 @@ extension Database {
         setupBusyMode()
         setupDefaultFunctions()
         setupDefaultCollations()
-        observationBroker.setup()
+        observationBroker.installCommitAndRollbackHooks()
     }
     
     private func setupTrace() {

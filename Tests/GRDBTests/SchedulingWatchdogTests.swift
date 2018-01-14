@@ -21,33 +21,29 @@ class SchedulingWatchdogTests: GRDBTestCase {
         dbQueue2.inDatabase { db2 = $0 }
         dbQueue3.inDatabase { db3 = $0 }
         
-        XCTAssertFalse(SchedulingWatchdog.allows(db1))
-        XCTAssertFalse(SchedulingWatchdog.allows(db2))
-        XCTAssertFalse(SchedulingWatchdog.allows(db3))
+        XCTAssertNil(SchedulingWatchdog.current)
         dbQueue1.inDatabase { _ in
-            XCTAssertTrue(SchedulingWatchdog.allows(db1))
-            XCTAssertFalse(SchedulingWatchdog.allows(db2))
-            XCTAssertFalse(SchedulingWatchdog.allows(db3))
+            XCTAssertTrue(SchedulingWatchdog.current!.allows(db1))
+            XCTAssertFalse(SchedulingWatchdog.current!.allows(db2))
+            XCTAssertFalse(SchedulingWatchdog.current!.allows(db3))
             dbQueue2.inDatabase { _ in
-                XCTAssertTrue(SchedulingWatchdog.allows(db1))
-                XCTAssertTrue(SchedulingWatchdog.allows(db2))
-                XCTAssertFalse(SchedulingWatchdog.allows(db3))
+                XCTAssertTrue(SchedulingWatchdog.current!.allows(db1))
+                XCTAssertTrue(SchedulingWatchdog.current!.allows(db2))
+                XCTAssertFalse(SchedulingWatchdog.current!.allows(db3))
                 dbQueue3.inDatabase { _ in
-                    XCTAssertTrue(SchedulingWatchdog.allows(db1))
-                    XCTAssertTrue(SchedulingWatchdog.allows(db2))
-                    XCTAssertTrue(SchedulingWatchdog.allows(db3))
+                    XCTAssertTrue(SchedulingWatchdog.current!.allows(db1))
+                    XCTAssertTrue(SchedulingWatchdog.current!.allows(db2))
+                    XCTAssertTrue(SchedulingWatchdog.current!.allows(db3))
                 }
-                XCTAssertTrue(SchedulingWatchdog.allows(db1))
-                XCTAssertTrue(SchedulingWatchdog.allows(db2))
-                XCTAssertFalse(SchedulingWatchdog.allows(db3))
+                XCTAssertTrue(SchedulingWatchdog.current!.allows(db1))
+                XCTAssertTrue(SchedulingWatchdog.current!.allows(db2))
+                XCTAssertFalse(SchedulingWatchdog.current!.allows(db3))
             }
-            XCTAssertTrue(SchedulingWatchdog.allows(db1))
-            XCTAssertFalse(SchedulingWatchdog.allows(db3))
-            XCTAssertFalse(SchedulingWatchdog.allows(db2))
+            XCTAssertTrue(SchedulingWatchdog.current!.allows(db1))
+            XCTAssertFalse(SchedulingWatchdog.current!.allows(db3))
+            XCTAssertFalse(SchedulingWatchdog.current!.allows(db2))
         }
-        XCTAssertFalse(SchedulingWatchdog.allows(db1))
-        XCTAssertFalse(SchedulingWatchdog.allows(db2))
-        XCTAssertFalse(SchedulingWatchdog.allows(db3))
+        XCTAssertNil(SchedulingWatchdog.current)
     }
 
     func testDatabaseQueueFromDatabaseQueue() throws {
