@@ -548,7 +548,15 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     
     /// Part of the TransactionObserverType protocol
     func databaseDidChange(with event: DatabaseEvent) {
+        if let rowIds = selectionInfo.rowIds, !rowIds.contains(event.rowID) {
+            // If selectionInfo.rowIds is not nil, then the tracked request
+            // fetches from a single table. Due to the filtering of events
+            // performed in observes(eventsOfKind:), the event argument is
+            // guaranteed to be about the fetched table.
+            return
+        }
         needsComputeChanges = true
+        ignoreDatabaseChangesUntilNextTransaction()
     }
     
     /// Part of the TransactionObserverType protocol
