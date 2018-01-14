@@ -21,7 +21,26 @@ class StatementSelectionInfoTests : GRDBTestCase {
             XCTAssertTrue(statement.selectionInfo.contains(anyColumnIn: ["fooId"], from: "bar"))
         }
     }
-
+    
+    func testRowIdNameInSelectStatement() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE foo (name TEXT)")
+            do {
+                let statement = try db.makeSelectStatement("SELECT rowid FROM FOO")
+                XCTAssertTrue(statement.selectionInfo.contains(anyColumnIn: ["ROWID"], from: "foo"))
+            }
+            do {
+                let statement = try db.makeSelectStatement("SELECT _ROWID_ FROM FOO")
+                XCTAssertTrue(statement.selectionInfo.contains(anyColumnIn: ["ROWID"], from: "foo"))
+            }
+            do {
+                let statement = try db.makeSelectStatement("SELECT oID FROM FOO")
+                XCTAssertTrue(statement.selectionInfo.contains(anyColumnIn: ["ROWID"], from: "foo"))
+            }
+        }
+    }
+    
     func testUpdateStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -35,6 +54,43 @@ class StatementSelectionInfoTests : GRDBTestCase {
             }
             XCTAssertEqual(tableName, "foo")
             XCTAssertEqual(columnNames, Set(["bar", "baz"]))
+        }
+    }
+    
+    func testRowIdNameInUpdateStatement() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE foo (name TEXT)")
+            do {
+                let statement = try db.makeUpdateStatement("UPDATE foo SET rowid = 1")
+                XCTAssertEqual(statement.databaseEventKinds.count, 1)
+                guard case .update(let tableName, let columnNames) = statement.databaseEventKinds[0] else {
+                    XCTFail()
+                    return
+                }
+                XCTAssertEqual(tableName, "foo")
+                XCTAssertEqual(columnNames, ["ROWID"])
+            }
+            do {
+                let statement = try db.makeUpdateStatement("UPDATE foo SET _ROWID_ = 1")
+                XCTAssertEqual(statement.databaseEventKinds.count, 1)
+                guard case .update(let tableName, let columnNames) = statement.databaseEventKinds[0] else {
+                    XCTFail()
+                    return
+                }
+                XCTAssertEqual(tableName, "foo")
+                XCTAssertEqual(columnNames, ["ROWID"])
+            }
+            do {
+                let statement = try db.makeUpdateStatement("UPDATE foo SET oID = 1")
+                XCTAssertEqual(statement.databaseEventKinds.count, 1)
+                guard case .update(let tableName, let columnNames) = statement.databaseEventKinds[0] else {
+                    XCTFail()
+                    return
+                }
+                XCTAssertEqual(tableName, "foo")
+                XCTAssertEqual(columnNames, ["ROWID"])
+            }
         }
     }
 
