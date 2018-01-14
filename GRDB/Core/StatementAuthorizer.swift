@@ -32,9 +32,6 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
     /// savepoint statement.
     var transactionEffect: UpdateStatement.TransactionEffect?
     
-    /// True if statement may trigger the truncate optimization
-    var needsTruncateOptimizationPreventionDuringExecution = false
-    
     private var isDropStatement = false
     
     func authorize(
@@ -84,12 +81,17 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
         case SQLITE_DELETE:
             if isDropStatement { return SQLITE_OK }
             guard let cString1 = cString1 else { return SQLITE_OK }
+            
+            // Deletions from sqlite_master and sqlite_temp_master are not like
+            // other deletions: the update hook does not notify them, and they
+            // are prevented when the truncate optimization is disabled.
+            // Let's authorize such deletions by returning SQLITE_OK:
             guard strcmp(cString1, "sqlite_master") != 0 else { return SQLITE_OK }
             guard strcmp(cString1, "sqlite_temp_master") != 0 else { return SQLITE_OK }
+            
+            // Now we prevent the truncate optimization so that transaction
+            // observers are notified of individual row deletions.
             databaseEventKinds.append(.delete(tableName: String(cString: cString1)))
-            // Prevent the [truncate optimization](https://www.sqlite.org/lang_delete.html#truncateopt)
-            // See also TruncateOptimizationBlocker
-            needsTruncateOptimizationPreventionDuringExecution = true
             return SQLITE_IGNORE
             
         case SQLITE_UPDATE:
@@ -159,11 +161,8 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
 /// which makes transaction observers unable to observe individual deletions
 /// when user runs `DELETE FROM t` statements.
 //
-/// Warning: to perform well, this authorizer requires that:
-//
-/// - It is used during statement execution, not during statement compilation.
-/// - Statement compilation was authorized with a StatementCompilationAuthorizer
-///   that has set its needsTruncateOptimizationPreventionDuringExecution flag.
+/// Warning: to perform well, this authorizer must be used during statement
+/// execution, not during statement compilation.
 final class TruncateOptimizationBlocker : StatementAuthorizer {
     func authorize(
         _ actionCode: Int32,

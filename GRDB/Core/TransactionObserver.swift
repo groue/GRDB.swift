@@ -165,11 +165,23 @@ extension Database {
 /// After the statement *has been executed*, the broker calls
 /// observer.databaseDidCommit().
 class DatabaseObservationBroker {
-    unowned var database: Database
-    var savepointStack = SavepointStack()
-    var transactionState: TransactionState = .none
-    var transactionObservations: [TransactionObservation] = []
-    var statementObservations: [StatementObservation] = []
+    private unowned var database: Database
+    private var savepointStack = SavepointStack()
+    private var transactionState: TransactionState = .none
+    private var transactionObservations: [TransactionObservation] = []
+    private var statementObservations: [StatementObservation] = [] {
+        didSet { observesDatabaseChanges = !statementObservations.isEmpty }
+    }
+    private var observesDatabaseChanges: Bool = false {
+        didSet {
+            if observesDatabaseChanges == oldValue { return }
+            if observesDatabaseChanges {
+                installUpdateHook()
+            } else {
+                uninstallUpdateHook()
+            }
+        }
+    }
     
     init(_ database: Database) {
         self.database = database
@@ -179,16 +191,10 @@ class DatabaseObservationBroker {
     
     func add(transactionObserver: TransactionObserver, extent: Database.TransactionObservationExtent) {
         transactionObservations.append(TransactionObservation(observer: transactionObserver, extent: extent))
-        if transactionObservations.count == 1 {
-            installUpdateHook()
-        }
     }
     
     func remove(transactionObserver: TransactionObserver) {
         transactionObservations.removeFirst { $0.isWrapping(transactionObserver) }
-        if transactionObservations.isEmpty {
-            uninstallUpdateHook()
-        }
     }
     
     func disableUntilNextTransaction(transactionObserver: TransactionObserver) {
@@ -214,9 +220,14 @@ class DatabaseObservationBroker {
         //
         // Those statementObservations will be notified of individual changes
         // in databaseWillChange() and databaseDidChange().
-        let databaseEventKinds = statement.databaseEventKinds
+        let eventKinds = statement.databaseEventKinds
         
-        switch databaseEventKinds.count {
+        // If any observer observes row deletions, we'll have to disable
+        // [truncate optimization](https://www.sqlite.org/lang_delete.html#truncateopt)
+        // so that observers are notified.
+        var observesRowDeletion = false
+        
+        switch eventKinds.count {
         case 0:
             // Statement has no effect on any database table.
             //
@@ -229,11 +240,17 @@ class DatabaseObservationBroker {
             //
             // For example, if one observes all deletions in the table T, then
             // all individual deletions of DELETE FROM T are notified:
+            let eventKind = eventKinds[0]
             statementObservations = transactionObservations.flatMap { observation in
-                guard databaseEventKinds.contains(where: observation.observes) else {
+                guard observation.observes(eventsOfKind: eventKind) else {
                     // observation is not interested
                     return nil
                 }
+                
+                if case .delete = eventKind {
+                    observesRowDeletion = true
+                }
+                
                 // observation will be notified of all individual events
                 return (observation, DatabaseEventPredicate.true)
             }
@@ -247,22 +264,37 @@ class DatabaseObservationBroker {
             // by the mean of a foreign key action, then when one only observes
             // deletions in T1, one must not be notified of deletions in T2:
             statementObservations = transactionObservations.flatMap { observation in
-                let observedKinds = databaseEventKinds.filter(observation.observes)
+                let observedKinds = eventKinds.filter(observation.observes)
                 if observedKinds.isEmpty {
                     // observation is not interested
                     return nil
                 }
+                
+                for eventKind in observedKinds {
+                    if case .delete = eventKind {
+                        observesRowDeletion = true
+                        break
+                    }
+                }
+                
                 // observation will only be notified of individual events that
                 // match one of the observed kinds.
                 return (observation, DatabaseEventPredicate.matching(observedKinds))
             }
         }
+        
+        if observesRowDeletion {
+            database.authorizer = TruncateOptimizationBlocker()
+        } else {
+            database.authorizer = nil
+        }
     }
     
     func updateStatementDidFail(_ statement: UpdateStatement) throws {
-        // Wait for next statement
+        // Undo updateStatementWillExecute
         statementObservations = []
         SchedulingWatchdog.currentDatabaseObservationBroker = nil
+        database.authorizer = nil
         
         // Reset transactionState before databaseDidRollback eventually
         // executes other statements.
@@ -284,10 +316,11 @@ class DatabaseObservationBroker {
     }
     
     func updateStatementDidExecute(_ statement: UpdateStatement) throws {
-        // Wait for next statement
+        // Undo updateStatementWillExecute
         statementObservations = []
         SchedulingWatchdog.currentDatabaseObservationBroker = nil
-        
+        database.authorizer = nil
+
         // Has statement any effect on transaction/savepoints?
         if let transactionEffect = statement.transactionEffect {
             switch transactionEffect {
@@ -454,10 +487,6 @@ class DatabaseObservationBroker {
     /// and uninstall SQLite update hooks if there is no remaining observers.
     private func databaseDidEndTransaction() {
         transactionObservations = transactionObservations.filter { $0.isObserving }
-        
-        if transactionObservations.isEmpty {
-            uninstallUpdateHook()
-        }
         
         for observation in transactionObservations {
             observation.isDisabledUntilNextTransaction = false
