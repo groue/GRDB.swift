@@ -3,9 +3,20 @@ Release Notes
 
 ## Next Version
 
-**New**
+### New
 
+- `TransactionObserver.ignoreDatabaseChangesUntilNextTransaction` allows transaction observers to stop observing the database for the remaining extent of a transaction.
+- GRDB no longer prevents the [truncate optimization](https://www.sqlite.org/lang_delete.html#truncateopt) when no transaction observers are interested in deleted rows.
 - `Row` adopts RandomAccessCollection
+
+
+### API diff
+
+```diff
++extension TransactionObserver {
++    func ignoreDatabaseChangesUntilNextTransaction()
++}
+```
 
 
 ## 2.5.0
