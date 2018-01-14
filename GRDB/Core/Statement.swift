@@ -379,6 +379,12 @@ public final class SelectStatement : Statement, AuthorizedStatement {
         /// `SELECT COUNT(*) FROM t1` -> ["t1"]
         private var tables: Set<String> = []
         
+        /// The fetched rowIds
+        /// See QueryInterfaceRequestDefinition.selectionInfo(_:)
+        /// `SELECT * FROM t WHERE id IN (1, 2, 3)` -> [1, 2, 3]
+        /// `SELECT * FROM t` -> nil
+        var rowIds: Set<Int64>? = nil
+        
         /// The unknown selection
         static let unknown = SelectionInfo(isUnknown: true)
         

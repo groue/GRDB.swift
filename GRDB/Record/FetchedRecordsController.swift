@@ -393,8 +393,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         itemsAreIdenticalFactory: ItemComparatorFactory<Record>) throws
         -> (SelectStatement.SelectionInfo, ItemComparator<Record>)
     {
-        let (statement, _) = try request.prepare(db)
-        let selectionInfo = statement.selectionInfo
+        let selectionInfo = try request.selectionInfo(db)
         let itemsAreIdentical = try itemsAreIdenticalFactory(db)
         return (selectionInfo, itemsAreIdentical)
     }

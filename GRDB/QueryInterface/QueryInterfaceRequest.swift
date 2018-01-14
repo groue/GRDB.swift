@@ -26,6 +26,11 @@ extension QueryInterfaceRequest : TypedRequest {
     public func fetchCount(_ db: Database) throws -> Int {
         return try query.fetchCount(db)
     }
+    
+    /// Returns information about the table and columns read by the request.
+    public func selectionInfo(_ db: Database) throws -> SelectStatement.SelectionInfo {
+        return try query.selectionInfo(db)
+    }
 }
 
 extension QueryInterfaceRequest {

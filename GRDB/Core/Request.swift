@@ -22,6 +22,14 @@ public protocol Request {
     ///
     /// - parameter db: A database connection.
     func fetchCount(_ db: Database) throws -> Int
+    
+    /// Returns information about the table and columns read by the request.
+    ///
+    /// This method has a default implementation which is not supposed to
+    /// be replaced.
+    ///
+    /// - parameter db: A database connection.
+    func selectionInfo(_ db: Database) throws -> SelectStatement.SelectionInfo
 }
 
 extension Request {
@@ -47,6 +55,14 @@ extension Request {
     public func asSQLRequest(_ db: Database, cached: Bool = false) throws -> SQLRequest {
         let (statement, adapter) = try prepare(db)
         return SQLRequest(statement.sql, arguments: statement.arguments, adapter: adapter, cached: cached)
+    }
+    
+    /// Returns information about the table and columns read by the request.
+    ///
+    /// - parameter db: A database connection.
+    public func selectionInfo(_ db: Database) throws -> SelectStatement.SelectionInfo {
+        let (statement, _) = try prepare(db)
+        return statement.selectionInfo
     }
 }
 

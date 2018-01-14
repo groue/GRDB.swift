@@ -181,6 +181,30 @@ extension QueryInterfaceSelectQueryDefinition : Request {
         return try Int.fetchOne(db, countQuery)!
     }
     
+    /// Returns information about the table and columns read by the request.
+    public func selectionInfo(_ db: Database) throws -> SelectStatement.SelectionInfo {
+        let (statement, _) = try prepare(db)
+        var selectionInfo = statement.selectionInfo
+        selectionInfo.rowIds = try matchedRowIds(db)
+        return selectionInfo
+    }
+    
+    private func matchedRowIds(_ db: Database) throws -> Set<Int64>? {
+        // Give up unless request feeds from a single database table
+        guard let source = source else { return nil }
+        guard case .table(name: let tableName, alias: _) = source else { return nil }
+        
+        // Give up unless primary key is rowId
+        let primaryKeyInfo = try db.primaryKey(tableName)
+        guard primaryKeyInfo.isRowID else { return nil }
+        
+        // Give up unless there is a where clause
+        guard let whereExpression = try wherePromise.resolve(db) else { return nil }
+        
+        // The whereExpression knows better
+        return whereExpression.matchedRowIds(rowIdName: primaryKeyInfo.rowIDColumn)
+    }
+    
     private var countQuery: QueryInterfaceSelectQueryDefinition {
         guard groupByExpressions.isEmpty && limit == nil else {
             // SELECT ... GROUP BY ...

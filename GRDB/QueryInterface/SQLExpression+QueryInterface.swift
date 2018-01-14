@@ -265,6 +265,56 @@ public struct SQLExpressionBinary : SQLExpression {
             return SQLExpressionNot(self)
         }
     }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    public func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
+        switch op {
+        case .equal, .is:
+            // Look for `id == 1` or `id IS 1`?
+            switch (lhs, rhs) {
+            case (let column as Column, let dbValue as DatabaseValue),
+                 (let dbValue as DatabaseValue, let column as Column):
+                // Look for `id == 1`, `rowid == 1`, `1 == id`, `1 == rowid`
+                
+                var rowIdNames = [Column.rowID.name.lowercased()]
+                if let rowIdName = rowIdName {
+                    rowIdNames.append(rowIdName.lowercased())
+                }
+                
+                guard rowIdNames.contains(column.name.lowercased()) else {
+                    return nil
+                }
+                
+                if let rowId = Int64.fromDatabaseValue(dbValue) {
+                    return [rowId]
+                } else {
+                    return []
+                }
+            default:
+                return nil
+            }
+            
+        case .and:
+            let lids = lhs.matchedRowIds(rowIdName: rowIdName)
+            let rids = rhs.matchedRowIds(rowIdName: rowIdName)
+            switch (lids, rids) {
+            case (nil, nil): return nil
+            case let (ids?, nil), let (nil, ids?): return ids
+            case let (lids?, rids?): return lids.intersection(rids)
+            }
+            
+        case .or:
+            let lids = lhs.matchedRowIds(rowIdName: rowIdName)
+            let rids = rhs.matchedRowIds(rowIdName: rowIdName)
+            switch (lids, rids) {
+            case let (lids?, rids?): return lids.union(rids)
+            default: return nil
+            }
+            
+        default:
+            return nil
+        }
+    }
 }
 
 // MARK: - SQLExpressionContains
@@ -295,6 +345,34 @@ struct SQLExpressionContains : SQLExpression {
     
     var negated: SQLExpression {
         return SQLExpressionContains(expression, collection, negated: !isNegated)
+    }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
+        // Look for `id IN (1, 2, 3)`
+        guard let column = expression as? Column,
+            let array = collection as? SQLExpressionsArray else
+        {
+            return nil
+        }
+        
+        var rowIdNames = [Column.rowID.name.lowercased()]
+        if let rowIdName = rowIdName {
+            rowIdNames.append(rowIdName.lowercased())
+        }
+
+        guard rowIdNames.contains(column.name.lowercased()) else {
+            return nil
+        }
+        
+        var rowIDs: Set<Int64> = []
+        for expression in array.expressions {
+            guard let dbValue = expression as? DatabaseValue else { return nil }
+            if let rowId = Int64.fromDatabaseValue(dbValue) {
+                rowIDs.insert(rowId)
+            }
+        }
+        return rowIDs
     }
 }
 
