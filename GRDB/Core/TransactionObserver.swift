@@ -632,7 +632,7 @@ public protocol TransactionObserver : class {
 }
 
 extension TransactionObserver {
-    func ignoreDatabaseChangesUntilNextTransaction() {
+    public func ignoreDatabaseChangesUntilNextTransaction() {
         guard let broker = SchedulingWatchdog.currentDatabaseObservationBroker else {
             fatalError("ignoreDatabaseChangesUntilNextTransaction must be called from the databaseDidChange method")
         }
