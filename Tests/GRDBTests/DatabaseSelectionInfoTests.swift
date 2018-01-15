@@ -525,4 +525,170 @@ class DatabaseSelectionInfoTests : GRDBTestCase {
             }
         }
     }
+    
+    func testSelectionInfoIsModifiedByDatabaseEvent() {
+        do {
+            // Empty selection
+            let selectionInfo = DatabaseSelectionInfo()
+            XCTAssertEqual(selectionInfo.description, "empty")
+            
+            do {
+                let eventKind = DatabaseEventKind.insert(tableName: "foo")
+                XCTAssertFalse(selectionInfo.isModified(byEventsOfKind: eventKind))
+                // Can't test for individual events due to DatabaseSelectionInfo.isModified(by:) precondition
+            }
+
+            do {
+                let eventKind = DatabaseEventKind.delete(tableName: "foo")
+                XCTAssertFalse(selectionInfo.isModified(byEventsOfKind: eventKind))
+                // Can't test for individual events due to DatabaseSelectionInfo.isModified(by:) precondition
+            }
+            
+            do {
+                let eventKind = DatabaseEventKind.update(tableName: "foo", columnNames: ["a", "b"])
+                XCTAssertFalse(selectionInfo.isModified(byEventsOfKind: eventKind))
+                // Can't test for individual events due to DatabaseSelectionInfo.isModified(by:) precondition
+            }
+        }
+        
+        do {
+            // Full database selection
+            let selectionInfo = DatabaseSelectionInfo.fullDatabase
+            XCTAssertEqual(selectionInfo.description, "full database")
+            
+            do {
+                let tableName = "foo"
+                tableName.withCString { tableNameCString in
+                    let eventKind = DatabaseEventKind.insert(tableName: tableName)
+                    let event = DatabaseEvent(kind: .insert, rowID: 1, databaseNameCString: nil, tableNameCString: tableNameCString)
+                    XCTAssertTrue(selectionInfo.isModified(byEventsOfKind: eventKind))
+                    XCTAssertTrue(selectionInfo.isModified(by: event))
+                }
+            }
+            
+            do {
+                let tableName = "foo"
+                tableName.withCString { tableNameCString in
+                    let eventKind = DatabaseEventKind.delete(tableName: tableName)
+                    let event = DatabaseEvent(kind: .delete, rowID: 1, databaseNameCString: nil, tableNameCString: tableNameCString)
+                    XCTAssertTrue(selectionInfo.isModified(byEventsOfKind: eventKind))
+                    XCTAssertTrue(selectionInfo.isModified(by: event))
+                }
+            }
+            
+            do {
+                let tableName = "foo"
+                tableName.withCString { tableNameCString in
+                    let eventKind = DatabaseEventKind.update(tableName: tableName, columnNames: ["a", "b"])
+                    let event = DatabaseEvent(kind: .update, rowID: 1, databaseNameCString: nil, tableNameCString: tableNameCString)
+                    XCTAssertTrue(selectionInfo.isModified(byEventsOfKind: eventKind))
+                    XCTAssertTrue(selectionInfo.isModified(by: event))
+                }
+            }
+        }
+        
+        do {
+            // Complex selection
+            let selectionInfo = DatabaseSelectionInfo(table: "foo")
+                .union(DatabaseSelectionInfo(table: "bar", columns: ["a"])
+                    .intersection(DatabaseSelectionInfo(table: "bar", rowIds: [1])))
+            XCTAssertEqual(selectionInfo.description, "bar(a)[1],foo(*)")
+            
+            do {
+                let tableName = "foo"
+                tableName.withCString { tableNameCString in
+                    let eventKind = DatabaseEventKind.insert(tableName: tableName)
+                    let event1 = DatabaseEvent(kind: .insert, rowID: 1, databaseNameCString: nil, tableNameCString: tableNameCString)
+                    let event2 = DatabaseEvent(kind: .insert, rowID: 2, databaseNameCString: nil, tableNameCString: tableNameCString)
+                    XCTAssertTrue(selectionInfo.isModified(byEventsOfKind: eventKind))
+                    XCTAssertTrue(selectionInfo.isModified(by: event1))
+                    XCTAssertTrue(selectionInfo.isModified(by: event2))
+                }
+            }
+            
+            do {
+                let tableName = "foo"
+                tableName.withCString { tableNameCString in
+                    let eventKind = DatabaseEventKind.delete(tableName: tableName)
+                    let event1 = DatabaseEvent(kind: .delete, rowID: 1, databaseNameCString: nil, tableNameCString: tableNameCString)
+                    let event2 = DatabaseEvent(kind: .delete, rowID: 2, databaseNameCString: nil, tableNameCString: tableNameCString)
+                    XCTAssertTrue(selectionInfo.isModified(byEventsOfKind: eventKind))
+                    XCTAssertTrue(selectionInfo.isModified(by: event1))
+                    XCTAssertTrue(selectionInfo.isModified(by: event2))
+                }
+            }
+            
+            do {
+                let tableName = "foo"
+                tableName.withCString { tableNameCString in
+                    let eventKind = DatabaseEventKind.update(tableName: tableName, columnNames: ["a", "b"])
+                    let event1 = DatabaseEvent(kind: .update, rowID: 1, databaseNameCString: nil, tableNameCString: tableNameCString)
+                    let event2 = DatabaseEvent(kind: .update, rowID: 2, databaseNameCString: nil, tableNameCString: tableNameCString)
+                    XCTAssertTrue(selectionInfo.isModified(byEventsOfKind: eventKind))
+                    XCTAssertTrue(selectionInfo.isModified(by: event1))
+                    XCTAssertTrue(selectionInfo.isModified(by: event2))
+                }
+            }
+            
+            do {
+                let tableName = "bar"
+                tableName.withCString { tableNameCString in
+                    let eventKind = DatabaseEventKind.insert(tableName: tableName)
+                    let event1 = DatabaseEvent(kind: .insert, rowID: 1, databaseNameCString: nil, tableNameCString: tableNameCString)
+                    let event2 = DatabaseEvent(kind: .insert, rowID: 2, databaseNameCString: nil, tableNameCString: tableNameCString)
+                    XCTAssertTrue(selectionInfo.isModified(byEventsOfKind: eventKind))
+                    XCTAssertTrue(selectionInfo.isModified(by: event1))
+                    XCTAssertFalse(selectionInfo.isModified(by: event2))
+                }
+            }
+            
+            do {
+                let tableName = "bar"
+                tableName.withCString { tableNameCString in
+                    let eventKind = DatabaseEventKind.delete(tableName: tableName)
+                    let event1 = DatabaseEvent(kind: .delete, rowID: 1, databaseNameCString: nil, tableNameCString: tableNameCString)
+                    let event2 = DatabaseEvent(kind: .delete, rowID: 2, databaseNameCString: nil, tableNameCString: tableNameCString)
+                    XCTAssertTrue(selectionInfo.isModified(byEventsOfKind: eventKind))
+                    XCTAssertTrue(selectionInfo.isModified(by: event1))
+                    XCTAssertFalse(selectionInfo.isModified(by: event2))
+                }
+            }
+            
+            do {
+                let tableName = "bar"
+                tableName.withCString { tableNameCString in
+                    let eventKind = DatabaseEventKind.update(tableName: tableName, columnNames: ["a", "b"])
+                    let event1 = DatabaseEvent(kind: .update, rowID: 1, databaseNameCString: nil, tableNameCString: tableNameCString)
+                    let event2 = DatabaseEvent(kind: .update, rowID: 2, databaseNameCString: nil, tableNameCString: tableNameCString)
+                    XCTAssertTrue(selectionInfo.isModified(byEventsOfKind: eventKind))
+                    XCTAssertTrue(selectionInfo.isModified(by: event1))
+                    XCTAssertFalse(selectionInfo.isModified(by: event2))
+                }
+            }
+            
+            do {
+                let eventKind = DatabaseEventKind.update(tableName: "bar", columnNames: ["b", "c"])
+                XCTAssertFalse(selectionInfo.isModified(byEventsOfKind: eventKind))
+                // Can't test for individual events due to DatabaseSelectionInfo.isModified(by:) precondition
+            }
+            
+            do {
+                let eventKind = DatabaseEventKind.insert(tableName: "qux")
+                XCTAssertFalse(selectionInfo.isModified(byEventsOfKind: eventKind))
+                // Can't test for individual events due to DatabaseSelectionInfo.isModified(by:) precondition
+            }
+            
+            do {
+                let eventKind = DatabaseEventKind.delete(tableName: "qux")
+                XCTAssertFalse(selectionInfo.isModified(byEventsOfKind: eventKind))
+                // Can't test for individual events due to DatabaseSelectionInfo.isModified(by:) precondition
+            }
+            
+            do {
+                let eventKind = DatabaseEventKind.update(tableName: "qux", columnNames: ["a", "b"])
+                XCTAssertFalse(selectionInfo.isModified(byEventsOfKind: eventKind))
+                // Can't test for individual events due to DatabaseSelectionInfo.isModified(by:) precondition
+            }
+        }
+    }
 }

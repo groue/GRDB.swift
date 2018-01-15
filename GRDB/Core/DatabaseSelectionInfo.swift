@@ -142,7 +142,7 @@ extension DatabaseSelectionInfo {
         default:
             guard let tableInfo = tables[event.tableName] else {
                 // Shouldn't happen if the precondition is met.
-                fatalError("precondition failure: missing selection info for table \(event.tableName)")
+                fatalError("precondition failure: selection info is not defined for table \(event.tableName)")
             }
             guard let rowIds = tableInfo.rowIds else {
                 return true
