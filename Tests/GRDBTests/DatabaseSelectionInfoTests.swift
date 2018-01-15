@@ -15,6 +15,7 @@ import XCTest
 class DatabaseSelectionInfoTests : GRDBTestCase {
     
     func testSelectionInfoEquatable() {
+        // An array of distinct selection infos
         let selectionInfos = [
             DatabaseSelectionInfo.fullDatabase,
             DatabaseSelectionInfo(),
@@ -359,6 +360,10 @@ class DatabaseSelectionInfoTests : GRDBTestCase {
                 try XCTAssertEqual(request.selectionInfo(db).description, "foo(a,id)[1,2]")
             }
             do {
+                let request = Record.filter((Column("id") == 1 && Column("a") == "foo") || Column.rowID == 2)
+                try XCTAssertEqual(request.selectionInfo(db).description, "foo(a,id)[1,2]")
+            }
+            do {
                 let request = Record.filter([1, 2, 3].contains(Column("id")))
                 try XCTAssertEqual(request.selectionInfo(db).description, "foo(a,id)[1,2,3]")
             }
@@ -389,6 +394,42 @@ class DatabaseSelectionInfoTests : GRDBTestCase {
         }
     }
     
+    func testRowIdNameInSelectStatement() throws {
+        // Here we test that sqlite authorizer gives the "ROWID" name to
+        // the rowid column, regardless of its name in the request (rowid, oid, _rowid_)
+        //
+        // See also testRowIdNameInUpdateStatement
+        
+        guard sqlite3_libversion_number() < 3019003 else {
+            // This test fails on SQLite 3.19.3 (iOS 11.2) and SQLite 3.21.0 (custom build),
+            // but succeeds on SQLite 3.16.0 (iOS 10.3.1).
+            // TODO: evaluate the consequences
+            return
+        }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE foo (name TEXT)")
+            do {
+                let statement = try db.makeSelectStatement("SELECT rowid FROM FOO")
+                let expectedSelectionInfo = DatabaseSelectionInfo(table: "foo", columns: ["ROWID"])
+                XCTAssertEqual(statement.selectionInfo, expectedSelectionInfo)
+                XCTAssertEqual(statement.selectionInfo.description, "foo(ROWID)")
+            }
+            do {
+                let statement = try db.makeSelectStatement("SELECT _ROWID_ FROM FOO")
+                let expectedSelectionInfo = DatabaseSelectionInfo(table: "foo", columns: ["ROWID"])
+                XCTAssertEqual(statement.selectionInfo, expectedSelectionInfo)
+                XCTAssertEqual(statement.selectionInfo.description, "foo(ROWID)")
+            }
+            do {
+                let statement = try db.makeSelectStatement("SELECT oID FROM FOO")
+                let expectedSelectionInfo = DatabaseSelectionInfo(table: "foo", columns: ["ROWID"])
+                XCTAssertEqual(statement.selectionInfo, expectedSelectionInfo)
+                XCTAssertEqual(statement.selectionInfo.description, "foo(ROWID)")
+            }
+        }
+    }
+
     func testRowIdNameInUpdateStatement() throws {
         // Here we test that sqlite authorizer gives the "ROWID" name to
         // the rowid column, regardless of its name in the request (rowid, oid, _rowid_)
