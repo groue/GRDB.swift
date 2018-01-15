@@ -182,27 +182,36 @@ extension QueryInterfaceSelectQueryDefinition : Request {
     }
     
     /// Returns information about the table and columns read by the request.
-    public func selectionInfo(_ db: Database) throws -> SelectStatement.SelectionInfo {
+    public func selectionInfo(_ db: Database) throws -> DatabaseSelectionInfo {
         let (statement, _) = try prepare(db)
-        var selectionInfo = statement.selectionInfo
-        selectionInfo.rowIds = try matchedRowIds(db)
-        return selectionInfo
-    }
-    
-    private func matchedRowIds(_ db: Database) throws -> Set<Int64>? {
+        let selectionInfo = statement.selectionInfo
+        
         // Give up unless request feeds from a single database table
-        guard let source = source else { return nil }
-        guard case .table(name: let tableName, alias: _) = source else { return nil }
+        guard let source = source else {
+            return selectionInfo
+        }
+        guard case .table(name: let tableName, alias: _) = source else {
+            return selectionInfo
+        }
         
         // Give up unless primary key is rowId
         let primaryKeyInfo = try db.primaryKey(tableName)
-        guard primaryKeyInfo.isRowID else { return nil }
+        guard primaryKeyInfo.isRowID else {
+            return selectionInfo
+        }
         
         // Give up unless there is a where clause
-        guard let whereExpression = try wherePromise.resolve(db) else { return nil }
+        guard let whereExpression = try wherePromise.resolve(db) else {
+            return selectionInfo
+        }
         
         // The whereExpression knows better
-        return whereExpression.matchedRowIds(rowIdName: primaryKeyInfo.rowIDColumn)
+        guard let rowIds = whereExpression.matchedRowIds(rowIdName: primaryKeyInfo.rowIDColumn) else {
+            return selectionInfo
+        }
+        
+        // Intersect
+        return try selectionInfo.intersection(db.selectionInfo(rowIds: rowIds, in: tableName))
     }
     
     private var countQuery: QueryInterfaceSelectQueryDefinition {

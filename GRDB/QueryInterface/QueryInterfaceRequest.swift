@@ -28,7 +28,7 @@ extension QueryInterfaceRequest : TypedRequest {
     }
     
     /// Returns information about the table and columns read by the request.
-    public func selectionInfo(_ db: Database) throws -> SelectStatement.SelectionInfo {
+    public func selectionInfo(_ db: Database) throws -> DatabaseSelectionInfo {
         return try query.selectionInfo(db)
     }
 }

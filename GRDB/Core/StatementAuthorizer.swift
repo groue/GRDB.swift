@@ -18,7 +18,7 @@ protocol StatementAuthorizer : class {
 /// A class that gathers information about one statement during its compilation.
 final class StatementCompilationAuthorizer : StatementAuthorizer {
     /// What this statements reads
-    var selectionInfo = SelectStatement.SelectionInfo()
+    var selectionInfo = DatabaseSelectionInfo()
     
     /// What this statements writes
     var databaseEventKinds: [DatabaseEventKind] = []
@@ -66,10 +66,10 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
             guard let columnName = cString2.map({ String(cString: $0) }) else { return SQLITE_OK }
             if columnName.isEmpty {
                 // SELECT COUNT(*) FROM table
-                selectionInfo.insert(allColumnsOfTable: tableName)
+                selectionInfo.formUnion(DatabaseSelectionInfo(table: tableName))
             } else {
                 // SELECT column FROM table
-                selectionInfo.insert(column: columnName, ofTable: tableName)
+                selectionInfo.formUnion(DatabaseSelectionInfo(table: tableName, columns: [columnName]))
             }
             return SQLITE_OK
             
@@ -135,7 +135,7 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
             guard sqlite3_libversion_number() < 3019000 else { return SQLITE_OK }
             guard let cString2 = cString2 else { return SQLITE_OK }
             if sqlite3_stricmp(cString2, "COUNT") == 0 {
-                selectionInfo = .unknown
+                selectionInfo = .fullDatabase
             }
             return SQLITE_OK
             

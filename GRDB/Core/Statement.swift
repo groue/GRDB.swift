@@ -293,7 +293,10 @@ extension AuthorizedStatement {
 ///     }
 public final class SelectStatement : Statement, AuthorizedStatement {
     /// Information about the table and columns read by a SelectStatement
-    public private(set) var selectionInfo: SelectionInfo
+    public private(set) var selectionInfo: DatabaseSelectionInfo
+    
+    @available(*, deprecated, renamed:"DatabaseSelectionInfo")
+    public typealias SelectionInfo = DatabaseSelectionInfo
     
     /// Creates a prepared statement.
     ///
@@ -314,7 +317,7 @@ public final class SelectStatement : Statement, AuthorizedStatement {
         prepFlags: Int32,
         authorizer: StatementCompilationAuthorizer) throws
     {
-        self.selectionInfo = SelectionInfo()
+        self.selectionInfo = DatabaseSelectionInfo()
         try super.init(
             database: database,
             statementStart: statementStart,
@@ -363,74 +366,6 @@ public final class SelectStatement : Statement, AuthorizedStatement {
         SchedulingWatchdog.preconditionValidQueue(database)
         prepare(withArguments: arguments)
         reset()
-    }
-    
-    /// Information about the table and columns read by a SelectStatement
-    public struct SelectionInfo : CustomStringConvertible {
-        /// Selection is unknown when a statement uses the COUNT function,
-        /// and SQLite version < 3.19:
-        ///
-        /// `SELECT COUNT(*) FROM t1` -> unknown selection
-        private let isUnknown: Bool
-        
-        /// `SELECT a, b FROM t1` -> ["t1": ["a", "b"]]
-        private var columns: [String: Set<String>] = [:]
-        
-        /// `SELECT COUNT(*) FROM t1` -> ["t1"]
-        private var tables: Set<String> = []
-        
-        /// The fetched rowIds
-        /// See QueryInterfaceRequestDefinition.selectionInfo(_:)
-        /// `SELECT * FROM t WHERE id IN (1, 2, 3)` -> [1, 2, 3]
-        /// `SELECT * FROM t` -> nil
-        var rowIds: Set<Int64>? = nil
-        
-        /// The unknown selection
-        static let unknown = SelectionInfo(isUnknown: true)
-        
-        mutating func insert(allColumnsOfTable table: String) {
-            tables.insert(table)
-        }
-        
-        mutating func insert(column: String, ofTable table: String) {
-            columns[table, default: []].insert(column)
-        }
-        
-        /// Returns true if isUnknown is true
-        func contains(anyColumnFrom table: String) -> Bool {
-            if isUnknown { return true }
-            return tables.contains(table) || columns.index(forKey: table) != nil
-        }
-        
-        /// Returns true if isUnknown is true
-        func contains(anyColumnIn columns: Set<String>, from table: String) -> Bool {
-            if isUnknown { return true }
-            return tables.contains(table) || !(self.columns[table]?.isDisjoint(with: columns) ?? true)
-        }
-        
-        init() {
-            self.init(isUnknown: false)
-        }
-        
-        private init(isUnknown: Bool) {
-            self.isUnknown = isUnknown
-        }
-        
-        public var description: String {
-            if isUnknown {
-                return "unknown"
-            }
-            return tables.union(columns.keys)
-                .sorted()
-                .map { table -> String in
-                    if let columns = columns[table] {
-                        return "\(table)(\(columns.sorted().joined(separator: ",")))"
-                    } else {
-                        return "\(table)(*)"
-                    }
-                }
-                .joined(separator: ",")
-        }
     }
 }
 

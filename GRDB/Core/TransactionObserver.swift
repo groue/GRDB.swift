@@ -195,7 +195,7 @@ class DatabaseObservationBroker {
     
     func disableUntilNextTransaction(transactionObserver: TransactionObserver) {
         if let observation = transactionObservations.first(where: { $0.isWrapping(transactionObserver)}) {
-            observation.isDisabledUntilNextTransaction = true
+            observation.isDisabled = true
             statementObservations.removeFirst { $0.0 === observation }
         }
     }
@@ -204,7 +204,7 @@ class DatabaseObservationBroker {
     
     func updateStatementWillExecute(_ statement: UpdateStatement) {
         // Transaction observers may disable themselves during statement
-        // execution: see TransactionObserver.ignoreDatabaseChangesUntilNextTransaction()
+        // execution: see TransactionObserver.stopObservingDatabaseChangesUntilNextTransaction()
         //
         // This convenient method uses cooperation from SchedulingWatchdog in
         // order to access the broker that is executing a database statement in
@@ -484,8 +484,9 @@ class DatabaseObservationBroker {
     private func databaseDidEndTransaction() {
         transactionObservations = transactionObservations.filter { $0.isObserving }
         
+        // Undo disableUntilNextTransaction(transactionObserver:)
         for observation in transactionObservations {
-            observation.isDisabledUntilNextTransaction = false
+            observation.isDisabled = false
         }
     }
     
@@ -599,7 +600,7 @@ public protocol TransactionObserver : class {
     ///
     /// The observer has an opportunity to stop receiving further change events
     /// from the current transaction by calling the
-    /// ignoreDatabaseChangesUntilNextTransaction() method.
+    /// stopObservingDatabaseChangesUntilNextTransaction() method.
     ///
     /// - warning: this method must not change the database.
     func databaseDidChange(with event: DatabaseEvent)
@@ -674,8 +675,6 @@ extension TransactionObserver {
     /// After this method has been called, the `databaseDidChange(with:)`
     /// method won't be called until the next transaction.
     ///
-    /// It must be called from `databaseDidChange(with:)`.
-    ///
     /// For example:
     ///
     ///     class PlayerObserver: TransactionObserver {
@@ -689,12 +688,14 @@ extension TransactionObserver {
     ///             playersTableWasModified = true
     ///
     ///             // It is pointless to keep on tracking further changes:
-    ///             ignoreDatabaseChangesUntilNextTransaction()
+    ///             stopObservingDatabaseChangesUntilNextTransaction()
     ///         }
     ///     }
-    public func ignoreDatabaseChangesUntilNextTransaction() {
+    ///
+    /// - precondition: This method must be called from `databaseDidChange(with:)`.
+    public func stopObservingDatabaseChangesUntilNextTransaction() {
         guard let broker = SchedulingWatchdog.currentDatabaseObservationBroker else {
-            fatalError("ignoreDatabaseChangesUntilNextTransaction must be called from the databaseDidChange method")
+            fatalError("stopObservingDatabaseChangesUntilNextTransaction must be called from the databaseDidChange method")
         }
         broker.disableUntilNextTransaction(transactionObserver: self)
     }
@@ -705,7 +706,11 @@ extension TransactionObserver {
 /// This class manages the observation extent of a transaction observer
 final class TransactionObservation {
     let extent: Database.TransactionObservationExtent
-    var isDisabledUntilNextTransaction: Bool = false
+    
+    // A disabled observation is not interested in individual database changes.
+    // It is still interested in transactions commits & rollbacks.
+    var isDisabled: Bool = false
+    
     private weak var weakObserver: TransactionObserver?
     private var strongObserver: TransactionObserver?
     private var observer: TransactionObserver? { return strongObserver ?? weakObserver }
@@ -732,19 +737,19 @@ final class TransactionObservation {
     }
     
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        if isDisabledUntilNextTransaction { return false }
+        if isDisabled { return false }
         return observer?.observes(eventsOfKind: eventKind) ?? false
     }
 
     #if SQLITE_ENABLE_PREUPDATE_HOOK
     func databaseWillChange(with event: DatabasePreUpdateEvent) {
-        if isDisabledUntilNextTransaction { return }
+        if isDisabled { return }
         observer?.databaseWillChange(with: event)
     }
     #endif
 
     func databaseDidChange(with event: DatabaseEvent) {
-        if isDisabledUntilNextTransaction { return }
+        if isDisabled { return }
         observer?.databaseDidChange(with: event)
     }
 
@@ -801,15 +806,9 @@ public enum DatabaseEventKind {
     
     /// Returns whether event has any impact on tables and columns described
     /// by selectionInfo.
-    public func impacts(_ selectionInfo: SelectStatement.SelectionInfo) -> Bool {
-        switch self {
-        case .delete(let tableName):
-            return selectionInfo.contains(anyColumnFrom: tableName)
-        case .insert(let tableName):
-            return selectionInfo.contains(anyColumnFrom: tableName)
-        case .update(let tableName, let updatedColumnNames):
-            return selectionInfo.contains(anyColumnIn: updatedColumnNames, from: tableName)
-        }
+    @available(*, deprecated, message: "Use SelectionInfo.isModified(byEventsOfKind:) instead")
+    public func impacts(_ selectionInfo: DatabaseSelectionInfo) -> Bool {
+        return selectionInfo.isModified(byEventsOfKind: self)
     }
 }
 

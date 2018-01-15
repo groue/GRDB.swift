@@ -215,6 +215,15 @@ extension Database {
         schemaCache.set(foreignKeys: foreignKeys, forTable: tableName)
         return foreignKeys
     }
+    
+    /// TODO
+    /// - throws: A DatabaseError if table does not exist.
+    public func selectionInfo(rowIds: Set<Int64>, in tableName: String) throws -> DatabaseSelectionInfo {
+        guard let canonicalTableName = try String.fetchOne(self, "SELECT name FROM (SELECT name, type FROM sqlite_master UNION SELECT name, type FROM sqlite_temp_master) WHERE type = 'table' AND LOWER(name) = ?", arguments: [tableName.lowercased()]) else {
+            throw DatabaseError(message: "table does not exist")
+        }
+        return DatabaseSelectionInfo(table: canonicalTableName, rowIds: rowIds)
+    }
 }
 
 extension Database {

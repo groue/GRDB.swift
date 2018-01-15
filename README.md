@@ -4827,12 +4827,12 @@ class PlayerObserver: TransactionObserver {
         playersTableWasModified = true
         
         // It is pointless to keep on tracking further changes:
-        ignoreDatabaseChangesUntilNextTransaction()
+        stopObservingDatabaseChangesUntilNextTransaction()
     }
 }
 ```
 
-After `ignoreDatabaseChangesUntilNextTransaction()`, the `databaseDidChange(with:)` method will not be called until the next transaction. This helps GRDB optimizing database observation. 
+After `stopObservingDatabaseChangesUntilNextTransaction()`, the `databaseDidChange(with:)` method will not be notified of any change for the remaining duration of the current transaction. This helps GRDB optimize database observation.
 
 
 #### Support for SQLite Pre-Update Hooks

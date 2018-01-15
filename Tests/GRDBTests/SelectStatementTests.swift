@@ -134,14 +134,14 @@ class SelectStatementTests : GRDBTestCase {
             class Observer: TransactionObserver {
                 private var didChange = false
                 var triggered = false
-                let selectionInfo: SelectStatement.SelectionInfo
+                let selectionInfo: DatabaseSelectionInfo
                 
-                init(selectionInfo: SelectStatement.SelectionInfo) {
+                init(selectionInfo: DatabaseSelectionInfo) {
                     self.selectionInfo = selectionInfo
                 }
                 
                 func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-                    return eventKind.impacts(selectionInfo) 
+                    return selectionInfo.isModified(byEventsOfKind: eventKind)
                 }
                 
                 func databaseDidChange(with event: DatabaseEvent) {
@@ -198,7 +198,7 @@ class SelectStatementTests : GRDBTestCase {
             
             let observers = statements.map { Observer(selectionInfo: $0.selectionInfo) }
             if doubtfulCountFunction {
-                XCTAssertEqual(observers.map { $0.selectionInfo.description }, ["table1(a,b,id,id3,id4)","table1(a,id,id3)", "table1(a,id),table2(a,id)", "unknown"])
+                XCTAssertEqual(observers.map { $0.selectionInfo.description }, ["table1(a,b,id,id3,id4)","table1(a,id,id3)", "table1(a,id),table2(a,id)", "full database"])
             } else {
                 XCTAssertEqual(observers.map { $0.selectionInfo.description }, ["table1(a,b,id,id3,id4)","table1(a,id,id3)", "table1(a,id),table2(a,id)", "table1(*)"])
             }

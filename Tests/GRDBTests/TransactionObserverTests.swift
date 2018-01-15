@@ -1626,7 +1626,7 @@ class TransactionObserverTests: GRDBTestCase {
         }
     }
     
-    func testIgnoreDatabaseChangesUntilNextTransaction() throws {
+    func testStopObservingDatabaseChangesUntilNextTransaction() throws {
         let dbQueue = try makeDatabaseQueue()
         
         class Observer: TransactionObserver {
@@ -1659,7 +1659,7 @@ class TransactionObserverTests: GRDBTestCase {
             func databaseDidChange(with event: DatabaseEvent) {
                 didChangeCount += 1
                 if event.tableName == "ignore" {
-                    ignoreDatabaseChangesUntilNextTransaction()
+                    stopObservingDatabaseChangesUntilNextTransaction()
                 }
             }
             

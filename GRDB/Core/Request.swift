@@ -29,7 +29,7 @@ public protocol Request {
     /// be replaced.
     ///
     /// - parameter db: A database connection.
-    func selectionInfo(_ db: Database) throws -> SelectStatement.SelectionInfo
+    func selectionInfo(_ db: Database) throws -> DatabaseSelectionInfo
 }
 
 extension Request {
@@ -60,7 +60,7 @@ extension Request {
     /// Returns information about the table and columns read by the request.
     ///
     /// - parameter db: A database connection.
-    public func selectionInfo(_ db: Database) throws -> SelectStatement.SelectionInfo {
+    public func selectionInfo(_ db: Database) throws -> DatabaseSelectionInfo {
         let (statement, _) = try prepare(db)
         return statement.selectionInfo
     }

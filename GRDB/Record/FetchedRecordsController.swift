@@ -379,7 +379,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     fileprivate var request: Request
     
     /// The observed selection info
-    private var selectionInfo : SelectStatement.SelectionInfo
+    private var selectionInfo : DatabaseSelectionInfo
     
     /// The eventual current database observer
     private var observer: FetchedRecordsObserver<Record>?
@@ -391,7 +391,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         _ db: Database,
         request: Request,
         itemsAreIdenticalFactory: ItemComparatorFactory<Record>) throws
-        -> (SelectStatement.SelectionInfo, ItemComparator<Record>)
+        -> (DatabaseSelectionInfo, ItemComparator<Record>)
     {
         let selectionInfo = try request.selectionInfo(db)
         let itemsAreIdentical = try itemsAreIdenticalFactory(db)
@@ -521,10 +521,10 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     var needsComputeChanges: Bool
     var items: [Item<Record>]!  // ought to be not nil when observer has started tracking transactions
     let queue: DispatchQueue // protects items
-    let selectionInfo: SelectStatement.SelectionInfo
+    let selectionInfo: DatabaseSelectionInfo
     var fetchAndNotifyChanges: (FetchedRecordsObserver<Record>) -> ()
     
-    init(selectionInfo: SelectStatement.SelectionInfo, fetchAndNotifyChanges: @escaping (FetchedRecordsObserver<Record>) -> ()) {
+    init(selectionInfo: DatabaseSelectionInfo, fetchAndNotifyChanges: @escaping (FetchedRecordsObserver<Record>) -> ()) {
         self.isValid = true
         self.items = nil
         self.needsComputeChanges = false
@@ -538,7 +538,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     }
     
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        return eventKind.impacts(selectionInfo)
+        return selectionInfo.isModified(byEventsOfKind: eventKind)
     }
     
     #if SQLITE_ENABLE_PREUPDATE_HOOK
@@ -548,15 +548,10 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     
     /// Part of the TransactionObserverType protocol
     func databaseDidChange(with event: DatabaseEvent) {
-        if let rowIds = selectionInfo.rowIds, !rowIds.contains(event.rowID) {
-            // If selectionInfo.rowIds is not nil, then the tracked request
-            // fetches from a single table. Due to the filtering of events
-            // performed in observes(eventsOfKind:), the event argument is
-            // guaranteed to be about the fetched table.
-            return
+        if selectionInfo.isModified(by: event) {
+            needsComputeChanges = true
+            stopObservingDatabaseChangesUntilNextTransaction()
         }
-        needsComputeChanges = true
-        ignoreDatabaseChangesUntilNextTransaction()
     }
     
     /// Part of the TransactionObserverType protocol
