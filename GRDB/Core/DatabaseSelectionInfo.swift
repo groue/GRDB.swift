@@ -1,24 +1,50 @@
-/// Information about the table, columns, and rows read by a SelectStatement.
+/// DatabaseSelectionInfo holds information about the table, columns, and
+/// rows read by database requests.
 ///
-/// You don't create SelectionInfo directly. Instead, you use one of
+/// Selection infos can represent full tables, columns of a database table, and
+/// rows of a database table (identified by their rowids).
+///
+///    |A|B|C|  |A|B|C|   |A|B|C|
+///    |x|x|x|  |x| | |   | | | |
+///    |x|x|x|  |x| | |   |x|x|x|
+///    |x|x|x|  |x| | |   | | | |
+///    |x|x|x|  |x| | |   | | | |
+///
+/// Unions and intersections of basic selections allow the creation of more
+/// complex selections:
+///
+///    |A|B|C|  |A|B|C|   |A|B|C|
+///    |x| |x|  |x|x|x|   |x| |x|
+///    |x| |x|  | | | |   | | | |
+///    |x| |x|  |x|x|x|   |x| |x|
+///    |x| |x|  | | | |   | | | |
+///
+/// You don't create DatabaseSelectionInfo directly. Instead, you use one of
 /// those methods:
 ///
-///     class SelectStatement {
-///         var selectionInfo: SelectionInfo
-///     }
-///     protocol Request {
-///         func selectionInfo(_ db: Database) throws -> SelectionInfo
-///     }
-///     class Database {
-///         func selectionInfo(rowIds: Set<Int64>, in tableName: String) throws -> SelectionInfo
-///     }
+/// - `SelectStatement.selectionInfo`:
+///
+///     let statement = db.makeSelectStatement("SELECT name, score FROM players")
+///     print(statement.statementInfo)
+///     // prints "players(name,score)"
+///
+/// - `Request.selectionInfo(_:)`
+///
+///     let request = Player.filter(key: 1)
+///     try print(statement.statementInfo(db))
+///     // prints "players(*)[1]"
+///
+/// - `Database.selectionInfo(rowIds:in:)`
+///
+///     try print(db.selectionInfo(rowIds: [1, 2], in: "players")
+///     // prints "players(*)[1, 2]"
 public struct DatabaseSelectionInfo {
     private let tables: [String: TableSelectionInfo]?
     private init(tables: [String: TableSelectionInfo]?) {
         self.tables = tables
     }
     
-    /// TODO
+    /// Returns whether the selection is empty.
     public var isEmpty: Bool {
         guard let tables = tables else { return false }
         return tables.isEmpty
@@ -52,6 +78,8 @@ public struct DatabaseSelectionInfo {
         self.init(tables: [table: TableSelectionInfo(columns: nil, rowIds: rowIds)])
     }
     
+    /// Returns a new selection with the database content that is common to both
+    /// this selection and the given one.
     public func intersection(_ other: DatabaseSelectionInfo) -> DatabaseSelectionInfo {
         guard let tables = tables else { return other }
         guard let otherTables = other.tables else { return self }
