@@ -8,12 +8,8 @@ Release Notes
 - `TransactionObserver.stopObservingDatabaseChangesUntilNextTransaction` allows transaction observers to stop observing the database for the remaining extent of a transaction.
 - GRDB no longer prevents the [truncate optimization](https://www.sqlite.org/lang_delete.html#truncateopt) when no transaction observers are interested in deleted rows.
 - FetchedRecordsController now avoids checking for changes in untracked rowIds.
-- `DatabaseSelectionInfo` (TODO)
+- `DatabaseRegion` is a new public type that helps transaction observers recognize impactful database changes.
 - `Row` adopts RandomAccessCollection
-
-### Deprecated
-
-- `SelectStatement.SelectionInfo` is deprecated, renamed `DatabaseSelectionInfo`.
 
 ### API diff
 
@@ -21,9 +17,29 @@ Release Notes
 +extension TransactionObserver {
 +    func stopObservingDatabaseChangesUntilNextTransaction()
 +}
-TODO: +DatabaseSelectionInfo
-TODO: +SelectStatement.SelectionInfo
-TODO: -DatabaseEvent.impacts
+
++struct DatabaseRegion: Equatable {
++    var isEmpty: Bool
++    func intersection(_ other: DatabaseRegion) -> DatabaseRegion
++    func union(_ other: DatabaseRegion) -> DatabaseRegion
++    mutating func formIntersection(_ other: DatabaseRegion)
++    mutating func formUnion(_ other: DatabaseRegion)
++    func isModified(byEventsOfKind eventKind: DatabaseEventKind) -> Bool
++    func isModified(by event: DatabaseEvent) -> Bool
++}
+
+ class SelectStatement {
++    @available(*, deprecated, renamed:"DatabaseRegion")
++    public typealias SelectionInfo = DatabaseRegion
++    
++    @available(*, deprecated, renamed:"region")
++    public var selectionInfo: DatabaseRegion { return region }
+ }
+
+ enum DatabaseEventKind {
++    @available(*, deprecated, message: "Use DatabaseRegion.isModified(byEventsOfKind:) instead")
++    public func impacts(_ region: DatabaseRegion) -> Bool
+ }
 ```
 
 

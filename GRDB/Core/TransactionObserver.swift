@@ -815,7 +815,7 @@ public enum DatabaseEventKind {
         }
     }
     
-    @available(*, deprecated, message: "Use Region.isModified(byEventsOfKind:) instead")
+    @available(*, deprecated, message: "Use DatabaseRegion.isModified(byEventsOfKind:) instead")
     public func impacts(_ region: DatabaseRegion) -> Bool {
         return region.isModified(byEventsOfKind: self)
     }

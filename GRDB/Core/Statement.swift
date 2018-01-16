@@ -293,7 +293,7 @@ extension AuthorizedStatement {
 ///     }
 public final class SelectStatement : Statement, AuthorizedStatement {
     @available(*, deprecated, renamed:"DatabaseRegion")
-    public typealias Region = DatabaseRegion
+    public typealias SelectionInfo = DatabaseRegion
     
     @available(*, deprecated, renamed:"region")
     public var selectionInfo: DatabaseRegion { return region }

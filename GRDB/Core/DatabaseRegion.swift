@@ -1,6 +1,9 @@
 /// DatabaseRegion defines a region in the database, that is to say tables,
 /// columns, and rows (identified by their rowids). DatabaseRegion is dedicated
-/// to help transaction observers recognize impactful database changes.
+/// to help transaction observers recognize impactful database changes in their
+/// `observes(eventsOfKind:)` and `databaseDidChange(with:)` methods.
+///
+/// A region can represent a full table, a column, or a row:
 ///
 ///    |  T  |   |  U  |    |  V  |
 ///    |-----|   |-----|    |-----|
