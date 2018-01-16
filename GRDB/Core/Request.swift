@@ -80,7 +80,7 @@ extension Request {
     /// - parameter type: The fetched type T
     /// - returns: A typed request bound to type T.
     public func asRequest<T>(of type: T.Type) -> AnyTypedRequest<T> {
-        return AnyTypedRequest { try self.prepare($0) }
+        return AnyTypedRequest(self)
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -294,9 +294,15 @@ public struct AnyTypedRequest<T> : TypedRequest {
     public typealias RowDecoder = T
     private let base: Request
     
+    /// Support for Request.asRequest(of:)
+    /// Not public because not type-safe.
+    fileprivate init(_ request: Request) {
+        base = request
+    }
+    
     /// Creates a new request that wraps and forwards operations to `request`.
     public init<Request>(_ request: Request) where Request: TypedRequest, Request.RowDecoder == RowDecoder {
-        base = AnyRequest(request)
+        base = request
     }
     
     /// Creates a new request whose `prepare()` method wraps and forwards
