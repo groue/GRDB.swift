@@ -181,37 +181,39 @@ extension QueryInterfaceSelectQueryDefinition : Request {
         return try Int.fetchOne(db, countQuery)!
     }
     
-    /// Returns information about the table and columns read by the request.
-    public func selectionInfo(_ db: Database) throws -> DatabaseSelectionInfo {
+    /// The database region read by the request.
+    public func region(_ db: Database) throws -> DatabaseRegion {
         let (statement, _) = try prepare(db)
-        let selectionInfo = statement.selectionInfo
+        let region = statement.region
         
+        // Can we intersect the region with rowIds?
+        //
         // Give up unless request feeds from a single database table
         guard let source = source else {
-            return selectionInfo
+            return region
         }
         guard case .table(name: let tableName, alias: _) = source else {
-            return selectionInfo
+            return region
         }
         
         // Give up unless primary key is rowId
         let primaryKeyInfo = try db.primaryKey(tableName)
         guard primaryKeyInfo.isRowID else {
-            return selectionInfo
+            return region
         }
         
         // Give up unless there is a where clause
         guard let whereExpression = try wherePromise.resolve(db) else {
-            return selectionInfo
+            return region
         }
         
         // The whereExpression knows better
         guard let rowIds = whereExpression.matchedRowIds(rowIdName: primaryKeyInfo.rowIDColumn) else {
-            return selectionInfo
+            return region
         }
         
         // Intersect
-        return try selectionInfo.intersection(db.selectionInfo(rowIds: rowIds, in: tableName))
+        return try region.intersection(db.region(rowIds: rowIds, in: tableName))
     }
     
     private var countQuery: QueryInterfaceSelectQueryDefinition {

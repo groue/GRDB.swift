@@ -128,20 +128,20 @@ class SelectStatementTests : GRDBTestCase {
         }
     }
     
-    func testSelectionInfo() throws {
+    func testRegion() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             class Observer: TransactionObserver {
                 private var didChange = false
                 var triggered = false
-                let selectionInfo: DatabaseSelectionInfo
+                let region: DatabaseRegion
                 
-                init(selectionInfo: DatabaseSelectionInfo) {
-                    self.selectionInfo = selectionInfo
+                init(region: DatabaseRegion) {
+                    self.region = region
                 }
                 
                 func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-                    return selectionInfo.isModified(byEventsOfKind: eventKind)
+                    return region.isModified(byEventsOfKind: eventKind)
                 }
                 
                 func databaseDidChange(with event: DatabaseEvent) {
@@ -187,7 +187,7 @@ class SelectStatementTests : GRDBTestCase {
                 db.makeSelectStatement("SELECT table1.id, table1.a, table2.a FROM table1 JOIN table2 ON table1.id = table2.id"),
                 
                 // This last request triggers its observer or not, depending on the SQLite version.
-                // Before SQLite 3.19.0, its selectionInfo is doubtful, and every database change is deemed impactful.
+                // Before SQLite 3.19.0, its region is doubtful, and every database change is deemed impactful.
                 // Starting SQLite 3.19.0, it knows that only table1 is involved.
                 //
                 // See doubtfulCountFunction below
@@ -196,11 +196,11 @@ class SelectStatementTests : GRDBTestCase {
             
             let doubtfulCountFunction = (sqlite3_libversion_number() < 3019000)
             
-            let observers = statements.map { Observer(selectionInfo: $0.selectionInfo) }
+            let observers = statements.map { Observer(region: $0.region) }
             if doubtfulCountFunction {
-                XCTAssertEqual(observers.map { $0.selectionInfo.description }, ["table1(a,b,id,id3,id4)","table1(a,id,id3)", "table1(a,id),table2(a,id)", "full database"])
+                XCTAssertEqual(observers.map { $0.region.description }, ["table1(a,b,id,id3,id4)","table1(a,id,id3)", "table1(a,id),table2(a,id)", "full database"])
             } else {
-                XCTAssertEqual(observers.map { $0.selectionInfo.description }, ["table1(a,b,id,id3,id4)","table1(a,id,id3)", "table1(a,id),table2(a,id)", "table1(*)"])
+                XCTAssertEqual(observers.map { $0.region.description }, ["table1(a,b,id,id3,id4)","table1(a,id,id3)", "table1(a,id),table2(a,id)", "table1(*)"])
             }
             
             for observer in observers {

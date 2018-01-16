@@ -23,13 +23,12 @@ public protocol Request {
     /// - parameter db: A database connection.
     func fetchCount(_ db: Database) throws -> Int
     
-    /// Returns information about the table and columns read by the request.
+    /// The database region read by the request.
     ///
-    /// This method has a default implementation which is not supposed to
-    /// be replaced.
+    /// This method has a default implementation.
     ///
     /// - parameter db: A database connection.
-    func selectionInfo(_ db: Database) throws -> DatabaseSelectionInfo
+    func region(_ db: Database) throws -> DatabaseRegion
 }
 
 extension Request {
@@ -57,12 +56,12 @@ extension Request {
         return SQLRequest(statement.sql, arguments: statement.arguments, adapter: adapter, cached: cached)
     }
     
-    /// Returns information about the table and columns read by the request.
+    /// The database region read by the request.
     ///
     /// - parameter db: A database connection.
-    public func selectionInfo(_ db: Database) throws -> DatabaseSelectionInfo {
+    public func region(_ db: Database) throws -> DatabaseRegion {
         let (statement, _) = try prepare(db)
-        return statement.selectionInfo
+        return statement.region
     }
 }
 

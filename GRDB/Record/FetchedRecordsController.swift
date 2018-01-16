@@ -104,8 +104,8 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     {
         self.itemsAreIdenticalFactory = itemsAreIdenticalFactory
         self.request = request
-        (self.selectionInfo, self.itemsAreIdentical) = try databaseWriter.unsafeRead { db in
-            try FetchedRecordsController.fetchSelectionInfoAndComparator(db, request: request, itemsAreIdenticalFactory: itemsAreIdenticalFactory)
+        (self.region, self.itemsAreIdentical) = try databaseWriter.unsafeRead { db in
+            try FetchedRecordsController.fetchRegionAndComparator(db, request: request, itemsAreIdenticalFactory: itemsAreIdenticalFactory)
         }
         self.databaseWriter = databaseWriter
         self.queue = queue
@@ -133,7 +133,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             let initialItems = try Item<Record>.fetchAll(db, request)
             fetchedItems = initialItems
             if let fetchAndNotifyChanges = fetchAndNotifyChanges {
-                let observer = FetchedRecordsObserver(selectionInfo: self.selectionInfo, fetchAndNotifyChanges: fetchAndNotifyChanges)
+                let observer = FetchedRecordsObserver(region: self.region, fetchAndNotifyChanges: fetchAndNotifyChanges)
                 self.observer = observer
                 observer.items = initialItems
                 db.add(transactionObserver: observer)
@@ -162,8 +162,8 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// main queue unless stated otherwise in the controller's initializer).
     public func setRequest<Request>(_ request: Request) throws where Request: TypedRequest, Request.RowDecoder == Record {
         self.request = request
-        (self.selectionInfo, self.itemsAreIdentical) = try databaseWriter.unsafeRead { db in
-            try FetchedRecordsController.fetchSelectionInfoAndComparator(db, request: request, itemsAreIdenticalFactory: itemsAreIdenticalFactory)
+        (self.region, self.itemsAreIdentical) = try databaseWriter.unsafeRead { db in
+            try FetchedRecordsController.fetchRegionAndComparator(db, request: request, itemsAreIdenticalFactory: itemsAreIdenticalFactory)
         }
         
         // No observer: don't look for changes
@@ -179,7 +179,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         // and notify eventual changes
         let initialItems = fetchedItems
         databaseWriter.write { db in
-            let observer = FetchedRecordsObserver(selectionInfo: selectionInfo, fetchAndNotifyChanges: fetchAndNotifyChanges)
+            let observer = FetchedRecordsObserver(region: region, fetchAndNotifyChanges: fetchAndNotifyChanges)
             self.observer = observer
             observer.items = initialItems
             db.add(transactionObserver: observer)
@@ -299,7 +299,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
                 onChange: onChange,
                 didChange: didChange,
                 didProcessTransaction: didProcessTransaction)
-            let observer = FetchedRecordsObserver(selectionInfo: selectionInfo, fetchAndNotifyChanges: fetchAndNotifyChanges)
+            let observer = FetchedRecordsObserver(region: region, fetchAndNotifyChanges: fetchAndNotifyChanges)
             self.observer = observer
             if let initialItems = initialItems {
                 observer.items = initialItems
@@ -378,8 +378,8 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// The request
     fileprivate var request: Request
     
-    /// The observed selection info
-    private var selectionInfo : DatabaseSelectionInfo
+    /// The observed database region
+    private var region : DatabaseRegion
     
     /// The eventual current database observer
     private var observer: FetchedRecordsObserver<Record>?
@@ -387,15 +387,15 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// The eventual error handler
     fileprivate var errorHandler: ((FetchedRecordsController<Record>, Error) -> ())?
     
-    private static func fetchSelectionInfoAndComparator(
+    private static func fetchRegionAndComparator(
         _ db: Database,
         request: Request,
         itemsAreIdenticalFactory: ItemComparatorFactory<Record>) throws
-        -> (DatabaseSelectionInfo, ItemComparator<Record>)
+        -> (DatabaseRegion, ItemComparator<Record>)
     {
-        let selectionInfo = try request.selectionInfo(db)
+        let region = try request.region(db)
         let itemsAreIdentical = try itemsAreIdenticalFactory(db)
-        return (selectionInfo, itemsAreIdentical)
+        return (region, itemsAreIdentical)
     }
 }
 
@@ -521,15 +521,15 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     var needsComputeChanges: Bool
     var items: [Item<Record>]!  // ought to be not nil when observer has started tracking transactions
     let queue: DispatchQueue // protects items
-    let selectionInfo: DatabaseSelectionInfo
+    let region: DatabaseRegion
     var fetchAndNotifyChanges: (FetchedRecordsObserver<Record>) -> ()
     
-    init(selectionInfo: DatabaseSelectionInfo, fetchAndNotifyChanges: @escaping (FetchedRecordsObserver<Record>) -> ()) {
+    init(region: DatabaseRegion, fetchAndNotifyChanges: @escaping (FetchedRecordsObserver<Record>) -> ()) {
         self.isValid = true
         self.items = nil
         self.needsComputeChanges = false
         self.queue = DispatchQueue(label: "GRDB.FetchedRecordsObserver")
-        self.selectionInfo = selectionInfo
+        self.region = region
         self.fetchAndNotifyChanges = fetchAndNotifyChanges
     }
     
@@ -538,7 +538,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     }
     
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        return selectionInfo.isModified(byEventsOfKind: eventKind)
+        return region.isModified(byEventsOfKind: eventKind)
     }
     
     #if SQLITE_ENABLE_PREUPDATE_HOOK
@@ -548,7 +548,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     
     /// Part of the TransactionObserverType protocol
     func databaseDidChange(with event: DatabaseEvent) {
-        if selectionInfo.isModified(by: event) {
+        if region.isModified(by: event) {
             needsComputeChanges = true
             stopObservingDatabaseChangesUntilNextTransaction()
         }

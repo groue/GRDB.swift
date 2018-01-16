@@ -216,13 +216,20 @@ extension Database {
         return foreignKeys
     }
     
-    /// TODO
+    /// Returns a region that contains the given rows in the given table:
+    ///
+    ///     dbQueue.inDatabase { db in
+    ///         let region = db.region(rowIds: [1, 2], in: "players")
+    ///         print(egion)
+    ///         // prints "players(*)[1, 2]"
+    ///     }
+    ///
     /// - throws: A DatabaseError if table does not exist.
-    public func selectionInfo(rowIds: Set<Int64>, in tableName: String) throws -> DatabaseSelectionInfo {
+    public func region(rowIds: Set<Int64>, in tableName: String) throws -> DatabaseRegion {
         guard let canonicalTableName = try String.fetchOne(self, "SELECT name FROM (SELECT name, type FROM sqlite_master UNION SELECT name, type FROM sqlite_temp_master) WHERE type = 'table' AND LOWER(name) = ?", arguments: [tableName.lowercased()]) else {
             throw DatabaseError(message: "table does not exist")
         }
-        return DatabaseSelectionInfo(table: canonicalTableName, rowIds: rowIds)
+        return DatabaseRegion(table: canonicalTableName, rowIds: rowIds)
     }
 }
 

@@ -804,11 +804,20 @@ public enum DatabaseEventKind {
     /// The update of a set of columns in a database table
     case update(tableName: String, columnNames: Set<String>)
     
-    /// Returns whether event has any impact on tables and columns described
-    /// by selectionInfo.
-    @available(*, deprecated, message: "Use SelectionInfo.isModified(byEventsOfKind:) instead")
-    public func impacts(_ selectionInfo: DatabaseSelectionInfo) -> Bool {
-        return selectionInfo.isModified(byEventsOfKind: self)
+    var region: DatabaseRegion {
+        switch self {
+        case .delete(let tableName):
+            return DatabaseRegion(table: tableName)
+        case .insert(let tableName):
+            return DatabaseRegion(table: tableName)
+        case .update(let tableName, let updatedColumnNames):
+            return DatabaseRegion(table: tableName, columns: updatedColumnNames)
+        }
+    }
+    
+    @available(*, deprecated, message: "Use Region.isModified(byEventsOfKind:) instead")
+    public func impacts(_ region: DatabaseRegion) -> Bool {
+        return region.isModified(byEventsOfKind: self)
     }
 }
 

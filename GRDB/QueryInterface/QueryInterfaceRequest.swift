@@ -27,9 +27,9 @@ extension QueryInterfaceRequest : TypedRequest {
         return try query.fetchCount(db)
     }
     
-    /// Returns information about the table and columns read by the request.
-    public func selectionInfo(_ db: Database) throws -> DatabaseSelectionInfo {
-        return try query.selectionInfo(db)
+    /// The database region read by the request.
+    public func region(_ db: Database) throws -> DatabaseRegion {
+        return try query.region(db)
     }
 }
 

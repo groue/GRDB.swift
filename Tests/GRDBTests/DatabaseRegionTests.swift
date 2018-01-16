@@ -12,24 +12,24 @@ import XCTest
     @testable import GRDB
 #endif
 
-class DatabaseSelectionInfoTests : GRDBTestCase {
+class DatabaseRegionTests : GRDBTestCase {
     
-    func testSelectionInfoEquatable() {
+    func testRegionEquatable() {
         // An array of distinct selection infos
-        let selectionInfos = [
-            DatabaseSelectionInfo.fullDatabase,
-            DatabaseSelectionInfo(),
-            DatabaseSelectionInfo(table: "foo"),
-            DatabaseSelectionInfo(table: "FOO"), // selection info is case-sensitive on table name
-            DatabaseSelectionInfo(table: "foo", columns: ["a", "b"]),
-            DatabaseSelectionInfo(table: "foo", columns: ["A", "B"]), // selection info is case-sensitive on columns names
-            DatabaseSelectionInfo(table: "foo", columns: ["b", "c"]),
-            DatabaseSelectionInfo(table: "foo", rowIds: [1, 2]),
-            DatabaseSelectionInfo(table: "foo", rowIds: [2, 3]),
-            DatabaseSelectionInfo(table: "bar")]
+        let regions = [
+            DatabaseRegion.fullDatabase,
+            DatabaseRegion(),
+            DatabaseRegion(table: "foo"),
+            DatabaseRegion(table: "FOO"), // selection info is case-sensitive on table name
+            DatabaseRegion(table: "foo", columns: ["a", "b"]),
+            DatabaseRegion(table: "foo", columns: ["A", "B"]), // selection info is case-sensitive on columns names
+            DatabaseRegion(table: "foo", columns: ["b", "c"]),
+            DatabaseRegion(table: "foo", rowIds: [1, 2]),
+            DatabaseRegion(table: "foo", rowIds: [2, 3]),
+            DatabaseRegion(table: "bar")]
         
-        for (i1, s1) in selectionInfos.enumerated() {
-            for (i2, s2) in selectionInfos.enumerated() {
+        for (i1, s1) in regions.enumerated() {
+            for (i2, s2) in regions.enumerated() {
                 if i1 == i2 {
                     XCTAssertEqual(s1, s2)
                 } else {
@@ -39,20 +39,20 @@ class DatabaseSelectionInfoTests : GRDBTestCase {
         }
     }
     
-    func testSelectionInfoUnion() {
-        let selectionInfos = [
-            DatabaseSelectionInfo.fullDatabase,
-            DatabaseSelectionInfo(),
-            DatabaseSelectionInfo(table: "foo"),
-            DatabaseSelectionInfo(table: "foo", columns: ["a", "b"]),
-            DatabaseSelectionInfo(table: "foo", columns: ["b", "c"]),
-            DatabaseSelectionInfo(table: "foo", rowIds: [1, 2]),
-            DatabaseSelectionInfo(table: "foo", rowIds: [2, 3]),
-            DatabaseSelectionInfo(table: "bar")]
+    func testRegionUnion() {
+        let regions = [
+            DatabaseRegion.fullDatabase,
+            DatabaseRegion(),
+            DatabaseRegion(table: "foo"),
+            DatabaseRegion(table: "foo", columns: ["a", "b"]),
+            DatabaseRegion(table: "foo", columns: ["b", "c"]),
+            DatabaseRegion(table: "foo", rowIds: [1, 2]),
+            DatabaseRegion(table: "foo", rowIds: [2, 3]),
+            DatabaseRegion(table: "bar")]
         
-        var unions: [DatabaseSelectionInfo] = []
-        for s1 in selectionInfos {
-            for s2 in selectionInfos {
+        var unions: [DatabaseRegion] = []
+        for s1 in regions {
+            for s2 in regions {
                 unions.append(s1.union(s2))
             }
         }
@@ -131,20 +131,36 @@ class DatabaseSelectionInfoTests : GRDBTestCase {
             "bar(*)"])
     }
     
-    func testSelectionInfoIntersection() {
-        let selectionInfos = [
-            DatabaseSelectionInfo.fullDatabase,
-            DatabaseSelectionInfo(),
-            DatabaseSelectionInfo(table: "foo"),
-            DatabaseSelectionInfo(table: "foo", columns: ["a", "b"]),
-            DatabaseSelectionInfo(table: "foo", columns: ["b", "c"]),
-            DatabaseSelectionInfo(table: "foo", rowIds: [1, 2]),
-            DatabaseSelectionInfo(table: "foo", rowIds: [2, 3]),
-            DatabaseSelectionInfo(table: "bar")]
+    func testRegionUnionOfColumnsAndRows() {
+        let regions = [
+            DatabaseRegion(table: "foo", columns: ["a"]).intersection(DatabaseRegion(table: "foo", rowIds: [1])),
+            DatabaseRegion(table: "foo", columns: ["b"]).intersection(DatabaseRegion(table: "foo", rowIds: [2])),
+            ]
         
-        var intersection: [DatabaseSelectionInfo] = []
-        for s1 in selectionInfos {
-            for s2 in selectionInfos {
+        var unions: [DatabaseRegion] = []
+        for s1 in regions {
+            for s2 in regions {
+                unions.append(s1.union(s2))
+            }
+        }
+        
+        XCTAssertEqual(unions.map { $0.description }, ["foo(a)[1]", "foo(a,b)[1,2]", "foo(a,b)[1,2]", "foo(b)[2]"])
+    }
+    
+    func testRegionIntersection() {
+        let regions = [
+            DatabaseRegion.fullDatabase,
+            DatabaseRegion(),
+            DatabaseRegion(table: "foo"),
+            DatabaseRegion(table: "foo", columns: ["a", "b"]),
+            DatabaseRegion(table: "foo", columns: ["b", "c"]),
+            DatabaseRegion(table: "foo", rowIds: [1, 2]),
+            DatabaseRegion(table: "foo", rowIds: [2, 3]),
+            DatabaseRegion(table: "bar")]
+        
+        var intersection: [DatabaseRegion] = []
+        for s1 in regions {
+            for s2 in regions {
                 intersection.append(s1.intersection(s2))
             }
         }
@@ -223,6 +239,22 @@ class DatabaseSelectionInfoTests : GRDBTestCase {
             "bar(*)"])
     }
     
+    func testRegionIntersectionOfColumnsAndRows() {
+        let regions = [
+            DatabaseRegion(table: "foo", columns: ["a"]).intersection(DatabaseRegion(table: "foo", rowIds: [1])),
+            DatabaseRegion(table: "foo", columns: ["b"]).intersection(DatabaseRegion(table: "foo", rowIds: [2])),
+            ]
+        
+        var intersection: [DatabaseRegion] = []
+        for s1 in regions {
+            for s2 in regions {
+                intersection.append(s1.intersection(s2))
+            }
+        }
+        
+        XCTAssertEqual(intersection.map { $0.description }, ["foo(a)[1]", "empty", "empty", "foo(b)[2]"])
+    }
+
     func testSelectStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -231,27 +263,27 @@ class DatabaseSelectionInfoTests : GRDBTestCase {
             
             do {
                 let statement = try db.makeSelectStatement("SELECT foo.name FROM FOO JOIN BAR ON fooId = foo.id")
-                let expectedSelectionInfo = DatabaseSelectionInfo(table: "foo", columns: ["name", "id"])
-                    .union(DatabaseSelectionInfo(table: "bar", columns: ["fooId"]))
-                XCTAssertEqual(statement.selectionInfo, expectedSelectionInfo)
-                XCTAssertEqual(statement.selectionInfo.description, "bar(fooId),foo(id,name)")
+                let expectedRegion = DatabaseRegion(table: "foo", columns: ["name", "id"])
+                    .union(DatabaseRegion(table: "bar", columns: ["fooId"]))
+                XCTAssertEqual(statement.region, expectedRegion)
+                XCTAssertEqual(statement.region.description, "bar(fooId),foo(id,name)")
             }
             do {
                 let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM foo")
                 if sqlite3_libversion_number() < 3019000 {
-                    let expectedSelectionInfo = DatabaseSelectionInfo.fullDatabase
-                    XCTAssertEqual(statement.selectionInfo, expectedSelectionInfo)
-                    XCTAssertEqual(statement.selectionInfo.description, "full database")
+                    let expectedRegion = DatabaseRegion.fullDatabase
+                    XCTAssertEqual(statement.region, expectedRegion)
+                    XCTAssertEqual(statement.region.description, "full database")
                 } else {
-                    let expectedSelectionInfo = DatabaseSelectionInfo(table: "foo")
-                    XCTAssertEqual(statement.selectionInfo, expectedSelectionInfo)
-                    XCTAssertEqual(statement.selectionInfo.description, "foo(*)")
+                    let expectedRegion = DatabaseRegion(table: "foo")
+                    XCTAssertEqual(statement.region, expectedRegion)
+                    XCTAssertEqual(statement.region.description, "foo(*)")
                 }
             }
         }
     }
     
-    func testSelectionInfoRowIds() throws {
+    func testRegionRowIds() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute("CREATE TABLE foo (id INTEGER PRIMARY KEY, a TEXT)")
@@ -263,117 +295,117 @@ class DatabaseSelectionInfoTests : GRDBTestCase {
             
             do {
                 let request = Record.all()
-                try XCTAssertEqual(request.selectionInfo(db).description, "foo(a,id)")
+                try XCTAssertEqual(request.region(db).description, "foo(a,id)")
             }
             do {
                 let request = Record.filter(Column("a") == 1)
-                try XCTAssertEqual(request.selectionInfo(db).description, "foo(a,id)")
+                try XCTAssertEqual(request.region(db).description, "foo(a,id)")
             }
             do {
                 let request = Record.filter(Column("id") >= 1)
-                try XCTAssertEqual(request.selectionInfo(db).description, "foo(a,id)")
+                try XCTAssertEqual(request.region(db).description, "foo(a,id)")
             }
             
             do {
                 let request = Record.filter((Column("id") == 1) || (Column("a") == "foo"))
-                try XCTAssertEqual(request.selectionInfo(db).description, "foo(a,id)")
+                try XCTAssertEqual(request.region(db).description, "foo(a,id)")
             }
 
             // No rowId
             
             do {
                 let request = Record.filter(Column("id") == nil)
-                try XCTAssertEqual(request.selectionInfo(db).description, "empty")
+                try XCTAssertEqual(request.region(db).description, "empty")
             }
 
             do {
                 let request = Record.filter(Column("id") === nil)
-                try XCTAssertEqual(request.selectionInfo(db).description, "empty")
+                try XCTAssertEqual(request.region(db).description, "empty")
             }
             
             do {
                 let request = Record.filter(nil == Column("id"))
-                try XCTAssertEqual(request.selectionInfo(db).description, "empty")
+                try XCTAssertEqual(request.region(db).description, "empty")
             }
             
             do {
                 let request = Record.filter(nil === Column("id"))
-                try XCTAssertEqual(request.selectionInfo(db).description, "empty")
+                try XCTAssertEqual(request.region(db).description, "empty")
             }
             
             do {
                 let request = Record.filter((Column("id") == 1) && (Column("id") == 2))
-                try XCTAssertEqual(request.selectionInfo(db).description, "empty")
+                try XCTAssertEqual(request.region(db).description, "empty")
             }
             do {
                 let request = Record.filter(key: 1).filter(key: 2)
-                try XCTAssertEqual(request.selectionInfo(db).description, "empty")
+                try XCTAssertEqual(request.region(db).description, "empty")
             }
 
             // Single rowId
             
             do {
                 let request = Record.filter(Column("id") == 1)
-                try XCTAssertEqual(request.selectionInfo(db).description, "foo(a,id)[1]")
+                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1]")
             }
             do {
                 let request = Record.filter(Column("id") === 1)
-                try XCTAssertEqual(request.selectionInfo(db).description, "foo(a,id)[1]")
+                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1]")
             }
             do {
                 let request = Record.filter(Column("id") == 1 && Column("a") == "foo")
-                try XCTAssertEqual(request.selectionInfo(db).description, "foo(a,id)[1]")
+                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1]")
             }
             do {
                 let request = Record.filter(Column.rowID == 1)
-                try XCTAssertEqual(request.selectionInfo(db).description, "foo(a,id)[1]")
+                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1]")
             }
             do {
                 let request = Record.filter(1 == Column("id"))
-                try XCTAssertEqual(request.selectionInfo(db).description, "foo(a,id)[1]")
+                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1]")
             }
             do {
                 let request = Record.filter(1 === Column("id"))
-                try XCTAssertEqual(request.selectionInfo(db).description, "foo(a,id)[1]")
+                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1]")
             }
             do {
                 let request = Record.filter(1 === Column.rowID)
-                try XCTAssertEqual(request.selectionInfo(db).description, "foo(a,id)[1]")
+                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1]")
             }
             do {
                 let request = Record.filter(key: 1)
-                try XCTAssertEqual(request.selectionInfo(db).description, "foo(a,id)[1]")
+                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1]")
             }
             do {
                 let request = Record.filter(key: 1).filter(key: 1)
-                try XCTAssertEqual(request.selectionInfo(db).description, "foo(a,id)[1]")
+                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1]")
             }
             do {
                 let request = Record.filter(key: 1).filter(Column("a") == "foo")
-                try XCTAssertEqual(request.selectionInfo(db).description, "foo(a,id)[1]")
+                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1]")
             }
 
             // Multiple rowIds
             
             do {
                 let request = Record.filter(Column("id") == 1 || Column.rowID == 2)
-                try XCTAssertEqual(request.selectionInfo(db).description, "foo(a,id)[1,2]")
+                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1,2]")
             }
             do {
                 let request = Record.filter((Column("id") == 1 && Column("a") == "foo") || Column.rowID == 2)
-                try XCTAssertEqual(request.selectionInfo(db).description, "foo(a,id)[1,2]")
+                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1,2]")
             }
             do {
                 let request = Record.filter([1, 2, 3].contains(Column("id")))
-                try XCTAssertEqual(request.selectionInfo(db).description, "foo(a,id)[1,2,3]")
+                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1,2,3]")
             }
             do {
                 let request = Record.filter([1, 2, 3].contains(Column.rowID))
-                try XCTAssertEqual(request.selectionInfo(db).description, "foo(a,id)[1,2,3]")
+                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1,2,3]")
             }
             do {
                 let request = Record.filter(keys: [1, 2, 3])
-                try XCTAssertEqual(request.selectionInfo(db).description, "foo(a,id)[1,2,3]")
+                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1,2,3]")
             }
         }
     }
@@ -411,21 +443,21 @@ class DatabaseSelectionInfoTests : GRDBTestCase {
             try db.execute("CREATE TABLE foo (name TEXT)")
             do {
                 let statement = try db.makeSelectStatement("SELECT rowid FROM FOO")
-                let expectedSelectionInfo = DatabaseSelectionInfo(table: "foo", columns: ["ROWID"])
-                XCTAssertEqual(statement.selectionInfo, expectedSelectionInfo)
-                XCTAssertEqual(statement.selectionInfo.description, "foo(ROWID)")
+                let expectedRegion = DatabaseRegion(table: "foo", columns: ["ROWID"])
+                XCTAssertEqual(statement.region, expectedRegion)
+                XCTAssertEqual(statement.region.description, "foo(ROWID)")
             }
             do {
                 let statement = try db.makeSelectStatement("SELECT _ROWID_ FROM FOO")
-                let expectedSelectionInfo = DatabaseSelectionInfo(table: "foo", columns: ["ROWID"])
-                XCTAssertEqual(statement.selectionInfo, expectedSelectionInfo)
-                XCTAssertEqual(statement.selectionInfo.description, "foo(ROWID)")
+                let expectedRegion = DatabaseRegion(table: "foo", columns: ["ROWID"])
+                XCTAssertEqual(statement.region, expectedRegion)
+                XCTAssertEqual(statement.region.description, "foo(ROWID)")
             }
             do {
                 let statement = try db.makeSelectStatement("SELECT oID FROM FOO")
-                let expectedSelectionInfo = DatabaseSelectionInfo(table: "foo", columns: ["ROWID"])
-                XCTAssertEqual(statement.selectionInfo, expectedSelectionInfo)
-                XCTAssertEqual(statement.selectionInfo.description, "foo(ROWID)")
+                let expectedRegion = DatabaseRegion(table: "foo", columns: ["ROWID"])
+                XCTAssertEqual(statement.region, expectedRegion)
+                XCTAssertEqual(statement.region.description, "foo(ROWID)")
             }
         }
     }
@@ -526,43 +558,43 @@ class DatabaseSelectionInfoTests : GRDBTestCase {
         }
     }
     
-    func testSelectionInfoIsModifiedByDatabaseEvent() {
+    func testRegionIsModifiedByDatabaseEvent() {
         do {
             // Empty selection
-            let selectionInfo = DatabaseSelectionInfo()
-            XCTAssertEqual(selectionInfo.description, "empty")
+            let region = DatabaseRegion()
+            XCTAssertEqual(region.description, "empty")
             
             do {
                 let eventKind = DatabaseEventKind.insert(tableName: "foo")
-                XCTAssertFalse(selectionInfo.isModified(byEventsOfKind: eventKind))
-                // Can't test for individual events due to DatabaseSelectionInfo.isModified(by:) precondition
+                XCTAssertFalse(region.isModified(byEventsOfKind: eventKind))
+                // Can't test for individual events due to DatabaseRegion.isModified(by:) precondition
             }
 
             do {
                 let eventKind = DatabaseEventKind.delete(tableName: "foo")
-                XCTAssertFalse(selectionInfo.isModified(byEventsOfKind: eventKind))
-                // Can't test for individual events due to DatabaseSelectionInfo.isModified(by:) precondition
+                XCTAssertFalse(region.isModified(byEventsOfKind: eventKind))
+                // Can't test for individual events due to DatabaseRegion.isModified(by:) precondition
             }
             
             do {
                 let eventKind = DatabaseEventKind.update(tableName: "foo", columnNames: ["a", "b"])
-                XCTAssertFalse(selectionInfo.isModified(byEventsOfKind: eventKind))
-                // Can't test for individual events due to DatabaseSelectionInfo.isModified(by:) precondition
+                XCTAssertFalse(region.isModified(byEventsOfKind: eventKind))
+                // Can't test for individual events due to DatabaseRegion.isModified(by:) precondition
             }
         }
         
         do {
             // Full database selection
-            let selectionInfo = DatabaseSelectionInfo.fullDatabase
-            XCTAssertEqual(selectionInfo.description, "full database")
+            let region = DatabaseRegion.fullDatabase
+            XCTAssertEqual(region.description, "full database")
             
             do {
                 let tableName = "foo"
                 tableName.withCString { tableNameCString in
                     let eventKind = DatabaseEventKind.insert(tableName: tableName)
                     let event = DatabaseEvent(kind: .insert, rowID: 1, databaseNameCString: nil, tableNameCString: tableNameCString)
-                    XCTAssertTrue(selectionInfo.isModified(byEventsOfKind: eventKind))
-                    XCTAssertTrue(selectionInfo.isModified(by: event))
+                    XCTAssertTrue(region.isModified(byEventsOfKind: eventKind))
+                    XCTAssertTrue(region.isModified(by: event))
                 }
             }
             
@@ -571,8 +603,8 @@ class DatabaseSelectionInfoTests : GRDBTestCase {
                 tableName.withCString { tableNameCString in
                     let eventKind = DatabaseEventKind.delete(tableName: tableName)
                     let event = DatabaseEvent(kind: .delete, rowID: 1, databaseNameCString: nil, tableNameCString: tableNameCString)
-                    XCTAssertTrue(selectionInfo.isModified(byEventsOfKind: eventKind))
-                    XCTAssertTrue(selectionInfo.isModified(by: event))
+                    XCTAssertTrue(region.isModified(byEventsOfKind: eventKind))
+                    XCTAssertTrue(region.isModified(by: event))
                 }
             }
             
@@ -581,18 +613,18 @@ class DatabaseSelectionInfoTests : GRDBTestCase {
                 tableName.withCString { tableNameCString in
                     let eventKind = DatabaseEventKind.update(tableName: tableName, columnNames: ["a", "b"])
                     let event = DatabaseEvent(kind: .update, rowID: 1, databaseNameCString: nil, tableNameCString: tableNameCString)
-                    XCTAssertTrue(selectionInfo.isModified(byEventsOfKind: eventKind))
-                    XCTAssertTrue(selectionInfo.isModified(by: event))
+                    XCTAssertTrue(region.isModified(byEventsOfKind: eventKind))
+                    XCTAssertTrue(region.isModified(by: event))
                 }
             }
         }
         
         do {
             // Complex selection
-            let selectionInfo = DatabaseSelectionInfo(table: "foo")
-                .union(DatabaseSelectionInfo(table: "bar", columns: ["a"])
-                    .intersection(DatabaseSelectionInfo(table: "bar", rowIds: [1])))
-            XCTAssertEqual(selectionInfo.description, "bar(a)[1],foo(*)")
+            let region = DatabaseRegion(table: "foo")
+                .union(DatabaseRegion(table: "bar", columns: ["a"])
+                    .intersection(DatabaseRegion(table: "bar", rowIds: [1])))
+            XCTAssertEqual(region.description, "bar(a)[1],foo(*)")
             
             do {
                 let tableName = "foo"
@@ -600,9 +632,9 @@ class DatabaseSelectionInfoTests : GRDBTestCase {
                     let eventKind = DatabaseEventKind.insert(tableName: tableName)
                     let event1 = DatabaseEvent(kind: .insert, rowID: 1, databaseNameCString: nil, tableNameCString: tableNameCString)
                     let event2 = DatabaseEvent(kind: .insert, rowID: 2, databaseNameCString: nil, tableNameCString: tableNameCString)
-                    XCTAssertTrue(selectionInfo.isModified(byEventsOfKind: eventKind))
-                    XCTAssertTrue(selectionInfo.isModified(by: event1))
-                    XCTAssertTrue(selectionInfo.isModified(by: event2))
+                    XCTAssertTrue(region.isModified(byEventsOfKind: eventKind))
+                    XCTAssertTrue(region.isModified(by: event1))
+                    XCTAssertTrue(region.isModified(by: event2))
                 }
             }
             
@@ -612,9 +644,9 @@ class DatabaseSelectionInfoTests : GRDBTestCase {
                     let eventKind = DatabaseEventKind.delete(tableName: tableName)
                     let event1 = DatabaseEvent(kind: .delete, rowID: 1, databaseNameCString: nil, tableNameCString: tableNameCString)
                     let event2 = DatabaseEvent(kind: .delete, rowID: 2, databaseNameCString: nil, tableNameCString: tableNameCString)
-                    XCTAssertTrue(selectionInfo.isModified(byEventsOfKind: eventKind))
-                    XCTAssertTrue(selectionInfo.isModified(by: event1))
-                    XCTAssertTrue(selectionInfo.isModified(by: event2))
+                    XCTAssertTrue(region.isModified(byEventsOfKind: eventKind))
+                    XCTAssertTrue(region.isModified(by: event1))
+                    XCTAssertTrue(region.isModified(by: event2))
                 }
             }
             
@@ -624,9 +656,9 @@ class DatabaseSelectionInfoTests : GRDBTestCase {
                     let eventKind = DatabaseEventKind.update(tableName: tableName, columnNames: ["a", "b"])
                     let event1 = DatabaseEvent(kind: .update, rowID: 1, databaseNameCString: nil, tableNameCString: tableNameCString)
                     let event2 = DatabaseEvent(kind: .update, rowID: 2, databaseNameCString: nil, tableNameCString: tableNameCString)
-                    XCTAssertTrue(selectionInfo.isModified(byEventsOfKind: eventKind))
-                    XCTAssertTrue(selectionInfo.isModified(by: event1))
-                    XCTAssertTrue(selectionInfo.isModified(by: event2))
+                    XCTAssertTrue(region.isModified(byEventsOfKind: eventKind))
+                    XCTAssertTrue(region.isModified(by: event1))
+                    XCTAssertTrue(region.isModified(by: event2))
                 }
             }
             
@@ -636,9 +668,9 @@ class DatabaseSelectionInfoTests : GRDBTestCase {
                     let eventKind = DatabaseEventKind.insert(tableName: tableName)
                     let event1 = DatabaseEvent(kind: .insert, rowID: 1, databaseNameCString: nil, tableNameCString: tableNameCString)
                     let event2 = DatabaseEvent(kind: .insert, rowID: 2, databaseNameCString: nil, tableNameCString: tableNameCString)
-                    XCTAssertTrue(selectionInfo.isModified(byEventsOfKind: eventKind))
-                    XCTAssertTrue(selectionInfo.isModified(by: event1))
-                    XCTAssertFalse(selectionInfo.isModified(by: event2))
+                    XCTAssertTrue(region.isModified(byEventsOfKind: eventKind))
+                    XCTAssertTrue(region.isModified(by: event1))
+                    XCTAssertFalse(region.isModified(by: event2))
                 }
             }
             
@@ -648,9 +680,9 @@ class DatabaseSelectionInfoTests : GRDBTestCase {
                     let eventKind = DatabaseEventKind.delete(tableName: tableName)
                     let event1 = DatabaseEvent(kind: .delete, rowID: 1, databaseNameCString: nil, tableNameCString: tableNameCString)
                     let event2 = DatabaseEvent(kind: .delete, rowID: 2, databaseNameCString: nil, tableNameCString: tableNameCString)
-                    XCTAssertTrue(selectionInfo.isModified(byEventsOfKind: eventKind))
-                    XCTAssertTrue(selectionInfo.isModified(by: event1))
-                    XCTAssertFalse(selectionInfo.isModified(by: event2))
+                    XCTAssertTrue(region.isModified(byEventsOfKind: eventKind))
+                    XCTAssertTrue(region.isModified(by: event1))
+                    XCTAssertFalse(region.isModified(by: event2))
                 }
             }
             
@@ -660,34 +692,34 @@ class DatabaseSelectionInfoTests : GRDBTestCase {
                     let eventKind = DatabaseEventKind.update(tableName: tableName, columnNames: ["a", "b"])
                     let event1 = DatabaseEvent(kind: .update, rowID: 1, databaseNameCString: nil, tableNameCString: tableNameCString)
                     let event2 = DatabaseEvent(kind: .update, rowID: 2, databaseNameCString: nil, tableNameCString: tableNameCString)
-                    XCTAssertTrue(selectionInfo.isModified(byEventsOfKind: eventKind))
-                    XCTAssertTrue(selectionInfo.isModified(by: event1))
-                    XCTAssertFalse(selectionInfo.isModified(by: event2))
+                    XCTAssertTrue(region.isModified(byEventsOfKind: eventKind))
+                    XCTAssertTrue(region.isModified(by: event1))
+                    XCTAssertFalse(region.isModified(by: event2))
                 }
             }
             
             do {
                 let eventKind = DatabaseEventKind.update(tableName: "bar", columnNames: ["b", "c"])
-                XCTAssertFalse(selectionInfo.isModified(byEventsOfKind: eventKind))
-                // Can't test for individual events due to DatabaseSelectionInfo.isModified(by:) precondition
+                XCTAssertFalse(region.isModified(byEventsOfKind: eventKind))
+                // Can't test for individual events due to DatabaseRegion.isModified(by:) precondition
             }
             
             do {
                 let eventKind = DatabaseEventKind.insert(tableName: "qux")
-                XCTAssertFalse(selectionInfo.isModified(byEventsOfKind: eventKind))
-                // Can't test for individual events due to DatabaseSelectionInfo.isModified(by:) precondition
+                XCTAssertFalse(region.isModified(byEventsOfKind: eventKind))
+                // Can't test for individual events due to DatabaseRegion.isModified(by:) precondition
             }
             
             do {
                 let eventKind = DatabaseEventKind.delete(tableName: "qux")
-                XCTAssertFalse(selectionInfo.isModified(byEventsOfKind: eventKind))
-                // Can't test for individual events due to DatabaseSelectionInfo.isModified(by:) precondition
+                XCTAssertFalse(region.isModified(byEventsOfKind: eventKind))
+                // Can't test for individual events due to DatabaseRegion.isModified(by:) precondition
             }
             
             do {
                 let eventKind = DatabaseEventKind.update(tableName: "qux", columnNames: ["a", "b"])
-                XCTAssertFalse(selectionInfo.isModified(byEventsOfKind: eventKind))
-                // Can't test for individual events due to DatabaseSelectionInfo.isModified(by:) precondition
+                XCTAssertFalse(region.isModified(byEventsOfKind: eventKind))
+                // Can't test for individual events due to DatabaseRegion.isModified(by:) precondition
             }
         }
     }

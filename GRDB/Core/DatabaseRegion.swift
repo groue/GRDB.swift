@@ -1,90 +1,97 @@
-/// DatabaseSelectionInfo holds information about the table, columns, and
-/// rows read by database requests.
+/// DatabaseRegion defines a region in the database, that is to say tables,
+/// columns, and rows (identified by their rowids). DatabaseRegion is dedicated
+/// to help transaction observers recognize impactful database changes.
 ///
-/// Selection infos can represent full tables, columns of a database table, and
-/// rows of a database table (identified by their rowids).
+///    |  T  |   |  U  |    |  V  |
+///    |-----|   |-----|    |-----|
+///    |x|x|x|   |x| | |    | | | |
+///    |x|x|x|   |x| | |    |x|x|x|
+///    |x|x|x|   |x| | |    | | | |
+///    |x|x|x|   |x| | |    | | | |
 ///
-///    |A|B|C|  |A|B|C|   |A|B|C|
-///    |x|x|x|  |x| | |   | | | |
-///    |x|x|x|  |x| | |   |x|x|x|
-///    |x|x|x|  |x| | |   | | | |
-///    |x|x|x|  |x| | |   | | | |
+/// Unions and intersections of regions create more complex regions:
 ///
-/// Unions and intersections of basic selections allow the creation of more
-/// complex selections:
+///    |  T  |   |  U  |   |  T  | |  U  |
+///    |-----|   |-----|   |-----| |-----|
+///    | | | | + |x| | | = | | | | |x| | |
+///    |x| | |   |x| | |   |x| | | |x| | |
+///    | | | |   |x| | |   | | | | |x| | |
+///    | | | |   |x| | |   | | | | |x| | |
 ///
-///    |A|B|C|  |A|B|C|   |A|B|C|
-///    |x| |x|  |x|x|x|   |x| |x|
-///    |x| |x|  | | | |   | | | |
-///    |x| |x|  |x|x|x|   |x| |x|
-///    |x| |x|  | | | |   | | | |
+///    |  T  |   |  T  |   |  T  |
+///    |-----|   |-----|   |-----|
+///    |x| | | * | | | | = | | | |
+///    |x| | |   |x|x|x|   |x| | |
+///    |x| | |   | | | |   | | | |
+///    |x| | |   | | | |   | | | |
 ///
-/// You don't create DatabaseSelectionInfo directly. Instead, you use one of
+/// You don't create a database region directly. Instead, you use one of
 /// those methods:
 ///
-/// - `SelectStatement.selectionInfo`:
+/// - `SelectStatement.region`:
 ///
 ///     let statement = db.makeSelectStatement("SELECT name, score FROM players")
-///     print(statement.statementInfo)
+///     print(statement.region)
 ///     // prints "players(name,score)"
 ///
-/// - `Request.selectionInfo(_:)`
+/// - `Request.region(_:)`
 ///
 ///     let request = Player.filter(key: 1)
-///     try print(statement.statementInfo(db))
+///     try print(request.region(db))
 ///     // prints "players(*)[1]"
 ///
-/// - `Database.selectionInfo(rowIds:in:)`
+/// - `Database.region(rowIds:in:)`
 ///
-///     try print(db.selectionInfo(rowIds: [1, 2], in: "players")
+///     try print(db.region(rowIds: [1, 2], in: "players")
 ///     // prints "players(*)[1, 2]"
-public struct DatabaseSelectionInfo {
-    private let tables: [String: TableSelectionInfo]?
-    private init(tables: [String: TableSelectionInfo]?) {
+public struct DatabaseRegion {
+    private let tables: [String: TableRegion]?
+    private init(tables: [String: TableRegion]?) {
         self.tables = tables
     }
     
-    /// Returns whether the selection is empty.
+    /// Returns whether the region is empty.
     public var isEmpty: Bool {
         guard let tables = tables else { return false }
         return tables.isEmpty
     }
     
-    var tableNames: Set<String> {
-        guard let tables = tables else { return [] }
-        return Set(tables.keys)
-    }
+    /// The full database: (All columns in all tables) × (all rows)
+    static let fullDatabase = DatabaseRegion(tables: nil)
     
-    /// Full database = (All columns in all tables) × (all rows)
-    static let fullDatabase = DatabaseSelectionInfo(tables: nil)
-    
-    /// Empty selection
+    /// The empty region
     init() {
         self.init(tables: [:])
     }
     
-    /// (all columns in a table) × (all rows)
+    /// A full table: (all columns in the table) × (all rows)
     init(table: String) {
-        self.init(tables: [table: TableSelectionInfo(columns: nil, rowIds: nil)])
+        self.init(tables: [table: TableRegion(columns: nil, rowIds: nil)])
     }
     
-    /// (some columns in a table) × (all rows)
+    /// Full columns in a table: (some columns in a table) × (all rows)
     init(table: String, columns: Set<String>) {
-        self.init(tables: [table: TableSelectionInfo(columns: columns, rowIds: nil)])
+        self.init(tables: [table: TableRegion(columns: columns, rowIds: nil)])
     }
     
-    /// (all columns in a table) × (some rows)
+    /// Full rows in a table: (all columns in a table) × (some rows)
     init(table: String, rowIds: Set<Int64>) {
-        self.init(tables: [table: TableSelectionInfo(columns: nil, rowIds: rowIds)])
+        self.init(tables: [table: TableRegion(columns: nil, rowIds: rowIds)])
     }
     
-    /// Returns a new selection with the database content that is common to both
-    /// this selection and the given one.
-    public func intersection(_ other: DatabaseSelectionInfo) -> DatabaseSelectionInfo {
+    /// Returns the intersection of this region and the given one.
+    ///
+    ///    |  T  |   |  T  |   |  T  |
+    ///    |-----|   |-----|   |-----|
+    ///    |x| | | * | | | | = | | | |
+    ///    |x| | |   |x|x|x|   |x| | |
+    ///    |x| | |   | | | |   | | | |
+    ///    |x| | |   | | | |   | | | |
+    public func intersection(_ other: DatabaseRegion) -> DatabaseRegion {
         guard let tables = tables else { return other }
         guard let otherTables = other.tables else { return self }
         
-        var tablesIntersection: [String: TableSelectionInfo] = [:]
+        var tablesIntersection: [String: TableRegion] = [:]
         for (table, tableInfo) in tables {
             guard let otherTableInfo = otherTables
                 .first(where: { (otherTable, _) in otherTable == table })?
@@ -94,19 +101,27 @@ public struct DatabaseSelectionInfo {
             tablesIntersection[table] = tableInfoIntersection
         }
         
-        return DatabaseSelectionInfo(tables: tablesIntersection)
+        return DatabaseRegion(tables: tablesIntersection)
     }
     
-    public func union(_ other: DatabaseSelectionInfo) -> DatabaseSelectionInfo {
+    /// Returns the union of this region and the given one.
+    ///
+    ///    |  T  |   |  T  |   |  T  |
+    ///    |-----|   |-----|   |-----|
+    ///    |x| | | + | |x| | = |x|x| |
+    ///    |x| | |   | |x| |   |x|x| |
+    ///    |x| | |   | |x| |   |x|x| |
+    ///    |x| | |   | |x| |   |x|x| |
+    public func union(_ other: DatabaseRegion) -> DatabaseRegion {
         guard let tables = tables else { return .fullDatabase }
         guard let otherTables = other.tables else { return .fullDatabase }
         
-        var tablesUnion: [String: TableSelectionInfo] = [:]
+        var tablesUnion: [String: TableRegion] = [:]
         let tableNames = Set(tables.map { $0.key }).union(Set(otherTables.map { $0.key }))
         for table in tableNames {
             let tableInfo = tables[table]
             let otherTableInfo = otherTables[table]
-            let tableInfoUnion: TableSelectionInfo
+            let tableInfoUnion: TableRegion
             switch (tableInfo, otherTableInfo) {
             case (nil, nil):
                 preconditionFailure()
@@ -118,37 +133,50 @@ public struct DatabaseSelectionInfo {
             tablesUnion[table] = tableInfoUnion
         }
         
-        return DatabaseSelectionInfo(tables: tablesUnion)
+        return DatabaseRegion(tables: tablesUnion)
     }
-    
-    public mutating func formIntersection(_ other: DatabaseSelectionInfo) {
+
+    /// Removes the table, columns, and rows in the given region that are not
+    /// in this region.
+    ///
+    ///    |  T  |   |  T  |   |  T  |
+    ///    |-----|   |-----|   |-----|
+    ///    |x| | | * | | | | = | | | |
+    ///    |x| | |   |x|x|x|   |x| | |
+    ///    |x| | |   | | | |   | | | |
+    ///    |x| | |   | | | |   | | | |
+    public mutating func formIntersection(_ other: DatabaseRegion) {
         self = intersection(other)
     }
-    
-    public mutating func formUnion(_ other: DatabaseSelectionInfo) {
+
+    /// Inserts the given region into this region
+    ///
+    ///    |  T  |   |  T  |   |  T  |
+    ///    |-----|   |-----|   |-----|
+    ///    |x| | | + | |x| | = |x|x| |
+    ///    |x| | |   | |x| |   |x|x| |
+    ///    |x| | |   | |x| |   |x|x| |
+    ///    |x| | |   | |x| |   |x|x| |
+    public mutating func formUnion(_ other: DatabaseRegion) {
         self = union(other)
     }
 }
 
-extension DatabaseSelectionInfo {
+extension DatabaseRegion {
     
     // MARK: - Database Events
     
-    /// TODO
+    /// Returns whether the content in the region would be impacted if the
+    /// database were modified by an event of this kind.
     public func isModified(byEventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        switch eventKind {
-        case .delete(let tableName):
-            return !intersection(DatabaseSelectionInfo(table: tableName)).isEmpty
-        case .insert(let tableName):
-            return !intersection(DatabaseSelectionInfo(table: tableName)).isEmpty
-        case .update(let tableName, let updatedColumnNames):
-            return !intersection(DatabaseSelectionInfo(table: tableName, columns: updatedColumnNames)).isEmpty
-        }
+        return !intersection(eventKind.region).isEmpty
     }
     
-    /// TODO
-    /// - precondition: event has been filtered by the same selection info
-    ///   in the TransactionObserver.observes(eventsOfKind:) method.
+    /// Returns whether the content in the region is impacted by this event.
+    ///
+    /// - precondition: event has been filtered by the same region
+    ///   in the TransactionObserver.observes(eventsOfKind:) method, by calling
+    ///   region.isModified(byEventsOfKind:)
     public func isModified(by event: DatabaseEvent) -> Bool {
         guard let tables = tables else {
             return true
@@ -158,7 +186,7 @@ extension DatabaseSelectionInfo {
         case 1:
             // The precondition applies here:
             //
-            // The selectionInfo contains a single table. Due to the
+            // The region contains a single table. Due to the
             // filtering of events performed in observes(eventsOfKind:), the
             // event argument is guaranteed to be about the fetched table.
             // We thus only have to check for rowIds.
@@ -170,7 +198,7 @@ extension DatabaseSelectionInfo {
         default:
             guard let tableInfo = tables[event.tableName] else {
                 // Shouldn't happen if the precondition is met.
-                fatalError("precondition failure: selection info is not defined for table \(event.tableName)")
+                fatalError("precondition failure: event was not filtered out in observes(eventsOfKind:) by region.isModified(byEventsOfKind:)")
             }
             guard let rowIds = tableInfo.rowIds else {
                 return true
@@ -180,8 +208,8 @@ extension DatabaseSelectionInfo {
     }
 }
 
-extension DatabaseSelectionInfo: Equatable {
-    public static func == (lhs: DatabaseSelectionInfo, rhs: DatabaseSelectionInfo) -> Bool {
+extension DatabaseRegion: Equatable {
+    public static func == (lhs: DatabaseRegion, rhs: DatabaseRegion) -> Bool {
         switch (lhs.tables, rhs.tables) {
         case (nil, nil):
             return true
@@ -203,7 +231,7 @@ extension DatabaseSelectionInfo: Equatable {
     }
 }
 
-extension DatabaseSelectionInfo: CustomStringConvertible {
+extension DatabaseRegion: CustomStringConvertible {
     public var description: String {
         guard let tables = tables else {
             return "full database"
@@ -229,7 +257,7 @@ extension DatabaseSelectionInfo: CustomStringConvertible {
     }
 }
 
-private struct TableSelectionInfo: Equatable {
+private struct TableRegion: Equatable {
     var columns: Set<String>? // nil means "all columns"
     var rowIds: Set<Int64>? // nil means "all rowids"
     
@@ -239,13 +267,13 @@ private struct TableSelectionInfo: Equatable {
         return false
     }
     
-    static func == (lhs: TableSelectionInfo, rhs: TableSelectionInfo) -> Bool {
+    static func == (lhs: TableRegion, rhs: TableRegion) -> Bool {
         if lhs.columns != rhs.columns { return false }
         if lhs.rowIds != rhs.rowIds { return false }
         return true
     }
     
-    func intersection(_ other: TableSelectionInfo) -> TableSelectionInfo {
+    func intersection(_ other: TableRegion) -> TableRegion {
         let columnsIntersection: Set<String>?
         switch (self.columns, other.columns) {
         case (nil, let columns), (let columns, nil):
@@ -262,10 +290,10 @@ private struct TableSelectionInfo: Equatable {
             rowIdsIntersection = rowIds.intersection(other)
         }
         
-        return TableSelectionInfo(columns: columnsIntersection, rowIds: rowIdsIntersection)
+        return TableRegion(columns: columnsIntersection, rowIds: rowIdsIntersection)
     }
     
-    func union(_ other: TableSelectionInfo) -> TableSelectionInfo {
+    func union(_ other: TableRegion) -> TableRegion {
         let columnsUnion: Set<String>?
         switch (self.columns, other.columns) {
         case (nil, _), (_, nil):
@@ -282,6 +310,6 @@ private struct TableSelectionInfo: Equatable {
             rowIdsUnion = rowIds.union(other)
         }
         
-        return TableSelectionInfo(columns: columnsUnion, rowIds: rowIdsUnion)
+        return TableRegion(columns: columnsUnion, rowIds: rowIdsUnion)
     }
 }

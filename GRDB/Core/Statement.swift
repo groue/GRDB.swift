@@ -292,11 +292,14 @@ extension AuthorizedStatement {
 ///         let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
 ///     }
 public final class SelectStatement : Statement, AuthorizedStatement {
-    /// Information about the table and columns read by a SelectStatement
-    public private(set) var selectionInfo: DatabaseSelectionInfo
+    @available(*, deprecated, renamed:"DatabaseRegion")
+    public typealias Region = DatabaseRegion
     
-    @available(*, deprecated, renamed:"DatabaseSelectionInfo")
-    public typealias SelectionInfo = DatabaseSelectionInfo
+    @available(*, deprecated, renamed:"region")
+    public var selectionInfo: DatabaseRegion { return region }
+    
+    /// The database region read by the statement
+    public private(set) var region: DatabaseRegion
     
     /// Creates a prepared statement.
     ///
@@ -317,7 +320,7 @@ public final class SelectStatement : Statement, AuthorizedStatement {
         prepFlags: Int32,
         authorizer: StatementCompilationAuthorizer) throws
     {
-        self.selectionInfo = DatabaseSelectionInfo()
+        self.region = DatabaseRegion()
         try super.init(
             database: database,
             statementStart: statementStart,
@@ -327,7 +330,7 @@ public final class SelectStatement : Statement, AuthorizedStatement {
         GRDBPrecondition(authorizer.invalidatesDatabaseSchemaCache == false, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
         GRDBPrecondition(authorizer.transactionEffect == nil, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
         
-        self.selectionInfo = authorizer.selectionInfo
+        self.region = authorizer.region
     }
     
     /// The number of columns in the resulting rows.
