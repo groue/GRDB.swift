@@ -29,7 +29,16 @@
 ///     // prints "players(*)[1]"
 ///
 /// Database regions returned by requests can be more precise than regions
-/// returned by select statements.
+/// returned by select statements. Especially, regions returned by statements
+/// don't know about rowids:
+///
+///     // A plain statement
+///     let statement = db.makeSelectStatement("SELECT * FROM players WHERE id = 1")
+///     statement.region       // "players(*)"
+///
+///     // A query interface request that executes the same statement:
+///     let request = Player.filter(key: 1)
+///     try request.region(db) // "players(*)[1]"
 public struct DatabaseRegion {
     private let tableRegions: [String: TableRegion]?
     private init(tableRegions: [String: TableRegion]?) {
