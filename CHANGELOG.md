@@ -10,7 +10,7 @@ Release Notes
     - `TransactionObserver.stopObservingDatabaseChangesUntilNextTransaction()` allows transaction observers to stop observing the database for the remaining extent of a transaction.
     - GRDB no longer prevents the [truncate optimization](https://www.sqlite.org/lang_delete.html#truncateopt) when no transaction observers are interested in deleted rows.
     - FetchedRecordsController now avoids checking for changes in untracked rowIds.
-    - `DatabaseRegion` is a new public type that helps transaction observers recognize impactful database changes. This type is not documented in the main documentation. For more information, see [DatabaseRegion reference](http://groue.github.io/GRDB.swift/docs/2.7/Structs/DatabaseRegion.html), and look at [FetchedRecordsController implementation](https://github.com/groue/GRDB.swift/blob/master/GRDB/Record/FetchedRecordsController.swift).
+    - `DatabaseRegion` is a new public type that helps transaction observers recognize impactful database changes. This type is not documented in the main documentation. For more information, see [DatabaseRegion reference](http://groue.github.io/GRDB.swift/docs/2.6/Structs/DatabaseRegion.html), and look at [FetchedRecordsController implementation](https://github.com/groue/GRDB.swift/blob/master/GRDB/Record/FetchedRecordsController.swift).
     - `TransactionObserver` protocol provides default implementations for rarely used callbacks.
     
 - `Row` adopts RandomAccessCollection
