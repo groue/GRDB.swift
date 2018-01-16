@@ -226,6 +226,7 @@ extension Database {
     ///
     /// - throws: A DatabaseError if table does not exist.
     public func region(rowIds: Set<Int64>, in tableName: String) throws -> DatabaseRegion {
+        // TODO: improves this.
         guard let canonicalTableName = try String.fetchOne(self, "SELECT name FROM (SELECT name, type FROM sqlite_master UNION SELECT name, type FROM sqlite_temp_master) WHERE type = 'table' AND LOWER(name) = ?", arguments: [tableName.lowercased()]) else {
             throw DatabaseError(message: "table does not exist")
         }
