@@ -33,6 +33,8 @@ Release Notes
 +struct DatabaseRegion: Equatable {
 +    var isEmpty: Bool
 +
++    init()
++
 +    func union(_ other: DatabaseRegion) -> DatabaseRegion
 +    mutating func formUnion(_ other: DatabaseRegion)
 +

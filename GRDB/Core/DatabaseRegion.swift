@@ -54,8 +54,8 @@ public struct DatabaseRegion {
     /// The full database: (All columns in all tables) × (all rows)
     static let fullDatabase = DatabaseRegion(tableRegions: nil)
     
-    /// The empty region
-    init() {
+    /// The empty database region
+    public init() {
         self.init(tableRegions: [:])
     }
     
