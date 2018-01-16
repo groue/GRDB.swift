@@ -64,7 +64,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
 
     func testUnicode61Tokenizer() throws {
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
+            guard #available(iOS 8.2, OSX 10.10, tvOS 10.0, *) else {
                 return
             }
         #endif
@@ -80,7 +80,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
 
     func testUnicode61TokenizerRemoveDiacritics() throws {
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
+            guard #available(iOS 8.2, OSX 10.10, tvOS 10.0, *) else {
                 return
             }
         #endif
@@ -96,7 +96,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
 
     func testUnicode61TokenizerSeparators() throws {
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
+            guard #available(iOS 8.2, OSX 10.10, tvOS 10.0, *) else {
                 return
             }
         #endif
@@ -112,7 +112,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
 
     func testUnicode61TokenizerTokenCharacters() throws {
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
+            guard #available(iOS 8.2, OSX 10.10, tvOS 10.0, *) else {
                 return
             }
         #endif
@@ -147,7 +147,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
 
     func testNotIndexedColumns() throws {
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
+            guard #available(iOS 8.2, OSX 10.10, tvOS 10.0, *) else {
                 return
             }
         #endif

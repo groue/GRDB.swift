@@ -73,7 +73,7 @@ class FTS3PatternTests: GRDBTestCase {
     
     func testFTS3PatternWithAnyToken() throws {
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
+            guard #available(iOS 8.2, OSX 10.10, tvOS 10.0, *) else {
                 return
             }
         #endif
@@ -109,7 +109,7 @@ class FTS3PatternTests: GRDBTestCase {
     
     func testFTS3PatternWithAllTokens() throws {
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
+            guard #available(iOS 8.2, OSX 10.10, tvOS 10.0, *) else {
                 return
             }
         #endif
@@ -145,7 +145,7 @@ class FTS3PatternTests: GRDBTestCase {
     
     func testFTS3PatternWithPhrase() throws {
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
+            guard #available(iOS 8.2, OSX 10.10, tvOS 10.0, *) else {
                 return
             }
         #endif

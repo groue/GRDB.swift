@@ -362,7 +362,7 @@ extension Database {
         add(function: .lowercase)
         add(function: .uppercase)
         
-        if #available(iOS 9.0, OSX 10.11, watchOS 3.0, *) {
+        if #available(iOS 9.0, OSX 10.11, watchOS 3.0, tvOS 10.0, *) {
             add(function: .localizedCapitalize)
             add(function: .localizedLowercase)
             add(function: .localizedUppercase)
@@ -399,7 +399,7 @@ extension Database {
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
             close_v2(connection: sqliteConnection)
         #else
-            if #available(iOS 8.2, OSX 10.10, OSXApplicationExtension 10.10, *) {
+            if #available(iOS 8.2, OSX 10.10, OSXApplicationExtension 10.10, tvOS 10.0 *, *) {
                 close_v2(connection: sqliteConnection)
             } else {
                 // https://www.sqlite.org/c3ref/close.html

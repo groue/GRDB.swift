@@ -30,7 +30,7 @@ class TableDefinitionTests: GRDBTestCase {
     func testTableCreationOptions() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            if #available(iOS 8.2, OSX 10.10, *) {
+            if #available(iOS 8.2, OSX 10.10, tvOS 10.0, *) {
                 try db.create(table: "test", temporary: true, ifNotExists: true, withoutRowID: true) { t in
                     t.column("id", .integer).primaryKey()
                 }
@@ -510,7 +510,7 @@ class TableDefinitionTests: GRDBTestCase {
     
     func testCreatePartialIndex() throws {
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
+            guard #available(iOS 8.2, OSX 10.10, tvOS 10.0, *) else {
                 return
             }
         #endif

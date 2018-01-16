@@ -152,7 +152,7 @@ extension ResultCode : CustomStringConvertible {
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
             return "\(rawValue) (\(String(cString: sqlite3_errstr(rawValue))))"
         #else
-            if #available(iOS 8.2, OSX 10.10, OSXApplicationExtension 10.10, iOSApplicationExtension 8.2, *) {
+            if #available(iOS 8.2, OSX 10.10, OSXApplicationExtension 10.10, iOSApplicationExtension 8.2, tvOS 10.0, *) {
                 return "\(rawValue) (\(String(cString: sqlite3_errstr(rawValue))))"
             } else {
                 return "\(rawValue)"

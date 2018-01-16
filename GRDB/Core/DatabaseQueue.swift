@@ -211,7 +211,7 @@ extension DatabaseQueue : DatabaseReader {
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
             return try inDatabase { try readOnly($0, block) }
         #else
-            if #available(iOS 8.2, OSX 10.10, *) {
+            if #available(iOS 8.2, OSX 10.10, tvOS 10.0, *) {
                 return try inDatabase { try readOnly($0, block) }
             } else {
                 return try inDatabase(block)
@@ -304,7 +304,7 @@ extension DatabaseQueue : DatabaseWriter {
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
             serializedDatabase.execute { readOnly($0, block) }
         #else
-            if #available(iOS 8.2, OSX 10.10, *) {
+            if #available(iOS 8.2, OSX 10.10, tvOS 10.0, *) {
                 serializedDatabase.execute { readOnly($0, block) }
             } else {
                 serializedDatabase.execute(block)

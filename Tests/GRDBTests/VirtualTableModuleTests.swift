@@ -54,7 +54,7 @@ class VirtualTableModuleTests: GRDBTestCase {
         // fts3tokenize was introduced in SQLite 3.7.17 https://www.sqlite.org/changes.html#version_3_7_17
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
+            guard #available(iOS 8.2, OSX 10.10, tvOS 10.0, *) else {
                 return
             }
         #endif
@@ -73,7 +73,7 @@ class VirtualTableModuleTests: GRDBTestCase {
         // fts3tokenize was introduced in SQLite 3.7.17 https://www.sqlite.org/changes.html#version_3_7_17
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
+            guard #available(iOS 8.2, OSX 10.10, tvOS 10.0, *) else {
                 return
             }
         #endif

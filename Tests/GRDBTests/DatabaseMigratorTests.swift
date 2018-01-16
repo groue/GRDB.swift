@@ -177,7 +177,7 @@ class DatabaseMigratorTests : GRDBTestCase {
     
     func testMigrationWithoutForeignKeyChecks() throws {
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
+            guard #available(iOS 8.2, OSX 10.10, tvOS 10.0, *) else {
                 return
             }
         #endif
