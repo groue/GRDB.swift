@@ -67,6 +67,9 @@ Release Notes
 +    // Default implementation
 +    func region(_ db: Database) throws -> DatabaseRegion
  }
+ 
++extension Row: RandomAccessCollection {
++}
 ```
 
 
