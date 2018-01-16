@@ -541,11 +541,6 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
         return region.isModified(byEventsOfKind: eventKind)
     }
     
-    #if SQLITE_ENABLE_PREUPDATE_HOOK
-    /// Part of the TransactionObserverType protocol
-    func databaseWillChange(with event: DatabasePreUpdateEvent) { }
-    #endif
-    
     /// Part of the TransactionObserverType protocol
     func databaseDidChange(with event: DatabaseEvent) {
         if region.isModified(by: event) {
