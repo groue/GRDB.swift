@@ -18,7 +18,7 @@ Release Notes
 ### API diff
 
 ```diff
-+extension TransactionObserver {
+ extension TransactionObserver {
 +    func stopObservingDatabaseChangesUntilNextTransaction()
 +
 +    // Default implementation
@@ -28,7 +28,7 @@ Release Notes
 +    // Default implementation
 +    func databaseWillChange(with event: DatabasePreUpdateEvent)
 +    #endif
-+}
+ }
 
 +struct DatabaseRegion: Equatable {
 +    var isEmpty: Bool
@@ -44,11 +44,17 @@ Release Notes
 +}
 
  class SelectStatement {
++    var region: DatabaseRegion
++
 +    @available(*, deprecated, renamed:"DatabaseRegion")
 +    public typealias SelectionInfo = DatabaseRegion
 +    
 +    @available(*, deprecated, renamed:"region")
-+    public var selectionInfo: DatabaseRegion { return region }
++    public var selectionInfo: DatabaseRegion
+ }
+ 
+ class Database {
++    func region(rowIds: Set<Int64>, in tableName: String) throws -> DatabaseRegion
  }
 
  enum DatabaseEventKind {
