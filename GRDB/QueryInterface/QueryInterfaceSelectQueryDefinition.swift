@@ -212,8 +212,9 @@ extension QueryInterfaceSelectQueryDefinition : Request {
             return region
         }
         
-        // Intersect
-        return try region.intersection(db.region(rowIds: rowIds, in: tableName))
+        // Database regions are case-insensitive: use the canonical table name
+        let canonicalTableName = try db.canonicalName(table: tableName)
+        return region.tableIntersection(canonicalTableName, rowIds: rowIds)
     }
     
     private var countQuery: QueryInterfaceSelectQueryDefinition {

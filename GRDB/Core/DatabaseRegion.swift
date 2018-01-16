@@ -1,32 +1,17 @@
-/// DatabaseRegion defines a region in the database, that is to say tables,
-/// columns, and rows (identified by their rowids). DatabaseRegion is dedicated
+/// DatabaseRegion defines a region in the database. DatabaseRegion is dedicated
 /// to help transaction observers recognize impactful database changes in their
 /// `observes(eventsOfKind:)` and `databaseDidChange(with:)` methods.
 ///
-/// A region can represent a full table, a column, or a row:
+/// A database region is the union of any number of "table regions", which can
+/// cover a full table, or the combination of columns and rows (identified by
+/// their rowids):
 ///
-///    |  T  |   |  U  |    |  V  |
-///    |-----|   |-----|    |-----|
-///    |x|x|x|   |x| | |    | | | |
-///    |x|x|x|   |x| | |    |x|x|x|
-///    |x|x|x|   |x| | |    | | | |
-///    |x|x|x|   |x| | |    | | | |
-///
-/// Unions and intersections of regions create more complex regions:
-///
-///    |  T  |   |  U  |   |  T  | |  U  |
-///    |-----|   |-----|   |-----| |-----|
-///    | | | | + |x| | | = | | | | |x| | |
-///    |x| | |   |x| | |   |x| | | |x| | |
-///    | | | |   |x| | |   | | | | |x| | |
-///    | | | |   |x| | |   | | | | |x| | |
-///
-///    |  T  |   |  T  |   |  T  |
-///    |-----|   |-----|   |-----|
-///    |x| | | * | | | | = | | | |
-///    |x| | |   |x|x|x|   |x| | |
-///    |x| | |   | | | |   | | | |
-///    |x| | |   | | | |   | | | |
+///    |Table1 |   |Table2 |   |Table3 |   |Table4 |   |Table5 |
+///    |-------|   |-------|   |-------|   |-------|   |-------|
+///    |x|x|x|x|   |x| | | |   |x|x|x|x|   |x|x| |x|   | | | | |
+///    |x|x|x|x|   |x| | | |   | | | | |   | | | | |   | |x| | |
+///    |x|x|x|x|   |x| | | |   | | | | |   |x|x| |x|   | | | | |
+///    |x|x|x|x|   |x| | | |   | | | | |   | | | | |   | | | | |
 ///
 /// You don't create a database region directly. Instead, you use one of
 /// those methods:
@@ -43,115 +28,109 @@
 ///     try print(request.region(db))
 ///     // prints "players(*)[1]"
 ///
-/// - `Database.region(rowIds:in:)`
-///
-///     try print(db.region(rowIds: [1, 2], in: "players")
-///     // prints "players(*)[1, 2]"
+/// Database regions returned by requests can be more precise than regions
+/// returned by select statements.
 public struct DatabaseRegion {
-    private let tables: [String: TableRegion]?
-    private init(tables: [String: TableRegion]?) {
-        self.tables = tables
+    private let tableRegions: [String: TableRegion]?
+    private init(tableRegions: [String: TableRegion]?) {
+        self.tableRegions = tableRegions
     }
     
     /// Returns whether the region is empty.
     public var isEmpty: Bool {
-        guard let tables = tables else { return false }
-        return tables.isEmpty
+        guard let tableRegions = tableRegions else { return false }
+        return tableRegions.isEmpty
     }
     
     /// The full database: (All columns in all tables) × (all rows)
-    static let fullDatabase = DatabaseRegion(tables: nil)
+    static let fullDatabase = DatabaseRegion(tableRegions: nil)
     
     /// The empty region
     init() {
-        self.init(tables: [:])
+        self.init(tableRegions: [:])
     }
     
     /// A full table: (all columns in the table) × (all rows)
     init(table: String) {
-        self.init(tables: [table: TableRegion(columns: nil, rowIds: nil)])
+        self.init(tableRegions: [table: TableRegion(columns: nil, rowIds: nil)])
     }
     
     /// Full columns in a table: (some columns in a table) × (all rows)
     init(table: String, columns: Set<String>) {
-        self.init(tables: [table: TableRegion(columns: columns, rowIds: nil)])
+        self.init(tableRegions: [table: TableRegion(columns: columns, rowIds: nil)])
     }
     
     /// Full rows in a table: (all columns in a table) × (some rows)
     init(table: String, rowIds: Set<Int64>) {
-        self.init(tables: [table: TableRegion(columns: nil, rowIds: rowIds)])
+        self.init(tableRegions: [table: TableRegion(columns: nil, rowIds: rowIds)])
     }
     
     /// Returns the intersection of this region and the given one.
     ///
-    ///    |  T  |   |  T  |   |  T  |
-    ///    |-----|   |-----|   |-----|
-    ///    |x| | | * | | | | = | | | |
-    ///    |x| | |   |x|x|x|   |x| | |
-    ///    |x| | |   | | | |   | | | |
-    ///    |x| | |   | | | |   | | | |
-    public func intersection(_ other: DatabaseRegion) -> DatabaseRegion {
-        guard let tables = tables else { return other }
-        guard let otherTables = other.tables else { return self }
+    /// This method is not public because there is no known public use case for
+    /// this intersection. It is currently only used as support for
+    /// the isModified(byEventsOfKind:) method.
+    func intersection(_ other: DatabaseRegion) -> DatabaseRegion {
+        guard let tableRegions = tableRegions else { return other }
+        guard let otherTableRegions = other.tableRegions else { return self }
         
-        var tablesIntersection: [String: TableRegion] = [:]
-        for (table, tableInfo) in tables {
-            guard let otherTableInfo = otherTables
+        var tableRegionsIntersection: [String: TableRegion] = [:]
+        for (table, tableRegion) in tableRegions {
+            guard let otherTableRegion = otherTableRegions
                 .first(where: { (otherTable, _) in otherTable == table })?
                 .value else { continue }
-            let tableInfoIntersection = tableInfo.intersection(otherTableInfo)
-            guard !tableInfoIntersection.isEmpty else { continue }
-            tablesIntersection[table] = tableInfoIntersection
+            let tableRegionIntersection = tableRegion.intersection(otherTableRegion)
+            guard !tableRegionIntersection.isEmpty else { continue }
+            tableRegionsIntersection[table] = tableRegionIntersection
         }
         
-        return DatabaseRegion(tables: tablesIntersection)
+        return DatabaseRegion(tableRegions: tableRegionsIntersection)
+    }
+    
+    /// Only keeps those rowIds in the given table
+    func tableIntersection(_ table: String, rowIds: Set<Int64>) -> DatabaseRegion {
+        guard var tableRegions = tableRegions else {
+            return DatabaseRegion(table: table, rowIds: rowIds)
+        }
+        
+        guard let tableRegion = tableRegions[table] else {
+            return self
+        }
+        
+        let intersection = tableRegion.intersection(TableRegion(columns: nil, rowIds: rowIds))
+        if intersection.isEmpty {
+            tableRegions.removeValue(forKey: table)
+        } else {
+            tableRegions[table] = intersection
+        }
+        return DatabaseRegion(tableRegions: tableRegions)
     }
     
     /// Returns the union of this region and the given one.
-    ///
-    ///    |  T  |   |  T  |   |  T  |
-    ///    |-----|   |-----|   |-----|
-    ///    |x| | | + | |x| | = |x|x| |
-    ///    |x| | |   | |x| |   |x|x| |
-    ///    |x| | |   | |x| |   |x|x| |
-    ///    |x| | |   | |x| |   |x|x| |
     public func union(_ other: DatabaseRegion) -> DatabaseRegion {
-        guard let tables = tables else { return .fullDatabase }
-        guard let otherTables = other.tables else { return .fullDatabase }
+        guard let tableRegions = tableRegions else { return .fullDatabase }
+        guard let otherTableRegions = other.tableRegions else { return .fullDatabase }
         
-        var tablesUnion: [String: TableRegion] = [:]
-        let tableNames = Set(tables.map { $0.key }).union(Set(otherTables.map { $0.key }))
+        var tableRegionsUnion: [String: TableRegion] = [:]
+        let tableNames = Set(tableRegions.map { $0.key }).union(Set(otherTableRegions.map { $0.key }))
         for table in tableNames {
-            let tableInfo = tables[table]
-            let otherTableInfo = otherTables[table]
-            let tableInfoUnion: TableRegion
-            switch (tableInfo, otherTableInfo) {
+            let tableRegion = tableRegions[table]
+            let otherTableRegion = otherTableRegions[table]
+            let tableRegionUnion: TableRegion
+            switch (tableRegion, otherTableRegion) {
             case (nil, nil):
                 preconditionFailure()
-            case (nil, let tableInfo?), (let tableInfo?, nil):
-                tableInfoUnion = tableInfo
-            case (let tableInfo?, let otherTableInfo?):
-                tableInfoUnion = tableInfo.union(otherTableInfo)
+            case (nil, let tableRegion?), (let tableRegion?, nil):
+                tableRegionUnion = tableRegion
+            case (let tableRegion?, let otherTableRegion?):
+                tableRegionUnion = tableRegion.union(otherTableRegion)
             }
-            tablesUnion[table] = tableInfoUnion
+            tableRegionsUnion[table] = tableRegionUnion
         }
         
-        return DatabaseRegion(tables: tablesUnion)
+        return DatabaseRegion(tableRegions: tableRegionsUnion)
     }
-
-    /// Removes the table, columns, and rows in the given region that are not
-    /// in this region.
-    ///
-    ///    |  T  |   |  T  |   |  T  |
-    ///    |-----|   |-----|   |-----|
-    ///    |x| | | * | | | | = | | | |
-    ///    |x| | |   |x|x|x|   |x| | |
-    ///    |x| | |   | | | |   | | | |
-    ///    |x| | |   | | | |   | | | |
-    public mutating func formIntersection(_ other: DatabaseRegion) {
-        self = intersection(other)
-    }
-
+    
     /// Inserts the given region into this region
     ///
     ///    |  T  |   |  T  |   |  T  |
@@ -181,11 +160,11 @@ extension DatabaseRegion {
     ///   in the TransactionObserver.observes(eventsOfKind:) method, by calling
     ///   region.isModified(byEventsOfKind:)
     public func isModified(by event: DatabaseEvent) -> Bool {
-        guard let tables = tables else {
+        guard let tableRegions = tableRegions else {
             return true
         }
         
-        switch tables.count {
+        switch tableRegions.count {
         case 1:
             // The precondition applies here:
             //
@@ -193,17 +172,17 @@ extension DatabaseRegion {
             // filtering of events performed in observes(eventsOfKind:), the
             // event argument is guaranteed to be about the fetched table.
             // We thus only have to check for rowIds.
-            assert(event.tableName == tables[tables.startIndex].key) // sanity check
-            guard let rowIds = tables[tables.startIndex].value.rowIds else {
+            assert(event.tableName == tableRegions[tableRegions.startIndex].key) // sanity check
+            guard let rowIds = tableRegions[tableRegions.startIndex].value.rowIds else {
                 return true
             }
             return rowIds.contains(event.rowID)
         default:
-            guard let tableInfo = tables[event.tableName] else {
+            guard let tableRegion = tableRegions[event.tableName] else {
                 // Shouldn't happen if the precondition is met.
                 fatalError("precondition failure: event was not filtered out in observes(eventsOfKind:) by region.isModified(byEventsOfKind:)")
             }
-            guard let rowIds = tableInfo.rowIds else {
+            guard let rowIds = tableRegion.rowIds else {
                 return true
             }
             return rowIds.contains(event.rowID)
@@ -213,17 +192,17 @@ extension DatabaseRegion {
 
 extension DatabaseRegion: Equatable {
     public static func == (lhs: DatabaseRegion, rhs: DatabaseRegion) -> Bool {
-        switch (lhs.tables, rhs.tables) {
+        switch (lhs.tableRegions, rhs.tableRegions) {
         case (nil, nil):
             return true
-        case (let ltables?, let rtables?):
-            let ltableNames = Set(ltables.map { $0.key })
-            let rtableNames = Set(rtables.map { $0.key })
+        case (let ltableRegions?, let rtableRegions?):
+            let ltableNames = Set(ltableRegions.map { $0.key })
+            let rtableNames = Set(rtableRegions.map { $0.key })
             guard ltableNames == rtableNames else {
                 return false
             }
             for tableName in ltableNames {
-                if ltables[tableName]! != rtables[tableName]! {
+                if ltableRegions[tableName]! != rtableRegions[tableName]! {
                     return false
                 }
             }
@@ -236,22 +215,22 @@ extension DatabaseRegion: Equatable {
 
 extension DatabaseRegion: CustomStringConvertible {
     public var description: String {
-        guard let tables = tables else {
+        guard let tableRegions = tableRegions else {
             return "full database"
         }
-        if tables.isEmpty {
+        if tableRegions.isEmpty {
             return "empty"
         }
-        return tables
+        return tableRegions
             .sorted(by: { (l, r) in l.key < r.key })
-            .map { (table, tableInfo) in
+            .map { (table, tableRegion) in
                 var desc = table
-                if let columns = tableInfo.columns {
+                if let columns = tableRegion.columns {
                     desc += "(" + columns.sorted().joined(separator: ",") + ")"
                 } else {
                     desc += "(*)"
                 }
-                if let rowIds = tableInfo.rowIds {
+                if let rowIds = tableRegion.rowIds {
                     desc += "[" + rowIds.sorted().map { "\($0)" }.joined(separator: ",") + "]"
                 }
                 return desc

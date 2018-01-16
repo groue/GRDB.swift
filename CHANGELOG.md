@@ -33,10 +33,7 @@ Release Notes
 +struct DatabaseRegion: Equatable {
 +    var isEmpty: Bool
 +
-+    func intersection(_ other: DatabaseRegion) -> DatabaseRegion
 +    func union(_ other: DatabaseRegion) -> DatabaseRegion
-+
-+    mutating func formIntersection(_ other: DatabaseRegion)
 +    mutating func formUnion(_ other: DatabaseRegion)
 +
 +    func isModified(byEventsOfKind eventKind: DatabaseEventKind) -> Bool
@@ -51,10 +48,6 @@ Release Notes
 +    
 +    @available(*, deprecated, renamed:"region")
 +    var selectionInfo: DatabaseRegion
- }
- 
- class Database {
-+    func region(rowIds: Set<Int64>, in tableName: String) throws -> DatabaseRegion
  }
 
  enum DatabaseEventKind {
