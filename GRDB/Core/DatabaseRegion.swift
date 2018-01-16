@@ -141,13 +141,6 @@ public struct DatabaseRegion {
     }
     
     /// Inserts the given region into this region
-    ///
-    ///    |  T  |   |  T  |   |  T  |
-    ///    |-----|   |-----|   |-----|
-    ///    |x| | | + | |x| | = |x|x| |
-    ///    |x| | |   | |x| |   |x|x| |
-    ///    |x| | |   | |x| |   |x|x| |
-    ///    |x| | |   | |x| |   |x|x| |
     public mutating func formUnion(_ other: DatabaseRegion) {
         self = union(other)
     }
