@@ -410,6 +410,45 @@ class DatabaseRegionTests : GRDBTestCase {
         }
     }
     
+    func testDatabaseRegionOfDerivedRequests() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE foo (id INTEGER PRIMARY KEY, a TEXT)")
+            struct Record: TableMapping {
+                static let databaseTableName = "foo"
+            }
+            
+            let request = Record.filter(keys: [1, 2, 3])
+            try XCTAssertEqual(request.region(db).description, "foo(a,id)[1,2,3]")
+
+            do {
+                let derivedRequest: AnyRequest = AnyRequest(request)
+                try XCTAssertEqual(derivedRequest.region(db).description, "foo(a,id)[1,2,3]")
+            }
+            do {
+                let derivedRequest: AnyTypedRequest<Record> = AnyTypedRequest(request)
+                try XCTAssertEqual(derivedRequest.region(db).description, "foo(a,id)[1,2,3]")
+            }
+            do {
+                let derivedRequest: AnyTypedRequest<Row> = request.asRequest(of: Row.self)
+                try XCTAssertEqual(derivedRequest.region(db).description, "foo(a,id)[1,2,3]")
+            }
+            do {
+                let derivedRequest: AdaptedTypedRequest = request.adapted { db in SuffixRowAdapter(fromIndex: 1) }
+                try XCTAssertEqual(derivedRequest.region(db).description, "foo(a,id)[1,2,3]")
+            }
+            do {
+                let derivedRequest: AdaptedRequest = AnyRequest(request).adapted { db in SuffixRowAdapter(fromIndex: 1) }
+                try XCTAssertEqual(derivedRequest.region(db).description, "foo(a,id)[1,2,3]")
+            }
+            do {
+                // SQL request loses region info
+                let derivedRequest: SQLRequest = try request.asSQLRequest(db)
+                try XCTAssertEqual(derivedRequest.region(db).description, "foo(a,id)")
+            }
+        }
+    }
+    
     func testUpdateStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
