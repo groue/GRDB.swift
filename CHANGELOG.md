@@ -47,10 +47,10 @@ Release Notes
 +    var region: DatabaseRegion
 +
 +    @available(*, deprecated, renamed:"DatabaseRegion")
-+    public typealias SelectionInfo = DatabaseRegion
++    typealias SelectionInfo = DatabaseRegion
 +    
 +    @available(*, deprecated, renamed:"region")
-+    public var selectionInfo: DatabaseRegion
++    var selectionInfo: DatabaseRegion
  }
  
  class Database {
@@ -58,8 +58,9 @@ Release Notes
  }
 
  enum DatabaseEventKind {
+-    func impacts(_ selectionInfo: SelectStatement.SelectionInfo) -> Bool
 +    @available(*, deprecated, message: "Use DatabaseRegion.isModified(byEventsOfKind:) instead")
-+    public func impacts(_ region: DatabaseRegion) -> Bool
++    func impacts(_ region: DatabaseRegion) -> Bool
  }
  
  protocol Request {
