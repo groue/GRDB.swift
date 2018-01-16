@@ -12,6 +12,7 @@
 - [ ] Write regression tests for #156 and #157
 - [ ] Improve Database.region(rowIds:in:)
 - [ ] Replace Region.intersection with Region.setRowIds(for:). It is not really an intersection. It just gives the tracked rowIds for a table, without modifying other tables.
+- [ ] Have Any(Typed)Request preserve region
 
 GRDB 3.0
 
