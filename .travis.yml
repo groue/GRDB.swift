@@ -55,6 +55,22 @@ jobs:
         - TID=GRDB [SPM] (Xcode 9.2, macOS)
       script: make test_SPM
 
+    # Test GRDBOSX (Xcode 9.0)
+    - stage: Test GRDB
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode9
+      env:
+        - TID=GRDBOSX (Xcode 9.0, macOS)
+      script: make test_framework_GRDBOSX
+
+    # Test GRDBiOS (Xcode 9.0, iOS <MAXIMUM VERSION>)
+    - stage: Test GRDB
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode9
+      env:
+        - TID=GRDBiOS (Xcode 9.0, iOS <MAX>)
+      script: make test_framework_GRDBiOS_maxTarget
+
     ###########################################
     ## Test GRDB (Custom SQLite)
 
@@ -81,6 +97,22 @@ jobs:
       env:
         - TID=GRDBCustomSQLiteiOS (Xcode 9.2, iOS <MIN>)
       script: make test_framework_GRDBCustomSQLiteiOS_minTarget
+
+    # Test GRDBCustomSQLiteOSX (Xcode 9.0)
+    - stage: Test GRDB + Custom SQLite
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode9
+      env:
+        - TID=GRDBCustomSQLiteOSX (Xcode 9.0, macOS)
+      script: make test_framework_GRDBCustomSQLiteOSX
+
+    # Test GRDBCustomSQLiteiOS (Xcode 9.0, iOS <MAXIMUM VERSION>)
+    - stage: Test GRDB + Custom SQLite
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode9
+      env:
+        - TID=GRDBCustomSQLiteiOS (Xcode 9.0, iOS <MAX>)
+      script: make test_framework_GRDBCustomSQLiteiOS_maxTarget
 
     ###########################################
     ## Test GRDB (SQLCipher)
@@ -109,38 +141,18 @@ jobs:
         - TID=GRDBCipheriOS (Xcode 9.2, iOS <MIN>)
       script: make test_framework_GRDBCipheriOS_minTarget
 
-
-    ###########################################
-    ## Test Minimum Supported Xcode
-
-    # Test GRDBiOS (Xcode 9.0, iOS <MAXIMUM VERSION>)
-    - stage: Test Minimum Xcode
+    # Test GRDBCipherOSX (Xcode 9.0)
+    - stage: Test GRDB + SQLCipher
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9.0
+      osx_image: xcode9
       env:
-        - TID=GRDBiOS (Xcode 9.0, iOS <MAX>)
-      script: make test_framework_GRDBiOS_maxTarget
-
-    # Test GRDBiOS (Xcode 9.0, iOS <MINIMUM VERSION>))
-    - stage: Test Minimum Xcode
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9.0
-      env:
-        - TID=GRDBiOS (Xcode 9.0, iOS <MIN>)
-      script: make test_framework_GRDBiOS_minTarget
-
-    # Test GRDBCustomSQLiteiOS (Xcode 9.0, iOS <MAXIMUM VERSION>)
-    - stage: Test Minimum Xcode
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9.0
-      env:
-        - TID=GRDBCustomSQLiteiOS (Xcode 9.0, iOS <MAX>)
-      script: make test_framework_GRDBCustomSQLiteiOS_maxTarget
+        - TID=GRDBCipherOSX (Xcode 9.0, macOS)
+      script: make test_framework_GRDBCipherOSX
 
     # Test GRDBCipheriOS (Xcode 9.0, iOS <MAXIMUM VERSION>)
-    - stage: Test Minimum Xcode
+    - stage: Test GRDB + SQLCipher
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9.0
+      osx_image: xcode9
       env:
         - TID=GRDBCipheriOS (Xcode 9.0, iOS <MAX>)
       script: make test_framework_GRDBCipheriOS_maxTarget
@@ -149,36 +161,45 @@ jobs:
     ###########################################
     ## Test Installation Methods
 
-    # Manual Install
+    # Manual Install (Xcode 9.2)
     - stage: Test Installation
       gemfile: .ci/gemfiles/Gemfile.travis
       osx_image: xcode9.2
       env:
-        - TID=Manual Install
+        - TID=Manual Install (Xcode 9.2)
       script: make test_install_manual
 
-    # Manual Install (GRDBCipher)
+    # Manual Install (GRDBCipher, Xcode 9.2)
     - stage: Test Installation
       gemfile: .ci/gemfiles/Gemfile.travis
       osx_image: xcode9.2
       env:
-        - TID=Manual Install (GRDBCipher)
+        - TID=Manual Install (GRDBCipher, Xcode 9.2)
       script: make test_install_GRDBCipher
 
-    # Cocoapods Lint
+    # Cocoapods Lint (Xcode 9.2)
     - stage: Test Installation
       osx_image: xcode9.2
       install:
         - gem install cocoapods # Since Travis is not always on latest version
       env:
-        - TID=Cocoapods
+        - TID=Cocoapods (Xcode 9.2)
       script: make test_CocoaPodsLint
 
-    # SPM Install
+    # Cocoapods Lint (Xcode 9.0)
+    - stage: Test Installation
+      osx_image: xcode9
+      install:
+        - gem install cocoapods # Since Travis is not always on latest version
+      env:
+        - TID=Cocoapods (Xcode 9.0)
+      script: make test_CocoaPodsLint
+
+    # SPM Install (Xcode 9.2)
     - stage: Test Installation
       osx_image: xcode9.2
       env:
-        - TID=SPM
+        - TID=SPM (Xcode 9.2)
       script: make test_install_SPM
 
     ## Carthage Build
