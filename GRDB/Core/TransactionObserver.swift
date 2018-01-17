@@ -792,8 +792,8 @@ typealias StatementObservation = (TransactionObservation, DatabaseEventPredicate
 
 // MARK: - Database events
 
-/// A kind of database event. See Database.add(transactionObserver:)
-/// and DatabaseWriter.add(transactionObserver:).
+/// A kind of database event. See the TransactionObserver protocol for
+/// more information.
 public enum DatabaseEventKind {
     /// The insertion of a row in a database table
     case insert(tableName: String)
@@ -804,7 +804,7 @@ public enum DatabaseEventKind {
     /// The update of a set of columns in a database table
     case update(tableName: String, columnNames: Set<String>)
     
-    var region: DatabaseRegion {
+    var modifiedRegion: DatabaseRegion {
         switch self {
         case .delete(let tableName):
             return DatabaseRegion(table: tableName)

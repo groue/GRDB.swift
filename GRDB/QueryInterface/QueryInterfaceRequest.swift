@@ -27,9 +27,9 @@ extension QueryInterfaceRequest : TypedRequest {
         return try query.fetchCount(db)
     }
     
-    /// The database region read by the request.
-    public func region(_ db: Database) throws -> DatabaseRegion {
-        return try query.region(db)
+    /// The database region that the request looks into.
+    public func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
+        return try query.fetchedRegion(db)
     }
 }
 

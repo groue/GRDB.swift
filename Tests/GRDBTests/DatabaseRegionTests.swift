@@ -265,19 +265,19 @@ class DatabaseRegionTests : GRDBTestCase {
                 let statement = try db.makeSelectStatement("SELECT foo.name FROM FOO JOIN BAR ON fooId = foo.id")
                 let expectedRegion = DatabaseRegion(table: "foo", columns: ["name", "id"])
                     .union(DatabaseRegion(table: "bar", columns: ["fooId"]))
-                XCTAssertEqual(statement.region, expectedRegion)
-                XCTAssertEqual(statement.region.description, "bar(fooId),foo(id,name)")
+                XCTAssertEqual(statement.fetchedRegion, expectedRegion)
+                XCTAssertEqual(statement.fetchedRegion.description, "bar(fooId),foo(id,name)")
             }
             do {
                 let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM foo")
                 if sqlite3_libversion_number() < 3019000 {
                     let expectedRegion = DatabaseRegion.fullDatabase
-                    XCTAssertEqual(statement.region, expectedRegion)
-                    XCTAssertEqual(statement.region.description, "full database")
+                    XCTAssertEqual(statement.fetchedRegion, expectedRegion)
+                    XCTAssertEqual(statement.fetchedRegion.description, "full database")
                 } else {
                     let expectedRegion = DatabaseRegion(table: "foo")
-                    XCTAssertEqual(statement.region, expectedRegion)
-                    XCTAssertEqual(statement.region.description, "foo(*)")
+                    XCTAssertEqual(statement.fetchedRegion, expectedRegion)
+                    XCTAssertEqual(statement.fetchedRegion.description, "foo(*)")
                 }
             }
         }
@@ -295,117 +295,117 @@ class DatabaseRegionTests : GRDBTestCase {
             
             do {
                 let request = Record.all()
-                try XCTAssertEqual(request.region(db).description, "foo(a,id)")
+                try XCTAssertEqual(request.fetchedRegion(db).description, "foo(a,id)")
             }
             do {
                 let request = Record.filter(Column("a") == 1)
-                try XCTAssertEqual(request.region(db).description, "foo(a,id)")
+                try XCTAssertEqual(request.fetchedRegion(db).description, "foo(a,id)")
             }
             do {
                 let request = Record.filter(Column("id") >= 1)
-                try XCTAssertEqual(request.region(db).description, "foo(a,id)")
+                try XCTAssertEqual(request.fetchedRegion(db).description, "foo(a,id)")
             }
             
             do {
                 let request = Record.filter((Column("id") == 1) || (Column("a") == "foo"))
-                try XCTAssertEqual(request.region(db).description, "foo(a,id)")
+                try XCTAssertEqual(request.fetchedRegion(db).description, "foo(a,id)")
             }
 
             // No rowId
             
             do {
                 let request = Record.filter(Column("id") == nil)
-                try XCTAssertEqual(request.region(db).description, "empty")
+                try XCTAssertEqual(request.fetchedRegion(db).description, "empty")
             }
 
             do {
                 let request = Record.filter(Column("id") === nil)
-                try XCTAssertEqual(request.region(db).description, "empty")
+                try XCTAssertEqual(request.fetchedRegion(db).description, "empty")
             }
             
             do {
                 let request = Record.filter(nil == Column("id"))
-                try XCTAssertEqual(request.region(db).description, "empty")
+                try XCTAssertEqual(request.fetchedRegion(db).description, "empty")
             }
             
             do {
                 let request = Record.filter(nil === Column("id"))
-                try XCTAssertEqual(request.region(db).description, "empty")
+                try XCTAssertEqual(request.fetchedRegion(db).description, "empty")
             }
             
             do {
                 let request = Record.filter((Column("id") == 1) && (Column("id") == 2))
-                try XCTAssertEqual(request.region(db).description, "empty")
+                try XCTAssertEqual(request.fetchedRegion(db).description, "empty")
             }
             do {
                 let request = Record.filter(key: 1).filter(key: 2)
-                try XCTAssertEqual(request.region(db).description, "empty")
+                try XCTAssertEqual(request.fetchedRegion(db).description, "empty")
             }
 
             // Single rowId
             
             do {
                 let request = Record.filter(Column("id") == 1)
-                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1]")
+                try XCTAssertEqual(request.fetchedRegion(db).description, "foo(a,id)[1]")
             }
             do {
                 let request = Record.filter(Column("id") === 1)
-                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1]")
+                try XCTAssertEqual(request.fetchedRegion(db).description, "foo(a,id)[1]")
             }
             do {
                 let request = Record.filter(Column("id") == 1 && Column("a") == "foo")
-                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1]")
+                try XCTAssertEqual(request.fetchedRegion(db).description, "foo(a,id)[1]")
             }
             do {
                 let request = Record.filter(Column.rowID == 1)
-                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1]")
+                try XCTAssertEqual(request.fetchedRegion(db).description, "foo(a,id)[1]")
             }
             do {
                 let request = Record.filter(1 == Column("id"))
-                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1]")
+                try XCTAssertEqual(request.fetchedRegion(db).description, "foo(a,id)[1]")
             }
             do {
                 let request = Record.filter(1 === Column("id"))
-                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1]")
+                try XCTAssertEqual(request.fetchedRegion(db).description, "foo(a,id)[1]")
             }
             do {
                 let request = Record.filter(1 === Column.rowID)
-                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1]")
+                try XCTAssertEqual(request.fetchedRegion(db).description, "foo(a,id)[1]")
             }
             do {
                 let request = Record.filter(key: 1)
-                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1]")
+                try XCTAssertEqual(request.fetchedRegion(db).description, "foo(a,id)[1]")
             }
             do {
                 let request = Record.filter(key: 1).filter(key: 1)
-                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1]")
+                try XCTAssertEqual(request.fetchedRegion(db).description, "foo(a,id)[1]")
             }
             do {
                 let request = Record.filter(key: 1).filter(Column("a") == "foo")
-                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1]")
+                try XCTAssertEqual(request.fetchedRegion(db).description, "foo(a,id)[1]")
             }
 
             // Multiple rowIds
             
             do {
                 let request = Record.filter(Column("id") == 1 || Column.rowID == 2)
-                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1,2]")
+                try XCTAssertEqual(request.fetchedRegion(db).description, "foo(a,id)[1,2]")
             }
             do {
                 let request = Record.filter((Column("id") == 1 && Column("a") == "foo") || Column.rowID == 2)
-                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1,2]")
+                try XCTAssertEqual(request.fetchedRegion(db).description, "foo(a,id)[1,2]")
             }
             do {
                 let request = Record.filter([1, 2, 3].contains(Column("id")))
-                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1,2,3]")
+                try XCTAssertEqual(request.fetchedRegion(db).description, "foo(a,id)[1,2,3]")
             }
             do {
                 let request = Record.filter([1, 2, 3].contains(Column.rowID))
-                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1,2,3]")
+                try XCTAssertEqual(request.fetchedRegion(db).description, "foo(a,id)[1,2,3]")
             }
             do {
                 let request = Record.filter(keys: [1, 2, 3])
-                try XCTAssertEqual(request.region(db).description, "foo(a,id)[1,2,3]")
+                try XCTAssertEqual(request.fetchedRegion(db).description, "foo(a,id)[1,2,3]")
             }
         }
     }
@@ -419,32 +419,32 @@ class DatabaseRegionTests : GRDBTestCase {
             }
             
             let request = Record.filter(keys: [1, 2, 3])
-            try XCTAssertEqual(request.region(db).description, "foo(a,id)[1,2,3]")
+            try XCTAssertEqual(request.fetchedRegion(db).description, "foo(a,id)[1,2,3]")
 
             do {
                 let derivedRequest: AnyRequest = AnyRequest(request)
-                try XCTAssertEqual(derivedRequest.region(db).description, "foo(a,id)[1,2,3]")
+                try XCTAssertEqual(derivedRequest.fetchedRegion(db).description, "foo(a,id)[1,2,3]")
             }
             do {
                 let derivedRequest: AnyTypedRequest<Record> = AnyTypedRequest(request)
-                try XCTAssertEqual(derivedRequest.region(db).description, "foo(a,id)[1,2,3]")
+                try XCTAssertEqual(derivedRequest.fetchedRegion(db).description, "foo(a,id)[1,2,3]")
             }
             do {
                 let derivedRequest: AnyTypedRequest<Row> = request.asRequest(of: Row.self)
-                try XCTAssertEqual(derivedRequest.region(db).description, "foo(a,id)[1,2,3]")
+                try XCTAssertEqual(derivedRequest.fetchedRegion(db).description, "foo(a,id)[1,2,3]")
             }
             do {
                 let derivedRequest: AdaptedTypedRequest = request.adapted { db in SuffixRowAdapter(fromIndex: 1) }
-                try XCTAssertEqual(derivedRequest.region(db).description, "foo(a,id)[1,2,3]")
+                try XCTAssertEqual(derivedRequest.fetchedRegion(db).description, "foo(a,id)[1,2,3]")
             }
             do {
                 let derivedRequest: AdaptedRequest = AnyRequest(request).adapted { db in SuffixRowAdapter(fromIndex: 1) }
-                try XCTAssertEqual(derivedRequest.region(db).description, "foo(a,id)[1,2,3]")
+                try XCTAssertEqual(derivedRequest.fetchedRegion(db).description, "foo(a,id)[1,2,3]")
             }
             do {
                 // SQL request loses region info
                 let derivedRequest: SQLRequest = try request.asSQLRequest(db)
-                try XCTAssertEqual(derivedRequest.region(db).description, "foo(a,id)")
+                try XCTAssertEqual(derivedRequest.fetchedRegion(db).description, "foo(a,id)")
             }
         }
     }
@@ -483,20 +483,20 @@ class DatabaseRegionTests : GRDBTestCase {
             do {
                 let statement = try db.makeSelectStatement("SELECT rowid FROM FOO")
                 let expectedRegion = DatabaseRegion(table: "foo", columns: ["ROWID"])
-                XCTAssertEqual(statement.region, expectedRegion)
-                XCTAssertEqual(statement.region.description, "foo(ROWID)")
+                XCTAssertEqual(statement.fetchedRegion, expectedRegion)
+                XCTAssertEqual(statement.fetchedRegion.description, "foo(ROWID)")
             }
             do {
                 let statement = try db.makeSelectStatement("SELECT _ROWID_ FROM FOO")
                 let expectedRegion = DatabaseRegion(table: "foo", columns: ["ROWID"])
-                XCTAssertEqual(statement.region, expectedRegion)
-                XCTAssertEqual(statement.region.description, "foo(ROWID)")
+                XCTAssertEqual(statement.fetchedRegion, expectedRegion)
+                XCTAssertEqual(statement.fetchedRegion.description, "foo(ROWID)")
             }
             do {
                 let statement = try db.makeSelectStatement("SELECT oID FROM FOO")
                 let expectedRegion = DatabaseRegion(table: "foo", columns: ["ROWID"])
-                XCTAssertEqual(statement.region, expectedRegion)
-                XCTAssertEqual(statement.region.description, "foo(ROWID)")
+                XCTAssertEqual(statement.fetchedRegion, expectedRegion)
+                XCTAssertEqual(statement.fetchedRegion.description, "foo(ROWID)")
             }
         }
     }

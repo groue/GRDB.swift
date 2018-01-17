@@ -295,11 +295,11 @@ public final class SelectStatement : Statement, AuthorizedStatement {
     @available(*, deprecated, renamed:"DatabaseRegion")
     public typealias SelectionInfo = DatabaseRegion
     
-    @available(*, deprecated, renamed:"region")
-    public var selectionInfo: DatabaseRegion { return region }
+    @available(*, deprecated, renamed:"fetchedRegion")
+    public var selectionInfo: DatabaseRegion { return fetchedRegion }
     
-    /// The database region read by the statement
-    public private(set) var region: DatabaseRegion
+    /// The database region that the statement looks into.
+    public private(set) var fetchedRegion: DatabaseRegion
     
     /// Creates a prepared statement.
     ///
@@ -320,7 +320,7 @@ public final class SelectStatement : Statement, AuthorizedStatement {
         prepFlags: Int32,
         authorizer: StatementCompilationAuthorizer) throws
     {
-        self.region = DatabaseRegion()
+        self.fetchedRegion = DatabaseRegion()
         try super.init(
             database: database,
             statementStart: statementStart,
@@ -330,7 +330,7 @@ public final class SelectStatement : Statement, AuthorizedStatement {
         GRDBPrecondition(authorizer.invalidatesDatabaseSchemaCache == false, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
         GRDBPrecondition(authorizer.transactionEffect == nil, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
         
-        self.region = authorizer.region
+        self.fetchedRegion = authorizer.region
     }
     
     /// The number of columns in the resulting rows.

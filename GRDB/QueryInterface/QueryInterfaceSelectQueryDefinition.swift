@@ -181,10 +181,10 @@ extension QueryInterfaceSelectQueryDefinition : Request {
         return try Int.fetchOne(db, countQuery)!
     }
     
-    /// The database region read by the request.
-    public func region(_ db: Database) throws -> DatabaseRegion {
+    /// The database region that the request looks into.
+    public func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
         let (statement, _) = try prepare(db)
-        let region = statement.region
+        let region = statement.fetchedRegion
         
         // Can we intersect the region with rowIds?
         //

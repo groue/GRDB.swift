@@ -23,12 +23,12 @@ public protocol Request {
     /// - parameter db: A database connection.
     func fetchCount(_ db: Database) throws -> Int
     
-    /// The database region read by the request.
+    /// The database region that the request looks into.
     ///
     /// This method has a default implementation.
     ///
     /// - parameter db: A database connection.
-    func region(_ db: Database) throws -> DatabaseRegion
+    func fetchedRegion(_ db: Database) throws -> DatabaseRegion
 }
 
 extension Request {
@@ -56,12 +56,12 @@ extension Request {
         return SQLRequest(statement.sql, arguments: statement.arguments, adapter: adapter, cached: cached)
     }
     
-    /// The database region read by the request.
+    /// The database region that the request looks into.
     ///
     /// - parameter db: A database connection.
-    public func region(_ db: Database) throws -> DatabaseRegion {
+    public func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
         let (statement, _) = try prepare(db)
-        return statement.region
+        return statement.fetchedRegion
     }
 }
 
@@ -116,8 +116,8 @@ public struct AdaptedRequest<Base: Request> : Request {
         return try base.fetchCount(db)
     }
     
-    public func region(_ db: Database) throws -> DatabaseRegion {
-        return try base.region(db)
+    public func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
+        return try base.fetchedRegion(db)
     }
 }
 
@@ -153,8 +153,8 @@ public struct AnyRequest : Request {
         return try base.fetchCount(db)
     }
     
-    public func region(_ db: Database) throws -> DatabaseRegion {
-        return try base.region(db)
+    public func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
+        return try base.fetchedRegion(db)
     }
 }
 
@@ -280,8 +280,8 @@ public struct AdaptedTypedRequest<Base: TypedRequest> : TypedRequest {
         return try base.fetchCount(db)
     }
     
-    public func region(_ db: Database) throws -> DatabaseRegion {
-        return try base.region(db)
+    public func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
+        return try base.fetchedRegion(db)
     }
 }
 
@@ -319,8 +319,8 @@ public struct AnyTypedRequest<T> : TypedRequest {
         return try base.fetchCount(db)
     }
     
-    public func region(_ db: Database) throws -> DatabaseRegion {
-        return try base.region(db)
+    public func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
+        return try base.fetchedRegion(db)
     }
 }
 

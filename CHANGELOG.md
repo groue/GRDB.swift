@@ -43,12 +43,12 @@ Release Notes
 +}
 
  class SelectStatement {
-+    var region: DatabaseRegion
++    var fetchedRegion: DatabaseRegion
 +
 +    @available(*, deprecated, renamed:"DatabaseRegion")
 +    typealias SelectionInfo = DatabaseRegion
 +    
-+    @available(*, deprecated, renamed:"region")
++    @available(*, deprecated, renamed:"fetchedRegion")
 +    var selectionInfo: DatabaseRegion
  }
 
@@ -60,7 +60,7 @@ Release Notes
  
  protocol Request {
 +    // Default implementation
-+    func region(_ db: Database) throws -> DatabaseRegion
++    func fetchedRegion(_ db: Database) throws -> DatabaseRegion
  }
  
 +extension Row: RandomAccessCollection {

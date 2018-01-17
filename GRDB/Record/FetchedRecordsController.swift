@@ -393,7 +393,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         itemsAreIdenticalFactory: ItemComparatorFactory<Record>) throws
         -> (DatabaseRegion, ItemComparator<Record>)
     {
-        let region = try request.region(db)
+        let region = try request.fetchedRegion(db)
         let itemsAreIdentical = try itemsAreIdenticalFactory(db)
         return (region, itemsAreIdentical)
     }

@@ -16,16 +16,16 @@
 /// You don't create a database region directly. Instead, you use one of
 /// those methods:
 ///
-/// - `SelectStatement.region`:
+/// - `SelectStatement.fetchedRegion`:
 ///
 ///     let statement = db.makeSelectStatement("SELECT name, score FROM players")
-///     print(statement.region)
+///     print(statement.fetchedRegion)
 ///     // prints "players(name,score)"
 ///
-/// - `Request.region(_:)`
+/// - `Request.fetchedRegion(_:)`
 ///
 ///     let request = Player.filter(key: 1)
-///     try print(request.region(db))
+///     try print(request.fetchedRegion(db))
 ///     // prints "players(*)[1]"
 ///
 /// Database regions returned by requests can be more precise than regions
@@ -34,11 +34,11 @@
 ///
 ///     // A plain statement
 ///     let statement = db.makeSelectStatement("SELECT * FROM players WHERE id = 1")
-///     statement.region       // "players(*)"
+///     statement.fetchedRegion       // "players(*)"
 ///
 ///     // A query interface request that executes the same statement:
 ///     let request = Player.filter(key: 1)
-///     try request.region(db) // "players(*)[1]"
+///     try request.fetchedRegion(db) // "players(*)[1]"
 public struct DatabaseRegion {
     private let tableRegions: [String: TableRegion]?
     private init(tableRegions: [String: TableRegion]?) {
@@ -153,7 +153,7 @@ extension DatabaseRegion {
     /// Returns whether the content in the region would be impacted if the
     /// database were modified by an event of this kind.
     public func isModified(byEventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        return !intersection(eventKind.region).isEmpty
+        return !intersection(eventKind.modifiedRegion).isEmpty
     }
     
     /// Returns whether the content in the region is impacted by this event.
