@@ -13,7 +13,7 @@ default: test
 # Requirements
 # ============
 #
-# Xcode 8.3.3, with iOS8.1 Simulator installed
+# Xcode >= 9.0, with iOS8.1 Simulator installed
 # CocoaPods ~> 1.2.0 - https://cocoapods.org
 # Carthage ~> 0.20.1 - https://github.com/carthage/carthage
 # Jazzy ~> 0.7.4 - https://github.com/realm/jazzy
@@ -29,6 +29,7 @@ XCODEBUILD := set -o pipefail && $(shell command -v xcodebuild)
 XCODEVERSION_FULL := $(word 2, $(shell xcodebuild -version))
 XCODEVERSION_MAJOR := $(shell xcodebuild -version 2>&1 | grep Xcode | cut -d' ' -f2 | cut -d'.' -f1)
 XCODEVERSION_MINOR := $(shell xcodebuild -version 2>&1 | grep Xcode | cut -d' ' -f2 | cut -d'.' -f2)
+XCODEVERSION_PATCH := $(shell xcodebuild -version 2>&1 | grep Xcode | cut -d' ' -f2 | cut -d'.' -f3)
 
 # The Xcode Version, containing only the "MAJOR.MINOR" (ex. "8.3" for Xcode 8.3, 8.3.1, etc.)
 XCODEVERSION := $(XCODEVERSION_MAJOR).$(XCODEVERSION_MINOR)
@@ -49,9 +50,15 @@ MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=8.1"
 ifeq ($(XCODEVERSION),9.2)
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=11.2"
 else ifeq ($(XCODEVERSION),9.1)
- MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=11.1"
+  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=11.1"
 else ifeq ($(XCODEVERSION),9.0)
-  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=11.0"
+  ifeq ($(XCODEVERSION_PATCH),1)
+    # Xcode 9.0.1: @groue's personal computer
+    MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=11.0.1"
+  else
+    # Xcode 9.0: Travis https://docs.travis-ci.com/user/reference/osx/#Xcode-9.0
+    MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=11.0"
+  endif
 else
   # Xcode < 9.0 is not supported
 endif
