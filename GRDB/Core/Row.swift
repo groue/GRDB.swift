@@ -738,7 +738,7 @@ extension Row : ExpressibleByDictionaryLiteral {
     }
 }
 
-extension Row : Collection {
+extension Row : RandomAccessCollection {
     
     // MARK: - Row as a Collection of (ColumnName, DatabaseValue) Pairs
     
@@ -761,25 +761,6 @@ extension Row : Collection {
             impl.columnName(atUncheckedIndex: index),
             impl.databaseValue(atUncheckedIndex: index))
     }
-    
-    /// Returns the index immediately after `i`.
-    ///
-    /// - Precondition: `(startIndex..<endIndex).contains(i)`
-    public func index(after i: RowIndex) -> RowIndex {
-        return RowIndex(i.index + 1)
-    }
-}
-
-extension Row: BidirectionalCollection {
-    /// Returns the index immediately before `i`.
-    ///
-    /// - Precondition: i must be greater than startIndex
-    public func index(before i: RowIndex) -> RowIndex {
-        return RowIndex(i.index - 1)
-    }
-}
-
-extension Row: RandomAccessCollection {
 }
 
 /// Row adopts Equatable.
