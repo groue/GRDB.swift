@@ -26,9 +26,6 @@ private class Observer : TransactionObserver {
         events.append(event.copy())
     }
     
-    func databaseWillCommit() throws {
-    }
-    
     func databaseDidCommit(_ db: Database) {
         lastCommittedEvents = events
         events = []

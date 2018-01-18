@@ -2,6 +2,9 @@
 protocol DatabaseSchemaCache {
     mutating func clear()
     
+    func canonicalName(table: String) -> String?
+    mutating func set(canonicalName: String, forTable table: String)
+
     func primaryKey(_ table: String) -> PrimaryKeyInfo?
     mutating func set(primaryKey: PrimaryKeyInfo, forTable table: String)
     
@@ -17,16 +20,26 @@ protocol DatabaseSchemaCache {
 
 /// A thread-unsafe database schema cache
 struct SimpleDatabaseSchemaCache: DatabaseSchemaCache {
+    private var canonicalNames: [String: String] = [:]
     private var primaryKeys: [String: PrimaryKeyInfo] = [:]
     private var columns: [String: [ColumnInfo]] = [:]
     private var indexes: [String: [IndexInfo]] = [:]
     private var foreignKeys: [String: [ForeignKeyInfo]] = [:]
     
     mutating func clear() {
+        canonicalNames = [:]
         primaryKeys = [:]
         columns = [:]
         indexes = [:]
         foreignKeys = [:]
+    }
+    
+    func canonicalName(table: String) -> String? {
+        return canonicalNames[table]
+    }
+    
+    mutating func set(canonicalName: String, forTable table: String) {
+        canonicalNames[table] = table
     }
     
     func primaryKey(_ table: String) -> PrimaryKeyInfo? {
@@ -66,15 +79,18 @@ struct SimpleDatabaseSchemaCache: DatabaseSchemaCache {
 struct EmptyDatabaseSchemaCache: DatabaseSchemaCache {
     func clear() { }
     
+    func canonicalName(table: String) -> String? { return nil }
+    func set(canonicalName: String, forTable table: String) { }
+    
     func primaryKey(_ table: String) -> PrimaryKeyInfo? { return nil }
-    mutating func set(primaryKey: PrimaryKeyInfo, forTable table: String) { }
+    func set(primaryKey: PrimaryKeyInfo, forTable table: String) { }
     
     func columns(in table: String) -> [ColumnInfo]? { return nil }
-    mutating func set(columns: [ColumnInfo], forTable table: String) { }
+    func set(columns: [ColumnInfo], forTable table: String) { }
     
     func indexes(on table: String) -> [IndexInfo]? { return nil }
-    mutating func set(indexes: [IndexInfo], forTable table: String) { }
+    func set(indexes: [IndexInfo], forTable table: String) { }
     
     func foreignKeys(on table: String) -> [ForeignKeyInfo]? { return nil }
-    mutating func set(foreignKeys: [ForeignKeyInfo], forTable table: String) { }
+    func set(foreignKeys: [ForeignKeyInfo], forTable table: String) { }
 }

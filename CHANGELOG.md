@@ -1,6 +1,73 @@
 Release Notes
 =============
 
+## Next Version
+
+### New
+
+- Database observation has been enhanced:
+    
+    - `TransactionObserver.stopObservingDatabaseChangesUntilNextTransaction()` allows transaction observers to stop observing the database for the remaining extent of a transaction.
+    - GRDB no longer prevents the [truncate optimization](https://www.sqlite.org/lang_delete.html#truncateopt) when no transaction observers are interested in deleted rows.
+    - FetchedRecordsController now avoids checking for changes in untracked rowIds.
+    - `DatabaseRegion` is a new public type that helps transaction observers recognize impactful database changes. This type is not documented in the main documentation. For more information, see [DatabaseRegion reference](http://groue.github.io/GRDB.swift/docs/2.6/Structs/DatabaseRegion.html), and look at [FetchedRecordsController implementation](https://github.com/groue/GRDB.swift/blob/master/GRDB/Record/FetchedRecordsController.swift).
+    - `TransactionObserver` protocol provides default implementations for rarely used callbacks.
+    
+- `Row` adopts RandomAccessCollection
+
+### API diff
+
+```diff
+ extension TransactionObserver {
++    func stopObservingDatabaseChangesUntilNextTransaction()
++
++    // Default implementation
++    func databaseWillCommit() throws
++
++    #if SQLITE_ENABLE_PREUPDATE_HOOK
++    // Default implementation
++    func databaseWillChange(with event: DatabasePreUpdateEvent)
++    #endif
+ }
+
++struct DatabaseRegion: Equatable {
++    var isEmpty: Bool
++
++    init()
++
++    func union(_ other: DatabaseRegion) -> DatabaseRegion
++    mutating func formUnion(_ other: DatabaseRegion)
++
++    func isModified(byEventsOfKind eventKind: DatabaseEventKind) -> Bool
++    func isModified(by event: DatabaseEvent) -> Bool
++}
+
+ class SelectStatement {
++    var fetchedRegion: DatabaseRegion
++
++    @available(*, deprecated, renamed:"DatabaseRegion")
++    typealias SelectionInfo = DatabaseRegion
++    
++    @available(*, deprecated, renamed:"fetchedRegion")
++    var selectionInfo: DatabaseRegion
+ }
+
+ enum DatabaseEventKind {
+-    func impacts(_ selectionInfo: SelectStatement.SelectionInfo) -> Bool
++    @available(*, deprecated, message: "Use DatabaseRegion.isModified(byEventsOfKind:) instead")
++    func impacts(_ region: DatabaseRegion) -> Bool
+ }
+ 
+ protocol Request {
++    // Default implementation
++    func fetchedRegion(_ db: Database) throws -> DatabaseRegion
+ }
+ 
++extension Row: RandomAccessCollection {
++}
+```
+
+
 ## 2.5.0
 
 Released January 11, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.4.2...v2.5.0)

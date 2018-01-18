@@ -738,7 +738,7 @@ extension Row : ExpressibleByDictionaryLiteral {
     }
 }
 
-extension Row : Collection {
+extension Row : RandomAccessCollection {
     
     // MARK: - Row as a Collection of (ColumnName, DatabaseValue) Pairs
     
@@ -761,18 +761,6 @@ extension Row : Collection {
             impl.columnName(atUncheckedIndex: index),
             impl.databaseValue(atUncheckedIndex: index))
     }
-    
-    /// Returns the position immediately after `i`.
-    ///
-    /// - Precondition: `(startIndex..<endIndex).contains(i)`
-    public func index(after i: RowIndex) -> RowIndex {
-        return RowIndex(i.index + 1)
-    }
-    
-    /// Replaces `i` with its successor.
-    public func formIndex(after i: inout RowIndex) {
-        i = RowIndex(i.index + 1)
-    }
 }
 
 /// Row adopts Equatable.
@@ -789,10 +777,7 @@ extension Row : Equatable {
             return false
         }
         
-        var liter = lhs.makeIterator()
-        var riter = rhs.makeIterator()
-        
-        while let (lcol, lval) = liter.next(), let (rcol, rval) = riter.next() {
+        for ((lcol, lval), (rcol, rval)) in zip(lhs, rhs) {
             guard lcol == rcol else {
                 return false
             }
@@ -842,19 +827,28 @@ extension Row: CustomStringConvertible {
 
 // MARK: - RowIndex
 
-/// Indexes to (columnName, dbValue) pairs in a database row.
+/// Indexes to (ColumnName, DatabaseValue) pairs in a database row.
 public struct RowIndex : Comparable {
     let index: Int
     init(_ index: Int) { self.index = index }
     
-    /// Equality operator
     public static func == (lhs: RowIndex, rhs: RowIndex) -> Bool {
         return lhs.index == rhs.index
     }
     
-    // Comparison operator
     public static func < (lhs: RowIndex, rhs: RowIndex) -> Bool {
         return lhs.index < rhs.index
+    }
+}
+
+// Support for Row: RandomAccessCollection
+extension RowIndex: Strideable {
+    public func distance(to other: RowIndex) -> Int {
+        return other.index - index
+    }
+    
+    public func advanced(by n: Int) -> RowIndex {
+        return RowIndex(index + n)
     }
 }
 

@@ -4813,6 +4813,27 @@ dbQueue.inDatabase { db in
 
 - `.databaseLifetime` has the database retain and notify the observer until the database connection is closed.
 
+Finally, an observer may ignore all database changes until the end of the current transaction:
+
+```swift
+class PlayerObserver: TransactionObserver {
+    var playersTableWasModified = false
+    
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+        return eventKind.tableName == "players"
+    }
+    
+    func databaseDidChange(with event: DatabaseEvent) {
+        playersTableWasModified = true
+        
+        // It is pointless to keep on tracking further changes:
+        stopObservingDatabaseChangesUntilNextTransaction()
+    }
+}
+```
+
+After `stopObservingDatabaseChangesUntilNextTransaction()`, the `databaseDidChange(with:)` method will not be notified of any change for the remaining duration of the current transaction. This helps GRDB optimize database observation.
+
 
 #### Support for SQLite Pre-Update Hooks
 

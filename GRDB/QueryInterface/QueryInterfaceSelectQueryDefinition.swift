@@ -181,6 +181,42 @@ extension QueryInterfaceSelectQueryDefinition : Request {
         return try Int.fetchOne(db, countQuery)!
     }
     
+    /// The database region that the request looks into.
+    public func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
+        let (statement, _) = try prepare(db)
+        let region = statement.fetchedRegion
+        
+        // Can we intersect the region with rowIds?
+        //
+        // Give up unless request feeds from a single database table
+        guard let source = source else {
+            return region
+        }
+        guard case .table(name: let tableName, alias: _) = source else {
+            return region
+        }
+        
+        // Give up unless primary key is rowId
+        let primaryKeyInfo = try db.primaryKey(tableName)
+        guard primaryKeyInfo.isRowID else {
+            return region
+        }
+        
+        // Give up unless there is a where clause
+        guard let whereExpression = try wherePromise.resolve(db) else {
+            return region
+        }
+        
+        // The whereExpression knows better
+        guard let rowIds = whereExpression.matchedRowIds(rowIdName: primaryKeyInfo.rowIDColumn) else {
+            return region
+        }
+        
+        // Database regions are case-insensitive: use the canonical table name
+        let canonicalTableName = try db.canonicalName(table: tableName)
+        return region.tableIntersection(canonicalTableName, rowIds: rowIds)
+    }
+    
     private var countQuery: QueryInterfaceSelectQueryDefinition {
         guard groupByExpressions.isEmpty && limit == nil else {
             // SELECT ... GROUP BY ...

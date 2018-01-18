@@ -872,6 +872,42 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTFail("Expected DatabaseError")
         }
     }
+    
+    func testObservationOfSpecificRowIds() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        let generalController = try FetchedRecordsController(dbQueue, request: Person.all())
+        let specificController = try FetchedRecordsController(dbQueue, request: Person.filter(key: 1))
+
+        let generalExpectation = expectation(description: "expectation")
+        generalExpectation.expectedFulfillmentCount = 6
+        var generalChangeCount = 0
+        generalController.trackChanges(onChange: { (_, _, _) in
+            generalChangeCount += 1
+            generalExpectation.fulfill()
+        })
+        try generalController.performFetch()
+
+        let specificExpectation = expectation(description: "expectation")
+        specificExpectation.expectedFulfillmentCount = 3
+        var specificChangeCount = 0
+        specificController.trackChanges(onChange: { (_, _, _) in
+            specificChangeCount += 1
+            specificExpectation.fulfill()
+        })
+        try specificController.performFetch()
+
+        try dbQueue.inDatabase { db in
+            try db.execute("INSERT INTO persons (id, name) VALUES (?, ?)", arguments: [1, "Arthur"])
+            try db.execute("INSERT INTO persons (id, name) VALUES (?, ?)", arguments: [2, "Barbara"])
+            try db.execute("UPDATE persons SET name = ? WHERE id = ?", arguments: ["Craig", 1])
+            try db.execute("UPDATE persons SET name = ? WHERE id = ?", arguments: ["David", 2])
+            try db.execute("DELETE FROM persons")
+        }
+        waitForExpectations(timeout: 1, handler: nil)
+        XCTAssertEqual(generalChangeCount, 6)
+        XCTAssertEqual(specificChangeCount, 3)
+    }
 }
 
 

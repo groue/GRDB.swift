@@ -174,9 +174,6 @@ class MutablePersistablePersistenceConflictPolicyTests: GRDBTestCase {
                 transactionEvents.append(event.copy())
             }
             
-            func databaseWillCommit() throws {
-            }
-            
             func databaseDidCommit(_ db: Database) {
                 events = transactionEvents
                 transactionEvents = []
@@ -186,11 +183,6 @@ class MutablePersistablePersistenceConflictPolicyTests: GRDBTestCase {
                 events = []
                 transactionEvents = []
             }
-            
-            #if SQLITE_ENABLE_PREUPDATE_HOOK
-            func databaseWillChange(with event: DatabasePreUpdateEvent) {
-            }
-            #endif
         }
         
         let dbQueue = try makeDatabaseQueue()

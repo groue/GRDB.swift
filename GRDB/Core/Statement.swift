@@ -292,8 +292,14 @@ extension AuthorizedStatement {
 ///         let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
 ///     }
 public final class SelectStatement : Statement, AuthorizedStatement {
-    /// Information about the table and columns read by a SelectStatement
-    public private(set) var selectionInfo: SelectionInfo
+    @available(*, deprecated, renamed:"DatabaseRegion")
+    public typealias SelectionInfo = DatabaseRegion
+    
+    @available(*, deprecated, renamed:"fetchedRegion")
+    public var selectionInfo: DatabaseRegion { return fetchedRegion }
+    
+    /// The database region that the statement looks into.
+    public private(set) var fetchedRegion: DatabaseRegion
     
     /// Creates a prepared statement.
     ///
@@ -314,7 +320,7 @@ public final class SelectStatement : Statement, AuthorizedStatement {
         prepFlags: Int32,
         authorizer: StatementCompilationAuthorizer) throws
     {
-        self.selectionInfo = SelectionInfo()
+        self.fetchedRegion = DatabaseRegion()
         try super.init(
             database: database,
             statementStart: statementStart,
@@ -324,7 +330,7 @@ public final class SelectStatement : Statement, AuthorizedStatement {
         GRDBPrecondition(authorizer.invalidatesDatabaseSchemaCache == false, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
         GRDBPrecondition(authorizer.transactionEffect == nil, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
         
-        self.selectionInfo = authorizer.selectionInfo
+        self.fetchedRegion = authorizer.region
     }
     
     /// The number of columns in the resulting rows.
@@ -363,68 +369,6 @@ public final class SelectStatement : Statement, AuthorizedStatement {
         SchedulingWatchdog.preconditionValidQueue(database)
         prepare(withArguments: arguments)
         reset()
-    }
-    
-    /// Information about the table and columns read by a SelectStatement
-    public struct SelectionInfo : CustomStringConvertible {
-        /// Selection is unknown when a statement uses the COUNT function,
-        /// and SQLite version < 3.19:
-        ///
-        /// `SELECT COUNT(*) FROM t1` -> unknown selection
-        private let isUnknown: Bool
-        
-        /// `SELECT a, b FROM t1` -> ["t1": ["a", "b"]]
-        private var columns: [String: Set<String>] = [:]
-        
-        /// `SELECT COUNT(*) FROM t1` -> ["t1"]
-        private var tables: Set<String> = []
-        
-        /// The unknown selection
-        static let unknown = SelectionInfo(isUnknown: true)
-        
-        mutating func insert(allColumnsOfTable table: String) {
-            tables.insert(table)
-        }
-        
-        mutating func insert(column: String, ofTable table: String) {
-            columns[table, default: []].insert(column)
-        }
-        
-        /// Returns true if isUnknown is true
-        func contains(anyColumnFrom table: String) -> Bool {
-            if isUnknown { return true }
-            return tables.contains(table) || columns.index(forKey: table) != nil
-        }
-        
-        /// Returns true if isUnknown is true
-        func contains(anyColumnIn columns: Set<String>, from table: String) -> Bool {
-            if isUnknown { return true }
-            return tables.contains(table) || !(self.columns[table]?.isDisjoint(with: columns) ?? true)
-        }
-        
-        init() {
-            self.init(isUnknown: false)
-        }
-        
-        private init(isUnknown: Bool) {
-            self.isUnknown = isUnknown
-        }
-        
-        public var description: String {
-            if isUnknown {
-                return "unknown"
-            }
-            return tables.union(columns.keys)
-                .sorted()
-                .map { table -> String in
-                    if let columns = columns[table] {
-                        return "\(table)(\(columns.sorted().joined(separator: ",")))"
-                    } else {
-                        return "\(table)(*)"
-                    }
-                }
-                .joined(separator: ",")
-        }
     }
 }
 
@@ -489,10 +433,6 @@ public final class UpdateStatement : Statement, AuthorizedStatement {
     /// is executed.
     private(set) var invalidatesDatabaseSchemaCache: Bool
     
-    /// If true, the statement needs support from TruncateOptimizationBlocker
-    /// when executed
-    private(set) var needsTruncateOptimizationPreventionDuringExecution: Bool
-
     private(set) var transactionEffect: TransactionEffect?
     private(set) var databaseEventKinds: [DatabaseEventKind]
     
@@ -516,7 +456,6 @@ public final class UpdateStatement : Statement, AuthorizedStatement {
         authorizer: StatementCompilationAuthorizer) throws
     {
         self.invalidatesDatabaseSchemaCache = false
-        self.needsTruncateOptimizationPreventionDuringExecution = false
         self.databaseEventKinds = []
         try super.init(
             database: database,
@@ -524,7 +463,6 @@ public final class UpdateStatement : Statement, AuthorizedStatement {
             statementEnd: statementEnd,
             prepFlags: prepFlags)
         self.invalidatesDatabaseSchemaCache = authorizer.invalidatesDatabaseSchemaCache
-        self.needsTruncateOptimizationPreventionDuringExecution = authorizer.needsTruncateOptimizationPreventionDuringExecution
         self.transactionEffect = authorizer.transactionEffect
         self.databaseEventKinds = authorizer.databaseEventKinds
     }
@@ -538,10 +476,6 @@ public final class UpdateStatement : Statement, AuthorizedStatement {
         prepare(withArguments: arguments)
         reset()
         database.updateStatementWillExecute(self)
-        
-        if needsTruncateOptimizationPreventionDuringExecution {
-            database.authorizer = TruncateOptimizationBlocker()
-        }
         
         while true {
             switch sqlite3_step(sqliteStatement) {
@@ -565,12 +499,10 @@ public final class UpdateStatement : Statement, AuthorizedStatement {
                 continue
                 
             case SQLITE_DONE:
-                database.authorizer = nil
                 try database.updateStatementDidExecute(self)
                 return
                 
             case let code:
-                database.authorizer = nil
                 try database.updateStatementDidFail(self)
                 throw DatabaseError(resultCode: code, message: database.lastErrorMessage, sql: sql, arguments: self.arguments) // Error uses self.arguments, not the optional arguments parameter.
             }

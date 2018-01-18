@@ -215,6 +215,27 @@ extension Database {
         schemaCache.set(foreignKeys: foreignKeys, forTable: tableName)
         return foreignKeys
     }
+    
+    /// Returns the actual name of the database table
+    func canonicalName(table: String) throws -> String {
+        if let canonicalName = schemaCache.canonicalName(table: table) {
+            return canonicalName
+        }
+        
+        guard let canonicalName = try String.fetchOne(self, """
+            SELECT name FROM (
+                SELECT name, type FROM sqlite_master
+                UNION
+                SELECT name, type FROM sqlite_temp_master)
+            WHERE type = 'table' AND LOWER(name) = ?
+            """, arguments: [table.lowercased()])
+        else {
+            throw DatabaseError(message: "no such table: \(table)")
+        }
+        
+        schemaCache.set(canonicalName: canonicalName, forTable: table)
+        return canonicalName
+    }
 }
 
 extension Database {

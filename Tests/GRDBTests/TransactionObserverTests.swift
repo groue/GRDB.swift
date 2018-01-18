@@ -1625,5 +1625,146 @@ class TransactionObserverTests: GRDBTestCase {
             XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .delete, tableName: "b", rowId: 42))
         }
     }
-}
+    
+    func testStopObservingDatabaseChangesUntilNextTransaction() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        class Observer: TransactionObserver {
+            var didChangeCount: Int = 0
+            var willCommitCount: Int = 0
+            var didCommitCount: Int = 0
+            var didRollbackCount: Int = 0
 
+            func resetCounts() {
+                didChangeCount = 0
+                willCommitCount = 0
+                didCommitCount = 0
+                didRollbackCount = 0
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    willChangeCount = 0
+                #endif
+            }
+            
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+            var willChangeCount: Int = 0
+            func databaseWillChange(with event: DatabasePreUpdateEvent) {
+                willChangeCount += 1
+            }
+            #endif
+            
+            func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+                return true
+            }
+            
+            func databaseDidChange(with event: DatabaseEvent) {
+                didChangeCount += 1
+                if event.tableName == "ignore" {
+                    stopObservingDatabaseChangesUntilNextTransaction()
+                }
+            }
+            
+            func databaseWillCommit() throws {
+                willCommitCount += 1
+            }
+            
+            func databaseDidCommit(_ db: Database) {
+                didCommitCount += 1
+            }
+            
+            func databaseDidRollback(_ db: Database) {
+                didRollbackCount += 1
+            }
+        }
+        
+        let observer = Observer()
+        dbQueue.add(transactionObserver: observer)
+        
+        try dbQueue.inDatabase { db in
+            try db.create(table: "ignore") { t in
+                // `INSERT INTO ignore DEFAULT VALUES` triggers an
+                // "ignore event" for Observer.
+                t.column("c").defaults(to: 1)
+            }
+            try db.create(table: "persons") { t in
+                t.column("name", .text)
+            }
+        }
+        
+        try dbQueue.inDatabase { db in
+            // Don't ignore anything
+            do {
+                observer.resetCounts()
+                try db.inTransaction {
+                    try db.execute("INSERT INTO persons (name) VALUES ('a')")
+                    try db.execute("DELETE FROM persons")
+                    return .commit
+                }
+                
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer.willChangeCount, 2)
+                #endif
+                XCTAssertEqual(observer.didChangeCount, 2)
+                XCTAssertEqual(observer.willCommitCount, 1)
+                XCTAssertEqual(observer.didCommitCount, 1)
+                XCTAssertEqual(observer.didRollbackCount, 0)
+            }
+            
+            // Ignore 1
+            do {
+                observer.resetCounts()
+                try db.inTransaction {
+                    try db.execute("INSERT INTO ignore DEFAULT VALUES")
+                    try db.execute("INSERT INTO persons (name) VALUES ('a')")
+                    try db.execute("DELETE FROM persons")
+                    return .commit
+                }
+                
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer.willChangeCount, 1)
+                #endif
+                XCTAssertEqual(observer.didChangeCount, 1)
+                XCTAssertEqual(observer.willCommitCount, 1)
+                XCTAssertEqual(observer.didCommitCount, 1)
+                XCTAssertEqual(observer.didRollbackCount, 0)
+            }
+            
+            // Ignore 2
+            do {
+                observer.resetCounts()
+                try db.inTransaction {
+                    try db.execute("INSERT INTO persons (name) VALUES ('a')")
+                    try db.execute("INSERT INTO ignore DEFAULT VALUES")
+                    try db.execute("DELETE FROM persons")
+                    return .commit
+                }
+                
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer.willChangeCount, 2)
+                #endif
+                XCTAssertEqual(observer.didChangeCount, 2)
+                XCTAssertEqual(observer.willCommitCount, 1)
+                XCTAssertEqual(observer.didCommitCount, 1)
+                XCTAssertEqual(observer.didRollbackCount, 0)
+            }
+            
+            // Ignore 3
+            do {
+                observer.resetCounts()
+                try db.inTransaction {
+                    try db.execute("INSERT INTO persons (name) VALUES ('a')")
+                    try db.execute("DELETE FROM persons")
+                    try db.execute("INSERT INTO ignore DEFAULT VALUES")
+                    return .commit
+                }
+                
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer.willChangeCount, 3)
+                #endif
+                XCTAssertEqual(observer.didChangeCount, 3)
+                XCTAssertEqual(observer.willCommitCount, 1)
+                XCTAssertEqual(observer.didCommitCount, 1)
+                XCTAssertEqual(observer.didRollbackCount, 0)
+            }
+        }
+    }
+}

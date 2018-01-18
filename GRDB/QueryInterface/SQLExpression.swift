@@ -53,6 +53,11 @@ public protocol SQLExpression : SQLSpecificExpressible, SQLSelectable, SQLOrderi
     ///     let expression = [1,2,3].contains(Column("id")) // id IN (1,2,3)
     ///     expression.negated // id NOT IN (1,2,3)
     var negated: SQLExpression { get }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// Returns the rowIds matched by the expression.
+    func matchedRowIds(rowIdName: String?) -> Set<Int64>?
 }
 
 extension SQLExpression {
@@ -66,6 +71,13 @@ extension SQLExpression {
     ///
     public var negated: SQLExpression {
         return SQLExpressionNot(self)
+    }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// The default implementation returns nil
+    public func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
+        return nil
     }
 }
 

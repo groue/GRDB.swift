@@ -192,12 +192,8 @@ private class UserTypedRequest2<T> : TypedRequest {
 private class UserTransactionObserver : TransactionObserver {
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { return false }
     func databaseDidChange(with event: DatabaseEvent) { }
-    func databaseWillCommit() throws { }
     func databaseDidCommit(_ db: Database) { }
     func databaseDidRollback(_ db: Database) { }
-    #if SQLITE_ENABLE_PREUPDATE_HOOK
-    func databaseWillChange(with event: DatabasePreUpdateEvent) { }
-    #endif
 }
 
 // MARK: - VirtualTableModule
