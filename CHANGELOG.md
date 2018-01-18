@@ -1,7 +1,9 @@
 Release Notes
 =============
 
-## Next Version
+## 2.6.0
+
+Released January 18, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.5.0...v2.6.0)
 
 ### New
 
@@ -65,6 +67,8 @@ Release Notes
  
 +extension Row: RandomAccessCollection {
 +}
++extension RowIndex: Strideable {
+}
 ```
 
 
