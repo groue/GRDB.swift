@@ -394,6 +394,12 @@ class DatabaseObservationBroker {
     
     // Called from sqlite3_update_hook
     private func databaseDidChange(with event: DatabaseEvent) {
+        // We're about to call the databaseDidChange(with:) method of observers
+        // In this method, observers can call stopObservingDatabaseChangesUntilNextTransaction()
+        // which requires SchedulingWatchdog.currentDatabaseObservationBroker
+        // not to be nil. This is time for an assertion!
+        assert(SchedulingWatchdog.currentDatabaseObservationBroker != nil)
+        
         if savepointStack.isEmpty {
             // Notify now
             for (observation, predicate) in statementObservations where predicate.evaluate(event) {
@@ -458,6 +464,13 @@ class DatabaseObservationBroker {
         // even if we actually execute an empty deferred transaction.
         //
         // For better or for worse, let's simulate a transaction:
+        
+        // FIXME: clean up currentDatabaseObservationBroker management
+        SchedulingWatchdog.currentDatabaseObservationBroker = self
+        defer {
+            SchedulingWatchdog.currentDatabaseObservationBroker = nil
+        }
+
         do {
             try databaseWillCommit()
             databaseDidCommit()
@@ -491,6 +504,18 @@ class DatabaseObservationBroker {
     }
     
     private func notifyBufferedEvents() {
+        // FIXME: clean up currentDatabaseObservationBroker management
+        SchedulingWatchdog.currentDatabaseObservationBroker = self
+        defer {
+            SchedulingWatchdog.currentDatabaseObservationBroker = nil
+        }
+        
+        // We're about to call the databaseDidChange(with:) method of observers
+        // In this method, observers can call stopObservingDatabaseChangesUntilNextTransaction()
+        // which requires SchedulingWatchdog.currentDatabaseObservationBroker
+        // not to be nil. This is time for an assertion!
+        assert(SchedulingWatchdog.currentDatabaseObservationBroker != nil)
+        
         let eventsBuffer = savepointStack.eventsBuffer
         savepointStack.clear()
         
