@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## 2.6.1
+
+Released January 19, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.6.0...v2.6.1)
+
+**Fixed**
+
+Fixed a crash that could happen when a transaction observer uses the stopObservingDatabaseChangesUntilNextTransaction().
+
+
 ## 2.6.0
 
 Released January 18, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.5.0...v2.6.0)
