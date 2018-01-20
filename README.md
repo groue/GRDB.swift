@@ -1842,7 +1842,8 @@ Your custom structs and classes can adopt each protocol individually, and opt in
     - [Conflict Resolution](#conflict-resolution)
 - [Codable Records](#codable-records)
 - [Record Class](#record-class)
-    - [Changes Tracking](#changes-tracking)
+- [RecordBox Class](#recordbox-class)
+- [Changes Tracking](#changes-tracking)
 - [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key)
 - [List of Record Methods](#list-of-record-methods)
 - [The Query Interface](#the-query-interface)
@@ -1950,6 +1951,8 @@ Details follow:
 - [Persistable Protocol](#persistable-protocol)
 - [Codable Records](#codable-records)
 - [Record Class](#record-class)
+- [RecordBox Class](#recordbox-class)
+- [Changes Tracking](#changes-tracking)
 - [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key)
 - [List of Record Methods](#list-of-record-methods)
 - [The Query Interface](#the-query-interface)
@@ -2279,7 +2282,7 @@ try place.save(db)                 // Inserts or updates
 try place.insert(db)               // INSERT
 try place.update(db)               // UPDATE
 try place.update(db, columns: ...) // UPDATE
-try place.updateChanges(db)        // Available for the Record class only
+try place.updateChanges(db)        // Available on Record and RecordBox only
 try place.delete(db)               // DELETE
 place.exists(db)
 
@@ -2569,10 +2572,59 @@ class Place : Record {
 }
 ```
 
+## RecordBox Class
 
-### Changes Tracking
+**RecordBox** is a generic [Record](#record-class) subclass that wraps any other record type that adopts the [RowConvertible, TableMapping, and Persistable](#record-protocols-overview) protocols. It brings [changes tracking](#changes-tracking) to any record type.
 
-**Record instances know if they have been modified since they were last fetched.**
+```swift
+final class RecordBox<T: RowConvertible & MutablePersistable>: Record {
+    var value: T
+    init(value: T)
+    required init(row: Row)
+}
+```
+
+Given any record type, for example:
+
+```swift
+// A Regular record struct
+struct Player: RowConvertible, MutablePersistable, Codable {
+    static let databaseTableName = "players"
+    var id: Int64?
+    var name: String
+    var score: Int
+    mutating func didInsert(with rowID: Int64, for column: String?) {
+        id = rowID
+    }
+}
+```
+
+You can fetch boxed players, modify their values, and check if they have been changed:
+
+```swift
+try dbQueue.inDatabase { db in
+    // Fetch a player record
+    if let player = try RecordBox<Player>.fetchOne(db, key: 1) {
+        player.value.score = 300
+        
+        if player.hasPersistentChangedValues {
+            print("player has been modified")
+        }
+        
+        // Does nothing if player has not been modified:
+        try player.updateChanges(db)
+    }
+}
+```
+
+See [Changes Tracking](#changes-tracking) for more information.
+
+
+## Changes Tracking
+
+**Changes tracking is the ability, for a record, to know if it has been modified since it was last fetched or persisted.**
+
+> :point_up: **Note**: changes tracking is available on the [Record](#record-class) class, its subclasses, and the [RecordBox](#recordbox-class) class that can wrap any other record type.
 
 The `update()` [method](#persistence-methods) always executes an UPDATE statement. When the record has not been edited, this costly database access is generally useless.
 
@@ -2748,7 +2800,7 @@ This is the list of record methods, along with their required protocols. The [Re
 | `record.save(db)` | [Persistable](#persistable-protocol) | |
 | `record.update(db)` | [Persistable](#persistable-protocol) | |
 | `record.update(db, columns: ...)` | [Persistable](#persistable-protocol) | |
-| `record.updateChanges(db)` | [Record](#record-class) | |
+| `record.updateChanges(db)` | [Record](#record-class) & [RecordBox](#recordbox-class) | |
 | **Delete Records** | | |
 | `record.delete(db)` | [Persistable](#persistable-protocol) | |
 | `Type.deleteOne(db, key: ...)` | [Persistable](#persistable-protocol) | <a href="#list-of-record-methods-1">¹</a> |
@@ -2781,8 +2833,8 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.fetchOne(statement)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetchOne(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
 | **[Track Changes](#changes-tracking)** | | |
-| `record.hasPersistentChangedValues` | [Record](#record-class) | |
-| `record.persistentChangedValues` | [Record](#record-class) | |
+| `record.hasPersistentChangedValues` | [Record](#record-class) & [RecordBox](#recordbox-class) | |
+| `record.persistentChangedValues` | [Record](#record-class) & [RecordBox](#recordbox-class) | |
 
 <a name="list-of-record-methods-1">¹</a> All unique keys are supported: primary keys (single-column, composite, [implicit RowID](#the-implicit-rowid-primary-key)) and unique indexes:
 
