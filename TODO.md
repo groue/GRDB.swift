@@ -15,6 +15,7 @@
 
 GRDB 3.0
 
+- [ ] Make the MutablePersistable.update(_:columns:) method mutating (as support for an updatedDate column)
 - [ ] Introduce some record protocol with an associated primary key type. Restrict filter(key:) methods to this type. Allow distinguishing FooId from BarId types.
 - [ ] Rename Request to FetchRequest, because Request is a bad name: https://github.com/swift-server/http/pull/7#issuecomment-308448528
 - [ ] Rename RowConvertible, TableMapping, MutablePersistable and Persistable so that their names contain Record: FetchableRecord, TableRecord, MutablePersistableRecord, PersistableRecord?
