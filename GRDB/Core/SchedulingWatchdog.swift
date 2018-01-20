@@ -24,7 +24,7 @@ import Dispatch
 final class SchedulingWatchdog {
     private static let specificKey = DispatchSpecificKey<SchedulingWatchdog>()
     private(set) var allowedDatabases: [Database]
-    private var databaseObservationBroker: DatabaseObservationBroker?
+    var databaseObservationBroker: DatabaseObservationBroker?
     
     private init(allowedDatabase database: Database) {
         allowedDatabases = [database]
@@ -52,13 +52,7 @@ final class SchedulingWatchdog {
         return DispatchQueue.getSpecific(key: specificKey)
     }
     
-    static var currentDatabaseObservationBroker: DatabaseObservationBroker? {
-        get { return current?.databaseObservationBroker }
-        set { current!.databaseObservationBroker = newValue }
-    }
-    
     func allows(_ db: Database) -> Bool {
         return allowedDatabases.contains { $0 === db }
     }
 }
-

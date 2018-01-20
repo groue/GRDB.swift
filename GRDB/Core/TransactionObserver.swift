@@ -203,13 +203,14 @@ class DatabaseObservationBroker {
     // MARK: - Statement execution
     
     func updateStatementWillExecute(_ statement: UpdateStatement) {
-        // Transaction observers may disable themselves during statement
-        // execution: see TransactionObserver.stopObservingDatabaseChangesUntilNextTransaction()
+        // As statement executes, it may trigger database changes that will
+        // be notified to transaction observers. As a consequence, observers
+        // may disable themselves with stopObservingDatabaseChangesUntilNextTransaction()
         //
-        // This convenient method uses cooperation from SchedulingWatchdog in
-        // order to access the broker that is executing a database statement in
-        // the current thread.
-        SchedulingWatchdog.currentDatabaseObservationBroker = self
+        // This method takes no argument, and requires access to the "current
+        // broker", which is a per-thread global stored in
+        // SchedulingWatchdog.current:
+        SchedulingWatchdog.current!.databaseObservationBroker = self
         
         // Fill statementObservations with observations that are interested in
         // the kind of events performed by the statement.
@@ -289,9 +290,9 @@ class DatabaseObservationBroker {
     func updateStatementDidFail(_ statement: UpdateStatement) throws {
         // Undo updateStatementWillExecute
         statementObservations = []
-        SchedulingWatchdog.currentDatabaseObservationBroker = nil
         database.authorizer = nil
-        
+        SchedulingWatchdog.current!.databaseObservationBroker = nil
+
         // Reset transactionState before databaseDidRollback eventually
         // executes other statements.
         let transactionState = self.transactionState
@@ -314,8 +315,8 @@ class DatabaseObservationBroker {
     func updateStatementDidExecute(_ statement: UpdateStatement) throws {
         // Undo updateStatementWillExecute
         statementObservations = []
-        SchedulingWatchdog.currentDatabaseObservationBroker = nil
         database.authorizer = nil
+        SchedulingWatchdog.current!.databaseObservationBroker = nil
 
         // Has statement any effect on transaction/savepoints?
         if let transactionEffect = statement.transactionEffect {
@@ -394,11 +395,14 @@ class DatabaseObservationBroker {
     
     // Called from sqlite3_update_hook
     private func databaseDidChange(with event: DatabaseEvent) {
-        // We're about to call the databaseDidChange(with:) method of observers
-        // In this method, observers can call stopObservingDatabaseChangesUntilNextTransaction()
-        // which requires SchedulingWatchdog.currentDatabaseObservationBroker
-        // not to be nil. This is time for an assertion!
-        assert(SchedulingWatchdog.currentDatabaseObservationBroker != nil)
+        // We're about to call the databaseDidChange(with:) method of
+        // transaction observers. In this method, observers may disable
+        // themselves with stopObservingDatabaseChangesUntilNextTransaction()
+        //
+        // This method takes no argument, and requires access to the "current
+        // broker", which is a per-thread global stored in
+        // SchedulingWatchdog.current:
+        assert(SchedulingWatchdog.current?.databaseObservationBroker != nil)
         
         if savepointStack.isEmpty {
             // Notify now
@@ -465,12 +469,6 @@ class DatabaseObservationBroker {
         //
         // For better or for worse, let's simulate a transaction:
         
-        // FIXME: clean up currentDatabaseObservationBroker management
-        SchedulingWatchdog.currentDatabaseObservationBroker = self
-        defer {
-            SchedulingWatchdog.currentDatabaseObservationBroker = nil
-        }
-
         do {
             try databaseWillCommit()
             databaseDidCommit()
@@ -504,17 +502,54 @@ class DatabaseObservationBroker {
     }
     
     private func notifyBufferedEvents() {
-        // FIXME: clean up currentDatabaseObservationBroker management
-        SchedulingWatchdog.currentDatabaseObservationBroker = self
+        // We're about to call the databaseDidChange(with:) method of
+        // transaction observers. In this method, observers may disable
+        // themselves with stopObservingDatabaseChangesUntilNextTransaction()
+        //
+        // This method takes no argument, and requires access to the "current
+        // broker", which is a per-thread global stored in
+        // SchedulingWatchdog.current.
+        //
+        // Normally, notifyBufferedEvents() is called as part of statement
+        // execution, and the current broker has been set in
+        // updateStatementWillExecute(). An assertion should be enough:
+        //
+        //      assert(SchedulingWatchdog.current?.databaseObservationBroker != nil)
+        //
+        // But we have to deal with a particular case:
+        //
+        //      let journalMode = String.fetchOne(db, "PRAGMA journal_mode = wal")
+        //
+        // It runs a SelectStatement, not an UpdateStatement. But this not why
+        // this case is particular. What is unexpected is that it triggers
+        // the commit hook when the "PRAGMA journal_mode = wal" statement is
+        // finalized, long after it has executed:
+        //
+        // 1. Statement.deinit()
+        // 2. sqlite3_finalize()
+        // 3. commit hook
+        // 4. DatabaseObservationBroker.databaseWillCommit()
+        // 5. DatabaseObservationBroker.notifyBufferedEvents()
+        //
+        // I don't know if this behavior is something that can be relied
+        // upon. One would naively expect, for example, that changing the
+        // journal mode would trigger the commit hook in sqlite3_step(),
+        // not in sqlite3_finalize().
+        //
+        // Anyway: in this scenario, updateStatementWillExecute() has not been
+        // called, and the current broker is nil.
+        //
+        // Let's not try to outsmart SQLite, and build a complex state machine.
+        // Instead, let's just make sure that the current broker is set to self
+        // when this method is called.
+        
+        let watchDog = SchedulingWatchdog.current!
+        watchDog.databaseObservationBroker = self
         defer {
-            SchedulingWatchdog.currentDatabaseObservationBroker = nil
+            watchDog.databaseObservationBroker = nil
         }
         
-        // We're about to call the databaseDidChange(with:) method of observers
-        // In this method, observers can call stopObservingDatabaseChangesUntilNextTransaction()
-        // which requires SchedulingWatchdog.currentDatabaseObservationBroker
-        // not to be nil. This is time for an assertion!
-        assert(SchedulingWatchdog.currentDatabaseObservationBroker != nil)
+        // Now we can safely notify:
         
         let eventsBuffer = savepointStack.eventsBuffer
         savepointStack.clear()
@@ -719,7 +754,7 @@ extension TransactionObserver {
     ///
     /// - precondition: This method must be called from `databaseDidChange(with:)`.
     public func stopObservingDatabaseChangesUntilNextTransaction() {
-        guard let broker = SchedulingWatchdog.currentDatabaseObservationBroker else {
+        guard let broker = SchedulingWatchdog.current?.databaseObservationBroker else {
             fatalError("stopObservingDatabaseChangesUntilNextTransaction must be called from the databaseDidChange method")
         }
         broker.disableUntilNextTransaction(transactionObserver: self)
