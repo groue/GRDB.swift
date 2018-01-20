@@ -11,7 +11,8 @@
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
 - [ ] Write regression tests for #156 and #157
 - [ ] Run truncate optimization tests with and without transaction observer
-- [ ] Fix obseervation broker FIXME
+- [ ] Fix observation broker FIXME
+- [ ] Rename DatabasePool.write to unsafeWrite, or make it safe.
 
 GRDB 3.0
 
