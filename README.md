@@ -2802,7 +2802,7 @@ This is the list of record methods, along with their required protocols. The [Re
 | `record.save(db)` | [Persistable](#persistable-protocol) | |
 | `record.update(db)` | [Persistable](#persistable-protocol) | |
 | `record.update(db, columns: ...)` | [Persistable](#persistable-protocol) | |
-| `record.updateChanges(db)` | [Record](#record-class) & [RecordBox](#recordbox-class) | |
+| `record.updateChanges(db)` | [Record](#record-class), [RecordBox](#recordbox-class) | |
 | **Delete Records** | | |
 | `record.delete(db)` | [Persistable](#persistable-protocol) | |
 | `Type.deleteOne(db, key: ...)` | [Persistable](#persistable-protocol) | <a href="#list-of-record-methods-1">¹</a> |
@@ -2835,8 +2835,8 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.fetchOne(statement)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetchOne(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
 | **[Track Changes](#changes-tracking)** | | |
-| `record.hasPersistentChangedValues` | [Record](#record-class) & [RecordBox](#recordbox-class) | |
-| `record.persistentChangedValues` | [Record](#record-class) & [RecordBox](#recordbox-class) | |
+| `record.hasPersistentChangedValues` | [Record](#record-class), [RecordBox](#recordbox-class) | |
+| `record.persistentChangedValues` | [Record](#record-class), [RecordBox](#recordbox-class) | |
 
 <a name="list-of-record-methods-1">¹</a> All unique keys are supported: primary keys (single-column, composite, [implicit RowID](#the-implicit-rowid-primary-key)) and unique indexes:
 
