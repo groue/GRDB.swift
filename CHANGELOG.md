@@ -1,6 +1,32 @@
 Release Notes
 =============
 
+## Next Version
+
+**New**
+
+- The RecordBox class brings changes tracking to any record type ([documentation](https://github.com/groue/GRDB.swift/blob/master/README.md#recordbox-class)):
+    
+    ```swift
+    // A regular record struct
+    struct Player: RowConvertible, MutablePersistable { ... }
+    
+    try dbQueue.inDatabase { db in
+        // Fetch a boxed player
+        if let player = try RecordBox<Player>.fetchOne(db, key: 1) {
+            player.value.score = 300
+            
+            if player.hasPersistentChangedValues {
+                print("player has been modified")
+            }
+            
+            // Does nothing if player has not been modified:
+            try player.updateChanges(db)
+        }
+    }
+    ```
+
+
 ## 2.6.1
 
 Released January 19, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.6.0...v2.6.1)
