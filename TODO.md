@@ -11,10 +11,10 @@
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
 - [ ] Write regression tests for #156 and #157
 - [ ] Run truncate optimization tests with and without transaction observer
-- [ ] Rename DatabasePool.write to unsafeWrite, or make it safe.
 
 GRDB 3.0
 
+- [ ] Make DatabasePool.write safe. See https://github.com/groue/GRDB.swift/commit/5e3c7d9c430df606a1cccfd4983be6b50e778a5c#commitcomment-26988970
 - [ ] Make the MutablePersistable.update(_:columns:) method mutating (as support for an updatedDate column)
 - [ ] Introduce some record protocol with an associated primary key type. Restrict filter(key:) methods to this type. Allow distinguishing FooId from BarId types.
 - [ ] Rename Request to FetchRequest, because Request is a bad name: https://github.com/swift-server/http/pull/7#issuecomment-308448528
