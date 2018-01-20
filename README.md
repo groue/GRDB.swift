@@ -2587,23 +2587,25 @@ final class RecordBox<T: RowConvertible & MutablePersistable>: Record {
 Given any record type, for example:
 
 ```swift
-// A Regular record struct
+// A regular record struct
 struct Player: RowConvertible, MutablePersistable, Codable {
     static let databaseTableName = "players"
+    
     var id: Int64?
     var name: String
     var score: Int
+    
     mutating func didInsert(with rowID: Int64, for column: String?) {
         id = rowID
     }
 }
 ```
 
-You can fetch boxed players, modify their values, and check if they have been changed:
+You can fetch boxed players, modify their values, and check if they have been changed. For example:
 
 ```swift
 try dbQueue.inDatabase { db in
-    // Fetch a player record
+    // Fetch a boxed player record
     if let player = try RecordBox<Player>.fetchOne(db, key: 1) {
         player.value.score = 300
         
