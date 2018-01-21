@@ -2507,7 +2507,7 @@ final class RecordBox<T: RowConvertible & MutablePersistable>: Record {
 }
 ```
 
-Given any record type, for example:
+As an example, let's start from a regular `Player` record struct:
 
 ```swift
 // A regular record struct
@@ -2524,20 +2524,21 @@ struct Player: RowConvertible, MutablePersistable, Codable {
 }
 ```
 
-You can fetch boxed players, modify their values, and check if they have been changed. For example:
+To track changes, don't fetch raw `Player` records, but fetch `RecordBox<Player>` instead. You can then modify player attributes, and easily check if they have been changed:
 
 ```swift
 try dbQueue.inDatabase { db in
-    // Fetch a boxed player record
-    if let player = try RecordBox<Player>.fetchOne(db, key: 1) {
-        player.value.score = 300
+    // Fetch a boxed player
+    if let boxedPlayer = try RecordBox<Player>.fetchOne(db, key: 1) {
+        // boxedPlayer.value is Player
+        boxedPlayer.value.score = 300
         
-        if player.hasPersistentChangedValues {
+        if boxedPlayer.hasPersistentChangedValues {
             print("player has been modified")
         }
         
         // Does nothing if player has not been modified:
-        try player.updateChanges(db)
+        try boxedPlayer.updateChanges(db)
     }
 }
 ```
