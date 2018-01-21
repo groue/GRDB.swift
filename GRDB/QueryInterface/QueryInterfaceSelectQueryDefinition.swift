@@ -182,7 +182,7 @@ extension QueryInterfaceSelectQueryDefinition : Request {
     }
     
     /// The database region that the request looks into.
-    public func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
+    func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
         let (statement, _) = try prepare(db)
         let region = statement.fetchedRegion
         

@@ -51,6 +51,7 @@ public final class RecordCursor<Record: RowConvertible> : Cursor {
         statement.cursorReset(arguments: arguments)
     }
     
+    /// :nodoc:
     public func next() throws -> Record? {
         if done { return nil }
         switch sqlite3_step(sqliteStatement) {

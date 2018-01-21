@@ -22,8 +22,10 @@
 ///         playerRecord.persistentChangedValues["score"]   // 100 (the old value)
 ///     }
 public final class RecordBox<T: RowConvertible & MutablePersistable>: Record {
+    /// The boxed record
     public var value: T
     
+    /// Creates a RecordBox that wraps the given record
     public init(value: T) {
         self.value = value
         super.init()
@@ -31,6 +33,7 @@ public final class RecordBox<T: RowConvertible & MutablePersistable>: Record {
     
     // MARK: - RowConvertible
     
+    /// Initializes a record from `row`.
     public required init(row: Row) {
         self.value = T(row: row)
         super.init(row: row)
@@ -38,38 +41,46 @@ public final class RecordBox<T: RowConvertible & MutablePersistable>: Record {
     
     // MARK: - TableMapping
     
+    /// :nodoc:
     override public class var databaseTableName: String {
         return T.databaseTableName
     }
     
+    /// :nodoc:
     override public class var databaseSelection: [SQLSelectable] {
         return T.databaseSelection
     }
     
     // MARK: - MutablePersistable
     
+    /// :nodoc:
     override public class var persistenceConflictPolicy: PersistenceConflictPolicy {
         return T.persistenceConflictPolicy
     }
     
+    /// :nodoc:
     override public func encode(to container: inout PersistenceContainer) {
         value.encode(to: &container)
     }
     
+    /// :nodoc:
     override public func didInsert(with rowID: Int64, for column: String?) {
         value.didInsert(with: rowID, for: column)
     }
     
+    /// :nodoc:
     override public func insert(_ db: Database) throws {
         try value.insert(db)
         hasPersistentChangedValues = false
     }
     
+    /// :nodoc:
     override public func update(_ db: Database, columns: Set<String>) throws {
         try value.update(db, columns: columns)
         hasPersistentChangedValues = false
     }
     
+    /// :nodoc:
     @discardableResult
     override public func delete(_ db: Database) throws -> Bool {
         defer {
@@ -81,6 +92,7 @@ public final class RecordBox<T: RowConvertible & MutablePersistable>: Record {
         return try value.delete(db)
     }
     
+    /// :nodoc:
     public func exists(_ db: Database) throws -> Bool {
         return try value.exists(db)
     }

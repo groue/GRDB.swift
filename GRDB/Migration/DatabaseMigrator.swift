@@ -85,6 +85,8 @@ public struct DatabaseMigrator {
         ///     - identifier: The migration identifier.
         ///     - block: The migration block that performs SQL statements.
         /// - precondition: No migration with the same same as already been registered.
+        ///
+        /// :nodoc:
         public mutating func registerMigrationWithDeferredForeignKeyCheck(_ identifier: String, migrate: @escaping (Database) throws -> Void) {
             registerMigration(Migration(identifier: identifier, disabledForeignKeyChecks: true, migrate: migrate))
         }

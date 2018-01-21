@@ -4,6 +4,8 @@
 ///
 /// The protocol for all types that can be used as an SQL ordering term, as
 /// described at https://www.sqlite.org/syntax/ordering-term.html
+///
+/// :nodoc:
 public protocol SQLOrderingTerm {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///

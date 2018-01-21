@@ -291,10 +291,12 @@ extension AuthorizedStatement {
 ///         let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
 ///         let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
 ///     }
-public final class SelectStatement : Statement, AuthorizedStatement {
+public final class SelectStatement : Statement {
+    /// :nodoc:
     @available(*, deprecated, renamed:"DatabaseRegion")
     public typealias SelectionInfo = DatabaseRegion
     
+    /// :nodoc:
     @available(*, deprecated, renamed:"fetchedRegion")
     public var selectionInfo: DatabaseRegion { return fetchedRegion }
     
@@ -372,6 +374,9 @@ public final class SelectStatement : Statement, AuthorizedStatement {
     }
 }
 
+// Hide AuthorizedStatement from Jazzy
+extension SelectStatement: AuthorizedStatement { }
+
 /// A cursor that iterates a database statement without producing any value.
 /// For example:
 ///
@@ -391,6 +396,7 @@ public final class StatementCursor: Cursor {
         statement.cursorReset(arguments: arguments)
     }
     
+    /// :nodoc:
     public func next() throws -> Void? {
         if done { return nil }
         switch sqlite3_step(sqliteStatement) {
@@ -419,7 +425,7 @@ public final class StatementCursor: Cursor {
 ///         try statement.execute(arguments: ["Barbara"])
 ///         return .commit
 ///     }
-public final class UpdateStatement : Statement, AuthorizedStatement {
+public final class UpdateStatement : Statement {
     enum TransactionEffect {
         case beginTransaction
         case commitTransaction
@@ -510,6 +516,9 @@ public final class UpdateStatement : Statement, AuthorizedStatement {
     }
 }
 
+// Hide AuthorizedStatement from Jazzy
+extension UpdateStatement: AuthorizedStatement { }
+
 
 // MARK: - StatementArguments
 
@@ -584,7 +593,7 @@ public final class UpdateStatement : Statement, AuthorizedStatement {
 ///     let row = try Row.fetchOne(db, sql, arguments: [1, 2, "bar"] + ["foo": "foo"])!
 ///     print(row)
 ///     // Prints <Row two:2 foo:"foo" one:1 foo2:"foo" bar:"bar">
-public struct StatementArguments {
+public struct StatementArguments: CustomStringConvertible, Equatable, ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral {
     var values: [DatabaseValue] = []
     var namedValues: [String: DatabaseValue] = [:]
     
@@ -870,7 +879,8 @@ public struct StatementArguments {
     }
 }
 
-extension StatementArguments : ExpressibleByArrayLiteral {
+// ExpressibleByArrayLiteral
+extension StatementArguments {
     /// Returns a StatementArguments from an array literal:
     ///
     ///     db.selectRows("SELECT ...", arguments: ["Arthur", 41])
@@ -879,7 +889,8 @@ extension StatementArguments : ExpressibleByArrayLiteral {
     }
 }
 
-extension StatementArguments : ExpressibleByDictionaryLiteral {
+// ExpressibleByDictionaryLiteral
+extension StatementArguments {
     /// Returns a StatementArguments from a dictionary literal:
     ///
     ///     db.selectRows("SELECT ...", arguments: ["name": "Arthur", "score": 41])
@@ -888,7 +899,9 @@ extension StatementArguments : ExpressibleByDictionaryLiteral {
     }
 }
 
-extension StatementArguments : CustomStringConvertible {
+// CustomStringConvertible
+extension StatementArguments {
+    /// :nodoc:
     public var description: String {
         let valuesDescriptions = values.map { $0.description }
         let namedValuesDescriptions = namedValues.map { (key, value) -> String in
@@ -898,7 +911,9 @@ extension StatementArguments : CustomStringConvertible {
     }
 }
 
-extension StatementArguments : Equatable {
+// Equatable
+extension StatementArguments {
+    /// :nodoc:
     public static func == (lhs: StatementArguments, rhs: StatementArguments) -> Bool {
         if lhs.values != rhs.values { return false }
         if lhs.namedValues != rhs.namedValues { return false }

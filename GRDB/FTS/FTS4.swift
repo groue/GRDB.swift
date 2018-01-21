@@ -269,6 +269,7 @@ public final class FTS4ColumnDefinition {
     /// See https://www.sqlite.org/fts3.html#the_notindexed_option
     ///
     /// - returns: Self so that you can further refine the column definition.
+    /// :nodoc:
     @discardableResult
     public func notIndexed() -> Self {
         // notindexed FTS4 option was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0

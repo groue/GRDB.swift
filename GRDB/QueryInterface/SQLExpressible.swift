@@ -8,6 +8,8 @@
 /// like Column.
 ///
 /// See https://github.com/groue/GRDB.swift/#the-query-interface
+///
+/// :nodoc:
 public protocol SQLExpressible {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
@@ -27,6 +29,8 @@ public protocol SQLExpressible {
 /// and it adopts SQLSpecificExpressible.
 ///
 /// On the other side, Int adopts SQLExpressible (via DatabaseValueConvertible).
+///
+/// :nodoc:
 public protocol SQLSpecificExpressible : SQLExpressible {
     // SQLExpressible can be adopted by Swift standard types, and user
     // types, through the DatabaseValueConvertible protocol which inherits
@@ -53,11 +57,15 @@ public protocol SQLSpecificExpressible : SQLExpressible {
 extension SQLExpressible where Self: SQLOrderingTerm {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// :nodoc:
     public var reversed: SQLOrderingTerm {
         return SQLOrdering.desc(sqlExpression)
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// :nodoc:
     public func orderingTermSQL(_ arguments: inout StatementArguments?) -> String {
         return sqlExpression.expressionSQL(&arguments)
     }
@@ -68,16 +76,22 @@ extension SQLExpressible where Self: SQLOrderingTerm {
 extension SQLExpressible where Self: SQLSelectable {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// :nodoc:
     public func resultColumnSQL(_ arguments: inout StatementArguments?) -> String {
         return sqlExpression.expressionSQL(&arguments)
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// :nodoc:
     public func countedSQL(_ arguments: inout StatementArguments?) -> String {
         return sqlExpression.expressionSQL(&arguments)
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// :nodoc:
     public func count(distinct: Bool) -> SQLCount? {
         return sqlExpression.count(distinct: distinct)
     }

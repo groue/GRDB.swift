@@ -16,6 +16,8 @@
 /// - SQLExpressionExists
 /// - SQLExpressionFunction
 /// - SQLExpressionCollate
+///
+/// :nodoc:
 public protocol SQLExpression : SQLSpecificExpressible, SQLSelectable, SQLOrderingTerm {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -69,6 +71,7 @@ extension SQLExpression {
     ///     let column = Column("favorite")
     ///     column.negated  // NOT favorite
     ///
+    /// :nodoc:
     public var negated: SQLExpression {
         return SQLExpressionNot(self)
     }
@@ -76,6 +79,8 @@ extension SQLExpression {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// The default implementation returns nil
+    ///
+    /// :nodoc:
     public func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
         return nil
     }
@@ -86,6 +91,8 @@ extension SQLExpression {
 extension SQLExpression {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// :nodoc:
     public var sqlExpression: SQLExpression {
         return self
     }
@@ -96,6 +103,8 @@ extension SQLExpression {
 extension SQLExpression {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// :nodoc:
     public func count(distinct: Bool) -> SQLCount? {
         if distinct {
             // SELECT DISTINCT expr FROM tableName ...

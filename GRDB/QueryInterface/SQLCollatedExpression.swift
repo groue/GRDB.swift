@@ -51,11 +51,15 @@ public struct SQLCollatedExpression {
 extension SQLCollatedExpression : SQLOrderingTerm {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// :nodoc:
     public var reversed: SQLOrderingTerm {
         return desc
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// :nodoc:
     public func orderingTermSQL(_ arguments: inout StatementArguments?) -> String {
         return sqlExpression.orderingTermSQL(&arguments)
     }

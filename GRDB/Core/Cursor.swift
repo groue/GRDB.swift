@@ -87,6 +87,7 @@ public class AnyCursor<Element> : Cursor {
     
     /// Advances to the next element and returns it, or nil if no next
     /// element exists.
+    /// :nodoc:
     public func next() throws -> Element? {
         return try element()
     }
@@ -231,6 +232,7 @@ public final class EnumeratedCursor<Base: Cursor> : Cursor {
     
     /// Advances to the next element and returns it, or nil if no next
     /// element exists.
+    /// :nodoc:
     public func next() throws -> (Int, Base.Element)? {
         guard let element = try base.next() else { return nil }
         defer { index += 1 }
@@ -251,6 +253,7 @@ public final class FilterCursor<Base: Cursor> : Cursor {
     
     /// Advances to the next element and returns it, or nil if no next
     /// element exists.
+    /// :nodoc:
     public func next() throws -> Base.Element? {
         while let element = try base.next() {
             if try isIncluded(element) {
@@ -275,6 +278,7 @@ public final class FlattenCursor<Base: Cursor> : Cursor where Base.Element: Curs
     
     /// Advances to the next element and returns it, or nil if no next
     /// element exists.
+    /// :nodoc:
     public func next() throws -> Base.Element.Element? {
         while true {
             if let element = try inner?.next() {
@@ -303,6 +307,7 @@ public final class MapCursor<Base: Cursor, Element> : Cursor {
     
     /// Advances to the next element and returns it, or nil if no next
     /// element exists.
+    /// :nodoc:
     public func next() throws -> Element? {
         guard let element = try base.next() else { return nil }
         return try transform(element)
@@ -327,6 +332,7 @@ public final class IteratorCursor<Base: IteratorProtocol> : Cursor {
     
     /// Advances to the next element and returns it, or nil if no next
     /// element exists.
+    /// :nodoc:
     public func next() -> Base.Element? {
         return base.next()
     }

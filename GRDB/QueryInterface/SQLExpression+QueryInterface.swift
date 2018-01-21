@@ -5,6 +5,8 @@ extension SQLExpression {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Converts an expression to an SQLExpressionLiteral
+    ///
+    /// :nodoc:
     public var literal: SQLExpressionLiteral {
         var arguments: StatementArguments? = []
         let sql = expressionSQL(&arguments)
@@ -57,6 +59,8 @@ public struct SQLExpressionLiteral : SQLExpression {
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// :nodoc:
     public func expressionSQL(_ arguments: inout StatementArguments?) -> String {
         if let literalArguments = self.arguments {
             guard arguments != nil else {
@@ -75,6 +79,8 @@ public struct SQLExpressionLiteral : SQLExpression {
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
 /// SQLUnaryOperator is a SQLite unary operator.
+///
+/// :nodoc:
 public struct SQLUnaryOperator : Hashable {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
@@ -97,11 +103,15 @@ public struct SQLUnaryOperator : Hashable {
     }
     
     /// The hash value
+    ///
+    /// :nodoc:
     public var hashValue: Int {
         return sql.hashValue
     }
     
     /// Equality operator
+    ///
+    /// :nodoc:
     public static func == (lhs: SQLUnaryOperator, rhs: SQLUnaryOperator) -> Bool {
         return lhs.sql == rhs.sql
     }
@@ -113,6 +123,8 @@ public struct SQLUnaryOperator : Hashable {
 /// an operand expression.
 ///
 ///     SQLExpressionUnary(.not, Column("favorite"))
+///
+/// :nodoc:
 public struct SQLExpressionUnary : SQLExpression {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
@@ -147,6 +159,8 @@ public struct SQLExpressionUnary : SQLExpression {
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
 /// SQLBinaryOperator is a SQLite binary operator.
+///
+/// :nodoc:
 public struct SQLBinaryOperator : Hashable {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
@@ -223,6 +237,8 @@ public struct SQLBinaryOperator : Hashable {
 /// binary operator.
 ///
 ///     SQLExpressionBinary(.multiply, Column("length"), Column("width"))
+///
+/// :nodoc:
 public struct SQLExpressionBinary : SQLExpression {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
@@ -420,6 +436,8 @@ public struct SQLFunctionName : Hashable {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// The SQL function name
+    ///
+    /// :nodoc:
     public let sql: String
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -427,16 +445,22 @@ public struct SQLFunctionName : Hashable {
     /// Creates a function name
     ///
     ///     SQLFunctionName("ABS")
+    ///
+    /// :nodoc:
     public init(_ sql: String) {
         self.sql = sql
     }
     
     /// The hash value
+    ///
+    /// :nodoc:
     public var hashValue: Int {
         return sql.hashValue
     }
     
     /// Equality operator
+    ///
+    /// :nodoc:
     public static func == (lhs: SQLFunctionName, rhs: SQLFunctionName) -> Bool {
         return lhs.sql == rhs.sql
     }
@@ -448,6 +472,8 @@ public struct SQLFunctionName : Hashable {
 ///
 ///     // ABS(-1)
 ///     SQLExpressionFunction(.abs, [-1.databaseValue])
+///
+/// :nodoc:
 public struct SQLExpressionFunction : SQLExpression {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///

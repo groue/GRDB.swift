@@ -3,6 +3,8 @@
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
 /// SQLCollection is the protocol for types that can be checked for inclusion.
+///
+/// :nodoc:
 public protocol SQLCollection {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///

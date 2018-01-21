@@ -587,7 +587,7 @@ extension SQLBinaryOperator {
 
 extension SQLUnaryOperator {
     /// The `-` unary operator
-    public static let minus = SQLUnaryOperator("-", needsRightSpace: false)
+    static let minus = SQLUnaryOperator("-", needsRightSpace: false)
 }
 
 /// An SQL arithmetic multiplication.

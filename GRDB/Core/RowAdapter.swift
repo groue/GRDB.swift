@@ -3,6 +3,8 @@ import Foundation
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
 /// LayoutedColumnMapping is a type that supports the RowAdapter protocol.
+///
+/// :nodoc:
 public struct LayoutedColumnMapping {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
@@ -56,6 +58,8 @@ public struct LayoutedColumnMapping {
 }
 
 /// LayoutedColumnMapping adopts LayoutedRowAdapter
+///
+/// :nodoc:
 extension LayoutedColumnMapping : LayoutedRowAdapter {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
@@ -72,6 +76,7 @@ extension LayoutedColumnMapping : LayoutedRowAdapter {
     }
 }
 
+/// :nodoc:
 extension LayoutedColumnMapping : RowLayout {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
@@ -91,6 +96,8 @@ extension LayoutedColumnMapping : RowLayout {
 ///
 /// GRBD ships with a ready-made type that adopts this protocol:
 /// LayoutedColumnMapping.
+///
+/// :nodoc:
 public protocol LayoutedRowAdapter {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
@@ -108,6 +115,8 @@ public protocol LayoutedRowAdapter {
 ///
 /// RowLayout is a protocol that supports the RowAdapter protocol. It describes
 /// a layout of a base row.
+///
+/// :nodoc:
 public protocol RowLayout {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
@@ -124,11 +133,15 @@ public protocol RowLayout {
 
 extension SelectStatement : RowLayout {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// :nodoc:
     public var layoutColumns: [(Int, String)] {
         return Array(columnNames.enumerated())
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// :nodoc:
     public func layoutIndex(ofColumn name: String) -> Int? {
         return index(ofColumn: name)
     }
@@ -214,6 +227,8 @@ public struct ColumnMapping : RowAdapter {
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// :nodoc:
     public func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter {
         let layoutColumns = try mapping
             .map { (mappedColumn, baseColumn) -> (Int, String) in
@@ -250,6 +265,8 @@ public struct SuffixRowAdapter : RowAdapter {
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// :nodoc:
     public func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter {
         return LayoutedColumnMapping(layoutColumns: layout.layoutColumns.suffix(from: index))
     }
@@ -279,6 +296,8 @@ public struct RangeRowAdapter : RowAdapter {
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// :nodoc:
     public func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter {
         return LayoutedColumnMapping(layoutColumns: layout.layoutColumns[range])
     }
@@ -329,6 +348,8 @@ public struct ScopeAdapter : RowAdapter {
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// :nodoc:
     public func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter {
         let layoutedAdapter = try mainAdapter.layoutedAdapter(from: layout)
         var layoutedScopes = layoutedAdapter.scopes

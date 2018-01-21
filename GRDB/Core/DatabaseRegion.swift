@@ -39,7 +39,7 @@
 ///     // A query interface request that executes the same statement:
 ///     let request = Player.filter(key: 1)
 ///     try request.fetchedRegion(db) // "players(*)[1]"
-public struct DatabaseRegion {
+public struct DatabaseRegion: CustomStringConvertible, Equatable {
     private let tableRegions: [String: TableRegion]?
     private init(tableRegions: [String: TableRegion]?) {
         self.tableRegions = tableRegions
@@ -192,7 +192,9 @@ extension DatabaseRegion {
     }
 }
 
-extension DatabaseRegion: Equatable {
+// Equatable
+extension DatabaseRegion {
+    /// :nodoc:
     public static func == (lhs: DatabaseRegion, rhs: DatabaseRegion) -> Bool {
         switch (lhs.tableRegions, rhs.tableRegions) {
         case (nil, nil):
@@ -215,7 +217,9 @@ extension DatabaseRegion: Equatable {
     }
 }
 
-extension DatabaseRegion: CustomStringConvertible {
+// CustomStringConvertible
+extension DatabaseRegion {
+    /// :nodoc:
     public var description: String {
         guard let tableRegions = tableRegions else {
             return "full database"

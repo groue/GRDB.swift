@@ -16,6 +16,8 @@ extension QueryInterfaceRequest : TypedRequest {
     /// executed, and an eventual row adapter.
     ///
     /// - parameter db: A database connection.
+    ///
+    /// :nodoc:
     public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
         return try query.prepare(db)
     }
@@ -23,11 +25,15 @@ extension QueryInterfaceRequest : TypedRequest {
     /// The number of rows fetched by the request.
     ///
     /// - parameter db: A database connection.
+    ///
+    /// :nodoc:
     public func fetchCount(_ db: Database) throws -> Int {
         return try query.fetchCount(db)
     }
     
     /// The database region that the request looks into.
+    ///
+    /// :nodoc:
     public func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
         return try query.fetchedRegion(db)
     }

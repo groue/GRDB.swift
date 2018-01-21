@@ -10,7 +10,7 @@ import Foundation
 /// DatabaseValue is the intermediate type between SQLite and your values.
 ///
 /// See https://www.sqlite.org/datatype3.html
-public struct DatabaseValue {
+public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueConvertible, SQLExpressible, SQLExpression {
     /// The SQLite storage
     public let storage: Storage
     
@@ -146,9 +146,11 @@ public struct DatabaseValue {
 
 // MARK: - Hashable & Equatable
 
-extension DatabaseValue : Hashable {
+// Hashable
+extension DatabaseValue {
     
     /// The hash value
+    /// :nodoc:
     public var hashValue: Int {
         switch storage {
         case .null:
@@ -280,7 +282,8 @@ extension DatabaseValue {
     }
 }
 
-extension DatabaseValue : DatabaseValueConvertible {
+// DatabaseValueConvertible
+extension DatabaseValue {
     /// Returns self
     public var databaseValue: DatabaseValue {
         return self
@@ -292,15 +295,19 @@ extension DatabaseValue : DatabaseValueConvertible {
     }
 }
 
-extension DatabaseValue : SQLExpressible {
+// SQLExpressible
+extension DatabaseValue {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// :nodoc:
     public var sqlExpression: SQLExpression {
         return self
     }
 }
 
-extension DatabaseValue : SQLExpression {
+// SQLExpression
+extension DatabaseValue {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// :nodoc:
     public func expressionSQL(_ arguments: inout StatementArguments?) -> String {
         // fast path for NULL
         if isNull {
@@ -318,6 +325,7 @@ extension DatabaseValue : SQLExpression {
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// :nodoc:
     public var negated: SQLExpression {
         switch storage {
         case .null:
@@ -343,7 +351,9 @@ extension DatabaseValue : SQLExpression {
     }
 }
 
-extension DatabaseValue : CustomStringConvertible {
+// CustomStringConvertible
+extension DatabaseValue {
+    /// :nodoc:
     public var description: String {
         switch storage {
         case .null:

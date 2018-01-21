@@ -817,8 +817,10 @@ extension Database {
     ///
     /// See https://www.sqlite.org/datatype3.html#collation
     public struct CollationName : RawRepresentable, Hashable {
+        /// :nodoc:
         public let rawValue: String
         
+        /// :nodoc:
         public init(rawValue: String) {
             self.rawValue = rawValue
         }
@@ -828,6 +830,7 @@ extension Database {
         }
         
         /// The hash value
+        /// :nodoc:
         public var hashValue: Int {
             return rawValue.hashValue
         }
@@ -851,8 +854,10 @@ extension Database {
     ///
     /// See https://www.sqlite.org/datatype3.html
     public struct ColumnType : RawRepresentable, Hashable {
+        /// :nodoc:
         public let rawValue: String
         
+        /// :nodoc:
         public init(rawValue: String) {
             self.rawValue = rawValue
         }
@@ -862,6 +867,7 @@ extension Database {
         }
         
         /// The hash value
+        /// :nodoc:
         public var hashValue: Int {
             return rawValue.hashValue
         }

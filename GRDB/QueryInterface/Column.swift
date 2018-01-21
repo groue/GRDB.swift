@@ -17,6 +17,8 @@ public struct Column {
 extension Column : SQLExpression {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// :nodoc:
     public func expressionSQL(_ arguments: inout StatementArguments?) -> String {
         return name.quotedDatabaseIdentifier
     }

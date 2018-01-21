@@ -73,6 +73,7 @@ public final class ColumnCursor<Value: DatabaseValueConvertible & StatementColum
         statement.cursorReset(arguments: arguments)
     }
     
+    /// :nodoc:
     public func next() throws -> Value? {
         if done { return nil }
         switch sqlite3_step(sqliteStatement) {
@@ -118,6 +119,7 @@ public final class NullableColumnCursor<Value: DatabaseValueConvertible & Statem
         statement.cursorReset(arguments: arguments)
     }
     
+    /// :nodoc:
     public func next() throws -> Value?? {
         if done { return nil }
         switch sqlite3_step(sqliteStatement) {

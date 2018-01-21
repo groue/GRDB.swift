@@ -21,16 +21,22 @@ public struct AllColumns {
 
 extension AllColumns : SQLSelectable {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// :nodoc:
     public func resultColumnSQL(_ arguments: inout StatementArguments?) -> String {
         return "*"
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// :nodoc:
     public func countedSQL(_ arguments: inout StatementArguments?) -> String {
         return "*"
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// :nodoc:
     public func count(distinct: Bool) -> SQLCount? {
         // SELECT DISTINCT * FROM tableName ...
         guard !distinct else {

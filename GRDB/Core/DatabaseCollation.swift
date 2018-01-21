@@ -33,6 +33,7 @@ public final class DatabaseCollation {
 }
 
 extension DatabaseCollation : Hashable {
+    /// :nodoc:
     public var hashValue: Int {
         // Collation equality is based on the sqlite3_strnicmp SQLite function.
         // (see https://www.sqlite.org/c3ref/create_collation.html). Computing
@@ -44,6 +45,7 @@ extension DatabaseCollation : Hashable {
     }
     
     /// Two collations are equal if they share the same name (case insensitive)
+    /// :nodoc:
     public static func == (lhs: DatabaseCollation, rhs: DatabaseCollation) -> Bool {
         // See https://www.sqlite.org/c3ref/create_collation.html
         return sqlite3_stricmp(lhs.name, lhs.name) == 0

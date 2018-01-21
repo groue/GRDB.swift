@@ -188,8 +188,8 @@ extension DatabaseQueue {
 
 extension DatabaseQueue : DatabaseReader {
     
-    // MARK: - DatabaseReader Protocol Adoption
-
+    // MARK: - Reading from Database
+    
     /// Synchronously executes a read-only block in a protected dispatch queue,
     /// and returns its result.
     ///
@@ -220,6 +220,8 @@ extension DatabaseQueue : DatabaseReader {
     }
     
     /// Alias for `inDatabase`. See `DatabaseReader.unsafeRead`.
+    ///
+    /// :nodoc:
     public func unsafeRead<T>(_ block: (Database) throws -> T) rethrows -> T {
         return try inDatabase(block)
     }
@@ -233,6 +235,8 @@ extension DatabaseQueue : DatabaseReader {
     ///
     /// This method is reentrant. It should be avoided because it fosters
     /// dangerous concurrency practices.
+    ///
+    /// :nodoc:
     public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
         return try serializedDatabase.reentrantSync(block)
     }
@@ -282,10 +286,10 @@ extension DatabaseQueue : DatabaseReader {
 }
 
 extension DatabaseQueue : DatabaseWriter {
-    
-    // MARK: - DatabaseWriter Protocol Adoption
 
     /// Alias for `inDatabase`. See `DatabaseWriter.write`.
+    ///
+    /// :nodoc:
     public func write<T>(_ block: (Database) throws -> T) rethrows -> T {
         return try inDatabase(block)
     }
@@ -300,6 +304,8 @@ extension DatabaseQueue : DatabaseWriter {
     /// outside of a transaction. You'll get a fatal error otherwise.
     ///
     /// See `DatabaseWriter.readFromCurrentState`.
+    ///
+    /// :nodoc:
     public func readFromCurrentState(_ block: @escaping (Database) -> Void) {
         // Check that we're on the correct queue...
         serializedDatabase.execute { db in
@@ -320,6 +326,8 @@ extension DatabaseQueue : DatabaseWriter {
         }
     }
     
+    // MARK: - Unsafe Database Access
+
     /// Synchronously executes a block in a protected dispatch queue, and
     /// returns its result.
     ///

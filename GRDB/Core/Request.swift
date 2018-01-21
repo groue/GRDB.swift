@@ -103,6 +103,7 @@ public struct AdaptedRequest<Base: Request> : Request {
         self.adapter = adapter
     }
     
+    /// :nodoc:
     public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
         let (statement, baseAdapter) = try base.prepare(db)
         if let baseAdapter = baseAdapter {
@@ -112,10 +113,12 @@ public struct AdaptedRequest<Base: Request> : Request {
         }
     }
     
+    /// :nodoc:
     public func fetchCount(_ db: Database) throws -> Int {
         return try base.fetchCount(db)
     }
     
+    /// :nodoc:
     public func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
         return try base.fetchedRegion(db)
     }
@@ -145,14 +148,17 @@ public struct AnyRequest : Request {
         base = PrepareRequest(base: prepare)
     }
     
+    /// :nodoc:
     public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
         return try base.prepare(db)
     }
     
+    /// :nodoc:
     public func fetchCount(_ db: Database) throws -> Int {
         return try base.fetchCount(db)
     }
     
+    /// :nodoc:
     public func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
         return try base.fetchedRegion(db)
     }
@@ -205,7 +211,9 @@ public struct SQLRequest : Request {
     /// executed, and an eventual row adapter.
     ///
     /// - parameter db: A database connection.
-    public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
+    ///
+    /// :nodoc:
+   public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
         let statement: SelectStatement
         switch cache {
         case .none:
@@ -272,14 +280,17 @@ public struct AdaptedTypedRequest<Base: TypedRequest> : TypedRequest {
         self.base = AdaptedRequest(base, adapter)
     }
     
+    /// :nodoc:
     public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
         return try base.prepare(db)
     }
     
+    /// :nodoc:
     public func fetchCount(_ db: Database) throws -> Int {
         return try base.fetchCount(db)
     }
     
+    /// :nodoc:
     public func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
         return try base.fetchedRegion(db)
     }
@@ -311,14 +322,17 @@ public struct AnyTypedRequest<T> : TypedRequest {
         base = AnyRequest(prepare)
     }
     
+    /// :nodoc:
     public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
         return try base.prepare(db)
     }
     
+    /// :nodoc:
     public func fetchCount(_ db: Database) throws -> Int {
         return try base.fetchCount(db)
     }
     
+    /// :nodoc:
     public func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
         return try base.fetchedRegion(db)
     }

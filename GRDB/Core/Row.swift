@@ -6,7 +6,7 @@ import Foundation
 #endif
 
 /// A database row.
-public final class Row {
+public final class Row : Equatable, Hashable, RandomAccessCollection, ExpressibleByDictionaryLiteral, CustomStringConvertible {
     let impl: RowImpl
     
     /// Unless we are producing a row array, we use a single row when iterating
@@ -506,6 +506,7 @@ public final class RowCursor : Cursor {
         statement.cursorReset(arguments: arguments)
     }
     
+    /// :nodoc:
     public func next() throws -> Row? {
         if done { return nil }
         switch sqlite3_step(sqliteStatement) {
@@ -725,7 +726,8 @@ extension Row {
     }
 }
 
-extension Row : ExpressibleByDictionaryLiteral {
+// ExpressibleByDictionaryLiteral
+extension Row {
     
     /// Creates a row initialized with elements. Column order is preserved, and
     /// duplicated columns names are allowed.
@@ -738,17 +740,20 @@ extension Row : ExpressibleByDictionaryLiteral {
     }
 }
 
-extension Row : RandomAccessCollection {
+// RandomAccessCollection
+extension Row {
     
     // MARK: - Row as a Collection of (ColumnName, DatabaseValue) Pairs
     
     /// The index of the first (ColumnName, DatabaseValue) pair.
+    /// :nodoc:
     public var startIndex: RowIndex {
         return Index(0)
     }
     
     /// The "past-the-end" index, successor of the index of the last
     /// (ColumnName, DatabaseValue) pair.
+    /// :nodoc:
     public var endIndex: RowIndex {
         return Index(count)
     }
@@ -763,11 +768,12 @@ extension Row : RandomAccessCollection {
     }
 }
 
-/// Row adopts Equatable.
-extension Row : Equatable {
+// Equatable
+extension Row {
     
     /// Returns true if and only if both rows have the same columns and values,
     /// in the same order. Columns are compared in a case-sensitive way.
+    /// :nodoc:
     public static func == (lhs: Row, rhs: Row) -> Bool {
         if lhs === rhs {
             return true
@@ -804,17 +810,19 @@ extension Row : Equatable {
     }
 }
 
-/// Row adopts Hashable.
-extension Row : Hashable {
+// Hashable
+extension Row {
     /// The hash value
+    /// :nodoc:
     public var hashValue: Int {
         return columnNames.reduce(0) { (acc, column) in acc ^ column.hashValue } ^
             databaseValues.reduce(0) { (acc, dbValue) in acc ^ dbValue.hashValue }
     }
 }
 
-/// Row adopts CustomStringConvertible.
-extension Row: CustomStringConvertible {
+// CustomStringConvertible
+extension Row {
+    /// :nodoc:
     public var description: String {
         return "<Row"
             + map { (column, dbValue) in
@@ -828,25 +836,32 @@ extension Row: CustomStringConvertible {
 // MARK: - RowIndex
 
 /// Indexes to (ColumnName, DatabaseValue) pairs in a database row.
-public struct RowIndex : Comparable {
+public struct RowIndex : Comparable, Strideable {
     let index: Int
     init(_ index: Int) { self.index = index }
-    
+}
+
+// Comparable
+extension RowIndex {
+    /// :nodoc:
     public static func == (lhs: RowIndex, rhs: RowIndex) -> Bool {
         return lhs.index == rhs.index
     }
     
+    /// :nodoc:
     public static func < (lhs: RowIndex, rhs: RowIndex) -> Bool {
         return lhs.index < rhs.index
     }
 }
 
-// Support for Row: RandomAccessCollection
-extension RowIndex: Strideable {
+// Strideable: support for Row: RandomAccessCollection
+extension RowIndex {
+    /// :nodoc:
     public func distance(to other: RowIndex) -> Int {
         return other.index - index
     }
     
+    /// :nodoc:
     public func advanced(by n: Int) -> RowIndex {
         return RowIndex(index + n)
     }

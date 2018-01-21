@@ -4,6 +4,8 @@
 ///
 /// SQLSelectable is the protocol for types that can be selected, as
 /// described at https://www.sqlite.org/syntax/result-column.html
+///
+/// :nodoc:
 public protocol SQLSelectable {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     func resultColumnSQL(_ arguments: inout StatementArguments?) -> String
@@ -18,6 +20,8 @@ public protocol SQLSelectable {
 // MARK: - Counting
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
+/// :nodoc:
 public enum SQLCount {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///

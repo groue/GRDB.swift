@@ -311,11 +311,13 @@ public final class DatabaseFunction {
 
 extension DatabaseFunction : Hashable {
     /// The hash value
+    /// :nodoc:
     public var hashValue: Int {
         return name.hashValue ^ nArg.hashValue
     }
     
     /// Two functions are equal if they share the same name and arity.
+    /// :nodoc:
     public static func == (lhs: DatabaseFunction, rhs: DatabaseFunction) -> Bool {
         return lhs.name == rhs.name && lhs.nArg == rhs.nArg
     }

@@ -13,14 +13,16 @@ extension Database.ConflictResolution {
 // MARK: - PersistenceError
 
 /// An error thrown by a type that adopts Persistable.
-public enum PersistenceError: Error {
+public enum PersistenceError: Error, CustomStringConvertible {
     
     /// Thrown by MutablePersistable.update() when no matching row could be
     /// found in the database.
     case recordNotFound(MutablePersistable)
 }
 
-extension PersistenceError : CustomStringConvertible {
+// CustomStringConvertible
+extension PersistenceError {
+    /// :nodoc:
     public var description: String {
         switch self {
         case .recordNotFound(let persistable):
@@ -96,6 +98,8 @@ public struct PersistenceContainer {
     
     /// Accesses the value associated with the given column, in a
     /// case-insensitive fashion.
+    ///
+    /// :nodoc:
     subscript(caseInsensitive column: String) -> DatabaseValueConvertible? {
         get {
             if let value = storage[column] {

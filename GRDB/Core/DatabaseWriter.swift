@@ -96,48 +96,58 @@ public final class AnyDatabaseWriter : DatabaseWriter {
     
     // MARK: - Reading from Database
 
+    /// :nodoc:
     public func read<T>(_ block: (Database) throws -> T) throws -> T {
         return try base.read(block)
     }
 
+    /// :nodoc:
     public func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T {
         return try base.unsafeRead(block)
     }
 
+    /// :nodoc:
     public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
         return try base.unsafeReentrantRead(block)
     }
 
+    /// :nodoc:
     public func readFromCurrentState(_ block: @escaping (Database) -> Void) throws {
         try base.readFromCurrentState(block)
     }
 
     // MARK: - Writing in Database
 
+    /// :nodoc:
     public func write<T>(_ block: (Database) throws -> T) rethrows -> T {
         return try base.write(block)
     }
 
+    /// :nodoc:
     public func unsafeReentrantWrite<T>(_ block: (Database) throws -> T) rethrows -> T {
         return try base.unsafeReentrantWrite(block)
     }
     
     // MARK: - Functions
     
+    /// :nodoc:
     public func add(function: DatabaseFunction) {
         base.add(function: function)
     }
     
+    /// :nodoc:
     public func remove(function: DatabaseFunction) {
         base.remove(function: function)
     }
     
     // MARK: - Collations
     
+    /// :nodoc:
     public func add(collation: DatabaseCollation) {
         base.add(collation: collation)
     }
     
+    /// :nodoc:
     public func remove(collation: DatabaseCollation) {
         base.remove(collation: collation)
     }

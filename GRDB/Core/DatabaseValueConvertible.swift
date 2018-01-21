@@ -32,6 +32,7 @@ public protocol DatabaseValueConvertible : SQLExpressible {
 
 extension DatabaseValueConvertible {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// :nodoc:
     public var sqlExpression: SQLExpression {
         return databaseValue
     }
@@ -60,6 +61,7 @@ public final class DatabaseValueCursor<Value: DatabaseValueConvertible> : Cursor
         statement.cursorReset(arguments: arguments)
     }
     
+    /// :nodoc:
     public func next() throws -> Value? {
         if done { return nil }
         switch sqlite3_step(sqliteStatement) {
@@ -99,6 +101,7 @@ public final class NullableDatabaseValueCursor<Value: DatabaseValueConvertible> 
         statement.cursorReset(arguments: arguments)
     }
     
+    /// :nodoc:
     public func next() throws -> Value?? {
         if done { return nil }
         switch sqlite3_step(sqliteStatement) {
