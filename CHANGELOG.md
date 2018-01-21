@@ -36,7 +36,7 @@ Released January 19, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/comp
 
 **Fixed**
 
-Fixed a crash that could happen when a transaction observer uses the stopObservingDatabaseChangesUntilNextTransaction().
+- Fixed a crash that could happen when a transaction observer uses the `stopObservingDatabaseChangesUntilNextTransaction()` method.
 
 
 ## 2.6.0
