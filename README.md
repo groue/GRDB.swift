@@ -1839,11 +1839,11 @@ Your custom structs and classes can adopt each protocol individually, and opt in
 - [Persistable Protocol](#persistable-protocol)
     - [Persistence Methods](#persistence-methods)
     - [Customizing the Persistence Methods](#customizing-the-persistence-methods)
-    - [Conflict Resolution](#conflict-resolution)
 - [Codable Records](#codable-records)
 - [Record Class](#record-class)
 - [RecordBox Class](#recordbox-class)
 - [Changes Tracking](#changes-tracking)
+- [Conflict Resolution](#conflict-resolution)
 - [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key)
 - [List of Record Methods](#list-of-record-methods)
 
@@ -1952,6 +1952,7 @@ Details follow:
 - [Record Class](#record-class)
 - [RecordBox Class](#recordbox-class)
 - [Changes Tracking](#changes-tracking)
+- [Conflict Resolution](#conflict-resolution)
 - [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key)
 - [List of Record Methods](#list-of-record-methods)
 
@@ -2357,82 +2358,6 @@ struct Link : Persistable {
 > :point_up: **Note**: it is recommended that you do not implement your own version of the `save` method. Its default implementation forwards the job to `update` or `insert`: these are the methods that may need customization, not `save`.
 
 
-### Conflict Resolution
-
-**Insertions and updates can create conflicts**: for example, a query may attempt to insert a duplicate row that violates a unique index.
-
-Those conflicts normally end with an error. Yet SQLite let you alter the default behavior, and handle conflicts with specific policies. For example, the `INSERT OR REPLACE` statement handles conflicts with the "replace" policy which replaces the conflicting row instead of throwing an error.
-
-The [five different policies](https://www.sqlite.org/lang_conflict.html) are: abort (the default), replace, rollback, fail, and ignore.
-
-**SQLite let you specify conflict policies at two different places:**
-
-- At the table level
-    
-    ```swift
-    // CREATE TABLE players (
-    //     id INTEGER PRIMARY KEY,
-    //     email TEXT UNIQUE ON CONFLICT REPLACE
-    // )
-    try db.create(table: "players") { t in
-        t.column("id", .integer).primaryKey()
-        t.column("email", .text).unique(onConflict: .replace) // <--
-    }
-    
-    // Despite the unique index on email, both inserts succeed.
-    // The second insert replaces the first row:
-    try db.execute("INSERT INTO players (email) VALUES (?)", arguments: ["arthur@example.com"])
-    try db.execute("INSERT INTO players (email) VALUES (?)", arguments: ["arthur@example.com"])
-    ```
-    
-- At the query level:
-    
-    ```swift
-    // CREATE TABLE players (
-    //     id INTEGER PRIMARY KEY,
-    //     email TEXT UNIQUE
-    // )
-    try db.create(table: "players") { t in
-        t.column("id", .integer).primaryKey()
-        t.column("email", .text)
-    }
-    
-    // Again, despite the unique index on email, both inserts succeed.
-    try db.execute("INSERT OR REPLACE INTO players (email) VALUES (?)", arguments: ["arthur@example.com"])
-    try db.execute("INSERT OR REPLACE INTO players (email) VALUES (?)", arguments: ["arthur@example.com"])
-    ```
-
-When you want to handle conflicts at the query level, specify a custom `persistenceConflictPolicy` in your type that adopts the MutablePersistable or Persistable protocol. It will alter the INSERT and UPDATE queries run by the `insert`, `update` and `save` [persistence methods](#persistence-methods):
-
-```swift
-protocol MutablePersistable {
-    /// The policy that handles SQLite conflicts when records are inserted
-    /// or updated.
-    ///
-    /// This property is optional: its default value uses the ABORT policy
-    /// for both insertions and updates, and has GRDB generate regular
-    /// INSERT and UPDATE queries.
-    static var persistenceConflictPolicy: PersistenceConflictPolicy { get }
-}
-
-struct Player : MutablePersistable {
-    static let persistenceConflictPolicy = PersistenceConflictPolicy(
-        insert: .replace,
-        update: .replace)
-}
-
-// INSERT OR REPLACE INTO players (...) VALUES (...)
-try player.insert(db)
-```
-
-> :point_up: **Note**: the `ignore` policy does not play well at all with the `didInsert` method which notifies the rowID of inserted records. Choose your poison:
->
-> - if you specify the `ignore` policy at the table level, don't implement the `didInsert` method: it will be called with some random id in case of failed insert.
-> - if you specify the `ignore` policy at the query level, the `didInsert` method is never called.
->
-> :warning: **Warning**: [`ON CONFLICT REPLACE`](https://www.sqlite.org/lang_conflict.html) may delete rows so that inserts and updates can succeed. Those deletions are not reported to [transaction observers](#transactionobserver-protocol) (this might change in a future release of SQLite).
-
-
 ## Codable Records
 
 [Swift Archival & Serialization](https://github.com/apple/swift-evolution/blob/master/proposals/0166-swift-archival-serialization.md) was introduced with Swift 4.
@@ -2664,6 +2589,82 @@ player.persistentChangedValues    // ["score": 750]
 For an efficient algorithm which synchronizes the content of a database table with a JSON payload, check [JSONSynchronization.playground](Playgrounds/JSONSynchronization.playground/Contents.swift).
 
 
+## Conflict Resolution
+
+**Insertions and updates can create conflicts**: for example, a query may attempt to insert a duplicate row that violates a unique index.
+
+Those conflicts normally end with an error. Yet SQLite let you alter the default behavior, and handle conflicts with specific policies. For example, the `INSERT OR REPLACE` statement handles conflicts with the "replace" policy which replaces the conflicting row instead of throwing an error.
+
+The [five different policies](https://www.sqlite.org/lang_conflict.html) are: abort (the default), replace, rollback, fail, and ignore.
+
+**SQLite let you specify conflict policies at two different places:**
+
+- At the table level
+    
+    ```swift
+    // CREATE TABLE players (
+    //     id INTEGER PRIMARY KEY,
+    //     email TEXT UNIQUE ON CONFLICT REPLACE
+    // )
+    try db.create(table: "players") { t in
+        t.column("id", .integer).primaryKey()
+        t.column("email", .text).unique(onConflict: .replace) // <--
+    }
+    
+    // Despite the unique index on email, both inserts succeed.
+    // The second insert replaces the first row:
+    try db.execute("INSERT INTO players (email) VALUES (?)", arguments: ["arthur@example.com"])
+    try db.execute("INSERT INTO players (email) VALUES (?)", arguments: ["arthur@example.com"])
+    ```
+    
+- At the query level:
+    
+    ```swift
+    // CREATE TABLE players (
+    //     id INTEGER PRIMARY KEY,
+    //     email TEXT UNIQUE
+    // )
+    try db.create(table: "players") { t in
+        t.column("id", .integer).primaryKey()
+        t.column("email", .text)
+    }
+    
+    // Again, despite the unique index on email, both inserts succeed.
+    try db.execute("INSERT OR REPLACE INTO players (email) VALUES (?)", arguments: ["arthur@example.com"])
+    try db.execute("INSERT OR REPLACE INTO players (email) VALUES (?)", arguments: ["arthur@example.com"])
+    ```
+
+When you want to handle conflicts at the query level, specify a custom `persistenceConflictPolicy` in your type that adopts the MutablePersistable or Persistable protocol. It will alter the INSERT and UPDATE queries run by the `insert`, `update` and `save` [persistence methods](#persistence-methods):
+
+```swift
+protocol MutablePersistable {
+    /// The policy that handles SQLite conflicts when records are inserted
+    /// or updated.
+    ///
+    /// This property is optional: its default value uses the ABORT policy
+    /// for both insertions and updates, and has GRDB generate regular
+    /// INSERT and UPDATE queries.
+    static var persistenceConflictPolicy: PersistenceConflictPolicy { get }
+}
+
+struct Player : MutablePersistable {
+    static let persistenceConflictPolicy = PersistenceConflictPolicy(
+        insert: .replace,
+        update: .replace)
+}
+
+// INSERT OR REPLACE INTO players (...) VALUES (...)
+try player.insert(db)
+```
+
+> :point_up: **Note**: the `ignore` policy does not play well at all with the `didInsert` method which notifies the rowID of inserted records. Choose your poison:
+>
+> - if you specify the `ignore` policy at the table level, don't implement the `didInsert` method: it will be called with some random id in case of failed insert.
+> - if you specify the `ignore` policy at the query level, the `didInsert` method is never called.
+>
+> :warning: **Warning**: [`ON CONFLICT REPLACE`](https://www.sqlite.org/lang_conflict.html) may delete rows so that inserts and updates can succeed. Those deletions are not reported to [transaction observers](#transactionobserver-protocol) (this might change in a future release of SQLite).
+
+
 ## The Implicit RowID Primary Key
 
 **All SQLite tables have a primary key.** Even when the primary key is not explicit:
@@ -2832,9 +2833,10 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.fetchOne(db, sql)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-3">³</a> |
 | `Type.fetchOne(statement)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetchOne(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
-| **[Track Changes](#changes-tracking)** | | |
+| **[Changes Tracking](#changes-tracking)** | | |
 | `record.hasPersistentChangedValues` | [Record](#record-class), [RecordBox](#recordbox-class) | |
 | `record.persistentChangedValues` | [Record](#record-class), [RecordBox](#recordbox-class) | |
+| `record.updateChanges(db)` | [Record](#record-class), [RecordBox](#recordbox-class) | |
 
 <a name="list-of-record-methods-1">¹</a> All unique keys are supported: primary keys (single-column, composite, [implicit RowID](#the-implicit-rowid-primary-key)) and unique indexes:
 
