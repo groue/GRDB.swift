@@ -1846,7 +1846,6 @@ Your custom structs and classes can adopt each protocol individually, and opt in
 - [Changes Tracking](#changes-tracking)
 - [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key)
 - [List of Record Methods](#list-of-record-methods)
-- [The Query Interface](#the-query-interface)
 
 
 ### Inserting Records
@@ -1955,7 +1954,6 @@ Details follow:
 - [Changes Tracking](#changes-tracking)
 - [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key)
 - [List of Record Methods](#list-of-record-methods)
-- [The Query Interface](#the-query-interface)
 
 
 ## Record Protocols Overview
@@ -2117,8 +2115,8 @@ extension Place : RowConvertible {
 See [column values](#column-values) for more information about the `row[]` subscript.
 
 > :point_up: **Note**: for performance reasons, the same row argument to `init(row:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
-
-**The `init(row:)` initializer can be automatically generated** when your type adopts the standard `Decodable` protocol. See [Codable Records](#codable-records) for more information.
+>
+> :bulb: **Tip**: the `init(row:)` initializer can be automatically generated when your type adopts the standard `Decodable` protocol. See [Codable Records](#codable-records) for more information.
 
 RowConvertible allows adopting types to be fetched from SQL queries:
 
@@ -2219,7 +2217,7 @@ Yes, two protocols instead of one. Both grant exactly the same advantages. Here 
 
 The `encode(to:)` method defines which [values](#values) (Bool, Int, String, Date, Swift enums, etc.) are assigned to database columns.
 
-**`encode(to:)` can be automatically generated** when your type adopts the standard `Encodable` protocol. See [Codable Records](#codable-records) for more information.
+> :bulb: **Tip**: `encode(to:)` can be automatically generated when your type adopts the standard `Encodable` protocol. See [Codable Records](#codable-records) for more information.
 
 The optional `didInsert` method lets the adopting type store its rowID after successful insertion. If your table has an INTEGER PRIMARY KEY column, you are likely to define this method. Otherwise, you can safely ignore it. It is called from a protected dispatch queue, and serialized with all database updates.
 
@@ -2793,7 +2791,7 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](#fu
 
 ## List of Record Methods
 
-This is the list of record methods, along with their required protocols. The [Record Class](#record-class) adopts all these protocols.
+This is the list of record methods, along with their required protocols. The [Record](#record-class) and [RecordBox](#recordbox-class) classes adopt all these protocols, and support [changes tracking](#changes-tracking).
 
 | Method | Protocols | Notes |
 | ------ | --------- | :---: |
