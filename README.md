@@ -221,7 +221,6 @@ Documentation
 - [FetchedRecordsController](#fetchedrecordscontroller): Automated tracking of changes in a query results, plus UITableView animations.
 - [Encryption](#encryption): Encrypt your database with SQLCipher.
 - [Backup](#backup): Dump the content of a database to another.
-- [GRDB Extension Guide](Documentation/ExtendingGRDB.md): When a feature is lacking, extend GRDB right from your application.
 
 **Good to Know**
 
@@ -1377,8 +1376,6 @@ All types that adopt this protocol can be used like all other [values](#values) 
 The `databaseValue` property returns [DatabaseValue](#databasevalue), a type that wraps the five values supported by SQLite: NULL, Int64, Double, String and Data. Since DatabaseValue has no public initializer, use `DatabaseValue.null`, or another type that already adopts the protocol: `1.databaseValue`, `"foo".databaseValue`, etc. Conversion to DatabaseValue *must not* fail.
 
 The `fromDatabaseValue()` factory method returns an instance of your custom type if the database value contains a suitable value. If the database value does not contain a suitable value, such as "foo" for Date, `fromDatabaseValue` *must* return nil (GRDB will interpret this nil result as a conversion error, and react accordingly).
-
-The [GRDB Extension Guide](Documentation/ExtendingGRDB.md) contains sample code that has UIColor adopt DatabaseValueConvertible.
 
 
 ## Prepared Statements
@@ -2927,7 +2924,6 @@ So don't miss the [SQL API](#sqlite-api).
 - [Fetching Aggregated Values](#fetching-aggregated-values)
 - [Delete Requests](#delete-requests)
 - [Custom Requests](#custom-requests)
-- [GRDB Extension Guide](Documentation/ExtendingGRDB.md)
 
 
 ## Database Schema
