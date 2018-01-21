@@ -1839,13 +1839,13 @@ Your custom structs and classes can adopt each protocol individually, and opt in
 - [Persistable Protocol](#persistable-protocol)
     - [Persistence Methods](#persistence-methods)
     - [Customizing the Persistence Methods](#customizing-the-persistence-methods)
-    - [Conflict Resolution](#conflict-resolution)
 - [Codable Records](#codable-records)
 - [Record Class](#record-class)
-    - [Changes Tracking](#changes-tracking)
+- [RecordBox Class](#recordbox-class)
+- [Changes Tracking](#changes-tracking)
+- [Conflict Resolution](#conflict-resolution)
 - [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key)
 - [List of Record Methods](#list-of-record-methods)
-- [The Query Interface](#the-query-interface)
 
 
 ### Inserting Records
@@ -1950,9 +1950,11 @@ Details follow:
 - [Persistable Protocol](#persistable-protocol)
 - [Codable Records](#codable-records)
 - [Record Class](#record-class)
+- [RecordBox Class](#recordbox-class)
+- [Changes Tracking](#changes-tracking)
+- [Conflict Resolution](#conflict-resolution)
 - [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key)
 - [List of Record Methods](#list-of-record-methods)
-- [The Query Interface](#the-query-interface)
 
 
 ## Record Protocols Overview
@@ -2114,8 +2116,8 @@ extension Place : RowConvertible {
 See [column values](#column-values) for more information about the `row[]` subscript.
 
 > :point_up: **Note**: for performance reasons, the same row argument to `init(row:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
-
-**The `init(row:)` initializer can be automatically generated** when your type adopts the standard `Decodable` protocol. See [Codable Records](#codable-records) for more information.
+>
+> :bulb: **Tip**: the `init(row:)` initializer can be automatically generated when your type adopts the standard `Decodable` protocol. See [Codable Records](#codable-records) for more information.
 
 RowConvertible allows adopting types to be fetched from SQL queries:
 
@@ -2216,7 +2218,7 @@ Yes, two protocols instead of one. Both grant exactly the same advantages. Here 
 
 The `encode(to:)` method defines which [values](#values) (Bool, Int, String, Date, Swift enums, etc.) are assigned to database columns.
 
-**`encode(to:)` can be automatically generated** when your type adopts the standard `Encodable` protocol. See [Codable Records](#codable-records) for more information.
+> :bulb: **Tip**: `encode(to:)` can be automatically generated when your type adopts the standard `Encodable` protocol. See [Codable Records](#codable-records) for more information.
 
 The optional `didInsert` method lets the adopting type store its rowID after successful insertion. If your table has an INTEGER PRIMARY KEY column, you are likely to define this method. Otherwise, you can safely ignore it. It is called from a protected dispatch queue, and serialized with all database updates.
 
@@ -2279,7 +2281,7 @@ try place.save(db)                 // Inserts or updates
 try place.insert(db)               // INSERT
 try place.update(db)               // UPDATE
 try place.update(db, columns: ...) // UPDATE
-try place.updateChanges(db)        // Available for the Record class only
+try place.updateChanges(db)        // Available on Record and RecordBox only
 try place.delete(db)               // DELETE
 place.exists(db)
 
@@ -2354,82 +2356,6 @@ struct Link : Persistable {
 > :point_up: **Note**: the special methods `performInsert`, `performUpdate`, etc. are reserved for your custom implementations. Do not use them elsewhere. Do not provide another implementation for those methods.
 >
 > :point_up: **Note**: it is recommended that you do not implement your own version of the `save` method. Its default implementation forwards the job to `update` or `insert`: these are the methods that may need customization, not `save`.
-
-
-### Conflict Resolution
-
-**Insertions and updates can create conflicts**: for example, a query may attempt to insert a duplicate row that violates a unique index.
-
-Those conflicts normally end with an error. Yet SQLite let you alter the default behavior, and handle conflicts with specific policies. For example, the `INSERT OR REPLACE` statement handles conflicts with the "replace" policy which replaces the conflicting row instead of throwing an error.
-
-The [five different policies](https://www.sqlite.org/lang_conflict.html) are: abort (the default), replace, rollback, fail, and ignore.
-
-**SQLite let you specify conflict policies at two different places:**
-
-- At the table level
-    
-    ```swift
-    // CREATE TABLE players (
-    //     id INTEGER PRIMARY KEY,
-    //     email TEXT UNIQUE ON CONFLICT REPLACE
-    // )
-    try db.create(table: "players") { t in
-        t.column("id", .integer).primaryKey()
-        t.column("email", .text).unique(onConflict: .replace) // <--
-    }
-    
-    // Despite the unique index on email, both inserts succeed.
-    // The second insert replaces the first row:
-    try db.execute("INSERT INTO players (email) VALUES (?)", arguments: ["arthur@example.com"])
-    try db.execute("INSERT INTO players (email) VALUES (?)", arguments: ["arthur@example.com"])
-    ```
-    
-- At the query level:
-    
-    ```swift
-    // CREATE TABLE players (
-    //     id INTEGER PRIMARY KEY,
-    //     email TEXT UNIQUE
-    // )
-    try db.create(table: "players") { t in
-        t.column("id", .integer).primaryKey()
-        t.column("email", .text)
-    }
-    
-    // Again, despite the unique index on email, both inserts succeed.
-    try db.execute("INSERT OR REPLACE INTO players (email) VALUES (?)", arguments: ["arthur@example.com"])
-    try db.execute("INSERT OR REPLACE INTO players (email) VALUES (?)", arguments: ["arthur@example.com"])
-    ```
-
-When you want to handle conflicts at the query level, specify a custom `persistenceConflictPolicy` in your type that adopts the MutablePersistable or Persistable protocol. It will alter the INSERT and UPDATE queries run by the `insert`, `update` and `save` [persistence methods](#persistence-methods):
-
-```swift
-protocol MutablePersistable {
-    /// The policy that handles SQLite conflicts when records are inserted
-    /// or updated.
-    ///
-    /// This property is optional: its default value uses the ABORT policy
-    /// for both insertions and updates, and has GRDB generate regular
-    /// INSERT and UPDATE queries.
-    static var persistenceConflictPolicy: PersistenceConflictPolicy { get }
-}
-
-struct Player : MutablePersistable {
-    static let persistenceConflictPolicy = PersistenceConflictPolicy(
-        insert: .replace,
-        update: .replace)
-}
-
-// INSERT OR REPLACE INTO players (...) VALUES (...)
-try player.insert(db)
-```
-
-> :point_up: **Note**: the `ignore` policy does not play well at all with the `didInsert` method which notifies the rowID of inserted records. Choose your poison:
->
-> - if you specify the `ignore` policy at the table level, don't implement the `didInsert` method: it will be called with some random id in case of failed insert.
-> - if you specify the `ignore` policy at the query level, the `didInsert` method is never called.
->
-> :warning: **Warning**: [`ON CONFLICT REPLACE`](https://www.sqlite.org/lang_conflict.html) may delete rows so that inserts and updates can succeed. Those deletions are not reported to [transaction observers](#transactionobserver-protocol) (this might change in a future release of SQLite).
 
 
 ## Codable Records
@@ -2569,10 +2495,62 @@ class Place : Record {
 }
 ```
 
+## RecordBox Class
 
-### Changes Tracking
+**RecordBox** is a generic [Record](#record-class) subclass that wraps any other record type that adopts the [RowConvertible, TableMapping, and Persistable](#record-protocols-overview) protocols. It brings [changes tracking](#changes-tracking) to any record type.
 
-**Record instances know if they have been modified since they were last fetched.**
+```swift
+final class RecordBox<T: RowConvertible & MutablePersistable>: Record {
+    var value: T
+    init(value: T)
+    required init(row: Row)
+}
+```
+
+As an example, let's start from a regular `Player` record struct:
+
+```swift
+// A regular record struct
+struct Player: RowConvertible, MutablePersistable, Codable {
+    static let databaseTableName = "players"
+    
+    var id: Int64?
+    var name: String
+    var score: Int
+    
+    mutating func didInsert(with rowID: Int64, for column: String?) {
+        id = rowID
+    }
+}
+```
+
+To track changes, don't fetch raw `Player` records, but fetch `RecordBox<Player>` instead. You can then modify player attributes, and easily check if they have been changed:
+
+```swift
+try dbQueue.inDatabase { db in
+    // Fetch a boxed player
+    if let boxedPlayer = try RecordBox<Player>.fetchOne(db, key: 1) {
+        // boxedPlayer.value is Player
+        boxedPlayer.value.score = 300
+        
+        if boxedPlayer.hasPersistentChangedValues {
+            print("player has been modified")
+        }
+        
+        // Does nothing if player has not been modified:
+        try boxedPlayer.updateChanges(db)
+    }
+}
+```
+
+See [Changes Tracking](#changes-tracking) for more information.
+
+
+## Changes Tracking
+
+**Changes tracking is the ability, for a record, to know if it has been modified since it was last fetched or persisted.**
+
+> :point_up: **Note**: changes tracking is available on the [Record](#record-class) class, its subclasses, and the [RecordBox](#recordbox-class) class that can wrap any other record type.
 
 The `update()` [method](#persistence-methods) always executes an UPDATE statement. When the record has not been edited, this costly database access is generally useless.
 
@@ -2610,6 +2588,82 @@ player.persistentChangedValues    // ["score": 750]
 ```
 
 For an efficient algorithm which synchronizes the content of a database table with a JSON payload, check [JSONSynchronization.playground](Playgrounds/JSONSynchronization.playground/Contents.swift).
+
+
+## Conflict Resolution
+
+**Insertions and updates can create conflicts**: for example, a query may attempt to insert a duplicate row that violates a unique index.
+
+Those conflicts normally end with an error. Yet SQLite let you alter the default behavior, and handle conflicts with specific policies. For example, the `INSERT OR REPLACE` statement handles conflicts with the "replace" policy which replaces the conflicting row instead of throwing an error.
+
+The [five different policies](https://www.sqlite.org/lang_conflict.html) are: abort (the default), replace, rollback, fail, and ignore.
+
+**SQLite let you specify conflict policies at two different places:**
+
+- At the table level
+    
+    ```swift
+    // CREATE TABLE players (
+    //     id INTEGER PRIMARY KEY,
+    //     email TEXT UNIQUE ON CONFLICT REPLACE
+    // )
+    try db.create(table: "players") { t in
+        t.column("id", .integer).primaryKey()
+        t.column("email", .text).unique(onConflict: .replace) // <--
+    }
+    
+    // Despite the unique index on email, both inserts succeed.
+    // The second insert replaces the first row:
+    try db.execute("INSERT INTO players (email) VALUES (?)", arguments: ["arthur@example.com"])
+    try db.execute("INSERT INTO players (email) VALUES (?)", arguments: ["arthur@example.com"])
+    ```
+    
+- At the query level:
+    
+    ```swift
+    // CREATE TABLE players (
+    //     id INTEGER PRIMARY KEY,
+    //     email TEXT UNIQUE
+    // )
+    try db.create(table: "players") { t in
+        t.column("id", .integer).primaryKey()
+        t.column("email", .text)
+    }
+    
+    // Again, despite the unique index on email, both inserts succeed.
+    try db.execute("INSERT OR REPLACE INTO players (email) VALUES (?)", arguments: ["arthur@example.com"])
+    try db.execute("INSERT OR REPLACE INTO players (email) VALUES (?)", arguments: ["arthur@example.com"])
+    ```
+
+When you want to handle conflicts at the query level, specify a custom `persistenceConflictPolicy` in your type that adopts the MutablePersistable or Persistable protocol. It will alter the INSERT and UPDATE queries run by the `insert`, `update` and `save` [persistence methods](#persistence-methods):
+
+```swift
+protocol MutablePersistable {
+    /// The policy that handles SQLite conflicts when records are inserted
+    /// or updated.
+    ///
+    /// This property is optional: its default value uses the ABORT policy
+    /// for both insertions and updates, and has GRDB generate regular
+    /// INSERT and UPDATE queries.
+    static var persistenceConflictPolicy: PersistenceConflictPolicy { get }
+}
+
+struct Player : MutablePersistable {
+    static let persistenceConflictPolicy = PersistenceConflictPolicy(
+        insert: .replace,
+        update: .replace)
+}
+
+// INSERT OR REPLACE INTO players (...) VALUES (...)
+try player.insert(db)
+```
+
+> :point_up: **Note**: the `ignore` policy does not play well at all with the `didInsert` method which notifies the rowID of inserted records. Choose your poison:
+>
+> - if you specify the `ignore` policy at the table level, don't implement the `didInsert` method: it will be called with some random id in case of failed insert.
+> - if you specify the `ignore` policy at the query level, the `didInsert` method is never called.
+>
+> :warning: **Warning**: [`ON CONFLICT REPLACE`](https://www.sqlite.org/lang_conflict.html) may delete rows so that inserts and updates can succeed. Those deletions are not reported to [transaction observers](#transactionobserver-protocol) (this might change in a future release of SQLite).
 
 
 ## The Implicit RowID Primary Key
@@ -2739,7 +2793,7 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](#fu
 
 ## List of Record Methods
 
-This is the list of record methods, along with their required protocols. The [Record Class](#record-class) adopts all these protocols.
+This is the list of record methods, along with their required protocols. The [Record](#record-class) and [RecordBox](#recordbox-class) classes adopt all these protocols, and support [changes tracking](#changes-tracking).
 
 | Method | Protocols | Notes |
 | ------ | --------- | :---: |
@@ -2748,7 +2802,7 @@ This is the list of record methods, along with their required protocols. The [Re
 | `record.save(db)` | [Persistable](#persistable-protocol) | |
 | `record.update(db)` | [Persistable](#persistable-protocol) | |
 | `record.update(db, columns: ...)` | [Persistable](#persistable-protocol) | |
-| `record.updateChanges(db)` | [Record](#record-class) | |
+| `record.updateChanges(db)` | [Record](#record-class), [RecordBox](#recordbox-class) | |
 | **Delete Records** | | |
 | `record.delete(db)` | [Persistable](#persistable-protocol) | |
 | `Type.deleteOne(db, key: ...)` | [Persistable](#persistable-protocol) | <a href="#list-of-record-methods-1">¹</a> |
@@ -2780,9 +2834,10 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.fetchOne(db, sql)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-3">³</a> |
 | `Type.fetchOne(statement)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetchOne(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
-| **[Track Changes](#changes-tracking)** | | |
-| `record.hasPersistentChangedValues` | [Record](#record-class) | |
-| `record.persistentChangedValues` | [Record](#record-class) | |
+| **[Changes Tracking](#changes-tracking)** | | |
+| `record.hasPersistentChangedValues` | [Record](#record-class), [RecordBox](#recordbox-class) | |
+| `record.persistentChangedValues` | [Record](#record-class), [RecordBox](#recordbox-class) | |
+| `record.updateChanges(db)` | [Record](#record-class), [RecordBox](#recordbox-class) | |
 
 <a name="list-of-record-methods-1">¹</a> All unique keys are supported: primary keys (single-column, composite, [implicit RowID](#the-implicit-rowid-primary-key)) and unique indexes:
 
