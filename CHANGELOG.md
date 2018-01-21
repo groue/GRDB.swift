@@ -5,7 +5,7 @@ Release Notes
 
 **New**
 
-- The RecordBox class brings changes tracking to any record type ([documentation](https://github.com/groue/GRDB.swift/blob/master/README.md#recordbox-class)):
+- The new RecordBox class brings changes tracking to any record type ([documentation](https://github.com/groue/GRDB.swift/blob/master/README.md#recordbox-class)):
     
     ```swift
     // A regular record struct
@@ -13,15 +13,16 @@ Release Notes
     
     try dbQueue.inDatabase { db in
         // Fetch a boxed player
-        if let player = try RecordBox<Player>.fetchOne(db, key: 1) {
-            player.value.score = 300
+        if let boxedPlayer = try RecordBox<Player>.fetchOne(db, key: 1) {
+            // boxedPlayer.value is Player
+            boxedPlayer.value.score = 300
             
-            if player.hasPersistentChangedValues {
+            if boxedPlayer.hasPersistentChangedValues {
                 print("player has been modified")
             }
             
             // Does nothing if player has not been modified:
-            try player.updateChanges(db)
+            try boxedPlayer.updateChanges(db)
         }
     }
     ```
