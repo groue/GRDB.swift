@@ -16,7 +16,6 @@ To release a new GRDB version:
     - Makefile
     - CHANGELOG.md
     - Documentation/CustomSQLiteBuilds.md
-    - Documentation/ExtendingGRDB.md
     - GRDB.swift.podspec
     - GRDBCipher.podspec
     - README.md
