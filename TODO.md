@@ -15,6 +15,7 @@
 
 GRDB 3.0
 
+- [ ] Hide useless scheduling methods behind protocols : https://forums.swift.org/t/discouraging-protocol-methods-on-concrete-values/8737/4?u=gwendal.roue
 - [ ] Make DatabasePool.write safe. See https://github.com/groue/GRDB.swift/commit/5e3c7d9c430df606a1cccfd4983be6b50e778a5c#commitcomment-26988970
 - [ ] Do one of those two:
     1. Make save() impossible to customize: remove it from Persistable protocol, and remove performSave() from tne public API.
