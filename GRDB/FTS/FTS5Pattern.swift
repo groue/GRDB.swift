@@ -44,6 +44,19 @@
             try? self.init(rawPattern: "\"" + tokens.joined(separator: " ") + "\"")
         }
         
+        /// Creates a pattern that matches a contiguous string prefix; returns
+        /// nil if no pattern could be built.
+        ///
+        ///     FTS5Pattern(matchingPrefixPhrase: "")        // nil
+        ///     FTS5Pattern(matchingPrefixPhrase: "foo bar") // ^"foo bar"
+        ///
+        /// - parameter string: The string to turn into an FTS5 pattern
+        public init?(matchingPrefixPhrase string: String) {
+            guard let tokens = try? DatabaseQueue().inDatabase({ db in try db.makeTokenizer(.ascii()).nonSynonymTokens(in: string, for: .query) }) else { return nil }
+            guard !tokens.isEmpty else { return nil }
+            try? self.init(rawPattern: "^\"" + tokens.joined(separator: " ") + "\"")
+        }
+
         init(rawPattern: String, allowedColumns: [String] = []) throws {
             // Correctness above all: use SQLite to validate the pattern.
             //
