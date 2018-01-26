@@ -4399,6 +4399,8 @@ let pattern = FTS5Pattern(matchingAnyTokenIn: query)
 let pattern = FTS5Pattern(matchingAllTokensIn: query)
 // Matches documents that contain "SQLite database"
 let pattern = FTS5Pattern(matchingPhrase: query)
+// Matches documents that start with "SQLite database"
+let pattern = FTS5Pattern(matchingPrefixPhrase: query)
 ```
 
 They return nil when no pattern could be built from the input string:
