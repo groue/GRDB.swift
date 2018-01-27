@@ -139,6 +139,8 @@ public struct ResultCode : RawRepresentable, Equatable, CustomStringConvertible 
     public static let SQLITE_OK_LOAD_PERMANENTLY     = ResultCode(rawValue: (SQLITE_OK.rawValue | (1<<8)))
 }
 
+#if swift(>=4.1)
+#else
 // Equatable
 extension ResultCode {
     /// :nodoc:
@@ -146,6 +148,7 @@ extension ResultCode {
         return lhs.rawValue == rhs.rawValue
     }
 }
+#endif
 
 // CustomStringConvertible
 extension ResultCode {
