@@ -13,6 +13,10 @@
 - [ ] Allow concurrent reads from a snapshot
 - [ ] Decode NSDecimalNumber from text database values
 
+Xcode 9.3, Swift 4.1
+
+- [ ] Audit Cursor return types and make it look as much as possible as stdlib's lazy sequence
+
 GRDB 3.0
 
 - [ ] Rename "changes tracking" (ambiguous with database observation) to "record comparison"
