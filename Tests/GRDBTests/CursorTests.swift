@@ -78,12 +78,21 @@ class CursorTests: GRDBTestCase {
         }
     }
     
+    #if swift(>=4.1)
+    func testCompactMap() {
+        let cursor = IteratorCursor(["1", "foo", "2"]).compactMap { Int($0) }
+        XCTAssertEqual(try cursor.next()!, 1)
+        XCTAssertEqual(try cursor.next()!, 2)
+        XCTAssertTrue(try cursor.next() == nil) // end
+    }
+    #else
     func testFlatMapOfOptional() {
         let cursor = IteratorCursor(["1", "foo", "2"]).flatMap { Int($0) }
         XCTAssertEqual(try cursor.next()!, 1)
         XCTAssertEqual(try cursor.next()!, 2)
         XCTAssertTrue(try cursor.next() == nil) // end
     }
+    #endif
     
     func testForEach() throws {
         let cursor = IteratorCursor([1, 2])
