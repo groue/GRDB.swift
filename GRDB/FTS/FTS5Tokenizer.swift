@@ -192,10 +192,10 @@
             let api = FTS5.api(self)
             
             let xTokenizerPointer: UnsafeMutablePointer<fts5_tokenizer> = .allocate(capacity: 1)
-            defer { xTokenizerPointer.deallocate(capacity: 1) }
+            defer { xTokenizerPointer.deallocate() }
             
             let contextHandle: UnsafeMutablePointer<UnsafeMutableRawPointer?> = .allocate(capacity: 1)
-            defer { contextHandle.deallocate(capacity: 1) }
+            defer { contextHandle.deallocate() }
             
             let code = api.pointee.xFindTokenizer!(
                 UnsafeMutablePointer(mutating: api),
