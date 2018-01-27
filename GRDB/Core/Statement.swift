@@ -911,6 +911,8 @@ extension StatementArguments {
     }
 }
 
+#if swift(>=4.1)
+#else
 // Equatable
 extension StatementArguments {
     /// :nodoc:
@@ -920,6 +922,7 @@ extension StatementArguments {
         return true
     }
 }
+#endif
 
 /// A thread-unsafe statement cache
 struct StatementCache {
