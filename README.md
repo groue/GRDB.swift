@@ -244,7 +244,7 @@ Installation
 
 See [Encryption](#encryption) for the installation procedure of GRDB with SQLCipher.
 
-See [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) for the installation procedure of GRDB with a customized build of SQLite 3.21.0.
+See [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) for the installation procedure of GRDB with a customized build of SQLite 3.22.0.
 
 
 ## CocoaPods
@@ -4399,6 +4399,8 @@ let pattern = FTS5Pattern(matchingAnyTokenIn: query)
 let pattern = FTS5Pattern(matchingAllTokensIn: query)
 // Matches documents that contain "SQLite database"
 let pattern = FTS5Pattern(matchingPhrase: query)
+// Matches documents that start with "SQLite database"
+let pattern = FTS5Pattern(matchingPrefixPhrase: query)
 ```
 
 They return nil when no pattern could be built from the input string:
