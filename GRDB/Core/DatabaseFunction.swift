@@ -274,7 +274,7 @@ public final class DatabaseFunction {
             let aggregateContextU = Unmanaged.passRetained(aggregateContext)
             var aggregateContextP = aggregateContextU.toOpaque()
             withUnsafeBytes(of: &aggregateContextP) {
-                aggregateContextBufferP.copyBytes(from: $0)
+                aggregateContextBufferP.copyMemory(from: $0)
             }
             return aggregateContextU
         }
