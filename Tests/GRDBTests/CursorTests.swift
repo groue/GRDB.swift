@@ -110,6 +110,16 @@ class CursorTests: GRDBTestCase {
         }
     }
     
+    func testMax() {
+        XCTAssertEqual(try IteratorCursor([1, 2, 3]).max(), 3)
+        XCTAssertEqual(try IteratorCursor([1, 2, 3]).max(by: >), 1)
+    }
+
+    func testMin() {
+        XCTAssertEqual(try IteratorCursor([1, 2, 3]).min(), 1)
+        XCTAssertEqual(try IteratorCursor([1, 2, 3]).min(by: >), 3)
+    }
+    
     func testReduce() throws {
         let cursor = IteratorCursor([1, 2])
         let squareSum = try cursor.reduce(0) { (acc, int) in acc + int * int }

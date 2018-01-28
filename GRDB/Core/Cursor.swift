@@ -385,6 +385,7 @@ extension Cursor {
 }
 
 // MARK: Equatable elements
+
 extension Cursor where Element: Equatable {
     /// Returns a Boolean value indicating whether the cursor contains the
     /// given element.
