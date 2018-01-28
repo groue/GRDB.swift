@@ -149,6 +149,17 @@ extension Cursor {
         return map(transform).filter { $0 != nil }.map { $0! }
     }
     
+    /// Returns a cursor that skips any initial elements that satisfy
+    /// `predicate`.
+    ///
+    /// - Parameter predicate: A closure that takes an element of the cursir as
+    ///   its argument and returns `true` if the element should be skipped or
+    ///   `false` otherwise. Once `predicate` returns `false` it will not be
+    ///   called again.
+    public func drop(while predicate: @escaping (Element) throws -> Bool) -> DropWhileCursor<Self> {
+        return DropWhileCursor(self, predicate: predicate)
+    }
+    
     /// Returns a cursor over the concatenated results of mapping transform
     /// over self.
     public func flatMap<SegmentOfResult: Sequence>(_ transform: @escaping (Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<Self, IteratorCursor<SegmentOfResult.Iterator>>> {
@@ -209,6 +220,33 @@ extension Cursor where Element: Sequence {
     /// Returns the elements of this cursor of sequences, concatenated.
     public func joined() -> FlattenCursor<MapCursor<Self, IteratorCursor<Self.Element.Iterator>>> {
         return flatMap { $0 }
+    }
+}
+
+/// A cursor whose elements consist of the elements that follow the initial
+/// consecutive elements of some base cursor that satisfy a given predicate.
+public final class DropWhileCursor<Base: Cursor> : Cursor {
+    private var base: Base
+    private var predicate: (Base.Element) throws -> Bool
+    private var predicateHasFailed = false
+    
+    init(_ base: Base, predicate: @escaping (Base.Element) throws -> Bool) {
+        self.base = base
+        self.predicate = predicate
+    }
+    
+    public func next() throws -> Base.Element? {
+        if predicateHasFailed {
+            return try base.next()
+        }
+        
+        while let nextElement = try base.next() {
+            if try !predicate(nextElement) {
+                predicateHasFailed = true
+                return nextElement
+            }
+        }
+        return nil
     }
 }
 
