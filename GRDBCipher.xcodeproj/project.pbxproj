@@ -688,6 +688,10 @@
 		56CC924D201E059100CB597E /* DropFirstCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC924B201E059100CB597E /* DropFirstCursorTests.swift */; };
 		56CC924E201E059100CB597E /* DropFirstCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC924B201E059100CB597E /* DropFirstCursorTests.swift */; };
 		56CC924F201E059100CB597E /* DropFirstCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC924B201E059100CB597E /* DropFirstCursorTests.swift */; };
+		56CC9257201E094F00CB597E /* PrefixCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC9256201E094E00CB597E /* PrefixCursorTests.swift */; };
+		56CC9258201E094F00CB597E /* PrefixCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC9256201E094E00CB597E /* PrefixCursorTests.swift */; };
+		56CC9259201E094F00CB597E /* PrefixCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC9256201E094E00CB597E /* PrefixCursorTests.swift */; };
+		56CC925A201E094F00CB597E /* PrefixCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC9256201E094E00CB597E /* PrefixCursorTests.swift */; };
 		56CEB4F21EAA2EFA00BFAF62 /* RowConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CEB4F01EAA2EFA00BFAF62 /* RowConvertible.swift */; };
 		56CEB4F51EAA2EFA00BFAF62 /* RowConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CEB4F01EAA2EFA00BFAF62 /* RowConvertible.swift */; };
 		56CEB4FB1EAA2F4D00BFAF62 /* FTS3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CEB4F81EAA2F4D00BFAF62 /* FTS3.swift */; };
@@ -1015,6 +1019,7 @@
 		56CC922E201DFFE200CB597E /* DropWhileCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DropWhileCursorTests.swift; sourceTree = "<group>"; };
 		56CC923D201E034200CB597E /* PrefixWhileCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrefixWhileCursorTests.swift; sourceTree = "<group>"; };
 		56CC924B201E059100CB597E /* DropFirstCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DropFirstCursorTests.swift; sourceTree = "<group>"; };
+		56CC9256201E094E00CB597E /* PrefixCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrefixCursorTests.swift; sourceTree = "<group>"; };
 		56CEB4F01EAA2EFA00BFAF62 /* RowConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowConvertible.swift; sourceTree = "<group>"; };
 		56CEB4F81EAA2F4D00BFAF62 /* FTS3.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS3.swift; sourceTree = "<group>"; };
 		56CEB4F91EAA2F4D00BFAF62 /* FTS4.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS4.swift; sourceTree = "<group>"; };
@@ -1591,6 +1596,7 @@
 				562393681DEE0CD200A6B01F /* FlattenCursorTests.swift */,
 				562393441DEDFE4500A6B01F /* IteratorCursorTests.swift */,
 				562393711DEE104400A6B01F /* MapCursorTests.swift */,
+				56CC9256201E094E00CB597E /* PrefixCursorTests.swift */,
 				56CC923D201E034200CB597E /* PrefixWhileCursorTests.swift */,
 			);
 			name = Cursor;
@@ -2093,6 +2099,7 @@
 				560FC5781CB00B880014AA8E /* RowFromStatementTests.swift in Sources */,
 				560FC5791CB00B880014AA8E /* RecordPrimaryKeyMultipleTests.swift in Sources */,
 				562393461DEDFE4500A6B01F /* IteratorCursorTests.swift in Sources */,
+				56CC9257201E094F00CB597E /* PrefixCursorTests.swift in Sources */,
 				5698AC971DA4B0430056AF8C /* FTS4RecordTests.swift in Sources */,
 				5657AB4F1D108BA9006283EF /* FoundationNSNumberTests.swift in Sources */,
 				56CC9236201E009700CB597E /* DropWhileCursorTests.swift in Sources */,
@@ -2236,6 +2243,7 @@
 				567156361CB16729007DC145 /* RowFromStatementTests.swift in Sources */,
 				567156371CB16729007DC145 /* RecordPrimaryKeyMultipleTests.swift in Sources */,
 				5657AB401D108BA9006283EF /* FoundationNSDataTests.swift in Sources */,
+				56CC9258201E094F00CB597E /* PrefixCursorTests.swift in Sources */,
 				562393471DEDFE4500A6B01F /* IteratorCursorTests.swift in Sources */,
 				5698AC981DA4B0430056AF8C /* FTS4RecordTests.swift in Sources */,
 				56CC9237201E009800CB597E /* DropWhileCursorTests.swift in Sources */,
@@ -2476,6 +2484,7 @@
 				56AFCA4A1CB1AA9900F48B96 /* RecordInitializersTests.swift in Sources */,
 				566AD8CB1D531BED002EC1A8 /* TableDefinitionTests.swift in Sources */,
 				56AFCA4B1CB1AA9900F48B96 /* MutablePersistableTests.swift in Sources */,
+				56CC9259201E094F00CB597E /* PrefixCursorTests.swift in Sources */,
 				5657AB431D108BA9006283EF /* FoundationNSDataTests.swift in Sources */,
 				56AFCA4C1CB1AA9900F48B96 /* RowConvertible+QueryInterfaceRequestTests.swift in Sources */,
 				56CC9238201E009900CB597E /* DropWhileCursorTests.swift in Sources */,
@@ -2619,6 +2628,7 @@
 				569C1EB71CF07DDD0042627B /* SchedulingWatchdogTests.swift in Sources */,
 				56AFCAA01CB1ABC800F48B96 /* RowFromStatementTests.swift in Sources */,
 				5690C32C1D23E6D800E59934 /* FoundationDateComponentsTests.swift in Sources */,
+				56CC925A201E094F00CB597E /* PrefixCursorTests.swift in Sources */,
 				56AFCAA21CB1ABC800F48B96 /* StatementArgumentsTests.swift in Sources */,
 				56AFCAA31CB1ABC800F48B96 /* RecordInitializersTests.swift in Sources */,
 				56CC9239201E009A00CB597E /* DropWhileCursorTests.swift in Sources */,

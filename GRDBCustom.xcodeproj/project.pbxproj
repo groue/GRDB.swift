@@ -224,6 +224,8 @@
 		56CC923C201E033400CB597E /* PrefixWhileCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC923A201E033400CB597E /* PrefixWhileCursorTests.swift */; };
 		56CC9249201E058900CB597E /* DropFirstCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC9248201E058900CB597E /* DropFirstCursorTests.swift */; };
 		56CC924A201E058900CB597E /* DropFirstCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC9248201E058900CB597E /* DropFirstCursorTests.swift */; };
+		56CC9254201E094600CB597E /* PrefixCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC9253201E094600CB597E /* PrefixCursorTests.swift */; };
+		56CC9255201E094600CB597E /* PrefixCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC9253201E094600CB597E /* PrefixCursorTests.swift */; };
 		56CEB4F31EAA2EFA00BFAF62 /* RowConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CEB4F01EAA2EFA00BFAF62 /* RowConvertible.swift */; };
 		56CEB4F61EAA2EFA00BFAF62 /* RowConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CEB4F01EAA2EFA00BFAF62 /* RowConvertible.swift */; };
 		56CEB4FC1EAA2F4D00BFAF62 /* FTS3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CEB4F81EAA2F4D00BFAF62 /* FTS3.swift */; };
@@ -715,6 +717,7 @@
 		56CC9231201DFFF600CB597E /* DropWhileCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DropWhileCursorTests.swift; sourceTree = "<group>"; };
 		56CC923A201E033400CB597E /* PrefixWhileCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrefixWhileCursorTests.swift; sourceTree = "<group>"; };
 		56CC9248201E058900CB597E /* DropFirstCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DropFirstCursorTests.swift; sourceTree = "<group>"; };
+		56CC9253201E094600CB597E /* PrefixCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrefixCursorTests.swift; sourceTree = "<group>"; };
 		56CEB4F01EAA2EFA00BFAF62 /* RowConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowConvertible.swift; sourceTree = "<group>"; };
 		56CEB4F81EAA2F4D00BFAF62 /* FTS3.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS3.swift; sourceTree = "<group>"; };
 		56CEB4F91EAA2F4D00BFAF62 /* FTS4.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS4.swift; sourceTree = "<group>"; };
@@ -1273,6 +1276,7 @@
 				562393681DEE0CD200A6B01F /* FlattenCursorTests.swift */,
 				562393441DEDFE4500A6B01F /* IteratorCursorTests.swift */,
 				562393711DEE104400A6B01F /* MapCursorTests.swift */,
+				56CC9253201E094600CB597E /* PrefixCursorTests.swift */,
 				56CC923A201E033400CB597E /* PrefixWhileCursorTests.swift */,
 			);
 			name = Cursor;
@@ -1804,6 +1808,7 @@
 				F3BA80FD1CFB3024003DC1BA /* TransactionObserverSavepointsTests.swift in Sources */,
 				F3BA811F1CFB3063003DC1BA /* RecordMinimalPrimaryKeySingleTests.swift in Sources */,
 				5657AB451D108BA9006283EF /* FoundationNSDataTests.swift in Sources */,
+				56CC9255201E094600CB597E /* PrefixCursorTests.swift in Sources */,
 				F3BA80EA1CFB3016003DC1BA /* RowFromStatementTests.swift in Sources */,
 				F3BA80AF1CFB2FB1003DC1BA /* DatabaseCollationTests.swift in Sources */,
 				56CC9235201E009100CB597E /* DropWhileCursorTests.swift in Sources */,
@@ -2044,6 +2049,7 @@
 				F3BA80EF1CFB3017003DC1BA /* RowFromStatementTests.swift in Sources */,
 				562393481DEDFE4500A6B01F /* IteratorCursorTests.swift in Sources */,
 				5657AB511D108BA9006283EF /* FoundationNSNumberTests.swift in Sources */,
+				56CC9254201E094600CB597E /* PrefixCursorTests.swift in Sources */,
 				562393331DEDFC5700A6B01F /* AnyCursorTests.swift in Sources */,
 				56B964DB1DA5216B0002DA19 /* FTS5RecordTests.swift in Sources */,
 				56CC9234201E009000CB597E /* DropWhileCursorTests.swift in Sources */,
