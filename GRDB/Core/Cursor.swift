@@ -182,7 +182,7 @@ extension Cursor {
     
     /// Returns a cursor containing all but the first element of the cursor.
     ///
-    /// The following example drops the first element from an array of integers.
+    /// The following example drops the first element from a cursor of integers.
     ///
     ///     let numbers = IteratorCursor([1, 2, 3, 4, 5])
     ///     try print(numbers.dropFirst())
@@ -229,7 +229,22 @@ extension Cursor {
         }
         return result
     }
-
+    
+    /// Returns an array containing all but the last element of the cursor.
+    ///
+    /// The following example drops the last element from a cursor of integers.
+    ///
+    ///     let numbers = IteratorCursor([1, 2, 3, 4, 5])
+    ///     try print(numbers.dropLast())
+    ///     // Prints "[1, 2, 3, 4]"
+    ///
+    /// If the cursor has no elements, the result is an empty cursor.
+    ///
+    /// - Returns: An array leaving off the last element of the cursor.
+    public func dropLast() throws -> [Element] {
+        return try dropLast(1)
+    }
+    
     /// Returns a cursor over the concatenated results of mapping transform
     /// over self.
     public func flatMap<SegmentOfResult: Sequence>(_ transform: @escaping (Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<Self, IteratorCursor<SegmentOfResult.Iterator>>> {
