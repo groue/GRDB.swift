@@ -463,6 +463,31 @@ extension Cursor where Element: Sequence {
     }
 }
 
+// MARK: String elements
+
+extension Cursor where Element: StringProtocol {
+    /// Returns the elements of this cursor of sequences, concatenated.
+    public func joined(separator: String = "") throws -> String {
+        if separator.isEmpty {
+            var result = ""
+            while let x = try next() {
+                result.append(String(x))
+            }
+            return result
+        } else {
+            var result = ""
+            if let first = try next() {
+                result.append(String(first))
+                while let next = try next() {
+                    result.append(separator)
+                    result.append(String(next))
+                }
+            }
+            return result
+        }
+    }
+}
+
 // MARK: Specialized Cursors
 
 /// A type-erased cursor of Element.
