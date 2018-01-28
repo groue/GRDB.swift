@@ -160,6 +160,26 @@ extension Cursor {
         return DropWhileCursor(self, predicate: predicate)
     }
     
+    /// Returns a cursor containing all but the given number of initial
+    /// elements.
+    ///
+    /// If the number of elements to drop exceeds the number of elements in
+    /// the cursor, the result is an empty cursor.
+    ///
+    ///     let numbers = IteratorCursor([1, 2, 3, 4, 5])
+    ///     try print(numbers.dropFirst(2))
+    ///     // Prints "[3, 4, 5]"
+    ///     try print(numbers.dropFirst(10))
+    ///     // Prints "[]"
+    ///
+    /// - Parameter n: The number of elements to drop from the beginning of
+    ///   the cursor. `n` must be greater than or equal to zero.
+    /// - Returns: A cursor starting after the specified number of
+    ///   elements.
+    public func dropFirst(_ n: Int) -> DropFirstCursor<Self> {
+        return DropFirstCursor(self, limit: n)
+    }
+
     /// Returns a cursor over the concatenated results of mapping transform
     /// over self.
     public func flatMap<SegmentOfResult: Sequence>(_ transform: @escaping (Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<Self, IteratorCursor<SegmentOfResult.Iterator>>> {
@@ -214,14 +234,13 @@ extension Cursor {
     /// cursor.
     ///
     ///     let numbers = IteratorCursor([1, 2, 3, 4, 5])
-    ///     print(numbers.suffix(2))
+    ///     try print(numbers.suffix(2))
     ///     // Prints "[4, 5]"
-    ///     print(numbers.suffix(10))
+    ///     try print(numbers.suffix(10))
     ///     // Prints "[1, 2, 3, 4, 5]"
     ///
     /// - Parameter maxLength: The maximum number of elements to return. The
     ///   value of `maxLength` must be greater than or equal to zero.
-    /// - Complexity: O(*n*), where *n* is the length of the sequence.
     public func suffix(_ maxLength: Int) throws -> [Element] {
         GRDBPrecondition(maxLength >= 0, "Can't take a suffix of negative length from a cursor")
         if maxLength == 0 {
@@ -276,6 +295,29 @@ extension Cursor where Element: Sequence {
     /// Returns the elements of this cursor of sequences, concatenated.
     public func joined() -> FlattenCursor<MapCursor<Self, IteratorCursor<Self.Element.Iterator>>> {
         return flatMap { $0 }
+    }
+}
+
+public final class DropFirstCursor<Base: Cursor> : Cursor {
+    private var base: Base
+    private let limit: Int
+    private var dropped: Int = 0
+
+    init(_ base: Base, limit: Int) {
+        GRDBPrecondition(limit >= 0, "Can't drop a negative number of elements from a cursor")
+        self.base = base
+        self.limit = limit
+    }
+    
+    public func next() throws -> Base.Element? {
+        while dropped < limit {
+            if try base.next() == nil {
+                dropped = limit
+                return nil
+            }
+            dropped += 1
+        }
+        return try base.next()
     }
 }
 
