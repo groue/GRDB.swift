@@ -1,3 +1,5 @@
+// MARK: - Array, Sequence, Set extensions
+
 extension Array {
     /// Creates an array containing the elements of a cursor.
     ///
@@ -8,6 +10,15 @@ extension Array {
         while let element = try cursor.next() {
             append(element)
         }
+    }
+}
+
+extension Sequence {
+    
+    /// Returns a cursor over the concatenated results of mapping transform
+    /// over self.
+    public func flatMap<SegmentOfResult: Cursor>(_ transform: @escaping (Iterator.Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<IteratorCursor<Self.Iterator>, SegmentOfResult>> {
+        return IteratorCursor(self).flatMap(transform)
     }
 }
 
@@ -23,6 +34,8 @@ extension Set {
         }
     }
 }
+
+// MARK: - Cursor
 
 /// A type that supplies the values of some external resource, one at a time.
 ///
@@ -66,33 +79,6 @@ public protocol Cursor : class {
     /// Advances to the next element and returns it, or nil if no next element
     /// exists. Once nil has been returned, all subsequent calls return nil.
     func next() throws -> Element?
-}
-
-/// A type-erased cursor of Element.
-///
-/// This cursor forwards its next() method to an arbitrary underlying cursor
-/// having the same Element type, hiding the specifics of the underlying
-/// cursor.
-public class AnyCursor<Element> : Cursor {
-    /// Creates a cursor that wraps a base cursor but whose type depends only on
-    /// the base cursor’s element type
-    public init<C: Cursor>(_ base: C) where C.Element == Element {
-        element = base.next
-    }
-    
-    /// Creates a cursor that wraps the given closure in its next() method
-    public init(_ body: @escaping () throws -> Element?) {
-        element = body
-    }
-    
-    /// Advances to the next element and returns it, or nil if no next
-    /// element exists.
-    /// :nodoc:
-    public func next() throws -> Element? {
-        return try element()
-    }
-    
-    private let element: () throws -> Element?
 }
 
 extension Cursor {
@@ -270,6 +256,46 @@ extension Cursor {
         return MapCursor(self, transform)
     }
     
+    /// Returns the maximum element in the cursor, using the given predicate as
+    /// the comparison between elements.
+    ///
+    /// - Parameter areInIncreasingOrder: A predicate that returns `true`
+    ///   if its first argument should be ordered before its second
+    ///   argument; otherwise, `false`.
+    /// - Returns: The cursor's maximum element, according to
+    ///   `areInIncreasingOrder`. If the cursor has no elements, returns `nil`.
+    public func max(by areInIncreasingOrder: (Element, Element) throws -> Bool) throws -> Element? {
+        guard var result = try next() else {
+            return nil
+        }
+        while let e = try next() {
+            if try areInIncreasingOrder(result, e) {
+                result = e
+            }
+        }
+        return result
+    }
+    
+    /// Returns the minimum element in the cursor, using the given predicate as
+    /// the comparison between elements.
+    ///
+    /// - Parameter areInIncreasingOrder: A predicate that returns `true`
+    ///   if its first argument should be ordered before its second
+    ///   argument; otherwise, `false`.
+    /// - Returns: The cursor's minimum element, according to
+    ///   `areInIncreasingOrder`. If the cursor has no elements, returns `nil`.
+    public func min(by areInIncreasingOrder: (Element, Element) throws -> Bool) throws -> Element? {
+        guard var result = try next() else {
+            return nil
+        }
+        while let e = try next() {
+            if try areInIncreasingOrder(e, result) {
+                result = e
+            }
+        }
+        return result
+    }
+    
     /// Returns a cursor, up to the specified maximum length, containing the
     /// initial elements of the cursor.
     ///
@@ -304,7 +330,7 @@ extension Cursor {
     }
     
     /// Returns the result of calling the given combining closure with each
-    /// element of this sequence and an accumulating value.
+    /// element of this cursor and an accumulating value.
     public func reduce<Result>(_ initialResult: Result, _ nextPartialResult: (Result, Element) throws -> Result) throws -> Result {
         var result = initialResult
         while let element = try next() {
@@ -358,6 +384,7 @@ extension Cursor {
     }
 }
 
+// MARK: Equatable elements
 extension Cursor where Element: Equatable {
     /// Returns a Boolean value indicating whether the cursor contains the
     /// given element.
@@ -371,6 +398,36 @@ extension Cursor where Element: Equatable {
     }
 }
 
+// MARK: Comparable elements
+
+extension Cursor where Element: Comparable {
+    /// Returns the maximum element in the cursor.
+    ///
+    /// - Parameter areInIncreasingOrder: A predicate that returns `true`
+    ///   if its first argument should be ordered before its second
+    ///   argument; otherwise, `false`.
+    /// - Returns: The cursor's maximum element, according to
+    ///   `areInIncreasingOrder`. If the cursor has no elements, returns
+    ///   `nil`.
+    public func max() throws -> Element? {
+        return try max(by: <)
+    }
+    
+    /// Returns the minimum element in the cursor.
+    ///
+    /// - Parameter areInIncreasingOrder: A predicate that returns `true`
+    ///   if its first argument should be ordered before its second
+    ///   argument; otherwise, `false`.
+    /// - Returns: The cursor's minimum element, according to
+    ///   `areInIncreasingOrder`. If the cursor has no elements, returns
+    ///   `nil`.
+    public func min() throws -> Element? {
+        return try min(by: <)
+    }
+}
+
+// MARK: Cursor elements
+
 extension Cursor where Element: Cursor {
     /// Returns the elements of this cursor of cursors, concatenated.
     public func joined() -> FlattenCursor<Self> {
@@ -378,11 +435,42 @@ extension Cursor where Element: Cursor {
     }
 }
 
+// MARK: Sequence elements
+
 extension Cursor where Element: Sequence {
     /// Returns the elements of this cursor of sequences, concatenated.
     public func joined() -> FlattenCursor<MapCursor<Self, IteratorCursor<Self.Element.Iterator>>> {
         return flatMap { $0 }
     }
+}
+
+// MARK: Specialized Cursors
+
+/// A type-erased cursor of Element.
+///
+/// This cursor forwards its next() method to an arbitrary underlying cursor
+/// having the same Element type, hiding the specifics of the underlying
+/// cursor.
+public class AnyCursor<Element> : Cursor {
+    /// Creates a cursor that wraps a base cursor but whose type depends only on
+    /// the base cursor’s element type
+    public init<C: Cursor>(_ base: C) where C.Element == Element {
+        element = base.next
+    }
+    
+    /// Creates a cursor that wraps the given closure in its next() method
+    public init(_ body: @escaping () throws -> Element?) {
+        element = body
+    }
+    
+    /// Advances to the next element and returns it, or nil if no next
+    /// element exists.
+    /// :nodoc:
+    public func next() throws -> Element? {
+        return try element()
+    }
+    
+    private let element: () throws -> Element?
 }
 
 public final class DropFirstCursor<Base: Cursor> : Cursor {
@@ -612,11 +700,3 @@ public final class IteratorCursor<Base: IteratorProtocol> : Cursor {
     private var base: Base
 }
 
-extension Sequence {
-    
-    /// Returns a cursor over the concatenated results of mapping transform
-    /// over self.
-    public func flatMap<SegmentOfResult: Cursor>(_ transform: @escaping (Iterator.Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<IteratorCursor<Self.Iterator>, SegmentOfResult>> {
-        return IteratorCursor(self).flatMap(transform)
-    }
-}
