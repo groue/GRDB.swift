@@ -180,6 +180,21 @@ extension Cursor {
         return DropFirstCursor(self, limit: n)
     }
     
+    /// Returns a cursor containing all but the first element of the cursor.
+    ///
+    /// The following example drops the first element from an array of integers.
+    ///
+    ///     let numbers = IteratorCursor([1, 2, 3, 4, 5])
+    ///     try print(numbers.dropFirst())
+    ///     // Prints "[2, 3, 4, 5]"
+    ///
+    /// If the cursor has no elements, the result is an empty cursor.
+    ///
+    /// - Returns: A cursor starting after the first element of the cursor.
+    public func dropFirst() -> DropFirstCursor<Self> {
+        return dropFirst(1)
+    }
+
     /// Returns an array containing all but the given number of final
     /// elements.
     ///
@@ -240,17 +255,6 @@ extension Cursor {
         return MapCursor(self, transform)
     }
     
-    /// Returns a cursor of the initial consecutive elements that satisfy
-    /// `predicate`.
-    ///
-    /// - Parameter predicate: A closure that takes an element of the cursor as
-    ///   its argument and returns `true` if the element should be included or
-    ///   `false` otherwise. Once `predicate` returns `false` it will not be
-    ///   called again.
-    public func prefix(while predicate: @escaping (Element) throws -> Bool) -> PrefixWhileCursor<Self> {
-        return PrefixWhileCursor(self, predicate: predicate)
-    }
-    
     /// Returns a cursor, up to the specified maximum length, containing the
     /// initial elements of the cursor.
     ///
@@ -271,6 +275,17 @@ extension Cursor {
         // TODO: test that [1,2,3,4].prefix(2).prefix(1) is equivalent to
         // [1,2,3,4].prefix(1).
         return PrefixCursor(self, maxLength: maxLength)
+    }
+    
+    /// Returns a cursor of the initial consecutive elements that satisfy
+    /// `predicate`.
+    ///
+    /// - Parameter predicate: A closure that takes an element of the cursor as
+    ///   its argument and returns `true` if the element should be included or
+    ///   `false` otherwise. Once `predicate` returns `false` it will not be
+    ///   called again.
+    public func prefix(while predicate: @escaping (Element) throws -> Bool) -> PrefixWhileCursor<Self> {
+        return PrefixWhileCursor(self, predicate: predicate)
     }
     
     /// Returns the result of calling the given combining closure with each
