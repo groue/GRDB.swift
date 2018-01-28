@@ -331,12 +331,30 @@ extension Cursor {
     
     /// Returns the result of calling the given combining closure with each
     /// element of this cursor and an accumulating value.
-    public func reduce<Result>(_ initialResult: Result, _ nextPartialResult: (Result, Element) throws -> Result) throws -> Result {
-        var result = initialResult
+    public func reduce<Result>(
+        _ initialResult: Result,
+        _ nextPartialResult: (Result, Element) throws -> Result)
+        throws -> Result
+    {
+        var accumulator = initialResult
         while let element = try next() {
-            result = try nextPartialResult(result, element)
+            accumulator = try nextPartialResult(accumulator, element)
         }
-        return result
+        return accumulator
+    }
+    
+    /// Returns the result of calling the given combining closure with each
+    /// element of this cursor and an accumulating value.
+    public func reduce<Result>(
+        into initialResult: Result,
+        _ updateAccumulatingResult: (inout Result, Element) throws -> Void)
+        throws -> Result
+    {
+        var accumulator = initialResult
+        while let element = try next() {
+            try updateAccumulatingResult(&accumulator, element)
+        }
+        return accumulator
     }
     
     /// Returns an array, up to the given maximum length, containing the
