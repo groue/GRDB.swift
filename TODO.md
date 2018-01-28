@@ -10,8 +10,6 @@
     - [ ] REGEXP https://www.sqlite.org/lang_expr.html
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
 - [ ] Write regression tests for #156 and #157
-- [ ] SQLite 3.22.0
-    - [ ] Support for [FTS5 Initial Token Queries](https://sqlite.org/fts5.html#carrotq)
 
 GRDB 3.0
 
