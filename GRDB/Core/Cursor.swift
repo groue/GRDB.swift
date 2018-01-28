@@ -185,6 +185,17 @@ extension Cursor {
         return MapCursor(self, transform)
     }
     
+    /// Returns a cursor of the initial consecutive elements that satisfy
+    /// `predicate`.
+    ///
+    /// - Parameter predicate: A closure that takes an element of the cursor as
+    ///   its argument and returns `true` if the element should be included or
+    ///   `false` otherwise. Once `predicate` returns `false` it will not be
+    ///   called again.
+    public func prefix(while predicate: @escaping (Element) -> Bool) -> PrefixWhileCursor<Self> {
+        return PrefixWhileCursor(self, predicate: predicate)
+    }
+
     /// Returns the result of calling the given combining closure with each
     /// element of this sequence and an accumulating value.
     public func reduce<Result>(_ initialResult: Result, _ nextPartialResult: (Result, Element) throws -> Result) throws -> Result {
@@ -353,6 +364,30 @@ public final class MapCursor<Base: Cursor, Element> : Cursor {
     
     private let base: Base
     private let transform: (Base.Element) throws -> Element
+}
+
+/// A cursor whose elements consist of the initial consecutive elements of
+/// some base cursor that satisfy a given predicate.
+public final class PrefixWhileCursor<Base: Cursor> : Cursor {
+    private var base: Base
+    private var predicate: (Base.Element) throws -> Bool
+    private var predicateHasFailed = false
+    
+    init(_ base: Base, predicate: @escaping (Base.Element) throws -> Bool) {
+        self.base = base
+        self.predicate = predicate
+    }
+    
+    public func next() throws -> Base.Element? {
+        if !predicateHasFailed, let nextElement = try base.next() {
+            if try predicate(nextElement) {
+                return nextElement
+            } else {
+                predicateHasFailed = true
+            }
+        }
+        return nil
+    }
 }
 
 /// A Cursor whose elements are those of a sequence iterator.
