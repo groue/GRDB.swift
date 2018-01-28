@@ -17,7 +17,7 @@ extension Sequence {
     
     /// Returns a cursor over the concatenated results of mapping transform
     /// over self.
-    public func flatMap<SegmentOfResult: Cursor>(_ transform: @escaping (Iterator.Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<IteratorCursor<Self.Iterator>, SegmentOfResult>> {
+    public func flatMap<SegmentOfResult: Cursor>(_ transform: @escaping (Iterator.Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<IteratorCursor<Iterator>, SegmentOfResult>> {
         return IteratorCursor(self).flatMap(transform)
     }
 }
@@ -59,19 +59,11 @@ extension Set {
 /// - A cursor can not be repeated.
 ///
 /// The protocol comes with default implementations for many operations similar
-/// to those defined by Swift's LazySequenceProtocol:
-///
-/// - `func contains(Self.Element)`
-/// - `func contains(where: (Self.Element) throws -> Bool)`
-/// - `func enumerated()`
-/// - `func filter((Self.Element) throws -> Bool)`
-/// - `func first(where: (Self.Element) throws -> Bool)`
-/// - `func flatMap<ElementOfResult>((Self.Element) throws -> ElementOfResult?)`
-/// - `func flatMap<SegmentOfResult>((Self.Element) throws -> SegmentOfResult)`
-/// - `func forEach((Self.Element) throws -> Void)`
-/// - `func joined()`
-/// - `func map<T>((Self.Element) throws -> T)`
-/// - `func reduce<Result>(Result, (Result, Self.Element) throws -> Result)`
+/// to those defined by Swift's Sequence protocol: `contains`, `dropFirst`,
+/// `dropLast`, `drop(while:)`, `enumerated`, `filter`, `first`, `flatMap`,
+/// `forEach`, `joined`, `joined(separator:)`, `max`, `max(by:)`, `min`,
+/// `min(by:)`, `map`, `prefix`, `prefix(while:)`, `reduce`, `reduce(into:)`,
+/// `suffix`.
 public protocol Cursor : class {
     /// The type of element traversed by the cursor.
     associatedtype Element
@@ -313,8 +305,6 @@ extension Cursor {
     /// - Returns: A cursor starting at the beginning of this cursor
     ///   with at most `maxLength` elements.
     public func prefix(_ maxLength: Int) -> PrefixCursor<Self> {
-        // TODO: test that [1,2,3,4].prefix(2).prefix(1) is equivalent to
-        // [1,2,3,4].prefix(1).
         return PrefixCursor(self, maxLength: maxLength)
     }
     
@@ -458,7 +448,7 @@ extension Cursor where Element: Cursor {
 
 extension Cursor where Element: Sequence {
     /// Returns the elements of this cursor of sequences, concatenated.
-    public func joined() -> FlattenCursor<MapCursor<Self, IteratorCursor<Self.Element.Iterator>>> {
+    public func joined() -> FlattenCursor<MapCursor<Self, IteratorCursor<Element.Iterator>>> {
         return flatMap { $0 }
     }
 }
@@ -496,6 +486,8 @@ extension Cursor where Element: StringProtocol {
 /// having the same Element type, hiding the specifics of the underlying
 /// cursor.
 public class AnyCursor<Element> : Cursor {
+    private let element: () throws -> Element?
+    
     /// Creates a cursor that wraps a base cursor but whose type depends only on
     /// the base cursor’s element type
     public init<C: Cursor>(_ base: C) where C.Element == Element {
@@ -513,12 +505,10 @@ public class AnyCursor<Element> : Cursor {
     public func next() throws -> Element? {
         return try element()
     }
-    
-    private let element: () throws -> Element?
 }
 
 public final class DropFirstCursor<Base: Cursor> : Cursor {
-    private var base: Base
+    private let base: Base
     private let limit: Int
     private var dropped: Int = 0
 
@@ -543,8 +533,8 @@ public final class DropFirstCursor<Base: Cursor> : Cursor {
 /// A cursor whose elements consist of the elements that follow the initial
 /// consecutive elements of some base cursor that satisfy a given predicate.
 public final class DropWhileCursor<Base: Cursor> : Cursor {
-    private var base: Base
-    private var predicate: (Base.Element) throws -> Bool
+    private let base: Base
+    private let predicate: (Base.Element) throws -> Bool
     private var predicateHasFailed = false
     
     init(_ base: Base, predicate: @escaping (Base.Element) throws -> Bool) {
@@ -580,9 +570,12 @@ public final class DropWhileCursor<Base: Cursor> : Cursor {
 ///     // Prints: "0: foo"
 ///     // Prints: "1: bar"
 public final class EnumeratedCursor<Base: Cursor> : Cursor {
+    private let base: Base
+    private var index: Int
+    
     init(_ base: Base) {
-        self.index = 0
         self.base = base
+        self.index = 0
     }
     
     /// Advances to the next element and returns it, or nil if no next
@@ -593,14 +586,14 @@ public final class EnumeratedCursor<Base: Cursor> : Cursor {
         defer { index += 1 }
         return (index, element)
     }
-    
-    private var index: Int
-    private var base: Base
 }
 
 /// A cursor whose elements consist of the elements of some base cursor that
 /// also satisfy a given predicate.
 public final class FilterCursor<Base: Cursor> : Cursor {
+    private let base: Base
+    private let isIncluded: (Base.Element) throws -> Bool
+    
     init(_ base: Base, _ isIncluded: @escaping (Base.Element) throws -> Bool) {
         self.base = base
         self.isIncluded = isIncluded
@@ -617,9 +610,6 @@ public final class FilterCursor<Base: Cursor> : Cursor {
         }
         return nil
     }
-    
-    private let base: Base
-    private let isIncluded: (Base.Element) throws -> Bool
 }
 
 /// A cursor consisting of all the elements contained in each segment contained
@@ -627,6 +617,9 @@ public final class FilterCursor<Base: Cursor> : Cursor {
 ///
 /// See Cursor.joined(), Cursor.flatMap(_:), Sequence.flatMap(_:)
 public final class FlattenCursor<Base: Cursor> : Cursor where Base.Element: Cursor {
+    private let base: Base
+    private var inner: Base.Element?
+    
     init(_ base: Base) {
         self.base = base
     }
@@ -645,9 +638,6 @@ public final class FlattenCursor<Base: Cursor> : Cursor where Base.Element: Curs
             self.inner = inner
         }
     }
-    
-    private var inner: Base.Element?
-    private let base: Base
 }
 
 /// A Cursor whose elements consist of those in a Base Cursor passed through a
@@ -655,6 +645,9 @@ public final class FlattenCursor<Base: Cursor> : Cursor where Base.Element: Curs
 ///
 /// See Cursor.map(_:)
 public final class MapCursor<Base: Cursor, Element> : Cursor {
+    private let base: Base
+    private let transform: (Base.Element) throws -> Element
+    
     init(_ base: Base, _ transform: @escaping (Base.Element) throws -> Element) {
         self.base = base
         self.transform = transform
@@ -667,15 +660,12 @@ public final class MapCursor<Base: Cursor, Element> : Cursor {
         guard let element = try base.next() else { return nil }
         return try transform(element)
     }
-    
-    private let base: Base
-    private let transform: (Base.Element) throws -> Element
 }
 
 /// A cursor that only consumes up to `n` elements from an underlying
 /// `Base` cursor.
 public final class PrefixCursor<Base: Cursor> : Cursor {
-    private var base: Base
+    private let base: Base
     private let maxLength: Int
     private var taken = 0
     
@@ -700,8 +690,8 @@ public final class PrefixCursor<Base: Cursor> : Cursor {
 /// A cursor whose elements consist of the initial consecutive elements of
 /// some base cursor that satisfy a given predicate.
 public final class PrefixWhileCursor<Base: Cursor> : Cursor {
-    private var base: Base
-    private var predicate: (Base.Element) throws -> Bool
+    private let base: Base
+    private let predicate: (Base.Element) throws -> Bool
     private var predicateHasFailed = false
     
     init(_ base: Base, predicate: @escaping (Base.Element) throws -> Bool) {
@@ -723,7 +713,8 @@ public final class PrefixWhileCursor<Base: Cursor> : Cursor {
 
 /// A Cursor whose elements are those of a sequence iterator.
 public final class IteratorCursor<Base: IteratorProtocol> : Cursor {
-    
+    private var base: Base
+
     /// Creates a cursor from a sequence iterator.
     public init(_ base: Base) {
         self.base = base
@@ -740,7 +731,5 @@ public final class IteratorCursor<Base: IteratorProtocol> : Cursor {
     public func next() -> Base.Element? {
         return base.next()
     }
-    
-    private var base: Base
 }
 
