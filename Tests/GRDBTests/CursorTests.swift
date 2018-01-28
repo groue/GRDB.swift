@@ -126,6 +126,12 @@ class CursorTests: GRDBTestCase {
         XCTAssertEqual(squareSum, 5)
     }
     
+    func testReduceInto() throws {
+        let cursor = IteratorCursor([1, 2])
+        let squareSum = try cursor.reduce(into: 0) { (acc, int) in acc += int * int }
+        XCTAssertEqual(squareSum, 5)
+    }
+
     func testSuffix() throws {
         do {
             let cursor = IteratorCursor([1, 2, 3, 4, 5])
