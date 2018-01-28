@@ -507,6 +507,7 @@ public class AnyCursor<Element> : Cursor {
     }
 }
 
+/// :nodoc:
 public final class DropFirstCursor<Base: Cursor> : Cursor {
     private let base: Base
     private let limit: Int
@@ -532,6 +533,8 @@ public final class DropFirstCursor<Base: Cursor> : Cursor {
 
 /// A cursor whose elements consist of the elements that follow the initial
 /// consecutive elements of some base cursor that satisfy a given predicate.
+///
+/// :nodoc:
 public final class DropWhileCursor<Base: Cursor> : Cursor {
     private let base: Base
     private let predicate: (Base.Element) throws -> Bool
@@ -569,6 +572,8 @@ public final class DropWhileCursor<Base: Cursor> : Cursor {
 ///     }
 ///     // Prints: "0: foo"
 ///     // Prints: "1: bar"
+///
+/// :nodoc:
 public final class EnumeratedCursor<Base: Cursor> : Cursor {
     private let base: Base
     private var index: Int
@@ -590,6 +595,8 @@ public final class EnumeratedCursor<Base: Cursor> : Cursor {
 
 /// A cursor whose elements consist of the elements of some base cursor that
 /// also satisfy a given predicate.
+///
+/// :nodoc:
 public final class FilterCursor<Base: Cursor> : Cursor {
     private let base: Base
     private let isIncluded: (Base.Element) throws -> Bool
@@ -616,6 +623,8 @@ public final class FilterCursor<Base: Cursor> : Cursor {
 /// in some Base cursor.
 ///
 /// See Cursor.joined(), Cursor.flatMap(_:), Sequence.flatMap(_:)
+///
+/// :nodoc:
 public final class FlattenCursor<Base: Cursor> : Cursor where Base.Element: Cursor {
     private let base: Base
     private var inner: Base.Element?
@@ -644,6 +653,8 @@ public final class FlattenCursor<Base: Cursor> : Cursor where Base.Element: Curs
 /// transform function returning Element.
 ///
 /// See Cursor.map(_:)
+///
+/// :nodoc:
 public final class MapCursor<Base: Cursor, Element> : Cursor {
     private let base: Base
     private let transform: (Base.Element) throws -> Element
@@ -664,6 +675,8 @@ public final class MapCursor<Base: Cursor, Element> : Cursor {
 
 /// A cursor that only consumes up to `n` elements from an underlying
 /// `Base` cursor.
+///
+/// :nodoc:
 public final class PrefixCursor<Base: Cursor> : Cursor {
     private let base: Base
     private let maxLength: Int
@@ -689,6 +702,8 @@ public final class PrefixCursor<Base: Cursor> : Cursor {
 
 /// A cursor whose elements consist of the initial consecutive elements of
 /// some base cursor that satisfy a given predicate.
+///
+/// :nodoc:
 public final class PrefixWhileCursor<Base: Cursor> : Cursor {
     private let base: Base
     private let predicate: (Base.Element) throws -> Bool
