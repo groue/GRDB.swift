@@ -205,6 +205,51 @@ extension Cursor {
         }
         return result
     }
+    
+    /// Returns an array, up to the given maximum length, containing the
+    /// final elements of the cursor.
+    ///
+    /// The cursor must be finite. If the maximum length exceeds the number of
+    /// elements in the cursor, the result contains all the elements in the
+    /// cursor.
+    ///
+    ///     let numbers = IteratorCursor([1, 2, 3, 4, 5])
+    ///     print(numbers.suffix(2))
+    ///     // Prints "[4, 5]"
+    ///     print(numbers.suffix(10))
+    ///     // Prints "[1, 2, 3, 4, 5]"
+    ///
+    /// - Parameter maxLength: The maximum number of elements to return. The
+    ///   value of `maxLength` must be greater than or equal to zero.
+    /// - Complexity: O(*n*), where *n* is the length of the sequence.
+    public func suffix(_ maxLength: Int) throws -> [Element] {
+        GRDBPrecondition(maxLength >= 0, "Can't take a suffix of negative length from a cursor")
+        if maxLength == 0 {
+            return []
+        }
+        
+        var ringBuffer: [Element] = []
+        ringBuffer.reserveCapacity(maxLength)
+        
+        var i = ringBuffer.startIndex
+        
+        while let element = try next() {
+            if ringBuffer.count < maxLength {
+                ringBuffer.append(element)
+            } else {
+                ringBuffer[i] = element
+                i += 1
+                i %= maxLength
+            }
+        }
+        
+        if i != ringBuffer.startIndex {
+            let s0 = ringBuffer[i..<ringBuffer.endIndex]
+            let s1 = ringBuffer[0..<i]
+            return Array([s0, s1].joined())
+        }
+        return ringBuffer
+    }
 }
 
 extension Cursor where Element: Equatable {
