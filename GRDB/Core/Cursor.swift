@@ -1,3 +1,14 @@
+//===----------------------------------------------------------------------===//
+//
+// Parts of this file are derived from the Swift.org open source project:
+//
+// Copyright (c) 2014 - 2018 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+//
+// See https://swift.org/LICENSE.txt for license information
+//
+//===----------------------------------------------------------------------===//
+
 // MARK: - Array, Sequence, Set extensions
 
 extension Array {
@@ -747,4 +758,3 @@ public final class IteratorCursor<Base: IteratorProtocol> : Cursor {
         return base.next()
     }
 }
-
