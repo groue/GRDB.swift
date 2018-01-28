@@ -108,4 +108,22 @@ class CursorTests: GRDBTestCase {
         let squareSum = try cursor.reduce(0) { (acc, int) in acc + int * int }
         XCTAssertEqual(squareSum, 5)
     }
+    
+    func testSuffix() throws {
+        do {
+            let cursor = IteratorCursor([1, 2, 3, 4, 5])
+            let suffix = try cursor.suffix(0)
+            XCTAssertTrue(suffix == [])
+        }
+        do {
+            let cursor = IteratorCursor([1, 2, 3, 4, 5])
+            let suffix = try cursor.suffix(2)
+            XCTAssertTrue(suffix == [4, 5])
+        }
+        do {
+            let cursor = IteratorCursor([1, 2, 3, 4, 5])
+            let suffix = try cursor.suffix(10)
+            XCTAssertTrue(suffix == [1, 2, 3, 4, 5])
+        }
+    }
 }
