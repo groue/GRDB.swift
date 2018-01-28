@@ -177,8 +177,6 @@ extension Cursor {
     /// - Returns: A cursor starting after the specified number of
     ///   elements.
     public func dropFirst(_ n: Int) -> DropFirstCursor<Self> {
-        // TODO: test that [1,2,3,4].dropFirst(1).dropFirst(1) is equivalent to
-        // [1,2,3,4].dropFirst(2).
         return DropFirstCursor(self, limit: n)
     }
     
