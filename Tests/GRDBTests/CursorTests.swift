@@ -110,6 +110,33 @@ class CursorTests: GRDBTestCase {
         }
     }
     
+    func testJoinedWithSeparator() throws {
+        do {
+            let x = try IteratorCursor([String]()).joined()
+            XCTAssertEqual(x, "")
+        }
+        do {
+            let x = try IteratorCursor([String]()).joined(separator: "><")
+            XCTAssertEqual(x, "")
+        }
+        do {
+            let x = try IteratorCursor(["foo"]).joined()
+            XCTAssertEqual(x, "foo")
+        }
+        do {
+            let x = try IteratorCursor(["foo"]).joined(separator: "><")
+            XCTAssertEqual(x, "foo")
+        }
+        do {
+            let x = try IteratorCursor(["foo", "bar", "baz"]).joined()
+            XCTAssertEqual(x, "foobarbaz")
+        }
+        do {
+            let x = try IteratorCursor(["foo", "bar", "baz"]).joined(separator: "><")
+            XCTAssertEqual(x, "foo><bar><baz")
+        }
+    }
+    
     func testMax() {
         XCTAssertEqual(try IteratorCursor([1, 2, 3]).max(), 3)
         XCTAssertEqual(try IteratorCursor([1, 2, 3]).max(by: >), 1)
