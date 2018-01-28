@@ -222,6 +222,8 @@
 		56CC9235201E009100CB597E /* DropWhileCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC9231201DFFF600CB597E /* DropWhileCursorTests.swift */; };
 		56CC923B201E033400CB597E /* PrefixWhileCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC923A201E033400CB597E /* PrefixWhileCursorTests.swift */; };
 		56CC923C201E033400CB597E /* PrefixWhileCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC923A201E033400CB597E /* PrefixWhileCursorTests.swift */; };
+		56CC9249201E058900CB597E /* DropFirstCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC9248201E058900CB597E /* DropFirstCursorTests.swift */; };
+		56CC924A201E058900CB597E /* DropFirstCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC9248201E058900CB597E /* DropFirstCursorTests.swift */; };
 		56CEB4F31EAA2EFA00BFAF62 /* RowConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CEB4F01EAA2EFA00BFAF62 /* RowConvertible.swift */; };
 		56CEB4F61EAA2EFA00BFAF62 /* RowConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CEB4F01EAA2EFA00BFAF62 /* RowConvertible.swift */; };
 		56CEB4FC1EAA2F4D00BFAF62 /* FTS3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CEB4F81EAA2F4D00BFAF62 /* FTS3.swift */; };
@@ -712,6 +714,7 @@
 		56C494421ED726C500CC72AF /* GRDBDeploymentTarget.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = GRDBDeploymentTarget.xcconfig; path = SQLiteCustom/GRDBDeploymentTarget.xcconfig; sourceTree = "<group>"; };
 		56CC9231201DFFF600CB597E /* DropWhileCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DropWhileCursorTests.swift; sourceTree = "<group>"; };
 		56CC923A201E033400CB597E /* PrefixWhileCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrefixWhileCursorTests.swift; sourceTree = "<group>"; };
+		56CC9248201E058900CB597E /* DropFirstCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DropFirstCursorTests.swift; sourceTree = "<group>"; };
 		56CEB4F01EAA2EFA00BFAF62 /* RowConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowConvertible.swift; sourceTree = "<group>"; };
 		56CEB4F81EAA2F4D00BFAF62 /* FTS3.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS3.swift; sourceTree = "<group>"; };
 		56CEB4F91EAA2F4D00BFAF62 /* FTS4.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS4.swift; sourceTree = "<group>"; };
@@ -1263,6 +1266,7 @@
 				5623932F1DEDFC5700A6B01F /* AnyCursorTests.swift */,
 				5623935F1DEE06D300A6B01F /* CursorTests.swift */,
 				56DAA2D11DE99DAB006E10C8 /* DatabaseCursorTests.swift */,
+				56CC9248201E058900CB597E /* DropFirstCursorTests.swift */,
 				56CC9231201DFFF600CB597E /* DropWhileCursorTests.swift */,
 				5623934D1DEDFEFB00A6B01F /* EnumeratedCursorTests.swift */,
 				562393561DEE013C00A6B01F /* FilterCursorTests.swift */,
@@ -1844,6 +1848,7 @@
 				F3BA80D61CFB2FFD003DC1BA /* DatabaseReaderTests.swift in Sources */,
 				5698AC9D1DA4B0430056AF8C /* FTS4RecordTests.swift in Sources */,
 				56A4CDB71D4234B200B1A9B9 /* SQLExpressionLiteralTests.swift in Sources */,
+				56CC924A201E058900CB597E /* DropFirstCursorTests.swift in Sources */,
 				56B964D21DA521450002DA19 /* FTS5RecordTests.swift in Sources */,
 				F3BA80F91CFB3021003DC1BA /* UpdateStatementTests.swift in Sources */,
 				56A5EF161EF7F20B00F03071 /* ForeignKeyInfoTests.swift in Sources */,
@@ -2083,6 +2088,7 @@
 				F3BA81321CFB3064003DC1BA /* RecordPrimaryKeySingleWithReplaceConflictResolutionTests.swift in Sources */,
 				5623935A1DEE013C00A6B01F /* FilterCursorTests.swift in Sources */,
 				F3BA80FC1CFB3021003DC1BA /* UpdateStatementTests.swift in Sources */,
+				56CC9249201E058900CB597E /* DropFirstCursorTests.swift in Sources */,
 				5623936C1DEE0CD200A6B01F /* FlattenCursorTests.swift in Sources */,
 				F3BA80E01CFB300F003DC1BA /* DatabaseTimestampTests.swift in Sources */,
 				56A5EF121EF7F20B00F03071 /* ForeignKeyInfoTests.swift in Sources */,
