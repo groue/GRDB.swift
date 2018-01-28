@@ -32,6 +32,7 @@ class CursorTests: GRDBTestCase {
         XCTAssertTrue(try IteratorCursor([1, 2, 3, 4, 5]).dropLast(0) == [1, 2, 3, 4, 5])
         XCTAssertTrue(try IteratorCursor([1, 2, 3, 4, 5]).dropLast(2) == [1, 2, 3])
         XCTAssertTrue(try IteratorCursor([1, 2, 3, 4, 5]).dropLast(10) == [])
+        XCTAssertTrue(try IteratorCursor([1, 2, 3, 4, 5]).dropLast() == [1, 2, 3, 4])
     }
     
     func testContainsIsLazy() {
