@@ -247,7 +247,7 @@ extension Cursor {
     ///   its argument and returns `true` if the element should be included or
     ///   `false` otherwise. Once `predicate` returns `false` it will not be
     ///   called again.
-    public func prefix(while predicate: @escaping (Element) -> Bool) -> PrefixWhileCursor<Self> {
+    public func prefix(while predicate: @escaping (Element) throws -> Bool) -> PrefixWhileCursor<Self> {
         return PrefixWhileCursor(self, predicate: predicate)
     }
     
