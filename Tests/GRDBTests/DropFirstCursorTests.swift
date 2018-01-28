@@ -38,6 +38,16 @@ class DropFirstCursorTests: GRDBTestCase {
             XCTAssertTrue(try cursor.next() == nil) // end
             XCTAssertTrue(try cursor.next() == nil) // past the end
         }
+        do {
+            let base = IteratorCursor([1, 2, 3, 4, 5])
+            let cursor = base.dropFirst()
+            try XCTAssertEqual(cursor.next()!, 2)
+            try XCTAssertEqual(cursor.next()!, 3)
+            try XCTAssertEqual(cursor.next()!, 4)
+            try XCTAssertEqual(cursor.next()!, 5)
+            XCTAssertTrue(try cursor.next() == nil) // end
+            XCTAssertTrue(try cursor.next() == nil) // past the end
+        }
     }
     
     func testDropFirstCursorFromThrowingCursor() throws {
