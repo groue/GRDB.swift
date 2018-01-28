@@ -9,28 +9,28 @@ import XCTest
 
 private struct TestError : Error { }
 
-class DropWhileCursorTests: GRDBTestCase {
+class PrefixWhileCursorTests: GRDBTestCase {
     
-    func testDropWhileCursorFromCursor() throws {
+    func testPrefixWhileCursorFromCursor() throws {
         let base = IteratorCursor([1, 2, 3, 1, 5])
-        let cursor = base.drop(while: { $0 < 3 })
-        try XCTAssertEqual(cursor.next()!, 3)
+        let cursor = base.prefix(while: { $0 < 3 })
         try XCTAssertEqual(cursor.next()!, 1)
-        try XCTAssertEqual(cursor.next()!, 5)
+        try XCTAssertEqual(cursor.next()!, 2)
         XCTAssertTrue(try cursor.next() == nil) // end
         XCTAssertTrue(try cursor.next() == nil) // past the end
     }
     
-    func testDropWhileCursorFromThrowingCursor() throws {
-        var i = 0
+    func testPrefixWhileCursorFromThrowingCursor() throws {
+        var i = 1
         let base: AnyCursor<Int> = AnyCursor {
-            guard i < 4 else { throw TestError() }
+            guard i < 3 else { throw TestError() }
             defer { i += 1 }
             return i
         }
 
-        let cursor = base.drop(while: { $0 < 3 })
-        try XCTAssertEqual(cursor.next()!, 3)
+        let cursor = base.prefix(while: { $0 < 4 })
+        try XCTAssertEqual(cursor.next()!, 1)
+        try XCTAssertEqual(cursor.next()!, 2)
         do {
             _ = try cursor.next()
             XCTFail()

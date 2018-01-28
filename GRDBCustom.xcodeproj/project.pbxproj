@@ -220,6 +220,8 @@
 		56C7A6AE1D2DFF6100EFB0C2 /* FoundationNSDateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56F0B98E1B6001C600A2F135 /* FoundationNSDateTests.swift */; };
 		56CC9234201E009000CB597E /* DropWhileCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC9231201DFFF600CB597E /* DropWhileCursorTests.swift */; };
 		56CC9235201E009100CB597E /* DropWhileCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC9231201DFFF600CB597E /* DropWhileCursorTests.swift */; };
+		56CC923B201E033400CB597E /* PrefixWhileCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC923A201E033400CB597E /* PrefixWhileCursorTests.swift */; };
+		56CC923C201E033400CB597E /* PrefixWhileCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC923A201E033400CB597E /* PrefixWhileCursorTests.swift */; };
 		56CEB4F31EAA2EFA00BFAF62 /* RowConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CEB4F01EAA2EFA00BFAF62 /* RowConvertible.swift */; };
 		56CEB4F61EAA2EFA00BFAF62 /* RowConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CEB4F01EAA2EFA00BFAF62 /* RowConvertible.swift */; };
 		56CEB4FC1EAA2F4D00BFAF62 /* FTS3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CEB4F81EAA2F4D00BFAF62 /* FTS3.swift */; };
@@ -709,6 +711,7 @@
 		56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = GRDBDeploymentTarget.xcconfig; sourceTree = "<group>"; };
 		56C494421ED726C500CC72AF /* GRDBDeploymentTarget.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = GRDBDeploymentTarget.xcconfig; path = SQLiteCustom/GRDBDeploymentTarget.xcconfig; sourceTree = "<group>"; };
 		56CC9231201DFFF600CB597E /* DropWhileCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DropWhileCursorTests.swift; sourceTree = "<group>"; };
+		56CC923A201E033400CB597E /* PrefixWhileCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrefixWhileCursorTests.swift; sourceTree = "<group>"; };
 		56CEB4F01EAA2EFA00BFAF62 /* RowConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowConvertible.swift; sourceTree = "<group>"; };
 		56CEB4F81EAA2F4D00BFAF62 /* FTS3.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS3.swift; sourceTree = "<group>"; };
 		56CEB4F91EAA2F4D00BFAF62 /* FTS4.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS4.swift; sourceTree = "<group>"; };
@@ -1266,6 +1269,7 @@
 				562393681DEE0CD200A6B01F /* FlattenCursorTests.swift */,
 				562393441DEDFE4500A6B01F /* IteratorCursorTests.swift */,
 				562393711DEE104400A6B01F /* MapCursorTests.swift */,
+				56CC923A201E033400CB597E /* PrefixWhileCursorTests.swift */,
 			);
 			name = Cursor;
 			sourceTree = "<group>";
@@ -1770,6 +1774,7 @@
 				F3BA810A1CFB3056003DC1BA /* FoundationNSDateTests.swift in Sources */,
 				5657AB4D1D108BA9006283EF /* FoundationNSNullTests.swift in Sources */,
 				5627564A1E963AAC0035B653 /* DatabaseWriterTests.swift in Sources */,
+				56CC923C201E033400CB597E /* PrefixWhileCursorTests.swift in Sources */,
 				F3BA80E51CFB3011003DC1BA /* DatabaseFunctionTests.swift in Sources */,
 				F3BA80531CFB2B59003DC1BA /* DataMemoryTests.swift in Sources */,
 				F3BA80511CFB2B59003DC1BA /* DatabaseQueueReleaseMemoryTests.swift in Sources */,
@@ -2008,6 +2013,7 @@
 				566AD8C91D531BEB002EC1A8 /* TableDefinitionTests.swift in Sources */,
 				56071A501DB54ED300CA6E47 /* FetchedRecordsControllerTests.swift in Sources */,
 				F3BA80AC1CFB2FA6003DC1BA /* DatabaseQueueSchemaCacheTests.swift in Sources */,
+				56CC923B201E033400CB597E /* PrefixWhileCursorTests.swift in Sources */,
 				562756461E963AAC0035B653 /* DatabaseWriterTests.swift in Sources */,
 				56A8C2461D1918EF0096E9D4 /* FoundationUUIDTests.swift in Sources */,
 				F3BA80F61CFB301E003DC1BA /* StatementColumnConvertibleFetchTests.swift in Sources */,
