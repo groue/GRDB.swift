@@ -177,7 +177,44 @@ extension Cursor {
     /// - Returns: A cursor starting after the specified number of
     ///   elements.
     public func dropFirst(_ n: Int) -> DropFirstCursor<Self> {
+        // TODO: test that [1,2,3,4].dropFirst(1).dropFirst(1) is equivalent to
+        // [1,2,3,4].dropFirst(2).
         return DropFirstCursor(self, limit: n)
+    }
+    
+    /// Returns an array containing all but the given number of final
+    /// elements.
+    ///
+    /// The cursor must be finite. If the number of elements to drop exceeds
+    /// the number of elements in the cursor, the result is an empty array.
+    ///
+    ///     let numbers = IteratorCursor([1, 2, 3, 4, 5])
+    ///     try print(numbers.dropLast(2))
+    ///     // Prints "[1, 2, 3]"
+    ///     try print(numbers.dropLast(10))
+    ///     // Prints "[]"
+    ///
+    /// - Parameter n: The number of elements to drop off the end of the
+    ///   cursor. `n` must be greater than or equal to zero.
+    /// - Returns: An array leaving off the specified number of elements.
+    public func dropLast(_ n: Int) throws -> [Element] {
+        GRDBPrecondition(n >= 0, "Can't drop a negative number of elements from a cursor")
+        if n == 0 { return try Array(self) }
+        
+        var result: [Element] = []
+        var ringBuffer: [Element] = []
+        var i = ringBuffer.startIndex
+        
+        while let element = try next() {
+            if ringBuffer.count < n {
+                ringBuffer.append(element)
+            } else {
+                result.append(ringBuffer[i])
+                ringBuffer[i] = element
+                i = ringBuffer.index(after: i) % n
+            }
+        }
+        return result
     }
 
     /// Returns a cursor over the concatenated results of mapping transform
