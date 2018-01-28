@@ -250,7 +250,29 @@ extension Cursor {
     public func prefix(while predicate: @escaping (Element) -> Bool) -> PrefixWhileCursor<Self> {
         return PrefixWhileCursor(self, predicate: predicate)
     }
-
+    
+    /// Returns a cursor, up to the specified maximum length, containing the
+    /// initial elements of the cursor.
+    ///
+    /// If the maximum length exceeds the number of elements in the cursor,
+    /// the result contains all the elements in the cursor.
+    ///
+    ///     let numbers = IteratorCursor([1, 2, 3, 4, 5])
+    ///     try print(numbers.prefix(2))
+    ///     // Prints "[1, 2]"
+    ///     try print(numbers.prefix(10))
+    ///     // Prints "[1, 2, 3, 4, 5]"
+    ///
+    /// - Parameter maxLength: The maximum number of elements to return. The
+    ///   value of `maxLength` must be greater than or equal to zero.
+    /// - Returns: A cursor starting at the beginning of this cursor
+    ///   with at most `maxLength` elements.
+    public func prefix(_ maxLength: Int) -> PrefixCursor<Self> {
+        // TODO: test that [1,2,3,4].prefix(2).prefix(1) is equivalent to
+        // [1,2,3,4].prefix(1).
+        return PrefixCursor(self, maxLength: maxLength)
+    }
+    
     /// Returns the result of calling the given combining closure with each
     /// element of this sequence and an accumulating value.
     public func reduce<Result>(_ initialResult: Result, _ nextPartialResult: (Result, Element) throws -> Result) throws -> Result {
@@ -486,6 +508,31 @@ public final class MapCursor<Base: Cursor, Element> : Cursor {
     
     private let base: Base
     private let transform: (Base.Element) throws -> Element
+}
+
+/// A cursor that only consumes up to `n` elements from an underlying
+/// `Base` cursor.
+public final class PrefixCursor<Base: Cursor> : Cursor {
+    private var base: Base
+    private let maxLength: Int
+    private var taken = 0
+    
+    init(_ base: Base, maxLength: Int) {
+        self.base = base
+        self.maxLength = maxLength
+    }
+    
+    public func next() throws -> Base.Element? {
+        if taken >= maxLength { return nil }
+        taken += 1
+        
+        if let next = try base.next() {
+            return next
+        }
+        
+        taken = maxLength
+        return nil
+    }
 }
 
 /// A cursor whose elements consist of the initial consecutive elements of
