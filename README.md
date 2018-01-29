@@ -662,7 +662,7 @@ Date.fetchCursor(...)   // DatabaseValueCursor<Date>
 Player.fetchCursor(...) // RecordCursor<Player>
 ```
 
-All cursor types adopt the [Cursor](http://groue.github.io/GRDB.swift/docs/2.7/Protocols/Cursor.html) protocol, which looks a lot like standard [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol) of Swift. As such, cursors come with many methods: `contains`, `enumerated`, `filter`, `first`, `flatMap`, `forEach`, `joined`, `map`, `reduce`:
+All cursor types adopt the [Cursor](http://groue.github.io/GRDB.swift/docs/2.7/Protocols/Cursor.html) protocol, which looks a lot like standard [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol) of Swift. As such, cursors come with many convenience methods: `contains`, `dropFirst`, `dropLast`, `drop(while:)`, `enumerated`, `filter`, `first`, `flatMap`, `forEach`, `joined`, `joined(separator:)`, `max`, `max(by:)`, `min`, `min(by:)`, `map`, `prefix`, `prefix(while:)`, `reduce`, `reduce(into:)`, `suffix`:
 
 ```swift
 // Iterate all Github links
@@ -676,6 +676,12 @@ let cursor = URL
     .fetchCursor(db, "SELECT url FROM links")
     .filter { url in url.host == "github.com" }
 let githubURLs = try Array(cursor) // [URL]
+
+// Turn a cursor into a set:
+let cursor = URL
+    .fetchCursor(db, "SELECT url FROM links")
+    .flatMap { url in url.host }
+let hosts = try Set(cursor) // Set<String>
 ```
 
 > :point_up: Don't modify the fetched results during a cursor iteration:
