@@ -19,8 +19,10 @@ GRDB 3.0
 - [ ] Do one of those two:
     1. Make save() impossible to customize: remove it from Persistable protocol, and remove performSave() from tne public API.
     2. Open Record.save(), and have RecordBox.save() forward this method to its underlying type.
-- [ ] Make the MutablePersistable.update(_:columns:) method mutating (as support for an updatedDate column)
-- [ ] Introduce some record protocol with an associated primary key type. Restrict filter(key:) methods to this type. Allow distinguishing FooId from BarId types.
+- [ ] Not sure: Make the MutablePersistable.update(_:columns:) method mutating (as support for an updatedDate column)
+- [ ] Not sure: type safety
+    - [ ] Introduce some record protocol with an associated primary key type. Restrict filter(key:) methods to this type. Allow distinguishing FooId from BarId types.
+    - [ ] Replace Column with TypedColumn. How to avoid code duplication (repeated types)? Keypaths?
 - [ ] Rename Request to FetchRequest, because Request is a bad name: https://github.com/swift-server/http/pull/7#issuecomment-308448528
 - [ ] Rename RowConvertible, TableMapping, MutablePersistable and Persistable so that their names contain Record: FetchableRecord, TableRecord, MutablePersistableRecord, PersistableRecord?
 - [ ] Not sure: Consider introducing RowDecodable and RowEncodable on top of FetchableRecord and MutablePersistableRecord. This would allow keeping fetching and persistence methods private in some files.
