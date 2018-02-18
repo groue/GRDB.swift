@@ -2,14 +2,14 @@
 ///
 /// See https://github.com/groue/GRDB.swift#the-query-interface
 public struct QueryInterfaceRequest<T> {
-    let query: QueryInterfaceSelectQueryDefinition
+    let query: QueryInterfaceQuery
     
-    init(query: QueryInterfaceSelectQueryDefinition) {
+    init(query: QueryInterfaceQuery) {
         self.query = query
     }
 }
 
-extension QueryInterfaceRequest : TypedRequest {
+extension QueryInterfaceRequest : FetchRequest {
     public typealias RowDecoder = T
     
     /// A tuple that contains a prepared statement that is ready to be
@@ -394,7 +394,10 @@ extension TableMapping {
     /// all requests by the `TableMapping.databaseSelection` property, or
     /// for individual requests with the `TableMapping.select` method.
     public static func all() -> QueryInterfaceRequest<Self> {
-        return QueryInterfaceRequest(query: QueryInterfaceSelectQueryDefinition(select: databaseSelection, from: .table(name: databaseTableName, alias: nil)))
+        let query = QueryInterfaceQuery(
+            select: databaseSelection,
+            from: .table(name: databaseTableName, alias: nil))
+        return QueryInterfaceRequest(query: query)
     }
     
     /// Creates a QueryInterfaceRequest which fetches no record.

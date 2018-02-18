@@ -654,73 +654,6 @@ extension Row {
 
 extension Row {
     
-    // MARK: - Fetching From Request
-    
-    /// Returns a cursor over rows fetched from a fetch request.
-    ///
-    ///     let idColumn = Column("id")
-    ///     let nameColumn = Column("name")
-    ///     let request = Player.select(idColumn, nameColumn)
-    ///     let rows = try Row.fetchCursor(db) // RowCursor
-    ///     while let row = try rows.next() {  // Row
-    ///         let id: Int64 = row[0]
-    ///         let name: String = row[1]
-    ///     }
-    ///
-    /// Fetched rows are reused during the cursor iteration: don't turn a row
-    /// cursor into an array with `Array(rows)` or `rows.filter { ... }` since
-    /// you would not get the distinct rows you expect. Use `Row.fetchAll(...)`
-    /// instead.
-    ///
-    /// For the same reason, make sure you make a copy whenever you extract a
-    /// row for later use: `row.copy()`.
-    ///
-    /// If the database is modified during the cursor iteration, the remaining
-    /// elements are undefined.
-    ///
-    /// The cursor must be iterated in a protected dispath queue.
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - request: A fetch request.
-    /// - returns: A cursor over fetched rows.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database, _ request: Request) throws -> RowCursor {
-        let (statement, adapter) = try request.prepare(db)
-        return try fetchCursor(statement, adapter: adapter)
-    }
-    
-    /// Returns an array of rows fetched from a fetch request.
-    ///
-    ///     let idColumn = Column("id")
-    ///     let nameColumn = Column("name")
-    ///     let request = Player.select(idColumn, nameColumn)
-    ///     let rows = try Row.fetchAll(db, request)
-    ///
-    /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll(_ db: Database, _ request: Request) throws -> [Row] {
-        let (statement, adapter) = try request.prepare(db)
-        return try fetchAll(statement, adapter: adapter)
-    }
-    
-    /// Returns a single row fetched from a fetch request.
-    ///
-    ///     let idColumn = Column("id")
-    ///     let nameColumn = Column("name")
-    ///     let request = Player.select(idColumn, nameColumn)
-    ///     let row = try Row.fetchOne(db, request)
-    ///
-    /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne(_ db: Database, _ request: Request) throws -> Row? {
-        let (statement, adapter) = try request.prepare(db)
-        return try fetchOne(statement, adapter: adapter)
-    }
-}
-
-extension Row {
-    
     // MARK: - Fetching From SQL
     
     /// Returns a cursor over rows fetched from an SQL query.
@@ -752,7 +685,7 @@ extension Row {
     /// - returns: A cursor over fetched rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> RowCursor {
-        return try fetchCursor(db, SQLRequest(sql, arguments: arguments, adapter: adapter))
+        return try SQLRequest<Row>(sql, arguments: arguments, adapter: adapter).fetchCursor(db)
     }
     
     /// Returns an array of rows fetched from an SQL query.
@@ -767,7 +700,7 @@ extension Row {
     /// - returns: An array of rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Row] {
-        return try fetchAll(db, SQLRequest(sql, arguments: arguments, adapter: adapter))
+        return try SQLRequest<Row>(sql, arguments: arguments, adapter: adapter).fetchAll(db)
     }
     
     /// Returns a single row fetched from an SQL query.
@@ -782,7 +715,68 @@ extension Row {
     /// - returns: An optional row.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Row? {
-        return try fetchOne(db, SQLRequest(sql, arguments: arguments, adapter: adapter))
+        return try SQLRequest<Row>(sql, arguments: arguments, adapter: adapter).fetchOne(db)
+    }
+}
+
+extension FetchRequest where RowDecoder: Row {
+    
+    // MARK: Fetching Rows
+    
+    /// A cursor over fetched rows.
+    ///
+    ///     let request: ... // Some TypedRequest that fetches Row
+    ///     let rows = try request.fetchCursor(db) // RowCursor
+    ///     while let row = try rows.next() {  // Row
+    ///         let id: Int64 = row[0]
+    ///         let name: String = row[1]
+    ///     }
+    ///
+    /// Fetched rows are reused during the cursor iteration: don't turn a row
+    /// cursor into an array with `Array(rows)` or `rows.filter { ... }` since
+    /// you would not get the distinct rows you expect. Use `Row.fetchAll(...)`
+    /// instead.
+    ///
+    /// For the same reason, make sure you make a copy whenever you extract a
+    /// row for later use: `row.copy()`.
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
+    ///
+    /// The cursor must be iterated in a protected dispath queue.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A cursor over fetched rows.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchCursor(_ db: Database) throws -> RowCursor {
+        let (statement, adapter) = try prepare(db)
+        return try Row.fetchCursor(statement, adapter: adapter)
+    }
+    
+    /// An array of fetched rows.
+    ///
+    ///     let request: ... // Some TypedRequest that fetches Row
+    ///     let rows = try request.fetchAll(db)
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: An array of fetched rows.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchAll(_ db: Database) throws -> [Row] {
+        let (statement, adapter) = try prepare(db)
+        return try Row.fetchAll(statement, adapter: adapter)
+    }
+    
+    /// The first fetched row.
+    ///
+    ///     let request: ... // Some TypedRequest that fetches Row
+    ///     let row = try request.fetchOne(db)
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A,n optional rows.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchOne(_ db: Database) throws -> Row? {
+        let (statement, adapter) = try prepare(db)
+        return try Row.fetchOne(statement, adapter: adapter)
     }
 }
 

@@ -676,71 +676,38 @@ class AdapterRowTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                let row = try SQLRequest("SELECT 0 AS a0, 1 AS a1, 2 AS a2", adapter: SuffixRowAdapter(fromIndex: 1))
-                    .asRequest(of: Row.self)
+                let row = try SQLRequest<Row>("SELECT 0 AS a0, 1 AS a1, 2 AS a2", adapter: SuffixRowAdapter(fromIndex: 1))
                     .fetchOne(db)!
                 XCTAssertEqual(Array(row.columnNames), ["a1", "a2"])
                 XCTAssertEqual(Array(row.databaseValues), [1.databaseValue, 2.databaseValue])
             }
             do {
-                let row = try SQLRequest("SELECT 0 AS a0, 1 AS a1, 2 AS a2")
+                let row = try SQLRequest<Row>("SELECT 0 AS a0, 1 AS a1, 2 AS a2")
                     .adapted { _ in SuffixRowAdapter(fromIndex: 1) }
-                    .asRequest(of: Row.self)
                     .fetchOne(db)!
                 XCTAssertEqual(Array(row.columnNames), ["a1", "a2"])
                 XCTAssertEqual(Array(row.databaseValues), [1.databaseValue, 2.databaseValue])
             }
             do {
-                let row = try SQLRequest("SELECT 0 AS a0, 1 AS a1, 2 AS a2", adapter: SuffixRowAdapter(fromIndex: 1))
+                let row = try SQLRequest<Row>("SELECT 0 AS a0, 1 AS a1, 2 AS a2", adapter: SuffixRowAdapter(fromIndex: 1))
                     .adapted { _ in SuffixRowAdapter(fromIndex: 1) }
-                    .asRequest(of: Row.self)
                     .fetchOne(db)!
                 XCTAssertEqual(Array(row.columnNames), ["a2"])
                 XCTAssertEqual(Array(row.databaseValues), [2.databaseValue])
             }
             do {
-                let row = try SQLRequest("SELECT 0 AS a0", adapter: ColumnMapping(["a1": "a0"]))
+                let row = try SQLRequest<Row>("SELECT 0 AS a0", adapter: ColumnMapping(["a1": "a0"]))
                     .adapted { _ in ColumnMapping(["a2": "a1"]) }
-                    .asRequest(of: Row.self)
                     .fetchOne(db)!
                 XCTAssertEqual(Array(row.columnNames), ["a2"])
                 XCTAssertEqual(Array(row.databaseValues), [0.databaseValue])
             }
-        }
-    }
-
-    func testTypedRequestAdapter() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
             do {
-                let row = try SQLRequest("SELECT 0 AS a0, 1 AS a1, 2 AS a2", adapter: SuffixRowAdapter(fromIndex: 1))
-                    .asRequest(of: Row.self)
-                    .fetchOne(db)!
-                XCTAssertEqual(Array(row.columnNames), ["a1", "a2"])
-                XCTAssertEqual(Array(row.databaseValues), [1.databaseValue, 2.databaseValue])
-            }
-            do {
-                let row = try SQLRequest("SELECT 0 AS a0, 1 AS a1, 2 AS a2")
-                    .asRequest(of: Row.self)
-                    .adapted { _ in SuffixRowAdapter(fromIndex: 1) }
-                    .fetchOne(db)!
-                XCTAssertEqual(Array(row.columnNames), ["a1", "a2"])
-                XCTAssertEqual(Array(row.databaseValues), [1.databaseValue, 2.databaseValue])
-            }
-            do {
-                let row = try SQLRequest("SELECT 0 AS a0, 1 AS a1, 2 AS a2", adapter: SuffixRowAdapter(fromIndex: 1))
-                    .asRequest(of: Row.self)
-                    .adapted { _ in SuffixRowAdapter(fromIndex: 1) }
-                    .fetchOne(db)!
-                XCTAssertEqual(Array(row.columnNames), ["a2"])
-                XCTAssertEqual(Array(row.databaseValues), [2.databaseValue])
-            }
-            do {
-                let row = try SQLRequest("SELECT 0 AS a0", adapter: ColumnMapping(["a1": "a0"]))
-                    .asRequest(of: Row.self)
+                let row = try SQLRequest<Row>("SELECT 0 AS a0", adapter: ColumnMapping(["a1": "a0"]))
                     .adapted { _ in ColumnMapping(["a2": "a1"]) }
+                    .adapted { _ in ColumnMapping(["a3": "a2"]) }
                     .fetchOne(db)!
-                XCTAssertEqual(Array(row.columnNames), ["a2"])
+                XCTAssertEqual(Array(row.columnNames), ["a3"])
                 XCTAssertEqual(Array(row.databaseValues), [0.databaseValue])
             }
         }

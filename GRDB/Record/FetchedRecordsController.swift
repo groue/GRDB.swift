@@ -47,7 +47,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     {
         try self.init(
             databaseWriter,
-            request: SQLRequest(sql, arguments: arguments, adapter: adapter).asRequest(of: Record.self),
+            request: SQLRequest<Record>(sql, arguments: arguments, adapter: adapter),
             queue: queue,
             isSameRecord: isSameRecord)
     }
@@ -79,7 +79,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         request: Request,
         queue: DispatchQueue = .main,
         isSameRecord: ((Record, Record) -> Bool)? = nil) throws
-        where Request: TypedRequest, Request.RowDecoder == Record
+        where Request: FetchRequest, Request.RowDecoder == Record
     {
         let itemsAreIdenticalFactory: ItemComparatorFactory<Record>
         if let isSameRecord = isSameRecord {
@@ -100,12 +100,14 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         request: Request,
         queue: DispatchQueue,
         itemsAreIdenticalFactory: @escaping ItemComparatorFactory<Record>) throws
-        where Request: TypedRequest, Request.RowDecoder == Record
+        where Request: FetchRequest, Request.RowDecoder == Record
     {
         self.itemsAreIdenticalFactory = itemsAreIdenticalFactory
-        self.request = request
+        self.request = ItemRequest(request)
         (self.region, self.itemsAreIdentical) = try databaseWriter.unsafeRead { db in
-            try FetchedRecordsController.fetchRegionAndComparator(db, request: request, itemsAreIdenticalFactory: itemsAreIdenticalFactory)
+            let region = try request.fetchedRegion(db)
+            let itemsAreIdentical = try itemsAreIdenticalFactory(db)
+            return (region, itemsAreIdentical)
         }
         self.databaseWriter = databaseWriter
         self.queue = queue
@@ -130,7 +132,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         // observer is added on the same serialized queue as transaction
         // callbacks.
         try databaseWriter.write { db in
-            let initialItems = try Item<Record>.fetchAll(db, request)
+            let initialItems = try request.fetchAll(db)
             fetchedItems = initialItems
             if let fetchAndNotifyChanges = fetchAndNotifyChanges {
                 let observer = FetchedRecordsObserver(region: self.region, fetchAndNotifyChanges: fetchAndNotifyChanges)
@@ -160,10 +162,12 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///
     /// This method must be used from the controller's dispatch queue (the
     /// main queue unless stated otherwise in the controller's initializer).
-    public func setRequest<Request>(_ request: Request) throws where Request: TypedRequest, Request.RowDecoder == Record {
-        self.request = request
+    public func setRequest<Request>(_ request: Request) throws where Request: FetchRequest, Request.RowDecoder == Record {
+        self.request = ItemRequest(request)
         (self.region, self.itemsAreIdentical) = try databaseWriter.unsafeRead { db in
-            try FetchedRecordsController.fetchRegionAndComparator(db, request: request, itemsAreIdenticalFactory: itemsAreIdenticalFactory)
+            let region = try request.fetchedRegion(db)
+            let itemsAreIdentical = try itemsAreIdenticalFactory(db)
+            return (region, itemsAreIdentical)
         }
         
         // No observer: don't look for changes
@@ -193,7 +197,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// This method must be used from the controller's dispatch queue (the
     /// main queue unless stated otherwise in the controller's initializer).
     public func setRequest(sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
-        try setRequest(SQLRequest(sql, arguments: arguments, adapter: adapter).asRequest(of: Record.self))
+        try setRequest(SQLRequest(sql, arguments: arguments, adapter: adapter))
     }
     
     /// Registers changes notification callbacks.
@@ -376,7 +380,8 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     private let itemsAreIdenticalFactory: ItemComparatorFactory<Record>
 
     /// The request
-    fileprivate var request: Request
+    fileprivate typealias ItemRequest = AnyFetchRequest<Item<Record>>
+    fileprivate var request: ItemRequest
     
     /// The observed database region
     private var region : DatabaseRegion
@@ -386,17 +391,6 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     
     /// The eventual error handler
     fileprivate var errorHandler: ((FetchedRecordsController<Record>, Error) -> ())?
-    
-    private static func fetchRegionAndComparator(
-        _ db: Database,
-        request: Request,
-        itemsAreIdenticalFactory: ItemComparatorFactory<Record>) throws
-        -> (DatabaseRegion, ItemComparator<Record>)
-    {
-        let region = try request.fetchedRegion(db)
-        let itemsAreIdentical = try itemsAreIdenticalFactory(db)
-        return (region, itemsAreIdentical)
-    }
 }
 
 extension FetchedRecordsController where Record: TableMapping {
@@ -441,7 +435,7 @@ extension FetchedRecordsController where Record: TableMapping {
     {
         try self.init(
             databaseWriter,
-            request: SQLRequest(sql, arguments: arguments, adapter: adapter).asRequest(of: Record.self),
+            request: SQLRequest(sql, arguments: arguments, adapter: adapter),
             queue: queue)
     }
     
@@ -475,7 +469,7 @@ extension FetchedRecordsController where Record: TableMapping {
         _ databaseWriter: DatabaseWriter,
         request: Request,
         queue: DispatchQueue = .main) throws
-        where Request: TypedRequest, Request.RowDecoder == Record
+        where Request: FetchRequest, Request.RowDecoder == Record
     {
         // Builds a function that returns true if and only if two items
         // have the same primary key and primary keys contain at least one
@@ -620,7 +614,7 @@ private func makeFetchFunction<Record, T>(
         do {
             try databaseWriter.readFromCurrentState { db in
                 result = Result { try (
-                    fetchedItems: Item<Record>.fetchAll(db, request),
+                    fetchedItems: request.fetchAll(db),
                     fetchedAlongside: fetchAlongside(db)) }
                 semaphore.signal()
             }
