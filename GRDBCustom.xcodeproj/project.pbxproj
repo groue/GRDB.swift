@@ -23,8 +23,6 @@
 		5623931F1DECC02000A6B01F /* RowFetchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 562393171DECC02000A6B01F /* RowFetchTests.swift */; };
 		562393331DEDFC5700A6B01F /* AnyCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5623932F1DEDFC5700A6B01F /* AnyCursorTests.swift */; };
 		562393371DEDFC5700A6B01F /* AnyCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5623932F1DEDFC5700A6B01F /* AnyCursorTests.swift */; };
-		562393481DEDFE4500A6B01F /* IteratorCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 562393441DEDFE4500A6B01F /* IteratorCursorTests.swift */; };
-		5623934C1DEDFE4500A6B01F /* IteratorCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 562393441DEDFE4500A6B01F /* IteratorCursorTests.swift */; };
 		562393511DEDFEFB00A6B01F /* EnumeratedCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5623934D1DEDFEFB00A6B01F /* EnumeratedCursorTests.swift */; };
 		562393551DEDFEFB00A6B01F /* EnumeratedCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5623934D1DEDFEFB00A6B01F /* EnumeratedCursorTests.swift */; };
 		5623935A1DEE013C00A6B01F /* FilterCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 562393561DEE013C00A6B01F /* FilterCursorTests.swift */; };
@@ -556,7 +554,6 @@
 		561667001D08A49900ADD404 /* FoundationNSDecimalNumberTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationNSDecimalNumberTests.swift; sourceTree = "<group>"; };
 		562393171DECC02000A6B01F /* RowFetchTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowFetchTests.swift; sourceTree = "<group>"; };
 		5623932F1DEDFC5700A6B01F /* AnyCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AnyCursorTests.swift; sourceTree = "<group>"; };
-		562393441DEDFE4500A6B01F /* IteratorCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IteratorCursorTests.swift; sourceTree = "<group>"; };
 		5623934D1DEDFEFB00A6B01F /* EnumeratedCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EnumeratedCursorTests.swift; sourceTree = "<group>"; };
 		562393561DEE013C00A6B01F /* FilterCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FilterCursorTests.swift; sourceTree = "<group>"; };
 		5623935F1DEE06D300A6B01F /* CursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CursorTests.swift; sourceTree = "<group>"; };
@@ -1302,7 +1299,6 @@
 				5623934D1DEDFEFB00A6B01F /* EnumeratedCursorTests.swift */,
 				562393561DEE013C00A6B01F /* FilterCursorTests.swift */,
 				562393681DEE0CD200A6B01F /* FlattenCursorTests.swift */,
-				562393441DEDFE4500A6B01F /* IteratorCursorTests.swift */,
 				562393711DEE104400A6B01F /* MapCursorTests.swift */,
 				56CC9253201E094600CB597E /* PrefixCursorTests.swift */,
 				56CC923A201E033400CB597E /* PrefixWhileCursorTests.swift */,
@@ -1799,7 +1795,6 @@
 				F3BA80B91CFB2FD1003DC1BA /* DatabasePoolBackupTests.swift in Sources */,
 				F3BA811E1CFB3063003DC1BA /* RecordMinimalPrimaryKeyRowIDTests.swift in Sources */,
 				562EA8361F17B9EB00FA528C /* CompilationSubClassTests.swift in Sources */,
-				5623934C1DEDFE4500A6B01F /* IteratorCursorTests.swift in Sources */,
 				F3BA80DD1CFB300E003DC1BA /* DatabaseValueConvertibleSubclassTests.swift in Sources */,
 				5644488A1EF56B1B00DD2861 /* DatabaseAfterNextTransactionCommitTests.swift in Sources */,
 				F3BA80521CFB2B59003DC1BA /* DatabaseQueueSchemaCacheTests.swift in Sources */,
@@ -2085,7 +2080,6 @@
 				F3BA80FF1CFB3025003DC1BA /* TransactionObserverSavepointsTests.swift in Sources */,
 				5698AC4C1DA2D48A0056AF8C /* FTS3RecordTests.swift in Sources */,
 				F3BA80EF1CFB3017003DC1BA /* RowFromStatementTests.swift in Sources */,
-				562393481DEDFE4500A6B01F /* IteratorCursorTests.swift in Sources */,
 				5657AB511D108BA9006283EF /* FoundationNSNumberTests.swift in Sources */,
 				56CC9254201E094600CB597E /* PrefixCursorTests.swift in Sources */,
 				562393331DEDFC5700A6B01F /* AnyCursorTests.swift in Sources */,

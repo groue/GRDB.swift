@@ -12,7 +12,7 @@ private struct TestError : Error { }
 class FilterCursorTests: GRDBTestCase {
     
     func testFilterCursorFromCursor() {
-        let base = IteratorCursor([1, 2, 3, 4])
+        let base = AnyCursor([1, 2, 3, 4])
         let cursor = base.filter { $0 % 2 == 0 }
         XCTAssertEqual(try cursor.next()!, 2)
         XCTAssertEqual(try cursor.next()!, 4)
@@ -39,7 +39,7 @@ class FilterCursorTests: GRDBTestCase {
     }
     
     func testThrowingFilterCursorFromCursor() {
-        let base = IteratorCursor([0, 1])
+        let base = AnyCursor([0, 1])
         let cursor = base.filter {
             if $0 > 0 { throw TestError() }
             return true

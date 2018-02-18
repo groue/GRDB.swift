@@ -13,13 +13,13 @@ class PrefixCursorTests: GRDBTestCase {
     
     func testPrefixCursorFromCursor() throws {
         do {
-            let base = IteratorCursor([1, 2, 3, 4, 5])
+            let base = AnyCursor([1, 2, 3, 4, 5])
             let cursor = base.prefix(0)
             XCTAssertTrue(try cursor.next() == nil) // end
             XCTAssertTrue(try cursor.next() == nil) // past the end
         }
         do {
-            let base = IteratorCursor([1, 2, 3, 4, 5])
+            let base = AnyCursor([1, 2, 3, 4, 5])
             let cursor = base.prefix(2)
             try XCTAssertEqual(cursor.next()!, 1)
             try XCTAssertEqual(cursor.next()!, 2)
@@ -27,7 +27,7 @@ class PrefixCursorTests: GRDBTestCase {
             XCTAssertTrue(try cursor.next() == nil) // past the end
         }
         do {
-            let base = IteratorCursor([1, 2, 3, 4, 5])
+            let base = AnyCursor([1, 2, 3, 4, 5])
             let cursor = base.prefix(10)
             try XCTAssertEqual(cursor.next()!, 1)
             try XCTAssertEqual(cursor.next()!, 2)
@@ -60,7 +60,7 @@ class PrefixCursorTests: GRDBTestCase {
     }
     
     func testPrefixCursorChain() throws {
-        let base = IteratorCursor([1, 2, 3, 4, 5])
+        let base = AnyCursor([1, 2, 3, 4, 5])
         let cursor = base.prefix(2).prefix(1)
         try XCTAssertEqual(cursor.next()!, 1)
         XCTAssertTrue(try cursor.next() == nil) // end
