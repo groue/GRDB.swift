@@ -2569,8 +2569,11 @@ if player.hasPersistentChangedValues {
 You can also use the `updateChanges` method, which performs an update of the changed columns (and does nothing if record has no change):
 
 ```swift
-// Update the unsaved player changes
-try player.updateChanges(db)
+if try player.updateChanges(db) {
+    print("player had unsaved changes")
+} else {
+    print("player had no unsaved change")
+}
 ```
 
 The `hasPersistentChangedValues` flag is false after a record has been fetched or saved into the database. Subsequent modifications may set it, or not: `hasPersistentChangedValues` is based on value comparison. **Setting a property to the same value does not set the changed flag**:
