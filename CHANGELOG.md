@@ -1,6 +1,23 @@
 Release Notes
 =============
 
+## Next Version
+
+### New
+
+- `Record.updateChanges(_:)` now returns whether the record had unsaved changes, or not.
+
+### API diff
+
+```diff
+ class Record {
+-    final func updateChanges(_ db: Database) throws
++    @discardableResult
++    final func updateChanges(_ db: Database) throws -> Bool
+ }
+```
+
+
 ## 2.8.0
 
 Released January 29, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.7.0...v2.8.0)
