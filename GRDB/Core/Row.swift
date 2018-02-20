@@ -131,6 +131,53 @@ extension Row {
     
     // MARK: - Extracting Values
     
+    /// Returns true if and only if one column contains a non-null value.
+    public var hasNonNullValue: Bool {
+        if let sqliteStatement = sqliteStatement { // fast path
+            for i in (0..<Int32(count)) {
+                if sqlite3_column_type(sqliteStatement, Int32(i)) != SQLITE_NULL { return true }
+            }
+        } else {
+            for i in (0..<count) {
+                if !hasNull(atIndex: i) { return true }
+            }
+        }
+        return false
+    }
+    
+    /// Returns true if the row contains null at given index.
+    ///
+    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
+    /// righmost column.
+    public func hasNull(atIndex index: Int) -> Bool {
+        GRDBPrecondition(index >= 0 && index < count, "row index out of range")
+        if let sqliteStatement = sqliteStatement { // fast path
+            return sqlite3_column_type(sqliteStatement, Int32(index)) == SQLITE_NULL
+        }
+        return impl.databaseValue(atUncheckedIndex: index).isNull
+    }
+    
+    /// Returns true if the given column contains a null value, or if the
+    /// column is missing.
+    ///
+    /// Column name lookup is case-insensitive, and when several columns have
+    /// the same name, the leftmost column is considered.
+    public func hasNull(named columnName: String) -> Bool {
+        guard let index = impl.index(ofColumn: columnName) else {
+            return false
+        }
+        return hasNull(atIndex: index)
+    }
+    
+    /// Returns true if the given column contains a null value, or if the
+    /// column is missing.
+    ///
+    /// Column name lookup is case-insensitive, and when several columns have
+    /// the same name, the leftmost column is considered.
+    public func hasNull(_ column: Column) -> Bool {
+        return hasNull(named: column.name)
+    }
+
     /// Returns Int64, Double, String, Data or nil, depending on the value
     /// stored at the given index.
     ///
