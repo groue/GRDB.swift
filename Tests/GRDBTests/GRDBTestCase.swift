@@ -15,6 +15,12 @@ import XCTest
 // Support for Database.logError
 var lastResultCode: ResultCode? = nil
 var lastMessage: String? = nil
+var logErrorSetup: Void = {
+    Database.logError = { (resultCode, message) in
+        lastResultCode = resultCode
+        lastMessage = message
+    }
+}()
 
 class GRDBTestCase: XCTestCase {
     // The default configuration for tests
@@ -57,11 +63,7 @@ class GRDBTestCase: XCTestCase {
     override func setUp() {
         super.setUp()
         
-        // Must be set prior to any databaase connection
-        Database.logError = { (resultCode, message) in
-            lastResultCode = resultCode
-            lastMessage = message
-        }
+        _ = logErrorSetup
         
         let dbPoolDirectoryName = "GRDBTestCase-\(ProcessInfo.processInfo.globallyUniqueString)"
         dbDirectoryPath = (NSTemporaryDirectory() as NSString).appendingPathComponent(dbPoolDirectoryName)
