@@ -769,19 +769,19 @@ class RecordEditedTests: GRDBTestCase {
             // Nothing to update
             let initialChangesCount = db.totalChangesCount
             XCTAssertFalse(person.hasPersistentChangedValues)
-            try person.updateChanges(db)
+            try XCTAssertFalse(person.updateChanges(db))
             XCTAssertEqual(db.totalChangesCount, initialChangesCount)
             
             // Nothing to update
             person.age = 41
             XCTAssertFalse(person.hasPersistentChangedValues)
-            try person.updateChanges(db)
+            try XCTAssertFalse(person.updateChanges(db))
             XCTAssertEqual(db.totalChangesCount, initialChangesCount)
             
             // Update single column
             person.age = 42
             XCTAssertEqual(Set(person.persistentChangedValues.keys), ["age"])
-            try person.updateChanges(db)
+            try XCTAssertTrue(person.updateChanges(db))
             XCTAssertEqual(db.totalChangesCount, initialChangesCount + 1)
             XCTAssertEqual(lastSQLQuery, "UPDATE \"persons\" SET \"age\"=42 WHERE \"id\"=1")
             
@@ -789,7 +789,7 @@ class RecordEditedTests: GRDBTestCase {
             person.name = "Barbara"
             person.age = 43
             XCTAssertEqual(Set(person.persistentChangedValues.keys), ["age", "name"])
-            try person.updateChanges(db)
+            try XCTAssertTrue(person.updateChanges(db))
             XCTAssertEqual(db.totalChangesCount, initialChangesCount + 2)
             let fetchedPerson = try Person.fetchOne(db, key: person.id)
             XCTAssertEqual(fetchedPerson?.name, person.name)

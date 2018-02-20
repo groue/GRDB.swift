@@ -450,19 +450,19 @@ class RecordBoxTests: GRDBTestCase {
             // Nothing to update
             let initialChangesCount = db.totalChangesCount
             XCTAssertFalse(player.hasPersistentChangedValues)
-            try player.updateChanges(db)
+            try XCTAssertFalse(player.updateChanges(db))
             XCTAssertEqual(db.totalChangesCount, initialChangesCount)
             
             // Nothing to update
             player.value.score = 41
             XCTAssertFalse(player.hasPersistentChangedValues)
-            try player.updateChanges(db)
+            try XCTAssertFalse(player.updateChanges(db))
             XCTAssertEqual(db.totalChangesCount, initialChangesCount)
             
             // Update single column
             player.value.score = 42
             XCTAssertEqual(Set(player.persistentChangedValues.keys), ["score"])
-            try player.updateChanges(db)
+            try XCTAssertTrue(player.updateChanges(db))
             XCTAssertEqual(db.totalChangesCount, initialChangesCount + 1)
             XCTAssertEqual(lastSQLQuery, "UPDATE \"players\" SET \"score\"=42 WHERE \"id\"=1")
             
@@ -470,7 +470,7 @@ class RecordBoxTests: GRDBTestCase {
             player.value.name = "Barbara"
             player.value.score = 43
             XCTAssertEqual(Set(player.persistentChangedValues.keys), ["score", "name"])
-            try player.updateChanges(db)
+            try XCTAssertTrue(player.updateChanges(db))
             XCTAssertEqual(db.totalChangesCount, initialChangesCount + 2)
             let fetchedPlayer = try RecordBox<Player>.fetchOne(db, key: player.value.id)!
             XCTAssertEqual(fetchedPlayer.value.name, player.value.name)

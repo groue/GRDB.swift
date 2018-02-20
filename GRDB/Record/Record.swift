@@ -312,15 +312,19 @@ open class Record : RowConvertible, TableMapping, Persistable {
     ///
     /// - parameter db: A database connection.
     /// - parameter columns: The columns to update.
+    /// - returns: Whether the record had changes.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database and record could not be updated.
-    final public func updateChanges(_ db: Database) throws {
+    @discardableResult
+    final public func updateChanges(_ db: Database) throws -> Bool {
         let changedColumns = Set(persistentChangedValues.keys)
-        guard !changedColumns.isEmpty else {
-            return
+        if changedColumns.isEmpty {
+            return false
+        } else {
+            try update(db, columns: changedColumns)
+            return true
         }
-        try update(db, columns: changedColumns)
     }
     
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
