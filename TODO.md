@@ -28,6 +28,8 @@ GRDB 3.0
 - [ ] Not sure: Consider introducing RowDecodable and RowEncodable on top of FetchableRecord and MutablePersistableRecord. This would allow keeping fetching and persistence methods private in some files.
 - [ ] Drop IteratorCursor, use AnyCursor instead
 - [ ] Drop TypedRequest, have FetchRequest defaults to Row requests.
+- [ ] Rename columnCount -> numberOfColumns
+- [ ] Try to remove double Persistable/MutablePersistable protocols: Would non-mutating Record methods help?
 
 Not sure
 

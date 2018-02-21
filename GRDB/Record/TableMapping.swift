@@ -93,5 +93,30 @@ extension TableMapping {
             .map { $0.resultColumnSQL(&arguments) }
             .joined(separator: ", ")
     }
+    
+    /// Returns the number of selected columns.
+    ///
+    /// For example:
+    ///
+    ///     struct Player: TableMapping {
+    ///         static let databaseTableName = "players"
+    ///     }
+    ///
+    ///     try dbQueue.inDatabase { db in
+    ///         try db.create(table: "players") { t in
+    ///             t.column("id", .integer).primaryKey()
+    ///             t.column("name", .text)
+    ///             t.column("score", .integer)
+    ///         }
+    ///
+    ///         // 3
+    ///         try Player.numberOfSelectedColumns(db)
+    ///     }
+    public static func numberOfSelectedColumns(_ db: Database) throws -> Int {
+        let qualifier = SQLTableQualifier(tableName: databaseTableName, alias: nil)
+        return try databaseSelection
+            .map { try $0.qualified(by: qualifier).columnCount(db) }
+            .reduce(0, +)
+    }
 }
 

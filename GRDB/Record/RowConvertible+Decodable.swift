@@ -1,19 +1,20 @@
 private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtocol {
-    let row: Row
+    let decoder: RowDecoder
     
-    init(row: Row) {
-        self.row = row
+    init(decoder: RowDecoder) {
+        self.decoder = decoder
     }
     
-    /// The path of coding keys taken to get to this point in decoding.
-    /// A `nil` value indicates an unkeyed container.
-    var codingPath: [CodingKey] { return [] }
+    var codingPath: [CodingKey] { return decoder.codingPath }
     
     /// All the keys the `Decoder` has for this container.
     ///
     /// Different keyed containers from the same `Decoder` may return different keys here; it is possible to encode with multiple key types which are not convertible to one another. This should report all keys present which are convertible to the requested type.
     var allKeys: [Key] {
-        return row.columnNames.flatMap { Key(stringValue: $0) }
+        let row = decoder.row
+        let columnNames = Set(row.columnNames)
+        let scopeNames = row.scopeNames
+        return columnNames.union(scopeNames).flatMap { Key(stringValue: $0) }
     }
     
     /// Returns whether the `Decoder` contains a value associated with the given key.
@@ -23,7 +24,8 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
     /// - parameter key: The key to search for.
     /// - returns: Whether the `Decoder` has an entry for the given key.
     func contains(_ key: Key) -> Bool {
-        return row.hasColumn(key.stringValue)
+        let row = decoder.row
+        return row.hasColumn(key.stringValue) || (row.scoped(on: key.stringValue) != nil)
     }
     
     /// Decodes a null value for the given key.
@@ -32,7 +34,8 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
     /// - returns: Whether the encountered value was null.
     /// - throws: `DecodingError.keyNotFound` if `self` does not have an entry for the given key.
     func decodeNil(forKey key: Key) throws -> Bool {
-        return row[key.stringValue] == nil
+        let row = decoder.row
+        return row[key.stringValue] == nil && (row.scoped(on: key.stringValue) == nil)
     }
     
     /// Decodes a value of the given type for the given key.
@@ -43,20 +46,50 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
     /// - throws: `DecodingError.typeMismatch` if the encountered encoded value is not convertible to the requested type.
     /// - throws: `DecodingError.keyNotFound` if `self` does not have an entry for the given key.
     /// - throws: `DecodingError.valueNotFound` if `self` has a null entry for the given key.
-    func decode(_ type: Bool.Type, forKey key: Key) throws -> Bool { return row[key.stringValue] }
-    func decode(_ type: Int.Type, forKey key: Key) throws -> Int { return row[key.stringValue] }
-    func decode(_ type: Int8.Type, forKey key: Key) throws -> Int8 { return row[key.stringValue] }
-    func decode(_ type: Int16.Type, forKey key: Key) throws -> Int16 { return row[key.stringValue] }
-    func decode(_ type: Int32.Type, forKey key: Key) throws -> Int32 { return row[key.stringValue] }
-    func decode(_ type: Int64.Type, forKey key: Key) throws -> Int64 { return row[key.stringValue] }
-    func decode(_ type: UInt.Type, forKey key: Key) throws -> UInt { return row[key.stringValue] }
-    func decode(_ type: UInt8.Type, forKey key: Key) throws -> UInt8 { return row[key.stringValue] }
-    func decode(_ type: UInt16.Type, forKey key: Key) throws -> UInt16 { return row[key.stringValue] }
-    func decode(_ type: UInt32.Type, forKey key: Key) throws -> UInt32 { return row[key.stringValue] }
-    func decode(_ type: UInt64.Type, forKey key: Key) throws -> UInt64 { return row[key.stringValue] }
-    func decode(_ type: Float.Type, forKey key: Key) throws -> Float { return row[key.stringValue] }
-    func decode(_ type: Double.Type, forKey key: Key) throws -> Double { return row[key.stringValue] }
-    func decode(_ type: String.Type, forKey key: Key) throws -> String { return row[key.stringValue] }
+    func decode(_ type: Bool.Type, forKey key: Key) throws -> Bool { return decoder.row[key.stringValue] }
+    func decode(_ type: Int.Type, forKey key: Key) throws -> Int { return decoder.row[key.stringValue] }
+    func decode(_ type: Int8.Type, forKey key: Key) throws -> Int8 { return decoder.row[key.stringValue] }
+    func decode(_ type: Int16.Type, forKey key: Key) throws -> Int16 { return decoder.row[key.stringValue] }
+    func decode(_ type: Int32.Type, forKey key: Key) throws -> Int32 { return decoder.row[key.stringValue] }
+    func decode(_ type: Int64.Type, forKey key: Key) throws -> Int64 { return decoder.row[key.stringValue] }
+    func decode(_ type: UInt.Type, forKey key: Key) throws -> UInt { return decoder.row[key.stringValue] }
+    func decode(_ type: UInt8.Type, forKey key: Key) throws -> UInt8 { return decoder.row[key.stringValue] }
+    func decode(_ type: UInt16.Type, forKey key: Key) throws -> UInt16 { return decoder.row[key.stringValue] }
+    func decode(_ type: UInt32.Type, forKey key: Key) throws -> UInt32 { return decoder.row[key.stringValue] }
+    func decode(_ type: UInt64.Type, forKey key: Key) throws -> UInt64 { return decoder.row[key.stringValue] }
+    func decode(_ type: Float.Type, forKey key: Key) throws -> Float { return decoder.row[key.stringValue] }
+    func decode(_ type: Double.Type, forKey key: Key) throws -> Double { return decoder.row[key.stringValue] }
+    func decode(_ type: String.Type, forKey key: Key) throws -> String { return decoder.row[key.stringValue] }
+    
+    /// Decodes a value of the given type for the given key, if present.
+    ///
+    /// This method returns nil if the container does not have a value
+    /// associated with key, or if the value is null. The difference between
+    /// these states can be distinguished with a contains(_:) call.
+    func decodeIfPresent<T>(_ type: T.Type, forKey key: Key) throws -> T? where T : Decodable {
+        let row = decoder.row
+        
+        // Try column
+        if row.hasColumn(key.stringValue) {
+            let dbValue: DatabaseValue = row[key.stringValue]
+            if let type = T.self as? DatabaseValueConvertible.Type {
+                // Prefer DatabaseValueConvertible decoding over Decodable.
+                // This allows decoding Date from String, or DatabaseValue from NULL.
+                return type.fromDatabaseValue(dbValue) as! T?
+            } else if dbValue.isNull {
+                return nil
+            } else {
+                return try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))
+            }
+        }
+        
+        // Fallback on scope
+        if let scopedRow = row.scoped(on: key.stringValue), scopedRow.containsNonNullValue {
+            return try T(from: RowDecoder(row: scopedRow, codingPath: codingPath + [key]))
+        }
+        
+        return nil
+    }
     
     /// Decodes a value of the given type for the given key.
     ///
@@ -67,14 +100,27 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
     /// - throws: `DecodingError.keyNotFound` if `self` does not have an entry for the given key.
     /// - throws: `DecodingError.valueNotFound` if `self` has a null entry for the given key.
     func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T : Decodable {
-        let dbValue: DatabaseValue = row[key.stringValue]
-        if let type = T.self as? DatabaseValueConvertible.Type {
-            // Prefer DatabaseValueConvertible decoding over Decodable.
-            // This allows decoding Date from String, or DatabaseValue from NULL.
-            return type.fromDatabaseValue(dbValue) as! T
-        } else {
-            return try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))
+        let row = decoder.row
+        
+        // Try column
+        if row.hasColumn(key.stringValue) {
+            let dbValue: DatabaseValue = row[key.stringValue]
+            if let type = T.self as? DatabaseValueConvertible.Type {
+                // Prefer DatabaseValueConvertible decoding over Decodable.
+                // This allows decoding Date from String, or DatabaseValue from NULL.
+                return type.fromDatabaseValue(dbValue) as! T
+            } else {
+                return try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))
+            }
         }
+        
+        // Fallback on scope
+        if let scopedRow = row.scoped(on: key.stringValue) {
+            return try T(from: RowDecoder(row: scopedRow, codingPath: codingPath + [key]))
+        }
+        
+        let path = (codingPath.map { $0.stringValue } + [key.stringValue]).joined(separator: ".")
+        fatalError("No such column or scope: \(path)")
     }
     
     /// Returns the data stored for the given key as represented in a container keyed by the given key type.
@@ -84,7 +130,7 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
     /// - returns: A keyed decoding container view into `self`.
     /// - throws: `DecodingError.typeMismatch` if the encountered stored value is not a keyed container.
     func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
-        fatalError("Not implemented")
+        fatalError("not implemented")
     }
     
     /// Returns the data stored for the given key as represented in an unkeyed container.
@@ -93,7 +139,9 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
     /// - returns: An unkeyed decoding container view into `self`.
     /// - throws: `DecodingError.typeMismatch` if the encountered stored value is not an unkeyed container.
     func nestedUnkeyedContainer(forKey key: Key) throws -> UnkeyedDecodingContainer {
-        fatalError("Not implemented")
+        throw DecodingError.typeMismatch(
+            UnkeyedDecodingContainer.self,
+            DecodingError.Context(codingPath: codingPath, debugDescription: "unkeyed decoding is not supported"))
     }
     
     /// Returns a `Decoder` instance for decoding `super` from the container associated with the default `super` key.
@@ -104,7 +152,7 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
     /// - throws: `DecodingError.keyNotFound` if `self` does not have an entry for the default `super` key.
     /// - throws: `DecodingError.valueNotFound` if `self` has a null entry for the default `super` key.
     public func superDecoder() throws -> Decoder {
-        fatalError("Not implemented")
+        return decoder
     }
     
     /// Returns a `Decoder` instance for decoding `super` from the container associated with the given key.
@@ -114,15 +162,14 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
     /// - throws: `DecodingError.keyNotFound` if `self` does not have an entry for the given key.
     /// - throws: `DecodingError.valueNotFound` if `self` has a null entry for the given key.
     public func superDecoder(forKey key: Key) throws -> Decoder {
-        fatalError("Not implemented")
+        return decoder
     }
 }
 
 private struct RowSingleValueDecodingContainer: SingleValueDecodingContainer {
     let row: Row
+    var codingPath: [CodingKey]
     let column: CodingKey
-    
-    var codingPath: [CodingKey] { return [] }
     
     /// Decodes a null value.
     ///
@@ -182,14 +229,7 @@ private struct RowDecoder: Decoder {
     var userInfo: [CodingUserInfoKey : Any] { return [:] }
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
-        // Asked for a keyed type: top level required
-        guard codingPath.isEmpty else {
-            throw DecodingError.typeMismatch(
-                RowDecoder.self,
-                DecodingError.Context(codingPath: codingPath, debugDescription: "nested decoding is not supported"))
-        }
-        
-        return KeyedDecodingContainer(RowKeyedDecodingContainer<Key>(row: row))
+        return KeyedDecodingContainer(RowKeyedDecodingContainer<Key>(decoder: self))
     }
     
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
@@ -205,7 +245,7 @@ private struct RowDecoder: Decoder {
                 RowDecoder.self,
                 DecodingError.Context(codingPath: codingPath, debugDescription: "single value decoding requires a coding key"))
         }
-        return RowSingleValueDecodingContainer(row: row, column: codingKey)
+        return RowSingleValueDecodingContainer(row: row, codingPath: codingPath, column: codingKey)
     }
 }
 

@@ -1,5 +1,42 @@
 import Foundation
 
+/// Returns an array of row adapters that split a row according to the input
+/// number of columns.
+///
+/// For example:
+///
+///     let sql = "SELECT 1, 2, 3, 4, 5, 6, 7, 8"
+///     //               < ><    ><       ><    >
+///     let adapters = splittingRowAdapters([1, 2, 3])
+///     let adapter = ScopeAdapter([
+///         "a": adapters[0],
+///         "b": adapters[1],
+///         "c": adapters[2],
+///         "d": adapters[3]])
+///     let row = try Row.fetchOne(db, sql, adapter: adapter)
+///     row.scoped(on: "a") // [1]
+///     row.scoped(on: "b") // [2, 3]
+///     row.scoped(on: "c") // [4, 5, 6]
+///     row.scoped(on: "d") // [7, 8]
+public func splittingRowAdapters(columnCounts: [Int]) -> [RowAdapter] {
+    guard !columnCounts.isEmpty else {
+        return [SuffixRowAdapter(fromIndex: 0)]
+    }
+    
+    // [2, 4] -> [0, 2, 6]
+    let columnIndexes = columnCounts.reduce(into: [0]) { (acc, count) in
+        acc.append(acc.last! + count)
+    }
+    
+    // [0, 2, 6] -> [(0..<2), (2..<6)]
+    let rangeAdapters = zip(columnIndexes, columnIndexes.suffix(from: 1))
+        .map { RangeRowAdapter($0..<$1) }
+    
+    let suffixAdapter = SuffixRowAdapter(fromIndex: columnIndexes.last!)
+    
+    return rangeAdapters + [suffixAdapter]
+}
+
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
 /// LayoutedColumnMapping is a type that supports the RowAdapter protocol.
@@ -209,6 +246,13 @@ extension RowAdapter {
     }
 }
 
+/// EmptyAdapter is a row adapter that hides all columns.
+struct EmptyAdapter: RowAdapter {
+    func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter {
+        return LayoutedColumnMapping(layoutColumns: [])
+    }
+}
+
 /// ColumnMapping is a row adapter that maps column names.
 ///
 ///     let adapter = ColumnMapping(["foo": "bar"])
@@ -340,6 +384,16 @@ public struct ScopeAdapter : RowAdapter {
     public init(_ scopes: [String: RowAdapter]) {
         self.mainAdapter = SuffixRowAdapter(fromIndex: 0)   // Use SuffixRowAdapter(fromIndex: 0) as the identity adapter
         self.scopes = scopes
+    }
+    
+    /// Creates a scoped adapter that hides all columns. Columns can only
+    /// be accessed through scopes.
+    ///
+    /// - parameter scopes: A dictionary that maps scope names to
+    ///   row adapters.
+    public init(nestedScopes: [String: RowAdapter]) { // TODO: find a better name
+        self.mainAdapter = EmptyAdapter()
+        self.scopes = nestedScopes
     }
     
     init(mainAdapter: RowAdapter, scopes: [String: RowAdapter]) {

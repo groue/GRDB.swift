@@ -131,7 +131,9 @@ extension Row {
     
     // MARK: - Extracting Values
     
-    /// Returns true if and only if one column contains a non-null value.
+    /// Returns true if and only if one column contains a non-null value, or if
+    /// the row was fetched along with a row adapter that defines a scoped row
+    /// that contains a non-null value.
     public var containsNonNullValue: Bool {
         // In case of trouble, see 0149a0265010ef7bb7b41815f91315c4b8dbd4fd
         if let sqliteStatement = sqliteStatement { // fast path
@@ -143,6 +145,11 @@ extension Row {
                 if !hasNull(atIndex: i) { return true }
             }
         }
+        
+        for name in scopeNames where scoped(on: name)!.containsNonNullValue {
+            return true
+        }
+        
         return false
     }
     
@@ -509,6 +516,10 @@ extension Row {
     
     // MARK: - Scopes
     
+    var scopeNames: Set<String> {
+        return impl.scopeNames
+    }
+    
     /// Returns a scoped row, if the row was fetched along with a row adapter
     /// that defines this scope.
     ///
@@ -534,6 +545,12 @@ extension Row {
     ///     }
     public func scoped(on name: String) -> Row? {
         return impl.scoped(on: name)
+    }
+    
+    /// Returns a copy of the row, without any scoped row (if the row was fetched
+    /// with a row adapter that defines scopes).
+    public var unscoped: Row {
+        return Row(impl: ArrayRowImpl(columns: map { ($0, $1) }))
     }
 }
 

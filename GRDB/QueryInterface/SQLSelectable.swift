@@ -17,6 +17,9 @@ public protocol SQLSelectable {
     func count(distinct: Bool) -> SQLCount?
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    func columnCount(_ db: Database) throws -> Int
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     func qualified(by qualifier: SQLTableQualifier) -> Self
 }
 
@@ -24,7 +27,7 @@ public protocol SQLSelectable {
 ///
 /// :nodoc:
 public class SQLTableQualifier {
-    private var tableName: String
+    var tableName: String
     private var alias: String?
     
     init(tableName: String, alias: String?) {
