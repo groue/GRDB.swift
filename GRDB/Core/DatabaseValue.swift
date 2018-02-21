@@ -204,6 +204,17 @@ extension DatabaseValue {
     }
 }
 
+// MARK: - SQLSelectable
+
+extension DatabaseValue {
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// :nodoc:
+    public func qualified(by qualifier: SQLTableQualifier) -> DatabaseValue {
+        return self
+    }
+}
+
 // MARK: - Lossless conversions
 
 extension DatabaseValue {

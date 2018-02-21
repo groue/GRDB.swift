@@ -132,7 +132,8 @@ extension Row {
     // MARK: - Extracting Values
     
     /// Returns true if and only if one column contains a non-null value.
-    public var hasNonNullValue: Bool {
+    public var containsNonNullValue: Bool {
+        // In case of trouble, see 0149a0265010ef7bb7b41815f91315c4b8dbd4fd
         if let sqliteStatement = sqliteStatement { // fast path
             for i in (0..<Int32(count)) {
                 if sqlite3_column_type(sqliteStatement, Int32(i)) != SQLITE_NULL { return true }
@@ -151,6 +152,7 @@ extension Row {
     /// righmost column.
     public func hasNull(atIndex index: Int) -> Bool {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
+        // In case of trouble, see 0149a0265010ef7bb7b41815f91315c4b8dbd4fd
         if let sqliteStatement = sqliteStatement { // fast path
             return sqlite3_column_type(sqliteStatement, Int32(index)) == SQLITE_NULL
         }

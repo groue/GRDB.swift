@@ -15,6 +15,8 @@
 ///     // SELECT *, rowid FROM players
 ///     let request = Player.all()
 public struct AllColumns {
+    private var qualifier: SQLTableQualifier?
+    
     ///
     public init() { }
 }
@@ -24,6 +26,9 @@ extension AllColumns : SQLSelectable {
     ///
     /// :nodoc:
     public func resultColumnSQL(_ arguments: inout StatementArguments?) -> String {
+        if let qualifierName = qualifier?.name {
+            return qualifierName.quotedDatabaseIdentifier + ".*"
+        }
         return "*"
     }
     
@@ -31,6 +36,10 @@ extension AllColumns : SQLSelectable {
     ///
     /// :nodoc:
     public func countedSQL(_ arguments: inout StatementArguments?) -> String {
+        guard qualifier == nil else {
+            // SELECT COUNT(t.*) is invalid SQL
+            fatalError("Not implemented, or invalid query")
+        }
         return "*"
     }
     
@@ -43,10 +52,27 @@ extension AllColumns : SQLSelectable {
             return nil
         }
         
+        guard qualifier == nil else {
+            return nil
+        }
+        
         // SELECT * FROM tableName ...
         // ->
         // SELECT COUNT(*) FROM tableName ...
         return .all
+    }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// :nodoc:
+    public func qualified(by qualifier: SQLTableQualifier) -> AllColumns {
+        if self.qualifier != nil {
+            // Never requalify
+            return self
+        }
+        var allColumns = AllColumns()
+        allColumns.qualifier = qualifier
+        return allColumns
     }
 }
 
@@ -72,5 +98,9 @@ struct SQLAliasedExpression : SQLSelectable {
     
     func count(distinct: Bool) -> SQLCount? {
         return expression.count(distinct: distinct)
+    }
+    
+    func qualified(by qualifier: SQLTableQualifier) -> SQLAliasedExpression {
+        return SQLAliasedExpression(expression.qualified(by: qualifier), alias: alias)
     }
 }

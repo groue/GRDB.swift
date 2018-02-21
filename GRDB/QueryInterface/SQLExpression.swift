@@ -59,7 +59,7 @@ public protocol SQLExpression : SQLSpecificExpressible, SQLSelectable, SQLOrderi
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Returns the rowIds matched by the expression.
-    func matchedRowIds(rowIdName: String?) -> Set<Int64>?
+    func matchedRowIds(rowIdName: String?) -> Set<Int64>? // TODO: this method should take SQLTableQualifier in account
 }
 
 extension SQLExpression {
@@ -135,5 +135,9 @@ struct SQLExpressionNot : SQLExpression {
     
     var negated: SQLExpression {
         return expression
+    }
+    
+    func qualified(by qualifier: SQLTableQualifier) -> SQLExpressionNot {
+        return SQLExpressionNot(expression.qualified(by: qualifier))
     }
 }

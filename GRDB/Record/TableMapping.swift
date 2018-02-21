@@ -58,13 +58,40 @@ extension TableMapping {
 
 extension TableMapping {
     
-    // MARK: Counting All
+    // MARK: - Counting All
     
     /// The number of records.
     ///
     /// - parameter db: A database connection.
     public static func fetchCount(_ db: Database) throws -> Int {
         return try all().fetchCount(db)
+    }
+}
+
+extension TableMapping {
+    
+    // MARK: - SQL Generation
+    
+    /// The selection as an SQL String.
+    ///
+    /// For example:
+    ///
+    ///     struct Player: TableMapping {
+    ///         static let databaseTableName = "players"
+    ///     }
+    ///
+    ///     // SELECT "players".* FROM players
+    ///     let sql = "SELECT \(Player.selectionSQL()) FROM players"
+    ///
+    ///     // SELECT "p".* FROM players AS p
+    ///     let sql = "SELECT \(Player.selectionSQL(alias: "p")) FROM players AS p"
+    public static func selectionSQL(alias: String? = nil) -> String {
+        let qualifier = SQLTableQualifier(tableName: databaseTableName, alias: alias ?? databaseTableName)
+        let selection = databaseSelection.map { $0.qualified(by: qualifier) }
+        var arguments: StatementArguments? = nil
+        return selection
+            .map { $0.resultColumnSQL(&arguments) }
+            .joined(separator: ", ")
     }
 }
 
