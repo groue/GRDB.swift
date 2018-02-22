@@ -4696,7 +4696,7 @@ But we have a few other tasks to make it more robust:
 2. Records not always need all columns from a table (see `TableMapping.databaseSelection` in [Columns Selected by a Request](#columns-selected-by-a-request)).
 3. Building row adapters is long and error prone.
 
-To address the first bullet, let's define a record that holds our player, optional team, and maximum score:
+To address the first bullet, let's define a record that holds our player, optional team, and maximum score. Since it can decode database rows, it adopts the [RowConvertible](#rowconvertible-protocol) protocol:
 
 ```swift
 struct Item {
@@ -4705,6 +4705,7 @@ struct Item {
     let maxScore: Int
 }
 
+/// Item can decode rows:
 extension Item: RowConvertible {
     static let playerScope = "players"
     static let teamScope = "teams"
@@ -4778,14 +4779,13 @@ The `fetchItems` method [above](#splitting-rows-the-record-way) directly fetches
 It is recommended that your read the previous paragraphs before you dive in this sample code. We start with the same Item record as above:
 
 ```swift
-/// The Item type
 struct Item {
     let player: Player
     let team: Team?
     let maxScore: Int
 }
 
-/// Item can build from rows:
+/// Item can decode rows:
 extension Item: RowConvertible {
     static let playerScope = "player"
     static let teamScope = "team"
