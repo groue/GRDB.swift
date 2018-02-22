@@ -240,10 +240,10 @@ extension Database {
 
 extension Database {
 
-    /// The columns in the table named `tableName`.
+    /// The columns in the table named `tableName`
     ///
     /// - throws: A DatabaseError if table does not exist.
-    func columns(in tableName: String) throws -> [ColumnInfo] {
+    public func columns(in tableName: String) throws -> [ColumnInfo] {
         if let columns = schemaCache.columns(in: tableName) {
             return columns
         }
@@ -279,7 +279,9 @@ extension Database {
                 throw DatabaseError(message: "no such table: \(tableName)")
             }
         }
-        let columns = try ColumnInfo.fetchAll(self, "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))")
+        let columns = try ColumnInfo
+            .fetchAll(self, "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))")
+            .sorted(by: { $0.cid < $1.cid })
         guard columns.count > 0 else {
             throw DatabaseError(message: "no such table: \(tableName)")
         }
@@ -305,30 +307,72 @@ extension Database {
     }
 }
 
-/// A column of a table
-struct ColumnInfo : RowConvertible {
-    // CREATE TABLE players (
-    //   id INTEGER PRIMARY KEY,
-    //   firstName TEXT,
-    //   lastName TEXT)
-    //
-    // PRAGMA table_info("players")
-    //
-    // cid | name  | type    | notnull | dflt_value | pk |
-    // 0   | id    | INTEGER | 0       | NULL       | 1  |
-    // 1   | name  | TEXT    | 0       | NULL       | 0  |
-    // 2   | score | INTEGER | 0       | NULL       | 0  |
-    let name: String
-    let type: String
-    let notNull: Bool
-    let defaultDatabaseValue: DatabaseValue
-    let primaryKeyIndex: Int
+/// A column of a database table.
+///
+/// This type closely matches the information returned by the
+/// `table_info` pragma.
+///
+///     > CREATE TABLE players (
+///         id INTEGER PRIMARY KEY,
+///         firstName TEXT,
+///         lastName TEXT)
+///     > PRAGMA table_info("players")
+///     cid   name   type     notnull   dflt_value  pk
+///     ----  -----  -------  --------  ----------  ---
+///     0     id     INTEGER  0         NULL        1
+///     1     name   TEXT     0         NULL        0
+///     2     score  INTEGER  0         NULL        0
+///
+/// See `Database.columns(in:)` and https://www.sqlite.org/pragma.html#pragma_table_info
+public struct ColumnInfo : RowConvertible {
+    let cid: Int
     
-    init(row: Row) {
+    /// The column name
+    public let name: String
+    
+    /// The column data type
+    public let type: String
+    
+    /// True if and only if the column is constrained to be not null.
+    public let isNotNull: Bool
+    
+    /// The SQL snippet that defines the default value, if any.
+    ///
+    /// When nil, the column has no default value.
+    ///
+    /// When not nil, it contains an SQL string that defines an expression. That
+    /// expression may be a literal, as `1`, or `'foo'`. It may also contain a
+    /// non-constant expression such as `CURRENT_TIMESTAMP`.
+    ///
+    /// For example:
+    ///
+    ///     try db.execute("""
+    ///         CREATE TABLE players(
+    ///             id INTEGER PRIMARY KEY,
+    ///             name TEXT DEFAULT 'Anonymous',
+    ///             score INT DEFAULT 0,
+    ///             creationDate DATE DEFAULT CURRENT_TIMESTAMP
+    ///         )
+    ///         """)
+    ///     let columnInfos = try db.columns(in: "players")
+    ///     columnInfos[0].defaultValueSQL // nil
+    ///     columnInfos[1].defaultValueSQL // "'Anoynymous'"
+    ///     columnInfos[2].defaultValueSQL // "0"
+    ///     columnInfos[3].defaultValueSQL // "CURRENT_TIMESTAMP"
+    public let defaultValueSQL: String?
+    
+    /// Zero for columns that are not part of the primary key. The one-based
+    /// index of the column in the primary key for columns that are part of the
+    /// primary key.
+    public let primaryKeyIndex: Int
+    
+    /// :nodoc:
+    public init(row: Row) {
+        cid = row["cid"]
         name = row["name"]
         type = row["type"]
-        notNull = row["notnull"]
-        defaultDatabaseValue = row["dflt_value"]
+        isNotNull = row["notnull"]
+        defaultValueSQL = row["dflt_value"]
         primaryKeyIndex = row["pk"]
     }
 }
