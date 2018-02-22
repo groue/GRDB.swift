@@ -82,7 +82,7 @@ extension AllColumns : SQLSelectable {
         guard let qualifier = qualifier else {
             fatalError("Can't compute number of columns without a qualifier")
         }
-        return try db.columnCount(in: qualifier.tableName)
+        return try db.columns(in: qualifier.tableName).count
     }
 }
 

@@ -1638,11 +1638,11 @@ GRDB provides high-level methods as well:
 
 ```swift
 try db.tableExists("players")     // Bool, true if the table exists
-try db.columnCount(in: "players") // Int, the number of columns in table
+try db.columns(in: "players")     // [ColumnInfo], the columns in the table
 try db.indexes(on: "players")     // [IndexInfo], the indexes defined on the table
-try db.table("players", hasUniqueKey: ["email"]) // Bool, true if column(s) is a unique key
 try db.foreignKeys(on: "players") // [ForeignKeyInfo], the foreign keys defined on the table
 try db.primaryKey("players")      // PrimaryKeyInfo
+try db.table("players", hasUniqueKey: ["email"]) // Bool, true if column(s) is a unique key
 ```
 
 
@@ -3817,7 +3817,7 @@ struct BookAuthorPair : RowConvertible {
             .adapted { db in
                 try ScopeAdapter([
                     "books": SuffixRowAdapter(fromIndex: 0),
-                    "authors": SuffixRowAdapter(fromIndex: db.columnCount(in: "books"))])
+                    "authors": SuffixRowAdapter(fromIndex: db.columns(in: "books").count)])
             }
     }
     

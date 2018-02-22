@@ -6,10 +6,25 @@ Release Notes
 ### New
 
 - `Record.updateChanges(_:)` now returns whether the record had unsaved changes, or not.
+- `Database.columns(in:)` returns information about the columns of a table.
 
 ### API diff
 
 ```diff
++struct ColumnInfo {
++    let name: String
++    let type: String
++    let isNotNull: Bool
++    let defaultValueSQL: String?
++    let primaryKeyIndex: Int
++}
+ 
+ class Database {
++     @available(*, deprecated, message: "Use db.columns(in: tableName).count instead")
+      func columnCount(in tableName: String) throws -> Int
++     func columns(in tableName: String) throws -> [ColumnInfo]
+ }
+ 
  class Record {
 -    final func updateChanges(_ db: Database) throws
 +    @discardableResult

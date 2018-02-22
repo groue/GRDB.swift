@@ -437,13 +437,13 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("a", .text)
             }
             XCTAssertTrue(try db.tableExists("test"))
-            XCTAssertEqual(try db.columnCount(in: "test"), 1)
+            XCTAssertEqual(try db.columns(in: "test").count, 1)
             
             try db.rename(table: "test", to: "foo")
             assertEqualSQL(lastSQLQuery, "ALTER TABLE \"test\" RENAME TO \"foo\"")
             XCTAssertFalse(try db.tableExists("test"))
             XCTAssertTrue(try db.tableExists("foo"))
-            XCTAssertEqual(try db.columnCount(in: "foo"), 1)
+            XCTAssertEqual(try db.columns(in: "foo").count, 1)
         }
     }
 
@@ -480,7 +480,7 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("name", .text)
             }
             XCTAssertTrue(try db.tableExists("test"))
-            XCTAssertEqual(try db.columnCount(in: "test"), 2)
+            XCTAssertEqual(try db.columns(in: "test").count, 2)
             
             try db.drop(table: "test")
             assertEqualSQL(lastSQLQuery, "DROP TABLE \"test\"")
