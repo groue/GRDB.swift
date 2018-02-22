@@ -217,6 +217,7 @@ Documentation
 
 - [Migrations](#migrations): Transform your database as your application evolves.
 - [Full-Text Search](#full-text-search): Perform efficient and customizable full-text searches.
+- [Joined Queries Support](#joined-queries-support)
 - [Database Changes Observation](#database-changes-observation): Perform post-commit and post-rollback actions.
 - [FetchedRecordsController](#fetchedrecordscontroller): Automated tracking of changes in a query results, plus UITableView animations.
 - [Encryption](#encryption): Encrypt your database with SQLCipher.
@@ -3839,6 +3840,7 @@ On top of the APIs described above, GRDB provides a toolkit for applications. Wh
 
 - [Migrations](#migrations): Transform your database as your application evolves.
 - [Full-Text Search](#full-text-search): Perform efficient and customizable full-text searches.
+- [Joined Queries Support](#joined-queries-support)
 - [Database Changes Observation](#database-changes-observation): Perform post-commit and post-rollback actions.
 - [FetchedRecordsController](#fetchedrecordscontroller): Automated tracking of changes in a query results, plus UITableView animations.
 - [Encryption](#encryption): Encrypt your database with SQLCipher.
@@ -4574,6 +4576,287 @@ Unicode normalization is not the end of the story, because it won't help "Encycl
 GRDB lets you write [custom FTS5 tokenizers](Documentation/FTS5Tokenizers.md) that can transparently deal with all these issues. For FTS3 and FTS4, you'll need to pre-process your strings before injecting them in the full-text engine.
 
 Happy indexing!
+
+
+## Joined Queries Support
+
+**GRDB helps consuming joined queries with complex selection.**
+
+In this chapter, we will focus on the extraction of information from complex rows, such as the ones fetched by the query below:
+
+```sql
+-- How to consume the left, middle, and right parts of those rows?
+SELECT players.*, teams.*, MAX(rounds.score) AS maxScore
+FROM players
+LEFT JOIN teams ON ...
+LEFT JOIN rounds ON ...
+GROUP BY ...
+```
+
+We will not talk about *building* joined queries.
+
+**So what are we talking about?**
+
+It is difficult to consume rows fetched from complex joined queries, because they often contain several columns with the same name: `id` from table `players`, `id` from table `teams`, etc.
+
+When such ambiguity happens, GRDB row accessors always favor the leftmost matching column. This means that `row["id"]` would give a player id, whithout any obvious way to access the team id.
+
+A classical technique to avoid this ambiguity is to give each column a unique name. For example:
+
+```sql
+-- A classical technique
+SELECT players.id AS players_id, players.name AS players_name, teams.id AS teams_id, teams.color AS teams_color, teams.url AS teams_url, MAX(rounds.score) AS maxScore
+FROM players
+LEFT JOIN teams ON ...
+LEFT JOIN rounds ON ...
+GROUP BY ...
+```
+
+This technique works pretty well, but it has three drawbacks:
+
+1. the selection becomes hard to read and understand
+2. such queries are difficult to write by hand
+3. the mangled names are a *very* bad fit for [RowConvertible](#rowconvertible-protocol) records that expect specific column names.
+
+After all, if the `Team` record type can read `SELECT * FROM teams ...`, it should be able to read `SELECT .., teams.*, ...` as well.
+
+**The technique we'll use will split rows into slices.**
+
+`SELECT players.*, teams.*, MAX(rounds.score) AS maxScore FROM ...` will be splitted into three slices: one that contains player's columns, one that contains team's columns, and a remaining slice that contains remaining column(s). The Player record type will be able to read the first slice, which contains the colums expected by the `Player.init(row:)` initializer. In the same way, the Team record type could read the second slice.
+
+Unlike the name-mangling technique, splitting rows keeps SQL legible, accepts your hand-crafted SQL queries, and plays as nicely as possible with your existing record types.
+
+
+### Splitting Rows, the Naive Way
+
+To split rows, we will use [row adapters](#row-adapters). Row adapters adapt rows so that their consumers see the column they want.
+
+Let's first write some naive code, hoping that this chapter will make you understand how pieces fall together. We'll see [later](#splitting-rows-the-streamlined-way) how we can streamline it.
+
+We start from an SQL query:
+
+```swift
+try dbQueue.inDatabase { db in
+    let sql = """
+        SELECT players.*, teams.*, MAX(rounds.score) AS maxScore
+        FROM players
+        LEFT JOIN teams ON ...
+        LEFT JOIN rounds ON ...
+        GROUP BY ...
+        """
+```
+
+We need an adapter that extracts players' columns, in a slice that has as many columns as there are columns in the players table:
+
+```swift
+    // SELECT players.*, teams.*, ...
+    //        <------->
+    let playersWidth = try db.columns(in: "players").count
+    let playerAdapter = RangeRowAdapter(0 ..< playersWidth)
+```
+
+We also need an adapter that extracts teams' columns:
+
+```swift
+    // SELECT players.*, teams.*, ...
+    //                   <----->
+    let teamsWidth = try db.columns(in: "teams").count
+    let teamsAdapter = RangeRowAdapter(playersWidth ..< (playersWidth + teamsWidth))
+```
+
+We merge those two adapters in a single one that will allow us to access both sliced rows:
+
+```swift
+    let adapter = ScopeAdapter([
+        "players": playersAdapter,
+        "teams": teamsAdapter])
+```
+
+And now we can fetch, and start consuming our rows:
+
+```swift
+    let rows = Row.fetchCursor(db, sql, adapter: adapter)
+    while let row = try rows.next() {
+```
+
+From a fetched row, we can build a player:
+
+```swift
+        // Player's columns:
+        let playerRow = row.scoped(on: "players")! // Row
+        let player = Player(row: playerRow)        // Player
+```
+
+The team is left joined, which means that the team may be missing. Its slice may contain team values, or it may only contain NULLs. When this happens, we don't want to build a Team record. We'll thus use the dedicated `init?(leftJoinedRow:)` failable initializer:
+
+```swift
+        // Team's columns:
+        let teamRow = row.scoped(on: "teams")      // Row?
+        let team = Team(leftJoinedRow: teamRow)    // Team?
+```
+
+And finally, we can load the maximum score, assuming that the "maxScore" column is not ambiguous:
+
+```swift
+        let maxScore: Int = row["maxScore"]
+    }
+}
+```
+
+
+### Splitting Rows, the Streamlined Way
+
+Our naive code above is not *that* naive. It uses [row adapters](#row-adapters) in order to split rows. It uses the `init?(leftJoinedRow:)` initializer so that missing left joined tables can be represented as a nil record.
+
+But we have a few tasks to make it complete:
+
+1. It's generally easier to consume records than raw rows
+2. Records not always need all columns from a table (see `TableMapping.databaseSelection` in [Columns Selected by a Request](#columns-selected-by-a-request))
+3. Building row adapters is long and error prone
+
+To address the first bullet, let's define a record that holds our player, optional team, and maximum score:
+
+```swift
+struct Item {
+    let player: Player
+    let team: Team?
+    let maxScore: Int
+}
+
+extension Item: RowConvertible {
+    static let playerScope = "players"
+    static let teamScope = "teams"
+    
+    init(row: Row) {
+        player = Player(row: row.scoped(on: Item.playerScope)!)
+        team = Team(leftJoinedRow: row.scoped(on: Item.teamScope))
+        maxScore = row["maxScore"]
+    }
+}
+```
+
+Let's now write the function that fetches items:
+
+```swift
+func fetchItems(_ db: Database) throws -> [Item] {
+```
+
+To acknowledge that both Player and Team records may customize their selection of the "players" and "teams" columns, we'll write our SQL in a slightly different way:
+
+```swift
+    // Let Player and Team customize their selection:
+    let sql = """
+        SELECT
+            \(Player.selectionSQL()),
+            \(Team.selectionSQL()),
+            MAX(rounds.score) AS maxScore
+        FROM players
+        LEFT JOIN teams ON ...
+        LEFT JOIN rounds ON ...
+        GROUP BY ...
+        """
+```
+
+`Player.selectionSQL()` will often output `players.*`. And if Player defines its [custom selection](#columns-selected-by-a-request), it will output exactly the expected columns, no more, no less.
+
+> :point_up: **Note**: you may also provide an alias: `SELECT \(Players.selectionSQL(alias: "p")) FROM players p ...`
+
+Now is the time to build adapters (taking in account the customized selection of both players and teams):
+
+```swift
+    let adapters = splittingRowAdapters(columnCounts: [
+        Player.numberOfSelectedColumns(db),
+        Team.numberOfSelectedColumns(db)])
+    
+    let adapter = ScopeAdapter([
+        Item.playerScope: adapters[0],
+        Item.teamScope: adapters[1]])
+```
+
+> :point_up: **Note**: `splittingRowAdapters` returns as many adapters as necessary to fully split a row. In the example above, it returns *three* adapters: one for players, one for teams, and one for the remaining columns.
+
+And finally, we can fetch items:
+
+```swift
+    return Item.fetchAll(db, sql, adapter: adapter)
+}
+```
+
+
+### Splitting Rows, the Request Way
+
+The `fetchItems` method [above](#splitting-rows-the-streamlined-way) directly fetches records. It's all good, but in order to profit from [database observation](#database-changes-observation) with [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), you'll need a *request* that defines a database query.
+
+I'll provide the full sample code below. It's recommended that your read previous paragraphs, and the [Custom Requests](#custom-requests) chapter to make the most of it:
+
+```swift
+/// The Item type
+struct Item {
+    let player: Player
+    let team: Team?
+    let maxScore: Int
+}
+
+/// Item can build from rows:
+extension Item: RowConvertible {
+    static let playerScope = "players"
+    static let teamScope = "teams"
+    
+    init(row: Row) {
+        player = Player(row: row.scoped(on: Item.playerScope)!)
+        team = Team(leftJoinedRow: row.scoped(on: Item.teamScope))
+        maxScore = row["maxScore"]
+    }
+}
+
+/// Item can fetch themselves:
+extension Item {
+    /// The request for all items
+    static func all() -> AnyTypedRequest<Item> {
+        return SQLRequest("""
+            SELECT
+                \(Player.selectionSQL()),
+                \(Team.selectionSQL()),
+                MAX(rounds.score) AS maxScore
+            FROM players
+            LEFT JOIN teams ON ...
+            LEFT JOIN rounds ON ...
+            GROUP BY ...
+            """)
+            .adapted { db in
+                let adapters = splittingRowAdapters(columnCounts: [
+                    Player.numberOfSelectedColumns(db),
+                    Team.numberOfSelectedColumns(db)])
+                return ScopeAdapter([
+                    playerScope: adapters[0],
+                    teamScope: adapters[1]])
+            }
+            .asRequest(of: Item.self)
+    }
+    
+    /// Fetches all items
+    static func fetchAll(_ db: Database) throws -> [Item] {
+        return try all().fetchAll(db)
+    }
+}
+
+// Fetch items
+let items = try dbQueue.inDatabase { db in
+    try Item.fetchAll(db)
+}
+
+// Track items with RxRGDB:
+Item.all()
+    .rx.fetchAll(in: dbQueue)
+    .subscribe(onNext: { items: [Item] in
+        print("items have changed")
+    })
+```
+
+
+### Splitting Rows, the Codable Way
+
+TODO
 
 
 ## Database Changes Observation
