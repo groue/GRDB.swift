@@ -4614,26 +4614,29 @@ GROUP BY ...
 
 This technique works pretty well, but it has three drawbacks:
 
-1. the selection becomes hard to read and understand
-2. such queries are difficult to write by hand
-3. the mangled names are a *very* bad fit for [RowConvertible](#rowconvertible-protocol) records that expect specific column names.
+1. The selection becomes hard to read and understand.
+2. Such queries are difficult to write by hand.
+3. The mangled names are a *very* bad fit for [RowConvertible](#rowconvertible-protocol) records that expect specific column names. After all, if the `Team` record type can read `SELECT * FROM teams ...`, it should be able to read `SELECT ..., teams.*, ...` as well.
 
-After all, if the `Team` record type can read `SELECT * FROM teams ...`, it should be able to read `SELECT ..., teams.*, ...` as well.
-
-**The technique we'll use will split rows into slices.**
+We thus need another technique. Below we'll see how to split rows into slices, and preserve column names.
 
 `SELECT players.*, teams.*, MAX(rounds.score) AS maxScore FROM ...` will be splitted into three slices: one that contains player's columns, one that contains team's columns, and a remaining slice that contains remaining column(s). The Player record type will be able to read the first slice, which contains the colums expected by the `Player.init(row:)` initializer. In the same way, the Team record type could read the second slice.
 
 Unlike the name-mangling technique, splitting rows keeps SQL legible, accepts your hand-crafted SQL queries, and plays as nicely as possible with your existing [record types](#records).
 
+- [Splitting Rows, an Introduction](#splitting-rows-an-introduction)
+- [Splitting Rows, the Record Way](#splitting-rows-the-c-way)
+- [Splitting Rows, the Request Way](#splitting-rows-the-request-way)
+- [Splitting Rows, the Codable Way](#splitting rows-the-codable-way)
 
-### Splitting Rows, the Naive Way
 
-To split rows, we will use [row adapters](#row-adapters). Row adapters adapt rows so that row consumers see exactly the columns they want.
+### Splitting Rows, an Introduction
 
-Let's first write some naive code, hoping that this chapter will make you understand how pieces fall together. We'll see [later](#splitting-rows-the-streamlined-way) how we can streamline it.
+To split rows, we will use [row adapters](#row-adapters). Row adapters adapt rows so that row consumers see exactly the columns they want. Among other things, row adapters can define several *row scopes* that give access to as many *row slices*. Sounds like a perfect match.
 
-We start from an SQL query:
+Let's first write some introductory code, hoping that this chapter will make you understand how pieces fall together. We'll see [later](#splitting-rows-the-record-way) how records will help us streamline the initial approach, how to track changes in joined requests, and how we can use the standard Decodable protocol.
+
+At the very beginning, there is an SQL query:
 
 ```swift
 try dbQueue.inDatabase { db in
@@ -4646,7 +4649,7 @@ try dbQueue.inDatabase { db in
         """
 ```
 
-We need an adapter that extracts players' columns, in a slice that has as many columns as there are columns in the players table:
+We need an adapter that extracts players' columns, in a slice that has as many columns as there are columns in the players table. That's [RangeRowAdapter](#rangerowadapter):
 
 ```swift
     // SELECT players.*, teams.*, ...
@@ -4664,15 +4667,15 @@ We also need an adapter that extracts teams' columns:
     let teamAdapter = RangeRowAdapter(playersWidth ..< (playersWidth + teamsWidth))
 ```
 
-We merge those two adapters in a single one that will allow us to access both sliced rows:
+We merge those two adapters in a single [ScopeAdapter](#scopeadapter) that will allow us to access both sliced rows:
 
 ```swift
     let adapter = ScopeAdapter([
         "player": playerAdapter,
         "team": teamAdapter])
-```
+```s
 
-And now we can fetch, and start consuming our rows:
+And now we can fetch, and start consuming our rows. You already know [cursor of rows](#fetching-rows):
 
 ```swift
     let rows = Row.fetchCursor(db, sql, adapter: adapter)
@@ -4703,10 +4706,16 @@ And finally, we can load the maximum score, assuming that the "maxScore" column 
 }
 ```
 
+> :bulb: In this chapter, we have learned:
+> 
+> - how to use `RangeRowAdapter` to extract a specific table's columns into a *row slice*.
+> - how to use `ScopeAdapter` to gives access to several row slices through named scopes.
+> - how to use the `init?(leftJoinedRow:)` failable initializer in order to deal with left joins.
 
-### Splitting Rows, the Streamlined Way
 
-Our naive code above is not *that* naive. It uses [row adapters](#row-adapters) in order to split rows. It uses the `init?(leftJoinedRow:)` initializer so that missing left joined tables can be represented as a nil record.
+### Splitting Rows, the Record Way
+
+Our introduction above has introduced important techniques. It uses [row adapters](#row-adapters) in order to split rows. It uses the `init?(leftJoinedRow:)` initializer so that missing left joined tables can be represented as a nil record.
 
 But we have a few tasks to make it complete:
 
@@ -4782,10 +4791,16 @@ And finally, we can fetch items:
 }
 ```
 
+> :bulb: In this chapter, we have learned:
+> 
+> - how to define a `RowConvertible` record that consumes rows fetched from a joined query.
+> - how to use `selectionSQL` and `numberOfSelectedColumns` in order to deal with record types that define custom selection.
+> - how to use `splittingRowAdapters` in order to streamline the definition of row slices.
+
 
 ### Splitting Rows, the Request Way
 
-The `fetchItems` method [above](#splitting-rows-the-streamlined-way) directly fetches records. It's all good, but in order to profit from [database observation](#database-changes-observation) with [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), you'll need a *request* that defines a database query.
+The `fetchItems` method [above](#splitting-rows-the-record-way) directly fetches records. It's all good, but in order to profit from [database observation](#database-changes-observation) with [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), you'll need a *request* that defines a database query.
 
 I'll provide the full sample code below. It's recommended that your read previous paragraphs, and the [Custom Requests](#custom-requests) chapter to make the most of it:
 
@@ -4853,6 +4868,11 @@ Item.all()
     })
 ```
 
+> :bulb: In this chapter, we have learned:
+>
+> - how to define a custom request that can both fetch records from joined queries, and feed database observation tools.
+> - how to gather all relevant methods and constants in a record type, fully responsible of its relationship with the database.
+
 
 ### Splitting Rows, the Codable Way
 
@@ -4860,7 +4880,7 @@ Item.all()
 
 You can consume complex joined queries with Codable records as well, and profit from the automatic generation of decoding code.
 
-As a demonstration, we'll rewrite the [above](#splitting-rows-the-request-way) sample code:
+As a demonstration, we'll rewrite the [above](#splitting-rows-the-request-way) sample code in a way that 
 
 ```swift
 struct Player: Decodable, RowConvertible, TableMapping {
@@ -4922,6 +4942,8 @@ Item.all()
         print("items have changed")
     })
 ```
+
+> :bulb: In this chapter, we have learned how to use the `Decodable` protocol and its associated `CodingKeys` enum in order to fully leverage the generated decoding code provided by the Swift compiler.
 
 
 ## Database Changes Observation
