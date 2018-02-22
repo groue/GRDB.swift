@@ -4744,7 +4744,7 @@ To acknowledge that both Player and Team records may customize their selection o
 
 > :point_up: **Note**: you may also provide an alias: `SELECT \(Players.selectionSQL(alias: "p")) FROM players p ...`
 
-Now is the time to build adapters (taking in account the customized selection of both players and teams):
+Now is the time to build adapters (taking in account the customized selection of both players and teams). We use the `splittingRowAdapters` global function, which builds row adapters of desired widths:
 
 ```swift
     let adapters = try splittingRowAdapters(columnCounts: [
