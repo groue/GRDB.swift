@@ -4675,10 +4675,10 @@ We merge those two adapters in a single [ScopeAdapter](#scopeadapter) that will 
         "team": teamAdapter])
 ```
 
-And now we can fetch, and start consuming our rows. You already know [cursor of rows](#fetching-rows):
+And now we can fetch, and start consuming our rows. You already know [row cursors](#fetching-rows):
 
 ```swift
-    let rows = Row.fetchCursor(db, sql, adapter: adapter)
+    let rows = try Row.fetchCursor(db, sql, adapter: adapter)
     while let row = try rows.next() {
 ```
 
@@ -4721,11 +4721,11 @@ And finally, we can load the maximum score, assuming that the "maxScore" column 
 
 Our introduction above has introduced important techniques. It uses [row adapters](#row-adapters) in order to split rows. It uses the `init?(leftJoinedRow:)` initializer so that missing left joined tables can be represented as a nil record.
 
-But we have a few tasks to make it complete:
+But we have a few other tasks to make it more robust:
 
-1. It's generally easier to consume records than raw rows
-2. Records not always need all columns from a table (see `TableMapping.databaseSelection` in [Columns Selected by a Request](#columns-selected-by-a-request))
-3. Building row adapters is long and error prone
+1. It's generally easier to consume records than raw rows.
+2. Records not always need all columns from a table (see `TableMapping.databaseSelection` in [Columns Selected by a Request](#columns-selected-by-a-request)).
+3. Building row adapters is long and error prone.
 
 To address the first bullet, let's define a record that holds our player, optional team, and maximum score:
 
@@ -4760,8 +4760,8 @@ To acknowledge that both Player and Team records may customize their selection o
     // Let Player and Team customize their selection:
     let sql = """
         SELECT
-            \(Player.selectionSQL()),
-            \(Team.selectionSQL()),
+            \(Player.selectionSQL()), -- instead of players.*
+            \(Team.selectionSQL()),   -- instead of teams.*
             MAX(rounds.score) AS maxScore
         FROM players
         LEFT JOIN teams ON ...
