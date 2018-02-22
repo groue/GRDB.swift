@@ -239,7 +239,7 @@ extension RowAdapter {
     /// - parameter scopes: A dictionary that maps scope names to
     ///   row adapters.
     public func addingScopes(_ scopes: [String: RowAdapter]) -> RowAdapter {
-        return ScopeAdapter(mainAdapter: self, scopes: scopes)
+        return ScopeAdapter(base: self, scopes: scopes)
     }
 }
 
@@ -249,9 +249,15 @@ extension RowAdapter {
     }
 }
 
-/// EmptyAdapter is a row adapter that hides all columns.
-struct EmptyAdapter: RowAdapter {
-    func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter {
+/// EmptyRowAdapter is a row adapter that hides all columns.
+public struct EmptyRowAdapter: RowAdapter {
+    /// Creates an EmptyRowAdapter
+    public init() { }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// :nodoc:
+    public func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter {
         return LayoutedColumnMapping(layoutColumns: [])
     }
 }
@@ -374,33 +380,49 @@ public struct RangeRowAdapter : RowAdapter {
 ///     }
 public struct ScopeAdapter : RowAdapter {
     
-    /// The main adapter
-    let mainAdapter: RowAdapter
+    /// The base adapter
+    let base: RowAdapter
     
     /// The scope adapters
     let scopes: [String: RowAdapter]
     
-    /// Creates a scoped adapter.
+    /// Creates an adapter that preserves row contents and add scoped rows.
+    ///
+    /// For example:
+    ///
+    ///     let adapter = ScopeAdapter(["suffix": SuffixRowAdapter(fromIndex: 1)])
+    ///     let row = try Row.fetchOne(db, "SELECT 1, 2, 3", adapter: adapter)!
+    ///     row                      // [1, 2, 3]
+    ///     row.scoped(on: "suffix") // [2, 3]
     ///
     /// - parameter scopes: A dictionary that maps scope names to
     ///   row adapters.
     public init(_ scopes: [String: RowAdapter]) {
-        self.mainAdapter = SuffixRowAdapter(fromIndex: 0)   // Use SuffixRowAdapter(fromIndex: 0) as the identity adapter
-        self.scopes = scopes
+        // Use SuffixRowAdapter(fromIndex: 0) as the identity adapter
+        self.init(base: SuffixRowAdapter(fromIndex: 0), scopes: scopes)
     }
     
-    /// Creates a scoped adapter that hides all columns. Columns can only
-    /// be accessed through scopes.
+    /// Creates an adapter based on the base adapter, and add scoped rows.
     ///
+    /// For example:
+    ///
+    ///     let baseAdapter = RangeRowAdapter(0..<1)
+    ///     let adapter = ScopeAdapter(base: baseAdapter, scopes: ["suffix": SuffixRowAdapter(fromIndex: 1)])
+    ///     let row = try Row.fetchOne(db, "SELECT 1, 2, 3", adapter: adapter)!
+    ///     row                       // [1]
+    ///     row.scoped(on: "initial") // [2, 3]
+    ///
+    /// If the base adapter already defines scopes, the given scopes replace
+    /// eventual existing scopes with the same name.
+    ///
+    /// This initializer is equivalent to `baseAdapter.addingScopes(scopes)`.
+    ///
+    /// - parameter base: A dictionary that maps scope names to
+    ///   row adapters.
     /// - parameter scopes: A dictionary that maps scope names to
     ///   row adapters.
-    public init(nestedScopes: [String: RowAdapter]) { // TODO: find a better name
-        self.mainAdapter = EmptyAdapter()
-        self.scopes = nestedScopes
-    }
-    
-    init(mainAdapter: RowAdapter, scopes: [String: RowAdapter]) {
-        self.mainAdapter = mainAdapter
+    public init(base: RowAdapter, scopes: [String: RowAdapter]) {
+        self.base = base
         self.scopes = scopes
     }
     
@@ -408,7 +430,7 @@ public struct ScopeAdapter : RowAdapter {
     ///
     /// :nodoc:
     public func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter {
-        let layoutedAdapter = try mainAdapter.layoutedAdapter(from: layout)
+        let layoutedAdapter = try base.layoutedAdapter(from: layout)
         var layoutedScopes = layoutedAdapter.scopes
         for (name, adapter) in scopes {
             try layoutedScopes[name] = adapter.layoutedAdapter(from: layout)

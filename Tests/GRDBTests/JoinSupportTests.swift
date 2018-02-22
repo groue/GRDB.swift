@@ -391,10 +391,10 @@ class JoinSupportTests: GRDBTestCase {
                     T3.numberOfSelectedColumns(db)])
                 return ScopeAdapter([
                     "t1": adapters[0],
-                    "optionalT2Pair": ScopeAdapter(nestedScopes: [
+                    "optionalT2Pair": ScopeAdapter(base: EmptyRowAdapter(), scopes: [
                         "left": adapters[1],
                         "right": adapters[2]]),
-                    "t2Pair": ScopeAdapter(nestedScopes: [
+                    "t2Pair": ScopeAdapter([
                         "left": adapters[1],
                         "right": adapters[2]]),
                     "t3": adapters[3]])
