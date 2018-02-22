@@ -1663,7 +1663,9 @@ row["consumed"] // "Hello"
 row["produced"] // nil
 ```
 
-Row adapters are values that adopt the [RowAdapter](http://groue.github.io/GRDB.swift/docs/2.8/Protocols/RowAdapter.html) protocol. You can implement your own custom adapters ([**:fire: EXPERIMENTAL**](#what-are-experimental-features)), or use one of the four built-in adapters:
+Row adapters are values that adopt the [RowAdapter](http://groue.github.io/GRDB.swift/docs/2.8/Protocols/RowAdapter.html) protocol. You can implement your own custom adapters ([**:fire: EXPERIMENTAL**](#what-are-experimental-features)), or use one of the four built-in adapters, described below.
+
+To see how row adapters can be used, see [Joined Queries Support](#joined-queries-support).
 
 
 ### ColumnMapping
@@ -2387,7 +2389,7 @@ try dbQueue.inDatabase { db in
 }
 ```
 
-GRDB support for Codable only works for "flat" records, whose stored properties are all simple [values](#values) (Bool, Int, String, Date, Swift enums, etc.) For example, the following record is not flat:
+GRDB support for Codable works well with "flat" records, whose stored properties are all simple [values](#values) (Bool, Int, String, Date, Swift enums, etc.) For example, the following record is not flat:
 
 ```swift
 // Can't take profit from Codable code generation:
@@ -2427,6 +2429,8 @@ extension Place: RowConvertible, Persistable {
     static let databaseTableName = "places"
 }
 ```
+
+GRDB ships with support for nested codable records, but this is a more complex topic. See [Joined Queries Support](#joined-queries-support) for more information.
 
 As documented with the [Persistable](#persistable-protocol) protocol, have your struct records use MutablePersistable instead of Persistable when they store their automatically incremented row id:
 
@@ -3795,42 +3799,7 @@ try Player.customRequest(...).fetchAll(db)   // [Player]
 try Player.customRequest(...).fetchCount(db) // Int
 ```
 
-[**:fire: EXPERIMENTAL**](#what-are-experimental-features): Use the `adapted()` method to ease the consumption of complex rows with [row adapters](#row-adapters):
-
-```swift
-struct BookAuthorPair : RowConvertible {
-    let book: Book
-    let author: Author
-    
-    init(row: Row) {
-        // Those scopes are defined by the all() method below
-        book = Book(row: row.scoped(on: "books")!)
-        author = Author(row: row.scoped(on: "authors")!)
-    }
-    
-    static func all() -> AdaptedTypedRequest<AnyTypedRequest<BookAuthorPair>> {
-        return SQLRequest("""
-            SELECT books.*, authors.*
-            FROM books
-            JOIN authors ON authors.id = books.authorID
-            """)
-            .asRequest(of: BookAuthorPair.self)
-            .adapted { db in
-                try ScopeAdapter([
-                    "books": SuffixRowAdapter(fromIndex: 0),
-                    "authors": SuffixRowAdapter(fromIndex: db.columns(in: "books").count)])
-            }
-    }
-    
-    static func fetchAll(_ db: Database) throws -> [BookAuthorPair] {
-        return try all().fetchAll(db)
-    }
-}
-
-for pair in try BookAuthorPair.fetchAll(db) {
-    print("\(pair.book.title) by \(pair.author.name)")
-}
-```
+Finally, use the `adapted(_:)` method to ease the consumption of complex rows with [row adapters](#row-adapters). See [Joined Queries Support](#joined-queries-support) for more information.
 
 
 Application Tools

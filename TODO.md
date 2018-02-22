@@ -11,9 +11,6 @@
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
 - [ ] Write regression tests for #156 and #157
 
-- [ ] update row adapters doc: link to joins chapter for sample
-- [ ] update Codable Records chapter, talk about nested records, link to joins chapter for sample
-
 GRDB 3.0
 
 - [ ] Refactor SQL generation and rowId extraction from expression on the visitor pattern. Provide more documentation for literal expressions which become the only way to extend GRDB.
