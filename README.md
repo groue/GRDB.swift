@@ -4587,7 +4587,7 @@ This technique works pretty well, but it has three drawbacks:
 2. Such queries are difficult to write by hand.
 3. The mangled names are a *very* bad fit for [RowConvertible](#rowconvertible-protocol) records that expect specific column names. After all, if the `Team` record type can read `SELECT * FROM teams ...`, it should be able to read `SELECT ..., teams.*, ...` as well.
 
-We thus need another technique. Below we'll see how to split rows into slices, and preserve column names.
+We thus need another technique. **Below we'll see how to split rows into slices, and preserve column names.**
 
 `SELECT players.*, teams.*, MAX(rounds.score) AS maxScore FROM ...` will be splitted into three slices: one that contains player's columns, one that contains team's columns, and a remaining slice that contains remaining column(s). The Player record type will be able to read the first slice, which contains the colums expected by the `Player.init(row:)` initializer. In the same way, the Team record type could read the second slice.
 
@@ -4601,9 +4601,9 @@ Unlike the name-mangling technique, splitting rows keeps SQL legible, accepts yo
 
 ### Splitting Rows, an Introduction
 
-To split rows, we will use [row adapters](#row-adapters). Row adapters adapt rows so that row consumers see exactly the columns they want. Among other things, row adapters can define several *row scopes* that give access to as many *row slices*. Sounds like a perfect match.
-
 Let's first write some introductory code, hoping that this chapter will make you understand how pieces fall together. We'll see [later](#splitting-rows-the-record-way) how records will help us streamline the initial approach, how to track changes in joined requests, and how we can use the standard Decodable protocol.
+
+To split rows, we will use [row adapters](#row-adapters). Row adapters adapt rows so that row consumers see exactly the columns they want. Among other things, row adapters can define several *row scopes* that give access to as many *row slices*. Sounds like a perfect match.
 
 At the very beginning, there is an SQL query:
 
