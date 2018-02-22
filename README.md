@@ -4767,15 +4767,15 @@ And finally, we can fetch items:
 > :bulb: In this chapter, we have learned:
 > 
 > - how to define a `RowConvertible` record that consumes rows fetched from a joined query.
-> - how to use `selectionSQL` and `numberOfSelectedColumns` in order to deal with record types that define custom selection.
+> - how to use `selectionSQL` and `numberOfSelectedColumns` in order to deal with nested record types that define custom selection.
 > - how to use `splittingRowAdapters` in order to streamline the definition of row slices.
 
 
 ### Splitting Rows, the Request Way
 
-The `fetchItems` method [above](#splitting-rows-the-record-way) directly fetches records. It's all good, but in order to profit from [database observation](#database-changes-observation) with [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), you'll need a *request* that defines a database query.
+The `fetchItems` method [above](#splitting-rows-the-record-way) directly fetches records. It's all good, but in order to profit from [database observation](#database-changes-observation) with [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), you'll need a [custom request](#custom-requests) that defines a database query.
 
-I'll provide the full sample code below. It's recommended that your read previous paragraphs, and the [Custom Requests](#custom-requests) chapter to make the most of it:
+It is recommended that your read the previous paragraphs before you dive in this sample code. We start with the same Item record as above:
 
 ```swift
 /// The Item type
@@ -4796,11 +4796,15 @@ extension Item: RowConvertible {
         maxScore = row["maxScore"]
     }
 }
+```
 
+Now, we don't write a function that fetches items. Instead, we write a method that returns a request, and a fetching method that uses that request:
+
+```swift
 extension Item {
     /// The request for all items
     static func all() -> AnyTypedRequest<Item> {
-        return SQLRequest("""
+        let sql = """
             SELECT
                 \(Player.selectionSQL()),
                 \(Team.selectionSQL()),
@@ -4809,7 +4813,8 @@ extension Item {
             LEFT JOIN teams ON ...
             LEFT JOIN rounds ON ...
             GROUP BY ...
-            """)
+            """
+        return SQLRequest(sql)
             .adapted { db in
                 let adapters = try splittingRowAdapters(columnCounts: [
                     Player.numberOfSelectedColumns(db),
@@ -4826,7 +4831,11 @@ extension Item {
         return try all().fetchAll(db)
     }
 }
+```
 
+It is now time to use our request:
+
+```swift
 // Fetch items
 let items = try dbQueue.inDatabase { db in
     try Item.fetchAll(db)
@@ -4874,7 +4883,7 @@ struct Item: Decodable, RowConvertible {
 extension Item {
     /// The request for all items
     static func all() -> AnyTypedRequest<Item> {
-        return SQLRequest("""
+        let sql = """
             SELECT
                 \(Player.selectionSQL()),
                 \(Team.selectionSQL()),
@@ -4883,7 +4892,8 @@ extension Item {
             LEFT JOIN teams ON ...
             LEFT JOIN rounds ON ...
             GROUP BY ...
-            """)
+            """
+        return SQLRequest(sql)
             .adapted { db in
                 let adapters = try splittingRowAdapters(columnCounts: [
                     Player.numberOfSelectedColumns(db),
