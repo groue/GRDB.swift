@@ -4740,7 +4740,7 @@ To acknowledge that both Player and Team records may customize their selection o
         """
 ```
 
-`Player.selectionSQL()` will often output `players.*`. And if Player defines its [custom selection](#columns-selected-by-a-request), it will output exactly the expected columns, no more, no less.
+`Player.selectionSQL()` will output "players.*", unless Player defines a [customized selection](#columns-selected-by-a-request).
 
 > :point_up: **Note**: you may also provide an alias: `SELECT \(Players.selectionSQL(alias: "p")) FROM players p ...`
 
