@@ -4673,7 +4673,7 @@ We merge those two adapters in a single [ScopeAdapter](#scopeadapter) that will 
     let adapter = ScopeAdapter([
         "player": playerAdapter,
         "team": teamAdapter])
-```s
+```
 
 And now we can fetch, and start consuming our rows. You already know [cursor of rows](#fetching-rows):
 
@@ -4702,6 +4702,10 @@ And finally, we can load the maximum score, assuming that the "maxScore" column 
 
 ```swift
         let maxScore: Int = row["maxScore"]
+        
+        print("player: \(player)")
+        print("team: \(team)")
+        print("maxScore: \(maxScore)")
     }
 }
 ```
