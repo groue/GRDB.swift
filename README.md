@@ -4690,7 +4690,7 @@ And finally, we can load the maximum score, assuming that the "maxScore" column 
 
 Our introduction above has introduced important techniques. It uses [row adapters](#row-adapters) in order to split rows. It uses the `init?(leftJoinedRow:)` initializer so that missing left joined tables can be represented as a nil record.
 
-But we have a few other tasks to make it more robust:
+But we may want to make it more usable and robust:
 
 1. It's generally easier to consume records than raw rows.
 2. Records not always need all columns from a table (see `TableMapping.databaseSelection` in [Columns Selected by a Request](#columns-selected-by-a-request)).
