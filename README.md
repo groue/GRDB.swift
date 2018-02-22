@@ -4594,9 +4594,9 @@ We thus need another technique. Below we'll see how to split rows into slices, a
 Unlike the name-mangling technique, splitting rows keeps SQL legible, accepts your hand-crafted SQL queries, and plays as nicely as possible with your existing [record types](#records).
 
 - [Splitting Rows, an Introduction](#splitting-rows-an-introduction)
-- [Splitting Rows, the Record Way](#splitting-rows-the-c-way)
+- [Splitting Rows, the Record Way](#splitting-rows-the-record-way)
 - [Splitting Rows, the Request Way](#splitting-rows-the-request-way)
-- [Splitting Rows, the Codable Way](#splitting rows-the-codable-way)
+- [Splitting Rows, the Codable Way](#splitting-rows-the-codable-way)
 
 
 ### Splitting Rows, an Introduction
