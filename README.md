@@ -4693,7 +4693,7 @@ Our introduction above has introduced important techniques. It uses [row adapter
 But we may want to make it more usable and robust:
 
 1. It's generally easier to consume records than raw rows.
-2. Records not always need all columns from a table (see `TableMapping.databaseSelection` in [Columns Selected by a Request](#columns-selected-by-a-request)).
+2. Joined records not always need all columns from a table (see `TableMapping.databaseSelection` in [Columns Selected by a Request](#columns-selected-by-a-request)).
 3. Building row adapters is long and error prone.
 
 To address the first bullet, let's define a record that holds our player, optional team, and maximum score. Since it can decode database rows, it adopts the [RowConvertible](#rowconvertible-protocol) protocol:
