@@ -474,11 +474,23 @@ struct AdapterRowImpl : RowImpl {
     }
     
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
-        return base[mapping.baseColumnIndex(atMappingIndex: index)]
+        let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
+        return base.impl.databaseValue(atUncheckedIndex: mappedIndex)
     }
     
+    func fastValue<Value: DatabaseValueConvertible & StatementColumnConvertible>(atUncheckedIndex index: Int) -> Value {
+        let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
+        return base.impl.fastValue(atUncheckedIndex: mappedIndex)
+    }
+    
+    func fastValue<Value: DatabaseValueConvertible & StatementColumnConvertible>(atUncheckedIndex index: Int) -> Value? {
+        let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
+        return base.impl.fastValue(atUncheckedIndex: mappedIndex)
+    }
+
     func dataNoCopy(atUncheckedIndex index:Int) -> Data? {
-        return base.dataNoCopy(atIndex: mapping.baseColumnIndex(atMappingIndex: index))
+        let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
+        return base.impl.dataNoCopy(atUncheckedIndex: mappedIndex)
     }
     
     func columnName(atUncheckedIndex index: Int) -> String {
