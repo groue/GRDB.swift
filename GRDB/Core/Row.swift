@@ -134,16 +134,17 @@ extension Row {
     /// Returns true if and only if one column contains a non-null value, or if
     /// the row was fetched along with a row adapter that defines a scoped row
     /// that contains a non-null value.
+    ///
+    /// For example:
+    ///
+    ///     let row = try Row.fetchOne(db, "SELECT 'foo', 1")!
+    ///     row.containsNonNullValue // true
+    ///
+    ///     let row = try Row.fetchOne(db, "SELECT NULL, NULL")!
+    ///     row.containsNonNullValue // false
     public var containsNonNullValue: Bool {
-        // In case of trouble, see 0149a0265010ef7bb7b41815f91315c4b8dbd4fd
-        if let sqliteStatement = sqliteStatement { // fast path
-            for i in (0..<Int32(count)) {
-                if sqlite3_column_type(sqliteStatement, Int32(i)) != SQLITE_NULL { return true }
-            }
-        } else {
-            for i in (0..<count) {
-                if !hasNull(atIndex: i) { return true }
-            }
+        for i in (0..<count) {
+            if !hasNull(atIndex: i) { return true }
         }
         
         for name in scopeNames where scoped(on: name)!.containsNonNullValue {
@@ -159,11 +160,7 @@ extension Row {
     /// righmost column.
     public func hasNull(atIndex index: Int) -> Bool {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
-        // In case of trouble, see 0149a0265010ef7bb7b41815f91315c4b8dbd4fd
-        if let sqliteStatement = sqliteStatement { // fast path
-            return sqlite3_column_type(sqliteStatement, Int32(index)) == SQLITE_NULL
-        }
-        return impl.databaseValue(atUncheckedIndex: index).isNull
+        return impl.hasNull(atUncheckedIndex: index)
     }
     
     /// Returns true if the given column contains a null value, or if the
@@ -941,6 +938,7 @@ protocol RowImpl {
     var count: Int { get }
     var isFetched: Bool { get }
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue
+    func hasNull(atUncheckedIndex index:Int) -> Bool
     func dataNoCopy(atUncheckedIndex index:Int) -> Data?
     func columnName(atUncheckedIndex index: Int) -> String
     
@@ -955,6 +953,11 @@ protocol RowImpl {
     func copy(_ row: Row) -> Row
 }
 
+extension RowImpl {
+    func hasNull(atUncheckedIndex index:Int) -> Bool {
+        return databaseValue(atUncheckedIndex: index).isNull
+    }
+}
 
 /// See Row.init(dictionary:)
 private struct ArrayRowImpl : RowImpl {
@@ -1081,6 +1084,11 @@ private struct StatementRowImpl : RowImpl {
     
     var isFetched: Bool {
         return true
+    }
+    
+    func hasNull(atUncheckedIndex index:Int) -> Bool {
+        // Avoid extracting values, because this modifies the statement.
+        return sqlite3_column_type(sqliteStatement, Int32(index)) == SQLITE_NULL
     }
     
     func dataNoCopy(atUncheckedIndex index:Int) -> Data? {

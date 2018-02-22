@@ -465,6 +465,11 @@ struct AdapterRowImpl : RowImpl {
         return base.isFetched
     }
     
+    func hasNull(atUncheckedIndex index: Int) -> Bool {
+        let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
+        return base.impl.hasNull(atUncheckedIndex: mappedIndex)
+    }
+    
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
         return base[mapping.baseColumnIndex(atMappingIndex: index)]
     }
