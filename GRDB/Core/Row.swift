@@ -158,32 +158,15 @@ extension Row {
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
     /// righmost column.
+    ///
+    /// This method is equivalent to `row[index] == nil`, but may be preferred
+    /// in performance-critical code because it can avoid decoding database
+    /// values.
     public func hasNull(atIndex index: Int) -> Bool {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
         return impl.hasNull(atUncheckedIndex: index)
     }
     
-    /// Returns true if the given column contains a null value, or if the
-    /// column is missing.
-    ///
-    /// Column name lookup is case-insensitive, and when several columns have
-    /// the same name, the leftmost column is considered.
-    public func hasNull(named columnName: String) -> Bool {
-        guard let index = impl.index(ofColumn: columnName) else {
-            return false
-        }
-        return hasNull(atIndex: index)
-    }
-    
-    /// Returns true if the given column contains a null value, or if the
-    /// column is missing.
-    ///
-    /// Column name lookup is case-insensitive, and when several columns have
-    /// the same name, the leftmost column is considered.
-    public func hasNull(_ column: Column) -> Bool {
-        return hasNull(named: column.name)
-    }
-
     /// Returns Int64, Double, String, Data or nil, depending on the value
     /// stored at the given index.
     ///
