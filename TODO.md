@@ -31,6 +31,8 @@ GRDB 3.0
 - [ ] Rename columnCount -> numberOfColumns
 - [ ] Try to remove double Persistable/MutablePersistable protocols: Would non-mutating Record methods help?
 
+- [ ] Instead of init(leftJoinedRow:), what about row.leftJoindScoped(on:) that returns nil?
+
 Not sure
 
 - [ ] Think about supporting Cursor's underestimatedCount, which could speed up Array(cursor) and fetchAll()
