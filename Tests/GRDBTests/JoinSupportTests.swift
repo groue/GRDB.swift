@@ -219,6 +219,7 @@ class JoinSupportTests: GRDBTestCase {
                     T2.numberOfSelectedColumns(db),
                     T2.numberOfSelectedColumns(db),
                     T3.numberOfSelectedColumns(db)])
+                XCTAssertEqual(adapters.count, 5)
                 return ScopeAdapter([
                     "t1": adapters[0],
                     "t2Left": adapters[1],

@@ -5,9 +5,9 @@ import Foundation
 ///
 /// For example:
 ///
-///     let sql = "SELECT 1, 2, 3, 4, 5, 6, 7, 8"
-///     //               < ><    ><       ><    >
-///     let adapters = splittingRowAdapters([1, 2, 3])
+///     let sql = "SELECT 1, 2,3,4, 5,6, 7,8"
+///     //               <.><. . .><. .><. .>
+///     let adapters = splittingRowAdapters([1, 3, 2])
 ///     let adapter = ScopeAdapter([
 ///         "a": adapters[0],
 ///         "b": adapters[1],
@@ -15,25 +15,28 @@ import Foundation
 ///         "d": adapters[3]])
 ///     let row = try Row.fetchOne(db, sql, adapter: adapter)
 ///     row.scoped(on: "a") // [1]
-///     row.scoped(on: "b") // [2, 3]
-///     row.scoped(on: "c") // [4, 5, 6]
+///     row.scoped(on: "b") // [2, 3, 4]
+///     row.scoped(on: "c") // [5, 6]
 ///     row.scoped(on: "d") // [7, 8]
 public func splittingRowAdapters(columnCounts: [Int]) -> [RowAdapter] {
     guard !columnCounts.isEmpty else {
+        // Identity adapter
         return [SuffixRowAdapter(fromIndex: 0)]
     }
     
-    // [2, 4] -> [0, 2, 6]
+    // [1, 3, 2] -> [0, 1, 4, 6]
     let columnIndexes = columnCounts.reduce(into: [0]) { (acc, count) in
         acc.append(acc.last! + count)
     }
     
-    // [0, 2, 6] -> [(0..<2), (2..<6)]
+    // [0, 1, 4, 6] -> [(0..<1), (1..<4), (4..<6)]
     let rangeAdapters = zip(columnIndexes, columnIndexes.suffix(from: 1))
         .map { RangeRowAdapter($0..<$1) }
     
+    // (6...)
     let suffixAdapter = SuffixRowAdapter(fromIndex: columnIndexes.last!)
     
+    // [(0..<1), (1..<4), (4..<6), (6...)]
     return rangeAdapters + [suffixAdapter]
 }
 
