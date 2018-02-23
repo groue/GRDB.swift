@@ -362,9 +362,17 @@ public struct ColumnInfo : RowConvertible {
     ///     columnInfos[3].defaultValueSQL // "CURRENT_TIMESTAMP"
     public let defaultValueSQL: String?
     
-    /// Zero for columns that are not part of the primary key. The one-based
-    /// index of the column in the primary key for columns that are part of the
+    /// Zero for columns that are not part of the primary key.
+    ///
+    /// Before SQLite 3.7.16, it is 1 for columns that are part of the
     /// primary key.
+    ///
+    /// Starting from SQLite 3.7.16, it is the one-based index of the column in
+    /// the primary key for columns that are part of the primary key.
+    ///
+    /// References:
+    /// - https://sqlite.org/releaselog/3_7_16.html
+    /// - http://mailinglists.sqlite.org/cgi-bin/mailman/private/sqlite-users/2013-April/046034.html
     public let primaryKeyIndex: Int
     
     /// :nodoc:
