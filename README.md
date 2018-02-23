@@ -4722,7 +4722,7 @@ Let's now write the method that fetches items:
 
 ```swift
 extension Item {
-    func fetchAll(_ db: Database) throws -> [Item] {
+    static func fetchAll(_ db: Database) throws -> [Item] {
 ```
 
 To acknowledge that both Player and Team records may customize their selection of the "players" and "teams" columns, we'll write our SQL in a slightly different way:
