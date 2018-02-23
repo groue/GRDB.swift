@@ -1,10 +1,15 @@
 import XCTest
 #if GRDBCIPHER
-    import GRDBCipher
+    @testable import GRDBCipher
 #elseif GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
+    @testable import GRDBCustomSQLite
 #else
-    import GRDB
+    #if SWIFT_PACKAGE
+        import CSQLite
+    #else
+        import SQLite3
+    #endif
+    @testable import GRDB
 #endif
 
 class ColumnInfoTests: GRDBTestCase {
@@ -34,7 +39,25 @@ class ColumnInfoTests: GRDBTestCase {
             XCTAssertEqual(columns[0].name, "a")
             XCTAssertEqual(columns[0].isNotNull, false)
             XCTAssertEqual(columns[0].type, "INT")
-            XCTAssertEqual(columns[0].primaryKeyIndex, 2)
+            // D. Richard Hipp wrote in SQLite mailing list on Tue Apr 30 22:43:47 EDT 2013 (http://mailinglists.sqlite.org/cgi-bin/mailman/private/sqlite-users/2013-April/046034.html):
+            //
+            // > Re: Incorrect documentation for PRAGMA table_info (pk column)
+            // >
+            // > For SQLite 3.7.15 and earlier, the "pk" columns meaning was undocumented
+            // > and hence undefined.  As it happened it was always 1.  Beginning with
+            // > SQLite 3.7.16 we defined the meaning of the "pk" column to be the 1-based
+            // > index of the column in the primary key.
+            //
+            // https://sqlite.org/releaselog/3_7_16.html
+            //
+            // > Enhance the PRAGMA table_info command so that the "pk" column
+            // > is an increasing integer to show the order of columns in the
+            // > primary key.
+            if sqlite3_libversion_number() < 3007016 {
+                XCTAssertEqual(columns[0].primaryKeyIndex, 1)
+            } else {
+                XCTAssertEqual(columns[0].primaryKeyIndex, 2)
+            }
             XCTAssertNil(columns[0].defaultValueSQL)
             
             XCTAssertEqual(columns[1].name, "b")
