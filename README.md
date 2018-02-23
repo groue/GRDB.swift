@@ -4813,7 +4813,7 @@ extension Item: RowConvertible {
 }
 ```
 
-Now, we don't write a function that fetches items. Instead, we write a method that returns a request, and a fetching method that uses that request:
+Now we write a method that returns a request, and build the fetching method on top of that request:
 
 ```swift
 extension Item {
