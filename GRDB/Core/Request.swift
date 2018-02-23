@@ -83,8 +83,6 @@ extension Request {
         return AnyTypedRequest(self)
     }
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// Returns an adapted request.
     public func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AdaptedRequest<Self> {
         return AdaptedRequest(self, adapter)

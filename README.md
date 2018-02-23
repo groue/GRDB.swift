@@ -1698,6 +1698,19 @@ let adapter = RangeRowAdapter(1..<2)
 let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c", adapter: adapter)!
 ```
 
+### EmptyRowAdapter
+
+`EmptyRowAdapter` hides all rows.
+
+```swift
+let adapter = EmptyRowAdapter()
+let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c", adapter: adapter)!
+row.isEmpty // true
+```
+
+This limit adapter may turn out useful in some narrow use cases. You'll be happy to find it when you need it.
+
+
 ### ScopeAdapter
 
 `ScopeAdapter` defines *row scopes*:
@@ -1709,7 +1722,7 @@ let adapter = ScopeAdapter([
 let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c, 3 AS d", adapter: adapter)!
 ```
 
-ScopeAdapter does not change the columns and values of the fetched row. Instead, it defines *scopes*, which you access with the `scoped(on:)` method. It returns an optional Row, which is nil if the scope is missing.
+ScopeAdapter does not change the columns and values of the fetched row. Instead, it defines *scopes*, which you access with the `Row.scoped(on:)` method. This method returns an optional Row, which is nil if the scope is missing.
 
 ```swift
 row                       // <Row a:0 b:1 c:2 d:3>
@@ -1743,8 +1756,9 @@ rightRow.scoped(on: "right") // <Row d:3>
 Any adapter can be extended with scopes:
 
 ```swift
-let adapter = RangeRowAdapter(0..<2)
-    .addingScopes(["remainder": SuffixRowAdapter(fromIndex: 2)])
+let baseAdapter = RangeRowAdapter(0..<2)
+let adapter = ScopeAdapter(base: baseAdapter, scopes: [
+    "remainder": SuffixRowAdapter(fromIndex: 2)])
 let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c, 3 AS d", adapter: adapter)!
 
 row // <Row a:0 b:1>

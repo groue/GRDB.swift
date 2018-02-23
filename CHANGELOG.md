@@ -7,6 +7,8 @@ Release Notes
 
 - `Record.updateChanges(_:)` now returns whether the record had unsaved changes, or not.
 - `Database.columns(in:)` returns information about the columns of a table.
+- Improved support for joined queries: check the new [Joined Queries Support](https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support) documentation chapter.
+- `Request.adapted(_:)` is no longer experimental.
 
 ### API diff
 
@@ -24,12 +26,33 @@ Release Notes
       func columnCount(in tableName: String) throws -> Int
 +     func columns(in tableName: String) throws -> [ColumnInfo]
  }
- 
+
  class Record {
 -    final func updateChanges(_ db: Database) throws
 +    @discardableResult
 +    final func updateChanges(_ db: Database) throws -> Bool
  }
+
+ class Row {
++    var unscoped: Row
++    var containsNonNullValue: Bool
++    func hasNull(atIndex index: Int) -> Bool
++    subscript<Record: RowConvertible>(_ scope: String) -> Record
++    subscript<Record: RowConvertible>(_ scope: String) -> Record?
+ }
+
+ extension TableMapping {
++    static func selectionSQL(alias: String? = nil) -> String
++    static func numberOfSelectedColumns(_ db: Database) throws -> Int
+ }
+
++struct EmptyRowAdapter: RowAdapter { }
+
+ struct ScopeAdapter {
++    init(base: RowAdapter, scopes: [String: RowAdapter])
+ }
+
++func splittingRowAdapters(columnCounts: [Int]) -> [RowAdapter]
 ```
 
 
