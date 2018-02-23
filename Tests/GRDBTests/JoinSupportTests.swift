@@ -97,6 +97,22 @@ private struct CodableFlatModel: RowConvertible, Codable {
     var t2Right: T2?
     var t3: T3?
     var t5count: Int
+    
+    static func all() -> AnyTypedRequest<CodableFlatModel> {
+        return SQLRequest(testedSQL).adapted { db in
+            let adapters = try splittingRowAdapters(columnCounts: [
+                T1.numberOfSelectedColumns(db),
+                T2.numberOfSelectedColumns(db),
+                T2.numberOfSelectedColumns(db),
+                T3.numberOfSelectedColumns(db)])
+            return ScopeAdapter([
+                CodingKeys.t1.stringValue: adapters[0],
+                CodingKeys.t2Left.stringValue: adapters[1],
+                CodingKeys.t2Right.stringValue: adapters[2],
+                CodingKeys.t3.stringValue: adapters[3]])
+            }
+            .asRequest(of: CodableFlatModel.self)
+    }
 }
 
 private struct CodableNestedModel: RowConvertible, Codable {
@@ -111,22 +127,21 @@ private struct CodableNestedModel: RowConvertible, Codable {
     var t5count: Int
     
     static func all() -> AnyTypedRequest<CodableNestedModel> {
-        return SQLRequest(testedSQL)
-            .adapted { db in
-                let adapters = try splittingRowAdapters(columnCounts: [
-                    T1.numberOfSelectedColumns(db),
-                    T2.numberOfSelectedColumns(db),
-                    T2.numberOfSelectedColumns(db),
-                    T3.numberOfSelectedColumns(db)])
-                return ScopeAdapter([
-                    CodingKeys.t1.stringValue: adapters[0],
-                    CodingKeys.optionalT2Pair.stringValue: ScopeAdapter(base: EmptyRowAdapter(), scopes: [
-                        "left": adapters[1],
-                        "right": adapters[2]]),
-                    CodingKeys.t2Pair.stringValue: ScopeAdapter([
-                        "left": adapters[1],
-                        "right": adapters[2]]),
-                    CodingKeys.t3.stringValue: adapters[3]])
+        return SQLRequest(testedSQL).adapted { db in
+            let adapters = try splittingRowAdapters(columnCounts: [
+                T1.numberOfSelectedColumns(db),
+                T2.numberOfSelectedColumns(db),
+                T2.numberOfSelectedColumns(db),
+                T3.numberOfSelectedColumns(db)])
+            return ScopeAdapter([
+                CodingKeys.t1.stringValue: adapters[0],
+                CodingKeys.optionalT2Pair.stringValue: ScopeAdapter(base: EmptyRowAdapter(), scopes: [ // EmptyRowAdapter base so that optionalT2Pair only instantiates when its scopes contain non-null values
+                    "left": adapters[1],
+                    "right": adapters[2]]),
+                CodingKeys.t2Pair.stringValue: ScopeAdapter([
+                    "left": adapters[1],
+                    "right": adapters[2]]),
+                CodingKeys.t3.stringValue: adapters[3]])
             }
             .asRequest(of: CodableNestedModel.self)
     }
@@ -356,19 +371,7 @@ class JoinSupportTests: GRDBTestCase {
     func testCodableFlatModel() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let request = SQLRequest(testedSQL).adapted { db in
-                let adapters = try splittingRowAdapters(columnCounts: [
-                    T1.numberOfSelectedColumns(db),
-                    T2.numberOfSelectedColumns(db),
-                    T2.numberOfSelectedColumns(db),
-                    T3.numberOfSelectedColumns(db)])
-                return ScopeAdapter([
-                    "t1": adapters[0],
-                    "t2Left": adapters[1],
-                    "t2Right": adapters[2],
-                    "t3": adapters[3]])
-            }
-            let models = try CodableFlatModel.fetchAll(db, request)
+            let models = try CodableFlatModel.all().fetchAll(db)
             XCTAssertEqual(models.count, 3)
             
             XCTAssertEqual(models[0].t1.id, 1)

@@ -4812,14 +4812,13 @@ extension Item {
             LEFT JOIN rounds ON ...
             GROUP BY ...
             """
-        return SQLRequest(sql)
-            .adapted { db in
-                let adapters = try splittingRowAdapters(columnCounts: [
-                    Player.numberOfSelectedColumns(db),
-                    Team.numberOfSelectedColumns(db)])
-                return ScopeAdapter([
-                    playerScope: adapters[0],
-                    teamScope: adapters[1]])
+        return SQLRequest(sql).adapted { db in
+            let adapters = try splittingRowAdapters(columnCounts: [
+                Player.numberOfSelectedColumns(db),
+                Team.numberOfSelectedColumns(db)])
+            return ScopeAdapter([
+                playerScope: adapters[0],
+                teamScope: adapters[1]])
             }
             .asRequest(of: Item.self)
     }
@@ -4891,14 +4890,13 @@ extension Item {
             LEFT JOIN rounds ON ...
             GROUP BY ...
             """
-        return SQLRequest(sql)
-            .adapted { db in
-                let adapters = try splittingRowAdapters(columnCounts: [
-                    Player.numberOfSelectedColumns(db),
-                    Team.numberOfSelectedColumns(db)])
-                return ScopeAdapter([
-                    CodingKeys.player.stringValue: adapters[0],
-                    CodingKeys.team.stringValue: adapters[1]])
+        return SQLRequest(sql).adapted { db in
+            let adapters = try splittingRowAdapters(columnCounts: [
+                Player.numberOfSelectedColumns(db),
+                Team.numberOfSelectedColumns(db)])
+            return ScopeAdapter([
+                CodingKeys.player.stringValue: adapters[0],
+                CodingKeys.team.stringValue: adapters[1]])
             }
             .asRequest(of: Item.self)
     }
