@@ -76,6 +76,14 @@ private struct T5: Codable, RowConvertible, TableMapping {
 }
 
 private struct FlatModel: RowConvertible {
+    private enum Scopes {
+        static let t1 = "t1"
+        static let t2Left = "t2Left"
+        static let t2Right = "t2Right"
+        static let t3 = "t3"
+        static let suffix = "suffix"
+    }
+
     var t1: T1
     var t2Left: T2?
     var t2Right: T2?
@@ -83,11 +91,28 @@ private struct FlatModel: RowConvertible {
     var t5count: Int
     
     init(row: Row) {
-        self.t1 = row["t1"]
-        self.t2Left = row["t2Left"]
-        self.t2Right = row["t2Right"]
-        self.t3 = row["t3"]
-        self.t5count = row["t5count"]
+        self.t1 = row[Scopes.t1]
+        self.t2Left = row[Scopes.t2Left]
+        self.t2Right = row[Scopes.t2Right]
+        self.t3 = row[Scopes.t3]
+        self.t5count = row.scoped(on: Scopes.suffix)!["t5count"]
+    }
+    
+    static func all() -> AnyTypedRequest<FlatModel> {
+        return SQLRequest(testedSQL).adapted { db in
+            let adapters = try splittingRowAdapters(columnCounts: [
+                T1.numberOfSelectedColumns(db),
+                T2.numberOfSelectedColumns(db),
+                T2.numberOfSelectedColumns(db),
+                T3.numberOfSelectedColumns(db)])
+            return ScopeAdapter([
+                Scopes.t1: adapters[0],
+                Scopes.t2Left: adapters[1],
+                Scopes.t2Right: adapters[2],
+                Scopes.t3: adapters[3],
+                Scopes.suffix: adapters[4]]) // The only test for adapters[4]
+            }
+            .asRequest(of: FlatModel.self)
     }
 }
 
@@ -322,22 +347,9 @@ class JoinSupportTests: GRDBTestCase {
     func testFlatModel() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let request = SQLRequest(testedSQL).adapted { db in
-                let adapters = try splittingRowAdapters(columnCounts: [
-                    T1.numberOfSelectedColumns(db),
-                    T2.numberOfSelectedColumns(db),
-                    T2.numberOfSelectedColumns(db),
-                    T3.numberOfSelectedColumns(db)])
-                return ScopeAdapter([
-                    "t1": adapters[0],
-                    "t2Left": adapters[1],
-                    "t2Right": adapters[2],
-                    "t3": adapters[3],
-                    "suffix": adapters[4]])
-            }
-            let models = try FlatModel.fetchAll(db, request)
+            let models = try FlatModel.all().fetchAll(db)
             XCTAssertEqual(models.count, 3)
-            
+
             XCTAssertEqual(models[0].t1.id, 1)
             XCTAssertEqual(models[0].t1.name, "A1")
             XCTAssertEqual(models[0].t2Left!.id, 1)

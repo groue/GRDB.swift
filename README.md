@@ -4705,37 +4705,40 @@ struct Item {
 
 /// Item can decode rows:
 extension Item: RowConvertible {
-    static let playerScope = "players"
-    static let teamScope = "teams"
+    private enum Scopes {
+        static let player = "player"
+        static let team = "team"
+    }
     
     init(row: Row) {
-        player = row[Item.playerScope]
-        team = row[Item.teamScope]
+        player = row[Scopes.player]
+        team = row[Scopes.team]
         maxScore = row["maxScore"]
     }
 }
 ```
 
-Let's now write the function that fetches items:
+Let's now write the method that fetches items:
 
 ```swift
-func fetchItems(_ db: Database) throws -> [Item] {
+extension Item {
+    func fetchAll(_ db: Database) throws -> [Item] {
 ```
 
 To acknowledge that both Player and Team records may customize their selection of the "players" and "teams" columns, we'll write our SQL in a slightly different way:
 
 ```swift
-    // Let Player and Team customize their selection:
-    let sql = """
-        SELECT
-            \(Player.selectionSQL()), -- instead of players.*
-            \(Team.selectionSQL()),   -- instead of teams.*
-            MAX(rounds.score) AS maxScore
-        FROM players
-        LEFT JOIN teams ON ...
-        LEFT JOIN rounds ON ...
-        GROUP BY ...
-        """
+        // Let Player and Team customize their selection:
+        let sql = """
+            SELECT
+                \(Player.selectionSQL()), -- instead of players.*
+                \(Team.selectionSQL()),   -- instead of teams.*
+                MAX(rounds.score) AS maxScore
+            FROM players
+            LEFT JOIN teams ON ...
+            LEFT JOIN rounds ON ...
+            GROUP BY ...
+            """
 ```
 
 `Player.selectionSQL()` will output `players.*`, unless Player defines a [customized selection](#columns-selected-by-a-request).
@@ -4745,13 +4748,13 @@ To acknowledge that both Player and Team records may customize their selection o
 Now is the time to build adapters (taking in account the customized selection of both players and teams). We use the `splittingRowAdapters` global function, which builds row adapters of desired widths:
 
 ```swift
-    let adapters = try splittingRowAdapters(columnCounts: [
-        Player.numberOfSelectedColumns(db),
-        Team.numberOfSelectedColumns(db)])
+        let adapters = try splittingRowAdapters(columnCounts: [
+            Player.numberOfSelectedColumns(db),
+            Team.numberOfSelectedColumns(db)])
     
-    let adapter = ScopeAdapter([
-        Item.playerScope: adapters[0],
-        Item.teamScope: adapters[1]])
+        let adapter = ScopeAdapter([
+            Scopes.player: adapters[0],
+            Scopes.team: adapters[1]])
 ```
 
 > :point_up: **Note**: `splittingRowAdapters` returns as many adapters as necessary to fully split a row. In the example above, it returns *three* adapters: one for players, one for teams, and one for the remaining columns.
@@ -4759,15 +4762,27 @@ Now is the time to build adapters (taking in account the customized selection of
 And finally, we can fetch items:
 
 ```swift
-    return try Item.fetchAll(db, sql, adapter: adapter)
+        return try Item.fetchAll(db, sql, adapter: adapter)
+    }
 }
 ```
+
+And when your app needs to fetch items, it now reads:
+
+```swift
+// Fetch items
+let items = try dbQueue.inDatabase { db in
+    try Item.fetchAll(db)
+}
+```
+
 
 > :bulb: In this chapter, we have learned:
 > 
 > - how to define a `RowConvertible` record that consumes rows fetched from a joined query.
 > - how to use `selectionSQL` and `numberOfSelectedColumns` in order to deal with nested record types that define custom selection.
 > - how to use `splittingRowAdapters` in order to streamline the definition of row slices.
+> - how to gather all relevant methods and constants in a record type, fully responsible of its relationship with the database.
 
 
 ### Splitting Rows, the Request Way
@@ -4785,12 +4800,14 @@ struct Item {
 
 /// Item can decode rows:
 extension Item: RowConvertible {
-    static let playerScope = "player"
-    static let teamScope = "team"
+    private enum Scopes {
+        static let player = "player"
+        static let team = "team"
+    }
     
     init(row: Row) {
-        player = row[Item.playerScope]
-        team = row[Item.teamScope]
+        player = row[Scopes.player]
+        team = row[Scopes.team]
         maxScore = row["maxScore"]
     }
 }
@@ -4817,8 +4834,8 @@ extension Item {
                 Player.numberOfSelectedColumns(db),
                 Team.numberOfSelectedColumns(db)])
             return ScopeAdapter([
-                playerScope: adapters[0],
-                teamScope: adapters[1]])
+                Scopes.player: adapters[0],
+                Scopes.team: adapters[1]])
             }
             .asRequest(of: Item.self)
     }
@@ -4849,7 +4866,6 @@ Item.all()
 > :bulb: In this chapter, we have learned:
 >
 > - how to define a custom request that can both fetch records from joined queries, and feed database observation tools.
-> - how to gather all relevant methods and constants in a record type, fully responsible of its relationship with the database.
 
 
 ### Splitting Rows, the Codable Way
