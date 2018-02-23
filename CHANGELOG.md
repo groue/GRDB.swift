@@ -3,12 +3,39 @@ Release Notes
 
 ## Next Version
 
+### Fixed
+
+- It is now a programmer error to leave a transaction opened at the end of a database access block:
+    
+    ```swift
+    // Fatal error:
+    // A transaction has been left opened at the end of a database access
+    try dbQueue.inDatabase { db in
+        try db.beginTransaction()
+    }
+    ```
+    
+    One can still opt-in for the unsafe behavior by setting the new `allowsUnsafeTransactions` configuration flag:
+    
+    ```swift
+    var config = Configuration()
+    config.allowsUnsafeTransactions = true
+    let dbQueue = DatabaseQueue(configuration: config)
+    
+    // OK
+    try dbQueue.inDatabase { db in
+        try db.beginTransaction()
+    }
+    ```
+
+
 ### New
 
 - `Record.updateChanges(_:)` now returns whether the record had unsaved changes, or not.
 - `Database.columns(in:)` returns information about the columns of a table.
 - Improved support for joined queries: check the new [Joined Queries Support](https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support) documentation chapter.
 - `Request.adapted(_:)` is no longer experimental.
+- Support for explicit transaction management, via the new `Database.beginTransaction`, `commit`, and `rollback` methods.
 
 
 ### Deprecated
@@ -36,11 +63,18 @@ Release Notes
 +    let defaultValueSQL: String?
 +    let primaryKeyIndex: Int
 +}
+
+ struct Configuration {
++    var allowsUnsafeTransactions: Bool
+ }
  
  class Database {
 +     @available(*, deprecated, message: "Use db.columns(in: tableName).count instead")
       func columnCount(in tableName: String) throws -> Int
 +     func columns(in tableName: String) throws -> [ColumnInfo]
++     func beginTransaction(_ kind: TransactionKind? = nil) throws
++     func rollback() throws
++     func commit() throws
  }
 
  class Record {

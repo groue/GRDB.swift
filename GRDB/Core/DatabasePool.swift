@@ -77,6 +77,7 @@ public final class DatabasePool {
         readerConfig = configuration
         readerConfig.readonly = true
         readerConfig.defaultTransactionKind = .deferred // Make it the default for readers. Other transaction kinds are forbidden by SQLite in read-only connections.
+        readerConfig.allowsUnsafeTransactions = false   // Because there's no guarantee that one can get the same reader in order to close its opened transaction.
         readerPool = Pool(maximumCount: configuration.maximumReaderCount, makeElement: { [unowned self] in
             let reader = try SerializedDatabase(
                 path: path,

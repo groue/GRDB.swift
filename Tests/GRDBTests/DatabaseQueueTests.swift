@@ -90,4 +90,17 @@ class DatabaseQueueTests: GRDBTestCase {
             XCTAssertEqual(error.description.lowercased(), "sqlite error 1 with statement `create table files_fail (name text collate test_collation_foo)`: no such collation sequence: test_collation_foo")
         }
     }
+    
+    func testAllowsUnsafeTransactions() throws {
+        dbConfiguration.allowsUnsafeTransactions = true
+        let dbQueue = try makeDatabaseQueue()
+        
+        try dbQueue.inDatabase { db in
+            try db.beginTransaction()
+        }
+        
+        try dbQueue.inDatabase { db in
+            try db.commit()
+        }
+    }
 }

@@ -298,4 +298,19 @@ class DatabaseTests : GRDBTestCase {
         // Make sure we can open another transaction
         try dbQueue.inTransaction { db in .commit }
     }
+    
+    func testExplicitTransactionManagement() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        try dbQueue.inDatabase { db in
+            try db.beginTransaction()
+            XCTAssertEqual(lastSQLQuery, "BEGIN DEFERRED TRANSACTION")
+            try db.rollback()
+            XCTAssertEqual(lastSQLQuery, "ROLLBACK TRANSACTION")
+            try db.beginTransaction(.immediate)
+            XCTAssertEqual(lastSQLQuery, "BEGIN IMMEDIATE TRANSACTION")
+            try db.commit()
+            XCTAssertEqual(lastSQLQuery, "COMMIT TRANSACTION")
+        }
+    }
 }
