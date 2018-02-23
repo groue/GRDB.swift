@@ -11,8 +11,6 @@
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
 - [ ] Write regression tests for #156 and #157
 
-- [?] codable/nested records/structures: encode/decode nested records, arrays of records, arrays of values, dictionaries, etc. as JSON?
-
 GRDB 3.0
 
 - [ ] Refactor SQL generation and rowId extraction from expression on the visitor pattern. Provide more documentation for literal expressions which become the only way to extend GRDB.
@@ -35,6 +33,7 @@ GRDB 3.0
 
 Not sure
 
+- [ ] encode/decode nested records/arrays/dictionaries as JSON?
 - [ ] Think about supporting Cursor's underestimatedCount, which could speed up Array(cursor) and fetchAll()
 - [ ] Support for OR ROLLBACK, and mismatch between the Swift depth and the SQLite depth of nested transactions/savepoint:
     
