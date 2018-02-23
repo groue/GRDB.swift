@@ -217,7 +217,7 @@ Documentation
 
 - [Migrations](#migrations): Transform your database as your application evolves.
 - [Full-Text Search](#full-text-search): Perform efficient and customizable full-text searches.
-- [Joined Queries Support](#joined-queries-support): Consume complex joined queries
+- [Joined Queries Support](#joined-queries-support): Consume complex joined queries.
 - [Database Changes Observation](#database-changes-observation): Perform post-commit and post-rollback actions.
 - [FetchedRecordsController](#fetchedrecordscontroller): Automated tracking of changes in a query results, plus UITableView animations.
 - [Encryption](#encryption): Encrypt your database with SQLCipher.
@@ -3809,7 +3809,7 @@ On top of the APIs described above, GRDB provides a toolkit for applications. Wh
 
 - [Migrations](#migrations): Transform your database as your application evolves.
 - [Full-Text Search](#full-text-search): Perform efficient and customizable full-text searches.
-- [Joined Queries Support](#joined-queries-support): Consume complex joined queries
+- [Joined Queries Support](#joined-queries-support): Consume complex joined queries.
 - [Database Changes Observation](#database-changes-observation): Perform post-commit and post-rollback actions.
 - [FetchedRecordsController](#fetchedrecordscontroller): Automated tracking of changes in a query results, plus UITableView animations.
 - [Encryption](#encryption): Encrypt your database with SQLCipher.
