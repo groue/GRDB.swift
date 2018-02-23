@@ -4787,7 +4787,7 @@ let items = try dbQueue.inDatabase { db in
 
 ### Splitting Rows, the Request Way
 
-The `fetchItems` method [above](#splitting-rows-the-record-way) directly fetches records. It's all good, but in order to profit from [database observation](#database-changes-observation) with [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), you'll need a [custom request](#custom-requests) that defines a database query.
+The `Item.fetchAll` method [above](#splitting-rows-the-record-way) directly fetches records. It's all good, but in order to profit from [database observation](#database-changes-observation) with [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), you'll need a [custom request](#custom-requests) that defines a database query.
 
 It is recommended that your read the previous paragraphs before you dive in this sample code. We start with the same Item record as above:
 
