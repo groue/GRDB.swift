@@ -132,8 +132,8 @@ extension Row {
     // MARK: - Extracting Values
     
     /// Returns true if and only if one column contains a non-null value, or if
-    /// the row was fetched along with a row adapter that defines a scoped row
-    /// that contains a non-null value.
+    /// the row was fetched with a row adapter that defines a scoped row that
+    /// contains a non-null value.
     ///
     /// For example:
     ///
@@ -331,7 +331,7 @@ extension Row {
     /// (see https://www.sqlite.org/datatype3.html).
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ columnName: String) -> Value {
         guard let index = impl.index(ofColumn: columnName) else {
-             // Programmer error
+            // Programmer error
             fatalError("no such column: \(columnName)")
         }
         if let sqliteStatement = sqliteStatement { // fast path
@@ -473,14 +473,49 @@ extension Row {
 
 extension Row {
     
+    // MARK: - Extracting Records
+    
+    /// Returns the record encoded in the given scope.
+    ///
+    /// A fatal error is raised in the row was not fetched with a row adapter
+    /// that defines this scope.
+    ///
+    /// See https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support
+    /// for more information.
+    public subscript<Record: RowConvertible>(_ scope: String) -> Record {
+        guard let scopedRow = scoped(on: scope) else {
+            // Programmer error
+            fatalError("no such scope: \(scope)")
+        }
+        return Record(row: scopedRow)
+    }
+
+    /// Returns the record encoded in the given scope, if and only if the scope
+    /// has been defined by a row adapter, and the scoped row contains a
+    /// non-null value. Otherwise, return nil.
+    ///
+    /// This subscript is designed to handle left joined records.
+    ///
+    /// See https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support
+    /// for more information.
+    public subscript<Record: RowConvertible>(_ scope: String) -> Record? {
+        guard let scopedRow = scoped(on: scope), scopedRow.containsNonNullValue else {
+            return nil
+        }
+        return Record(row: scopedRow)
+    }
+}
+
+extension Row {
+    
     // MARK: - Scopes
     
     var scopeNames: Set<String> {
         return impl.scopeNames
     }
     
-    /// Returns a scoped row, if the row was fetched along with a row adapter
-    /// that defines this scope.
+    /// Returns a scoped row, if the row was fetched with a row adapter that
+    /// defines this scope.
     ///
     ///     // Two adapters
     ///     let fooAdapter = ColumnMapping(["value": "foo"])

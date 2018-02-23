@@ -32,20 +32,6 @@ public protocol RowConvertible {
     init(row: Row)
 }
 
-extension RowConvertible {
-    /// Creates a record from `row`, if and only if the row is not nil, and
-    /// contains at least one non-null value.
-    public init?(leftJoinedRow row: Row?) {
-        guard let row = row else {
-            return nil
-        }
-        guard row.containsNonNullValue else {
-            return nil
-        }
-        self.init(row: row)
-    }
-}
-
 /// A cursor of records. For example:
 ///
 ///     struct Player : RowConvertible { ... }

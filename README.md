@@ -4639,9 +4639,11 @@ We also need an adapter that extracts teams' columns:
 We merge those two adapters in a single [ScopeAdapter](#scopeadapter) that will allow us to access both sliced rows:
 
 ```swift
+    let playerScope = "player"
+    let teamScope = "team"
     let adapter = ScopeAdapter([
-        "player": playerAdapter,
-        "team": teamAdapter])
+        playerScope: playerAdapter,
+        teamScope: teamAdapter])
 ```
 
 And now we can fetch, and start consuming our rows. You already know [row cursors](#fetching-rows):
@@ -4654,17 +4656,13 @@ And now we can fetch, and start consuming our rows. You already know [row cursor
 From a fetched row, we can build a player:
 
 ```swift
-        // Player's columns:
-        let playerRow = row.scoped(on: "player")! // Row
-        let player = Player(row: playerRow)       // Player
+        let player: Player = row[playerScope]
 ```
 
-The team is left joined, which means that the team may be missing. Its slice may contain team values, or it may only contain NULLs. When this happens, we don't want to build a Team record. We'll thus use the dedicated `init?(leftJoinedRow:)` failable initializer:
+In the SQL query, the team is joined with the `LEFT JOIN` operator. This means that the team may be missing: its slice may contain team values, or it may only contain NULLs. When this happens, we don't want to build a Team record, and we thus load an *optional* Team:
 
 ```swift
-        // Team's columns:
-        let teamRow = row.scoped(on: "team")      // Row?
-        let team = Team(leftJoinedRow: teamRow)   // Team?
+        let team: Team? = row[teamScope]
 ```
 
 And finally, we can load the maximum score, assuming that the "maxScore" column is not ambiguous:
@@ -4683,12 +4681,12 @@ And finally, we can load the maximum score, assuming that the "maxScore" column 
 > 
 > - how to use `RangeRowAdapter` to extract a specific table's columns into a *row slice*.
 > - how to use `ScopeAdapter` to gives access to several row slices through named scopes.
-> - how to use the `init?(leftJoinedRow:)` failable initializer in order to deal with left joins.
+> - how to use Row subscripting to extract records from rows, or optional records in order to deal with left joins.
 
 
 ### Splitting Rows, the Record Way
 
-Our introduction above has introduced important techniques. It uses [row adapters](#row-adapters) in order to split rows. It uses the `init?(leftJoinedRow:)` initializer so that missing left joined tables can be represented as a nil record.
+Our introduction above has introduced important techniques. It uses [row adapters](#row-adapters) in order to split rows. It uses Row subscripting in order to extract records from row slices.
 
 But we may want to make it more usable and robust:
 
@@ -4711,8 +4709,8 @@ extension Item: RowConvertible {
     static let teamScope = "teams"
     
     init(row: Row) {
-        player = Player(row: row.scoped(on: Item.playerScope)!)
-        team = Team(leftJoinedRow: row.scoped(on: Item.teamScope))
+        player = row[Item.playerScope]
+        team = row[Item.teamScope]
         maxScore = row["maxScore"]
     }
 }
@@ -4791,8 +4789,8 @@ extension Item: RowConvertible {
     static let teamScope = "team"
     
     init(row: Row) {
-        player = Player(row: row.scoped(on: Item.playerScope)!)
-        team = Team(leftJoinedRow: row.scoped(on: Item.teamScope))
+        player = row[Item.playerScope]
+        team = row[Item.teamScope]
         maxScore = row["maxScore"]
     }
 }

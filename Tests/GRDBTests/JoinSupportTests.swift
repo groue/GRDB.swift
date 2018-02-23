@@ -83,11 +83,11 @@ private struct FlatModel: RowConvertible {
     var t5count: Int
     
     init(row: Row) {
-        self.t1 = T1(row: row.scoped(on: "t1")!)
-        self.t2Left = T2(leftJoinedRow: row.scoped(on: "t2Left"))
-        self.t2Right = T2(leftJoinedRow: row.scoped(on: "t2Right"))
-        self.t3 = T3(leftJoinedRow: row.scoped(on: "t3"))
-        self.t5count = row.scoped(on: "suffix")!["t5count"]
+        self.t1 = row["t1"]
+        self.t2Left = row["t2Left"]
+        self.t2Right = row["t2Right"]
+        self.t3 = row["t3"]
+        self.t5count = row["t5count"]
     }
 }
 
