@@ -4574,7 +4574,7 @@ A classical technique to avoid this ambiguity is to give each column a unique na
 
 ```sql
 -- A classical technique
-SELECT players.id AS players_id, players.name AS players_name, teams.id AS teams_id, teams.name AS teams_name, teams.color AS teams_color, teams.url AS teams_url, MAX(rounds.score) AS maxScore
+SELECT players.id AS players_id, players.name AS players_name, teams.id AS teams_id, teams.name AS teams_name, teams.color AS teams_color, MAX(rounds.score) AS maxScore
 FROM players
 LEFT JOIN teams ON ...
 LEFT JOIN rounds ON ...
@@ -4887,7 +4887,6 @@ struct Team: Decodable, RowConvertible, TableMapping {
     var id: Int64
     var name: String
     var color: Color
-    var url: URL
 }
 struct Item: Decodable, RowConvertible {
     var player: Player
