@@ -865,6 +865,50 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             }
         }
     }
+    
+    func testLongRunningReadTransaction() throws {
+        // A test for real-life use case of allowsUnsafeTransactions:
+        // get a long-running constant view of the database.
+        //
+        // We still have a problem to fix with this technique, though:
+        //
+        // This extra dbQueue adopts DatabaseWriter, and exposes writing methods
+        // which contradict its purpose.
+        //
+        // Its schema cache is not invalidated when the master pool changes the
+        // database schema.
+        //
+        // We may need to have a dedicated "long-run" viewer type, only
+        // constructible from DatabasePool.
+        let dbName = "test.sqlite"
+        let dbPool = try makeDatabasePool(filename: dbName)
+        dbConfiguration.allowsUnsafeTransactions = true
+        dbConfiguration.readonly = true
+        let dbQueue = try makeDatabaseQueue(filename: dbName)
+        
+        try dbPool.write { db in
+            try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
+            try db.execute("INSERT INTO t DEFAULT VALUES")
+        }
+        
+        try dbQueue.inDatabase { db in
+            try db.beginTransaction(.deferred)
+        }
+        
+        try dbQueue.inDatabase { db in
+            try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 1)
+        }
+        
+        try dbPool.write { db in
+            try db.execute("INSERT INTO t DEFAULT VALUES")
+        }
+        
+        try dbQueue.inDatabase { db in
+            try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 1)
+            try db.rollback()
+            try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 2)
+        }
+    }
 
     func testIssue80() throws {
         // See https://github.com/groue/GRDB.swift/issues/80
