@@ -651,16 +651,7 @@ Both arrays and cursors can iterate over database results. How do you choose one
 
 If you don't see, or don't care about the difference, use arrays. If you care about memory and performance, use cursors when appropriate.
 
-**There are several cursor types**, depending on the type of fetched values (database [row](#row-queries), simple [value](#value-queries), or custom [record](#records)):
-
-```swift
-Row.fetchCursor(...)    // RowCursor
-Int.fetchCursor(...)    // ColumnCursor<Int>
-Date.fetchCursor(...)   // DatabaseValueCursor<Date>
-Player.fetchCursor(...) // RecordCursor<Player>
-```
-
-All cursor types adopt the [Cursor](http://groue.github.io/GRDB.swift/docs/2.8/Protocols/Cursor.html) protocol, which looks a lot like standard [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol) of Swift. As such, cursors come with many convenience methods: `contains`, `dropFirst`, `dropLast`, `drop(while:)`, `enumerated`, `filter`, `first`, `flatMap`, `forEach`, `joined`, `joined(separator:)`, `max`, `max(by:)`, `min`, `min(by:)`, `map`, `prefix`, `prefix(while:)`, `reduce`, `reduce(into:)`, `suffix`:
+**All GRDB cursors adopt the [Cursor](http://groue.github.io/GRDB.swift/docs/2.8/Protocols/Cursor.html) protocol, which looks a lot like standard [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol) of Swift.** As such, cursors come with many convenience methods: `contains`, `dropFirst`, `dropLast`, `drop(while:)`, `enumerated`, `filter`, `first`, `flatMap`, `forEach`, `joined`, `joined(separator:)`, `max`, `max(by:)`, `min`, `min(by:)`, `map`, `prefix`, `prefix(while:)`, `reduce`, `reduce(into:)`, `suffix`:
 
 ```swift
 // Iterate all Github links
@@ -681,6 +672,8 @@ let cursor = URL
     .flatMap { url in url.host }
 let hosts = try Set(cursor) // Set<String>
 ```
+
+**Cursors are not Swift sequences, though.** That's because Swift sequences can't handle iteration errors, when reading SQLite results may fail at any time. SQL functions may throw errors. On iOS, [data protection](#data-protection) may block access to the database file in the background. On MacOS, your application users may mess with the file system.
 
 > :point_up: Don't modify the fetched results during a cursor iteration:
 > 
