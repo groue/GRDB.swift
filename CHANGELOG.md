@@ -5,7 +5,7 @@ Release Notes
 
 ### New
 
-- **Changes tracking overhaul**: changes tracking, a feature previously restricted to the `Record` class and its subclasses, is know available for all records. And it has a better looking API ([documentation](https://github.com/groue/GRDB.swift/blob/master/README.md#changes-tracking)).
+- **Changes tracking overhaul**: changes tracking, a feature previously restricted to the `Record` class and its subclasses, is now available for all records. And it has a better looking API ([documentation](https://github.com/groue/GRDB.swift/blob/master/README.md#changes-tracking)).
 - **Database snapshots**: Database pools can now take database snapshots. A snapshot sees an unchanging database content, as it existed at the moment it was created ([documentation](https://github.com/groue/GRDB.swift/blob/master/README.md#database-snapshots)).
 - **Improved support for joined queries**: more than a set on new APIs, we provide a set of guidelines that will help you deal with your wildest joined queries. Check the new [Joined Queries Support](https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support) documentation chapter.
 - `Database.columns(in:)` returns information about the columns of a table.
