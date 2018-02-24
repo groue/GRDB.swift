@@ -6264,15 +6264,15 @@ Those guarantees hold as long as you follow three rules:
 
 Despite the common [guarantees and rules](#guarantees-and-rules) shared by [database queues](#database-queues) and [pools](#database-pools), those two database accessors don't have the same behavior.
 
-Database queues serializes all database accesses, reads, and writes. There is never more than one thread that uses the database. In the image below, we see how three threads can see the database:
+Database queues serializes all database accesses, reads, and writes. There is never more than one thread that uses the database. In the image on the left below, we see how three threads can see the database:
 
-![Database Queue Scheduling](Documentation/Images/DatabaseQueueScheduling.png)
+| Database Queue | Database Pool |
+| -------------- | ------------- |
+| ![Database Queue Scheduling](Documentation/Images/DatabaseQueueScheduling.png) | ![Database Pool Scheduling](Documentation/Images/DatabasePoolScheduling.png) |
 
-Database pools serializes all writes, but allow concurrent reads and writes. On top of that, reads are guaranteed an immutable view of the database. This can give a very different picture:
+Database pools serializes all writes, but allows concurrent reads and writes. On top of that, reads are guaranteed an immutable view of the database. This can give a very different picture.
 
-![Database Pool Scheduling](Documentation/Images/DatabasePoolScheduling.png)
-
-See, at the bottom of the image, how two threads can read different database values at the same time.
+See, at the bottom of the right image, how two threads can see different database states at the same time.
 
 Because of this behavior, one has to understand that all database pool reads may load *stale data*. Fortunately, the consequences of stale data can easily be alleviated by [database observation](#database-changes-observation).
 
