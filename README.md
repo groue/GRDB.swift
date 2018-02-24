@@ -614,7 +614,7 @@ try Row.fetchOne(...)    // Row?
     ```
 
 
-#### Cursors
+### Cursors
 
 **Whenever you consume several rows from the database, you can fetch a Cursor, or an Array**.
 
