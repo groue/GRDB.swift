@@ -2803,12 +2803,12 @@ This is the list of record methods, along with their required protocols. The [Re
 | Method | Protocols | Notes |
 | ------ | --------- | :---: |
 | **Core Methods** | | |
-| init(row:) | [RowConvertible](#rowconvertible-protocol) | |
-| Type.databaseTableName | [TableMapping](#tablemapping-protocol) | |
-| Type.databaseSelection | [TableMapping](#tablemapping-protocol) | |
-| Type.persistenceConflictPolicy | [Persistable](#persistable-protocol) | |
-| record.encode(to:) | [Persistable](#persistable-protocol) | |
-| record.didInsert(with:for:) | [Persistable](#persistable-protocol) | |
+| `init(row:)` | [RowConvertible](#rowconvertible-protocol) | |
+| `Type.databaseTableName` | [TableMapping](#tablemapping-protocol) | |
+| `Type.databaseSelection` | [TableMapping](#tablemapping-protocol) | |
+| `Type.persistenceConflictPolicy` | [Persistable](#persistable-protocol) | |
+| `record.encode(to:)` | [Persistable](#persistable-protocol) | |
+| `record.didInsert(with:for:)` | [Persistable](#persistable-protocol) | |
 | **Insert and Update Records** | | |
 | `record.insert(db)` | [Persistable](#persistable-protocol) | |
 | `record.save(db)` | [Persistable](#persistable-protocol) | |
