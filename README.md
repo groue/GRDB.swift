@@ -667,11 +667,16 @@ If you don't see, or don't care about the difference, use arrays. If you care ab
 **All GRDB cursors adopt the [Cursor](http://groue.github.io/GRDB.swift/docs/2.8/Protocols/Cursor.html) protocol, which looks a lot like standard [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol) of Swift.** As such, cursors come with many convenience methods: `contains`, `dropFirst`, `dropLast`, `drop(while:)`, `enumerated`, `filter`, `first`, `flatMap`, `forEach`, `joined`, `joined(separator:)`, `max`, `max(by:)`, `min`, `min(by:)`, `map`, `prefix`, `prefix(while:)`, `reduce`, `reduce(into:)`, `suffix`:
 
 ```swift
-// Iterate all Github links
+// All URL hosts
+let hosts = try URL
+    .fetchCursor(db, "SELECT url FROM links")
+    .map { url in url.host }
+
+// Prints all Github links
 try URL
     .fetchCursor(db, "SELECT url FROM links")
     .filter { url in url.host == "github.com" }
-    .forEach { url in ... }
+    .forEach { url in print(url) }
 
 // Turn a cursor into an array:
 let cursor = URL
