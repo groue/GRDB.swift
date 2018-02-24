@@ -49,7 +49,9 @@ extension Database {
     ///
     /// - parameters:
     ///     - name: The table name.
-    ///     - ifNotExists: If false, no error is thrown if table already exists.
+    ///     - ifNotExists: If false (the default), an error is thrown if the
+    ///       table already exists. Otherwise, the table is created unless it
+    ///       already exists.
     ///     - module: The name of an SQLite virtual table module.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func create(virtualTable name: String, ifNotExists: Bool = false, using module: String) throws {
@@ -88,7 +90,9 @@ extension Database {
     ///
     /// - parameters:
     ///     - name: The table name.
-    ///     - ifNotExists: If false, no error is thrown if table already exists.
+    ///     - ifNotExists: If false (the default), an error is thrown if the
+    ///       table already exists. Otherwise, the table is created unless it
+    ///       already exists.
     ///     - module: a VirtualTableModule
     ///     - body: An optional closure that defines the virtual table.
     /// - throws: A DatabaseError whenever an SQLite error occurs.

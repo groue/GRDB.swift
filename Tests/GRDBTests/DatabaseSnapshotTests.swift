@@ -9,6 +9,20 @@ import XCTest
 
 class DatabaseSnapshotTests: GRDBTestCase {
     
+    func testSnapshotIsReadOnly() throws {
+        let dbPool = try makeDatabasePool()
+        let snapshot = try dbPool.makeSnapshot()
+        do {
+            try snapshot.read { db in
+                try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
+            }
+            XCTFail("Expected error")
+        } catch is DatabaseError {
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
     func testSnapshotSeesLatestTransaction() throws {
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in

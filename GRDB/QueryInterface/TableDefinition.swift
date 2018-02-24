@@ -19,7 +19,9 @@ extension Database {
     /// - parameters:
     ///     - name: The table name.
     ///     - temporary: If true, creates a temporary table.
-    ///     - ifNotExists: If false, no error is thrown if table already exists.
+    ///     - ifNotExists: If false (the default), an error is thrown if the
+    ///       table already exists. Otherwise, the table is created unless it
+    ///       already exists.
     ///     - withoutRowID: If true, uses WITHOUT ROWID optimization.
     ///     - body: A closure that defines table columns and constraints.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
@@ -46,7 +48,9 @@ extension Database {
     /// - parameters:
     ///     - name: The table name.
     ///     - temporary: If true, creates a temporary table.
-    ///     - ifNotExists: If false, no error is thrown if table already exists.
+    ///     - ifNotExists: If false (the default), an error is thrown if the
+    ///       table already exists. Otherwise, the table is created unless it
+    ///       already exists.
     ///     - withoutRowID: If true, uses WITHOUT ROWID optimization.
     ///     - body: A closure that defines table columns and constraints.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
@@ -75,7 +79,9 @@ extension Database {
     /// - parameters:
     ///     - name: The table name.
     ///     - temporary: If true, creates a temporary table.
-    ///     - ifNotExists: If false, no error is thrown if table already exists.
+    ///     - ifNotExists: If false (the default), an error is thrown if the
+    ///       table already exists. Otherwise, the table is created unless it
+    ///       already exists.
     ///     - body: A closure that defines table columns and constraints.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func create(table name: String, temporary: Bool = false, ifNotExists: Bool = false, body: (TableDefinition) -> Void) throws {
