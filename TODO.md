@@ -11,6 +11,7 @@
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
 - [ ] Write regression tests for #156 and #157
 - [ ] Allow concurrent reads from a snapshot
+- [ ] Decode NSDecimalNumber from text database values
 
 GRDB 3.0
 
