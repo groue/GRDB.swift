@@ -2542,7 +2542,7 @@ if try newPlayer.updateChanges(db, from: oldPlayer) {
 
 > :point_up: **Note**: The comparison is performed of the database representation of records. As long as your record type adopts a Persistable protocol, you don't need to care about Equatable.
 
-The [Record](#record-class) class is able to compare against itself, and knows if it has changes that have not been saved since it was last fetched or persisted:**
+The [Record](#record-class) class is able to compare against itself, and knows if it has changes that have not been saved since it was last fetched or persisted:
 
 ```swift
 // Record class only
@@ -2802,18 +2802,25 @@ This is the list of record methods, along with their required protocols. The [Re
 
 | Method | Protocols | Notes |
 | ------ | --------- | :---: |
+| **Core Methods** | | |
+| init(row:) | [RowConvertible](#rowconvertible-protocol) | |
+| Type.databaseTableName | [TableMapping](#tablemapping-protocol) | |
+| Type.databaseSelection | [TableMapping](#tablemapping-protocol) | |
+| Type.persistenceConflictPolicy | [Persistable](#persistable-protocol) | |
+| record.encode(to:) | [Persistable](#persistable-protocol) | |
+| record.didInsert(with:for:) | [Persistable](#persistable-protocol) | |
 | **Insert and Update Records** | | |
 | `record.insert(db)` | [Persistable](#persistable-protocol) | |
 | `record.save(db)` | [Persistable](#persistable-protocol) | |
 | `record.update(db)` | [Persistable](#persistable-protocol) | |
-| `record.update(db, columns: ...)` | [Persistable](#persistable-protocol) | |
+| `record.update(db, columns:...)` | [Persistable](#persistable-protocol) | |
 | `record.updateChanges(db, from:...)` | [Persistable](#persistable-protocol) | |
 | `record.updateChanges(db)` | [Record](#record-class) | |
 | **Delete Records** | | |
 | `record.delete(db)` | [Persistable](#persistable-protocol) | |
-| `Type.deleteOne(db, key: ...)` | [Persistable](#persistable-protocol) | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.deleteOne(db, key:...)` | [Persistable](#persistable-protocol) | <a href="#list-of-record-methods-1">¹</a> |
 | `Type.deleteAll(db)` | [Persistable](#persistable-protocol) | |
-| `Type.deleteAll(db, keys: ...)` | [Persistable](#persistable-protocol) | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.deleteAll(db, keys:...)` | [Persistable](#persistable-protocol) | <a href="#list-of-record-methods-1">¹</a> |
 | `Type.filter(...).deleteAll(db)` | [Persistable](#persistable-protocol) | <a href="#list-of-record-methods-2">²</a> |
 | **Check Record Existence** | | |
 | `record.exists(db)` | [Persistable](#persistable-protocol) | |
@@ -2824,26 +2831,26 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.filter(...).fetchCount(db)` | [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
 | **Fetch Record [Cursors](#cursors)** | | |
 | `Type.fetchCursor(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | |
-| `Type.fetchCursor(db, keys: ...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.fetchCursor(db, keys:...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
 | `Type.fetchCursor(db, sql)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-3">³</a> |
 | `Type.fetchCursor(statement)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetchCursor(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
 | **Fetch Record Arrays** | | |
 | `Type.fetchAll(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | |
-| `Type.fetchAll(db, keys: ...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.fetchAll(db, keys:...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
 | `Type.fetchAll(db, sql)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-3">³</a> |
 | `Type.fetchAll(statement)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetchAll(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
 | **Fetch Individual Records** | | |
 | `Type.fetchOne(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | |
-| `Type.fetchOne(db, key: ...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.fetchOne(db, key:...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
 | `Type.fetchOne(db, sql)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-3">³</a> |
 | `Type.fetchOne(statement)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetchOne(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
 | **[Changes Tracking](#changes-tracking)** | | |
 | `record.databaseEqual(...)` | [Persistable](#persistable-protocol) | |
-| `record.databaseChanges(from: ...)` | [Persistable](#persistable-protocol) | |
-| `record.updateChanges(db, from: ...)` | [Persistable](#persistable-protocol) | |
+| `record.databaseChanges(from:...)` | [Persistable](#persistable-protocol) | |
+| `record.updateChanges(db, from:...)` | [Persistable](#persistable-protocol) | |
 | `record.hasDatabaseChanges` | [Record](#record-class) | |
 | `record.databaseChanges` | [Record](#record-class) | |
 | `record.updateChanges(db)` | [Record](#record-class) | |
