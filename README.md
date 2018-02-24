@@ -654,7 +654,7 @@ Both arrays and cursors can iterate over database results. How do you choose one
         
         ```swift
         // Undefined behavior
-        while let place = try places.next() {
+        while let player = try players.next() {
             try db.execute("DELETE ...")
         }
         ```
