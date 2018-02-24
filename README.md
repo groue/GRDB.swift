@@ -4867,9 +4867,7 @@ Item.all()
     })
 ```
 
-> :bulb: In this chapter, we have learned:
->
-> - how to define a custom request that can both fetch records from joined queries, and feed database observation tools.
+> :bulb: In this chapter, we have learned how to define a custom request that can both fetch records from joined queries, and feed database observation tools.
 
 
 ### Splitting Rows, the Codable Way
