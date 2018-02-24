@@ -647,7 +647,7 @@ Both arrays and cursors can iterate over database results. How do you choose one
 - **Cursors can not be used on any thread**: you must consume it in the dispatch queue it was created in. Arrays may be consumed on any thread.
 - **Cursors iterate database results in a lazy fashion**, and don't consume much memory. Arrays contain copies of database values, and may take a lot of memory when there are many fetched results.
 - **Cursors can be iterated only one time.** Arrays can be iterated many times.
-- **Cursors are granted with direct access to SQLite.** Arrays contain copies of database values. You may expect performance gains when you deal with cursors of raw rows at the lowest possible level: `Row.fetchCursor(...)`.
+- **Cursors are granted with direct access to SQLite,** unlike arrays that have to take the time to copy database values. When you really care about performance, you may want to deal with cursors of raw rows at the lowest possible level: `Row.fetchCursor(...)`.
 
 If you don't see, or don't care about the difference, use arrays. If you care about memory and performance, use cursors when appropriate.
 
