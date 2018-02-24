@@ -29,12 +29,19 @@ public class DatabaseSnapshot : DatabaseReader {
                 throw DatabaseError(message: "WAL mode is not activated at path: \(path)")
             }
             
-            // Establish snapshot isolation
+            // Establish snapshot isolation (see deinit)
             try db.beginTransaction(.deferred)
             
             // Take snapshot
             // See DatabasePool.readFromCurrentState for a complete discussion
             try db.makeSelectStatement("SELECT rootpage FROM sqlite_master").cursor().next()
+        }
+    }
+    
+    deinit {
+        // Leave snapshot isolation
+        serializedDatabase.sync { db in
+            try? db.commit()
         }
     }
 }
