@@ -66,7 +66,7 @@ class RecordWithColumnNameManglingTests: GRDBTestCase {
                 try record.save(db)
                 
                 // Nothing special here
-                XCTAssertFalse(record.hasPersistentChangedValues)
+                XCTAssertFalse(record.hasDatabaseChanges)
             }
             do {
                 let record = try BadlyMangledStuff.fetchOne(db, "SELECT id AS mangled_id, name AS mangled_name FROM stuffs")!
@@ -76,7 +76,7 @@ class RecordWithColumnNameManglingTests: GRDBTestCase {
                 
                 // But here lies the problem with BadlyMangledStuff.
                 // It should not be edited:
-                XCTAssertTrue(record.hasPersistentChangedValues)
+                XCTAssertTrue(record.hasDatabaseChanges)
             }
         }
     }

@@ -389,6 +389,30 @@ extension MutablePersistable {
         try update(db, columns: Set(columns.map { $0.name }))
     }
     
+    /// If the record has differences from the other record, executes an UPDATE
+    /// statement so that those changes and only those changes are saved in
+    /// the database.
+    ///
+    /// This method is guaranteed to have saved the eventual changes in the
+    /// database if it returns without error.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter columns: The columns to update.
+    /// - returns: Whether the record had changes.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    ///   PersistenceError.recordNotFound is thrown if the primary key does not
+    ///   match any row in the database and record could not be updated.
+    @discardableResult
+    public func updateChanges(_ db: Database, from record: MutablePersistable) throws -> Bool {
+        let changedColumns = Set(databaseChanges(from: record).keys)
+        if changedColumns.isEmpty {
+            return false
+        } else {
+            try update(db, columns: changedColumns)
+            return true
+        }
+    }
+
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
     /// the database.
     ///
@@ -411,6 +435,43 @@ extension MutablePersistable {
     /// The default implementation for exists() invokes performExists().
     public func exists(_ db: Database) throws -> Bool {
         return try performExists(db)
+    }
+    
+    // MARK: - Changes Tracking
+    
+    /// Returns a boolean indicating whether this record and the other record
+    /// have the same database representation.
+    public func databaseEqual(_ record: Self) -> Bool {
+        return databaseChangesIterator(from: record).next() == nil
+    }
+
+    /// A dictionary of values changed from the other record.
+    ///
+    /// Its keys are column names. Its values come from the other record.
+    ///
+    /// Note that this method is not symmetrical, not only in terms of values,
+    /// but also in terms of columns. When the two records don't define the
+    /// same set of columns in their `encode(to:)` method, only the columns
+    /// defined by the receiver record are considered.
+    public func databaseChanges(from record: MutablePersistable) -> [String: DatabaseValue] {
+        return Dictionary(uniqueKeysWithValues: databaseChangesIterator(from: record))
+    }
+    
+    fileprivate func databaseChangesIterator(from record: MutablePersistable) -> AnyIterator<(String, DatabaseValue)> {
+        let oldContainer = PersistenceContainer(record)
+        var newValueIterator = PersistenceContainer(self).makeIterator()
+        return AnyIterator {
+            // Loop until we find a change, or exhaust columns:
+            while let (column, newValue) = newValueIterator.next() {
+                let oldValue = oldContainer[caseInsensitive: column]
+                let oldDbValue = oldValue?.databaseValue ?? .null
+                let newDbValue = newValue?.databaseValue ?? .null
+                if newDbValue != oldDbValue {
+                    return (column, oldDbValue)
+                }
+            }
+            return nil
+        }
     }
     
     // MARK: - CRUD Internals

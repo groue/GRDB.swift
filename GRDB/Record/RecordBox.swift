@@ -21,6 +21,7 @@
 ///         playerRecord.hasPersistentChangedValues         // true
 ///         playerRecord.persistentChangedValues["score"]   // 100 (the old value)
 ///     }
+@available(*, deprecated, message: "Prefer changes methods defined on the MutablePersistable protocol: databaseEqual(_:), databaseChanges(from:), updateChanges(from:)")
 public final class RecordBox<T: RowConvertible & MutablePersistable>: Record {
     /// The boxed record
     public var value: T
