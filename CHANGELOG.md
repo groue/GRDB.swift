@@ -5,9 +5,9 @@ Release Notes
 
 ### New
 
-- Database pools can now take database snapshots. A snapshot sees an unchanging database content, as it existed at the moment it was created ([documentation](https://github.com/groue/GRDB.swift/blob/master/README.md#database-snapshots)).
-- Improved support for joined queries: check the new [Joined Queries Support](https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support) documentation chapter.
-- `Record.updateChanges(_:)` now returns whether the record had unsaved changes, or not.
+- **Changes tracking overhaul**: changes tracking, a feature previously restricted to the `Record` class and its subclasses, is know available for all records. And it has a better looking API ([documentation](https://github.com/groue/GRDB.swift/blob/master/README.md#changes-tracking)).
+- **Database snapshots**: Database pools can now take database snapshots. A snapshot sees an unchanging database content, as it existed at the moment it was created ([documentation](https://github.com/groue/GRDB.swift/blob/master/README.md#database-snapshots)).
+- **Improved support for joined queries**: more than a set on new APIs, we provide a set of guidelines that will help you deal with your wildest joined queries. Check the new [Joined Queries Support](https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support) documentation chapter.
 - `Database.columns(in:)` returns information about the columns of a table.
 - `Request.adapted(_:)` is no longer experimental.
 - `Configuration.allowsUnsafeTransactions` lets you leave transactions opened between two database accesses (see below).
@@ -42,17 +42,20 @@ Release Notes
 ### Deprecated
 
 - `Database.columnCount(in:)` is deprecated. Use `db.columns(in:).count` instead.
+- `RecordBox` was ill-advised, and had been deprecated. Use [changes tracking](https://github.com/groue/GRDB.swift/blob/master/README.md#changes-tracking) methods on the Persistable protocol instead.
+- `Record.hasPersistentChangedValues` has been deprecated, renamed `hasDatabaseChanges`.
+- `Record.persistentChangedValues` has been deprecated, renamed `databaseChanges`.
 
 
 ### Documentation Diff
 
-- A new [Joined Queries Support](https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support) chapter has been added.
+- The [Changes Tracking](https://github.com/groue/GRDB.swift/blob/master/README.md#changes-tracking) chapter has been updated for the new universal support for record changes.
 - A new [Database Snapshots](https://github.com/groue/GRDB.swift/blob/master/README.md#database-snapshots) chapter has been added.
 - The [Concurrency](https://github.com/groue/GRDB.swift/blob/master/README.md#concurrency) chapter has been updated for database snapshots.
+- A new [Joined Queries Support](https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support) chapter has been added.
 - The [Row Adapters](https://github.com/groue/GRDB.swift/blob/master/README.md#row-adapters) chapter has been made consistent with the new chapter on joined queries.
 - The [Codable Records](https://github.com/groue/GRDB.swift/blob/master/README.md#codable-records) chapter has been made consistent with the new chapter on joined queries.
 - The [Database Schema Introspection](https://github.com/groue/GRDB.swift/blob/master/README.md#database-schema-introspection) has been updated for `Database.columns(in:)`
-- The [Changes Tracking](https://github.com/groue/GRDB.swift/blob/master/README.md#changes-tracking) chapter has been updated for `Record.updateChanges(_:)` method.
 
 
 ### API diff
@@ -85,11 +88,20 @@ Release Notes
  
 +class DatabaseSnapshot: DatabaseReader { }
 
+ extension MutablePersistable {
++    @discardableResult
++    func updateChanges(_ db: Database, from record: MutablePersistable) throws -> Bool
++    func databaseEqual(_ record: Self) -> Bool
++    func databaseChanges(from record: MutablePersistable) -> [String: DatabaseValue]
+ }
  class Record {
 -    final func updateChanges(_ db: Database) throws
 +    @discardableResult
 +    final func updateChanges(_ db: Database) throws -> Bool
  }
+ 
++@available(*, deprecated, message: "Prefer changes methods defined on the MutablePersistable protocol: databaseEqual(_:), databaseChanges(from:), updateChanges(from:)")
+ class RecordBox: Record { }
 
  class Row {
 +    var unscoped: Row

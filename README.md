@@ -1865,7 +1865,6 @@ Your custom structs and classes can adopt each protocol individually, and opt in
     - [Customizing the Persistence Methods](#customizing-the-persistence-methods)
 - [Codable Records](#codable-records)
 - [Record Class](#record-class)
-- [RecordBox Class](#recordbox-class)
 - [Changes Tracking](#changes-tracking)
 - [Conflict Resolution](#conflict-resolution)
 - [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key)
@@ -1916,12 +1915,12 @@ player.name = "Arthur"
 try player.update(db)
 ```
 
-[Record](#record-class) subclasses track changes, so that you can avoid useless updates:
+Records can [track their changes](#changes-tracking), so that you can avoid useless updates:
 
 ```swift
 let player = try Player.fetchOne(db, key: 1)!
 player.name = "Arthur"
-if player.hasPersistentChangedValues {
+if player.hasDatabaseChanges {
     try player.update(db)
 }
 ```
@@ -1974,7 +1973,6 @@ Details follow:
 - [Persistable Protocol](#persistable-protocol)
 - [Codable Records](#codable-records)
 - [Record Class](#record-class)
-- [RecordBox Class](#recordbox-class)
 - [Changes Tracking](#changes-tracking)
 - [Conflict Resolution](#conflict-resolution)
 - [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key)
@@ -2301,18 +2299,19 @@ extension Place : MutablePersistable {
 
 ```swift
 // Instance methods
-try place.save(db)                 // Inserts or updates
-try place.insert(db)               // INSERT
-try place.update(db)               // UPDATE
-try place.update(db, columns: ...) // UPDATE
-try place.updateChanges(db)        // Available on Record and RecordBox only
-try place.delete(db)               // DELETE
+try place.save(db)                     // Inserts or updates
+try place.insert(db)                   // INSERT
+try place.update(db)                   // UPDATE
+try place.update(db, columns: ...)     // UPDATE
+try place.updateChanges(db, from: ...) // Maybe UPDATE
+try place.updateChanges(db)            // Maybe UPDATE (Record class only)
+try place.delete(db)                   // DELETE
 place.exists(db)
 
 // Type methods
-Place.deleteAll(db)                // DELETE
-Place.deleteAll(db, keys:...)      // DELETE
-Place.deleteOne(db, key:...)       // DELETE
+Place.deleteAll(db)                    // DELETE
+Place.deleteAll(db, keys:...)          // DELETE
+Place.deleteOne(db, key:...)           // DELETE
 ```
 
 - `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling).
@@ -2481,7 +2480,7 @@ place.id // A unique id
 
 ## Record Class
 
-**Record** is a class that is designed to be subclassed. It inherits its features from the [RowConvertible, TableMapping, and Persistable](#record-protocols-overview) protocols. On top of that, it adds [changes tracking](#changes-tracking).
+**Record** is a class that is designed to be subclassed. It inherits its features from the [RowConvertible, TableMapping, and Persistable](#record-protocols-overview) protocols. On top of that, Record instances can [track their changes](#changes-tracking).
 
 Record subclasses define their custom database relationship by overriding database methods:
 
@@ -2521,99 +2520,76 @@ class Place : Record {
 }
 ```
 
-## RecordBox Class
-
-**RecordBox** is a generic [Record](#record-class) subclass that wraps any other record type that adopts the [RowConvertible, TableMapping, and Persistable](#record-protocols-overview) protocols. It brings [changes tracking](#changes-tracking) to any record type.
-
-```swift
-final class RecordBox<T: RowConvertible & MutablePersistable>: Record {
-    var value: T
-    init(value: T)
-    required init(row: Row)
-}
-```
-
-As an example, let's start from a regular `Player` record struct:
-
-```swift
-// A regular record struct
-struct Player: RowConvertible, MutablePersistable, Codable {
-    static let databaseTableName = "players"
-    
-    var id: Int64?
-    var name: String
-    var score: Int
-    
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
-    }
-}
-```
-
-To track changes, don't fetch raw `Player` records, but fetch `RecordBox<Player>` instead. You can then modify player attributes, and easily check if they have been changed:
-
-```swift
-try dbQueue.inDatabase { db in
-    // Fetch a boxed player
-    if let boxedPlayer = try RecordBox<Player>.fetchOne(db, key: 1) {
-        // boxedPlayer.value is Player
-        boxedPlayer.value.score = 300
-        
-        if boxedPlayer.hasPersistentChangedValues {
-            print("player has been modified")
-        }
-        
-        // Does nothing if player has not been modified:
-        try boxedPlayer.updateChanges(db)
-    }
-}
-```
-
-See [Changes Tracking](#changes-tracking) for more information.
-
 
 ## Changes Tracking
 
-**Changes tracking is the ability, for a record, to know if it has been modified since it was last fetched or persisted.**
-
-> :point_up: **Note**: changes tracking is available on the [Record](#record-class) class, its subclasses, and the [RecordBox](#recordbox-class) class that can wrap any other record type.
+**Changes tracking is the ability, for a record, to compare against another record, or against previous versions of itself.**
 
 The `update()` [method](#persistence-methods) always executes an UPDATE statement. When the record has not been edited, this costly database access is generally useless.
 
-Avoid it with the `hasPersistentChangedValues` property, which returns whether the record has changes that have not been saved:
+You can use instead the `updateChanges` method, available on the [Persistable](#persistable-protocol) protocol, which performs an update of the changed columns only (and does nothing if record has no change):
 
 ```swift
-// Insert or update the player if it has unsaved changes
-if player.hasPersistentChangedValues {
+let oldPlayer = try Player.fetchOne(db, ...)
+var newPlayer = oldPlayer
+newPlayer.score = 100
+if try newPlayer.updateChanges(db, from: oldPlayer) {
+    print("player was modified")
+} else {
+    print("player was not modified")
+}
+```
+
+> :point_up: **Note**: The comparison is performed of the database representation of records. As long as your record type adopts a Persistable protocol, you don't need to care about Equatable.
+
+The [Record](#record-class) class is able to compare against itself, and knows if it has changes that have not been saved since it was last fetched or persisted:**
+
+```swift
+// Record class only
+let player = try Player.fetchOne(db, ...)
+player.score = 100
+if try player.updateChanges(db) {
+    print("player was modified")
+} else {
+    print("player was not modified")
+}
+```
+
+You can also use the `databaseEqual` method, which returns whether two records have the same database representation:
+
+```swift
+let oldPlayer: Player = ...
+var newPlayer: Player = ...
+if newPlayer.databaseEqual(oldPlayer) == false {
+    try newPlayer.save(db)
+}
+```
+
+Again, [Record](#record-class) instances can compare against themselves, with the `hasDatabaseChanges` property:
+
+```swift
+// Record class only
+player.score = 100
+if player.hasDatabaseChanges {
     try player.save(db)
 }
 ```
 
-You can also use the `updateChanges` method, which performs an update of the changed columns (and does nothing if record has no change):
-
-```swift
-if try player.updateChanges(db) {
-    print("player had unsaved changes")
-} else {
-    print("player had no unsaved change")
-}
-```
-
-The `hasPersistentChangedValues` flag is false after a record has been fetched or saved into the database. Subsequent modifications may set it, or not: `hasPersistentChangedValues` is based on value comparison. **Setting a property to the same value does not set the changed flag**:
+`Record.hasDatabaseChanges` is false after a Record instance has been fetched or saved into the database. Subsequent modifications may set it, or not: `hasDatabaseChanges` is based on value comparison. **Setting a property to the same value does not set the changed flag**:
 
 ```swift
 let player = Player(name: "Barbara", score: 750)
-player.hasPersistentChangedValues // true
+player.hasDatabaseChanges // true
 
 try player.insert(db)
-player.hasPersistentChangedValues // false
+player.hasDatabaseChanges // false
 
 player.name = "Barbara"
-player.hasPersistentChangedValues // false
+player.hasDatabaseChanges // false
 
 player.score = 1000
-player.hasPersistentChangedValues // true
-player.persistentChangedValues    // ["score": 750]
+player.hasDatabaseChanges // true
+player.databaseChanges    // ["score": 750]
 ```
 
 For an efficient algorithm which synchronizes the content of a database table with a JSON payload, check [JSONSynchronization.playground](Playgrounds/JSONSynchronization.playground/Contents.swift).
@@ -2822,7 +2798,7 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](#fu
 
 ## List of Record Methods
 
-This is the list of record methods, along with their required protocols. The [Record](#record-class) and [RecordBox](#recordbox-class) classes adopt all these protocols, and support [changes tracking](#changes-tracking).
+This is the list of record methods, along with their required protocols. The [Record](#record-class) adopts all these protocols, and adds a few extra methods.
 
 | Method | Protocols | Notes |
 | ------ | --------- | :---: |
@@ -2831,7 +2807,8 @@ This is the list of record methods, along with their required protocols. The [Re
 | `record.save(db)` | [Persistable](#persistable-protocol) | |
 | `record.update(db)` | [Persistable](#persistable-protocol) | |
 | `record.update(db, columns: ...)` | [Persistable](#persistable-protocol) | |
-| `record.updateChanges(db)` | [Record](#record-class), [RecordBox](#recordbox-class) | |
+| `record.updateChanges(db, from:...)` | [Persistable](#persistable-protocol) | |
+| `record.updateChanges(db)` | [Record](#record-class) | |
 | **Delete Records** | | |
 | `record.delete(db)` | [Persistable](#persistable-protocol) | |
 | `Type.deleteOne(db, key: ...)` | [Persistable](#persistable-protocol) | <a href="#list-of-record-methods-1">¹</a> |
@@ -2864,9 +2841,12 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.fetchOne(statement)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetchOne(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
 | **[Changes Tracking](#changes-tracking)** | | |
-| `record.hasPersistentChangedValues` | [Record](#record-class), [RecordBox](#recordbox-class) | |
-| `record.persistentChangedValues` | [Record](#record-class), [RecordBox](#recordbox-class) | |
-| `record.updateChanges(db)` | [Record](#record-class), [RecordBox](#recordbox-class) | |
+| `record.databaseEqual(...)` | [Persistable](#persistable-protocol) | |
+| `record.databaseChanges(from: ...)` | [Persistable](#persistable-protocol) | |
+| `record.updateChanges(db, from: ...)` | [Persistable](#persistable-protocol) | |
+| `record.hasDatabaseChanges` | [Record](#record-class) | |
+| `record.databaseChanges` | [Record](#record-class) | |
+| `record.updateChanges(db)` | [Record](#record-class) | |
 
 <a name="list-of-record-methods-1">¹</a> All unique keys are supported: primary keys (single-column, composite, [implicit RowID](#the-implicit-rowid-primary-key)) and unique indexes:
 
@@ -6602,15 +6582,15 @@ See [fetching methods](#fetching-methods) for more information about `fetchAll` 
 
 An UPDATE statement is costly: SQLite has to look for the updated row, update values, and write changes to disk.
 
-When the overwritten values are the same as the existing ones, it's thus better to avoid performing the UPDATE statement.
-
-The [Record](#record-class) class can help you: it provides [changes tracking](#changes-tracking):
+When the overwritten values are the same as the existing ones, it's thus better to avoid performing the UPDATE statement:.
 
 ```swift
-if player.hasPersistentChangedValues {
+if player.hasDatabaseChanges {
     try player.update(db)
 }
 ```
+
+See [changes tracking](#changes-tracking) for more information.
 
 
 ### Performance tip: learn about SQL strengths and weaknesses
