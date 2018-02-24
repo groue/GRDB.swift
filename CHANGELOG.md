@@ -48,12 +48,11 @@ Release Notes
 
 - A new [Joined Queries Support](https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support) chapter has been added.
 - A new [Database Snapshots](https://github.com/groue/GRDB.swift/blob/master/README.md#database-snapshots) chapter has been added.
-- The [Concurrency](https://github.com/groue/GRDB.swift/blob/master/README.md#concurrency) chapter has been updated has been updated for snapshots.
+- The [Concurrency](https://github.com/groue/GRDB.swift/blob/master/README.md#concurrency) chapter has been updated for database snapshots.
 - The [Row Adapters](https://github.com/groue/GRDB.swift/blob/master/README.md#row-adapters) chapter has been made consistent with the new chapter on joined queries.
 - The [Codable Records](https://github.com/groue/GRDB.swift/blob/master/README.md#codable-records) chapter has been made consistent with the new chapter on joined queries.
-- The [Building Custom Requests](https://github.com/groue/GRDB.swift/blob/master/README.md#building-custom-requests) chapter used to contain sample code that is now better introduced in the new chapter on joined queries.
 - The [Database Schema Introspection](https://github.com/groue/GRDB.swift/blob/master/README.md#database-schema-introspection) has been updated for `Database.columns(in:)`
-- The [Changes Tracking](https://github.com/groue/GRDB.swift/blob/master/README.md#changes-tracking) chapter has been updated for the enhanced `Record.updateChanges(_:)` method.
+- The [Changes Tracking](https://github.com/groue/GRDB.swift/blob/master/README.md#changes-tracking) chapter has been updated for `Record.updateChanges(_:)` method.
 
 
 ### API diff
