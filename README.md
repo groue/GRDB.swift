@@ -6329,7 +6329,9 @@ try dbPool.write { db in
 
 **A database snapshot sees an unchanging database content, as it existed at the moment it was created.**
 
-You create snapshots from [database pools](#database-pools):
+"Unchanging" means that a snapshot never sees any database modifications during all its lifetime. And yet it doesn't prevent database updates. This "magic" is made possible by SQLite's WAL mode (see [Isolation In SQLite](https://sqlite.org/isolation.html)).
+
+You create snapshots from a [database pool](#database-pools):
 
 ```swift
 let snapshot = try dbPool.makeSnapshot()
