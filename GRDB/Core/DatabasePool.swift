@@ -39,7 +39,6 @@ public final class DatabasePool {
     /// - parameters:
     ///     - path: The path to the database file.
     ///     - configuration: A configuration.
-    ///     - maximumReaderCount: The maximum number of readers. Default is 5.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public init(path: String, configuration: Configuration = Configuration()) throws {
         GRDBPrecondition(configuration.maximumReaderCount > 0, "configuration.maximumReaderCount must be at least 1")
@@ -83,16 +82,7 @@ public final class DatabasePool {
                 path: path,
                 configuration: self.readerConfig,
                 schemaCache: SimpleDatabaseSchemaCache())
-            
-            reader.sync { db in
-                for function in self.functions {
-                    db.add(function: function)
-                }
-                for collation in self.collations {
-                    db.add(collation: collation)
-                }
-            }
-            
+            reader.sync { self.setupDatabase($0) }
             return reader
         })
     }
@@ -106,6 +96,15 @@ public final class DatabasePool {
         NotificationCenter.default.removeObserver(self)
     }
     #endif
+    
+    private func setupDatabase(_ db: Database) {
+        for function in self.functions {
+            db.add(function: function)
+        }
+        for collation in self.collations {
+            db.add(collation: collation)
+        }
+    }
 }
 
 extension DatabasePool {
@@ -615,5 +614,45 @@ extension DatabasePool : DatabaseWriter {
             // TODO: write a test for this
             throw readError
         }
+    }
+}
+
+extension DatabasePool {
+    
+    // MARK: - Snapshots
+    
+    /// Creates a database snapshot.
+    //:
+    /// The snapshot sees an unchanging database content, as it existed at the
+    /// moment it was created.
+    ///
+    /// When you want to control the latest committed changes seen by a
+    /// snapshot, create it from the pool's writer protected dispatch queue:
+    ///
+    ///     let snapshot1 = try dbPool.write { db -> DatabaseSnapshot in
+    ///         try Player.deleteAll()
+    ///         return dbPool.makeSnapshot()
+    ///     }
+    ///     // <- Other threads may modify the database here
+    ///     let snapshot2 = try dbPool.makeSnapshot()
+    ///
+    ///     try snapshot1.read { db in
+    ///         // Guaranteed to be zero
+    ///         try Player.fetchCount(db)
+    ///     }
+    ///
+    ///     try snapshot2.read { db in
+    ///         // Could be anything
+    ///         try Player.fetchCount(db)
+    ///     }
+    ///
+    /// You can create as many snapshots as you need, regardless of the maximum
+    /// number of reader connections in the pool.
+    ///
+    /// For more information, read about "snapshot isolation" at https://sqlite.org/isolation.html
+    public func makeSnapshot() throws -> DatabaseSnapshot {
+        let snapshot = try DatabaseSnapshot(path: path, configuration: writer.configuration)
+        snapshot.read { setupDatabase($0) }
+        return snapshot
     }
 }

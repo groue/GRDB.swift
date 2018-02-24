@@ -867,19 +867,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     }
     
     func testLongRunningReadTransaction() throws {
-        // A test for real-life use case of allowsUnsafeTransactions:
-        // get a long-running constant view of the database.
-        //
-        // We still have a problem to fix with this technique, though:
-        //
-        // This extra dbQueue adopts DatabaseWriter, and exposes writing methods
-        // which contradict its purpose.
-        //
-        // Its schema cache is not invalidated when the master pool changes the
-        // database schema.
-        //
-        // We may need to have a dedicated "long-run" viewer type, only
-        // constructible from DatabasePool.
+        // A test for a "user-defined" DatabaseSnapshot based on DatabaseQueue
         let dbName = "test.sqlite"
         let dbPool = try makeDatabasePool(filename: dbName)
         dbConfiguration.allowsUnsafeTransactions = true

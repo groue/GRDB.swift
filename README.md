@@ -386,7 +386,7 @@ See [Configuration](http://groue.github.io/GRDB.swift/docs/2.8/Structs/Configura
 
 **A Database Pool allows concurrent database accesses.**
 
-When more efficient than [database queues](#database-queues), database pools also require a good mastery of database transactions. Details follow. If you don't feel comfortable with transactions, use a [database queue](#database-queues) instead.
+When more efficient than [database queues](#database-queues), database pools also inherit the subtleties of SQLite's [WAL mode](https://www.sqlite.org/wal.html). If you don't feel comfortable with improving your SQLite skills, use a [database queue](#database-queues) instead.
 
 ```swift
 import GRDB
@@ -439,9 +439,9 @@ Database pools allow several threads to access the database at the same time:
     
     To provide `read` closures an immutable view of the last executed writing block *as a whole*, use `writeInTransaction` instead of `write`.
 
-**A database pool needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency](#concurrency) chapter.
+Database pools can also take [snapshots](#database-snapshots) of the database. See also [Advanced DatabasePool](#advanced-databasepool) for more DatabasePool hotness.
 
-See [Advanced DatabasePool](#advanced-databasepool) for more DatabasePool hotness.
+**A database pool needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency](#concurrency) chapter.
 
 For a sample code that sets up a database pool on iOS, see [DemoApps/GRDBDemoiOS/AppDatabase.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/AppDatabase.swift), and replace DatabaseQueue with DatabasePool.
 
@@ -6147,6 +6147,7 @@ You can catch those errors and wait for [UIApplicationDelegate.applicationProtec
 
 - [Guarantees and Rules](#guarantees-and-rules)
 - [Advanced DatabasePool](#advanced-databasepool)
+- [Database Snapshots](#database-snapshots)
 - [DatabaseWriter and DatabaseReader Protocols](#databasewriter-and-databasereader-protocols)
 - [Unsafe Concurrency APIs](#unsafe-concurrency-apis)
 - [Dealing with External Connections](#dealing-with-external-connections)
@@ -6154,14 +6155,17 @@ You can catch those errors and wait for [UIApplicationDelegate.applicationProtec
 
 ### Guarantees and Rules
 
-GRDB ships with two concurrency modes:
+GRDB ships with there concurrency modes:
 
 - [DatabaseQueue](#database-queues) opens a single database connection, and serializes all database accesses.
 - [DatabasePool](#database-pools) manages a pool of several database connections, and allows concurrent reads and writes.
+- [DatabaseSnapshot](#database-snapshots) opens a single read-only database connection on an unchanging database content, and (currently) serializes all database accesses
 
-**Both foster application safety**: regardless of the concurrency mode you choose, GRDB provides you with the same guarantees, as long as you follow three rules.
+**All foster application safety**: regardless of the concurrency mode you choose, GRDB provides you with the same guarantees, as long as you follow three rules.
 
 - :bowtie: **Guarantee 1: writes are always serialized**. At every moment, there is no more than a single thread that is writing into the database.
+    
+    > Database writes always happen in a single "protected dispatch queue". All transactions that modify the database happen in this queue.
 
 - :bowtie: **Guarantee 2: reads are always isolated**. This means that they are guaranteed an immutable view of the last committed state of the database, and that you can perform subsequent fetches without fearing eventual concurrent writes to mess with your application logic:
     
@@ -6172,6 +6176,10 @@ GRDB ships with two concurrency modes:
         let count2 = try Player.fetchCount(db)
     }
     ```
+    
+    > In [database queues](#database-queues), reads happen in the same "protected dispatch queue" as writes: isolation is just a consequence of the serialization of database accesses
+    >
+    > [Database pools](#database-pools) and [snapshots](#database-snapshots) both use the "snapshot isolation" made possible by SQLite's WAL mode (see [Isolation In SQLite](https://sqlite.org/isolation.html)).
 
 - :bowtie: **Guarantee 3: requests don't fail**, unless a database constraint violation, a [programmer mistake](#error-handling), or a very low-level issue such as a disk error or an unreadable database file. GRDB grants *correct* use of SQLite, and particularly avoids locking errors and other SQLite misuses.
 
@@ -6207,9 +6215,9 @@ Those guarantees hold as long as you follow three rules:
     let user = try currentUser()
     ```
     
-- :point_up: **Rule 2**: Group related statements within a single call to a DatabaseQueue or DatabasePool database access method.
+- :point_up: **Rule 2**: Group related statements within a single call to a DatabaseQueue or DatabasePool database access method (or use [snapshots](#database-snapshots)).
     
-    Those methods isolate your groups of related statements against eventual database updates performed by other threads, and guarantee a consistent view of the database. This isolation is only guaranteed *inside* the closure argument of those methods. Two consecutive calls *do not* guarantee isolation:
+    Database access methods isolate your groups of related statements against eventual database updates performed by other threads, and guarantee a consistent view of the database. This isolation is only guaranteed *inside* the closure argument of those methods. Two consecutive calls *do not* guarantee isolation:
     
     ```swift
     // SAFE CONCURRENCY
@@ -6244,7 +6252,7 @@ Those guarantees hold as long as you follow three rules:
     ```
     
     On that last example, see [Advanced DatabasePool](#advanced-databasepool) if you look after extra performance.
-
+    
 - :point_up: **Rule 3**: When you perform several modifications of the database that temporarily put the database in an inconsistent state, group those modifications within a [transaction](#transactions-and-savepoints):
     
     ```swift
@@ -6333,13 +6341,62 @@ try dbPool.write { db in
 [Transaction Observers](#transactionobserver-protocol) can also use `readFromCurrentState` in their `databaseDidCommit` method in order to process database changes without blocking other threads that want to write into the database.
 
 
+### Database Snapshots
+
+**A database snapshot sees an unchanging database content, as it existed at the moment it was created.**
+
+You create snapshots from [database pools](#database-pools):
+
+```swift
+let snapshot = try dbPool.makeSnapshot()
+```
+
+**A snapshot can be used from any thread.** Its `read` methods is synchronous, and blocks the current thread until your database statements are executed:
+
+```swift
+// Read values:
+try snapshot.read { db in
+    let players = try Player.fetchAll(db)
+    let playerCount = try Player.fetchCount(db)
+}
+
+// Extract a value from the database:
+let playerCount = try snapshot.read { db in
+    try Player.fetchCount(db)
+}
+```
+
+When you want to control the latest committed changes seen by a snapshot, create it from the pool's writer protected dispatch queue:
+
+```swift
+let snapshot1 = try dbPool.write { db -> DatabaseSnapshot in
+    try Player.deleteAll()
+    return dbPool.makeSnapshot()
+}
+// <- Other threads may modify the database here
+let snapshot2 = try dbPool.makeSnapshot()
+
+try snapshot1.read { db in
+    // Guaranteed to be zero
+    try Player.fetchCount(db)
+}
+
+try snapshot2.read { db in
+    // Could be anything
+    try Player.fetchCount(db)
+}
+```
+
+> :point_up: **Note**: snapshots currently serialize all database accesses. In the future, snapshots may allow concurrent reads.
+
+
 ### DatabaseWriter and DatabaseReader Protocols
 
-Both DatabaseQueue and DatabasePool adopt the [DatabaseReader](http://groue.github.io/GRDB.swift/docs/2.8/Protocols/DatabaseReader.html) and [DatabaseWriter](http://groue.github.io/GRDB.swift/docs/2.8/Protocols/DatabaseWriter.html) protocols.
+Both DatabaseQueue and DatabasePool adopt the [DatabaseReader](http://groue.github.io/GRDB.swift/docs/2.8/Protocols/DatabaseReader.html) and [DatabaseWriter](http://groue.github.io/GRDB.swift/docs/2.8/Protocols/DatabaseWriter.html) protocols. DatabaseSnapshot adopts DatabaseReader only.
 
-These protocols provide a unified API that lets you write safe concurrent code that targets both classes.
+These protocols provide a unified API that lets you write safe concurrent code that targets all three concurrency modes.
 
-However, database queues are not database pools, and DatabaseReader and DatabaseWriter provide the *smallest* common guarantees. They require more discipline:
+However, queues are not pools which are different from snapshots, and DatabaseReader and DatabaseWriter provide the *smallest* common guarantees. They require more discipline:
 
 - Pools are less forgiving than queues when one overlooks a transaction (see [concurrency rule 3](#guarantees-and-rules)).
 - DatabaseWriter.readFromCurrentState is synchronous, or asynchronous, depending on whether it is run by a queue or a pool (see [advanced DatabasePool](#advanced-databasepool)). It thus requires higher libDispatch skills, and more complex synchronization code.
@@ -6355,7 +6412,7 @@ DatabaseWriter and DatabaseReader fuel, for example:
 
 ### Unsafe Concurrency APIs
 
-**Database queues, pools, as well as their common protocols `DatabaseReader` and `DatabaseWriter` provide *unsafe* APIs.** Unsafe APIs lift [concurrency guarantees](#guarantees-and-rules), and allow advanced yet unsafe patterns.
+**Database queues, pools, snapshots, as well as their common protocols `DatabaseReader` and `DatabaseWriter` provide *unsafe* APIs.** Unsafe APIs lift [concurrency guarantees](#guarantees-and-rules), and allow advanced yet unsafe patterns.
 
 - **`unsafeRead`**
     

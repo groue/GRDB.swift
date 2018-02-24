@@ -3,13 +3,23 @@ Release Notes
 
 ## Next Version
 
+### New
+
+- Database pools can now take database snapshots. A snapshot sees an unchanging database content, as it existed at the moment it was created ([documentation](https://github.com/groue/GRDB.swift/blob/master/README.md#database-snapshots)).
+- Improved support for joined queries: check the new [Joined Queries Support](https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support) documentation chapter.
+- `Record.updateChanges(_:)` now returns whether the record had unsaved changes, or not.
+- `Database.columns(in:)` returns information about the columns of a table.
+- `Request.adapted(_:)` is no longer experimental.
+- `Configuration.allowsUnsafeTransactions` lets you leave transactions opened between two database accesses (see below).
+- Support for explicit transaction management, via the new `Database.beginTransaction`, `commit`, and `rollback` methods.
+
+
 ### Fixed
 
 - It is now a programmer error to leave a transaction opened at the end of a database access block:
     
     ```swift
-    // Fatal error:
-    // A transaction has been left opened at the end of a database access
+    // Fatal error: A transaction has been left opened at the end of a database access
     try dbQueue.inDatabase { db in
         try db.beginTransaction()
     }
@@ -29,15 +39,6 @@ Release Notes
     ```
 
 
-### New
-
-- `Record.updateChanges(_:)` now returns whether the record had unsaved changes, or not.
-- `Database.columns(in:)` returns information about the columns of a table.
-- Improved support for joined queries: check the new [Joined Queries Support](https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support) documentation chapter.
-- `Request.adapted(_:)` is no longer experimental.
-- Support for explicit transaction management, via the new `Database.beginTransaction`, `commit`, and `rollback` methods.
-
-
 ### Deprecated
 
 - `Database.columnCount(in:)` is deprecated. Use `db.columns(in:).count` instead.
@@ -46,11 +47,13 @@ Release Notes
 ### Documentation Diff
 
 - A new [Joined Queries Support](https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support) chapter has been added.
+- A new [Database Snapshots](https://github.com/groue/GRDB.swift/blob/master/README.md#database-snapshots) chapter has been added.
+- The [Concurrency](https://github.com/groue/GRDB.swift/blob/master/README.md#concurrency) chapter has been updated has been updated for snapshots.
+- The [Row Adapters](https://github.com/groue/GRDB.swift/blob/master/README.md#row-adapters) chapter has been made consistent with the new chapter on joined queries.
+- The [Codable Records](https://github.com/groue/GRDB.swift/blob/master/README.md#codable-records) chapter has been made consistent with the new chapter on joined queries.
+- The [Building Custom Requests](https://github.com/groue/GRDB.swift/blob/master/README.md#building-custom-requests) chapter used to contain sample code that is now better introduced in the new chapter on joined queries.
 - The [Database Schema Introspection](https://github.com/groue/GRDB.swift/blob/master/README.md#database-schema-introspection) has been updated for `Database.columns(in:)`
-- The [Row Adapters](https://github.com/groue/GRDB.swift/blob/master/README.md#row-adapters) chapter has been made consistent with the chapter on joined queries.
-- The [Codable Records](https://github.com/groue/GRDB.swift/blob/master/README.md#codable-records) chapter has been made consistent with the chapter on joined queries.
 - The [Changes Tracking](https://github.com/groue/GRDB.swift/blob/master/README.md#changes-tracking) chapter has been updated for the enhanced `Record.updateChanges(_:)` method.
-- The [Building Custom Requests](https://github.com/groue/GRDB.swift/blob/master/README.md#building-custom-requests) chapter used to contain sample code that is now better introduced in the chapter on joined queries.
 
 
 ### API diff
@@ -76,6 +79,12 @@ Release Notes
 +     func rollback() throws
 +     func commit() throws
  }
+ 
+ class DatabasePool {
++    func makeSnapshot() throws -> DatabaseSnapshot
+ }
+ 
++class DatabaseSnapshot: DatabaseReader { }
 
  class Record {
 -    final func updateChanges(_ db: Database) throws
