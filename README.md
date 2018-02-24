@@ -2805,8 +2805,8 @@ This is the list of record methods, along with their required protocols. The [Re
 | **Core Methods** | | |
 | `init(row:)` | [RowConvertible](#rowconvertible-protocol) | |
 | `Type.databaseTableName` | [TableMapping](#tablemapping-protocol) | |
-| `Type.databaseSelection` | [TableMapping](#tablemapping-protocol) | |
-| `Type.persistenceConflictPolicy` | [Persistable](#persistable-protocol) | |
+| `Type.databaseSelection` | [TableMapping](#tablemapping-protocol) | [*](#columns-selected-by-a-request) |
+| `Type.persistenceConflictPolicy` | [Persistable](#persistable-protocol) | [*](#conflict-resolution) |
 | `record.encode(to:)` | [Persistable](#persistable-protocol) | |
 | `record.didInsert(with:for:)` | [Persistable](#persistable-protocol) | |
 | **Insert and Update Records** | | |
