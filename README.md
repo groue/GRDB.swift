@@ -6130,6 +6130,7 @@ You can catch those errors and wait for [UIApplicationDelegate.applicationProtec
 ## Concurrency
 
 - [Guarantees and Rules](#guarantees-and-rules)
+- [Differences between Database Queues and Pools](#differences-between-database-queues-and-pools)
 - [Advanced DatabasePool](#advanced-databasepool)
 - [Database Snapshots](#database-snapshots)
 - [DatabaseWriter and DatabaseReader Protocols](#databasewriter-and-databasereader-protocols)
@@ -6149,7 +6150,7 @@ GRDB ships with there concurrency modes:
 
 - :bowtie: **Guarantee 1: writes are always serialized**. At every moment, there is no more than a single thread that is writing into the database.
     
-    > Database writes always happen in a single "protected dispatch queue". All transactions that modify the database happen in this queue.
+    > Database writes always happen in a unique serial dispatch queue, named the *writer protected dispatch queue*.
 
 - :bowtie: **Guarantee 2: reads are always isolated**. This means that they are guaranteed an immutable view of the last committed state of the database, and that you can perform subsequent fetches without fearing eventual concurrent writes to mess with your application logic:
     
@@ -6161,7 +6162,7 @@ GRDB ships with there concurrency modes:
     }
     ```
     
-    > In [database queues](#database-queues), reads happen in the same "protected dispatch queue" as writes: isolation is just a consequence of the serialization of database accesses
+    > In [database queues](#database-queues), reads happen in the same protected dispatch queue as writes: isolation is just a consequence of the serialization of database accesses
     >
     > [Database pools](#database-pools) and [snapshots](#database-snapshots) both use the "snapshot isolation" made possible by SQLite's WAL mode (see [Isolation In SQLite](https://sqlite.org/isolation.html)).
 
@@ -6175,7 +6176,7 @@ Those guarantees hold as long as you follow three rules:
     
     See, for example, [DemoApps/GRDBDemoiOS/AppDatabase.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/AppDatabase.swift) for a sample code that properly sets up a single database queue that is available throughout the application.
     
-    If there are several instances of database queues or pools that access the same database, a multi-threaded application will eventually face "database is locked" errors. See [Dealing with External Connections](#dealing-with-external-connections).
+    If there are several instances of database queues or pools that write in the same database, a multi-threaded application will eventually face "database is locked" errors. See [Dealing with External Connections](#dealing-with-external-connections).
     
     ```swift
     // SAFE CONCURRENCY
@@ -6257,6 +6258,25 @@ Those guarantees hold as long as you follow three rules:
     Without transaction, `DatabasePool.read { ... }` may see the first statement, but not the second, and access a database where the balance of accounts is not zero. A highly bug-prone situation.
     
     So do use [transactions](#transactions-and-savepoints) in order to guarantee database consistency accross your application threads: that's what they are made for.
+
+
+### Differences between Database Queues and Pools
+
+Despite the common [guarantees and rules](#guarantees-and-rules) shared by [database queues](#database-queues) and [pools](#database-pools), those two database accessors don't have the same behavior.
+
+Database queues serializes all database accesses, reads, and writes. There is never more than one thread that uses the database. In the image below, we see how three threads can see the database:
+
+![Database Queue Scheduling](Documentation/Images/DatabaseQueueScheduling.png)
+
+Database pools serializes all writes, but allow concurrent reads and writes. On top of that, reads are guaranteed an immutable view of the database. This can give a very different picture:
+
+![Database Pool Scheduling](Documentation/Images/DatabasePoolScheduling.png)
+
+See, at the bottom of the image, how two threads can read different database values at the same time.
+
+Because of this behavior, one has to understand that all database pool reads may load *stale data*. Fortunately, the consequences of stale data can easily be alleviated by [database observation](#database-changes-observation).
+
+**It is highly recommended**, before you use database pools, that you grab general information about SQLite [WAL mode](https://www.sqlite.org/wal.html), [snapshot isolation](https://sqlite.org/isolation.html), and GRDB [database observation](#database-changes-observation). They all fit very well together.
 
 
 ### Advanced DatabasePool
