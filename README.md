@@ -6272,11 +6272,11 @@ Database queues serializes all database accesses, reads, and writes. There is ne
 | -------------- | ------------- |
 | ![Database Queue Scheduling](Documentation/Images/DatabaseQueueScheduling.png) | ![Database Pool Scheduling](Documentation/Images/DatabasePoolScheduling.png) |
 
-Database pools serializes all writes, but allows concurrent reads and writes. On top of that, reads are guaranteed an immutable view of the database. This can give a very different picture.
+Database pools serializes all writes, but allows concurrent reads and writes. On top of that, reads are guaranteed an immutable view of the database. This gives a very different picture (on the right).
 
-See, at the bottom of the right image, how two threads can see different database states at the same time.
+See, at the bottom of the image, how two threads can see different database states at the same time.
 
-Because of this behavior, one has to understand that all database pool reads may load *stale data*. Fortunately, the consequences of stale data can easily be alleviated by [database observation](#database-changes-observation).
+Because of this behavior, one has to understand that all database pool reads may load *stale data*. Fortunately, the consequences of stale data can easily be alleviated by [database observation](#database-changes-observation), where GRDB *shines*.
 
 **It is highly recommended**, before you use database pools, that you grab general information about SQLite [WAL mode](https://www.sqlite.org/wal.html), [snapshot isolation](https://sqlite.org/isolation.html), and GRDB [database observation](#database-changes-observation). They all fit very well together.
 
