@@ -644,13 +644,10 @@ try dbQueue.inDatabase { db in
 
 Both arrays and cursors can iterate over database results. How do you choose one or the other? Look at the differences:
 
-- Arrays may be consumed on any thread.
-- Arrays contain copies of database values. They can take a lot of memory, when there are many fetched results.
-- Arrays can be iterated many times.
-- Cursors can not be used on any thread: you must consume them in a protected database queue.
-- Cursors iterate database results in a lazy fashion, and don't consume much memory.
-- Cursors can be iterated only one time.
-- Cursors are granted with direct access to SQLite: you can especially expect the best performance from cursors of raw database rows and some primitive types like `Int`, `String`, or `Bool` that adopt the [StatementColumnConvertible](http://groue.github.io/GRDB.swift/docs/2.8/Protocols/StatementColumnConvertible.html) protocol.
+- **Cursors can not be used on any thread**: you must consume it in the dispatch queue it was created in. Arrays may be consumed on any thread.
+- **Cursors iterate database results in a lazy fashion**, and don't consume much memory. Arrays contain copies of database values, and may take a lot of memory when there are many fetched results.
+- **Cursors can be iterated only one time.** Arrays can be iterated many times.
+- **Cursors are granted with direct access to SQLite.** Arrays contain copies of database values. You may expect performance gains when you deal with cursors of raw rows at the lowest possible level: `Row.fetchCursor(...)`.
 
 If you don't see, or don't care about the difference, use arrays. If you care about memory and performance, use cursors when appropriate.
 
