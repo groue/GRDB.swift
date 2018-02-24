@@ -51,6 +51,7 @@ Release Notes
 
 - The [Changes Tracking](https://github.com/groue/GRDB.swift/blob/master/README.md#changes-tracking) chapter has been updated for the new universal support for record changes.
 - A new [Database Snapshots](https://github.com/groue/GRDB.swift/blob/master/README.md#database-snapshots) chapter has been added.
+- A new [Differences between Database Queues and Pools](https://github.com/groue/GRDB.swift/blob/master/README.md#differences-between-database-queues-and-pools) chapter has been added, that attempts at visually show how much database pools are different from database queues.
 - The [Concurrency](https://github.com/groue/GRDB.swift/blob/master/README.md#concurrency) chapter has been updated for database snapshots.
 - A new [Joined Queries Support](https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support) chapter has been added.
 - The [Row Adapters](https://github.com/groue/GRDB.swift/blob/master/README.md#row-adapters) chapter has been made consistent with the new chapter on joined queries.

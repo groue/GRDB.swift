@@ -439,7 +439,9 @@ Database pools allow several threads to access the database at the same time:
     
     To provide `read` closures an immutable view of the last executed writing block *as a whole*, use `writeInTransaction` instead of `write`.
 
-Database pools can also take [snapshots](#database-snapshots) of the database. See [Advanced DatabasePool](#advanced-databasepool) for more DatabasePool hotness.
+- Database pools can take [snapshots](#database-snapshots) of the database.
+
+See [Differences between Database Queues and Pools](#differences-between-database-queues-and-pools) before you decide to use a database pool. When you're sure, see [Advanced DatabasePool](#advanced-databasepool) for more DatabasePool hotness.
 
 **A database pool needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency](#concurrency) chapter.
 
