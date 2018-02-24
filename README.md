@@ -6140,7 +6140,7 @@ You can catch those errors and wait for [UIApplicationDelegate.applicationProtec
 
 ### Guarantees and Rules
 
-GRDB ships with there concurrency modes:
+GRDB ships with three concurrency modes:
 
 - [DatabaseQueue](#database-queues) opens a single database connection, and serializes all database accesses.
 - [DatabasePool](#database-pools) manages a pool of several database connections, and allows concurrent reads and writes.
