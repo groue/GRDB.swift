@@ -649,15 +649,15 @@ Both arrays and cursors can iterate over database results. How do you choose one
 - **Cursors iterate database results in a lazy fashion**, and don't consume much memory. Arrays contain copies of database values, and may take a lot of memory when there are many fetched results.
 - **Cursors are granted with direct access to SQLite,** unlike arrays that have to take the time to copy database values. When you really care about performance, you may want to deal with cursors of raw rows at the lowest possible level: `Row.fetchCursor(...)`.
 - **Cursors require a little care**:
-
+    
     - Don't modify the results during a cursor iteration:
-
-    ```swift
-    // Undefined behavior
-    while let place = try places.next() {
-        try db.execute("DELETE ...")
-    }
-    ```
+        
+        ```swift
+        // Undefined behavior
+        while let place = try places.next() {
+            try db.execute("DELETE ...")
+        }
+        ```
     
     - Don't turn a cursor of `Row` into an array. You would not get the distinct rows you expect. To get a array of rows, use `Row.fetchAll(...)`. Generally speaking, make sure you copy a row whenever you extract it from a cursor for later use: `row.copy()`.
 
