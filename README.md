@@ -648,6 +648,19 @@ Both arrays and cursors can iterate over database results. How do you choose one
 - **Cursors can be iterated only one time.** Arrays can be iterated many times.
 - **Cursors iterate database results in a lazy fashion**, and don't consume much memory. Arrays contain copies of database values, and may take a lot of memory when there are many fetched results.
 - **Cursors are granted with direct access to SQLite,** unlike arrays that have to take the time to copy database values. When you really care about performance, you may want to deal with cursors of raw rows at the lowest possible level: `Row.fetchCursor(...)`.
+- **Cursors require a little care**:
+
+    - Don't modify the results during a cursor iteration:
+
+    ```swift
+    // Undefined behavior
+    while let place = try places.next() {
+        try db.execute("DELETE ...")
+    }
+    ```
+    
+    - Don't turn a cursor of `Row` into an array. You would not get the distinct rows you expect. To get a array of rows, use `Row.fetchAll(...)`. Generally speaking, make sure you copy a row whenever you extract it from a cursor for later use: `row.copy()`.
+
 
 If you don't see, or don't care about the difference, use arrays. If you care about memory and performance, use cursors when appropriate.
 
@@ -674,17 +687,6 @@ let hosts = try Set(cursor) // Set<String>
 ```
 
 **Cursors are not Swift sequences, though.** That's because Swift sequences can't handle iteration errors, when reading SQLite results may fail at any time. SQL functions may throw errors. On iOS, [data protection](#data-protection) may block access to the database file in the background. On MacOS, your application users may mess with the file system.
-
-> :point_up: Don't modify the fetched results during a cursor iteration:
-> 
-> ```swift
-> // Undefined behavior
-> while let place = try places.next() {
->     try db.execute("DELETE ...")
-> }
-> ```
->
-> :point_up: **Don't turn a cursor of `Row` into an array**. You would not get the distinct rows you expect. To get a array of rows, use `Row.fetchAll(...)`. Generally speaking, make sure you copy a row whenever you extract it from a cursor for later use: `row.copy()`.
 
 
 ### Row Queries
