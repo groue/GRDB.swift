@@ -42,7 +42,7 @@ Release Notes
 ### Deprecated
 
 - `Database.columnCount(in:)` is deprecated. Use `db.columns(in:).count` instead.
-- `RecordBox` was ill-advised, and had been deprecated. Use [changes tracking](https://github.com/groue/GRDB.swift/blob/master/README.md#changes-tracking) methods on the Persistable protocol instead.
+- `RecordBox`, introduced in [2.7.0](#270), was ill-advised. It has been deprecated. Use [changes tracking](https://github.com/groue/GRDB.swift/blob/master/README.md#changes-tracking) methods on the Persistable protocol instead.
 - `Record.hasPersistentChangedValues` has been deprecated, renamed `hasDatabaseChanges`.
 - `Record.persistentChangedValues` has been deprecated, renamed `databaseChanges`.
 
