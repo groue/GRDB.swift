@@ -646,7 +646,16 @@ try dbQueue.inDatabase { db in
 
 Both arrays and cursors can iterate over database results. How do you choose one or the other? Look at the differences:
 
-- **Cursors can not be used on any thread**: you must consume a cursor on the dispatch queue it was created in. Arrays may be consumed on any thread.
+- **Cursors can not be used on any thread**: you must consume a cursor on the dispatch queue it was created in, and you must not extract it. Arrays may be consumed on any thread:
+    
+    ```swift
+    // Wrong
+    let cursor = try dbQueue.inDatabase { try Player.fetchCursor($0, ...) }
+    
+    // OK
+    let array = try dbQueue.inDatabase { try Player.fetchAll($0, ...) }
+    ```
+    
 - **Cursors can be iterated only one time.** Arrays can be iterated many times.
 - **Cursors iterate database results in a lazy fashion**, and don't consume much memory. Arrays contain copies of database values, and may take a lot of memory when there are many fetched results.
 - **Cursors are granted with direct access to SQLite,** unlike arrays that have to take the time to copy database values. When you really care about performance, you may want to deal with cursors of raw rows at the lowest possible level: `Row.fetchCursor(...)`.
