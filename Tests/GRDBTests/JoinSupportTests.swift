@@ -98,8 +98,8 @@ private struct FlatModel: RowConvertible {
         self.t5count = row.scoped(on: Scopes.suffix)!["t5count"]
     }
     
-    static func all() -> AnyTypedRequest<FlatModel> {
-        return SQLRequest(testedSQL).adapted { db in
+    static func all() -> AdaptedFetchRequest<SQLRequest<FlatModel>> {
+        return SQLRequest<FlatModel>(testedSQL).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 T1.numberOfSelectedColumns(db),
                 T2.numberOfSelectedColumns(db),
@@ -111,8 +111,7 @@ private struct FlatModel: RowConvertible {
                 Scopes.t2Right: adapters[2],
                 Scopes.t3: adapters[3],
                 Scopes.suffix: adapters[4]]) // The only test for adapters[4]
-            }
-            .asRequest(of: FlatModel.self)
+        }
     }
 }
 
@@ -123,8 +122,8 @@ private struct CodableFlatModel: RowConvertible, Codable {
     var t3: T3?
     var t5count: Int
     
-    static func all() -> AnyTypedRequest<CodableFlatModel> {
-        return SQLRequest(testedSQL).adapted { db in
+    static func all() -> AdaptedFetchRequest<SQLRequest<CodableFlatModel>> {
+        return SQLRequest<CodableFlatModel>(testedSQL).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 T1.numberOfSelectedColumns(db),
                 T2.numberOfSelectedColumns(db),
@@ -135,8 +134,7 @@ private struct CodableFlatModel: RowConvertible, Codable {
                 CodingKeys.t2Left.stringValue: adapters[1],
                 CodingKeys.t2Right.stringValue: adapters[2],
                 CodingKeys.t3.stringValue: adapters[3]])
-            }
-            .asRequest(of: CodableFlatModel.self)
+        }
     }
 }
 
@@ -151,8 +149,8 @@ private struct CodableNestedModel: RowConvertible, Codable {
     var t3: T3?
     var t5count: Int
     
-    static func all() -> AnyTypedRequest<CodableNestedModel> {
-        return SQLRequest(testedSQL).adapted { db in
+    static func all() -> AdaptedFetchRequest<SQLRequest<CodableNestedModel>> {
+        return SQLRequest<CodableNestedModel>(testedSQL).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 T1.numberOfSelectedColumns(db),
                 T2.numberOfSelectedColumns(db),
@@ -167,8 +165,7 @@ private struct CodableNestedModel: RowConvertible, Codable {
                     "left": adapters[1],
                     "right": adapters[2]]),
                 CodingKeys.t3.stringValue: adapters[3]])
-            }
-            .asRequest(of: CodableNestedModel.self)
+        }
     }
 }
 
@@ -274,7 +271,7 @@ class JoinSupportTests: GRDBTestCase {
     func testSplittingRowAdapters() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let request = SQLRequest(testedSQL).adapted { db in
+            let request = SQLRequest<Row>(testedSQL).adapted { db in
                 let adapters = try splittingRowAdapters(columnCounts: [
                     T1.numberOfSelectedColumns(db),
                     T2.numberOfSelectedColumns(db),
@@ -288,7 +285,7 @@ class JoinSupportTests: GRDBTestCase {
                     "t3": adapters[3],
                     "suffix": adapters[4]])
             }
-            let rows = try Row.fetchAll(db, request)
+            let rows = try request.fetchAll(db)
             XCTAssertEqual(rows.count, 3)
             
             XCTAssertEqual(rows[0].unscoped, [
