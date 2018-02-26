@@ -1,6 +1,104 @@
 Release Notes
 =============
 
+## Next Version
+
+### Breaking Changes
+
+- `Request` and `TypedRequest` protocols have been merged into `FetchRequest`.
+
+### API diff
+
+FetchRequest
+
+```diff
++protocol FetchRequest {
++    associatedtype RowDecoder
++    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?)
++    func fetchCount(_ db: Database) throws -> Int
++    func fetchedRegion(_ db: Database) throws -> DatabaseRegion
++}
++extension FetchRequest {
++    func fetchCount(_ db: Database) throws -> Int
++    func fetchedRegion(_ db: Database) throws -> DatabaseRegion
++    func asRequest<T>(of type: T.Type) -> AnyFetchRequest<T>
++    func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AdaptedFetchRequest<Self>
++}
++struct AdaptedFetchRequest<Base: FetchRequest> : FetchRequest {
++    typealias RowDecoder = Base.RowDecoder
++}
++struct AnyFetchRequest<T> : FetchRequest {
++    typealias RowDecoder = T
++    init<Request: FetchRequest>(_ request: Request)
++    init(_ prepare: @escaping (Database) throws -> (SelectStatement, RowAdapter?))
++}
++struct SQLRequest<T> : FetchRequest {
++    typealias RowDecoder = T
++    let sql: String
++    let arguments: StatementArguments?
++    let adapter: RowAdapter?
++    init(_ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, cached: Bool = false)
++    init<Request: FetchRequest>(_ db: Database, request: Request, cached: Bool = false) throws where Request.RowDecoder == RowDecoder
++}
+
++extension FetchRequest where RowDecoder: DatabaseValueConvertible {
++    func fetchCursor(_ db: Database) throws -> DatabaseValueCursor<RowDecoder>
++    func fetchAll(_ db: Database) throws -> [RowDecoder]
++    func fetchOne(_ db: Database) throws -> RowDecoder?
++
+}
++extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped: DatabaseValueConvertible
++    func fetchCursor(_ db: Database) throws -> NullableDatabaseValueCursor<RowDecoder._Wrapped>
++    func fetchAll(_ db: Database) throws -> [RowDecoder._Wrapped?]
++}
+
++extension FetchRequest where RowDecoder: Row {
++    func fetchCursor(_ db: Database) throws -> RowCursor
++    func fetchAll(_ db: Database) throws -> [Row]
++    func fetchOne(_ db: Database) throws -> Row?
++}
+
++extension FetchRequest where RowDecoder: RowConvertible {
++    func fetchCursor(_ db: Database) throws -> RecordCursor<RowDecoder>
++    func fetchAll(_ db: Database) throws -> [RowDecoder]
++    func fetchOne(_ db: Database) throws -> RowDecoder?
++}
+
+-protocol Request { }
+-struct AdaptedRequest : Request { }
+-struct AnyRequest : Request { }
+-struct SQLRequest : Request { }
+-protocol TypedRequest : Request { }
+-struct AdaptedTypedRequest<Base: TypedRequest> : TypedRequest { }
+-struct AnyTypedRequest<T> : TypedRequest { }
+
+-extension DatabaseValueConvertible {
+-    static func fetchCursor(_ db: Database, _ request: Request) throws -> DatabaseValueCursor<Self>
+-    static func fetchAll(_ db: Database, _ request: Request) throws -> [Self]
+-    static func fetchOne(_ db: Database, _ request: Request) throws -> Self?
+-}
+
+-extension Optional where Wrapped: DatabaseValueConvertible {
+-    static func fetchCursor(_ db: Database, _ request: Request) throws -> NullableDatabaseValueCursor<Wrapped>
+-    static func fetchAll(_ db: Database, _ request: Request) throws -> [Wrapped?]
+-}
+
+-extension Row {
+-    static func fetchCursor(_ db: Database, _ request: Request) throws -> RowCursor
+-    static func fetchAll(_ db: Database, _ request: Request) throws -> [Row]
+-    static func fetchOne(_ db: Database, _ request: Request) throws -> Row?
+-}
+
+-extension RowConvertible {
+-    static func fetchCursor(_ db: Database, _ request: Request) throws -> RecordCursor<Self>
+-    static func fetchAll(_ db: Database, _ request: Request) throws -> [Self]
+-    static func fetchOne(_ db: Database, _ request: Request) throws -> Self?
+-}
+
+-extension QueryInterfaceRequest : TypedRequest { }
++extension QueryInterfaceRequest : FetchRequest { }
+```
+
 ## 2.9.0
 
 Released February 25, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.8.0...v2.9.0)
