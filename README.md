@@ -3761,7 +3761,7 @@ protocol FetchRequest {
 }
 ```
 
-The `RowDecoder` tells a request how to decode rows. It can be any type, but not all types have built-in support. See [Fetching From Custom Requests](#fetching-from-custom-requests) below.
+The `RowDecoder` associated type tells a request how to decode rows. It can be any type, but not all types have built-in support. See [Fetching From Custom Requests](#fetching-from-custom-requests) below.
 
 The `prepare` method returns a prepared statement and an optional row adapter. The [prepared statement](#prepared-statements) tells which SQL query should be executed. The row adapter helps presenting the fetched rows in the way expected by the row decoders (see [row adapter](#row-adapters)).
 
@@ -3782,7 +3782,7 @@ The `fetchedRegion` method helps [transaction observers](#transactionobserver-pr
             let request = SQLRequest<Player>(
                 "SELECT * FROM players WHERE color = ?"
                 arguments: [color])
-        }s
+        }
     }
     
     // [Player]
@@ -3800,7 +3800,7 @@ The `fetchedRegion` method helps [transaction observers](#transactionobserver-pr
 
 - The `adapted(_:)` method eases the consumption of complex rows with [row adapters](#row-adapters). See [Joined Queries Support](#joined-queries-support) for some sample code that uses this method.
 
-- [AnyFetchRequest](http://groue.github.io/GRDB.swift/docs/2.9/Structs/AnyFetchRequest.html): a type-erased request
+- [AnyFetchRequest](http://groue.github.io/GRDB.swift/docs/2.9/Structs/AnyFetchRequest.html): a [type-erased](http://chris.eidhof.nl/post/type-erasers-in-swift/) request.
 
 
 ### Fetching From Custom Requests
