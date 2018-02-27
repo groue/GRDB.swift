@@ -5,11 +5,13 @@ Release Notes
 
 ### Breaking Changes
 
-- `Request` and `TypedRequest` protocols have been merged into `FetchRequest`.
+- `Request` and `TypedRequest` protocols have been merged into `FetchRequest` ([311](https://github.com/groue/GRDB.swift/pull/311))
+- The `IteratorCursor` type has been removed. Use `AnyCursor` instead.
+
 
 ### API diff
 
-FetchRequest
+**FetchRequest**
 
 ```diff
 +protocol FetchRequest {
@@ -98,6 +100,17 @@ FetchRequest
 -extension QueryInterfaceRequest : TypedRequest { }
 +extension QueryInterfaceRequest : FetchRequest { }
 ```
+
+**Cursor**
+
+```diff
+ final class AnyCursor<Element> : Cursor {
++    convenience init<I: IteratorProtocol>(iterator: I) where I.Element == Element
++    convenience init<S: Sequence>(_ s: S) where S.Element == Element
+ }
+-final class IteratorCursor<Base: IteratorProtocol> : Cursor { }
+```
+
 
 ## 2.9.0
 
