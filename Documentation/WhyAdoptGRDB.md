@@ -65,24 +65,24 @@ struct Place {
 }
 ```
 
-By adopting the [RowConvertible] protocol, places can be loaded from SQL requests:
+By adopting the [FetchableRecord] protocol, places can be loaded from SQL requests:
 
 ```swift
-extension Place: RowConvertible { ... }
+extension Place: FetchableRecord { ... }
 let places = try Place.fetchAll(db, "SELECT * FROM places") // [Place]
 ```
 
-Add the [TableMapping] protocol, and SQL requests are generated for you:
+Add the [TableRecord] protocol, and SQL requests are generated for you:
 
 ```swift
-extension Place: TableMapping { ... }
+extension Place: TableRecord { ... }
 let place = try Place.fetchOne(db, key: 1) // Place?
 ```
 
-Add the [Persistable] protocol, and places know how to insert, update and delete themselves:
+Add the [PersistableRecord] protocol, and places know how to insert, update and delete themselves:
 
 ```swift
-extension Place: Persistable { ... }
+extension Place: PersistableRecord { ... }
 try place.delete(db)
 ```
 
@@ -263,13 +263,13 @@ Happy GRDB! :gift:
 [FMDB]: http://github.com/ccgus/fmdb
 [GRDB]: http://github.com/groue/GRDB.swift
 [GRDBObjc]: http://github.com/groue/GRDBObjc
-[Persistable]: https://github.com/groue/GRDB.swift/blob/master/README.md#records
+[PersistableRecord]: https://github.com/groue/GRDB.swift/blob/master/README.md#records
 [Realm]: http://realm.io
-[RowConvertible]: https://github.com/groue/GRDB.swift/blob/master/README.md#records
+[FetchableRecord]: https://github.com/groue/GRDB.swift/blob/master/README.md#records
 [RxGRDB]: https://github.com/RxSwiftCommunity/RxGRDB
 [RxSwift]: https://github.com/ReactiveX/RxSwift
 [SQLite.swift]: http://github.com/stephencelis/SQLite.swift
 [StORM]: https://www.perfect.org/docs/StORM.html
 [Swift-Kuery]: http://github.com/IBM-Swift/Swift-Kuery
-[TableMapping]: https://github.com/groue/GRDB.swift/blob/master/README.md#records
+[TableRecord]: https://github.com/groue/GRDB.swift/blob/master/README.md#records
 [TransactionObserver]: https://github.com/groue/GRDB.swift/blob/master/README.md#transactionobserver-protocol

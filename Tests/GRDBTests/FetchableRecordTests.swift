@@ -12,14 +12,14 @@ private struct Fetched {
     var lastName: String
 }
 
-extension Fetched : RowConvertible {
+extension Fetched : FetchableRecord {
     init(row: Row) {
         firstName = row["firstName"]
         lastName = row["lastName"]
     }
 }
 
-class RowConvertibleTests: GRDBTestCase {
+class FetchableRecordTests: GRDBTestCase {
 
     func testRowInitializer() {
         let row = Row(["firstName": "Arthur", "lastName": "Martin"])

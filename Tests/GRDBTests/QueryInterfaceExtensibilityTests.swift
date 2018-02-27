@@ -60,7 +60,7 @@ class QueryInterfaceExtensibilityTests: GRDBTestCase {
             try db.create(table: "records") { t in
                 t.column("date", .datetime)
             }
-            struct Record : TableMapping {
+            struct Record : TableRecord {
                 static let databaseTableName = "records"
             }
             
@@ -78,7 +78,7 @@ class QueryInterfaceExtensibilityTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute("CREATE VIRTUAL TABLE records USING fts3(content TEXT)")
-            struct Record : TableMapping {
+            struct Record : TableRecord {
                 static let databaseTableName = "records"
             }
             
@@ -98,7 +98,7 @@ class QueryInterfaceExtensibilityTests: GRDBTestCase {
             try db.create(table: "records") { t in
                 t.column("text", .text)
             }
-            struct Record : TableMapping {
+            struct Record : TableRecord {
                 static let databaseTableName = "records"
             }
             

@@ -7,7 +7,7 @@ import XCTest
     import GRDB
 #endif
 
-private struct Player: RowConvertible, MutablePersistable, Codable {
+private struct Player: FetchableRecord, MutablePersistableRecord, Codable {
     static let databaseTableName = "players"
     
     var id: Int64?
@@ -34,7 +34,7 @@ private struct Player: RowConvertible, MutablePersistable, Codable {
     }
 }
 
-class MutablePersistableChangesTests: GRDBTestCase {
+class MutablePersistableRecordChangesTests: GRDBTestCase {
     override func setup(_ dbWriter: DatabaseWriter) throws {
         try dbWriter.write { db in
             try db.create(table: "players") { t in
@@ -47,7 +47,7 @@ class MutablePersistableChangesTests: GRDBTestCase {
     }
     
     func testDegenerateDatabaseEqualWithSelf() throws {
-        struct DegenerateRecord: MutablePersistable {
+        struct DegenerateRecord: MutablePersistableRecord {
             static let databaseTableName = "ignored"
             func encode(to container: inout PersistenceContainer) {
             }
@@ -174,7 +174,7 @@ class MutablePersistableChangesTests: GRDBTestCase {
 
     func testDatabaseEqualWithDifferentTypesAndDifferentWidth() throws {
         // Mangle column case as well, for fun ;-)
-        struct NarrowPlayer: MutablePersistable, Codable {
+        struct NarrowPlayer: MutablePersistableRecord, Codable {
             static let databaseTableName = "players"
             var ID: Int64?
             var NAME: String?

@@ -4,7 +4,7 @@
     import SQLite3
 #endif
 
-/// Types that adopt RowConvertible can be initialized from a database Row.
+/// Types that adopt FetchableRecord can be initialized from a database Row.
 ///
 ///     let row = try Row.fetchOne(db, "SELECT ...")!
 ///     let player = Player(row)
@@ -21,8 +21,8 @@
 ///     try Player.fetchAll(statement, arguments:...)    // [Player]
 ///     try Player.fetchOne(statement, arguments:...)    // Player?
 ///
-/// RowConvertible is adopted by Record.
-public protocol RowConvertible {
+/// FetchableRecord is adopted by Record.
+public protocol FetchableRecord {
     
     /// Creates a record from `row`.
     ///
@@ -34,11 +34,11 @@ public protocol RowConvertible {
 
 /// A cursor of records. For example:
 ///
-///     struct Player : RowConvertible { ... }
+///     struct Player : FetchableRecord { ... }
 ///     try dbQueue.inDatabase { db in
 ///         let players: RecordCursor<Player> = try Player.fetchCursor(db, "SELECT * FROM players")
 ///     }
-public final class RecordCursor<Record: RowConvertible> : Cursor {
+public final class RecordCursor<Record: FetchableRecord> : Cursor {
     private let statement: SelectStatement
     private let row: Row // Reused for performance
     private let sqliteStatement: SQLiteStatement
@@ -67,7 +67,7 @@ public final class RecordCursor<Record: RowConvertible> : Cursor {
     }
 }
 
-extension RowConvertible {
+extension FetchableRecord {
     
     // MARK: Fetching From SelectStatement
     
@@ -125,7 +125,7 @@ extension RowConvertible {
     }
 }
 
-extension RowConvertible {
+extension FetchableRecord {
     
     // MARK: Fetching From SQL
     
@@ -183,9 +183,9 @@ extension RowConvertible {
     }
 }
 
-extension FetchRequest where RowDecoder: RowConvertible {
+extension FetchRequest where RowDecoder: FetchableRecord {
     
-    // MARK: Fetching Record and RowConvertible
+    // MARK: Fetching Record and FetchableRecord
     
     /// A cursor over fetched records.
     ///

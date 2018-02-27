@@ -249,7 +249,7 @@ private struct RowDecoder: Decoder {
     }
 }
 
-extension RowConvertible where Self: Decodable {
+extension FetchableRecord where Self: Decodable {
     /// Initializes a record from `row`.
     public init(row: Row) {
         try! self.init(from: RowDecoder(row: row, codingPath: []))

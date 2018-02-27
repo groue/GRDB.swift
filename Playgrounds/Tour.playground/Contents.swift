@@ -64,8 +64,8 @@ struct PointOfInterest {
     var coordinate: CLLocationCoordinate2D
 }
 
-// Adopt RowConvertible
-extension PointOfInterest : RowConvertible {
+// Adopt FetchableRecord
+extension PointOfInterest : FetchableRecord {
     init(row: Row) {
         id = row["id"]
         title = row["title"]
@@ -76,13 +76,13 @@ extension PointOfInterest : RowConvertible {
     }
 }
 
-// Adopt TableMapping
-extension PointOfInterest : TableMapping {
+// Adopt TableRecord
+extension PointOfInterest : TableRecord {
     static let databaseTableName = "pointOfInterests"
 }
 
-// Adopt MutablePersistable
-extension PointOfInterest : MutablePersistable {
+// Adopt MutablePersistableRecord
+extension PointOfInterest : MutablePersistableRecord {
     func encode(to container: inout PersistenceContainer) {
         container["id"] = id
         container["title"] = title

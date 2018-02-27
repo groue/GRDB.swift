@@ -7,7 +7,7 @@ import XCTest
     import GRDB
 #endif
 
-private struct PersistablePerson : Persistable {
+private struct PersistableRecordPerson : PersistableRecord {
     var name: String?
     var age: Int?
     
@@ -19,7 +19,7 @@ private struct PersistablePerson : Persistable {
     }
 }
 
-private class PersistablePersonClass : Persistable {
+private class PersistableRecordPersonClass : PersistableRecord {
     var id: Int64?
     var name: String?
     var age: Int?
@@ -44,7 +44,7 @@ private class PersistablePersonClass : Persistable {
     }
 }
 
-private struct PersistableCountry : Persistable {
+private struct PersistableRecordCountry : PersistableRecord {
     var isoCode: String
     var name: String
     
@@ -56,7 +56,7 @@ private struct PersistableCountry : Persistable {
     }
 }
 
-private struct PersistableCustomizedCountry : Persistable {
+private struct PersistableRecordCustomizedCountry : PersistableRecord {
     var isoCode: String
     var name: String
     let willInsert: () -> Void
@@ -98,7 +98,7 @@ private struct PersistableCustomizedCountry : Persistable {
     }
 }
 
-private struct Citizenship : Persistable {
+private struct Citizenship : PersistableRecord {
     let personID: Int64
     let countryIsoCode: String
     
@@ -110,7 +110,7 @@ private struct Citizenship : Persistable {
     }
 }
 
-class PersistableTests: GRDBTestCase {
+class PersistableRecordTests: GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
@@ -132,12 +132,12 @@ class PersistableTests: GRDBTestCase {
     }
     
     
-    // MARK: - PersistablePerson
+    // MARK: - PersistableRecordPerson
     
-    func testInsertPersistablePerson() throws {
+    func testInsertPersistableRecordPerson() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let person = PersistablePerson(name: "Arthur", age: 42)
+            let person = PersistableRecordPerson(name: "Arthur", age: 42)
             try person.insert(db)
             
             let rows = try Row.fetchAll(db, "SELECT * FROM persons")
@@ -146,10 +146,10 @@ class PersistableTests: GRDBTestCase {
         }
     }
 
-    func testSavePersistablePerson() throws {
+    func testSavePersistableRecordPerson() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let person = PersistablePerson(name: "Arthur", age: 42)
+            let person = PersistableRecordPerson(name: "Arthur", age: 42)
             try person.save(db)
             
             let rows = try Row.fetchAll(db, "SELECT * FROM persons")
@@ -159,12 +159,12 @@ class PersistableTests: GRDBTestCase {
     }
 
 
-    // MARK: - PersistablePersonClass
+    // MARK: - PersistableRecordPersonClass
     
-    func testInsertPersistablePersonClass() throws {
+    func testInsertPersistableRecordPersonClass() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let person = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
+            let person = PersistableRecordPersonClass(id: nil, name: "Arthur", age: 42)
             try person.insert(db)
             
             let rows = try Row.fetchAll(db, "SELECT * FROM persons")
@@ -174,12 +174,12 @@ class PersistableTests: GRDBTestCase {
         }
     }
 
-    func testUpdatePersistablePersonClass() throws {
+    func testUpdatePersistableRecordPersonClass() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let person1 = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
+            let person1 = PersistableRecordPersonClass(id: nil, name: "Arthur", age: 42)
             try person1.insert(db)
-            let person2 = PersistablePersonClass(id: nil, name: "Barbara", age: 39)
+            let person2 = PersistableRecordPersonClass(id: nil, name: "Barbara", age: 39)
             try person2.insert(db)
             
             person1.name = "Craig"
@@ -198,12 +198,12 @@ class PersistableTests: GRDBTestCase {
         }
     }
 
-    func testPartialUpdatePersistablePersonClass() throws {
+    func testPartialUpdatePersistableRecordPersonClass() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let person1 = PersistablePersonClass(id: nil, name: "Arthur", age: 24)
+            let person1 = PersistableRecordPersonClass(id: nil, name: "Arthur", age: 24)
             try person1.insert(db)
-            let person2 = PersistablePersonClass(id: nil, name: "Barbara", age: 36)
+            let person2 = PersistableRecordPersonClass(id: nil, name: "Barbara", age: 36)
             try person2.insert(db)
             
             do {
@@ -254,10 +254,10 @@ class PersistableTests: GRDBTestCase {
         }
     }
 
-    func testSavePersistablePersonClass() throws {
+    func testSavePersistableRecordPersonClass() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let person1 = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
+            let person1 = PersistableRecordPersonClass(id: nil, name: "Arthur", age: 42)
             try person1.save(db)
             
             var rows = try Row.fetchAll(db, "SELECT * FROM persons")
@@ -265,7 +265,7 @@ class PersistableTests: GRDBTestCase {
             XCTAssertEqual(rows[0]["id"] as Int64, person1.id!)
             XCTAssertEqual(rows[0]["name"] as String, "Arthur")
             
-            let person2 = PersistablePersonClass(id: nil, name: "Barbara", age: 39)
+            let person2 = PersistableRecordPersonClass(id: nil, name: "Barbara", age: 39)
             try person2.save(db)
             
             person1.name = "Craig"
@@ -290,12 +290,12 @@ class PersistableTests: GRDBTestCase {
         }
     }
 
-    func testDeletePersistablePersonClass() throws {
+    func testDeletePersistableRecordPersonClass() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let person1 = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
+            let person1 = PersistableRecordPersonClass(id: nil, name: "Arthur", age: 42)
             try person1.insert(db)
-            let person2 = PersistablePersonClass(id: nil, name: "Barbara", age: 39)
+            let person2 = PersistableRecordPersonClass(id: nil, name: "Barbara", age: 39)
             try person2.insert(db)
             
             var deleted = try person1.delete(db)
@@ -310,10 +310,10 @@ class PersistableTests: GRDBTestCase {
         }
     }
 
-    func testExistsPersistablePersonClass() throws {
+    func testExistsPersistableRecordPersonClass() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let person = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
+            let person = PersistableRecordPersonClass(id: nil, name: "Arthur", age: 42)
             try person.insert(db)
             XCTAssertTrue(try person.exists(db))
             
@@ -323,12 +323,12 @@ class PersistableTests: GRDBTestCase {
     }
 
 
-    // MARK: - PersistableCountry
+    // MARK: - PersistableRecordCountry
     
-    func testInsertPersistableCountry() throws {
+    func testInsertPersistableRecordCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let country = PersistableCountry(isoCode: "FR", name: "France")
+            let country = PersistableRecordCountry(isoCode: "FR", name: "France")
             try country.insert(db)
             
             let rows = try Row.fetchAll(db, "SELECT * FROM countries")
@@ -338,12 +338,12 @@ class PersistableTests: GRDBTestCase {
         }
     }
 
-    func testUpdatePersistableCountry() throws {
+    func testUpdatePersistableRecordCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var country1 = PersistableCountry(isoCode: "FR", name: "France")
+            var country1 = PersistableRecordCountry(isoCode: "FR", name: "France")
             try country1.insert(db)
-            let country2 = PersistableCountry(isoCode: "US", name: "United States")
+            let country2 = PersistableRecordCountry(isoCode: "US", name: "United States")
             try country2.insert(db)
             
             country1.name = "France Métropolitaine"
@@ -359,12 +359,12 @@ class PersistableTests: GRDBTestCase {
         }
     }
 
-    func testPartialUpdatePersistableCountry() throws {
+    func testPartialUpdatePersistableRecordCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var country1 = PersistableCountry(isoCode: "FR", name: "France")
+            var country1 = PersistableRecordCountry(isoCode: "FR", name: "France")
             try country1.insert(db)
-            let country2 = PersistableCountry(isoCode: "US", name: "United States")
+            let country2 = PersistableRecordCountry(isoCode: "US", name: "United States")
             try country2.insert(db)
             
             do {
@@ -395,10 +395,10 @@ class PersistableTests: GRDBTestCase {
         }
     }
 
-    func testSavePersistableCountry() throws {
+    func testSavePersistableRecordCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var country1 = PersistableCountry(isoCode: "FR", name: "France")
+            var country1 = PersistableRecordCountry(isoCode: "FR", name: "France")
             try country1.save(db)
             
             var rows = try Row.fetchAll(db, "SELECT * FROM countries")
@@ -406,7 +406,7 @@ class PersistableTests: GRDBTestCase {
             XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
             XCTAssertEqual(rows[0]["name"] as String, "France")
             
-            let country2 = PersistableCountry(isoCode: "US", name: "United States")
+            let country2 = PersistableRecordCountry(isoCode: "US", name: "United States")
             try country2.save(db)
             
             country1.name = "France Métropolitaine"
@@ -431,12 +431,12 @@ class PersistableTests: GRDBTestCase {
         }
     }
 
-    func testDeletePersistableCountry() throws {
+    func testDeletePersistableRecordCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let country1 = PersistableCountry(isoCode: "FR", name: "France")
+            let country1 = PersistableRecordCountry(isoCode: "FR", name: "France")
             try country1.insert(db)
-            let country2 = PersistableCountry(isoCode: "US", name: "United States")
+            let country2 = PersistableRecordCountry(isoCode: "US", name: "United States")
             try country2.insert(db)
             
             var deleted = try country1.delete(db)
@@ -451,10 +451,10 @@ class PersistableTests: GRDBTestCase {
         }
     }
 
-    func testExistsPersistableCountry() throws {
+    func testExistsPersistableRecordCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let country = PersistableCountry(isoCode: "FR", name: "France")
+            let country = PersistableRecordCountry(isoCode: "FR", name: "France")
             try country.insert(db)
             XCTAssertTrue(try country.exists(db))
             
@@ -464,9 +464,9 @@ class PersistableTests: GRDBTestCase {
     }
 
 
-    // MARK: - PersistableCustomizedCountry
+    // MARK: - PersistableRecordCustomizedCountry
     
-    func testInsertPersistableCustomizedCountry() throws {
+    func testInsertPersistableRecordCustomizedCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var insertCount: Int = 0
@@ -474,7 +474,7 @@ class PersistableTests: GRDBTestCase {
             var saveCount: Int = 0
             var deleteCount: Int = 0
             var existsCount: Int = 0
-            let country = PersistableCustomizedCountry(
+            let country = PersistableRecordCustomizedCountry(
                 isoCode: "FR",
                 name: "France",
                 willInsert: { insertCount += 1 },
@@ -497,7 +497,7 @@ class PersistableTests: GRDBTestCase {
         }
     }
 
-    func testUpdatePersistableCustomizedCountry() throws {
+    func testUpdatePersistableRecordCustomizedCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var insertCount: Int = 0
@@ -505,7 +505,7 @@ class PersistableTests: GRDBTestCase {
             var saveCount: Int = 0
             var deleteCount: Int = 0
             var existsCount: Int = 0
-            var country1 = PersistableCustomizedCountry(
+            var country1 = PersistableRecordCustomizedCountry(
                 isoCode: "FR",
                 name: "France",
                 willInsert: { insertCount += 1 },
@@ -514,7 +514,7 @@ class PersistableTests: GRDBTestCase {
                 willDelete: { deleteCount += 1 },
                 willExists: { existsCount += 1 })
             try country1.insert(db)
-            let country2 = PersistableCustomizedCountry(
+            let country2 = PersistableRecordCustomizedCountry(
                 isoCode: "US",
                 name: "United States",
                 willInsert: { },
@@ -543,7 +543,7 @@ class PersistableTests: GRDBTestCase {
         }
     }
 
-    func testPartialUpdatePersistableCustomizedCountry() throws {
+    func testPartialUpdatePersistableRecordCustomizedCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var insertCount: Int = 0
@@ -551,7 +551,7 @@ class PersistableTests: GRDBTestCase {
             var saveCount: Int = 0
             var deleteCount: Int = 0
             var existsCount: Int = 0
-            var country1 = PersistableCustomizedCountry(
+            var country1 = PersistableRecordCustomizedCountry(
                 isoCode: "FR",
                 name: "France",
                 willInsert: { insertCount += 1 },
@@ -560,7 +560,7 @@ class PersistableTests: GRDBTestCase {
                 willDelete: { deleteCount += 1 },
                 willExists: { existsCount += 1 })
             try country1.insert(db)
-            let country2 = PersistableCustomizedCountry(
+            let country2 = PersistableRecordCustomizedCountry(
                 isoCode: "US",
                 name: "United States",
                 willInsert: { },
@@ -589,7 +589,7 @@ class PersistableTests: GRDBTestCase {
         }
     }
 
-    func testSavePersistableCustomizedCountry() throws {
+    func testSavePersistableRecordCustomizedCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var insertCount: Int = 0
@@ -597,7 +597,7 @@ class PersistableTests: GRDBTestCase {
             var saveCount: Int = 0
             var deleteCount: Int = 0
             var existsCount: Int = 0
-            var country1 = PersistableCustomizedCountry(
+            var country1 = PersistableRecordCustomizedCountry(
                 isoCode: "FR",
                 name: "France",
                 willInsert: { insertCount += 1 },
@@ -618,7 +618,7 @@ class PersistableTests: GRDBTestCase {
             XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
             XCTAssertEqual(rows[0]["name"] as String, "France")
             
-            let country2 = PersistableCustomizedCountry(
+            let country2 = PersistableRecordCustomizedCountry(
                 isoCode: "US",
                 name: "United States",
                 willInsert: { },
@@ -662,7 +662,7 @@ class PersistableTests: GRDBTestCase {
         }
     }
 
-    func testDeletePersistableCustomizedCountry() throws {
+    func testDeletePersistableRecordCustomizedCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var insertCount: Int = 0
@@ -670,7 +670,7 @@ class PersistableTests: GRDBTestCase {
             var saveCount: Int = 0
             var deleteCount: Int = 0
             var existsCount: Int = 0
-            let country1 = PersistableCustomizedCountry(
+            let country1 = PersistableRecordCustomizedCountry(
                 isoCode: "FR",
                 name: "France",
                 willInsert: { insertCount += 1 },
@@ -679,7 +679,7 @@ class PersistableTests: GRDBTestCase {
                 willDelete: { deleteCount += 1 },
                 willExists: { existsCount += 1 })
             try country1.insert(db)
-            let country2 = PersistableCustomizedCountry(
+            let country2 = PersistableRecordCustomizedCountry(
                 isoCode: "US",
                 name: "United States",
                 willInsert: { },
@@ -707,7 +707,7 @@ class PersistableTests: GRDBTestCase {
         }
     }
 
-    func testExistsPersistableCustomizedCountry() throws {
+    func testExistsPersistableRecordCustomizedCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var insertCount: Int = 0
@@ -715,7 +715,7 @@ class PersistableTests: GRDBTestCase {
             var saveCount: Int = 0
             var deleteCount: Int = 0
             var existsCount: Int = 0
-            let country = PersistableCustomizedCountry(
+            let country = PersistableRecordCustomizedCountry(
                 isoCode: "FR",
                 name: "France",
                 willInsert: { insertCount += 1 },
@@ -749,9 +749,9 @@ class PersistableTests: GRDBTestCase {
     func testInsertErrorDoesNotPreventSubsequentInserts() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let person = PersistablePersonClass(id: nil, name: "Arthur", age: 12)
+            let person = PersistableRecordPersonClass(id: nil, name: "Arthur", age: 12)
             try person.insert(db)
-            try PersistableCountry(isoCode: "FR", name: "France").insert(db)
+            try PersistableRecordCountry(isoCode: "FR", name: "France").insert(db)
             do {
                 try Citizenship(personID: person.id!, countryIsoCode: "US").insert(db)
             } catch let error as DatabaseError {

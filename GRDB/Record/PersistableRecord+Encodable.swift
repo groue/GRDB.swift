@@ -1,4 +1,4 @@
-private struct PersistableKeyedEncodingContainer<Key: CodingKey> : KeyedEncodingContainerProtocol {
+private struct PersistableRecordKeyedEncodingContainer<Key: CodingKey> : KeyedEncodingContainerProtocol {
     let encode: (_ value: DatabaseValueConvertible?, _ key: String) -> Void
     
     init(encode: @escaping (_ value: DatabaseValueConvertible?, _ key: String) -> Void) {
@@ -40,7 +40,7 @@ private struct PersistableKeyedEncodingContainer<Key: CodingKey> : KeyedEncoding
             // This allows us to encode Date as String, for example.
             encode((value as! DatabaseValueConvertible), key.stringValue)
         } else {
-            try value.encode(to: PersistableEncoder(codingPath: [key], encode: encode))
+            try value.encode(to: PersistableRecordEncoder(codingPath: [key], encode: encode))
         }
     }
     
@@ -140,12 +140,12 @@ private struct DatabaseValueEncodingContainer : SingleValueEncodingContainer {
             // This allows us to encode Date as String, for example.
             encode(dbValueConvertible.databaseValue, key.stringValue)
         } else {
-            try value.encode(to: PersistableEncoder(codingPath: [key], encode: encode))
+            try value.encode(to: PersistableRecordEncoder(codingPath: [key], encode: encode))
         }
     }
 }
 
-private struct PersistableEncoder : Encoder {
+private struct PersistableRecordEncoder : Encoder {
     /// The path of coding keys taken to get to this point in encoding.
     /// A `nil` value indicates an unkeyed container.
     var codingPath: [CodingKey]
@@ -171,7 +171,7 @@ private struct PersistableEncoder : Encoder {
         guard codingPath.isEmpty else {
             fatalError("unkeyed encoding is not supported")
         }
-        return KeyedEncodingContainer(PersistableKeyedEncodingContainer<Key>(encode: encode))
+        return KeyedEncodingContainer(PersistableRecordKeyedEncodingContainer<Key>(encode: encode))
     }
     
     /// Returns an encoding container appropriate for holding multiple unkeyed values.
@@ -194,7 +194,7 @@ private struct PersistableEncoder : Encoder {
     }
 }
 
-extension MutablePersistable where Self: Encodable {
+extension MutablePersistableRecord where Self: Encodable {
     public func encode(to container: inout PersistenceContainer) {
         // The inout container parameter won't enter an escaping closure since
         // SE-0035: https://github.com/apple/swift-evolution/blob/master/proposals/0035-limit-inout-capture.md
@@ -202,7 +202,7 @@ extension MutablePersistable where Self: Encodable {
         // So let's use it in a non-escaping closure:
         func encode(_ encode: (_ value: DatabaseValueConvertible?, _ key: String) -> Void) {
             withoutActuallyEscaping(encode) { escapableEncode in
-                let encoder = PersistableEncoder(codingPath: [], encode: escapableEncode)
+                let encoder = PersistableRecordEncoder(codingPath: [], encode: escapableEncode)
                 try! self.encode(to: encoder)
             }
         }

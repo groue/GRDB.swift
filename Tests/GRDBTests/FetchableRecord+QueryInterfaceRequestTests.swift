@@ -13,7 +13,7 @@ private struct Reader {
     let age: Int?
 }
 
-extension Reader : RowConvertible {
+extension Reader : FetchableRecord {
     init(row: Row) {
         id = row["id"]
         name = row["name"]
@@ -21,7 +21,7 @@ extension Reader : RowConvertible {
     }
 }
 
-extension Reader : MutablePersistable {
+extension Reader : MutablePersistableRecord {
     static let databaseTableName = "readers"
     
     func encode(to container: inout PersistenceContainer) {
@@ -41,7 +41,7 @@ private struct AltReader {
     let age: Int?
 }
 
-extension AltReader : RowConvertible {
+extension AltReader : FetchableRecord {
     init(row: Row) {
         id = row["id"]
         name = row["name"]
@@ -50,7 +50,7 @@ extension AltReader : RowConvertible {
 }
 
 
-class RowConvertibleQueryInterfaceRequestTests: GRDBTestCase {
+class FetchableRecordQueryInterfaceRequestTests: GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
@@ -66,7 +66,7 @@ class RowConvertibleQueryInterfaceRequestTests: GRDBTestCase {
     }
     
     
-    // MARK: - Fetch RowConvertible
+    // MARK: - Fetch FetchableRecord
     
     func testAll() throws {
         let dbQueue = try makeDatabaseQueue()

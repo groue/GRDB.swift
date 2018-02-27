@@ -8,14 +8,14 @@ import XCTest
     import GRDB
 #endif
 
-class RowConvertibleDecodableTests: GRDBTestCase { }
+class FetchableRecordDecodableTests: GRDBTestCase { }
 
-// MARK: - RowConvertible conformance derived from Decodable
+// MARK: - FetchableRecord conformance derived from Decodable
 
-extension RowConvertibleDecodableTests {
+extension FetchableRecordDecodableTests {
     
     func testTrivialDecodable() {
-        struct Struct : RowConvertible, Decodable {
+        struct Struct : FetchableRecord, Decodable {
             let value: String
         }
         
@@ -26,7 +26,7 @@ extension RowConvertibleDecodableTests {
     }
     
     func testCustomDecodable() {
-        struct Struct : RowConvertible, Decodable {
+        struct Struct : FetchableRecord, Decodable {
             let value: String
             
             private enum CodingKeys : String, CodingKey {
@@ -45,28 +45,28 @@ extension RowConvertibleDecodableTests {
         }
     }
     
-    func testCustomRowConvertible() {
-        struct Struct : RowConvertible, Decodable {
+    func testCustomFetchableRecord() {
+        struct Struct : FetchableRecord, Decodable {
             let value: String
             
             init(row: Row) {
-                value = (row["value"] as String) + " (RowConvertible)"
+                value = (row["value"] as String) + " (FetchableRecord)"
             }
         }
         
         do {
             let s = Struct(row: ["value": "foo"])
-            XCTAssertEqual(s.value, "foo (RowConvertible)")
+            XCTAssertEqual(s.value, "foo (FetchableRecord)")
         }
     }
 }
 
 // MARK: - Different kinds of single-value properties
 
-extension RowConvertibleDecodableTests {
+extension FetchableRecordDecodableTests {
     
     func testTrivialProperty() {
-        struct Struct : RowConvertible, Decodable {
+        struct Struct : FetchableRecord, Decodable {
             let int64: Int64
             let optionalInt64: Int64?
         }
@@ -100,7 +100,7 @@ extension RowConvertibleDecodableTests {
             }
         }
         
-        struct Struct : RowConvertible, Decodable {
+        struct Struct : FetchableRecord, Decodable {
             let value: Value
             let optionalValue: Value?
         }
@@ -144,7 +144,7 @@ extension RowConvertibleDecodableTests {
             }
         }
         
-        struct Struct : RowConvertible, Decodable {
+        struct Struct : FetchableRecord, Decodable {
             let value: Value
             let optionalValue: Value?
         }
@@ -181,7 +181,7 @@ extension RowConvertibleDecodableTests {
             case foo, bar
         }
         
-        struct Struct : RowConvertible, Decodable {
+        struct Struct : FetchableRecord, Decodable {
             let value: Value
             let optionalValue: Value?
         }
@@ -239,7 +239,7 @@ extension RowConvertibleDecodableTests {
             }
         }
         
-        struct Struct : RowConvertible, Decodable {
+        struct Struct : FetchableRecord, Decodable {
             let value: Value
             let optionalValue: Value?
         }
@@ -269,10 +269,10 @@ extension RowConvertibleDecodableTests {
 
 // MARK: - Foundation Codable Types
 
-extension RowConvertibleDecodableTests {
+extension FetchableRecordDecodableTests {
 
     func testStructWithDate() {
-        struct StructWithDate : RowConvertible, Decodable {
+        struct StructWithDate : FetchableRecord, Decodable {
             let date: Date
         }
         
@@ -282,7 +282,7 @@ extension RowConvertibleDecodableTests {
     }
     
     func testStructWithURL() {
-        struct StructWithURL : RowConvertible, Decodable {
+        struct StructWithURL : FetchableRecord, Decodable {
             let url: URL
         }
         
@@ -292,7 +292,7 @@ extension RowConvertibleDecodableTests {
     }
     
     func testStructWithUUID() {
-        struct StructWithUUID : RowConvertible, Decodable {
+        struct StructWithUUID : FetchableRecord, Decodable {
             let uuid: UUID
         }
         

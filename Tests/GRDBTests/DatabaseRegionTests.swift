@@ -287,7 +287,7 @@ class DatabaseRegionTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute("CREATE TABLE foo (id INTEGER PRIMARY KEY, a TEXT)")
-            struct Record: TableMapping {
+            struct Record: TableRecord {
                 static let databaseTableName = "foo"
             }
             
@@ -414,7 +414,7 @@ class DatabaseRegionTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute("CREATE TABLE foo (id INTEGER PRIMARY KEY, a TEXT)")
-            struct Record: TableMapping {
+            struct Record: TableRecord {
                 static let databaseTableName = "foo"
             }
             

@@ -325,7 +325,7 @@ extension Database {
 ///     2     score  INTEGER  0         NULL        0
 ///
 /// See `Database.columns(in:)` and https://www.sqlite.org/pragma.html#pragma_table_info
-public struct ColumnInfo : RowConvertible {
+public struct ColumnInfo : FetchableRecord {
     let cid: Int
     
     /// The column name

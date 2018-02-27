@@ -3,11 +3,11 @@
 /// AllColumns is the `*` in `SELECT *`.
 ///
 /// You use AllColumns in your custom implementation of
-/// TableMapping.databaseSelection.
+/// TableRecord.databaseSelection.
 ///
 /// For example:
 ///
-///     struct Player : TableMapping {
+///     struct Player : TableRecord {
 ///         static var databaseTableName = "players"
 ///         static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
 ///     }

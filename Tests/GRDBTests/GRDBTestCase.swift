@@ -131,7 +131,7 @@ class GRDBTestCase: XCTestCase {
         XCTAssertTrue(sqlQueries.contains(sql), "Did not execute \(sql)")
     }
     
-    func assert(_ record: MutablePersistable, isEncodedIn row: Row, file: StaticString = #file, line: UInt = #line) {
+    func assert(_ record: MutablePersistableRecord, isEncodedIn row: Row, file: StaticString = #file, line: UInt = #line) {
         let recordDict = record.databaseDictionary
         let rowDict = Dictionary(row, uniquingKeysWith: { (left, _) in left })
         XCTAssertEqual(recordDict, rowDict, file: file, line: line)

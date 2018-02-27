@@ -12,12 +12,12 @@ extension Database.ConflictResolution {
 
 // MARK: - PersistenceError
 
-/// An error thrown by a type that adopts Persistable.
+/// An error thrown by a type that adopts PersistableRecord.
 public enum PersistenceError: Error, CustomStringConvertible {
     
-    /// Thrown by MutablePersistable.update() when no matching row could be
+    /// Thrown by MutablePersistableRecord.update() when no matching row could be
     /// found in the database.
-    case recordNotFound(MutablePersistable)
+    case recordNotFound(MutablePersistableRecord)
 }
 
 // CustomStringConvertible
@@ -25,8 +25,8 @@ extension PersistenceError {
     /// :nodoc:
     public var description: String {
         switch self {
-        case .recordNotFound(let persistable):
-            return "Not found: \(persistable)"
+        case .recordNotFound(let record):
+            return "Not found: \(record)"
         }
     }
 }
@@ -34,9 +34,9 @@ extension PersistenceError {
 // MARK: - PersistenceContainer
 
 /// Use persistence containers in the `encode(to:)` method of your
-/// persistable records:
+/// encodable records:
 ///
-///     struct Player : MutablePersistable {
+///     struct Player : MutablePersistableRecord {
 ///         var id: Int64?
 ///         var name: String?
 ///
@@ -81,7 +81,7 @@ public struct PersistenceContainer {
     ///     // Meh
     ///     var container = PersistenceContainer()
     ///     record.encode(to: container)
-    init(_ record: MutablePersistable) {
+    init(_ record: MutablePersistableRecord) {
         storage = [:]
         record.encode(to: &self)
     }
@@ -137,7 +137,7 @@ public struct PersistenceContainer {
 }
 
 extension Row {
-    convenience init(_ record: MutablePersistable) {
+    convenience init(_ record: MutablePersistableRecord) {
         self.init(PersistenceContainer(record))
     }
 
@@ -146,12 +146,12 @@ extension Row {
     }
 }
 
-// MARK: - MutablePersistable
+// MARK: - MutablePersistableRecord
 
-/// The MutablePersistable protocol uses this type in order to handle SQLite
+/// The MutablePersistableRecord protocol uses this type in order to handle SQLite
 /// conflicts when records are inserted or updated.
 ///
-/// See `MutablePersistable.persistenceConflictPolicy`.
+/// See `MutablePersistableRecord.persistenceConflictPolicy`.
 ///
 /// See https://www.sqlite.org/lang_conflict.html
 public struct PersistenceConflictPolicy {
@@ -168,8 +168,8 @@ public struct PersistenceConflictPolicy {
     }
 }
 
-/// Types that adopt MutablePersistable can be inserted, updated, and deleted.
-public protocol MutablePersistable : TableMapping {
+/// Types that adopt MutablePersistableRecord can be inserted, updated, and deleted.
+public protocol MutablePersistableRecord : TableRecord {
     /// The policy that handles SQLite conflicts when records are inserted
     /// or updated.
     ///
@@ -191,7 +191,7 @@ public protocol MutablePersistable : TableMapping {
     ///
     /// Primary key columns, if any, must be included.
     ///
-    ///     struct Player : MutablePersistable {
+    ///     struct Player : MutablePersistableRecord {
     ///         var id: Int64?
     ///         var name: String?
     ///
@@ -214,7 +214,7 @@ public protocol MutablePersistable : TableMapping {
     ///
     /// This method is optional: the default implementation does nothing.
     ///
-    ///     struct Player : MutablePersistable {
+    ///     struct Player : MutablePersistableRecord {
     ///         var id: Int64?
     ///         var name: String?
     ///
@@ -313,14 +313,14 @@ public protocol MutablePersistable : TableMapping {
     func exists(_ db: Database) throws -> Bool
 }
 
-extension MutablePersistable {
+extension MutablePersistableRecord {
     /// A dictionary whose keys are the columns encoded in the `encode(to:)` method.
     public var databaseDictionary: [String: DatabaseValue] {
         return PersistenceContainer(self).storage.mapValues { $0?.databaseValue ?? .null }
     }
 }
 
-extension MutablePersistable {
+extension MutablePersistableRecord {
     /// Describes the conflict policy for insertions and updates.
     ///
     /// The default value specifies ABORT policy for both insertions and
@@ -403,7 +403,7 @@ extension MutablePersistable {
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database and record could not be updated.
     @discardableResult
-    public func updateChanges(_ db: Database, from record: MutablePersistable) throws -> Bool {
+    public func updateChanges(_ db: Database, from record: MutablePersistableRecord) throws -> Bool {
         let changedColumns = Set(databaseChanges(from: record).keys)
         if changedColumns.isEmpty {
             return false
@@ -453,11 +453,11 @@ extension MutablePersistable {
     /// but also in terms of columns. When the two records don't define the
     /// same set of columns in their `encode(to:)` method, only the columns
     /// defined by the receiver record are considered.
-    public func databaseChanges(from record: MutablePersistable) -> [String: DatabaseValue] {
+    public func databaseChanges(from record: MutablePersistableRecord) -> [String: DatabaseValue] {
         return Dictionary(uniqueKeysWithValues: databaseChangesIterator(from: record))
     }
     
-    fileprivate func databaseChangesIterator(from record: MutablePersistable) -> AnyIterator<(String, DatabaseValue)> {
+    fileprivate func databaseChangesIterator(from record: MutablePersistableRecord) -> AnyIterator<(String, DatabaseValue)> {
         let oldContainer = PersistenceContainer(record)
         var newValueIterator = PersistenceContainer(self).makeIterator()
         return AnyIterator {
@@ -490,10 +490,10 @@ extension MutablePersistable {
     }
     
     /// Don't invoke this method directly: it is an internal method for types
-    /// that adopt MutablePersistable.
+    /// that adopt MutablePersistableRecord.
     ///
     /// performInsert() provides the default implementation for insert(). Types
-    /// that adopt MutablePersistable can invoke performInsert() in their
+    /// that adopt MutablePersistableRecord can invoke performInsert() in their
     /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
     public mutating func performInsert(_ db: Database) throws {
@@ -507,10 +507,10 @@ extension MutablePersistable {
     }
     
     /// Don't invoke this method directly: it is an internal method for types
-    /// that adopt MutablePersistable.
+    /// that adopt MutablePersistableRecord.
     ///
     /// performUpdate() provides the default implementation for update(). Types
-    /// that adopt MutablePersistable can invoke performUpdate() in their
+    /// that adopt MutablePersistableRecord can invoke performUpdate() in their
     /// implementation of update(). They should not provide their own
     /// implementation of performUpdate().
     ///
@@ -531,10 +531,10 @@ extension MutablePersistable {
     }
     
     /// Don't invoke this method directly: it is an internal method for types
-    /// that adopt MutablePersistable.
+    /// that adopt MutablePersistableRecord.
     ///
     /// performSave() provides the default implementation for save(). Types
-    /// that adopt MutablePersistable can invoke performSave() in their
+    /// that adopt MutablePersistableRecord can invoke performSave() in their
     /// implementation of save(). They should not provide their own
     /// implementation of performSave().
     ///
@@ -560,10 +560,10 @@ extension MutablePersistable {
     }
     
     /// Don't invoke this method directly: it is an internal method for types
-    /// that adopt MutablePersistable.
+    /// that adopt MutablePersistableRecord.
     ///
     /// performDelete() provides the default implementation for deelte(). Types
-    /// that adopt MutablePersistable can invoke performDelete() in
+    /// that adopt MutablePersistableRecord can invoke performDelete() in
     /// their implementation of delete(). They should not provide their own
     /// implementation of performDelete().
     public func performDelete(_ db: Database) throws -> Bool {
@@ -576,10 +576,10 @@ extension MutablePersistable {
     }
     
     /// Don't invoke this method directly: it is an internal method for types
-    /// that adopt MutablePersistable.
+    /// that adopt MutablePersistableRecord.
     ///
     /// performExists() provides the default implementation for exists(). Types
-    /// that adopt MutablePersistable can invoke performExists() in
+    /// that adopt MutablePersistableRecord can invoke performExists() in
     /// their implementation of exists(). They should not provide their own
     /// implementation of performExists().
     public func performExists(_ db: Database) throws -> Bool {
@@ -592,7 +592,7 @@ extension MutablePersistable {
     
 }
 
-extension MutablePersistable {
+extension MutablePersistableRecord {
     
     // MARK: - Deleting All
     
@@ -607,7 +607,7 @@ extension MutablePersistable {
     }
 }
 
-extension MutablePersistable {
+extension MutablePersistableRecord {
     
     // MARK: - Deleting by Single-Column Primary Key
     
@@ -669,7 +669,7 @@ extension MutablePersistable {
     }
 }
 
-extension MutablePersistable {
+extension MutablePersistableRecord {
     
     // MARK: - Deleting by Key
     
@@ -706,15 +706,15 @@ extension MutablePersistable {
     }
 }
 
-// MARK: - Persistable
+// MARK: - PersistableRecord
 
-/// Types that adopt Persistable can be inserted, updated, and deleted.
+/// Types that adopt PersistableRecord can be inserted, updated, and deleted.
 ///
 /// This protocol is intented for types that don't have an INTEGER PRIMARY KEY.
 ///
-/// Unlike MutablePersistable, the insert() and save() methods are not
+/// Unlike MutablePersistableRecord, the insert() and save() methods are not
 /// mutating methods.
-public protocol Persistable : MutablePersistable {
+public protocol PersistableRecord : MutablePersistableRecord {
     
     /// Notifies the record that it was succesfully inserted.
     ///
@@ -725,7 +725,7 @@ public protocol Persistable : MutablePersistable {
     /// This method is optional: the default implementation does nothing.
     ///
     /// If you need a mutating variant of this method, adopt the
-    /// MutablePersistable protocol instead.
+    /// MutablePersistableRecord protocol instead.
     ///
     /// - parameters:
     ///     - rowID: The inserted rowID.
@@ -772,7 +772,7 @@ public protocol Persistable : MutablePersistable {
     func save(_ db: Database) throws
 }
 
-extension Persistable {
+extension PersistableRecord {
     
     /// Notifies the record that it was succesfully inserted.
     ///
@@ -801,10 +801,10 @@ extension Persistable {
     // MARK: - Immutable CRUD Internals
     
     /// Don't invoke this method directly: it is an internal method for types
-    /// that adopt Persistable.
+    /// that adopt PersistableRecord.
     ///
     /// performInsert() provides the default implementation for insert(). Types
-    /// that adopt Persistable can invoke performInsert() in their
+    /// that adopt PersistableRecord can invoke performInsert() in their
     /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
     public func performInsert(_ db: Database) throws {
@@ -818,10 +818,10 @@ extension Persistable {
     }
     
     /// Don't invoke this method directly: it is an internal method for types
-    /// that adopt Persistable.
+    /// that adopt PersistableRecord.
     ///
     /// performSave() provides the default implementation for save(). Types
-    /// that adopt Persistable can invoke performSave() in their
+    /// that adopt PersistableRecord can invoke performSave() in their
     /// implementation of save(). They should not provide their own
     /// implementation of performSave().
     ///
@@ -849,14 +849,14 @@ extension Persistable {
 
 // MARK: - DAO
 
-/// DAO takes care of Persistable CRUD
+/// DAO takes care of PersistableRecord CRUD
 final class DAO {
     
     /// The database
     let db: Database
     
     /// The record
-    let record: MutablePersistable
+    let record: MutablePersistableRecord
     
     /// DAO keeps a copy the record's persistenceContainer, so that this
     /// dictionary is built once whatever the database operation. It is
@@ -869,7 +869,7 @@ final class DAO {
     /// The table primary key
     let primaryKey: PrimaryKeyInfo
     
-    init(_ db: Database, _ record: MutablePersistable) throws {
+    init(_ db: Database, _ record: MutablePersistableRecord) throws {
         let databaseTableName = type(of: record).databaseTableName
         let primaryKey = try db.primaryKey(databaseTableName)
         let persistenceContainer = PersistenceContainer(record)

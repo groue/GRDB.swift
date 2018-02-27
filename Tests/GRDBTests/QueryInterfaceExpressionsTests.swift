@@ -14,7 +14,7 @@ private struct Col {
     static let readerId = Column("readerId")
 }
 
-private struct Reader : TableMapping {
+private struct Reader : TableRecord {
     static let databaseTableName = "readers"
 }
 private let tableRequest = Reader.all()

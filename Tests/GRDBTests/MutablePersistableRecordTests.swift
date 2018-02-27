@@ -7,7 +7,7 @@ import XCTest
     import GRDB
 #endif
 
-private struct MutablePersistablePerson : MutablePersistable {
+private struct MutablePersistableRecordPerson : MutablePersistableRecord {
     var id: Int64?
     var name: String?
     var age: Int?
@@ -26,7 +26,7 @@ private struct MutablePersistablePerson : MutablePersistable {
     }
 }
 
-private struct MutablePersistableCountry : MutablePersistable {
+private struct MutablePersistableRecordCountry : MutablePersistableRecord {
     var rowID: Int64?
     var isoCode: String
     var name: String
@@ -43,7 +43,7 @@ private struct MutablePersistableCountry : MutablePersistable {
     }
 }
 
-private struct MutablePersistableCustomizedCountry : MutablePersistable {
+private struct MutablePersistableRecordCustomizedCountry : MutablePersistableRecord {
     var rowID: Int64?
     var isoCode: String
     var name: String
@@ -90,7 +90,7 @@ private struct MutablePersistableCustomizedCountry : MutablePersistable {
     }
 }
 
-class MutablePersistableTests: GRDBTestCase {
+class MutablePersistableRecordTests: GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
@@ -109,12 +109,12 @@ class MutablePersistableTests: GRDBTestCase {
     }
     
     
-    // MARK: - MutablePersistablePerson
+    // MARK: - MutablePersistableRecordPerson
     
-    func testInsertMutablePersistablePerson() throws {
+    func testInsertMutablePersistableRecordPerson() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var person = MutablePersistablePerson(id: nil, name: "Arthur", age: 24)
+            var person = MutablePersistableRecordPerson(id: nil, name: "Arthur", age: 24)
             try person.insert(db)
             
             let rows = try Row.fetchAll(db, "SELECT * FROM persons")
@@ -124,12 +124,12 @@ class MutablePersistableTests: GRDBTestCase {
         }
     }
 
-    func testUpdateMutablePersistablePerson() throws {
+    func testUpdateMutablePersistableRecordPerson() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var person1 = MutablePersistablePerson(id: nil, name: "Arthur", age: 24)
+            var person1 = MutablePersistableRecordPerson(id: nil, name: "Arthur", age: 24)
             try person1.insert(db)
-            var person2 = MutablePersistablePerson(id: nil, name: "Barbara", age: 24)
+            var person2 = MutablePersistableRecordPerson(id: nil, name: "Barbara", age: 24)
             try person2.insert(db)
             
             person1.name = "Craig"
@@ -148,12 +148,12 @@ class MutablePersistableTests: GRDBTestCase {
         }
     }
 
-    func testPartialUpdateMutablePersistablePerson() throws {
+    func testPartialUpdateMutablePersistableRecordPerson() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var person1 = MutablePersistablePerson(id: nil, name: "Arthur", age: 24)
+            var person1 = MutablePersistableRecordPerson(id: nil, name: "Arthur", age: 24)
             try person1.insert(db)
-            var person2 = MutablePersistablePerson(id: nil, name: "Barbara", age: 36)
+            var person2 = MutablePersistableRecordPerson(id: nil, name: "Barbara", age: 36)
             try person2.insert(db)
             
             do {
@@ -204,10 +204,10 @@ class MutablePersistableTests: GRDBTestCase {
         }
     }
 
-    func testSaveMutablePersistablePerson() throws {
+    func testSaveMutablePersistableRecordPerson() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var person1 = MutablePersistablePerson(id: nil, name: "Arthur", age: 24)
+            var person1 = MutablePersistableRecordPerson(id: nil, name: "Arthur", age: 24)
             try person1.save(db)
             
             var rows = try Row.fetchAll(db, "SELECT * FROM persons")
@@ -215,7 +215,7 @@ class MutablePersistableTests: GRDBTestCase {
             XCTAssertEqual(rows[0]["id"] as Int64, person1.id!)
             XCTAssertEqual(rows[0]["name"] as String, "Arthur")
             
-            var person2 = MutablePersistablePerson(id: nil, name: "Barbara", age: 24)
+            var person2 = MutablePersistableRecordPerson(id: nil, name: "Barbara", age: 24)
             try person2.save(db)
             
             person1.name = "Craig"
@@ -240,12 +240,12 @@ class MutablePersistableTests: GRDBTestCase {
         }
     }
 
-    func testDeleteMutablePersistablePerson() throws {
+    func testDeleteMutablePersistableRecordPerson() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var person1 = MutablePersistablePerson(id: nil, name: "Arthur", age: 24)
+            var person1 = MutablePersistableRecordPerson(id: nil, name: "Arthur", age: 24)
             try person1.insert(db)
-            var person2 = MutablePersistablePerson(id: nil, name: "Barbara", age: 24)
+            var person2 = MutablePersistableRecordPerson(id: nil, name: "Barbara", age: 24)
             try person2.insert(db)
             
             var deleted = try person1.delete(db)
@@ -260,10 +260,10 @@ class MutablePersistableTests: GRDBTestCase {
         }
     }
 
-    func testExistsMutablePersistablePerson() throws {
+    func testExistsMutablePersistableRecordPerson() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var person = MutablePersistablePerson(id: nil, name: "Arthur", age: 24)
+            var person = MutablePersistableRecordPerson(id: nil, name: "Arthur", age: 24)
             try person.insert(db)
             XCTAssertTrue(try person.exists(db))
             
@@ -272,18 +272,18 @@ class MutablePersistableTests: GRDBTestCase {
         }
     }
     
-    func testMutablePersistablePersonDatabaseDictionary() {
-        let person = MutablePersistablePerson(id: nil, name: "Arthur", age: 24)
+    func testMutablePersistableRecordPersonDatabaseDictionary() {
+        let person = MutablePersistableRecordPerson(id: nil, name: "Arthur", age: 24)
         let dict = person.databaseDictionary
         XCTAssertEqual(dict, ["iD": DatabaseValue.null, "NAme": "Arthur".databaseValue, "aGe": 24.databaseValue])
     }
 
-    // MARK: - MutablePersistableCountry
+    // MARK: - MutablePersistableRecordCountry
     
-    func testInsertMutablePersistableCountry() throws {
+    func testInsertMutablePersistableRecordCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var country = MutablePersistableCountry(rowID: nil, isoCode: "FR", name: "France")
+            var country = MutablePersistableRecordCountry(rowID: nil, isoCode: "FR", name: "France")
             try country.insert(db)
             
             let rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries")
@@ -293,12 +293,12 @@ class MutablePersistableTests: GRDBTestCase {
         }
     }
 
-    func testUpdateMutablePersistableCountry() throws {
+    func testUpdateMutablePersistableRecordCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var country1 = MutablePersistableCountry(rowID: nil, isoCode: "FR", name: "France")
+            var country1 = MutablePersistableRecordCountry(rowID: nil, isoCode: "FR", name: "France")
             try country1.insert(db)
-            var country2 = MutablePersistableCountry(rowID: nil, isoCode: "US", name: "United States")
+            var country2 = MutablePersistableRecordCountry(rowID: nil, isoCode: "US", name: "United States")
             try country2.insert(db)
             
             country1.name = "France Métropolitaine"
@@ -314,10 +314,10 @@ class MutablePersistableTests: GRDBTestCase {
         }
     }
 
-    func testSaveMutablePersistableCountry() throws {
+    func testSaveMutablePersistableRecordCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var country1 = MutablePersistableCountry(rowID: nil, isoCode: "FR", name: "France")
+            var country1 = MutablePersistableRecordCountry(rowID: nil, isoCode: "FR", name: "France")
             try country1.save(db)
             
             var rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries")
@@ -325,7 +325,7 @@ class MutablePersistableTests: GRDBTestCase {
             XCTAssertEqual(rows[0]["rowID"] as Int64, country1.rowID!)
             XCTAssertEqual(rows[0]["name"] as String, "France")
             
-            var country2 = MutablePersistableCountry(rowID: nil, isoCode: "US", name: "United States")
+            var country2 = MutablePersistableRecordCountry(rowID: nil, isoCode: "US", name: "United States")
             try country2.save(db)
             
             country1.name = "France Métropolitaine"
@@ -350,12 +350,12 @@ class MutablePersistableTests: GRDBTestCase {
         }
     }
 
-    func testDeleteMutablePersistableCountry() throws {
+    func testDeleteMutablePersistableRecordCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var country1 = MutablePersistableCountry(rowID: nil, isoCode: "FR", name: "France")
+            var country1 = MutablePersistableRecordCountry(rowID: nil, isoCode: "FR", name: "France")
             try country1.insert(db)
-            var country2 = MutablePersistableCountry(rowID: nil, isoCode: "US", name: "United States")
+            var country2 = MutablePersistableRecordCountry(rowID: nil, isoCode: "US", name: "United States")
             try country2.insert(db)
             
             var deleted = try country1.delete(db)
@@ -370,10 +370,10 @@ class MutablePersistableTests: GRDBTestCase {
         }
     }
 
-    func testExistsMutablePersistableCountry() throws {
+    func testExistsMutablePersistableRecordCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var country = MutablePersistableCountry(rowID: nil, isoCode: "FR", name: "France")
+            var country = MutablePersistableRecordCountry(rowID: nil, isoCode: "FR", name: "France")
             try country.insert(db)
             XCTAssertTrue(try country.exists(db))
             
@@ -383,9 +383,9 @@ class MutablePersistableTests: GRDBTestCase {
     }
 
 
-    // MARK: - MutablePersistableCustomizedCountry
+    // MARK: - MutablePersistableRecordCustomizedCountry
     
-    func testInsertMutablePersistableCustomizedCountry() throws {
+    func testInsertMutablePersistableRecordCustomizedCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var insertCount: Int = 0
@@ -393,7 +393,7 @@ class MutablePersistableTests: GRDBTestCase {
             var saveCount: Int = 0
             var deleteCount: Int = 0
             var existsCount: Int = 0
-            var country = MutablePersistableCustomizedCountry(
+            var country = MutablePersistableRecordCustomizedCountry(
                 rowID: nil,
                 isoCode: "FR",
                 name: "France",
@@ -417,7 +417,7 @@ class MutablePersistableTests: GRDBTestCase {
         }
     }
 
-    func testUpdateMutablePersistableCustomizedCountry() throws {
+    func testUpdateMutablePersistableRecordCustomizedCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var insertCount: Int = 0
@@ -425,7 +425,7 @@ class MutablePersistableTests: GRDBTestCase {
             var saveCount: Int = 0
             var deleteCount: Int = 0
             var existsCount: Int = 0
-            var country1 = MutablePersistableCustomizedCountry(
+            var country1 = MutablePersistableRecordCustomizedCountry(
                 rowID: nil,
                 isoCode: "FR",
                 name: "France",
@@ -435,7 +435,7 @@ class MutablePersistableTests: GRDBTestCase {
                 willDelete: { deleteCount += 1 },
                 willExists: { existsCount += 1 })
             try country1.insert(db)
-            var country2 = MutablePersistableCustomizedCountry(
+            var country2 = MutablePersistableRecordCustomizedCountry(
                 rowID: nil,
                 isoCode: "US",
                 name: "United States",
@@ -465,7 +465,7 @@ class MutablePersistableTests: GRDBTestCase {
         }
     }
 
-    func testSaveMutablePersistableCustomizedCountry() throws {
+    func testSaveMutablePersistableRecordCustomizedCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var insertCount: Int = 0
@@ -473,7 +473,7 @@ class MutablePersistableTests: GRDBTestCase {
             var saveCount: Int = 0
             var deleteCount: Int = 0
             var existsCount: Int = 0
-            var country1 = MutablePersistableCustomizedCountry(
+            var country1 = MutablePersistableRecordCustomizedCountry(
                 rowID: nil,
                 isoCode: "FR",
                 name: "France",
@@ -495,7 +495,7 @@ class MutablePersistableTests: GRDBTestCase {
             XCTAssertEqual(rows[0]["rowID"] as Int64, country1.rowID!)
             XCTAssertEqual(rows[0]["name"] as String, "France")
             
-            var country2 = MutablePersistableCustomizedCountry(
+            var country2 = MutablePersistableRecordCustomizedCountry(
                 rowID: nil,
                 isoCode: "US",
                 name: "United States",
@@ -540,7 +540,7 @@ class MutablePersistableTests: GRDBTestCase {
         }
     }
 
-    func testDeleteMutablePersistableCustomizedCountry() throws {
+    func testDeleteMutablePersistableRecordCustomizedCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var insertCount: Int = 0
@@ -548,7 +548,7 @@ class MutablePersistableTests: GRDBTestCase {
             var saveCount: Int = 0
             var deleteCount: Int = 0
             var existsCount: Int = 0
-            var country1 = MutablePersistableCustomizedCountry(
+            var country1 = MutablePersistableRecordCustomizedCountry(
                 rowID: nil,
                 isoCode: "FR",
                 name: "France",
@@ -558,7 +558,7 @@ class MutablePersistableTests: GRDBTestCase {
                 willDelete: { deleteCount += 1 },
                 willExists: { existsCount += 1 })
             try country1.insert(db)
-            var country2 = MutablePersistableCustomizedCountry(
+            var country2 = MutablePersistableRecordCustomizedCountry(
                 rowID: nil,
                 isoCode: "US",
                 name: "United States",
@@ -587,7 +587,7 @@ class MutablePersistableTests: GRDBTestCase {
         }
     }
 
-    func testExistsMutablePersistableCustomizedCountry() throws {
+    func testExistsMutablePersistableRecordCustomizedCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var insertCount: Int = 0
@@ -595,7 +595,7 @@ class MutablePersistableTests: GRDBTestCase {
             var saveCount: Int = 0
             var deleteCount: Int = 0
             var existsCount: Int = 0
-            var country = MutablePersistableCustomizedCountry(
+            var country = MutablePersistableRecordCustomizedCountry(
                 rowID: nil,
                 isoCode: "FR",
                 name: "France",
@@ -627,7 +627,7 @@ class MutablePersistableTests: GRDBTestCase {
     // MARK: - Misc
     
     func testPartiallyEncodedRecord() throws {
-        struct PartialRecord : MutablePersistable {
+        struct PartialRecord : MutablePersistableRecord {
             var id: Int64?
             var a: String
             

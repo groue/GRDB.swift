@@ -30,7 +30,7 @@ extension QueryInterfaceRequest {
     public func fetch(_ db: Database) -> Any { preconditionFailure() }
 }
 
-extension RowConvertible {
+extension FetchableRecord {
     @available(*, unavailable, renamed:"fetchCursor")
     public static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Any { preconditionFailure() }
     @available(*, unavailable, renamed:"fetchCursor")
@@ -39,7 +39,7 @@ extension RowConvertible {
     public static func fetch(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Any { preconditionFailure() }
 }
 
-extension RowConvertible where Self: TableMapping {
+extension FetchableRecord where Self: TableRecord {
     @available(*, unavailable, renamed:"fetchCursor")
     public static func fetch(_ db: Database) -> Any { preconditionFailure() }
     @available(*, unavailable, renamed:"fetchCursor")
