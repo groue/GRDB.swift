@@ -13,7 +13,7 @@ class DropFirstCursorTests: GRDBTestCase {
     
     func testDropFirstCursorFromCursor() throws {
         do {
-            let base = IteratorCursor([1, 2, 3, 4, 5])
+            let base = AnyCursor([1, 2, 3, 4, 5])
             let cursor = base.dropFirst(0)
             try XCTAssertEqual(cursor.next()!, 1)
             try XCTAssertEqual(cursor.next()!, 2)
@@ -24,7 +24,7 @@ class DropFirstCursorTests: GRDBTestCase {
             XCTAssertTrue(try cursor.next() == nil) // past the end
         }
         do {
-            let base = IteratorCursor([1, 2, 3, 4, 5])
+            let base = AnyCursor([1, 2, 3, 4, 5])
             let cursor = base.dropFirst(2)
             try XCTAssertEqual(cursor.next()!, 3)
             try XCTAssertEqual(cursor.next()!, 4)
@@ -33,13 +33,13 @@ class DropFirstCursorTests: GRDBTestCase {
             XCTAssertTrue(try cursor.next() == nil) // past the end
         }
         do {
-            let base = IteratorCursor([1, 2, 3, 4, 5])
+            let base = AnyCursor([1, 2, 3, 4, 5])
             let cursor = base.dropFirst(10)
             XCTAssertTrue(try cursor.next() == nil) // end
             XCTAssertTrue(try cursor.next() == nil) // past the end
         }
         do {
-            let base = IteratorCursor([1, 2, 3, 4, 5])
+            let base = AnyCursor([1, 2, 3, 4, 5])
             let cursor = base.dropFirst()
             try XCTAssertEqual(cursor.next()!, 2)
             try XCTAssertEqual(cursor.next()!, 3)
@@ -70,7 +70,7 @@ class DropFirstCursorTests: GRDBTestCase {
     }
     
     func testDropFirstChain() throws {
-        let base = IteratorCursor([1, 2, 3, 4, 5])
+        let base = AnyCursor([1, 2, 3, 4, 5])
         let cursor = base.dropFirst(1).dropFirst(1)
         try XCTAssertEqual(cursor.next()!, 3)
         try XCTAssertEqual(cursor.next()!, 4)

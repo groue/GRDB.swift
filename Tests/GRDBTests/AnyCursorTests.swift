@@ -42,9 +42,9 @@ class AnyCursorTests: GRDBTestCase {
     }
     
     func testAnyCursorFromCursor() {
-        let base = IteratorCursor([0, 1])
+        let base = AnyCursor([0, 1])
         // This helper function makes sure AnyCursor initializer accepts any cursor,
-        // and not only IteratorCursor:
+        // and not only AnyCursor:
         func makeAnyCursor<C: Cursor>(_ cursor: C) -> AnyCursor<Int> where C.Element == Int {
             return AnyCursor(cursor)
         }
@@ -74,5 +74,21 @@ class AnyCursorTests: GRDBTestCase {
         } catch {
             XCTFail()
         }
+    }
+    
+    func testAnyCursorFromIterator() {
+        let cursor = AnyCursor(iterator: [0, 1].makeIterator())
+        XCTAssertEqual(try cursor.next()!, 0)
+        XCTAssertEqual(try cursor.next()!, 1)
+        XCTAssertTrue(try cursor.next() == nil) // end
+        XCTAssertTrue(try cursor.next() == nil) // past the end
+    }
+    
+    func testAnyCursorFromSequence() {
+        let cursor = AnyCursor([0, 1])
+        XCTAssertEqual(try cursor.next()!, 0)
+        XCTAssertEqual(try cursor.next()!, 1)
+        XCTAssertTrue(try cursor.next() == nil) // end
+        XCTAssertTrue(try cursor.next() == nil) // past the end
     }
 }
