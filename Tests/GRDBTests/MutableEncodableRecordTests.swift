@@ -7,44 +7,27 @@ import XCTest
     import GRDB
 #endif
 
-private struct PersistablePerson : Persistable {
-    var name: String?
-    var age: Int?
-    
-    static let databaseTableName = "persons"
-    
-    func encode(to container: inout PersistenceContainer) {
-        container["name"] = name
-        container["age"] = age
-    }
-}
-
-private class PersistablePersonClass : Persistable {
+private struct MutableEncodableRecordPerson : MutableEncodableRecord {
     var id: Int64?
     var name: String?
     var age: Int?
     
-    init(id: Int64?, name: String?, age: Int?) {
-        self.id = id
-        self.name = name
-        self.age = age
-    }
-    
     static let databaseTableName = "persons"
     
     func encode(to container: inout PersistenceContainer) {
-        // mangle case
-        container["ID"] = id
-        container["naME"] = name
-        container["Age"] = age
+        // mangle cases
+        container["iD"] = id
+        container["NAme"] = name
+        container["aGe"] = age
     }
     
-    func didInsert(with rowID: Int64, for column: String?) {
+    mutating func didInsert(with rowID: Int64, for column: String?) {
         self.id = rowID
     }
 }
 
-private struct PersistableCountry : Persistable {
+private struct MutableEncodableRecordCountry : MutableEncodableRecord {
+    var rowID: Int64?
     var isoCode: String
     var name: String
     
@@ -54,9 +37,14 @@ private struct PersistableCountry : Persistable {
         container["isoCode"] = isoCode
         container["name"] = name
     }
+    
+    mutating func didInsert(with rowID: Int64, for column: String?) {
+        self.rowID = rowID
+    }
 }
 
-private struct PersistableCustomizedCountry : Persistable {
+private struct MutableEncodableRecordCustomizedCountry : MutableEncodableRecord {
+    var rowID: Int64?
     var isoCode: String
     var name: String
     let willInsert: () -> Void
@@ -72,7 +60,11 @@ private struct PersistableCustomizedCountry : Persistable {
         container["name"] = name
     }
     
-    func insert(_ db: Database) throws {
+    mutating func didInsert(with rowID: Int64, for column: String?) {
+        self.rowID = rowID
+    }
+    
+    mutating func insert(_ db: Database) throws {
         willInsert()
         try performInsert(db)
     }
@@ -82,7 +74,7 @@ private struct PersistableCustomizedCountry : Persistable {
         try performUpdate(db, columns: columns)
     }
     
-    func save(_ db: Database) throws {
+    mutating func save(_ db: Database) throws {
         willSave()
         try performSave(db)
     }
@@ -98,19 +90,7 @@ private struct PersistableCustomizedCountry : Persistable {
     }
 }
 
-private struct Citizenship : Persistable {
-    let personID: Int64
-    let countryIsoCode: String
-    
-    static let databaseTableName = "citizenships"
-    
-    func encode(to container: inout PersistenceContainer) {
-        container["countryIsoCode"] = countryIsoCode
-        container["personID"] = personID
-    }
-}
-
-class PersistableTests: GRDBTestCase {
+class MutableEncodableRecordTests: GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
@@ -118,53 +98,23 @@ class PersistableTests: GRDBTestCase {
             try db.execute("""
                 CREATE TABLE persons (
                     id INTEGER PRIMARY KEY,
-                    name TEXT NOT NULL,
-                    age INT NOT NULL);
+                    name NOT NULL,
+                    age INTEGER);
                 CREATE TABLE countries (
                     isoCode TEXT NOT NULL PRIMARY KEY,
                     name TEXT NOT NULL);
-                CREATE TABLE citizenships (
-                    countryIsoCode TEXT NOT NULL REFERENCES countries(isoCode),
-                    personID INTEGER NOT NULL REFERENCES persons(id));
                 """)
         }
         try migrator.migrate(dbWriter)
     }
     
     
-    // MARK: - PersistablePerson
+    // MARK: - MutableEncodableRecordPerson
     
-    func testInsertPersistablePerson() throws {
+    func testInsertMutableEncodableRecordPerson() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let person = PersistablePerson(name: "Arthur", age: 42)
-            try person.insert(db)
-            
-            let rows = try Row.fetchAll(db, "SELECT * FROM persons")
-            XCTAssertEqual(rows.count, 1)
-            XCTAssertEqual(rows[0]["name"] as String, "Arthur")
-        }
-    }
-
-    func testSavePersistablePerson() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            let person = PersistablePerson(name: "Arthur", age: 42)
-            try person.save(db)
-            
-            let rows = try Row.fetchAll(db, "SELECT * FROM persons")
-            XCTAssertEqual(rows.count, 1)
-            XCTAssertEqual(rows[0]["name"] as String, "Arthur")
-        }
-    }
-
-
-    // MARK: - PersistablePersonClass
-    
-    func testInsertPersistablePersonClass() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            let person = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
+            var person = MutableEncodableRecordPerson(id: nil, name: "Arthur", age: 24)
             try person.insert(db)
             
             let rows = try Row.fetchAll(db, "SELECT * FROM persons")
@@ -174,19 +124,19 @@ class PersistableTests: GRDBTestCase {
         }
     }
 
-    func testUpdatePersistablePersonClass() throws {
+    func testUpdateMutableEncodableRecordPerson() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let person1 = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
+            var person1 = MutableEncodableRecordPerson(id: nil, name: "Arthur", age: 24)
             try person1.insert(db)
-            let person2 = PersistablePersonClass(id: nil, name: "Barbara", age: 39)
+            var person2 = MutableEncodableRecordPerson(id: nil, name: "Barbara", age: 24)
             try person2.insert(db)
             
             person1.name = "Craig"
             try person1.update(db)
             XCTAssertTrue([
-                "UPDATE \"persons\" SET \"age\"=42, \"name\"='Craig' WHERE \"id\"=1",
-                "UPDATE \"persons\" SET \"name\"='Craig', \"age\"=42 WHERE \"id\"=1"
+                "UPDATE \"persons\" SET \"age\"=24, \"name\"='Craig' WHERE \"id\"=1",
+                "UPDATE \"persons\" SET \"name\"='Craig', \"age\"=24 WHERE \"id\"=1"
                 ].contains(self.lastSQLQuery))
             
             let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
@@ -198,12 +148,12 @@ class PersistableTests: GRDBTestCase {
         }
     }
 
-    func testPartialUpdatePersistablePersonClass() throws {
+    func testPartialUpdateMutableEncodableRecordPerson() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let person1 = PersistablePersonClass(id: nil, name: "Arthur", age: 24)
+            var person1 = MutableEncodableRecordPerson(id: nil, name: "Arthur", age: 24)
             try person1.insert(db)
-            let person2 = PersistablePersonClass(id: nil, name: "Barbara", age: 36)
+            var person2 = MutableEncodableRecordPerson(id: nil, name: "Barbara", age: 36)
             try person2.insert(db)
             
             do {
@@ -254,10 +204,10 @@ class PersistableTests: GRDBTestCase {
         }
     }
 
-    func testSavePersistablePersonClass() throws {
+    func testSaveMutableEncodableRecordPerson() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let person1 = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
+            var person1 = MutableEncodableRecordPerson(id: nil, name: "Arthur", age: 24)
             try person1.save(db)
             
             var rows = try Row.fetchAll(db, "SELECT * FROM persons")
@@ -265,7 +215,7 @@ class PersistableTests: GRDBTestCase {
             XCTAssertEqual(rows[0]["id"] as Int64, person1.id!)
             XCTAssertEqual(rows[0]["name"] as String, "Arthur")
             
-            let person2 = PersistablePersonClass(id: nil, name: "Barbara", age: 39)
+            var person2 = MutableEncodableRecordPerson(id: nil, name: "Barbara", age: 24)
             try person2.save(db)
             
             person1.name = "Craig"
@@ -290,12 +240,12 @@ class PersistableTests: GRDBTestCase {
         }
     }
 
-    func testDeletePersistablePersonClass() throws {
+    func testDeleteMutableEncodableRecordPerson() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let person1 = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
+            var person1 = MutableEncodableRecordPerson(id: nil, name: "Arthur", age: 24)
             try person1.insert(db)
-            let person2 = PersistablePersonClass(id: nil, name: "Barbara", age: 39)
+            var person2 = MutableEncodableRecordPerson(id: nil, name: "Barbara", age: 24)
             try person2.insert(db)
             
             var deleted = try person1.delete(db)
@@ -310,10 +260,10 @@ class PersistableTests: GRDBTestCase {
         }
     }
 
-    func testExistsPersistablePersonClass() throws {
+    func testExistsMutableEncodableRecordPerson() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let person = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
+            var person = MutableEncodableRecordPerson(id: nil, name: "Arthur", age: 24)
             try person.insert(db)
             XCTAssertTrue(try person.exists(db))
             
@@ -321,122 +271,91 @@ class PersistableTests: GRDBTestCase {
             XCTAssertFalse(try person.exists(db))
         }
     }
-
-
-    // MARK: - PersistableCountry
     
-    func testInsertPersistableCountry() throws {
+    func testMutableEncodableRecordPersonDatabaseDictionary() {
+        let person = MutableEncodableRecordPerson(id: nil, name: "Arthur", age: 24)
+        let dict = person.databaseDictionary
+        XCTAssertEqual(dict, ["iD": DatabaseValue.null, "NAme": "Arthur".databaseValue, "aGe": 24.databaseValue])
+    }
+
+    // MARK: - MutableEncodableRecordCountry
+    
+    func testInsertMutableEncodableRecordCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let country = PersistableCountry(isoCode: "FR", name: "France")
+            var country = MutableEncodableRecordCountry(rowID: nil, isoCode: "FR", name: "France")
             try country.insert(db)
             
-            let rows = try Row.fetchAll(db, "SELECT * FROM countries")
+            let rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries")
             XCTAssertEqual(rows.count, 1)
-            XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
+            XCTAssertEqual(rows[0]["rowID"] as Int64, country.rowID!)
             XCTAssertEqual(rows[0]["name"] as String, "France")
         }
     }
 
-    func testUpdatePersistableCountry() throws {
+    func testUpdateMutableEncodableRecordCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var country1 = PersistableCountry(isoCode: "FR", name: "France")
+            var country1 = MutableEncodableRecordCountry(rowID: nil, isoCode: "FR", name: "France")
             try country1.insert(db)
-            let country2 = PersistableCountry(isoCode: "US", name: "United States")
+            var country2 = MutableEncodableRecordCountry(rowID: nil, isoCode: "US", name: "United States")
             try country2.insert(db)
             
             country1.name = "France Métropolitaine"
             try country1.update(db)
             XCTAssertEqual(self.lastSQLQuery, "UPDATE \"countries\" SET \"name\"='France Métropolitaine' WHERE \"isoCode\"='FR'")
             
-            let rows = try Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
+            let rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
             XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
+            XCTAssertEqual(rows[0]["rowID"] as Int64, country1.rowID!)
             XCTAssertEqual(rows[0]["name"] as String, "France Métropolitaine")
-            XCTAssertEqual(rows[1]["isoCode"] as String, "US")
+            XCTAssertEqual(rows[1]["rowID"] as Int64, country2.rowID!)
             XCTAssertEqual(rows[1]["name"] as String, "United States")
         }
     }
 
-    func testPartialUpdatePersistableCountry() throws {
+    func testSaveMutableEncodableRecordCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var country1 = PersistableCountry(isoCode: "FR", name: "France")
-            try country1.insert(db)
-            let country2 = PersistableCountry(isoCode: "US", name: "United States")
-            try country2.insert(db)
-            
-            do {
-                country1.name = "France Métropolitaine"
-                try country1.update(db, columns: [String]())
-                XCTAssertEqual(self.lastSQLQuery, "UPDATE \"countries\" SET \"isoCode\"='FR' WHERE \"isoCode\"='FR'")
-                
-                let rows = try Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
-                XCTAssertEqual(rows.count, 2)
-                XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
-                XCTAssertEqual(rows[0]["name"] as String, "France")
-                XCTAssertEqual(rows[1]["isoCode"] as String, "US")
-                XCTAssertEqual(rows[1]["name"] as String, "United States")
-            }
-            
-            do {
-                country1.name = "France Métropolitaine"
-                try country1.update(db, columns: [Column("name")])
-                XCTAssertEqual(self.lastSQLQuery, "UPDATE \"countries\" SET \"name\"='France Métropolitaine' WHERE \"isoCode\"='FR'")
-                
-                let rows = try Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
-                XCTAssertEqual(rows.count, 2)
-                XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
-                XCTAssertEqual(rows[0]["name"] as String, "France Métropolitaine")
-                XCTAssertEqual(rows[1]["isoCode"] as String, "US")
-                XCTAssertEqual(rows[1]["name"] as String, "United States")
-            }
-        }
-    }
-
-    func testSavePersistableCountry() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            var country1 = PersistableCountry(isoCode: "FR", name: "France")
+            var country1 = MutableEncodableRecordCountry(rowID: nil, isoCode: "FR", name: "France")
             try country1.save(db)
             
-            var rows = try Row.fetchAll(db, "SELECT * FROM countries")
+            var rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries")
             XCTAssertEqual(rows.count, 1)
-            XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
+            XCTAssertEqual(rows[0]["rowID"] as Int64, country1.rowID!)
             XCTAssertEqual(rows[0]["name"] as String, "France")
             
-            let country2 = PersistableCountry(isoCode: "US", name: "United States")
+            var country2 = MutableEncodableRecordCountry(rowID: nil, isoCode: "US", name: "United States")
             try country2.save(db)
             
             country1.name = "France Métropolitaine"
             try country1.save(db)
             
-            rows = try Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
+            rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
             XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
+            XCTAssertEqual(rows[0]["rowID"] as Int64, country1.rowID!)
             XCTAssertEqual(rows[0]["name"] as String, "France Métropolitaine")
-            XCTAssertEqual(rows[1]["isoCode"] as String, "US")
+            XCTAssertEqual(rows[1]["rowID"] as Int64, country2.rowID!)
             XCTAssertEqual(rows[1]["name"] as String, "United States")
             
             try country1.delete(db)
             try country1.save(db)
             
-            rows = try Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
+            rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
             XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
-            XCTAssertEqual(rows[0]["name"] as String, "France Métropolitaine")
-            XCTAssertEqual(rows[1]["isoCode"] as String, "US")
-            XCTAssertEqual(rows[1]["name"] as String, "United States")
+            XCTAssertEqual(rows[0]["rowID"] as Int64, country2.rowID!)
+            XCTAssertEqual(rows[0]["name"] as String, "United States")
+            XCTAssertEqual(rows[1]["rowID"] as Int64, country1.rowID!)
+            XCTAssertEqual(rows[1]["name"] as String, "France Métropolitaine")
         }
     }
 
-    func testDeletePersistableCountry() throws {
+    func testDeleteMutableEncodableRecordCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let country1 = PersistableCountry(isoCode: "FR", name: "France")
+            var country1 = MutableEncodableRecordCountry(rowID: nil, isoCode: "FR", name: "France")
             try country1.insert(db)
-            let country2 = PersistableCountry(isoCode: "US", name: "United States")
+            var country2 = MutableEncodableRecordCountry(rowID: nil, isoCode: "US", name: "United States")
             try country2.insert(db)
             
             var deleted = try country1.delete(db)
@@ -444,17 +363,17 @@ class PersistableTests: GRDBTestCase {
             deleted = try country1.delete(db)
             XCTAssertFalse(deleted)
             
-            let rows = try Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
+            let rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
             XCTAssertEqual(rows.count, 1)
-            XCTAssertEqual(rows[0]["isoCode"] as String, "US")
+            XCTAssertEqual(rows[0]["rowID"] as Int64, country2.rowID!)
             XCTAssertEqual(rows[0]["name"] as String, "United States")
         }
     }
 
-    func testExistsPersistableCountry() throws {
+    func testExistsMutableEncodableRecordCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let country = PersistableCountry(isoCode: "FR", name: "France")
+            var country = MutableEncodableRecordCountry(rowID: nil, isoCode: "FR", name: "France")
             try country.insert(db)
             XCTAssertTrue(try country.exists(db))
             
@@ -464,9 +383,9 @@ class PersistableTests: GRDBTestCase {
     }
 
 
-    // MARK: - PersistableCustomizedCountry
+    // MARK: - MutableEncodableRecordCustomizedCountry
     
-    func testInsertPersistableCustomizedCountry() throws {
+    func testInsertMutableEncodableRecordCustomizedCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var insertCount: Int = 0
@@ -474,7 +393,8 @@ class PersistableTests: GRDBTestCase {
             var saveCount: Int = 0
             var deleteCount: Int = 0
             var existsCount: Int = 0
-            let country = PersistableCustomizedCountry(
+            var country = MutableEncodableRecordCustomizedCountry(
+                rowID: nil,
                 isoCode: "FR",
                 name: "France",
                 willInsert: { insertCount += 1 },
@@ -490,14 +410,14 @@ class PersistableTests: GRDBTestCase {
             XCTAssertEqual(deleteCount, 0)
             XCTAssertEqual(existsCount, 0)
             
-            let rows = try Row.fetchAll(db, "SELECT * FROM countries")
+            let rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries")
             XCTAssertEqual(rows.count, 1)
-            XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
+            XCTAssertEqual(rows[0]["rowID"] as Int64, country.rowID!)
             XCTAssertEqual(rows[0]["name"] as String, "France")
         }
     }
 
-    func testUpdatePersistableCustomizedCountry() throws {
+    func testUpdateMutableEncodableRecordCustomizedCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var insertCount: Int = 0
@@ -505,7 +425,8 @@ class PersistableTests: GRDBTestCase {
             var saveCount: Int = 0
             var deleteCount: Int = 0
             var existsCount: Int = 0
-            var country1 = PersistableCustomizedCountry(
+            var country1 = MutableEncodableRecordCustomizedCountry(
+                rowID: nil,
                 isoCode: "FR",
                 name: "France",
                 willInsert: { insertCount += 1 },
@@ -514,7 +435,8 @@ class PersistableTests: GRDBTestCase {
                 willDelete: { deleteCount += 1 },
                 willExists: { existsCount += 1 })
             try country1.insert(db)
-            let country2 = PersistableCustomizedCountry(
+            var country2 = MutableEncodableRecordCustomizedCountry(
+                rowID: nil,
                 isoCode: "US",
                 name: "United States",
                 willInsert: { },
@@ -534,16 +456,16 @@ class PersistableTests: GRDBTestCase {
             XCTAssertEqual(deleteCount, 0)
             XCTAssertEqual(existsCount, 0)
             
-            let rows = try Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
+            let rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
             XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
+            XCTAssertEqual(rows[0]["rowID"] as Int64, country1.rowID!)
             XCTAssertEqual(rows[0]["name"] as String, "France Métropolitaine")
-            XCTAssertEqual(rows[1]["isoCode"] as String, "US")
+            XCTAssertEqual(rows[1]["rowID"] as Int64, country2.rowID!)
             XCTAssertEqual(rows[1]["name"] as String, "United States")
         }
     }
 
-    func testPartialUpdatePersistableCustomizedCountry() throws {
+    func testSaveMutableEncodableRecordCustomizedCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var insertCount: Int = 0
@@ -551,53 +473,8 @@ class PersistableTests: GRDBTestCase {
             var saveCount: Int = 0
             var deleteCount: Int = 0
             var existsCount: Int = 0
-            var country1 = PersistableCustomizedCountry(
-                isoCode: "FR",
-                name: "France",
-                willInsert: { insertCount += 1 },
-                willUpdate: { updateCount += 1 },
-                willSave: { saveCount += 1 },
-                willDelete: { deleteCount += 1 },
-                willExists: { existsCount += 1 })
-            try country1.insert(db)
-            let country2 = PersistableCustomizedCountry(
-                isoCode: "US",
-                name: "United States",
-                willInsert: { },
-                willUpdate: { },
-                willSave: { },
-                willDelete: { },
-                willExists: { })
-            try country2.insert(db)
-            
-            country1.name = "France Métropolitaine"
-            try country1.update(db, columns: ["name"])
-            XCTAssertEqual(self.lastSQLQuery, "UPDATE \"countries\" SET \"name\"='France Métropolitaine' WHERE \"isoCode\"='FR'")
-            
-            XCTAssertEqual(insertCount, 1)
-            XCTAssertEqual(updateCount, 1)
-            XCTAssertEqual(saveCount, 0)
-            XCTAssertEqual(deleteCount, 0)
-            XCTAssertEqual(existsCount, 0)
-            
-            let rows = try Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
-            XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
-            XCTAssertEqual(rows[0]["name"] as String, "France Métropolitaine")
-            XCTAssertEqual(rows[1]["isoCode"] as String, "US")
-            XCTAssertEqual(rows[1]["name"] as String, "United States")
-        }
-    }
-
-    func testSavePersistableCustomizedCountry() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            var insertCount: Int = 0
-            var updateCount: Int = 0
-            var saveCount: Int = 0
-            var deleteCount: Int = 0
-            var existsCount: Int = 0
-            var country1 = PersistableCustomizedCountry(
+            var country1 = MutableEncodableRecordCustomizedCountry(
+                rowID: nil,
                 isoCode: "FR",
                 name: "France",
                 willInsert: { insertCount += 1 },
@@ -613,12 +490,13 @@ class PersistableTests: GRDBTestCase {
             XCTAssertEqual(deleteCount, 0)
             XCTAssertEqual(existsCount, 0)
             
-            var rows = try Row.fetchAll(db, "SELECT * FROM countries")
+            var rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries")
             XCTAssertEqual(rows.count, 1)
-            XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
+            XCTAssertEqual(rows[0]["rowID"] as Int64, country1.rowID!)
             XCTAssertEqual(rows[0]["name"] as String, "France")
             
-            let country2 = PersistableCustomizedCountry(
+            var country2 = MutableEncodableRecordCustomizedCountry(
+                rowID: nil,
                 isoCode: "US",
                 name: "United States",
                 willInsert: { },
@@ -637,11 +515,11 @@ class PersistableTests: GRDBTestCase {
             XCTAssertEqual(deleteCount, 0)
             XCTAssertEqual(existsCount, 0)
             
-            rows = try Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
+            rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
             XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
+            XCTAssertEqual(rows[0]["rowID"] as Int64, country1.rowID!)
             XCTAssertEqual(rows[0]["name"] as String, "France Métropolitaine")
-            XCTAssertEqual(rows[1]["isoCode"] as String, "US")
+            XCTAssertEqual(rows[1]["rowID"] as Int64, country2.rowID!)
             XCTAssertEqual(rows[1]["name"] as String, "United States")
             
             _ = try country1.delete(db)
@@ -653,16 +531,16 @@ class PersistableTests: GRDBTestCase {
             XCTAssertEqual(deleteCount, 1)
             XCTAssertEqual(existsCount, 0)
             
-            rows = try Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
+            rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
             XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
-            XCTAssertEqual(rows[0]["name"] as String, "France Métropolitaine")
-            XCTAssertEqual(rows[1]["isoCode"] as String, "US")
-            XCTAssertEqual(rows[1]["name"] as String, "United States")
+            XCTAssertEqual(rows[0]["rowID"] as Int64, country2.rowID!)
+            XCTAssertEqual(rows[0]["name"] as String, "United States")
+            XCTAssertEqual(rows[1]["rowID"] as Int64, country1.rowID!)
+            XCTAssertEqual(rows[1]["name"] as String, "France Métropolitaine")
         }
     }
 
-    func testDeletePersistableCustomizedCountry() throws {
+    func testDeleteMutableEncodableRecordCustomizedCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var insertCount: Int = 0
@@ -670,7 +548,8 @@ class PersistableTests: GRDBTestCase {
             var saveCount: Int = 0
             var deleteCount: Int = 0
             var existsCount: Int = 0
-            let country1 = PersistableCustomizedCountry(
+            var country1 = MutableEncodableRecordCustomizedCountry(
+                rowID: nil,
                 isoCode: "FR",
                 name: "France",
                 willInsert: { insertCount += 1 },
@@ -679,7 +558,8 @@ class PersistableTests: GRDBTestCase {
                 willDelete: { deleteCount += 1 },
                 willExists: { existsCount += 1 })
             try country1.insert(db)
-            let country2 = PersistableCustomizedCountry(
+            var country2 = MutableEncodableRecordCustomizedCountry(
+                rowID: nil,
                 isoCode: "US",
                 name: "United States",
                 willInsert: { },
@@ -700,14 +580,14 @@ class PersistableTests: GRDBTestCase {
             XCTAssertEqual(deleteCount, 2)
             XCTAssertEqual(existsCount, 0)
             
-            let rows = try Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
+            let rows = try Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
             XCTAssertEqual(rows.count, 1)
-            XCTAssertEqual(rows[0]["isoCode"] as String, "US")
+            XCTAssertEqual(rows[0]["rowID"] as Int64, country2.rowID!)
             XCTAssertEqual(rows[0]["name"] as String, "United States")
         }
     }
 
-    func testExistsPersistableCustomizedCountry() throws {
+    func testExistsMutableEncodableRecordCustomizedCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var insertCount: Int = 0
@@ -715,7 +595,8 @@ class PersistableTests: GRDBTestCase {
             var saveCount: Int = 0
             var deleteCount: Int = 0
             var existsCount: Int = 0
-            let country = PersistableCustomizedCountry(
+            var country = MutableEncodableRecordCustomizedCountry(
+                rowID: nil,
                 isoCode: "FR",
                 name: "France",
                 willInsert: { insertCount += 1 },
@@ -742,22 +623,77 @@ class PersistableTests: GRDBTestCase {
             XCTAssertEqual(existsCount, 2)
         }
     }
-
-
-    // MARK: - Errors
-
-    func testInsertErrorDoesNotPreventSubsequentInserts() throws {
+    
+    // MARK: - Misc
+    
+    func testPartiallyEncodedRecord() throws {
+        struct PartialRecord : MutableEncodableRecord {
+            var id: Int64?
+            var a: String
+            
+            static let databaseTableName = "records"
+            
+            func encode(to container: inout PersistenceContainer) {
+                container["id"] = id
+                container["a"] = a
+            }
+            
+            mutating func didInsert(with rowID: Int64, for column: String?) {
+                id = rowID
+            }
+        }
+        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let person = PersistablePersonClass(id: nil, name: "Arthur", age: 12)
-            try person.insert(db)
-            try PersistableCountry(isoCode: "FR", name: "France").insert(db)
+            try db.create(table: "records") { t in
+                t.column("id", .integer).primaryKey()
+                t.column("a", .text)
+                t.column("b", .text)
+                t.column("c", .integer).notNull().defaults(to: 123)
+            }
+            
+            // Insertion only inserts defined columns
+            var record = PartialRecord(id: nil, a: "foo")
+            try record.insert(db)
+            XCTAssertTrue(
+                ["INSERT INTO \"records\" (\"id\", \"a\") VALUES (NULL,'foo')",
+                 "INSERT INTO \"records\" (\"a\", \"id\") VALUES ('foo',NULL)"]
+                    .contains(lastSQLQuery))
+            XCTAssertEqual(try Row.fetchOne(db, "SELECT * FROM records")!, ["id": 1, "a": "foo", "b": nil, "c": 123])
+            
+            // Update only updates defined columns
+            record.a = "bar"
+            try record.update(db)
+            XCTAssertEqual(lastSQLQuery, "UPDATE \"records\" SET \"a\"='bar' WHERE \"id\"=1")
+            XCTAssertEqual(try Row.fetchOne(db, "SELECT * FROM records")!, ["id": 1, "a": "bar", "b": nil, "c": 123])
+            
+            // Update always update something
+            record.a = "baz"
+            try record.update(db, columns: ["b"])
+            XCTAssertEqual(lastSQLQuery, "UPDATE \"records\" SET \"id\"=1 WHERE \"id\"=1")
+            XCTAssertEqual(try Row.fetchOne(db, "SELECT * FROM records")!, ["id": 1, "a": "bar", "b": nil, "c": 123])
+            
+            // Deletion
+            try record.delete(db)
+            XCTAssertEqual(lastSQLQuery, "DELETE FROM \"records\" WHERE \"id\"=1")
+            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM records")!, 0)
+            
+            // Expect database errors when missing columns must have a value
+            try db.drop(table: "records")
+            try db.create(table: "records") { t in
+                t.column("id", .integer).primaryKey()
+                t.column("a", .text)
+                t.column("b", .text).notNull()
+            }
             do {
-                try Citizenship(personID: person.id!, countryIsoCode: "US").insert(db)
+                try record.insert(db)
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
+                // actual error message depends on the SQLite version
+                XCTAssertTrue(
+                    ["NOT NULL constraint failed: records.b",
+                     "records.b may not be NULL"].contains(error.message!))
             }
-            try Citizenship(personID: person.id!, countryIsoCode: "FR").insert(db)
         }
     }
 }

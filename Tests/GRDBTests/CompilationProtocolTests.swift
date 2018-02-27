@@ -110,27 +110,27 @@ private class UserFTS5WrapperTokenizer : FTS5WrapperTokenizer {
 }
 #endif
 
-// MARK: - MutablePersistable
+// MARK: - MutableEncodableRecord
 
-private struct UserMutablePersistable1 : MutablePersistable {
-    static let databaseTableName = "UserMutablePersistable1"
+private struct UserMutableEncodableRecord1 : MutableEncodableRecord {
+    static let databaseTableName = "UserMutableEncodableRecord1"
     func encode(to container: inout PersistenceContainer) { }
 }
 
-private class UserMutablePersistable2 : MutablePersistable {
-    static let databaseTableName = "UserMutablePersistable2"
+private class UserMutableEncodableRecord2 : MutableEncodableRecord {
+    static let databaseTableName = "UserMutableEncodableRecord2"
     func encode(to container: inout PersistenceContainer) { }
 }
 
-// MARK: - Persistable
+// MARK: - EncodableRecord
 
-private struct UserPersistable1 : Persistable {
-    static let databaseTableName = "UserPersistable1"
+private struct UserEncodableRecord1 : EncodableRecord {
+    static let databaseTableName = "UserEncodableRecord1"
     func encode(to container: inout PersistenceContainer) { }
 }
 
-private class UserPersistable2 : Persistable {
-    static let databaseTableName = "UserPersistable2"
+private class UserEncodableRecord2 : EncodableRecord {
+    static let databaseTableName = "UserEncodableRecord2"
     func encode(to container: inout PersistenceContainer) { }
 }
 

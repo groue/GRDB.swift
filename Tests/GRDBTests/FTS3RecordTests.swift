@@ -23,7 +23,7 @@ extension Book : DecodableRecord {
     }
 }
 
-extension Book : MutablePersistable {
+extension Book : MutableEncodableRecord {
     static let databaseTableName = "books"
     static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
     

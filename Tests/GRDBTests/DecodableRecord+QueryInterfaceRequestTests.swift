@@ -21,7 +21,7 @@ extension Reader : DecodableRecord {
     }
 }
 
-extension Reader : MutablePersistable {
+extension Reader : MutableEncodableRecord {
     static let databaseTableName = "readers"
     
     func encode(to container: inout PersistenceContainer) {

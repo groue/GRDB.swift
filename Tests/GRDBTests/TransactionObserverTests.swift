@@ -100,7 +100,7 @@ private final class Artist: Codable {
     }
 }
 
-extension Artist : DecodableRecord, Persistable {
+extension Artist : DecodableRecord, EncodableRecord {
     static let databaseTableName = "artists"
     func didInsert(with rowID: Int64, for column: String?) {
         self.id = rowID
@@ -119,7 +119,7 @@ private final class Artwork : Codable {
     }
 }
 
-extension Artwork : DecodableRecord, Persistable {
+extension Artwork : DecodableRecord, EncodableRecord {
     static let databaseTableName = "artworks"
     func didInsert(with rowID: Int64, for column: String?) {
         self.id = rowID

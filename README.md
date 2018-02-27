@@ -1859,7 +1859,7 @@ Your custom structs and classes can adopt each protocol individually, and opt in
 - [Record Protocols Overview](#record-protocols-overview)
 - [DecodableRecord Protocol](#decodablerecord-protocol)
 - [TableRecord Protocol](#tablerecord-protocol)
-- [Persistable Protocol](#persistable-protocol)
+- [EncodableRecord Protocol](#encodablerecord-protocol)
     - [Persistence Methods](#persistence-methods)
     - [Customizing the Persistence Methods](#customizing-the-persistence-methods)
 - [Codable Records](#codable-records)
@@ -1872,7 +1872,7 @@ Your custom structs and classes can adopt each protocol individually, and opt in
 
 ### Inserting Records
 
-To insert a record in the database, subclass the [Record](#record-class) class or adopt the [Persistable](#persistable-protocol) protocol, and call the `insert` method:
+To insert a record in the database, subclass the [Record](#record-class) class or adopt the [EncodableRecord] protocol, and call the `insert` method:
 
 ```swift
 class Player : Record { ... }
@@ -1906,7 +1906,7 @@ See [fetching methods](#fetching-methods), and the [query interface](#the-query-
 
 ### Updating Records
 
-[Record](#record-class) subclasses and types that adopt the [Persistable](#persistable-protocol) protocol can be updated in the database:
+[Record](#record-class) subclasses and types that adopt the [EncodableRecord] protocol can be updated in the database:
 
 ```swift
 let player = try Player.fetchOne(db, key: 1)!
@@ -1933,7 +1933,7 @@ try db.execute("UPDATE players SET synchronized = 1")
 
 ### Deleting Records
 
-[Record](#record-class) subclasses and types that adopt the [Persistable](#persistable-protocol) protocol can be deleted from the database:
+[Record](#record-class) subclasses and types that adopt the [EncodableRecord] protocol can be deleted from the database:
 
 ```swift
 let player = try Player.fetchOne(db, key: 1)!
@@ -1969,7 +1969,7 @@ Details follow:
 - [Record Protocols Overview](#record-protocols-overview)
 - [DecodableRecord Protocol](#decodablerecord-protocol)
 - [TableRecord Protocol](#tablerecord-protocol)
-- [Persistable Protocol](#persistable-protocol)
+- [EncodableRecord Protocol](#encodablerecord-protocol)
 - [Codable Records](#codable-records)
 - [Record Class](#record-class)
 - [Changes Tracking](#changes-tracking)
@@ -2071,10 +2071,10 @@ Details follow:
     }
     ```
 
-- [Persistable](#persistable-protocol) is able to **write**: it can create, update, and delete rows in the database:
+- [EncodableRecord] is able to **write**: it can create, update, and delete rows in the database:
     
     ```swift
-    struct Place : Persistable { ... }
+    struct Place : EncodableRecord { ... }
     try dbQueue.inDatabase { db in
         try Place.delete(db, key: 1)
         try Place(...).insert(db)
@@ -2204,12 +2204,12 @@ try Citizenship.fetchOne(db, key: ["playerID": 1, "countryISOCode": "FR"]) // Ci
 ```
 
 
-## Persistable Protocol
+## EncodableRecord Protocol
 
 **GRDB provides two protocols that let adopting types create, update, and delete rows in the database:**
 
 ```swift
-protocol MutablePersistable : TableRecord {
+protocol MutableEncodableRecord : TableRecord {
     /// The name of the database table (from TableRecord)
     static var databaseTableName: String { get }
     
@@ -2223,7 +2223,7 @@ protocol MutablePersistable : TableRecord {
 ```
 
 ```swift
-protocol Persistable : MutablePersistable {
+protocol EncodableRecord : MutableEncodableRecord {
     /// Non-mutating version of the optional didInsert(with:for:)
     func didInsert(with rowID: Int64, for column: String?)
 }
@@ -2231,11 +2231,11 @@ protocol Persistable : MutablePersistable {
 
 Yes, two protocols instead of one. Both grant exactly the same advantages. Here is how you pick one or the other:
 
-- *If your type is a struct that mutates on insertion*, choose `MutablePersistable`.
+- *If your type is a struct that mutates on insertion*, choose `MutableEncodableRecord`.
     
     For example, your table has an INTEGER PRIMARY KEY and you want to store the inserted id on successful insertion. Or your table has a UUID primary key, and you want to automatically generate one on insertion.
 
-- Otherwise, stick with `Persistable`. Particularly if your type is a class.
+- Otherwise, stick with `EncodableRecord`. Particularly if your type is a class.
 
 The `encode(to:)` method defines which [values](#values) (Bool, Int, String, Date, Swift enums, etc.) are assigned to database columns.
 
@@ -2246,7 +2246,7 @@ The optional `didInsert` method lets the adopting type store its rowID after suc
 **To use those protocols**, subclass the [Record](#record-class) class, or adopt one of them explicitely. For example:
 
 ```swift
-extension Place : MutablePersistable {
+extension Place : MutableEncodableRecord {
     
     /// The values persisted in the database
     func encode(to container: inout PersistenceContainer) {
@@ -2274,7 +2274,7 @@ paris.id   // some value
 Persistence containers also accept keys of type `Column`:
 
 ```swift
-extension Place : MutablePersistable {
+extension Place : MutableEncodableRecord {
     enum Columns {
         static let id = Column("id")
         static let title = Column("title")
@@ -2294,7 +2294,7 @@ extension Place : MutablePersistable {
 
 ### Persistence Methods
 
-[Record](#record-class) subclasses and types that adopt [Persistable](#persistable-protocol) are given default implementations for methods that insert, update, and delete:
+[Record](#record-class) subclasses and types that adopt [EncodableRecord] are given default implementations for methods that insert, update, and delete:
 
 ```swift
 // Instance methods
@@ -2351,10 +2351,10 @@ class Player : Record {
 }
 ```
 
-If you use the raw [Persistable](#persistable-protocol) protocol, use one of the *special methods* `performInsert`, `performUpdate`, `performSave`, `performDelete`, or `performExists`:
+If you use the raw [EncodableRecord] protocol, use one of the *special methods* `performInsert`, `performUpdate`, `performSave`, `performDelete`, or `performExists`:
 
 ```swift
-struct Link : Persistable {
+struct Link : EncodableRecord {
     var url: URL
     
     func insert(_ db: Database) throws {
@@ -2384,7 +2384,7 @@ struct Link : Persistable {
 
 [Swift Archival & Serialization](https://github.com/apple/swift-evolution/blob/master/proposals/0166-swift-archival-serialization.md) was introduced with Swift 4.
 
-GRDB provides default implementations for [`DecodableRecord.init(row:)`](#decodablerecord-protocol) and [`Persistable.encode(to:)`](#persistable-protocol) for record types that also adopt an archival protocol (`Codable`, `Encodable` or `Decodable`). When all their properties are themselves codable, Swift generates the archiving methods, and you don't need to write them down:
+GRDB provides default implementations for [`DecodableRecord.init(row:)`](#decodablerecord-protocol) and [`EncodableRecord.encode(to:)`](#encodablerecord-protocol) for record types that also adopt an archival protocol (`Codable`, `Encodable` or `Decodable`). When all their properties are themselves codable, Swift generates the archiving methods, and you don't need to write them down:
 
 ```swift
 // Declare a plain Codable struct or class...
@@ -2394,7 +2394,7 @@ struct Player: Codable {
 }
 
 // Adopt Record protocols...
-extension Player: DecodableRecord, Persistable {
+extension Player: DecodableRecord, EncodableRecord {
     static let databaseTableName = "players"
 }
 
@@ -2409,7 +2409,7 @@ GRDB support for Codable works well with "flat" records, whose stored properties
 
 ```swift
 // Can't take profit from Codable code generation:
-struct Place: DecodableRecord, Persistable, Codable {
+struct Place: DecodableRecord, EncodableRecord, Codable {
     static let databaseTableName = "places"
     
     var title: String
@@ -2441,14 +2441,14 @@ struct Place: Codable {
 }
 
 // Free database support!
-extension Place: DecodableRecord, Persistable {
+extension Place: DecodableRecord, EncodableRecord {
     static let databaseTableName = "places"
 }
 ```
 
 GRDB ships with support for nested codable records, but this is a more complex topic. See [Joined Queries Support](#joined-queries-support) for more information.
 
-As documented with the [Persistable](#persistable-protocol) protocol, have your struct records use MutablePersistable instead of Persistable when they store their automatically incremented row id:
+As documented with the [EncodableRecord] protocol, have your struct records use MutableEncodableRecord instead of EncodableRecord when they store their automatically incremented row id:
 
 ```swift
 struct Place: Codable {
@@ -2459,7 +2459,7 @@ struct Place: Codable {
     var coordinate: CLLocationCoordinate2D { ... }
 }
 
-extension Place: DecodableRecord, MutablePersistable {
+extension Place: DecodableRecord, MutableEncodableRecord {
     static let databaseTableName = "places"
     
     mutating func didInsert(with rowID: Int64, for column: String?) {
@@ -2479,7 +2479,7 @@ place.id // A unique id
 
 ## Record Class
 
-**Record** is a class that is designed to be subclassed. It inherits its features from the [DecodableRecord, TableRecord, and Persistable](#record-protocols-overview) protocols. On top of that, Record instances can [track their changes](#changes-tracking).
+**Record** is a class that is designed to be subclassed. It inherits its features from the [DecodableRecord, TableRecord, and EncodableRecord](#record-protocols-overview) protocols. On top of that, Record instances can [track their changes](#changes-tracking).
 
 Record subclasses define their custom database relationship by overriding database methods:
 
@@ -2526,7 +2526,7 @@ class Place : Record {
 
 The `update()` [method](#persistence-methods) always executes an UPDATE statement. When the record has not been edited, this costly database access is generally useless.
 
-You can use instead the `updateChanges` method, available on the [Persistable](#persistable-protocol) protocol, which performs an update of the changed columns only (and does nothing if record has no change):
+You can use instead the `updateChanges` method, available on the [EncodableRecord] protocol, which performs an update of the changed columns only (and does nothing if record has no change):
 
 ```swift
 let oldPlayer = try Player.fetchOne(db, ...)
@@ -2539,7 +2539,7 @@ if try newPlayer.updateChanges(db, from: oldPlayer) {
 }
 ```
 
-> :point_up: **Note**: The comparison is performed of the database representation of records. As long as your record type adopts a Persistable protocol, you don't need to care about Equatable.
+> :point_up: **Note**: The comparison is performed of the database representation of records. As long as your record type adopts a EncodableRecord protocol, you don't need to care about Equatable.
 
 The [Record](#record-class) class is able to compare against itself, and knows if it has changes that have not been saved since it was last fetched or persisted:
 
@@ -2639,10 +2639,10 @@ The [five different policies](https://www.sqlite.org/lang_conflict.html) are: ab
     try db.execute("INSERT OR REPLACE INTO players (email) VALUES (?)", arguments: ["arthur@example.com"])
     ```
 
-When you want to handle conflicts at the query level, specify a custom `persistenceConflictPolicy` in your type that adopts the MutablePersistable or Persistable protocol. It will alter the INSERT and UPDATE queries run by the `insert`, `update` and `save` [persistence methods](#persistence-methods):
+When you want to handle conflicts at the query level, specify a custom `persistenceConflictPolicy` in your type that adopts the MutableEncodableRecord or EncodableRecord protocol. It will alter the INSERT and UPDATE queries run by the `insert`, `update` and `save` [persistence methods](#persistence-methods):
 
 ```swift
-protocol MutablePersistable {
+protocol MutableEncodableRecord {
     /// The policy that handles SQLite conflicts when records are inserted
     /// or updated.
     ///
@@ -2652,7 +2652,7 @@ protocol MutablePersistable {
     static var persistenceConflictPolicy: PersistenceConflictPolicy { get }
 }
 
-struct Player : MutablePersistable {
+struct Player : MutableEncodableRecord {
     static let persistenceConflictPolicy = PersistenceConflictPolicy(
         insert: .replace,
         update: .replace)
@@ -2759,10 +2759,10 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](#fu
     event.id // some value
     ```
 
-3. Encode the rowid in `encode(to:)`, and keep it in the `didInsert(with:for:)` method (both from the [Persistable and MutablePersistable](#persistable-protocol) protocols):
+3. Encode the rowid in `encode(to:)`, and keep it in the `didInsert(with:for:)` method (both from the [EncodableRecord and MutableEncodableRecord](#encodablerecord-protocol) protocols):
     
     ```swift
-    struct Event : MutablePersistable {
+    struct Event : MutableEncodableRecord {
         var id: Int64?
         
         func encode(to container: inout PersistenceContainer) {
@@ -2805,26 +2805,26 @@ This is the list of record methods, along with their required protocols. The [Re
 | `init(row:)` | [DecodableRecord] | |
 | `Type.databaseTableName` | [TableRecord] | |
 | `Type.databaseSelection` | [TableRecord] | [*](#columns-selected-by-a-request) |
-| `Type.persistenceConflictPolicy` | [Persistable](#persistable-protocol) | [*](#conflict-resolution) |
-| `record.encode(to:)` | [Persistable](#persistable-protocol) | |
-| `record.didInsert(with:for:)` | [Persistable](#persistable-protocol) | |
+| `Type.persistenceConflictPolicy` | [EncodableRecord] | [*](#conflict-resolution) |
+| `record.encode(to:)` | [EncodableRecord] | |
+| `record.didInsert(with:for:)` | [EncodableRecord] | |
 | **Insert and Update Records** | | |
-| `record.insert(db)` | [Persistable](#persistable-protocol) | |
-| `record.save(db)` | [Persistable](#persistable-protocol) | |
-| `record.update(db)` | [Persistable](#persistable-protocol) | |
-| `record.update(db, columns:...)` | [Persistable](#persistable-protocol) | |
-| `record.updateChanges(db, from:...)` | [Persistable](#persistable-protocol) | |
+| `record.insert(db)` | [EncodableRecord] | |
+| `record.save(db)` | [EncodableRecord] | |
+| `record.update(db)` | [EncodableRecord] | |
+| `record.update(db, columns:...)` | [EncodableRecord] | |
+| `record.updateChanges(db, from:...)` | [EncodableRecord] | |
 | `record.updateChanges(db)` | [Record](#record-class) | |
 | **Delete Records** | | |
-| `record.delete(db)` | [Persistable](#persistable-protocol) | |
-| `Type.deleteOne(db, key:...)` | [Persistable](#persistable-protocol) | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.deleteAll(db)` | [Persistable](#persistable-protocol) | |
-| `Type.deleteAll(db, keys:...)` | [Persistable](#persistable-protocol) | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.filter(...).deleteAll(db)` | [Persistable](#persistable-protocol) | <a href="#list-of-record-methods-2">²</a> |
+| `record.delete(db)` | [EncodableRecord] | |
+| `Type.deleteOne(db, key:...)` | [EncodableRecord] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.deleteAll(db)` | [EncodableRecord] | |
+| `Type.deleteAll(db, keys:...)` | [EncodableRecord] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.filter(...).deleteAll(db)` | [EncodableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **Check Record Existence** | | |
-| `record.exists(db)` | [Persistable](#persistable-protocol) | |
+| `record.exists(db)` | [EncodableRecord] | |
 | **Convert Record to Dictionary** | | |
-| `record.databaseDictionary` | [Persistable](#persistable-protocol) | |
+| `record.databaseDictionary` | [EncodableRecord] | |
 | **Count Records** | | |
 | `Type.fetchCount(db)` | [TableRecord] | |
 | `Type.filter(...).fetchCount(db)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
@@ -2847,9 +2847,9 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.fetchOne(statement)` | [DecodableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetchOne(db)` | [DecodableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **[Changes Tracking](#changes-tracking)** | | |
-| `record.databaseEqual(...)` | [Persistable](#persistable-protocol) | |
-| `record.databaseChanges(from:...)` | [Persistable](#persistable-protocol) | |
-| `record.updateChanges(db, from:...)` | [Persistable](#persistable-protocol) | |
+| `record.databaseEqual(...)` | [EncodableRecord] | |
+| `record.databaseChanges(from:...)` | [EncodableRecord] | |
+| `record.updateChanges(db, from:...)` | [EncodableRecord] | |
 | `record.hasDatabaseChanges` | [Record](#record-class) | |
 | `record.databaseChanges` | [Record](#record-class) | |
 | `record.updateChanges(db)` | [Record](#record-class) | |
@@ -3663,7 +3663,7 @@ let request = Player.filter(emailColumn == nil)
 try request.deleteAll(db)
 ```
 
-> :point_up: **Note** Deletion methods are only available for records that adopts the [Persistable](#persistable-protocol) protocol.
+> :point_up: **Note** Deletion methods are only available for records that adopts the [EncodableRecord] protocol.
 
 **Deleting records according to their primary key** is also quite common. It has a shortcut which accepts any single-column primary key:
 
@@ -5849,7 +5849,7 @@ do {
 
 ### PersistenceError
 
-**PersistenceError** is thrown by the [Persistable](#persistable-protocol) protocol, in a single case: when the `update` method could not find any row to update:
+**PersistenceError** is thrown by the [EncodableRecord] protocol, in a single case: when the `update` method could not find any row to update:
 
 ```swift
 do {
@@ -6916,6 +6916,10 @@ Sample Code
 Legacy
 ======
 
+#### Persistable Protocol
+
+This protocol has been renamed [EncodableRecord] in GRDB 3.0.
+
 #### RowConvertible Protocol
 
 This protocol has been renamed [DecodableRecord] in GRDB 3.0.
@@ -6925,4 +6929,5 @@ This protocol has been renamed [DecodableRecord] in GRDB 3.0.
 This protocol has been renamed [TableRecord] in GRDB 3.0.
 
 [DecodableRecord]: #decodablerecord-protocol
+[EncodableRecord]: #encodablerecord-protocol
 [TableRecord]: #tablerecord-protocol

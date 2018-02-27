@@ -2,7 +2,7 @@
 /// changes tracking provided by the Record class.
 ///
 ///     // A Regular record struct
-///     struct Player: DecodableRecord, MutablePersistable, Codable {
+///     struct Player: DecodableRecord, MutableEncodableRecord, Codable {
 ///         static let databaseTableName = "players"
 ///         var id: Int64?
 ///         var name: String
@@ -21,8 +21,8 @@
 ///         playerRecord.hasPersistentChangedValues         // true
 ///         playerRecord.persistentChangedValues["score"]   // 100 (the old value)
 ///     }
-@available(*, deprecated, message: "Prefer changes methods defined on the MutablePersistable protocol: databaseEqual(_:), databaseChanges(from:), updateChanges(from:)")
-public final class RecordBox<T: DecodableRecord & MutablePersistable>: Record {
+@available(*, deprecated, message: "Prefer changes methods defined on the MutableEncodableRecord protocol: databaseEqual(_:), databaseChanges(from:), updateChanges(from:)")
+public final class RecordBox<T: DecodableRecord & MutableEncodableRecord>: Record {
     /// The boxed record
     public var value: T
     
@@ -52,7 +52,7 @@ public final class RecordBox<T: DecodableRecord & MutablePersistable>: Record {
         return T.databaseSelection
     }
     
-    // MARK: - MutablePersistable
+    // MARK: - MutableEncodableRecord
     
     /// :nodoc:
     override public class var persistenceConflictPolicy: PersistenceConflictPolicy {

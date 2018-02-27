@@ -7,7 +7,7 @@ import RealmSwift
 
 // MARK:- GRDB
 
-struct ItemStruct : DecodableRecord, Persistable {
+struct ItemStruct : DecodableRecord, EncodableRecord {
     var i0: Int
     var i1: Int
     var i2: Int

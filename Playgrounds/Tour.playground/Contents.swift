@@ -81,8 +81,8 @@ extension PointOfInterest : TableRecord {
     static let databaseTableName = "pointOfInterests"
 }
 
-// Adopt MutablePersistable
-extension PointOfInterest : MutablePersistable {
+// Adopt MutableEncodableRecord
+extension PointOfInterest : MutableEncodableRecord {
     func encode(to container: inout PersistenceContainer) {
         container["id"] = id
         container["title"] = title

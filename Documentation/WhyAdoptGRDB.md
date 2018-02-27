@@ -79,10 +79,10 @@ extension Place: TableRecord { ... }
 let place = try Place.fetchOne(db, key: 1) // Place?
 ```
 
-Add the [Persistable] protocol, and places know how to insert, update and delete themselves:
+Add the [EncodableRecord] protocol, and places know how to insert, update and delete themselves:
 
 ```swift
-extension Place: Persistable { ... }
+extension Place: EncodableRecord { ... }
 try place.delete(db)
 ```
 
@@ -263,7 +263,7 @@ Happy GRDB! :gift:
 [FMDB]: http://github.com/ccgus/fmdb
 [GRDB]: http://github.com/groue/GRDB.swift
 [GRDBObjc]: http://github.com/groue/GRDBObjc
-[Persistable]: https://github.com/groue/GRDB.swift/blob/master/README.md#records
+[EncodableRecord]: https://github.com/groue/GRDB.swift/blob/master/README.md#records
 [Realm]: http://realm.io
 [DecodableRecord]: https://github.com/groue/GRDB.swift/blob/master/README.md#records
 [RxGRDB]: https://github.com/RxSwiftCommunity/RxGRDB

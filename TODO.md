@@ -24,18 +24,18 @@ GRDB 3.0
 - [ ] Hide useless scheduling methods behind protocols : https://forums.swift.org/t/discouraging-protocol-methods-on-concrete-values/8737/4?u=gwendal.roue
 - [ ] Make DatabasePool.write safe. See https://github.com/groue/GRDB.swift/commit/5e3c7d9c430df606a1cccfd4983be6b50e778a5c#commitcomment-26988970
 - [ ] Do one of those two:
-    1. Make save() impossible to customize: remove it from Persistable protocol, and remove performSave() from tne public API.
+    1. Make save() impossible to customize: remove it from EncodableRecord protocol, and remove performSave() from tne public API.
     2. Open Record.save(), and have RecordBox.save() forward this method to its underlying type.
-- [ ] Not sure: Make the MutablePersistable.update(_:columns:) method mutating (as support for an updatedDate column). If so, allow type to change the set of changed columns.
+- [ ] Not sure: Make the MutableEncodableRecord.update(_:columns:) method mutating (as support for an updatedDate column). If so, allow type to change the set of changed columns.
 - [ ] Not sure: type safety
     - [ ] Introduce some record protocol with an associated primary key type. Restrict filter(key:) methods to this type. Allow distinguishing FooId from BarId types.
     - [ ] Replace Column with TypedColumn. How to avoid code duplication (repeated types)? Keypaths?
-- [ ] Rename RowConvertible, TableRecord, MutablePersistable and Persistable so that their names contain Record: FetchableRecord, TableRecord, MutablePersistableRecord, PersistableRecord?
-- [ ] Not sure: Consider introducing RowDecodable and RowEncodable on top of FetchableRecord and MutablePersistableRecord. This would allow keeping fetching and persistence methods private in some files.
+- [ ] Rename RowConvertible, TableRecord, MutableEncodableRecord and EncodableRecord so that their names contain Record: FetchableRecord, TableRecord, MutableEncodableRecordRecord, EncodableRecordRecord?
+- [ ] Not sure: Consider introducing RowDecodable and RowEncodable on top of FetchableRecord and MutableEncodableRecordRecord. This would allow keeping fetching and persistence methods private in some files.
 - [X] Drop IteratorCursor, use AnyCursor instead
 - [X] Rename TypedRequest to FetchRequest, drop Request
 - [ ] Rename columnCount -> numberOfColumns
-- [ ] Try to remove double Persistable/MutablePersistable protocols: Would non-mutating Record methods help?
+- [ ] Try to remove double EncodableRecord/MutableEncodableRecord protocols: Would non-mutating Record methods help?
 
 Not sure
 

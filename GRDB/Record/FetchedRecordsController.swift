@@ -900,7 +900,7 @@ extension FetchedRecordsController {
     }
 }
 
-extension FetchedRecordsController where Record: MutablePersistable {
+extension FetchedRecordsController where Record: MutableEncodableRecord {
     
     /// Returns the indexPath of a given record.
     ///

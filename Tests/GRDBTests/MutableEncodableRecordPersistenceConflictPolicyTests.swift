@@ -7,7 +7,7 @@ import XCTest
     import GRDB
 #endif
 
-private struct DefaultPolicy: MutablePersistable {
+private struct DefaultPolicy: MutableEncodableRecord {
     var id: Int64?
     
     static let databaseTableName = "records"
@@ -21,7 +21,7 @@ private struct DefaultPolicy: MutablePersistable {
     }
 }
 
-private struct MixedPolicy: MutablePersistable {
+private struct MixedPolicy: MutableEncodableRecord {
     var id: Int64?
     
     static let databaseTableName = "records"
@@ -36,7 +36,7 @@ private struct MixedPolicy: MutablePersistable {
     }
 }
 
-private struct ReplacePolicy: MutablePersistable {
+private struct ReplacePolicy: MutableEncodableRecord {
     var id: Int64?
     var email: String
     
@@ -53,7 +53,7 @@ private struct ReplacePolicy: MutablePersistable {
     }
 }
 
-private struct IgnorePolicy: MutablePersistable {
+private struct IgnorePolicy: MutableEncodableRecord {
     var id: Int64?
     
     static let databaseTableName = "records"
@@ -68,7 +68,7 @@ private struct IgnorePolicy: MutablePersistable {
     }
 }
 
-private struct FailPolicy: MutablePersistable {
+private struct FailPolicy: MutableEncodableRecord {
     var id: Int64?
     
     static let databaseTableName = "records"
@@ -83,7 +83,7 @@ private struct FailPolicy: MutablePersistable {
     }
 }
 
-private struct AbortPolicy: MutablePersistable {
+private struct AbortPolicy: MutableEncodableRecord {
     var id: Int64?
     
     static let databaseTableName = "records"
@@ -98,7 +98,7 @@ private struct AbortPolicy: MutablePersistable {
     }
 }
 
-private struct RollbackPolicy: MutablePersistable {
+private struct RollbackPolicy: MutableEncodableRecord {
     var id: Int64?
     
     static let databaseTableName = "records"
@@ -113,7 +113,7 @@ private struct RollbackPolicy: MutablePersistable {
     }
 }
 
-class MutablePersistablePersistenceConflictPolicyTests: GRDBTestCase {
+class MutableEncodableRecordPersistenceConflictPolicyTests: GRDBTestCase {
     
     func testPolicyDefaultArguments() {
         let policy = PersistenceConflictPolicy()
