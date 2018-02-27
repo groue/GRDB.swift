@@ -509,7 +509,7 @@ extension Cursor where Element: StringProtocol {
 /// This cursor forwards its next() method to an arbitrary underlying cursor
 /// having the same Element type, hiding the specifics of the underlying
 /// cursor.
-public class AnyCursor<Element> : Cursor {
+public final class AnyCursor<Element> : Cursor {
     private let element: () throws -> Element?
     
     /// Creates a cursor that wraps a base cursor but whose type depends only on
