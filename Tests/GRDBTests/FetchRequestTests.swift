@@ -60,7 +60,7 @@ class FetchRequestTests: GRDBTestCase {
     }
     
     func testRequestFetchRecords() throws {
-        struct CustomRecord: DecodableRecord, Decodable {
+        struct CustomRecord: FetchableRecord, Decodable {
             var id: Int
         }
         struct CustomRequest : FetchRequest {

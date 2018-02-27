@@ -1,6 +1,6 @@
 /// The protocol for all types that define a way to fetch database content.
 ///
-///     struct Player: DecodableRecord { ... }
+///     struct Player: FetchableRecord { ... }
 ///     let request: ... // Some FetchRequest that fetches Player
 ///     try request.fetchCursor(db) // Cursor of Player
 ///     try request.fetchAll(db)    // [Player]

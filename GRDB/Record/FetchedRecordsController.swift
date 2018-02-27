@@ -9,7 +9,7 @@ import Foundation
 ///
 /// See https://github.com/groue/GRDB.swift#fetchedrecordscontroller for
 /// more information.
-public final class FetchedRecordsController<Record: DecodableRecord> {
+public final class FetchedRecordsController<Record: FetchableRecord> {
     
     // MARK: - Initialization
     
@@ -510,7 +510,7 @@ extension FetchedRecordsController where Record: TableRecord {
 
 /// FetchedRecordsController adopts TransactionObserverType so that it can
 /// monitor changes to its fetched records.
-private final class FetchedRecordsObserver<Record: DecodableRecord> : TransactionObserver {
+private final class FetchedRecordsObserver<Record: FetchableRecord> : TransactionObserver {
     var isValid: Bool
     var needsComputeChanges: Bool
     var items: [Item<Record>]!  // ought to be not nil when observer has started tracking transactions
@@ -861,8 +861,8 @@ private func identicalItemArrays<Record>(_ lhs: [Item<Record>], _ rhs: [Item<Rec
 
 // MARK: - UITableView Support
 
-private typealias ItemComparator<Record: DecodableRecord> = (Item<Record>, Item<Record>) -> Bool
-private typealias ItemComparatorFactory<Record: DecodableRecord> = (Database) throws -> ItemComparator<Record>
+private typealias ItemComparator<Record: FetchableRecord> = (Item<Record>, Item<Record>) -> Bool
+private typealias ItemComparatorFactory<Record: FetchableRecord> = (Database) throws -> ItemComparator<Record>
 
 extension FetchedRecordsController {
     
@@ -900,7 +900,7 @@ extension FetchedRecordsController {
     }
 }
 
-extension FetchedRecordsController where Record: MutableEncodableRecord {
+extension FetchedRecordsController where Record: MutablePersistableRecord {
     
     /// Returns the indexPath of a given record.
     ///
@@ -915,7 +915,7 @@ extension FetchedRecordsController where Record: MutableEncodableRecord {
     }
 }
 
-private enum ItemChange<T: DecodableRecord> {
+private enum ItemChange<T: FetchableRecord> {
     case insertion(item: Item<T>, indexPath: IndexPath)
     case deletion(item: Item<T>, indexPath: IndexPath)
     case move(item: Item<T>, indexPath: IndexPath, newIndexPath: IndexPath, changes: [String: DatabaseValue])
@@ -1010,7 +1010,7 @@ extension FetchedRecordChange: CustomStringConvertible {
 }
 
 /// A section given by a FetchedRecordsController.
-public struct FetchedRecordsSectionInfo<Record: DecodableRecord> {
+public struct FetchedRecordsSectionInfo<Record: FetchableRecord> {
     fileprivate let controller: FetchedRecordsController<Record>
     
     /// The number of records (rows) in the section.
@@ -1035,7 +1035,7 @@ public struct FetchedRecordsSectionInfo<Record: DecodableRecord> {
 
 // MARK: - Item
 
-private final class Item<T: DecodableRecord> : DecodableRecord, Equatable {
+private final class Item<T: FetchableRecord> : FetchableRecord, Equatable {
     let row: Row
     
     // Records are lazily loaded

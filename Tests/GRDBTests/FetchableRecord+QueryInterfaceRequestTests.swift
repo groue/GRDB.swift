@@ -13,7 +13,7 @@ private struct Reader {
     let age: Int?
 }
 
-extension Reader : DecodableRecord {
+extension Reader : FetchableRecord {
     init(row: Row) {
         id = row["id"]
         name = row["name"]
@@ -21,7 +21,7 @@ extension Reader : DecodableRecord {
     }
 }
 
-extension Reader : MutableEncodableRecord {
+extension Reader : MutablePersistableRecord {
     static let databaseTableName = "readers"
     
     func encode(to container: inout PersistenceContainer) {
@@ -41,7 +41,7 @@ private struct AltReader {
     let age: Int?
 }
 
-extension AltReader : DecodableRecord {
+extension AltReader : FetchableRecord {
     init(row: Row) {
         id = row["id"]
         name = row["name"]
@@ -50,7 +50,7 @@ extension AltReader : DecodableRecord {
 }
 
 
-class DecodableRecordQueryInterfaceRequestTests: GRDBTestCase {
+class FetchableRecordQueryInterfaceRequestTests: GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
@@ -66,7 +66,7 @@ class DecodableRecordQueryInterfaceRequestTests: GRDBTestCase {
     }
     
     
-    // MARK: - Fetch DecodableRecord
+    // MARK: - Fetch FetchableRecord
     
     func testAll() throws {
         let dbQueue = try makeDatabaseQueue()

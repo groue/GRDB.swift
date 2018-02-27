@@ -8,14 +8,14 @@ import XCTest
     import GRDB
 #endif
 
-class DecodableRecordDecodableTests: GRDBTestCase { }
+class FetchableRecordDecodableTests: GRDBTestCase { }
 
-// MARK: - DecodableRecord conformance derived from Decodable
+// MARK: - FetchableRecord conformance derived from Decodable
 
-extension DecodableRecordDecodableTests {
+extension FetchableRecordDecodableTests {
     
     func testTrivialDecodable() {
-        struct Struct : DecodableRecord, Decodable {
+        struct Struct : FetchableRecord, Decodable {
             let value: String
         }
         
@@ -26,7 +26,7 @@ extension DecodableRecordDecodableTests {
     }
     
     func testCustomDecodable() {
-        struct Struct : DecodableRecord, Decodable {
+        struct Struct : FetchableRecord, Decodable {
             let value: String
             
             private enum CodingKeys : String, CodingKey {
@@ -45,28 +45,28 @@ extension DecodableRecordDecodableTests {
         }
     }
     
-    func testCustomDecodableRecord() {
-        struct Struct : DecodableRecord, Decodable {
+    func testCustomFetchableRecord() {
+        struct Struct : FetchableRecord, Decodable {
             let value: String
             
             init(row: Row) {
-                value = (row["value"] as String) + " (DecodableRecord)"
+                value = (row["value"] as String) + " (FetchableRecord)"
             }
         }
         
         do {
             let s = Struct(row: ["value": "foo"])
-            XCTAssertEqual(s.value, "foo (DecodableRecord)")
+            XCTAssertEqual(s.value, "foo (FetchableRecord)")
         }
     }
 }
 
 // MARK: - Different kinds of single-value properties
 
-extension DecodableRecordDecodableTests {
+extension FetchableRecordDecodableTests {
     
     func testTrivialProperty() {
-        struct Struct : DecodableRecord, Decodable {
+        struct Struct : FetchableRecord, Decodable {
             let int64: Int64
             let optionalInt64: Int64?
         }
@@ -100,7 +100,7 @@ extension DecodableRecordDecodableTests {
             }
         }
         
-        struct Struct : DecodableRecord, Decodable {
+        struct Struct : FetchableRecord, Decodable {
             let value: Value
             let optionalValue: Value?
         }
@@ -144,7 +144,7 @@ extension DecodableRecordDecodableTests {
             }
         }
         
-        struct Struct : DecodableRecord, Decodable {
+        struct Struct : FetchableRecord, Decodable {
             let value: Value
             let optionalValue: Value?
         }
@@ -181,7 +181,7 @@ extension DecodableRecordDecodableTests {
             case foo, bar
         }
         
-        struct Struct : DecodableRecord, Decodable {
+        struct Struct : FetchableRecord, Decodable {
             let value: Value
             let optionalValue: Value?
         }
@@ -239,7 +239,7 @@ extension DecodableRecordDecodableTests {
             }
         }
         
-        struct Struct : DecodableRecord, Decodable {
+        struct Struct : FetchableRecord, Decodable {
             let value: Value
             let optionalValue: Value?
         }
@@ -269,10 +269,10 @@ extension DecodableRecordDecodableTests {
 
 // MARK: - Foundation Codable Types
 
-extension DecodableRecordDecodableTests {
+extension FetchableRecordDecodableTests {
 
     func testStructWithDate() {
-        struct StructWithDate : DecodableRecord, Decodable {
+        struct StructWithDate : FetchableRecord, Decodable {
             let date: Date
         }
         
@@ -282,7 +282,7 @@ extension DecodableRecordDecodableTests {
     }
     
     func testStructWithURL() {
-        struct StructWithURL : DecodableRecord, Decodable {
+        struct StructWithURL : FetchableRecord, Decodable {
             let url: URL
         }
         
@@ -292,7 +292,7 @@ extension DecodableRecordDecodableTests {
     }
     
     func testStructWithUUID() {
-        struct StructWithUUID : DecodableRecord, Decodable {
+        struct StructWithUUID : FetchableRecord, Decodable {
             let uuid: UUID
         }
         

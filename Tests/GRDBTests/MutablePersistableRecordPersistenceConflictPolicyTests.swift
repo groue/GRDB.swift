@@ -7,7 +7,7 @@ import XCTest
     import GRDB
 #endif
 
-private struct DefaultPolicy: MutableEncodableRecord {
+private struct DefaultPolicy: MutablePersistableRecord {
     var id: Int64?
     
     static let databaseTableName = "records"
@@ -21,7 +21,7 @@ private struct DefaultPolicy: MutableEncodableRecord {
     }
 }
 
-private struct MixedPolicy: MutableEncodableRecord {
+private struct MixedPolicy: MutablePersistableRecord {
     var id: Int64?
     
     static let databaseTableName = "records"
@@ -36,7 +36,7 @@ private struct MixedPolicy: MutableEncodableRecord {
     }
 }
 
-private struct ReplacePolicy: MutableEncodableRecord {
+private struct ReplacePolicy: MutablePersistableRecord {
     var id: Int64?
     var email: String
     
@@ -53,7 +53,7 @@ private struct ReplacePolicy: MutableEncodableRecord {
     }
 }
 
-private struct IgnorePolicy: MutableEncodableRecord {
+private struct IgnorePolicy: MutablePersistableRecord {
     var id: Int64?
     
     static let databaseTableName = "records"
@@ -68,7 +68,7 @@ private struct IgnorePolicy: MutableEncodableRecord {
     }
 }
 
-private struct FailPolicy: MutableEncodableRecord {
+private struct FailPolicy: MutablePersistableRecord {
     var id: Int64?
     
     static let databaseTableName = "records"
@@ -83,7 +83,7 @@ private struct FailPolicy: MutableEncodableRecord {
     }
 }
 
-private struct AbortPolicy: MutableEncodableRecord {
+private struct AbortPolicy: MutablePersistableRecord {
     var id: Int64?
     
     static let databaseTableName = "records"
@@ -98,7 +98,7 @@ private struct AbortPolicy: MutableEncodableRecord {
     }
 }
 
-private struct RollbackPolicy: MutableEncodableRecord {
+private struct RollbackPolicy: MutablePersistableRecord {
     var id: Int64?
     
     static let databaseTableName = "records"
@@ -113,7 +113,7 @@ private struct RollbackPolicy: MutableEncodableRecord {
     }
 }
 
-class MutableEncodableRecordPersistenceConflictPolicyTests: GRDBTestCase {
+class MutablePersistableRecordPersistenceConflictPolicyTests: GRDBTestCase {
     
     func testPolicyDefaultArguments() {
         let policy = PersistenceConflictPolicy()

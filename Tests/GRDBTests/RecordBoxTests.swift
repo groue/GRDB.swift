@@ -10,7 +10,7 @@ import XCTest
     typealias RecordBox = GRDB.RecordBox // Single deprecation warning
 #endif
 
-private struct Player: DecodableRecord, MutableEncodableRecord, Codable {
+private struct Player: FetchableRecord, MutablePersistableRecord, Codable {
     static let databaseTableName = "players"
     
     var id: Int64?

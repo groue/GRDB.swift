@@ -7,23 +7,23 @@ import XCTest
     import GRDB
 #endif
 
-private struct Hacker : MutableEncodableRecord {
+private struct Hacker : MutablePersistableRecord {
     static let databaseTableName = "hackers"
     func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
 }
 
-private struct Person : MutableEncodableRecord {
+private struct Person : MutablePersistableRecord {
     static let databaseTableName = "persons"
     func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
 }
 
-private struct Citizenship : MutableEncodableRecord {
+private struct Citizenship : MutablePersistableRecord {
     static let databaseTableName = "citizenships"
     func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
 }
 
 
-class MutableEncodableRecordDeleteTests: GRDBTestCase {
+class MutablePersistableRecordDeleteTests: GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
         try dbWriter.write { db in

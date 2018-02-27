@@ -365,7 +365,7 @@ extension QueryInterfaceRequest where T: TableRecord {
     }
 }
 
-extension QueryInterfaceRequest where RowDecoder: MutableEncodableRecord {
+extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
     
     // MARK: Deleting
     

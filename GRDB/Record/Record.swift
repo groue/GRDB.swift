@@ -2,7 +2,7 @@
 
 /// Record is a class that wraps a table row, or the result of any query. It is
 /// designed to be subclassed.
-open class Record : DecodableRecord, TableRecord, EncodableRecord {
+open class Record : FetchableRecord, TableRecord, PersistableRecord {
     
     // MARK: - Initializers
     
@@ -155,7 +155,7 @@ open class Record : DecodableRecord, TableRecord, EncodableRecord {
             row = Row(self)
         #else
             // workaround weird Swift 3.0 glitch
-            row = Row(self as! MutableEncodableRecord)
+            row = Row(self as! MutablePersistableRecord)
         #endif
         let copy = type(of: self).init(row: row)
         copy.referenceRow = referenceRow

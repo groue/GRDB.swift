@@ -110,27 +110,27 @@ private class UserFTS5WrapperTokenizer : FTS5WrapperTokenizer {
 }
 #endif
 
-// MARK: - MutableEncodableRecord
+// MARK: - MutablePersistableRecord
 
-private struct UserMutableEncodableRecord1 : MutableEncodableRecord {
-    static let databaseTableName = "UserMutableEncodableRecord1"
+private struct UserMutablePersistableRecord1 : MutablePersistableRecord {
+    static let databaseTableName = "UserMutablePersistableRecord1"
     func encode(to container: inout PersistenceContainer) { }
 }
 
-private class UserMutableEncodableRecord2 : MutableEncodableRecord {
-    static let databaseTableName = "UserMutableEncodableRecord2"
+private class UserMutablePersistableRecord2 : MutablePersistableRecord {
+    static let databaseTableName = "UserMutablePersistableRecord2"
     func encode(to container: inout PersistenceContainer) { }
 }
 
-// MARK: - EncodableRecord
+// MARK: - PersistableRecord
 
-private struct UserEncodableRecord1 : EncodableRecord {
-    static let databaseTableName = "UserEncodableRecord1"
+private struct UserPersistableRecord1 : PersistableRecord {
+    static let databaseTableName = "UserPersistableRecord1"
     func encode(to container: inout PersistenceContainer) { }
 }
 
-private class UserEncodableRecord2 : EncodableRecord {
-    static let databaseTableName = "UserEncodableRecord2"
+private class UserPersistableRecord2 : PersistableRecord {
+    static let databaseTableName = "UserPersistableRecord2"
     func encode(to container: inout PersistenceContainer) { }
 }
 
@@ -142,13 +142,13 @@ private struct UserRowRequest : FetchRequest {
     func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) { preconditionFailure() }
 }
 
-// MARK: - DecodableRecord
+// MARK: - FetchableRecord
 
-private struct UserDecodableRecord1 : DecodableRecord {
+private struct UserFetchableRecord1 : FetchableRecord {
     init(row: Row) { }
 }
 
-private class UserDecodableRecord2 : DecodableRecord {
+private class UserFetchableRecord2 : FetchableRecord {
     required init(row: Row) { }
 }
 

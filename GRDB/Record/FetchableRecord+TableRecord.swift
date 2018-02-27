@@ -1,4 +1,4 @@
-extension DecodableRecord where Self: TableRecord {
+extension FetchableRecord where Self: TableRecord {
     
     // MARK: Fetching All
     
@@ -59,7 +59,7 @@ extension DecodableRecord where Self: TableRecord {
     }
 }
 
-extension DecodableRecord where Self: TableRecord {
+extension FetchableRecord where Self: TableRecord {
     
     // MARK: Fetching by Single-Column Primary Key
     
@@ -119,7 +119,7 @@ extension DecodableRecord where Self: TableRecord {
     }
 }
 
-extension DecodableRecord where Self: TableRecord {
+extension FetchableRecord where Self: TableRecord {
     
     // MARK: Fetching by Key
     

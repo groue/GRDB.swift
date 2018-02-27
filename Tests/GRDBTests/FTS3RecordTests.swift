@@ -14,7 +14,7 @@ private struct Book {
     let body: String
 }
 
-extension Book : DecodableRecord {
+extension Book : FetchableRecord {
     init(row: Row) {
         id = row[.rowID]
         title = row["title"]
@@ -23,7 +23,7 @@ extension Book : DecodableRecord {
     }
 }
 
-extension Book : MutableEncodableRecord {
+extension Book : MutablePersistableRecord {
     static let databaseTableName = "books"
     static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
     

@@ -8,14 +8,14 @@ import Foundation
     import GRDB
 #endif
 
-class MutableEncodableRecordEncodableTests: GRDBTestCase { }
+class MutablePersistableRecordEncodableTests: GRDBTestCase { }
 
-// MARK: - MutableEncodableRecord conformance derived from Encodable
+// MARK: - MutablePersistableRecord conformance derived from Encodable
 
-extension MutableEncodableRecordEncodableTests {
+extension MutablePersistableRecordEncodableTests {
     
     func testTrivialEncodable() throws {
-        struct Struct : MutableEncodableRecord, Encodable {
+        struct Struct : MutablePersistableRecord, Encodable {
             static let databaseTableName = "t1"
             let value: String
         }
@@ -36,7 +36,7 @@ extension MutableEncodableRecordEncodableTests {
     }
     
     func testCustomEncodable() throws {
-        struct Struct : MutableEncodableRecord, Encodable {
+        struct Struct : MutablePersistableRecord, Encodable {
             static let databaseTableName = "t1"
             let value: String
             
@@ -65,13 +65,13 @@ extension MutableEncodableRecordEncodableTests {
         }
     }
     
-    func testCustomMutableEncodableRecord() throws {
-        struct Struct : MutableEncodableRecord, Encodable {
+    func testCustomMutablePersistableRecord() throws {
+        struct Struct : MutablePersistableRecord, Encodable {
             static let databaseTableName = "t1"
             let value: String
             
             func encode(to container: inout PersistenceContainer) {
-                container["value"] = value + " (MutableEncodableRecord)"
+                container["value"] = value + " (MutablePersistableRecord)"
             }
         }
         
@@ -82,21 +82,21 @@ extension MutableEncodableRecordEncodableTests {
             }
             
             var value = Struct(value: "foo")
-            assert(value, isEncodedIn: ["value": "foo (MutableEncodableRecord)"])
+            assert(value, isEncodedIn: ["value": "foo (MutablePersistableRecord)"])
             
             try value.insert(db)
             let string = try String.fetchOne(db, "SELECT value FROM t1")!
-            XCTAssertEqual(string, "foo (MutableEncodableRecord)")
+            XCTAssertEqual(string, "foo (MutablePersistableRecord)")
         }
     }
 }
 
 // MARK: - Different kinds of single-value properties
 
-extension MutableEncodableRecordEncodableTests {
+extension MutablePersistableRecordEncodableTests {
     
     func testTrivialProperty() throws {
-        struct Struct : MutableEncodableRecord, Encodable {
+        struct Struct : MutablePersistableRecord, Encodable {
             static let databaseTableName = "t1"
             let int64: Int64
             let optionalInt64: Int64?
@@ -141,7 +141,7 @@ extension MutableEncodableRecordEncodableTests {
             }
         }
         
-        struct Struct : MutableEncodableRecord, Encodable {
+        struct Struct : MutablePersistableRecord, Encodable {
             static let databaseTableName = "t1"
             let value: Value
             let optionalValue: Value?
@@ -195,7 +195,7 @@ extension MutableEncodableRecordEncodableTests {
             }
         }
         
-        struct Struct : MutableEncodableRecord, Encodable {
+        struct Struct : MutablePersistableRecord, Encodable {
             static let databaseTableName = "t1"
             let value: Value
             let optionalValue: Value?
@@ -240,7 +240,7 @@ extension MutableEncodableRecordEncodableTests {
             case foo, bar
         }
         
-        struct Struct : MutableEncodableRecord, Encodable {
+        struct Struct : MutablePersistableRecord, Encodable {
             static let databaseTableName = "t1"
             let value: Value
             let optionalValue: Value?
@@ -303,7 +303,7 @@ extension MutableEncodableRecordEncodableTests {
             }
         }
         
-        struct Struct : MutableEncodableRecord, Encodable {
+        struct Struct : MutablePersistableRecord, Encodable {
             static let databaseTableName = "t1"
             let value: Value
             let optionalValue: Value?
@@ -341,10 +341,10 @@ extension MutableEncodableRecordEncodableTests {
 
 // MARK: - Foundation Codable Types
 
-extension MutableEncodableRecordEncodableTests {
+extension MutablePersistableRecordEncodableTests {
     
     func testStructWithDate() throws {
-        struct StructWithDate : EncodableRecord, Encodable {
+        struct StructWithDate : PersistableRecord, Encodable {
             static let databaseTableName = "t1"
             let date: Date
         }
@@ -371,7 +371,7 @@ extension MutableEncodableRecordEncodableTests {
     }
     
     func testStructWithURL() throws {
-        struct StructWithURL : EncodableRecord, Encodable {
+        struct StructWithURL : PersistableRecord, Encodable {
             static let databaseTableName = "t1"
             let url: URL
         }
@@ -394,7 +394,7 @@ extension MutableEncodableRecordEncodableTests {
     }
     
     func testStructWithUUID() throws {
-        struct StructWithUUID : EncodableRecord, Encodable {
+        struct StructWithUUID : PersistableRecord, Encodable {
             static let databaseTableName = "t1"
             let uuid: UUID
         }

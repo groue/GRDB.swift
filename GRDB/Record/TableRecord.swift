@@ -1,7 +1,7 @@
 /// Types that adopt TableRecord declare a particular relationship with
 /// a database table.
 ///
-/// Types that adopt both TableRecord and DecodableRecord are granted with
+/// Types that adopt both TableRecord and FetchableRecord are granted with
 /// built-in methods that allow to fetch instances identified by key:
 ///
 ///     try Player.fetchOne(db, key: 123)  // Player?

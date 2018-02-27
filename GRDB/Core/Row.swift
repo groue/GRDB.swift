@@ -482,7 +482,7 @@ extension Row {
     ///
     /// See https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support
     /// for more information.
-    public subscript<Record: DecodableRecord>(_ scope: String) -> Record {
+    public subscript<Record: FetchableRecord>(_ scope: String) -> Record {
         guard let scopedRow = scoped(on: scope) else {
             // Programmer error
             fatalError("no such scope: \(scope)")
@@ -498,7 +498,7 @@ extension Row {
     ///
     /// See https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support
     /// for more information.
-    public subscript<Record: DecodableRecord>(_ scope: String) -> Record? {
+    public subscript<Record: FetchableRecord>(_ scope: String) -> Record? {
         guard let scopedRow = scoped(on: scope), scopedRow.containsNonNullValue else {
             return nil
         }
