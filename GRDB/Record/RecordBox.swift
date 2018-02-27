@@ -40,7 +40,7 @@ public final class RecordBox<T: DecodableRecord & MutablePersistable>: Record {
         super.init(row: row)
     }
     
-    // MARK: - TableMapping
+    // MARK: - TableRecord
     
     /// :nodoc:
     override public class var databaseTableName: String {

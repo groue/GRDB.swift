@@ -7,10 +7,10 @@ import XCTest
     import GRDB
 #endif
 
-class TableMappingTests: GRDBTestCase {
+class TableRecordTests: GRDBTestCase {
     
     func testDefaultDatabaseSelection() throws {
-        struct Record: TableMapping {
+        struct Record: TableRecord {
             static let databaseTableName = "t1"
         }
         let dbQueue = try makeDatabaseQueue()
@@ -22,7 +22,7 @@ class TableMappingTests: GRDBTestCase {
     }
     
     func testExtendedDatabaseSelection() throws {
-        struct Record: TableMapping {
+        struct Record: TableRecord {
             static let databaseTableName = "t1"
             static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
         }
@@ -35,7 +35,7 @@ class TableMappingTests: GRDBTestCase {
     }
     
     func testRestrictedDatabaseSelection() throws {
-        struct Record: TableMapping {
+        struct Record: TableRecord {
             static let databaseTableName = "t1"
             static let databaseSelection: [SQLSelectable] = [Column("a"), Column("b")]
         }

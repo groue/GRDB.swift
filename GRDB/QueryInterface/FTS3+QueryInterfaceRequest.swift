@@ -22,7 +22,7 @@ extension QueryInterfaceRequest {
     }
 }
 
-extension TableMapping {
+extension TableRecord {
     
     // MARK: Full Text Search
     
@@ -35,8 +35,8 @@ extension TableMapping {
     /// database row.
     ///
     /// The selection defaults to all columns. This default can be changed for
-    /// all requests by the `TableMapping.databaseSelection` property, or
-    /// for individual requests with the `TableMapping.select` method.
+    /// all requests by the `TableRecord.databaseSelection` property, or
+    /// for individual requests with the `TableRecord.select` method.
     public static func matching(_ pattern: FTS3Pattern?) -> QueryInterfaceRequest<Self> {
         return all().matching(pattern)
     }

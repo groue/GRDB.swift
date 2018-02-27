@@ -41,33 +41,33 @@ let testedSQL = """
     ORDER BY t1.id
     """
 
-private struct T1: Codable, DecodableRecord, TableMapping {
+private struct T1: Codable, DecodableRecord, TableRecord {
     static let databaseTableName = "t1"
     var id: Int64
     var name: String
 }
 
-private struct T2: Codable, DecodableRecord, TableMapping {
+private struct T2: Codable, DecodableRecord, TableRecord {
     static let databaseTableName = "t2"
     var id: Int64
     var t1id: Int64
     var name: String
 }
 
-private struct T3: Codable, DecodableRecord, TableMapping {
+private struct T3: Codable, DecodableRecord, TableRecord {
     static let databaseTableName = "t3"
     static let databaseSelection: [SQLSelectable] = [Column("t1id"), Column("name")]
     var t1id: Int64
     var name: String
 }
 
-private struct T4: Codable, DecodableRecord, TableMapping {
+private struct T4: Codable, DecodableRecord, TableRecord {
     static let databaseTableName = "t4"
     var t1id: Int64
     var name: String
 }
 
-private struct T5: Codable, DecodableRecord, TableMapping {
+private struct T5: Codable, DecodableRecord, TableRecord {
     static let databaseTableName = "t5"
     var id: Int64
     var t3id: Int64?

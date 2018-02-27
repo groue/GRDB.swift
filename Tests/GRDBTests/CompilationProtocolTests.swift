@@ -162,14 +162,14 @@ private class UserStatementColumnConvertible2 : StatementColumnConvertible {
     required init(sqliteStatement: SQLiteStatement, index: Int32) { }
 }
 
-// MARK: - TableMapping
+// MARK: - TableRecord
 
-private struct UserTableMapping1 : TableMapping {
-    static let databaseTableName = "UserTableMapping1"
+private struct UserTableRecord1 : TableRecord {
+    static let databaseTableName = "UserTableRecord1"
 }
 
-private class UserTableMapping2 : TableMapping {
-    static let databaseTableName = "UserTableMapping2"
+private class UserTableRecord2 : TableRecord {
+    static let databaseTableName = "UserTableRecord2"
 }
 
 // MARK: - TransactionObserver

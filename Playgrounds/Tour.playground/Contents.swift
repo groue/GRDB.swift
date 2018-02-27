@@ -76,8 +76,8 @@ extension PointOfInterest : DecodableRecord {
     }
 }
 
-// Adopt TableMapping
-extension PointOfInterest : TableMapping {
+// Adopt TableRecord
+extension PointOfInterest : TableRecord {
     static let databaseTableName = "pointOfInterests"
 }
 

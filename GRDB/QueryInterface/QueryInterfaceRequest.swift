@@ -246,7 +246,7 @@ extension QueryInterfaceRequest {
     }
 }
 
-extension QueryInterfaceRequest where T: TableMapping {
+extension QueryInterfaceRequest where T: TableRecord {
     
     /// Creates a QueryInterfaceRequest with the provided primary key *predicate*.
     ///
@@ -255,8 +255,8 @@ extension QueryInterfaceRequest where T: TableMapping {
     ///     request = request.filter(key: 1)
     ///
     /// The selection defaults to all columns. This default can be changed for
-    /// all requests by the `TableMapping.databaseSelection` property, or
-    /// for individual requests with the `TableMapping.select` method.
+    /// all requests by the `TableRecord.databaseSelection` property, or
+    /// for individual requests with the `TableRecord.select` method.
     public func filter<PrimaryKeyType: DatabaseValueConvertible>(key: PrimaryKeyType?) -> QueryInterfaceRequest<T> {
         guard let key = key else {
             return T.none()
@@ -272,8 +272,8 @@ extension QueryInterfaceRequest where T: TableMapping {
     ///     request = request.filter(keys: [1, 2, 3])
     ///
     /// The selection defaults to all columns. This default can be changed for
-    /// all requests by the `TableMapping.databaseSelection` property, or
-    /// for individual requests with the `TableMapping.select` method.
+    /// all requests by the `TableRecord.databaseSelection` property, or
+    /// for individual requests with the `TableRecord.select` method.
     public func filter<Sequence: Swift.Sequence>(keys: Sequence) -> QueryInterfaceRequest<T> where Sequence.Element: DatabaseValueConvertible {
         let keys = Array(keys)
         let makePredicate: (Column) -> SQLExpression
@@ -308,8 +308,8 @@ extension QueryInterfaceRequest where T: TableMapping {
     /// index on the key columns.
     ///
     /// The selection defaults to all columns. This default can be changed for
-    /// all requests by the `TableMapping.databaseSelection` property, or
-    /// for individual requests with the `TableMapping.select` method.
+    /// all requests by the `TableRecord.databaseSelection` property, or
+    /// for individual requests with the `TableRecord.select` method.
     public func filter(key: [String: DatabaseValueConvertible?]?) -> QueryInterfaceRequest<T> {
         guard let key = key else {
             return T.none()
@@ -327,8 +327,8 @@ extension QueryInterfaceRequest where T: TableMapping {
     /// index on the key columns.
     ///
     /// The selection defaults to all columns. This default can be changed for
-    /// all requests by the `TableMapping.databaseSelection` property, or
-    /// for individual requests with the `TableMapping.select` method.
+    /// all requests by the `TableRecord.databaseSelection` property, or
+    /// for individual requests with the `TableRecord.select` method.
     public func filter(keys: [[String: DatabaseValueConvertible?]]) -> QueryInterfaceRequest<T> {
         guard !keys.isEmpty else {
             return T.none()
@@ -381,7 +381,7 @@ extension QueryInterfaceRequest where RowDecoder: MutablePersistable {
     }
 }
 
-extension TableMapping {
+extension TableRecord {
     
     // MARK: Request Derivation
     
@@ -391,8 +391,8 @@ extension TableMapping {
     ///     let request = Player.all()
     ///
     /// The selection defaults to all columns. This default can be changed for
-    /// all requests by the `TableMapping.databaseSelection` property, or
-    /// for individual requests with the `TableMapping.select` method.
+    /// all requests by the `TableRecord.databaseSelection` property, or
+    /// for individual requests with the `TableRecord.select` method.
     public static func all() -> QueryInterfaceRequest<Self> {
         let query = QueryInterfaceQuery(
             select: databaseSelection,
@@ -435,8 +435,8 @@ extension TableMapping {
     ///     let request = Player.filter(Column("email") == "arthur@example.com")
     ///
     /// The selection defaults to all columns. This default can be changed for
-    /// all requests by the `TableMapping.databaseSelection` property, or
-    /// for individual requests with the `TableMapping.select` method.
+    /// all requests by the `TableRecord.databaseSelection` property, or
+    /// for individual requests with the `TableRecord.select` method.
     public static func filter(_ predicate: SQLExpressible) -> QueryInterfaceRequest<Self> {
         return all().filter(predicate)
     }
@@ -447,8 +447,8 @@ extension TableMapping {
     ///     let request = Player.filter(key: 1)
     ///
     /// The selection defaults to all columns. This default can be changed for
-    /// all requests by the `TableMapping.databaseSelection` property, or
-    /// for individual requests with the `TableMapping.select` method.
+    /// all requests by the `TableRecord.databaseSelection` property, or
+    /// for individual requests with the `TableRecord.select` method.
     public static func filter<PrimaryKeyType: DatabaseValueConvertible>(key: PrimaryKeyType?) -> QueryInterfaceRequest<Self> {
         return all().filter(key: key)
     }
@@ -459,8 +459,8 @@ extension TableMapping {
     ///     let request = Player.filter(keys: [1, 2, 3])
     ///
     /// The selection defaults to all columns. This default can be changed for
-    /// all requests by the `TableMapping.databaseSelection` property, or
-    /// for individual requests with the `TableMapping.select` method.
+    /// all requests by the `TableRecord.databaseSelection` property, or
+    /// for individual requests with the `TableRecord.select` method.
     public static func filter<Sequence: Swift.Sequence>(keys: Sequence) -> QueryInterfaceRequest<Self> where Sequence.Element: DatabaseValueConvertible {
         return all().filter(keys: keys)
     }
@@ -474,8 +474,8 @@ extension TableMapping {
     /// index on the key columns.
     ///
     /// The selection defaults to all columns. This default can be changed for
-    /// all requests by the `TableMapping.databaseSelection` property, or
-    /// for individual requests with the `TableMapping.select` method.
+    /// all requests by the `TableRecord.databaseSelection` property, or
+    /// for individual requests with the `TableRecord.select` method.
     public static func filter(key: [String: DatabaseValueConvertible?]?) -> QueryInterfaceRequest<Self> {
         return all().filter(key: key)
     }
@@ -489,8 +489,8 @@ extension TableMapping {
     /// index on the key columns.
     ///
     /// The selection defaults to all columns. This default can be changed for
-    /// all requests by the `TableMapping.databaseSelection` property, or
-    /// for individual requests with the `TableMapping.select` method.
+    /// all requests by the `TableRecord.databaseSelection` property, or
+    /// for individual requests with the `TableRecord.select` method.
     public static func filter(keys: [[String: DatabaseValueConvertible?]]) -> QueryInterfaceRequest<Self> {
         return all().filter(keys: keys)
     }
@@ -501,8 +501,8 @@ extension TableMapping {
     ///     let request = Player.filter(sql: "email = ?", arguments: ["arthur@example.com"])
     ///
     /// The selection defaults to all columns. This default can be changed for
-    /// all requests by the `TableMapping.databaseSelection` property, or
-    /// for individual requests with the `TableMapping.select` method.
+    /// all requests by the `TableRecord.databaseSelection` property, or
+    /// for individual requests with the `TableRecord.select` method.
     public static func filter(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<Self> {
         return all().filter(sql: sql, arguments: arguments)
     }
@@ -514,8 +514,8 @@ extension TableMapping {
     ///     let request = Player.order(Column("name"))
     ///
     /// The selection defaults to all columns. This default can be changed for
-    /// all requests by the `TableMapping.databaseSelection` property, or
-    /// for individual requests with the `TableMapping.select` method.
+    /// all requests by the `TableRecord.databaseSelection` property, or
+    /// for individual requests with the `TableRecord.select` method.
     public static func order(_ orderings: SQLOrderingTerm...) -> QueryInterfaceRequest<Self> {
         return all().order(orderings)
     }
@@ -527,8 +527,8 @@ extension TableMapping {
     ///     let request = Player.order([Column("name")])
     ///
     /// The selection defaults to all columns. This default can be changed for
-    /// all requests by the `TableMapping.databaseSelection` property, or
-    /// for individual requests with the `TableMapping.select` method.
+    /// all requests by the `TableRecord.databaseSelection` property, or
+    /// for individual requests with the `TableRecord.select` method.
     public static func order(_ orderings: [SQLOrderingTerm]) -> QueryInterfaceRequest<Self> {
         return all().order(orderings)
     }
@@ -539,8 +539,8 @@ extension TableMapping {
     ///     let request = Player.order(sql: "name")
     ///
     /// The selection defaults to all columns. This default can be changed for
-    /// all requests by the `TableMapping.databaseSelection` property, or
-    /// for individual requests with the `TableMapping.select` method.
+    /// all requests by the `TableRecord.databaseSelection` property, or
+    /// for individual requests with the `TableRecord.select` method.
     public static func order(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<Self> {
         return all().order(sql: sql, arguments: arguments)
     }
@@ -552,8 +552,8 @@ extension TableMapping {
     ///     let request = Player.limit(1)
     ///
     /// The selection defaults to all columns. This default can be changed for
-    /// all requests by the `TableMapping.databaseSelection` property, or
-    /// for individual requests with the `TableMapping.select` method.
+    /// all requests by the `TableRecord.databaseSelection` property, or
+    /// for individual requests with the `TableRecord.select` method.
     public static func limit(_ limit: Int, offset: Int? = nil) -> QueryInterfaceRequest<Self> {
         return all().limit(limit, offset: offset)
     }

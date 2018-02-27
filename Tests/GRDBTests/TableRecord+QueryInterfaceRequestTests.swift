@@ -14,12 +14,12 @@ private struct Col {
     static let readerId = Column("readerId")
 }
 
-private struct Reader : TableMapping {
+private struct Reader : TableRecord {
     static let databaseTableName = "readers"
 }
 
 
-class TableMappingQueryInterfaceRequestTests: GRDBTestCase {
+class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()

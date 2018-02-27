@@ -169,7 +169,7 @@ public struct PersistenceConflictPolicy {
 }
 
 /// Types that adopt MutablePersistable can be inserted, updated, and deleted.
-public protocol MutablePersistable : TableMapping {
+public protocol MutablePersistable : TableRecord {
     /// The policy that handles SQLite conflicts when records are inserted
     /// or updated.
     ///

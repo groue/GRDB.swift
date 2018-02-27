@@ -1,17 +1,17 @@
-/// Types that adopt TableMapping declare a particular relationship with
+/// Types that adopt TableRecord declare a particular relationship with
 /// a database table.
 ///
-/// Types that adopt both TableMapping and DecodableRecord are granted with
+/// Types that adopt both TableRecord and DecodableRecord are granted with
 /// built-in methods that allow to fetch instances identified by key:
 ///
 ///     try Player.fetchOne(db, key: 123)  // Player?
 ///     try Citizenship.fetchOne(db, key: ["citizenId": 12, "countryId": 45]) // Citizenship?
 ///
-/// TableMapping is adopted by Record.
-public protocol TableMapping {
+/// TableRecord is adopted by Record.
+public protocol TableRecord {
     /// The name of the database table used to build requests.
     ///
-    ///     struct Player : TableMapping {
+    ///     struct Player : TableRecord {
     ///         static var databaseTableName = "players"
     ///     }
     ///
@@ -29,7 +29,7 @@ public protocol TableMapping {
     /// You can provide a custom implementation and provide an explicit list
     /// of columns:
     ///
-    ///     struct RestrictedPlayer : TableMapping {
+    ///     struct RestrictedPlayer : TableRecord {
     ///         static var databaseTableName = "players"
     ///         static var databaseSelection = [Column("id"), Column("name")]
     ///     }
@@ -39,7 +39,7 @@ public protocol TableMapping {
     ///
     /// You can also add extra columns such as the `rowid` column:
     ///
-    ///     struct ExtendedPlayer : TableMapping {
+    ///     struct ExtendedPlayer : TableRecord {
     ///         static var databaseTableName = "players"
     ///         static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
     ///     }
@@ -49,14 +49,14 @@ public protocol TableMapping {
     static var databaseSelection: [SQLSelectable] { get }
 }
 
-extension TableMapping {
+extension TableRecord {
     /// Default value: `[AllColumns()]`.
     public static var databaseSelection: [SQLSelectable] {
         return [AllColumns()]
     }
 }
 
-extension TableMapping {
+extension TableRecord {
     
     // MARK: - Counting All
     
@@ -68,7 +68,7 @@ extension TableMapping {
     }
 }
 
-extension TableMapping {
+extension TableRecord {
     
     // MARK: - SQL Generation
     
@@ -76,7 +76,7 @@ extension TableMapping {
     ///
     /// For example:
     ///
-    ///     struct Player: TableMapping {
+    ///     struct Player: TableRecord {
     ///         static let databaseTableName = "players"
     ///     }
     ///
@@ -98,7 +98,7 @@ extension TableMapping {
     ///
     /// For example:
     ///
-    ///     struct Player: TableMapping {
+    ///     struct Player: TableRecord {
     ///         static let databaseTableName = "players"
     ///     }
     ///

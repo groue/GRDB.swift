@@ -1858,7 +1858,7 @@ Your custom structs and classes can adopt each protocol individually, and opt in
 
 - [Record Protocols Overview](#record-protocols-overview)
 - [DecodableRecord Protocol](#decodablerecord-protocol)
-- [TableMapping Protocol](#tablemapping-protocol)
+- [TableRecord Protocol](#tablerecord-protocol)
 - [Persistable Protocol](#persistable-protocol)
     - [Persistence Methods](#persistence-methods)
     - [Customizing the Persistence Methods](#customizing-the-persistence-methods)
@@ -1891,7 +1891,7 @@ class Player : Record { ... }
 let players = try Player.fetchAll(db, "SELECT ...", arguments: ...) // [Player]
 ```
 
-Add the [TableMapping](#tablemapping-protocol) protocol and you can stop writing SQL:
+Add the [TableRecord] protocol and you can stop writing SQL:
 
 ```swift
 let spain = try Country.fetchOne(db, key: "ES") // Country?
@@ -1957,7 +1957,7 @@ try Player.filter(emailColumn == nil).deleteAll(db)
 
 ### Counting Records
 
-[Record](#record-class) subclasses and types that adopt the [TableMapping](#tablemapping-protocol) protocol can be counted:
+[Record](#record-class) subclasses and types that adopt the [TableRecord] protocol can be counted:
 
 ```swift
 let playerWithEmailCount = try Player.filter(emailColumn != nil).fetchCount(db)  // Int
@@ -1968,7 +1968,7 @@ Details follow:
 
 - [Record Protocols Overview](#record-protocols-overview)
 - [DecodableRecord Protocol](#decodablerecord-protocol)
-- [TableMapping Protocol](#tablemapping-protocol)
+- [TableRecord Protocol](#tablerecord-protocol)
 - [Persistable Protocol](#persistable-protocol)
 - [Codable Records](#codable-records)
 - [Record Class](#record-class)
@@ -2051,20 +2051,20 @@ Details follow:
     }
     ```
     
-    DecodableRecord is not able to build SQL requests, though. For that, you also need TableMapping:
+    DecodableRecord is not able to build SQL requests, though. For that, you also need TableRecord:
     
-- [TableMapping](#tablemapping-protocol) is able to **build requests without SQL**:
+- [TableRecord] is able to **build requests without SQL**:
     
     ```swift
-    struct Place : TableMapping { ... }
+    struct Place : TableRecord { ... }
     // SELECT * FROM places ORDER BY title
     let request = Place.order(Column("title"))
     ```
     
-    When a type adopts both TableMapping and DecodableRecord, it can load from those requests:
+    When a type adopts both TableRecord and DecodableRecord, it can load from those requests:
     
     ```swift
-    struct Place : TableMapping, DecodableRecord { ... }
+    struct Place : TableRecord, DecodableRecord { ... }
     try dbQueue.inDatabase { db in
         let places = try Place.order(Column("title")).fetchAll(db)
         let paris = try Place.fetchOne(key: 1)
@@ -2151,12 +2151,12 @@ try Place.fetchOne(db, "SELECT ...", arguments:...)    // Place?
 See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll` and `fetchOne` methods. See [StatementArguments](http://groue.github.io/GRDB.swift/docs/2.9/Structs/StatementArguments.html) for more information about the query arguments.
 
 
-## TableMapping Protocol
+## TableRecord Protocol
 
-**Adopt the TableMapping protocol** on top of [DecodableRecord], and you are granted with the full [query interface](#the-query-interface).
+**Adopt the TableRecord protocol** on top of [DecodableRecord], and you are granted with the full [query interface](#the-query-interface).
 
 ```swift
-protocol TableMapping {
+protocol TableRecord {
     static var databaseTableName: String { get }
     static var databaseSelection: [SQLSelectable] { get }
 }
@@ -2164,10 +2164,10 @@ protocol TableMapping {
 
 The `databaseTableName` type property is the name of a database table. `databaseSelection` is optional, and documented in the [Columns Selected by a Request](#columns-selected-by-a-request) chapter.
 
-**To use TableMapping**, subclass the [Record](#record-class) class, or adopt it explicitely. For example:
+**To use TableRecord**, subclass the [Record](#record-class) class, or adopt it explicitely. For example:
 
 ```swift
-extension Place : TableMapping {
+extension Place : TableRecord {
     static let databaseTableName = "places"
 }
 ```
@@ -2179,7 +2179,7 @@ Adopting types can be fetched without SQL, using the [query interface](#the-quer
 let paris = try Place.filter(nameColumn == "Paris").fetchOne(db)
 ```
 
-TableMapping can also fetch records by primary key:
+TableRecord can also fetch records by primary key:
 
 ```swift
 try Player.fetchOne(db, key: 1)              // Player?
@@ -2209,8 +2209,8 @@ try Citizenship.fetchOne(db, key: ["playerID": 1, "countryISOCode": "FR"]) // Ci
 **GRDB provides two protocols that let adopting types create, update, and delete rows in the database:**
 
 ```swift
-protocol MutablePersistable : TableMapping {
-    /// The name of the database table (from TableMapping)
+protocol MutablePersistable : TableRecord {
+    /// The name of the database table (from TableRecord)
     static var databaseTableName: String { get }
     
     /// Defines the values persisted in the database
@@ -2479,7 +2479,7 @@ place.id // A unique id
 
 ## Record Class
 
-**Record** is a class that is designed to be subclassed. It inherits its features from the [DecodableRecord, TableMapping, and Persistable](#record-protocols-overview) protocols. On top of that, Record instances can [track their changes](#changes-tracking).
+**Record** is a class that is designed to be subclassed. It inherits its features from the [DecodableRecord, TableRecord, and Persistable](#record-protocols-overview) protocols. On top of that, Record instances can [track their changes](#changes-tracking).
 
 Record subclasses define their custom database relationship by overriding database methods:
 
@@ -2710,10 +2710,10 @@ Without primary key, records don't have any identity, and the [persistence metho
 
 When SQLite won't let you provide an explicit primary key (as in [full-text](#full-text-search) tables, for example), you may want to make your record type fully aware of the hidden rowid column:
 
-1. Have the `databaseSelection` static property (from the [TableMapping](#tablemapping-protocol) protocol) return the hidden rowid column:
+1. Have the `databaseSelection` static property (from the [TableRecord] protocol) return the hidden rowid column:
     
     ```swift
-    struct Event : TableMapping {
+    struct Event : TableRecord {
         static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
     }
     
@@ -2803,8 +2803,8 @@ This is the list of record methods, along with their required protocols. The [Re
 | ------ | --------- | :---: |
 | **Core Methods** | | |
 | `init(row:)` | [DecodableRecord] | |
-| `Type.databaseTableName` | [TableMapping](#tablemapping-protocol) | |
-| `Type.databaseSelection` | [TableMapping](#tablemapping-protocol) | [*](#columns-selected-by-a-request) |
+| `Type.databaseTableName` | [TableRecord] | |
+| `Type.databaseSelection` | [TableRecord] | [*](#columns-selected-by-a-request) |
 | `Type.persistenceConflictPolicy` | [Persistable](#persistable-protocol) | [*](#conflict-resolution) |
 | `record.encode(to:)` | [Persistable](#persistable-protocol) | |
 | `record.didInsert(with:for:)` | [Persistable](#persistable-protocol) | |
@@ -2826,26 +2826,26 @@ This is the list of record methods, along with their required protocols. The [Re
 | **Convert Record to Dictionary** | | |
 | `record.databaseDictionary` | [Persistable](#persistable-protocol) | |
 | **Count Records** | | |
-| `Type.fetchCount(db)` | [TableMapping](#tablemapping-protocol) | |
-| `Type.filter(...).fetchCount(db)` | [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
+| `Type.fetchCount(db)` | [TableRecord] | |
+| `Type.filter(...).fetchCount(db)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **Fetch Record [Cursors](#cursors)** | | |
-| `Type.fetchCursor(db)` | [DecodableRecord] & [TableMapping](#tablemapping-protocol) | |
-| `Type.fetchCursor(db, keys:...)` | [DecodableRecord] & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.fetchCursor(db)` | [DecodableRecord] & [TableRecord] | |
+| `Type.fetchCursor(db, keys:...)` | [DecodableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
 | `Type.fetchCursor(db, sql)` | [DecodableRecord] | <a href="#list-of-record-methods-3">³</a> |
 | `Type.fetchCursor(statement)` | [DecodableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
-| `Type.filter(...).fetchCursor(db)` | [DecodableRecord] & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
+| `Type.filter(...).fetchCursor(db)` | [DecodableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **Fetch Record Arrays** | | |
-| `Type.fetchAll(db)` | [DecodableRecord] & [TableMapping](#tablemapping-protocol) | |
-| `Type.fetchAll(db, keys:...)` | [DecodableRecord] & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.fetchAll(db)` | [DecodableRecord] & [TableRecord] | |
+| `Type.fetchAll(db, keys:...)` | [DecodableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
 | `Type.fetchAll(db, sql)` | [DecodableRecord] | <a href="#list-of-record-methods-3">³</a> |
 | `Type.fetchAll(statement)` | [DecodableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
-| `Type.filter(...).fetchAll(db)` | [DecodableRecord] & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
+| `Type.filter(...).fetchAll(db)` | [DecodableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **Fetch Individual Records** | | |
-| `Type.fetchOne(db)` | [DecodableRecord] & [TableMapping](#tablemapping-protocol) | |
-| `Type.fetchOne(db, key:...)` | [DecodableRecord] & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.fetchOne(db)` | [DecodableRecord] & [TableRecord] | |
+| `Type.fetchOne(db, key:...)` | [DecodableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
 | `Type.fetchOne(db, sql)` | [DecodableRecord] | <a href="#list-of-record-methods-3">³</a> |
 | `Type.fetchOne(statement)` | [DecodableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
-| `Type.filter(...).fetchOne(db)` | [DecodableRecord] & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
+| `Type.filter(...).fetchOne(db)` | [DecodableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **[Changes Tracking](#changes-tracking)** | | |
 | `record.databaseEqual(...)` | [Persistable](#persistable-protocol) | |
 | `record.databaseChanges(from:...)` | [Persistable](#persistable-protocol) | |
@@ -3117,7 +3117,7 @@ let players = try request.fetchAll(db)  // [Player]
 let count = try request.fetchCount(db)  // Int
 ```
 
-All requests start from **a type** that adopts the `TableMapping` protocol, such as a `Record` subclass (see [Records](#records)):
+All requests start from **a type** that adopts the `TableRecord` protocol, such as a `Record` subclass (see [Records](#records)):
 
 ```swift
 class Player : Record { ... }
@@ -3309,12 +3309,12 @@ let request = Player.select(AllColumns(), Column.rowID)
 To specify the default selection for all requests built from a type, define the `databaseSelection` property:
 
 ```swift
-struct RestrictedPlayer : TableMapping {
+struct RestrictedPlayer : TableRecord {
     static let databaseTableName = "players"
     static let databaseSelection: [SQLSelectable] = [Column("id"), Column("name")]
 }
 
-struct ExtendedPlayer : TableMapping {
+struct ExtendedPlayer : TableRecord {
     static let databaseTableName = "players"
     static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
 }
@@ -3701,7 +3701,7 @@ Player.deleteOne(db, key: ["email": "arthur@example.com"])
 
 ## Custom Requests
 
-Until now, we have seen [requests](#requests) created from any type that adopts the [TableMapping](#tablemapping-protocol) protocol:
+Until now, we have seen [requests](#requests) created from any type that adopts the [TableRecord] protocol:
 
 ```swift
 let request = Player.all()  // QueryInterfaceRequest<Player>
@@ -4712,7 +4712,7 @@ Our introduction above has introduced important techniques. It uses [row adapter
 But we may want to make it more usable and robust:
 
 1. It's generally easier to consume records than raw rows.
-2. Joined records not always need all columns from a table (see `TableMapping.databaseSelection` in [Columns Selected by a Request](#columns-selected-by-a-request)).
+2. Joined records not always need all columns from a table (see `TableRecord.databaseSelection` in [Columns Selected by a Request](#columns-selected-by-a-request)).
 3. Building row adapters is long and error prone.
 
 To address the first bullet, let's define a record that holds our player, optional team, and maximum score. Since it can decode database rows, it adopts the [DecodableRecord] protocol:
@@ -4893,12 +4893,12 @@ Item.all()
 You can consume complex joined queries with Codable records as well. As a demonstration, we'll rewrite the [above](#splitting-rows-the-request-way) sample code:
 
 ```swift
-struct Player: Decodable, DecodableRecord, TableMapping {
+struct Player: Decodable, DecodableRecord, TableRecord {
     static let databaseTableName = "players"
     var id: Int64
     var name: String
 }
-struct Team: Decodable, DecodableRecord, TableMapping {
+struct Team: Decodable, DecodableRecord, TableRecord {
     static let databaseTableName = "teams"
     var id: Int64
     var name: String
@@ -5489,10 +5489,10 @@ try controller.performFetch()
 
 FetchedRecordsController let you feed table and collection views, and keep them up-to-date with the database content.
 
-For nice animated updates, a fetched records controller needs to recognize identical records between two different result sets. When records adopt the [TableMapping](#tablemapping-protocol) protocol, they are automatically compared according to their primary key:
+For nice animated updates, a fetched records controller needs to recognize identical records between two different result sets. When records adopt the [TableRecord] protocol, they are automatically compared according to their primary key:
 
 ```swift
-class Player : TableMapping { ... }
+class Player : TableRecord { ... }
 let controller = FetchedRecordsController(
     dbQueue,
     request: Player.all())
@@ -6916,8 +6916,13 @@ Sample Code
 Legacy
 ======
 
-## RowConvertible Protocol
+#### RowConvertible Protocol
 
 This protocol has been renamed [DecodableRecord] in GRDB 3.0.
 
+#### TableMapping Protocol
+
+This protocol has been renamed [TableRecord] in GRDB 3.0.
+
 [DecodableRecord]: #decodablerecord-protocol
+[TableRecord]: #tablerecord-protocol

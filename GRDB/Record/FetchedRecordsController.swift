@@ -393,7 +393,7 @@ public final class FetchedRecordsController<Record: DecodableRecord> {
     fileprivate var errorHandler: ((FetchedRecordsController<Record>, Error) -> ())?
 }
 
-extension FetchedRecordsController where Record: TableMapping {
+extension FetchedRecordsController where Record: TableRecord {
     
     // MARK: - Initialization
     

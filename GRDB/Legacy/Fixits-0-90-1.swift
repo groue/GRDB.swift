@@ -39,7 +39,7 @@ extension DecodableRecord {
     public static func fetch(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Any { preconditionFailure() }
 }
 
-extension DecodableRecord where Self: TableMapping {
+extension DecodableRecord where Self: TableRecord {
     @available(*, unavailable, renamed:"fetchCursor")
     public static func fetch(_ db: Database) -> Any { preconditionFailure() }
     @available(*, unavailable, renamed:"fetchCursor")

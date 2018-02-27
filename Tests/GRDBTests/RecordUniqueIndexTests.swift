@@ -7,7 +7,7 @@ import XCTest
     @testable import GRDB
 #endif
 
-private struct Person : DecodableRecord, TableMapping {
+private struct Person : DecodableRecord, TableRecord {
     static let databaseTableName = "persons"
     init(row: Row) {
     }

@@ -72,10 +72,10 @@ extension Place: DecodableRecord { ... }
 let places = try Place.fetchAll(db, "SELECT * FROM places") // [Place]
 ```
 
-Add the [TableMapping] protocol, and SQL requests are generated for you:
+Add the [TableRecord] protocol, and SQL requests are generated for you:
 
 ```swift
-extension Place: TableMapping { ... }
+extension Place: TableRecord { ... }
 let place = try Place.fetchOne(db, key: 1) // Place?
 ```
 
@@ -271,5 +271,5 @@ Happy GRDB! :gift:
 [SQLite.swift]: http://github.com/stephencelis/SQLite.swift
 [StORM]: https://www.perfect.org/docs/StORM.html
 [Swift-Kuery]: http://github.com/IBM-Swift/Swift-Kuery
-[TableMapping]: https://github.com/groue/GRDB.swift/blob/master/README.md#records
+[TableRecord]: https://github.com/groue/GRDB.swift/blob/master/README.md#records
 [TransactionObserver]: https://github.com/groue/GRDB.swift/blob/master/README.md#transactionobserver-protocol
