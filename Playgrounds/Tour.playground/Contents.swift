@@ -64,8 +64,8 @@ struct PointOfInterest {
     var coordinate: CLLocationCoordinate2D
 }
 
-// Adopt RowConvertible
-extension PointOfInterest : RowConvertible {
+// Adopt DecodableRecord
+extension PointOfInterest : DecodableRecord {
     init(row: Row) {
         id = row["id"]
         title = row["title"]

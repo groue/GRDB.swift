@@ -41,33 +41,33 @@ let testedSQL = """
     ORDER BY t1.id
     """
 
-private struct T1: Codable, RowConvertible, TableMapping {
+private struct T1: Codable, DecodableRecord, TableMapping {
     static let databaseTableName = "t1"
     var id: Int64
     var name: String
 }
 
-private struct T2: Codable, RowConvertible, TableMapping {
+private struct T2: Codable, DecodableRecord, TableMapping {
     static let databaseTableName = "t2"
     var id: Int64
     var t1id: Int64
     var name: String
 }
 
-private struct T3: Codable, RowConvertible, TableMapping {
+private struct T3: Codable, DecodableRecord, TableMapping {
     static let databaseTableName = "t3"
     static let databaseSelection: [SQLSelectable] = [Column("t1id"), Column("name")]
     var t1id: Int64
     var name: String
 }
 
-private struct T4: Codable, RowConvertible, TableMapping {
+private struct T4: Codable, DecodableRecord, TableMapping {
     static let databaseTableName = "t4"
     var t1id: Int64
     var name: String
 }
 
-private struct T5: Codable, RowConvertible, TableMapping {
+private struct T5: Codable, DecodableRecord, TableMapping {
     static let databaseTableName = "t5"
     var id: Int64
     var t3id: Int64?
@@ -75,7 +75,7 @@ private struct T5: Codable, RowConvertible, TableMapping {
     var name: String
 }
 
-private struct FlatModel: RowConvertible {
+private struct FlatModel: DecodableRecord {
     private enum Scopes {
         static let t1 = "t1"
         static let t2Left = "t2Left"
@@ -115,7 +115,7 @@ private struct FlatModel: RowConvertible {
     }
 }
 
-private struct CodableFlatModel: RowConvertible, Codable {
+private struct CodableFlatModel: DecodableRecord, Codable {
     var t1: T1
     var t2Left: T2?
     var t2Right: T2?
@@ -138,7 +138,7 @@ private struct CodableFlatModel: RowConvertible, Codable {
     }
 }
 
-private struct CodableNestedModel: RowConvertible, Codable {
+private struct CodableNestedModel: DecodableRecord, Codable {
     struct T2Pair: Codable {
         var left: T2?
         var right: T2?

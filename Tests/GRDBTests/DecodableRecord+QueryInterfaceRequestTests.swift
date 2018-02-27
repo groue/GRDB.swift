@@ -13,7 +13,7 @@ private struct Reader {
     let age: Int?
 }
 
-extension Reader : RowConvertible {
+extension Reader : DecodableRecord {
     init(row: Row) {
         id = row["id"]
         name = row["name"]
@@ -41,7 +41,7 @@ private struct AltReader {
     let age: Int?
 }
 
-extension AltReader : RowConvertible {
+extension AltReader : DecodableRecord {
     init(row: Row) {
         id = row["id"]
         name = row["name"]
@@ -50,7 +50,7 @@ extension AltReader : RowConvertible {
 }
 
 
-class RowConvertibleQueryInterfaceRequestTests: GRDBTestCase {
+class DecodableRecordQueryInterfaceRequestTests: GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
@@ -66,7 +66,7 @@ class RowConvertibleQueryInterfaceRequestTests: GRDBTestCase {
     }
     
     
-    // MARK: - Fetch RowConvertible
+    // MARK: - Fetch DecodableRecord
     
     func testAll() throws {
         let dbQueue = try makeDatabaseQueue()

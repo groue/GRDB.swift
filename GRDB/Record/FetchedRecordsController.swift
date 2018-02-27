@@ -9,7 +9,7 @@ import Foundation
 ///
 /// See https://github.com/groue/GRDB.swift#fetchedrecordscontroller for
 /// more information.
-public final class FetchedRecordsController<Record: RowConvertible> {
+public final class FetchedRecordsController<Record: DecodableRecord> {
     
     // MARK: - Initialization
     
@@ -510,7 +510,7 @@ extension FetchedRecordsController where Record: TableMapping {
 
 /// FetchedRecordsController adopts TransactionObserverType so that it can
 /// monitor changes to its fetched records.
-private final class FetchedRecordsObserver<Record: RowConvertible> : TransactionObserver {
+private final class FetchedRecordsObserver<Record: DecodableRecord> : TransactionObserver {
     var isValid: Bool
     var needsComputeChanges: Bool
     var items: [Item<Record>]!  // ought to be not nil when observer has started tracking transactions
@@ -861,8 +861,8 @@ private func identicalItemArrays<Record>(_ lhs: [Item<Record>], _ rhs: [Item<Rec
 
 // MARK: - UITableView Support
 
-private typealias ItemComparator<Record: RowConvertible> = (Item<Record>, Item<Record>) -> Bool
-private typealias ItemComparatorFactory<Record: RowConvertible> = (Database) throws -> ItemComparator<Record>
+private typealias ItemComparator<Record: DecodableRecord> = (Item<Record>, Item<Record>) -> Bool
+private typealias ItemComparatorFactory<Record: DecodableRecord> = (Database) throws -> ItemComparator<Record>
 
 extension FetchedRecordsController {
     
@@ -915,7 +915,7 @@ extension FetchedRecordsController where Record: MutablePersistable {
     }
 }
 
-private enum ItemChange<T: RowConvertible> {
+private enum ItemChange<T: DecodableRecord> {
     case insertion(item: Item<T>, indexPath: IndexPath)
     case deletion(item: Item<T>, indexPath: IndexPath)
     case move(item: Item<T>, indexPath: IndexPath, newIndexPath: IndexPath, changes: [String: DatabaseValue])
@@ -1010,7 +1010,7 @@ extension FetchedRecordChange: CustomStringConvertible {
 }
 
 /// A section given by a FetchedRecordsController.
-public struct FetchedRecordsSectionInfo<Record: RowConvertible> {
+public struct FetchedRecordsSectionInfo<Record: DecodableRecord> {
     fileprivate let controller: FetchedRecordsController<Record>
     
     /// The number of records (rows) in the section.
@@ -1035,7 +1035,7 @@ public struct FetchedRecordsSectionInfo<Record: RowConvertible> {
 
 // MARK: - Item
 
-private final class Item<T: RowConvertible> : RowConvertible, Equatable {
+private final class Item<T: DecodableRecord> : DecodableRecord, Equatable {
     let row: Row
     
     // Records are lazily loaded

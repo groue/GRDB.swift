@@ -65,10 +65,10 @@ struct Place {
 }
 ```
 
-By adopting the [RowConvertible] protocol, places can be loaded from SQL requests:
+By adopting the [DecodableRecord] protocol, places can be loaded from SQL requests:
 
 ```swift
-extension Place: RowConvertible { ... }
+extension Place: DecodableRecord { ... }
 let places = try Place.fetchAll(db, "SELECT * FROM places") // [Place]
 ```
 
@@ -265,7 +265,7 @@ Happy GRDB! :gift:
 [GRDBObjc]: http://github.com/groue/GRDBObjc
 [Persistable]: https://github.com/groue/GRDB.swift/blob/master/README.md#records
 [Realm]: http://realm.io
-[RowConvertible]: https://github.com/groue/GRDB.swift/blob/master/README.md#records
+[DecodableRecord]: https://github.com/groue/GRDB.swift/blob/master/README.md#records
 [RxGRDB]: https://github.com/RxSwiftCommunity/RxGRDB
 [RxSwift]: https://github.com/ReactiveX/RxSwift
 [SQLite.swift]: http://github.com/stephencelis/SQLite.swift

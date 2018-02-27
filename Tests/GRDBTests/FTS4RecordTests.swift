@@ -14,7 +14,7 @@ private struct Book {
     let body: String
 }
 
-extension Book : RowConvertible {
+extension Book : DecodableRecord {
     init(row: Row) {
         id = row[.rowID]
         title = row["title"]

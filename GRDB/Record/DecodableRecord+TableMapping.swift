@@ -1,4 +1,4 @@
-extension RowConvertible where Self: TableMapping {
+extension DecodableRecord where Self: TableMapping {
     
     // MARK: Fetching All
     
@@ -59,7 +59,7 @@ extension RowConvertible where Self: TableMapping {
     }
 }
 
-extension RowConvertible where Self: TableMapping {
+extension DecodableRecord where Self: TableMapping {
     
     // MARK: Fetching by Single-Column Primary Key
     
@@ -119,7 +119,7 @@ extension RowConvertible where Self: TableMapping {
     }
 }
 
-extension RowConvertible where Self: TableMapping {
+extension DecodableRecord where Self: TableMapping {
     
     // MARK: Fetching by Key
     

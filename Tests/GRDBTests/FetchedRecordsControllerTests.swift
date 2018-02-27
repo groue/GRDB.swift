@@ -7,7 +7,7 @@ import XCTest
     import GRDB
 #endif
 
-private class ChangesRecorder<Record: RowConvertible> {
+private class ChangesRecorder<Record: DecodableRecord> {
     var changes: [(record: Record, change: FetchedRecordChange)] = []
     var recordsBeforeChanges: [Record]!
     var recordsAfterChanges: [Record]!
@@ -85,7 +85,7 @@ private class Person : Record {
     }
 }
 
-private struct Book : RowConvertible {
+private struct Book : DecodableRecord {
     var id: Int64
     var authorID: Int64
     var title: String

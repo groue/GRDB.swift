@@ -2,7 +2,7 @@
 /// changes tracking provided by the Record class.
 ///
 ///     // A Regular record struct
-///     struct Player: RowConvertible, MutablePersistable, Codable {
+///     struct Player: DecodableRecord, MutablePersistable, Codable {
 ///         static let databaseTableName = "players"
 ///         var id: Int64?
 ///         var name: String
@@ -22,7 +22,7 @@
 ///         playerRecord.persistentChangedValues["score"]   // 100 (the old value)
 ///     }
 @available(*, deprecated, message: "Prefer changes methods defined on the MutablePersistable protocol: databaseEqual(_:), databaseChanges(from:), updateChanges(from:)")
-public final class RecordBox<T: RowConvertible & MutablePersistable>: Record {
+public final class RecordBox<T: DecodableRecord & MutablePersistable>: Record {
     /// The boxed record
     public var value: T
     
@@ -32,7 +32,7 @@ public final class RecordBox<T: RowConvertible & MutablePersistable>: Record {
         super.init()
     }
     
-    // MARK: - RowConvertible
+    // MARK: - DecodableRecord
     
     /// Initializes a record from `row`.
     public required init(row: Row) {

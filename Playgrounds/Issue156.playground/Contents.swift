@@ -76,7 +76,7 @@ class TestDeleteAll: NSObject {
     
 }
 
-struct MyRecord: RowConvertible, TableMapping, Persistable {
+struct MyRecord: DecodableRecord, TableMapping, Persistable {
     
     static let MyColumn = Column("MyColumn")
     static var databaseTableName: String { return String(describing: self) }

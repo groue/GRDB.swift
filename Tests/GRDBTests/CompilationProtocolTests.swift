@@ -142,13 +142,13 @@ private struct UserRowRequest : FetchRequest {
     func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) { preconditionFailure() }
 }
 
-// MARK: - RowConvertible
+// MARK: - DecodableRecord
 
-private struct UserRowConvertible1 : RowConvertible {
+private struct UserDecodableRecord1 : DecodableRecord {
     init(row: Row) { }
 }
 
-private class UserRowConvertible2 : RowConvertible {
+private class UserDecodableRecord2 : DecodableRecord {
     required init(row: Row) { }
 }
 

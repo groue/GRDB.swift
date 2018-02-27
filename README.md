@@ -1857,7 +1857,7 @@ Your custom structs and classes can adopt each protocol individually, and opt in
 **Protocols and the Record class**
 
 - [Record Protocols Overview](#record-protocols-overview)
-- [RowConvertible Protocol](#rowconvertible-protocol)
+- [DecodableRecord Protocol](#decodablerecord-protocol)
 - [TableMapping Protocol](#tablemapping-protocol)
 - [Persistable Protocol](#persistable-protocol)
     - [Persistence Methods](#persistence-methods)
@@ -1884,7 +1884,7 @@ try player.insert(db)
 
 ### Fetching Records
 
-[Record](#record-class) subclasses and types that adopt the [RowConvertible](#rowconvertible-protocol) protocol can be fetched from the database:
+[Record](#record-class) subclasses and types that adopt the [DecodableRecord] protocol can be fetched from the database:
 
 ```swift
 class Player : Record { ... }
@@ -1967,7 +1967,7 @@ let playerWithEmailCount = try Player.filter(emailColumn != nil).fetchCount(db) 
 Details follow:
 
 - [Record Protocols Overview](#record-protocols-overview)
-- [RowConvertible Protocol](#rowconvertible-protocol)
+- [DecodableRecord Protocol](#decodablerecord-protocol)
 - [TableMapping Protocol](#tablemapping-protocol)
 - [Persistable Protocol](#persistable-protocol)
 - [Codable Records](#codable-records)
@@ -1982,7 +1982,7 @@ Details follow:
 
 **GRDB ships with three record protocols**. Your own types will adopt one or several of them, according to the abilities you want to extend your types with.
 
-- [RowConvertible](#rowconvertible-protocol) is able to **read**: it grants the ability to efficiently decode raw database row.
+- [DecodableRecord] is able to **read**: it grants the ability to efficiently decode raw database row.
     
     Imagine you want to load places from the `places` database table.
     
@@ -2040,10 +2040,10 @@ Details follow:
     }
     ```
     
-    That's better. And that's what RowConvertible does, with a little performance bonus, and in a single line:
+    That's better. And that's what DecodableRecord does, with a little performance bonus, and in a single line:
     
     ```swift
-    struct Place : RowConvertible {
+    struct Place : DecodableRecord {
         init(row: Row) { ... }
     }
     func fetchPlaces(_ db: Database) throws -> [Place] {
@@ -2051,7 +2051,7 @@ Details follow:
     }
     ```
     
-    RowConvertible is not able to build SQL requests, though. For that, you also need TableMapping:
+    DecodableRecord is not able to build SQL requests, though. For that, you also need TableMapping:
     
 - [TableMapping](#tablemapping-protocol) is able to **build requests without SQL**:
     
@@ -2061,10 +2061,10 @@ Details follow:
     let request = Place.order(Column("title"))
     ```
     
-    When a type adopts both TableMapping and RowConvertible, it can load from those requests:
+    When a type adopts both TableMapping and DecodableRecord, it can load from those requests:
     
     ```swift
-    struct Place : TableMapping, RowConvertible { ... }
+    struct Place : TableMapping, DecodableRecord { ... }
     try dbQueue.inDatabase { db in
         let places = try Place.order(Column("title")).fetchAll(db)
         let paris = try Place.fetchOne(key: 1)
@@ -2082,18 +2082,18 @@ Details follow:
     ```
 
 
-## RowConvertible Protocol
+## DecodableRecord Protocol
 
-**The RowConvertible protocol grants fetching methods to any type** that can be built from a database row:
+**The DecodableRecord protocol grants fetching methods to any type** that can be built from a database row:
 
 ```swift
-protocol RowConvertible {
+protocol DecodableRecord {
     /// Row initializer
     init(row: Row)
 }
 ```
 
-**To use RowConvertible**, subclass the [Record](#record-class) class, or adopt it explicitely. For example:
+**To use DecodableRecord**, subclass the [Record](#record-class) class, or adopt it explicitely. For example:
 
 ```swift
 struct Place {
@@ -2102,7 +2102,7 @@ struct Place {
     var coordinate: CLLocationCoordinate2D
 }
 
-extension Place : RowConvertible {
+extension Place : DecodableRecord {
     init(row: Row) {
         id = row["id"]
         title = row["title"]
@@ -2116,7 +2116,7 @@ extension Place : RowConvertible {
 Rows also accept keys of type `Column`:
 
 ```swift
-extension Place : RowConvertible {
+extension Place : DecodableRecord {
     enum Columns {
         static let id = Column("id")
         static let title = Column("title")
@@ -2140,7 +2140,7 @@ See [column values](#column-values) for more information about the `row[]` subsc
 >
 > :bulb: **Tip**: the `init(row:)` initializer can be automatically generated when your type adopts the standard `Decodable` protocol. See [Codable Records](#codable-records) for more information.
 
-RowConvertible allows adopting types to be fetched from SQL queries:
+DecodableRecord allows adopting types to be fetched from SQL queries:
 
 ```swift
 try Place.fetchCursor(db, "SELECT ...", arguments:...) // A Cursor of Place
@@ -2153,7 +2153,7 @@ See [fetching methods](#fetching-methods) for information about the `fetchCursor
 
 ## TableMapping Protocol
 
-**Adopt the TableMapping protocol** on top of [RowConvertible](#rowconvertible-protocol), and you are granted with the full [query interface](#the-query-interface).
+**Adopt the TableMapping protocol** on top of [DecodableRecord], and you are granted with the full [query interface](#the-query-interface).
 
 ```swift
 protocol TableMapping {
@@ -2384,7 +2384,7 @@ struct Link : Persistable {
 
 [Swift Archival & Serialization](https://github.com/apple/swift-evolution/blob/master/proposals/0166-swift-archival-serialization.md) was introduced with Swift 4.
 
-GRDB provides default implementations for [`RowConvertible.init(row:)`](#rowconvertible-protocol) and [`Persistable.encode(to:)`](#persistable-protocol) for record types that also adopt an archival protocol (`Codable`, `Encodable` or `Decodable`). When all their properties are themselves codable, Swift generates the archiving methods, and you don't need to write them down:
+GRDB provides default implementations for [`DecodableRecord.init(row:)`](#decodablerecord-protocol) and [`Persistable.encode(to:)`](#persistable-protocol) for record types that also adopt an archival protocol (`Codable`, `Encodable` or `Decodable`). When all their properties are themselves codable, Swift generates the archiving methods, and you don't need to write them down:
 
 ```swift
 // Declare a plain Codable struct or class...
@@ -2394,7 +2394,7 @@ struct Player: Codable {
 }
 
 // Adopt Record protocols...
-extension Player: RowConvertible, Persistable {
+extension Player: DecodableRecord, Persistable {
     static let databaseTableName = "players"
 }
 
@@ -2409,7 +2409,7 @@ GRDB support for Codable works well with "flat" records, whose stored properties
 
 ```swift
 // Can't take profit from Codable code generation:
-struct Place: RowConvertible, Persistable, Codable {
+struct Place: DecodableRecord, Persistable, Codable {
     static let databaseTableName = "places"
     
     var title: String
@@ -2441,7 +2441,7 @@ struct Place: Codable {
 }
 
 // Free database support!
-extension Place: RowConvertible, Persistable {
+extension Place: DecodableRecord, Persistable {
     static let databaseTableName = "places"
 }
 ```
@@ -2459,7 +2459,7 @@ struct Place: Codable {
     var coordinate: CLLocationCoordinate2D { ... }
 }
 
-extension Place: RowConvertible, MutablePersistable {
+extension Place: DecodableRecord, MutablePersistable {
     static let databaseTableName = "places"
     
     mutating func didInsert(with rowID: Int64, for column: String?) {
@@ -2479,7 +2479,7 @@ place.id // A unique id
 
 ## Record Class
 
-**Record** is a class that is designed to be subclassed. It inherits its features from the [RowConvertible, TableMapping, and Persistable](#record-protocols-overview) protocols. On top of that, Record instances can [track their changes](#changes-tracking).
+**Record** is a class that is designed to be subclassed. It inherits its features from the [DecodableRecord, TableMapping, and Persistable](#record-protocols-overview) protocols. On top of that, Record instances can [track their changes](#changes-tracking).
 
 Record subclasses define their custom database relationship by overriding database methods:
 
@@ -2732,10 +2732,10 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](#fu
     let events = try Event.fetchAll(db)
     ```
 
-2. Have `init(row:)` from the [RowConvertible](#rowconvertible-protocol) protocol consume the "rowid" column:
+2. Have `init(row:)` from the [DecodableRecord] protocol consume the "rowid" column:
     
     ```swift
-    struct Event : RowConvertible {
+    struct Event : DecodableRecord {
         var id: Int64?
         
         init(row: Row) {
@@ -2802,7 +2802,7 @@ This is the list of record methods, along with their required protocols. The [Re
 | Method | Protocols | Notes |
 | ------ | --------- | :---: |
 | **Core Methods** | | |
-| `init(row:)` | [RowConvertible](#rowconvertible-protocol) | |
+| `init(row:)` | [DecodableRecord] | |
 | `Type.databaseTableName` | [TableMapping](#tablemapping-protocol) | |
 | `Type.databaseSelection` | [TableMapping](#tablemapping-protocol) | [*](#columns-selected-by-a-request) |
 | `Type.persistenceConflictPolicy` | [Persistable](#persistable-protocol) | [*](#conflict-resolution) |
@@ -2829,23 +2829,23 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.fetchCount(db)` | [TableMapping](#tablemapping-protocol) | |
 | `Type.filter(...).fetchCount(db)` | [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
 | **Fetch Record [Cursors](#cursors)** | | |
-| `Type.fetchCursor(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | |
-| `Type.fetchCursor(db, keys:...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchCursor(db, sql)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-3">³</a> |
-| `Type.fetchCursor(statement)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-4">⁴</a> |
-| `Type.filter(...).fetchCursor(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
+| `Type.fetchCursor(db)` | [DecodableRecord] & [TableMapping](#tablemapping-protocol) | |
+| `Type.fetchCursor(db, keys:...)` | [DecodableRecord] & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.fetchCursor(db, sql)` | [DecodableRecord] | <a href="#list-of-record-methods-3">³</a> |
+| `Type.fetchCursor(statement)` | [DecodableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
+| `Type.filter(...).fetchCursor(db)` | [DecodableRecord] & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
 | **Fetch Record Arrays** | | |
-| `Type.fetchAll(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | |
-| `Type.fetchAll(db, keys:...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchAll(db, sql)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-3">³</a> |
-| `Type.fetchAll(statement)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-4">⁴</a> |
-| `Type.filter(...).fetchAll(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
+| `Type.fetchAll(db)` | [DecodableRecord] & [TableMapping](#tablemapping-protocol) | |
+| `Type.fetchAll(db, keys:...)` | [DecodableRecord] & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.fetchAll(db, sql)` | [DecodableRecord] | <a href="#list-of-record-methods-3">³</a> |
+| `Type.fetchAll(statement)` | [DecodableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
+| `Type.filter(...).fetchAll(db)` | [DecodableRecord] & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
 | **Fetch Individual Records** | | |
-| `Type.fetchOne(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | |
-| `Type.fetchOne(db, key:...)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchOne(db, sql)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-3">³</a> |
-| `Type.fetchOne(statement)` | [RowConvertible](#rowconvertible-protocol) | <a href="#list-of-record-methods-4">⁴</a> |
-| `Type.filter(...).fetchOne(db)` | [RowConvertible](#rowconvertible-protocol) & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
+| `Type.fetchOne(db)` | [DecodableRecord] & [TableMapping](#tablemapping-protocol) | |
+| `Type.fetchOne(db, key:...)` | [DecodableRecord] & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.fetchOne(db, sql)` | [DecodableRecord] | <a href="#list-of-record-methods-3">³</a> |
+| `Type.fetchOne(statement)` | [DecodableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
+| `Type.filter(...).fetchOne(db)` | [DecodableRecord] & [TableMapping](#tablemapping-protocol) | <a href="#list-of-record-methods-2">²</a> |
 | **[Changes Tracking](#changes-tracking)** | | |
 | `record.databaseEqual(...)` | [Persistable](#persistable-protocol) | |
 | `record.databaseChanges(from:...)` | [Persistable](#persistable-protocol) | |
@@ -3526,7 +3526,7 @@ let arthur = try Player.filter(nameColumn == "Arthur").fetchOne(db) // Player?
 ```
 
 
-**When the selected columns don't fit the source type**, change your target: any other type that adopts the [RowConvertible](#rowconvertible-protocol) protocol, plain [database rows](#fetching-rows), and even [values](#values):
+**When the selected columns don't fit the source type**, change your target: any other type that adopts the [DecodableRecord] protocol, plain [database rows](#fetching-rows), and even [values](#values):
 
 ```swift
 let maxScore = try Player.select(max(scoreColumn))
@@ -4606,7 +4606,7 @@ This technique works pretty well, but it has three drawbacks:
 
 1. The selection becomes hard to read and understand.
 2. Such queries are difficult to write by hand.
-3. The mangled names are a *very* bad fit for [RowConvertible](#rowconvertible-protocol) records that expect specific column names. After all, if the `Team` record type can read `SELECT * FROM teams ...`, it should be able to read `SELECT ..., teams.*, ...` as well.
+3. The mangled names are a *very* bad fit for [DecodableRecord] records that expect specific column names. After all, if the `Team` record type can read `SELECT * FROM teams ...`, it should be able to read `SELECT ..., teams.*, ...` as well.
 
 We thus need another technique. **Below we'll see how to split rows into slices, and preserve column names.**
 
@@ -4715,7 +4715,7 @@ But we may want to make it more usable and robust:
 2. Joined records not always need all columns from a table (see `TableMapping.databaseSelection` in [Columns Selected by a Request](#columns-selected-by-a-request)).
 3. Building row adapters is long and error prone.
 
-To address the first bullet, let's define a record that holds our player, optional team, and maximum score. Since it can decode database rows, it adopts the [RowConvertible](#rowconvertible-protocol) protocol:
+To address the first bullet, let's define a record that holds our player, optional team, and maximum score. Since it can decode database rows, it adopts the [DecodableRecord] protocol:
 
 ```swift
 struct Item {
@@ -4725,7 +4725,7 @@ struct Item {
 }
 
 /// Item can decode rows:
-extension Item: RowConvertible {
+extension Item: DecodableRecord {
     private enum Scopes {
         static let player = "player"
         static let team = "team"
@@ -4800,7 +4800,7 @@ let items = try dbQueue.inDatabase { db in
 
 > :bulb: In this chapter, we have learned:
 > 
-> - how to define a `RowConvertible` record that consumes rows fetched from a joined query.
+> - how to define a `DecodableRecord` record that consumes rows fetched from a joined query.
 > - how to use `selectionSQL` and `numberOfSelectedColumns` in order to deal with nested record types that define custom selection.
 > - how to use `splittingRowAdapters` in order to streamline the definition of row slices.
 > - how to gather all relevant methods and constants in a record type, fully responsible of its relationship with the database.
@@ -4820,7 +4820,7 @@ struct Item {
 }
 
 /// Item can decode rows:
-extension Item: RowConvertible {
+extension Item: DecodableRecord {
     private enum Scopes {
         static let player = "player"
         static let team = "team"
@@ -4893,18 +4893,18 @@ Item.all()
 You can consume complex joined queries with Codable records as well. As a demonstration, we'll rewrite the [above](#splitting-rows-the-request-way) sample code:
 
 ```swift
-struct Player: Decodable, RowConvertible, TableMapping {
+struct Player: Decodable, DecodableRecord, TableMapping {
     static let databaseTableName = "players"
     var id: Int64
     var name: String
 }
-struct Team: Decodable, RowConvertible, TableMapping {
+struct Team: Decodable, DecodableRecord, TableMapping {
     static let databaseTableName = "teams"
     var id: Int64
     var name: String
     var color: Color
 }
-struct Item: Decodable, RowConvertible {
+struct Item: Decodable, DecodableRecord {
     var player: Player
     var team: Team?
     var maxScore: Int
@@ -5303,7 +5303,7 @@ protocol TransactionObserverType : class {
 
 It looks and behaves very much like [Core Data's NSFetchedResultsController](https://developer.apple.com/library/ios/documentation/CoreData/Reference/NSFetchedResultsController_Class/).
 
-Given a fetch request, and a type that adopts the [RowConvertible](#rowconvertible-protocol) protocol, such as a subclass of the [Record](#record-class) class, a FetchedRecordsController is able to track changes in the results of the fetch request, notify of those changes, and return the results of the request in a form that is suitable for a table view or a collection view, with one cell per fetched record.
+Given a fetch request, and a type that adopts the [DecodableRecord] protocol, such as a subclass of the [Record](#record-class) class, a FetchedRecordsController is able to track changes in the results of the fetch request, notify of those changes, and return the results of the request in a form that is suitable for a table view or a collection view, with one cell per fetched record.
 
 See [GRDBDemoiOS](DemoApps/GRDBDemoiOS/GRDBDemoiOS) for an sample app that uses FetchedRecordsController.
 
@@ -5324,7 +5324,7 @@ See also [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), an [RxSwift](https
 When you initialize a fetched records controller, you provide the following mandatory information:
 
 - A [database connection](#database-connections)
-- The type of the fetched records. It must be a type that adopts the [RowConvertible](#rowconvertible-protocol) protocol, such as a subclass of the [Record](#record-class) class
+- The type of the fetched records. It must be a type that adopts the [DecodableRecord] protocol, such as a subclass of the [Record](#record-class) class
 - A fetch request
 
 ```swift
@@ -6912,3 +6912,12 @@ Sample Code
 - [Vladimir Babin](https://github.com/Chiliec), [Darren Clark](https://github.com/darrenclark), [Pascal Edmond](https://github.com/pakko972), [Andrey Fidrya](https://github.com/zmeyc), [Cristian Filipov](https://github.com/cfilipov), [David Hart](https://github.com/hartbit), [Brad Lindsay](https://github.com/bfad), [@peter-ss](https://github.com/peter-ss), [Pierre-Loïc Raynaud](https://github.com/pierlo), [Stefano Rodriguez](https://github.com/sroddy) [Steven Schveighoffer](https://github.com/schveiguy), [@swiftlyfalling](https://github.com/swiftlyfalling), and [Kevin Wooten](https://github.com/kdubb) for their contributions, help, and feedback on GRDB.
 - [@aymerick](https://github.com/aymerick) and [Mathieu "Kali" Poumeyrol](https://github.com/kali) because SQL.
 - [ccgus/fmdb](https://github.com/ccgus/fmdb) for its excellency.
+
+Legacy
+======
+
+## RowConvertible Protocol
+
+This protocol has been renamed [DecodableRecord] in GRDB 3.0.
+
+[DecodableRecord]: #decodablerecord-protocol
