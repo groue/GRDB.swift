@@ -5,11 +5,32 @@ Release Notes
 
 ### Breaking Changes
 
+- The Record protocols have been renamed: `RowConvertible` to `FetchableRecord`, `Persistable` to `PersistableRecord`, and `TableMapping` to `TableRecord`.
 - `Request` and `TypedRequest` protocols have been merged into `FetchRequest` ([311](https://github.com/groue/GRDB.swift/pull/311))
 - The `IteratorCursor` type has been removed. Use `AnyCursor` instead.
 
 
 ### API diff
+
+**Record protocols**
+
+```diff
+-protocol RowConvertible {
++protocol FetchableRecord {
+ }
+ 
+-protocol TableMapping {
++protocol TableRecord {
+ }
+ 
+-protocol MutablePersistable: TableMapping {
++protocol MutablePersistableRecord: TableRecord {
+ }
+ 
+-protocol Persistable: MutablePersistable {
++protocol PersistableRecord: MutablePersistableRecord {
+ }
+```
 
 **FetchRequest**
 
@@ -60,7 +81,7 @@ Release Notes
 +    func fetchOne(_ db: Database) throws -> Row?
 +}
 
-+extension FetchRequest where RowDecoder: RowConvertible {
++extension FetchRequest where RowDecoder: FetchableRecord {
 +    func fetchCursor(_ db: Database) throws -> RecordCursor<RowDecoder>
 +    func fetchAll(_ db: Database) throws -> [RowDecoder]
 +    func fetchOne(_ db: Database) throws -> RowDecoder?
