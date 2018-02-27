@@ -3707,14 +3707,13 @@ Until now, we have seen [requests](#requests) created from any type that adopts 
 let request = Player.all()  // QueryInterfaceRequest<Player>
 ```
 
-Those requests of type `QueryInterfaceRequest` can fetch, count, and delete records:
+Those requests of type `QueryInterfaceRequest` can fetch and count:
 
 ```swift
 try request.fetchCursor(db) // A Cursor of Player
 try request.fetchAll(db)    // [Player]
 try request.fetchOne(db)    // Player?
 try request.fetchCount(db)  // Int
-try request.deleteAll(db)
 ```
 
 **When the query interface can not generate the SQL you need**, you can still fallback to [raw SQL](#fetch-queries):
@@ -3724,86 +3723,104 @@ try request.deleteAll(db)
 try Player.fetchAll(db, "SELECT ...")   // [Player]
 ```
 
-But you may prefer to bring some elegance back in, and build custom requests on top of the `Request` and `TypedRequest` protocols:
+But you may prefer to bring some elegance back in, and build custom requests on top of the `FetchRequest` protocol:
 
 ```swift
 // No custom SQL in sight
 try Player.customRequest().fetchAll(db) // [Player]
 ```
 
-Unlike QueryInterfaceRequest, these protocols can't delete. But they can fetch and count:
+Custom requests also grant [FetchedRecordsController](#fetchedrecordscontroller) and [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB) the ability to observe the database:
 
 ```swift
-/// The protocol for all types that define a way to fetch database rows.
-protocol Request {
-    /// A tuple that contains a prepared statement that is ready to be
-    /// executed, and an eventual row adapter.
+Player.customRequest(...).rx
+    .fetchAll(in: dbQueue)
+    .subscribe(onNext: { players: [Player] in
+        print("Players have changed")
+    })
+```
+
+
+### FetchRequest Protocol
+
+**FetchRequest is the protocol for all types that define a way to fetch database rows:**
+
+```swift
+protocol FetchRequest {
+    /// The type that tells how fetched rows should be decoded
+    associatedtype RowDecoder
+    
+    /// A tuple that contains a prepared statement, and an eventual row adapter.
     func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?)
     
     /// The number of rows fetched by the request.
     func fetchCount(_ db: Database) throws -> Int
-}
-
-/// The protocol for requests that know how to decode database rows.
-protocol TypedRequest : Request {
-    /// The type that can convert raw database rows to fetched values
-    associatedtype RowDecoder
+    
+    /// The database region that the request looks into.
+    func fetchedRegion(_ db: Database) throws -> DatabaseRegion
 }
 ```
 
-The `prepare` method returns a tuple made of a [prepared statement](#prepared-statements) and an optional [row adapter](#row-adapters). The prepared statement tells which SQL query should be executed. The row adapter can help *presenting* the fetched rows in the way expected by the row consumers (we'll see an example below).
+The `RowDecoder` associated type tells a request how to decode rows. It can be any type, but not all types have built-in support. See [Fetching From Custom Requests](#fetching-from-custom-requests) below.
+
+The `prepare` method returns a prepared statement and an optional row adapter. The [prepared statement](#prepared-statements) tells which SQL query should be executed. The row adapter helps presenting the fetched rows in the way expected by the row decoders (see [row adapter](#row-adapters)).
 
 The `fetchCount` method has a default implementation that builds a correct but naive SQL query from the statement returned by `prepare`: `SELECT COUNT(*) FROM (...)`. Adopting types can refine the counting SQL by customizing their `fetchCount` implementation.
 
-
-### Fetching From Custom Requests
-
-A Request doesn't know what to fetch, but it can feed the [fetching methods](#fetching-methods) of any fetchable type ([Row](#fetching-rows), [value](#value-queries), or [record](#records)):
-
-```swift
-let request: Request = ...
-try Row.fetchCursor(db, request) // A Cursor of Row
-try String.fetchAll(db, request) // [String]
-try Player.fetchOne(db, request) // Player?
-```
-
-On top of that, a TypedRequest knows exactly what it has to do when its RowDecoder associated type can decode database rows ([Row](#fetching-rows) itself, [values](#value-queries), or [records](#records)):
-
-```swift
-let request = ...                // Some TypedRequest that fetches Player
-try request.fetchCursor(db)      // A Cursor of Player
-try request.fetchAll(db)         // [Player]
-try request.fetchOne(db)         // Player?
-```
+The `fetchedRegion` method helps [transaction observers](#transactionobserver-protocol) efficiently track modifications in requests results. It has a default implementation that you can't really improve in the current state of the API.
 
 
 ### Building Custom Requests
 
-**To build custom requests**, you can create your own type that adopts the protocols, or derive requests from other requests, or use one of the built-in concrete types:
+**To build custom requests**, you can create your own type that adopts the [FetchRequest](#fetchrequest-protocol) protocol, derive requests from other requests, or use one of the built-in concrete types:
 
-- [SQLRequest](http://groue.github.io/GRDB.swift/docs/2.9/Structs/SQLRequest.html): a Request built from raw SQL
-- [AnyRequest](http://groue.github.io/GRDB.swift/docs/2.9/Structs/AnyRequest.html): a type-erased Request
-- [AnyTypedRequest](http://groue.github.io/GRDB.swift/docs/2.9/Structs/AnyTypedRequest.html): a type-erased TypedRequest
+- [SQLRequest](http://groue.github.io/GRDB.swift/docs/2.9/Structs/SQLRequest.html) is a fetch request built from raw SQL. For example:
+    
+    ```swift
+    extension Player {
+        static func filter(color: Color) -> SQLRequest<Player> {
+            let request = SQLRequest<Player>(
+                "SELECT * FROM players WHERE color = ?"
+                arguments: [color])
+        }
+    }
+    
+    // [Player]
+    try Player.filter(color: .red).fetchAll(db)
+    ```
+    
+- The `asRequest(of:)` method changes the type fetched by the request:
 
-Use the `asRequest(of:)` method to define the type fetched by the request:
+    ```swift
+    // Int?
+    let maxScore = Player.select(max(Column("score")))
+        .asRequest(of: Int.self)
+        .fetchOne(db)
+    ```
+
+- The `adapted(_:)` method eases the consumption of complex rows with [row adapters](#row-adapters). See [Joined Queries Support](#joined-queries-support) for some sample code that uses this method.
+
+- [AnyFetchRequest](http://groue.github.io/GRDB.swift/docs/2.9/Structs/AnyFetchRequest.html): a [type-erased](http://chris.eidhof.nl/post/type-erasers-in-swift/) request.
+
+
+### Fetching From Custom Requests
+
+A fetch request knows exactly what it has to do when its RowDecoder associated type can decode database rows ([Row](#fetching-rows) itself, [values](#value-queries), or [records](#records)):
 
 ```swift
-let maxScore = Player.select(max(scoreColumn))
-    .asRequest(of: Int.self)
-    .fetchOne(db)
+let rowRequest = ...        // Some TypedRequest that fetches Row
+try request.fetchCursor(db) // A cursor of rows
 
-extension Player {
-    static func customRequest(...) -> AnyTypedRequest<Player> {
-        let request = SQLRequest("SELECT ...", arguments: ...)
-        return request.asRequest(of: Player.self)
-    }
-}
+let playerRequest = ...     // Some TypedRequest that fetches Player
+try request.fetchAll(db)    // [Player]
 
-try Player.customRequest(...).fetchAll(db)   // [Player]
-try Player.customRequest(...).fetchCount(db) // Int
+let intRequest = ...         // Some TypedRequest that fetches Int
+try request.fetchOne(db)    // Int?
 ```
 
-Finally, use the `adapted(_:)` method to ease the consumption of complex rows with [row adapters](#row-adapters). See [Joined Queries Support](#joined-queries-support) for more information.
+See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll` and `fetchOne` methods.
+
+When RowDecoder is another type, you can write your own convenience methods.
 
 
 Application Tools
@@ -4822,7 +4839,7 @@ Now we write a method that returns a request, and build the fetching method on t
 ```swift
 extension Item {
     /// The request for all items
-    static func all() -> AnyTypedRequest<Item> {
+    static func all() -> AdaptedFetchRequest<SQLRequest<Item>> {
         let sql = """
             SELECT
                 \(Player.selectionSQL()),
@@ -4833,15 +4850,14 @@ extension Item {
             LEFT JOIN rounds ON ...
             GROUP BY ...
             """
-        return SQLRequest(sql).adapted { db in
+        return SQLRequest<Item>(sql).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 Player.numberOfSelectedColumns(db),
                 Team.numberOfSelectedColumns(db)])
             return ScopeAdapter([
                 Scopes.player: adapters[0],
                 Scopes.team: adapters[1]])
-            }
-            .asRequest(of: Item.self)
+        }
     }
     
     /// Fetches all items
@@ -4896,7 +4912,7 @@ struct Item: Decodable, RowConvertible {
 
 extension Item {
     /// The request for all items
-    static func all() -> AnyTypedRequest<Item> {
+    static func all() -> AdaptedFetchRequest<SQLRequest<Item>> {
         let sql = """
             SELECT
                 \(Player.selectionSQL()),
@@ -4907,15 +4923,14 @@ extension Item {
             LEFT JOIN rounds ON ...
             GROUP BY ...
             """
-        return SQLRequest(sql).adapted { db in
+        return SQLRequest<Item>(sql).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 Player.numberOfSelectedColumns(db),
                 Team.numberOfSelectedColumns(db)])
             return ScopeAdapter([
                 CodingKeys.player.stringValue: adapters[0],
                 CodingKeys.team.stringValue: adapters[1]])
-            }
-            .asRequest(of: Item.self)
+        }
     }
     
     /// Fetches all items

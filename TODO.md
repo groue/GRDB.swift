@@ -20,7 +20,7 @@ Xcode 9.3, Swift 4.1
 GRDB 3.0
 
 - [ ] Rename "changes tracking" (ambiguous with database observation) to "record comparison"
-- [ ] Refactor SQL generation and rowId extraction from expression on the visitor pattern. Provide more documentation for literal expressions which become the only way to extend GRDB.
+- [ ] Refactor SQL generation and rowId extraction from expression on the visitor pattern. Provide more documentation for literal expressions which become the only way to extend GRDB. Remove QueryInterfaceExtensibilityTests.swift
 - [ ] Hide useless scheduling methods behind protocols : https://forums.swift.org/t/discouraging-protocol-methods-on-concrete-values/8737/4?u=gwendal.roue
 - [ ] Make DatabasePool.write safe. See https://github.com/groue/GRDB.swift/commit/5e3c7d9c430df606a1cccfd4983be6b50e778a5c#commitcomment-26988970
 - [ ] Do one of those two:
@@ -34,7 +34,8 @@ GRDB 3.0
 - [ ] Rename RowConvertible, TableMapping, MutablePersistable and Persistable so that their names contain Record: FetchableRecord, TableRecord, MutablePersistableRecord, PersistableRecord?
 - [ ] Not sure: Consider introducing RowDecodable and RowEncodable on top of FetchableRecord and MutablePersistableRecord. This would allow keeping fetching and persistence methods private in some files.
 - [ ] Drop IteratorCursor, use AnyCursor instead
-- [ ] Drop TypedRequest, have FetchRequest defaults to Row requests.
+<<<<<<< HEAD
+- [X] Rename TypedRequest to FetchRequest, drop Request
 - [ ] Rename columnCount -> numberOfColumns
 - [ ] Try to remove double Persistable/MutablePersistable protocols: Would non-mutating Record methods help?
 

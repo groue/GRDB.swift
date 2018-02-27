@@ -127,61 +127,6 @@ extension RowConvertible {
 
 extension RowConvertible {
     
-    // MARK: Fetching From Request
-    
-    /// Returns a cursor over records fetched from a fetch request.
-    ///
-    ///     let nameColumn = Column("firstName")
-    ///     let request = Player.order(nameColumn)
-    ///     let identities = try Identity.fetchCursor(db, request) // Cursor of Identity
-    ///     while let identity = try identities.next() { // Identity
-    ///         ...
-    ///     }
-    ///
-    /// If the database is modified during the cursor iteration, the remaining
-    /// elements are undefined.
-    ///
-    /// The cursor must be iterated in a protected dispath queue.
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - request: A fetch request.
-    /// - returns: A cursor over fetched records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database, _ request: Request) throws -> RecordCursor<Self> {
-        let (statement, adapter) = try request.prepare(db)
-        return try fetchCursor(statement, adapter: adapter)
-    }
-    
-    /// Returns an array of records fetched from a fetch request.
-    ///
-    ///     let nameColumn = Column("name")
-    ///     let request = Player.order(nameColumn)
-    ///     let identities = try Identity.fetchAll(db, request) // [Identity]
-    ///
-    /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll(_ db: Database, _ request: Request) throws -> [Self] {
-        let (statement, adapter) = try request.prepare(db)
-        return try fetchAll(statement, adapter: adapter)
-    }
-    
-    /// Returns a single record fetched from a fetch request.
-    ///
-    ///     let nameColumn = Column("name")
-    ///     let request = Player.order(nameColumn)
-    ///     let identity = try Identity.fetchOne(db, request) // Identity?
-    ///
-    /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne(_ db: Database, _ request: Request) throws -> Self? {
-        let (statement, adapter) = try request.prepare(db)
-        return try fetchOne(statement, adapter: adapter)
-    }
-}
-
-extension RowConvertible {
-    
     // MARK: Fetching From SQL
     
     /// Returns a cursor over records fetched from an SQL query.
@@ -204,7 +149,7 @@ extension RowConvertible {
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> RecordCursor<Self> {
-        return try fetchCursor(db, SQLRequest(sql, arguments: arguments, adapter: adapter))
+        return try SQLRequest<Self>(sql, arguments: arguments, adapter: adapter).fetchCursor(db)
     }
     
     /// Returns an array of records fetched from an SQL query.
@@ -219,7 +164,7 @@ extension RowConvertible {
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Self] {
-        return try fetchAll(db, SQLRequest(sql, arguments: arguments, adapter: adapter))
+        return try SQLRequest<Self>(sql, arguments: arguments, adapter: adapter).fetchAll(db)
     }
     
     /// Returns a single record fetched from an SQL query.
@@ -234,6 +179,59 @@ extension RowConvertible {
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self? {
-        return try fetchOne(db, SQLRequest(sql, arguments: arguments, adapter: adapter))
+        return try SQLRequest<Self>(sql, arguments: arguments, adapter: adapter).fetchOne(db)
     }
 }
+
+extension FetchRequest where RowDecoder: RowConvertible {
+    
+    // MARK: Fetching Record and RowConvertible
+    
+    /// A cursor over fetched records.
+    ///
+    ///     let request: ... // Some TypedRequest that fetches Player
+    ///     let players = try request.fetchCursor(db) // Cursor of Player
+    ///     while let player = try players.next() {   // Player
+    ///         ...
+    ///     }
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
+    ///
+    /// The cursor must be iterated in a protected dispath queue.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A cursor over fetched records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchCursor(_ db: Database) throws -> RecordCursor<RowDecoder> {
+        let (statement, adapter) = try prepare(db)
+        return try RowDecoder.fetchCursor(statement, adapter: adapter)
+    }
+    
+    /// An array of fetched records.
+    ///
+    ///     let request: ... // Some TypedRequest that fetches Player
+    ///     let players = try request.fetchAll(db) // [Player]
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: An array of records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchAll(_ db: Database) throws -> [RowDecoder] {
+        let (statement, adapter) = try prepare(db)
+        return try RowDecoder.fetchAll(statement, adapter: adapter)
+    }
+    
+    /// The first fetched record.
+    ///
+    ///     let request: ... // Some TypedRequest that fetches Player
+    ///     let player = try request.fetchOne(db) // Player?
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: An optional record.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchOne(_ db: Database) throws -> RowDecoder? {
+        let (statement, adapter) = try prepare(db)
+        return try RowDecoder.fetchOne(statement, adapter: adapter)
+    }
+}
+

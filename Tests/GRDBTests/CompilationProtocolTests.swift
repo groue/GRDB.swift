@@ -134,13 +134,11 @@ private class UserPersistable2 : Persistable {
     func encode(to container: inout PersistenceContainer) { }
 }
 
-// MARK: - Request
+// MARK: - FetchRequest
 
-private struct UserRequest1 : Request {
-    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) { preconditionFailure() }
-}
-
-private class UserRequest2 : Request {
+private struct UserRowRequest : FetchRequest {
+    struct CustomType { }
+    typealias RowDecoder = CustomType
     func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) { preconditionFailure() }
 }
 
@@ -172,19 +170,6 @@ private struct UserTableMapping1 : TableMapping {
 
 private class UserTableMapping2 : TableMapping {
     static let databaseTableName = "UserTableMapping2"
-}
-
-// MARK: - TypedRequest
-
-private struct UserTypedRequest1 : TypedRequest {
-    struct CustomType { }
-    typealias RowDecoder = CustomType
-    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) { preconditionFailure() }
-}
-
-private class UserTypedRequest2<T> : TypedRequest {
-    typealias RowDecoder = T
-    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) { preconditionFailure() }
 }
 
 // MARK: - TransactionObserver

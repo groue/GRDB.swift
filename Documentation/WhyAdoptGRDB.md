@@ -175,7 +175,7 @@ For further information about GRDB concurrency, check its detailed [Concurrency 
 
 SQL is a weird language. Born in the 70s, easy to [misuse](https://xkcd.com/327/), feared by some developers, despised by others, and yet wonderfully concise and powerful.
 
-GRDB provides high-level record methods that generate SQL for you:
+GRDB records can generate SQL for you:
 
 ```swift
 // SELECT * FROM players ORDER BY score DESC LIMIT 10
@@ -196,7 +196,7 @@ let exAequoCount: Int = try Player
     .fetchCount(db)
 ```
 
-But you can *always* switch to SQL when you want to:
+But you can always switch to SQL when you want to:
 
 ```swift
 let bestPlayers: [Player] = try Player.fetchAll(db, """
@@ -212,26 +212,14 @@ let exAequoCount: Int? = try Int.fetchOne(db, """
     """, arguments: [maximumScore])
 ```
 
-SQL is also welcome in high-level database observation tools like [FetchedRecordsController] and [RxGRDB]:
+In performance-critical sections, you may want to deal with raw database rows, and fetch [lazy cursors](https://github.com/groue/GRDB.swift/blob/master/README.md#cursors) instead of arrays:
 
 ```swift
-SQLRequest("SELECT * FROM players ORDER BY score DESC LIMIT 10")
-    .asRequest(of: Player.self)
-    .rx
-    .fetchAll(in: dbQueue)
-    .subscribe(onNext: { players: [Player] in
-        print("Best 10 players have changed")
-    })
-```
-
-You can of course deal with raw database rows, and fetch [lazy cursors](https://github.com/groue/GRDB.swift/blob/master/README.md#cursors) instead of arrays:
-
-```swift
-let rows = try Row.fetchCursor(db, "SELECT * FROM players")
+let rows = try Row.fetchCursor(db, "SELECT id, name, score FROM players")
 while let row = try rows.next() {
-    let id: Int64 = row["id"]
-    let name: String = row["name"]
-    let score: Int = row["score"]
+    let id: Int64 = row[0]
+    let name: String = row[1]
+    let score: Int = row[2]
 }
 ```
 
@@ -239,15 +227,22 @@ When you feel like your code clarity would be enhanced by hiding your custom SQL
 
 ```swift
 extension Player {
-    static func customRequest(...) -> AnyTypedRequest<Player> {
-        return SQLRequest("""
-            SELECT ...
-            """, arguments: ...)
-            .asRequestOf(Player.self)
+    static func customRequest(...) -> SQLRequest<Player> {
+        return SQLRequest<Player>("SELECT ...", arguments: ...)
     }
 }
 
-let players = Player.customRequest(...).fetchAll(db)
+let players = try Player.customRequest(...).fetchAll(db)
+```
+
+Those custom requests are welcome in database observation tools like [FetchedRecordsController] and [RxGRDB]:
+
+```swift
+Player.customRequest(...)
+    .rx.fetchAll(in: dbQueue)
+    .subscribe(onNext: { players: [Player] in
+        print("Players have changed")
+    })
 ```
 
 ---

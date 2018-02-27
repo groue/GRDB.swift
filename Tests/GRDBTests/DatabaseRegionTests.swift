@@ -422,28 +422,16 @@ class DatabaseRegionTests : GRDBTestCase {
             try XCTAssertEqual(request.fetchedRegion(db).description, "foo(a,id)[1,2,3]")
 
             do {
-                let derivedRequest: AnyRequest = AnyRequest(request)
+                let derivedRequest: AnyFetchRequest<Row> = AnyFetchRequest(request)
                 try XCTAssertEqual(derivedRequest.fetchedRegion(db).description, "foo(a,id)[1,2,3]")
             }
             do {
-                let derivedRequest: AnyTypedRequest<Record> = AnyTypedRequest(request)
-                try XCTAssertEqual(derivedRequest.fetchedRegion(db).description, "foo(a,id)[1,2,3]")
-            }
-            do {
-                let derivedRequest: AnyTypedRequest<Row> = request.asRequest(of: Row.self)
-                try XCTAssertEqual(derivedRequest.fetchedRegion(db).description, "foo(a,id)[1,2,3]")
-            }
-            do {
-                let derivedRequest: AdaptedTypedRequest = request.adapted { db in SuffixRowAdapter(fromIndex: 1) }
-                try XCTAssertEqual(derivedRequest.fetchedRegion(db).description, "foo(a,id)[1,2,3]")
-            }
-            do {
-                let derivedRequest: AdaptedRequest = AnyRequest(request).adapted { db in SuffixRowAdapter(fromIndex: 1) }
+                let derivedRequest: AdaptedFetchRequest = request.adapted { db in SuffixRowAdapter(fromIndex: 1) }
                 try XCTAssertEqual(derivedRequest.fetchedRegion(db).description, "foo(a,id)[1,2,3]")
             }
             do {
                 // SQL request loses region info
-                let derivedRequest: SQLRequest = try request.asSQLRequest(db)
+                let derivedRequest = try SQLRequest(db, request: request)
                 try XCTAssertEqual(derivedRequest.fetchedRegion(db).description, "foo(a,id)")
             }
         }

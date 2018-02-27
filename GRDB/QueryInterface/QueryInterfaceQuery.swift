@@ -1,5 +1,3 @@
-// MARK: - QueryInterfaceSelectQueryDefinition
-
 struct DatabasePromise<T> {
     let resolve: (Database) throws -> T
     
@@ -18,7 +16,7 @@ struct DatabasePromise<T> {
     }
 }
 
-struct QueryInterfaceSelectQueryDefinition {
+struct QueryInterfaceQuery {
     var selection: [SQLSelectable]
     var isDistinct: Bool
     var source: SQLSource?
@@ -51,7 +49,7 @@ struct QueryInterfaceSelectQueryDefinition {
         self.limit = limit
     }
     
-    func mapWhereExpression(_ transform: @escaping (Database, SQLExpression?) throws -> SQLExpression?) -> QueryInterfaceSelectQueryDefinition {
+    func mapWhereExpression(_ transform: @escaping (Database, SQLExpression?) throws -> SQLExpression?) -> QueryInterfaceQuery {
         var query = self
         query.wherePromise = query.wherePromise.map(transform)
         return query
@@ -160,7 +158,7 @@ struct QueryInterfaceSelectQueryDefinition {
     }
     
     /// Remove ordering
-    var unorderedQuery: QueryInterfaceSelectQueryDefinition {
+    var unorderedQuery: QueryInterfaceQuery {
         var query = self
         query.isReversed = false
         query.orderings = []
@@ -168,7 +166,7 @@ struct QueryInterfaceSelectQueryDefinition {
     }
 }
 
-extension QueryInterfaceSelectQueryDefinition : Request {
+extension QueryInterfaceQuery {
     func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
         var arguments: StatementArguments? = StatementArguments()
         let sql = try self.sql(db, &arguments)
@@ -178,7 +176,8 @@ extension QueryInterfaceSelectQueryDefinition : Request {
     }
     
     func fetchCount(_ db: Database) throws -> Int {
-        return try Int.fetchOne(db, countQuery)!
+        let (statement, adapter) = try countQuery.prepare(db)
+        return try Int.fetchOne(statement, adapter: adapter)!
     }
     
     /// The database region that the request looks into.
@@ -217,7 +216,7 @@ extension QueryInterfaceSelectQueryDefinition : Request {
         return region.tableIntersection(canonicalTableName, rowIds: rowIds)
     }
     
-    private var countQuery: QueryInterfaceSelectQueryDefinition {
+    private var countQuery: QueryInterfaceQuery {
         guard groupByExpressions.isEmpty && limit == nil else {
             // SELECT ... GROUP BY ...
             // SELECT ... LIMIT ...
@@ -255,8 +254,8 @@ extension QueryInterfaceSelectQueryDefinition : Request {
     }
     
     // SELECT COUNT(*) FROM (self)
-    private var trivialCountQuery: QueryInterfaceSelectQueryDefinition {
-        return QueryInterfaceSelectQueryDefinition(
+    private var trivialCountQuery: QueryInterfaceQuery {
+        return QueryInterfaceQuery(
             select: [SQLExpressionCount(AllColumns())],
             from: .query(query: unorderedQuery, alias: nil))
     }
@@ -264,7 +263,7 @@ extension QueryInterfaceSelectQueryDefinition : Request {
 
 indirect enum SQLSource {
     case table(name: String, alias: String?)
-    case query(query: QueryInterfaceSelectQueryDefinition, alias: String?)
+    case query(query: QueryInterfaceQuery, alias: String?)
     
     func sourceSQL(_ db: Database, _ arguments: inout StatementArguments?) throws -> String {
         switch self {
