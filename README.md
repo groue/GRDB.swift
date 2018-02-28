@@ -2813,8 +2813,8 @@ This is the list of record methods, along with their required protocols. The [Re
 | `record.save(db)` | [PersistableRecord] | |
 | `record.update(db)` | [PersistableRecord] | |
 | `record.update(db, columns:...)` | [PersistableRecord] | |
-| `record.updateChanges(db, from:...)` | [PersistableRecord] | |
-| `record.updateChanges(db)` | [Record](#record-class) | |
+| `record.updateChanges(db, from:...)` | [PersistableRecord] | [*](#changes-tracking) |
+| `record.updateChanges(db)` | [Record](#record-class) | [*](#changes-tracking) |
 | **Delete Records** | | |
 | `record.delete(db)` | [PersistableRecord] | |
 | `Type.deleteOne(db, key:...)` | [PersistableRecord] | <a href="#list-of-record-methods-1">¹</a> |
