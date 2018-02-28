@@ -1842,7 +1842,7 @@ try dbQueue.inDatabase { db in
 
 Of course, you need to open a [database connection](#database-connections), and [create a database table](#database-schema) first.
 
-Your custom structs and classes can adopt each protocol individually, and opt in to focused sets of features. Or you can subclass the `Record` class, and get the full toolkit in one go: fetching methods, persistence methods, and changes tracking. See the [list of record methods](#list-of-record-methods) for an overview.
+Your custom structs and classes can adopt each protocol individually, and opt in to focused sets of features. Or you can subclass the `Record` class, and get the full toolkit in one go: fetching methods, persistence methods, and record comparison. See the [list of record methods](#list-of-record-methods) for an overview.
 
 > :point_up: **Note**: if you are familiar with Core Data's NSManagedObject or Realm's Object, you may experience a cultural shock: GRDB records are not uniqued, and do not auto-update. This is both a purpose, and a consequence of protocol-oriented programming. You should read [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3) for a general introduction.
 
@@ -1864,7 +1864,7 @@ Your custom structs and classes can adopt each protocol individually, and opt in
     - [Customizing the Persistence Methods](#customizing-the-persistence-methods)
 - [Codable Records](#codable-records)
 - [Record Class](#record-class)
-- [Changes Tracking](#changes-tracking)
+- [Record Comparison]
 - [Conflict Resolution](#conflict-resolution)
 - [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key)
 - [List of Record Methods](#list-of-record-methods)
@@ -1914,7 +1914,7 @@ player.name = "Arthur"
 try player.update(db)
 ```
 
-Records can [track their changes](#changes-tracking), so that you can avoid useless updates:
+Records can [avoid useless updates](#record-comparison):
 
 ```swift
 let player = try Player.fetchOne(db, key: 1)!
@@ -1972,7 +1972,7 @@ Details follow:
 - [PersistableRecord Protocol](#persistablerecord-protocol)
 - [Codable Records](#codable-records)
 - [Record Class](#record-class)
-- [Changes Tracking](#changes-tracking)
+- [Record Comparison]
 - [Conflict Resolution](#conflict-resolution)
 - [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key)
 - [List of Record Methods](#list-of-record-methods)
@@ -2479,7 +2479,7 @@ place.id // A unique id
 
 ## Record Class
 
-**Record** is a class that is designed to be subclassed. It inherits its features from the [FetchableRecord, TableRecord, and PersistableRecord](#record-protocols-overview) protocols. On top of that, Record instances can [track their changes](#changes-tracking).
+**Record** is a class that is designed to be subclassed. It inherits its features from the [FetchableRecord, TableRecord, and PersistableRecord](#record-protocols-overview) protocols. On top of that, Record instances can compare against previous versions of themselves in order to [avoid useless updates](#record-comparison).
 
 Record subclasses define their custom database relationship by overriding database methods:
 
@@ -2520,11 +2520,11 @@ class Place : Record {
 ```
 
 
-## Changes Tracking
+## Record Comparison
 
-**Changes tracking is the ability, for a record, to compare against another record, or against previous versions of itself.**
+**Records can compare against other records, or against previous versions of themselves.**
 
-The `update()` [method](#persistence-methods) always executes an UPDATE statement. When the record has not been edited, this costly database access is generally useless.
+This helps avoiding costly UPDATE statements when a record has not been edited.
 
 You can use instead the `updateChanges` method, available on the [PersistableRecord] protocol, which performs an update of the changed columns only (and does nothing if record has no change):
 
@@ -2813,8 +2813,8 @@ This is the list of record methods, along with their required protocols. The [Re
 | `record.save(db)` | [PersistableRecord] | |
 | `record.update(db)` | [PersistableRecord] | |
 | `record.update(db, columns:...)` | [PersistableRecord] | |
-| `record.updateChanges(db, from:...)` | [PersistableRecord] | [*](#changes-tracking) |
-| `record.updateChanges(db)` | [Record](#record-class) | [*](#changes-tracking) |
+| `record.updateChanges(db, from:...)` | [PersistableRecord] | [*](#record-comparison) |
+| `record.updateChanges(db)` | [Record](#record-class) | [*](#record-comparison) |
 | **Delete Records** | | |
 | `record.delete(db)` | [PersistableRecord] | |
 | `Type.deleteOne(db, key:...)` | [PersistableRecord] | <a href="#list-of-record-methods-1">¹</a> |
@@ -2846,7 +2846,7 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.fetchOne(db, sql)` | [FetchableRecord] | <a href="#list-of-record-methods-3">³</a> |
 | `Type.fetchOne(statement)` | [FetchableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetchOne(db)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| **[Changes Tracking](#changes-tracking)** | | |
+| **[Record Comparison]** | | |
 | `record.databaseEqual(...)` | [PersistableRecord] | |
 | `record.databaseChanges(from:...)` | [PersistableRecord] | |
 | `record.updateChanges(db, from:...)` | [PersistableRecord] | |
@@ -6631,7 +6631,7 @@ if player.hasDatabaseChanges {
 }
 ```
 
-See [changes tracking](#changes-tracking) for more information.
+See [Record Comparison] for more information.
 
 
 ### Performance tip: learn about SQL strengths and weaknesses
@@ -6916,6 +6916,10 @@ Sample Code
 Legacy
 ======
 
+#### Changes Tracking
+
+This chapter has been renamed [Record Comparison].
+
 #### Persistable Protocol
 
 This protocol has been renamed [PersistableRecord] in GRDB 3.0.
@@ -6930,4 +6934,5 @@ This protocol has been renamed [TableRecord] in GRDB 3.0.
 
 [FetchableRecord]: #fetchablerecord-protocol
 [PersistableRecord]: #persistablerecord-protocol
+[Record Comparison]: #record-comparison
 [TableRecord]: #tablerecord-protocol

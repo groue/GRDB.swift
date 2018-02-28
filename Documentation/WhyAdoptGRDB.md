@@ -37,7 +37,7 @@ GRDB puts all bets on SQLite, and focuses on front-end GUI applications.
 
 This means that dealing with servers, MySQL, or PostgreSQL is out of scope. GRDB is not an alternative to IBM's [Swift-Kuery], Vapor's [Fluent], or Perfect's [StORM].
 
-Focusing on SQLite and applications has allowed GRDB to build features usually only found in company-sponsored libraries: migrations, changes tracking, database observation, multi-threading safety, table view animations, support for reactive streams...
+Focusing on SQLite and applications has allowed GRDB to build features usually only found in company-sponsored libraries: migrations, record comparison, database observation, multi-threading safety, table view animations, support for reactive streams...
 
 Some will call GRDB "opinionated", or "bloated". Well, the bet of GRDB is that developers can take great profit from a library that provides efficient and community-tested solutions to existing problems. For example, one can not address the multithreading difficulties of Core Data or Realm without looking at database concurrency and records straight in the face.
 

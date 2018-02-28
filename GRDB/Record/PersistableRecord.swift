@@ -437,7 +437,7 @@ extension MutablePersistableRecord {
         return try performExists(db)
     }
     
-    // MARK: - Changes Tracking
+    // MARK: - Record Comparison
     
     /// Returns a boolean indicating whether this record and the other record
     /// have the same database representation.

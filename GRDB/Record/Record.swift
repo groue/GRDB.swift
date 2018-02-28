@@ -163,7 +163,7 @@ open class Record : FetchableRecord, TableRecord, PersistableRecord {
     }
     
     
-    // MARK: - Changes Tracking
+    // MARK: - Compare with Previous Versions
     
     /// A boolean that indicates whether the record has changes that have not
     /// been saved.

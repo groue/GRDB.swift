@@ -31,7 +31,7 @@ try dbQueue.inDatabase { db in
 
 // Define the Player subclass of GRDB's Record.
 //
-// Record provides change tracking that helps avoiding useless UPDATE statements.
+// Record can compare against itself, and that helps avoiding useless UPDATE statements.
 class Player : Record {
     var id: Int64
     var name: String

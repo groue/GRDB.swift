@@ -48,7 +48,7 @@ All tests use the default settings of each library. For each library, we:
 - Build and consume database rows with raw SQL and column indexes (aiming at the best performance)
 - Build and consume database rows with column names (sacrificing performance for maintainability)
 - Build and consume records values to and from database rows (aiming at the shortest code from database to records)
-- Build and consume records values to and from database rows, with [change tracking](https://github.com/groue/GRDB.swift/blob/master/README.md#changes-tracking) (records know if they have unsaved changes)
+- Build and consume records values to and from database rows, with [change tracking](https://github.com/groue/GRDB.swift/blob/master/README.md#record-comparison) (records know if they have unsaved changes)
 
 As a bottom line, the raw SQLite C API is used as efficiently as possible, without any error checking.
 

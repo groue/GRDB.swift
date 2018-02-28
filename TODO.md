@@ -19,7 +19,7 @@ Xcode 9.3, Swift 4.1
 
 GRDB 3.0
 
-- [ ] Rename "changes tracking" (ambiguous with database observation) to "record comparison"
+- [X] Rename "changes tracking" (ambiguous with database observation) to "record comparison"
 - [ ] Refactor SQL generation and rowId extraction from expression on the visitor pattern. Provide more documentation for literal expressions which become the only way to extend GRDB. Remove QueryInterfaceExtensibilityTests.swift
 - [ ] Make DatabasePool.write safe. See https://github.com/groue/GRDB.swift/commit/5e3c7d9c430df606a1cccfd4983be6b50e778a5c#commitcomment-26988970
 - [ ] Do one of those two:
