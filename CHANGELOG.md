@@ -6,8 +6,9 @@ Release Notes
 ### Breaking Changes
 
 - The Record protocols have been renamed: `RowConvertible` to `FetchableRecord`, `Persistable` to `PersistableRecord`, and `TableMapping` to `TableRecord`.
-- `Request` and `TypedRequest` protocols have been merged into `FetchRequest` ([311](https://github.com/groue/GRDB.swift/pull/311))
+- `Request` and `TypedRequest` protocols have been merged into `FetchRequest` ([311](https://github.com/groue/GRDB.swift/pull/311)).
 - The `IteratorCursor` type has been removed. Use `AnyCursor` instead.
+- Deprecated APIs have been removed.
 
 
 ### API diff
@@ -130,6 +131,26 @@ Release Notes
 +    convenience init<S: Sequence>(_ s: S) where S.Element == Element
  }
 -final class IteratorCursor<Base: IteratorProtocol> : Cursor { }
+```
+
+**Removed Deprecated APIs**
+
+```diff
+ final class Database {
+-    func columnCount(in tableName: String) throws -> Int
+ }
+ final class SelectStatement : Statement {
+-    typealias SelectionInfo = DatabaseRegion
+-    var selectionInfo: DatabaseRegion
+ }
+ enum DatabaseEventKind {
+-    func impacts(_ region: DatabaseRegion) -> Bool
+ }
+ open class Record: FetchableRecord, TableRecord, PersistableRecord {
+-    var hasPersistentChangedValues: Bool
+-    var persistentChangedValues: [String: DatabaseValue?]
+ }
+-final class RecordBox<T: FetchableRecord & MutablePersistableRecord>: Record { }
 ```
 
 

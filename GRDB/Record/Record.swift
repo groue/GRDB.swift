@@ -186,13 +186,6 @@ open class Record : FetchableRecord, TableRecord, PersistableRecord {
         set { referenceRow = newValue ? nil : Row(self) }
     }
     
-    /// Deprecated alias for `hasDatabaseChanges`.
-    @available(*, deprecated, renamed: "hasDatabaseChanges")
-    public var hasPersistentChangedValues: Bool {
-        get { return hasDatabaseChanges }
-        set { hasDatabaseChanges = newValue }
-    }
-    
     /// A dictionary of changes that have not been saved.
     ///
     /// Its keys are column names, and values the old values that have been
@@ -204,12 +197,6 @@ open class Record : FetchableRecord, TableRecord, PersistableRecord {
     /// See `hasDatabaseChanges` for more information.
     public var databaseChanges: [String: DatabaseValue?] {
         return Dictionary(uniqueKeysWithValues: databaseChangesIterator())
-    }
-    
-    /// Deprecated alias for `databaseChanges`.
-    @available(*, deprecated, renamed: "databaseChanges")
-    public var persistentChangedValues: [String: DatabaseValue?] {
-        return databaseChanges
     }
     
     // A change iterator that is used by both hasDatabaseChanges and

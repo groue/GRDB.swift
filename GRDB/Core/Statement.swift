@@ -291,15 +291,7 @@ extension AuthorizedStatement {
 ///         let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
 ///         let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
 ///     }
-public final class SelectStatement : Statement {
-    /// :nodoc:
-    @available(*, deprecated, renamed:"DatabaseRegion")
-    public typealias SelectionInfo = DatabaseRegion
-    
-    /// :nodoc:
-    @available(*, deprecated, renamed:"fetchedRegion")
-    public var selectionInfo: DatabaseRegion { return fetchedRegion }
-    
+public final class SelectStatement : Statement {    
     /// The database region that the statement looks into.
     public private(set) var fetchedRegion: DatabaseRegion
     

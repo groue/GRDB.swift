@@ -874,12 +874,6 @@ public enum DatabaseEventKind {
             return DatabaseRegion(table: tableName, columns: updatedColumnNames)
         }
     }
-    
-    /// :nodoc:
-    @available(*, deprecated, message: "Use DatabaseRegion.isModified(byEventsOfKind:) instead")
-    public func impacts(_ region: DatabaseRegion) -> Bool {
-        return region.isModified(byEventsOfKind: self)
-    }
 }
 
 extension DatabaseEventKind {
