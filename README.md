@@ -2526,7 +2526,7 @@ class Place : Record {
 
 This helps avoiding costly UPDATE statements when a record has not been edited.
 
-You can use instead the `updateChanges` method, available on the [PersistableRecord] protocol, which performs an update of the changed columns only (and does nothing if record has no change):
+You can use the `updateChanges` method, available on the [PersistableRecord] protocol, which performs an update of the changed columns only (and does nothing if record has no change):
 
 ```swift
 let oldPlayer = try Player.fetchOne(db, ...)
@@ -4606,7 +4606,7 @@ This technique works pretty well, but it has three drawbacks:
 
 1. The selection becomes hard to read and understand.
 2. Such queries are difficult to write by hand.
-3. The mangled names are a *very* bad fit for [FetchableRecord] records that expect specific column names. After all, if the `Team` record type can read `SELECT * FROM teams ...`, it should be able to read `SELECT ..., teams.*, ...` as well.
+3. The mangled names are a *very* bad fit for [FetchableRecord] types that expect specific column names. After all, if the `Team` record type can read `SELECT * FROM teams ...`, it should be able to read `SELECT ..., teams.*, ...` as well.
 
 We thus need another technique. **Below we'll see how to split rows into slices, and preserve column names.**
 
