@@ -1914,14 +1914,12 @@ player.name = "Arthur"
 try player.update(db)
 ```
 
-Records can [avoid useless updates](#record-comparison):
+It is possible to [avoid useless updates](#record-comparison):
 
 ```swift
 let player = try Player.fetchOne(db, key: 1)!
 player.name = "Arthur"
-if player.hasDatabaseChanges {
-    try player.update(db)
-}
+try player.updateChanges(db)
 ```
 
 For batch updates, execute an [SQL query](#executing-updates):
@@ -1948,7 +1946,7 @@ try Player.deleteOne(db, key: ["email": "arthur@example.com"])
 try Country.deleteAll(db, keys: ["FR", "US"])
 ```
 
-For batch deletes, see the [query interface](#the-query-interface):
+For batch deletes, execute an [SQL query](#executing-updates), or see the [query interface](#the-query-interface):
 
 ```swift
 try Player.filter(emailColumn == nil).deleteAll(db)
@@ -1982,27 +1980,16 @@ Details follow:
 
 **GRDB ships with three record protocols**. Your own types will adopt one or several of them, according to the abilities you want to extend your types with.
 
-- [FetchableRecord] is able to **read**: it grants the ability to efficiently decode raw database row.
+- [FetchableRecord] is able to **decode database rows**.
     
-    Imagine you want to load places from the `places` database table.
-    
-    One way to do it is to load raw database rows:
+    You can always decode rows yourself:
     
     ```swift
-    func fetchPlaceRows(_ db: Database) throws -> [Row] {
-        return try Row.fetchAll(db, "SELECT * FROM places")
-    }
-    ```
-    
-    The problem is that [raw rows](#row-queries) are not easy to deal with, and you may prefer using a proper `Place` type:
-    
-    ```swift
-    // Dedicated model
     struct Place { ... }
-    func fetchPlaces(_ db: Database) throws -> [Place] {
+    try dbQueue.inDatabase { db in
         let rows = try Row.fetchAll(db, "SELECT * FROM places")
-        return rows.map { row in
-            Place(
+        let places: [Place] = rows.map { row in
+            return Place(
                 id: row["id"],
                 title: row["title"],
                 coordinate: CLLocationCoordinate2D(
@@ -2013,50 +2000,21 @@ Details follow:
     }
     ```
     
-    This code is verbose, and so you define an `init(row:)` initializer:
+    But FetchableRecord lets you write code that is much more readable, and much more efficient as well, both in terms of performance and memory usage:
     
     ```swift
-    // Row initializer
-    struct Place {
-        init(row: Row) {
-            id = row["id"]
-            ...
-        }
-    }
-    func fetchPlaces(_ db: Database) throws -> [Place] {
-        let rows = try Row.fetchAll(db, "SELECT * FROM places")
-        return rows.map { Place(row: $0) }
+    struct Place: FetchableRecord { ... }
+    try dbQueue.inDatabase { db in
+        let places = try Place.fetchAll(db, "SELECT * FROM places")
     }
     ```
     
-    Now you notice that this code may use a lot of memory when you have many rows: a full array of database rows is created in order to build an array of places. Furthermore, rows that have been copied from the database have lost the ability to directly load values from SQLite: that's inefficient. You thus use a [database cursor](#cursors), which is both lazy and efficient:
+    FetchableRecord is not able to build SQL requests for you, though. For that, you also need TableRecord:
+    
+- [TableRecord] is able to **generate SQL queries**:
     
     ```swift
-    // Cursor for efficiency
-    func fetchPlaces(_ db: Database) throws -> [Place] {
-        let rowCursor = try Row.fetchCursor(db, "SELECT * FROM places")
-        let placeCursor = rowCursor.map { Place(row: $0) }
-        return try Array(placeCursor)
-    }
-    ```
-    
-    That's better. And that's what FetchableRecord does, with a little performance bonus, and in a single line:
-    
-    ```swift
-    struct Place : FetchableRecord {
-        init(row: Row) { ... }
-    }
-    func fetchPlaces(_ db: Database) throws -> [Place] {
-        return try Place.fetchAll(db, "SELECT * FROM places")
-    }
-    ```
-    
-    FetchableRecord is not able to build SQL requests, though. For that, you also need TableRecord:
-    
-- [TableRecord] is able to **build requests without SQL**:
-    
-    ```swift
-    struct Place : TableRecord { ... }
+    struct Place: TableRecord { ... }
     // SELECT * FROM places ORDER BY title
     let request = Place.order(Column("title"))
     ```
@@ -2064,7 +2022,7 @@ Details follow:
     When a type adopts both TableRecord and FetchableRecord, it can load from those requests:
     
     ```swift
-    struct Place : TableRecord, FetchableRecord { ... }
+    struct Place: TableRecord, FetchableRecord { ... }
     try dbQueue.inDatabase { db in
         let places = try Place.order(Column("title")).fetchAll(db)
         let paris = try Place.fetchOne(key: 1)
@@ -2080,7 +2038,9 @@ Details follow:
         try Place(...).insert(db)
     }
     ```
-
+    
+    A persistable record can also [compare](#record-comparison) itself against other records, and avoid useless database updates.
+    
 
 ## FetchableRecord Protocol
 
