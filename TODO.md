@@ -35,6 +35,7 @@ GRDB 3.0
 - [ ] Rename columnCount -> numberOfColumns
 - [ ] Try to remove double EncodableRecord/MutableEncodableRecord protocols: Would non-mutating Record methods help?
 - [ ] DatabaseMigrator exposes the name of its support table (useful for tests that check which application tables are present). Alternative: have GRDB tell if a database table name is reserved by GRDB.
+- [ ] Ask DatabaseMigrator if a migration has been applied (useful for tests that check if a legacy database resource should be tested or not)
 
 Not sure
 
