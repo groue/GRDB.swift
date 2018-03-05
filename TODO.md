@@ -34,6 +34,7 @@ GRDB 3.0
 - [X] Rename TypedRequest to FetchRequest, drop Request
 - [ ] Rename columnCount -> numberOfColumns
 - [ ] Try to remove double EncodableRecord/MutableEncodableRecord protocols: Would non-mutating Record methods help?
+- [ ] DatabaseMigrator exposes the name of its support table (useful for tests that check which application tables are present). Alternative: have GRDB tell if a database table name is reserved by GRDB.
 
 Not sure
 
