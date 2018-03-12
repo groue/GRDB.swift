@@ -841,8 +841,7 @@ extension Database {
             self.rawValue = rawValue
         }
         
-        #if swift(>=4.1)
-        #else
+        #if !swift(>=4.1)
         /// The hash value
         /// :nodoc:
         public var hashValue: Int {
@@ -881,8 +880,7 @@ extension Database {
             self.rawValue = rawValue
         }
         
-        #if swift(>=4.1)
-        #else
+        #if !swift(>=4.1)
         /// The hash value
         /// :nodoc:
         public var hashValue: Int {

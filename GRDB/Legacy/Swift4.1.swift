@@ -1,7 +1,6 @@
 // Compatibility layer for Swift < 4.1
 
-#if swift(>=4.1)
-#else
+#if !swift(>=4.1)
 extension Sequence {
     // From future import SE-0187
     func compactMap<ElementOfResult>(_ transform: (Self.Element) throws -> ElementOfResult?) rethrows -> [ElementOfResult] {

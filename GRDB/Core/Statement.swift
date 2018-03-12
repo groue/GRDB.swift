@@ -911,8 +911,7 @@ extension StatementArguments {
     }
 }
 
-#if swift(>=4.1)
-#else
+#if !swift(>=4.1)
 // Equatable
 extension StatementArguments {
     /// :nodoc:

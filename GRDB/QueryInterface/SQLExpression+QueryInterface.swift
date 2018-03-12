@@ -486,8 +486,7 @@ public struct SQLFunctionName : Hashable {
         self.sql = sql
     }
     
-    #if swift(>=4.1)
-    #else
+    #if !swift(>=4.1)
     /// The hash value
     ///
     /// :nodoc:

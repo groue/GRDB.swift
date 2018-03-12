@@ -11,8 +11,7 @@ public final class DatabaseFunction: Hashable {
         let name: String
         let nArg: Int32 // -1 for variadic functions
         
-        #if swift(>=4.1)
-        #else
+        #if !swift(>=4.1)
         var hashValue: Int {
             return name.hashValue ^ nArg.hashValue
         }
