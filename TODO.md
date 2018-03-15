@@ -19,8 +19,6 @@ Xcode 9.3, Swift 4.1
 
 GRDB 3.0
 
-- [X] Rename "changes tracking" (ambiguous with database observation) to "record comparison"
-- [ ] Refactor SQL generation and rowId extraction from expression on the visitor pattern. Provide more documentation for literal expressions which become the only way to extend GRDB. Remove QueryInterfaceExtensibilityTests.swift
 - [ ] Make DatabasePool.write safe. See https://github.com/groue/GRDB.swift/commit/5e3c7d9c430df606a1cccfd4983be6b50e778a5c#commitcomment-26988970
 - [ ] Do one of those two:
     1. Make save() impossible to customize: remove it from EncodableRecord protocol, and remove performSave() from tne public API.
@@ -29,16 +27,8 @@ GRDB 3.0
 - [ ] Not sure: type safety
     - [ ] Introduce some record protocol with an associated primary key type. Restrict filter(key:) methods to this type. Allow distinguishing FooId from BarId types.
     - [ ] Replace Column with TypedColumn. How to avoid code duplication (repeated types)? Keypaths?
-- [ ] Not sure: Consider introducing RowDecodable and RowEncodable on top of FetchableRecord and MutableEncodableRecordRecord. This would allow keeping fetching and persistence methods private in some files.
-- [X] Drop IteratorCursor, use AnyCursor instead
-- [X] Rename TypedRequest to FetchRequest, drop Request
 - [ ] Rename columnCount -> numberOfColumns
 - [ ] Try to remove double EncodableRecord/MutableEncodableRecord protocols: Would non-mutating Record methods help?
-- [ ] DatabaseMigrator exposes the name of its support table (useful for tests that check which application tables are present). Alternative: have GRDB tell if a database table name is reserved by GRDB.
-- [ ] Ask DatabaseMigrator if a migration has been applied (useful for tests that check if a legacy database resource should be tested or not)
-- [ ] DatabaseMigrator.isInternalTable
-- [ ] DatabaseMigrator.canMigrate(_:upTo:)
-- [ ] Database.isSQLiteInternalTable
 - [ ] HiddenColumnsAdapter
 
 Not sure
