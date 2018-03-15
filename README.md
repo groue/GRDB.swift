@@ -3859,7 +3859,7 @@ Check if a migration has been applied:
 ```swift
 let appliedMigrations = try migrator.appliedMigration(in: dbQueue)
 if appliedMigrations.contains("v2") {
-    // "v2" has been applied
+    // "v2" migration has been applied
 }
 ```
 

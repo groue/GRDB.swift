@@ -7,7 +7,7 @@ Release Notes
 
 - `Database.isSQLiteInternalTable(_:)` returns whether a table name is an internal SQLite table.
 - `Database.isGRDBInternalTable(_:)` returns whether a table name is an internal GRDB table.
-- `DatabaseMigrator.appliedMigrations(in:)` returns the set of applied migrations identifiers.
+- `DatabaseMigrator.appliedMigrations(in:)` returns the set of applied migrations identifiers in a database.
 
 ### Breaking Changes
 
