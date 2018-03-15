@@ -332,6 +332,9 @@ open class Record : FetchableRecord, TableRecord, PersistableRecord {
     /// This method is guaranteed to have inserted or updated a row in the
     /// database if it returns without error.
     ///
+    /// You can't override this method. Instead, override `insert(_:)`
+    /// or `update(_:columns:)`.
+    ///
     /// - parameter db: A database connection.
     /// - throws: A DatabaseError whenever an SQLite error occurs, or errors
     ///   thrown by update().
