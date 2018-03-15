@@ -146,6 +146,11 @@ public struct DatabaseMigrator {
         }
     }
     
+    /// Returns the set of applied migration identifiers.
+    public func appliedMigrations(in reader: DatabaseReader) throws -> Set<String> {
+        return try reader.read { try appliedMigrations($0) }
+    }
+    
     
     // MARK: - Non public
     
@@ -160,13 +165,13 @@ public struct DatabaseMigrator {
         try db.execute("CREATE TABLE IF NOT EXISTS grdb_migrations (identifier TEXT NOT NULL PRIMARY KEY)")
     }
     
-    private func appliedIdentifiers(_ db: Database) throws -> Set<String> {
+    private func appliedMigrations(_ db: Database) throws -> Set<String> {
         return try Set(String.fetchAll(db, "SELECT identifier FROM grdb_migrations"))
     }
     
     private func runMigrations(_ db: Database) throws {
-        let appliedIdentifiers = try self.appliedIdentifiers(db)
-        for migration in migrations where !appliedIdentifiers.contains(migration.identifier) {
+        let appliedMigrations = try self.appliedMigrations(db)
+        for migration in migrations where !appliedMigrations.contains(migration.identifier) {
             try migration.run(db)
         }
     }
@@ -184,13 +189,13 @@ public struct DatabaseMigrator {
         GRDBPrecondition(prefixMigrations.last?.identifier == targetIdentifier, "undefined migration: \(String(reflecting: targetIdentifier))")
         
         // Subsequent migration must not be applied
-        let appliedIdentifiers = try self.appliedIdentifiers(db)
+        let appliedMigrations = try self.appliedMigrations(db)
         if prefixMigrations.count < migrations.count {
             let nextIdentifier = migrations[prefixMigrations.count].identifier
-            GRDBPrecondition(!appliedIdentifiers.contains(nextIdentifier), "database is already migrated beyond migration \(String(reflecting: targetIdentifier))")
+            GRDBPrecondition(!appliedMigrations.contains(nextIdentifier), "database is already migrated beyond migration \(String(reflecting: targetIdentifier))")
         }
         
-        for migration in prefixMigrations where !appliedIdentifiers.contains(migration.identifier) {
+        for migration in prefixMigrations where !appliedMigrations.contains(migration.identifier) {
             try migration.run(db)
         }
     }

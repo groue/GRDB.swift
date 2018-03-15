@@ -30,6 +30,28 @@ extension Database {
         return try Row.fetchOne(self, "SELECT 1 FROM (SELECT sql, type, name FROM sqlite_master UNION SELECT sql, type, name FROM sqlite_temp_master) WHERE type = 'table' AND LOWER(name) = ?", arguments: [tableName.lowercased()]) != nil
     }
     
+    /// Returns whether a table is an internal SQLite table.
+    ///
+    /// Those are tables whose name begins with "sqlite_".
+    ///
+    /// For more information, see https://www.sqlite.org/fileformat2.html
+    public func isSQLiteInternalTable(_ tableName: String) -> Bool {
+        // https://www.sqlite.org/fileformat2.html#internal_schema_objects
+        // > The names of internal schema objects always begin with "sqlite_"
+        // > and any table, index, view, or trigger whose name begins with
+        // > "sqlite_" is an internal schema object. SQLite prohibits
+        // > applications from creating objects whose names begin with
+        // > "sqlite_".
+        return tableName.starts(with: "sqlite_")
+    }
+    
+    /// Returns whether a table is an internal GRDB table.
+    ///
+    /// Those are tables whose name begins with "grdb_".
+    public func isGRDBInternalTable(_ tableName: String) -> Bool {
+        return tableName.starts(with: "grdb_")
+    }
+    
     /// Returns whether a view exists.
     public func viewExists(_ viewName: String) throws -> Bool {
         // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)

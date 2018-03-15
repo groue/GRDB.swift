@@ -1647,6 +1647,8 @@ try db.indexes(on: "players")     // [IndexInfo], the indexes defined on the tab
 try db.foreignKeys(on: "players") // [ForeignKeyInfo], the foreign keys defined on the table
 try db.primaryKey("players")      // PrimaryKeyInfo
 try db.table("players", hasUniqueKey: ["email"]) // Bool, true if column(s) is a unique key
+Database.isSQLiteInternalTable(...) // Bool, true if argument is the name of an internal SQLite table
+Database.isGRDBInternalTable(...)   // Bool, true if argument is the name of an internal GRDB table
 ```
 
 
@@ -3850,6 +3852,15 @@ Migrations can only run forward:
 try migrator.migrate(dbQueue, upTo: "v2")
 try migrator.migrate(dbQueue, upTo: "v1")
 // fatal error: database is already migrated beyond migration "v1"
+```
+
+Check if a migration has been applied:
+
+```swift
+let appliedMigrations = try migrator.appliedMigration(in: dbQueue)
+if appliedMigrations.contains("v2") {
+    // "v2" migration has been applied
+}
 ```
 
 
