@@ -147,7 +147,7 @@ public struct DatabaseMigrator {
     }
     
     /// Returns the set of applied migration identifiers.
-    public func appliedMigrations(_ reader: DatabaseReader) throws -> Set<String> {
+    public func appliedMigrations(in reader: DatabaseReader) throws -> Set<String> {
         return try reader.read { try appliedMigrations($0) }
     }
     

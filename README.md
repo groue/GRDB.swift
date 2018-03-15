@@ -3854,6 +3854,15 @@ try migrator.migrate(dbQueue, upTo: "v1")
 // fatal error: database is already migrated beyond migration "v1"
 ```
 
+Check if a migration has been applied:
+
+```swift
+let appliedMigrations = try migrator.appliedMigration(in: dbQueue)
+if appliedMigrations.contains("v2") {
+    // "v2" has been applied
+}
+```
+
 
 ### Advanced Database Schema Changes
 
