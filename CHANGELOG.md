@@ -6,6 +6,7 @@ Release Notes
 ### New
 
 - `Database.isSQLiteInternalTable(_:)` returns whether a table name is an internal SQLite table.
+- `Database.isGRDBInternalTable(_:)` returns whether a table name is an internal GRDB table.
 
 ### Breaking Changes
 

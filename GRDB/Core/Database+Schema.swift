@@ -32,6 +32,8 @@ extension Database {
     
     /// Returns whether a table is an internal SQLite table.
     ///
+    /// Those are tables whose name begins with "sqlite_".
+    ///
     /// For more information, see https://www.sqlite.org/fileformat2.html
     public func isSQLiteInternalTable(_ tableName: String) -> Bool {
         // https://www.sqlite.org/fileformat2.html#internal_schema_objects
@@ -42,7 +44,14 @@ extension Database {
         // > "sqlite_".
         return tableName.starts(with: "sqlite_")
     }
-
+    
+    /// Returns whether a table is an internal GRDB table.
+    ///
+    /// Those are tables whose name begins with "grdb_".
+    public func isGRDBInternalTable(_ tableName: String) -> Bool {
+        return tableName.starts(with: "grdb_")
+    }
+    
     /// Returns whether a view exists.
     public func viewExists(_ viewName: String) throws -> Bool {
         // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)

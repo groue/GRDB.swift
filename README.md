@@ -1647,7 +1647,8 @@ try db.indexes(on: "players")     // [IndexInfo], the indexes defined on the tab
 try db.foreignKeys(on: "players") // [ForeignKeyInfo], the foreign keys defined on the table
 try db.primaryKey("players")      // PrimaryKeyInfo
 try db.table("players", hasUniqueKey: ["email"]) // Bool, true if column(s) is a unique key
-Database.isSQLiteInternalTable("players") // Bool, true if argument is the name of an internal to SQLite table
+Database.isSQLiteInternalTable(...) // Bool, true if argument is the name of an internal SQLite table
+Database.isGRDBInternalTable(...)   // Bool, true if argument is the name of an internal GRDB table
 ```
 
 
