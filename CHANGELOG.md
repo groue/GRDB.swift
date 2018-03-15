@@ -3,6 +3,10 @@ Release Notes
 
 ## Next Version
 
+### New
+
+- `Database.isSQLiteInternalTable(_:)` returns whether a table name is an internal SQLite table.
+
 ### Breaking Changes
 
 - The Record protocols have been renamed: `RowConvertible` to `FetchableRecord`, `Persistable` to `PersistableRecord`, and `TableMapping` to `TableRecord`.
