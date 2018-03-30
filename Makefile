@@ -254,10 +254,10 @@ test_performance: Realm FMDB SQLite.swift
 	  -scheme GRDBOSXPerformanceComparisonTests \
 	  build-for-testing test-without-building
 
-Realm: Tests/Performance/Realm/build/osx/swift-4.0.3/RealmSwift.framework
+Realm: Tests/Performance/Realm/build/osx/swift-4.1/RealmSwift.framework
 
 # Makes sure the Tests/Performance/Realm submodule has been downloaded, and Realm framework has been built.
-Tests/Performance/Realm/build/osx/swift-4.0.3/RealmSwift.framework:
+Tests/Performance/Realm/build/osx/swift-4.1/RealmSwift.framework:
 	$(GIT) submodule update --init --recursive Tests/Performance/Realm
 	cd Tests/Performance/Realm && sh build.sh osx-swift
 
@@ -306,10 +306,10 @@ ifdef JAZZY
 	  --author 'Gwendal Roué' \
 	  --author_url https://github.com/groue \
 	  --github_url https://github.com/groue/GRDB.swift \
-	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v2.9.0 \
-	  --module-version 2.9 \
+	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v2.10.0 \
+	  --module-version 2.10 \
 	  --module GRDB \
-	  --root-url http://groue.github.io/GRDB.swift/docs/2.9/ \
+	  --root-url http://groue.github.io/GRDB.swift/docs/2.10/ \
 	  --output Documentation/Reference \
 	  --podspec GRDB.swift.podspec
 else
