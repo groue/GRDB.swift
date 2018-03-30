@@ -19,6 +19,7 @@ Xcode 9.3, Swift 4.1
 
 GRDB 3.0
 
+- [ ] Rename `databaseEqual` to `databaseEquals`
 - [ ] Replace stopObservingDatabaseChangesUntilNextTransaction with a return value from `databaseDidChange`
 - [ ] Make DatabasePool.write safe. See https://github.com/groue/GRDB.swift/commit/5e3c7d9c430df606a1cccfd4983be6b50e778a5c#commitcomment-26988970
 - [ ] Do one of those two:
