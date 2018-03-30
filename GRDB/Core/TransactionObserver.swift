@@ -238,7 +238,7 @@ class DatabaseObservationBroker {
             // For example, if one observes all deletions in the table T, then
             // all individual deletions of DELETE FROM T are notified:
             let eventKind = eventKinds[0]
-            statementObservations = transactionObservations.flatMap { observation in
+            statementObservations = transactionObservations.compactMap { observation in
                 guard observation.observes(eventsOfKind: eventKind) else {
                     // observation is not interested
                     return nil
@@ -260,7 +260,7 @@ class DatabaseObservationBroker {
             // For example, if DELETE FROM T1 generates deletions in T1 and T2
             // by the mean of a foreign key action, then when one only observes
             // deletions in T1, one must not be notified of deletions in T2:
-            statementObservations = transactionObservations.flatMap { observation in
+            statementObservations = transactionObservations.compactMap { observation in
                 let observedKinds = eventKinds.filter(observation.observes)
                 if observedKinds.isEmpty {
                     // observation is not interested

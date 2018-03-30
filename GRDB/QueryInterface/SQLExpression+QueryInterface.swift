@@ -486,6 +486,7 @@ public struct SQLFunctionName : Hashable {
         self.sql = sql
     }
     
+    #if !swift(>=4.1)
     /// The hash value
     ///
     /// :nodoc:
@@ -499,6 +500,7 @@ public struct SQLFunctionName : Hashable {
     public static func == (lhs: SQLFunctionName, rhs: SQLFunctionName) -> Bool {
         return lhs.sql == rhs.sql
     }
+    #endif
 }
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)

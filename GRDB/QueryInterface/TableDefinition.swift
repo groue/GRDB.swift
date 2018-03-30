@@ -463,7 +463,7 @@ public final class TableDefinition {
         }
         
         let indexStatements = columns
-            .flatMap { $0.indexDefinition(in: name) }
+            .compactMap { $0.indexDefinition(in: name) }
             .map { $0.sql() }
         statements.append(contentsOf: indexStatements)
         return statements.joined(separator: "; ")

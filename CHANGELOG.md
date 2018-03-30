@@ -1,6 +1,18 @@
 Release Notes
 =============
 
+## Next Version
+
+### New
+
+- Support for Swift 4.1 and Xcode 9.3
+- Added `Cursor.compactMap` ([SE-0187](https://github.com/apple/swift-evolution/blob/master/proposals/0187-introduce-filtermap.md))
+
+### Deprecated
+
+- `Cursor.flatMap` is deprecated. Use `compactMap` instead.
+
+
 ## 2.9.0
 
 Released February 25, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.8.0...v2.9.0)

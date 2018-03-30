@@ -1050,8 +1050,9 @@ private final class Item<T: RowConvertible> : RowConvertible, Equatable {
     init(row: Row) {
         self.row = row.copy()
     }
+    
+    static func ==<T> (lhs: Item<T>, rhs: Item<T>) -> Bool {
+        return lhs.row == rhs.row
+    }
 }
 
-private func ==<T> (lhs: Item<T>, rhs: Item<T>) -> Bool {
-    return lhs.row == rhs.row
-}

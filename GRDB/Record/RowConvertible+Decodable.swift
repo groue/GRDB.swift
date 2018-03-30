@@ -14,7 +14,7 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
         let row = decoder.row
         let columnNames = Set(row.columnNames)
         let scopeNames = row.scopeNames
-        return columnNames.union(scopeNames).flatMap { Key(stringValue: $0) }
+        return columnNames.union(scopeNames).compactMap { Key(stringValue: $0) }
     }
     
     /// Returns whether the `Decoder` contains a value associated with the given key.

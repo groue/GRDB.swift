@@ -423,6 +423,9 @@
 		56B021CD1D8C0D3900B239BB /* MutablePersistablePersistenceConflictPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B021C81D8C0D3900B239BB /* MutablePersistablePersistenceConflictPolicyTests.swift */; };
 		56B14E831D4DAE54000BF4A3 /* RowFromDictionaryLiteralTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B14E7E1D4DAE54000BF4A3 /* RowFromDictionaryLiteralTests.swift */; };
 		56B15D0B1CD4C35100A24C8B /* FetchedRecordsControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B15D0A1CD4C35100A24C8B /* FetchedRecordsControllerTests.swift */; };
+		56B1C3CD201C8D0E001938DA /* Swift4.1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B1C3CC201C8D0E001938DA /* Swift4.1.swift */; };
+		56B1C3CE201C8D0E001938DA /* Swift4.1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B1C3CC201C8D0E001938DA /* Swift4.1.swift */; };
+		56B1C3CF201C8D0E001938DA /* Swift4.1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B1C3CC201C8D0E001938DA /* Swift4.1.swift */; };
 		56B7F42A1BE14A1900E39BBF /* CGFloatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B7F4291BE14A1900E39BBF /* CGFloatTests.swift */; };
 		56B7F43A1BEB42D500E39BBF /* Migration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B7F4391BEB42D500E39BBF /* Migration.swift */; };
 		56B7F43B1BEB42D500E39BBF /* Migration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B7F4391BEB42D500E39BBF /* Migration.swift */; };
@@ -940,10 +943,11 @@
 		56B021C81D8C0D3900B239BB /* MutablePersistablePersistenceConflictPolicyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MutablePersistablePersistenceConflictPolicyTests.swift; sourceTree = "<group>"; };
 		56B14E7E1D4DAE54000BF4A3 /* RowFromDictionaryLiteralTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowFromDictionaryLiteralTests.swift; sourceTree = "<group>"; };
 		56B15D0A1CD4C35100A24C8B /* FetchedRecordsControllerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchedRecordsControllerTests.swift; sourceTree = "<group>"; };
+		56B1C3CC201C8D0E001938DA /* Swift4.1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift4.1.swift; sourceTree = "<group>"; };
 		56B7F4291BE14A1900E39BBF /* CGFloatTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGFloatTests.swift; sourceTree = "<group>"; };
 		56B7F4391BEB42D500E39BBF /* Migration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Migration.swift; sourceTree = "<group>"; };
-		56B8C2401CA1758F00510325 /* Realm.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Realm.framework; path = "Realm/build/osx/swift-4.0.3/Realm.framework"; sourceTree = "<group>"; };
-		56B8C2411CA1758F00510325 /* RealmSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RealmSwift.framework; path = "Realm/build/osx/swift-4.0.3/RealmSwift.framework"; sourceTree = "<group>"; };
+		56B8C2401CA1758F00510325 /* Realm.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Realm.framework; path = "Realm/build/osx/swift-4.1/Realm.framework"; sourceTree = "<group>"; };
+		56B8C2411CA1758F00510325 /* RealmSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RealmSwift.framework; path = "Realm/build/osx/swift-4.1/RealmSwift.framework"; sourceTree = "<group>"; };
 		56B8F49A1B4E2F3600C24296 /* GRDB.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = GRDB.xcconfig; sourceTree = "<group>"; };
 		56B9649C1DA51B4C0002DA19 /* FTS5.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS5.swift; sourceTree = "<group>"; };
 		56B964B01DA51D010002DA19 /* FTS5TokenizerDescriptor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS5TokenizerDescriptor.swift; sourceTree = "<group>"; };
@@ -1612,6 +1616,7 @@
 				56E06F051E859064008AE2A4 /* Fixits-0.102.0.swift */,
 				56D121591ED34978001347D2 /* Fixits-0.109.0.swift */,
 				56873BEB1F2CB400004D24B4 /* Fixits-1.2.swift */,
+				56B1C3CC201C8D0E001938DA /* Swift4.1.swift */,
 			);
 			path = Legacy;
 			sourceTree = "<group>";
@@ -1946,7 +1951,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0730;
-				LastUpgradeCheck = 0900;
+				LastUpgradeCheck = 0930;
 				ORGANIZATIONNAME = "Gwendal Roué";
 				TargetAttributes = {
 					5654909F1D5A4798005622CB = {
@@ -2252,6 +2257,7 @@
 				565490D61D5AE252005622CB /* StandardLibrary.swift in Sources */,
 				565490B81D5AE236005622CB /* DatabaseError.swift in Sources */,
 				56BF6D3C1DEF47DA006039A3 /* Fixits-0-90-1.swift in Sources */,
+				56B1C3CF201C8D0E001938DA /* Swift4.1.swift in Sources */,
 				56DAA2E11DE9C827006E10C8 /* Cursor.swift in Sources */,
 				565490BC1D5AE236005622CB /* DatabaseSchemaCache.swift in Sources */,
 				565490BA1D5AE236005622CB /* DatabaseQueue.swift in Sources */,
@@ -2330,6 +2336,7 @@
 				5674A7081F307FCD0095F066 /* DatabaseValueConvertible+ReferenceConvertible.swift in Sources */,
 				56A2388C1B9C75030082EB20 /* Statement.swift in Sources */,
 				5659F4931EA8D964004A4992 /* ReadWriteBox.swift in Sources */,
+				56B1C3CE201C8D0E001938DA /* Swift4.1.swift in Sources */,
 				5605F1941C6B1A8700235C62 /* QueryInterfaceSelectQueryDefinition.swift in Sources */,
 				56B7F43B1BEB42D500E39BBF /* Migration.swift in Sources */,
 				5690C3431D23E82A00E59934 /* Data.swift in Sources */,
@@ -2735,6 +2742,7 @@
 				5605F1931C6B1A8700235C62 /* QueryInterfaceSelectQueryDefinition.swift in Sources */,
 				566B912B1FA4D0CC0012D5B0 /* StatementAuthorizer.swift in Sources */,
 				56A2388B1B9C75030082EB20 /* Statement.swift in Sources */,
+				56B1C3CD201C8D0E001938DA /* Swift4.1.swift in Sources */,
 				5690C3401D23E82A00E59934 /* Data.swift in Sources */,
 				5659F4881EA8D94E004A4992 /* Utils.swift in Sources */,
 				56FC98781D969DEF00E3C842 /* SQLExpression+QueryInterface.swift in Sources */,
@@ -2811,6 +2819,7 @@
 		560C98181C0E22D300BF8471 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				FRAMEWORK_SEARCH_PATHS = "";
@@ -2827,6 +2836,7 @@
 		560C98191C0E22D300BF8471 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -2845,11 +2855,12 @@
 		56439B4E1F4CA1DC0066043F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/Tests/Performance/Realm/build/osx/swift-4.0.3",
+					"$(PROJECT_DIR)/Tests/Performance/Realm/build/osx/swift-4.1",
 				);
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
@@ -2866,12 +2877,13 @@
 		56439B4F1F4CA1DC0066043F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/Tests/Performance/Realm/build/osx/swift-4.0.3",
+					"$(PROJECT_DIR)/Tests/Performance/Realm/build/osx/swift-4.1",
 				);
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
@@ -2894,6 +2906,7 @@
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
 				DEBUG_INFORMATION_FORMAT = dwarf;
@@ -2919,6 +2932,7 @@
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
 				COPY_PHASE_STRIP = NO;
@@ -2940,6 +2954,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -2955,6 +2970,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -2975,6 +2991,7 @@
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				DEBUG_INFORMATION_FORMAT = dwarf;
@@ -2999,6 +3016,7 @@
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				COPY_PHASE_STRIP = NO;
@@ -3021,6 +3039,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -3037,6 +3056,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -3055,6 +3075,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -3071,6 +3092,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -3097,12 +3119,14 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -3150,12 +3174,14 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -3191,6 +3217,7 @@
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -3211,6 +3238,7 @@
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;

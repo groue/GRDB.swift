@@ -47,7 +47,10 @@ TEST_ACTIONS = clean build build-for-testing test-without-building
 # xcodebuild destination to run tests on iOS 8.1 (requires a pre-installed simulator)
 MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=8.1"
 
-ifeq ($(XCODEVERSION),9.2)
+# When adding support for an Xcode version, look for available devices with `instruments -s devices`
+ifeq ($(XCODEVERSION),9.3)
+  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=11.3"
+else ifeq ($(XCODEVERSION),9.2)
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=11.2"
 else ifeq ($(XCODEVERSION),9.1)
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=11.1"
@@ -251,10 +254,10 @@ test_performance: Realm FMDB SQLite.swift
 	  -scheme GRDBOSXPerformanceComparisonTests \
 	  build-for-testing test-without-building
 
-Realm: Tests/Performance/Realm/build/osx/swift-4.0.3/RealmSwift.framework
+Realm: Tests/Performance/Realm/build/osx/swift-4.1/RealmSwift.framework
 
 # Makes sure the Tests/Performance/Realm submodule has been downloaded, and Realm framework has been built.
-Tests/Performance/Realm/build/osx/swift-4.0.3/RealmSwift.framework:
+Tests/Performance/Realm/build/osx/swift-4.1/RealmSwift.framework:
 	$(GIT) submodule update --init --recursive Tests/Performance/Realm
 	cd Tests/Performance/Realm && sh build.sh osx-swift
 
@@ -303,10 +306,10 @@ ifdef JAZZY
 	  --author 'Gwendal Roué' \
 	  --author_url https://github.com/groue \
 	  --github_url https://github.com/groue/GRDB.swift \
-	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v2.9.0 \
-	  --module-version 2.9 \
+	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v2.10.0 \
+	  --module-version 2.10 \
 	  --module GRDB \
-	  --root-url http://groue.github.io/GRDB.swift/docs/2.9/ \
+	  --root-url http://groue.github.io/GRDB.swift/docs/2.10/ \
 	  --output Documentation/Reference \
 	  --podspec GRDB.swift.podspec
 else
