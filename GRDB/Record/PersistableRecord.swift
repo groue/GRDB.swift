@@ -441,7 +441,7 @@ extension MutablePersistableRecord {
     
     /// Returns a boolean indicating whether this record and the other record
     /// have the same database representation.
-    public func databaseEqual(_ record: Self) -> Bool {
+    public func databaseEquals(_ record: Self) -> Bool {
         return databaseChangesIterator(from: record).next() == nil
     }
 

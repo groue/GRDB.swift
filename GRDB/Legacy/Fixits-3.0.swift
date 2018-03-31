@@ -50,5 +50,11 @@ extension Record {
     public var persistentChangedValues: [String: DatabaseValue?] { preconditionFailure() }
 }
 
-@available(*, unavailable, message: "Use changes methods defined on the MutablePersistableRecord protocol: databaseEqual(_:), databaseChanges(from:), updateChanges(from:)")
+@available(*, unavailable, message: "Use changes methods defined on the MutablePersistableRecord protocol: databaseEquals(_:), databaseChanges(from:), updateChanges(from:)")
 public final class RecordBox<T: FetchableRecord & MutablePersistableRecord>: Record { }
+
+extension MutablePersistableRecord {
+    /// :nodoc:
+    @available(*, unavailable, renamed: "databaseEquals")
+    public func databaseEqual(_ record: Self) -> Bool { preconditionFailure() }
+}

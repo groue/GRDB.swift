@@ -46,14 +46,14 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
         }
     }
     
-    func testDegenerateDatabaseEqualWithSelf() throws {
+    func testDegenerateDatabaseEqualsWithSelf() throws {
         struct DegenerateRecord: MutablePersistableRecord {
             static let databaseTableName = "ignored"
             func encode(to container: inout PersistenceContainer) {
             }
         }
         let record = DegenerateRecord()
-        XCTAssertTrue(record.databaseEqual(record))
+        XCTAssertTrue(record.databaseEquals(record))
         XCTAssertTrue(record.databaseChanges(from: record).isEmpty)
         
         let dbQueue = try makeDatabaseQueue()
@@ -64,10 +64,10 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
         }
     }
     
-    func testDatabaseEqualWithSelf() throws {
+    func testDatabaseEqualsWithSelf() throws {
         do {
             let player = Player(id: nil, name: nil, score: nil, creationDate: nil)
-            XCTAssertTrue(player.databaseEqual(player))
+            XCTAssertTrue(player.databaseEquals(player))
             XCTAssertTrue(player.databaseChanges(from: player).isEmpty)
             
             let dbQueue = try makeDatabaseQueue()
@@ -79,7 +79,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
         }
         do {
             let player = Player(id: 1, name: "foo", score: 42, creationDate: Date())
-            XCTAssertTrue(player.databaseEqual(player))
+            XCTAssertTrue(player.databaseEquals(player))
             XCTAssertTrue(player.databaseChanges(from: player).isEmpty)
             
             let dbQueue = try makeDatabaseQueue()
@@ -103,7 +103,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             var newPlayer = player
             newPlayer.name = "Bobby"
             
-            XCTAssertFalse(newPlayer.databaseEqual(player))
+            XCTAssertFalse(newPlayer.databaseEquals(player))
             let changes = newPlayer.databaseChanges(from: player)
             XCTAssertEqual(changes.count, 1)
             XCTAssertEqual(changes["name"]!, "Arthur".databaseValue)
@@ -120,7 +120,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             var newPlayer = player
             newPlayer.name = nil
             
-            XCTAssertFalse(newPlayer.databaseEqual(player))
+            XCTAssertFalse(newPlayer.databaseEquals(player))
             let changes = newPlayer.databaseChanges(from: player)
             XCTAssertEqual(changes.count, 1)
             XCTAssertEqual(changes["name"]!, "Arthur".databaseValue)
@@ -137,7 +137,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             var newPlayer = player
             newPlayer.score = 41
             
-            XCTAssertFalse(newPlayer.databaseEqual(player))
+            XCTAssertFalse(newPlayer.databaseEquals(player))
             let changes = newPlayer.databaseChanges(from: player)
             XCTAssertEqual(changes.count, 1)
             XCTAssertEqual(changes["score"]!, .null)
@@ -155,7 +155,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             newPlayer.name = "Bobby"
             newPlayer.score = 41
             
-            XCTAssertFalse(newPlayer.databaseEqual(player))
+            XCTAssertFalse(newPlayer.databaseEquals(player))
             let changes = newPlayer.databaseChanges(from: player)
             XCTAssertEqual(changes.count, 2)
             XCTAssertEqual(changes["name"]!, "Arthur".databaseValue)
@@ -172,7 +172,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
         }
     }
 
-    func testDatabaseEqualWithDifferentTypesAndDifferentWidth() throws {
+    func testDatabaseEqualsWithDifferentTypesAndDifferentWidth() throws {
         // Mangle column case as well, for fun ;-)
         struct NarrowPlayer: MutablePersistableRecord, Codable {
             static let databaseTableName = "players"

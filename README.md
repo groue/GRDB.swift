@@ -2525,12 +2525,12 @@ if try player.updateChanges(db) {
 }
 ```
 
-You can also use the `databaseEqual` method, which returns whether two records have the same database representation:
+You can also use the `databaseEquals` method, which returns whether two records have the same database representation:
 
 ```swift
 let oldPlayer: Player = ...
 var newPlayer: Player = ...
-if newPlayer.databaseEqual(oldPlayer) == false {
+if newPlayer.databaseEquals(oldPlayer) == false {
     try newPlayer.save(db)
 }
 ```
@@ -2818,7 +2818,7 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.fetchOne(statement)` | [FetchableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetchOne(db)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **[Record Comparison]** | | |
-| `record.databaseEqual(...)` | [PersistableRecord] | |
+| `record.databaseEquals(...)` | [PersistableRecord] | |
 | `record.databaseChanges(from:...)` | [PersistableRecord] | |
 | `record.updateChanges(db, from:...)` | [PersistableRecord] | |
 | `record.hasDatabaseChanges` | [Record](#record-class) | |
