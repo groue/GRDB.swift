@@ -622,7 +622,7 @@ extension DatabasePool {
     // MARK: - Snapshots
     
     /// Creates a database snapshot.
-    //:
+    ///
     /// The snapshot sees an unchanging database content, as it existed at the
     /// moment it was created.
     ///
@@ -646,11 +646,47 @@ extension DatabasePool {
     ///         try Player.fetchCount(db)
     ///     }
     ///
+    /// It is forbidden to create a snapshot from the writer protected dispatch
+    /// queue when a transaction is opened, though, because it is likely a
+    /// programmer error:
+    ///
+    ///     try dbPool.write { db in
+    ///         try db.inTransaction {
+    ///             try Player.deleteAll()
+    ///             // fatal error: makeSnapshot() must not be called from inside a transaction
+    ///             let snapshot = dbPool.makeSnapshot()
+    ///             return .commit
+    ///         }
+    ///     }
+    ///
+    /// To avoid this fatal error, create the snapshot *before* or *after* the
+    /// transaction:
+    ///
+    ///     try dbPool.write { db in
+    ///         // OK
+    ///         let snapshot = dbPool.makeSnapshot()
+    ///
+    ///         try db.inTransaction {
+    ///             try Player.deleteAll()
+    ///             return .commit
+    ///         }
+    ///
+    ///         // OK
+    ///         let snapshot = dbPool.makeSnapshot()
+    ///     }
+    ///
     /// You can create as many snapshots as you need, regardless of the maximum
     /// number of reader connections in the pool.
     ///
     /// For more information, read about "snapshot isolation" at https://sqlite.org/isolation.html
     public func makeSnapshot() throws -> DatabaseSnapshot {
+        // Sanity check
+        if writer.onValidQueue {
+            writer.execute { db in
+                GRDBPrecondition(!db.isInsideTransaction, "makeSnapshot() must not be called from inside a transaction.")
+            }
+        }
+        
         let snapshot = try DatabaseSnapshot(path: path, configuration: writer.configuration)
         snapshot.read { setupDatabase($0) }
         return snapshot
