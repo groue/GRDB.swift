@@ -12,10 +12,8 @@
 - [ ] Write regression tests for #156 and #157
 - [ ] Allow concurrent reads from a snapshot
 - [ ] Decode NSDecimalNumber from text database values
-
-Xcode 9.3, Swift 4.1
-
-- [ ] Audit Cursor return types and make it look as much as possible as stdlib's lazy sequence
+- [ ] Check https://sqlite.org/sqlar.html
+- [ ] SQLite 3.23.0 https://github.com/swiftlyfalling/SQLiteLib/commit/a1732cac8dc7314b4c943daf20956dbfb895872d
 
 GRDB 3.0
 
