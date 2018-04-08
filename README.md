@@ -3796,12 +3796,12 @@ protocol FetchRequest: SelectStatementRequest {
 }
 ```
 
-The `RowDecoder` associated type tells a request how to decode rows. It can be any type, but not all types have built-in support. See [Fetching From Custom Requests](#fetching-from-custom-requests) below.
+The `RowDecoder` associated type can be any type. Yet, not all types have built-in support: see [Fetching From Custom Requests](#fetching-from-custom-requests) below.
 
 FetchRequest is adopted, for example, by [query interface requests](#requests):
 
 ```swift
-// A FetchRequest whose RowDecoder associated type is Player.
+// A FetchRequest whose RowDecoder associated type is Player:
 let request = Player.all()
 ```
 
