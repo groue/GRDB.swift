@@ -1,39 +1,39 @@
-/// The protocol for all types that define a way to fetch database content.
-///
-///     struct Player: FetchableRecord { ... }
-///     let request: ... // Some FetchRequest that fetches Player
-///     try request.fetchCursor(db) // Cursor of Player
-///     try request.fetchAll(db)    // [Player]
-///     try request.fetchOne(db)    // Player?
-public protocol FetchRequest {
-    /// The type that can convert raw database rows to fetched values
-    associatedtype RowDecoder
-    
-    /// A tuple that contains a prepared statement that is ready to be
-    /// executed, and an eventual row adapter.
-    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?)
-    
-    /// The number of rows fetched by the request.
-    ///
-    /// Default implementation builds a naive SQL query based on the statement
-    /// returned by the `prepare` method: `SELECT COUNT(*) FROM (...)`.
-    ///
-    /// Adopting types can refine this countRequest method and return more
-    /// efficient SQL.
-    ///
-    /// - parameter db: A database connection.
-    func fetchCount(_ db: Database) throws -> Int
-    
-    /// The database region that the request looks into.
-    ///
-    /// This method has a default implementation.
+// MARK: - DatabaseRequest
+
+/// The protocol for all types that request database values.
+public protocol DatabaseRequest {
+    /// Returns the database region that the request looks into.
     ///
     /// - parameter db: A database connection.
     func fetchedRegion(_ db: Database) throws -> DatabaseRegion
 }
 
-extension FetchRequest {
-    /// The number of rows fetched by the request.
+// MARK: - SelectStatementRequest
+
+/// The protocol for all requests that run from a single select statement.
+public protocol SelectStatementRequest: DatabaseRequest {
+    /// Returns a tuple that contains a prepared statement that is ready to be
+    /// executed, and an eventual row adapter.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A prepared statement and an eventual row adapter.
+    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?)
+    
+    /// Returns the number of rows fetched by the request.
+    ///
+    /// The default implementation builds a naive SQL query based on the
+    /// statement returned by the `prepare` method:
+    /// `SELECT COUNT(*) FROM (...)`.
+    ///
+    /// Adopting types can refine this method in order to use more
+    /// efficient SQL.
+    ///
+    /// - parameter db: A database connection.
+    func fetchCount(_ db: Database) throws -> Int
+}
+
+extension SelectStatementRequest {
+    /// Returns the number of rows fetched by the request.
     ///
     /// This default implementation builds a naive SQL query based on the
     /// statement returned by the `prepare` method: `SELECT COUNT(*) FROM (...)`.
@@ -45,13 +45,31 @@ extension FetchRequest {
         return try Int.fetchOne(db, sql, arguments: statement.arguments)!
     }
     
-    /// The database region that the request looks into.
+    /// Returns the database region that the request looks into.
+    ///
+    /// This default implementation returns a region built from the statement
+    /// returned by the `prepare` method.
     ///
     /// - parameter db: A database connection.
     public func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
         let (statement, _) = try prepare(db)
         return statement.fetchedRegion
     }
+}
+
+// MARK: - FetchRequest
+
+/// The protocol for all requests that run from a single select statement, and
+/// tell how fetched rows should be interpreted.
+///
+///     struct Player: FetchableRecord { ... }
+///     let request: ... // Some FetchRequest that fetches Player
+///     try request.fetchCursor(db) // Cursor of Player
+///     try request.fetchAll(db)    // [Player]
+///     try request.fetchOne(db)    // Player?
+public protocol FetchRequest: SelectStatementRequest {
+    /// The type that tells how fetched database rows should be interpreted.
+    associatedtype RowDecoder
 }
 
 extension FetchRequest {
@@ -77,6 +95,8 @@ extension FetchRequest {
         return AdaptedFetchRequest(self, adapter)
     }
 }
+
+// MARK: - AdaptedFetchRequest
 
 /// An adapted request.
 public struct AdaptedFetchRequest<Base: FetchRequest> : FetchRequest {
@@ -113,6 +133,8 @@ public struct AdaptedFetchRequest<Base: FetchRequest> : FetchRequest {
     }
 }
 
+// MARK: - AnyFetchRequest
+
 /// A type-erased FetchRequest.
 ///
 /// An AnyFetchRequest forwards its operations to an underlying request,
@@ -124,14 +146,14 @@ public struct AnyFetchRequest<T> : FetchRequest {
     private let _fetchCount: (Database) throws -> Int
     private let _fetchedRegion: (Database) throws -> DatabaseRegion
     
-    /// Creates a new request that wraps and forwards operations to `request`.
+    /// Creates a request that wraps and forwards operations to `request`.
     public init<Request: FetchRequest>(_ request: Request) {
         _prepare = request.prepare
         _fetchCount = request.fetchCount
         _fetchedRegion = request.fetchedRegion
     }
     
-    /// Creates a new request whose `prepare()` method wraps and forwards
+    /// Creates a request whose `prepare()` method wraps and forwards
     /// operations the argument closure.
     public init(_ prepare: @escaping (Database) throws -> (SelectStatement, RowAdapter?)) {
         _prepare = { db in
@@ -166,24 +188,22 @@ public struct AnyFetchRequest<T> : FetchRequest {
     }
 }
 
-/// A Request built from raw SQL.
+// MARK: - SQLRequest
+
+/// A FetchRequest built from raw SQL.
 public struct SQLRequest<T> : FetchRequest {
     public typealias RowDecoder = T
     
-    public let sql: String
-    public let arguments: StatementArguments?
-    public let adapter: RowAdapter?
+    public var sql: String
+    public var arguments: StatementArguments?
+    public var adapter: RowAdapter?
     private let cache: Cache?
     
-    /// Creates a new request from an SQL string, optional arguments, and
+    /// Creates a request from an SQL string, optional arguments, and
     /// optional row adapter.
     ///
-    /// For example:
-    ///
-    ///     let request = SQLRequest<Player>("SELECT * FROM players WHERE id = ?", arguments: [1])
-    ///     try dbQueue.inDatabase { db in
-    ///         let player = try request.fetchOne(db) // Player?
-    ///     }
+    ///     let request = SQLRequest("SELECT * FROM players")
+    ///     let request = SQLRequest("SELECT * FROM players WHERE id = ?", arguments: [1])
     ///
     /// - parameters:
     ///     - sql: An SQL query.
@@ -196,18 +216,7 @@ public struct SQLRequest<T> : FetchRequest {
         self.init(sql, arguments: arguments, adapter: adapter, fromCache: cached ? .public : nil)
     }
     
-    /// Creates a new SQL request from any other fetch request.
-    ///
-    /// For example:
-    ///
-    ///     let request = Player.filter(Column("name") == "Arthur")
-    ///     try dbQueue.inDatabase { db in
-    ///         let sqlRequest = try SQLRequest(db, request: request) // SQLRequest<Player>
-    ///         print(sqlRequest.sql)
-    ///         // Prints "SELECT * FROM players WHERE name = ?"
-    ///         print(sqlRequest.arguments)
-    ///         // Prints ["Arthur"]
-    ///     }
+    /// Creates an SQL request from any other fetch request.
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -220,17 +229,17 @@ public struct SQLRequest<T> : FetchRequest {
         self.init(statement.sql, arguments: statement.arguments, adapter: adapter, cached: cached)
     }
     
-    /// Creates a new SQL request from an SQL string, optional arguments, and
+    /// Creates an SQL request from an SQL string, optional arguments, and
     /// optional row adapter.
     ///
-    /// The *cache* arguments should be `.internal` for requests generated by
-    /// GRDB, and `.public` for requests generated by the user.
+    ///     let request = SQLRequest("SELECT * FROM players")
+    ///     let request = SQLRequest("SELECT * FROM players WHERE id = ?", arguments: [1])
     ///
     /// - parameters:
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter.
-    ///     - cache: Optional statement cache name.
+    ///     - statementCacheName: Optional statement cache name.
     /// - returns: A SQLRequest
     init(_ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, fromCache cache: Cache?) {
         self.sql = sql
