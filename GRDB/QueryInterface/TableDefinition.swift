@@ -360,7 +360,9 @@ public final class TableDefinition {
     ///
     /// - parameter sql: An SQL snippet
     public func check(sql: String) {
-        checkConstraints.append(SQLExpressionLiteral(sql))
+        var expression = SQLExpressionLiteral(sql)
+        expression.unsafeRaw = true // It's safe because this expression can't be composed with others
+        checkConstraints.append(expression)
     }
     
     fileprivate func sql(_ db: Database) throws -> String {
@@ -663,7 +665,9 @@ public final class ColumnDefinition {
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
     public func check(sql: String) -> Self {
-        checkConstraints.append(SQLExpressionLiteral(sql))
+        var expression = SQLExpressionLiteral(sql)
+        expression.unsafeRaw = true // It's safe because this expression can't be composed with others
+        checkConstraints.append(expression)
         return self
     }
     
@@ -695,7 +699,9 @@ public final class ColumnDefinition {
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
     public func defaults(sql: String) -> Self {
-        defaultExpression = SQLExpressionLiteral(sql)
+        var expression = SQLExpressionLiteral(sql)
+        expression.unsafeRaw = true // It's safe because this expression can't be composed with others
+        defaultExpression = expression
         return self
     }
     

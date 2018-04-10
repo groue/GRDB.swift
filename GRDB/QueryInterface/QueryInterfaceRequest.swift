@@ -39,27 +39,11 @@ extension QueryInterfaceRequest : FetchRequest {
     }
 }
 
-extension QueryInterfaceRequest {
+extension QueryInterfaceRequest : SelectionRequest, FilteredRequest, AggregatingRequest, OrderedRequest {
     
     // MARK: Request Derivation
-    
-    /// A new QueryInterfaceRequest with a new net of selected columns.
-    ///
-    ///     // SELECT id, email FROM players
-    ///     var request = Player.all()
-    ///     request = request.select(Column("id"), Column("email"))
-    ///
-    /// Any previous selection is replaced:
-    ///
-    ///     // SELECT email FROM players
-    ///     request
-    ///         .select(Column("id"))
-    ///         .select(Column("email"))
-    public func select(_ selection: SQLSelectable...) -> QueryInterfaceRequest<T> {
-        return select(selection)
-    }
-    
-    /// A new QueryInterfaceRequest with a new net of selected columns.
+
+    /// Creates a request with a new net of selected columns.
     ///
     ///     // SELECT id, email FROM players
     ///     var request = Player.all()
@@ -77,23 +61,7 @@ extension QueryInterfaceRequest {
         return QueryInterfaceRequest(query: query)
     }
     
-    /// A new QueryInterfaceRequest with a new net of selected columns.
-    ///
-    ///     // SELECT id, email FROM players
-    ///     var request = Player.all()
-    ///     request = request.select(sql: "id, email")
-    ///
-    /// Any previous selection is replaced:
-    ///
-    ///     // SELECT email FROM players
-    ///     request
-    ///         .select(sql: "id")
-    ///         .select(sql: "email")
-    public func select(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<T> {
-        return select(SQLExpressionLiteral(sql, arguments: arguments))
-    }
-    
-    /// A new QueryInterfaceRequest which returns distinct rows.
+    /// Creates a request which returns distinct rows.
     ///
     ///     // SELECT DISTINCT * FROM players
     ///     var request = Player.all()
@@ -108,7 +76,7 @@ extension QueryInterfaceRequest {
         return QueryInterfaceRequest(query: query)
     }
     
-    /// A new QueryInterfaceRequest with the provided *predicate* added to the
+    /// Creates a request with the provided *predicate* added to the
     /// eventual set of already applied predicates.
     ///
     ///     // SELECT * FROM players WHERE email = 'arthur@example.com'
@@ -124,34 +92,25 @@ extension QueryInterfaceRequest {
         })
     }
     
-    /// A new QueryInterfaceRequest with the provided *predicate* added to the
-    /// eventual set of already applied predicates.
+    /// Creates a request that matches nothing.
     ///
-    ///     // SELECT * FROM players WHERE email = 'arthur@example.com'
+    ///     // SELECT * FROM players WHERE 0
     ///     var request = Player.all()
-    ///     request = request.filter(sql: "email = ?", arguments: ["arthur@example.com"])
-    public func filter(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<T> {
-        return filter(SQLExpressionLiteral(sql, arguments: arguments))
+    ///     request = request.none()
+    public func none() -> QueryInterfaceRequest<T> {
+        var query = self.query
+        query.wherePromise = DatabasePromise(value: false.sqlExpression)
+        return QueryInterfaceRequest(query: query)
     }
     
-    /// A new QueryInterfaceRequest grouped according to *expressions*.
-    public func group(_ expressions: SQLExpressible...) -> QueryInterfaceRequest<T> {
-        return group(expressions)
-    }
-    
-    /// A new QueryInterfaceRequest grouped according to *expressions*.
+    /// Creates a request grouped according to *expressions*.
     public func group(_ expressions: [SQLExpressible]) -> QueryInterfaceRequest<T> {
         var query = self.query
         query.groupByExpressions = expressions.map { $0.sqlExpression }
         return QueryInterfaceRequest(query: query)
     }
     
-    /// A new QueryInterfaceRequest with a new grouping.
-    public func group(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<T> {
-        return group(SQLExpressionLiteral(sql, arguments: arguments))
-    }
-    
-    /// A new QueryInterfaceRequest with the provided *predicate* added to the
+    /// Creates a request with the provided *predicate* added to the
     /// eventual set of already applied predicates.
     public func having(_ predicate: SQLExpressible) -> QueryInterfaceRequest<T> {
         var query = self.query
@@ -163,30 +122,7 @@ extension QueryInterfaceRequest {
         return QueryInterfaceRequest(query: query)
     }
     
-    /// A new QueryInterfaceRequest with the provided *sql* added to the
-    /// eventual set of already applied predicates.
-    public func having(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<T> {
-        return having(SQLExpressionLiteral(sql, arguments: arguments))
-    }
-    
-    /// A new QueryInterfaceRequest with the provided *orderings*.
-    ///
-    ///     // SELECT * FROM players ORDER BY name
-    ///     var request = Player.all()
-    ///     request = request.order(Column("name"))
-    ///
-    /// Any previous ordering is replaced:
-    ///
-    ///     // SELECT * FROM players ORDER BY name
-    ///     request
-    ///         .order(Column("email"))
-    ///         .reversed()
-    ///         .order(Column("name"))
-    public func order(_ orderings: SQLOrderingTerm...) -> QueryInterfaceRequest<T> {
-        return order(orderings)
-    }
-    
-    /// A new QueryInterfaceRequest with the provided *orderings*.
+    /// Creates a request with the provided *orderings*.
     ///
     ///     // SELECT * FROM players ORDER BY name
     ///     var request = Player.all()
@@ -206,23 +142,7 @@ extension QueryInterfaceRequest {
         return QueryInterfaceRequest(query: query)
     }
     
-    /// A new QueryInterfaceRequest with the provided *sql* used for sorting.
-    ///
-    ///     // SELECT * FROM players ORDER BY name
-    ///     var request = Player.all()
-    ///     request = request.order(sql: "name")
-    ///
-    /// Any previous ordering is replaced:
-    ///
-    ///     // SELECT * FROM players ORDER BY name
-    ///     request
-    ///         .order(sql: "email")
-    ///         .order(sql: "name")
-    public func order(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<T> {
-        return order([SQLExpressionLiteral(sql, arguments: arguments)])
-    }
-    
-    /// A new QueryInterfaceRequest sorted in reversed order.
+    /// Creates a request sorted in reversed order.
     ///
     ///     // SELECT * FROM players ORDER BY name DESC
     ///     var request = Player.all().order(Column("name"))
@@ -233,12 +153,13 @@ extension QueryInterfaceRequest {
         return QueryInterfaceRequest(query: query)
     }
     
-    /// A QueryInterfaceRequest which fetches *limit* rows, starting
-    /// at *offset*.
+    /// Creates a request which fetches *limit* rows, starting at *offset*.
     ///
     ///     // SELECT * FROM players LIMIT 1
     ///     var request = Player.all()
     ///     request = request.limit(1)
+    ///
+    /// Any previous limit is replaced.
     public func limit(_ limit: Int, offset: Int? = nil) -> QueryInterfaceRequest<T> {
         var query = self.query
         query.limit = SQLLimit(limit: limit, offset: offset)
@@ -248,7 +169,9 @@ extension QueryInterfaceRequest {
 
 extension QueryInterfaceRequest where T: TableRecord {
     
-    /// Creates a QueryInterfaceRequest with the provided primary key *predicate*.
+    // MARK: Request Derivation
+    
+    /// Creates a request with the provided primary key *predicate*.
     ///
     ///     // SELECT * FROM players WHERE id = 1
     ///     var request = Player.all()
@@ -265,7 +188,7 @@ extension QueryInterfaceRequest where T: TableRecord {
         return filter(keys: [key])
     }
 
-    /// Creates a QueryInterfaceRequest with the provided primary key *predicate*.
+    /// Creates a request with the provided primary key *predicate*.
     ///
     ///     // SELECT * FROM players WHERE id IN (1, 2, 3)
     ///     var request = Player.all()
@@ -298,7 +221,7 @@ extension QueryInterfaceRequest where T: TableRecord {
         })
     }
     
-    /// Creates a QueryInterfaceRequest with the provided primary key *predicate*.
+    /// Creates a request with the provided primary key *predicate*.
     ///
     ///     // SELECT * FROM passports WHERE personId = 1 AND countryCode = 'FR'
     ///     var request = Player.all()
@@ -318,7 +241,7 @@ extension QueryInterfaceRequest where T: TableRecord {
         return filter(keys: [key])
     }
     
-    /// Creates a QueryInterfaceRequest with the provided primary key *predicate*.
+    /// Creates a request with the provided primary key *predicate*.
     ///
     ///     // SELECT * FROM passports WHERE (personId = 1 AND countryCode = 'FR') OR ...
     ///     let request = Passport.filter(keys: [["personId": 1, "countryCode": "FR"], ...])
@@ -385,7 +308,7 @@ extension TableRecord {
     
     // MARK: Request Derivation
     
-    /// Creates a QueryInterfaceRequest which fetches all records.
+    /// Creates a request which fetches all records.
     ///
     ///     // SELECT * FROM players
     ///     let request = Player.all()
@@ -400,12 +323,12 @@ extension TableRecord {
         return QueryInterfaceRequest(query: query)
     }
     
-    /// Creates a QueryInterfaceRequest which fetches no record.
+    /// Creates a request which fetches no record.
     public static func none() -> QueryInterfaceRequest<Self> {
         return filter(false)
     }
     
-    /// Creates a QueryInterfaceRequest which selects *selection*.
+    /// Creates a request which selects *selection*.
     ///
     ///     // SELECT id, email FROM players
     ///     let request = Player.select(Column("id"), Column("email"))
@@ -413,7 +336,7 @@ extension TableRecord {
         return all().select(selection)
     }
     
-    /// Creates a QueryInterfaceRequest which selects *selection*.
+    /// Creates a request which selects *selection*.
     ///
     ///     // SELECT id, email FROM players
     ///     let request = Player.select([Column("id"), Column("email")])
@@ -421,7 +344,7 @@ extension TableRecord {
         return all().select(selection)
     }
     
-    /// Creates a QueryInterfaceRequest which selects *sql*.
+    /// Creates a request which selects *sql*.
     ///
     ///     // SELECT id, email FROM players
     ///     let request = Player.select(sql: "id, email")
@@ -429,7 +352,7 @@ extension TableRecord {
         return all().select(sql: sql, arguments: arguments)
     }
     
-    /// Creates a QueryInterfaceRequest with the provided *predicate*.
+    /// Creates a request with the provided *predicate*.
     ///
     ///     // SELECT * FROM players WHERE email = 'arthur@example.com'
     ///     let request = Player.filter(Column("email") == "arthur@example.com")
@@ -441,7 +364,7 @@ extension TableRecord {
         return all().filter(predicate)
     }
     
-    /// Creates a QueryInterfaceRequest with the provided primary key *predicate*.
+    /// Creates a request with the provided primary key *predicate*.
     ///
     ///     // SELECT * FROM players WHERE id = 1
     ///     let request = Player.filter(key: 1)
@@ -453,7 +376,7 @@ extension TableRecord {
         return all().filter(key: key)
     }
     
-    /// Creates a QueryInterfaceRequest with the provided primary key *predicate*.
+    /// Creates a request with the provided primary key *predicate*.
     ///
     ///     // SELECT * FROM players WHERE id IN (1, 2, 3)
     ///     let request = Player.filter(keys: [1, 2, 3])
@@ -465,7 +388,7 @@ extension TableRecord {
         return all().filter(keys: keys)
     }
     
-    /// Creates a QueryInterfaceRequest with the provided primary key *predicate*.
+    /// Creates a request with the provided primary key *predicate*.
     ///
     ///     // SELECT * FROM passports WHERE personId = 1 AND countryCode = 'FR'
     ///     let request = Passport.filter(key: ["personId": 1, "countryCode": "FR"])
@@ -480,7 +403,7 @@ extension TableRecord {
         return all().filter(key: key)
     }
     
-    /// Creates a QueryInterfaceRequest with the provided primary key *predicate*.
+    /// Creates a request with the provided primary key *predicate*.
     ///
     ///     // SELECT * FROM passports WHERE (personId = 1 AND countryCode = 'FR') OR ...
     ///     let request = Passport.filter(keys: [["personId": 1, "countryCode": "FR"], ...])
@@ -495,7 +418,7 @@ extension TableRecord {
         return all().filter(keys: keys)
     }
     
-    /// Creates a QueryInterfaceRequest with the provided *predicate*.
+    /// Creates a request with the provided *predicate*.
     ///
     ///     // SELECT * FROM players WHERE email = 'arthur@example.com'
     ///     let request = Player.filter(sql: "email = ?", arguments: ["arthur@example.com"])
@@ -507,7 +430,7 @@ extension TableRecord {
         return all().filter(sql: sql, arguments: arguments)
     }
     
-    /// Creates a QueryInterfaceRequest sorted according to the
+    /// Creates a request sorted according to the
     /// provided *orderings*.
     ///
     ///     // SELECT * FROM players ORDER BY name
@@ -520,7 +443,7 @@ extension TableRecord {
         return all().order(orderings)
     }
     
-    /// Creates a QueryInterfaceRequest sorted according to the
+    /// Creates a request sorted according to the
     /// provided *orderings*.
     ///
     ///     // SELECT * FROM players ORDER BY name
@@ -533,7 +456,7 @@ extension TableRecord {
         return all().order(orderings)
     }
     
-    /// Creates a QueryInterfaceRequest sorted according to *sql*.
+    /// Creates a request sorted according to *sql*.
     ///
     ///     // SELECT * FROM players ORDER BY name
     ///     let request = Player.order(sql: "name")
@@ -545,7 +468,7 @@ extension TableRecord {
         return all().order(sql: sql, arguments: arguments)
     }
     
-    /// Creates a QueryInterfaceRequest which fetches *limit* rows, starting at
+    /// Creates a request which fetches *limit* rows, starting at
     /// *offset*.
     ///
     ///     // SELECT * FROM players LIMIT 1
