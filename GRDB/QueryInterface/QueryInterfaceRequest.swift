@@ -12,27 +12,27 @@ public struct QueryInterfaceRequest<T> {
 extension QueryInterfaceRequest : FetchRequest {
     public typealias RowDecoder = T
     
-    /// A tuple that contains a prepared statement that is ready to be
+    /// Returns a tuple that contains a prepared statement that is ready to be
     /// executed, and an eventual row adapter.
     ///
     /// - parameter db: A database connection.
-    ///
+    /// - returns: A prepared statement and an eventual row adapter.
     /// :nodoc:
     public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
         return try query.prepare(db)
     }
     
-    /// The number of rows fetched by the request.
+    /// Returns the number of rows fetched by the request.
     ///
     /// - parameter db: A database connection.
-    ///
     /// :nodoc:
     public func fetchCount(_ db: Database) throws -> Int {
         return try query.fetchCount(db)
     }
     
-    /// The database region that the request looks into.
+    /// Returns the database region that the request looks into.
     ///
+    /// - parameter db: A database connection.
     /// :nodoc:
     public func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
         return try query.fetchedRegion(db)
