@@ -204,17 +204,6 @@ extension DatabaseValue {
     }
 }
 
-// MARK: - SQLSelectable
-
-extension DatabaseValue {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// :nodoc:
-    public func qualified(by qualifier: SQLTableQualifier) -> DatabaseValue {
-        return self
-    }
-}
-
 // MARK: - Lossless conversions
 
 extension DatabaseValue {
@@ -359,6 +348,12 @@ extension DatabaseValue {
             // SELECT NOT X'30' -- 1 (because X'30' is turned into the string '0', then into integer 0, which is negated into 1)
             return SQLExpressionNot(self)
         }
+    }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// :nodoc:
+    public func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
+        return self
     }
 }
 
