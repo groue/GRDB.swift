@@ -422,7 +422,7 @@ extension DatabasePool : DatabaseWriter {
     // MARK: - Writing in Database
     
     /// Synchronously executes an update block in a protected dispatch queue,
-    /// and returns its result.
+    /// wrapped inside a transaction, and returns the result of the block.
     ///
     /// Eventual concurrent database updates are postponed until the block
     /// has executed.
@@ -431,9 +431,8 @@ extension DatabasePool : DatabaseWriter {
     ///         try db.execute(...)
     ///     }
     ///
-    /// To maintain database integrity, and preserve eventual concurrent reads
-    /// from seeing an inconsistent database state, prefer the
-    /// writeInTransaction method.
+    /// Eventual concurrent reads are guaranteed not to see any changes
+    /// performed in the block until they are all saved in the database.
     ///
     /// This method is *not* reentrant.
     ///
@@ -441,7 +440,14 @@ extension DatabasePool : DatabaseWriter {
     ///   either .commit or .rollback.
     /// - throws: The error thrown by the block.
     public func write<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try writer.sync(block)
+        return try writer.sync { db in
+            var result: T? = nil
+            try db.inTransaction {
+                result = try block(db)
+                return .commit
+            }
+            return result!
+        }
     }
     
     /// Synchronously executes a block in a protected dispatch queue, wrapped
@@ -459,17 +465,8 @@ extension DatabasePool : DatabaseWriter {
     ///         return .commit
     ///     }
     ///
-    /// Eventual concurrent readers do not see partial changes:
-    ///
-    ///     dbPool.writeInTransaction { db in
-    ///         // Eventually preserve a zero balance
-    ///         try db.execute(db, "INSERT INTO credits ...", arguments: [amount])
-    ///         try db.execute(db, "INSERT INTO debits ...", arguments: [amount])
-    ///     }
-    ///
-    ///     dbPool.read { db in
-    ///         // Here the balance is guaranteed to be zero
-    ///     }
+    /// Eventual concurrent reads are guaranteed not to see any changes
+    /// performed in the block until they are all saved in the database.
     ///
     /// This method is *not* reentrant.
     ///
@@ -499,6 +496,9 @@ extension DatabasePool : DatabaseWriter {
     ///     try dbPool.unsafeReentrantWrite { db in
     ///         try db.execute(...)
     ///     }
+    ///
+    /// Eventual concurrent reads may see changes performed in the block before
+    /// the block completes.
     ///
     /// This method is reentrant. It should be avoided because it fosters
     /// dangerous concurrency practices.

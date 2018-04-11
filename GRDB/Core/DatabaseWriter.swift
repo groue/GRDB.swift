@@ -23,6 +23,12 @@ public protocol DatabaseWriter : DatabaseReader {
     /// Eventual concurrent database updates are postponed until the block
     /// has executed.
     ///
+    /// Eventual concurrent reads are guaranteed not to see any changes
+    /// performed in the block until they are all saved in the database.
+    ///
+    /// The block may, or may not, be wrapped inside a transaction, depending on
+    /// the concrete DatabaseWriter type.
+    ///
     /// This method is *not* reentrant.
     func write<T>(_ block: (Database) throws -> T) rethrows -> T
     
@@ -31,6 +37,9 @@ public protocol DatabaseWriter : DatabaseReader {
     ///
     /// Eventual concurrent database updates are postponed until the block
     /// has executed.
+    ///
+    /// Eventual concurrent reads may see changes performed in the block before
+    /// the block completes.
     ///
     /// This method is reentrant. It should be avoided because it fosters
     /// dangerous concurrency practices.
