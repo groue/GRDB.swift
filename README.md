@@ -1634,14 +1634,14 @@ try db.create(table: "players") { t in
     t.column("name", .text)
 }
 
-// <Row type:"table" name:"players" tbl_name:"players" rootpage:2
-//      sql:"CREATE TABLE players(id INTEGER PRIMARY KEY, name TEXT)">
+// [type:"table" name:"players" tbl_name:"players" rootpage:2
+//  sql:"CREATE TABLE players(id INTEGER PRIMARY KEY, name TEXT)"]
 for row in try Row.fetchAll(db, "SELECT * FROM sqlite_master") {
     print(row)
 }
 
-// <Row cid:0 name:"id" type:"INTEGER" notnull:0 dflt_value:NULL pk:1>
-// <Row cid:1 name:"name" type:"TEXT" notnull:0 dflt_value:NULL pk:0>
+// [cid:0 name:"id" type:"INTEGER" notnull:0 dflt_value:NULL pk:1]
+// [cid:1 name:"name" type:"TEXT" notnull:0 dflt_value:NULL pk:0]
 for row in try Row.fetchAll(db, "PRAGMA table_info('players')") {
     print(row)
 }
@@ -1687,7 +1687,7 @@ To see how row adapters can be used, see [Joined Queries Support](#joined-querie
 ColumnMapping renames columns. Build one with a dictionary whose keys are adapted column names, and values the column names in the raw row:
 
 ```swift
-// <Row newName:"Hello">
+// [newName:"Hello"]
 let adapter = ColumnMapping(["newName": "oldName"])
 let row = try Row.fetchOne(db, "SELECT 'Hello' AS oldName", adapter: adapter)!
 ```
@@ -1697,7 +1697,7 @@ let row = try Row.fetchOne(db, "SELECT 'Hello' AS oldName", adapter: adapter)!
 `SuffixRowAdapter` hides the first columns in a row:
 
 ```swift
-// <Row b:1 c:2>
+// [b:1 c:2]
 let adapter = SuffixRowAdapter(fromIndex: 1)
 let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c", adapter: adapter)!
 ```
@@ -1707,7 +1707,7 @@ let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c", adapter: adapter
 `RangeRowAdapter` only exposes a range of columns.
 
 ```swift
-// <Row b:1>
+// [b:1]
 let adapter = RangeRowAdapter(1..<2)
 let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c", adapter: adapter)!
 ```
@@ -1739,9 +1739,9 @@ let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c, 3 AS d", adapter:
 ScopeAdapter does not change the columns and values of the fetched row. Instead, it defines *scopes*, which you access with the `Row.scoped(on:)` method. This method returns an optional Row, which is nil if the scope is missing.
 
 ```swift
-row                       // <Row a:0 b:1 c:2 d:3>
-row.scoped(on: "left")    // <Row a:0 b:1>
-row.scoped(on: "right")   // <Row c:2 d:3>
+row                       // [a:0 b:1 c:2 d:3]
+row.scoped(on: "left")    // [a:0 b:1]
+row.scoped(on: "right")   // [c:2 d:3]
 row.scoped(on: "missing") // nil
 ```
 
@@ -1759,12 +1759,12 @@ let adapter = ScopeAdapter([
 let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c, 3 AS d", adapter: adapter)!
 
 let leftRow = row.scoped(on: "left")!
-leftRow.scoped(on: "left")  // <Row a:0>
-leftRow.scoped(on: "right") // <Row b:1>
+leftRow.scoped(on: "left")  // [a:0]
+leftRow.scoped(on: "right") // [b:1]
 
 let rightRow = row.scoped(on: "right")!
-rightRow.scoped(on: "left")  // <Row c:2>
-rightRow.scoped(on: "right") // <Row d:3>
+rightRow.scoped(on: "left")  // [c:2]
+rightRow.scoped(on: "right") // [d:3]
 ```
 
 Any adapter can be extended with scopes:
@@ -1775,8 +1775,8 @@ let adapter = ScopeAdapter(base: baseAdapter, scopes: [
     "remainder": SuffixRowAdapter(fromIndex: 2)])
 let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c, 3 AS d", adapter: adapter)!
 
-row // <Row a:0 b:1>
-row.scoped(on: "remainder") // <Row c:2 d:3>
+row // [a:0 b:1]
+row.scoped(on: "remainder") // [c:2 d:3]
 ```
 
 

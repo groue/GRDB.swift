@@ -712,4 +712,42 @@ class AdapterRowTests : RowTestCase {
             }
         }
     }
+    
+    func testDescription() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let adapter = ColumnMapping(["id": "id0", "val": "val0"])
+                .addingScopes([
+                    "a": ColumnMapping(["id": "id1", "val": "val1"])
+                        .addingScopes([
+                            "b": ColumnMapping(["id": "id2", "val": "val2"])
+                                .addingScopes([
+                                    "c": SuffixRowAdapter(fromIndex:4)]),
+                            "a": SuffixRowAdapter(fromIndex:0)]),
+                    "b": ColumnMapping(["id": "id1", "val": "val1"])
+                        .addingScopes([
+                            "ba": ColumnMapping(["id": "id2", "val": "val2"])])])
+            let row = try Row.fetchOne(db, "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
+            
+            XCTAssertEqual(row.description, "[id:0 val:\"foo0\"]")
+            XCTAssertEqual(row.debugDescription, """
+                ▿ [id:0 val:"foo0"]
+                  unadapted: [id0:0 val0:"foo0" id1:1 val1:"foo1" id2:2 val2:"foo2"]
+                  - a: [id:1 val:"foo1"]
+                    - a: [id0:0 val0:"foo0" id1:1 val1:"foo1" id2:2 val2:"foo2"]
+                    - b: [id:2 val:"foo2"]
+                      - c: [id2:2 val2:"foo2"]
+                  - b: [id:1 val:"foo1"]
+                    - ba: [id:2 val:"foo2"]
+                """)
+            XCTAssertEqual(row.scoped(on: "a")!.description, "[id:1 val:\"foo1\"]")
+            XCTAssertEqual(row.scoped(on: "a")!.debugDescription, """
+                ▿ [id:1 val:"foo1"]
+                  unadapted: [id0:0 val0:"foo0" id1:1 val1:"foo1" id2:2 val2:"foo2"]
+                  - a: [id0:0 val0:"foo0" id1:1 val1:"foo1" id2:2 val2:"foo2"]
+                  - b: [id:2 val:"foo2"]
+                    - c: [id2:2 val2:"foo2"]
+                """)
+        }
+    }
 }

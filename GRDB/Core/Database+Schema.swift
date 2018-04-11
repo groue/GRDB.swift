@@ -193,7 +193,7 @@ extension Database {
         var rawForeignKeys: [(destinationTable: String, mapping: [(origin: String, destination: String?, seq: Int)])] = []
         var previousId: Int? = nil
         for row in try Row.fetchAll(self, "PRAGMA foreign_key_list(\(tableName.quotedDatabaseIdentifier))") {
-            // row = <Row id:0 seq:0 table:"parents" from:"parentId" to:"id" on_update:"..." on_delete:"..." match:"...">
+            // row = [id:0 seq:0 table:"parents" from:"parentId" to:"id" on_update:"..." on_delete:"..." match:"..."]
             let id: Int = row[0]
             let seq: Int = row[1]
             let table: String = row[2]

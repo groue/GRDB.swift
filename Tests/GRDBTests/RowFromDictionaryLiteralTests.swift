@@ -227,4 +227,10 @@ class RowFromDictionaryLiteralTests : RowTestCase {
         let copiedRow = row.copy()
         XCTAssertEqual(row, copiedRow)
     }
+    
+    func testDescription() throws {
+        let row: Row = ["a": 0, "b": 1, "c": 2]
+        XCTAssertEqual(row.description, "[a:0 b:1 c:2]")
+        XCTAssertEqual(row.debugDescription, "[a:0 b:1 c:2]")
+    }
 }

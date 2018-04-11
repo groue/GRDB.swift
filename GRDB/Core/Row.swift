@@ -6,7 +6,7 @@ import Foundation
 #endif
 
 /// A database row.
-public final class Row : Equatable, Hashable, RandomAccessCollection, ExpressibleByDictionaryLiteral, CustomStringConvertible {
+public final class Row : Equatable, Hashable, RandomAccessCollection, ExpressibleByDictionaryLiteral, CustomStringConvertible, CustomDebugStringConvertible {
     let impl: RowImpl
     
     /// Unless we are producing a row array, we use a single row when iterating
@@ -541,10 +541,26 @@ extension Row {
         return impl.scoped(on: name)
     }
     
-    /// Returns a copy of the row, without any scoped row (if the row was fetched
-    /// with a row adapter that defines scopes).
+    /// Returns a copy of the row, without any scopes.
+    ///
+    /// This property can turn out useful when you want to test the content of
+    /// adapted rows, such as rows fetched from joined requests.
+    ///
+    ///     let row = ...
+    ///     // Failure because row equality tests for row scopes:
+    ///     XCTAssertEqual(row, ["id": 1, "name": "foo"])
+    ///     // Success:
+    ///     XCTAssertEqual(row.unscoped, ["id": 1, "name": "foo"])
     public var unscoped: Row {
         return Row(impl: ArrayRowImpl(columns: map { ($0, $1) }))
+    }
+    
+    /// Return the raw row fetched from the database.
+    ///
+    /// This property can turn out useful when you debug the consumption of
+    /// adapted rows, such as rows fetched from joined requests.
+    public var unadapted: Row {
+        return impl.unadaptedRow
     }
 }
 
@@ -788,7 +804,7 @@ extension Row {
     ///
     ///     let row: Row = ["foo": 1, "foo": "bar", "baz": nil]
     ///     print(row)
-    ///     // Prints <Row foo:1 foo:"bar" baz:NULL>
+    ///     // Prints [foo:1 foo:"bar" baz:NULL]
     public convenience init(dictionaryLiteral elements: (String, DatabaseValueConvertible?)...) {
         self.init(impl: ArrayRowImpl(columns: elements.map { ($0, $1?.databaseValue ?? .null) }))
     }
@@ -874,15 +890,41 @@ extension Row {
     }
 }
 
-// CustomStringConvertible
+// CustomStringConvertible & CustomDebugStringConvertible
 extension Row {
     /// :nodoc:
     public var description: String {
-        return "<Row"
-            + map { (column, dbValue) in
-                " \(column):\(dbValue)"
-                }.joined(separator: "")
-            + ">"
+        return "["
+            + map { (column, dbValue) in "\(column):\(dbValue)" }.joined(separator: " ")
+            + "]"
+    }
+    
+    /// :nodoc:
+    public var debugDescription: String {
+        return debugDescription(level: 0)
+    }
+    
+    private func debugDescription(level: Int) -> String {
+        if level == 0 && self == self.unadapted {
+            return description
+        }
+        let prefix = repeatElement("  ", count: level + 1).joined(separator: "")
+        var str = ""
+        if level == 0 {
+            str = "▿ " + description
+            let unadapted = self.unadapted
+            if self != unadapted {
+                str += "\n" + prefix + "unadapted: " + unadapted.description
+            }
+        } else {
+            str = description
+        }
+        for scope in scopeNames.sorted() {
+            let scopedRow = scoped(on: scope)!
+            str += "\n" + prefix + "- " + scope + ": " + scopedRow.debugDescription(level: level + 1)
+        }
+        
+        return str
     }
 }
 
@@ -928,6 +970,7 @@ extension RowIndex {
 protocol RowImpl {
     var count: Int { get }
     var isFetched: Bool { get }
+    var unadaptedRow: Row { get }
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue
     func fastValue<Value: DatabaseValueConvertible & StatementColumnConvertible>(atUncheckedIndex index: Int) -> Value
     func fastValue<Value: DatabaseValueConvertible & StatementColumnConvertible>(atUncheckedIndex index: Int) -> Value?
@@ -947,6 +990,10 @@ protocol RowImpl {
 }
 
 extension RowImpl {
+    var unadaptedRow: Row {
+        return Row(impl: self)
+    }
+    
     func hasNull(atUncheckedIndex index:Int) -> Bool {
         return databaseValue(atUncheckedIndex: index).isNull
     }

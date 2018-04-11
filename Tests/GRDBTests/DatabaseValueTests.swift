@@ -120,6 +120,6 @@ class DatabaseValueTests: GRDBTestCase {
         XCTAssertEqual(databaseValue_Int64.description, "1")
         XCTAssertEqual(databaseValue_Double.description, "100000.1")
         XCTAssertEqual(databaseValue_String.description, "\"foo\\n\\t\\r\"")
-        XCTAssertEqual(databaseValue_Data.description, "3 bytes")   // may be fragile
+        XCTAssertEqual(databaseValue_Data.description, "Data(3 bytes)")   // may be fragile
     }
 }

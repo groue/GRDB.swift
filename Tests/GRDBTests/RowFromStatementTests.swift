@@ -367,4 +367,18 @@ class RowFromStatementTests : RowTestCase {
             XCTAssertTrue(try values.next() == nil)
         }
     }
+    
+    func testDescription() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let rows = try Row.fetchCursor(db, "SELECT NULL AS \"null\", 1 AS \"int\", 1.1 AS \"double\", 'foo' AS \"string\", x'53514C697465' AS \"data\"")
+            var rowFetched = false
+            while let row = try rows.next() {
+                rowFetched = true
+                XCTAssertEqual(row.description, "[null:NULL int:1 double:1.1 string:\"foo\" data:Data(6 bytes)]")
+                XCTAssertEqual(row.debugDescription, "[null:NULL int:1 double:1.1 string:\"foo\" data:Data(6 bytes)]")
+            }
+            XCTAssertTrue(rowFetched)
+        }
+    }
 }
