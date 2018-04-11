@@ -103,7 +103,6 @@ extension SQLExpression {
 extension SQLExpression {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// :nodoc:
     public var sqlExpression: SQLExpression {
         return self
@@ -115,7 +114,6 @@ extension SQLExpression {
 extension SQLExpression {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// :nodoc:
     public func count(distinct: Bool) -> SQLCount? {
         if distinct {

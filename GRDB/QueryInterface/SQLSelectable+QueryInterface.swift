@@ -23,7 +23,6 @@ public struct AllColumns {
 
 extension AllColumns : SQLSelectable {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// :nodoc:
     public func resultColumnSQL(_ arguments: inout StatementArguments?) -> String {
         if let qualifierName = qualifier?.name {
@@ -33,7 +32,6 @@ extension AllColumns : SQLSelectable {
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// :nodoc:
     public func countedSQL(_ arguments: inout StatementArguments?) -> String {
         guard qualifier == nil else {
@@ -44,7 +42,6 @@ extension AllColumns : SQLSelectable {
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// :nodoc:
     public func count(distinct: Bool) -> SQLCount? {
         // SELECT DISTINCT * FROM tableName ...
@@ -63,7 +60,6 @@ extension AllColumns : SQLSelectable {
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// :nodoc:
     public func qualifiedSelectable(with qualifier: SQLTableQualifier) -> SQLSelectable {
         if self.qualifier != nil {
@@ -76,7 +72,6 @@ extension AllColumns : SQLSelectable {
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// :nodoc:
     public func columnCount(_ db: Database) throws -> Int {
         guard let qualifier = qualifier else {

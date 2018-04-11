@@ -173,14 +173,12 @@ public protocol RowLayout {
 
 extension SelectStatement : RowLayout {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// :nodoc:
     public var layoutColumns: [(Int, String)] {
         return Array(columnNames.enumerated())
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// :nodoc:
     public func layoutIndex(ofColumn name: String) -> Int? {
         return index(ofColumn: name)
@@ -255,7 +253,6 @@ public struct EmptyRowAdapter: RowAdapter {
     public init() { }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// :nodoc:
     public func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter {
         return LayoutedColumnMapping(layoutColumns: [])
@@ -280,7 +277,6 @@ public struct ColumnMapping : RowAdapter {
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// :nodoc:
     public func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter {
         let layoutColumns = try mapping
@@ -318,7 +314,6 @@ public struct SuffixRowAdapter : RowAdapter {
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// :nodoc:
     public func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter {
         return LayoutedColumnMapping(layoutColumns: layout.layoutColumns.suffix(from: index))
@@ -349,7 +344,6 @@ public struct RangeRowAdapter : RowAdapter {
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// :nodoc:
     public func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter {
         return LayoutedColumnMapping(layoutColumns: layout.layoutColumns[range])
@@ -427,7 +421,6 @@ public struct ScopeAdapter : RowAdapter {
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// :nodoc:
     public func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter {
         let layoutedAdapter = try base.layoutedAdapter(from: layout)
