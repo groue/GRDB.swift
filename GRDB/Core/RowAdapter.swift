@@ -77,7 +77,7 @@ public struct LayoutedColumnMapping {
     ///         }
     ///     }
     ///
-    ///     // <Row foo:"foo" bar: "bar">
+    ///     // [foo:"foo" bar: "bar"]
     ///     try Row.fetchOne(db, "SELECT NULL, 'foo', 'bar'", adapter: FooBarAdapter())
     public init<S: Sequence>(layoutColumns: S) where S.Iterator.Element == (Int, String) {
         self.layoutColumns = Array(layoutColumns)
@@ -200,7 +200,7 @@ extension SelectStatement : RowLayout {
 ///     let adapter = SuffixRowAdapter(fromIndex: 2)
 ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
 ///
-///     // <Row baz:3>
+///     // [baz:3]
 ///     try Row.fetchOne(db, sql, adapter: adapter)
 public protocol RowAdapter {
     
@@ -223,7 +223,7 @@ public protocol RowAdapter {
     ///         }
     ///     }
     ///
-    ///     // <Row foo:1>
+    ///     // [foo:1]
     ///     try Row.fetchOne(db, "SELECT 1, 2, 3", adapter: FirstColumnAdapter())
     func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter
 }
@@ -264,7 +264,7 @@ public struct EmptyRowAdapter: RowAdapter {
 ///     let adapter = ColumnMapping(["foo": "bar"])
 ///     let sql = "SELECT 'foo' AS foo, 'bar' AS bar, 'baz' AS baz"
 ///
-///     // <Row foo:"bar">
+///     // [foo:"bar"]
 ///     try Row.fetchOne(db, sql, adapter: adapter)
 public struct ColumnMapping : RowAdapter {
     /// A dictionary from mapped column names to column names in a base row.
@@ -298,7 +298,7 @@ public struct ColumnMapping : RowAdapter {
 ///     let adapter = SuffixRowAdapter(fromIndex: 2)
 ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
 ///
-///     // <Row baz:3>
+///     // [baz:3]
 ///     try Row.fetchOne(db, sql, adapter: adapter)
 public struct SuffixRowAdapter : RowAdapter {
     /// The suffix index
@@ -325,7 +325,7 @@ public struct SuffixRowAdapter : RowAdapter {
 ///     let adapter = RangeRowAdapter(1..<3)
 ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz, 4 as qux"
 ///
-///     // <Row bar:2 baz: 3>
+///     // [bar:2 baz: 3]
 ///     try Row.fetchOne(db, sql, adapter: adapter)
 public struct RangeRowAdapter : RowAdapter {
     /// The range

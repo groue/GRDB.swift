@@ -804,7 +804,7 @@ extension Row {
     ///
     ///     let row: Row = ["foo": 1, "foo": "bar", "baz": nil]
     ///     print(row)
-    ///     // Prints <Row foo:1 foo:"bar" baz:NULL>
+    ///     // Prints [foo:1 foo:"bar" baz:NULL]
     public convenience init(dictionaryLiteral elements: (String, DatabaseValueConvertible?)...) {
         self.init(impl: ArrayRowImpl(columns: elements.map { ($0, $1?.databaseValue ?? .null) }))
     }
