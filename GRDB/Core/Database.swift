@@ -98,8 +98,6 @@ public final class Database {
     
     /// True if the database connection is currently in a transaction.
     public var isInsideTransaction: Bool {
-        if isClosed { return false }
-        
         // https://sqlite.org/c3ref/get_autocommit.html
         //
         // > The sqlite3_get_autocommit() interface returns non-zero or zero if
@@ -109,6 +107,12 @@ public final class Database {
         // > Autocommit mode is on by default. Autocommit mode is disabled by a
         // > BEGIN statement. Autocommit mode is re-enabled by a COMMIT
         // > or ROLLBACK.
+        //
+        // > If another thread changes the autocommit status of the database
+        // > connection while this routine is running, then the return value
+        // > is undefined.
+        SchedulingWatchdog.preconditionValidQueue(self)
+        if isClosed { return false } // Support for SerializedDatabasae.deinit
         return sqlite3_get_autocommit(sqliteConnection) == 0
     }
     
