@@ -452,7 +452,7 @@ struct ChainedAdapter : RowAdapter {
 extension Row {
     /// Creates a row from a base row and a statement adapter
     convenience init(base: Row, adapter: LayoutedRowAdapter) {
-        self.init(impl: AdapterRowImpl(base: base, adapter: adapter))
+        self.init(impl: AdaptedRowImpl(base: base, adapter: adapter))
     }
 
     /// Returns self if adapter is nil
@@ -464,7 +464,7 @@ extension Row {
     }
 }
 
-struct AdapterRowImpl : RowImpl {
+struct AdaptedRowImpl : RowImpl {
     let base: Row
     let adapter: LayoutedRowAdapter
     let mapping: LayoutedColumnMapping
@@ -473,6 +473,10 @@ struct AdapterRowImpl : RowImpl {
         self.base = base
         self.adapter = adapter
         self.mapping = adapter.mapping
+    }
+    
+    var unadaptedRow: Row {
+        return base.unadapted
     }
     
     var count: Int {

@@ -371,7 +371,7 @@ extension DatabaseValue {
         case .string(let string):
             return String(reflecting: string)
         case .blob(let data):
-            return data.description
+            return "Data(\(data.description))"
         }
     }
 }

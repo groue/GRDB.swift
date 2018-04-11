@@ -217,4 +217,12 @@ class RowFromDictionaryTests : RowTestCase {
         let copiedRow = row.copy()
         XCTAssertEqual(row, copiedRow)
     }
+    
+    func testDescription() throws {
+        let row = Row(["a": 0, "b": "foo"])
+        let variants: Set<String> = ["[a:0 b:\"foo\"]", "[b:\"foo\" a:0]"]
+        XCTAssert(variants.contains(row.description))
+        let debugVariants: Set<String> = ["[a:0 b:\"foo\"]", "[b:\"foo\" a:0]"]
+        XCTAssert(debugVariants.contains(row.debugDescription))
+    }
 }
