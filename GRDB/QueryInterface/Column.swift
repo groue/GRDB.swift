@@ -16,7 +16,6 @@ public struct Column : SQLExpression {
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// :nodoc:
     public func expressionSQL(_ arguments: inout StatementArguments?) -> String {
         if let qualifierName = qualifier?.name {
@@ -26,9 +25,8 @@ public struct Column : SQLExpression {
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// :nodoc:
-    public func qualified(by qualifier: SQLTableQualifier) -> Column {
+    public func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
         if self.qualifier != nil {
             // Never requalify
             return self

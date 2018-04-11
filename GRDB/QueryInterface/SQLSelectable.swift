@@ -20,7 +20,7 @@ public protocol SQLSelectable {
     func columnCount(_ db: Database) throws -> Int
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    func qualified(by qualifier: SQLTableQualifier) -> Self
+    func qualifiedSelectable(with qualifier: SQLTableQualifier) -> SQLSelectable
 }
 
 // MARK: - SQLSelectionLiteral
@@ -58,7 +58,7 @@ struct SQLSelectionLiteral : SQLSelectable {
         fatalError("Selection literals don't known how many columns they contain. To resolve this error, select one or several SQLExpressionLiteral instead.")
     }
     
-    func qualified(by qualifier: SQLTableQualifier) -> SQLSelectionLiteral {
+    func qualifiedSelectable(with qualifier: SQLTableQualifier) -> SQLSelectable {
         return self
     }
 }

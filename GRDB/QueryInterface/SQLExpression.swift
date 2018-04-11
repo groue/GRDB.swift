@@ -60,6 +60,9 @@ public protocol SQLExpression : SQLSpecificExpressible, SQLSelectable, SQLOrderi
     ///
     /// Returns the rowIds matched by the expression.
     func matchedRowIds(rowIdName: String?) -> Set<Int64>? // TODO: this method should take SQLTableQualifier in account
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression
 }
 
 extension SQLExpression {
@@ -83,6 +86,15 @@ extension SQLExpression {
     /// :nodoc:
     public func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
         return nil
+    }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// The default implementation returns qualifiedExpression(with:)
+    ///
+    /// :nodoc:
+    public func qualifiedSelectable(with qualifier: SQLTableQualifier) -> SQLSelectable {
+        return qualifiedExpression(with: qualifier)
     }
 }
 
@@ -137,7 +149,7 @@ struct SQLExpressionNot : SQLExpression {
         return expression
     }
     
-    func qualified(by qualifier: SQLTableQualifier) -> SQLExpressionNot {
-        return SQLExpressionNot(expression.qualified(by: qualifier))
+    func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
+        return SQLExpressionNot(expression.qualifiedExpression(with: qualifier))
     }
 }

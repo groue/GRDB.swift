@@ -65,7 +65,7 @@ extension AllColumns : SQLSelectable {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// :nodoc:
-    public func qualified(by qualifier: SQLTableQualifier) -> AllColumns {
+    public func qualifiedSelectable(with qualifier: SQLTableQualifier) -> SQLSelectable {
         if self.qualifier != nil {
             // Never requalify
             return self
@@ -110,8 +110,8 @@ struct SQLAliasedExpression : SQLSelectable {
         return expression.count(distinct: distinct)
     }
     
-    func qualified(by qualifier: SQLTableQualifier) -> SQLAliasedExpression {
-        return SQLAliasedExpression(expression.qualified(by: qualifier), alias: alias)
+    func qualifiedSelectable(with qualifier: SQLTableQualifier) -> SQLSelectable {
+        return SQLAliasedExpression(expression.qualifiedExpression(with: qualifier), alias: alias)
     }
     
     func columnCount(_ db: Database) throws -> Int {

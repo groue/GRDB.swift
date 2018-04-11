@@ -87,7 +87,7 @@ extension TableRecord {
     ///     let sql = "SELECT \(Player.selectionSQL(alias: "p")) FROM players AS p"
     public static func selectionSQL(alias: String? = nil) -> String {
         let qualifier = SQLTableQualifier(tableName: databaseTableName, alias: alias ?? databaseTableName)
-        let selection = databaseSelection.map { $0.qualified(by: qualifier) }
+        let selection = databaseSelection.map { $0.qualifiedSelectable(with: qualifier) }
         var arguments: StatementArguments? = nil
         return selection
             .map { $0.resultColumnSQL(&arguments) }
@@ -115,7 +115,7 @@ extension TableRecord {
     public static func numberOfSelectedColumns(_ db: Database) throws -> Int {
         let qualifier = SQLTableQualifier(tableName: databaseTableName, alias: nil)
         return try databaseSelection
-            .map { try $0.qualified(by: qualifier).columnCount(db) }
+            .map { try $0.qualifiedSelectable(with: qualifier).columnCount(db) }
             .reduce(0, +)
     }
 }
