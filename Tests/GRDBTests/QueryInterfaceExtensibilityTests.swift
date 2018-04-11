@@ -112,7 +112,7 @@ class QueryInterfaceExtensibilityTests: GRDBTestCase {
             default:
                 XCTFail("Expected data blob")
             }
-            XCTAssertEqual(self.lastSQLQuery, "SELECT CAST(\"text\" AS BLOB) FROM \"records\"")
+            XCTAssertEqual(self.lastSQLQuery, "SELECT (CAST(\"text\" AS BLOB)) FROM \"records\"")
         }
     }
 }

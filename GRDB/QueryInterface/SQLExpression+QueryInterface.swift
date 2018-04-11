@@ -46,6 +46,12 @@ public struct SQLExpressionLiteral : SQLExpression {
     /// SQL literal
     public let arguments: StatementArguments?
     
+    /// If safe, an SQLExpressionLiteral("foo") wraps itself in parenthesis,
+    /// and outputs "(foo)" in SQL queries. This avoids any bug due to operator
+    /// precedence. When unsafe, the expression literal does not wrap itself
+    /// in parenthesis and outputs its raw sql.
+    var unsafeRaw: Bool = false
+    
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Creates an SQL literal expression.
@@ -70,7 +76,11 @@ public struct SQLExpressionLiteral : SQLExpression {
             }
             arguments! += literalArguments
         }
-        return sql
+        if unsafeRaw {
+            return sql
+        } else {
+            return "(" + sql + ")"
+        }
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -232,17 +242,7 @@ public struct SQLBinaryOperator : Hashable {
         case 1:
             return expressions[0]
         default:
-            let literals = expressions.map { $0.literal }
-            let firstLiteral = literals[0]
-            var sql = firstLiteral.sql
-            var arguments = firstLiteral.arguments ?? StatementArguments()
-            for literal in literals.suffix(from: 1) {
-                sql += " \(self.sql) \(literal.sql)"
-                if let args = literal.arguments {
-                    arguments += args
-                }
-            }
-            return SQLExpressionLiteral("(\(sql))", arguments: arguments.isEmpty ? nil : arguments)
+            return SQLExpressionBinaryOperatorChain(op: self, expressions: expressions)
         }
     }
 }
@@ -353,6 +353,32 @@ public struct SQLExpressionBinary : SQLExpression {
     /// :nodoc:
     public func qualified(by qualifier: SQLTableQualifier) -> SQLExpressionBinary {
         return SQLExpressionBinary(op, lhs.qualified(by: qualifier), rhs.qualified(by: qualifier))
+    }
+}
+
+// MARK: - SQLExpressionBinaryOperatorChain
+
+struct SQLExpressionBinaryOperatorChain : SQLExpression {
+    let op: SQLBinaryOperator
+    let expressions: [SQLExpression]
+    
+    // Exposed to SQLBinaryOperator.join
+    fileprivate init(op: SQLBinaryOperator, expressions: [SQLExpression]) {
+        assert(expressions.count >= 2)
+        self.op = op
+        self.expressions = expressions
+    }
+    
+    func expressionSQL(_ arguments: inout StatementArguments?) -> String {
+        let expressionSQLs = expressions.map { $0.expressionSQL(&arguments) }
+        let joiner = " \(op.sql) "
+        return "(" + expressionSQLs.joined(separator: joiner) + ")"
+    }
+    
+    func qualified(by qualifier: SQLTableQualifier) -> SQLExpressionBinaryOperatorChain {
+        return SQLExpressionBinaryOperatorChain(
+            op: op,
+            expressions: expressions.map { $0.qualified(by: qualifier) })
     }
 }
 
