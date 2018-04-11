@@ -294,6 +294,13 @@ extension DatabaseQueue : DatabaseWriter {
         return try inDatabase(block)
     }
     
+    /// Alias for `inDatabase`. See `DatabaseWriter.writeWithoutTransaction`.
+    ///
+    /// :nodoc:
+    public func writeWithoutTransaction<T>(_ block: (Database) throws -> T) rethrows -> T {
+        return try inDatabase(block)
+    }
+    
     /// Synchronously executes *block*.
     ///
     /// Starting iOS 8.2, OSX 10.10, and with custom SQLite builds and

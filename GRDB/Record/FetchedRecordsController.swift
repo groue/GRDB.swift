@@ -182,7 +182,7 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
         // Replace observer so that it tracks a new set of columns,
         // and notify eventual changes
         let initialItems = fetchedItems
-        databaseWriter.write { db in
+        databaseWriter.writeWithoutTransaction { db in
             let observer = FetchedRecordsObserver(region: region, fetchAndNotifyChanges: fetchAndNotifyChanges)
             self.observer = observer
             observer.items = initialItems
@@ -293,7 +293,7 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
         #endif
         
         let initialItems = fetchedItems
-        databaseWriter.write { db in
+        databaseWriter.writeWithoutTransaction { db in
             let fetchAndNotifyChanges = makeFetchAndNotifyChangesFunction(
                 controller: self,
                 fetchAlongside: fetchAlongside,

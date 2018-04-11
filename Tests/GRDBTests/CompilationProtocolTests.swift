@@ -77,6 +77,7 @@ private class UserDatabaseWriter : DatabaseWriter {
     func add(collation: DatabaseCollation) { }
     func remove(collation: DatabaseCollation) { }
     func write<T>(_ block: (Database) throws -> T) rethrows -> T { preconditionFailure() }
+    func writeWithoutTransaction<T>(_ block: (Database) throws -> T) rethrows -> T { preconditionFailure() }
     func unsafeReentrantWrite<T>(_ block: (Database) throws -> T) rethrows -> T { preconditionFailure() }
     func readFromCurrentState(_ block: @escaping (Database) -> Void) throws { preconditionFailure() }
 }

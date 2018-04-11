@@ -142,7 +142,7 @@ extension DatabasePool {
     /// See also setupMemoryManagement(application:)
     public func releaseMemory() {
         // TODO: test that this method blocks the current thread until all database accesses are completed.
-        write { $0.releaseMemory() }
+        writeWithoutTransaction { $0.releaseMemory() }
         readerPool.forEach { reader in
             reader.sync { $0.releaseMemory() }
         }
@@ -373,7 +373,7 @@ extension DatabasePool : DatabaseReader {
     ///     }
     public func add(function: DatabaseFunction) {
         functions.update(with: function)
-        write { $0.add(function: function) }
+        writeWithoutTransaction { $0.add(function: function) }
         readerPool.forEach { reader in
             reader.sync { $0.add(function: function) }
         }
@@ -382,7 +382,7 @@ extension DatabasePool : DatabaseReader {
     /// Remove an SQL function.
     public func remove(function: DatabaseFunction) {
         functions.remove(function)
-        write { $0.remove(function: function) }
+        writeWithoutTransaction { $0.remove(function: function) }
         readerPool.forEach { reader in
             reader.sync { $0.remove(function: function) }
         }
@@ -401,7 +401,7 @@ extension DatabasePool : DatabaseReader {
     ///     }
     public func add(collation: DatabaseCollation) {
         collations.update(with: collation)
-        write { $0.add(collation: collation) }
+        writeWithoutTransaction { $0.add(collation: collation) }
         readerPool.forEach { reader in
             reader.sync { $0.add(collation: collation) }
         }
@@ -410,7 +410,7 @@ extension DatabasePool : DatabaseReader {
     /// Remove a collation.
     public func remove(collation: DatabaseCollation) {
         collations.remove(collation)
-        write { $0.remove(collation: collation) }
+        writeWithoutTransaction { $0.remove(collation: collation) }
         readerPool.forEach { reader in
             reader.sync { $0.remove(collation: collation) }
         }
@@ -438,8 +438,8 @@ extension DatabasePool : DatabaseWriter {
     ///
     /// - parameters block: A block that executes SQL statements and return
     ///   either .commit or .rollback.
-    /// - throws: The error thrown by the block.
-    public func write<T>(_ block: (Database) throws -> T) rethrows -> T {
+    /// - throws: The error thrown by the block, or by the wrapping transaction.
+    public func write<T>(_ block: (Database) throws -> T) throws -> T {
         return try writer.sync { db in
             var result: T? = nil
             try db.inTransaction {
@@ -448,6 +448,26 @@ extension DatabasePool : DatabaseWriter {
             }
             return result!
         }
+    }
+    
+    /// Synchronously executes a block that takes a database connection, and
+    /// returns its result.
+    ///
+    /// Eventual concurrent database updates are postponed until the block
+    /// has executed.
+    ///
+    /// Eventual concurrent reads may see changes performed in the block before
+    /// the block completes.
+    ///
+    /// The block is guaranteed to be executed outside of a transaction.
+    ///
+    /// This method is *not* reentrant.
+    ///
+    /// - parameters block: A block that executes SQL statements and return
+    ///   either .commit or .rollback.
+    /// - throws: The error thrown by the block.
+    public func writeWithoutTransaction<T>(_ block: (Database) throws -> T) rethrows -> T {
+        return try writer.sync(block)
     }
     
     /// Synchronously executes a block in a protected dispatch queue, wrapped
