@@ -6607,9 +6607,7 @@ This is the list of database access methods:
 - [DatabaseWriter Protocol](#databasewriter-protocol-methods)
 
 
-#### DatabaseQueue Methods
-
-See [DatabaseQueue](#database-queues)
+#### [DatabaseQueue](#database-queues) Methods
 
 | Method | Opens a Transaction | Notes |
 | ------ | ------------------- | ----- |
@@ -6618,9 +6616,7 @@ See [DatabaseQueue](#database-queues)
 | `inTransaction` | YES | |
 
 
-#### DatabasePool Methods
-
-See [DatabasePool](#database-pools)
+#### [DatabasePool](#database-pools) Methods
 
 | Method | Opens a Transaction | Notes |
 | ------ | ------------------- | ----- |
@@ -6632,18 +6628,14 @@ See [DatabasePool](#database-pools)
 | `makeSnapshot` | YES | Can't be executed from inside a transaction. |
 
 
-#### DatabaseSnapshot Methods
-
-See [DatabaseSnapshot](#database-snapshots)
+#### [DatabaseSnapshot](#database-snapshots) Methods
 
 | Method | Opens a Transaction | Notes |
 | ------ | ------------------- | ----- |
 | `read` | YES | |
 
 
-#### DatabaseReader Protocol Methods
-
-See [DatabaseReader](http://groue.github.io/GRDB.swift/docs/2.10/Protocols/DatabaseReader.html)
+#### [DatabaseReader Protocol](http://groue.github.io/GRDB.swift/docs/2.10/Protocols/DatabaseReader.html) Methods
 
 | Method | Notes |
 | ------ | ----- |
@@ -6652,9 +6644,7 @@ See [DatabaseReader](http://groue.github.io/GRDB.swift/docs/2.10/Protocols/Datab
 | `unsafeReentrantRead` | |
 
 
-#### DatabaseWriter Protocol Methods
-
-See [DatabaseWriter](http://groue.github.io/GRDB.swift/docs/2.10/Protocols/DatabaseWriter.html)
+#### [DatabaseWriter Protocol](http://groue.github.io/GRDB.swift/docs/2.10/Protocols/DatabaseWriter.html) Methods
 
 | Method | Notes |
 | ------ | ----- |
