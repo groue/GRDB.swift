@@ -1309,7 +1309,7 @@ If an error is thrown within the transaction body, the transaction is rollbacked
 If you want to insert a transaction between other database statements, you can use the Database.inTransaction() function, or even raw SQL statements:
 
 ```swift
-dbPool.writeWithoutTransaction { db in  // or dbQueue.inDatabase { ... }
+try dbPool.writeWithoutTransaction { db in  // or dbQueue.inDatabase { ... }
     try db.inTransaction {
         ...
         return .commit
