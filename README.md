@@ -1266,9 +1266,9 @@ Grape.fromDatabaseValue(row[0])  // nil
 ## Transactions and Savepoints
 
 - [Transactions and Safety](#transactions-and-safety)
-- [Explicit Transactions](#explicit transactions)
+- [Explicit Transactions](#explicit-transactions)
 - [Savepoints](#savepoints)
-- [Transaction Kinds](#transaction kinds)
+- [Transaction Kinds](#transaction-kinds)
 
 
 ### Transactions and Safety
