@@ -433,11 +433,11 @@ Database pools allow several threads to access the database at the same time:
     
     Reads are generally non-blocking, unless the maximum number of concurrent reads has been reached. In this case, a read has to wait for another read to complete. That maximum number can be [configured](#databasepool-configuration).
 
-- Unlike reads, writes are serialized. There is never more than a single thread that is writing into the database.
-    
 - Reads are guaranteed an immutable view of the last committed state of the database, regardless of concurrent writes. This kind of isolation is called "snapshot isolation".
-    
-    To provide `read` closures an immutable view of the last executed writing block *as a whole*, use `writeInTransaction` instead of `write`.
+
+- Unlike reads, writes are serialized. There is never more than a single thread that is writing into the database.
+
+- The `write` and `writeInTransaction` methods always run your database statements in a transaction. There is also a `writeWithoutTransaction` method that allows you to precisely control database transactions, at the cost of concurrency subtleties. See the [Concurrency](#concurrency) chapter.
 
 - Database pools can take [snapshots](#database-snapshots) of the database.
 
@@ -6307,9 +6307,15 @@ Those guarantees hold as long as you follow three rules:
     
     On that last example, see [Advanced DatabasePool](#advanced-databasepool) if you look after extra performance.
     
-- :point_up: **Rule 3**: When you perform several modifications of the database that temporarily put the database in an inconsistent state, group those modifications within a [transaction](#transactions-and-savepoints):
+- :point_up: **Rule 3**: When you perform several modifications of the database that temporarily put the database in an inconsistent state, make sure those modifications are grouped within a [transaction](#transactions-and-savepoints).
     
     ```swift
+    // SAFE CONCURRENCY
+    try dbPool.write { db in               // or dbQueue.inDatabase { ... }
+        try Credit(destinationAccout, amount).insert(db)
+        try Debit(sourceAccount, amount).insert(db)
+    }
+    
     // SAFE CONCURRENCY
     try dbPool.writeInTransaction { db in  // or dbQueue.inTransaction { ... }
         try Credit(destinationAccout, amount).insert(db)
@@ -6318,8 +6324,9 @@ Those guarantees hold as long as you follow three rules:
     }
     
     // UNSAFE CONCURRENCY
-    try dbPool.write { db in  // or dbQueue.inDatabase { ... }
+    try dbPool.writeWithoutTransaction { db in
         try Credit(destinationAccout, amount).insert(db)
+        // <- Concurrent dbPool.read sees a partial db update here
         try Debit(sourceAccount, amount).insert(db)
     }
     ```
@@ -6378,14 +6385,15 @@ try dbPool.read { db in
 }
 ```
 
-The correct solution is the `readFromCurrentState` method, which must be called from within a write block:
+The correct solution is the `readFromCurrentState` method, which must be called from within a write block, outside of any transaction:
 
 ```swift
 // CORRECT
-try dbPool.write { db in
+try dbPool.writeWithoutTransaction { db in
     // Increment the number of players
     try Player(...).insert(db)
     
+    // <- not in a transaction here
     try dbPool.readFromCurrentState { db
         // Read the number of players. The writer queue has been unlocked :-)
         let count = try Player.fetchCount(db)
@@ -6398,7 +6406,7 @@ try dbPool.write { db in
 The closure can run concurrently with eventual updates performed after `readFromCurrentState`: those updates won't be visible from within the closure. In the example below, the number of players is guaranteed to be non-zero, even though it is fetched concurrently with the player deletion:
 
 ```swift
-try dbPool.write { db in
+try dbPool.writeWithoutTransaction { db in
     // Increment the number of players
     try Player(...).insert(db)
     
@@ -6443,11 +6451,12 @@ let playerCount = try snapshot.read { db in
 }
 ```
 
-When you want to control the latest committed changes seen by a snapshot, create it from the pool's writer protected dispatch queue:
+When you want to control the latest committed changes seen by a snapshot, create it from the pool's writer protected dispatch queue, outside of any transaction:
 
 ```swift
-let snapshot1 = try dbPool.write { db -> DatabaseSnapshot in
+let snapshot1 = try dbPool.writeWithoutTransaction { db -> DatabaseSnapshot in
     try Player.deleteAll()
+    // <- not in a transaction here
     return dbPool.makeSnapshot()
 }
 // <- Other threads may modify the database here
