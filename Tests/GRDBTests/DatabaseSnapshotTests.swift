@@ -25,7 +25,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
     
     func testSnapshotSeesLatestTransaction() throws {
         let dbPool = try makeDatabasePool()
-        try dbPool.write { db in
+        try dbPool.writeWithoutTransaction { db in
             try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
             try db.execute("INSERT INTO t DEFAULT VALUES")
             let snapshot = try dbPool.makeSnapshot()
