@@ -1265,9 +1265,29 @@ Grape.fromDatabaseValue(row[0])  // nil
 
 ## Transactions and Savepoints
 
-The `DatabaseQueue.inTransaction()` and `DatabasePool.writeInTransaction()` methods open an SQLite transaction and run their closure argument in a protected dispatch queue. They block the current thread until your database statements are executed:
+- [Transactions and Safety](#transactions-and-safety)
+- [Explicit Transactions](#explicit transactions)
+- [Savepoints](#savepoints)
+- [Transaction Kinds](#transaction kinds)
+
+
+### Transactions and Safety
+
+**Transactions** are a fundamental concept of SQLite that guarantee [data consistency](https://www.sqlite.org/transactional.html) as well as [proper isolation](https://sqlite.org/isolation.html) between application threads and database connections.
+
+These are all important words for a database expert, but not all developers know them very well. That's why GRDB will sometimes open transactions for you, automatically, as a way to enforce its [concurrency guarantees](#concurrency), and provide maximal security for both your application data and application logic. See the [list of database access methods](#list-of-database-access-methods) for an overview.
+
+**Yet some users need to control exactly when transactions take place.** This is an advanced use case, described below.
+
+
+### Explicit Transactions
+
+`DatabaseQueue.inTransaction()` and `DatabasePool.writeInTransaction()` open an SQLite transaction and run their closure argument in a protected dispatch queue. They block the current thread until your database statements are executed:
 
 ```swift
+// BEGIN TRANSACTION
+// INSERT INTO wines (...)
+// COMMIT
 try dbQueue.inTransaction { db in
     let wine = Wine(color: .red, name: "Pomerol")
     try wine.insert(db)
@@ -1280,17 +1300,16 @@ If an error is thrown within the transaction body, the transaction is rollbacked
 If you want to insert a transaction between other database statements, you can use the Database.inTransaction() function, or even raw SQL statements:
 
 ```swift
-try dbQueue.inDatabase { db in  // or dbPool.write { db in
-    ...
+dbPool.writeWithoutTransaction { db in  // or dbQueue.inDatabase { ... }
     try db.inTransaction {
         ...
         return .commit
     }
-    ...
+    
     try db.beginTransaction()
     ...
     try db.commit()
-    ...
+    
     try db.execute("BEGIN TRANSACTION")
     ...
     try db.execute("COMMIT")
@@ -6205,6 +6224,7 @@ You can catch those errors and wait for [UIApplicationDelegate.applicationProtec
 - [DatabaseWriter and DatabaseReader Protocols](#databasewriter-and-databasereader-protocols)
 - [Unsafe Concurrency APIs](#unsafe-concurrency-apis)
 - [Dealing with External Connections](#dealing-with-external-connections)
+- [List of Database Access Methods](#list-of-database-access-methods)
 
 
 ### Guarantees and Rules
@@ -6574,6 +6594,74 @@ If you absolutely need multiple connections, then:
 - Become a master of the [WAL mode](https://www.sqlite.org/wal.html)
 - Prepare to setup a [busy handler](https://www.sqlite.org/c3ref/busy_handler.html) with [Configuration.busyMode](http://groue.github.io/GRDB.swift/docs/2.10/Structs/Configuration.html)
 - [Ask questions](https://github.com/groue/GRDB.swift/issues)
+
+
+### List of Database Access Methods
+
+This is the list of database access methods:
+
+- [DatabaseQueue](#databasequeue-methods)
+- [DatabasePool](#databasepool-methods)
+- [DatabaseSnapshot](#databasesnapshot-methods)
+- [DatabaseReader Protocol](#databasereader-protocol-methods)
+- [DatabaseWriter Protocol](#databasewriter-protocol-methods)
+
+
+#### DatabaseQueue Methods
+
+See [DatabaseQueue](#database-queues)
+
+| Method | Opens a Transaction | Notes |
+| ------ | ------------------- | ----- |
+| `read` | NO | Guaranteed read-only access from SQLite 3.8.0 (iOS 8.2+, macOS 10.10+). |
+| `inDatabase` | NO | |
+| `inTransaction` | YES | |
+
+
+#### DatabasePool Methods
+
+See [DatabasePool](#database-pools)
+
+| Method | Opens a Transaction | Notes |
+| ------ | ------------------- | ----- |
+| `write` | YES | |
+| `writeInTransaction` | YES | |
+| `writeWithoutTransaction` | NO | |
+| `read` | YES | |
+| `readFromCurrentState` | YES | Must be executed from a writing block. Can't be executed from inside a transaction. |
+| `makeSnapshot` | YES | Can't be executed from inside a transaction. |
+
+
+#### DatabaseSnapshot Methods
+
+See [DatabaseSnapshot](#database-snapshots)
+
+| Method | Opens a Transaction | Notes |
+| ------ | ------------------- | ----- |
+| `read` | YES | |
+
+
+#### DatabaseReader Protocol Methods
+
+See [DatabaseReader](http://groue.github.io/GRDB.swift/docs/2.10/Protocols/DatabaseReader.html)
+
+| Method | Notes |
+| ------ | ----- |
+| `read` | |
+| `unsafeRead` | |
+| `unsafeReentrantRead` | |
+
+
+#### DatabaseWriter Protocol Methods
+
+See [DatabaseWriter](http://groue.github.io/GRDB.swift/docs/2.10/Protocols/DatabaseWriter.html)
+
+| Method | Notes |
+| ------ | ----- |
+| `write` | |
+| `writeWithoutTransaction` | |
+| `unsafeReentrantWrite` | |
+| `readFromCurrentState` | Must be executed from a writing block. Can't be executed from inside a transaction. |
 
 
 ## Performance
