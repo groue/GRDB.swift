@@ -119,7 +119,7 @@ extension DatabasePool {
     ///
     /// - parameter kind: The checkpoint mode (default passive)
     public func checkpoint(_ kind: Database.CheckpointMode = .passive) throws {
-        try write { db in
+        try writer.sync { db in
             // TODO: read https://www.sqlite.org/c3ref/wal_checkpoint_v2.html and
             // check whether we need a busy handler on writer and/or readers
             // when kind is not .Passive.
@@ -142,7 +142,7 @@ extension DatabasePool {
     /// See also setupMemoryManagement(application:)
     public func releaseMemory() {
         // TODO: test that this method blocks the current thread until all database accesses are completed.
-        writeWithoutTransaction { $0.releaseMemory() }
+        writer.sync { $0.releaseMemory() }
         readerPool.forEach { reader in
             reader.sync { $0.releaseMemory() }
         }
@@ -201,7 +201,7 @@ extension DatabasePool {
         /// Changes the passphrase of an encrypted database
         public func change(passphrase: String) throws {
             try readerPool.clear(andThen: {
-                try write { try $0.change(passphrase: passphrase) }
+                try writer.sync { try $0.change(passphrase: passphrase) }
                 readerConfig.passphrase = passphrase
             })
         }
@@ -373,7 +373,7 @@ extension DatabasePool : DatabaseReader {
     ///     }
     public func add(function: DatabaseFunction) {
         functions.update(with: function)
-        writeWithoutTransaction { $0.add(function: function) }
+        writer.sync { $0.add(function: function) }
         readerPool.forEach { reader in
             reader.sync { $0.add(function: function) }
         }
@@ -382,7 +382,7 @@ extension DatabasePool : DatabaseReader {
     /// Remove an SQL function.
     public func remove(function: DatabaseFunction) {
         functions.remove(function)
-        writeWithoutTransaction { $0.remove(function: function) }
+        writer.sync { $0.remove(function: function) }
         readerPool.forEach { reader in
             reader.sync { $0.remove(function: function) }
         }
@@ -401,7 +401,7 @@ extension DatabasePool : DatabaseReader {
     ///     }
     public func add(collation: DatabaseCollation) {
         collations.update(with: collation)
-        writeWithoutTransaction { $0.add(collation: collation) }
+        writer.sync { $0.add(collation: collation) }
         readerPool.forEach { reader in
             reader.sync { $0.add(collation: collation) }
         }
@@ -410,7 +410,7 @@ extension DatabasePool : DatabaseReader {
     /// Remove a collation.
     public func remove(collation: DatabaseCollation) {
         collations.remove(collation)
-        writeWithoutTransaction { $0.remove(collation: collation) }
+        writer.sync { $0.remove(collation: collation) }
         readerPool.forEach { reader in
             reader.sync { $0.remove(collation: collation) }
         }
@@ -500,7 +500,7 @@ extension DatabasePool : DatabaseWriter {
     /// - throws: The error thrown by the block, or any error establishing the
     ///   transaction.
     public func writeInTransaction(_ kind: Database.TransactionKind? = nil, _ block: (Database) throws -> Database.TransactionCompletion) throws {
-        try write { db in
+        try writer.sync { db in
             try db.inTransaction(kind) {
                 try block(db)
             }
@@ -601,7 +601,7 @@ extension DatabasePool : DatabaseWriter {
         // Check that we're on the writer queue...
         writer.execute { db in
             // ... and that no transaction is opened.
-            GRDBPrecondition(!db.isInsideTransaction, "readFromCurrentState must not be called from inside a transaction.")
+            GRDBPrecondition(!db.isInsideTransaction, "readFromCurrentState must not be called from inside a transaction. If this error is raised from a DatabasePool.write block, use DatabasePool.writeWithoutTransaction instead (and use transactions when needed).")
         }
         
         // The semaphore that blocks the writing dispatch queue until snapshot
