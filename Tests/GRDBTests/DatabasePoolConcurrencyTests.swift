@@ -229,6 +229,31 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         }
     }
 
+    func testWriteOpensATransaction() throws {
+        let dbPool = try makeDatabasePool()
+        try dbPool.write { db in
+            XCTAssertTrue(db.isInsideTransaction)
+            do {
+                try db.execute("BEGIN DEFERRED TRANSACTION")
+                XCTFail("Expected error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                XCTAssertEqual(error.message!, "cannot start a transaction within a transaction")
+                XCTAssertEqual(error.sql!, "BEGIN DEFERRED TRANSACTION")
+                XCTAssertEqual(error.description, "SQLite error 1 with statement `BEGIN DEFERRED TRANSACTION`: cannot start a transaction within a transaction")
+            }
+        }
+    }
+
+    func testWriteWithoutTransactionDoesNotOpenATransaction() throws {
+        let dbPool = try makeDatabasePool()
+        try dbPool.writeWithoutTransaction { db in
+            XCTAssertFalse(db.isInsideTransaction)
+            try db.beginTransaction()
+            try db.commit()
+        }
+    }
+    
     func testReadOpensATransaction() throws {
         let dbPool = try makeDatabasePool()
         try dbPool.read { db in
