@@ -31,7 +31,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         
         do {
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
-            try dbQueue.inDatabase { db in
+            try dbQueue.writeWithoutTransaction { db in
                 let journalMode = try String.fetchOne(db, "PRAGMA journal_mode = wal")
                 XCTAssertEqual(journalMode, "wal")
                 try db.create(table: "moves") { $0.column("value", .integer) }
@@ -42,7 +42,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         let block1 = { () in
             let dbQueue = try! self.makeDatabaseQueue(filename: "test.sqlite")
             s0.signal() // Avoid "database is locked" error: don't open the two databases at the same time
-            try! dbQueue.inDatabase { db in
+            try! dbQueue.writeWithoutTransaction { db in
                 try db.execute("BEGIN DEFERRED TRANSACTION")
                 s1.signal()
                 _ = s2.wait(timeout: .distantFuture)
@@ -56,7 +56,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         let block2 = { () in
             _ = s0.wait(timeout: .distantFuture) // Avoid "database is locked" error: don't open the two databases at the same time
             let dbQueue = try! self.makeDatabaseQueue(filename: "test.sqlite")
-            try! dbQueue.inDatabase { db in
+            try! dbQueue.writeWithoutTransaction { db in
                 _ = s1.wait(timeout: .distantFuture)
                 try db.execute("INSERT INTO moves VALUES (1)")
                 s2.signal()
@@ -93,7 +93,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         
         do {
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
-            try dbQueue.inDatabase { db in
+            try dbQueue.writeWithoutTransaction { db in
                 let journalMode = try String.fetchOne(db, "PRAGMA journal_mode = wal")
                 XCTAssertEqual(journalMode, "wal")
                 try db.create(table: "moves") { $0.column("value", .integer) }
@@ -104,7 +104,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         let block1 = { () in
             let dbQueue = try! self.makeDatabaseQueue(filename: "test.sqlite")
             s0.signal() // Avoid "database is locked" error: don't open the two databases at the same time
-            try! dbQueue.inDatabase { db in
+            try! dbQueue.writeWithoutTransaction { db in
                 _ = s1.wait(timeout: .distantFuture)
                 try db.execute("BEGIN DEFERRED TRANSACTION")
                 s2.signal()
@@ -119,7 +119,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         let block2 = { () in
             _ = s0.wait(timeout: .distantFuture) // Avoid "database is locked" error: don't open the two databases at the same time
             let dbQueue = try! self.makeDatabaseQueue(filename: "test.sqlite")
-            try! dbQueue.inDatabase { db in
+            try! dbQueue.writeWithoutTransaction { db in
                 try db.execute("BEGIN DEFERRED TRANSACTION")
                 s1.signal()
                 _ = s2.wait(timeout: .distantFuture)
@@ -158,7 +158,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         
         do {
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
-            try dbQueue.inDatabase { db in
+            try dbQueue.writeWithoutTransaction { db in
                 let journalMode = try String.fetchOne(db, "PRAGMA journal_mode = wal")
                 XCTAssertEqual(journalMode, "wal")
                 try db.create(table: "moves") { $0.column("value", .integer) }
@@ -169,7 +169,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         let block1 = { () in
             let dbQueue = try! self.makeDatabaseQueue(filename: "test.sqlite")
             s0.signal() // Avoid "database is locked" error: don't open the two databases at the same time
-            try! dbQueue.inDatabase { db in
+            try! dbQueue.writeWithoutTransaction { db in
                 try db.execute("BEGIN DEFERRED TRANSACTION")
                 s1.signal()
                 _ = s2.wait(timeout: .distantFuture)
@@ -183,7 +183,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         let block2 = { () in
             _ = s0.wait(timeout: .distantFuture) // Avoid "database is locked" error: don't open the two databases at the same time
             let dbQueue = try! self.makeDatabaseQueue(filename: "test.sqlite")
-            try! dbQueue.inDatabase { db in
+            try! dbQueue.writeWithoutTransaction { db in
                 _ = s1.wait(timeout: .distantFuture)
                 try db.execute("BEGIN DEFERRED TRANSACTION")
                 try db.execute("INSERT INTO moves VALUES (1)")
@@ -215,7 +215,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     func testReadFromPreviousNonWALDatabase() throws {
         do {
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
-            try dbQueue.inDatabase { db in
+            try dbQueue.writeWithoutTransaction { db in
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
                 try db.execute("INSERT INTO items (id) VALUES (NULL)")
             }
@@ -904,11 +904,11 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             try db.execute("INSERT INTO t DEFAULT VALUES")
         }
         
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.beginTransaction(.deferred)
         }
         
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 1)
         }
         
@@ -916,7 +916,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             try db.execute("INSERT INTO t DEFAULT VALUES")
         }
         
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 1)
             try db.rollback()
             try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 2)
