@@ -130,7 +130,7 @@ class SelectStatementTests : GRDBTestCase {
     
     func testRegion() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             class Observer: TransactionObserver {
                 private var didChange = false
                 var triggered = false

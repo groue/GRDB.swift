@@ -84,7 +84,14 @@ extension DatabaseQueue {
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
     public func inDatabase<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try serializedDatabase.sync(block)
+        return try serializedDatabase.sync { db in
+            var result: T? = nil
+            try db.inTransaction {
+                result = try block(db)
+                return .commit
+            }
+            return result!
+        }
     }
     
     /// Synchronously executes a block in a protected dispatch queue, wrapped
@@ -110,7 +117,7 @@ extension DatabaseQueue {
     ///       .commit or .rollback.
     /// - throws: The error thrown by the block.
     public func inTransaction(_ kind: Database.TransactionKind? = nil, _ block: (Database) throws -> Database.TransactionCompletion) throws {
-        try inDatabase { db in
+        try serializedDatabase.sync { db in
             try db.inTransaction(kind) {
                 try block(db)
             }
@@ -128,7 +135,7 @@ extension DatabaseQueue {
     ///
     /// See also setupMemoryManagement(application:)
     public func releaseMemory() {
-        inDatabase { $0.releaseMemory() }
+        serializedDatabase.sync { $0.releaseMemory() }
     }
     
     #if os(iOS)
@@ -181,7 +188,7 @@ extension DatabaseQueue {
 
         /// Changes the passphrase of an encrypted database
         public func change(passphrase: String) throws {
-            try inDatabase { try $0.change(passphrase: passphrase) }
+            try serializedDatabase.sync { try $0.change(passphrase: passphrase) }
         }
     }
 #endif
@@ -209,21 +216,19 @@ extension DatabaseQueue : DatabaseReader {
         // query_only pragma was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
-            return try inDatabase { try readOnly($0, block) }
+            return try serializedDatabase.sync { try readOnly($0, block) }
         #else
             if #available(iOS 8.2, OSX 10.10, *) {
-                return try inDatabase { try readOnly($0, block) }
+                return try serializedDatabase.sync { try readOnly($0, block) }
             } else {
-                return try inDatabase(block)
+                return try serializedDatabase.sync(block)
             }
         #endif
     }
     
-    /// Alias for `inDatabase`. See `DatabaseReader.unsafeRead`.
-    ///
     /// :nodoc:
     public func unsafeRead<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try inDatabase(block)
+        return try serializedDatabase.sync(block)
     }
     
     /// Synchronously executes a block in a protected dispatch queue, and
@@ -256,12 +261,12 @@ extension DatabaseQueue : DatabaseReader {
     ///         try Int.fetchOne(db, "SELECT succ(1)") // 2
     ///     }
     public func add(function: DatabaseFunction) {
-        inDatabase { $0.add(function: function) }
+        serializedDatabase.sync { $0.add(function: function) }
     }
     
     /// Remove an SQL function.
     public func remove(function: DatabaseFunction) {
-        inDatabase { $0.remove(function: function) }
+        serializedDatabase.sync { $0.remove(function: function) }
     }
     
     // MARK: - Collations
@@ -276,12 +281,12 @@ extension DatabaseQueue : DatabaseReader {
     ///         try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
     ///     }
     public func add(collation: DatabaseCollation) {
-        inDatabase { $0.add(collation: collation) }
+        serializedDatabase.sync { $0.add(collation: collation) }
     }
     
     /// Remove a collation.
     public func remove(collation: DatabaseCollation) {
-        inDatabase { $0.remove(collation: collation) }
+        serializedDatabase.sync { $0.remove(collation: collation) }
     }
 }
 
@@ -298,7 +303,7 @@ extension DatabaseQueue : DatabaseWriter {
     ///
     /// :nodoc:
     public func writeWithoutTransaction<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try inDatabase(block)
+        return try serializedDatabase.sync(block)
     }
     
     /// Synchronously executes *block*.
@@ -355,7 +360,7 @@ private func readOnly<T>(_ db: Database, _ block: (Database) throws -> T) rethro
     }
     
     // Assume those pragmas never fail
-    try! db.execute("PRAGMA query_only = 1")
-    defer { try! db.execute("PRAGMA query_only = 0") }
+    try! db.internalCachedUpdateStatement("PRAGMA query_only = 1").execute()
+    defer { try! db.internalCachedUpdateStatement("PRAGMA query_only = 0").execute() }
     return try block(db)
 }
