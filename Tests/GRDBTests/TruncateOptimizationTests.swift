@@ -75,7 +75,7 @@ class TruncateOptimizationTests: GRDBTestCase {
         let observer = DeletionObserver { deletionEvents.append($0) }
         dbQueue.add(transactionObserver: observer, extent: .databaseLifetime)
         
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             
             try db.execute("INSERT INTO t VALUES (NULL)")
@@ -100,7 +100,7 @@ class TruncateOptimizationTests: GRDBTestCase {
         let observer = DeletionObserver { deletionEvents.append($0) }
         dbQueue.add(transactionObserver: observer, extent: .databaseLifetime)
         
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             let deleteStatement = try db.makeUpdateStatement("DELETE FROM t")
             
@@ -121,7 +121,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     
     func testDropTable() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             try db.execute("INSERT INTO t VALUES (NULL)")
             try XCTAssertTrue(db.tableExists("t"))
@@ -133,7 +133,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     func testObservedDropTable() throws {
         let dbQueue = try makeDatabaseQueue()
         dbQueue.add(transactionObserver: UniversalObserver(), extent: .databaseLifetime)
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             try db.execute("INSERT INTO t VALUES (NULL)")
             try XCTAssertTrue(db.tableExists("t"))
@@ -144,7 +144,7 @@ class TruncateOptimizationTests: GRDBTestCase {
 
     func testDropTableWithPreparedStatement() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             try db.execute("INSERT INTO t VALUES (NULL)")
             try XCTAssertTrue(db.tableExists("t"))
@@ -157,7 +157,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     func testObservedDropTableWithPreparedStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         dbQueue.add(transactionObserver: UniversalObserver(), extent: .databaseLifetime)
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             try db.execute("INSERT INTO t VALUES (NULL)")
             try XCTAssertTrue(db.tableExists("t"))
@@ -169,7 +169,7 @@ class TruncateOptimizationTests: GRDBTestCase {
 
     func testDropTemporaryTable() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TEMPORARY TABLE t(a)")
             try db.execute("INSERT INTO t VALUES (NULL)")
             try XCTAssertTrue(db.tableExists("t"))
@@ -181,7 +181,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     func testObservedDropTemporaryTable() throws {
         let dbQueue = try makeDatabaseQueue()
         dbQueue.add(transactionObserver: UniversalObserver(), extent: .databaseLifetime)
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TEMPORARY TABLE t(a)")
             try db.execute("INSERT INTO t VALUES (NULL)")
             try XCTAssertTrue(db.tableExists("t"))
@@ -192,7 +192,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     
     func testDropTemporaryTableWithPreparedStatement() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TEMPORARY TABLE t(a)")
             try db.execute("INSERT INTO t VALUES (NULL)")
             try XCTAssertTrue(db.tableExists("t"))
@@ -205,7 +205,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     func testObservedDropTemporaryTableWithPreparedStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         dbQueue.add(transactionObserver: UniversalObserver(), extent: .databaseLifetime)
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TEMPORARY TABLE t(a)")
             try db.execute("INSERT INTO t VALUES (NULL)")
             try XCTAssertTrue(db.tableExists("t"))
@@ -217,7 +217,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     
     func testDropVirtualTable() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE VIRTUAL TABLE t USING fts3(a)")
             try db.execute("INSERT INTO t VALUES (NULL)")
             try XCTAssertTrue(db.tableExists("t"))
@@ -229,7 +229,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     func testObservedDropVirtualTable() throws {
         let dbQueue = try makeDatabaseQueue()
         dbQueue.add(transactionObserver: UniversalObserver(), extent: .databaseLifetime)
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE VIRTUAL TABLE t USING fts3(a)")
             try db.execute("INSERT INTO t VALUES (NULL)")
             try XCTAssertTrue(db.tableExists("t"))
@@ -240,7 +240,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     
     func testDropVirtualTableWithPreparedStatement() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE VIRTUAL TABLE t USING fts3(a)")
             try db.execute("INSERT INTO t VALUES (NULL)")
             try XCTAssertTrue(db.tableExists("t"))
@@ -253,7 +253,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     func testObservedDropVirtualTableWithPreparedStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         dbQueue.add(transactionObserver: UniversalObserver(), extent: .databaseLifetime)
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE VIRTUAL TABLE t USING fts3(a)")
             try db.execute("INSERT INTO t VALUES (NULL)")
             try XCTAssertTrue(db.tableExists("t"))
@@ -265,7 +265,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     
     func testDropView() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             try db.execute("CREATE VIEW v AS SELECT * FROM t")
             try db.execute("INSERT INTO t VALUES (NULL)")
@@ -278,7 +278,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     func testObservedDropView() throws {
         let dbQueue = try makeDatabaseQueue()
         dbQueue.add(transactionObserver: UniversalObserver(), extent: .databaseLifetime)
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             try db.execute("CREATE VIEW v AS SELECT * FROM t")
             try db.execute("INSERT INTO t VALUES (NULL)")
@@ -290,7 +290,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     
     func testDropViewWithPreparedStatement() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             try db.execute("CREATE VIEW v AS SELECT * FROM t")
             try db.execute("INSERT INTO t VALUES (NULL)")
@@ -304,7 +304,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     func testObservedDropViewWithPreparedStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         dbQueue.add(transactionObserver: UniversalObserver(), extent: .databaseLifetime)
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             try db.execute("CREATE VIEW v AS SELECT * FROM t")
             try db.execute("INSERT INTO t VALUES (NULL)")
@@ -317,7 +317,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     
     func testDropTemporaryView() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             try db.execute("CREATE TEMPORARY VIEW v AS SELECT * FROM t")
             try db.execute("INSERT INTO t VALUES (NULL)")
@@ -330,7 +330,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     func testObservedDropTemporaryView() throws {
         let dbQueue = try makeDatabaseQueue()
         dbQueue.add(transactionObserver: UniversalObserver(), extent: .databaseLifetime)
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             try db.execute("CREATE TEMPORARY VIEW v AS SELECT * FROM t")
             try db.execute("INSERT INTO t VALUES (NULL)")
@@ -342,7 +342,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     
     func testDropTemporaryViewWithPreparedStatement() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             try db.execute("CREATE TEMPORARY VIEW v AS SELECT * FROM t")
             try db.execute("INSERT INTO t VALUES (NULL)")
@@ -356,7 +356,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     func testObservedDropTemporaryViewWithPreparedStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         dbQueue.add(transactionObserver: UniversalObserver(), extent: .databaseLifetime)
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             try db.execute("CREATE TEMPORARY VIEW v AS SELECT * FROM t")
             try db.execute("INSERT INTO t VALUES (NULL)")
@@ -369,7 +369,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     
     func testDropIndex() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             try db.execute("CREATE INDEX i ON t(a)")
             try XCTAssertFalse(db.indexes(on: "t").isEmpty)
@@ -381,7 +381,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     func testObservedDropIndex() throws {
         let dbQueue = try makeDatabaseQueue()
         dbQueue.add(transactionObserver: UniversalObserver(), extent: .databaseLifetime)
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             try db.execute("CREATE INDEX i ON t(a)")
             try XCTAssertFalse(db.indexes(on: "t").isEmpty)
@@ -392,7 +392,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     
     func testDropIndexViewWithPreparedStatement() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             try db.execute("CREATE INDEX i ON t(a)")
             try db.execute("INSERT INTO t VALUES (1)")
@@ -406,7 +406,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     func testObservedDropIndexViewWithPreparedStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         dbQueue.add(transactionObserver: UniversalObserver(), extent: .databaseLifetime)
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             try db.execute("CREATE INDEX i ON t(a)")
             try db.execute("INSERT INTO t VALUES (1)")
@@ -419,7 +419,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     
     func testDropTemporaryIndex() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TEMPORARY TABLE t(a)")
             try db.execute("CREATE INDEX i ON t(a)")
             try XCTAssertFalse(db.indexes(on: "t").isEmpty)
@@ -431,7 +431,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     func testObservedDropTemporaryIndex() throws {
         let dbQueue = try makeDatabaseQueue()
         dbQueue.add(transactionObserver: UniversalObserver(), extent: .databaseLifetime)
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TEMPORARY TABLE t(a)")
             try db.execute("CREATE INDEX i ON t(a)")
             try XCTAssertFalse(db.indexes(on: "t").isEmpty)
@@ -442,7 +442,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     
     func testDropTemporaryIndexViewWithPreparedStatement() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TEMPORARY TABLE t(a)")
             try db.execute("CREATE INDEX i ON t(a)")
             try db.execute("INSERT INTO t VALUES (1)")
@@ -456,7 +456,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     func testObservedDropTemporaryIndexViewWithPreparedStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         dbQueue.add(transactionObserver: UniversalObserver(), extent: .databaseLifetime)
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TEMPORARY TABLE t(a)")
             try db.execute("CREATE INDEX i ON t(a)")
             try db.execute("INSERT INTO t VALUES (1)")
@@ -469,7 +469,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     
     func testDropTrigger() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             try db.execute("CREATE TRIGGER r INSERT ON t BEGIN DELETE FROM t; END")
             try XCTAssertTrue(db.triggerExists("r"))
@@ -481,7 +481,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     func testObservedDropTrigger() throws {
         let dbQueue = try makeDatabaseQueue()
         dbQueue.add(transactionObserver: UniversalObserver(), extent: .databaseLifetime)
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             try db.execute("CREATE TRIGGER r INSERT ON t BEGIN DELETE FROM t; END")
             try XCTAssertTrue(db.triggerExists("r"))
@@ -492,7 +492,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     
     func testDropTriggerWithPreparedStatement() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             try db.execute("CREATE TRIGGER r INSERT ON t BEGIN DELETE FROM t; END")
             try XCTAssertTrue(db.triggerExists("r"))
@@ -505,7 +505,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     func testObservedDropTriggerWithPreparedStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         dbQueue.add(transactionObserver: UniversalObserver(), extent: .databaseLifetime)
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             try db.execute("CREATE TRIGGER r INSERT ON t BEGIN DELETE FROM t; END")
             try XCTAssertTrue(db.triggerExists("r"))
@@ -517,7 +517,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     
     func testDropTemporaryTrigger() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             try db.execute("CREATE TEMPORARY TRIGGER r INSERT ON t BEGIN DELETE FROM t; END")
             try XCTAssertTrue(db.triggerExists("r"))
@@ -529,7 +529,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     func testObservedDropTemporaryTrigger() throws {
         let dbQueue = try makeDatabaseQueue()
         dbQueue.add(transactionObserver: UniversalObserver(), extent: .databaseLifetime)
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             try db.execute("CREATE TEMPORARY TRIGGER r INSERT ON t BEGIN DELETE FROM t; END")
             try XCTAssertTrue(db.triggerExists("r"))
@@ -540,7 +540,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     
     func testDropTemporaryTriggerWithPreparedStatement() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             try db.execute("CREATE TEMPORARY TRIGGER r INSERT ON t BEGIN DELETE FROM t; END")
             try XCTAssertTrue(db.triggerExists("r"))
@@ -553,7 +553,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     func testObservedDropTemporaryTriggerWithPreparedStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         dbQueue.add(transactionObserver: UniversalObserver(), extent: .databaseLifetime)
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE t(a)")
             try db.execute("CREATE TEMPORARY TRIGGER r INSERT ON t BEGIN DELETE FROM t; END")
             try XCTAssertTrue(db.triggerExists("r"))

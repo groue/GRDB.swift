@@ -88,7 +88,7 @@ let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
 [Execute SQL statements](#executing-updates):
 
 ```swift
-try dbQueue.inDatabase { db in
+try dbQueue.write { db in
     try db.execute("""
         CREATE TABLE places (
           id INTEGER PRIMARY KEY,
@@ -110,7 +110,7 @@ try dbQueue.inDatabase { db in
 [Fetch database rows and values](#fetch-queries):
 
 ```swift
-try dbQueue.inDatabase { db in
+try dbQueue.read { db in
     let rows = try Row.fetchCursor(db, "SELECT * FROM places")
     while let row = try rows.next() {
         let title: String = row["title"]
@@ -125,7 +125,7 @@ try dbQueue.inDatabase { db in
 }
 
 // Extraction
-let placeCount = try dbQueue.inDatabase { db in
+let placeCount = try dbQueue.read { db in
     try Int.fetchOne(db, "SELECT COUNT(*) FROM places")!
 }
 ```
@@ -143,7 +143,7 @@ struct Place {
 // snip: turn Place into a "record" by adopting the protocols that
 // provide fetching and persistence methods.
 
-try dbQueue.inDatabase { db in
+try dbQueue.write { db in
     var berlin = Place(
         id: nil,
         title: "Berlin",
@@ -164,7 +164,7 @@ try dbQueue.inDatabase { db in
 Avoid SQL with the [query interface](#the-query-interface):
 
 ```swift
-try dbQueue.inDatabase { db in
+try dbQueue.write { db in
     try db.create(table: "places") { t in
         t.column("id", .integer).primaryKey()
         t.column("title", .text).notNull()
@@ -309,7 +309,7 @@ let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
 The differences are:
 
 - Database pools allow concurrent database accesses (this can improve the performance of multithreaded applications).
-- Unless read-only, database pools open your SQLite database in the [WAL mode](https://www.sqlite.org/wal.html).
+- Database pools open your SQLite database in the [WAL mode](https://www.sqlite.org/wal.html) (unless read-only).
 - Database queues support [in-memory databases](https://www.sqlite.org/inmemorydb.html).
 
 **If you are not sure, choose DatabaseQueue.** You will always be able to switch to DatabasePool later.
@@ -331,32 +331,26 @@ let inMemoryDBQueue = DatabaseQueue()
 
 SQLite creates the database file if it does not already exist. The connection is closed when the database queue gets deallocated.
 
-
-**A database queue can be used from any thread.** The `inDatabase` and `inTransaction` methods are synchronous, and block the current thread until your database statements are executed in a protected dispatch queue. They safely serialize the database accesses:
+**A database queue can be used from any thread.** The `write` and `read` methods are synchronous, and block the current thread until your database statements are executed in a protected dispatch queue:
 
 ```swift
-// Execute database statements:
-try dbQueue.inDatabase { db in
+// Modify the database:
+try dbQueue.write { db in
     try db.create(table: "places") { ... }
     try Place(...).insert(db)
 }
 
-// Wrap database statements in a transaction:
-try dbQueue.inTransaction { db in
-    if let place = try Place.fetchOne(db, key: 1) {
-        try place.delete(db)
-    }
-    return .commit
-}
-
 // Read values:
-try dbQueue.inDatabase { db in
+try dbQueue.read { db in
     let places = try Place.fetchAll(db)
     let placeCount = try Place.fetchCount(db)
 }
+```
 
-// Extract a value from the database:
-let placeCount = try dbQueue.inDatabase { db in
+Database access methods can return values, for easy extraction of database values:
+
+```swift
+let placeCount = try dbQueue.read { db in
     try Place.fetchCount(db)
 }
 ```
@@ -364,6 +358,12 @@ let placeCount = try dbQueue.inDatabase { db in
 **A database queue needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency](#concurrency) chapter.
 
 See [DemoApps/GRDBDemoiOS/AppDatabase.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/AppDatabase.swift) for a sample code that sets up a database queue on iOS.
+
+> :muscle: **Note to database experts**: The `write` and `read` database access methods generally help enforcing the [GRDB concurrency guarantees](#concurrency), and are highly recommended, even for skilled developers, because they lift most of the mental burden related to explicit SQLite transactions:
+>
+> `DatabaseQueue.write` wraps your database statements in a transaction, and rollbacks on the first unhandled error. `DatabaseQueue.read` enforces read-only access.
+>
+> When precise transaction handling is required, see [Transactions and Savepoints](#transactions-and-savepoints).
 
 
 ### DatabaseQueue Configuration
@@ -384,9 +384,7 @@ See [Configuration](http://groue.github.io/GRDB.swift/docs/2.10/Structs/Configur
 
 ## Database Pools
 
-**A Database Pool allows concurrent database accesses.**
-
-When more efficient than [database queues](#database-queues), database pools also inherit the subtleties of SQLite's [WAL mode](https://www.sqlite.org/wal.html). If you don't feel comfortable with improving your SQLite skills, use a [database queue](#database-queues) instead.
+**A database pool allows concurrent database accesses.**
 
 ```swift
 import GRDB
@@ -397,22 +395,13 @@ SQLite creates the database file if it does not already exist. The connection is
 
 > :point_up: **Note**: unless read-only, a database pool opens your database in the SQLite "WAL mode". The WAL mode does not fit all situations. Please have a look at https://www.sqlite.org/wal.html.
 
-
-**A database pool can be used from any thread.** The `read`, `write` and `writeInTransaction` methods are synchronous, and block the current thread until your database statements are executed in a protected dispatch queue. They safely isolate the database accesses:
+**A database pool can be used from any thread.** The `write` and `read` methods are synchronous, and block the current thread until your database statements are executed in a protected dispatch queue:
 
 ```swift
-// Execute database statements:
+// Modify the database:
 try dbPool.write { db in
     try db.create(table: "places") { ... }
     try Place(...).insert(db)
-}
-
-// Wrap database statements in a transaction:
-try dbPool.writeInTransaction { db in
-    if let place = try Place.fetchOne(db, key: 1) {
-        try place.delete(db)
-    }
-    return .commit
 }
 
 // Read values:
@@ -420,32 +409,40 @@ try dbPool.read { db in
     let places = try Place.fetchAll(db)
     let placeCount = try Place.fetchCount(db)
 }
+```
 
-// Extract a value from the database:
+Database access methods can return values, for easy extraction of database values:
+
+```swift
 let placeCount = try dbPool.read { db in
     try Place.fetchCount(db)
 }
 ```
 
-Database pools allow several threads to access the database at the same time:
+**A database pool needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency](#concurrency) chapter.
+
+For a sample code that sets up a database pool on iOS, see [DemoApps/GRDBDemoiOS/AppDatabase.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/AppDatabase.swift), and replace DatabaseQueue with DatabasePool.
+
+
+### Database Pool Concurrency
+
+Unlike [database queues](#database-queues), pools allow several threads to access the database at the same time:
 
 - When you don't need to modify the database, prefer the `read` method, because several threads can perform reads in parallel.
     
     Reads are generally non-blocking, unless the maximum number of concurrent reads has been reached. In this case, a read has to wait for another read to complete. That maximum number can be [configured](#databasepool-configuration).
 
+- Reads are guaranteed an immutable view of the last committed state of the database, regardless of concurrent writes. This kind of isolation is called [snapshot isolation](https://sqlite.org/isolation.html).
+
 - Unlike reads, writes are serialized. There is never more than a single thread that is writing into the database.
-    
-- Reads are guaranteed an immutable view of the last committed state of the database, regardless of concurrent writes. This kind of isolation is called "snapshot isolation".
-    
-    To provide `read` closures an immutable view of the last executed writing block *as a whole*, use `writeInTransaction` instead of `write`.
+
+- The `write` method wraps your database statements in a transaction, and rollbacks on the first unhandled error.
+
+    When precise transaction handling is required, see [Transactions and Savepoints](#transactions-and-savepoints) for more information.
 
 - Database pools can take [snapshots](#database-snapshots) of the database.
 
-See [Differences between Database Queues and Pools](#differences-between-database-queues-and-pools) before you decide to use a database pool. When you're sure, see [Advanced DatabasePool](#advanced-databasepool) for more DatabasePool hotness.
-
-**A database pool needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency](#concurrency) chapter.
-
-For a sample code that sets up a database pool on iOS, see [DemoApps/GRDBDemoiOS/AppDatabase.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/AppDatabase.swift), and replace DatabaseQueue with DatabasePool.
+See the [Concurrency](#concurrency) chapter for more details about database pools, and advanced use cases.
 
 
 ### DatabasePool Configuration
@@ -502,7 +499,7 @@ Once granted with a [database connection](#database-connections), the `execute` 
 For example:
 
 ```swift
-try dbQueue.inDatabase { db in
+try dbQueue.write { db in
     try db.execute("""
         CREATE TABLE players (
             id INTEGER PRIMARY KEY,
@@ -551,7 +548,7 @@ let playerId = player.id
 **Rows** are the raw results of SQL queries:
 
 ```swift
-try dbQueue.inDatabase { db in
+try dbQueue.read { db in
     if let row = try Row.fetchOne(db, "SELECT * FROM wines WHERE id = ?", arguments: [1]) {
         let name: String = row["name"]
         let color: Color = row["color"]
@@ -564,7 +561,7 @@ try dbQueue.inDatabase { db in
 **Values** are the Bool, Int, String, Date, Swift enums, etc. stored in row columns:
 
 ```swift
-try dbQueue.inDatabase { db in
+try dbQueue.read { db in
     let urls = try URL.fetchCursor(db, "SELECT url FROM wines")
     while let url = try urls.next() {
         print(url)
@@ -576,7 +573,7 @@ try dbQueue.inDatabase { db in
 **Records** are your application objects that can initialize themselves from rows:
 
 ```swift
-let wines = try dbQueue.inDatabase { db in
+let wines = try dbQueue.read { db in
     try Wine.fetchAll(db, "SELECT * FROM wines")
 }
 ```
@@ -623,7 +620,7 @@ try Row.fetchOne(...)    // Row?
 The `fetchAll()` method returns a regular Swift array, that you iterate like all other arrays:
 
 ```swift
-try dbQueue.inDatabase { db in
+try dbQueue.read { db in
     // [Player]
     let players = try Player.fetchAll(db, "SELECT ...")
     for player in players {
@@ -635,7 +632,7 @@ try dbQueue.inDatabase { db in
 Unlike arrays, cursors returned by `fetchCursor()` load their results step after step:
 
 ```swift
-try dbQueue.inDatabase { db in
+try dbQueue.read { db in
     // Cursor of Player
     let players = try Player.fetchCursor(db, "SELECT ...")
     while let player = try players.next() {
@@ -650,10 +647,10 @@ Both arrays and cursors can iterate over database results. How do you choose one
     
     ```swift
     // Wrong
-    let cursor = try dbQueue.inDatabase { try Player.fetchCursor($0, ...) }
+    let cursor = try dbQueue.read { try Player.fetchCursor($0, ...) }
     
     // OK
-    let array = try dbQueue.inDatabase { try Player.fetchAll($0, ...) }
+    let array = try dbQueue.read { try Player.fetchAll($0, ...) }
     ```
     
 - **Cursors can be iterated only one time.** Arrays can be iterated many times.
@@ -718,7 +715,7 @@ let hosts = try Set(cursor) // Set<String>
 Fetch **cursors** of rows, **arrays**, or **single** rows (see [fetching methods](#fetching-methods)):
 
 ```swift
-try dbQueue.inDatabase { db in
+try dbQueue.read { db in
     try Row.fetchCursor(db, "SELECT ...", arguments: ...) // A Cursor of Row
     try Row.fetchAll(db, "SELECT ...", arguments: ...)    // [Row]
     try Row.fetchOne(db, "SELECT ...", arguments: ...)    // Row?
@@ -731,7 +728,7 @@ try dbQueue.inDatabase { db in
     }
 }
 
-let rows = try dbQueue.inDatabase { db in
+let rows = try dbQueue.read { db in
     try Row.fetchAll(db, "SELECT * FROM players")
 }
 ```
@@ -978,7 +975,7 @@ See the documentation of [`Dictionary.init(_:uniquingKeysWith:)`](https://develo
 Instead of rows, you can directly fetch **[values](#values)**. Like rows, fetch them as **cursors**, **arrays**, or **single** values (see [fetching methods](#fetching-methods)). Values are extracted from the leftmost column of the SQL queries:
 
 ```swift
-try dbQueue.inDatabase { db in
+try dbQueue.read { db in
     try Int.fetchCursor(db, "SELECT ...", arguments: ...) // A Cursor of Int
     try Int.fetchAll(db, "SELECT ...", arguments: ...)    // [Int]
     try Int.fetchOne(db, "SELECT ...", arguments: ...)    // Int?
@@ -988,7 +985,7 @@ try dbQueue.inDatabase { db in
     try Optional<Int>.fetchAll(db, "SELECT ...", arguments: ...)    // [Int?]
 }
 
-let playerCount = try dbQueue.inDatabase { db in
+let playerCount = try dbQueue.read { db in
     try Int.fetchOne(db, "SELECT COUNT(*) FROM players")!
 }
 ```
@@ -1265,39 +1262,113 @@ Grape.fromDatabaseValue(row[0])  // nil
 
 ## Transactions and Savepoints
 
-The `DatabaseQueue.inTransaction()` and `DatabasePool.writeInTransaction()` methods open an SQLite transaction and run their closure argument in a protected dispatch queue. They block the current thread until your database statements are executed:
+- [Transactions and Safety](#transactions-and-safety)
+- [Explicit Transactions](#explicit-transactions)
+- [Savepoints](#savepoints)
+- [Transaction Kinds](#transaction-kinds)
+
+
+### Transactions and Safety
+
+**A transaction** is a fundamental tool of SQLite that guarantees [data consistency](https://www.sqlite.org/transactional.html) as well as [proper isolation](https://sqlite.org/isolation.html) between application threads and database connections.
+
+GRDB generally opens transactions for you, as a way to enforce its [concurrency guarantees](#concurrency), and provide maximal security for both your application data and application logic:
 
 ```swift
-try dbQueue.inTransaction { db in
-    let wine = Wine(color: .red, name: "Pomerol")
-    try wine.insert(db)
+// BEGIN TRANSACTION
+// INSERT INTO players ...
+// COMMIT
+try dbQueue.write { db in
+    try Player(...).insert(db)
+}
+
+// BEGIN TRANSACTION
+// INSERT INTO players ...
+// COMMIT
+try dbPool.write { db in
+    try Player(...).insert(db)
+}
+```
+
+Yet you may need to exactly control when transactions take place:
+
+
+### Explicit Transactions
+
+`DatabaseQueue.inDatabase()` and `DatabasePool.writeWithoutTransaction()` execute your database statements outside of any transaction:
+
+```swift
+// INSERT INTO players (...)
+try dbQueue.inDatabase { db in
+    try Player(...).insert(db)
+}
+
+// INSERT INTO players (...)
+try dbPool.writeWithoutTransaction { db in
+    try Player(...).insert(db)
+}
+```
+
+> :warning: **Warning**: it is dangerous to write in a database pool outside of a transaction, because concurrent reads may see an inconsistent state of the database:
+>
+> ```swift
+> // UNSAFE CONCURRENCY
+> try dbPool.writeWithoutTransaction { db in
+>     try Credit(destinationAccout, amount).insert(db)
+>     // <- Concurrent dbPool.read sees a partial db update here
+>     try Debit(sourceAccount, amount).insert(db)
+> }
+> ```
+
+To open explicit transactions, use one of the `Database.inTransaction`, `DatabaseQueue.inTransaction`, or `DatabasePool.writeInTransaction` methods:
+
+```swift
+// BEGIN TRANSACTION
+// INSERT INTO players ...
+// COMMIT
+try dbQueue.inDatabase { db in  // or dbPool.writeWithoutTransaction
+    try db.inTransaction {
+        try Player(...).insert(db)
+        return .commit
+    }
+}
+
+// BEGIN TRANSACTION
+// INSERT INTO players (...)
+// COMMIT
+try dbQueue.inTransaction { db in  // or dbPool.writeInTransaction
+    try Player(...).insert(db)
     return .commit
 }
 ```
 
-If an error is thrown within the transaction body, the transaction is rollbacked and the error is rethrown by the `inTransaction` method. If you return `.rollback` from your closure, the transaction is also rollbacked, but no error is thrown.
+If an error is thrown from the transaction block, the transaction is rollbacked and the error is rethrown by the `inTransaction` method. If you return `.rollback` instead of `.commit`, the transaction is also rollbacked, but no error is thrown.
 
-If you want to insert a transaction between other database statements, you can use the Database.inTransaction() function, or even raw SQL statements:
+You can also perform manual transaction management:
 
 ```swift
-try dbQueue.inDatabase { db in  // or dbPool.write { db in
-    ...
-    try db.inTransaction {
-        ...
-        return .commit
-    }
-    ...
+try dbQueue.inDatabase { db in  // or dbPool.writeWithoutTransaction
     try db.beginTransaction()
     ...
     try db.commit()
-    ...
+    
     try db.execute("BEGIN TRANSACTION")
     ...
     try db.execute("COMMIT")
 }
 ```
 
-You can ask a database if a transaction is currently opened:
+Transactions can't be left opened unless you set the [allowsUnsafeTransactions](http://groue.github.io/GRDB.swift/docs/2.10/Structs/Configuration.html) configuration flag:
+
+```swift
+// fatal error: A transaction has been left opened at the end of a database access
+try dbQueue.inDatabase { db in
+    try db.execute("BEGIN TRANSACTION")
+    // <- no commit or rollback
+}
+```
+
+You can ask if a transaction is currently opened:
 
 ```swift
 func myCriticalMethod(_ db: Database) throws {
@@ -1306,7 +1377,7 @@ func myCriticalMethod(_ db: Database) throws {
 }
 ```
 
-Yet, you have a better option than checking for transactions: critical sections of your application should use savepoints, described below:
+Yet, you have a better option than checking for transactions: critical database sections should use savepoints, described below:
 
 ```swift
 func myCriticalMethod(_ db: Database) throws {
@@ -1323,7 +1394,7 @@ func myCriticalMethod(_ db: Database) throws {
 **Statements grouped in a savepoint can be rollbacked without invalidating a whole transaction:**
 
 ```swift
-try dbQueue.inTransaction { db in
+try dbQueue.write { db in
     try db.inSavepoint { 
         try db.execute("DELETE ...")
         try db.execute("INSERT ...") // need to rollback the delete above if this fails
@@ -1331,13 +1402,12 @@ try dbQueue.inTransaction { db in
     }
     
     // Other savepoints, etc...
-    return .commit
 }
 ```
 
-If an error is thrown within the savepoint body, the savepoint is rollbacked and the error is rethrown by the `inSavepoint` method. If you return `.rollback` from your closure, the body is also rollbacked, but no error is thrown.
+If an error is thrown from the savepoint block, the savepoint is rollbacked and the error is rethrown by the `inSavepoint` method. If you return `.rollback` instead of `.commit`, the savepoint is also rollbacked, but no error is thrown.
 
-**Unlike transactions, savepoints can be nested.** They implicitly open a transaction if no one was opened when the savepoint begins. As such, they behave just like nested transactions. Yet the database changes are only committed to disk when the outermost savepoint is committed:
+**Unlike transactions, savepoints can be nested.** They implicitly open a transaction if no one was opened when the savepoint begins. As such, they behave just like nested transactions. Yet the database changes are only written to disk when the outermost transaction is committed:
 
 ```swift
 try dbQueue.inDatabase { db in
@@ -1353,7 +1423,7 @@ try dbQueue.inDatabase { db in
 }
 ```
 
-SQLite savepoints are more than nested transactions, though. For advanced savepoints uses, use [SQL queries](https://www.sqlite.org/lang_savepoint.html).
+SQLite savepoints are more than nested transactions, though. For advanced uses, use [SQLite savepoint documentation](https://www.sqlite.org/lang_savepoint.html).
 
 
 ### Transaction Kinds
@@ -1363,13 +1433,22 @@ SQLite supports [three kinds of transactions](https://www.sqlite.org/lang_transa
 The transaction kind can be changed in the database configuration, or for each transaction:
 
 ```swift
-// Set the default transaction kind to IMMEDIATE:
+// 1) Default configuration:
+let dbQueue = try DatabaseQueue(path: "...")
+
+// BEGIN DEFERED TRANSACTION ...
+dbQueue.write { db in ... }
+
+// BEGIN EXCLUSIVE TRANSACTION ...
+dbQueue.inTransaction(.exclusive) { db in ... }
+
+// 2) Customized default transaction kind:
 var config = Configuration()
 config.defaultTransactionKind = .immediate
 let dbQueue = try DatabaseQueue(path: "...", configuration: config)
 
 // BEGIN IMMEDIATE TRANSACTION ...
-dbQueue.inTransaction { db in ... }
+dbQueue.write { db in ... }
 
 // BEGIN EXCLUSIVE TRANSACTION ...
 dbQueue.inTransaction(.exclusive) { db in ... }
@@ -1404,7 +1483,7 @@ The `fromDatabaseValue()` factory method returns an instance of your custom type
 There are two kinds of prepared statements: **select statements**, and **update statements**:
 
 ```swift
-try dbQueue.inDatabase { db in
+try dbQueue.write { db in
     let updateSQL = "INSERT INTO players (name, score) VALUES (:name, :score)"
     let updateStatement = try db.makeUpdateStatement(updateSQL)
     
@@ -1492,7 +1571,7 @@ let reverse = DatabaseFunction("reverse", argumentCount: 1, pure: true) { (value
 }
 dbQueue.add(function: reverse)   // Or dbPool.add(function: ...)
 
-try dbQueue.inDatabase { db in
+try dbQueue.read { db in
     // "oof"
     try String.fetchOne(db, "SELECT reverse('foo')")!
 }
@@ -1514,7 +1593,7 @@ let averageOf = DatabaseFunction("averageOf", pure: true) { (values: [DatabaseVa
 }
 dbQueue.add(function: averageOf)
 
-try dbQueue.inDatabase { db in
+try dbQueue.read { db in
     // 2.0
     try Double.fetchOne(db, "SELECT averageOf(1, 2, 3)")!
 }
@@ -1536,7 +1615,7 @@ let sqrt = DatabaseFunction("sqrt", argumentCount: 1, pure: true) { (values: [Da
 dbQueue.add(function: sqrt)
 
 // SQLite error 1 with statement `SELECT sqrt(-1)`: invalid negative number
-try dbQueue.inDatabase { db in
+try dbQueue.read { db in
     try Double.fetchOne(db, "SELECT sqrt(-1)")!
 }
 ```
@@ -1601,7 +1680,7 @@ let maxLength = DatabaseFunction(
 
 dbQueue.add(function: maxLength)   // Or dbPool.add(function: ...)
 
-try dbQueue.inDatabase { db in
+try dbQueue.read { db in
     // Some Int
     try Int.fetchOne(db, "SELECT maxLength(name) FROM players")!
 }
@@ -1799,7 +1878,7 @@ let sqliteVersion = String(cString: sqlite3_libversion())
 Raw pointers to database connections and statements are available through the `Database.sqliteConnection` and `Statement.sqliteStatement` properties:
 
 ```swift
-try dbQueue.inDatabase { db in
+try dbQueue.read { db in
     // The raw pointer to a database connection:
     let sqliteConnection = db.sqliteConnection
 
@@ -1843,7 +1922,7 @@ Records
 **On top of the [SQLite API](#sqlite-api), GRDB provides protocols and a class** that help manipulating database rows as regular objects named "records":
 
 ```swift
-try dbQueue.inDatabase { db in
+try dbQueue.write { db in
     if let place = try Place.fetchOne(db, key: 1) {
         place.isFavorite = true
         try place.update(db)
@@ -1997,7 +2076,7 @@ Details follow:
     
     ```swift
     struct Place { ... }
-    try dbQueue.inDatabase { db in
+    try dbQueue.read { db in
         let rows = try Row.fetchAll(db, "SELECT * FROM places")
         let places: [Place] = rows.map { row in
             return Place(
@@ -2015,7 +2094,7 @@ Details follow:
     
     ```swift
     struct Place: FetchableRecord { ... }
-    try dbQueue.inDatabase { db in
+    try dbQueue.read { db in
         let places = try Place.fetchAll(db, "SELECT * FROM places")
     }
     ```
@@ -2034,7 +2113,7 @@ Details follow:
     
     ```swift
     struct Place: TableRecord, FetchableRecord { ... }
-    try dbQueue.inDatabase { db in
+    try dbQueue.read { db in
         let places = try Place.order(Column("title")).fetchAll(db)
         let paris = try Place.fetchOne(key: 1)
     }
@@ -2044,7 +2123,7 @@ Details follow:
     
     ```swift
     struct Place : PersistableRecord { ... }
-    try dbQueue.inDatabase { db in
+    try dbQueue.write { db in
         try Place.delete(db, key: 1)
         try Place(...).insert(db)
     }
@@ -2370,7 +2449,7 @@ extension Player: FetchableRecord, PersistableRecord {
 }
 
 // ...and you can save and fetch players:
-try dbQueue.inDatabase { db in
+try dbQueue.write { db in
     try Player(name: "Arthur", score: 100).insert(db)
     let players = try Player.fetchAll(db)
 }
@@ -2861,7 +2940,7 @@ The Query Interface
 **The query interface lets you write pure Swift instead of SQL:**
 
 ```swift
-try dbQueue.inDatabase { db in
+try dbQueue.write { db in
     // Update database schema
     try db.create(table: "wines") { t in ... }
     
@@ -2881,7 +2960,7 @@ You need to open a [database connection](#database-connections) before you can q
 Please bear in mind that the query interface can not generate all possible SQL queries. You may also *prefer* writing SQL, and this is just OK. From little snippets to full queries, your SQL skills are welcome:
 
 ```swift
-try dbQueue.inDatabase { db in
+try dbQueue.write { db in
     // Update database schema (with SQL)
     try db.execute("CREATE TABLE wines (...)")
     
@@ -4683,7 +4762,7 @@ To split rows, we will use [row adapters](#row-adapters). Row adapters adapt row
 At the very beginning, there is an SQL query:
 
 ```swift
-try dbQueue.inDatabase { db in
+try dbQueue.read { db in
     let sql = """
         SELECT players.*, teams.*, MAX(rounds.score) AS maxScore
         FROM players
@@ -4846,7 +4925,7 @@ And when your app needs to fetch items, it now reads:
 
 ```swift
 // Fetch items
-let items = try dbQueue.inDatabase { db in
+let items = try dbQueue.read { db in
     try Item.fetchAll(db)
 }
 ```
@@ -4925,7 +5004,7 @@ It is now time to use our request:
 
 ```swift
 // Fetch items
-let items = try dbQueue.inDatabase { db in
+let items = try dbQueue.read { db in
     try Item.fetchAll(db)
 }
 
@@ -4994,7 +5073,7 @@ extension Item {
 }
 
 // Fetch items
-let items = try dbQueue.inDatabase { db in
+let items = try dbQueue.read { db in
     try Item.fetchAll(db)
 }
 
@@ -5146,23 +5225,27 @@ By default, database holds weak references to its transaction observers: they ar
 
 > :point_up: **Note**: the changes that are not notified are changes to internal system tables (such as `sqlite_master`), changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables, and the deletion of duplicate rows triggered by [`ON CONFLICT REPLACE`](https://www.sqlite.org/lang_conflict.html) clauses (this last exception might change in a future release of SQLite).
 
-Notified changes are not actually written to disk until `databaseDidCommit` is called. On the other side, `databaseDidRollback` confirms their invalidation:
+Notified changes are not actually written to disk the [transaction](#transactions-and-savepoints) commits, and the until `databaseDidCommit` is called. On the other side, `databaseDidRollback` confirms their invalidation:
 
 ```swift
-try dbQueue.inTransaction { db in
+try dbQueue.write { db in
     try db.execute("INSERT ...") // 1. didChange
     try db.execute("UPDATE ...") // 2. didChange
-    return .commit               // 3. willCommit, 4. didCommit
-}
+}                                // 3. willCommit, 4. didCommit
 
 try dbQueue.inTransaction { db in
     try db.execute("INSERT ...") // 1. didChange
     try db.execute("UPDATE ...") // 2. didChange
     return .rollback             // 3. didRollback
 }
+
+try dbQueue.write { db in
+    try db.execute("INSERT ...") // 1. didChange
+    throw SomeError()            // 2. throw
+}                                // 3. didRollback
 ```
 
-Database statements that are executed outside of an explicit transaction do not drop off the radar:
+Database statements that are executed outside of a transaction do not drop off the radar:
 
 ```swift
 try dbQueue.inDatabase { db in
@@ -5280,7 +5363,7 @@ The `remove(transactionObserver:)` method explicitely stops notifications, at an
 dbQueue.remove(transactionObserver: observer)
 
 // From a database connection:
-dbQueue.inDatabase { db in // or dbPool.write
+dbQueue.inDatabase { db in
     db.remove(transactionObserver: observer)
 }
 ```
@@ -5383,7 +5466,7 @@ When you initialize a fetched records controller, you provide the following mand
 
 ```swift
 class Player : Record { ... }
-let dbQueue = DatabaseQueue(...)    // Or DatabasePool
+let dbQueue = DatabaseQueue(...)    // or DatabasePool
 
 // Using a Request from the Query Interface:
 let controller = FetchedRecordsController(
@@ -5424,18 +5507,26 @@ try controller.performFetch()
 
 In general, FetchedRecordsController is designed to respond to changes at *the database layer*, by [notifying](#the-changes-notifications) when *database rows* change location or values.
 
-Changes are not reflected until they are applied in the database by a successful [transaction](#transactions-and-savepoints). Transactions can be explicit, or implicit:
+Changes are not reflected until they are applied in the database by a successful [transaction](#transactions-and-savepoints):
 
 ```swift
-try dbQueue.inTransaction { db in
+// One transaction
+try dbQueue.write { db in         // or dbPool.write
     try player1.insert(db)
     try player2.insert(db)
-    return .commit         // Explicit transaction
 }
 
-try dbQueue.inDatabase { db in
-    try player1.insert(db) // Implicit transaction
-    try player2.insert(db) // Implicit transaction
+// One transaction
+try dbQueue.inTransaction { db in // or dbPool.writeInTransaction
+    try player1.insert(db)
+    try player2.insert(db)
+    return .commit
+}
+
+// Two transactions
+try dbQueue.inDatabase { db in    // or dbPool.writeWithoutTransaction
+    try player1.insert(db)
+    try player2.insert(db)
 }
 ```
 
@@ -5663,7 +5754,7 @@ When the database itself can be read and modified from [any thread](#database-co
 
 ```swift
 // Change database on the main thread:
-try dbQueue.inDatabase { db in
+try dbQueue.write { db in
     try Player(...).insert(db)
 }
 // Here callbacks have not been called yet.
@@ -5794,7 +5885,7 @@ Here is an example of code that is vulnerable to SQL injection:
 ```swift
 // BAD BAD BAD
 let name = textField.text
-try dbQueue.inDatabase { db in
+try dbQueue.write { db in
     try db.execute("UPDATE students SET name = '\(name)' WHERE id = \(id)")
 }
 ```
@@ -5812,7 +5903,7 @@ To avoid those problems, **never embed raw values in your SQL queries**. The onl
 ```swift
 // Good
 let name = textField.text
-try dbQueue.inDatabase { db in
+try dbQueue.write { db in
     try db.execute(
         "UPDATE students SET name = ? WHERE id = ?",
         arguments: [name, id])
@@ -5973,8 +6064,8 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     
     ```swift
     // fatal error: Database methods are not reentrant.
-    dbQueue.inDatabase { db in
-        dbQueue.inDatabase { db in
+    dbQueue.write { db in
+        dbQueue.write { db in
             ...
         }
     }
@@ -6224,7 +6315,7 @@ GRDB ships with three concurrency modes:
 - :bowtie: **Guarantee 2: reads are always isolated**. This means that they are guaranteed an immutable view of the last committed state of the database, and that you can perform subsequent fetches without fearing eventual concurrent writes to mess with your application logic:
     
     ```swift
-    try dbPool.read { db in // or dbQueue.inDatabase { ... }
+    try dbPool.read { db in // or dbQueue.read
         // Guaranteed to be equal
         let count1 = try Player.fetchCount(db)
         let count2 = try Player.fetchCount(db)
@@ -6249,12 +6340,12 @@ Those guarantees hold as long as you follow three rules:
     
     ```swift
     // SAFE CONCURRENCY
-    func currentUser(_ db: Database) throws -> User? {
+    func fetchCurrentUser(_ db: Database) throws -> User? {
         return try User.fetchOne(db)
     }
     // dbQueue is a singleton defined somewhere in your app
-    let user = try dbQueue.inDatabase { db in // or dbPool.read { ... }
-        try currentUser(db)
+    let user = try dbQueue.read { db in // or dbPool.read
+        try fetchCurrentUser(db)
     }
     
     // UNSAFE CONCURRENCY
@@ -6262,7 +6353,7 @@ Those guarantees hold as long as you follow three rules:
     // the database.
     func currentUser() throws -> User? {
         let dbQueue = try DatabaseQueue(...)
-        return try dbQueue.inDatabase { db in
+        return try dbQueue.read { db in
             try User.fetchOne(db)
         }
     }
@@ -6275,7 +6366,7 @@ Those guarantees hold as long as you follow three rules:
     
     ```swift
     // SAFE CONCURRENCY
-    try dbPool.read { db in  // or dbQueue.inDatabase { ... }
+    try dbPool.read { db in  // or dbQueue.read
         // Guaranteed to be equal:
         let count1 = try Place.fetchCount(db)
         let count2 = try Place.fetchCount(db)
@@ -6307,19 +6398,26 @@ Those guarantees hold as long as you follow three rules:
     
     On that last example, see [Advanced DatabasePool](#advanced-databasepool) if you look after extra performance.
     
-- :point_up: **Rule 3**: When you perform several modifications of the database that temporarily put the database in an inconsistent state, group those modifications within a [transaction](#transactions-and-savepoints):
+- :point_up: **Rule 3**: When you perform several modifications of the database that temporarily put the database in an inconsistent state, make sure those modifications are grouped within a [transaction](#transactions-and-savepoints).
     
     ```swift
     // SAFE CONCURRENCY
-    try dbPool.writeInTransaction { db in  // or dbQueue.inTransaction { ... }
+    try dbPool.write { db in               // or dbQueue.write
+        try Credit(destinationAccout, amount).insert(db)
+        try Debit(sourceAccount, amount).insert(db)
+    }
+    
+    // SAFE CONCURRENCY
+    try dbPool.writeInTransaction { db in  // or dbQueue.inTransaction
         try Credit(destinationAccout, amount).insert(db)
         try Debit(sourceAccount, amount).insert(db)
         return .commit
     }
     
     // UNSAFE CONCURRENCY
-    try dbPool.write { db in  // or dbQueue.inDatabase { ... }
+    try dbPool.writeWithoutTransaction { db in
         try Credit(destinationAccout, amount).insert(db)
+        // <- Concurrent dbPool.read sees a partial db update here
         try Debit(sourceAccount, amount).insert(db)
     }
     ```
@@ -6378,14 +6476,15 @@ try dbPool.read { db in
 }
 ```
 
-The correct solution is the `readFromCurrentState` method, which must be called from within a write block:
+The correct solution is the `readFromCurrentState` method, which must be called from within a write block, outside of any transaction:
 
 ```swift
 // CORRECT
-try dbPool.write { db in
+try dbPool.writeWithoutTransaction { db in
     // Increment the number of players
     try Player(...).insert(db)
     
+    // <- not in a transaction here
     try dbPool.readFromCurrentState { db
         // Read the number of players. The writer queue has been unlocked :-)
         let count = try Player.fetchCount(db)
@@ -6398,7 +6497,7 @@ try dbPool.write { db in
 The closure can run concurrently with eventual updates performed after `readFromCurrentState`: those updates won't be visible from within the closure. In the example below, the number of players is guaranteed to be non-zero, even though it is fetched concurrently with the player deletion:
 
 ```swift
-try dbPool.write { db in
+try dbPool.writeWithoutTransaction { db in
     // Increment the number of players
     try Player(...).insert(db)
     
@@ -6443,11 +6542,12 @@ let playerCount = try snapshot.read { db in
 }
 ```
 
-When you want to control the latest committed changes seen by a snapshot, create it from the pool's writer protected dispatch queue:
+When you want to control the latest committed changes seen by a snapshot, create it from the pool's writer protected dispatch queue, outside of any transaction:
 
 ```swift
-let snapshot1 = try dbPool.write { db -> DatabaseSnapshot in
+let snapshot1 = try dbPool.writeWithoutTransaction { db -> DatabaseSnapshot in
     try Player.deleteAll()
+    // <- not in a transaction here
     return dbPool.makeSnapshot()
 }
 // <- Other threads may modify the database here
@@ -6525,7 +6625,7 @@ DatabaseWriter and DatabaseReader fuel, for example:
     
     Reentrant database accesses make it very easy to break the second [safety rule](#guarantees-and-rules), which says: "group related statements within a single call to a DatabaseQueue or DatabasePool database access method.". Using a reentrant method is pretty much likely the sign of a wrong application architecture that needs refactoring.
     
-    Reentrant methods have been introduced in order to support [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), a set of reactive extensions to GRDB based on [RxSwift](https://github.com/ReactiveX/RxSwift) that need precise scheduling.
+    There is a single valid use case for reentrant methods, which is when you are unable to control database access scheduling.
     
 - **`unsafeReentrantWrite`**
     
@@ -6534,7 +6634,7 @@ DatabaseWriter and DatabaseReader fuel, for example:
     Reentrant calls are allowed:
     
     ```swift
-    dbQueue.inDatabase { db1 in
+    dbQueue.write { db1 in
         // No "Database methods are not reentrant" fatal error:
         dbQueue.unsafeReentrantWrite { db2 in
             dbQueue.unsafeReentrantWrite { db3 in
@@ -6546,7 +6646,7 @@ DatabaseWriter and DatabaseReader fuel, for example:
     
     Reentrant database accesses make it very easy to break the second [safety rule](#guarantees-and-rules), which says: "group related statements within a single call to a DatabaseQueue or DatabasePool database access method.". Using a reentrant method is pretty much likely the sign of a wrong application architecture that needs refactoring.
     
-    Reentrant methods have been introduced in order to support [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), a set of reactive extensions to GRDB based on [RxSwift](https://github.com/ReactiveX/RxSwift) that need precise scheduling.
+    There is a single valid use case for reentrant methods, which is when you are unable to control database access scheduling.
 
 
 ### Dealing with External Connections
@@ -6598,7 +6698,7 @@ Most GRBD APIs are [synchronous](#database-connections). Spawning them into para
 
 ```swift
 DispatchQueue.global().async { 
-    dbQueue.inDatabase { db in
+    dbQueue.write { db in
         // Perform database work
     }
     DispatchQueue.main.async { 
@@ -6614,18 +6714,25 @@ Performing multiple updates to the database is much faster when executed inside 
 
 ```swift
 // Inefficient
-try dbQueue.inDatabase { db in
+try dbQueue.inDatabase { db in // or dbPool.writeWithoutTransaction
     for player in players {
         try player.insert(db)
     }
 }
 
 // Efficient
-try dbQueue.inTransaction { db in
+try dbQueue.write { db in      // or dbPool.write
     for player in players {
         try player.insert(db)
     }
-    return .Commit
+}
+
+// Efficient
+try dbQueue.inTransaction { db in // or dbPool.writeInTransaction
+    for player in players {
+        try player.insert(db)
+    }
+    return .commit
 }
 ```
 
@@ -6866,7 +6973,7 @@ When you want to debug a request that does not deliver the expected results, you
 Use the `asSQLRequest` method:
 
 ```swift
-try dbQueue.inDatabase { db in
+try dbQueue.read { db in
     let request = Wine
         .filter(Column("origin") == "Burgundy")
         .order(Column("price")
@@ -6886,7 +6993,7 @@ var config = Configuration()
 config.trace = { print("SQL: \($0)") } // Prints all SQL statements
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 
-try dbQueue.inDatabase { db in
+try dbQueue.read { db in
     let wines = Wine
         .filter(Column("origin") == "Burgundy")
         .order(Column("price")
@@ -6898,11 +7005,11 @@ try dbQueue.inDatabase { db in
 
 ### Generic parameter 'T' could not be inferred
     
-You may get this error when using DatabaseQueue.inDatabase, DatabasePool.read, or DatabasePool.write:
+You may get this error when using the `read` and `write` methods of database queues and pools:
 
 ```swift
 // Generic parameter 'T' could not be inferred
-let x = try dbQueue.inDatabase { db in
+let x = try dbQueue.read { db in
     let result = try String.fetchOne(db, ...)
     return result
 }
@@ -6914,7 +7021,7 @@ The general workaround is to explicitly declare the type of the closure result:
 
 ```swift
 // General Workaround
-let string = try dbQueue.inDatabase { db -> String? in
+let string = try dbQueue.read { db -> String? in
     let result = try String.fetchOne(db, ...)
     return result
 }
@@ -6924,7 +7031,7 @@ You can also, when possible, write a single-line closure:
 
 ```swift
 // Single-line closure workaround:
-let string = try dbQueue.inDatabase { db in
+let string = try dbQueue.read { db in
     try String.fetchOne(db, ...)
 }
 ```

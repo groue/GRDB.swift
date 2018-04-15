@@ -40,7 +40,7 @@ class DatabaseErrorTests: GRDBTestCase {
     func testDatabaseErrorInTopLevelSavepoint() throws {
         let dbQueue = try makeDatabaseQueue()
         do {
-            try dbQueue.inDatabase { db in
+            try dbQueue.writeWithoutTransaction { db in
                 do {
                     try db.inSavepoint {
                         XCTAssertTrue(db.isInsideTransaction)

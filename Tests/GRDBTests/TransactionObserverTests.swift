@@ -224,7 +224,7 @@ class TransactionObserverTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             let observer = Observer()
             dbQueue.add(transactionObserver: observer, extent: extent)
-            try dbQueue.inDatabase {  db in
+            try dbQueue.writeWithoutTransaction {  db in
                 try db.execute(startSQL)
                 try db.execute(endSQL)
             }
@@ -246,7 +246,7 @@ class TransactionObserverTests: GRDBTestCase {
         for extent in extents {
             let dbQueue = try makeDatabaseQueue()
             let observer = Observer()
-            try dbQueue.inDatabase { db in
+            try dbQueue.writeWithoutTransaction { db in
                 try db.execute(startSQL)
                 db.add(transactionObserver: observer, extent: extent)
                 try db.execute(endSQL)
@@ -271,7 +271,7 @@ class TransactionObserverTests: GRDBTestCase {
             let observer = Observer()
             weakObserver = observer
             dbQueue.add(transactionObserver: observer)
-            try dbQueue.inDatabase {  db in
+            try dbQueue.writeWithoutTransaction {  db in
                 try db.execute(startSQL)
                 try db.execute(endSQL)
             }
@@ -310,7 +310,7 @@ class TransactionObserverTests: GRDBTestCase {
             let observer = Observer()
             weakObserver = observer
             dbQueue.add(transactionObserver: observer, extent: .observerLifetime)
-            try dbQueue.inDatabase {  db in
+            try dbQueue.writeWithoutTransaction {  db in
                 try db.execute(startSQL)
                 try db.execute(endSQL)
             }
@@ -351,7 +351,7 @@ class TransactionObserverTests: GRDBTestCase {
             dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
         }
         if let observer = weakObserver {
-            try dbQueue.inDatabase {  db in
+            try dbQueue.writeWithoutTransaction {  db in
                 try db.execute(startSQL)
                 try db.execute(endSQL)
             }
@@ -376,7 +376,7 @@ class TransactionObserverTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
         
-        try dbQueue.inDatabase {  db in
+        try dbQueue.writeWithoutTransaction {  db in
             try db.execute(startSQL)
             try db.execute(endSQL)
         }
@@ -418,7 +418,7 @@ class TransactionObserverTests: GRDBTestCase {
         dbQueue.add(transactionObserver: witness)
         dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
         
-        try dbQueue.inDatabase {  db in
+        try dbQueue.writeWithoutTransaction {  db in
             try db.execute(startSQL)
             try db.execute(endSQL)
         }
@@ -484,7 +484,7 @@ class TransactionObserverTests: GRDBTestCase {
             }
             
             if let observer = weakObserver {
-                try dbQueue.inDatabase {  db in
+                try dbQueue.writeWithoutTransaction {  db in
                     try db.execute(startSQL)
                     try db.execute(endSQL)
                 }
@@ -546,7 +546,7 @@ class TransactionObserverTests: GRDBTestCase {
             dbQueue.add(transactionObserver: observer3, extent: extent)
             
             do {
-                try dbQueue.inDatabase {  db in
+                try dbQueue.writeWithoutTransaction {  db in
                     try db.execute(startSQL)
                     try db.execute(endSQL)
                 }
@@ -595,7 +595,7 @@ class TransactionObserverTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             let artist = Artist(id: nil, name: "Gerhard Richter")
             
             //
@@ -626,7 +626,7 @@ class TransactionObserverTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             let artist = Artist(id: nil, name: "Gerhard Richter")
             try artist.save(db)
             artist.name = "Vincent Fournier"
@@ -662,7 +662,7 @@ class TransactionObserverTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             let artist = Artist(id: nil, name: "Gerhard Richter")
             try artist.save(db)
             
@@ -694,7 +694,7 @@ class TransactionObserverTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             let artist = Artist(id: nil, name: "Gerhard Richter")
             try artist.save(db)
             let artwork1 = Artwork(id: nil, artistId: artist.id, title: "Cloud")
@@ -761,7 +761,7 @@ class TransactionObserverTests: GRDBTestCase {
         
         let artist = Artist(id: nil, name: "Gerhard Richter")
         
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             observer.resetCounts()
             try artist.save(db)
             #if SQLITE_ENABLE_PREUPDATE_HOOK
@@ -784,7 +784,7 @@ class TransactionObserverTests: GRDBTestCase {
         let artwork1 = Artwork(id: nil, artistId: nil, title: "Cloud")
         let artwork2 = Artwork(id: nil, artistId: nil, title: "Ema (Nude on a Staircase)")
         
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try artist.save(db)
             artwork1.artistId = artist.id
             artwork2.artistId = artist.id
@@ -1116,7 +1116,7 @@ class TransactionObserverTests: GRDBTestCase {
         dbQueue.add(transactionObserver: observer)
         
         do {
-            try dbQueue.inDatabase { db in
+            try dbQueue.writeWithoutTransaction { db in
                 do {
                     try Artwork(id: nil, artistId: nil, title: "meh").save(db)
                     XCTFail("Expected Error")
@@ -1190,7 +1190,7 @@ class TransactionObserverTests: GRDBTestCase {
         dbQueue.add(transactionObserver: observer)
         
         observer.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
-        dbQueue.inDatabase { db in
+        dbQueue.writeWithoutTransaction { db in
             do {
                 try Artist(id: nil, name: "Gerhard Richter").save(db)
                 XCTFail("Expected Error")
@@ -1246,7 +1246,7 @@ class TransactionObserverTests: GRDBTestCase {
         dbQueue.add(transactionObserver: observer)
         
         do {
-            try dbQueue.inDatabase { db in
+            try dbQueue.writeWithoutTransaction { db in
                 do {
                     try Artwork(id: nil, artistId: nil, title: "meh").save(db)
                     XCTFail("Expected Error")
@@ -1329,7 +1329,7 @@ class TransactionObserverTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try MinimalRowID.setup(inDatabase: db)
             
             let record = MinimalRowID()
@@ -1357,7 +1357,7 @@ class TransactionObserverTests: GRDBTestCase {
         dbQueue.add(transactionObserver: observer1)
         dbQueue.add(transactionObserver: observer2)
         
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             let artist = Artist(id: nil, name: "Gerhard Richter")
             
             //
@@ -1410,7 +1410,7 @@ class TransactionObserverTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             let artist = Artist(id: nil, name: "Gerhard Richter")
             
             //
@@ -1690,7 +1690,7 @@ class TransactionObserverTests: GRDBTestCase {
             }
         }
         
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             // Don't ignore anything
             do {
                 observer.resetCounts()

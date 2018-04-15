@@ -160,7 +160,7 @@
         ///     class MyTokenizer : FTS5CustomTokenizer { ... }
         ///     dbPool.add(tokenizer: MyTokenizer.self)
         public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) {
-            write { db in
+            writeWithoutTransaction { db in
                 db.add(tokenizer: Tokenizer.self)
             }
         }

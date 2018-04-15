@@ -897,7 +897,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         })
         try specificController.performFetch()
 
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("INSERT INTO persons (id, name) VALUES (?, ?)", arguments: [1, "Arthur"])
             try db.execute("INSERT INTO persons (id, name) VALUES (?, ?)", arguments: [2, "Barbara"])
             try db.execute("UPDATE persons SET name = ? WHERE id = ?", arguments: ["Craig", 1])

@@ -189,7 +189,7 @@ class MutablePersistableRecordPersistenceConflictPolicyTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.create(table: "records") { t in
                 t.column("id", .integer).primaryKey()
                 t.column("email", .text).unique()

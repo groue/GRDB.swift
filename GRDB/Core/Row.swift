@@ -566,7 +566,7 @@ extension Row {
 
 /// A cursor of database rows. For example:
 ///
-///     try dbQueue.inDatabase { db in
+///     try dbQueue.read { db in
 ///         let rows: RowCursor = try Row.fetchCursor(db, "SELECT * FROM players")
 ///     }
 public final class RowCursor : Cursor {

@@ -125,7 +125,7 @@ public struct DatabaseMigrator {
     ///   migrations should apply.
     /// - throws: An eventual error thrown by the registered migration blocks.
     public func migrate(_ writer: DatabaseWriter) throws {
-        try writer.write { db in
+        try writer.writeWithoutTransaction { db in
             try setupMigrations(db)
             try runMigrations(db)
         }
@@ -140,7 +140,7 @@ public struct DatabaseMigrator {
     /// - targetIdentifier: The identifier of a registered migration.
     /// - throws: An eventual error thrown by the registered migration blocks.
     public func migrate(_ writer: DatabaseWriter, upTo targetIdentifier: String) throws {
-        try writer.write { db in
+        try writer.writeWithoutTransaction { db in
             try setupMigrations(db)
             try runMigrations(db, upTo: targetIdentifier)
         }
