@@ -22,7 +22,6 @@ GRDB 3.0
     - [ ] Replace Column with TypedColumn. How to avoid code duplication (repeated types)? Keypaths?
 - [ ] HiddenColumnsAdapter
 - [ ] If possible: Have Record adopt Codable
-- [ ] Not sure: Have DatabaseQueue wrap writes in a transaction by default
 
 Not sure
 
