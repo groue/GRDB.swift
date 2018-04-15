@@ -150,7 +150,9 @@ public final class Database {
     lazy var observationBroker = DatabaseObservationBroker(self)
     
     /// The list of compile options used when building SQLite
-    static let sqliteCompileOptions: Set<String> = DatabaseQueue().inDatabase { try! Set(String.fetchCursor($0, "PRAGMA COMPILE_OPTIONS")) }
+    static let sqliteCompileOptions: Set<String> = DatabaseQueue().inDatabase {
+        try! Set(String.fetchCursor($0, "PRAGMA COMPILE_OPTIONS"))
+    }
     
     // MARK: - Private properties
     
@@ -528,6 +530,25 @@ extension Database {
 }
 
 extension Database {
+    
+    // MARK: - Read-Only Access
+    
+    /// Grants read-only access, starting SQLite 3.8.0
+    func readOnly<T>(_ block: () throws -> T) rethrows -> T {
+        if configuration.readonly {
+            return try block()
+        }
+        
+        // query_only pragma was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
+        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+        // Assume those pragmas never fail
+        try! execute("PRAGMA query_only = 1")
+        defer { try! execute("PRAGMA query_only = 0") }
+        return try block()
+    }
+}
+
+extension Database {
 
     // MARK: - Transactions & Savepoint
     
@@ -548,7 +569,7 @@ extension Database {
     /// - parameters:
     ///     - kind: The transaction type (default nil). If nil, the transaction
     ///       type is configuration.defaultTransactionKind, which itself
-    ///       defaults to .immediate. See https://www.sqlite.org/lang_transaction.html
+    ///       defaults to .deferred. See https://www.sqlite.org/lang_transaction.html
     ///       for more information.
     ///     - block: A block that executes SQL statements and return either
     ///       .commit or .rollback.
@@ -679,7 +700,7 @@ extension Database {
     ///
     /// - parameter kind: The transaction type (default nil). If nil, the
     ///   transaction type is configuration.defaultTransactionKind, which itself
-    ///   defaults to .immediate. See https://www.sqlite.org/lang_transaction.html
+    ///   defaults to .deferred. See https://www.sqlite.org/lang_transaction.html
     ///   for more information.
     /// - throws: The error thrown by the block.
     public func beginTransaction(_ kind: TransactionKind? = nil) throws {

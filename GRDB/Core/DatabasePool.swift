@@ -9,7 +9,7 @@ import Foundation
 #endif
 
 /// A DatabasePool grants concurrent accesses to an SQLite database.
-public final class DatabasePool {
+public final class DatabasePool: DatabaseWriter {
     private let writer: SerializedDatabase
     private var readerConfig: Configuration
     private var readerPool: Pool<SerializedDatabase>!
@@ -315,8 +315,8 @@ extension DatabasePool : DatabaseReader {
     ///         while let row = try rows.next() { ... }
     ///     }
     ///
-    /// This method is reentrant. It should be avoided because it fosters
-    /// dangerous concurrency practices.
+    /// This method is reentrant. It is unsafe because it fosters dangerous
+    /// concurrency practices.
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block, or any DatabaseError that would
@@ -334,199 +334,6 @@ extension DatabasePool : DatabaseReader {
             }
         }
     }
-    
-    /// Returns a reader that can be used from the current dispatch queue,
-    /// if any.
-    private var currentReader: SerializedDatabase? {
-        var readers: [SerializedDatabase] = []
-        readerPool.forEach { reader in
-            // We can't check for reader.onValidQueue here because
-            // Pool.forEach() runs its closure argument in some arbitrary
-            // dispatch queue. We thus extract the reader so that we can query
-            // it below.
-            readers.append(reader)
-        }
-        
-        // Now the readers array contains some readers. The pool readers may
-        // already be different, because some other thread may have started
-        // a new read, for example.
-        //
-        // This doesn't matter: the reader we are looking for is already on
-        // its own dispatch queue. If it exists, is still in use, thus still
-        // in the pool, and thus still relevant for our check:
-        return readers.first { $0.onValidQueue }
-    }
-    
-    // MARK: - Functions
-    
-    /// Add or redefine an SQL function.
-    ///
-    ///     let fn = DatabaseFunction("succ", argumentCount: 1) { dbValues in
-    ///         guard let int = Int.fromDatabaseValue(dbValues[0]) else {
-    ///             return nil
-    ///         }
-    ///         return int + 1
-    ///     }
-    ///     dbPool.add(function: fn)
-    ///     try dbPool.read { db in
-    ///         try Int.fetchOne(db, "SELECT succ(1)") // 2
-    ///     }
-    public func add(function: DatabaseFunction) {
-        functions.update(with: function)
-        writer.sync { $0.add(function: function) }
-        readerPool.forEach { reader in
-            reader.sync { $0.add(function: function) }
-        }
-    }
-    
-    /// Remove an SQL function.
-    public func remove(function: DatabaseFunction) {
-        functions.remove(function)
-        writer.sync { $0.remove(function: function) }
-        readerPool.forEach { reader in
-            reader.sync { $0.remove(function: function) }
-        }
-    }
-    
-    // MARK: - Collations
-    
-    /// Add or redefine a collation.
-    ///
-    ///     let collation = DatabaseCollation("localized_standard") { (string1, string2) in
-    ///         return (string1 as NSString).localizedStandardCompare(string2)
-    ///     }
-    ///     dbPool.add(collation: collation)
-    ///     try dbPool.write { db in
-    ///         try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
-    ///     }
-    public func add(collation: DatabaseCollation) {
-        collations.update(with: collation)
-        writer.sync { $0.add(collation: collation) }
-        readerPool.forEach { reader in
-            reader.sync { $0.add(collation: collation) }
-        }
-    }
-    
-    /// Remove a collation.
-    public func remove(collation: DatabaseCollation) {
-        collations.remove(collation)
-        writer.sync { $0.remove(collation: collation) }
-        readerPool.forEach { reader in
-            reader.sync { $0.remove(collation: collation) }
-        }
-    }
-}
-
-extension DatabasePool : DatabaseWriter {
-    
-    // MARK: - Writing in Database
-    
-    /// Synchronously executes an update block in a protected dispatch queue,
-    /// wrapped inside a transaction, and returns the result of the block.
-    ///
-    /// Eventual concurrent database updates are postponed until the block
-    /// has executed.
-    ///
-    ///     try dbPool.write { db in
-    ///         try db.execute(...)
-    ///     }
-    ///
-    /// Eventual concurrent reads are guaranteed not to see any changes
-    /// performed in the block until they are all saved in the database.
-    ///
-    /// This method is *not* reentrant.
-    ///
-    /// - parameters block: A block that executes SQL statements and return
-    ///   either .commit or .rollback.
-    /// - throws: The error thrown by the block, or by the wrapping transaction.
-    public func write<T>(_ block: (Database) throws -> T) throws -> T {
-        return try writer.sync { db in
-            var result: T? = nil
-            try db.inTransaction {
-                result = try block(db)
-                return .commit
-            }
-            return result!
-        }
-    }
-    
-    /// Synchronously executes a block that takes a database connection, and
-    /// returns its result.
-    ///
-    /// Eventual concurrent database updates are postponed until the block
-    /// has executed.
-    ///
-    /// Eventual concurrent reads may see changes performed in the block before
-    /// the block completes.
-    ///
-    /// The block is guaranteed to be executed outside of a transaction.
-    ///
-    /// This method is *not* reentrant.
-    ///
-    /// - parameters block: A block that executes SQL statements and return
-    ///   either .commit or .rollback.
-    /// - throws: The error thrown by the block.
-    public func writeWithoutTransaction<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try writer.sync(block)
-    }
-    
-    /// Synchronously executes a block in a protected dispatch queue, wrapped
-    /// inside a transaction.
-    ///
-    /// Eventual concurrent database updates are postponed until the block
-    /// has executed.
-    ///
-    /// If the block throws an error, the transaction is rollbacked and the
-    /// error is rethrown. If the block returns .rollback, the transaction is
-    /// also rollbacked, but no error is thrown.
-    ///
-    ///     try dbPool.writeInTransaction { db in
-    ///         db.execute(...)
-    ///         return .commit
-    ///     }
-    ///
-    /// Eventual concurrent reads are guaranteed not to see any changes
-    /// performed in the block until they are all saved in the database.
-    ///
-    /// This method is *not* reentrant.
-    ///
-    /// - parameters:
-    ///     - kind: The transaction type (default nil). If nil, the transaction
-    ///       type is configuration.defaultTransactionKind, which itself
-    ///       defaults to .immediate. See https://www.sqlite.org/lang_transaction.html
-    ///       for more information.
-    ///     - block: A block that executes SQL statements and return either
-    ///       .commit or .rollback.
-    /// - throws: The error thrown by the block, or any error establishing the
-    ///   transaction.
-    public func writeInTransaction(_ kind: Database.TransactionKind? = nil, _ block: (Database) throws -> Database.TransactionCompletion) throws {
-        try writer.sync { db in
-            try db.inTransaction(kind) {
-                try block(db)
-            }
-        }
-    }
-    
-    /// Synchronously executes an update block in a protected dispatch queue,
-    /// and returns its result.
-    ///
-    /// Eventual concurrent database updates are postponed until the block
-    /// has executed.
-    ///
-    ///     try dbPool.unsafeReentrantWrite { db in
-    ///         try db.execute(...)
-    ///     }
-    ///
-    /// Eventual concurrent reads may see changes performed in the block before
-    /// the block completes.
-    ///
-    /// This method is reentrant. It should be avoided because it fosters
-    /// dangerous concurrency practices.
-    public func unsafeReentrantWrite<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try writer.reentrantSync(block)
-    }
-    
-    // MARK: - Reading from Database
     
     /// Asynchronously executes a read-only block in a protected dispatch queue,
     /// wrapped in a deferred transaction.
@@ -633,6 +440,193 @@ extension DatabasePool : DatabaseWriter {
         if let readError = readError {
             // TODO: write a test for this
             throw readError
+        }
+    }
+
+    /// Returns a reader that can be used from the current dispatch queue,
+    /// if any.
+    private var currentReader: SerializedDatabase? {
+        var readers: [SerializedDatabase] = []
+        readerPool.forEach { reader in
+            // We can't check for reader.onValidQueue here because
+            // Pool.forEach() runs its closure argument in some arbitrary
+            // dispatch queue. We thus extract the reader so that we can query
+            // it below.
+            readers.append(reader)
+        }
+        
+        // Now the readers array contains some readers. The pool readers may
+        // already be different, because some other thread may have started
+        // a new read, for example.
+        //
+        // This doesn't matter: the reader we are looking for is already on
+        // its own dispatch queue. If it exists, is still in use, thus still
+        // in the pool, and thus still relevant for our check:
+        return readers.first { $0.onValidQueue }
+    }
+    
+    // MARK: - Writing in Database
+    
+    /// Synchronously executes an update block in a protected dispatch queue,
+    /// wrapped inside a transaction, and returns the result of the block.
+    ///
+    /// Eventual concurrent database updates are postponed until the block
+    /// has executed.
+    ///
+    ///     try dbPool.write { db in
+    ///         try db.execute(...)
+    ///     }
+    ///
+    /// Eventual concurrent reads are guaranteed not to see any changes
+    /// performed in the block until they are all saved in the database.
+    ///
+    /// This method is *not* reentrant.
+    ///
+    /// - parameters block: A block that executes SQL statements.
+    /// - throws: The error thrown by the block, or by the wrapping transaction.
+    public func write<T>(_ block: (Database) throws -> T) throws -> T {
+        return try writer.sync { db in
+            var result: T? = nil
+            try db.inTransaction {
+                result = try block(db)
+                return .commit
+            }
+            return result!
+        }
+    }
+    
+    /// Synchronously executes a block that takes a database connection, and
+    /// returns its result.
+    ///
+    /// Eventual concurrent database updates are postponed until the block
+    /// has executed.
+    ///
+    /// Eventual concurrent reads may see changes performed in the block before
+    /// the block completes.
+    ///
+    /// The block is guaranteed to be executed outside of a transaction.
+    ///
+    /// This method is *not* reentrant.
+    ///
+    /// - parameters block: A block that executes SQL statements and return
+    ///   either .commit or .rollback.
+    /// - throws: The error thrown by the block.
+    public func writeWithoutTransaction<T>(_ block: (Database) throws -> T) rethrows -> T {
+        return try writer.sync(block)
+    }
+    
+    /// Synchronously executes a block in a protected dispatch queue, wrapped
+    /// inside a transaction.
+    ///
+    /// Eventual concurrent database updates are postponed until the block
+    /// has executed.
+    ///
+    /// If the block throws an error, the transaction is rollbacked and the
+    /// error is rethrown. If the block returns .rollback, the transaction is
+    /// also rollbacked, but no error is thrown.
+    ///
+    ///     try dbPool.writeInTransaction { db in
+    ///         db.execute(...)
+    ///         return .commit
+    ///     }
+    ///
+    /// Eventual concurrent reads are guaranteed not to see any changes
+    /// performed in the block until they are all saved in the database.
+    ///
+    /// This method is *not* reentrant.
+    ///
+    /// - parameters:
+    ///     - kind: The transaction type (default nil). If nil, the transaction
+    ///       type is configuration.defaultTransactionKind, which itself
+    ///       defaults to .deferred. See https://www.sqlite.org/lang_transaction.html
+    ///       for more information.
+    ///     - block: A block that executes SQL statements and return either
+    ///       .commit or .rollback.
+    /// - throws: The error thrown by the block, or any error establishing the
+    ///   transaction.
+    public func writeInTransaction(_ kind: Database.TransactionKind? = nil, _ block: (Database) throws -> Database.TransactionCompletion) throws {
+        try writer.sync { db in
+            try db.inTransaction(kind) {
+                try block(db)
+            }
+        }
+    }
+    
+    /// Synchronously executes an update block in a protected dispatch queue,
+    /// and returns its result.
+    ///
+    /// Eventual concurrent database updates are postponed until the block
+    /// has executed.
+    ///
+    ///     try dbPool.unsafeReentrantWrite { db in
+    ///         try db.execute(...)
+    ///     }
+    ///
+    /// Eventual concurrent reads may see changes performed in the block before
+    /// the block completes.
+    ///
+    /// This method is reentrant. It is unsafe because it fosters dangerous
+    /// concurrency practices.
+    public func unsafeReentrantWrite<T>(_ block: (Database) throws -> T) rethrows -> T {
+        return try writer.reentrantSync(block)
+    }
+    
+    // MARK: - Functions
+    
+    /// Add or redefine an SQL function.
+    ///
+    ///     let fn = DatabaseFunction("succ", argumentCount: 1) { dbValues in
+    ///         guard let int = Int.fromDatabaseValue(dbValues[0]) else {
+    ///             return nil
+    ///         }
+    ///         return int + 1
+    ///     }
+    ///     dbPool.add(function: fn)
+    ///     try dbPool.read { db in
+    ///         try Int.fetchOne(db, "SELECT succ(1)") // 2
+    ///     }
+    public func add(function: DatabaseFunction) {
+        functions.update(with: function)
+        writer.sync { $0.add(function: function) }
+        readerPool.forEach { reader in
+            reader.sync { $0.add(function: function) }
+        }
+    }
+    
+    /// Remove an SQL function.
+    public func remove(function: DatabaseFunction) {
+        functions.remove(function)
+        writer.sync { $0.remove(function: function) }
+        readerPool.forEach { reader in
+            reader.sync { $0.remove(function: function) }
+        }
+    }
+    
+    // MARK: - Collations
+    
+    /// Add or redefine a collation.
+    ///
+    ///     let collation = DatabaseCollation("localized_standard") { (string1, string2) in
+    ///         return (string1 as NSString).localizedStandardCompare(string2)
+    ///     }
+    ///     dbPool.add(collation: collation)
+    ///     try dbPool.write { db in
+    ///         try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
+    ///     }
+    public func add(collation: DatabaseCollation) {
+        collations.update(with: collation)
+        writer.sync { $0.add(collation: collation) }
+        readerPool.forEach { reader in
+            reader.sync { $0.add(collation: collation) }
+        }
+    }
+    
+    /// Remove a collation.
+    public func remove(collation: DatabaseCollation) {
+        collations.remove(collation)
+        writer.sync { $0.remove(collation: collation) }
+        readerPool.forEach { reader in
+            reader.sync { $0.remove(collation: collation) }
         }
     }
 }
