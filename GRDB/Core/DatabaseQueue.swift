@@ -329,7 +329,7 @@ extension DatabaseQueue {
     ///         return int + 1
     ///     }
     ///     dbQueue.add(function: fn)
-    ///     try dbQueue.inDatabase { db in
+    ///     try dbQueue.read { db in
     ///         try Int.fetchOne(db, "SELECT succ(1)") // 2
     ///     }
     public func add(function: DatabaseFunction) {
@@ -349,7 +349,7 @@ extension DatabaseQueue {
     ///         return (string1 as NSString).localizedStandardCompare(string2)
     ///     }
     ///     dbQueue.add(collation: collation)
-    ///     try dbQueue.inDatabase { db in
+    ///     try dbQueue.write { db in
     ///         try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
     ///     }
     public func add(collation: DatabaseCollation) {

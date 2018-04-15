@@ -102,7 +102,7 @@ extension TableRecord {
     ///         static let databaseTableName = "players"
     ///     }
     ///
-    ///     try dbQueue.inDatabase { db in
+    ///     try dbQueue.write { db in
     ///         try db.create(table: "players") { t in
     ///             t.column("id", .integer).primaryKey()
     ///             t.column("name", .text)

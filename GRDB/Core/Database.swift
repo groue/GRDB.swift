@@ -21,8 +21,8 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 ///     let dbQueue = DatabaseQueue(...)
 ///
 ///     // The Database is the `db` in the closure:
-///     try dbQueue.inDatabase { db in
-///         try db.execute(...)
+///     try dbQueue.write { db in
+///         try Player(...).insert(db)
 ///     }
 public final class Database {
     // The Database class is not thread-safe. An instance should always be

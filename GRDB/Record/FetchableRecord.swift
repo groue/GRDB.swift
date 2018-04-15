@@ -35,7 +35,7 @@ public protocol FetchableRecord {
 /// A cursor of records. For example:
 ///
 ///     struct Player : FetchableRecord { ... }
-///     try dbQueue.inDatabase { db in
+///     try dbQueue.read { db in
 ///         let players: RecordCursor<Player> = try Player.fetchCursor(db, "SELECT * FROM players")
 ///     }
 public final class RecordCursor<Record: FetchableRecord> : Cursor {

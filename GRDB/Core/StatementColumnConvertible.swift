@@ -74,7 +74,7 @@ extension StatementColumnConvertible {
 /// A cursor of database values extracted from a single column.
 /// For example:
 ///
-///     try dbQueue.inDatabase { db in
+///     try dbQueue.read { db in
 ///         let names: ColumnCursor<String> = try String.fetchCursor(db, "SELECT name FROM players")
 ///         while let name = names.next() { // String
 ///             print(name)
@@ -120,7 +120,7 @@ public final class ColumnCursor<Value: DatabaseValueConvertible & StatementColum
 /// A cursor of optional database values extracted from a single column.
 /// For example:
 ///
-///     try dbQueue.inDatabase { db in
+///     try dbQueue.read { db in
 ///         let emails: NullableColumnCursor<String> = try Optional<String>.fetchCursor(db, "SELECT email FROM players")
 ///         while let email = emails.next() { // String?
 ///             print(email ?? "<NULL>")

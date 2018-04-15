@@ -286,7 +286,7 @@ extension AuthorizedStatement {
 ///
 /// You create SelectStatement with the Database.makeSelectStatement() method:
 ///
-///     try dbQueue.inDatabase { db in
+///     try dbQueue.read { db in
 ///         let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM players WHERE score > ?")
 ///         let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
 ///         let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
@@ -372,7 +372,7 @@ extension SelectStatement: AuthorizedStatement { }
 /// A cursor that iterates a database statement without producing any value.
 /// For example:
 ///
-///     try dbQueue.inDatabase { db in
+///     try dbQueue.read { db in
 ///         let statement = db.makeSelectStatement("SELECT * FROM players")
 ///         let cursor: StatementCursor = statement.cursor()
 ///     }
