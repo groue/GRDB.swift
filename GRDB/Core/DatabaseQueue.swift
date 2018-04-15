@@ -6,7 +6,7 @@ import UIKit
 
 /// A DatabaseQueue serializes access to an SQLite database.
 public final class DatabaseQueue: DatabaseWriter {
-    private var serializedDatabase: SerializedDatabase
+    private var writer: SerializedDatabase
     #if os(iOS)
     private weak var application: UIApplication?
     #endif
@@ -15,12 +15,12 @@ public final class DatabaseQueue: DatabaseWriter {
     
     /// The database configuration
     public var configuration: Configuration {
-        return serializedDatabase.configuration
+        return writer.configuration
     }
     
     /// The path to the database file; it is ":memory:" for in-memory databases.
     public var path: String {
-        return serializedDatabase.path
+        return writer.path
     }
     
     // MARK: - Initializers
@@ -36,7 +36,7 @@ public final class DatabaseQueue: DatabaseWriter {
     ///     - configuration: A configuration.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public init(path: String, configuration: Configuration = Configuration()) throws {
-        serializedDatabase = try SerializedDatabase(
+        writer = try SerializedDatabase(
             path: path,
             configuration: configuration,
             schemaCache: SimpleDatabaseSchemaCache())
@@ -51,7 +51,7 @@ public final class DatabaseQueue: DatabaseWriter {
     /// - parameter configuration: A configuration.
     public init(configuration: Configuration = Configuration()) {
         // Assume SQLite always succeeds creating an in-memory database
-        serializedDatabase = try! SerializedDatabase(
+        writer = try! SerializedDatabase(
             path: ":memory:",
             configuration: configuration,
             schemaCache: SimpleDatabaseSchemaCache())
@@ -78,7 +78,7 @@ extension DatabaseQueue {
     ///
     /// See also setupMemoryManagement(application:)
     public func releaseMemory() {
-        serializedDatabase.sync { $0.releaseMemory() }
+        writer.sync { $0.releaseMemory() }
     }
     
     #if os(iOS)
@@ -131,7 +131,7 @@ extension DatabaseQueue {
 
         /// Changes the passphrase of an encrypted database
         public func change(passphrase: String) throws {
-            try serializedDatabase.sync { try $0.change(passphrase: passphrase) }
+            try writer.sync { try $0.change(passphrase: passphrase) }
         }
     }
 #endif
@@ -156,7 +156,7 @@ extension DatabaseQueue {
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
     public func read<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try serializedDatabase.sync { db in
+        return try writer.sync { db in
             try db.readOnly { try block(db) }
         }
     }
@@ -175,7 +175,7 @@ extension DatabaseQueue {
     ///
     /// :nodoc:
     public func unsafeRead<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try serializedDatabase.sync(block)
+        return try writer.sync(block)
     }
     
     /// Synchronously executes a block in a protected dispatch queue, and
@@ -190,7 +190,7 @@ extension DatabaseQueue {
     ///
     /// :nodoc:
     public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
-        return try serializedDatabase.reentrantSync(block)
+        return try writer.reentrantSync(block)
     }
     
     /// Synchronously executes *block*.
@@ -207,7 +207,7 @@ extension DatabaseQueue {
     /// :nodoc:
     public func readFromCurrentState(_ block: @escaping (Database) -> Void) {
         // Check that we're on the correct queue...
-        serializedDatabase.execute { db in
+        writer.execute { db in
             // ... and that no transaction is opened.
             GRDBPrecondition(!db.isInsideTransaction, "readFromCurrentState must not be called from inside a transaction.")
             db.readOnly { block(db) }
@@ -231,7 +231,7 @@ extension DatabaseQueue {
     /// - parameter block: A block that executes SQL statements.
     /// - throws: An eventual database error, or the error thrown by the block.
     public func write<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try serializedDatabase.sync { db in
+        return try writer.sync { db in
             var result: T? = nil
             try db.inTransaction {
                 result = try block(db)
@@ -264,7 +264,7 @@ extension DatabaseQueue {
     ///       .commit or .rollback.
     /// - throws: The error thrown by the block.
     public func inTransaction(_ kind: Database.TransactionKind? = nil, _ block: (Database) throws -> Database.TransactionCompletion) throws {
-        try serializedDatabase.sync { db in
+        try writer.sync { db in
             try db.inTransaction(kind) {
                 try block(db)
             }
@@ -285,7 +285,7 @@ extension DatabaseQueue {
     ///
     /// :nodoc:
     public func writeWithoutTransaction<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try serializedDatabase.sync(block)
+        return try writer.sync(block)
     }
 
     /// Synchronously executes a block in a protected dispatch queue, and
@@ -301,7 +301,7 @@ extension DatabaseQueue {
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
     public func inDatabase<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try serializedDatabase.sync(block)
+        return try writer.sync(block)
     }
     
     /// Synchronously executes a block in a protected dispatch queue, and
@@ -315,7 +315,7 @@ extension DatabaseQueue {
     /// This method is reentrant. It is unsafe because it fosters dangerous
     /// concurrency practices.
     public func unsafeReentrantWrite<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try serializedDatabase.reentrantSync(block)
+        return try writer.reentrantSync(block)
     }
     
     // MARK: - Functions
@@ -333,12 +333,12 @@ extension DatabaseQueue {
     ///         try Int.fetchOne(db, "SELECT succ(1)") // 2
     ///     }
     public func add(function: DatabaseFunction) {
-        serializedDatabase.sync { $0.add(function: function) }
+        writer.sync { $0.add(function: function) }
     }
     
     /// Remove an SQL function.
     public func remove(function: DatabaseFunction) {
-        serializedDatabase.sync { $0.remove(function: function) }
+        writer.sync { $0.remove(function: function) }
     }
     
     // MARK: - Collations
@@ -353,12 +353,12 @@ extension DatabaseQueue {
     ///         try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
     ///     }
     public func add(collation: DatabaseCollation) {
-        serializedDatabase.sync { $0.add(collation: collation) }
+        writer.sync { $0.add(collation: collation) }
     }
     
     /// Remove a collation.
     public func remove(collation: DatabaseCollation) {
-        serializedDatabase.sync { $0.remove(collation: collation) }
+        writer.sync { $0.remove(collation: collation) }
     }
 }
 
