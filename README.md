@@ -6340,12 +6340,12 @@ Those guarantees hold as long as you follow three rules:
     
     ```swift
     // SAFE CONCURRENCY
-    func currentUser(_ db: Database) throws -> User? {
+    func fetchCurrentUser(_ db: Database) throws -> User? {
         return try User.fetchOne(db)
     }
     // dbQueue is a singleton defined somewhere in your app
     let user = try dbQueue.read { db in // or dbPool.read
-        try currentUser(db)
+        try fetchCurrentUser(db)
     }
     
     // UNSAFE CONCURRENCY
@@ -6625,7 +6625,7 @@ DatabaseWriter and DatabaseReader fuel, for example:
     
     Reentrant database accesses make it very easy to break the second [safety rule](#guarantees-and-rules), which says: "group related statements within a single call to a DatabaseQueue or DatabasePool database access method.". Using a reentrant method is pretty much likely the sign of a wrong application architecture that needs refactoring.
     
-    Reentrant methods have been introduced in order to support [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), a set of reactive extensions to GRDB based on [RxSwift](https://github.com/ReactiveX/RxSwift) that need precise scheduling.
+    There is a single valid use case for reentrant methods, which is when you are unable to control database access scheduling.
     
 - **`unsafeReentrantWrite`**
     
@@ -6646,7 +6646,7 @@ DatabaseWriter and DatabaseReader fuel, for example:
     
     Reentrant database accesses make it very easy to break the second [safety rule](#guarantees-and-rules), which says: "group related statements within a single call to a DatabaseQueue or DatabasePool database access method.". Using a reentrant method is pretty much likely the sign of a wrong application architecture that needs refactoring.
     
-    Reentrant methods have been introduced in order to support [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), a set of reactive extensions to GRDB based on [RxSwift](https://github.com/ReactiveX/RxSwift) that need precise scheduling.
+    There is a single valid use case for reentrant methods, which is when you are unable to control database access scheduling.
 
 
 ### Dealing with External Connections
