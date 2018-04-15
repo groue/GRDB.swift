@@ -2,6 +2,8 @@ import Foundation
 
 /// DatabaseDateComponents reads and stores DateComponents in the database.
 public struct DatabaseDateComponents : DatabaseValueConvertible {
+
+    public static var useScanfStrategy = true
     
     /// The available formats for reading and storing date components.
     public enum Format : String {
@@ -130,7 +132,11 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
         guard let string = String.fromDatabaseValue(dbValue) else {
             return nil
         }
-        
+
+        if useScanfStrategy {
+            return SQLiteDateParser.components(from: string)
+        }
+
         var dateComponents = DateComponents()
         let scanner = Scanner(string: string)
         scanner.charactersToBeSkipped = CharacterSet()
