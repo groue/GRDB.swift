@@ -62,7 +62,7 @@ class SQLiteDateParser {
 
         guard parseCount >= 7 else { return DatabaseDateComponents(components, format: .YMD_HMS) }
 
-        components.nanosecond = Int(nanosecond.pointee)
+        components.nanosecond = nanosecondsInt(for: nanosecond.pointee)
 
         return DatabaseDateComponents(components, format: .YMD_HMSS)
     }
@@ -90,8 +90,17 @@ class SQLiteDateParser {
 
         guard parseCount >= 4 else { return DatabaseDateComponents(components, format: .HMS) }
 
-        components.nanosecond = Int(nanosecond.pointee)
+        components.nanosecond = nanosecondsInt(for: nanosecond.pointee)
 
         return DatabaseDateComponents(components, format: .HMSS)
+    }
+
+    private static func nanosecondsInt(for secondFractional: Int32) -> Int {
+        guard secondFractional > 0 else { return 0 }
+
+        let magnitude = Int32(log10(Double(secondFractional)))
+        let multiplier = Int32(pow(10.0, Double(8 - magnitude)))
+
+        return Int(secondFractional * multiplier)
     }
 }
