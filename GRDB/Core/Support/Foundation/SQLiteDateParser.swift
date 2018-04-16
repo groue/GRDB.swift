@@ -37,10 +37,13 @@ class SQLiteDateParser {
     // - YYYY-MM-DDTHH:MM:SS.SSS
     private static func datetimeComponents(from dateString: String) -> DatabaseDateComponents? {
         pthread_mutex_lock(&mutex)
+        defer { pthread_mutex_unlock(&mutex) }
 
         let parseCount = withVaList([year, month, day, hour, minute, second]) { pointer in
             vsscanf(dateString, "%d-%d-%d%*c%d:%d:%f", pointer)
         }
+
+        guard parseCount >= 3 else { return nil }
 
         var components = DateComponents()
 
@@ -48,17 +51,15 @@ class SQLiteDateParser {
         components.month = Int(month.pointee)
         components.day = Int(day.pointee)
 
-        if parseCount >= 5 {
-            components.hour = Int(hour.pointee)
-            components.minute = Int(minute.pointee)
-        }
+        guard parseCount >= 5 else { return DatabaseDateComponents(components, format: .YMD) }
 
-        if parseCount >= 6 {
-            components.second = Int(second.pointee)
-            components.nanosecond = Int((second.pointee - Float(components.second!)) * 1_000_000_000)
-        }
+        components.hour = Int(hour.pointee)
+        components.minute = Int(minute.pointee)
 
-        pthread_mutex_unlock(&mutex)
+        guard parseCount >= 6 else { return DatabaseDateComponents(components, format: .YMD_HM) }
+
+        components.second = Int(second.pointee)
+        components.nanosecond = Int((second.pointee - Float(components.second!)) * 1_000_000_000)
 
         return DatabaseDateComponents(components, format: .YMD_HMSS)
     }
@@ -68,23 +69,24 @@ class SQLiteDateParser {
     // - HH:MM:SS.SSS
     private static func timeComponents(from timeString: String) -> DatabaseDateComponents? {
         pthread_mutex_lock(&mutex)
+        defer { pthread_mutex_unlock(&mutex) }
 
         let parseCount = withVaList([hour, minute, second]) { pointer in
             vsscanf(timeString, "%d:%d:%f", pointer)
         }
+
+        guard parseCount >= 2 else { return nil }
 
         var components = DateComponents()
 
         components.hour = Int(hour.pointee)
         components.minute = Int(minute.pointee)
 
-        if parseCount >= 3 {
-            components.second = Int(second.pointee)
-            components.nanosecond = Int((second.pointee - Float(components.second!)) * 1_000_000_000)
-        }
-
-        pthread_mutex_unlock(&mutex)
-
+        guard parseCount >= 3 else { return DatabaseDateComponents(components, format: .HM) }
+        
+        components.second = Int(second.pointee)
+        components.nanosecond = Int((second.pointee - Float(components.second!)) * 1_000_000_000)
+        
         return DatabaseDateComponents(components, format: .HMSS)
     }
 }
