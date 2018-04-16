@@ -183,9 +183,67 @@ extension FetchableRecord {
     }
 }
 
+extension FetchableRecord {
+    
+    // MARK: Fetching From FetchRequest
+    
+    /// Returns a cursor over records fetched from a fetch request.
+    ///
+    ///     let request = try Player.all()
+    ///     let players = try Player.fetchCursor(db, request) // Cursor of Player
+    ///     while let player = try players.next() { // Player
+    ///         ...
+    ///     }
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
+    ///
+    /// The cursor must be iterated in a protected dispath queue.
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - sql: a FetchRequest.
+    /// - returns: A cursor over fetched records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchCursor<R: FetchRequest>(_ db: Database, _ request: R) throws -> RecordCursor<Self> {
+        let (statement, adapter) = try request.prepare(db)
+        return try fetchCursor(statement, adapter: adapter)
+    }
+    
+    /// Returns an array of records fetched from a fetch request.
+    ///
+    ///     let request = try Player.all()
+    ///     let players = try Player.fetchAll(db, request) // [Player]
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - sql: a FetchRequest.
+    /// - returns: An array of records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchAll<R: FetchRequest>(_ db: Database, _ request: R) throws -> [Self] {
+        let (statement, adapter) = try request.prepare(db)
+        return try fetchAll(statement, adapter: adapter)
+    }
+    
+    /// Returns a single record fetched from a fetch request.
+    ///
+    ///     let request = try Player.filter(key: 1)
+    ///     let player = try Player.fetchOne(db, request) // Player?
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - sql: a FetchRequest.
+    /// - returns: An optional record.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchOne<R: FetchRequest>(_ db: Database, _ request: R) throws -> Self? {
+        let (statement, adapter) = try request.prepare(db)
+        return try fetchOne(statement, adapter: adapter)
+    }
+}
+
 extension FetchRequest where RowDecoder: FetchableRecord {
     
-    // MARK: Fetching Record and FetchableRecord
+    // MARK: Fetching Records
     
     /// A cursor over fetched records.
     ///
@@ -204,8 +262,7 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public func fetchCursor(_ db: Database) throws -> RecordCursor<RowDecoder> {
-        let (statement, adapter) = try prepare(db)
-        return try RowDecoder.fetchCursor(statement, adapter: adapter)
+        return try RowDecoder.fetchCursor(db, self)
     }
     
     /// An array of fetched records.
@@ -217,8 +274,7 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public func fetchAll(_ db: Database) throws -> [RowDecoder] {
-        let (statement, adapter) = try prepare(db)
-        return try RowDecoder.fetchAll(statement, adapter: adapter)
+        return try RowDecoder.fetchAll(db, self)
     }
     
     /// The first fetched record.
@@ -230,8 +286,6 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public func fetchOne(_ db: Database) throws -> RowDecoder? {
-        let (statement, adapter) = try prepare(db)
-        return try RowDecoder.fetchOne(statement, adapter: adapter)
+        return try RowDecoder.fetchOne(db, self)
     }
 }
-

@@ -68,7 +68,7 @@ class QueryInterfaceExtensibilityTests: GRDBTestCase {
             try db.execute("INSERT INTO records (date) VALUES (?)", arguments: [date])
             
             let request = Record.select(strftime("%Y", Column("date")))
-            let year = try request.asRequest(of: Int.self).fetchOne(db)
+            let year = try Int.fetchOne(db, request)
             XCTAssertEqual(year, 1970)
             XCTAssertEqual(self.lastSQLQuery, "SELECT STRFTIME('%Y', \"date\") FROM \"records\"")
         }
@@ -105,7 +105,7 @@ class QueryInterfaceExtensibilityTests: GRDBTestCase {
             try db.execute("INSERT INTO records (text) VALUES (?)", arguments: ["foo"])
             
             let request = Record.select(cast(Column("text"), as: .blob))
-            let dbValue = try request.asRequest(of: DatabaseValue.self).fetchOne(db)!
+            let dbValue = try DatabaseValue.fetchOne(db, request)!
             switch dbValue.storage {
             case .blob:
                 break

@@ -1697,9 +1697,7 @@ SQLite has the opportunity to perform additional optimizations when aggregates a
 
 ```swift
 // SELECT maxLength("name") FROM players
-Player.select(maxLength.apply(nameColumn))
-    .asRequest(of: Int.self)
-    .fetchOne(db) // Int?
+Int.fetchOne(db, Player.select(maxLength.apply(nameColumn))) // Int?
 ```
 
 
@@ -3579,18 +3577,25 @@ let arthur = try Player.filter(nameColumn == "Arthur").fetchOne(db) // Player?
 **When the selected columns don't fit the source type**, change your target: any other type that adopts the [FetchableRecord] protocol, plain [database rows](#fetching-rows), and even [values](#values):
 
 ```swift
-let maxScore = try Player.select(max(scoreColumn))
-    .asRequest(of: Int.self)
-    .fetchOne(db) // Int?
+let request = Player.select(max(scoreColumn))
+let maxScore = try Int.fetchOne(db, request) // Int?
 
-let row = try Player.select(min(scoreColumn), max(scoreColumn))
-    .asRequest(of: Row.self)
-    .fetchOne(db)!
+let request = Player.select(min(scoreColumn), max(scoreColumn))
+let row = try Row.fetchOne(db, request)!     // Row
 let minScore = row[0] as Int?
 let maxScore = row[1] as Int?
 ```
 
-More information about `asRequest(of:)` can be found in the [Custom Requests](#custom-requests) chapter.
+You may also use the `asRequest(of:)` method, which lets you alter the type of the request itself, and feed database observation tools like [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB):
+
+```swift
+let request = Player.select(max(scoreColumn)).asRequest(of: Int.self)
+request.rx
+    .fetchOne(in: dbQueue)
+    .subscribe(onNext: { maxScore: Int? in
+        print("Maximum score has changed")
+    })
+```
 
 
 ## Fetching By Key
@@ -3689,18 +3694,14 @@ let count = try Player.select(nameColumn, scoreColumn).distinct().fetchCount(db)
 **Other aggregated values** can also be selected and fetched (see [SQL Functions](#sql-functions)):
 
 ```swift
-let maxScore = try Player.select(max(scoreColumn))
-    .asRequest(of: Int.self)
-    .fetchOne(db) // Int?
+let request = Player.select(max(scoreColumn))
+let maxScore = try Int.fetchOne(db, request) // Int?
 
-let row = try Player.select(min(scoreColumn), max(scoreColumn))
-    .asRequest(of: Row.self)
-    .fetchOne(db)!
+let request = Player.select(min(scoreColumn), max(scoreColumn))
+let row = try Row.fetchOne(db, request)!     // Row
 let minScore = row[0] as Int?
 let maxScore = row[1] as Int?
 ```
-
-More information about `asRequest(of:)` can be found in the [Custom Requests](#custom-requests) chapter.
 
 
 ## Delete Requests

@@ -735,6 +735,73 @@ extension Row {
     }
 }
 
+extension Row {
+    
+    // MARK: - Fetching From FetchRequest
+    
+    /// Returns a cursor over rows fetched from a fetch request.
+    ///
+    ///     let request = Player.all()
+    ///     let rows = try Row.fetchCursor(db, request) // RowCursor
+    ///     while let row = try rows.next() { // Row
+    ///         let id: Int64 = row["id"]
+    ///         let name: String = row["name"]
+    ///     }
+    ///
+    /// Fetched rows are reused during the cursor iteration: don't turn a row
+    /// cursor into an array with `Array(rows)` or `rows.filter { ... }` since
+    /// you would not get the distinct rows you expect. Use `Row.fetchAll(...)`
+    /// instead.
+    ///
+    /// For the same reason, make sure you make a copy whenever you extract a
+    /// row for later use: `row.copy()`.
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
+    ///
+    /// The cursor must be iterated in a protected dispath queue.
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - request: A FetchRequest.
+    /// - returns: A cursor over fetched rows.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchCursor<R: FetchRequest>(_ db: Database, _ request: R) throws -> RowCursor {
+        let (statement, adapter) = try request.prepare(db)
+        return try fetchCursor(statement, adapter: adapter)
+    }
+    
+    /// Returns an array of rows fetched from a fetch request.
+    ///
+    ///     let request = Player.all()
+    ///     let rows = try Row.fetchAll(db, request)
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - request: A FetchRequest.
+    /// - returns: An array of rows.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchAll<R: FetchRequest>(_ db: Database, _ request: R) throws -> [Row] {
+        let (statement, adapter) = try request.prepare(db)
+        return try fetchAll(statement, adapter: adapter)
+    }
+    
+    /// Returns a single row fetched from a fetch request.
+    ///
+    ///     let request = Player.filter(key: 1)
+    ///     let row = try Row.fetchOne(db, request)
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - request: A FetchRequest.
+    /// - returns: An optional row.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchOne<R: FetchRequest>(_ db: Database, _ request: R) throws -> Row? {
+        let (statement, adapter) = try request.prepare(db)
+        return try fetchOne(statement, adapter: adapter)
+    }
+}
+
 extension FetchRequest where RowDecoder: Row {
     
     // MARK: Fetching Rows
@@ -765,8 +832,7 @@ extension FetchRequest where RowDecoder: Row {
     /// - returns: A cursor over fetched rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public func fetchCursor(_ db: Database) throws -> RowCursor {
-        let (statement, adapter) = try prepare(db)
-        return try Row.fetchCursor(statement, adapter: adapter)
+        return try Row.fetchCursor(db, self)
     }
     
     /// An array of fetched rows.
@@ -778,8 +844,7 @@ extension FetchRequest where RowDecoder: Row {
     /// - returns: An array of fetched rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public func fetchAll(_ db: Database) throws -> [Row] {
-        let (statement, adapter) = try prepare(db)
-        return try Row.fetchAll(statement, adapter: adapter)
+        return try Row.fetchAll(db, self)
     }
     
     /// The first fetched row.
@@ -791,11 +856,10 @@ extension FetchRequest where RowDecoder: Row {
     /// - returns: A,n optional rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public func fetchOne(_ db: Database) throws -> Row? {
-        let (statement, adapter) = try prepare(db)
-        return try Row.fetchOne(statement, adapter: adapter)
+        return try Row.fetchOne(db, self)
     }
 }
-
+    
 // ExpressibleByDictionaryLiteral
 extension Row {
     
