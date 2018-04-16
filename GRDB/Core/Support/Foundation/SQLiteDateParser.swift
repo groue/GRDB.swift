@@ -15,7 +15,8 @@ class SQLiteDateParser {
     private static let day = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
     private static let hour = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
     private static let minute = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
-    private static let second = UnsafeMutablePointer<Float>.allocate(capacity: 1)
+    private static let second = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
+    private static let nanosecond = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
 
     public static func components(from dateString: String) -> DatabaseDateComponents? {
         switch dateString.count {
@@ -39,14 +40,13 @@ class SQLiteDateParser {
         pthread_mutex_lock(&mutex)
         defer { pthread_mutex_unlock(&mutex) }
 
-        let parseCount = withVaList([year, month, day, hour, minute, second]) { pointer in
-            vsscanf(dateString, "%d-%d-%d%*c%d:%d:%f", pointer)
+        let parseCount = withVaList([year, month, day, hour, minute, second, nanosecond]) { pointer in
+            vsscanf(dateString, "%d-%d-%d%*c%d:%d:%d.%d", pointer)
         }
 
         guard parseCount >= 3 else { return nil }
 
         var components = DateComponents()
-
         components.year = Int(year.pointee)
         components.month = Int(month.pointee)
         components.day = Int(day.pointee)
@@ -59,7 +59,10 @@ class SQLiteDateParser {
         guard parseCount >= 6 else { return DatabaseDateComponents(components, format: .YMD_HM) }
 
         components.second = Int(second.pointee)
-        components.nanosecond = Int((second.pointee - Float(components.second!)) * 1_000_000_000)
+
+        guard parseCount >= 7 else { return DatabaseDateComponents(components, format: .YMD_HMS) }
+
+        components.nanosecond = Int(nanosecond.pointee)
 
         return DatabaseDateComponents(components, format: .YMD_HMSS)
     }
@@ -71,22 +74,24 @@ class SQLiteDateParser {
         pthread_mutex_lock(&mutex)
         defer { pthread_mutex_unlock(&mutex) }
 
-        let parseCount = withVaList([hour, minute, second]) { pointer in
-            vsscanf(timeString, "%d:%d:%f", pointer)
+        let parseCount = withVaList([hour, minute, second, nanosecond]) { pointer in
+            vsscanf(timeString, "%d:%d:%d.%d", pointer)
         }
 
         guard parseCount >= 2 else { return nil }
 
         var components = DateComponents()
-
         components.hour = Int(hour.pointee)
         components.minute = Int(minute.pointee)
 
         guard parseCount >= 3 else { return DatabaseDateComponents(components, format: .HM) }
-        
+
         components.second = Int(second.pointee)
-        components.nanosecond = Int((second.pointee - Float(components.second!)) * 1_000_000_000)
-        
+
+        guard parseCount >= 4 else { return DatabaseDateComponents(components, format: .HMS) }
+
+        components.nanosecond = Int(nanosecond.pointee)
+
         return DatabaseDateComponents(components, format: .HMSS)
     }
 }
