@@ -4898,7 +4898,20 @@ To acknowledge that both Player and Team records may customize their selection o
 
 `Player.selectionSQL()` will output `players.*`, unless Player defines a [customized selection](#columns-selected-by-a-request).
 
-> :point_up: **Note**: you may also provide an alias: `SELECT \(Players.selectionSQL(alias: "p")) FROM players p ...`
+> :point_up: **Note**: you may also use SQL table aliases:
+>
+> ```swift
+>     let sql = """
+>         SELECT
+>             \(Player.selectionSQL(alias: "p")),
+>             \(Team.selectionSQL(alias: "t")),
+>             MAX(r.score) AS maxScore
+>         FROM players p
+>         LEFT JOIN teams t ON ...
+>         LEFT JOIN rounds r ON ...
+>         GROUP BY ...
+>         """
+> ```
 
 Now is the time to build adapters (taking in account the customized selection of both players and teams). We use the `splittingRowAdapters` global function, which builds row adapters of desired widths:
 
