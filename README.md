@@ -4852,14 +4852,14 @@ But we may want to make it more usable and robust:
 To address the first bullet, let's define a record that holds our player, optional team, and maximum score. Since it can decode database rows, it adopts the [FetchableRecord] protocol:
 
 ```swift
-struct Item {
+struct PlayerInfo {
     var player: Player
     var team: Team?
     var maxScore: Int
 }
 
-/// Item can decode rows:
-extension Item: FetchableRecord {
+/// PlayerInfo can decode rows:
+extension PlayerInfo: FetchableRecord {
     private enum Scopes {
         static let player = "player"
         static let team = "team"
@@ -4873,11 +4873,11 @@ extension Item: FetchableRecord {
 }
 ```
 
-Let's now write the method that fetches items:
+Let's now write the method that fetches PlayerInfo records:
 
 ```swift
-extension Item {
-    static func fetchAll(_ db: Database) throws -> [Item] {
+extension PlayerInfo {
+    static func fetchAll(_ db: Database) throws -> [PlayerInfo] {
 ```
 
 To acknowledge that both Player and Team records may customize their selection of the "players" and "teams" columns, we'll write our SQL in a slightly different way:
@@ -4914,20 +4914,20 @@ Now is the time to build adapters (taking in account the customized selection of
 
 > :point_up: **Note**: `splittingRowAdapters` returns as many adapters as necessary to fully split a row. In the example above, it returns *three* adapters: one for players, one for teams, and one for the remaining columns.
 
-And finally, we can fetch items:
+And finally, we can fetch player infos:
 
 ```swift
-        return try Item.fetchAll(db, sql, adapter: adapter)
+        return try PlayerInfo.fetchAll(db, sql, adapter: adapter)
     }
 }
 ```
 
-And when your app needs to fetch items, it now reads:
+And when your app needs to fetch player infos, it now reads:
 
 ```swift
-// Fetch items
-let items = try dbQueue.read { db in
-    try Item.fetchAll(db)
+// Fetch player infos
+let playerInfos = try dbQueue.read { db in
+    try PlayerInfo.fetchAll(db)
 }
 ```
 
@@ -4942,19 +4942,19 @@ let items = try dbQueue.read { db in
 
 ### Splitting Rows, the Request Way
 
-The `Item.fetchAll` method [above](#splitting-rows-the-record-way) directly fetches records. It's all good, but in order to profit from [database observation](#database-changes-observation) with [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), you'll need a [custom request](#custom-requests) that defines a database query.
+The `PlayerInfo.fetchAll` method [above](#splitting-rows-the-record-way) directly fetches records. It's all good, but in order to profit from [database observation](#database-changes-observation) with [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), you'll need a [custom request](#custom-requests) that defines a database query.
 
-It is recommended that your read the previous paragraphs before you dive in this sample code. We start with the same Item record as above:
+It is recommended that your read the previous paragraphs before you dive in this sample code. We start with the same PlayerInfo record as above:
 
 ```swift
-struct Item {
+struct PlayerInfo {
     var player: Player
     var team: Team?
     var maxScore: Int
 }
 
-/// Item can decode rows:
-extension Item: FetchableRecord {
+/// PlayerInfo can decode rows:
+extension PlayerInfo: FetchableRecord {
     private enum Scopes {
         static let player = "player"
         static let team = "team"
@@ -4971,9 +4971,9 @@ extension Item: FetchableRecord {
 Now we write a method that returns a request, and build the fetching method on top of that request:
 
 ```swift
-extension Item {
-    /// The request for all items
-    static func all() -> AdaptedFetchRequest<SQLRequest<Item>> {
+extension PlayerInfo {
+    /// The request for all player infos
+    static func all() -> AdaptedFetchRequest<SQLRequest<PlayerInfo>> {
         let sql = """
             SELECT
                 \(Player.selectionSQL()),
@@ -4984,7 +4984,7 @@ extension Item {
             LEFT JOIN rounds ON ...
             GROUP BY ...
             """
-        return SQLRequest<Item>(sql).adapted { db in
+        return SQLRequest<PlayerInfo>(sql).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 Player.numberOfSelectedColumns(db),
                 Team.numberOfSelectedColumns(db)])
@@ -4994,8 +4994,8 @@ extension Item {
         }
     }
     
-    /// Fetches all items
-    static func fetchAll(_ db: Database) throws -> [Item] {
+    /// Fetches all player infos
+    static func fetchAll(_ db: Database) throws -> [PlayerInfo] {
         return try all().fetchAll(db)
     }
 }
@@ -5004,16 +5004,16 @@ extension Item {
 It is now time to use our request:
 
 ```swift
-// Fetch items
-let items = try dbQueue.read { db in
-    try Item.fetchAll(db)
+// Fetch player infos
+let playerInfos = try dbQueue.read { db in
+    try PlayerInfo.fetchAll(db)
 }
 
-// Track items with RxRGDB:
-Item.all()
+// Track player infos with RxRGDB:
+PlayerInfo.all()
     .rx.fetchAll(in: dbQueue)
-    .subscribe(onNext: { items: [Item] in
-        print("items have changed")
+    .subscribe(onNext: { playerInfos: [PlayerInfo] in
+        print("Player infos have changed")
     })
 ```
 
@@ -5038,15 +5038,15 @@ struct Team: Decodable, FetchableRecord, TableRecord {
     var name: String
     var color: Color
 }
-struct Item: Decodable, FetchableRecord {
+struct PlayerInfo: Decodable, FetchableRecord {
     var player: Player
     var team: Team?
     var maxScore: Int
 }
 
-extension Item {
-    /// The request for all items
-    static func all() -> AdaptedFetchRequest<SQLRequest<Item>> {
+extension PlayerInfo {
+    /// The request for all player infos
+    static func all() -> AdaptedFetchRequest<SQLRequest<PlayerInfo>> {
         let sql = """
             SELECT
                 \(Player.selectionSQL()),
@@ -5057,7 +5057,7 @@ extension Item {
             LEFT JOIN rounds ON ...
             GROUP BY ...
             """
-        return SQLRequest<Item>(sql).adapted { db in
+        return SQLRequest<PlayerInfo>(sql).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 Player.numberOfSelectedColumns(db),
                 Team.numberOfSelectedColumns(db)])
@@ -5067,22 +5067,22 @@ extension Item {
         }
     }
     
-    /// Fetches all items
-    static func fetchAll(_ db: Database) throws -> [Item] {
+    /// Fetches all player infos
+    static func fetchAll(_ db: Database) throws -> [PlayerInfo] {
         return try all().fetchAll(db)
     }
 }
 
-// Fetch items
-let items = try dbQueue.read { db in
-    try Item.fetchAll(db)
+// Fetch player infos
+let playerInfos = try dbQueue.read { db in
+    try PlayerInfo.fetchAll(db)
 }
 
-// Track items with RxRGDB:
-Item.all()
+// Track player infos with RxRGDB:
+PlayerInfo.all()
     .rx.fetchAll(in: dbQueue)
-    .subscribe(onNext: { items: [Item] in
-        print("items have changed")
+    .subscribe(onNext: { playerInfos: [PlayerInfo] in
+        print("Player infos have changed")
     })
 ```
 
