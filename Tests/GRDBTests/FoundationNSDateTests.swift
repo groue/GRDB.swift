@@ -162,7 +162,7 @@ class FoundationNSDateTests : GRDBTestCase {
             XCTAssertEqual(calendar.component(.hour, from: date as Date), 1)
             XCTAssertEqual(calendar.component(.minute, from: date as Date), 2)
             XCTAssertEqual(calendar.component(.second, from: date as Date), 3)
-            XCTAssertTrue(abs(calendar.component(.nanosecond, from: date as Date) - 4_560_000) < 10)
+            XCTAssertTrue(abs(calendar.component(.nanosecond, from: date as Date) - 4_000_000) < 10)  // We actually get 4_000_008. Some precision is lost during the NSDateComponents -> NSDate conversion. Not a big deal.
         }
     }
 
@@ -242,7 +242,7 @@ class FoundationNSDateTests : GRDBTestCase {
             XCTAssertEqual(calendar.component(.hour, from: date as Date), 1)
             XCTAssertEqual(calendar.component(.minute, from: date as Date), 2)
             XCTAssertEqual(calendar.component(.second, from: date as Date), 3)
-            XCTAssertTrue(abs(calendar.component(.nanosecond, from: date as Date) - 4_560_000) < 10)
+            XCTAssertTrue(abs(calendar.component(.nanosecond, from: date as Date) - 4_000_000) < 10)  // We actually get 4_000_008. Some precision is lost during the NSDateComponents -> NSDate conversion. Not a big deal.
         }
     }
 }
