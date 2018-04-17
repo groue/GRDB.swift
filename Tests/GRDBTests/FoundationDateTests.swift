@@ -179,7 +179,7 @@ class FoundationDateTests : GRDBTestCase {
             XCTAssertEqual(calendar.component(.hour, from: date), 1)
             XCTAssertEqual(calendar.component(.minute, from: date), 2)
             XCTAssertEqual(calendar.component(.second, from: date), 3)
-            XCTAssertTrue(abs(calendar.component(.nanosecond, from: date) - 4_560_000) < 10)
+            XCTAssertTrue(abs(calendar.component(.nanosecond, from: date) - 4_000_000) < 10)  // We actually get 4_000_008. Some precision is lost during the DateComponents -> Date conversion. Not a big deal.
         }
     }
 
@@ -259,7 +259,7 @@ class FoundationDateTests : GRDBTestCase {
             XCTAssertEqual(calendar.component(.hour, from: date), 1)
             XCTAssertEqual(calendar.component(.minute, from: date), 2)
             XCTAssertEqual(calendar.component(.second, from: date), 3)
-            XCTAssertTrue(abs(calendar.component(.nanosecond, from: date) - 4_560_000) < 10) 
+            XCTAssertTrue(abs(calendar.component(.nanosecond, from: date) - 4_000_000) < 10)  // We actually get 4_000_008. Some precision is lost during the DateComponents -> Date conversion. Not a big deal.
         }
     }
 }
