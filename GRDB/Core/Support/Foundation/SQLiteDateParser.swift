@@ -19,14 +19,17 @@ class SQLiteDateParser {
     private static let nanosecond = UnsafeMutablePointer<CChar>.allocate(capacity: 9)
 
     public static func components(from dateString: String) -> DatabaseDateComponents? {
-        switch dateString.count {
-        case 23, 19, 16, 10:
+        guard dateString.count >= 5 else { return nil }
+
+        if dateString[dateString.index(dateString.startIndex, offsetBy: 4)] == "-" {
             return datetimeComponents(from: dateString)
-        case 12, 8, 5:
-            return timeComponents(from: dateString)
-        default:
-            return nil
         }
+
+        if dateString[dateString.index(dateString.startIndex, offsetBy: 2)] == ":" {
+            return timeComponents(from: dateString)
+        }
+
+        return nil
     }
 
     // - YYYY-MM-DD
