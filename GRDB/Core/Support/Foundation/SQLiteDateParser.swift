@@ -16,7 +16,7 @@ class SQLiteDateParser {
     private static let hour = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
     private static let minute = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
     private static let second = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
-    private static let nanosecond = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
+    private static let nanosecond = UnsafeMutablePointer<CChar>.allocate(capacity: 9)
 
     public static func components(from dateString: String) -> DatabaseDateComponents? {
         switch dateString.count {
@@ -41,7 +41,7 @@ class SQLiteDateParser {
         defer { pthread_mutex_unlock(&mutex) }
 
         let parseCount = withVaList([year, month, day, hour, minute, second, nanosecond]) { pointer in
-            vsscanf(dateString, "%d-%d-%d%*c%d:%d:%d.%d", pointer)
+            vsscanf(dateString, "%d-%d-%d%*c%d:%d:%d.%s", pointer)
         }
 
         guard parseCount >= 3 else { return nil }
@@ -62,7 +62,7 @@ class SQLiteDateParser {
 
         guard parseCount >= 7 else { return DatabaseDateComponents(components, format: .YMD_HMS) }
 
-        components.nanosecond = nanosecondsInt(for: nanosecond.pointee)
+        components.nanosecond = nanosecondsInt(for: nanosecond)
 
         return DatabaseDateComponents(components, format: .YMD_HMSS)
     }
@@ -75,7 +75,7 @@ class SQLiteDateParser {
         defer { pthread_mutex_unlock(&mutex) }
 
         let parseCount = withVaList([hour, minute, second, nanosecond]) { pointer in
-            vsscanf(timeString, "%d:%d:%d.%d", pointer)
+            vsscanf(timeString, "%d:%d:%d.%s", pointer)
         }
 
         guard parseCount >= 2 else { return nil }
@@ -90,17 +90,14 @@ class SQLiteDateParser {
 
         guard parseCount >= 4 else { return DatabaseDateComponents(components, format: .HMS) }
 
-        components.nanosecond = nanosecondsInt(for: nanosecond.pointee)
+        components.nanosecond = nanosecondsInt(for: nanosecond)
 
         return DatabaseDateComponents(components, format: .HMSS)
     }
 
-    private static func nanosecondsInt(for secondFractional: Int32) -> Int {
-        guard secondFractional > 0 else { return 0 }
-
-        let magnitude = Int32(log10(Double(secondFractional)))
-        let multiplier = Int32(pow(10.0, Double(8 - magnitude)))
-
-        return Int(secondFractional * multiplier)
+    private static func nanosecondsInt(for nanoCString: UnsafePointer<CChar>) -> Int {
+        let nanoString = "0." + String(cString: nanoCString)
+        guard let doubleValue = Double(nanoString) else { return 0 }
+        return Int(doubleValue * 1_000_000_000)
     }
 }
