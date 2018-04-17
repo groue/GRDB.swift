@@ -259,7 +259,7 @@ class FoundationDateTests : GRDBTestCase {
             XCTAssertEqual(calendar.component(.hour, from: date), 1)
             XCTAssertEqual(calendar.component(.minute, from: date), 2)
             XCTAssertEqual(calendar.component(.second, from: date), 3)
-            XCTAssertTrue(abs(calendar.component(.nanosecond, from: date) - 4_560_000) < 600_000) // permit precision loss down to 3 sig figs
+            XCTAssertTrue(abs(calendar.component(.nanosecond, from: date) - 4_560_000) < 10) 
         }
     }
 }
