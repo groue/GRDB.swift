@@ -22,13 +22,19 @@ class SQLiteDateParser {
         guard dateString.count >= 5 else { return nil }
 
         if dateString[dateString.index(dateString.startIndex, offsetBy: 4)] == "-" {
-            // a date string with full nanosecond precision is 29 chars
-            return datetimeComponents(from: String(dateString.prefix(29)))
+            /***
+             Note: A date string with full nanosecond precision is 29 chars.
+             This call is truncating the nanosecond fraction to a max of 3 sig figs (ie 23 chars).
+             */
+            return datetimeComponents(from: String(dateString.prefix(23)))
         }
 
         if dateString[dateString.index(dateString.startIndex, offsetBy: 2)] == ":" {
-            // a time string with full nanosecond precision is 18 chars
-            return timeComponents(from: String(dateString.prefix(18)))
+            /***
+             Note: A time string with full nanosecond precision is 18 chars.
+             This call is truncating the nanosecond fraction to a max of 3 sig figs (ie 12 chars).
+             */
+            return timeComponents(from: String(dateString.prefix(12)))
         }
 
         return nil
