@@ -16,17 +16,19 @@ class SQLiteDateParser {
     private static let hour = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
     private static let minute = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
     private static let second = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
-    private static let nanosecond = UnsafeMutablePointer<CChar>.allocate(capacity: 9)
+    private static let nanosecond = UnsafeMutablePointer<CChar>.allocate(capacity: 11)
 
     public static func components(from dateString: String) -> DatabaseDateComponents? {
         guard dateString.count >= 5 else { return nil }
 
         if dateString[dateString.index(dateString.startIndex, offsetBy: 4)] == "-" {
-            return datetimeComponents(from: dateString)
+            // a date string with full nanosecond precision is 29 chars
+            return datetimeComponents(from: String(dateString.prefix(29)))
         }
 
         if dateString[dateString.index(dateString.startIndex, offsetBy: 2)] == ":" {
-            return timeComponents(from: dateString)
+            // a time string with full nanosecond precision is 18 chars
+            return timeComponents(from: String(dateString.prefix(18)))
         }
 
         return nil
