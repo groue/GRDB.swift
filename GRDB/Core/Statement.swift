@@ -222,6 +222,8 @@ protocol AuthorizedStatement {
     // https://bugs.swift.org/browse/SR-2347
     //
     // We work around SR-2347 with this internal protocol.
+    //
+    // TODO: hasn't this bug been fixed in Swift 4.2? https://github.com/apple/swift/blob/master/CHANGELOG.md#swift-42
     init(
         database: Database,
         statementStart: UnsafePointer<Int8>,

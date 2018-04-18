@@ -325,7 +325,7 @@ public struct SuffixRowAdapter : RowAdapter {
 ///     let adapter = RangeRowAdapter(1..<3)
 ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz, 4 as qux"
 ///
-///     // [bar:2 baz: 3]
+///     // [bar:2 baz:3]
 ///     try Row.fetchOne(db, sql, adapter: adapter)
 public struct RangeRowAdapter : RowAdapter {
     /// The range

@@ -143,8 +143,8 @@ extension Row {
     ///     let row = try Row.fetchOne(db, "SELECT NULL, NULL")!
     ///     row.containsNonNullValue // false
     public var containsNonNullValue: Bool {
-        for i in (0..<count) {
-            if !hasNull(atIndex: i) { return true }
+        for i in (0..<count) where !hasNull(atIndex: i) {
+            return true
         }
         
         for name in scopeNames where scoped(on: name)!.containsNonNullValue {

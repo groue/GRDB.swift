@@ -22,6 +22,8 @@ GRDB 3.0
     - [ ] Replace Column with TypedColumn. How to avoid code duplication (repeated types)? Keypaths?
 - [ ] HiddenColumnsAdapter
 - [ ] If possible: Have Record adopt Codable
+- [ ] PR for Row.lookup() and breadth-first search of the scope
+- [ ] PR for OffsettedAdapter
 
 Not sure
 
