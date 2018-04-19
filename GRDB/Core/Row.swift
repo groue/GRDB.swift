@@ -1096,6 +1096,32 @@ extension Row {
             }
             return Row(base: row, adapter: adapter)
         }
+        
+        /// Returns the row associated with the given scope, by performing a
+        /// breadth-first search in this row's scopes and the scopes of its
+        /// scoped rows, recursively.
+        public func lookup(_ name: String) -> Row? {
+            struct Node {
+                let row: Row
+                let name: String
+            }
+            
+            var fifo: [Node] = scopes.map { (name, adapter) in
+                Node(row: Row(base: row, adapter: adapter), name: name)
+            }
+            
+            while !fifo.isEmpty {
+                let node = fifo.removeFirst()
+                if node.name == name {
+                    return node.row
+                }
+                for (name, scopedRow) in node.row.scopes {
+                    fifo.append(Node(row: scopedRow, name: name))
+                }
+            }
+            
+            return nil
+        }
     }
 }
 

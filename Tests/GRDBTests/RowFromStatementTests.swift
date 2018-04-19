@@ -317,6 +317,7 @@ class RowFromStatementTests : RowTestCase {
                 rowFetched = true
                 XCTAssertTrue(row.scopes.isEmpty)
                 XCTAssertTrue(row.scopes["missing"] == nil)
+                XCTAssertTrue(row.scopes.lookup("missing") == nil)
             }
             XCTAssertTrue(rowFetched)
         }
