@@ -514,7 +514,7 @@ extension Row {
     ///
     /// For example:
     ///
-    ///     // Define a tree of scopes
+    ///     // Define a tree of nested scopes
     ///     let adapter = ScopeAdapter([
     ///         "foo": RangeRowAdapter(0..<1),
     ///         "bar": RangeRowAdapter(1..<2).addingScopes([
@@ -524,12 +524,12 @@ extension Row {
     ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
     ///     let row = try Row.fetchOne(db, sql, adapter: adapter)!
     ///
-    ///     row.scopes.count // 2
-    ///     row.scopes.names // ["foo", "bar"]
+    ///     row.scopes.count  // 2
+    ///     row.scopes.names  // ["foo", "bar"]
     ///
-    ///     row.scopesTree["foo"] // [foo:1]
-    ///     row.scopesTree["bar"] // [bar:2]
-    ///     row.scopesTree["baz"] // nil
+    ///     row.scopes["foo"] // [foo:1]
+    ///     row.scopes["bar"] // [bar:2]
+    ///     row.scopes["baz"] // nil
     public var scopes: ScopesView {
         return impl.scopes
     }
@@ -538,7 +538,7 @@ extension Row {
     ///
     /// For example:
     ///
-    ///     // Define a tree of scopes
+    ///     // Define a tree of nested scopes
     ///     let adapter = ScopeAdapter([
     ///         "foo": RangeRowAdapter(0..<1),
     ///         "bar": RangeRowAdapter(1..<2).addingScopes([
@@ -1051,7 +1051,7 @@ extension Row {
     ///
     /// For example:
     ///
-    ///     // Define a tree of scopes
+    ///     // Define a tree of nested scopes
     ///     let adapter = ScopeAdapter([
     ///         "foo": RangeRowAdapter(0..<1),
     ///         "bar": RangeRowAdapter(1..<2).addingScopes([
@@ -1061,12 +1061,12 @@ extension Row {
     ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
     ///     let row = try Row.fetchOne(db, sql, adapter: adapter)!
     ///
-    ///     row.scopes.count // 2
-    ///     row.scopes.names // ["foo", "bar"]
+    ///     row.scopes.count  // 2
+    ///     row.scopes.names  // ["foo", "bar"]
     ///
-    ///     row.scopesTree["foo"] // [foo:1]
-    ///     row.scopesTree["bar"] // [bar:2]
-    ///     row.scopesTree["baz"] // nil
+    ///     row.scopes["foo"] // [foo:1]
+    ///     row.scopes["bar"] // [bar:2]
+    ///     row.scopes["baz"] // nil
     public struct ScopesView: Collection {
         public typealias Index = Dictionary<String, LayoutedRowAdapter>.Index
         private let row: Row
@@ -1126,7 +1126,7 @@ extension Row {
     ///
     /// For example:
     ///
-    ///     // Define a tree of scopes
+    ///     // Define a tree of nested scopes
     ///     let adapter = ScopeAdapter([
     ///         "foo": RangeRowAdapter(0..<1),
     ///         "bar": RangeRowAdapter(1..<2).addingScopes([
@@ -1158,11 +1158,6 @@ extension Row {
         /// breadth-first search in this row's scopes and the scopes of its
         /// scoped rows, recursively.
         public subscript(_ name: String) -> Row? {
-            struct Node {
-                let name: String
-                let row: Row
-            }
-            
             var fifo = Array(scopes)
             while !fifo.isEmpty {
                 let node = fifo.removeFirst()
@@ -1171,7 +1166,6 @@ extension Row {
                 }
                 fifo.append(contentsOf: node.row.scopes)
             }
-            
             return nil
         }
     }
