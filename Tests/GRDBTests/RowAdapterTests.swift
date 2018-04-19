@@ -275,24 +275,32 @@ class AdapterRowTests : RowTestCase {
             XCTAssertEqual(row["id2"] as Int, 2)
             XCTAssertEqual(row["val2"] as String, "foo2")
             
-            if let scope = row.scoped(on: "sub1") {
-                XCTAssertEqual(scope.count, 2)
-                XCTAssertEqual(scope["id"] as Int, 1)
-                XCTAssertEqual(scope["val"] as String, "foo1")
+            XCTAssertEqual(Set(row.scopes.names), ["sub1", "sub2"])
+            XCTAssertEqual(row.scopes.count, 2)
+            for (name, scopedRow) in row.scopes {
+                if name == "sub1" {
+                    XCTAssertEqual(scopedRow, ["id": 1, "val": "foo1"])
+                } else if name == "sub2" {
+                    XCTAssertEqual(scopedRow, ["id": 2, "val": "foo2"])
+                } else {
+                    XCTFail()
+                }
+            }
+            
+            if let scopedRow = row.scopes["sub1"] {
+                XCTAssertEqual(scopedRow, ["id": 1, "val": "foo1"])
             } else {
                 XCTFail()
             }
             
-            if let scope = row.scoped(on: "sub2") {
-                XCTAssertEqual(scope.count, 2)
-                XCTAssertEqual(scope["id"] as Int, 2)
-                XCTAssertEqual(scope["val"] as String, "foo2")
+            if let scopedRow = row.scopes["sub2"] {
+                XCTAssertEqual(scopedRow, ["id": 2, "val": "foo2"])
             } else {
                 XCTFail()
             }
             
-            XCTAssertTrue(row.scoped(on: "SUB1") == nil)     // case-insensitivity is not really required here, and case-sensitivity helps the implementation because it allows the use of a dictionary. So let's enforce this with a public test.
-            XCTAssertTrue(row.scoped(on: "missing") == nil)
+            XCTAssertTrue(row.scopes["SUB1"] == nil)     // case-insensitivity is not really required here, and case-sensitivity helps the implementation because it allows the use of a dictionary. So let's enforce this with a public test.
+            XCTAssertTrue(row.scopes["missing"] == nil)
         }
     }
 
@@ -309,24 +317,32 @@ class AdapterRowTests : RowTestCase {
             XCTAssertEqual(row["id"] as Int, 0)
             XCTAssertEqual(row["val"] as String, "foo0")
             
-            if let scope = row.scoped(on: "sub1") {
-                XCTAssertEqual(scope.count, 2)
-                XCTAssertEqual(scope["id"] as Int, 1)
-                XCTAssertEqual(scope["val"] as String, "foo1")
+            XCTAssertEqual(Set(row.scopes.names), ["sub1", "sub2"])
+            XCTAssertEqual(row.scopes.count, 2)
+            for (name, scopedRow) in row.scopes {
+                if name == "sub1" {
+                    XCTAssertEqual(scopedRow, ["id": 1, "val": "foo1"])
+                } else if name == "sub2" {
+                    XCTAssertEqual(scopedRow, ["id": 2, "val": "foo2"])
+                } else {
+                    XCTFail()
+                }
+            }
+            
+            if let scopedRow = row.scopes["sub1"] {
+                XCTAssertEqual(scopedRow, ["id": 1, "val": "foo1"])
             } else {
                 XCTFail()
             }
             
-            if let scope = row.scoped(on: "sub2") {
-                XCTAssertEqual(scope.count, 2)
-                XCTAssertEqual(scope["id"] as Int, 2)
-                XCTAssertEqual(scope["val"] as String, "foo2")
+            if let scopedRow = row.scopes["sub2"] {
+                XCTAssertEqual(scopedRow, ["id": 2, "val": "foo2"])
             } else {
                 XCTFail()
             }
-            
-            XCTAssertTrue(row.scoped(on: "SUB1") == nil)     // case-insensitivity is not really required here, and case-sensitivity helps the implementation because it allows the use of a dictionary. So let's enforce this with a public test.
-            XCTAssertTrue(row.scoped(on: "missing") == nil)
+
+            XCTAssertTrue(row.scopes["SUB1"] == nil)     // case-insensitivity is not really required here, and case-sensitivity helps the implementation because it allows the use of a dictionary. So let's enforce this with a public test.
+            XCTAssertTrue(row.scopes["missing"] == nil)
         }
     }
 
@@ -337,34 +353,42 @@ class AdapterRowTests : RowTestCase {
             let adapter1 = ColumnMapping(["id": "id1", "val": "val1"])
             let adapter2 = ColumnMapping(["id": "id2", "val": "val2"])
             
+            // - sub0 is defined in the the first scoped adapter
+            // - sub1 is defined in the the first scoped adapter, and then
+            // redefined in the second
+            // - sub2 is defined in the the second scoped adapter
             let mainAdapter = ScopeAdapter(["sub0": adapter0, "sub1": adapter2])
             let adapter = mainAdapter.addingScopes(["sub1": adapter1, "sub2": adapter2])
             let row = try Row.fetchOne(db, "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
             
-            // sub0 is defined in the the first scoped adapter
-            if let scope = row.scoped(on: "sub0") {
-                XCTAssertEqual(scope.count, 2)
-                XCTAssertEqual(scope["id"] as Int, 0)
-                XCTAssertEqual(scope["val"] as String, "foo0")
+            XCTAssertEqual(Set(row.scopes.names), ["sub0", "sub1", "sub2"])
+            XCTAssertEqual(row.scopes.count, 3)
+            for (name, scopedRow) in row.scopes {
+                if name == "sub0" {
+                    XCTAssertEqual(scopedRow, ["id": 0, "val": "foo0"])
+                } else if name == "sub1" {
+                    XCTAssertEqual(scopedRow, ["id": 1, "val": "foo1"])
+                } else if name == "sub2" {
+                    XCTAssertEqual(scopedRow, ["id": 2, "val": "foo2"])
+                } else {
+                    XCTFail()
+                }
+            }
+            
+            if let scopedRow = row.scopes["sub0"] {
+                XCTAssertEqual(scopedRow, ["id": 0, "val": "foo0"])
             } else {
                 XCTFail()
             }
             
-            // sub1 is defined in the the first scoped adapter, and then
-            // redefined in the second
-            if let scope = row.scoped(on: "sub1") {
-                XCTAssertEqual(scope.count, 2)
-                XCTAssertEqual(scope["id"] as Int, 1)
-                XCTAssertEqual(scope["val"] as String, "foo1")
+            if let scopedRow = row.scopes["sub1"] {
+                XCTAssertEqual(scopedRow, ["id": 1, "val": "foo1"])
             } else {
                 XCTFail()
             }
             
-            // sub2 is defined in the the second scoped adapter
-            if let scope = row.scoped(on: "sub2") {
-                XCTAssertEqual(scope.count, 2)
-                XCTAssertEqual(scope["id"] as Int, 2)
-                XCTAssertEqual(scope["val"] as String, "foo2")
+            if let scopedRow = row.scopes["sub2"] {
+                XCTAssertEqual(scopedRow, ["id": 2, "val": "foo2"])
             } else {
                 XCTFail()
             }
@@ -385,15 +409,31 @@ class AdapterRowTests : RowTestCase {
             XCTAssertEqual(row["id"] as Int, 0)
             XCTAssertEqual(row["val"] as String, "foo0")
             
-            if let scope = row.scoped(on: "sub1") {
-                XCTAssertEqual(scope.count, 2)
-                XCTAssertEqual(scope["id"] as Int, 1)
-                XCTAssertEqual(scope["val"] as String, "foo1")
+            XCTAssertEqual(Set(row.scopes.names), ["sub1"])
+            XCTAssertEqual(row.scopes.count, 1)
+            for (name, scopedRow) in row.scopes {
+                if name == "sub1" {
+                    XCTAssertEqual(scopedRow.unscoped, ["id": 1, "val": "foo1"])
+                } else {
+                    XCTFail()
+                }
+            }
+            
+            if let scopedRow = row.scopes["sub1"] {
+                XCTAssertEqual(scopedRow.unscoped, ["id": 1, "val": "foo1"])
                 
-                if let scope = scope.scoped(on: "sub2") {
-                    XCTAssertEqual(scope.count, 2)
-                    XCTAssertEqual(scope["id"] as Int, 2)
-                    XCTAssertEqual(scope["val"] as String, "foo2")
+                XCTAssertEqual(Set(scopedRow.scopes.names), ["sub2"])
+                XCTAssertEqual(scopedRow.scopes.count, 1)
+                for (name, subScopedRow) in scopedRow.scopes {
+                    if name == "sub2" {
+                        XCTAssertEqual(subScopedRow, ["id": 2, "val": "foo2"])
+                    } else {
+                        XCTFail()
+                    }
+                }
+                
+                if let subScopedRow = scopedRow.scopes["sub2"] {
+                    XCTAssertEqual(subScopedRow, ["id": 2, "val": "foo2"])
                 } else {
                     XCTFail()
                 }
@@ -402,7 +442,7 @@ class AdapterRowTests : RowTestCase {
             }
             
             // sub2 is only defined in sub1
-            XCTAssertTrue(row.scoped(on: "sub2") == nil)
+            XCTAssertTrue(row.scopes["sub2"] == nil)
         }
     }
 
@@ -442,13 +482,32 @@ class AdapterRowTests : RowTestCase {
                         "sub2": SuffixRowAdapter(fromIndex: 1)])])
             let row = try Row.fetchOne(db, "SELECT 0 AS a0, 1 AS a1, 2 AS a2, 3 AS a3", adapter: adapter)!
             
-            if let scope = row.scoped(on: "sub1") {
-                XCTAssertEqual(Array(scope.columnNames), ["a1", "a2", "a3"])
-                XCTAssertEqual(Array(scope.databaseValues), [1.databaseValue, 2.databaseValue, 3.databaseValue])
+            XCTAssertEqual(Set(row.scopes.names), ["sub1"])
+            XCTAssertEqual(row.scopes.count, 1)
+            for (name, scopedRow) in row.scopes {
+                if name == "sub1" {
+                    XCTAssertEqual(scopedRow.unscoped, ["a1": 1, "a2": 2, "a3": 3])
+                } else {
+                    XCTFail()
+                }
+            }
+            
+            if let scopedRow = row.scopes["sub1"] {
+                XCTAssertEqual(scopedRow.unscoped, ["a1": 1, "a2": 2, "a3": 3])
+
+                XCTAssertEqual(Set(scopedRow.scopes.names), ["sub2"])
+                XCTAssertEqual(scopedRow.scopes.count, 1)
+                for (name, subScopedRow) in scopedRow.scopes {
+                    if name == "sub2" {
+                        XCTAssertEqual(subScopedRow, ["a1": 1, "a2": 2, "a3": 3])
+                    } else {
+                        XCTFail()
+                    }
+                }
                 
-                if let scope = scope.scoped(on: "sub2") {
-                    XCTAssertEqual(Array(scope.columnNames), ["a1", "a2", "a3"])
-                    XCTAssertEqual(Array(scope.databaseValues), [1.databaseValue, 2.databaseValue, 3.databaseValue])
+                if let subScopedRow = scopedRow.scopes["sub2"] {
+                    XCTAssertEqual(subScopedRow, ["a1": 1, "a2": 2, "a3": 3])
+                    XCTAssertTrue(subScopedRow.scopes.isEmpty)
                 } else {
                     XCTFail()
                 }
@@ -457,7 +516,7 @@ class AdapterRowTests : RowTestCase {
             }
             
             // sub2 is only defined in sub1
-            XCTAssertTrue(row.scoped(on: "sub2") == nil)
+            XCTAssertTrue(row.scopes["sub2"] == nil)
         }
     }
 
@@ -534,13 +593,32 @@ class AdapterRowTests : RowTestCase {
                         "sub2": RangeRowAdapter(1..<3)])])
             let row = try Row.fetchOne(db, "SELECT 0 AS a0, 1 AS a1, 2 AS a2, 3 AS a3", adapter: adapter)!
             
-            if let scope = row.scoped(on: "sub1") {
-                XCTAssertEqual(Array(scope.columnNames), ["a1", "a2"])
-                XCTAssertEqual(Array(scope.databaseValues), [1.databaseValue, 2.databaseValue])
+            XCTAssertEqual(Set(row.scopes.names), ["sub1"])
+            XCTAssertEqual(row.scopes.count, 1)
+            for (name, scopedRow) in row.scopes {
+                if name == "sub1" {
+                    XCTAssertEqual(scopedRow.unscoped, ["a1": 1, "a2": 2])
+                } else {
+                    XCTFail()
+                }
+            }
+            
+            if let scopedRow = row.scopes["sub1"] {
+                XCTAssertEqual(scopedRow.unscoped, ["a1": 1, "a2": 2])
                 
-                if let scope = scope.scoped(on: "sub2") {
-                    XCTAssertEqual(Array(scope.columnNames), ["a1", "a2"])
-                    XCTAssertEqual(Array(scope.databaseValues), [1.databaseValue, 2.databaseValue])
+                XCTAssertEqual(Set(scopedRow.scopes.names), ["sub2"])
+                XCTAssertEqual(scopedRow.scopes.count, 1)
+                for (name, subScopedRow) in scopedRow.scopes {
+                    if name == "sub2" {
+                        XCTAssertEqual(subScopedRow, ["a1": 1, "a2": 2])
+                    } else {
+                        XCTFail()
+                    }
+                }
+                
+                if let subScopedRow = scopedRow.scopes["sub2"] {
+                    XCTAssertEqual(subScopedRow, ["a1": 1, "a2": 2])
+                    XCTAssertTrue(subScopedRow.scopes.isEmpty)
                 } else {
                     XCTFail()
                 }
@@ -549,7 +627,7 @@ class AdapterRowTests : RowTestCase {
             }
             
             // sub2 is only defined in sub1
-            XCTAssertTrue(row.scoped(on: "sub2") == nil)
+            XCTAssertTrue(row.scopes["sub2"] == nil)
         }
     }
 
@@ -569,9 +647,21 @@ class AdapterRowTests : RowTestCase {
                 XCTAssertEqual(copiedRow["a"] as Int, 0)
                 XCTAssertEqual(copiedRow["b"] as Int, 1)
                 XCTAssertEqual(copiedRow["c"] as Int, 2)
-                if let scope = copiedRow.scoped(on: "sub") {
-                    XCTAssertEqual(scope.count, 1)
-                    XCTAssertEqual(scope["a"] as Int, 1)
+                
+                XCTAssertEqual(Set(copiedRow.scopes.names), ["sub"])
+                XCTAssertEqual(copiedRow.scopes.count, 1)
+                for (name, scopedRow) in copiedRow.scopes {
+                    if name == "sub" {
+                        XCTAssertEqual(scopedRow, ["a": 1])
+                    } else {
+                        XCTFail()
+                    }
+                }
+                
+                if let scopedRow = copiedRow.scopes["sub"] {
+                    XCTAssertEqual(scopedRow, ["a": 1])
+                } else {
+                    XCTFail()
                 }
             } else {
                 XCTFail()
@@ -621,9 +711,9 @@ class AdapterRowTests : RowTestCase {
                 (row1, row3, true),
                 (row1, row4, false),
                 (row1, row5, false),
-                (row1.scoped(on: "sub"), row3.scoped(on: "sub"), true),
-                (row1.scoped(on: "sub"), row4.scoped(on: "sub"), true),
-                (row1.scoped(on: "sub"), row5.scoped(on: "sub"), false)]
+                (row1.scopes["sub"], row3.scopes["sub"], true),
+                (row1.scopes["sub"], row4.scopes["sub"], true),
+                (row1.scopes["sub"], row5.scopes["sub"], false)]
             for (lrow, rrow, equal) in tests {
                 if equal {
                     XCTAssertEqual(lrow, rrow)
@@ -740,8 +830,8 @@ class AdapterRowTests : RowTestCase {
                   - b: [id:1 val:"foo1"]
                     - ba: [id:2 val:"foo2"]
                 """)
-            XCTAssertEqual(row.scoped(on: "a")!.description, "[id:1 val:\"foo1\"]")
-            XCTAssertEqual(row.scoped(on: "a")!.debugDescription, """
+            XCTAssertEqual(row.scopes["a"]!.description, "[id:1 val:\"foo1\"]")
+            XCTAssertEqual(row.scopes["a"]!.debugDescription, """
                 ▿ [id:1 val:"foo1"]
                   unadapted: [id0:0 val0:"foo0" id1:1 val1:"foo1" id2:2 val2:"foo2"]
                   - a: [id0:0 val0:"foo0" id1:1 val1:"foo1" id2:2 val2:"foo2"]

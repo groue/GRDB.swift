@@ -95,7 +95,7 @@ private struct FlatModel: FetchableRecord {
         self.t2Left = row[Scopes.t2Left]
         self.t2Right = row[Scopes.t2Right]
         self.t3 = row[Scopes.t3]
-        self.t5count = row.scoped(on: Scopes.suffix)!["t5count"]
+        self.t5count = row.scopes[Scopes.suffix]!["t5count"]
     }
     
     static func all() -> AdaptedFetchRequest<SQLRequest<FlatModel>> {
@@ -299,11 +299,11 @@ class JoinSupportTests: GRDBTestCase {
                 "t1id": 1, "name": "A3",
                 // t5count
                 "t5count": 5])
-            XCTAssertEqual(rows[0].scoped(on: "t1")!, ["id": 1, "name": "A1"])
-            XCTAssertEqual(rows[0].scoped(on: "t2Left")!, ["id": 1, "t1id": 1, "name": "left"])
-            XCTAssertEqual(rows[0].scoped(on: "t2Right")!, ["id": 2, "t1id": 1, "name": "right"])
-            XCTAssertEqual(rows[0].scoped(on: "t3")!, ["t1id": 1, "name": "A3"])
-            XCTAssertEqual(rows[0].scoped(on: "suffix")!, ["t5count": 5])
+            XCTAssertEqual(rows[0].scopes["t1"]!, ["id": 1, "name": "A1"])
+            XCTAssertEqual(rows[0].scopes["t2Left"]!, ["id": 1, "t1id": 1, "name": "left"])
+            XCTAssertEqual(rows[0].scopes["t2Right"]!, ["id": 2, "t1id": 1, "name": "right"])
+            XCTAssertEqual(rows[0].scopes["t3"]!, ["t1id": 1, "name": "A3"])
+            XCTAssertEqual(rows[0].scopes["suffix"]!, ["t5count": 5])
             
             XCTAssertEqual(rows[1].unscoped, [
                 // t1.*
@@ -316,11 +316,11 @@ class JoinSupportTests: GRDBTestCase {
                 "t1id": nil, "name": nil,
                 // t5count
                 "t5count": 2])
-            XCTAssertEqual(rows[1].scoped(on: "t1")!, ["id": 2, "name": "A2"])
-            XCTAssertEqual(rows[1].scoped(on: "t2Left")!, ["id": 3, "t1id": 2, "name": "left"])
-            XCTAssertEqual(rows[1].scoped(on: "t2Right")!, ["id": nil, "t1id": nil, "name": nil])
-            XCTAssertEqual(rows[1].scoped(on: "t3")!, ["t1id": nil, "name": nil])
-            XCTAssertEqual(rows[1].scoped(on: "suffix")!, ["t5count": 2])
+            XCTAssertEqual(rows[1].scopes["t1"]!, ["id": 2, "name": "A2"])
+            XCTAssertEqual(rows[1].scopes["t2Left"]!, ["id": 3, "t1id": 2, "name": "left"])
+            XCTAssertEqual(rows[1].scopes["t2Right"]!, ["id": nil, "t1id": nil, "name": nil])
+            XCTAssertEqual(rows[1].scopes["t3"]!, ["t1id": nil, "name": nil])
+            XCTAssertEqual(rows[1].scopes["suffix"]!, ["t5count": 2])
             
             XCTAssertEqual(rows[2].unscoped, [
                 // t1.*
@@ -333,11 +333,11 @@ class JoinSupportTests: GRDBTestCase {
                 "t1id": nil, "name": nil,
                 // t5count
                 "t5count": 0])
-            XCTAssertEqual(rows[2].scoped(on: "t1")!, ["id": 3, "name": "A3"])
-            XCTAssertEqual(rows[2].scoped(on: "t2Left")!, ["id": nil, "t1id": nil, "name": nil])
-            XCTAssertEqual(rows[2].scoped(on: "t2Right")!, ["id": nil, "t1id": nil, "name": nil])
-            XCTAssertEqual(rows[2].scoped(on: "t3")!, ["t1id": nil, "name": nil])
-            XCTAssertEqual(rows[2].scoped(on: "suffix")!, ["t5count": 0])
+            XCTAssertEqual(rows[2].scopes["t1"]!, ["id": 3, "name": "A3"])
+            XCTAssertEqual(rows[2].scopes["t2Left"]!, ["id": nil, "t1id": nil, "name": nil])
+            XCTAssertEqual(rows[2].scopes["t2Right"]!, ["id": nil, "t1id": nil, "name": nil])
+            XCTAssertEqual(rows[2].scopes["t3"]!, ["t1id": nil, "name": nil])
+            XCTAssertEqual(rows[2].scopes["suffix"]!, ["t5count": 0])
         }
     }
     

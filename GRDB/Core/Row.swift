@@ -511,7 +511,7 @@ extension Row {
     // MARK: - Scopes
     
     /// Returns a view of the scopes defined by row adapters
-    var scopes: RowScopes {
+    public var scopes: RowScopes {
         return impl.scopes
     }
     
@@ -1007,7 +1007,7 @@ public struct RowScopes: Collection {
     private let row: Row
     private let scopes: [String: LayoutedRowAdapter]
     
-    var names: Dictionary<String, LayoutedRowAdapter>.Keys {
+    public var names: Dictionary<String, LayoutedRowAdapter>.Keys {
         return scopes.keys
     }
     
