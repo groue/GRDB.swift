@@ -1160,11 +1160,11 @@ extension Row {
         public subscript(_ name: String) -> Row? {
             var fifo = Array(scopes)
             while !fifo.isEmpty {
-                let node = fifo.removeFirst()
-                if node.name == name {
-                    return node.row
+                let scope = fifo.removeFirst()
+                if scope.name == name {
+                    return scope.row
                 }
-                fifo.append(contentsOf: node.row.scopes)
+                fifo.append(contentsOf: scope.row.scopes)
             }
             return nil
         }
