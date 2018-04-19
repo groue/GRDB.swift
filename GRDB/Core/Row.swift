@@ -510,30 +510,51 @@ extension Row {
     
     // MARK: - Scopes
     
-    /// Returns a view of the scopes defined by row adapters.
+    /// Returns a view on the scopes defined by row adapters.
     ///
     /// For example:
     ///
-    ///     // Define scopes
+    ///     // Define a tree of scopes
     ///     let adapter = ScopeAdapter([
-    ///         "prefix": RangeRowAdapter(0..<1),
-    ///         "suffix": RangeRowAdapter(1..<2)])
+    ///         "foo": RangeRowAdapter(0..<1),
+    ///         "bar": RangeRowAdapter(1..<2).addingScopes([
+    ///             "baz" : RangeRowAdapter(2..<3)])])
     ///
     ///     // Fetch
     ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
     ///     let row = try Row.fetchOne(db, sql, adapter: adapter)!
     ///
     ///     row.scopes.count // 2
-    ///     row.scopes.names // ["prefix", "suffix"]
+    ///     row.scopes.names // ["foo", "bar"]
     ///
-    ///     if let prefixRow = row.scopes["prefix"] {
-    ///         prefixRow    // [foo:1]
-    ///     }
-    ///     if let suffixRow = row.scopes["suffix"] {
-    ///         suffixRow    // [bar:2]
-    ///     }
-    public var scopes: Scopes {
+    ///     row.scopesTree["foo"] // [foo:1]
+    ///     row.scopesTree["bar"] // [bar:2]
+    ///     row.scopesTree["baz"] // nil
+    public var scopes: ScopesView {
         return impl.scopes
+    }
+    
+    /// Returns a view on the scopes tree defined by row adapters.
+    ///
+    /// For example:
+    ///
+    ///     // Define a tree of scopes
+    ///     let adapter = ScopeAdapter([
+    ///         "foo": RangeRowAdapter(0..<1),
+    ///         "bar": RangeRowAdapter(1..<2).addingScopes([
+    ///             "baz" : RangeRowAdapter(2..<3)])])
+    ///
+    ///     // Fetch
+    ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
+    ///     let row = try Row.fetchOne(db, sql, adapter: adapter)!
+    ///
+    ///     row.scopesTree.names  // ["foo", "bar", "baz"]
+    ///
+    ///     row.scopesTree["foo"] // [foo:1]
+    ///     row.scopesTree["bar"] // [bar:2]
+    ///     row.scopesTree["baz"] // [baz:3]
+    public var scopesTree: ScopesTreeView {
+        return ScopesTreeView(scopes: scopes)
     }
     
     /// Returns a copy of the row, without any scopes.
@@ -1021,7 +1042,7 @@ extension RowIndex {
     }
 }
 
-// MARK: - Row.Scopes
+// MARK: - Row.ScopesView
 
 extension Row {
     /// A view of the scopes defined by row adapters. It is a collection of
@@ -1030,30 +1051,28 @@ extension Row {
     ///
     /// For example:
     ///
-    ///     // Define scopes
+    ///     // Define a tree of scopes
     ///     let adapter = ScopeAdapter([
-    ///         "prefix": RangeRowAdapter(0..<1),
-    ///         "suffix": RangeRowAdapter(1..<2)])
+    ///         "foo": RangeRowAdapter(0..<1),
+    ///         "bar": RangeRowAdapter(1..<2).addingScopes([
+    ///             "baz" : RangeRowAdapter(2..<3)])])
     ///
     ///     // Fetch
     ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
     ///     let row = try Row.fetchOne(db, sql, adapter: adapter)!
     ///
     ///     row.scopes.count // 2
-    ///     row.scopes.names // ["prefix", "suffix"]
+    ///     row.scopes.names // ["foo", "bar"]
     ///
-    ///     if let prefixRow = row.scopes["prefix"] {
-    ///         prefixRow    // [foo:1]
-    ///     }
-    ///     if let suffixRow = row.scopes["suffix"] {
-    ///         suffixRow    // [bar:2]
-    ///     }
-    public struct Scopes: Collection {
+    ///     row.scopesTree["foo"] // [foo:1]
+    ///     row.scopesTree["bar"] // [bar:2]
+    ///     row.scopesTree["baz"] // nil
+    public struct ScopesView: Collection {
         public typealias Index = Dictionary<String, LayoutedRowAdapter>.Index
         private let row: Row
         private let scopes: [String: LayoutedRowAdapter]
         
-        /// All defined scopes
+        /// The scopes defined on this row.
         public var names: Dictionary<String, LayoutedRowAdapter>.Keys {
             return scopes.keys
         }
@@ -1096,28 +1115,61 @@ extension Row {
             }
             return Row(base: row, adapter: adapter)
         }
+    }
+}
+
+// MARK: - Row.ScopesTreeView
+
+extension Row {
+    
+    /// A view on the scopes tree defined by row adapters.
+    ///
+    /// For example:
+    ///
+    ///     // Define a tree of scopes
+    ///     let adapter = ScopeAdapter([
+    ///         "foo": RangeRowAdapter(0..<1),
+    ///         "bar": RangeRowAdapter(1..<2).addingScopes([
+    ///             "baz" : RangeRowAdapter(2..<3)])])
+    ///
+    ///     // Fetch
+    ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
+    ///     let row = try Row.fetchOne(db, sql, adapter: adapter)!
+    ///
+    ///     row.scopesTree.names  // ["foo", "bar", "baz"]
+    ///
+    ///     row.scopesTree["foo"] // [foo:1]
+    ///     row.scopesTree["bar"] // [bar:2]
+    ///     row.scopesTree["baz"] // [baz:3]
+    public struct ScopesTreeView {
+        let scopes: ScopesView
         
+        /// The scopes defined on this row, recursively.
+        public var names: Set<String> {
+            var names = Set<String>()
+            for (name, row) in scopes {
+                names.insert(name)
+                names.formUnion(row.scopesTree.names)
+            }
+            return names
+        }
+
         /// Returns the row associated with the given scope, by performing a
         /// breadth-first search in this row's scopes and the scopes of its
         /// scoped rows, recursively.
-        public func lookup(_ name: String) -> Row? {
+        public subscript(_ name: String) -> Row? {
             struct Node {
-                let row: Row
                 let name: String
+                let row: Row
             }
             
-            var fifo: [Node] = scopes.map { (name, adapter) in
-                Node(row: Row(base: row, adapter: adapter), name: name)
-            }
-            
+            var fifo = Array(scopes)
             while !fifo.isEmpty {
                 let node = fifo.removeFirst()
                 if node.name == name {
                     return node.row
                 }
-                for (name, scopedRow) in node.row.scopes {
-                    fifo.append(Node(row: scopedRow, name: name))
-                }
+                fifo.append(contentsOf: node.row.scopes)
             }
             
             return nil
@@ -1131,7 +1183,7 @@ extension Row {
 protocol RowImpl {
     var count: Int { get }
     var isFetched: Bool { get }
-    var scopes: Row.Scopes { get }
+    var scopes: Row.ScopesView { get }
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue
     func fastValue<Value: DatabaseValueConvertible & StatementColumnConvertible>(atUncheckedIndex index: Int) -> Value
     func fastValue<Value: DatabaseValueConvertible & StatementColumnConvertible>(atUncheckedIndex index: Int) -> Value?
@@ -1162,8 +1214,8 @@ extension RowImpl {
         return row
     }
     
-    var scopes: Row.Scopes {
-        return Row.Scopes()
+    var scopes: Row.ScopesView {
+        return Row.ScopesView()
     }
     
     func hasNull(atUncheckedIndex index:Int) -> Bool {

@@ -210,7 +210,7 @@ class RowFromDictionaryLiteralTests : RowTestCase {
         let row: Row = ["a": 0, "b": 1, "c": 2]
         XCTAssertTrue(row.scopes.isEmpty)
         XCTAssertTrue(row.scopes["missing"] == nil)
-        XCTAssertTrue(row.scopes.lookup("missing") == nil)
+        XCTAssertTrue(row.scopesTree["missing"] == nil)
     }
     
     func testCopy() {

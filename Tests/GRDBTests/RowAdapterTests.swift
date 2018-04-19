@@ -287,19 +287,21 @@ class AdapterRowTests : RowTestCase {
                 }
             }
             
+            XCTAssertEqual(row.scopesTree.names, ["sub1", "sub2"])
+            
             XCTAssertEqual(row.scopes["sub1"]!, ["id": 1, "val": "foo1"])
             XCTAssertTrue(row.scopes["sub1"]!.scopes.isEmpty)
-            XCTAssertEqual(row.scopes.lookup("sub1"), row.scopes["sub1"])
+            XCTAssertEqual(row.scopesTree["sub1"], row.scopes["sub1"])
             
             XCTAssertEqual(row.scopes["sub2"]!, ["id": 2, "val": "foo2"])
             XCTAssertTrue(row.scopes["sub2"]!.scopes.isEmpty)
-            XCTAssertEqual(row.scopes.lookup("sub2"), row.scopes["sub2"])
+            XCTAssertEqual(row.scopesTree["sub2"], row.scopes["sub2"])
 
             XCTAssertTrue(row.scopes["SUB1"] == nil)
-            XCTAssertTrue(row.scopes.lookup("SUB1") == nil)
+            XCTAssertTrue(row.scopesTree["SUB1"] == nil)
             
             XCTAssertTrue(row.scopes["missing"] == nil)
-            XCTAssertTrue(row.scopes.lookup("missing") == nil)
+            XCTAssertTrue(row.scopesTree["missing"] == nil)
         }
     }
 
@@ -328,19 +330,21 @@ class AdapterRowTests : RowTestCase {
                 }
             }
             
+            XCTAssertEqual(row.scopesTree.names, ["sub1", "sub2"])
+            
             XCTAssertEqual(row.scopes["sub1"]!, ["id": 1, "val": "foo1"])
             XCTAssertTrue(row.scopes["sub1"]!.scopes.isEmpty)
-            XCTAssertEqual(row.scopes.lookup("sub1"), row.scopes["sub1"])
+            XCTAssertEqual(row.scopesTree["sub1"], row.scopes["sub1"])
             
             XCTAssertEqual(row.scopes["sub2"], ["id": 2, "val": "foo2"])
             XCTAssertTrue(row.scopes["sub2"]!.scopes.isEmpty)
-            XCTAssertEqual(row.scopes.lookup("sub2"), row.scopes["sub2"])
+            XCTAssertEqual(row.scopesTree["sub2"], row.scopes["sub2"])
 
             XCTAssertTrue(row.scopes["SUB1"] == nil)
-            XCTAssertTrue(row.scopes.lookup("SUB1") == nil)
+            XCTAssertTrue(row.scopesTree["SUB1"] == nil)
             
             XCTAssertTrue(row.scopes["missing"] == nil)
-            XCTAssertTrue(row.scopes.lookup("missing") == nil)
+            XCTAssertTrue(row.scopesTree["missing"] == nil)
         }
     }
 
@@ -373,17 +377,19 @@ class AdapterRowTests : RowTestCase {
                 }
             }
             
+            XCTAssertEqual(row.scopesTree.names, ["sub0", "sub1", "sub2"])
+            
             XCTAssertEqual(row.scopes["sub0"], ["id": 0, "val": "foo0"])
             XCTAssertTrue(row.scopes["sub0"]!.scopes.isEmpty)
-            XCTAssertEqual(row.scopes.lookup("sub0"), row.scopes["sub0"])
+            XCTAssertEqual(row.scopesTree["sub0"], row.scopes["sub0"])
 
             XCTAssertEqual(row.scopes["sub1"], ["id": 1, "val": "foo1"])
             XCTAssertTrue(row.scopes["sub1"]!.scopes.isEmpty)
-            XCTAssertEqual(row.scopes.lookup("sub1"), row.scopes["sub1"])
+            XCTAssertEqual(row.scopesTree["sub1"], row.scopes["sub1"])
             
             XCTAssertEqual(row.scopes["sub2"], ["id": 2, "val": "foo2"])
             XCTAssertTrue(row.scopes["sub2"]!.scopes.isEmpty)
-            XCTAssertEqual(row.scopes.lookup("sub2"), row.scopes["sub2"])
+            XCTAssertEqual(row.scopesTree["sub2"], row.scopes["sub2"])
         }
     }
 
@@ -430,8 +436,9 @@ class AdapterRowTests : RowTestCase {
             // sub2 is only defined in sub1
             XCTAssertTrue(row.scopes["sub2"] == nil)
             
-            XCTAssertEqual(row.scopes.lookup("sub1"), row.scopes["sub1"])
-            XCTAssertEqual(row.scopes.lookup("sub2"), row.scopes["sub1"]!.scopes["sub2"])
+            XCTAssertEqual(row.scopesTree.names, ["sub1", "sub2"])
+            XCTAssertEqual(row.scopesTree["sub1"], row.scopes["sub1"])
+            XCTAssertEqual(row.scopesTree["sub2"], row.scopes["sub1"]!.scopes["sub2"])
         }
     }
 
@@ -501,8 +508,9 @@ class AdapterRowTests : RowTestCase {
             // sub2 is only defined in sub1
             XCTAssertTrue(row.scopes["sub2"] == nil)
             
-            XCTAssertEqual(row.scopes.lookup("sub1"), row.scopes["sub1"])
-            XCTAssertEqual(row.scopes.lookup("sub2"), row.scopes["sub1"]!.scopes["sub2"])
+            XCTAssertEqual(row.scopesTree.names, ["sub1", "sub2"])
+            XCTAssertEqual(row.scopesTree["sub1"], row.scopes["sub1"])
+            XCTAssertEqual(row.scopesTree["sub2"], row.scopes["sub1"]!.scopes["sub2"])
         }
     }
 
@@ -609,8 +617,9 @@ class AdapterRowTests : RowTestCase {
             // sub2 is only defined in sub1
             XCTAssertTrue(row.scopes["sub2"] == nil)
             
-            XCTAssertEqual(row.scopes.lookup("sub1"), row.scopes["sub1"])
-            XCTAssertEqual(row.scopes.lookup("sub2"), row.scopes["sub1"]!.scopes["sub2"])
+            XCTAssertEqual(row.scopesTree.names, ["sub1", "sub2"])
+            XCTAssertEqual(row.scopesTree["sub1"], row.scopes["sub1"])
+            XCTAssertEqual(row.scopesTree["sub2"], row.scopes["sub1"]!.scopes["sub2"])
         }
     }
 
@@ -641,9 +650,11 @@ class AdapterRowTests : RowTestCase {
                     }
                 }
                 
+                XCTAssertEqual(Set(copiedRow.scopes.names), ["sub"])
                 XCTAssertEqual(copiedRow.scopes["sub"]!, ["a": 1])
                 XCTAssertTrue(copiedRow.scopes["sub"]!.scopes.isEmpty)
-                XCTAssertEqual(copiedRow.scopes.lookup("sub")!, ["a": 1])
+                XCTAssertEqual(copiedRow.scopesTree.names, ["sub"])
+                XCTAssertEqual(copiedRow.scopesTree["sub"]!, ["a": 1])
             } else {
                 XCTFail()
             }

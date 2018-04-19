@@ -251,7 +251,7 @@ class RowCopiedFromStatementTests: RowTestCase {
             let row = try Row.fetchOne(db, "SELECT 'foo' AS nAmE, 1 AS foo")!
             XCTAssertTrue(row.scopes.isEmpty)
             XCTAssertTrue(row.scopes["missing"] == nil)
-            XCTAssertTrue(row.scopes.lookup("missing") == nil)
+            XCTAssertTrue(row.scopesTree["missing"] == nil)
         }
     }
 
