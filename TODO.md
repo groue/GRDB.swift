@@ -24,6 +24,10 @@ GRDB 3.0
 - [ ] If possible: Have Record adopt Codable
 - [ ] PR for Row.lookup() and breadth-first search of the scope
 - [ ] PR for OffsettedAdapter
+- [ ] Find a common name for DatabaseQueue.inDatabase / DatabasePool.writeWithoutTransaction:
+    - writeRaw, rawWrite, pureWrite, plainWrite, directWrite, basicWrite
+    - sync
+    - ?
 
 Not sure
 
