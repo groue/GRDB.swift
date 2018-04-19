@@ -61,7 +61,7 @@ public final class Row : Equatable, Hashable, RandomAccessCollection, Expressibl
     /// the iteration of a query: make sure to make a copy of it whenever you
     /// want to keep a specific one: `row.copy()`.
     public func copy() -> Row {
-        return impl.copy(self)
+        return impl.copiedRow(self)
     }
     
     // MARK: - Not Public
@@ -510,8 +510,29 @@ extension Row {
     
     // MARK: - Scopes
     
-    /// Returns a view of the scopes defined by row adapters
-    public var scopes: RowScopes {
+    /// Returns a view of the scopes defined by row adapters.
+    ///
+    /// For example:
+    ///
+    ///     // Define scopes
+    ///     let adapter = ScopeAdapter([
+    ///         "prefix": RangeRowAdapter(0..<1),
+    ///         "suffix": RangeRowAdapter(1..<2)])
+    ///
+    ///     // Fetch
+    ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
+    ///     let row = try Row.fetchOne(db, sql, adapter: adapter)!
+    ///
+    ///     row.scopes.count // 2
+    ///     row.scopes.names // ["prefix", "suffix"]
+    ///
+    ///     if let prefixRow = row.scopes["prefix"] {
+    ///         prefixRow    // [foo:1]
+    ///     }
+    ///     if let suffixRow = row.scopes["suffix"] {
+    ///         suffixRow    // [bar:2]
+    ///     }
+    public var scopes: Scopes {
         return impl.scopes
     }
     
@@ -526,7 +547,7 @@ extension Row {
     ///     // Success:
     ///     XCTAssertEqual(row.unscoped, ["id": 1, "name": "foo"])
     public var unscoped: Row {
-        return Row(impl: ArrayRowImpl(columns: map { ($0, $1) }))
+        return impl.unscopedRow(self)
     }
     
     /// Return the raw row fetched from the database.
@@ -534,7 +555,7 @@ extension Row {
     /// This property can turn out useful when you debug the consumption of
     /// adapted rows, such as rows fetched from joined requests.
     public var unadapted: Row {
-        return impl.unadaptedRow
+        return impl.unadaptedRow(self)
     }
 }
 
@@ -1000,44 +1021,81 @@ extension RowIndex {
     }
 }
 
-// MARK: - RowScopes
+// MARK: - Row.Scopes
 
-public struct RowScopes: Collection {
-    public typealias Index = Dictionary<String, LayoutedRowAdapter>.Index
-    private let row: Row
-    private let scopes: [String: LayoutedRowAdapter]
-    
-    public var names: Dictionary<String, LayoutedRowAdapter>.Keys {
-        return scopes.keys
-    }
-    
-    init(row: Row, scopes: [String: LayoutedRowAdapter]) {
-        self.row = row
-        self.scopes = scopes
-    }
-    
-    public var startIndex: Index {
-        return scopes.startIndex
-    }
-    
-    public var endIndex: Index {
-        return scopes.endIndex
-    }
-    
-    public func index(after i: Index) -> Index {
-        return scopes.index(after: i)
-    }
-    
-    public subscript(position: Index) -> (name: String, row: Row) {
-        let (name, adapter) = scopes[position]
-        return (name: name, row: Row(base: row, adapter: adapter))
-    }
-    
-    public subscript(_ name: String) -> Row? {
-        guard let adapter = scopes[name] else {
-            return nil
+extension Row {
+    /// A view of the scopes defined by row adapters. It is a collection of
+    /// tuples made of a scope name and a scoped row, which behaves like a
+    /// dictionary.
+    ///
+    /// For example:
+    ///
+    ///     // Define scopes
+    ///     let adapter = ScopeAdapter([
+    ///         "prefix": RangeRowAdapter(0..<1),
+    ///         "suffix": RangeRowAdapter(1..<2)])
+    ///
+    ///     // Fetch
+    ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
+    ///     let row = try Row.fetchOne(db, sql, adapter: adapter)!
+    ///
+    ///     row.scopes.count // 2
+    ///     row.scopes.names // ["prefix", "suffix"]
+    ///
+    ///     if let prefixRow = row.scopes["prefix"] {
+    ///         prefixRow    // [foo:1]
+    ///     }
+    ///     if let suffixRow = row.scopes["suffix"] {
+    ///         suffixRow    // [bar:2]
+    ///     }
+    public struct Scopes: Collection {
+        public typealias Index = Dictionary<String, LayoutedRowAdapter>.Index
+        private let row: Row
+        private let scopes: [String: LayoutedRowAdapter]
+        
+        /// All defined scopes
+        public var names: Dictionary<String, LayoutedRowAdapter>.Keys {
+            return scopes.keys
         }
-        return Row(base: row, adapter: adapter)
+        
+        init() {
+            self.init(row: Row(), scopes: [:])
+        }
+        
+        init(row: Row, scopes: [String: LayoutedRowAdapter]) {
+            self.row = row
+            self.scopes = scopes
+        }
+        
+        /// :nodoc:
+        public var startIndex: Index {
+            return scopes.startIndex
+        }
+        
+        /// :nodoc:
+        public var endIndex: Index {
+            return scopes.endIndex
+        }
+        
+        /// :nodoc:
+        public func index(after i: Index) -> Index {
+            return scopes.index(after: i)
+        }
+        
+        /// :nodoc:
+        public subscript(position: Index) -> (name: String, row: Row) {
+            let (name, adapter) = scopes[position]
+            return (name: name, row: Row(base: row, adapter: adapter))
+        }
+        
+        /// Returns the row associated with the given scope, or nil if the
+        /// scope is not defined.
+        public subscript(_ name: String) -> Row? {
+            guard let adapter = scopes[name] else {
+                return nil
+            }
+            return Row(base: row, adapter: adapter)
+        }
     }
 }
 
@@ -1047,8 +1105,7 @@ public struct RowScopes: Collection {
 protocol RowImpl {
     var count: Int { get }
     var isFetched: Bool { get }
-    var unadaptedRow: Row { get }
-    var scopes: RowScopes { get }
+    var scopes: Row.Scopes { get }
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue
     func fastValue<Value: DatabaseValueConvertible & StatementColumnConvertible>(atUncheckedIndex index: Int) -> Value
     func fastValue<Value: DatabaseValueConvertible & StatementColumnConvertible>(atUncheckedIndex index: Int) -> Value?
@@ -1061,16 +1118,26 @@ protocol RowImpl {
     func index(ofColumn name: String) -> Int?
     
     // row.impl is guaranteed to be self.
-    func copy(_ row: Row) -> Row
+    func unscopedRow(_ row: Row) -> Row
+    func unadaptedRow(_ row: Row) -> Row
+    func copiedRow(_ row: Row) -> Row
 }
 
 extension RowImpl {
-    var unadaptedRow: Row {
-        return Row(impl: self)
+    func copiedRow(_ row: Row) -> Row {
+        return row
     }
     
-    var scopes: RowScopes {
-        return RowScopes(row: Row(), scopes: [:])
+    func unscopedRow(_ row: Row) -> Row {
+        return row
+    }
+    
+    func unadaptedRow(_ row: Row) -> Row {
+        return row
+    }
+    
+    var scopes: Row.Scopes {
+        return Row.Scopes()
     }
     
     func hasNull(atUncheckedIndex index:Int) -> Bool {
@@ -1128,10 +1195,6 @@ private struct ArrayRowImpl : RowImpl {
         let lowercaseName = name.lowercased()
         return columns.index { (column, _) in column.lowercased() == lowercaseName }
     }
-    
-    func copy(_ row: Row) -> Row {
-        return row
-    }
 }
 
 
@@ -1171,10 +1234,6 @@ private struct StatementCopyRowImpl : RowImpl {
     func index(ofColumn name: String) -> Int? {
         let lowercaseName = name.lowercased()
         return columnNames.index { $0.lowercased() == lowercaseName }
-    }
-    
-    func copy(_ row: Row) -> Row {
-        return row
     }
 }
 
@@ -1246,11 +1305,10 @@ private struct StatementRowImpl : RowImpl {
         return lowercaseColumnIndexes[name.lowercased()]
     }
     
-    func copy(_ row: Row) -> Row {
+    func copiedRow(_ row: Row) -> Row {
         return Row(copiedFromSQLiteStatement: sqliteStatement, statementRef: statementRef)
     }
 }
-
 
 /// See Row.init()
 private struct EmptyRowImpl : RowImpl {
@@ -1279,9 +1337,5 @@ private struct EmptyRowImpl : RowImpl {
     
     func index(ofColumn name: String) -> Int? {
         return nil
-    }
-    
-    func copy(_ row: Row) -> Row {
-        return row
     }
 }

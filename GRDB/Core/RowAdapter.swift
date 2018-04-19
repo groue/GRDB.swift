@@ -475,10 +475,6 @@ struct AdaptedRowImpl : RowImpl {
         self.mapping = adapter.mapping
     }
     
-    var unadaptedRow: Row {
-        return base.unadapted
-    }
-    
     var count: Int {
         return mapping.layoutColumns.count
     }
@@ -487,8 +483,8 @@ struct AdaptedRowImpl : RowImpl {
         return base.isFetched
     }
     
-    var scopes: RowScopes {
-        return RowScopes(row: base, scopes: adapter.scopes)
+    var scopes: Row.Scopes {
+        return Row.Scopes(row: base, scopes: adapter.scopes)
     }
     
     func hasNull(atUncheckedIndex index: Int) -> Bool {
@@ -524,7 +520,16 @@ struct AdaptedRowImpl : RowImpl {
         return mapping.layoutIndex(ofColumn: name)
     }
     
-    func copy(_ row: Row) -> Row {
+    func copiedRow(_ row: Row) -> Row {
         return Row(base: base.copy(), adapter: adapter)
+    }
+
+    func unscopedRow(_ row: Row) -> Row {
+        assert(adapter.mapping.scopes.isEmpty)
+        return Row(base: base, adapter: adapter.mapping)
+    }
+    
+    func unadaptedRow(_ row: Row) -> Row {
+        return base.unadapted
     }
 }
