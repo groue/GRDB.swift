@@ -1813,13 +1813,13 @@ let adapter = ScopeAdapter([
 let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c, 3 AS d", adapter: adapter)!
 ```
 
-ScopeAdapter does not change the columns and values of the fetched row. Instead, it defines *scopes*, which you access with the `Row.scoped(on:)` method. This method returns an optional Row, which is nil if the scope is missing.
+ScopeAdapter does not change the columns and values of the fetched row. Instead, it defines *scopes*, which you access with `Row.scopes[]`. This subscript returns an optional Row, which is nil if the scope is missing.
 
 ```swift
-row                       // [a:0 b:1 c:2 d:3]
-row.scoped(on: "left")    // [a:0 b:1]
-row.scoped(on: "right")   // [c:2 d:3]
-row.scoped(on: "missing") // nil
+row                   // [a:0 b:1 c:2 d:3]
+row.scopes["left"]    // [a:0 b:1]
+row.scopes["right"]   // [c:2 d:3]
+row.scopes["missing"] // nil
 ```
 
 Scopes can be nested:
@@ -1835,13 +1835,13 @@ let adapter = ScopeAdapter([
     ])
 let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c, 3 AS d", adapter: adapter)!
 
-let leftRow = row.scoped(on: "left")!
-leftRow.scoped(on: "left")  // [a:0]
-leftRow.scoped(on: "right") // [b:1]
+let leftRow = row.scopes["left"]!
+leftRow.scopes["left"]  // [a:0]
+leftRow.scopes["right"] // [b:1]
 
-let rightRow = row.scoped(on: "right")!
-rightRow.scoped(on: "left")  // [c:2]
-rightRow.scoped(on: "right") // [d:3]
+let rightRow = row.scopes["right"]!
+rightRow.scopes["left"]  // [c:2]
+rightRow.scopes["right"] // [d:3]
 ```
 
 Any adapter can be extended with scopes:
@@ -1853,7 +1853,7 @@ let adapter = ScopeAdapter(base: baseAdapter, scopes: [
 let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c, 3 AS d", adapter: adapter)!
 
 row // [a:0 b:1]
-row.scoped(on: "remainder") // [c:2 d:3]
+row.scopes["remainder"] // [c:2 d:3]
 ```
 
 
