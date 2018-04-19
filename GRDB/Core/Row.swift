@@ -147,7 +147,7 @@ extension Row {
             return true
         }
         
-        for name in scopeNames where scoped(on: name)!.containsNonNullValue {
+        for (_, scopedRow) in scopes where scopedRow.containsNonNullValue {
             return true
         }
         
@@ -483,7 +483,7 @@ extension Row {
     /// See https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support
     /// for more information.
     public subscript<Record: FetchableRecord>(_ scope: String) -> Record {
-        guard let scopedRow = scoped(on: scope) else {
+        guard let scopedRow = scopes[scope] else {
             // Programmer error
             fatalError("no such scope: \(scope)")
         }
@@ -499,7 +499,7 @@ extension Row {
     /// See https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support
     /// for more information.
     public subscript<Record: FetchableRecord>(_ scope: String) -> Record? {
-        guard let scopedRow = scoped(on: scope), scopedRow.containsNonNullValue else {
+        guard let scopedRow = scopes[scope], scopedRow.containsNonNullValue else {
             return nil
         }
         return Record(row: scopedRow)
@@ -510,35 +510,9 @@ extension Row {
     
     // MARK: - Scopes
     
-    var scopeNames: Set<String> {
-        return impl.scopeNames
-    }
-    
-    /// Returns a scoped row, if the row was fetched with a row adapter that
-    /// defines this scope.
-    ///
-    ///     // Two adapters
-    ///     let fooAdapter = ColumnMapping(["value": "foo"])
-    ///     let barAdapter = ColumnMapping(["value": "bar"])
-    ///
-    ///     // Define scopes
-    ///     let adapter = ScopeAdapter([
-    ///         "foo": fooAdapter,
-    ///         "bar": barAdapter])
-    ///
-    ///     // Fetch
-    ///     let sql = "SELECT 'foo' AS foo, 'bar' AS bar"
-    ///     let row = try Row.fetchOne(db, sql, adapter: adapter)!
-    ///
-    ///     // Scoped rows:
-    ///     if let fooRow = row.scoped(on: "foo") {
-    ///         fooRow["value"]    // "foo"
-    ///     }
-    ///     if let barRow = row.scopeed(on: "bar") {
-    ///         barRow["value"]    // "bar"
-    ///     }
-    public func scoped(on name: String) -> Row? {
-        return impl.scoped(on: name)
+    /// Returns a view of the scopes defined by row adapters
+    var scopes: RowScopes {
+        return impl.scopes
     }
     
     /// Returns a copy of the row, without any scopes.
@@ -926,15 +900,15 @@ extension Row {
             }
         }
         
-        let lscopeNames = lhs.impl.scopeNames
-        let rscopeNames = rhs.impl.scopeNames
+        let lscopeNames = lhs.scopes.names
+        let rscopeNames = rhs.scopes.names
         guard lscopeNames == rscopeNames else {
             return false
         }
         
         for name in lscopeNames {
-            let lscope = lhs.scoped(on: name)
-            let rscope = rhs.scoped(on: name)
+            let lscope = lhs.scopes[name]
+            let rscope = rhs.scopes[name]
             guard lscope == rscope else {
                 return false
             }
@@ -983,9 +957,8 @@ extension Row {
         } else {
             str = description
         }
-        for scope in scopeNames.sorted() {
-            let scopedRow = scoped(on: scope)!
-            str += "\n" + prefix + "- " + scope + ": " + scopedRow.debugDescription(level: level + 1)
+        for (name, scopedRow) in scopes.sorted(by: { $0.name < $1.name }) {
+            str += "\n" + prefix + "- " + name + ": " + scopedRow.debugDescription(level: level + 1)
         }
         
         return str
@@ -1027,6 +1000,46 @@ extension RowIndex {
     }
 }
 
+// MARK: - RowScopes
+
+public struct RowScopes: Collection {
+    public typealias Index = Dictionary<String, LayoutedRowAdapter>.Index
+    private let row: Row
+    private let scopes: [String: LayoutedRowAdapter]
+    
+    var names: Dictionary<String, LayoutedRowAdapter>.Keys {
+        return scopes.keys
+    }
+    
+    init(row: Row, scopes: [String: LayoutedRowAdapter]) {
+        self.row = row
+        self.scopes = scopes
+    }
+    
+    public var startIndex: Index {
+        return scopes.startIndex
+    }
+    
+    public var endIndex: Index {
+        return scopes.endIndex
+    }
+    
+    public func index(after i: Index) -> Index {
+        return scopes.index(after: i)
+    }
+    
+    public subscript(position: Index) -> (name: String, row: Row) {
+        let (name, adapter) = scopes[position]
+        return (name: name, row: Row(base: row, adapter: adapter))
+    }
+    
+    public subscript(_ name: String) -> Row? {
+        guard let adapter = scopes[name] else {
+            return nil
+        }
+        return Row(base: row, adapter: adapter)
+    }
+}
 
 // MARK: - RowImpl
 
@@ -1035,6 +1048,7 @@ protocol RowImpl {
     var count: Int { get }
     var isFetched: Bool { get }
     var unadaptedRow: Row { get }
+    var scopes: RowScopes { get }
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue
     func fastValue<Value: DatabaseValueConvertible & StatementColumnConvertible>(atUncheckedIndex index: Int) -> Value
     func fastValue<Value: DatabaseValueConvertible & StatementColumnConvertible>(atUncheckedIndex index: Int) -> Value?
@@ -1046,9 +1060,6 @@ protocol RowImpl {
     // leftmost column that matches *name*.
     func index(ofColumn name: String) -> Int?
     
-    func scoped(on name: String) -> Row?
-    var scopeNames: Set<String> { get }
-    
     // row.impl is guaranteed to be self.
     func copy(_ row: Row) -> Row
 }
@@ -1056,6 +1067,10 @@ protocol RowImpl {
 extension RowImpl {
     var unadaptedRow: Row {
         return Row(impl: self)
+    }
+    
+    var scopes: RowScopes {
+        return RowScopes(row: Row(), scopes: [:])
     }
     
     func hasNull(atUncheckedIndex index:Int) -> Bool {
@@ -1114,14 +1129,6 @@ private struct ArrayRowImpl : RowImpl {
         return columns.index { (column, _) in column.lowercased() == lowercaseName }
     }
     
-    func scoped(on name: String) -> Row? {
-        return nil
-    }
-    
-    var scopeNames: Set<String> {
-        return []
-    }
-    
     func copy(_ row: Row) -> Row {
         return row
     }
@@ -1164,14 +1171,6 @@ private struct StatementCopyRowImpl : RowImpl {
     func index(ofColumn name: String) -> Int? {
         let lowercaseName = name.lowercased()
         return columnNames.index { $0.lowercased() == lowercaseName }
-    }
-    
-    func scoped(on name: String) -> Row? {
-        return nil
-    }
-    
-    var scopeNames: Set<String> {
-        return []
     }
     
     func copy(_ row: Row) -> Row {
@@ -1247,14 +1246,6 @@ private struct StatementRowImpl : RowImpl {
         return lowercaseColumnIndexes[name.lowercased()]
     }
     
-    func scoped(on name: String) -> Row? {
-        return nil
-    }
-    
-    var scopeNames: Set<String> {
-        return []
-    }
-    
     func copy(_ row: Row) -> Row {
         return Row(copiedFromSQLiteStatement: sqliteStatement, statementRef: statementRef)
     }
@@ -1288,14 +1279,6 @@ private struct EmptyRowImpl : RowImpl {
     
     func index(ofColumn name: String) -> Int? {
         return nil
-    }
-    
-    func scoped(on name: String) -> Row? {
-        return nil
-    }
-    
-    var scopeNames: Set<String> {
-        return []
     }
     
     func copy(_ row: Row) -> Row {

@@ -487,6 +487,10 @@ struct AdaptedRowImpl : RowImpl {
         return base.isFetched
     }
     
+    var scopes: RowScopes {
+        return RowScopes(row: base, scopes: adapter.scopes)
+    }
+    
     func hasNull(atUncheckedIndex index: Int) -> Bool {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
         return base.impl.hasNull(atUncheckedIndex: mappedIndex)
@@ -518,17 +522,6 @@ struct AdaptedRowImpl : RowImpl {
     
     func index(ofColumn name: String) -> Int? {
         return mapping.layoutIndex(ofColumn: name)
-    }
-    
-    func scoped(on name: String) -> Row? {
-        guard let adapter = adapter.scopes[name] else {
-            return nil
-        }
-        return Row(base: base, adapter: adapter)
-    }
-    
-    var scopeNames: Set<String> {
-        return Set(adapter.scopes.keys)
     }
     
     func copy(_ row: Row) -> Row {
