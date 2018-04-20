@@ -21,6 +21,8 @@ class SQLiteDateParser {
     }
     
     func components(cString: UnsafePointer<CChar>, length: Int) -> DatabaseDateComponents? {
+        assert(strlen(cString) == length)
+        
         guard length >= 5 else { return nil }
         
         if cString.advanced(by: 4).pointee == 45 /* '-' */ {
