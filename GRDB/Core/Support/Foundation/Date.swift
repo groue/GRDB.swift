@@ -108,6 +108,31 @@ extension Date : DatabaseValueConvertible {
     }
 }
 
+extension Date: StatementColumnConvertible {
+    
+    /// Returns a value initialized from a raw SQLite statement pointer.
+    ///
+    /// - parameters:
+    ///     - sqliteStatement: A pointer to an SQLite statement.
+    ///     - index: The column index.
+    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+        switch sqlite3_column_type(sqliteStatement, index) {
+        case SQLITE_INTEGER, SQLITE_FLOAT:
+            self.init(timeIntervalSince1970: sqlite3_column_double(sqliteStatement, Int32(index)))
+        case SQLITE_TEXT:
+            let databaseDateComponents = DatabaseDateComponents(sqliteStatement: sqliteStatement, index: index)
+            guard let date = Date(databaseDateComponents: databaseDateComponents) else {
+                let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: index)
+                fatalError("could not convert database value \(dbValue) to Date")
+            }
+            self.init(timeIntervalSinceReferenceDate: date.timeIntervalSinceReferenceDate)
+        default:
+            let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: index)
+            fatalError("could not convert database value \(dbValue) to Date")
+        }
+    }
+}
+
 /// The DatabaseDate date formatter for stored dates.
 private let storageDateFormatter: DateFormatter = {
     let formatter = DateFormatter()
