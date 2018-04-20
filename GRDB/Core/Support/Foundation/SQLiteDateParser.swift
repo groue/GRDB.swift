@@ -3,13 +3,7 @@ import Foundation
 // inspired by: http://jordansmith.io/performant-date-parsing/
 
 class SQLiteDateParser {
-
-    private static var mutex: pthread_mutex_t = {
-        var mutex = pthread_mutex_t()
-        pthread_mutex_init(&mutex, nil)
-        return mutex
-    }()
-
+    
     private static let year = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
     private static let month = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
     private static let day = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
@@ -48,9 +42,6 @@ class SQLiteDateParser {
     // - YYYY-MM-DDTHH:MM:SS
     // - YYYY-MM-DDTHH:MM:SS.SSS
     private static func datetimeComponents(from dateString: String) -> DatabaseDateComponents? {
-        pthread_mutex_lock(&mutex)
-        defer { pthread_mutex_unlock(&mutex) }
-
         let parseCount = withVaList([year, month, day, hour, minute, second, nanosecond]) { pointer in
             vsscanf(dateString, "%d-%d-%d%*c%d:%d:%d.%s", pointer)
         }
@@ -82,9 +73,6 @@ class SQLiteDateParser {
     // - HH:MM:SS
     // - HH:MM:SS.SSS
     private static func timeComponents(from timeString: String) -> DatabaseDateComponents? {
-        pthread_mutex_lock(&mutex)
-        defer { pthread_mutex_unlock(&mutex) }
-
         let parseCount = withVaList([hour, minute, second, nanosecond]) { pointer in
             vsscanf(timeString, "%d:%d:%d.%s", pointer)
         }
