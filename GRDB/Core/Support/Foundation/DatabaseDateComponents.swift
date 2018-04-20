@@ -134,7 +134,7 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
         }
 
         if useScanfStrategy {
-            return SQLiteDateParser.components(from: string)
+            return SQLiteDateParser().components(from: string)
         }
 
         var dateComponents = DateComponents()

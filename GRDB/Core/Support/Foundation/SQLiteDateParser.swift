@@ -14,7 +14,7 @@ class SQLiteDateParser {
         var nanosecond = ContiguousArray<CChar>.init(repeating: 0, count: 11)
     }
 
-    public static func components(from dateString: String) -> DatabaseDateComponents? {
+    public func components(from dateString: String) -> DatabaseDateComponents? {
         guard dateString.count >= 5 else { return nil }
 
         if dateString[dateString.index(dateString.startIndex, offsetBy: 4)] == "-" {
@@ -43,7 +43,7 @@ class SQLiteDateParser {
     // - YYYY-MM-DDTHH:MM
     // - YYYY-MM-DDTHH:MM:SS
     // - YYYY-MM-DDTHH:MM:SS.SSS
-    private static func datetimeComponents(from dateString: String) -> DatabaseDateComponents? {
+    private func datetimeComponents(from dateString: String) -> DatabaseDateComponents? {
         var parserComponents = ParserComponents()
         
         // TODO: Get rid of this pyramid when SE-0210 has shipped
@@ -92,7 +92,7 @@ class SQLiteDateParser {
     // - HH:MM
     // - HH:MM:SS
     // - HH:MM:SS.SSS
-    private static func timeComponents(from timeString: String) -> DatabaseDateComponents? {
+    private func timeComponents(from timeString: String) -> DatabaseDateComponents? {
         var parserComponents = ParserComponents()
         // TODO: Get rid of this pyramid when SE-0210 has shipped
         let parseCount = withUnsafeMutablePointer(to: &parserComponents.hour) { hourP in
@@ -125,7 +125,7 @@ class SQLiteDateParser {
         return DatabaseDateComponents(components, format: .HMSS)
     }
 
-    private static func nanosecondsInt(for nanosecond: ContiguousArray<CChar>) -> Int {
+    private func nanosecondsInt(for nanosecond: ContiguousArray<CChar>) -> Int {
         let nanoString = "0." + nanosecond.withUnsafeBufferPointer { String(cString: $0.baseAddress!) }
         guard let doubleValue = Double(nanoString) else { return 0 }
         return Int(doubleValue * 1_000_000_000)
