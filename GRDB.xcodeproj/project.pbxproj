@@ -259,6 +259,7 @@
 		566B91331FA4D3810012D5B0 /* TransactionObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566B91321FA4D3810012D5B0 /* TransactionObserver.swift */; };
 		566B91361FA4D3810012D5B0 /* TransactionObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566B91321FA4D3810012D5B0 /* TransactionObserver.swift */; };
 		566B91391FA4D3810012D5B0 /* TransactionObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566B91321FA4D3810012D5B0 /* TransactionObserver.swift */; };
+		56707201208A509C006AD95A /* DateParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567071FA208A509C006AD95A /* DateParsingTests.swift */; };
 		567156181CB142AA007DC145 /* DatabaseQueueReadOnlyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567156151CB142AA007DC145 /* DatabaseQueueReadOnlyTests.swift */; };
 		5671FC201DA3CAC9003BF4FF /* FTS3TokenizerDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5671FC1F1DA3CAC9003BF4FF /* FTS3TokenizerDescriptor.swift */; };
 		5671FC231DA3CAC9003BF4FF /* FTS3TokenizerDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5671FC1F1DA3CAC9003BF4FF /* FTS3TokenizerDescriptor.swift */; };
@@ -843,6 +844,7 @@
 		566B91221FA4CF810012D5B0 /* Database+Schema.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Database+Schema.swift"; sourceTree = "<group>"; };
 		566B912A1FA4D0CC0012D5B0 /* StatementAuthorizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatementAuthorizer.swift; sourceTree = "<group>"; };
 		566B91321FA4D3810012D5B0 /* TransactionObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionObserver.swift; sourceTree = "<group>"; };
+		567071FA208A509C006AD95A /* DateParsingTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DateParsingTests.swift; sourceTree = "<group>"; };
 		567156151CB142AA007DC145 /* DatabaseQueueReadOnlyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseQueueReadOnlyTests.swift; sourceTree = "<group>"; };
 		567156701CB18050007DC145 /* EncryptionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EncryptionTests.swift; sourceTree = "<group>"; };
 		5671FC1F1DA3CAC9003BF4FF /* FTS3TokenizerDescriptor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS3TokenizerDescriptor.swift; sourceTree = "<group>"; };
@@ -1574,6 +1576,7 @@
 				56DE7B361C42BBBB00861EB8 /* PerformanceCoreDataTests.sqlite */,
 				56DE7B2D1C42B23B00861EB8 /* PerformanceModel.xcdatamodeld */,
 				563363F81C960711000BE133 /* PerformanceRealmTests.realm */,
+				567071FA208A509C006AD95A /* DateParsingTests.swift */,
 				56DE7B271C41302500861EB8 /* FetchNamedValuesTests.swift */,
 				56DE7B291C4130AF00861EB8 /* FetchPositionalValuesTests.swift */,
 				56DE7B2B1C41311900861EB8 /* FetchRecordClassTests.swift */,
@@ -2136,6 +2139,7 @@
 			files = (
 				56D3BE711F4EB1A00034C6D2 /* FetchRecordStructTests.swift in Sources */,
 				560C98231C0E23BB00BF8471 /* InsertRecordClassTests.swift in Sources */,
+				56707201208A509C006AD95A /* DateParsingTests.swift in Sources */,
 				56DE7B2C1C41311900861EB8 /* FetchRecordClassTests.swift in Sources */,
 				56DE7B281C41302500861EB8 /* FetchNamedValuesTests.swift in Sources */,
 				56D507831F6D7B2E00AE1C5B /* InsertRecordStructTests.swift in Sources */,
