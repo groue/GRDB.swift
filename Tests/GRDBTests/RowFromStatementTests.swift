@@ -308,14 +308,16 @@ class RowFromStatementTests : RowTestCase {
         }
     }
 
-    func testVariants() throws {
+    func testScopes() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var rowFetched = false
             let rows = try Row.fetchCursor(db, "SELECT 'foo' AS nAmE, 1 AS foo")
             while let row = try rows.next() {
                 rowFetched = true
-                XCTAssertTrue(row.scoped(on: "missing") == nil)
+                XCTAssertTrue(row.scopes.isEmpty)
+                XCTAssertTrue(row.scopes["missing"] == nil)
+                XCTAssertTrue(row.scopesTree["missing"] == nil)
             }
             XCTAssertTrue(rowFetched)
         }

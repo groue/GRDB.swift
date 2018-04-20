@@ -61,7 +61,7 @@ public final class Row : Equatable, Hashable, RandomAccessCollection, Expressibl
     /// the iteration of a query: make sure to make a copy of it whenever you
     /// want to keep a specific one: `row.copy()`.
     public func copy() -> Row {
-        return impl.copy(self)
+        return impl.copiedRow(self)
     }
     
     // MARK: - Not Public
@@ -147,7 +147,7 @@ extension Row {
             return true
         }
         
-        for name in scopeNames where scoped(on: name)!.containsNonNullValue {
+        for (_, scopedRow) in scopes where scopedRow.containsNonNullValue {
             return true
         }
         
@@ -483,7 +483,7 @@ extension Row {
     /// See https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support
     /// for more information.
     public subscript<Record: FetchableRecord>(_ scope: String) -> Record {
-        guard let scopedRow = scoped(on: scope) else {
+        guard let scopedRow = scopesTree[scope] else {
             // Programmer error
             fatalError("no such scope: \(scope)")
         }
@@ -499,7 +499,7 @@ extension Row {
     /// See https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support
     /// for more information.
     public subscript<Record: FetchableRecord>(_ scope: String) -> Record? {
-        guard let scopedRow = scoped(on: scope), scopedRow.containsNonNullValue else {
+        guard let scopedRow = scopesTree[scope], scopedRow.containsNonNullValue else {
             return nil
         }
         return Record(row: scopedRow)
@@ -510,35 +510,51 @@ extension Row {
     
     // MARK: - Scopes
     
-    var scopeNames: Set<String> {
-        return impl.scopeNames
-    }
-    
-    /// Returns a scoped row, if the row was fetched with a row adapter that
-    /// defines this scope.
+    /// Returns a view on the scopes defined by row adapters.
     ///
-    ///     // Two adapters
-    ///     let fooAdapter = ColumnMapping(["value": "foo"])
-    ///     let barAdapter = ColumnMapping(["value": "bar"])
+    /// For example:
     ///
-    ///     // Define scopes
+    ///     // Define a tree of nested scopes
     ///     let adapter = ScopeAdapter([
-    ///         "foo": fooAdapter,
-    ///         "bar": barAdapter])
+    ///         "foo": RangeRowAdapter(0..<1),
+    ///         "bar": RangeRowAdapter(1..<2).addingScopes([
+    ///             "baz" : RangeRowAdapter(2..<3)])])
     ///
     ///     // Fetch
-    ///     let sql = "SELECT 'foo' AS foo, 'bar' AS bar"
+    ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
     ///     let row = try Row.fetchOne(db, sql, adapter: adapter)!
     ///
-    ///     // Scoped rows:
-    ///     if let fooRow = row.scoped(on: "foo") {
-    ///         fooRow["value"]    // "foo"
-    ///     }
-    ///     if let barRow = row.scopeed(on: "bar") {
-    ///         barRow["value"]    // "bar"
-    ///     }
-    public func scoped(on name: String) -> Row? {
-        return impl.scoped(on: name)
+    ///     row.scopes.count  // 2
+    ///     row.scopes.names  // ["foo", "bar"]
+    ///
+    ///     row.scopes["foo"] // [foo:1]
+    ///     row.scopes["bar"] // [bar:2]
+    ///     row.scopes["baz"] // nil
+    public var scopes: ScopesView {
+        return impl.scopes
+    }
+    
+    /// Returns a view on the scopes tree defined by row adapters.
+    ///
+    /// For example:
+    ///
+    ///     // Define a tree of nested scopes
+    ///     let adapter = ScopeAdapter([
+    ///         "foo": RangeRowAdapter(0..<1),
+    ///         "bar": RangeRowAdapter(1..<2).addingScopes([
+    ///             "baz" : RangeRowAdapter(2..<3)])])
+    ///
+    ///     // Fetch
+    ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
+    ///     let row = try Row.fetchOne(db, sql, adapter: adapter)!
+    ///
+    ///     row.scopesTree.names  // ["foo", "bar", "baz"]
+    ///
+    ///     row.scopesTree["foo"] // [foo:1]
+    ///     row.scopesTree["bar"] // [bar:2]
+    ///     row.scopesTree["baz"] // [baz:3]
+    public var scopesTree: ScopesTreeView {
+        return ScopesTreeView(scopes: scopes)
     }
     
     /// Returns a copy of the row, without any scopes.
@@ -552,7 +568,7 @@ extension Row {
     ///     // Success:
     ///     XCTAssertEqual(row.unscoped, ["id": 1, "name": "foo"])
     public var unscoped: Row {
-        return Row(impl: ArrayRowImpl(columns: map { ($0, $1) }))
+        return impl.unscopedRow(self)
     }
     
     /// Return the raw row fetched from the database.
@@ -560,7 +576,7 @@ extension Row {
     /// This property can turn out useful when you debug the consumption of
     /// adapted rows, such as rows fetched from joined requests.
     public var unadapted: Row {
-        return impl.unadaptedRow
+        return impl.unadaptedRow(self)
     }
 }
 
@@ -926,15 +942,15 @@ extension Row {
             }
         }
         
-        let lscopeNames = lhs.impl.scopeNames
-        let rscopeNames = rhs.impl.scopeNames
+        let lscopeNames = lhs.scopes.names
+        let rscopeNames = rhs.scopes.names
         guard lscopeNames == rscopeNames else {
             return false
         }
         
         for name in lscopeNames {
-            let lscope = lhs.scoped(on: name)
-            let rscope = rhs.scoped(on: name)
+            let lscope = lhs.scopes[name]
+            let rscope = rhs.scopes[name]
             guard lscope == rscope else {
                 return false
             }
@@ -983,9 +999,8 @@ extension Row {
         } else {
             str = description
         }
-        for scope in scopeNames.sorted() {
-            let scopedRow = scoped(on: scope)!
-            str += "\n" + prefix + "- " + scope + ": " + scopedRow.debugDescription(level: level + 1)
+        for (name, scopedRow) in scopes.sorted(by: { $0.name < $1.name }) {
+            str += "\n" + prefix + "- " + name + ": " + scopedRow.debugDescription(level: level + 1)
         }
         
         return str
@@ -1027,6 +1042,134 @@ extension RowIndex {
     }
 }
 
+// MARK: - Row.ScopesView
+
+extension Row {
+    /// A view of the scopes defined by row adapters. It is a collection of
+    /// tuples made of a scope name and a scoped row, which behaves like a
+    /// dictionary.
+    ///
+    /// For example:
+    ///
+    ///     // Define a tree of nested scopes
+    ///     let adapter = ScopeAdapter([
+    ///         "foo": RangeRowAdapter(0..<1),
+    ///         "bar": RangeRowAdapter(1..<2).addingScopes([
+    ///             "baz" : RangeRowAdapter(2..<3)])])
+    ///
+    ///     // Fetch
+    ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
+    ///     let row = try Row.fetchOne(db, sql, adapter: adapter)!
+    ///
+    ///     row.scopes.count  // 2
+    ///     row.scopes.names  // ["foo", "bar"]
+    ///
+    ///     row.scopes["foo"] // [foo:1]
+    ///     row.scopes["bar"] // [bar:2]
+    ///     row.scopes["baz"] // nil
+    public struct ScopesView: Collection {
+        public typealias Index = Dictionary<String, LayoutedRowAdapter>.Index
+        private let row: Row
+        private let scopes: [String: LayoutedRowAdapter]
+        
+        /// The scopes defined on this row.
+        public var names: Dictionary<String, LayoutedRowAdapter>.Keys {
+            return scopes.keys
+        }
+        
+        init() {
+            self.init(row: Row(), scopes: [:])
+        }
+        
+        init(row: Row, scopes: [String: LayoutedRowAdapter]) {
+            self.row = row
+            self.scopes = scopes
+        }
+        
+        /// :nodoc:
+        public var startIndex: Index {
+            return scopes.startIndex
+        }
+        
+        /// :nodoc:
+        public var endIndex: Index {
+            return scopes.endIndex
+        }
+        
+        /// :nodoc:
+        public func index(after i: Index) -> Index {
+            return scopes.index(after: i)
+        }
+        
+        /// :nodoc:
+        public subscript(position: Index) -> (name: String, row: Row) {
+            let (name, adapter) = scopes[position]
+            return (name: name, row: Row(base: row, adapter: adapter))
+        }
+        
+        /// Returns the row associated with the given scope, or nil if the
+        /// scope is not defined.
+        public subscript(_ name: String) -> Row? {
+            guard let adapter = scopes[name] else {
+                return nil
+            }
+            return Row(base: row, adapter: adapter)
+        }
+    }
+}
+
+// MARK: - Row.ScopesTreeView
+
+extension Row {
+    
+    /// A view on the scopes tree defined by row adapters.
+    ///
+    /// For example:
+    ///
+    ///     // Define a tree of nested scopes
+    ///     let adapter = ScopeAdapter([
+    ///         "foo": RangeRowAdapter(0..<1),
+    ///         "bar": RangeRowAdapter(1..<2).addingScopes([
+    ///             "baz" : RangeRowAdapter(2..<3)])])
+    ///
+    ///     // Fetch
+    ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
+    ///     let row = try Row.fetchOne(db, sql, adapter: adapter)!
+    ///
+    ///     row.scopesTree.names  // ["foo", "bar", "baz"]
+    ///
+    ///     row.scopesTree["foo"] // [foo:1]
+    ///     row.scopesTree["bar"] // [bar:2]
+    ///     row.scopesTree["baz"] // [baz:3]
+    public struct ScopesTreeView {
+        let scopes: ScopesView
+        
+        /// The scopes defined on this row, recursively.
+        public var names: Set<String> {
+            var names = Set<String>()
+            for (name, row) in scopes {
+                names.insert(name)
+                names.formUnion(row.scopesTree.names)
+            }
+            return names
+        }
+
+        /// Returns the row associated with the given scope, by performing a
+        /// breadth-first search in this row's scopes and the scopes of its
+        /// scoped rows, recursively.
+        public subscript(_ name: String) -> Row? {
+            var fifo = Array(scopes)
+            while !fifo.isEmpty {
+                let scope = fifo.removeFirst()
+                if scope.name == name {
+                    return scope.row
+                }
+                fifo.append(contentsOf: scope.row.scopes)
+            }
+            return nil
+        }
+    }
+}
 
 // MARK: - RowImpl
 
@@ -1034,7 +1177,7 @@ extension RowIndex {
 protocol RowImpl {
     var count: Int { get }
     var isFetched: Bool { get }
-    var unadaptedRow: Row { get }
+    var scopes: Row.ScopesView { get }
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue
     func fastValue<Value: DatabaseValueConvertible & StatementColumnConvertible>(atUncheckedIndex index: Int) -> Value
     func fastValue<Value: DatabaseValueConvertible & StatementColumnConvertible>(atUncheckedIndex index: Int) -> Value?
@@ -1046,16 +1189,27 @@ protocol RowImpl {
     // leftmost column that matches *name*.
     func index(ofColumn name: String) -> Int?
     
-    func scoped(on name: String) -> Row?
-    var scopeNames: Set<String> { get }
-    
     // row.impl is guaranteed to be self.
-    func copy(_ row: Row) -> Row
+    func unscopedRow(_ row: Row) -> Row
+    func unadaptedRow(_ row: Row) -> Row
+    func copiedRow(_ row: Row) -> Row
 }
 
 extension RowImpl {
-    var unadaptedRow: Row {
-        return Row(impl: self)
+    func copiedRow(_ row: Row) -> Row {
+        return row
+    }
+    
+    func unscopedRow(_ row: Row) -> Row {
+        return row
+    }
+    
+    func unadaptedRow(_ row: Row) -> Row {
+        return row
+    }
+    
+    var scopes: Row.ScopesView {
+        return Row.ScopesView()
     }
     
     func hasNull(atUncheckedIndex index:Int) -> Bool {
@@ -1113,18 +1267,6 @@ private struct ArrayRowImpl : RowImpl {
         let lowercaseName = name.lowercased()
         return columns.index { (column, _) in column.lowercased() == lowercaseName }
     }
-    
-    func scoped(on name: String) -> Row? {
-        return nil
-    }
-    
-    var scopeNames: Set<String> {
-        return []
-    }
-    
-    func copy(_ row: Row) -> Row {
-        return row
-    }
 }
 
 
@@ -1164,18 +1306,6 @@ private struct StatementCopyRowImpl : RowImpl {
     func index(ofColumn name: String) -> Int? {
         let lowercaseName = name.lowercased()
         return columnNames.index { $0.lowercased() == lowercaseName }
-    }
-    
-    func scoped(on name: String) -> Row? {
-        return nil
-    }
-    
-    var scopeNames: Set<String> {
-        return []
-    }
-    
-    func copy(_ row: Row) -> Row {
-        return row
     }
 }
 
@@ -1247,19 +1377,10 @@ private struct StatementRowImpl : RowImpl {
         return lowercaseColumnIndexes[name.lowercased()]
     }
     
-    func scoped(on name: String) -> Row? {
-        return nil
-    }
-    
-    var scopeNames: Set<String> {
-        return []
-    }
-    
-    func copy(_ row: Row) -> Row {
+    func copiedRow(_ row: Row) -> Row {
         return Row(copiedFromSQLiteStatement: sqliteStatement, statementRef: statementRef)
     }
 }
-
 
 /// See Row.init()
 private struct EmptyRowImpl : RowImpl {
@@ -1288,17 +1409,5 @@ private struct EmptyRowImpl : RowImpl {
     
     func index(ofColumn name: String) -> Int? {
         return nil
-    }
-    
-    func scoped(on name: String) -> Row? {
-        return nil
-    }
-    
-    var scopeNames: Set<String> {
-        return []
-    }
-    
-    func copy(_ row: Row) -> Row {
-        return row
     }
 }

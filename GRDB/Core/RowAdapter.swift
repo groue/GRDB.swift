@@ -14,10 +14,10 @@ import Foundation
 ///         "c": adapters[2],
 ///         "d": adapters[3]])
 ///     let row = try Row.fetchOne(db, sql, adapter: adapter)
-///     row.scoped(on: "a") // [1]
-///     row.scoped(on: "b") // [2, 3, 4]
-///     row.scoped(on: "c") // [5, 6]
-///     row.scoped(on: "d") // [7, 8]
+///     row.scopes["a"] // [1]
+///     row.scopes["b"] // [2, 3, 4]
+///     row.scopes["c"] // [5, 6]
+///     row.scopes["d"] // [7, 8]
 public func splittingRowAdapters(columnCounts: [Int]) -> [RowAdapter] {
     guard !columnCounts.isEmpty else {
         // Identity adapter
@@ -366,10 +366,10 @@ public struct RangeRowAdapter : RowAdapter {
 ///     let row = try Row.fetchOne(db, sql, adapter: adapter)!
 ///
 ///     // Scoped rows:
-///     if let fooRow = row.scoped(on: "foo") {
+///     if let fooRow = row.scopes["foo"] {
 ///         fooRow["value"]    // "foo"
 ///     }
-///     if let barRow = row.scopeed(on: "bar") {
+///     if let barRow = row.scopes["bar"] {
 ///         barRow["value"]    // "bar"
 ///     }
 public struct ScopeAdapter : RowAdapter {
@@ -386,8 +386,8 @@ public struct ScopeAdapter : RowAdapter {
     ///
     ///     let adapter = ScopeAdapter(["suffix": SuffixRowAdapter(fromIndex: 1)])
     ///     let row = try Row.fetchOne(db, "SELECT 1, 2, 3", adapter: adapter)!
-    ///     row                      // [1, 2, 3]
-    ///     row.scoped(on: "suffix") // [2, 3]
+    ///     row                  // [1, 2, 3]
+    ///     row.scopes["suffix"] // [2, 3]
     ///
     /// - parameter scopes: A dictionary that maps scope names to
     ///   row adapters.
@@ -403,8 +403,8 @@ public struct ScopeAdapter : RowAdapter {
     ///     let baseAdapter = RangeRowAdapter(0..<1)
     ///     let adapter = ScopeAdapter(base: baseAdapter, scopes: ["suffix": SuffixRowAdapter(fromIndex: 1)])
     ///     let row = try Row.fetchOne(db, "SELECT 1, 2, 3", adapter: adapter)!
-    ///     row                       // [1]
-    ///     row.scoped(on: "initial") // [2, 3]
+    ///     row                   // [1]
+    ///     row.scopes["initial"] // [2, 3]
     ///
     /// If the base adapter already defines scopes, the given scopes replace
     /// eventual existing scopes with the same name.
@@ -475,16 +475,16 @@ struct AdaptedRowImpl : RowImpl {
         self.mapping = adapter.mapping
     }
     
-    var unadaptedRow: Row {
-        return base.unadapted
-    }
-    
     var count: Int {
         return mapping.layoutColumns.count
     }
     
     var isFetched: Bool {
         return base.isFetched
+    }
+    
+    var scopes: Row.ScopesView {
+        return Row.ScopesView(row: base, scopes: adapter.scopes)
     }
     
     func hasNull(atUncheckedIndex index: Int) -> Bool {
@@ -520,18 +520,16 @@ struct AdaptedRowImpl : RowImpl {
         return mapping.layoutIndex(ofColumn: name)
     }
     
-    func scoped(on name: String) -> Row? {
-        guard let adapter = adapter.scopes[name] else {
-            return nil
-        }
-        return Row(base: base, adapter: adapter)
-    }
-    
-    var scopeNames: Set<String> {
-        return Set(adapter.scopes.keys)
-    }
-    
-    func copy(_ row: Row) -> Row {
+    func copiedRow(_ row: Row) -> Row {
         return Row(base: base.copy(), adapter: adapter)
+    }
+
+    func unscopedRow(_ row: Row) -> Row {
+        assert(adapter.mapping.scopes.isEmpty)
+        return Row(base: base, adapter: adapter.mapping)
+    }
+    
+    func unadaptedRow(_ row: Row) -> Row {
+        return base.unadapted
     }
 }

@@ -58,3 +58,13 @@ extension MutablePersistableRecord {
     @available(*, unavailable, renamed: "databaseEquals")
     public func databaseEqual(_ record: Self) -> Bool { preconditionFailure() }
 }
+
+extension Row {
+    /// :nodoc:
+    @available(*, unavailable, message: "Use row.scopes.names instead")
+    var scopeNames: Set<String> { preconditionFailure() }
+
+    /// :nodoc:
+    @available(*, unavailable, message: "Use row.scopes[name] instead")
+    public func scoped(on name: String) -> Row? { preconditionFailure() }
+}

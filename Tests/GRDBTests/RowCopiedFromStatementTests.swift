@@ -245,11 +245,13 @@ class RowCopiedFromStatementTests: RowTestCase {
         }
     }
 
-    func testVariants() throws {
+    func testScopes() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let row = try Row.fetchOne(db, "SELECT 'foo' AS nAmE, 1 AS foo")!
-            XCTAssertTrue(row.scoped(on: "missing") == nil)
+            XCTAssertTrue(row.scopes.isEmpty)
+            XCTAssertTrue(row.scopes["missing"] == nil)
+            XCTAssertTrue(row.scopesTree["missing"] == nil)
         }
     }
 

@@ -95,7 +95,7 @@ private struct FlatModel: FetchableRecord {
         self.t2Left = row[Scopes.t2Left]
         self.t2Right = row[Scopes.t2Right]
         self.t3 = row[Scopes.t3]
-        self.t5count = row.scoped(on: Scopes.suffix)!["t5count"]
+        self.t5count = row.scopes[Scopes.suffix]!["t5count"]
     }
     
     static func all() -> AdaptedFetchRequest<SQLRequest<FlatModel>> {
@@ -110,7 +110,24 @@ private struct FlatModel: FetchableRecord {
                 Scopes.t2Left: adapters[1],
                 Scopes.t2Right: adapters[2],
                 Scopes.t3: adapters[3],
-                Scopes.suffix: adapters[4]]) // The only test for adapters[4]
+                Scopes.suffix: adapters[4]])
+        }
+    }
+    
+    static func hierarchicalAll() -> AdaptedFetchRequest<SQLRequest<CodableFlatModel>> {
+        return SQLRequest<CodableFlatModel>(testedSQL).adapted { db in
+            let adapters = try splittingRowAdapters(columnCounts: [
+                T1.numberOfSelectedColumns(db),
+                T2.numberOfSelectedColumns(db),
+                T2.numberOfSelectedColumns(db),
+                T3.numberOfSelectedColumns(db)])
+            return ScopeAdapter([
+                Scopes.t1: adapters[0],
+                "t2": ScopeAdapter(base: EmptyRowAdapter(), scopes: [
+                    Scopes.t2Left: adapters[1],
+                    Scopes.t2Right: adapters[2]]),
+                Scopes.t3: adapters[3],
+                Scopes.suffix: adapters[4]])
         }
     }
 }
@@ -133,6 +150,22 @@ private struct CodableFlatModel: FetchableRecord, Codable {
                 CodingKeys.t1.stringValue: adapters[0],
                 CodingKeys.t2Left.stringValue: adapters[1],
                 CodingKeys.t2Right.stringValue: adapters[2],
+                CodingKeys.t3.stringValue: adapters[3]])
+        }
+    }
+    
+    static func hierarchicalAll() -> AdaptedFetchRequest<SQLRequest<CodableFlatModel>> {
+        return SQLRequest<CodableFlatModel>(testedSQL).adapted { db in
+            let adapters = try splittingRowAdapters(columnCounts: [
+                T1.numberOfSelectedColumns(db),
+                T2.numberOfSelectedColumns(db),
+                T2.numberOfSelectedColumns(db),
+                T3.numberOfSelectedColumns(db)])
+            return ScopeAdapter([
+                CodingKeys.t1.stringValue: adapters[0],
+                "t2": ScopeAdapter(base: EmptyRowAdapter(), scopes: [
+                    CodingKeys.t2Left.stringValue: adapters[1],
+                    CodingKeys.t2Right.stringValue: adapters[2]]),
                 CodingKeys.t3.stringValue: adapters[3]])
         }
     }
@@ -299,11 +332,11 @@ class JoinSupportTests: GRDBTestCase {
                 "t1id": 1, "name": "A3",
                 // t5count
                 "t5count": 5])
-            XCTAssertEqual(rows[0].scoped(on: "t1")!, ["id": 1, "name": "A1"])
-            XCTAssertEqual(rows[0].scoped(on: "t2Left")!, ["id": 1, "t1id": 1, "name": "left"])
-            XCTAssertEqual(rows[0].scoped(on: "t2Right")!, ["id": 2, "t1id": 1, "name": "right"])
-            XCTAssertEqual(rows[0].scoped(on: "t3")!, ["t1id": 1, "name": "A3"])
-            XCTAssertEqual(rows[0].scoped(on: "suffix")!, ["t5count": 5])
+            XCTAssertEqual(rows[0].scopes["t1"]!, ["id": 1, "name": "A1"])
+            XCTAssertEqual(rows[0].scopes["t2Left"]!, ["id": 1, "t1id": 1, "name": "left"])
+            XCTAssertEqual(rows[0].scopes["t2Right"]!, ["id": 2, "t1id": 1, "name": "right"])
+            XCTAssertEqual(rows[0].scopes["t3"]!, ["t1id": 1, "name": "A3"])
+            XCTAssertEqual(rows[0].scopes["suffix"]!, ["t5count": 5])
             
             XCTAssertEqual(rows[1].unscoped, [
                 // t1.*
@@ -316,11 +349,11 @@ class JoinSupportTests: GRDBTestCase {
                 "t1id": nil, "name": nil,
                 // t5count
                 "t5count": 2])
-            XCTAssertEqual(rows[1].scoped(on: "t1")!, ["id": 2, "name": "A2"])
-            XCTAssertEqual(rows[1].scoped(on: "t2Left")!, ["id": 3, "t1id": 2, "name": "left"])
-            XCTAssertEqual(rows[1].scoped(on: "t2Right")!, ["id": nil, "t1id": nil, "name": nil])
-            XCTAssertEqual(rows[1].scoped(on: "t3")!, ["t1id": nil, "name": nil])
-            XCTAssertEqual(rows[1].scoped(on: "suffix")!, ["t5count": 2])
+            XCTAssertEqual(rows[1].scopes["t1"]!, ["id": 2, "name": "A2"])
+            XCTAssertEqual(rows[1].scopes["t2Left"]!, ["id": 3, "t1id": 2, "name": "left"])
+            XCTAssertEqual(rows[1].scopes["t2Right"]!, ["id": nil, "t1id": nil, "name": nil])
+            XCTAssertEqual(rows[1].scopes["t3"]!, ["t1id": nil, "name": nil])
+            XCTAssertEqual(rows[1].scopes["suffix"]!, ["t5count": 2])
             
             XCTAssertEqual(rows[2].unscoped, [
                 // t1.*
@@ -333,11 +366,11 @@ class JoinSupportTests: GRDBTestCase {
                 "t1id": nil, "name": nil,
                 // t5count
                 "t5count": 0])
-            XCTAssertEqual(rows[2].scoped(on: "t1")!, ["id": 3, "name": "A3"])
-            XCTAssertEqual(rows[2].scoped(on: "t2Left")!, ["id": nil, "t1id": nil, "name": nil])
-            XCTAssertEqual(rows[2].scoped(on: "t2Right")!, ["id": nil, "t1id": nil, "name": nil])
-            XCTAssertEqual(rows[2].scoped(on: "t3")!, ["t1id": nil, "name": nil])
-            XCTAssertEqual(rows[2].scoped(on: "suffix")!, ["t5count": 0])
+            XCTAssertEqual(rows[2].scopes["t1"]!, ["id": 3, "name": "A3"])
+            XCTAssertEqual(rows[2].scopes["t2Left"]!, ["id": nil, "t1id": nil, "name": nil])
+            XCTAssertEqual(rows[2].scopes["t2Right"]!, ["id": nil, "t1id": nil, "name": nil])
+            XCTAssertEqual(rows[2].scopes["t3"]!, ["t1id": nil, "name": nil])
+            XCTAssertEqual(rows[2].scopes["suffix"]!, ["t5count": 0])
         }
     }
     
@@ -377,10 +410,82 @@ class JoinSupportTests: GRDBTestCase {
         }
     }
     
+    func testFlatModelFromHierarchicalRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let models = try FlatModel.hierarchicalAll().fetchAll(db)
+            XCTAssertEqual(models.count, 3)
+            
+            XCTAssertEqual(models[0].t1.id, 1)
+            XCTAssertEqual(models[0].t1.name, "A1")
+            XCTAssertEqual(models[0].t2Left!.id, 1)
+            XCTAssertEqual(models[0].t2Left!.t1id, 1)
+            XCTAssertEqual(models[0].t2Left!.name, "left")
+            XCTAssertEqual(models[0].t2Right!.id, 2)
+            XCTAssertEqual(models[0].t2Right!.t1id, 1)
+            XCTAssertEqual(models[0].t2Right!.name, "right")
+            XCTAssertEqual(models[0].t3!.t1id, 1)
+            XCTAssertEqual(models[0].t3!.name, "A3")
+            XCTAssertEqual(models[0].t5count, 5)
+            
+            XCTAssertEqual(models[1].t1.id, 2)
+            XCTAssertEqual(models[1].t1.name, "A2")
+            XCTAssertEqual(models[1].t2Left!.id, 3)
+            XCTAssertEqual(models[1].t2Left!.t1id, 2)
+            XCTAssertEqual(models[1].t2Left!.name, "left")
+            XCTAssertNil(models[1].t2Right)
+            XCTAssertNil(models[1].t3)
+            XCTAssertEqual(models[1].t5count, 2)
+            
+            XCTAssertEqual(models[2].t1.id, 3)
+            XCTAssertEqual(models[2].t1.name, "A3")
+            XCTAssertNil(models[2].t2Left)
+            XCTAssertNil(models[2].t2Right)
+            XCTAssertNil(models[2].t3)
+            XCTAssertEqual(models[2].t5count, 0)
+        }
+    }
+    
     func testCodableFlatModel() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let models = try CodableFlatModel.all().fetchAll(db)
+            XCTAssertEqual(models.count, 3)
+            
+            XCTAssertEqual(models[0].t1.id, 1)
+            XCTAssertEqual(models[0].t1.name, "A1")
+            XCTAssertEqual(models[0].t2Left!.id, 1)
+            XCTAssertEqual(models[0].t2Left!.t1id, 1)
+            XCTAssertEqual(models[0].t2Left!.name, "left")
+            XCTAssertEqual(models[0].t2Right!.id, 2)
+            XCTAssertEqual(models[0].t2Right!.t1id, 1)
+            XCTAssertEqual(models[0].t2Right!.name, "right")
+            XCTAssertEqual(models[0].t3!.t1id, 1)
+            XCTAssertEqual(models[0].t3!.name, "A3")
+            XCTAssertEqual(models[0].t5count, 5)
+            
+            XCTAssertEqual(models[1].t1.id, 2)
+            XCTAssertEqual(models[1].t1.name, "A2")
+            XCTAssertEqual(models[1].t2Left!.id, 3)
+            XCTAssertEqual(models[1].t2Left!.t1id, 2)
+            XCTAssertEqual(models[1].t2Left!.name, "left")
+            XCTAssertNil(models[1].t2Right)
+            XCTAssertNil(models[1].t3)
+            XCTAssertEqual(models[1].t5count, 2)
+            
+            XCTAssertEqual(models[2].t1.id, 3)
+            XCTAssertEqual(models[2].t1.name, "A3")
+            XCTAssertNil(models[2].t2Left)
+            XCTAssertNil(models[2].t2Right)
+            XCTAssertNil(models[2].t3)
+            XCTAssertEqual(models[2].t5count, 0)
+        }
+    }
+    
+    func testCodableFlatModelFromHierarchicalRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let models = try CodableFlatModel.hierarchicalAll().fetchAll(db)
             XCTAssertEqual(models.count, 3)
             
             XCTAssertEqual(models[0].t1.id, 1)

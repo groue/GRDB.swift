@@ -13,7 +13,7 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
     var allKeys: [Key] {
         let row = decoder.row
         let columnNames = Set(row.columnNames)
-        let scopeNames = row.scopeNames
+        let scopeNames = Set(row.scopesTree.names)
         return columnNames.union(scopeNames).compactMap { Key(stringValue: $0) }
     }
     
@@ -25,7 +25,7 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
     /// - returns: Whether the `Decoder` has an entry for the given key.
     func contains(_ key: Key) -> Bool {
         let row = decoder.row
-        return row.hasColumn(key.stringValue) || (row.scoped(on: key.stringValue) != nil)
+        return row.hasColumn(key.stringValue) || (row.scopesTree[key.stringValue] != nil)
     }
     
     /// Decodes a null value for the given key.
@@ -35,7 +35,7 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
     /// - throws: `DecodingError.keyNotFound` if `self` does not have an entry for the given key.
     func decodeNil(forKey key: Key) throws -> Bool {
         let row = decoder.row
-        return row[key.stringValue] == nil && (row.scoped(on: key.stringValue) == nil)
+        return row[key.stringValue] == nil && (row.scopesTree[key.stringValue] == nil)
     }
     
     /// Decodes a value of the given type for the given key.
@@ -69,7 +69,7 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
     func decodeIfPresent<T>(_ type: T.Type, forKey key: Key) throws -> T? where T : Decodable {
         let row = decoder.row
         
-        // Try column
+        // Column?
         if row.hasColumn(key.stringValue) {
             let dbValue: DatabaseValue = row[key.stringValue]
             if let type = T.self as? DatabaseValueConvertible.Type {
@@ -83,9 +83,15 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
             }
         }
         
-        // Fallback on scope
-        if let scopedRow = row.scoped(on: key.stringValue), scopedRow.containsNonNullValue {
-            return try T(from: RowDecoder(row: scopedRow, codingPath: codingPath + [key]))
+        // Scope?
+        if let scopedRow = row.scopesTree[key.stringValue], scopedRow.containsNonNullValue {
+            if let type = T.self as? FetchableRecord.Type {
+                // Prefer FetchableRecord decoding over Decodable.
+                // This allows custom row decoding
+                return (type.init(row: scopedRow) as! T)
+            } else {
+                return try T(from: RowDecoder(row: scopedRow, codingPath: codingPath + [key]))
+            }
         }
         
         return nil
@@ -102,7 +108,7 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
     func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T : Decodable {
         let row = decoder.row
         
-        // Try column
+        // Column?
         if row.hasColumn(key.stringValue) {
             let dbValue: DatabaseValue = row[key.stringValue]
             if let type = T.self as? DatabaseValueConvertible.Type {
@@ -114,13 +120,25 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
             }
         }
         
-        // Fallback on scope
-        if let scopedRow = row.scoped(on: key.stringValue) {
-            return try T(from: RowDecoder(row: scopedRow, codingPath: codingPath + [key]))
+        // Scope?
+        if let scopedRow = row.scopesTree[key.stringValue] {
+            if let type = T.self as? FetchableRecord.Type {
+                // Prefer FetchableRecord decoding over Decodable.
+                // This allows custom row decoding
+                return type.init(row: scopedRow) as! T
+            } else {
+                return try T(from: RowDecoder(row: scopedRow, codingPath: codingPath + [key]))
+            }
         }
         
-        let path = (codingPath.map { $0.stringValue } + [key.stringValue]).joined(separator: ".")
-        fatalError("No such column or scope: \(path)")
+        // Base row
+        if let type = T.self as? FetchableRecord.Type {
+            // Prefer FetchableRecord decoding over Decodable.
+            // This allows custom row decoding
+            return type.init(row: row) as! T
+        } else {
+            return try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))
+        }
     }
     
     /// Returns the data stored for the given key as represented in a container keyed by the given key type.
@@ -255,3 +273,4 @@ extension FetchableRecord where Self: Decodable {
         try! self.init(from: RowDecoder(row: row, codingPath: []))
     }
 }
+
