@@ -1,7 +1,7 @@
 import Foundation
 
 /// DatabaseDateComponents reads and stores DateComponents in the database.
-public struct DatabaseDateComponents : DatabaseValueConvertible {
+public struct DatabaseDateComponents : DatabaseValueConvertible, StatementColumnConvertible {
 
     public static var useScanfStrategy = true
     
@@ -70,6 +70,17 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
         self.dateComponents = dateComponents
     }
     
+    // MARK: - StatementColumnConvertible adoption
+    
+    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+        let cString = UnsafePointer<Int8>(OpaquePointer(sqlite3_column_text(sqliteStatement, index)!))
+        let length = Int(sqlite3_column_bytes(sqliteStatement, index)) // avoid an strlen
+        guard let components = SQLiteDateParser().components(cString: cString, length: length) else {
+            fatalError("could not convert database value \(String(cString: cString)) to DatabaseDateComponents")
+        }
+        self.dateComponents = components.dateComponents
+        self.format = components.format
+    }
     
     // MARK: - DatabaseValueConvertible adoption
     
