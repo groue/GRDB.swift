@@ -284,6 +284,8 @@
 		566B912F1FA4D0CC0012D5B0 /* StatementAuthorizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566B912A1FA4D0CC0012D5B0 /* StatementAuthorizer.swift */; };
 		566B91341FA4D3810012D5B0 /* TransactionObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566B91321FA4D3810012D5B0 /* TransactionObserver.swift */; };
 		566B91371FA4D3810012D5B0 /* TransactionObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566B91321FA4D3810012D5B0 /* TransactionObserver.swift */; };
+		567071F8208A00D4006AD95A /* SQLiteDateParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567071F6208A00D4006AD95A /* SQLiteDateParser.swift */; };
+		567071F9208A00D4006AD95A /* SQLiteDateParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567071F6208A00D4006AD95A /* SQLiteDateParser.swift */; };
 		567156141CB141D0007DC145 /* DatabaseQueueInMemoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238141B9C74A90082EB20 /* DatabaseQueueInMemoryTests.swift */; };
 		567156171CB142AA007DC145 /* DatabaseQueueReadOnlyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567156151CB142AA007DC145 /* DatabaseQueueReadOnlyTests.swift */; };
 		5671561D1CB16729007DC145 /* DatabaseValueConversionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A2381B1B9C74A90082EB20 /* DatabaseValueConversionTests.swift */; };
@@ -919,6 +921,7 @@
 		566B91221FA4CF810012D5B0 /* Database+Schema.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Database+Schema.swift"; sourceTree = "<group>"; };
 		566B912A1FA4D0CC0012D5B0 /* StatementAuthorizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatementAuthorizer.swift; sourceTree = "<group>"; };
 		566B91321FA4D3810012D5B0 /* TransactionObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionObserver.swift; sourceTree = "<group>"; };
+		567071F6208A00D4006AD95A /* SQLiteDateParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLiteDateParser.swift; sourceTree = "<group>"; };
 		567156151CB142AA007DC145 /* DatabaseQueueReadOnlyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseQueueReadOnlyTests.swift; sourceTree = "<group>"; };
 		5671566C1CB16729007DC145 /* GRDBCipherOSXEncryptedTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBCipherOSXEncryptedTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		567156701CB18050007DC145 /* EncryptionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EncryptionTests.swift; sourceTree = "<group>"; };
@@ -1168,6 +1171,7 @@
 				5605F1521C672E4000235C62 /* NSString.swift */,
 				5657AB0E1D10899D006283EF /* URL.swift */,
 				56A8C22F1D1914540096E9D4 /* UUID.swift */,
+				567071F6208A00D4006AD95A /* SQLiteDateParser.swift */,
 			);
 			path = Foundation;
 			sourceTree = "<group>";
@@ -2069,6 +2073,7 @@
 				5698AD221DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */,
 				560FC53C1CB003810014AA8E /* DatabaseQueue.swift in Sources */,
 				560FC53D1CB003810014AA8E /* NSNumber.swift in Sources */,
+				567071F8208A00D4006AD95A /* SQLiteDateParser.swift in Sources */,
 				560FC53F1CB003810014AA8E /* Row.swift in Sources */,
 				560FC5401CB003810014AA8E /* StandardLibrary.swift in Sources */,
 				5680520C2013209300E87861 /* RecordBox.swift in Sources */,
@@ -2464,6 +2469,7 @@
 				5698AD251DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */,
 				56AFCA121CB1A8BB00F48B96 /* NSNumber.swift in Sources */,
 				56AFCA141CB1A8BB00F48B96 /* StandardLibrary.swift in Sources */,
+				567071F9208A00D4006AD95A /* SQLiteDateParser.swift in Sources */,
 				56AFCA151CB1A8BB00F48B96 /* Persistable.swift in Sources */,
 				56AFCA161CB1A8BB00F48B96 /* StatementColumnConvertible.swift in Sources */,
 				5680520D2013209900E87861 /* RecordBox.swift in Sources */,

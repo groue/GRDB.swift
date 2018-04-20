@@ -111,6 +111,8 @@
 		566B91301FA4D0CC0012D5B0 /* StatementAuthorizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566B912A1FA4D0CC0012D5B0 /* StatementAuthorizer.swift */; };
 		566B91351FA4D3810012D5B0 /* TransactionObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566B91321FA4D3810012D5B0 /* TransactionObserver.swift */; };
 		566B91381FA4D3810012D5B0 /* TransactionObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566B91321FA4D3810012D5B0 /* TransactionObserver.swift */; };
+		567071F4208A00BE006AD95A /* SQLiteDateParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567071F2208A00BE006AD95A /* SQLiteDateParser.swift */; };
+		567071F5208A00BE006AD95A /* SQLiteDateParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567071F2208A00BE006AD95A /* SQLiteDateParser.swift */; };
 		5671FC221DA3CAC9003BF4FF /* FTS3TokenizerDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5671FC1F1DA3CAC9003BF4FF /* FTS3TokenizerDescriptor.swift */; };
 		5671FC251DA3CAC9003BF4FF /* FTS3TokenizerDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5671FC1F1DA3CAC9003BF4FF /* FTS3TokenizerDescriptor.swift */; };
 		56741EAB1E66A8B3003E422D /* RequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56741EA71E66A8B3003E422D /* RequestTests.swift */; };
@@ -618,6 +620,7 @@
 		566B91221FA4CF810012D5B0 /* Database+Schema.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Database+Schema.swift"; sourceTree = "<group>"; };
 		566B912A1FA4D0CC0012D5B0 /* StatementAuthorizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatementAuthorizer.swift; sourceTree = "<group>"; };
 		566B91321FA4D3810012D5B0 /* TransactionObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionObserver.swift; sourceTree = "<group>"; };
+		567071F2208A00BE006AD95A /* SQLiteDateParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLiteDateParser.swift; sourceTree = "<group>"; };
 		567156151CB142AA007DC145 /* DatabaseQueueReadOnlyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseQueueReadOnlyTests.swift; sourceTree = "<group>"; };
 		567156701CB18050007DC145 /* EncryptionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EncryptionTests.swift; sourceTree = "<group>"; };
 		5671FC1F1DA3CAC9003BF4FF /* FTS3TokenizerDescriptor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS3TokenizerDescriptor.swift; sourceTree = "<group>"; };
@@ -855,6 +858,7 @@
 				5605F1521C672E4000235C62 /* NSString.swift */,
 				5657AB0E1D10899D006283EF /* URL.swift */,
 				56A8C22F1D1914540096E9D4 /* UUID.swift */,
+				567071F2208A00BE006AD95A /* SQLiteDateParser.swift */,
 			);
 			path = Foundation;
 			sourceTree = "<group>";
@@ -1770,6 +1774,7 @@
 				5698AD261DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */,
 				F3BA802C1CFB289B003DC1BA /* SQLCollatedExpression.swift in Sources */,
 				F3BA80301CFB289F003DC1BA /* DatabaseMigrator.swift in Sources */,
+				567071F5208A00BE006AD95A /* SQLiteDateParser.swift in Sources */,
 				F3BA80361CFB28A4003DC1BA /* TableMapping.swift in Sources */,
 				F3BA80271CFB2891003DC1BA /* DatabaseValueConvertible+RawRepresentable.swift in Sources */,
 				5680520E201320A200E87861 /* RecordBox.swift in Sources */,
@@ -2017,6 +2022,7 @@
 				5698AD231DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */,
 				F3BA80881CFB2E70003DC1BA /* SQLCollatedExpression.swift in Sources */,
 				F3BA808C1CFB2E75003DC1BA /* DatabaseMigrator.swift in Sources */,
+				567071F4208A00BE006AD95A /* SQLiteDateParser.swift in Sources */,
 				F3BA80921CFB2E7A003DC1BA /* TableMapping.swift in Sources */,
 				F3BA80831CFB2E67003DC1BA /* DatabaseValueConvertible+RawRepresentable.swift in Sources */,
 				568052092013207000E87861 /* RecordBox.swift in Sources */,
