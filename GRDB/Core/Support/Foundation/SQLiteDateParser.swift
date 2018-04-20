@@ -11,26 +11,24 @@ class SQLiteDateParser {
         var hour: Int32 = 0
         var minute: Int32 = 0
         var second: Int32 = 0
-        var nanosecond = ContiguousArray<CChar>.init(repeating: 0, count: 11)
+        var nanosecond = ContiguousArray<CChar>.init(repeating: 0, count: 10) // 9 digits, and trailing \0
     }
     
     func components(from dateString: String) -> DatabaseDateComponents? {
-        guard dateString.count >= 5 else { return nil }
+        return dateString.withCString { cString in
+            components(cString: cString, length: strlen(cString))
+        }
+    }
+    
+    func components(cString: UnsafePointer<CChar>, length: Int) -> DatabaseDateComponents? {
+        guard length >= 5 else { return nil }
         
-        if dateString[dateString.index(dateString.startIndex, offsetBy: 4)] == "-" {
-            /***
-             Note: A date string with full nanosecond precision is 29 chars.
-             This call is truncating the nanosecond fraction to a max of 3 sig figs (ie 23 chars).
-             */
-            return datetimeComponents(from: String(dateString.prefix(23)))
+        if cString.advanced(by: 4).pointee == 45 /* '-' */ {
+            return datetimeComponents(cString: cString, length: length)
         }
         
-        if dateString[dateString.index(dateString.startIndex, offsetBy: 2)] == ":" {
-            /***
-             Note: A time string with full nanosecond precision is 18 chars.
-             This call is truncating the nanosecond fraction to a max of 3 sig figs (ie 12 chars).
-             */
-            return timeComponents(from: String(dateString.prefix(12)))
+        if cString.advanced(by: 2).pointee == 58 /* ':' */ {
+            return timeComponents(cString: cString, length: length)
         }
         
         return nil
@@ -43,7 +41,7 @@ class SQLiteDateParser {
     // - YYYY-MM-DDTHH:MM
     // - YYYY-MM-DDTHH:MM:SS
     // - YYYY-MM-DDTHH:MM:SS.SSS
-    private func datetimeComponents(from dateString: String) -> DatabaseDateComponents? {
+    private func datetimeComponents(cString: UnsafePointer<CChar>, length: Int) -> DatabaseDateComponents? {
         var parserComponents = ParserComponents()
         
         // TODO: Get rid of this pyramid when SE-0210 has shipped
@@ -54,9 +52,8 @@ class SQLiteDateParser {
                         withUnsafeMutablePointer(to: &parserComponents.minute) { minuteP in
                             withUnsafeMutablePointer(to: &parserComponents.second) { secondP in
                                 parserComponents.nanosecond.withUnsafeMutableBufferPointer { nanosecondBuffer in
-                                    // TODO: what if vsscanf parses a string longer than nanosecond length?
                                     withVaList([yearP, monthP, dayP, hourP, minuteP, secondP, nanosecondBuffer.baseAddress!]) { pointer in
-                                        vsscanf(dateString, "%d-%d-%d%*c%d:%d:%d.%s", pointer)
+                                        vsscanf(cString, "%d-%d-%d%*c%d:%d:%d.%10s", pointer)
                                     }
                                 }
                             }
@@ -92,16 +89,16 @@ class SQLiteDateParser {
     // - HH:MM
     // - HH:MM:SS
     // - HH:MM:SS.SSS
-    private func timeComponents(from timeString: String) -> DatabaseDateComponents? {
+    private func timeComponents(cString: UnsafePointer<CChar>, length: Int) -> DatabaseDateComponents? {
         var parserComponents = ParserComponents()
+        
         // TODO: Get rid of this pyramid when SE-0210 has shipped
         let parseCount = withUnsafeMutablePointer(to: &parserComponents.hour) { hourP in
             withUnsafeMutablePointer(to: &parserComponents.minute) { minuteP in
                 withUnsafeMutablePointer(to: &parserComponents.second) { secondP in
                     parserComponents.nanosecond.withUnsafeMutableBufferPointer { nanosecondBuffer in
-                        // TODO: what if vsscanf parses a string longer than nanosecond length?
                         withVaList([hourP, minuteP, secondP, nanosecondBuffer.baseAddress!]) { pointer in
-                            vsscanf(timeString, "%d:%d:%d.%s", pointer)
+                            vsscanf(cString, "%d:%d:%d.%10s", pointer)
                         }
                     }
                 }
@@ -126,7 +123,8 @@ class SQLiteDateParser {
     }
     
     private func nanosecondsInt(for nanosecond: ContiguousArray<CChar>) -> Int {
-        let nanoString = "0." + nanosecond.withUnsafeBufferPointer { String(cString: $0.baseAddress!) }
+        // truncate the nanosecond fraction
+        let nanoString = ("0." + nanosecond.withUnsafeBufferPointer { String(cString: $0.baseAddress!) }).prefix(5)
         guard let doubleValue = Double(nanoString) else { return 0 }
         return Int(doubleValue * 1_000_000_000)
     }
