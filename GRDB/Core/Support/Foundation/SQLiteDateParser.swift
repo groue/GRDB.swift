@@ -125,9 +125,8 @@ class SQLiteDateParser {
     }
     
     private func nanosecondsInt(for nanosecond: ContiguousArray<CChar>) -> Int {
-        // truncate the nanosecond fraction
-        let nanoString = ("0." + nanosecond.withUnsafeBufferPointer { String(cString: $0.baseAddress!) }).prefix(5)
-        guard let doubleValue = Double(nanoString) else { return 0 }
-        return Int(doubleValue * 1_000_000_000)
+        return 1_000_000 * nanosecond.prefix(3).reduce(0) { (r, char) in
+            r * 10 + Int(char) - 48 /* '0' */
+        }
     }
 }
