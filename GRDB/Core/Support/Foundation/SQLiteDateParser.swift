@@ -119,14 +119,20 @@ class SQLiteDateParser {
         
         guard parseCount >= 4 else { return DatabaseDateComponents(components, format: .HMS) }
         
-        components.nanosecond = nanosecondsInt(for: parserComponents.nanosecond)
+        guard let nanoseconds = nanosecondsInt(for: parserComponents.nanosecond) else { return nil }
+        components.nanosecond = nanoseconds
         
         return DatabaseDateComponents(components, format: .HMSS)
     }
     
-    private func nanosecondsInt(for nanosecond: ContiguousArray<CChar>) -> Int {
-        return 1_000_000 * nanosecond.prefix(3).reduce(0) { (r, char) in
-            r * 10 + Int(char) - 48 /* '0' */
+    private func nanosecondsInt(for nanosecond: ContiguousArray<CChar>) -> Int? {
+        // truncate after the third digit
+        var result = 0
+        for char in nanosecond.prefix(3) {
+            let digit = Int(char) - 48 /* '0' */
+            guard (0...9).contains(digit) else { return nil }
+            result = result * 10 + digit
         }
+        return 1_000_000 * result
     }
 }
