@@ -21,8 +21,6 @@ GRDB 3.0
     - [ ] Introduce some record protocol with an associated primary key type. Restrict filter(key:) methods to this type. Allow distinguishing FooId from BarId types.
     - [ ] Replace Column with TypedColumn. How to avoid code duplication (repeated types)? Keypaths?
 - [ ] HiddenColumnsAdapter
-- [ ] If possible: Have Record adopt Codable
-- [ ] PR for Row.lookup() and breadth-first search of the scope
 - [ ] PR for OffsettedAdapter
 - [ ] Find a common name for DatabaseQueue.inDatabase / DatabasePool.writeWithoutTransaction:
     - writeRaw, rawWrite, pureWrite, plainWrite, directWrite, basicWrite
