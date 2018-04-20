@@ -14,7 +14,7 @@ class SQLiteDateParser {
         var nanosecond = ContiguousArray<CChar>.init(repeating: 0, count: 11)
     }
 
-    public func components(from dateString: String) -> DatabaseDateComponents? {
+    func components(from dateString: String) -> DatabaseDateComponents? {
         guard dateString.count >= 5 else { return nil }
 
         if dateString[dateString.index(dateString.startIndex, offsetBy: 4)] == "-" {
