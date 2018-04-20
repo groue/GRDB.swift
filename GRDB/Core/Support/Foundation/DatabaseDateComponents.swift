@@ -72,6 +72,11 @@ public struct DatabaseDateComponents : DatabaseValueConvertible, StatementColumn
     
     // MARK: - StatementColumnConvertible adoption
     
+    /// Returns a value initialized from a raw SQLite statement pointer.
+    ///
+    /// - parameters:
+    ///     - sqliteStatement: A pointer to an SQLite statement.
+    ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         guard DatabaseDateComponents.useScanfStrategy else {
             let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: index)
