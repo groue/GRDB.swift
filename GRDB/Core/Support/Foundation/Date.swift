@@ -1,4 +1,9 @@
 import Foundation
+#if SWIFT_PACKAGE
+    import CSQLite
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+    import SQLite3
+#endif
 
 /// NSDate is stored in the database using the format
 /// "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone.
