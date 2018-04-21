@@ -727,6 +727,40 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (NOT (\"age\" > 18) AND NOT (\"name\" > 'foo'))")
     }
     
+    func testJoinedOperatorAnd() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter([].joined(operator: .and))),
+            "SELECT * FROM \"readers\" WHERE 1")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter([Col.id == 1].joined(operator: .and))),
+            "SELECT * FROM \"readers\" WHERE (\"id\" = 1)")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter([Col.id == 1, Col.name != nil].joined(operator: .and))),
+            "SELECT * FROM \"readers\" WHERE ((\"id\" = 1) AND (\"name\" IS NOT NULL))")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter([Col.id == 1, Col.name != nil, Col.age == nil].joined(operator: .and))),
+            "SELECT * FROM \"readers\" WHERE ((\"id\" = 1) AND (\"name\" IS NOT NULL) AND (\"age\" IS NULL))")
+    }
+    
+    func testJoinedOperatorOr() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter([].joined(operator: .or))),
+            "SELECT * FROM \"readers\" WHERE 0")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter([Col.id == 1].joined(operator: .or))),
+            "SELECT * FROM \"readers\" WHERE (\"id\" = 1)")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter([Col.id == 1, Col.name != nil].joined(operator: .or))),
+            "SELECT * FROM \"readers\" WHERE ((\"id\" = 1) OR (\"name\" IS NOT NULL))")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter([Col.id == 1, Col.name != nil, Col.age == nil].joined(operator: .or))),
+            "SELECT * FROM \"readers\" WHERE ((\"id\" = 1) OR (\"name\" IS NOT NULL) OR (\"age\" IS NULL))")
+    }
+
     
     // MARK: - String functions
     
