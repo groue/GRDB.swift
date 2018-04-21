@@ -2,8 +2,8 @@ extension QueryInterfaceRequest {
     
     // MARK: Full Text Search
     
-    /// Returns a new QueryInterfaceRequest with a matching predicate added
-    /// to the eventual set of already applied predicates.
+    /// Creates a request with a full-text predicate added to the eventual
+    /// set of already applied predicates.
     ///
     ///     // SELECT * FROM books WHERE books MATCH '...'
     ///     var request = Book.all()
