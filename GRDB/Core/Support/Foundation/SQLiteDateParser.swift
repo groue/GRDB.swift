@@ -55,7 +55,7 @@ class SQLiteDateParser {
                             withUnsafeMutablePointer(to: &parserComponents.second) { secondP in
                                 parserComponents.nanosecond.withUnsafeMutableBufferPointer { nanosecondBuffer in
                                     withVaList([yearP, monthP, dayP, hourP, minuteP, secondP, nanosecondBuffer.baseAddress!]) { pointer in
-                                        vsscanf(cString, "%d-%d-%d%*c%d:%d:%d.%10s", pointer)
+                                        vsscanf(cString, "%4d-%2d-%2d%*1[ T]%2d:%2d:%2d.%10s", pointer)
                                     }
                                 }
                             }
@@ -100,7 +100,7 @@ class SQLiteDateParser {
                 withUnsafeMutablePointer(to: &parserComponents.second) { secondP in
                     parserComponents.nanosecond.withUnsafeMutableBufferPointer { nanosecondBuffer in
                         withVaList([hourP, minuteP, secondP, nanosecondBuffer.baseAddress!]) { pointer in
-                            vsscanf(cString, "%d:%d:%d.%10s", pointer)
+                            vsscanf(cString, "%2d:%2d:%2d.%10s", pointer)
                         }
                     }
                 }
