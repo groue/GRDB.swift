@@ -3423,6 +3423,27 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     // SELECT * FROM players WHERE ((NOT verified) OR (score < 1000))
     Player.filter(!verifiedColumn || scoreColumn < 1000)
     ```
+    
+    When you want to join a sequence of expressions with `AND` or `OR` operators, use `joined(operator:)`:
+    
+    ```swift
+    // SELECT * FROM players WHERE (verified AND (score >= 1000) AND (name IS NOT NULL))
+    let conditions = [
+        verifiedColumn,
+        scoreColumn >=< 1000,
+        nameColumn != nil]
+    Player.filter(conditions.joined(operator: .and))
+    ```
+    
+    When the sequence is empty, `joined(operator: .and)` returns true, and `joined(operator: .or)` returns false:
+    
+    ```swift
+    // SELECT * FROM players WHERE 1
+    Player.filter([].joined(operator: .and))
+    
+    // SELECT * FROM players WHERE 0
+    Player.filter([].joined(operator: .or))
+    ```
 
 - `BETWEEN`, `IN`, `NOT IN`
     

@@ -762,21 +762,30 @@ public enum SQLLogicalBinaryOperator {
     case and, or
 }
 
-extension Sequence where Element: SQLExpressible {
-    /// Return an expression by joining all elements with an SQL logical
-    /// operator
-    public func joined(operator: SQLLogicalBinaryOperator) -> SQLExpression {
-        let expressions: [SQLExpression] = map { $0.sqlExpression }
-        switch `operator` {
-        case .and: return SQLExpressionAnd(expressions)
-        case .or: return SQLExpressionOr(expressions)
-        }
-    }
-}
-
 extension Sequence where Element == SQLExpression {
-    /// Return an expression by joining all elements with an SQL logical
-    /// operator
+    /// Returns an expression by joining all elements with an SQL
+    /// logical operator.
+    ///
+    /// For example:
+    ///
+    ///     // SELECT * FROM players
+    ///     // WHERE (registered
+    ///     //        AND (score >= 1000)
+    ///     //        AND (name IS NOT NULL))
+    ///     let conditions = [
+    ///         Column("registered"),
+    ///         Column("score") >=< 1000,
+    ///         Column("name") != nil]
+    ///     Player.filter(conditions.joined(operator: .and))
+    ///
+    /// When the sequence is empty, `joined(operator: .and)` returns true,
+    /// and `joined(operator: .or)` returns false:
+    ///
+    ///     // SELECT * FROM players WHERE 1
+    ///     Player.filter([].joined(operator: .and))
+    ///
+    ///     // SELECT * FROM players WHERE 0
+    ///     Player.filter([].joined(operator: .or))
     public func joined(operator: SQLLogicalBinaryOperator) -> SQLExpression {
         let expressions = Array(self)
         switch `operator` {
