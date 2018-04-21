@@ -354,6 +354,156 @@ class FoundationDateComponentsTests : GRDBTestCase {
         }
     }
 
+    func testDatabaseDateComponentsParsing() {
+        func assertParse(_ string: String, _ dateComponent: DatabaseDateComponents, file: StaticString = #file, line: UInt = #line) {
+            do {
+                // Test DatabaseValueConvertible adoption
+                let parsed = DatabaseDateComponents.fromDatabaseValue(string.databaseValue)!
+                XCTAssertEqual(parsed.format, dateComponent.format, file: file, line: line)
+                XCTAssertEqual(parsed.dateComponents, dateComponent.dateComponents, file: file, line: line)
+            }
+            do {
+                // Test StatementColumnConvertible adoption
+                let parsed = DatabaseQueue().inDatabase {
+                    try! DatabaseDateComponents.fetchOne($0, "SELECT ?", arguments: [string])!
+                }
+                XCTAssertEqual(parsed.format, dateComponent.format, file: file, line: line)
+                XCTAssertEqual(parsed.dateComponents, dateComponent.dateComponents, file: file, line: line)
+            }
+        }
+        
+        assertParse(
+            "0000-01-01",
+            DatabaseDateComponents(
+                DateComponents(year: 0, month: 1, day: 1, hour: nil, minute: nil, second: nil, nanosecond: nil),
+                format: .YMD)!)
+        assertParse(
+            "2018-12-31",
+            DatabaseDateComponents(
+                DateComponents(year: 2018, month: 12, day: 31, hour: nil, minute: nil, second: nil, nanosecond: nil),
+                format: .YMD)!)
+        assertParse(
+            "2018-04-21 00:00",
+            DatabaseDateComponents(
+                DateComponents(year: 2018, month: 04, day: 21, hour: 0, minute: 0, second: nil, nanosecond: nil),
+                format: .YMD_HM)!)
+        assertParse(
+            "2018-04-21T23:59",
+            DatabaseDateComponents(
+                DateComponents(year: 2018, month: 04, day: 21, hour: 23, minute: 59, second: nil, nanosecond: nil),
+                format: .YMD_HM)!)
+        assertParse(
+            "2018-04-21 00:00:00",
+            DatabaseDateComponents(
+                DateComponents(year: 2018, month: 04, day: 21, hour: 0, minute: 0, second: 0, nanosecond: nil),
+                format: .YMD_HMS)!)
+        assertParse(
+            "2018-04-21T23:59:59",
+            DatabaseDateComponents(
+                DateComponents(year: 2018, month: 04, day: 21, hour: 23, minute: 59, second: 59, nanosecond: nil),
+                format: .YMD_HMS)!)
+        assertParse(
+            "2018-04-21 00:00:00.0",
+            DatabaseDateComponents(
+                DateComponents(year: 2018, month: 04, day: 21, hour: 0, minute: 0, second: 0, nanosecond: 0),
+                format: .YMD_HMSS)!)
+        assertParse(
+            "2018-04-21T23:59:59.9",
+            DatabaseDateComponents(
+                DateComponents(year: 2018, month: 04, day: 21, hour: 23, minute: 59, second: 59, nanosecond: 900_000_000),
+                format: .YMD_HMSS)!)
+        assertParse(
+            "2018-04-21 00:00:00.00",
+            DatabaseDateComponents(
+                DateComponents(year: 2018, month: 04, day: 21, hour: 0, minute: 0, second: 0, nanosecond: 0),
+                format: .YMD_HMSS)!)
+        assertParse(
+            "2018-04-21 00:00:00.01",
+            DatabaseDateComponents(
+                DateComponents(year: 2018, month: 04, day: 21, hour: 0, minute: 0, second: 0, nanosecond: 10_000_000),
+                format: .YMD_HMSS)!)
+        assertParse(
+            "2018-04-21T23:59:59.99",
+            DatabaseDateComponents(
+                DateComponents(year: 2018, month: 04, day: 21, hour: 23, minute: 59, second: 59, nanosecond: 990_000_000),
+                format: .YMD_HMSS)!)
+        assertParse(
+            "2018-04-21 00:00:00.000",
+            DatabaseDateComponents(
+                DateComponents(year: 2018, month: 04, day: 21, hour: 0, minute: 0, second: 0, nanosecond: 0),
+                format: .YMD_HMSS)!)
+        assertParse(
+            "2018-04-21 00:00:00.001",
+            DatabaseDateComponents(
+                DateComponents(year: 2018, month: 04, day: 21, hour: 0, minute: 0, second: 0, nanosecond: 1_000_000),
+                format: .YMD_HMSS)!)
+        assertParse(
+            "2018-04-21T23:59:59.999",
+            DatabaseDateComponents(
+                DateComponents(year: 2018, month: 04, day: 21, hour: 23, minute: 59, second: 59, nanosecond: 999_000_000),
+                format: .YMD_HMSS)!)
+        assertParse(
+            "00:00",
+            DatabaseDateComponents(
+                DateComponents(year: nil, month: nil, day: nil, hour: 0, minute: 0, second: nil, nanosecond: nil),
+                format: .HM)!)
+        assertParse(
+            "23:59",
+            DatabaseDateComponents(
+                DateComponents(year: nil, month: nil, day: nil, hour: 23, minute: 59, second: nil, nanosecond: nil),
+                format: .HM)!)
+        assertParse(
+            "00:00:00",
+            DatabaseDateComponents(
+                DateComponents(year: nil, month: nil, day: nil, hour: 0, minute: 0, second: 0, nanosecond: nil),
+                format: .HMS)!)
+        assertParse(
+            "23:59:59",
+            DatabaseDateComponents(
+                DateComponents(year: nil, month: nil, day: nil, hour: 23, minute: 59, second: 59, nanosecond: nil),
+                format: .HMS)!)
+        assertParse(
+            "00:00:00.0",
+            DatabaseDateComponents(
+                DateComponents(year: nil, month: nil, day: nil, hour: 0, minute: 0, second: 0, nanosecond: 0),
+                format: .HMSS)!)
+        assertParse(
+            "23:59:59.9",
+            DatabaseDateComponents(
+                DateComponents(year: nil, month: nil, day: nil, hour: 23, minute: 59, second: 59, nanosecond: 900_000_000),
+                format: .HMSS)!)
+        assertParse(
+            "00:00:00.00",
+            DatabaseDateComponents(
+                DateComponents(year: nil, month: nil, day: nil, hour: 0, minute: 0, second: 0, nanosecond: 0),
+                format: .HMSS)!)
+        assertParse(
+            "00:00:00.01",
+            DatabaseDateComponents(
+                DateComponents(year: nil, month: nil, day: nil, hour: 0, minute: 0, second: 0, nanosecond: 10_000_000),
+                format: .HMSS)!)
+        assertParse(
+            "23:59:59.99",
+            DatabaseDateComponents(
+                DateComponents(year: nil, month: nil, day: nil, hour: 23, minute: 59, second: 59, nanosecond: 990_000_000),
+                format: .HMSS)!)
+        assertParse(
+            "00:00:00.000",
+            DatabaseDateComponents(
+                DateComponents(year: nil, month: nil, day: nil, hour: 0, minute: 0, second: 0, nanosecond: 0),
+                format: .HMSS)!)
+        assertParse(
+            "00:00:00.001",
+            DatabaseDateComponents(
+                DateComponents(year: nil, month: nil, day: nil, hour: 0, minute: 0, second: 0, nanosecond: 1_000_000),
+                format: .HMSS)!)
+        assertParse(
+            "23:59:59.999",
+            DatabaseDateComponents(
+                DateComponents(year: nil, month: nil, day: nil, hour: 23, minute: 59, second: 59, nanosecond: 999_000_000),
+                format: .HMSS)!)
+    }
+    
     func testDatabaseDateComponentsFromUnparsableString() {
         let databaseDateComponents = DatabaseDateComponents.fromDatabaseValue("foo".databaseValue)
         XCTAssertTrue(databaseDateComponents == nil)
