@@ -697,20 +697,12 @@ public func - (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQLE
 
 // MARK: - Logical Operators (AND, OR, NOT)
 
-extension SQLBinaryOperator {
-    /// The `AND` binary operator
-    static let and = SQLBinaryOperator("AND")
-    
-    /// The `OR` binary operator
-    static let or = SQLBinaryOperator("OR")
-}
-
 /// A logical SQL expression with the `AND` SQL operator.
 ///
 ///     // favorite AND 0
 ///     Column("favorite") && false
 public func && (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpression {
-    return SQLExpressionBinary(.and, lhs.sqlExpression, rhs.sqlExpression)
+    return SQLExpressionAnd([lhs.sqlExpression, rhs.sqlExpression])
 }
 
 /// A logical SQL expression with the `AND` SQL operator.
@@ -718,7 +710,7 @@ public func && (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpressi
 ///     // 0 AND favorite
 ///     false && Column("favorite")
 public func && (lhs: SQLExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
-    return SQLExpressionBinary(.and, lhs.sqlExpression, rhs.sqlExpression)
+    return SQLExpressionAnd([lhs.sqlExpression, rhs.sqlExpression])
 }
 
 /// A logical SQL expression with the `AND` SQL operator.
@@ -726,7 +718,7 @@ public func && (lhs: SQLExpressible, rhs: SQLSpecificExpressible) -> SQLExpressi
 ///     // email IS NOT NULL AND favorite
 ///     Column("email") != nil && Column("favorite")
 public func && (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
-    return SQLExpressionBinary(.and, lhs.sqlExpression, rhs.sqlExpression)
+    return SQLExpressionAnd([lhs.sqlExpression, rhs.sqlExpression])
 }
 
 /// A logical SQL expression with the `OR` SQL operator.
@@ -734,7 +726,7 @@ public func && (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQL
 ///     // favorite OR 1
 ///     Column("favorite") || true
 public func || (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpression {
-    return SQLExpressionBinary(.or, lhs.sqlExpression, rhs.sqlExpression)
+    return SQLExpressionOr([lhs.sqlExpression, rhs.sqlExpression])
 }
 
 /// A logical SQL expression with the `OR` SQL operator.
@@ -742,7 +734,7 @@ public func || (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpressi
 ///     // 0 OR favorite
 ///     true || Column("favorite")
 public func || (lhs: SQLExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
-    return SQLExpressionBinary(.or, lhs.sqlExpression, rhs.sqlExpression)
+    return SQLExpressionOr([lhs.sqlExpression, rhs.sqlExpression])
 }
 
 /// A logical SQL expression with the `OR` SQL operator.
@@ -750,7 +742,7 @@ public func || (lhs: SQLExpressible, rhs: SQLSpecificExpressible) -> SQLExpressi
 ///     // email IS NULL OR hidden
 ///     Column("email") == nil || Column("hidden")
 public func || (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
-    return SQLExpressionBinary(.or, lhs.sqlExpression, rhs.sqlExpression)
+    return SQLExpressionOr([lhs.sqlExpression, rhs.sqlExpression])
 }
 
 /// A negated logical SQL expression with the `NOT` SQL operator.
@@ -764,6 +756,34 @@ public func || (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQL
 ///     !((1...10).contains(Column("id")))
 public prefix func ! (value: SQLSpecificExpressible) -> SQLExpression {
     return value.sqlExpression.negated
+}
+
+public enum SQLLogicalBinaryOperator {
+    case and, or
+}
+
+extension Sequence where Element: SQLExpressible {
+    /// Return an expression by joining all elements with an SQL logical
+    /// operator
+    public func joined(operator: SQLLogicalBinaryOperator) -> SQLExpression {
+        let expressions: [SQLExpression] = map { $0.sqlExpression }
+        switch `operator` {
+        case .and: return SQLExpressionAnd(expressions)
+        case .or: return SQLExpressionOr(expressions)
+        }
+    }
+}
+
+extension Sequence where Element == SQLExpression {
+    /// Return an expression by joining all elements with an SQL logical
+    /// operator
+    public func joined(operator: SQLLogicalBinaryOperator) -> SQLExpression {
+        let expressions = Array(self)
+        switch `operator` {
+        case .and: return SQLExpressionAnd(expressions)
+        case .or: return SQLExpressionOr(expressions)
+        }
+    }
 }
 
 

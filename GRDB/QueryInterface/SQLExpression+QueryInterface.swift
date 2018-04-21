@@ -227,20 +227,6 @@ public struct SQLBinaryOperator : Hashable {
     public static func == (lhs: SQLBinaryOperator, rhs: SQLBinaryOperator) -> Bool {
         return lhs.sql == rhs.sql
     }
-    
-    // TODO: make it an extension of Sequence (like joined(separator:)) when Swift can better handle existentials
-    // TODO: make it public eventually
-    /// Return nil if expressions is empty.
-    func join(_ expressions: [SQLExpression]) -> SQLExpression? {
-        switch expressions.count {
-        case 0:
-            return nil
-        case 1:
-            return expressions[0]
-        default:
-            return SQLExpressionBinaryOperatorChain(op: self, expressions: expressions)
-        }
-    }
 }
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -325,23 +311,6 @@ public struct SQLExpressionBinary : SQLExpression {
                 return nil
             }
             
-        case .and:
-            let lids = lhs.matchedRowIds(rowIdName: rowIdName)
-            let rids = rhs.matchedRowIds(rowIdName: rowIdName)
-            switch (lids, rids) {
-            case (nil, nil): return nil
-            case let (ids?, nil), let (nil, ids?): return ids
-            case let (lids?, rids?): return lids.intersection(rids)
-            }
-            
-        case .or:
-            let lids = lhs.matchedRowIds(rowIdName: rowIdName)
-            let rids = rhs.matchedRowIds(rowIdName: rowIdName)
-            switch (lids, rids) {
-            case let (lids?, rids?): return lids.union(rids)
-            default: return nil
-            }
-            
         default:
             return nil
         }
@@ -354,29 +323,79 @@ public struct SQLExpressionBinary : SQLExpression {
     }
 }
 
-// MARK: - SQLExpressionBinaryOperatorChain
+// MARK: - SQLExpressionAnd
 
-struct SQLExpressionBinaryOperatorChain : SQLExpression {
-    let op: SQLBinaryOperator
+struct SQLExpressionAnd : SQLExpression {
     let expressions: [SQLExpression]
     
-    // Exposed to SQLBinaryOperator.join
-    fileprivate init(op: SQLBinaryOperator, expressions: [SQLExpression]) {
-        assert(expressions.count >= 2)
-        self.op = op
+    init(_ expressions: [SQLExpression]) {
         self.expressions = expressions
     }
     
     func expressionSQL(_ arguments: inout StatementArguments?) -> String {
+        guard let expression = expressions.first else {
+            // Ruby [].all? # => true
+            return true.sqlExpression.expressionSQL(&arguments)
+        }
+        if expressions.count == 1 {
+            return expression.expressionSQL(&arguments)
+        }
         let expressionSQLs = expressions.map { $0.expressionSQL(&arguments) }
-        let joiner = " \(op.sql) "
-        return "(" + expressionSQLs.joined(separator: joiner) + ")"
+        return "(" + expressionSQLs.joined(separator: " AND ") + ")"
     }
     
     func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
-        return SQLExpressionBinaryOperatorChain(
-            op: op,
-            expressions: expressions.map { $0.qualifiedExpression(with: qualifier) })
+        return SQLExpressionAnd(expressions.map { $0.qualifiedExpression(with: qualifier) })
+    }
+    
+    func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
+        let matchedRowIds = expressions.compactMap {
+            $0.matchedRowIds(rowIdName: rowIdName)
+        }
+        guard let first = matchedRowIds.first else {
+            return nil
+        }
+        return matchedRowIds.suffix(from: 1).reduce(into: first) { $0.formIntersection($1) }
+    }
+}
+
+// MARK: - SQLExpressionOr
+
+struct SQLExpressionOr : SQLExpression {
+    let expressions: [SQLExpression]
+    
+    init(_ expressions: [SQLExpression]) {
+        self.expressions = expressions
+    }
+    
+    func expressionSQL(_ arguments: inout StatementArguments?) -> String {
+        guard let expression = expressions.first else {
+            // Ruby [].any? # => false
+            return false.sqlExpression.expressionSQL(&arguments)
+        }
+        if expressions.count == 1 {
+            return expression.expressionSQL(&arguments)
+        }
+        let expressionSQLs = expressions.map { $0.expressionSQL(&arguments) }
+        return "(" + expressionSQLs.joined(separator: " OR ") + ")"
+    }
+    
+    func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
+        return SQLExpressionOr(expressions.map { $0.qualifiedExpression(with: qualifier) })
+    }
+    
+    func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
+        if expressions.isEmpty {
+            return []
+        }
+        var result: Set<Int64> = []
+        for expr in expressions {
+            guard let matchedRowIds = expr.matchedRowIds(rowIdName: rowIdName) else {
+                return nil
+            }
+            result.formUnion(matchedRowIds)
+        }
+        return result
     }
 }
 
