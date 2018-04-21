@@ -774,7 +774,7 @@ extension Sequence where Element == SQLExpression {
     ///     //        AND (name IS NOT NULL))
     ///     let conditions = [
     ///         Column("registered"),
-    ///         Column("score") >=< 1000,
+    ///         Column("score") >= 1000,
     ///         Column("name") != nil]
     ///     Player.filter(conditions.joined(operator: .and))
     ///
