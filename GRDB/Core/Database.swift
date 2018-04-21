@@ -888,7 +888,7 @@ extension Database {
     /// An SQL column type.
     ///
     ///     try db.create(table: "players") { t in
-    ///         t.column("id", .integer).primaryKey()
+    ///         t.autoIncrementedPrimaryKey("id")
     ///         t.column("title", .text)
     ///     }
     ///

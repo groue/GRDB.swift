@@ -6,7 +6,7 @@ extension Database {
     /// Creates a database table.
     ///
     ///     try db.create(table: "pointOfInterests") { t in
-    ///         t.column("id", .integer).primaryKey()
+    ///         t.autoIncrementedPrimaryKey("id")
     ///         t.column("title", .text)
     ///         t.column("favorite", .boolean).notNull().default(false)
     ///         t.column("longitude", .double).notNull()
@@ -35,7 +35,7 @@ extension Database {
     /// Creates a database table.
     ///
     ///     try db.create(table: "pointOfInterests") { t in
-    ///         t.column("id", .integer).primaryKey()
+    ///         t.autoIncrementedPrimaryKey("id")
     ///         t.column("title", .text)
     ///         t.column("favorite", .boolean).notNull().default(false)
     ///         t.column("longitude", .double).notNull()
@@ -67,7 +67,7 @@ extension Database {
     /// Creates a database table.
     ///
     ///     try db.create(table: "pointOfInterests") { t in
-    ///         t.column("id", .integer).primaryKey()
+    ///         t.autoIncrementedPrimaryKey("id")
     ///         t.column("title", .text)
     ///         t.column("favorite", .boolean).notNull().default(false)
     ///         t.column("longitude", .double).notNull()
