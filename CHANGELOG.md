@@ -160,6 +160,11 @@ Release Notes
 ```
 
 
+## Next Version
+
+- Improved parsing of dates and date components ([#334](https://github.com/groue/GRDB.swift/pull/334) by @sobri909)
+
+
 ## 2.10.0
 
 Released March 30, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.9.0...v2.10.0)
