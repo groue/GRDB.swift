@@ -248,6 +248,38 @@ public final class TableDefinition {
         self.withoutRowID = withoutRowID
     }
     
+    /// Defines the auto-incremented primary key.
+    ///
+    ///     try db.create(table: "players") { t in
+    ///         t.autoIncrementedPrimaryKey("id")
+    ///     }
+    ///
+    /// The auto-incremented primary key is an integer primary key that
+    /// automatically generates unused values when you do not explicitely
+    /// provide one, and prevents the reuse of ids over the lifetime of
+    /// the database.
+    ///
+    /// **It is the preferred way to define a numeric primary key**.
+    ///
+    /// The fact that an auto-incremented primary key prevents the reuse of
+    /// ids is an excellent guard against data races that could happen when your
+    /// application processes ids in an asynchronous way. The auto-incremented
+    /// primary key provides the guarantee that a given id can't reference a row
+    /// that is different from the one it used to be at the beginning of the
+    /// asynchronous process, even if this row gets deleted and a new one is
+    /// inserted in between.
+    ///
+    /// See https://www.sqlite.org/lang_createtable.html#primkeyconst and
+    /// https://www.sqlite.org/lang_createtable.html#rowid
+    ///
+    /// - parameter conflitResolution: An optional conflict resolution
+    ///   (see https://www.sqlite.org/lang_conflict.html).
+    /// - returns: Self so that you can further refine the column definition.
+    @discardableResult
+    public func autoIncrementedPrimaryKey(_ name: String, onConflict conflictResolution: Database.ConflictResolution? = nil) -> ColumnDefinition {
+        return column(name, .integer).primaryKey(onConflict: conflictResolution, autoincrement: true)
+    }
+
     /// Appends a table column.
     ///
     ///     try db.create(table: "players") { t in
