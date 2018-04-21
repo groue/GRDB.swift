@@ -128,11 +128,13 @@ class SQLiteDateParser {
     private func nanosecondsInt(for nanosecond: ContiguousArray<CChar>) -> Int? {
         // truncate after the third digit
         var result = 0
-        for char in nanosecond.prefix(3) {
+        let multipliers = [100_000_000, 10_000_000, 1_000_000, 100_000, 10_000, 1_000, 100, 10, 1]
+        for (char, multiplier) in zip(nanosecond.prefix(3), multipliers) {
+            if char == 0 { return result }
             let digit = Int(char) - 48 /* '0' */
             guard (0...9).contains(digit) else { return nil }
-            result = result * 10 + digit
+            result += multiplier * digit
         }
-        return 1_000_000 * result
+        return result
     }
 }
