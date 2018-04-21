@@ -58,17 +58,11 @@ public struct DatabaseDateComponents : DatabaseValueConvertible, StatementColumn
     
     /// Creates a DatabaseDateComponents from a DateComponents and a format.
     ///
-    /// The result is nil if and only if *dateComponents* is nil.
-    ///
     /// - parameters:
     ///     - dateComponents: An optional DateComponents.
     ///     - format: The format used for storing the date components in
     ///       the database.
-    /// - returns: An optional DatabaseDateComponents.
-    public init?(_ dateComponents: DateComponents?, format: Format) {
-        guard let dateComponents = dateComponents else {
-            return nil
-        }
+    public init(_ dateComponents: DateComponents, format: Format) {
         self.format = format
         self.dateComponents = dateComponents
     }
