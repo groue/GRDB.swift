@@ -259,9 +259,6 @@ extension QueryInterfaceRequest where T: TableRecord {
         
         return QueryInterfaceRequest(query: query.mapWhereExpression { (db, expression) in
             let keyPredicates: [SQLExpression] = try keys.map { key in
-                // Prevent filter(db, keys: [[:]])
-                GRDBPrecondition(!key.isEmpty, "Invalid empty key dictionary")
-                
                 // Prevent filter(keys: [["foo": 1, "bar": 2]]) where
                 // ("foo", "bar") is not a unique key (primary key or columns of a
                 // unique index)
@@ -274,10 +271,10 @@ extension QueryInterfaceRequest where T: TableRecord {
                     // Sort key columns in the same order as the unique index
                     .sorted { (kv1, kv2) in lowercaseOrderedColumns.index(of: kv1.0.lowercased())! < lowercaseOrderedColumns.index(of: kv2.0.lowercased())! }
                     .map { (column, value) in Column(column) == value }
-                return SQLBinaryOperator.and.join(columnPredicates)! // not nil because columnPredicates is not empty
+                return columnPredicates.joined(operator: .and)
             }
             
-            let keysPredicate = SQLBinaryOperator.or.join(keyPredicates)! // not nil because keyPredicates is not empty
+            let keysPredicate = keyPredicates.joined(operator: .or)
             
             if let expression = expression {
                 return expression && keysPredicate
