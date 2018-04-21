@@ -80,6 +80,7 @@ Requires recompilation of SQLite:
 
 Reading list:
 
+- Documentation generation: https://twitter.com/jckarter/status/987525569196650496: cmark is the implementation the Swift compiler uses for doc comments etc.
 - VACUUM (https://blogs.gnome.org/jnelson/)
 - http://www.sqlite.org/intern-v-extern-blob.html
 - https://sqlite.org/sharedcache.html
