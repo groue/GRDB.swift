@@ -2969,10 +2969,11 @@ try db.create(table: "example", temporary: true, ifNotExists: true) { t in
 //   a,
 //   name TEXT,
 //   creationDate DATETIME,
-try db.create(table: "example") { t in ... }
+try db.create(table: "example") { t in
     t.column("a")
     t.column("name", .text)
     t.column("creationDate", .datetime)
+    ...
 ```
 
 Define **not null** columns, and set **default** values:
