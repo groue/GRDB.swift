@@ -2600,7 +2600,7 @@ The [five different policies](https://www.sqlite.org/lang_conflict.html) are: ab
     // )
     try db.create(table: "players") { t in
         t.column("id", .integer).primaryKey()
-        t.column("email", .text)
+        t.column("email", .text).unique()
     }
     
     // Again, despite the unique index on email, both inserts succeed.
