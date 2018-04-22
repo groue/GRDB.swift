@@ -3025,7 +3025,7 @@ Other **table constraints** can involve several columns:
     t.uniqueKey(["a", "b"], onConfict: .replace)
     
     // FOREIGN KEY (a, b) REFERENCES parents(c, d),
-    t.foreignKey(["a", "b"], references: "parent")
+    t.foreignKey(["a", "b"], references: "parents")
     
     // CHECK (a + b < 10),
     t.check(Column("a") + Column("b") < 10)
