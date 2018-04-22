@@ -2212,7 +2212,7 @@ The `encode(to:)` method defines which [values](#values) (Bool, Int, String, Dat
 
 The optional `didInsert` method lets the adopting type store its rowID after successful insertion. If your table has an INTEGER PRIMARY KEY column, you are likely to define this method. Otherwise, you can safely ignore it. It is called from a protected dispatch queue, and serialized with all database updates.
 
-**To use those protocols**, subclass the [Record](#record-class) class, or adopt one of them explicitely. For example:
+**To use those protocols**, subclass the [Record](#record-class) class, or adopt one of them explicitly. For example:
 
 ```swift
 extension Place : MutablePersistable {
