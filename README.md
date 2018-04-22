@@ -2973,7 +2973,6 @@ try db.create(table: "example") { t in
     t.column("a")
     t.column("name", .text)
     t.column("creationDate", .datetime)
-    ...
 ```
 
 Define **not null** columns, and set **default** values:
