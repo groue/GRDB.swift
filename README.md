@@ -3380,7 +3380,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Player.filter(emailColumn.like("%@example.com"))
     ```
     
-    > :point_up: **Note**: the SQLite LIKE operator is case-unsensitive but not Unicode-aware. For example, the expression `'a' LIKE 'A'` is true but `'æ' LIKE 'Æ'` is false.
+    > :point_up: **Note**: the SQLite LIKE operator is case-insensitive but not Unicode-aware. For example, the expression `'a' LIKE 'A'` is true but `'æ' LIKE 'Æ'` is false.
 
 - `MATCH`
     
