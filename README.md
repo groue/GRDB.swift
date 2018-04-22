@@ -4974,7 +4974,7 @@ func startMonitoring(_ db: Database, region: CLRegion) throws {
 }
 ```
 
-The method above won't trigger the location manager if the transaction is eventually rollbacked (explicitely, or because of an error), as in the sample code below:
+The method above won't trigger the location manager if the transaction is eventually rollbacked (explicitly, or because of an error), as in the sample code below:
 
 ```swift
 try dbQueue.inTransaction { db in
