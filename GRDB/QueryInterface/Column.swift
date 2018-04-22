@@ -8,8 +8,6 @@ public struct Column : SQLExpression {
     /// The name of the column
     public let name: String
     
-    private var qualifier: SQLTableQualifier?
-    
     /// Creates a column given its name.
     public init(_ name: String) {
         self.name = name
@@ -18,21 +16,36 @@ public struct Column : SQLExpression {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func expressionSQL(_ arguments: inout StatementArguments?) -> String {
-        if let qualifierName = qualifier?.name {
-            return qualifierName.quotedDatabaseIdentifier + "." + name.quotedDatabaseIdentifier
-        }
         return name.quotedDatabaseIdentifier
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
-        if self.qualifier != nil {
-            // Never requalify
-            return self
+        return QualifiedColumn(name, qualifier: qualifier)
+    }
+}
+
+/// A qualified column in the database, as in `SELECT t.a FROM t`
+struct QualifiedColumn : SQLExpression {
+    let name: String
+    private var qualifier: SQLTableQualifier
+    
+    /// Creates a column given its name.
+    init(_ name: String, qualifier: SQLTableQualifier) {
+        self.name = name
+        self.qualifier = qualifier
+    }
+    
+    func expressionSQL(_ arguments: inout StatementArguments?) -> String {
+        if let qualifierName = qualifier.name {
+            return qualifierName.quotedDatabaseIdentifier + "." + name.quotedDatabaseIdentifier
         }
-        var column = self
-        column.qualifier = qualifier
-        return column
+        return name.quotedDatabaseIdentifier
+    }
+    
+    func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
+        // Never requalify
+        return self
     }
 }
