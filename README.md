@@ -2883,7 +2883,7 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](#fu
 We will show below how to declare a record type for the following database table:
 
 ```swift
-dbQueue.write { db in
+try dbQueue.write { db in
     try db.create(table: "places") { t in
         t.autoIncrementedPrimaryKey("id")
         t.column("title", .text).notNull()
