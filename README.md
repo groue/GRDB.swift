@@ -2902,7 +2902,7 @@ Each one of the three examples below is correct. You will pick one or the other 
     struct Place: Codable {
         var id: Int64?
         var title: String
-        var isFavorite: Bool
+        var favorite: Bool
         var latitude: CLLocationDegrees
         var longitude: CLLocationDegrees
         
