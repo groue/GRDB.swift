@@ -143,7 +143,7 @@ Database queues look a lot like FMDB's [FMDatabaseQueue](https://github.com/ccgu
 
 ### Strong and clear multi-threading guarantees
 
-I'd like to compare GRDB's handling of concurrency with other libraries. To be as clear as possible, we'll identity a few threats, or potential sources of bugs, and wonder if those are handled by the library, or left to the host application.
+I'd like to compare GRDB's handling of concurrency with other libraries. To be as clear as possible, we'll identify a few threats, or potential sources of bugs, and wonder if those are handled by the library, or left to the host application.
 
 The more threats are handled by the application, the more skilled and careful a developer has to be in order to avoid them.
 
