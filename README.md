@@ -2062,7 +2062,7 @@ protocol RowConvertible {
 }
 ```
 
-**To use RowConvertible**, subclass the [Record](#record-class) class, or adopt it explicitely. For example:
+**To use RowConvertible**, subclass the [Record](#record-class) class, or adopt it explicitly. For example:
 
 ```swift
 struct Place {
