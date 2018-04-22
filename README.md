@@ -2177,15 +2177,12 @@ extension Place : FetchableRecord {
 }
 ```
 
-Rows also accept keys of type `Column`:
+Rows also accept columns:
 
 ```swift
 extension Place : FetchableRecord {
-    enum Columns {
-        static let id = Column("id")
-        static let title = Column("title")
-        static let latitude = Column("latitude")
-        static let longitude = Column("longitude")
+    enum Columns: String, ColumnExpression {
+        case id, title, latitude, longitude
     }
     
     init(row: Row) {
@@ -2335,15 +2332,12 @@ try paris.insert(db)
 paris.id   // some value
 ```
 
-Persistence containers also accept keys of type `Column`:
+Persistence containers also accept columns:
 
 ```swift
 extension Place : MutablePersistableRecord {
-    enum Columns {
-        static let id = Column("id")
-        static let title = Column("title")
-        static let latitude = Column("latitude")
-        static let longitude = Column("longitude")
+    enum Columns: String, ColumnExpression {
+        case id, title, latitude, longitude
     }
     
     func encode(to container: inout PersistenceContainer) {
@@ -2562,18 +2556,14 @@ class Place: Record {
         super.init()
     }
     
-    /// The table columns
-    enum Columns {
-        static let id = Column("id")
-        static let title = Column("title")
-        static let favorite = Column("favorite")
-        static let latitude = Column("latitude")
-        static let longitude = Column("longitude")
-    }
-    
     /// The table name
     override class var databaseTableName: String {
         return "places"
+    }
+    
+    /// The table columns
+    enum Columns: String, ColumnExpression {
+        case id, title, favorite, latitude, longitude
     }
     
     /// Creates a record from a database row
@@ -2942,12 +2932,8 @@ Each one of the three examples below is correct. You will pick one or the other 
         static let databaseTableName = "places"
         
         /// The table columns
-        enum Columns {
-            static let id = Column("id")
-            static let title = Column("title")
-            static let favorite = Column("favorite")
-            static let latitude = Column("latitude")
-            static let longitude = Column("longitude")
+        enum Columns: String, ColumnExpression {
+            case id, title, favorite, latitude, longitude
         }
     }
     
@@ -2997,18 +2983,14 @@ Each one of the three examples below is correct. You will pick one or the other 
             super.init()
         }
         
-        /// The table columns
-        enum Columns {
-            static let id = Column("id")
-            static let title = Column("title")
-            static let favorite = Column("favorite")
-            static let latitude = Column("latitude")
-            static let longitude = Column("longitude")
-        }
-        
         /// The table name
         override class var databaseTableName: String {
             return "places"
+        }
+        
+        /// The table columns
+        enum Columns: String, ColumnExpression {
+            case id, title, favorite, latitude, longitude
         }
         
         /// Creates a record from a database row
@@ -3379,6 +3361,15 @@ Declare the table **columns** that you want to use for filtering, or sorting:
 ```swift
 let idColumn = Column("id")
 let nameColumn = Column("name")
+```
+
+You can also declare column enums, if you prefer:
+
+```swift
+enum Columns: String, ColumnExpression {
+    case id
+    case name
+}
 ```
 
 You can now build requests with the following methods: `all`, `none`, `select`, `distinct`, `filter`, `matching`, `group`, `having`, `order`, `reversed`, `limit`. All those methods return another request, which you can further refine by applying another method: `Player.select(...).filter(...).order(...)`.
