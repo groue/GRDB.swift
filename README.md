@@ -1966,6 +1966,10 @@ Your custom structs and classes can adopt each protocol individually, and opt in
 - [Record Comparison]
 - [Conflict Resolution](#conflict-resolution)
 - [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key)
+
+**Records in a glance**
+
+- [Examples of Record Definitions](#examples-of-record-definitions)
 - [List of Record Methods](#list-of-record-methods)
 
 
@@ -2072,6 +2076,7 @@ Details follow:
 - [Record Comparison]
 - [Conflict Resolution](#conflict-resolution)
 - [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key)
+- [Examples of Record Definitions](#examples-of-record-definitions)
 - [List of Record Methods](#list-of-record-methods)
 
 
@@ -2540,38 +2545,57 @@ place.id // A unique id
 
 **Record** is a class that is designed to be subclassed. It inherits its features from the [FetchableRecord, TableRecord, and PersistableRecord](#record-protocols-overview) protocols. On top of that, Record instances can compare against previous versions of themselves in order to [avoid useless updates](#record-comparison).
 
-Record subclasses define their custom database relationship by overriding database methods:
+Record subclasses define their custom database relationship by overriding database methods. For example:
 
 ```swift
-class Place : Record {
+class Place: Record {
     var id: Int64?
     var title: String
+    var isFavorite: Bool
     var coordinate: CLLocationCoordinate2D
+    
+    init(id: Int64?, title: String, isFavorite: Bool, coordinate: CLLocationCoordinate2D) {
+        self.id = id
+        self.title = title
+        self.isFavorite = isFavorite
+        self.coordinate = coordinate
+    }
+    
+    /// The table columns
+    enum Columns {
+        static let id = Column("id")
+        static let title = Column("title")
+        static let favorite = Column("favorite")
+        static let latitude = Column("latitude")
+        static let longitude = Column("longitude")
+    }
     
     /// The table name
     override class var databaseTableName: String {
         return "places"
     }
     
-    /// Initialize from a database row
+    /// Creates a record from a database row
     required init(row: Row) {
-        id = row["id"]
-        title = row["title"]
+        id = row[Columns.id]
+        title = row[Columns.title]
+        isFavorite = row[Columns.favorite]
         coordinate = CLLocationCoordinate2D(
-            latitude: row["latitude"],
-            longitude: row["longitude"])
+            latitude: row[Columns.latitude],
+            longitude: row[Columns.longitude])
         super.init(row: row)
     }
     
     /// The values persisted in the database
     override func encode(to container: inout PersistenceContainer) {
-        container["id"] = id
-        container["title"] = title
-        container["latitude"] = coordinate.latitude
-        container["longitude"] = coordinate.longitude
+        container[Columns.id] = id
+        container[Columns.title] = title
+        container[Columns.favorite] = isFavorite
+        container[Columns.latitude] = coordinate.latitude
+        container[Columns.longitude] = coordinate.longitude
     }
     
-    /// When relevant, update record ID after a successful insertion
+    /// Update record ID after a successful insertion
     override func didInsert(with rowID: Int64, for column: String?) {
         id = rowID
     }
@@ -2851,6 +2875,174 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](#fu
     
     // Record knows if it exists:
     event.exists(db) // true
+    ```
+
+
+## Examples of Record Definitions
+
+We will show below how to declare a record type for the following database table:
+
+```swift
+dbQueue.write { db in
+    try db.create(table: "places") { t in
+        t.autoIncrementedPrimaryKey("id")
+        t.column("title", .text).notNull()
+        t.column("favorite", .boolean).notNull().defaults(to: false)
+        t.column("longitude", .double).notNull()
+        t.column("latitude", .double).notNull()
+    }
+}
+```
+
+Each one of the three examples below is correct. You will pick one or the other depending on your personal preferences and the requirements of your application:
+
+- Example 1: Define a Codable struct and adopt each one of the [record protocols](#record-protocols-overview).
+    
+    ```swift
+    struct Place: Codable {
+        var id: Int64?
+        var title: String
+        var isFavorite: Bool
+        var latitude: CLLocationDegrees
+        var longitude: CLLocationDegrees
+        
+        var coordinate: CLLocationCoordinate2D {
+            get {
+                return CLLocationCoordinate2D(
+                    latitude: latitude,
+                    longitude: longitude)
+            }
+            set {
+                latitude = newValue.latitude
+                longitude = newValue.longitude
+            }
+        }
+    }
+    
+    extension Place: TableRecord {
+        /// The table name
+        static let databaseTableName = "players"
+    }
+    
+    extension Place: FetchableRecord { }
+    
+    extension Place: MutablePersistableRecord {
+        /// Update record ID after a successful insertion
+        mutating func didInsert(with rowID: Int64, for column: String?) {
+            id = rowId
+        }
+    }
+    ```
+
+- Example 2: Define a plain struct and explicitely adopt each one of the [record protocols](#record-protocols-overview).
+    
+    ```swift
+    struct Place {
+        var id: Int64?
+        var title: String
+        var isFavorite: Bool
+        var coordinate: CLLocationCoordinate2D
+    }
+    
+    extension Place: TableRecord {
+        /// The table name
+        static let databaseTableName = "players"
+        
+        /// The table columns
+        enum Columns {
+            static let id = Column("id")
+            static let title = Column("title")
+            static let favorite = Column("favorite")
+            static let latitude = Column("latitude")
+            static let longitude = Column("longitude")
+        }
+    }
+    
+    extension Place: FetchableRecord {
+        /// Creates a record from a database row
+        init(row: Row) {
+            id = row[Columns.id]
+            title = row[Columns.title]
+            isFavorite = row[Columns.favorite]
+            coordinate = CLLocationCoordinate2D(
+                latitude: row[Columns.latitude],
+                longitude: row[Columns.longitude])
+            super.init(row: row)
+        }
+    }
+    
+    extension Place: MutablePersistableRecord {
+        /// The values persisted in the database
+        func encode(to container: inout PersistenceContainer) {
+            container[Columns.id] = id
+            container[Columns.title] = title
+            container[Columns.favorite] = isFavorite
+            container[Columns.latitude] = coordinate.latitude
+            container[Columns.longitude] = coordinate.longitude
+        }
+        
+        /// Update record ID after a successful insertion
+        mutating func didInsert(with rowID: Int64, for column: String?) {
+            id = rowId
+        }
+    }
+    ```
+
+- Example 3: Subclass the [Record class](#record-class).
+    
+    ```swift
+    class Place: Record {
+        var id: Int64?
+        var title: String
+        var isFavorite: Bool
+        var coordinate: CLLocationCoordinate2D
+        
+        init(id: Int64?, title: String, isFavorite: Bool, coordinate: CLLocationCoordinate2D) {
+            self.id = id
+            self.title = title
+            self.isFavorite = isFavorite
+            self.coordinate = coordinate
+        }
+        
+        /// The table columns
+        enum Columns {
+            static let id = Column("id")
+            static let title = Column("title")
+            static let favorite = Column("favorite")
+            static let latitude = Column("latitude")
+            static let longitude = Column("longitude")
+        }
+        
+        /// The table name
+        override class var databaseTableName: String {
+            return "places"
+        }
+        
+        /// Creates a record from a database row
+        required init(row: Row) {
+            id = row[Columns.id]
+            title = row[Columns.title]
+            isFavorite = row[Columns.favorite]
+            coordinate = CLLocationCoordinate2D(
+                latitude: row[Columns.latitude],
+                longitude: row[Columns.longitude])
+            super.init(row: row)
+        }
+        
+        /// The values persisted in the database
+        override func encode(to container: inout PersistenceContainer) {
+            container[Columns.id] = id
+            container[Columns.title] = title
+            container[Columns.favorite] = isFavorite
+            container[Columns.latitude] = coordinate.latitude
+            container[Columns.longitude] = coordinate.longitude
+        }
+        
+        /// Update record ID after a successful insertion
+        override func didInsert(with rowID: Int64, for column: String?) {
+            id = rowID
+        }
+    }
     ```
 
 
