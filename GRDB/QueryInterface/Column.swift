@@ -6,7 +6,7 @@ public struct Column : SQLExpression {
     public static let rowID = Column("rowid")
     
     /// The name of the column
-    public let name: String
+    public var name: String
     
     /// Creates a column given its name.
     public init(_ name: String) {
@@ -28,8 +28,8 @@ public struct Column : SQLExpression {
 
 /// A qualified column in the database, as in `SELECT t.a FROM t`
 struct QualifiedColumn : SQLExpression {
-    let name: String
-    private var qualifier: SQLTableQualifier
+    var name: String
+    private let qualifier: SQLTableQualifier
     
     /// Creates a column given its name.
     init(_ name: String, qualifier: SQLTableQualifier) {
