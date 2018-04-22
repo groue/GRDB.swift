@@ -64,7 +64,7 @@ public struct PersistenceContainer {
     /// It is undefined behavior to set different values for the same column.
     /// Column names are case insensitive, so defining both "name" and "NAME"
     /// is considered undefined behavior.
-    public subscript(_ column: Column) -> DatabaseValueConvertible? {
+    public subscript(_ column: SQLColumnExpression) -> DatabaseValueConvertible? {
         get { return self[column.name] }
         set { self[column.name] = newValue }
     }
@@ -362,7 +362,7 @@ extension MutablePersistableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
-    public func update<Sequence: Swift.Sequence>(_ db: Database, columns: Sequence) throws where Sequence.Element == Column {
+    public func update<Sequence: Swift.Sequence>(_ db: Database, columns: Sequence) throws where Sequence.Element: SQLColumnExpression {
         try update(db, columns: Set(columns.map { $0.name }))
     }
     

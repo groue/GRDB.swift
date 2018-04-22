@@ -2823,16 +2823,8 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](#fu
         var id: Int64?
         
         init(row: Row) {
-            id = row["rowid"]
+            id = row[Column.rowID]
         }
-    }
-    ```
-    
-    If you prefer using the Column type from the [query interface](#the-query-interface), use the `Column.rowID` constant:
-    
-    ```swift
-    init(row: Row) {
-        id = row[.rowID]
     }
     ```
     
@@ -2850,7 +2842,7 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](#fu
         var id: Int64?
         
         func encode(to container: inout PersistenceContainer) {
-            container[.rowID] = id
+            container[Column.rowID] = id
             container["message"] = message
             container["date"] = date
         }
