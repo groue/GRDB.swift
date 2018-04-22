@@ -2930,7 +2930,7 @@ Each one of the three examples below is correct. You will pick one or the other 
     extension Place: MutablePersistableRecord {
         /// Update record ID after a successful insertion
         mutating func didInsert(with rowID: Int64, for column: String?) {
-            id = rowId
+            id = rowID
         }
     }
     ```
@@ -2968,7 +2968,6 @@ Each one of the three examples below is correct. You will pick one or the other 
             coordinate = CLLocationCoordinate2D(
                 latitude: row[Columns.latitude],
                 longitude: row[Columns.longitude])
-            super.init(row: row)
         }
     }
     
@@ -2984,7 +2983,7 @@ Each one of the three examples below is correct. You will pick one or the other 
         
         /// Update record ID after a successful insertion
         mutating func didInsert(with rowID: Int64, for column: String?) {
-            id = rowId
+            id = rowID
         }
     }
     ```
