@@ -289,7 +289,7 @@ public struct SQLExpressionBinary : SQLExpression {
         switch op {
         case .equal, .is:
             // Look for `id ==/IS 1`, `rowid ==/IS 1`, `1 ==/IS id`, `1 ==/IS rowid`
-            func matchedRowIds(column: SQLColumnExpression, dbValue: DatabaseValue) -> Set<Int64>? {
+            func matchedRowIds(column: ColumnExpression, dbValue: DatabaseValue) -> Set<Int64>? {
                 var rowIdNames = [Column.rowID.name.lowercased()]
                 if let rowIdName = rowIdName {
                     rowIdNames.append(rowIdName.lowercased())
@@ -304,9 +304,9 @@ public struct SQLExpressionBinary : SQLExpression {
                 }
             }
             switch (lhs, rhs) {
-            case (let column as SQLColumnExpression, let dbValue as DatabaseValue):
+            case (let column as ColumnExpression, let dbValue as DatabaseValue):
                 return matchedRowIds(column: column, dbValue: dbValue)
-            case (let dbValue as DatabaseValue, let column as SQLColumnExpression):
+            case (let dbValue as DatabaseValue, let column as ColumnExpression):
                 return matchedRowIds(column: column, dbValue: dbValue)
             default:
                 return nil
@@ -434,7 +434,7 @@ struct SQLExpressionContains : SQLExpression {
     func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
         // FIXME: this implementation ignores column qualifiers
         // Look for `id IN (1, 2, 3)`
-        guard let column = expression as? SQLColumnExpression,
+        guard let column = expression as? ColumnExpression,
             let array = collection as? SQLExpressionsArray else
         {
             return nil

@@ -7,15 +7,15 @@ import XCTest
     import GRDB
 #endif
 
-class SQLColumnExpressionTests: GRDBTestCase {
+class ColumnExpressionTests: GRDBTestCase {
     
-    func testRawSQLColumnExpression() throws {
+    func testRawColumnExpression() throws {
         struct Player: TableRecord, FetchableRecord, PersistableRecord {
             var id: Int64
             var name: String
             var score: Int
             
-            struct Column: SQLColumnExpression {
+            struct Column: ColumnExpression {
                 var name: String
             }
             
@@ -82,7 +82,7 @@ class SQLColumnExpressionTests: GRDBTestCase {
             var name: String
             var score: Int
             
-            enum Columns: String, SQLColumnExpression {
+            enum Columns: String, ColumnExpression {
                 case id, name, score
             }
             
@@ -143,7 +143,7 @@ class SQLColumnExpressionTests: GRDBTestCase {
             var name: String
             var score: Int
             
-            enum CodingKeys: CodingKey, SQLColumnExpression {
+            enum CodingKeys: CodingKey, ColumnExpression {
                 case id, name, score
             }
             

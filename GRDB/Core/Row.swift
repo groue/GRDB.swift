@@ -347,7 +347,7 @@ extension Row {
     /// the same name, the leftmost column is considered.
     ///
     /// The result is nil if the row does not contain the column.
-    public subscript(_ column: SQLColumnExpression) -> DatabaseValueConvertible? {
+    public subscript(_ column: ColumnExpression) -> DatabaseValueConvertible? {
         return self[column.name]
     }
     
@@ -359,7 +359,7 @@ extension Row {
     /// If the column is missing or if the SQLite value is NULL, the result is
     /// nil. Otherwise the SQLite value is converted to the requested type
     /// `Value`. Should this conversion fail, a fatal error is raised.
-    public subscript<Value: DatabaseValueConvertible>(_ column: SQLColumnExpression) -> Value? {
+    public subscript<Value: DatabaseValueConvertible>(_ column: ColumnExpression) -> Value? {
         return self[column.name]
     }
     
@@ -375,7 +375,7 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ column: SQLColumnExpression) -> Value? {
+    public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ column: ColumnExpression) -> Value? {
         return self[column.name]
     }
     
@@ -388,7 +388,7 @@ extension Row {
     ///
     /// This method crashes if the fetched SQLite value is NULL, or if the
     /// SQLite value can not be converted to `Value`.
-    public subscript<Value: DatabaseValueConvertible>(_ column: SQLColumnExpression) -> Value {
+    public subscript<Value: DatabaseValueConvertible>(_ column: ColumnExpression) -> Value {
         return self[column.name]
     }
     
@@ -405,7 +405,7 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ column: SQLColumnExpression) -> Value {
+    public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ column: ColumnExpression) -> Value {
         return self[column.name]
     }
     
@@ -453,7 +453,7 @@ extension Row {
     ///
     /// The returned data does not owns its bytes: it must not be used longer
     /// than the row's lifetime.
-    public func dataNoCopy(_ column: SQLColumnExpression) -> Data? {
+    public func dataNoCopy(_ column: ColumnExpression) -> Data? {
         return dataNoCopy(named: column.name)
     }
 }

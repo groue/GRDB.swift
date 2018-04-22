@@ -1,9 +1,12 @@
 /// The protocol for types that define database columns
-public protocol SQLColumnExpression: SQLExpression {
+public protocol ColumnExpression: SQLExpression {
+    /// The unqualified name of a database column.
+    ///
+    /// "score" is a valid unqualified name. "player.score" is not.
     var name: String { get }
 }
 
-extension SQLColumnExpression {
+extension ColumnExpression {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func expressionSQL(_ arguments: inout StatementArguments?) -> String {
@@ -20,7 +23,7 @@ extension SQLColumnExpression {
 /// A column in a database table
 ///
 /// See https://github.com/groue/GRDB.swift#the-query-interface
-public struct Column: SQLColumnExpression {
+public struct Column: ColumnExpression {
     /// The hidden rowID column
     public static let rowID = Column("rowid")
     
@@ -34,7 +37,7 @@ public struct Column: SQLColumnExpression {
 }
 
 /// A qualified column in the database, as in `SELECT t.a FROM t`
-struct QualifiedColumn: SQLColumnExpression {
+struct QualifiedColumn: ColumnExpression {
     var name: String
     private let qualifier: SQLTableQualifier
     
@@ -57,13 +60,14 @@ struct QualifiedColumn: SQLColumnExpression {
     }
 }
 
-extension CodingKey where Self: SQLColumnExpression {
-    public var name: String {
-        return stringValue
-    }
-}
-
-extension SQLColumnExpression where Self: RawRepresentable, Self.RawValue == String {
+/// Support for column enums:
+///
+///     struct Player {
+///         enum Columns: ColumnExpression {
+///             case id, name, score
+///         }
+///     }
+extension ColumnExpression where Self: RawRepresentable, Self.RawValue == String {
     public var name: String {
         return rawValue
     }
