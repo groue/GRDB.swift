@@ -2559,6 +2559,7 @@ class Place: Record {
         self.title = title
         self.isFavorite = isFavorite
         self.coordinate = coordinate
+        super.init()
     }
     
     /// The table columns
@@ -3002,6 +3003,7 @@ Each one of the three examples below is correct. You will pick one or the other 
             self.title = title
             self.isFavorite = isFavorite
             self.coordinate = coordinate
+            super.init()
         }
         
         /// The table columns
