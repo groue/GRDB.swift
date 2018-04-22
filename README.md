@@ -2922,7 +2922,7 @@ Each one of the three examples below is correct. You will pick one or the other 
     
     extension Place: TableRecord {
         /// The table name
-        static let databaseTableName = "players"
+        static let databaseTableName = "places"
     }
     
     extension Place: FetchableRecord { }
@@ -2947,7 +2947,7 @@ Each one of the three examples below is correct. You will pick one or the other 
     
     extension Place: TableRecord {
         /// The table name
-        static let databaseTableName = "players"
+        static let databaseTableName = "places"
         
         /// The table columns
         enum Columns {
