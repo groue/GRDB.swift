@@ -353,6 +353,11 @@ Database access methods can return values, for easy extraction of database value
 let placeCount = try dbQueue.read { db in
     try Place.fetchCount(db)
 }
+
+let newPlaceCount = try dbQueue.write { db -> Int in
+    try Place(...).insert(db)
+    returns try Place.fetchCount(db)
+}
 ```
 
 **A database queue needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency](#concurrency) chapter.
@@ -361,7 +366,8 @@ See [DemoApps/GRDBDemoiOS/AppDatabase.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Ap
 
 > :muscle: **Note to database experts**: The `write` and `read` database access methods generally help enforcing the [GRDB concurrency guarantees](#concurrency), and are highly recommended, even for skilled developers, because they lift most of the mental burden related to explicit SQLite transactions:
 >
-> `DatabaseQueue.write` wraps your database statements in a transaction, and rollbacks on the first unhandled error. `DatabaseQueue.read` enforces read-only access.
+> - `DatabaseQueue.write` wraps your database statements in a transaction. On the first unhandled error, the whole transaction is rollbacked, and the error rethrown.
+> - `DatabaseQueue.read` does not open any transaction, but enforces read-only access.
 >
 > When precise transaction handling is required, see [Transactions and Savepoints](#transactions-and-savepoints).
 
@@ -417,6 +423,11 @@ Database access methods can return values, for easy extraction of database value
 let placeCount = try dbPool.read { db in
     try Place.fetchCount(db)
 }
+
+let newPlaceCount = try dbPool.write { db -> Int in
+    try Place(...).insert(db)
+    returns try Place.fetchCount(db)
+}
 ```
 
 **A database pool needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency](#concurrency) chapter.
@@ -436,8 +447,8 @@ Unlike [database queues](#database-queues), pools allow several threads to acces
 
 - Unlike reads, writes are serialized. There is never more than a single thread that is writing into the database.
 
-- The `write` method wraps your database statements in a transaction, and rollbacks on the first unhandled error.
-
+- The `write` method wraps your database statements in a transaction. On the first unhandled error, the whole transaction is rollbacked, and the error rethrown.
+    
     When precise transaction handling is required, see [Transactions and Savepoints](#transactions-and-savepoints) for more information.
 
 - Database pools can take [snapshots](#database-snapshots) of the database.
