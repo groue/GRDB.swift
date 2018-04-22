@@ -104,7 +104,7 @@ extension TableRecord {
     ///
     ///     try dbQueue.write { db in
     ///         try db.create(table: "players") { t in
-    ///             t.column("id", .integer).primaryKey()
+    ///             t.autoIncrementedPrimaryKey("id")
     ///             t.column("name", .text)
     ///             t.column("score", .integer)
     ///         }

@@ -166,7 +166,7 @@ Avoid SQL with the [query interface](#the-query-interface):
 ```swift
 try dbQueue.write { db in
     try db.create(table: "places") { t in
-        t.column("id", .integer).primaryKey()
+        t.autoIncrementedPrimaryKey("id")
         t.column("title", .text).notNull()
         t.column("favorite", .boolean).notNull().defaults(to: false)
         t.column("longitude", .double).notNull()
@@ -1707,7 +1707,7 @@ Int.fetchOne(db, Player.select(maxLength.apply(nameColumn))) // Int?
 
 ```swift
 try db.create(table: "players") { t in
-    t.column("id", .integer).primaryKey()
+    t.autoIncrementedPrimaryKey("id")
     t.column("name", .text)
 }
 
@@ -2660,7 +2660,7 @@ The [five different policies](https://www.sqlite.org/lang_conflict.html) are: ab
     //     email TEXT UNIQUE ON CONFLICT REPLACE
     // )
     try db.create(table: "players") { t in
-        t.column("id", .integer).primaryKey()
+        t.autoIncrementedPrimaryKey("id")
         t.column("email", .text).unique(onConflict: .replace) // <--
     }
     
@@ -2678,7 +2678,7 @@ The [five different policies](https://www.sqlite.org/lang_conflict.html) are: ab
     //     email TEXT UNIQUE
     // )
     try db.create(table: "players") { t in
-        t.column("id", .integer).primaryKey()
+        t.autoIncrementedPrimaryKey("id")
         t.column("email", .text)
     }
     
@@ -3013,7 +3013,7 @@ Once granted with a [database connection](#database-connections), you can setup 
 //   longitude DOUBLE NOT NULL
 // )
 try db.create(table: "places") { t in
-    t.column("id", .integer).primaryKey()
+    t.autoIncrementedPrimaryKey("id")
     t.column("title", .text)
     t.column("favorite", .boolean).notNull().defaults(to: false)
     t.column("longitude", .double).notNull()
@@ -3067,8 +3067,11 @@ Define **not null** columns, and set **default** values:
 Use an individual column as **primary**, **unique**, or **foreign key**. When defining a foreign key, the referenced column is the primary key of the referenced table (unless you specify otherwise):
 
 ```swift
-    // id INTEGER PRIMARY KEY,
-    t.column("id", .integer).primaryKey()
+    // id INTEGER PRIMARY KEY AUTOINCREMENT,
+    t.autoIncrementedPrimaryKey("id")
+    
+    // uuid TEXT PRIMARY KEY,
+    t.column("uuid", .text).primaryKey()
     
     // email TEXT UNIQUE,
     t.column("email", .text).unique()
@@ -3076,6 +3079,10 @@ Use an individual column as **primary**, **unique**, or **foreign key**. When de
     // countryCode TEXT REFERENCES countries(code) ON DELETE CASCADE,
     t.column("countryCode", .text).references("countries", onDelete: .cascade)
 ```
+
+> :bulb: **Tip**: when you need an integer primary key that automatically generates unique values, it is highly recommended that you use the `autoIncrementedPrimaryKey` method.
+>
+> Such primary key prevents the reuse of ids, and is an excellent guard against data races that could happen when your application processes ids in an asynchronous way. The auto-incremented primary key provides the guarantee that a given id can't reference a row that is different from the one it used to be at the beginning of the asynchronous process, even if this row gets deleted and a new one is inserted in between.
 
 **Create an index** on the column:
 
