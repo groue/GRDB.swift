@@ -42,7 +42,7 @@ extension TableRecord {
     }
 }
 
-extension Column {
+extension ColumnExpression {
     /// A matching SQL expression with the `MATCH` SQL operator.
     ///
     ///     // content MATCH '...'

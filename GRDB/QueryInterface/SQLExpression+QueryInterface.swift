@@ -285,28 +285,29 @@ public struct SQLExpressionBinary : SQLExpression {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
+        // FIXME: this implementation ignores column qualifiers
         switch op {
         case .equal, .is:
-            // Look for `id == 1` or `id IS 1`?
-            switch (lhs, rhs) {
-            case (let column as Column, let dbValue as DatabaseValue),
-                 (let dbValue as DatabaseValue, let column as Column):
-                // Look for `id == 1`, `rowid == 1`, `1 == id`, `1 == rowid`
-                
+            // Look for `id ==/IS 1`, `rowid ==/IS 1`, `1 ==/IS id`, `1 ==/IS rowid`
+            func matchedRowIds(column: ColumnExpression, dbValue: DatabaseValue) -> Set<Int64>? {
                 var rowIdNames = [Column.rowID.name.lowercased()]
                 if let rowIdName = rowIdName {
                     rowIdNames.append(rowIdName.lowercased())
                 }
-                
                 guard rowIdNames.contains(column.name.lowercased()) else {
                     return nil
                 }
-                
                 if let rowId = Int64.fromDatabaseValue(dbValue) {
                     return [rowId]
                 } else {
                     return []
                 }
+            }
+            switch (lhs, rhs) {
+            case (let column as ColumnExpression, let dbValue as DatabaseValue):
+                return matchedRowIds(column: column, dbValue: dbValue)
+            case (let dbValue as DatabaseValue, let column as ColumnExpression):
+                return matchedRowIds(column: column, dbValue: dbValue)
             default:
                 return nil
             }
@@ -431,8 +432,9 @@ struct SQLExpressionContains : SQLExpression {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
+        // FIXME: this implementation ignores column qualifiers
         // Look for `id IN (1, 2, 3)`
-        guard let column = expression as? Column,
+        guard let column = expression as? ColumnExpression,
             let array = collection as? SQLExpressionsArray else
         {
             return nil
