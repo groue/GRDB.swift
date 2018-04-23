@@ -5969,7 +5969,7 @@ GRDB extends SQLite with [SQL functions](#custom-sql-functions-and-aggregates) t
 
 ```swift
 // "JÉRÔME"
-let uppercase = DatabaseFunction.uppercase
+let uppercased = DatabaseFunction.uppercase
 try String.fetchOne(db, "SELECT \(uppercased.name)('Jérôme')")
 ```
 
