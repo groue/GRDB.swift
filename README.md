@@ -5268,7 +5268,7 @@ See also [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), an [RxSwift](https
 - [The Changes Notifications](#the-changes-notifications)
 - [Modifying the Fetch Request](#modifying-the-fetch-request)
 - [Table and Collection Views](#table-and-collection-views)
-    - [Implementing the Table View Datasource Methods](#implementing-the-table-view-datasource methods)
+    - [Implementing the Table View Datasource Methods](#implementing-the-table-view-datasource-methods)
     - [Implementing Table View Updates](#implementing-table-view-updates)
 - [FetchedRecordsController Concurrency](#fetchedrecordscontroller-concurrency)
 
