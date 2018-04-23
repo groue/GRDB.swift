@@ -143,11 +143,11 @@ Database queues look a lot like FMDB's [FMDatabaseQueue](https://github.com/ccgu
 
 ### Strong and clear multi-threading guarantees
 
-I'd like to compare GRDB's handling of concurrency with other libraries. To be as clear as possible, we'll identity a few threats, or potential sources of bugs, and wonder if those are handled by the library, or left to the host application.
+I'd like to compare GRDB's handling of concurrency with other libraries. To be as clear as possible, we'll identify a few threats, or potential sources of bugs, and wonder if those are handled by the library, or left to the host application.
 
 The more threats are handled by the application, the more skilled and careful a developer has to be in order to avoid them.
 
-- **Concurrent writes**: Two threads want to write in the database as the same time. SQLite does not allow that.
+- **Concurrent writes**: Two threads want to write in the database at the same time. SQLite does not allow that.
 - **Isolation troubles**: As two database queries run one after the other, a concurrent thread sneaks in and modifies the database in between. The two queries can thus perform inconsistent fetches or updates, unless they are properly isolated. Lack of isolation may display funny values on the screen, trigger a relational constraint error, or silently corrupt the database content.
 - **Conflicts**: The same piece of data is both edited by the application user, and refreshed from a network operation. What will eventually be stored in the database? Can any conflict be noticed?
 - **Blocked UI**: Can it happen that the UI is blocked because the main thread has to wait for a background thread to release a lock on the database?

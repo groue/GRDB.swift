@@ -2062,7 +2062,7 @@ protocol RowConvertible {
 }
 ```
 
-**To use RowConvertible**, subclass the [Record](#record-class) class, or adopt it explicitely. For example:
+**To use RowConvertible**, subclass the [Record](#record-class) class, or adopt it explicitly. For example:
 
 ```swift
 struct Place {
@@ -2212,7 +2212,7 @@ The `encode(to:)` method defines which [values](#values) (Bool, Int, String, Dat
 
 The optional `didInsert` method lets the adopting type store its rowID after successful insertion. If your table has an INTEGER PRIMARY KEY column, you are likely to define this method. Otherwise, you can safely ignore it. It is called from a protected dispatch queue, and serialized with all database updates.
 
-**To use those protocols**, subclass the [Record](#record-class) class, or adopt one of them explicitely. For example:
+**To use those protocols**, subclass the [Record](#record-class) class, or adopt one of them explicitly. For example:
 
 ```swift
 extension Place : MutablePersistable {
@@ -2600,7 +2600,7 @@ The [five different policies](https://www.sqlite.org/lang_conflict.html) are: ab
     // )
     try db.create(table: "players") { t in
         t.column("id", .integer).primaryKey()
-        t.column("email", .text)
+        t.column("email", .text).unique()
     }
     
     // Again, despite the unique index on email, both inserts succeed.
@@ -2969,7 +2969,7 @@ try db.create(table: "example", temporary: true, ifNotExists: true) { t in
 //   a,
 //   name TEXT,
 //   creationDate DATETIME,
-try db.create(table: "example") { t in ... }
+try db.create(table: "example") { t in
     t.column("a")
     t.column("name", .text)
     t.column("creationDate", .datetime)
@@ -3025,7 +3025,7 @@ Other **table constraints** can involve several columns:
     t.uniqueKey(["a", "b"], onConfict: .replace)
     
     // FOREIGN KEY (a, b) REFERENCES parents(c, d),
-    t.foreignKey(["a", "b"], references: "parent")
+    t.foreignKey(["a", "b"], references: "parents")
     
     // CHECK (a + b < 10),
     t.check(Column("a") + Column("b") < 10)
@@ -3380,7 +3380,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Player.filter(emailColumn.like("%@example.com"))
     ```
     
-    > :point_up: **Note**: the SQLite LIKE operator is case-unsensitive but not Unicode-aware. For example, the expression `'a' LIKE 'A'` is true but `'æ' LIKE 'Æ'` is false.
+    > :point_up: **Note**: the SQLite LIKE operator is case-insensitive but not Unicode-aware. For example, the expression `'a' LIKE 'A'` is true but `'æ' LIKE 'Æ'` is false.
 
 - `MATCH`
     
@@ -4974,7 +4974,7 @@ func startMonitoring(_ db: Database, region: CLRegion) throws {
 }
 ```
 
-The method above won't trigger the location manager if the transaction is eventually rollbacked (explicitely, or because of an error), as in the sample code below:
+The method above won't trigger the location manager if the transaction is eventually rollbacked (explicitly, or because of an error), as in the sample code below:
 
 ```swift
 try dbQueue.inTransaction { db in
@@ -5268,7 +5268,7 @@ See also [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), an [RxSwift](https
 - [The Changes Notifications](#the-changes-notifications)
 - [Modifying the Fetch Request](#modifying-the-fetch-request)
 - [Table and Collection Views](#table-and-collection-views)
-    - [Implementing the Table View Datasource Methods](#implementing-the-table-view-datasource methods)
+    - [Implementing the Table View Datasource Methods](#implementing-the-table-view-datasource-methods)
     - [Implementing Table View Updates](#implementing-table-view-updates)
 - [FetchedRecordsController Concurrency](#fetchedrecordscontroller-concurrency)
 
@@ -5969,7 +5969,7 @@ GRDB extends SQLite with [SQL functions](#custom-sql-functions-and-aggregates) t
 
 ```swift
 // "JÉRÔME"
-let uppercase = DatabaseFunction.uppercase
+let uppercased = DatabaseFunction.uppercase
 try String.fetchOne(db, "SELECT \(uppercased.name)('Jérôme')")
 ```
 
@@ -6054,7 +6054,7 @@ This method blocks the current thread until all current database accesses are co
 
 ```
 let dbQueue = try DatabaseQueue(...)
-dbQueue.setupMemoryManagement(in: UIApplication.sharedApplication())
+dbQueue.setupMemoryManagement(in: UIApplication.shared)
 ```
 
 
@@ -6406,7 +6406,7 @@ DatabaseWriter and DatabaseReader fuel, for example:
     }
     ```
     
-    When used on a datase queue, the closure argument is allowed to write in the database.
+    When used on a database queue, the closure argument is allowed to write in the database.
     
 - **`unsafeReentrantRead`**
     
