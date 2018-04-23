@@ -6406,7 +6406,7 @@ DatabaseWriter and DatabaseReader fuel, for example:
     }
     ```
     
-    When used on a datase queue, the closure argument is allowed to write in the database.
+    When used on a database queue, the closure argument is allowed to write in the database.
     
 - **`unsafeReentrantRead`**
     
