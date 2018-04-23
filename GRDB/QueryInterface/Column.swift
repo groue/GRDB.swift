@@ -1,4 +1,23 @@
-/// The protocol for types that define database columns
+/// Adopt the ColumnExpression protocol in order to define a custom column type.
+///
+/// You can, for example, define a String-based column enum:
+///
+///     enum Columns: String, ColumnExpression {
+///         case id, name, score
+///     }
+///     let nameColumn = Columns.name
+///     let arthur = try Player.filter(nameColumn == "Arthur").fetchOne(db)
+///
+/// You can also define a genuine column type:
+///
+///     struct MyColumn: ColumnExpression {
+///         var name: String
+///         var sqlType: String
+///     }
+///     let nameColumn = MyColumn(name: "name", sqlType: "VARCHAR")
+///     let arthur = try Player.filter(nameColumn == "Arthur").fetchOne(db)
+///
+/// See https://github.com/groue/GRDB.swift#the-query-interface
 public protocol ColumnExpression: SQLExpression {
     /// The unqualified name of a database column.
     ///
@@ -20,7 +39,10 @@ extension ColumnExpression {
     }
 }
 
-/// A column in a database table
+/// A column in a database table.
+///
+/// When you need to introduce your own column type, don't wrap a Column.
+/// Instead, adopt the ColumnExpression protocol.
 ///
 /// See https://github.com/groue/GRDB.swift#the-query-interface
 public struct Column: ColumnExpression {
