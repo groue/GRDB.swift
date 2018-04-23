@@ -6054,7 +6054,7 @@ This method blocks the current thread until all current database accesses are co
 
 ```
 let dbQueue = try DatabaseQueue(...)
-dbQueue.setupMemoryManagement(in: UIApplication.sharedApplication())
+dbQueue.setupMemoryManagement(in: UIApplication.shared)
 ```
 
 
