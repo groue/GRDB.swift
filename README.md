@@ -201,7 +201,7 @@ try dbQueue.write { db in
     
     // [Place]
     let favoritePlaces = try Place
-        .filter(Column("favorite"))
+        .filter(Column("favorite") == true)
         .order(Column("title"))
         .fetchAll(db)
     
@@ -214,6 +214,31 @@ try dbQueue.write { db in
 ```
 
 See the [Query Interface](#the-query-interface).
+
+</details>
+
+<details>
+    <summary>Be notified of database changes</summary>
+
+```swift
+// Track query interface requests
+Place.filter(key: 1)
+    .rx
+    .fetchOne(in: dbQueue)
+    .subscribe(onNext: { place: Place? in
+        print("Place 1 has changed")
+    })
+
+// Track SQL requests
+SQLRequest<Place>("SELECT * FROM places WHERE favorite ORDER BY title")
+    .rx
+    .fetchAll(in: dbQueue)
+    .subscribe(onNext: { places: [Place] in
+        print("Favorite places have changed")
+    })
+```
+
+See the [Database Changes Observation](#database-changes-observation), and [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB).
 
 </details>
 
