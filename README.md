@@ -7231,7 +7231,7 @@ Database accesses that run in background threads postpone the closing of connect
 
 When you want to debug a request that does not deliver the expected results, you may want to print the SQL that is actually executed.
 
-Use the `asSQLRequest` method:
+You can turn your request into a `SQLRequest` instance:
 
 ```swift
 try dbQueue.read { db in
@@ -7239,7 +7239,7 @@ try dbQueue.read { db in
         .filter(Column("origin") == "Burgundy")
         .order(Column("price")
     
-    let sqlRequest = try request.asSQLRequest(db)
+    let sqlRequest = try SQLRequest(db, request: request)
     print(sqlRequest.sql)
     // Prints SELECT * FROM wines WHERE origin = ? ORDER BY price
     print(sqlRequest.arguments)
