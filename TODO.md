@@ -26,7 +26,7 @@ GRDB 3.0
     - writeRaw, rawWrite, pureWrite, plainWrite, directWrite, basicWrite
     - sync
     - ?
-- [ ] Since associations prefer singular table names, provide a default implementation for TableRecord.databaseTableName
+- [ ] filter(rowid:), filter(rowids:)
 
 Not sure
 
