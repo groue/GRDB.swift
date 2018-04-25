@@ -163,7 +163,7 @@ struct Place {
 try dbQueue.write { db in
     // Create database table
     try db.create(table: "places") { t in
-        t.column("id", .integer).primaryKey()
+        t.autoIncrementedPrimaryKey("id")
         t.column("title", .text).notNull()
         t.column("favorite", .boolean).notNull().defaults(to: false)
         t.column("longitude", .double).notNull()
@@ -4320,7 +4320,7 @@ Yet any kind of schema change is still possible. The SQLite documentation explai
 // Add a NOT NULL constraint on players.name:
 migrator.registerMigrationWithDeferredForeignKeyCheck("AddNotNullCheckOnName") { db in
     try db.create(table: "new_players") { t in
-        t.column("id", .integer).primaryKey()
+        t.autoIncrementedPrimaryKey("id")
         t.column("name", .text).notNull()
     }
     try db.execute("INSERT INTO new_players SELECT * FROM players")
