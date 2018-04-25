@@ -209,7 +209,7 @@ try dbQueue.write { db in
     let favoriteCount = try Place.filter(Column("favorite")).fetchCount(db)
     
     // SQL is always welcome
-    let places = try Place.fetchAll(db, "SELECT * FROM pointOfInterests")
+    let places = try Place.fetchAll(db, "SELECT * FROM places")
 }
 ```
 
