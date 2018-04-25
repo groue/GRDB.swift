@@ -7251,7 +7251,7 @@ Another option is to setup a tracing function that will print out all SQL reques
 
 ```swift
 var config = Configuration()
-config.trace = { print("SQL: \($0)") } // Prints all SQL statements
+config.trace = { print($0) } // Prints all SQL statements
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 
 try dbQueue.read { db in
