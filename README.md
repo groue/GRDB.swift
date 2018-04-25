@@ -409,7 +409,7 @@ let placeCount = try dbQueue.read { db in
 
 let newPlaceCount = try dbQueue.write { db -> Int in
     try Place(...).insert(db)
-    returns try Place.fetchCount(db)
+    return try Place.fetchCount(db)
 }
 ```
 
@@ -479,7 +479,7 @@ let placeCount = try dbPool.read { db in
 
 let newPlaceCount = try dbPool.write { db -> Int in
     try Place(...).insert(db)
-    returns try Place.fetchCount(db)
+    return try Place.fetchCount(db)
 }
 ```
 
