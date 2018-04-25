@@ -366,7 +366,7 @@ See [DemoApps/GRDBDemoiOS/AppDatabase.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Ap
 
 > :muscle: **Note to database experts**: The `write` and `read` database access methods generally help enforcing the [GRDB concurrency guarantees](#concurrency), and are highly recommended, even for skilled developers, because they lift most of the mental burden related to explicit SQLite transactions:
 >
-> - `DatabaseQueue.write` wraps your database statements in a transaction. On the first unhandled error, the whole transaction is rollbacked, and the error rethrown.
+> - `DatabaseQueue.write` wraps your database statements in a transaction that commits if and only if no error occurs. On the first unhandled error, the whole transaction is rollbacked, and the error is rethrown.
 > - `DatabaseQueue.read` does not open any transaction, but enforces read-only access.
 >
 > When precise transaction handling is required, see [Transactions and Savepoints](#transactions-and-savepoints).
@@ -447,13 +447,13 @@ Unlike [database queues](#database-queues), pools allow several threads to acces
 
 - Unlike reads, writes are serialized. There is never more than a single thread that is writing into the database.
 
-- The `write` method wraps your database statements in a transaction. On the first unhandled error, the whole transaction is rollbacked, and the error rethrown.
+- The `write` method wraps your database statements in a transaction that commits if and only if no error occurs. On the first unhandled error, the whole transaction is rollbacked, and the error is rethrown.
     
     When precise transaction handling is required, see [Transactions and Savepoints](#transactions-and-savepoints) for more information.
 
 - Database pools can take [snapshots](#database-snapshots) of the database.
 
-See the [Concurrency](#concurrency) chapter for more details about database pools, and advanced use cases.
+See the [Concurrency](#concurrency) chapter for more details about database pools, how they differ from database queues, and advanced use cases.
 
 
 ### DatabasePool Configuration
@@ -659,9 +659,11 @@ Both arrays and cursors can iterate over database results. How do you choose one
     ```swift
     // Wrong
     let cursor = try dbQueue.read { try Player.fetchCursor($0, ...) }
+    while let player = try players.next() { ... }
     
     // OK
     let array = try dbQueue.read { try Player.fetchAll($0, ...) }
+    for player in players { // use player }
     ```
     
 - **Cursors can be iterated only one time.** Arrays can be iterated many times.
@@ -1287,17 +1289,21 @@ GRDB generally opens transactions for you, as a way to enforce its [concurrency 
 
 ```swift
 // BEGIN TRANSACTION
-// INSERT INTO players ...
+// INSERT INTO credits ...
+// INSERT INTO debits ...
 // COMMIT
 try dbQueue.write { db in
-    try Player(...).insert(db)
+    try Credit(destinationAccout, amount).insert(db)
+    try Debit(sourceAccount, amount).insert(db)
 }
 
 // BEGIN TRANSACTION
-// INSERT INTO players ...
+// INSERT INTO credits ...
+// INSERT INTO debits ...
 // COMMIT
 try dbPool.write { db in
-    try Player(...).insert(db)
+    try Credit(destinationAccout, amount).insert(db)
+    try Debit(sourceAccount, amount).insert(db)
 }
 ```
 
@@ -1309,46 +1315,56 @@ Yet you may need to exactly control when transactions take place:
 `DatabaseQueue.inDatabase()` and `DatabasePool.writeWithoutTransaction()` execute your database statements outside of any transaction:
 
 ```swift
-// INSERT INTO players (...)
+// INSERT INTO credits ...
+// INSERT INTO debits ...
 try dbQueue.inDatabase { db in
-    try Player(...).insert(db)
+    try Credit(destinationAccout, amount).insert(db)
+    try Debit(sourceAccount, amount).insert(db)
 }
 
-// INSERT INTO players (...)
+// INSERT INTO credits ...
+// INSERT INTO debits ...
 try dbPool.writeWithoutTransaction { db in
-    try Player(...).insert(db)
+    try Credit(destinationAccout, amount).insert(db)
+    try Debit(sourceAccount, amount).insert(db)
 }
 ```
 
-> :warning: **Warning**: it is dangerous to write in a database pool outside of a transaction, because concurrent reads may see an inconsistent state of the database:
->
-> ```swift
-> // UNSAFE CONCURRENCY
-> try dbPool.writeWithoutTransaction { db in
->     try Credit(destinationAccout, amount).insert(db)
->     // <- Concurrent dbPool.read sees a partial db update here
->     try Debit(sourceAccount, amount).insert(db)
-> }
-> ```
+**Writing outside of any transaction can be dangerous.** In our credit/debit example, you may successfully insert a credit, but fail inserting the debit, and end up with unbalanced accounts (oops).
+
+Furthermore, outside of any transaction, database pool concurrent reads may see an inconsistent state of the database:
+
+```swift
+// UNSAFE CONCURRENCY
+try dbPool.writeWithoutTransaction { db in
+    try Credit(destinationAccout, amount).insert(db)
+    // <- Concurrent dbPool.read sees a partial db update here
+    try Debit(sourceAccount, amount).insert(db)
+}
+```
 
 To open explicit transactions, use one of the `Database.inTransaction`, `DatabaseQueue.inTransaction`, or `DatabasePool.writeInTransaction` methods:
 
 ```swift
 // BEGIN TRANSACTION
-// INSERT INTO players ...
+// INSERT INTO credits ...
+// INSERT INTO debits ...
 // COMMIT
 try dbQueue.inDatabase { db in  // or dbPool.writeWithoutTransaction
     try db.inTransaction {
-        try Player(...).insert(db)
+        try Credit(destinationAccout, amount).insert(db)
+        try Debit(sourceAccount, amount).insert(db)
         return .commit
     }
 }
 
 // BEGIN TRANSACTION
-// INSERT INTO players (...)
+// INSERT INTO credits ...
+// INSERT INTO debits ...
 // COMMIT
 try dbQueue.inTransaction { db in  // or dbPool.writeInTransaction
-    try Player(...).insert(db)
+    try Credit(destinationAccout, amount).insert(db)
+    try Debit(sourceAccount, amount).insert(db)
     return .commit
 }
 ```
@@ -1365,7 +1381,7 @@ try dbQueue.inDatabase { db in  // or dbPool.writeWithoutTransaction
     
     try db.execute("BEGIN TRANSACTION")
     ...
-    try db.execute("COMMIT")
+    try db.execute("ROLLBACK")
 }
 ```
 
@@ -1406,9 +1422,10 @@ func myCriticalMethod(_ db: Database) throws {
 
 ```swift
 try dbQueue.write { db in
-    try db.inSavepoint { 
-        try db.execute("DELETE ...")
-        try db.execute("INSERT ...") // need to rollback the delete above if this fails
+    // Makes sure both inserts succeed, or none:
+    try db.inSavepoint {
+        try Credit(destinationAccout, amount).insert(db)
+        try Debit(sourceAccount, amount).insert(db)
         return .commit
     }
     
@@ -1714,38 +1731,34 @@ Int.fetchOne(db, Player.select(maxLength.apply(nameColumn))) // Int?
 
 ## Database Schema Introspection
 
-**SQLite provides database schema introspection tools**, such as the [sqlite_master](https://www.sqlite.org/faq.html#q7) table, and the pragma [table_info](https://www.sqlite.org/pragma.html#pragma_table_info):
+GRDB comes with a set of schema introspection methods:
 
 ```swift
-try db.create(table: "players") { t in
-    t.autoIncrementedPrimaryKey("id")
-    t.column("name", .text)
+try dbQueue.read { db in
+    // Bool, true if the table exists
+    try db.tableExists("players")
+    
+    // [ColumnInfo], the columns in the table
+    try db.columns(in: "players")
+    
+    // PrimaryKeyInfo
+    try db.primaryKey("players")
+    
+    // [ForeignKeyInfo], the foreign keys defined on the table
+    try db.foreignKeys(on: "players")
+    
+    // [IndexInfo], the indexes defined on the table
+    try db.indexes(on: "players")
+    
+    // Bool, true if column(s) is a unique key
+    try db.table("players", hasUniqueKey: ["email"])
 }
 
-// [type:"table" name:"players" tbl_name:"players" rootpage:2
-//  sql:"CREATE TABLE players(id INTEGER PRIMARY KEY, name TEXT)"]
-for row in try Row.fetchAll(db, "SELECT * FROM sqlite_master") {
-    print(row)
-}
+// Bool, true if argument is the name of an internal SQLite table
+Database.isSQLiteInternalTable(...)
 
-// [cid:0 name:"id" type:"INTEGER" notnull:0 dflt_value:NULL pk:1]
-// [cid:1 name:"name" type:"TEXT" notnull:0 dflt_value:NULL pk:0]
-for row in try Row.fetchAll(db, "PRAGMA table_info('players')") {
-    print(row)
-}
-```
-
-GRDB provides high-level methods as well:
-
-```swift
-try db.tableExists("players")     // Bool, true if the table exists
-try db.columns(in: "players")     // [ColumnInfo], the columns in the table
-try db.indexes(on: "players")     // [IndexInfo], the indexes defined on the table
-try db.foreignKeys(on: "players") // [ForeignKeyInfo], the foreign keys defined on the table
-try db.primaryKey("players")      // PrimaryKeyInfo
-try db.table("players", hasUniqueKey: ["email"]) // Bool, true if column(s) is a unique key
-Database.isSQLiteInternalTable(...) // Bool, true if argument is the name of an internal SQLite table
-Database.isGRDBInternalTable(...)   // Bool, true if argument is the name of an internal GRDB table
+// Bool, true if argument is the name of an internal GRDB table
+Database.isGRDBInternalTable(...)
 ```
 
 
@@ -1824,7 +1837,7 @@ let adapter = ScopeAdapter([
 let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c, 3 AS d", adapter: adapter)!
 ```
 
-ScopeAdapter does not change the columns and values of the fetched row. Instead, it defines *scopes*, which you access with `Row.scopes[]`. This subscript returns an optional Row, which is nil if the scope is missing.
+ScopeAdapter does not change the columns and values of the fetched row. Instead, it defines *scopes*, which you access through the `Row.scopes` property:
 
 ```swift
 row                   // [a:0 b:1 c:2 d:3]
@@ -1953,7 +1966,7 @@ Your custom structs and classes can adopt each protocol individually, and opt in
 - [Deleting Records](#deleting-records)
 - [Counting Records](#counting-records)
 
-**Protocols and the Record class**
+**Protocols and the Record Class**
 
 - [Record Protocols Overview](#record-protocols-overview)
 - [FetchableRecord Protocol](#fetchablerecord-protocol)
@@ -1967,7 +1980,7 @@ Your custom structs and classes can adopt each protocol individually, and opt in
 - [Conflict Resolution](#conflict-resolution)
 - [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key)
 
-**Records in a glance**
+**Records in a Glance**
 
 - [Examples of Record Definitions](#examples-of-record-definitions)
 - [List of Record Methods](#list-of-record-methods)
@@ -2086,7 +2099,7 @@ Details follow:
 
 - [FetchableRecord] is able to **decode database rows**.
     
-    You can always decode rows yourself:
+    It is always possible to decode rows without this protocol:
     
     ```swift
     struct Place { ... }
@@ -2104,7 +2117,7 @@ Details follow:
     }
     ```
     
-    But FetchableRecord lets you write code that is much more readable, and much more efficient as well, both in terms of performance and memory usage:
+    But FetchableRecord lets you write code that is easier to read, and more efficient as well, both in terms of performance and memory usage:
     
     ```swift
     struct Place: FetchableRecord { ... }
@@ -2682,7 +2695,7 @@ The [five different policies](https://www.sqlite.org/lang_conflict.html) are: ab
     
     ```swift
     // CREATE TABLE players (
-    //     id INTEGER PRIMARY KEY,
+    //     id INTEGER PRIMARY KEY AUTOINCREMENT,
     //     email TEXT UNIQUE ON CONFLICT REPLACE
     // )
     try db.create(table: "players") { t in
@@ -2700,12 +2713,12 @@ The [five different policies](https://www.sqlite.org/lang_conflict.html) are: ab
     
     ```swift
     // CREATE TABLE players (
-    //     id INTEGER PRIMARY KEY,
+    //     id INTEGER PRIMARY KEY AUTOINCREMENT,
     //     email TEXT UNIQUE
     // )
     try db.create(table: "players") { t in
         t.autoIncrementedPrimaryKey("id")
-        t.column("email", .text)
+        t.column("email", .text).unique()
     }
     
     // Again, despite the unique index on email, both inserts succeed.
@@ -2879,7 +2892,7 @@ try dbQueue.write { db in
 
 Each one of the three examples below is correct. You will pick one or the other depending on your personal preferences and the requirements of your application:
 
-- Example 1: Define a Codable struct and adopt each one of the [record protocols](#record-protocols-overview).
+- **Example 1**: Define a Codable struct and adopt each one of the [record protocols](#record-protocols-overview).
     
     ```swift
     struct Place: Codable {
@@ -2917,7 +2930,7 @@ Each one of the three examples below is correct. You will pick one or the other 
     }
     ```
 
-- Example 2: Define a plain struct and explicitely adopt each one of the [record protocols](#record-protocols-overview).
+- **Example 2**: Define a plain struct and explicitely adopt each one of the [record protocols](#record-protocols-overview).
     
     ```swift
     struct Place {
@@ -2966,7 +2979,7 @@ Each one of the three examples below is correct. You will pick one or the other 
     }
     ```
 
-- Example 3: Subclass the [Record class](#record-class).
+- **Example 3**: Subclass the [Record class](#record-class).
     
     ```swift
     class Place: Record {
@@ -3184,7 +3197,7 @@ Once granted with a [database connection](#database-connections), you can setup 
 
 ```swift
 // CREATE TABLE places (
-//   id INTEGER PRIMARY KEY,
+//   id INTEGER PRIMARY KEY AUTOINCREMENT,
 //   title TEXT,
 //   favorite BOOLEAN NOT NULL DEFAULT 0,
 //   latitude DOUBLE NOT NULL,
@@ -3366,6 +3379,8 @@ let nameColumn = Column("name")
 You can also declare column enums, if you prefer:
 
 ```swift
+// Columns.id and Columns.name can be used just as
+// idColumn and nameColumn declared above.
 enum Columns: String, ColumnExpression {
     case id
     case name
@@ -5454,7 +5469,7 @@ By default, database holds weak references to its transaction observers: they ar
 
 > :point_up: **Note**: the changes that are not notified are changes to internal system tables (such as `sqlite_master`), changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables, and the deletion of duplicate rows triggered by [`ON CONFLICT REPLACE`](https://www.sqlite.org/lang_conflict.html) clauses (this last exception might change in a future release of SQLite).
 
-Notified changes are not actually written to disk the [transaction](#transactions-and-savepoints) commits, and the until `databaseDidCommit` is called. On the other side, `databaseDidRollback` confirms their invalidation:
+Notified changes are not actually written to disk until the [transaction](#transactions-and-savepoints) commits, and the `databaseDidCommit` callback is called. On the other side, `databaseDidRollback` confirms their invalidation:
 
 ```swift
 try dbQueue.write { db in
@@ -5470,11 +5485,11 @@ try dbQueue.inTransaction { db in
 
 try dbQueue.write { db in
     try db.execute("INSERT ...") // 1. didChange
-    throw SomeError()            // 2. throw
-}                                // 3. didRollback
+    throw SomeError()
+}                                // 2. didRollback
 ```
 
-Database statements that are executed outside of a transaction do not drop off the radar:
+Database statements that are executed outside of any transaction do not drop off the radar:
 
 ```swift
 try dbQueue.inDatabase { db in
@@ -6113,6 +6128,7 @@ Here is an example of code that is vulnerable to SQL injection:
 
 ```swift
 // BAD BAD BAD
+let id = 1
 let name = textField.text
 try dbQueue.write { db in
     try db.execute("UPDATE students SET name = '\(name)' WHERE id = \(id)")
@@ -6127,19 +6143,35 @@ DROP TABLE students;
 --' WHERE id = 1
 ```
 
-To avoid those problems, **never embed raw values in your SQL queries**. The only correct technique is to provide [arguments](http://groue.github.io/GRDB.swift/docs/2.10/Structs/StatementArguments.html) to your SQL queries:
+To avoid those problems, **never embed raw values in your SQL queries**. The only correct technique is to provide [arguments](#executing-updates) to your raw SQL queries:
 
 ```swift
-// Good
 let name = textField.text
 try dbQueue.write { db in
+    // Good
     try db.execute(
         "UPDATE students SET name = ? WHERE id = ?",
         arguments: [name, id])
+    
+    // Just as good
+    try db.execute(
+        "UPDATE students SET name = :name WHERE id = :id",
+        arguments: ["name": name, "id": id])
 }
 ```
 
-See [Executing Updates](#executing-updates) for more information on statement arguments.
+When you use [records](#records) and the [query interface](#the-query-interface), GRDB always prevents SQL injection for you:
+
+```swift
+let id = 1
+let name = textField.text
+try dbQueue.write { db in
+    if var student = try Student.fetchOne(db, key: id) {
+        student.name = name
+        try student.update(db)
+    }
+}
+```
 
 
 ## Error Handling
