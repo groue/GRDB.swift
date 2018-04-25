@@ -255,7 +255,7 @@ public final class TableDefinition {
     ///     }
     ///
     /// The auto-incremented primary key is an integer primary key that
-    /// automatically generates unused values when you do not explicitely
+    /// automatically generates unused values when you do not explicitly
     /// provide one, and prevents the reuse of ids over the lifetime of
     /// the database.
     ///

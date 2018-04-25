@@ -2291,7 +2291,7 @@ protocol TableRecord {
 
 The `databaseTableName` type property is the name of a database table. `databaseSelection` is optional, and documented in the [Columns Selected by a Request](#columns-selected-by-a-request) chapter.
 
-**To use TableRecord**, subclass the [Record](#record-class) class, or adopt it explicitely. For example:
+**To use TableRecord**, subclass the [Record](#record-class) class, or adopt it explicitly. For example:
 
 ```swift
 extension Place : TableRecord {
@@ -2983,7 +2983,7 @@ Each one of the three examples below is correct. You will pick one or the other 
     }
     ```
 
-- **Example 2**: Define a plain struct and explicitely adopt each one of the [record protocols](#record-protocols-overview).
+- **Example 2**: Define a plain struct and explicitly adopt each one of the [record protocols](#record-protocols-overview).
     
     ```swift
     struct Place {
@@ -3636,7 +3636,7 @@ let request = RestrictedPlayer.all()
 let request = ExtendedPlayer.all()
 ```
 
-> :point_up: **Note**: make sure the `databaseSelection` property is explicitely declared as `[SQLSelectable]`. If it is not, the Swift compiler may infer a type which may silently miss the protocol requirement, resulting in sticky `SELECT *` requests. To verify your setup, see the [How do I print a request as SQL?](#how-do-i-print-a-request-as-sql) FAQ.
+> :point_up: **Note**: make sure the `databaseSelection` property is explicitly declared as `[SQLSelectable]`. If it is not, the Swift compiler may infer a type which may silently miss the protocol requirement, resulting in sticky `SELECT *` requests. To verify your setup, see the [How do I print a request as SQL?](#how-do-i-print-a-request-as-sql) FAQ.
 
 
 ## Expressions
@@ -5653,7 +5653,7 @@ class PureTransactionObserver: TransactionObserver {
 
 **You can specify how long an observer is notified of database changes and transactions.**
 
-The `remove(transactionObserver:)` method explicitely stops notifications, at any time:
+The `remove(transactionObserver:)` method explicitly stops notifications, at any time:
 
 ```swift
 // From a database queue or pool:
@@ -6571,7 +6571,7 @@ Data protection can be enabled [globally](https://developer.apple.com/library/co
 
 You can also explicitly protect a database, by configuring its enclosing *directory*. This will not only protect the database file, but also all [temporary files](https://www.sqlite.org/tempfiles.html) created by SQLite (including the persistent `.shm` and `.wal` files created by [database pools](#database-pools)).
 
-For example, to explicitely use [complete](https://developer.apple.com/reference/foundation/fileprotectiontype/1616200-complete) protection:
+For example, to explicitly use [complete](https://developer.apple.com/reference/foundation/fileprotectiontype/1616200-complete) protection:
 
 ```swift
 // Paths
