@@ -73,7 +73,8 @@ More than a set of tools that leverage SQLite abilities, GRDB is also:
 
 ## Usage
 
-Open a [connection](#database-connections) to the database:
+<details open>
+  <summary>Connect to an SQLite database</summary>
 
 ```swift
 import GRDB
@@ -84,8 +85,13 @@ let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 // Enhanced multithreading based on SQLite's WAL mode
 let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
 ```
+    
+See [Database Connections](#database-connections).
 
-[Execute SQL statements](#executing-updates):
+</details>
+
+<details>
+    <summary>Execute SQL statements</summary>
 
 ```swift
 try dbQueue.write { db in
@@ -107,10 +113,16 @@ try dbQueue.write { db in
 }
 ```
 
-[Fetch database rows and values](#fetch-queries):
+See [Executing Updates](#executing-updates).
+
+</details>
+
+<details>
+    <summary>Fetch database rows and values</summary>
 
 ```swift
 try dbQueue.read { db in
+    // Fetch database rows
     let rows = try Row.fetchCursor(db, "SELECT * FROM places")
     while let row = try rows.next() {
         let title: String = row["title"]
@@ -119,18 +131,23 @@ try dbQueue.read { db in
             latitude: row["latitude"],
             longitude: row["longitude"])
     }
-
+    
+    // Fetch values
     let placeCount = try Int.fetchOne(db, "SELECT COUNT(*) FROM places")! // Int
     let placeTitles = try String.fetchAll(db, "SELECT title FROM places") // [String]
 }
 
-// Extraction
 let placeCount = try dbQueue.read { db in
     try Int.fetchOne(db, "SELECT COUNT(*) FROM places")!
 }
 ```
 
-Insert and fetch [records](#records):
+See [Fetch Queries](#fetch-queries)
+
+</details>
+
+<details>
+    <summary>Store custom models aka "records"</summary>
 
 ```swift
 struct Place {
@@ -144,6 +161,15 @@ struct Place {
 // provide fetching and persistence methods.
 
 try dbQueue.write { db in
+    // Create database table
+    try db.create(table: "places") { t in
+        t.column("id", .integer).primaryKey()
+        t.column("title", .text).notNull()
+        t.column("favorite", .boolean).notNull().defaults(to: false)
+        t.column("longitude", .double).notNull()
+        t.column("latitude", .double).notNull()
+    }
+    
     var berlin = Place(
         id: nil,
         title: "Berlin",
@@ -155,39 +181,41 @@ try dbQueue.write { db in
     
     berlin.isFavorite = true
     try berlin.update(db)
-    
-    // Fetch [Place] from SQL
-    let places = try Place.fetchAll(db, "SELECT * FROM places")
 }
 ```
 
-Avoid SQL with the [query interface](#the-query-interface):
+See [Records](#records).
+
+</details>
+
+<details>
+    <summary>Fetch records and values with the Swift query interface</summary>
 
 ```swift
 try dbQueue.write { db in
-    try db.create(table: "places") { t in
-        t.autoIncrementedPrimaryKey("id")
-        t.column("title", .text).notNull()
-        t.column("favorite", .boolean).notNull().defaults(to: false)
-        t.column("longitude", .double).notNull()
-        t.column("latitude", .double).notNull()
-    }
-    
     // Place?
     let paris = try Place.fetchOne(db, key: 1)
     
     // Place?
-    let titleColumn = Column("title")
-    let berlin = try Place.filter(titleColumn == "Berlin").fetchOne(db)
+    let berlin = try Place.filter(Column("title") == "Berlin").fetchOne(db)
     
     // [Place]
-    let favoriteColumn = Column("favorite")
     let favoritePlaces = try Place
-        .filter(favoriteColumn)
-        .order(titleColumn)
+        .filter(Column("favorite"))
+        .order(Column("title"))
         .fetchAll(db)
+    
+    // Int
+    let favoriteCount = try Place.filter(Column("favorite")).fetchCount(db)
+    
+    // SQL is always welcome
+    let places = try Place.fetchAll(db, "SELECT * FROM pointOfInterests")
 }
 ```
+
+See the [Query Interface](#the-query-interface).
+
+</details>
 
 
 Documentation
