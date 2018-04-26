@@ -5240,7 +5240,7 @@ let playerInfos = try dbQueue.read { db in
 
 The `PlayerInfo.fetchAll` method [above](#splitting-rows-the-record-way) directly fetches records. It's all good, but in order to profit from [database observation](#database-changes-observation) with [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), you'll need a [custom request](#custom-requests) that defines a database query.
 
-It is recommended that your read the previous paragraphs before you dive in this sample code. We start with the same PlayerInfo record as above:
+It is recommended that you read the previous paragraphs before you dive in this sample code. We start with the same PlayerInfo record as above:
 
 ```swift
 struct PlayerInfo {
