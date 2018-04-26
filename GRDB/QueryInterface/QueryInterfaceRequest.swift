@@ -137,8 +137,7 @@ extension QueryInterfaceRequest : SelectionRequest, FilteredRequest, Aggregating
     ///         .order([Column("name")])
     public func order(_ orderings: [SQLOrderingTerm]) -> QueryInterfaceRequest<T> {
         var query = self.query
-        query.orderings = orderings
-        query.isReversed = false
+        query.ordering = QueryOrdering(orderings: orderings)
         return QueryInterfaceRequest(query: query)
     }
     
@@ -149,7 +148,7 @@ extension QueryInterfaceRequest : SelectionRequest, FilteredRequest, Aggregating
     ///     request = request.reversed()
     public func reversed() -> QueryInterfaceRequest<T> {
         var query = self.query
-        query.isReversed = !query.isReversed
+        query.ordering = query.ordering.reversed()
         return QueryInterfaceRequest(query: query)
     }
     
