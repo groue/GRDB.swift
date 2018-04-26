@@ -5411,7 +5411,7 @@ When your application needs to make sure a specific database transaction has bee
 Its closure argument is called right after database changes have been successfully written to disk:
 
 ```swift
-dbQueue.write { db in
+try dbQueue.write { db in
     db.afterNextTransactionCommit { db in
         print("success")
     }
