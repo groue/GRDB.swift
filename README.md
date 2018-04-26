@@ -4303,7 +4303,7 @@ try migrator.migrate(dbQueue, upTo: "v1")
 Check if a migration has been applied:
 
 ```swift
-let appliedMigrations = try migrator.appliedMigration(in: dbQueue)
+let appliedMigrations = try migrator.appliedMigrations(in: dbQueue)
 if appliedMigrations.contains("v2") {
     // "v2" migration has been applied
 }
