@@ -97,7 +97,7 @@ See [Database Connections](#database-connections)
 try dbQueue.write { db in
     try db.execute("""
         CREATE TABLE places (
-          id INTEGER PRIMARY KEY,
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
           title TEXT NOT NULL,
           favorite BOOLEAN NOT NULL DEFAULT 0,
           latitude DOUBLE NOT NULL,
@@ -566,7 +566,7 @@ For example:
 try dbQueue.write { db in
     try db.execute("""
         CREATE TABLE players (
-            id INTEGER PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             score INT)
         """)
