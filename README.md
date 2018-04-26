@@ -3547,10 +3547,10 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.order(scoreColumn.desc, nameColumn).reversed()
     ```
     
-    If no ordering was specified, the result is ordered by rowID in reverse order.
+    If no ordering was already specified, this method has no effect:
     
     ```swift
-    // SELECT * FROM players ORDER BY _rowid_ DESC
+    // SELECT * FROM players
     Player.all().reversed()
     ```
 
@@ -3578,6 +3578,7 @@ Player                          // SELECT * FROM players
     .filter(nameColumn != nil)  // WHERE (name IS NOT NULL)
     .filter(emailColumn != nil) //        AND (email IS NOT NULL)
     .order(nameColumn)          // - ignored -
+    .reversed()                 // - ignored -
     .order(scoreColumn)         // ORDER BY score
     .limit(20, offset: 40)      // - ignored -
     .limit(10)                  // LIMIT 10
