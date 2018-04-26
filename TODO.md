@@ -27,6 +27,7 @@ GRDB 3.0
     - sync
     - ?
 - [ ] filter(rowid:), filter(rowids:)
+- [ ] If required by associations, make reversed() make nothing when there is no alraedy applied ordering
 
 Not sure
 
