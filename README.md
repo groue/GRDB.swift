@@ -5406,18 +5406,17 @@ Database observation requires that a single [database queue](#database-queues) o
 
 ### After Commit Hook
 
-**When your application needs to make sure a database transaction has been successfully committed before it executes some work, use the `Database.afterNextTransactionCommit(_:)` method.**
+When your application needs to make sure a specific database transaction has been successfully committed before it executes some work, use the `Database.afterNextTransactionCommit(_:)` method.
 
 Its closure argument is called right after database changes have been successfully written to disk:
 
 ```swift
-dbQueue.inTransaction { db in
+dbQueue.write { db in
     db.afterNextTransactionCommit { db in
         print("success")
     }
     ...
-    return .commit // prints "success"
-}
+} // prints "success"
 ```
 
 The closure runs in a protected dispatch queue, serialized with all database updates.
@@ -5453,15 +5452,13 @@ func startMonitoring(_ db: Database, region: CLRegion) throws {
 The method above won't trigger the location manager if the transaction is eventually rollbacked (explicitly, or because of an error), as in the sample code below:
 
 ```swift
-try dbQueue.inTransaction { db in
+try dbQueue.write { db in
     // success
     try startMonitoring(db, region)
     
     // On error, the transaction is rollbacked, the region is not inserted, and
     // the location manager is not invoked.
     try failableMethod(db)
-    
-    return .commit
 }
 ```
 
