@@ -1648,7 +1648,7 @@ let reverse = DatabaseFunction("reverse", argumentCount: 1, pure: true) { (value
         return nil
     }
     // ... and return reversed string:
-    return String(string.characters.reversed())
+    return String(string.reversed())
 }
 dbQueue.add(function: reverse)   // Or dbPool.add(function: ...)
 
@@ -1742,7 +1742,7 @@ struct MaxLength : DatabaseAggregate {
             return
         }
         // ... and update the result
-        let length = string.characters.count
+        let length = string.count
         if length > maxLength {
             maxLength = length
         }
