@@ -86,7 +86,7 @@ let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
 ```
     
-See [Database Connections](#database-connections).
+See [Database Connections](#database-connections)
 
 </details>
 
@@ -113,7 +113,7 @@ try dbQueue.write { db in
 }
 ```
 
-See [Executing Updates](#executing-updates).
+See [Executing Updates](#executing-updates)
 
 </details>
 
@@ -184,7 +184,7 @@ try dbQueue.write { db in
 }
 ```
 
-See [Records](#records).
+See [Records](#records)
 
 </details>
 
@@ -213,7 +213,7 @@ try dbQueue.write { db in
 }
 ```
 
-See the [Query Interface](#the-query-interface).
+See the [Query Interface](#the-query-interface)
 
 </details>
 
@@ -238,7 +238,7 @@ SQLRequest<Place>("SELECT * FROM places WHERE favorite ORDER BY title")
     })
 ```
 
-See the [Database Changes Observation](#database-changes-observation), and [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB).
+See [Database Changes Observation](#database-changes-observation), and [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB)
 
 </details>
 
