@@ -1868,7 +1868,7 @@ let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c", adapter: adapter
 
 ### EmptyRowAdapter
 
-`EmptyRowAdapter` hides all rows.
+`EmptyRowAdapter` hides all columns.
 
 ```swift
 let adapter = EmptyRowAdapter()
