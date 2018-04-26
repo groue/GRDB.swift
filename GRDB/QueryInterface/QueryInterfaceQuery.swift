@@ -22,8 +22,7 @@ struct QueryInterfaceQuery {
     var source: SQLSource?
     var wherePromise: DatabasePromise<SQLExpression?>
     var groupByExpressions: [SQLExpression]
-    var orderings: [SQLOrderingTerm]
-    var isReversed: Bool
+    var ordering: QueryOrdering
     var havingExpression: SQLExpression?
     var limit: SQLLimit?
     
@@ -33,8 +32,7 @@ struct QueryInterfaceQuery {
         from source: SQLSource? = nil,
         filter whereExpression: SQLExpression? = nil,
         groupBy groupByExpressions: [SQLExpression] = [],
-        orderBy orderings: [SQLOrderingTerm] = [],
-        isReversed: Bool = false,
+        orderBy ordering: QueryOrdering = QueryOrdering(),
         having havingExpression: SQLExpression? = nil,
         limit: SQLLimit? = nil)
     {
@@ -43,8 +41,7 @@ struct QueryInterfaceQuery {
         self.source = source
         self.wherePromise = DatabasePromise(value: whereExpression)
         self.groupByExpressions = groupByExpressions
-        self.orderings = orderings
-        self.isReversed = isReversed
+        self.ordering = ordering
         self.havingExpression = havingExpression
         self.limit = limit
     }
@@ -81,7 +78,7 @@ struct QueryInterfaceQuery {
             sql += " HAVING " + havingExpression.expressionSQL(&arguments)
         }
         
-        let orderings = self.queryOrderings
+        let orderings = self.ordering.resolve()
         if !orderings.isEmpty {
             sql += " ORDER BY " + orderings.map { $0.orderingTermSQL(&arguments) }.joined(separator: ", ")
         }
@@ -116,7 +113,7 @@ struct QueryInterfaceQuery {
         }
         
         if let limit = limit {
-            let orderings = self.queryOrderings
+            let orderings = self.ordering.resolve()
             if !orderings.isEmpty {
                 sql += " ORDER BY " + orderings.map { $0.orderingTermSQL(&arguments) }.joined(separator: ", ")
             }
@@ -133,35 +130,10 @@ struct QueryInterfaceQuery {
         return statement
     }
     
-    private var queryOrderings: [SQLOrderingTerm] {
-        if isReversed {
-            if orderings.isEmpty {
-                // https://www.sqlite.org/lang_createtable.html#rowid
-                //
-                // > The rowid value can be accessed using one of the special
-                // > case-independent names "rowid", "oid", or "_rowid_" in
-                // > place of a column name. If a table contains a user defined
-                // > column named "rowid", "oid" or "_rowid_", then that name
-                // > always refers the explicitly declared column and cannot be
-                // > used to retrieve the integer rowid value.
-                //
-                // Here we assume that rowid is not a custom column.
-                // TODO: support for user-defined rowid column.
-                // TODO: support for WITHOUT ROWID tables.
-                return [Column.rowID.desc]
-            } else {
-                return orderings.map { $0.reversed }
-            }
-        } else {
-            return orderings
-        }
-    }
-    
     /// Remove ordering
     var unorderedQuery: QueryInterfaceQuery {
         var query = self
-        query.isReversed = false
-        query.orderings = []
+        query.ordering = QueryOrdering()
         return query
     }
 }
@@ -258,6 +230,36 @@ extension QueryInterfaceQuery {
         return QueryInterfaceQuery(
             select: [SQLExpressionCount(AllColumns())],
             from: .query(query: unorderedQuery, alias: nil))
+    }
+}
+
+struct QueryOrdering {
+    private var orderings: [SQLOrderingTerm]
+    var isReversed: Bool
+    
+    init(orderings: [SQLOrderingTerm] = [], isReversed: Bool = false) {
+        self.orderings = orderings
+        self.isReversed = isReversed
+    }
+    
+    func reversed() -> QueryOrdering {
+        return QueryOrdering(
+            orderings: orderings,
+            isReversed: !isReversed)
+    }
+    
+    func appending(ordering: SQLOrderingTerm) -> QueryOrdering {
+        return QueryOrdering(
+            orderings: orderings + [ordering],
+            isReversed: isReversed)
+    }
+    
+    func resolve() -> [SQLOrderingTerm] {
+        if isReversed {
+            return orderings.map { $0.reversed }
+        } else {
+            return orderings
+        }
     }
 }
 
