@@ -2945,146 +2945,169 @@ try dbQueue.write { db in
 
 Each one of the three examples below is correct. You will pick one or the other depending on your personal preferences and the requirements of your application:
 
-- **Example 1**: Define a Codable struct and adopt each one of the [record protocols](#record-protocols-overview).
-    
-    ```swift
-    struct Place: Codable {
-        var id: Int64?
-        var title: String
-        var favorite: Bool
-        var latitude: CLLocationDegrees
-        var longitude: CLLocationDegrees
-        
-        var coordinate: CLLocationCoordinate2D {
-            get {
-                return CLLocationCoordinate2D(
-                    latitude: latitude,
-                    longitude: longitude)
-            }
-            set {
-                latitude = newValue.latitude
-                longitude = newValue.longitude
-            }
-        }
-    }
-    
-    extension Place: TableRecord {
-        /// The table name
-        static let databaseTableName = "places"
-    }
-    
-    extension Place: FetchableRecord { }
-    
-    extension Place: MutablePersistableRecord {
-        /// Update record ID after a successful insertion
-        mutating func didInsert(with rowID: Int64, for column: String?) {
-            id = rowID
-        }
-    }
-    ```
+<details>
+  <summary>Define a Codable struct, and adopt the record protocols you need</summary>
 
-- **Example 2**: Define a plain struct and explicitly adopt each one of the [record protocols](#record-protocols-overview).
-    
-    ```swift
-    struct Place {
-        var id: Int64?
-        var title: String
-        var isFavorite: Bool
-        var coordinate: CLLocationCoordinate2D
-    }
-    
-    extension Place: TableRecord {
-        /// The table name
-        static let databaseTableName = "places"
-        
-        /// The table columns
-        enum Columns: String, ColumnExpression {
-            case id, title, favorite, latitude, longitude
-        }
-    }
-    
-    extension Place: FetchableRecord {
-        /// Creates a record from a database row
-        init(row: Row) {
-            id = row[Columns.id]
-            title = row[Columns.title]
-            isFavorite = row[Columns.favorite]
-            coordinate = CLLocationCoordinate2D(
-                latitude: row[Columns.latitude],
-                longitude: row[Columns.longitude])
-        }
-    }
-    
-    extension Place: MutablePersistableRecord {
-        /// The values persisted in the database
-        func encode(to container: inout PersistenceContainer) {
-            container[Columns.id] = id
-            container[Columns.title] = title
-            container[Columns.favorite] = isFavorite
-            container[Columns.latitude] = coordinate.latitude
-            container[Columns.longitude] = coordinate.longitude
-        }
-        
-        /// Update record ID after a successful insertion
-        mutating func didInsert(with rowID: Int64, for column: String?) {
-            id = rowID
-        }
-    }
-    ```
+This is the shortest way to define a record type.
 
-- **Example 3**: Subclass the [Record class](#record-class).
+See the [Record Protocols Overview](#record-protocols-overview), and [Codable Records](#codable-records) for more information.
+
+```swift
+struct Place: Codable {
+    var id: Int64?
+    var title: String
+    var favorite: Bool
+    var latitude: CLLocationDegrees
+    var longitude: CLLocationDegrees
     
-    ```swift
-    class Place: Record {
-        var id: Int64?
-        var title: String
-        var isFavorite: Bool
-        var coordinate: CLLocationCoordinate2D
-        
-        init(id: Int64?, title: String, isFavorite: Bool, coordinate: CLLocationCoordinate2D) {
-            self.id = id
-            self.title = title
-            self.isFavorite = isFavorite
-            self.coordinate = coordinate
-            super.init()
+    var coordinate: CLLocationCoordinate2D {
+        get {
+            return CLLocationCoordinate2D(
+                latitude: latitude,
+                longitude: longitude)
         }
-        
-        /// The table name
-        override class var databaseTableName: String {
-            return "places"
-        }
-        
-        /// The table columns
-        enum Columns: String, ColumnExpression {
-            case id, title, favorite, latitude, longitude
-        }
-        
-        /// Creates a record from a database row
-        required init(row: Row) {
-            id = row[Columns.id]
-            title = row[Columns.title]
-            isFavorite = row[Columns.favorite]
-            coordinate = CLLocationCoordinate2D(
-                latitude: row[Columns.latitude],
-                longitude: row[Columns.longitude])
-            super.init(row: row)
-        }
-        
-        /// The values persisted in the database
-        override func encode(to container: inout PersistenceContainer) {
-            container[Columns.id] = id
-            container[Columns.title] = title
-            container[Columns.favorite] = isFavorite
-            container[Columns.latitude] = coordinate.latitude
-            container[Columns.longitude] = coordinate.longitude
-        }
-        
-        /// Update record ID after a successful insertion
-        override func didInsert(with rowID: Int64, for column: String?) {
-            id = rowID
+        set {
+            latitude = newValue.latitude
+            longitude = newValue.longitude
         }
     }
-    ```
+}
+
+// SQL generation
+extension Place: TableRecord {
+    /// The table name
+    static let databaseTableName = "places"
+}
+
+// Fetching methods
+extension Place: FetchableRecord { }
+
+// Persistence methods
+extension Place: MutablePersistableRecord {
+    /// Update record ID after a successful insertion
+    mutating func didInsert(with rowID: Int64, for column: String?) {
+        id = rowID
+    }
+}
+```
+
+</details>
+
+<details>
+  <summary>Define a plain struct, and adopt the record protocols you need</summary>
+
+See the [Record Protocols Overview](#record-protocols-overview) for more information.
+    
+```swift
+struct Place {
+    var id: Int64?
+    var title: String
+    var isFavorite: Bool
+    var coordinate: CLLocationCoordinate2D
+}
+
+// SQL generation
+extension Place: TableRecord {
+    /// The table name
+    static let databaseTableName = "places"
+    
+    /// The table columns
+    enum Columns: String, ColumnExpression {
+        case id, title, favorite, latitude, longitude
+    }
+}
+
+// Fetching methods
+extension Place: FetchableRecord {
+    /// Creates a record from a database row
+    init(row: Row) {
+        id = row[Columns.id]
+        title = row[Columns.title]
+        isFavorite = row[Columns.favorite]
+        coordinate = CLLocationCoordinate2D(
+            latitude: row[Columns.latitude],
+            longitude: row[Columns.longitude])
+    }
+}
+
+// Persistence methods
+extension Place: MutablePersistableRecord {
+    /// The values persisted in the database
+    func encode(to container: inout PersistenceContainer) {
+        container[Columns.id] = id
+        container[Columns.title] = title
+        container[Columns.favorite] = isFavorite
+        container[Columns.latitude] = coordinate.latitude
+        container[Columns.longitude] = coordinate.longitude
+    }
+    
+    /// Update record ID after a successful insertion
+    mutating func didInsert(with rowID: Int64, for column: String?) {
+        id = rowID
+    }
+}
+```
+
+</details>
+
+<details>
+  <summary>Subclass the <code>Record</code> class</summary>
+
+See the [Record class](#record-class) for more information.
+    
+```swift
+class Place: Record {
+    var id: Int64?
+    var title: String
+    var isFavorite: Bool
+    var coordinate: CLLocationCoordinate2D
+    
+    init(id: Int64?, title: String, isFavorite: Bool, coordinate: CLLocationCoordinate2D) {
+        self.id = id
+        self.title = title
+        self.isFavorite = isFavorite
+        self.coordinate = coordinate
+        super.init()
+    }
+    
+    /// The table name
+    override class var databaseTableName: String {
+        return "places"
+    }
+    
+    /// The table columns
+    enum Columns: String, ColumnExpression {
+        case id, title, favorite, latitude, longitude
+    }
+    
+    /// Creates a record from a database row
+    required init(row: Row) {
+        id = row[Columns.id]
+        title = row[Columns.title]
+        isFavorite = row[Columns.favorite]
+        coordinate = CLLocationCoordinate2D(
+            latitude: row[Columns.latitude],
+            longitude: row[Columns.longitude])
+        super.init(row: row)
+    }
+    
+    /// The values persisted in the database
+    override func encode(to container: inout PersistenceContainer) {
+        container[Columns.id] = id
+        container[Columns.title] = title
+        container[Columns.favorite] = isFavorite
+        container[Columns.latitude] = coordinate.latitude
+        container[Columns.longitude] = coordinate.longitude
+    }
+    
+    /// Update record ID after a successful insertion
+    override func didInsert(with rowID: Int64, for column: String?) {
+        id = rowID
+    }
+}
+```
+
+</details>
 
 
 ## List of Record Methods
