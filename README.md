@@ -400,7 +400,7 @@ try dbQueue.read { db in
 }
 ```
 
-Database access methods can return values, for easy extraction of database values:
+Database access methods can return values:
 
 ```swift
 let placeCount = try dbQueue.read { db in
@@ -470,7 +470,7 @@ try dbPool.read { db in
 }
 ```
 
-Database access methods can return values, for easy extraction of database values:
+Database access methods can return values:
 
 ```swift
 let placeCount = try dbPool.read { db in
