@@ -3716,7 +3716,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     // SELECT * FROM players WHERE (verified AND (score >= 1000) AND (name IS NOT NULL))
     let conditions = [
         verifiedColumn,
-        scoreColumn >=< 1000,
+        scoreColumn >= 1000,
         nameColumn != nil]
     Player.filter(conditions.joined(operator: .and))
     ```
