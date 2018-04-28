@@ -4237,7 +4237,7 @@ try request.fetchCursor(db) // A cursor of rows
 let playerRequest = ...     // Some FetchRequest that fetches Player
 try request.fetchAll(db)    // [Player]
 
-let intRequest = ...         // Some FetchRequest that fetches Int
+let intRequest = ...        // Some FetchRequest that fetches Int
 try request.fetchOne(db)    // Int?
 ```
 
