@@ -71,7 +71,7 @@ struct QualifiedAllColumns {
 
 extension QualifiedAllColumns : SQLSelectable {
     func resultColumnSQL(_ arguments: inout StatementArguments?) -> String {
-        if let qualifierName = qualifier.name {
+        if let qualifierName = qualifier.qualifiedName {
             return qualifierName.quotedDatabaseIdentifier + ".*"
         }
         return "*"
@@ -92,7 +92,8 @@ extension QualifiedAllColumns : SQLSelectable {
     }
     
     func columnCount(_ db: Database) throws -> Int {
-        return try db.columns(in: qualifier.tableName).count
+        assert(qualifier.tableName != nil, "Missing table name")
+        return try db.columns(in: qualifier.tableName!).count
     }
 }
 

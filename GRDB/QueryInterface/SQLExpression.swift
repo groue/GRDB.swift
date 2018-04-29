@@ -63,6 +63,9 @@ public protocol SQLExpression : SQLSpecificExpressible, SQLSelectable, SQLOrderi
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    func resolvedExpression(inContext context: [SQLTableQualifier: PersistenceContainer]) -> SQLExpression
 }
 
 extension SQLExpression {
@@ -94,6 +97,15 @@ extension SQLExpression {
     ///
     /// :nodoc:
     public func qualifiedSelectable(with qualifier: SQLTableQualifier) -> SQLSelectable {
+        return qualifiedExpression(with: qualifier)
+    }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// The default implementation returns qualifiedExpression(with:)
+    ///
+    /// :nodoc:
+    public func qualifiedOrdering(with qualifier: SQLTableQualifier) -> SQLOrderingTerm {
         return qualifiedExpression(with: qualifier)
     }
 }
@@ -149,5 +161,9 @@ struct SQLExpressionNot : SQLExpression {
     
     func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
         return SQLExpressionNot(expression.qualifiedExpression(with: qualifier))
+    }
+    
+    func resolvedExpression(inContext context: [SQLTableQualifier: PersistenceContainer]) -> SQLExpression {
+        return SQLExpressionNot(expression.resolvedExpression(inContext: context))
     }
 }

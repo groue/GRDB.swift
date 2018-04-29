@@ -355,6 +355,12 @@ extension DatabaseValue {
     public func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
         return self
     }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// :nodoc:
+    public func resolvedExpression(inContext context: [SQLTableQualifier: PersistenceContainer]) -> SQLExpression {
+        return self
+    }
 }
 
 // CustomStringConvertible

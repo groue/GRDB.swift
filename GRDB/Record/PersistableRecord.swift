@@ -126,6 +126,15 @@ public struct PersistenceContainer {
         }
     }
     
+    // Returns nil if column is not defined
+    func value(forCaseInsensitiveColumn column: String) -> DatabaseValue? {
+        let lowercaseColumn = column.lowercased()
+        for (key, value) in storage where key.lowercased() == lowercaseColumn {
+            return value?.databaseValue ?? .null
+        }
+        return nil
+    }
+
     var isEmpty: Bool {
         return storage.isEmpty
     }

@@ -87,6 +87,12 @@ public struct SQLExpressionLiteral : SQLExpression {
     public func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
         return self
     }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// :nodoc:
+    public func resolvedExpression(inContext context: [SQLTableQualifier: PersistenceContainer]) -> SQLExpression {
+        return self
+    }
 }
 
 // MARK: - SQLExpressionUnary
@@ -173,6 +179,12 @@ public struct SQLExpressionUnary : SQLExpression {
     /// :nodoc:
     public func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
         return SQLExpressionUnary(op, expression.qualifiedExpression(with: qualifier))
+    }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// :nodoc:
+    public func resolvedExpression(inContext context: [SQLTableQualifier: PersistenceContainer]) -> SQLExpression {
+        return SQLExpressionUnary(op, expression.resolvedExpression(inContext: context))
     }
 }
 
@@ -322,6 +334,12 @@ public struct SQLExpressionBinary : SQLExpression {
     public func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
         return SQLExpressionBinary(op, lhs.qualifiedExpression(with: qualifier), rhs.qualifiedExpression(with: qualifier))
     }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// :nodoc:
+    public func resolvedExpression(inContext context: [SQLTableQualifier: PersistenceContainer]) -> SQLExpression {
+        return SQLExpressionBinary(op, lhs.resolvedExpression(inContext: context), rhs.resolvedExpression(inContext: context))
+    }
 }
 
 // MARK: - SQLExpressionAnd
@@ -347,6 +365,10 @@ struct SQLExpressionAnd : SQLExpression {
     
     func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
         return SQLExpressionAnd(expressions.map { $0.qualifiedExpression(with: qualifier) })
+    }
+    
+    func resolvedExpression(inContext context: [SQLTableQualifier: PersistenceContainer]) -> SQLExpression {
+        return SQLExpressionAnd(expressions.map { $0.resolvedExpression(inContext: context) })
     }
     
     func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
@@ -383,6 +405,10 @@ struct SQLExpressionOr : SQLExpression {
     
     func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
         return SQLExpressionOr(expressions.map { $0.qualifiedExpression(with: qualifier) })
+    }
+    
+    func resolvedExpression(inContext context: [SQLTableQualifier: PersistenceContainer]) -> SQLExpression {
+        return SQLExpressionOr(expressions.map { $0.resolvedExpression(inContext: context) })
     }
     
     func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
@@ -462,6 +488,10 @@ struct SQLExpressionContains : SQLExpression {
     func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
         return SQLExpressionContains(expression.qualifiedExpression(with: qualifier), collection, negated: isNegated)
     }
+    
+    func resolvedExpression(inContext context: [SQLTableQualifier: PersistenceContainer]) -> SQLExpression {
+        return SQLExpressionContains(expression.resolvedExpression(inContext: context), collection, negated: isNegated)
+    }
 }
 
 // MARK: - SQLExpressionBetween
@@ -503,6 +533,14 @@ struct SQLExpressionBetween : SQLExpression {
             expression.qualifiedExpression(with: qualifier),
             lowerBound.qualifiedExpression(with: qualifier),
             upperBound.qualifiedExpression(with: qualifier),
+            negated: isNegated)
+    }
+    
+    func resolvedExpression(inContext context: [SQLTableQualifier: PersistenceContainer]) -> SQLExpression {
+        return SQLExpressionBetween(
+            expression.resolvedExpression(inContext: context),
+            lowerBound.resolvedExpression(inContext: context),
+            upperBound.resolvedExpression(inContext: context),
             negated: isNegated)
     }
 }
@@ -599,6 +637,12 @@ public struct SQLExpressionFunction : SQLExpression {
     public func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
         return SQLExpressionFunction(functionName, arguments: arguments.map { $0.qualifiedExpression(with: qualifier) })
     }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// :nodoc:
+    public func resolvedExpression(inContext context: [SQLTableQualifier: PersistenceContainer]) -> SQLExpression {
+        return SQLExpressionFunction(functionName, arguments: arguments.map { $0.resolvedExpression(inContext: context) })
+    }
 }
 
 // MARK: - SQLExpressionCount
@@ -622,6 +666,10 @@ struct SQLExpressionCount : SQLExpression {
     func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
         return SQLExpressionCount(counted.qualifiedSelectable(with: qualifier))
     }
+    
+    func resolvedExpression(inContext context: [SQLTableQualifier: PersistenceContainer]) -> SQLExpression {
+        return self
+    }
 }
 
 // MARK: - SQLExpressionCountDistinct
@@ -643,6 +691,10 @@ struct SQLExpressionCountDistinct : SQLExpression {
     
     func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
         return SQLExpressionCountDistinct(counted.qualifiedExpression(with: qualifier))
+    }
+    
+    func resolvedExpression(inContext context: [SQLTableQualifier: PersistenceContainer]) -> SQLExpression {
+        return self
     }
 }
 
@@ -672,5 +724,9 @@ struct SQLExpressionCollate : SQLExpression {
     
     func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
         return SQLExpressionCollate(expression.qualifiedExpression(with: qualifier), collationName: collationName)
+    }
+    
+    func resolvedExpression(inContext context: [SQLTableQualifier: PersistenceContainer]) -> SQLExpression {
+        return SQLExpressionCollate(expression.resolvedExpression(inContext: context), collationName: collationName)
     }
 }

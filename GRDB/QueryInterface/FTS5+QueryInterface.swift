@@ -17,17 +17,10 @@
         /// all requests by the `TableRecord.databaseSelection` property, or
         /// for individual requests with the `TableRecord.select` method.
         public func matching(_ pattern: FTS5Pattern?) -> QueryInterfaceRequest<T> {
-            switch query.source {
-            case .table(let name, let alias)?:
-                if let pattern = pattern {
-                    return filter(SQLExpressionBinary(.match, Column(alias ?? name), pattern))
-                } else {
-                    return filter(false)
-                }
-            default:
-                // Programmer error
-                fatalError("fts5 match requires a table")
+            guard let pattern = pattern else {
+                return none()
             }
+            return filter(SQLExpressionBinary(.match, Column(query.source.qualifiedName), pattern))
         }
     }
     

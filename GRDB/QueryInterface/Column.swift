@@ -37,6 +37,12 @@ extension ColumnExpression {
     public func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
         return QualifiedColumn(name, qualifier: qualifier)
     }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// :nodoc:
+    public func resolvedExpression(inContext context: [SQLTableQualifier: PersistenceContainer]) -> SQLExpression {
+        return self
+    }
 }
 
 /// A column in a database table.
@@ -70,7 +76,7 @@ struct QualifiedColumn: ColumnExpression {
     }
     
     func expressionSQL(_ arguments: inout StatementArguments?) -> String {
-        if let qualifierName = qualifier.name {
+        if let qualifierName = qualifier.qualifiedName {
             return qualifierName.quotedDatabaseIdentifier + "." + name.quotedDatabaseIdentifier
         }
         return name.quotedDatabaseIdentifier
@@ -79,6 +85,16 @@ struct QualifiedColumn: ColumnExpression {
     func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
         // Never requalify
         return self
+    }
+    
+    func resolvedExpression(inContext context: [SQLTableQualifier: PersistenceContainer]) -> SQLExpression {
+        guard
+            let container = context[qualifier],
+            let value = container.value(forCaseInsensitiveColumn: name) else
+        {
+            return self
+        }
+        return value
     }
 }
 
