@@ -1244,7 +1244,7 @@ You can also perform custom navigation in the tree by using *row scopes*. See [R
 
 ## Known Issues
 
-**You can't chain a required association on an optional association.**
+**You can't chain a required association on an optional association:**
 
 ```swift
 // NOT IMPLEMENTED
@@ -1255,18 +1255,16 @@ let request = Book
 
 This code compiles, but you'll get a runtime fatal error "Not implemented: chaining a required association behind an optional association". Future versions of GRDB may allow such requests.
 
-**Joining two associations with the same association key at the same level is undefined behavior.**
-
-Since [association keys](#the-structure-of-a-joined-request) are the names of the joined tables unless specified otherwise, this exceptional condition is unfortunately easy to trigger:
+**You can't join two associations with the same [association key](#the-structure-of-a-joined-request) at the same level:**
 
 ```swift
-// UNDEFINED BEHAVIOR
+// NOT IMPLEMENTED
 let request = Book
     .including(Book.author) // key "author"
     .including(Book.author) // key "author"
 ```
 
-This code currently compiles, and generates valid SQL. But GRDB may change the generated SQL in the future.
+This code compiles, but you'll get a runtime fatal error "The association key `author` is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.". Future versions of GRDB may allow such requests.
 
 To join the same table twice, and make sure GRDB does not modify the fetched results in some future release, make sure no two associations have the same name on a given level:
 
