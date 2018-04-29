@@ -7,10 +7,10 @@ public struct HasOneAssociation<Left, Right> : Association, TableRequest where
     
     public var key: String
     
-    // :nodoc:
+    /// :nodoc:
     public var databaseTableName: String { return RightAssociated.databaseTableName }
     
-    // :nodoc:
+    /// :nodoc:
     public let request: AssociationRequest<Right>
     
     let foreignKeyRequest: ForeignKeyRequest
@@ -22,14 +22,14 @@ public struct HasOneAssociation<Left, Right> : Association, TableRequest where
             foreignKeyRequest: foreignKeyRequest)
     }
     
-    // :nodoc:
+    /// :nodoc:
     public func associationMapping(_ db: Database) throws -> AssociationMapping {
         return try AssociationMappingRequest
             .foreignKey(request: foreignKeyRequest, originIsLeft: false)
             .fetch(db)
     }
     
-    // :nodoc:
+    /// :nodoc:
     public func mapRequest(_ transform: (AssociationRequest<Right>) -> AssociationRequest<Right>) -> HasOneAssociation<Left, Right> {
         return HasOneAssociation(
             key: key,

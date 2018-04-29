@@ -167,7 +167,7 @@ extension QueryInterfaceRequest : SelectionRequest, FilteredRequest, Aggregating
 }
 
 extension QueryInterfaceRequest: TableRequest where RowDecoder: TableRecord {
-    // :nodoc:
+    /// :nodoc:
     public var databaseTableName: String {
         return T.databaseTableName
     }
