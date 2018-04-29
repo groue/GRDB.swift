@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="468px" height="200px" viewBox="0 0 468 200" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 49 (51002) - http://www.bohemiancoding.com/sketch -->
+    <title>HasManyThroughSchema</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <linearGradient x1="50%" y1="100%" x2="50%" y2="1.41638472e-14%" id="linearGradient-1">
+            <stop stop-color="#FFFFFF" stop-opacity="0.9" offset="0%"></stop>
+            <stop stop-color="#FFFFFF" offset="100%"></stop>
+        </linearGradient>
+        <rect id="path-2" x="0" y="0" width="200" height="103" rx="10"></rect>
+        <filter x="-7.2%" y="-11.2%" width="114.5%" height="128.2%" filterUnits="objectBoundingBox" id="filter-4">
+            <feMorphology radius="1" operator="dilate" in="SourceAlpha" result="shadowSpreadOuter1"></feMorphology>
+            <feOffset dx="0" dy="3" in="shadowSpreadOuter1" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="4" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feComposite in="shadowBlurOuter1" in2="SourceAlpha" operator="out" result="shadowBlurOuter1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.1 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+        <rect id="path-5" x="0" y="0" width="200" height="79" rx="10"></rect>
+        <filter x="-7.2%" y="-14.6%" width="114.5%" height="136.7%" filterUnits="objectBoundingBox" id="filter-7">
+            <feMorphology radius="1" operator="dilate" in="SourceAlpha" result="shadowSpreadOuter1"></feMorphology>
+            <feOffset dx="0" dy="3" in="shadowSpreadOuter1" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="4" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feComposite in="shadowBlurOuter1" in2="SourceAlpha" operator="out" result="shadowBlurOuter1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.1 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+        <rect id="path-8" x="0" y="0" width="200" height="79" rx="10"></rect>
+        <filter x="-7.2%" y="-14.6%" width="114.5%" height="136.7%" filterUnits="objectBoundingBox" id="filter-10">
+            <feMorphology radius="1" operator="dilate" in="SourceAlpha" result="shadowSpreadOuter1"></feMorphology>
+            <feOffset dx="0" dy="3" in="shadowSpreadOuter1" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="4" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feComposite in="shadowBlurOuter1" in2="SourceAlpha" operator="out" result="shadowBlurOuter1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.1 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+        <circle id="path-11" cx="3.5" cy="44.5" r="3.5"></circle>
+        <path d="M57.4068802,4.62378409 L50.4819187,0.815055312 C49.9979981,0.548898936 49.3899405,0.725431787 49.1237841,1.20935247 C49.0425794,1.35699745 49,1.52276825 49,1.69127122 L49,9.30872878 C49,9.86101353 49.4477153,10.3087288 50,10.3087288 C50.168503,10.3087288 50.3342738,10.2661494 50.4819187,10.1849447 L57.4068802,6.37621591 C57.8908008,6.11005953 58.0673337,5.50200193 57.8011773,5.01808125 C57.7097895,4.85192153 57.5730399,4.71517193 57.4068802,4.62378409 Z" id="path-12"></path>
+        <circle id="path-13" cx="3.5" cy="3.5" r="3.5"></circle>
+        <path d="M57.4068802,42.6237841 L50.4819187,38.8150553 C49.9979981,38.5488989 49.3899405,38.7254318 49.1237841,39.2093525 C49.0425794,39.3569975 49,39.5227683 49,39.6912712 L49,47.3087288 C49,47.8610135 49.4477153,48.3087288 50,48.3087288 C50.168503,48.3087288 50.3342738,48.2661494 50.4819187,48.1849447 L57.4068802,44.3762159 C57.8908008,44.1100595 58.0673337,43.5020019 57.8011773,43.0180813 C57.7097895,42.8519215 57.5730399,42.7151719 57.4068802,42.6237841 Z" id="path-14"></path>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="HasManyThroughSchema" transform="translate(9.000000, 6.000000)">
+            <g id="Table" transform="translate(250.000000, 40.000000)">
+                <mask id="mask-3" fill="white">
+                    <use xlink:href="#path-2"></use>
+                </mask>
+                <g id="Rectangle">
+                    <use fill="black" fill-opacity="1" filter="url(#filter-4)" xlink:href="#path-2"></use>
+                    <use fill="#005CC5" fill-rule="evenodd" xlink:href="#path-2"></use>
+                    <use fill="url(#linearGradient-1)" fill-rule="evenodd" xlink:href="#path-2"></use>
+                    <rect stroke-opacity="0.25" stroke="#000000" stroke-width="1" x="-0.5" y="-0.5" width="201" height="104" rx="10"></rect>
+                </g>
+                <g id="Field" mask="url(#mask-3)">
+                    <g transform="translate(0.000000, 31.000000)">
+                        <text id="name" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="500">
+                            <tspan x="10" y="17" fill="#000000">countryCode</tspan>
+                        </text>
+                        <text id="type" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="normal">
+                            <tspan x="110" y="17" fill="#000000">text</tspan>
+                        </text>
+                        <rect id="Rectangle" fill-opacity="0.12" fill="#000000" fill-rule="evenodd" x="0" y="0" width="200" height="1"></rect>
+                    </g>
+                </g>
+                <g id="Field" mask="url(#mask-3)">
+                    <g transform="translate(0.000000, 55.000000)">
+                        <text id="name" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="500">
+                            <tspan x="10" y="17" fill="#000000">citizenId</tspan>
+                        </text>
+                        <text id="type" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="normal">
+                            <tspan x="110" y="17" fill="#000000">integer</tspan>
+                        </text>
+                        <rect id="Rectangle" fill-opacity="0.12" fill="#000000" fill-rule="evenodd" x="0" y="0" width="200" height="1"></rect>
+                    </g>
+                </g>
+                <g id="Field" mask="url(#mask-3)">
+                    <g transform="translate(0.000000, 79.000000)">
+                        <text id="name" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="500">
+                            <tspan x="10" y="17" fill="#000000">issueDate</tspan>
+                        </text>
+                        <text id="type" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="normal">
+                            <tspan x="110" y="17" fill="#000000">date</tspan>
+                        </text>
+                        <rect id="Rectangle" fill-opacity="0.12" fill="#000000" fill-rule="evenodd" x="0" y="0" width="200" height="1"></rect>
+                    </g>
+                </g>
+                <text id="passport" mask="url(#mask-3)" font-family="-apple-system,sans-serif" font-size="14" font-weight="500" fill="#000000">
+                    <tspan x="69.3613281" y="21">passport</tspan>
+                </text>
+            </g>
+            <g id="Table-Copy-2">
+                <mask id="mask-6" fill="white">
+                    <use xlink:href="#path-5"></use>
+                </mask>
+                <g id="Rectangle">
+                    <use fill="black" fill-opacity="1" filter="url(#filter-7)" xlink:href="#path-5"></use>
+                    <use fill="#005CC5" fill-rule="evenodd" xlink:href="#path-5"></use>
+                    <use fill="url(#linearGradient-1)" fill-rule="evenodd" xlink:href="#path-5"></use>
+                    <rect stroke-opacity="0.25" stroke="#000000" stroke-width="1" x="-0.5" y="-0.5" width="201" height="80" rx="10"></rect>
+                </g>
+                <g id="Field" mask="url(#mask-6)">
+                    <g transform="translate(0.000000, 31.000000)">
+                        <text id="name" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="500">
+                            <tspan x="10" y="17" fill="#000000">code</tspan>
+                        </text>
+                        <text id="type" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="normal">
+                            <tspan x="110" y="17" fill="#000000">text</tspan>
+                        </text>
+                        <rect id="Rectangle" fill-opacity="0.12" fill="#000000" fill-rule="evenodd" x="0" y="0" width="200" height="1"></rect>
+                    </g>
+                </g>
+                <g id="Field" mask="url(#mask-6)">
+                    <g transform="translate(0.000000, 55.000000)">
+                        <text id="name" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="500">
+                            <tspan x="10" y="17" fill="#000000">name</tspan>
+                        </text>
+                        <text id="type" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="normal">
+                            <tspan x="110" y="17" fill="#000000">text</tspan>
+                        </text>
+                        <rect id="Rectangle" fill-opacity="0.12" fill="#000000" fill-rule="evenodd" x="0" y="0" width="200" height="1"></rect>
+                    </g>
+                </g>
+                <text id="country" mask="url(#mask-6)" font-family="-apple-system,sans-serif" font-size="14" font-weight="500" fill="#000000">
+                    <tspan x="73.3740234" y="21">country</tspan>
+                </text>
+            </g>
+            <g id="Table-Copy-2" transform="translate(0.000000, 103.000000)">
+                <mask id="mask-9" fill="white">
+                    <use xlink:href="#path-8"></use>
+                </mask>
+                <g id="Rectangle">
+                    <use fill="black" fill-opacity="1" filter="url(#filter-10)" xlink:href="#path-8"></use>
+                    <use fill="#005CC5" fill-rule="evenodd" xlink:href="#path-8"></use>
+                    <use fill="url(#linearGradient-1)" fill-rule="evenodd" xlink:href="#path-8"></use>
+                    <rect stroke-opacity="0.25" stroke="#000000" stroke-width="1" x="-0.5" y="-0.5" width="201" height="80" rx="10"></rect>
+                </g>
+                <g id="Field" mask="url(#mask-9)">
+                    <g transform="translate(0.000000, 31.000000)">
+                        <text id="name" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="500">
+                            <tspan x="10" y="17" fill="#000000">id</tspan>
+                        </text>
+                        <text id="type" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="normal">
+                            <tspan x="110" y="17" fill="#000000">integer</tspan>
+                        </text>
+                        <rect id="Rectangle" fill-opacity="0.12" fill="#000000" fill-rule="evenodd" x="0" y="0" width="200" height="1"></rect>
+                    </g>
+                </g>
+                <g id="Field" mask="url(#mask-9)">
+                    <g transform="translate(0.000000, 55.000000)">
+                        <text id="name" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="500">
+                            <tspan x="10" y="17" fill="#000000">name</tspan>
+                        </text>
+                        <text id="type" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="normal">
+                            <tspan x="110" y="17" fill="#000000">text</tspan>
+                        </text>
+                        <rect id="Rectangle" fill-opacity="0.12" fill="#000000" fill-rule="evenodd" x="0" y="0" width="200" height="1"></rect>
+                    </g>
+                </g>
+                <text id="citizen" mask="url(#mask-9)" font-family="-apple-system,sans-serif" font-size="14" font-weight="500" fill="#000000">
+                    <tspan x="77.1782227" y="21">citizen</tspan>
+                </text>
+            </g>
+            <g id="Group" transform="translate(224.000000, 63.000000) scale(-1, 1) translate(-224.000000, -63.000000) translate(195.000000, 39.000000)">
+                <g id="Oval">
+                    <use fill="#000000" fill-rule="evenodd" xlink:href="#path-11"></use>
+                    <circle stroke="#FFFFFF" stroke-width="1" cx="3.5" cy="44.5" r="4"></circle>
+                </g>
+                <g id="Path-3">
+                    <use fill="#000000" fill-rule="evenodd" xlink:href="#path-12"></use>
+                    <path stroke="#FFFFFF" stroke-width="1" d="M57.6478395,4.18567614 C57.8970791,4.3227579 58.1022035,4.5278823 58.2392853,4.77712188 C58.6385198,5.5030029 58.3737206,6.4150893 57.6478395,6.81432386 L50.7228781,10.6230526 C50.5014107,10.7448598 50.2527545,10.8087288 50,10.8087288 C49.1715729,10.8087288 48.5,10.1371559 48.5,9.30872878 L48.5,1.69127122 C48.5,1.43851677 48.563869,1.18986057 48.6856761,0.968393096 C49.0849107,0.242512071 49.9969971,-0.0222872062 50.7228781,0.376947358 L57.6478395,4.18567614 Z"></path>
+                </g>
+                <path d="M2.5,44.5 C2.5,44.5 2.5,44.5 16.5,44.5 C30.5,44.5 27.5,5.5 40.5,5.5 C49.1666667,5.5 53.5,5.5 53.5,5.5" id="Path-2" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </g>
+            <g id="Group" transform="translate(224.000000, 128.500000) scale(-1, 1) translate(-224.000000, -128.500000) translate(195.000000, 104.000000)">
+                <g id="Oval">
+                    <use fill="#000000" fill-rule="evenodd" xlink:href="#path-13"></use>
+                    <circle stroke="#FFFFFF" stroke-width="1" cx="3.5" cy="3.5" r="4"></circle>
+                </g>
+                <g id="Path-3">
+                    <use fill="#000000" fill-rule="evenodd" xlink:href="#path-14"></use>
+                    <path stroke="#FFFFFF" stroke-width="1" d="M57.6478395,42.1856761 C57.8970791,42.3227579 58.1022035,42.5278823 58.2392853,42.7771219 C58.6385198,43.5030029 58.3737206,44.4150893 57.6478395,44.8143239 L50.7228781,48.6230526 C50.5014107,48.7448598 50.2527545,48.8087288 50,48.8087288 C49.1715729,48.8087288 48.5,48.1371559 48.5,47.3087288 L48.5,39.6912712 C48.5,39.4385168 48.563869,39.1898606 48.6856761,38.9683931 C49.0849107,38.2425121 49.9969971,37.9777128 50.7228781,38.3769474 L57.6478395,42.1856761 Z"></path>
+                </g>
+                <path d="M2.5,3.5 C2.5,3.5 2.5,3.5 16.5,3.5 C30.5,3.5 27.5,43.5 40.5,43.5 C49.1666667,43.5 53.5,43.5 53.5,43.5" id="Path-2" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </g>
+        </g>
+    </g>
+</svg>
