@@ -1,15 +1,16 @@
-GRDB 2 [![Swift](https://img.shields.io/badge/swift-4-orange.svg?style=flat)](https://developer.apple.com/swift/) [![Platforms](https://img.shields.io/cocoapods/p/GRDB.swift.svg)](https://developer.apple.com/swift/) [![License](https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000)](/LICENSE) [![Build Status](https://travis-ci.org/groue/GRDB.swift.svg?branch=master)](https://travis-ci.org/groue/GRDB.swift)
+GRDB 3 [![Swift](https://img.shields.io/badge/swift-4-orange.svg?style=flat)](https://developer.apple.com/swift/) [![Platforms](https://img.shields.io/cocoapods/p/GRDB.swift.svg)](https://developer.apple.com/swift/) [![License](https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000)](/LICENSE) [![Build Status](https://travis-ci.org/groue/GRDB.swift.svg?branch=master)](https://travis-ci.org/groue/GRDB.swift)
 ==========
 
 ### A toolkit for SQLite databases, with a focus on application development
 
 **Latest release**: March 30, 2018 • version 2.10.0 • [CHANGELOG](CHANGELOG.md)
 
-**Requirements**: iOS 8.0+ / OSX 10.9+ / watchOS 2.0+ &bull; Swift 4+ / Xcode 9+
+**Requirements**: iOS 8.0+ / OSX 10.9+ / watchOS 2.0+ &bull; Swift 4+ / Xcode 9.3+
 
 | Swift version | GRDB version                                                |
 | ------------- | ----------------------------------------------------------- |
-| **Swift 4+**  | **v2.10.0**                                                  |
+| **Swift 4.1**  | **v3.0.0**                                                 |
+| Swift 4       | [v2.10.0](https://github.com/groue/GRDB.swift/tree/v2.10.0) |
 | Swift 3.2     | [v1.3.0](https://github.com/groue/GRDB.swift/tree/v1.3.0)   |
 | Swift 3.1     | [v1.3.0](https://github.com/groue/GRDB.swift/tree/v1.3.0)   |
 | Swift 3       | [v1.0](https://github.com/groue/GRDB.swift/tree/v1.0)       |
