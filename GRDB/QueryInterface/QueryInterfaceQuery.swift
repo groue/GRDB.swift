@@ -63,7 +63,7 @@ struct QueryInterfaceQuery {
         sql += try " FROM " + source.sourceSQL(db, &arguments)
         
         for join in joins {
-            sql += try " " + join.joinSQL(db, &arguments, leftQualifier: qualifier!)
+            sql += try " " + join.joinSQL(db, &arguments, leftQualifier: qualifier!, isRequiredAllowed: true)
         }
         
         if let filter = try filterPromise.resolve(db) {
@@ -425,11 +425,19 @@ struct AssociationJoin {
     var key: String
     var associationMapping: (Database) throws -> AssociationMapping
     
-    func joinSQL(_ db: Database,_ arguments: inout StatementArguments?, leftQualifier: SQLTableQualifier) throws -> String {
+    func joinSQL(_ db: Database,_ arguments: inout StatementArguments?, leftQualifier: SQLTableQualifier, isRequiredAllowed: Bool) throws -> String {
+        var isRequiredAllowed = isRequiredAllowed
         var sql = ""
         switch op {
-        case .optional: sql += "LEFT JOIN"
-        case .required: sql += "JOIN"
+        case .optional:
+            isRequiredAllowed = false
+            sql += "LEFT JOIN"
+        case .required:
+            guard isRequiredAllowed else {
+                // TODO: chainOptionalRequired
+                fatalError("Not implemented: chaining a required association behind an optional association")
+            }
+            sql += "JOIN"
         }
         
         let rightQualifier = rightQuery.qualifier!
@@ -445,7 +453,7 @@ struct AssociationJoin {
         }
         
         for join in rightQuery.joins {
-            sql += try " " + join.joinSQL(db, &arguments, leftQualifier: rightQualifier)
+            sql += try " " + join.joinSQL(db, &arguments, leftQualifier: rightQualifier, isRequiredAllowed: isRequiredAllowed)
         }
         
         return sql
