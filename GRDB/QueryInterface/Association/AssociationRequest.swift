@@ -46,7 +46,7 @@ extension AssociationRequest {
             joinOperator: joinOperator,
             query: association.request.query,
             key: association.key,
-            joinConditionPromise: association.joinCondition)
+            joinConditionPromise: DatabasePromise(association.joinCondition))
         return AssociationRequest(query: query.joining(join))
     }
 }

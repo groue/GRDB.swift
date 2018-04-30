@@ -465,7 +465,7 @@ struct AssociationJoin {
     var joinOperator: AssociationJoinOperator
     var query: AssociationQuery
     var key: String
-    var joinConditionPromise: (Database) throws -> JoinCondition
+    var joinConditionPromise: DatabasePromise<JoinCondition>
     
     func joinSQL(_ db: Database,_ arguments: inout StatementArguments?, leftQualifier: SQLTableQualifier, isRequiredAllowed: Bool) throws -> String {
         var isRequiredAllowed = isRequiredAllowed
@@ -486,7 +486,7 @@ struct AssociationJoin {
         
         let qualifier = query.qualifier!
         let filters = try [
-            joinConditionPromise(db)(leftQualifier, qualifier),
+            joinConditionPromise.resolve(db)(leftQualifier, qualifier),
             query.filterPromise.resolve(db)
             ].compactMap { $0 }
         if !filters.isEmpty {
