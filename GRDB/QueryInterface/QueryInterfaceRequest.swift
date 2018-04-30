@@ -166,10 +166,16 @@ extension QueryInterfaceRequest : SelectionRequest, FilteredRequest, Aggregating
     }
 }
 
+/// Conditional conformance to TableRequest when RowDecoder conforms
+/// to TableRecord:
+///
+///     let request = Player.all()
+///     request.filter(key: ...)
+///     request.filter(keys: ...)
 extension QueryInterfaceRequest: TableRequest where RowDecoder: TableRecord {
     /// :nodoc:
     public var databaseTableName: String {
-        return T.databaseTableName
+        return RowDecoder.databaseTableName
     }
 }
 
