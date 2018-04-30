@@ -22,10 +22,8 @@ public struct BelongsToAssociation<Left, Right> : Association, TableRequest wher
     }
     
     /// :nodoc:
-    public func associationMapping(_ db: Database) throws -> AssociationMapping {
-        return try AssociationMappingRequest
-            .foreignKey(request: foreignKeyRequest, originIsLeft: true)
-            .fetch(db)
+    public func joinCondition(_ db: Database) throws -> JoinCondition {
+        return try ForeignKeyJoinConditionRequest(foreignKeyRequest: foreignKeyRequest, originIsLeft: true).fetch(db)
     }
     
     /// :nodoc:

@@ -50,7 +50,7 @@ public protocol Association: SelectionRequest, FilteredRequest, OrderedRequest {
     var request: AssociationRequest<RightAssociated> { get }
     
     /// :nodoc:
-    func associationMapping(_ db: Database) throws -> AssociationMapping
+    func joinCondition(_ db: Database) throws -> JoinCondition
     
     /// :nodoc:
     func mapRequest(_ transform: (AssociationRequest<RightAssociated>) -> AssociationRequest<RightAssociated>) -> Self
@@ -141,51 +141,26 @@ extension Association {
     }
 }
 
-/// Not to be mismatched with SQL join operators (inner join, left join).
-///
-/// AssociationChainOperator is designed to be hierarchically nested, unlike
-/// SQL join operators.
-///
-/// Consider the following request for (A, B, C) tuples:
-///
-///     let r = A.including(optional: A.b.including(required: B.c))
-///
-/// It chains three associations, the first optional, the second required.
-///
-/// It looks like it means: "Give me all As, along with their Bs, granted those
-/// Bs have their Cs. For As whose B has no C, give me a nil B".
-///
-/// It can not be expressed as one left join, and a regular join, as below,
-/// Because this would not honor the first optional:
-///
-///     -- dubious
-///     SELECT a.*, b.*, c.*
-///     FROM a
-///     LEFT JOIN b ON ...
-///     JOIN c ON ...
-///
-/// Instead, it should:
-/// - allow (A + missing (B + C))
-/// - prevent (A + (B + missing C)).
-///
-/// This can be expressed in SQL with two left joins, and an extra condition:
-///
-///     -- likely correct
-///     SELECT a.*, b.*, c.*
-///     FROM a
-///     LEFT JOIN b ON ...
-///     LEFT JOIN c ON ...
-///     WHERE NOT((b.id IS NOT NULL) AND (c.id IS NULL)) -- no B without C
-///
-/// This is currently not implemented, and requires a little more thought.
-/// I don't even know if inventing a whole new way to perform joins should even
-/// be on the table. But we have a hierarchical way to express joined queries,
-/// and they have a meaning:
-///
-///     // what is my meaning?
-///     A.including(optional: A.b.including(required: B.c))
-enum AssociationChainOperator {
-    case required, optional
+public typealias JoinCondition = (_ leftQualifier: SQLTableQualifier, _ rightQualifier: SQLTableQualifier) -> SQLExpression?
+
+struct ForeignKeyJoinConditionRequest {
+    var foreignKeyRequest: ForeignKeyRequest
+    var originIsLeft: Bool
+    
+    func fetch(_ db: Database) throws -> JoinCondition {
+        let foreignKeyMapping = try foreignKeyRequest.fetch(db).mapping
+        let columnMapping: [(left: Column, right: Column)]
+        if originIsLeft {
+            columnMapping = foreignKeyMapping.map { (left: Column($0.origin), right: Column($0.destination)) }
+        } else {
+            columnMapping = foreignKeyMapping.map { (left: Column($0.destination), right: Column($0.origin)) }
+        }
+        return { (leftQualifier, rightQualifier) in
+            return columnMapping
+                .map { $0.right.qualifiedExpression(with: rightQualifier) == $0.left.qualifiedExpression(with: leftQualifier) }
+                .joined(operator: .and)
+        }
+    }
 }
 
 extension Association {
@@ -193,27 +168,46 @@ extension Association {
     /// associated record are selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public func including<A: Association>(optional association: A) -> Self where A.LeftAssociated == RightAssociated {
-        return mapRequest { $0.chain(.optional, association) }
+        return mapRequest { $0.joining(.optional, association) }
     }
     
     /// Creates an association that includes another one. The columns of the
     /// associated record are selected. The returned association requires
     /// that the associated database table contains a matching row.
     public func including<A: Association>(required association: A) -> Self where A.LeftAssociated == RightAssociated {
-        return mapRequest { $0.chain(.required, association) }
+        return mapRequest { $0.joining(.required, association) }
     }
     
     /// Creates an association that joins another one. The columns of the
     /// associated record are not selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public func joining<A: Association>(optional association: A) -> Self where A.LeftAssociated == RightAssociated {
-        return mapRequest { $0.chain(.optional, association.select([])) }
+        return mapRequest { $0.joining(.optional, association.select([])) }
     }
     
     /// Creates an association that joins another one. The columns of the
     /// associated record are not selected. The returned association requires
     /// that the associated database table contains a matching row.
     public func joining<A: Association>(required association: A) -> Self where A.LeftAssociated == RightAssociated {
-        return mapRequest { $0.chain(.required, association.select([])) }
+        return mapRequest { $0.joining(.required, association.select([])) }
+    }
+}
+
+extension Association where LeftAssociated: MutablePersistableRecord {
+    func request(from record: LeftAssociated) -> QueryInterfaceRequest<RightAssociated> {
+        let query = request.query.qualifiedQuery // make sure query has a qualifier
+        let associationQualifier = query.qualifier!
+        let recordQualifier = SQLTableQualifier.init(tableName: LeftAssociated.databaseTableName)
+        
+        // Turn `right.id = left.id` into `right.id = 1`
+        let resolvedQuery = query.filter { db in
+            guard let joinCondition = try self.joinCondition(db)(recordQualifier, associationQualifier) else {
+                fatalError("Can't request from record without association mapping")
+            }
+            let container = PersistenceContainer(record) // support for record classes: late construction of container
+            return joinCondition.resolvedExpression(inContext: [recordQualifier: container])
+        }
+        
+        return QueryInterfaceRequest(query: QueryInterfaceQuery(resolvedQuery))
     }
 }

@@ -38,15 +38,15 @@ extension AssociationRequest {
         return AssociationRequest(query: query.qualified(with: &alias.qualifier))
     }
     
-    func chain<A: Association>(_ chainOp: AssociationChainOperator, _ association: A)
+    func joining<A: Association>(_ joinOperator: AssociationJoinOperator, _ association: A)
         -> AssociationRequest
         where A.LeftAssociated == T
     {
         let join = AssociationJoin(
-            op: chainOp,
+            joinOperator: joinOperator,
             query: association.request.query,
             key: association.key,
-            associationMapping: association.associationMapping)
+            joinConditionPromise: association.joinCondition)
         return AssociationRequest(query: query.joining(join))
     }
 }

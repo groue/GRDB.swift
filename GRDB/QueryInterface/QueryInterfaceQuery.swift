@@ -414,16 +414,63 @@ extension QueryInterfaceQuery {
 
 // MARK: - AssociationJoin
 
+/// Not to be mismatched with SQL join operators (inner join, left join).
+///
+/// AssociationJoinOperator is designed to be hierarchically nested, unlike
+/// SQL join operators.
+///
+/// Consider the following request for (A, B, C) tuples:
+///
+///     let r = A.including(optional: A.b.including(required: B.c))
+///
+/// It chains three associations, the first optional, the second required.
+///
+/// It looks like it means: "Give me all As, along with their Bs, granted those
+/// Bs have their Cs. For As whose B has no C, give me a nil B".
+///
+/// It can not be expressed as one left join, and a regular join, as below,
+/// Because this would not honor the first optional:
+///
+///     -- dubious
+///     SELECT a.*, b.*, c.*
+///     FROM a
+///     LEFT JOIN b ON ...
+///     JOIN c ON ...
+///
+/// Instead, it should:
+/// - allow (A + missing (B + C))
+/// - prevent (A + (B + missing C)).
+///
+/// This can be expressed in SQL with two left joins, and an extra condition:
+///
+///     -- likely correct
+///     SELECT a.*, b.*, c.*
+///     FROM a
+///     LEFT JOIN b ON ...
+///     LEFT JOIN c ON ...
+///     WHERE NOT((b.id IS NOT NULL) AND (c.id IS NULL)) -- no B without C
+///
+/// This is currently not implemented, and requires a little more thought.
+/// I don't even know if inventing a whole new way to perform joins should even
+/// be on the table. But we have a hierarchical way to express joined queries,
+/// and they have a meaning:
+///
+///     // what is my meaning?
+///     A.including(optional: A.b.including(required: B.c))
+enum AssociationJoinOperator {
+    case required, optional
+}
+
 struct AssociationJoin {
-    var op: AssociationChainOperator
+    var joinOperator: AssociationJoinOperator
     var query: AssociationQuery
     var key: String
-    var associationMapping: (Database) throws -> AssociationMapping
+    var joinConditionPromise: (Database) throws -> JoinCondition
     
     func joinSQL(_ db: Database,_ arguments: inout StatementArguments?, leftQualifier: SQLTableQualifier, isRequiredAllowed: Bool) throws -> String {
         var isRequiredAllowed = isRequiredAllowed
         var sql = ""
-        switch op {
+        switch joinOperator {
         case .optional:
             isRequiredAllowed = false
             sql += "LEFT JOIN"
@@ -439,7 +486,7 @@ struct AssociationJoin {
         
         let qualifier = query.qualifier!
         let filters = try [
-            associationMapping(db)(leftQualifier, qualifier),
+            joinConditionPromise(db)(leftQualifier, qualifier),
             query.filterPromise.resolve(db)
             ].compactMap { $0 }
         if !filters.isEmpty {

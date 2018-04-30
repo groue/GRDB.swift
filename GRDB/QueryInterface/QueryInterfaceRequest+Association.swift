@@ -1,13 +1,13 @@
 extension QueryInterfaceRequest where RowDecoder: TableRecord {
-    func chain<A: Association>(_ chainOp: AssociationChainOperator, _ association: A)
+    func joining<A: Association>(_ joinOperator: AssociationJoinOperator, _ association: A)
         -> QueryInterfaceRequest<RowDecoder>
         where A.LeftAssociated == RowDecoder
     {
         let join = AssociationJoin(
-            op: chainOp,
+            joinOperator: joinOperator,
             query: association.request.query,
             key: association.key,
-            associationMapping: association.associationMapping)
+            joinConditionPromise: association.joinCondition)
         return QueryInterfaceRequest(query: query.joining(join))
     }
     
@@ -16,60 +16,29 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     /// Creates a request that includes an association. The columns of the
     /// associated record are selected. The returned association does not
     /// require that the associated database table contains a matching row.
-    public func including<A: Association>(optional association: A)
-        -> QueryInterfaceRequest<RowDecoder>
-        where A.LeftAssociated == RowDecoder
-    {
-        return chain(.optional, association)
+    public func including<A: Association>(optional association: A) -> QueryInterfaceRequest<RowDecoder> where A.LeftAssociated == RowDecoder {
+        return joining(.optional, association)
     }
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are selected. The returned association requires
     /// that the associated database table contains a matching row.
-    public func including<A: Association>(required association: A)
-        -> QueryInterfaceRequest<RowDecoder>
-        where A.LeftAssociated == RowDecoder
-    {
-        return chain(.required, association)
+    public func including<A: Association>(required association: A) -> QueryInterfaceRequest<RowDecoder> where A.LeftAssociated == RowDecoder {
+        return joining(.required, association)
     }
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are not selected. The returned association does not
     /// require that the associated database table contains a matching row.
-    public func joining<A: Association>(optional association: A)
-        -> QueryInterfaceRequest<RowDecoder>
-        where A.LeftAssociated == RowDecoder
-    {
-        return chain(.optional, association.select([]))
+    public func joining<A: Association>(optional association: A) -> QueryInterfaceRequest<RowDecoder> where A.LeftAssociated == RowDecoder {
+        return joining(.optional, association.select([]))
     }
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are not selected. The returned association requires
     /// that the associated database table contains a matching row.
-    public func joining<A: Association>(required association: A)
-        -> QueryInterfaceRequest<RowDecoder>
-        where A.LeftAssociated == RowDecoder
-    {
-        return chain(.required, association.select([]))
-    }
-}
-
-extension Association where LeftAssociated: MutablePersistableRecord {
-    func request(from record: LeftAssociated) -> QueryInterfaceRequest<RightAssociated> {
-        var query = request.query.qualifiedQuery // make sure query has a qualifier
-        let qualifier = query.qualifier!
-        let recordQualifier = SQLTableQualifier.init(tableName: LeftAssociated.databaseTableName)
-        
-        query = query.filter { db in
-            let associationMapping = try self.associationMapping(db)
-            guard let filter = associationMapping(recordQualifier, qualifier) else {
-                fatalError("Can't request from record without association mapping")
-            }
-            let container = PersistenceContainer(record) // support for record classes: late construction of container
-            return filter.resolvedExpression(inContext: [recordQualifier: container])
-        }
-        
-        return QueryInterfaceRequest(query: QueryInterfaceQuery(query))
+    public func joining<A: Association>(required association: A) -> QueryInterfaceRequest<RowDecoder> where A.LeftAssociated == RowDecoder {
+        return joining(.required, association.select([]))
     }
 }
 
@@ -85,10 +54,7 @@ extension MutablePersistableRecord {
     ///     let player: Player = ...
     ///     let request = player.request(for: Player.team)
     ///     let team = try request.fetchOne(db) // Team?
-    public func request<A: Association>(for association: A)
-        -> QueryInterfaceRequest<A.RightAssociated>
-        where A.LeftAssociated == Self
-    {
+    public func request<A: Association>(for association: A) -> QueryInterfaceRequest<A.RightAssociated> where A.LeftAssociated == Self {
         return association.request(from: self)
     }
 }
@@ -100,40 +66,28 @@ extension TableRecord {
     /// Creates a request that includes an association. The columns of the
     /// associated record are selected. The returned association does not
     /// require that the associated database table contains a matching row.
-    public static func including<A: Association>(optional association: A)
-        -> QueryInterfaceRequest<Self>
-        where A.LeftAssociated == Self
-    {
+    public static func including<A: Association>(optional association: A) -> QueryInterfaceRequest<Self> where A.LeftAssociated == Self {
         return all().including(optional: association)
     }
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are selected. The returned association requires
     /// that the associated database table contains a matching row.
-    public static func including<A: Association>(required association: A)
-        -> QueryInterfaceRequest<Self>
-        where A.LeftAssociated == Self
-    {
+    public static func including<A: Association>(required association: A) -> QueryInterfaceRequest<Self> where A.LeftAssociated == Self {
         return all().including(required: association)
     }
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are not selected. The returned association does not
     /// require that the associated database table contains a matching row.
-    public static func joining<A: Association>(optional association: A)
-        -> QueryInterfaceRequest<Self>
-        where A.LeftAssociated == Self
-    {
+    public static func joining<A: Association>(optional association: A) -> QueryInterfaceRequest<Self> where A.LeftAssociated == Self {
         return all().joining(optional: association)
     }
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are not selected. The returned association requires
     /// that the associated database table contains a matching row.
-    public static func joining<A: Association>(required association: A)
-        -> QueryInterfaceRequest<Self>
-        where A.LeftAssociated == Self
-    {
+    public static func joining<A: Association>(required association: A) -> QueryInterfaceRequest<Self> where A.LeftAssociated == Self {
         return all().joining(required: association)
     }
 }
