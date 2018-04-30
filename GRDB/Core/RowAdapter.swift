@@ -237,7 +237,11 @@ extension RowAdapter {
     /// - parameter scopes: A dictionary that maps scope names to
     ///   row adapters.
     public func addingScopes(_ scopes: [String: RowAdapter]) -> RowAdapter {
-        return ScopeAdapter(base: self, scopes: scopes)
+        if scopes.isEmpty {
+            return self
+        } else {
+            return ScopeAdapter(base: self, scopes: scopes)
+        }
     }
 }
 
