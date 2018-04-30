@@ -255,14 +255,6 @@ private struct TableRegion: Equatable {
         return false
     }
     
-    #if !swift(>=4.1)
-    static func == (lhs: TableRegion, rhs: TableRegion) -> Bool {
-        if lhs.columns != rhs.columns { return false }
-        if lhs.rowIds != rhs.rowIds { return false }
-        return true
-    }
-    #endif
-    
     func intersection(_ other: TableRegion) -> TableRegion {
         let columnsIntersection: Set<String>?
         switch (self.columns, other.columns) {

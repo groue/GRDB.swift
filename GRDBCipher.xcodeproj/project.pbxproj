@@ -554,8 +554,6 @@
 		5698AD391DABAF4A0056AF8C /* FTS5CustomTokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AD341DABAF4A0056AF8C /* FTS5CustomTokenizer.swift */; };
 		569A98FC2039B72D008D7DBF /* Fixits-3.0.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569A98FA2039B72C008D7DBF /* Fixits-3.0.swift */; };
 		569A98FD2039B72D008D7DBF /* Fixits-3.0.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569A98FA2039B72C008D7DBF /* Fixits-3.0.swift */; };
-		569B7FA8201C904C0069DE70 /* Swift4.1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569B7FA6201C904C0069DE70 /* Swift4.1.swift */; };
-		569B7FA9201C904C0069DE70 /* Swift4.1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569B7FA6201C904C0069DE70 /* Swift4.1.swift */; };
 		569C1EB31CF07DDD0042627B /* SchedulingWatchdogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569C1EB11CF07DDD0042627B /* SchedulingWatchdogTests.swift */; };
 		569C1EB41CF07DDD0042627B /* SchedulingWatchdogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569C1EB11CF07DDD0042627B /* SchedulingWatchdogTests.swift */; };
 		569C1EB61CF07DDD0042627B /* SchedulingWatchdogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569C1EB11CF07DDD0042627B /* SchedulingWatchdogTests.swift */; };
@@ -1076,7 +1074,6 @@
 		5698AD201DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS5WrapperTokenizer.swift; sourceTree = "<group>"; };
 		5698AD341DABAF4A0056AF8C /* FTS5CustomTokenizer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS5CustomTokenizer.swift; sourceTree = "<group>"; };
 		569A98FA2039B72C008D7DBF /* Fixits-3.0.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Fixits-3.0.swift"; sourceTree = "<group>"; };
-		569B7FA6201C904C0069DE70 /* Swift4.1.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Swift4.1.swift; sourceTree = "<group>"; };
 		569C1EB11CF07DDD0042627B /* SchedulingWatchdogTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SchedulingWatchdogTests.swift; sourceTree = "<group>"; };
 		569EF0E8200D387000A9FA45 /* DatabaseRegion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseRegion.swift; sourceTree = "<group>"; };
 		56A238131B9C74A90082EB20 /* DatabaseTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseTests.swift; sourceTree = "<group>"; };
@@ -1753,7 +1750,6 @@
 				56D121591ED34978001347D2 /* Fixits-0.109.0.swift */,
 				56873BEB1F2CB400004D24B4 /* Fixits-1.2.swift */,
 				569A98FA2039B72C008D7DBF /* Fixits-3.0.swift */,
-				569B7FA6201C904C0069DE70 /* Swift4.1.swift */,
 			);
 			path = Legacy;
 			sourceTree = "<group>";
@@ -2164,7 +2160,6 @@
 				564F9C2F1F07611400877A00 /* DatabaseFunction.swift in Sources */,
 				5659F4991EA8D989004A4992 /* Pool.swift in Sources */,
 				5653EB8F20961FC000F46237 /* BelongsToAssociation.swift in Sources */,
-				569B7FA8201C904C0069DE70 /* Swift4.1.swift in Sources */,
 				5674A6FA1F307F600095F066 /* PersistableRecord+Encodable.swift in Sources */,
 				56CEB54D1EAA359A00BFAF62 /* SQLExpressible.swift in Sources */,
 				5664759B1D97D8A000FF74B8 /* SQLCollection.swift in Sources */,
@@ -2597,7 +2592,6 @@
 				564F9C321F07611700877A00 /* DatabaseFunction.swift in Sources */,
 				5659F49C1EA8D989004A4992 /* Pool.swift in Sources */,
 				5653EB9020961FC000F46237 /* BelongsToAssociation.swift in Sources */,
-				569B7FA9201C904C0069DE70 /* Swift4.1.swift in Sources */,
 				5674A6F71F307F600095F066 /* PersistableRecord+Encodable.swift in Sources */,
 				56CEB5501EAA359A00BFAF62 /* SQLExpressible.swift in Sources */,
 				5664759E1D97D8A000FF74B8 /* SQLCollection.swift in Sources */,

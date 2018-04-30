@@ -10,16 +10,6 @@ public final class DatabaseFunction: Hashable {
     private struct Identity: Hashable {
         let name: String
         let nArg: Int32 // -1 for variadic functions
-        
-        #if !swift(>=4.1)
-        var hashValue: Int {
-            return name.hashValue ^ nArg.hashValue
-        }
-        
-        static func == (lhs: Identity, rhs: Identity) -> Bool {
-            return lhs.name == rhs.name && lhs.nArg == rhs.nArg
-        }
-        #endif
     }
     
     public var name: String { return identity.name }

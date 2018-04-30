@@ -556,7 +556,7 @@ public struct SQLFunctionName : Hashable {
     /// The SQL function name
     ///
     /// :nodoc:
-    public let sql: String
+    public var sql: String
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
@@ -568,22 +568,6 @@ public struct SQLFunctionName : Hashable {
     public init(_ sql: String) {
         self.sql = sql
     }
-    
-    #if !swift(>=4.1)
-    /// The hash value
-    ///
-    /// :nodoc:
-    public var hashValue: Int {
-        return sql.hashValue
-    }
-    
-    /// Equality operator
-    ///
-    /// :nodoc:
-    public static func == (lhs: SQLFunctionName, rhs: SQLFunctionName) -> Bool {
-        return lhs.sql == rhs.sql
-    }
-    #endif
 }
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)

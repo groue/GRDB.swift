@@ -905,18 +905,6 @@ extension StatementArguments {
     }
 }
 
-#if !swift(>=4.1)
-// Equatable
-extension StatementArguments {
-    /// :nodoc:
-    public static func == (lhs: StatementArguments, rhs: StatementArguments) -> Bool {
-        if lhs.values != rhs.values { return false }
-        if lhs.namedValues != rhs.namedValues { return false }
-        return true
-    }
-}
-#endif
-
 /// A thread-unsafe statement cache
 struct StatementCache {
     unowned let db: Database
