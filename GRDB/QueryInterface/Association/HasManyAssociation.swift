@@ -11,15 +11,14 @@ public struct HasManyAssociation<Left, Right> : Association, TableRequest where
     public var databaseTableName: String { return RightAssociated.databaseTableName }
     
     /// :nodoc:
-    public let request: AssociationRequest<Right>
+    public var request: AssociationRequest<Right>
     
     let foreignKeyRequest: ForeignKeyRequest
     
     public func forKey(_ key: String) -> HasManyAssociation<Left, Right> {
-        return HasManyAssociation(
-            key: key,
-            request: request,
-            foreignKeyRequest: foreignKeyRequest)
+        var association = self
+        association.key = key
+        return association
     }
     
     /// :nodoc:
@@ -31,10 +30,9 @@ public struct HasManyAssociation<Left, Right> : Association, TableRequest where
     
     /// :nodoc:
     public func mapRequest(_ transform: (AssociationRequest<Right>) -> AssociationRequest<Right>) -> HasManyAssociation<Left, Right> {
-        return HasManyAssociation(
-            key: key,
-            request: transform(request),
-            foreignKeyRequest: foreignKeyRequest)
+        var association = self
+        association.request = transform(request)
+        return association
     }
 }
 
@@ -53,7 +51,7 @@ extension TableRecord {
             foreignKey: foreignKey)
         
         return HasManyAssociation(
-            key: key ?? defaultAssociationKey(for: Right.self),
+            key: key ?? Right.databaseTableName,
             request: AssociationRequest(rightRequest),
             foreignKeyRequest: foreignKeyRequest)
     }

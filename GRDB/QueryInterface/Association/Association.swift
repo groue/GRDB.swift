@@ -56,10 +56,6 @@ public protocol Association: SelectionRequest, FilteredRequest, OrderedRequest {
     func mapRequest(_ transform: (AssociationRequest<RightAssociated>) -> AssociationRequest<RightAssociated>) -> Self
 }
 
-func defaultAssociationKey<T: TableRecord>(for type: T.Type) -> String {
-    return T.databaseTableName
-}
-
 extension Association {
     /// Creates an association with a new net of selected columns.
     ///
