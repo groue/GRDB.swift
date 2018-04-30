@@ -12,6 +12,7 @@ extension QueryInterfaceRequest {
     /// If the search pattern is nil, the request does not match any
     /// database row.
     public func matching(_ pattern: FTS3Pattern?) -> QueryInterfaceRequest<T> {
+        // TODO: should use proper qualified name
         return filter(Column(query.source.qualifiedName).match(pattern))
     }
 }

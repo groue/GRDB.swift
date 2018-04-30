@@ -617,6 +617,7 @@ enum SQLSource {
         }
     }
     
+    // TODO: remove
     /// An alias or an actual table name
     var qualifiedName: String {
         switch self {

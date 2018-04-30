@@ -20,6 +20,7 @@
             guard let pattern = pattern else {
                 return none()
             }
+            // TODO: should use proper qualified name
             return filter(SQLExpressionBinary(.match, Column(query.source.qualifiedName), pattern))
         }
     }
