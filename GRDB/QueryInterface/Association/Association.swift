@@ -1,8 +1,8 @@
 /// The base protocol for all associations that define a connection between two
 /// Record types.
 public protocol Association: SelectionRequest, FilteredRequest, OrderedRequest {
-    associatedtype LeftAssociated: TableRecord
-    associatedtype RightAssociated: TableRecord
+    associatedtype LeftAssociated
+    associatedtype RightAssociated
     
     /// The association key defines how rows fetched from this association
     /// should be consumed.
