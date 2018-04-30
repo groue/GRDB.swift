@@ -34,7 +34,7 @@ public protocol Association: SelectionRequest, FilteredRequest, OrderedRequest {
     
     /// Creates an association with the given key.
     ///
-    /// This new key impacts how rows fetched from this association
+    /// This new key impacts how rows fetched from the resulting association
     /// should be consumed:
     ///
     ///     struct Player: TableRecord {
@@ -120,10 +120,6 @@ extension Association {
     ///     // FROM player
     ///     // JOIN team ON team.id = player.teamId
     ///     // ORDER BY team.name
-    ///     let association = Player.team.order(Column("name"))
-    ///     var request = Player.including(required: association)
-    ///
-    ///     // SELECT * FROM player ORDER BY name
     ///     let association = Player.team
     ///         .order(Column("color"))
     ///         .reversed()
@@ -159,7 +155,8 @@ extension Association {
     
     /// Creates an association with the given key.
     ///
-    /// This new key helps Decodable records decode fetched rows:
+    /// This new key helps Decodable records decode rows fetched from the
+    /// resulting association:
     ///
     ///     struct Player: TableRecord {
     ///         static let team = belongsTo(Team.self)
@@ -209,7 +206,7 @@ extension Association {
     ///     let teamAlias = TableAlias(name: "custom")
     ///     let request = Player
     ///         .including(required: Player.team.aliased(teamAlias))
-    ///         .filter(sql: "custom.color = ?", arguments: ["red")
+    ///         .filter(sql: "custom.color = ?", arguments: ["red"])
     public func aliased(_ alias: TableAlias) -> Self {
         return mapRequest { $0.aliased(alias) }
     }
@@ -217,6 +214,7 @@ extension Association {
 
 public typealias JoinCondition = (_ leftQualifier: SQLTableQualifier, _ rightQualifier: SQLTableQualifier) -> SQLExpression?
 
+/// Turns a ForeignKeyRequest into a JoinCondition
 struct ForeignKeyJoinConditionRequest {
     var foreignKeyRequest: ForeignKeyRequest
     var originIsLeft: Bool
@@ -268,6 +266,19 @@ extension Association {
 }
 
 extension Association where LeftAssociated: MutablePersistableRecord {
+    /// Support for MutablePersistableRecord.request(for:).
+    ///
+    /// For example:
+    ///
+    ///     struct Team: {
+    ///         static let players = hasMany(Book.self)
+    ///         var players: QueryInterfaceRequest<Player> {
+    ///             return request(for: Team.players)
+    ///         }
+    ///     }
+    ///
+    ///     let team: Team = ...
+    ///     let players = try team.players.fetchAll(db) // [Player]
     func request(from record: LeftAssociated) -> QueryInterfaceRequest<RightAssociated> {
         let query = request.query.qualifiedQuery // make sure query has a qualifier
         let associationQualifier = query.qualifier!

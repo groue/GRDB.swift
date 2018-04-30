@@ -47,13 +47,15 @@ extension MutablePersistableRecord {
     ///
     /// For example:
     ///
-    ///     struct Player: TableRecord {
-    ///         static let team = belongsTo(Team.self)
+    ///     struct Team: {
+    ///         static let players = hasMany(Book.self)
+    ///         var players: QueryInterfaceRequest<Player> {
+    ///             return request(for: Team.players)
+    ///         }
     ///     }
     ///
-    ///     let player: Player = ...
-    ///     let request = player.request(for: Player.team)
-    ///     let team = try request.fetchOne(db) // Team?
+    ///     let team: Team = ...
+    ///     let players = try team.players.fetchAll(db) // [Player]
     public func request<A: Association>(for association: A) -> QueryInterfaceRequest<A.RightAssociated> where A.LeftAssociated == Self {
         return association.request(from: self)
     }
