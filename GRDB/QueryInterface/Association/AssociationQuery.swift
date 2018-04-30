@@ -5,6 +5,18 @@ struct AssociationQuery {
     var ordering: QueryOrdering
     var joins: [AssociationJoin]
     
+    var qualifiedQuery: AssociationQuery {
+        var qualifier = SQLTableQualifier(tableName: source.tableName!)
+        
+        var query = self
+        query.source = source.qualified(with: &qualifier)
+        query.selection = selection.map { $0.qualifiedSelectable(with: qualifier) }
+        query.filterPromise = filterPromise.map { [qualifier] (_, expr) in expr?.qualifiedExpression(with: qualifier) }
+        query.ordering = ordering.qualified(with: qualifier)
+        query.joins = joins.map { $0.qualifiedJoin }
+        return query
+    }
+    
     var qualifier: SQLTableQualifier? {
         return source.qualifier
     }
@@ -15,35 +27,19 @@ struct AssociationQuery {
             qualifiers.append(qualifier)
         }
         return joins.reduce(into: qualifiers) {
-            $0.append(contentsOf: $1.query.allQualifiers)
+            $0.append(contentsOf: $1.allQualifiers)
         }
-    }
-    
-    var qualifiedQuery: AssociationQuery {
-        var qualifier = SQLTableQualifier(tableName: source.tableName!)
-        
-        var query = self
-        query.source = query.source.qualified(with: &qualifier)
-        query.selection = selection.map { $0.qualifiedSelectable(with: qualifier) }
-        query.filterPromise = filterPromise.map { [qualifier] (_, expr) in expr?.qualifiedExpression(with: qualifier) }
-        query.ordering = ordering.qualified(with: qualifier)
-        query.joins = joins.map {
-            var join = $0
-            join.query = join.query.qualifiedQuery
-            return join
-        }
-        return query
     }
     
     var completeSelection: [SQLSelectable] {
         return joins.reduce(into: selection) {
-            $0.append(contentsOf: $1.query.completeSelection)
+            $0.append(contentsOf: $1.completeSelection)
         }
     }
     
     var completeOrdering: QueryOrdering {
         return joins.reduce(ordering) {
-            $0.appending($1.query.completeOrdering)
+            $0.appending($1.completeOrdering)
         }
     }
     
@@ -55,7 +51,7 @@ struct AssociationQuery {
         var endIndex = startIndex + selectionWidth
         var scopes: [String: RowAdapter] = [:]
         for join in joins {
-            if let (joinAdapter, joinEndIndex) = try join.query.rowAdapter(db, fromIndex: endIndex, forKeyPath: keyPath + [join.key]) {
+            if let (joinAdapter, joinEndIndex) = try join.rowAdapter(db, fromIndex: endIndex, forKeyPath: keyPath + [join.key]) {
                 GRDBPrecondition(scopes[join.key] == nil, "The association key \"\((keyPath + [join.key]).joined(separator: "."))\" is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.")
                 scopes[join.key] = joinAdapter
                 endIndex = joinEndIndex

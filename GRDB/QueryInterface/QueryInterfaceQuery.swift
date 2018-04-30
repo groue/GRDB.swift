@@ -147,18 +147,6 @@ struct QueryInterfaceQuery {
     
     // MARK: Join Support
     
-    var completeSelection: [SQLSelectable] {
-        return joins.reduce(into: selection) {
-            $0.append(contentsOf: $1.query.completeSelection)
-        }
-    }
-    
-    var completeOrdering: QueryOrdering {
-        return joins.reduce(ordering) {
-            $0.appending($1.query.completeOrdering)
-        }
-    }
-    
     var qualifier: SQLTableQualifier? {
         return source.qualifier
     }
@@ -169,7 +157,19 @@ struct QueryInterfaceQuery {
             qualifiers.append(qualifier)
         }
         return joins.reduce(into: qualifiers) {
-            $0.append(contentsOf: $1.query.allQualifiers)
+            $0.append(contentsOf: $1.allQualifiers)
+        }
+    }
+
+    var completeSelection: [SQLSelectable] {
+        return joins.reduce(into: selection) {
+            $0.append(contentsOf: $1.completeSelection)
+        }
+    }
+    
+    var completeOrdering: QueryOrdering {
+        return joins.reduce(ordering) {
+            $0.appending($1.completeOrdering)
         }
     }
 }
@@ -178,6 +178,7 @@ extension QueryInterfaceQuery {
     private var qualifiedQuery: QueryInterfaceQuery {
         var query = self
         
+        // Don't qualify unless there are joins
         if !joins.isEmpty {
             var qualifier = SQLTableQualifier(tableName: query.source.tableName!)
             query.source = source.qualified(with: &qualifier)
@@ -191,11 +192,7 @@ extension QueryInterfaceQuery {
             query.havingExpression = query.havingExpression?.qualifiedExpression(with: qualifier)
         }
         
-        query.joins = query.joins.map {
-            var join = $0
-            join.query = join.query.qualifiedQuery
-            return join
-        }
+        query.joins = query.joins.map { $0.qualifiedJoin }
         
         query.allQualifiers.resolveAmbiguities()
         return query
@@ -223,7 +220,7 @@ extension QueryInterfaceQuery {
         var endIndex = selectionWidth
         var scopes: [String: RowAdapter] = [:]
         for join in joins {
-            if let (joinAdapter, joinEndIndex) = try join.query.rowAdapter(db, fromIndex: endIndex, forKeyPath: [join.key]) {
+            if let (joinAdapter, joinEndIndex) = try join.rowAdapter(db, fromIndex: endIndex, forKeyPath: [join.key]) {
                 GRDBPrecondition(scopes[join.key] == nil, "The association key \"\(join.key)\" is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.")
                 scopes[join.key] = joinAdapter
                 endIndex = joinEndIndex
@@ -466,6 +463,28 @@ struct AssociationJoin {
     var query: AssociationQuery
     var key: String
     var joinConditionPromise: DatabasePromise<JoinCondition>
+    
+    var qualifiedJoin: AssociationJoin {
+        var join = self
+        join.query = query.qualifiedQuery
+        return join
+    }
+    
+    var allQualifiers: [SQLTableQualifier] {
+        return query.allQualifiers
+    }
+    
+    var completeSelection: [SQLSelectable] {
+        return query.completeSelection
+    }
+    
+    var completeOrdering: QueryOrdering {
+        return query.completeOrdering
+    }
+    
+    func rowAdapter(_ db: Database, fromIndex startIndex: Int, forKeyPath keyPath: [String]) throws -> (adapter: RowAdapter, endIndex: Int)? {
+        return try query.rowAdapter(db, fromIndex: startIndex, forKeyPath: keyPath)
+    }
     
     func joinSQL(_ db: Database,_ arguments: inout StatementArguments?, leftQualifier: SQLTableQualifier, isRequiredAllowed: Bool) throws -> String {
         var isRequiredAllowed = isRequiredAllowed
