@@ -352,12 +352,6 @@ extension QueryInterfaceQuery {
         return query
     }
     
-    func none() -> QueryInterfaceQuery {
-        var query = self
-        query.filterPromise = DatabasePromise(value: false.sqlExpression)
-        return query
-    }
-    
     func group(_ expressions: [SQLExpressible]) -> QueryInterfaceQuery {
         var query = self
         query.groupByExpressions = expressions.map { $0.sqlExpression }

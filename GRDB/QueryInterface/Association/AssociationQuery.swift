@@ -105,12 +105,6 @@ extension AssociationQuery {
         }
         return query
     }
-
-    func none() -> AssociationQuery {
-        var query = self
-        query.filterPromise = DatabasePromise(value: false.sqlExpression)
-        return query
-    }
     
     func order(_ orderings: [SQLOrderingTerm]) -> AssociationQuery {
         return order(QueryOrdering(orderings: orderings))

@@ -82,15 +82,6 @@ extension QueryInterfaceRequest : SelectionRequest, FilteredRequest, Aggregating
         return QueryInterfaceRequest(query: query.filter(predicate))
     }
     
-    /// Creates a request that matches nothing.
-    ///
-    ///     // SELECT * FROM players WHERE 0
-    ///     var request = Player.all()
-    ///     request = request.none()
-    public func none() -> QueryInterfaceRequest<T> {
-        return QueryInterfaceRequest(query: query.none())
-    }
-    
     /// Creates a request grouped according to *expressions*.
     public func group(_ expressions: [SQLExpressible]) -> QueryInterfaceRequest<T> {
         return QueryInterfaceRequest(query: query.group(expressions))

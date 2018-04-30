@@ -70,11 +70,6 @@ extension Association {
         return mapRequest { $0.filter(predicate) }
     }
     
-    /// Creates an association that matches nothing.
-    public func none() -> Self {
-        return mapRequest { $0.none() }
-    }
-    
     /// Creates an association with the provided *orderings*.
     ///
     /// Any previous ordering is replaced.

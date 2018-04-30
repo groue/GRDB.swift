@@ -62,13 +62,6 @@ public protocol FilteredRequest {
     ///     var request = Player.all()
     ///     request = request.filter { db in true }
     func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self
-    
-    /// Creates a request that matches nothing.
-    ///
-    ///     // SELECT * FROM players WHERE 0
-    ///     var request = Player.all()
-    ///     request = request.none()
-    func none() -> Self
 }
 
 extension FilteredRequest {
@@ -90,6 +83,15 @@ extension FilteredRequest {
     ///     request = request.filter(sql: "email = ?", arguments: ["arthur@example.com"])
     public func filter(sql: String, arguments: StatementArguments? = nil) -> Self {
         return filter(SQLExpressionLiteral(sql, arguments: arguments))
+    }
+    
+    /// Creates a request that matches nothing.
+    ///
+    ///     // SELECT * FROM players WHERE 0
+    ///     var request = Player.all()
+    ///     request = request.none()
+    public func none() -> Self {
+        return filter(false)
     }
 }
 

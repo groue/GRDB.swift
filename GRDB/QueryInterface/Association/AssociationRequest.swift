@@ -21,10 +21,6 @@ extension AssociationRequest {
         return AssociationRequest(query: query.filter(predicate))
     }
     
-    func none() -> AssociationRequest {
-        return AssociationRequest(query: query.none())
-    }
-    
     func order(_ orderings: [SQLOrderingTerm]) -> AssociationRequest {
         return AssociationRequest(query: query.order(orderings))
     }
