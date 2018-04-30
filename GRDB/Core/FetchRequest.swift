@@ -73,23 +73,6 @@ public protocol FetchRequest: SelectStatementRequest {
 }
 
 extension FetchRequest {
-    /// Returns a request bound to type T.
-    ///
-    /// The returned request can fetch if the type T is fetchable (Row,
-    /// value, record).
-    ///
-    ///     // Int?
-    ///     let maxScore = Player
-    ///         .select(max(scoreColumn))
-    ///         .asRequest(of: Int.self)    // <--
-    ///         .fetchOne(db)
-    ///
-    /// - parameter type: The fetched type T
-    /// - returns: A typed request bound to type T.
-    public func asRequest<T>(of type: T.Type) -> AnyFetchRequest<T> {
-        return AnyFetchRequest(self)
-    }
-    
     /// Returns an adapted request.
     public func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AdaptedFetchRequest<Self> {
         return AdaptedFetchRequest(self, adapter)

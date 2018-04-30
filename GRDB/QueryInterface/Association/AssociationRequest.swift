@@ -1,3 +1,5 @@
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
 /// In `SELECT a.*, b.* FROM a JOIN b ON b.aid = a.id AND b.name = 'foo'`,
 /// the AssociationRequest is (`b.*` + `b.name = 'foo'`).
 public struct AssociationRequest<T> {

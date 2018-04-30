@@ -1,5 +1,7 @@
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
 /// The base protocol for all associations that define a connection between two
-/// Record types.
+/// record types.
 public protocol Association: SelectionRequest, FilteredRequest, OrderedRequest {
     associatedtype LeftAssociated
     associatedtype RightAssociated
@@ -49,6 +51,7 @@ public protocol Association: SelectionRequest, FilteredRequest, OrderedRequest {
     /// :nodoc:
     var request: AssociationRequest<RightAssociated> { get }
     
+    // TODO: this one prevents "through" associations like HasOneThrough, HasManyThrough, etc.
     /// :nodoc:
     func joinCondition(_ db: Database) throws -> JoinCondition
     
@@ -59,26 +62,97 @@ public protocol Association: SelectionRequest, FilteredRequest, OrderedRequest {
 extension Association {
     /// Creates an association with a new net of selected columns.
     ///
-    /// Any previous selection is replaced.
+    ///     struct Player: TableRecord {
+    ///         static let team = belongsTo(Team.self)
+    ///     }
+    ///
+    ///     // SELECT player.*, team.color
+    ///     // FROM player
+    ///     // JOIN team ON team.id = player.teamId
+    ///     let association = Player.team.select([Column("color")])
+    ///     var request = Player.including(required: association)
+    ///
+    /// Any previous selection is replaced:
+    ///
+    ///     // SELECT player.*, team.color
+    ///     // FROM player
+    ///     // JOIN team ON team.id = player.teamId
+    ///     let association = Player.team
+    ///         .select([Column("id")])
+    ///         .select([Column("color")])
+    ///     var request = Player.including(required: association)
     public func select(_ selection: [SQLSelectable]) -> Self {
         return mapRequest { $0.select(selection) }
     }
     
     /// Creates an association with the provided *predicate promise* added to
     /// the eventual set of already applied predicates.
+    ///
+    ///     struct Player: TableRecord {
+    ///         static let team = belongsTo(Team.self)
+    ///     }
+    ///
+    ///     // SELECT player.*, team.*
+    ///     // FROM player
+    ///     // JOIN team ON team.id = player.teamId AND 1
+    ///     let association = Player.team.filter { db in true }
+    ///     var request = Player.including(required: association)
     public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
         return mapRequest { $0.filter(predicate) }
     }
     
     /// Creates an association with the provided *orderings*.
     ///
-    /// Any previous ordering is replaced.
+    ///     struct Player: TableRecord {
+    ///         static let team = belongsTo(Team.self)
+    ///     }
+    ///
+    ///     // SELECT player.*, team.*
+    ///     // FROM player
+    ///     // JOIN team ON team.id = player.teamId
+    ///     // ORDER BY team.name
+    ///     let association = Player.team.order(Column("name"))
+    ///     var request = Player.including(required: association)
+    ///
+    /// Any previous ordering is replaced:
+    ///
+    ///     // SELECT player.*, team.*
+    ///     // FROM player
+    ///     // JOIN team ON team.id = player.teamId
+    ///     // ORDER BY team.name
+    ///     let association = Player.team.order(Column("name"))
+    ///     var request = Player.including(required: association)
+    ///
+    ///     // SELECT * FROM player ORDER BY name
+    ///     let association = Player.team
+    ///         .order(Column("color"))
+    ///         .reversed()
+    ///         .order(Column("name"))
+    ///     var request = Player.including(required: association)
     public func order(_ orderings: [SQLOrderingTerm]) -> Self {
         return mapRequest { $0.order(orderings) }
     }
     
-    /// Creates an association that reverses applied orderings. If no ordering
-    /// was applied, the returned request is identical.
+    /// Creates an association that reverses applied orderings.
+    ///
+    ///     struct Player: TableRecord {
+    ///         static let team = belongsTo(Team.self)
+    ///     }
+    ///
+    ///     // SELECT player.*, team.*
+    ///     // FROM player
+    ///     // JOIN team ON team.id = player.teamId
+    ///     // ORDER BY team.name DESC
+    ///     let association = Player.team.order(Column("name")).reversed()
+    ///     var request = Player.including(required: association)
+    ///
+    /// If no ordering was applied, the returned association is identical.
+    ///
+    ///     // SELECT player.*, team.*
+    ///     // FROM player
+    ///     // JOIN team ON team.id = player.teamId
+    ///     let association = Player.team.reversed()
+    ///     var request = Player.including(required: association)
     public func reversed() -> Self {
         return mapRequest { $0.reversed() }
     }
@@ -95,7 +169,7 @@ extension Association {
     ///         let player: Player
     ///         let team: Team
     ///
-    ///         static func all() -> AnyFetchRequest<PlayerInfo> {
+    ///         static func all() -> QueryInterfaceRequest<PlayerInfo> {
     ///             return Player
     ///                 .including(required: Player.team.forKey(CodingKeys.team))
     ///                 .asRequest(of: PlayerInfo.self)
@@ -107,7 +181,7 @@ extension Association {
     public func forKey(_ codingKey: CodingKey) -> Self {
         return forKey(codingKey.stringValue)
     }
-
+    
     /// Creates an association that allows you to define unambiguous expressions
     /// based on the associated record.
     ///
@@ -124,7 +198,7 @@ extension Association {
     ///     let teamAlias = TableAlias()
     ///     let request = Player
     ///         .including(required: Player.team.aliased(teamAlias))
-    ///         .filter(teamAlias[Column("color"] == "red")
+    ///         .filter(teamAlias[Column("color")] == "red")
     ///
     /// When you give a name to a table alias, you can reliably inject sql
     /// snippets in your requests:

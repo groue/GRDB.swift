@@ -241,12 +241,13 @@ public protocol OrderedRequest {
     ///         .order([Column("name")])
     func order(_ orderings: [SQLOrderingTerm]) -> Self
     
-    /// Creates a request that reverses applied orderings. If no ordering
-    /// was applied, the returned request is identical.
+    /// Creates a request that reverses applied orderings.
     ///
     ///     // SELECT * FROM players ORDER BY name DESC
     ///     var request = Player.all().order(Column("name"))
     ///     request = request.reversed()
+    ///
+    /// If no ordering was applied, the returned request is identical.
     ///
     ///     // SELECT * FROM players
     ///     var request = Player.all()

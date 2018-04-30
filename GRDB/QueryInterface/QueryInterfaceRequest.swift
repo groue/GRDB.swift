@@ -110,10 +110,16 @@ extension QueryInterfaceRequest : SelectionRequest, FilteredRequest, Aggregating
         return QueryInterfaceRequest(query: query.order(orderings))
     }
     
-    /// Creates a request sorted in reversed order.
+    /// Creates a request that reverses applied orderings.
     ///
     ///     // SELECT * FROM players ORDER BY name DESC
     ///     var request = Player.all().order(Column("name"))
+    ///     request = request.reversed()
+    ///
+    /// If no ordering was applied, the returned request is identical.
+    ///
+    ///     // SELECT * FROM players
+    ///     var request = Player.all()
     ///     request = request.reversed()
     public func reversed() -> QueryInterfaceRequest<T> {
         return QueryInterfaceRequest(query: query.reversed())
@@ -154,6 +160,23 @@ extension QueryInterfaceRequest : SelectionRequest, FilteredRequest, Aggregating
             alias.userProvidedAlias = userProvidedAlias
         }
         return QueryInterfaceRequest(query: query.qualified(with: &alias.qualifier))
+    }
+    
+    /// Creates a request bound to type Target.
+    ///
+    /// The returned request can fetch if the type Target is fetchable (Row,
+    /// value, record).
+    ///
+    ///     // Int?
+    ///     let maxScore = try Player
+    ///         .select(max(scoreColumn))
+    ///         .asRequest(of: Int.self)    // <--
+    ///         .fetchOne(db)
+    ///
+    /// - parameter type: The fetched type Target
+    /// - returns: A typed request bound to type Target.
+    public func asRequest<Target>(of type: Target.Type) -> QueryInterfaceRequest<Target> {
+        return QueryInterfaceRequest<Target>(query: query)
     }
 }
 
