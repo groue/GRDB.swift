@@ -201,32 +201,28 @@ extension Association {
     /// Creates an association that includes another one. The columns of the
     /// associated record are selected. The returned association does not
     /// require that the associated database table contains a matching row.
-    public func including<A: Association>(optional association: A) -> Self where A.LeftAssociated == RightAssociated
-    {
+    public func including<A: Association>(optional association: A) -> Self where A.LeftAssociated == RightAssociated {
         return mapRequest { $0.chain(.optional, association) }
     }
     
     /// Creates an association that includes another one. The columns of the
     /// associated record are selected. The returned association requires
     /// that the associated database table contains a matching row.
-    public func including<A: Association>(required association: A) -> Self where A.LeftAssociated == RightAssociated
-    {
+    public func including<A: Association>(required association: A) -> Self where A.LeftAssociated == RightAssociated {
         return mapRequest { $0.chain(.required, association) }
     }
     
     /// Creates an association that joins another one. The columns of the
     /// associated record are not selected. The returned association does not
     /// require that the associated database table contains a matching row.
-    public func joining<A: Association>(optional association: A) -> Self where A.LeftAssociated == RightAssociated
-    {
+    public func joining<A: Association>(optional association: A) -> Self where A.LeftAssociated == RightAssociated {
         return mapRequest { $0.chain(.optional, association.select([])) }
     }
     
     /// Creates an association that joins another one. The columns of the
     /// associated record are not selected. The returned association requires
     /// that the associated database table contains a matching row.
-    public func joining<A: Association>(required association: A) -> Self where A.LeftAssociated == RightAssociated
-    {
+    public func joining<A: Association>(required association: A) -> Self where A.LeftAssociated == RightAssociated {
         return mapRequest { $0.chain(.required, association.select([])) }
     }
 }

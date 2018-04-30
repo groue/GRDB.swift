@@ -5,7 +5,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     {
         let join = AssociationJoin(
             op: chainOp,
-            rightQuery: association.request.query,
+            query: association.request.query,
             key: association.key,
             associationMapping: association.associationMapping)
         return QueryInterfaceRequest(query: query.joining(join))
@@ -56,16 +56,16 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
 
 extension Association where LeftAssociated: MutablePersistableRecord {
     func request(from record: LeftAssociated) -> QueryInterfaceRequest<RightAssociated> {
-        var query = request.query.preparedQuery // make sure query has a qualifier
-        let qualifier = query.source.qualifier!
+        var query = request.query.qualifiedQuery // make sure query has a qualifier
+        let qualifier = query.qualifier!
         let recordQualifier = SQLTableQualifier.init(tableName: LeftAssociated.databaseTableName)
-
+        
         query = query.filter { db in
             let associationMapping = try self.associationMapping(db)
             guard let filter = associationMapping(recordQualifier, qualifier) else {
                 fatalError("Can't request from record without association mapping")
             }
-            let container = PersistenceContainer(record)
+            let container = PersistenceContainer(record) // support for record classes: late construction of container
             return filter.resolvedExpression(inContext: [recordQualifier: container])
         }
         

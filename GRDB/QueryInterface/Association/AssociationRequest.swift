@@ -48,7 +48,7 @@ extension AssociationRequest {
     {
         let join = AssociationJoin(
             op: chainOp,
-            rightQuery: association.request.query,
+            query: association.request.query,
             key: association.key,
             associationMapping: association.associationMapping)
         return AssociationRequest(query: query.joining(join))

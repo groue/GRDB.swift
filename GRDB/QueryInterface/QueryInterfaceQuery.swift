@@ -149,13 +149,13 @@ struct QueryInterfaceQuery {
     
     var completeSelection: [SQLSelectable] {
         return joins.reduce(into: selection) {
-            $0.append(contentsOf: $1.rightQuery.completeSelection)
+            $0.append(contentsOf: $1.query.completeSelection)
         }
     }
     
     var completeOrdering: QueryOrdering {
         return joins.reduce(ordering) {
-            $0.appending($1.rightQuery.completeOrdering)
+            $0.appending($1.query.completeOrdering)
         }
     }
     
@@ -165,16 +165,17 @@ struct QueryInterfaceQuery {
     
     var allQualifiers: [SQLTableQualifier] {
         var qualifiers: [SQLTableQualifier] = []
-        if let qualifier = source.qualifier {
+        if let qualifier = qualifier {
             qualifiers.append(qualifier)
         }
-        qualifiers.append(contentsOf: joins.flatMap { $0.rightQuery.allQualifiers })
-        return qualifiers
+        return joins.reduce(into: qualifiers) {
+            $0.append(contentsOf: $1.query.allQualifiers)
+        }
     }
 }
 
 extension QueryInterfaceQuery {
-    private var preparedQuery: QueryInterfaceQuery {
+    private var qualifiedQuery: QueryInterfaceQuery {
         var query = self
         
         if !joins.isEmpty {
@@ -192,7 +193,7 @@ extension QueryInterfaceQuery {
         
         query.joins = query.joins.map {
             var join = $0
-            join.rightQuery = join.rightQuery.preparedQuery
+            join.query = join.query.qualifiedQuery
             return join
         }
         
@@ -200,16 +201,16 @@ extension QueryInterfaceQuery {
         return query
     }
     
-    /// precondition: self is the result of preparedQuery
+    /// precondition: self is the result of qualifiedQuery
     private func makeSelectStatement(_ db: Database) throws -> SelectStatement {
         var arguments: StatementArguments? = StatementArguments()
-        let sql = try preparedQuery.sql(db, &arguments)
+        let sql = try self.sql(db, &arguments)
         let statement = try db.makeSelectStatement(sql)
         try statement.setArgumentsWithValidation(arguments!)
         return statement
     }
     
-    /// precondition: self is the result of preparedQuery
+    /// precondition: self is the result of qualifiedQuery
     private func rowAdapter(_ db: Database) throws -> RowAdapter? {
         if joins.isEmpty {
             return nil
@@ -222,7 +223,7 @@ extension QueryInterfaceQuery {
         var endIndex = selectionWidth
         var scopes: [String: RowAdapter] = [:]
         for join in joins {
-            if let (joinAdapter, joinEndIndex) = try join.rightQuery.rowAdapter(db, fromIndex: endIndex, forKeyPath: [join.key]) {
+            if let (joinAdapter, joinEndIndex) = try join.query.rowAdapter(db, fromIndex: endIndex, forKeyPath: [join.key]) {
                 GRDBPrecondition(scopes[join.key] == nil, "The association key \"\(join.key)\" is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.")
                 scopes[join.key] = joinAdapter
                 endIndex = joinEndIndex
@@ -238,7 +239,7 @@ extension QueryInterfaceQuery {
     }
     
     func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-        let query = preparedQuery
+        let query = qualifiedQuery
         return try (query.makeSelectStatement(db), query.rowAdapter(db))
     }
     
@@ -249,7 +250,7 @@ extension QueryInterfaceQuery {
     
     /// The database region that the request looks into.
     func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
-        let statement = try preparedQuery.makeSelectStatement(db)
+        let statement = try qualifiedQuery.makeSelectStatement(db)
         let region = statement.fetchedRegion
         
         // Can we intersect the region with rowIds?
@@ -421,7 +422,7 @@ extension QueryInterfaceQuery {
 
 struct AssociationJoin {
     var op: AssociationChainOperator
-    var rightQuery: AssociationQuery
+    var query: AssociationQuery
     var key: String
     var associationMapping: (Database) throws -> AssociationMapping
     
@@ -440,20 +441,19 @@ struct AssociationJoin {
             sql += "JOIN"
         }
         
-        let rightQualifier = rightQuery.qualifier!
+        sql += try " " + query.source.sourceSQL(db, &arguments)
         
-        sql += try " " + rightQuery.source.sourceSQL(db, &arguments)
-        
+        let qualifier = query.qualifier!
         let filters = try [
-            associationMapping(db)(leftQualifier, rightQualifier),
-            rightQuery.filterPromise.resolve(db)
+            associationMapping(db)(leftQualifier, qualifier),
+            query.filterPromise.resolve(db)
             ].compactMap { $0 }
         if !filters.isEmpty {
             sql += " ON " + filters.joined(operator: .and).expressionSQL(&arguments)
         }
         
-        for join in rightQuery.joins {
-            sql += try " " + join.joinSQL(db, &arguments, leftQualifier: rightQualifier, isRequiredAllowed: isRequiredAllowed)
+        for join in query.joins {
+            sql += try " " + join.joinSQL(db, &arguments, leftQualifier: qualifier, isRequiredAllowed: isRequiredAllowed)
         }
         
         return sql

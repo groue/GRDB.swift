@@ -14,11 +14,12 @@ struct AssociationQuery {
         if let qualifier = qualifier {
             qualifiers.append(qualifier)
         }
-        qualifiers.append(contentsOf: joins.flatMap { $0.rightQuery.allQualifiers })
-        return qualifiers
+        return joins.reduce(into: qualifiers) {
+            $0.append(contentsOf: $1.query.allQualifiers)
+        }
     }
     
-    var preparedQuery: AssociationQuery {
+    var qualifiedQuery: AssociationQuery {
         var qualifier = SQLTableQualifier(tableName: source.tableName!)
         
         var query = self
@@ -28,7 +29,7 @@ struct AssociationQuery {
         query.ordering = ordering.qualified(with: qualifier)
         query.joins = joins.map {
             var join = $0
-            join.rightQuery = join.rightQuery.preparedQuery
+            join.query = join.query.qualifiedQuery
             return join
         }
         return query
@@ -36,13 +37,13 @@ struct AssociationQuery {
     
     var completeSelection: [SQLSelectable] {
         return joins.reduce(into: selection) {
-            $0.append(contentsOf: $1.rightQuery.completeSelection)
+            $0.append(contentsOf: $1.query.completeSelection)
         }
     }
     
     var completeOrdering: QueryOrdering {
         return joins.reduce(ordering) {
-            $0.appending($1.rightQuery.completeOrdering)
+            $0.appending($1.query.completeOrdering)
         }
     }
     
@@ -54,7 +55,7 @@ struct AssociationQuery {
         var endIndex = startIndex + selectionWidth
         var scopes: [String: RowAdapter] = [:]
         for join in joins {
-            if let (joinAdapter, joinEndIndex) = try join.rightQuery.rowAdapter(db, fromIndex: endIndex, forKeyPath: keyPath + [join.key]) {
+            if let (joinAdapter, joinEndIndex) = try join.query.rowAdapter(db, fromIndex: endIndex, forKeyPath: keyPath + [join.key]) {
                 GRDBPrecondition(scopes[join.key] == nil, "The association key \"\((keyPath + [join.key]).joined(separator: "."))\" is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.")
                 scopes[join.key] = joinAdapter
                 endIndex = joinEndIndex
