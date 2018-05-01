@@ -109,6 +109,8 @@ let request = Book.including(optional: Book.author)
 let bookInfos = BookInfo.fetchAll(db, request)
 ```
 
+Before we dive in, please remember that associations can not generate all possible SQL queries that involve several tables. You may also *prefer* writing SQL, and this is just OK, because Your SQL skills are welcome: see the [Joined Queries Support](../README.md#joined-queries-support) chapter.
+
 
 The Types of Associations
 =========================

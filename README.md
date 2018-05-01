@@ -3258,6 +3258,7 @@ So don't miss the [SQL API](#sqlite-api).
 - [Fetching Aggregated Values](#fetching-aggregated-values)
 - [Delete Requests](#delete-requests)
 - [Custom Requests](#custom-requests)
+- [Associations and Joins](Documentation/AssociationsBasics.md)
 
 
 ## Database Schema
@@ -5021,7 +5022,7 @@ LEFT JOIN round ON ...
 GROUP BY ...
 ```
 
-We will not talk about *building* joined queries.
+We will not talk about *generating* joined queries, which is covered in [Associations](Documentation/AssociationsBasics.md).
 
 **So what are we talking about?**
 
