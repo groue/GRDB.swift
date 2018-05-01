@@ -186,7 +186,7 @@ struct QueryInterfaceQuery {
 }
 
 extension QueryInterfaceQuery {
-    private var qualifiedQuery: QueryInterfaceQuery {
+    var qualifiedQuery: QueryInterfaceQuery {
         var query = self
         
         let alias = TableAlias()
@@ -239,9 +239,9 @@ extension QueryInterfaceQuery {
         return adapter.addingScopes(scopes)
     }
     
+    /// precondition: self is the result of qualifiedQuery
     func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-        let query = qualifiedQuery
-        return try (query.makeSelectStatement(db), query.rowAdapter(db))
+        return try (makeSelectStatement(db), rowAdapter(db))
     }
     
     func fetchCount(_ db: Database) throws -> Int {
@@ -250,6 +250,7 @@ extension QueryInterfaceQuery {
     }
     
     /// The database region that the request looks into.
+    /// precondition: self is the result of qualifiedQuery
     func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
         let statement = try qualifiedQuery.makeSelectStatement(db)
         let region = statement.fetchedRegion
@@ -257,7 +258,7 @@ extension QueryInterfaceQuery {
         // Can we intersect the region with rowIds?
         //
         // Give up unless request feeds from a single database table
-        guard joins.isEmpty, case .table(tableName: let tableName, alias: _) = source else {
+        guard case .table(tableName: let tableName, alias: _) = source else {
             // TODO: try harder
             return region
         }
@@ -279,7 +280,7 @@ extension QueryInterfaceQuery {
         }
         
         // Database regions are case-insensitive: use the canonical table name
-        let canonicalTableName = try db.canonicalName(table: tableName)
+        let canonicalTableName = try db.canonicalTableName(tableName)
         return region.tableIntersection(canonicalTableName, rowIds: rowIds)
     }
     

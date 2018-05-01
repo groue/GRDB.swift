@@ -23,7 +23,7 @@ extension QueryInterfaceRequest : FetchRequest {
     /// - returns: A prepared statement and an eventual row adapter.
     /// :nodoc:
     public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-        return try query.prepare(db)
+        return try query.qualifiedQuery.prepare(db)
     }
     
     /// Returns the number of rows fetched by the request.
@@ -39,7 +39,7 @@ extension QueryInterfaceRequest : FetchRequest {
     /// - parameter db: A database connection.
     /// :nodoc:
     public func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
-        return try query.fetchedRegion(db)
+        return try query.qualifiedQuery.fetchedRegion(db)
     }
 }
 

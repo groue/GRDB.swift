@@ -232,24 +232,24 @@ extension Database {
     }
     
     /// Returns the actual name of the database table
-    func canonicalName(table: String) throws -> String {
-        if let canonicalName = schemaCache.canonicalName(table: table) {
-            return canonicalName
+    func canonicalTableName(_ tableName: String) throws -> String {
+        if let canonicalTableName = schemaCache.canonicalTableName(tableName) {
+            return canonicalTableName
         }
         
-        guard let canonicalName = try String.fetchOne(self, """
+        guard let canonicalTableName = try String.fetchOne(self, """
             SELECT name FROM (
                 SELECT name, type FROM sqlite_master
                 UNION
                 SELECT name, type FROM sqlite_temp_master)
             WHERE type = 'table' AND LOWER(name) = ?
-            """, arguments: [table.lowercased()])
+            """, arguments: [tableName.lowercased()])
         else {
-            throw DatabaseError(message: "no such table: \(table)")
+            throw DatabaseError(message: "no such table: \(tableName)")
         }
         
-        schemaCache.set(canonicalName: canonicalName, forTable: table)
-        return canonicalName
+        schemaCache.set(canonicalTableName: canonicalTableName, forTable: tableName)
+        return canonicalTableName
     }
 }
 

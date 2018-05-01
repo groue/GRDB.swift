@@ -292,42 +292,7 @@ public struct SQLExpressionBinary : SQLExpression {
             return SQLExpressionNot(self)
         }
     }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
-        // FIXME: this implementation ignores column aliases
-        switch op {
-        case .equal, .is:
-            // Look for `id ==/IS 1`, `rowid ==/IS 1`, `1 ==/IS id`, `1 ==/IS rowid`
-            func matchedRowIds(column: ColumnExpression, dbValue: DatabaseValue) -> Set<Int64>? {
-                var rowIdNames = [Column.rowID.name.lowercased()]
-                if let rowIdName = rowIdName {
-                    rowIdNames.append(rowIdName.lowercased())
-                }
-                guard rowIdNames.contains(column.name.lowercased()) else {
-                    return nil
-                }
-                if let rowId = Int64.fromDatabaseValue(dbValue) {
-                    return [rowId]
-                } else {
-                    return []
-                }
-            }
-            switch (lhs, rhs) {
-            case (let column as ColumnExpression, let dbValue as DatabaseValue):
-                return matchedRowIds(column: column, dbValue: dbValue)
-            case (let dbValue as DatabaseValue, let column as ColumnExpression):
-                return matchedRowIds(column: column, dbValue: dbValue)
-            default:
-                return nil
-            }
-            
-        default:
-            return nil
-        }
-    }
-    
+        
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
@@ -425,6 +390,91 @@ struct SQLExpressionOr : SQLExpression {
     }
 }
 
+// MARK: - SQLExpressionEqual
+
+struct SQLExpressionEqual: SQLExpression {
+    var lhs: SQLExpression
+    var rhs: SQLExpression
+    var op: Operator
+    
+    init(_ op: Operator, _ lhs: SQLExpression, _ rhs: SQLExpression) {
+        self.lhs = lhs
+        self.rhs = rhs
+        self.op = op
+    }
+    
+    enum Operator: String {
+        case equal = "="
+        case notEqual = "<>"
+        case `is` = "IS"
+        case isNot = "IS NOT"
+        
+        var negated: Operator {
+            switch self {
+            case .equal: return .notEqual
+            case .notEqual: return .equal
+            case .is: return .isNot
+            case .isNot: return .is
+            }
+        }
+    }
+    
+    func expressionSQL(_ context: inout SQLGenerationContext) -> String {
+        return "(" +
+            lhs.expressionSQL(&context) +
+            " " +
+            op.rawValue +
+            " " +
+            rhs.expressionSQL(&context) +
+        ")"
+    }
+    
+    var negated: SQLExpression {
+        return SQLExpressionEqual(op.negated, lhs, rhs)
+    }
+    
+    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        return SQLExpressionEqual(op, lhs.qualifiedExpression(with: alias), rhs.qualifiedExpression(with: alias))
+    }
+    
+    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
+        return SQLExpressionEqual(op, lhs.resolvedExpression(inContext: context), rhs.resolvedExpression(inContext: context))
+    }
+    
+    func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
+        // FIXME: this implementation ignores column aliases
+        switch op {
+        case .equal, .is:
+            // Look for `id ==/IS 1`, `rowid ==/IS 1`, `1 ==/IS id`, `1 ==/IS rowid`
+            func matchedRowIds(column: ColumnExpression, dbValue: DatabaseValue) -> Set<Int64>? {
+                var rowIdNames = [Column.rowID.name.lowercased()]
+                if let rowIdName = rowIdName {
+                    rowIdNames.append(rowIdName.lowercased())
+                }
+                guard rowIdNames.contains(column.name.lowercased()) else {
+                    return nil
+                }
+                if let rowId = Int64.fromDatabaseValue(dbValue) {
+                    return [rowId]
+                } else {
+                    return []
+                }
+            }
+            switch (lhs, rhs) {
+            case (let column as ColumnExpression, let dbValue as DatabaseValue):
+                return matchedRowIds(column: column, dbValue: dbValue)
+            case (let dbValue as DatabaseValue, let column as ColumnExpression):
+                return matchedRowIds(column: column, dbValue: dbValue)
+            default:
+                return nil
+            }
+            
+        case .notEqual, .isNot:
+            return nil
+        }
+    }
+}
+
 // MARK: - SQLExpressionContains
 
 /// SQLExpressionContains is an expression that checks the inclusion of a
@@ -455,7 +505,14 @@ struct SQLExpressionContains : SQLExpression {
         return SQLExpressionContains(expression, collection, negated: !isNegated)
     }
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        return SQLExpressionContains(expression.qualifiedExpression(with: alias), collection, negated: isNegated)
+    }
+    
+    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
+        return SQLExpressionContains(expression.resolvedExpression(inContext: context), collection, negated: isNegated)
+    }
+    
     func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
         // FIXME: this implementation ignores column aliases
         // Look for `id IN (1, 2, 3)`
@@ -469,7 +526,7 @@ struct SQLExpressionContains : SQLExpression {
         if let rowIdName = rowIdName {
             rowIdNames.append(rowIdName.lowercased())
         }
-
+        
         guard rowIdNames.contains(column.name.lowercased()) else {
             return nil
         }
@@ -482,14 +539,6 @@ struct SQLExpressionContains : SQLExpression {
             }
         }
         return rowIDs
-    }
-    
-    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionContains(expression.qualifiedExpression(with: alias), collection, negated: isNegated)
-    }
-    
-    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
-        return SQLExpressionContains(expression.resolvedExpression(inContext: context), collection, negated: isNegated)
     }
 }
 
