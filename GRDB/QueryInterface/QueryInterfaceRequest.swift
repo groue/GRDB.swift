@@ -7,6 +7,10 @@ public struct QueryInterfaceRequest<T> {
     init(query: QueryInterfaceQuery) {
         self.query = query
     }
+    
+    init(_ request: AssociationRequest<T>) {
+        self.query = QueryInterfaceQuery(request.query)
+    }
 }
 
 extension QueryInterfaceRequest : FetchRequest {

@@ -49,6 +49,15 @@ struct QueryInterfaceQuery {
         self.joins = joins
     }
     
+    init(_ query: AssociationQuery) {
+        self.init(
+            source: query.source,
+            selection: query.selection,
+            filterPromise: query.filterPromise,
+            ordering: query.ordering,
+            joins: query.joins)
+    }
+    
     func sql(_ db: Database, _ context: inout SQLGenerationContext) throws -> String {
         var sql = "SELECT"
         
@@ -390,17 +399,6 @@ extension QueryInterfaceQuery {
         var query = self
         query.source = source.qualified(with: alias)
         return query
-    }
-}
-
-extension QueryInterfaceQuery {
-    init(_ query: AssociationQuery) {
-        self.init(
-            source: query.source,
-            selection: query.selection,
-            filterPromise: query.filterPromise,
-            ordering: query.ordering,
-            joins: query.joins)
     }
 }
 

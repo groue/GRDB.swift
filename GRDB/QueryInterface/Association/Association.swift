@@ -280,19 +280,18 @@ extension Association where LeftAssociated: MutablePersistableRecord {
     ///     let team: Team = ...
     ///     let players = try team.players.fetchAll(db) // [Player]
     func request(from record: LeftAssociated) -> QueryInterfaceRequest<RightAssociated> {
+        // Turn `JOIN associated ON associated.recordId = record.id`
+        // into `FROM associated WHERE associated.recordId = 1`
         let associationAlias = TableAlias()
-        let query = request.query.qualified(with: associationAlias)
         let recordAlias = TableAlias(tableName: LeftAssociated.databaseTableName)
-        
-        // Turn `associated.recordId = record.id` into `associated.recordId = 1`
-        let resolvedQuery = query.filter { db in
-            guard let joinCondition = try self.joinCondition(db)(recordAlias, associationAlias) else {
-                fatalError("Can't request from record without join condition")
-            }
-            let container = PersistenceContainer(record) // support for record classes: late construction of container
-            return joinCondition.resolvedExpression(inContext: [recordAlias: container])
+        return QueryInterfaceRequest(request)
+            .aliased(associationAlias)
+            .filter { db in
+                guard let joinCondition = try self.joinCondition(db)(recordAlias, associationAlias) else {
+                    fatalError("Can't request from record without join condition")
+                }
+                let container = PersistenceContainer(record) // support for record classes: late construction of container
+                return joinCondition.resolvedExpression(inContext: [recordAlias: container])
         }
-        
-        return QueryInterfaceRequest(query: QueryInterfaceQuery(resolvedQuery))
     }
 }
