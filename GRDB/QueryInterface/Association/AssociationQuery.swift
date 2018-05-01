@@ -6,28 +6,29 @@ struct AssociationQuery {
     var joins: [AssociationJoin]
     
     var qualifiedQuery: AssociationQuery {
-        var qualifier = SQLTableQualifier(tableName: source.tableName!)
-        
         var query = self
-        query.source = source.qualified(with: &qualifier)
-        query.selection = selection.map { $0.qualifiedSelectable(with: qualifier) }
-        query.filterPromise = filterPromise.map { [qualifier] (_, expr) in expr?.qualifiedExpression(with: qualifier) }
-        query.ordering = ordering.qualified(with: qualifier)
+        
+        let alias = TableAlias()
+        query.source = source.qualified(with: alias)
+        query.selection = selection.map { $0.qualifiedSelectable(with: alias) }
+        query.filterPromise = filterPromise.map { [alias] (_, expr) in expr?.qualifiedExpression(with: alias) }
+        query.ordering = ordering.qualified(with: alias)
         query.joins = joins.map { $0.qualifiedJoin }
+        
         return query
     }
     
-    var qualifier: SQLTableQualifier? {
-        return source.qualifier
+    var alias: TableAlias? {
+        return source.alias
     }
     
-    var allQualifiers: [SQLTableQualifier] {
-        var qualifiers: [SQLTableQualifier] = []
-        if let qualifier = qualifier {
-            qualifiers.append(qualifier)
+    var allAliases: [TableAlias] {
+        var aliases: [TableAlias] = []
+        if let alias = alias {
+            aliases.append(alias)
         }
-        return joins.reduce(into: qualifiers) {
-            $0.append(contentsOf: $1.allQualifiers)
+        return joins.reduce(into: aliases) {
+            $0.append(contentsOf: $1.allAliases)
         }
     }
     
@@ -122,9 +123,9 @@ extension AssociationQuery {
         return query
     }
     
-    func qualified(with qualifier: inout SQLTableQualifier) -> AssociationQuery {
+    func qualified(with alias: TableAlias) -> AssociationQuery {
         var query = self
-        query.source = source.qualified(with: &qualifier)
+        query.source = source.qualified(with: alias)
         return query
     }
 }

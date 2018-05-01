@@ -49,7 +49,7 @@ struct QueryInterfaceQuery {
         self.joins = joins
     }
     
-    func sql(_ db: Database, _ arguments: inout StatementArguments?) throws -> String {
+    func sql(_ db: Database, _ context: inout SQLGenerationContext) throws -> String {
         var sql = "SELECT"
         
         if isDistinct {
@@ -58,29 +58,31 @@ struct QueryInterfaceQuery {
         
         let selection = completeSelection
         GRDBPrecondition(!selection.isEmpty, "Can't generate SQL with empty selection")
-        sql += " " + selection.map { $0.resultColumnSQL(&arguments) }.joined(separator: ", ")
+        sql += " " + selection.map { $0.resultColumnSQL(&context) }.joined(separator: ", ")
         
-        sql += try " FROM " + source.sourceSQL(db, &arguments)
+        sql += try " FROM " + source.sourceSQL(db, &context)
         
         for join in joins {
-            sql += try " " + join.joinSQL(db, &arguments, leftQualifier: qualifier!, isRequiredAllowed: true)
+            sql += try " " + join.joinSQL(db, &context, leftAlias: alias!, isRequiredAllowed: true)
         }
         
         if let filter = try filterPromise.resolve(db) {
-            sql += " WHERE " + filter.expressionSQL(&arguments)
+            sql += " WHERE " + filter.expressionSQL(&context)
         }
         
         if !groupByExpressions.isEmpty {
-            sql += " GROUP BY " + groupByExpressions.map { $0.expressionSQL(&arguments) }.joined(separator: ", ")
+            sql += " GROUP BY "
+            sql += groupByExpressions.map { $0.expressionSQL(&context) }
+                .joined(separator: ", ")
         }
         
         if let havingExpression = havingExpression {
-            sql += " HAVING " + havingExpression.expressionSQL(&arguments)
+            sql += " HAVING " + havingExpression.expressionSQL(&context)
         }
         
         let orderings = completeOrdering.resolve()
         if !orderings.isEmpty {
-            sql += " ORDER BY " + orderings.map { $0.orderingTermSQL(&arguments) }.joined(separator: ", ")
+            sql += " ORDER BY " + orderings.map { $0.orderingTermSQL(&context) }.joined(separator: ", ")
         }
         
         if let limit = limit {
@@ -90,6 +92,7 @@ struct QueryInterfaceQuery {
         return sql
     }
     
+    /// precondition: self is the result of qualifiedQuery
     func makeDeleteStatement(_ db: Database) throws -> UpdateStatement {
         guard groupByExpressions.isEmpty else {
             // Programmer error
@@ -111,19 +114,18 @@ struct QueryInterfaceQuery {
             fatalError("Can't delete without any database table")
         }
 
-        var sql = "DELETE"
-        var arguments: StatementArguments? = StatementArguments()
+        var context = SQLGenerationContext.queryGenerationContext(aliases: allAliases)
         
-        sql += try " FROM " + source.sourceSQL(db, &arguments)
+        var sql = try "DELETE FROM " + source.sourceSQL(db, &context)
         
         if let filter = try filterPromise.resolve(db) {
-            sql += " WHERE " + filter.expressionSQL(&arguments)
+            sql += " WHERE " + filter.expressionSQL(&context)
         }
         
         if let limit = limit {
             let orderings = self.completeOrdering.resolve()
             if !orderings.isEmpty {
-                sql += " ORDER BY " + orderings.map { $0.orderingTermSQL(&arguments) }.joined(separator: ", ")
+                sql += " ORDER BY " + orderings.map { $0.orderingTermSQL(&context) }.joined(separator: ", ")
             }
             
             if Database.sqliteCompileOptions.contains("ENABLE_UPDATE_DELETE_LIMIT") {
@@ -134,7 +136,7 @@ struct QueryInterfaceQuery {
         }
         
         let statement = try db.makeUpdateStatement(sql)
-        statement.arguments = arguments!
+        statement.arguments = context.arguments!
         return statement
     }
     
@@ -147,17 +149,17 @@ struct QueryInterfaceQuery {
     
     // MARK: Join Support
     
-    var qualifier: SQLTableQualifier? {
-        return source.qualifier
+    var alias: TableAlias? {
+        return source.alias
     }
     
-    var allQualifiers: [SQLTableQualifier] {
-        var qualifiers: [SQLTableQualifier] = []
-        if let qualifier = qualifier {
-            qualifiers.append(qualifier)
+    var allAliases: [TableAlias] {
+        var aliases: [TableAlias] = []
+        if let alias = alias {
+            aliases.append(alias)
         }
-        return joins.reduce(into: qualifiers) {
-            $0.append(contentsOf: $1.allQualifiers)
+        return joins.reduce(into: aliases) {
+            $0.append(contentsOf: $1.allAliases)
         }
     }
 
@@ -178,32 +180,25 @@ extension QueryInterfaceQuery {
     private var qualifiedQuery: QueryInterfaceQuery {
         var query = self
         
-        // Don't qualify unless there are joins
-        if !joins.isEmpty {
-            var qualifier = SQLTableQualifier(tableName: query.source.tableName!)
-            query.source = source.qualified(with: &qualifier)
-        }
-        
-        if let qualifier = query.qualifier {
-            query.selection = query.selection.map { $0.qualifiedSelectable(with: qualifier) }
-            query.filterPromise = query.filterPromise.map { [qualifier] (_, expr) in expr?.qualifiedExpression(with: qualifier) }
-            query.groupByExpressions = query.groupByExpressions.map { $0.qualifiedExpression(with: qualifier) }
-            query.ordering = query.ordering.qualified(with: qualifier)
-            query.havingExpression = query.havingExpression?.qualifiedExpression(with: qualifier)
-        }
+        let alias = TableAlias()
+        query.source = source.qualified(with: alias)
+        query.selection = query.selection.map { $0.qualifiedSelectable(with: alias) }
+        query.filterPromise = query.filterPromise.map { [alias] (_, expr) in expr?.qualifiedExpression(with: alias) }
+        query.groupByExpressions = query.groupByExpressions.map { $0.qualifiedExpression(with: alias) }
+        query.ordering = query.ordering.qualified(with: alias)
+        query.havingExpression = query.havingExpression?.qualifiedExpression(with: alias)
         
         query.joins = query.joins.map { $0.qualifiedJoin }
         
-        query.allQualifiers.resolveAmbiguities()
         return query
     }
     
     /// precondition: self is the result of qualifiedQuery
     private func makeSelectStatement(_ db: Database) throws -> SelectStatement {
-        var arguments: StatementArguments? = StatementArguments()
-        let sql = try self.sql(db, &arguments)
+        var context = SQLGenerationContext.queryGenerationContext(aliases: allAliases)
+        let sql = try self.sql(db, &context)
         let statement = try db.makeSelectStatement(sql)
-        try statement.setArgumentsWithValidation(arguments!)
+        statement.arguments = context.arguments!
         return statement
     }
     
@@ -253,7 +248,7 @@ extension QueryInterfaceQuery {
         // Can we intersect the region with rowIds?
         //
         // Give up unless request feeds from a single database table
-        guard joins.isEmpty, case .table(tableName: let tableName, qualifier: _) = source else {
+        guard joins.isEmpty, case .table(tableName: let tableName, alias: _) = source else {
             // TODO: try harder
             return region
         }
@@ -391,9 +386,9 @@ extension QueryInterfaceQuery {
         return query
     }
 
-    func qualified(with qualifier: inout SQLTableQualifier) -> QueryInterfaceQuery {
+    func qualified(with alias: TableAlias) -> QueryInterfaceQuery {
         var query = self
-        query.source = source.qualified(with: &qualifier)
+        query.source = source.qualified(with: alias)
         return query
     }
 }
@@ -470,8 +465,8 @@ struct AssociationJoin {
         return join
     }
     
-    var allQualifiers: [SQLTableQualifier] {
-        return query.allQualifiers
+    var allAliases: [TableAlias] {
+        return query.allAliases
     }
     
     var completeSelection: [SQLSelectable] {
@@ -486,7 +481,7 @@ struct AssociationJoin {
         return try query.rowAdapter(db, fromIndex: startIndex, forKeyPath: keyPath)
     }
     
-    func joinSQL(_ db: Database,_ arguments: inout StatementArguments?, leftQualifier: SQLTableQualifier, isRequiredAllowed: Bool) throws -> String {
+    func joinSQL(_ db: Database,_ context: inout SQLGenerationContext, leftAlias: TableAlias, isRequiredAllowed: Bool) throws -> String {
         var isRequiredAllowed = isRequiredAllowed
         var sql = ""
         switch joinOperator {
@@ -501,19 +496,19 @@ struct AssociationJoin {
             sql += "JOIN"
         }
         
-        sql += try " " + query.source.sourceSQL(db, &arguments)
+        sql += try " " + query.source.sourceSQL(db, &context)
         
-        let qualifier = query.qualifier!
+        let rightAlias = query.alias!
         let filters = try [
-            joinConditionPromise.resolve(db)(leftQualifier, qualifier),
+            joinConditionPromise.resolve(db)(leftAlias, rightAlias),
             query.filterPromise.resolve(db)
             ].compactMap { $0 }
         if !filters.isEmpty {
-            sql += " ON " + filters.joined(operator: .and).expressionSQL(&arguments)
+            sql += " ON " + filters.joined(operator: .and).expressionSQL(&context)
         }
         
         for join in query.joins {
-            sql += try " " + join.joinSQL(db, &arguments, leftQualifier: qualifier, isRequiredAllowed: isRequiredAllowed)
+            sql += try " " + join.joinSQL(db, &context, leftAlias: rightAlias, isRequiredAllowed: isRequiredAllowed)
         }
         
         return sql
@@ -539,12 +534,12 @@ struct QueryOrdering {
             }
         }
         
-        func qualified(with qualifier: SQLTableQualifier) -> Element {
+        func qualified(with alias: TableAlias) -> Element {
             switch self {
             case .orderingTerm(let orderingTerm):
-                return .orderingTerm(orderingTerm.qualifiedOrdering(with: qualifier))
+                return .orderingTerm(orderingTerm.qualifiedOrdering(with: alias))
             case .queryOrdering(let queryOrdering):
-                return .queryOrdering(queryOrdering.qualified(with: qualifier))
+                return .queryOrdering(queryOrdering.qualified(with: alias))
             }
         }
         
@@ -581,9 +576,9 @@ struct QueryOrdering {
             isReversed: !isReversed)
     }
     
-    func qualified(with qualifier: SQLTableQualifier) -> QueryOrdering {
+    func qualified(with alias: TableAlias) -> QueryOrdering {
         return QueryOrdering(
-            elements: elements.map { $0.qualified(with: qualifier) },
+            elements: elements.map { $0.qualified(with: alias) },
             isReversed: isReversed)
     }
     
@@ -605,75 +600,43 @@ struct QueryOrdering {
 // MARK: - SQLSource
 
 enum SQLSource {
-    case table(tableName: String, qualifier: SQLTableQualifier?)
+    case table(tableName: String, alias: TableAlias?)
     indirect case query(QueryInterfaceQuery)
     
-    var qualifier: SQLTableQualifier? {
+    var alias: TableAlias? {
         switch self {
-        case .table(_, let qualifier):
-            return qualifier
+        case .table(_, let alias):
+            return alias
         case .query(let query):
-            return query.qualifier
+            return query.alias
         }
     }
     
-    // TODO: remove
-    /// An alias or an actual table name
-    var qualifiedName: String {
+    func sourceSQL(_ db: Database, _ context: inout SQLGenerationContext) throws -> String {
         switch self {
-        case .table(let tableName, let qualifier):
-            return qualifier?.qualifiedName ?? tableName
-        case .query(let query):
-            return query.source.qualifiedName
-        }
-    }
-    
-    /// An actual table name, not an alias
-    var tableName: String? {
-        switch self {
-        case .table(let tableName, _):
-            return tableName
-        case .query(let query):
-            return query.source.tableName
-        }
-    }
-    
-    func sourceSQL(_ db: Database,_ arguments: inout StatementArguments?) throws -> String {
-        switch self {
-        case .table(let tableName, let qualifier):
-            if let alias = qualifier?.alias, alias != tableName {
-                return "\(tableName.quotedDatabaseIdentifier) \(alias.quotedDatabaseIdentifier)"
+        case .table(let tableName, let alias):
+            if let alias = alias, let aliasName = context.aliasName(for: alias) {
+                return "\(tableName.quotedDatabaseIdentifier) \(aliasName.quotedDatabaseIdentifier)"
             } else {
                 return "\(tableName.quotedDatabaseIdentifier)"
             }
         case .query(let query):
-            return try "(\(query.sql(db, &arguments)))"
+            return try "(\(query.sql(db, &context)))"
         }
     }
     
-    func qualified(with qualifier: inout SQLTableQualifier) -> SQLSource {
+    func qualified(with alias: TableAlias) -> SQLSource {
         switch self {
-        case .table(let tableName, let oldQualifier):
-            if let oldQualifier = oldQualifier {
-                qualifier = oldQualifier
+        case .table(let tableName, let sourceAlias):
+            if let sourceAlias = sourceAlias {
+                alias.rebase(on: sourceAlias)
                 return self
-            } else if let qualifierTableName = qualifier.tableName {
-                if qualifierTableName == tableName { // TODO: should this test be case-insensitive?
-                    return .table(
-                        tableName: tableName,
-                        qualifier: qualifier)
-                } else {
-                    // TODO: how to enter this branch? Is it useful?
-                    return self
-                }
             } else {
-                qualifier.tableName = tableName
-                return .table(
-                    tableName: tableName,
-                    qualifier: qualifier)
+                alias.setTableName(tableName)
+                return .table(tableName: tableName, alias: alias)
             }
         case .query(let query):
-            return .query(query.qualified(with: &qualifier))
+            return .query(query.qualified(with: alias))
         }
     }
 }

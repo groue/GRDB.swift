@@ -179,8 +179,8 @@ extension Association {
         return forKey(codingKey.stringValue)
     }
     
-    /// Creates an association that allows you to define unambiguous expressions
-    /// based on the associated record.
+    /// Creates an association that allows you to define expressions that target
+    /// a specific database table.
     ///
     /// In the example below, the "team.color = 'red'" condition in the where
     /// clause could be not achieved without table aliases.
@@ -212,7 +212,7 @@ extension Association {
     }
 }
 
-public typealias JoinCondition = (_ leftQualifier: SQLTableQualifier, _ rightQualifier: SQLTableQualifier) -> SQLExpression?
+public typealias JoinCondition = (_ leftAlias: TableAlias, _ rightAlias: TableAlias) -> SQLExpression?
 
 /// Turns a ForeignKeyRequest into a JoinCondition
 struct ForeignKeyJoinConditionRequest {
@@ -227,9 +227,9 @@ struct ForeignKeyJoinConditionRequest {
         } else {
             columnMapping = foreignKeyMapping.map { (left: Column($0.destination), right: Column($0.origin)) }
         }
-        return { (leftQualifier, rightQualifier) in
+        return { (leftAlias, rightAlias) in
             return columnMapping
-                .map { $0.right.qualifiedExpression(with: rightQualifier) == $0.left.qualifiedExpression(with: leftQualifier) }
+                .map { $0.right.qualifiedExpression(with: rightAlias) == $0.left.qualifiedExpression(with: leftAlias) }
                 .joined(operator: .and)
         }
     }
@@ -280,17 +280,17 @@ extension Association where LeftAssociated: MutablePersistableRecord {
     ///     let team: Team = ...
     ///     let players = try team.players.fetchAll(db) // [Player]
     func request(from record: LeftAssociated) -> QueryInterfaceRequest<RightAssociated> {
-        let query = request.query.qualifiedQuery // make sure query has a qualifier
-        let associationQualifier = query.qualifier!
-        let recordQualifier = SQLTableQualifier.init(tableName: LeftAssociated.databaseTableName)
+        let associationAlias = TableAlias()
+        let query = request.query.qualified(with: associationAlias)
+        let recordAlias = TableAlias(tableName: LeftAssociated.databaseTableName)
         
-        // Turn `right.id = left.id` into `right.id = 1`
+        // Turn `associated.recordId = record.id` into `associated.recordId = 1`
         let resolvedQuery = query.filter { db in
-            guard let joinCondition = try self.joinCondition(db)(recordQualifier, associationQualifier) else {
-                fatalError("Can't request from record without association mapping")
+            guard let joinCondition = try self.joinCondition(db)(recordAlias, associationAlias) else {
+                fatalError("Can't request from record without join condition")
             }
             let container = PersistenceContainer(record) // support for record classes: late construction of container
-            return joinCondition.resolvedExpression(inContext: [recordQualifier: container])
+            return joinCondition.resolvedExpression(inContext: [recordAlias: container])
         }
         
         return QueryInterfaceRequest(query: QueryInterfaceQuery(resolvedQuery))

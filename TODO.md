@@ -28,6 +28,8 @@ GRDB 3.0
     - ?
 - [ ] filter(rowid:), filter(rowids:)
 - [ ] If required by associations, make reversed() make nothing when there is no alraedy applied ordering
+- [ ] Fix matchingRowIds
+- [ ] Simplify Range extensions for Swift 4.1
 
 Not sure
 

@@ -20,8 +20,10 @@
             guard let pattern = pattern else {
                 return none()
             }
-            // TODO: should use proper qualified name
-            return filter(SQLExpressionBinary(.match, Column(query.source.qualifiedName), pattern))
+            let alias = TableAlias()
+            let qualifiedQuery = query.qualified(with: alias)
+            let matchExpression = TableMatchExpression(alias: alias, pattern: pattern.databaseValue)
+            return QueryInterfaceRequest(query: qualifiedQuery).filter(matchExpression)
         }
     }
     

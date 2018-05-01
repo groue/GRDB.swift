@@ -58,13 +58,13 @@ extension SQLCollatedExpression : SQLOrderingTerm {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func orderingTermSQL(_ arguments: inout StatementArguments?) -> String {
-        return sqlExpression.orderingTermSQL(&arguments)
+    public func orderingTermSQL(_ context: inout SQLGenerationContext) -> String {
+        return sqlExpression.orderingTermSQL(&context)
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func qualifiedOrdering(with qualifier: SQLTableQualifier) -> SQLOrderingTerm {
-        return SQLCollatedExpression(expression.qualifiedExpression(with: qualifier), collationName: collationName)
+    public func qualifiedOrdering(with alias: TableAlias) -> SQLOrderingTerm {
+        return SQLCollatedExpression(expression.qualifiedExpression(with: alias), collationName: collationName)
     }
 }

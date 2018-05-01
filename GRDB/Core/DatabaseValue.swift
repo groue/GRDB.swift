@@ -308,14 +308,13 @@ extension DatabaseValue {
 extension DatabaseValue {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func expressionSQL(_ arguments: inout StatementArguments?) -> String {
+    public func expressionSQL(_ context: inout SQLGenerationContext) -> String {
         // fast path for NULL
         if isNull {
             return "NULL"
         }
         
-        if arguments != nil {
-            arguments!.values.append(self)
+        if context.appendArguments([self]) {
             return "?"
         } else {
             // Correctness above all: use SQLite to quote the value.
@@ -352,13 +351,13 @@ extension DatabaseValue {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
+    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         return self
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func resolvedExpression(inContext context: [SQLTableQualifier: PersistenceContainer]) -> SQLExpression {
+    public func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
         return self
     }
 }

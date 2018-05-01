@@ -136,8 +136,8 @@ extension QueryInterfaceRequest : SelectionRequest, FilteredRequest, Aggregating
         return QueryInterfaceRequest(query: query.limit(limit, offset: offset))
     }
     
-    /// Creates a request that allows you to define unambiguous expressions
-    /// based on the fetched record.
+    /// Creates a request that allows you to define expressions that target
+    /// a specific database table.
     ///
     /// In the example below, the "team.avgScore < player.score" condition in
     /// the ON clause could be not achieved without table aliases.
@@ -154,12 +154,7 @@ extension QueryInterfaceRequest : SelectionRequest, FilteredRequest, Aggregating
     ///         .aliased(playerAlias)
     ///         .including(required: Player.team.filter(Column("avgScore") < playerAlias[Column("score")])
     public func aliased(_ alias: TableAlias) -> QueryInterfaceRequest {
-        let userProvidedAlias = alias.userProvidedAlias
-        defer {
-            // Allow user to explicitely rename (TODO: test)
-            alias.userProvidedAlias = userProvidedAlias
-        }
-        return QueryInterfaceRequest(query: query.qualified(with: &alias.qualifier))
+        return QueryInterfaceRequest(query: query.qualified(with: alias))
     }
     
     /// Creates a request bound to type Target.
@@ -223,7 +218,7 @@ extension TableRecord {
     /// for individual requests with the `TableRecord.select` method.
     public static func all() -> QueryInterfaceRequest<Self> {
         let query = QueryInterfaceQuery(
-            source: .table(tableName: databaseTableName, qualifier: nil),
+            source: .table(tableName: databaseTableName, alias: nil),
             selection: databaseSelection)
         return QueryInterfaceRequest(query: query)
     }
@@ -386,8 +381,8 @@ extension TableRecord {
         return all().limit(limit, offset: offset)
     }
     
-    /// Creates a request that allows you to define unambiguous expressions
-    /// based on the fetched record.
+    /// Creates a request that allows you to define expressions that target
+    /// a specific database table.
     ///
     /// In the example below, the "team.avgScore < player.score" condition in
     /// the ON clause could be not achieved without table aliases.

@@ -18,6 +18,10 @@ public typealias MutablePersistable = MutablePersistableRecord
 @available(*, unavailable, renamed:"PersistableRecord")
 public typealias Persistable = PersistableRecord
 
+/// :nodoc:
+@available(*, unavailable, renamed:"TableAlias")
+public typealias SQLTableQualifier = TableAlias
+
 extension Database {
     /// :nodoc:
     @available(*, unavailable, message: "Use db.columns(in: tableName).count instead")

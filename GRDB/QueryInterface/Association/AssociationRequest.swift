@@ -32,12 +32,7 @@ extension AssociationRequest {
     }
     
     func aliased(_ alias: TableAlias) -> AssociationRequest {
-        let userProvidedAlias = alias.userProvidedAlias
-        defer {
-            // Allow user to explicitely rename (TODO: test)
-            alias.userProvidedAlias = userProvidedAlias
-        }
-        return AssociationRequest(query: query.qualified(with: &alias.qualifier))
+        return AssociationRequest(query: query.qualified(with: alias))
     }
     
     func joining<A: Association>(_ joinOperator: AssociationJoinOperator, _ association: A)

@@ -99,7 +99,27 @@ extension FilteredRequest {
 
 /// The protocol for all requests that feed from a database table
 public protocol TableRequest {
+    /// The name of the database table
     var databaseTableName: String { get }
+    
+    /// Creates a request that allows you to define expressions that target
+    /// a specific database table.
+    ///
+    /// In the example below, the "team.avgScore < player.score" condition in
+    /// the ON clause could be not achieved without table aliases.
+    ///
+    ///     struct Player: TableRecord {
+    ///         static let team = belongsTo(Team.self)
+    ///     }
+    ///
+    ///     // SELECT player.*, team.*
+    ///     // JOIN team ON ... AND team.avgScore < player.score
+    ///     let playerAlias = TableAlias()
+    ///     let request = Player
+    ///         .all()
+    ///         .aliased(playerAlias)
+    ///         .including(required: Player.team.filter(Column("avgScore") < playerAlias[Column("score")])
+    func aliased(_ alias: TableAlias) -> Self
 }
 
 extension TableRequest where Self: FilteredRequest {
