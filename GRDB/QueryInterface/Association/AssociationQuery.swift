@@ -5,66 +5,8 @@ struct AssociationQuery {
     var ordering: QueryOrdering
     var joins: [AssociationJoin]
     
-    var qualifiedQuery: AssociationQuery {
-        var query = self
-        
-        let alias = TableAlias()
-        query.source = source.qualified(with: alias)
-        query.selection = selection.map { $0.qualifiedSelectable(with: alias) }
-        query.filterPromise = filterPromise.map { [alias] (_, expr) in expr?.qualifiedExpression(with: alias) }
-        query.ordering = ordering.qualified(with: alias)
-        query.joins = joins.map { $0.qualifiedJoin }
-        
-        return query
-    }
-    
     var alias: TableAlias? {
         return source.alias
-    }
-    
-    var allAliases: [TableAlias] {
-        var aliases: [TableAlias] = []
-        if let alias = alias {
-            aliases.append(alias)
-        }
-        return joins.reduce(into: aliases) {
-            $0.append(contentsOf: $1.allAliases)
-        }
-    }
-    
-    var completeSelection: [SQLSelectable] {
-        return joins.reduce(into: selection) {
-            $0.append(contentsOf: $1.completeSelection)
-        }
-    }
-    
-    var completeOrdering: QueryOrdering {
-        return joins.reduce(ordering) {
-            $0.appending($1.completeOrdering)
-        }
-    }
-    
-    func rowAdapter(_ db: Database, fromIndex startIndex: Int, forKeyPath keyPath: [String]) throws -> (adapter: RowAdapter, endIndex: Int)? {
-        let selectionWidth = try selection
-            .map { try $0.columnCount(db) }
-            .reduce(0, +)
-        
-        var endIndex = startIndex + selectionWidth
-        var scopes: [String: RowAdapter] = [:]
-        for join in joins {
-            if let (joinAdapter, joinEndIndex) = try join.rowAdapter(db, fromIndex: endIndex, forKeyPath: keyPath + [join.key]) {
-                GRDBPrecondition(scopes[join.key] == nil, "The association key \"\((keyPath + [join.key]).joined(separator: "."))\" is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.")
-                scopes[join.key] = joinAdapter
-                endIndex = joinEndIndex
-            }
-        }
-        
-        if selectionWidth == 0 && scopes.isEmpty {
-            return nil
-        }
-        
-        let adapter = RangeRowAdapter(startIndex ..< (startIndex + selectionWidth))
-        return (adapter: adapter.addingScopes(scopes), endIndex: endIndex)
     }
 }
 
@@ -127,5 +69,70 @@ extension AssociationQuery {
         var query = self
         query.source = source.qualified(with: alias)
         return query
+    }
+}
+
+extension AssociationQuery {
+    /// A finalized query is ready for SQL generation
+    var finalizedQuery: AssociationQuery {
+        var query = self
+        
+        let alias = TableAlias()
+        query.source = source.qualified(with: alias)
+        query.selection = selection.map { $0.qualifiedSelectable(with: alias) }
+        query.filterPromise = filterPromise.map { [alias] (_, expr) in expr?.qualifiedExpression(with: alias) }
+        query.ordering = ordering.qualified(with: alias)
+        query.joins = joins.map { $0.finalizedJoin }
+        
+        return query
+    }
+    
+    /// precondition: self is the result of finalizedQuery
+    var finalizedAliases: [TableAlias] {
+        var aliases: [TableAlias] = []
+        if let alias = alias {
+            aliases.append(alias)
+        }
+        return joins.reduce(into: aliases) {
+            $0.append(contentsOf: $1.finalizedAliases)
+        }
+    }
+    
+    /// precondition: self is the result of finalizedQuery
+    var finalizedSelection: [SQLSelectable] {
+        return joins.reduce(into: selection) {
+            $0.append(contentsOf: $1.finalizedSelection)
+        }
+    }
+    
+    /// precondition: self is the result of finalizedQuery
+    var finalizedOrdering: QueryOrdering {
+        return joins.reduce(ordering) {
+            $0.appending($1.finalizedOrdering)
+        }
+    }
+    
+    /// precondition: self is the result of finalizedQuery
+    func finalizedRowAdapter(_ db: Database, fromIndex startIndex: Int, forKeyPath keyPath: [String]) throws -> (adapter: RowAdapter, endIndex: Int)? {
+        let selectionWidth = try selection
+            .map { try $0.columnCount(db) }
+            .reduce(0, +)
+        
+        var endIndex = startIndex + selectionWidth
+        var scopes: [String: RowAdapter] = [:]
+        for join in joins {
+            if let (joinAdapter, joinEndIndex) = try join.finalizedRowAdapter(db, fromIndex: endIndex, forKeyPath: keyPath + [join.key]) {
+                GRDBPrecondition(scopes[join.key] == nil, "The association key \"\((keyPath + [join.key]).joined(separator: "."))\" is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.")
+                scopes[join.key] = joinAdapter
+                endIndex = joinEndIndex
+            }
+        }
+        
+        if selectionWidth == 0 && scopes.isEmpty {
+            return nil
+        }
+        
+        let adapter = RangeRowAdapter(startIndex ..< (startIndex + selectionWidth))
+        return (adapter: adapter.addingScopes(scopes), endIndex: endIndex)
     }
 }
