@@ -5,7 +5,7 @@ extension QueryInterfaceRequest {
     /// Creates a request with a full-text predicate added to the eventual
     /// set of already applied predicates.
     ///
-    ///     // SELECT * FROM books WHERE books MATCH '...'
+    ///     // SELECT * FROM book WHERE book MATCH '...'
     ///     var request = Book.all()
     ///     request = request.matching(pattern)
     ///
@@ -28,7 +28,7 @@ extension TableRecord {
     
     /// Returns a QueryInterfaceRequest with a matching predicate.
     ///
-    ///     // SELECT * FROM books WHERE books MATCH '...'
+    ///     // SELECT * FROM book WHERE book MATCH '...'
     ///     var request = Book.matching(pattern)
     ///
     /// If the search pattern is nil, the request does not match any

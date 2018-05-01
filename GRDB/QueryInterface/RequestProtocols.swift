@@ -4,13 +4,13 @@
 public protocol SelectionRequest {
     /// Creates a request with a new net of selected columns.
     ///
-    ///     // SELECT id, email FROM players
+    ///     // SELECT id, email FROM player
     ///     var request = Player.all()
     ///     request = request.select([Column("id"), Column("email")])
     ///
     /// Any previous selection is replaced:
     ///
-    ///     // SELECT email FROM players
+    ///     // SELECT email FROM player
     ///     request
     ///         .select([Column("id")])
     ///         .select([Column("email")])
@@ -20,13 +20,13 @@ public protocol SelectionRequest {
 extension SelectionRequest {
     /// Creates a request with a new net of selected columns.
     ///
-    ///     // SELECT id, email FROM players
+    ///     // SELECT id, email FROM player
     ///     var request = Player.all()
     ///     request = request.select(Column("id"), Column("email"))
     ///
     /// Any previous selection is replaced:
     ///
-    ///     // SELECT email FROM players
+    ///     // SELECT email FROM player
     ///     request
     ///         .select(Column("id"))
     ///         .select(Column("email"))
@@ -36,13 +36,13 @@ extension SelectionRequest {
     
     /// Creates a request with a new net of selected columns.
     ///
-    ///     // SELECT id, email FROM players
+    ///     // SELECT id, email FROM player
     ///     var request = Player.all()
     ///     request = request.select(sql: "id, email")
     ///
     /// Any previous selection is replaced:
     ///
-    ///     // SELECT email FROM players
+    ///     // SELECT email FROM player
     ///     request
     ///         .select(sql: "id")
     ///         .select(sql: "email")
@@ -58,7 +58,7 @@ public protocol FilteredRequest {
     /// Creates a request with the provided *predicate promise* added to the
     /// eventual set of already applied predicates.
     ///
-    ///     // SELECT * FROM players WHERE 1
+    ///     // SELECT * FROM player WHERE 1
     ///     var request = Player.all()
     ///     request = request.filter { db in true }
     func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self
@@ -68,7 +68,7 @@ extension FilteredRequest {
     /// Creates a request with the provided *predicate* added to the
     /// eventual set of already applied predicates.
     ///
-    ///     // SELECT * FROM players WHERE email = 'arthur@example.com'
+    ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
     ///     var request = Player.all()
     ///     request = request.filter(Column("email") == "arthur@example.com")
     public func filter(_ predicate: SQLExpressible) -> Self {
@@ -78,7 +78,7 @@ extension FilteredRequest {
     /// Creates a request with the provided *predicate* added to the
     /// eventual set of already applied predicates.
     ///
-    ///     // SELECT * FROM players WHERE email = 'arthur@example.com'
+    ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
     ///     var request = Player.all()
     ///     request = request.filter(sql: "email = ?", arguments: ["arthur@example.com"])
     public func filter(sql: String, arguments: StatementArguments? = nil) -> Self {
@@ -87,7 +87,7 @@ extension FilteredRequest {
     
     /// Creates a request that matches nothing.
     ///
-    ///     // SELECT * FROM players WHERE 0
+    ///     // SELECT * FROM player WHERE 0
     ///     var request = Player.all()
     ///     request = request.none()
     public func none() -> Self {
@@ -248,13 +248,13 @@ extension AggregatingRequest {
 public protocol OrderedRequest {
     /// Creates a request with the provided *orderings*.
     ///
-    ///     // SELECT * FROM players ORDER BY name
+    ///     // SELECT * FROM player ORDER BY name
     ///     var request = Player.all()
     ///     request = request.order([Column("name")])
     ///
     /// Any previous ordering is replaced:
     ///
-    ///     // SELECT * FROM players ORDER BY name
+    ///     // SELECT * FROM player ORDER BY name
     ///     request
     ///         .order([Column("email")])
     ///         .reversed()
@@ -263,13 +263,13 @@ public protocol OrderedRequest {
     
     /// Creates a request that reverses applied orderings.
     ///
-    ///     // SELECT * FROM players ORDER BY name DESC
+    ///     // SELECT * FROM player ORDER BY name DESC
     ///     var request = Player.all().order(Column("name"))
     ///     request = request.reversed()
     ///
     /// If no ordering was applied, the returned request is identical.
     ///
-    ///     // SELECT * FROM players
+    ///     // SELECT * FROM player
     ///     var request = Player.all()
     ///     request = request.reversed()
     func reversed() -> Self
@@ -278,13 +278,13 @@ public protocol OrderedRequest {
 extension OrderedRequest {
     /// Creates a request with the provided *orderings*.
     ///
-    ///     // SELECT * FROM players ORDER BY name
+    ///     // SELECT * FROM player ORDER BY name
     ///     var request = Player.all()
     ///     request = request.order(Column("name"))
     ///
     /// Any previous ordering is replaced:
     ///
-    ///     // SELECT * FROM players ORDER BY name
+    ///     // SELECT * FROM player ORDER BY name
     ///     request
     ///         .order(Column("email"))
     ///         .reversed()
@@ -295,13 +295,13 @@ extension OrderedRequest {
     
     /// Creates a request with the provided *sql* used for sorting.
     ///
-    ///     // SELECT * FROM players ORDER BY name
+    ///     // SELECT * FROM player ORDER BY name
     ///     var request = Player.all()
     ///     request = request.order(sql: "name")
     ///
     /// Any previous ordering is replaced:
     ///
-    ///     // SELECT * FROM players ORDER BY name
+    ///     // SELECT * FROM player ORDER BY name
     ///     request
     ///         .order(sql: "email")
     ///         .order(sql: "name")

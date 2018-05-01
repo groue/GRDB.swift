@@ -879,7 +879,7 @@ extension Database {
     
     /// An SQL column type.
     ///
-    ///     try db.create(table: "players") { t in
+    ///     try db.create(table: "player") { t in
     ///         t.autoIncrementedPrimaryKey("id")
     ///         t.column("title", .text)
     ///     }

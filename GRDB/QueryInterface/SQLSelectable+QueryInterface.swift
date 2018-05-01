@@ -8,11 +8,11 @@
 /// For example:
 ///
 ///     struct Player : TableRecord {
-///         static var databaseTableName = "players"
+///         static var databaseTableName = "player"
 ///         static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
 ///     }
 ///
-///     // SELECT *, rowid FROM players
+///     // SELECT *, rowid FROM player
 ///     let request = Player.all()
 public struct AllColumns {
     public init() { }

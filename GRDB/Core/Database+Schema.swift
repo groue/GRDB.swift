@@ -327,11 +327,11 @@ extension Database {
 /// This type closely matches the information returned by the
 /// `table_info` pragma.
 ///
-///     > CREATE TABLE players (
+///     > CREATE TABLE player (
 ///         id INTEGER PRIMARY KEY,
 ///         firstName TEXT,
 ///         lastName TEXT)
-///     > PRAGMA table_info("players")
+///     > PRAGMA table_info("player")
 ///     cid   name   type     notnull   dflt_value  pk
 ///     ----  -----  -------  --------  ----------  ---
 ///     0     id     INTEGER  0         NULL        1
@@ -362,14 +362,14 @@ public struct ColumnInfo : FetchableRecord {
     /// For example:
     ///
     ///     try db.execute("""
-    ///         CREATE TABLE players(
+    ///         CREATE TABLE player(
     ///             id INTEGER PRIMARY KEY,
     ///             name TEXT DEFAULT 'Anonymous',
     ///             score INT DEFAULT 0,
     ///             creationDate DATE DEFAULT CURRENT_TIMESTAMP
     ///         )
     ///         """)
-    ///     let columnInfos = try db.columns(in: "players")
+    ///     let columnInfos = try db.columns(in: "player")
     ///     columnInfos[0].defaultValueSQL // nil
     ///     columnInfos[1].defaultValueSQL // "'Anoynymous'"
     ///     columnInfos[2].defaultValueSQL // "0"
@@ -424,38 +424,38 @@ public struct IndexInfo {
 ///
 /// When the table's primary key is the rowid:
 ///
-///     // CREATE TABLE items (name TEXT)
-///     let pk = try db.primaryKey("items")
+///     // CREATE TABLE item (name TEXT)
+///     let pk = try db.primaryKey("item")
 ///     pk.columns     // ["rowid"]
 ///     pk.rowIDColumn // nil
 ///     pk.isRowID     // true
 ///
-///     // CREATE TABLE citizens (
+///     // CREATE TABLE citizen (
 ///     //   id INTEGER PRIMARY KEY,
 ///     //   name TEXT
 ///     // )
-///     let pk = try db.primaryKey("citizens")!
+///     let pk = try db.primaryKey("citizen")!
 ///     pk.columns     // ["id"]
 ///     pk.rowIDColumn // "id"
 ///     pk.isRowID     // true
 ///
 /// When the table's primary key is not the rowid:
 ///
-///     // CREATE TABLE countries (
+///     // CREATE TABLE country (
 ///     //   isoCode TEXT NOT NULL PRIMARY KEY
 ///     //   name TEXT
 ///     // )
-///     let pk = db.primaryKey("countries")!
+///     let pk = db.primaryKey("country")!
 ///     pk.columns     // ["isoCode"]
 ///     pk.rowIDColumn // nil
 ///     pk.isRowID     // false
 ///
-///     // CREATE TABLE citizenships (
-///     //   citizenID INTEGER NOT NULL REFERENCES citizens(id)
-///     //   countryIsoCode TEXT NOT NULL REFERENCES countries(isoCode)
+///     // CREATE TABLE citizenship (
+///     //   citizenID INTEGER NOT NULL REFERENCES citizen(id)
+///     //   countryIsoCode TEXT NOT NULL REFERENCES country(isoCode)
 ///     //   PRIMARY KEY (citizenID, countryIsoCode)
 ///     // )
-///     let pk = db.primaryKey("citizenships")!
+///     let pk = db.primaryKey("citizenship")!
 ///     pk.columns     // ["citizenID", "countryIsoCode"]
 ///     pk.rowIDColumn // nil
 ///     pk.isRowID     // false

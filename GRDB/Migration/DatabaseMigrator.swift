@@ -9,33 +9,36 @@
 ///
 ///     var migrator = DatabaseMigrator()
 ///
-///     // v1.0 database
-///     migrator.registerMigration("createAuthors") { db in
-///         try db.execute("""
-///             CREATE TABLE authors (
-///                 id INTEGER PRIMARY KEY,
-///                 creationDate TEXT,
-///                 name TEXT NOT NULL
-///             )
-///             """)
+///     // 1st migration
+///     migrator.registerMigration("createLibrary") { db in
+///         try db.create(table: "author") { t in
+///             t.autoIncrementedPrimaryKey("id")
+///             t.column("creationDate", .datetime)
+///             t.column("name", .text).notNull()
+///         }
+///
+///         try db.create(table: "book") { t in
+///             t.autoIncrementedPrimaryKey("id")
+///             t.column("authorId", .integer)
+///                 .notNull()
+///                 .references("author", onDelete: .cascade)
+///             t.column("title", .text).notNull()
+///         }
 ///     }
 ///
-///     migrator.registerMigration("createBooks") { db in
-///         try db.execute("""
-///             CREATE TABLE books (
-///                 uuid TEXT PRIMARY KEY,
-///                 authorID INTEGER NOT NULL
-///                          REFERENCES authors(id)
-///                          ON DELETE CASCADE ON UPDATE CASCADE,
-///                 title TEXT NOT NULL
-///             )
-///             """)
-///     }
-///
-///     // v2.0 database
+///     // 2nd migration
 ///     migrator.registerMigration("AddBirthYearToAuthors") { db in
-///         try db.execute("ALTER TABLE authors ADD COLUMN birthYear INT")
+///         try db.alter(table: "author") { t
+///             t.add(column: "birthYear", .integer)
+///         }
 ///     }
+///
+///     // Migrations for future versions will be inserted here:
+///     //
+///     // // 3rd migration
+///     // migrator.registerMigration("...") { db in
+///     //     ...
+///     // }
 ///
 ///     try migrator.migrate(dbQueue)
 public struct DatabaseMigrator {
@@ -46,14 +49,12 @@ public struct DatabaseMigrator {
     
     /// Registers a migration.
     ///
-    ///     migrator.registerMigration("createPlayers") { db in
-    ///         try db.execute("""
-    ///             CREATE TABLE players (
-    ///                 id INTEGER PRIMARY KEY,
-    ///                 creationDate TEXT,
-    ///                 name TEXT NOT NULL
-    ///             )
-    ///             """)
+    ///     migrator.registerMigration("createAuthors") { db in
+    ///         try db.create(table: "author") { t in
+    ///             t.autoIncrementedPrimaryKey("id")
+    ///             t.column("creationDate", .datetime)
+    ///             t.column("name", .text).notNull()
+    ///         }
     ///     }
     ///
     /// - parameters:
@@ -69,12 +70,13 @@ public struct DatabaseMigrator {
         ///
         ///     // Add a NOT NULL constraint on players.name:
         ///     migrator.registerMigrationWithDeferredForeignKeyCheck("AddNotNullCheckOnName") { db in
-        ///         try db.execute("""
-        ///             CREATE TABLE new_players (id INTEGER PRIMARY KEY, name TEXT NOT NULL);
-        ///             INSERT INTO new_players SELECT * FROM players;
-        ///             DROP TABLE players;
-        ///             ALTER TABLE new_players RENAME TO players;
-        ///             """)
+        ///         try db.create(table: "new_player") { t in
+        ///             t.autoIncrementedPrimaryKey("id")
+        ///             t.column("name", .text).notNull()
+        ///         }
+        ///         try db.execute("INSERT INTO new_player SELECT * FROM player")
+        ///         try db.drop(table: "player")
+        ///         try db.rename(table: "new_player", to: "player")
         ///     }
         ///
         /// While your migration code runs with disabled foreign key checks, those
@@ -96,12 +98,13 @@ public struct DatabaseMigrator {
         ///
         ///     // Add a NOT NULL constraint on players.name:
         ///     migrator.registerMigrationWithDeferredForeignKeyCheck("AddNotNullCheckOnName") { db in
-        ///         try db.execute("""
-        ///             CREATE TABLE new_players (id INTEGER PRIMARY KEY, name TEXT NOT NULL);
-        ///             INSERT INTO new_players SELECT * FROM players;
-        ///             DROP TABLE players;
-        ///             ALTER TABLE new_players RENAME TO players;
-        ///             """)
+        ///         try db.create(table: "new_player") { t in
+        ///             t.autoIncrementedPrimaryKey("id")
+        ///             t.column("name", .text).notNull()
+        ///         }
+        ///         try db.execute("INSERT INTO new_player SELECT * FROM player")
+        ///         try db.drop(table: "player")
+        ///         try db.rename(table: "new_player", to: "player")
         ///     }
         ///
         /// While your migration code runs with disabled foreign key checks, those

@@ -754,7 +754,7 @@ extension Sequence where Element == SQLExpression {
     ///
     /// For example:
     ///
-    ///     // SELECT * FROM players
+    ///     // SELECT * FROM player
     ///     // WHERE (registered
     ///     //        AND (score >= 1000)
     ///     //        AND (name IS NOT NULL))
@@ -767,10 +767,10 @@ extension Sequence where Element == SQLExpression {
     /// When the sequence is empty, `joined(operator: .and)` returns true,
     /// and `joined(operator: .or)` returns false:
     ///
-    ///     // SELECT * FROM players WHERE 1
+    ///     // SELECT * FROM player WHERE 1
     ///     Player.filter([].joined(operator: .and))
     ///
-    ///     // SELECT * FROM players WHERE 0
+    ///     // SELECT * FROM player WHERE 0
     ///     Player.filter([].joined(operator: .or))
     public func joined(operator: SQLLogicalBinaryOperator) -> SQLExpression {
         let expressions = Array(self)

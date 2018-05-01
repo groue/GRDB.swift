@@ -73,12 +73,12 @@ public protocol DatabaseWriter : DatabaseReader {
     /// For example:
     ///
     ///     try writer.write { db in
-    ///         try db.execute("DELETE FROM players")
+    ///         try db.execute("DELETE FROM player")
     ///         try writer.readFromCurrentState { db in
     ///             // Guaranteed to be zero
-    ///             try Int.fetchOne(db, "SELECT COUNT(*) FROM players")!
+    ///             try Int.fetchOne(db, "SELECT COUNT(*) FROM player")!
     ///         }
-    ///         try db.execute("INSERT INTO players ...")
+    ///         try db.execute("INSERT INTO player ...")
     ///     }
     func readFromCurrentState(_ block: @escaping (Database) -> Void) throws
 }

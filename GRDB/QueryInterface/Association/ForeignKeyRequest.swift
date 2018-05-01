@@ -80,7 +80,6 @@ struct ForeignKeyRequest {
     }
 }
 
-
 /// The (origin, destination) column pairs that join a left table to a right table.
 /// :nodoc:
 typealias ForeignKeyMapping = [(origin: String, destination: String)]

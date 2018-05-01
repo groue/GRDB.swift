@@ -4,7 +4,7 @@ extension FetchableRecord where Self: TableRecord {
     
     /// A cursor over all records fetched from the database.
     ///
-    ///     // SELECT * FROM players
+    ///     // SELECT * FROM player
     ///     let players = try Player.fetchCursor(db) // Cursor of Player
     ///     while let player = try players.next() {  // Player
     ///         ...
@@ -30,7 +30,7 @@ extension FetchableRecord where Self: TableRecord {
     
     /// An array of all records fetched from the database.
     ///
-    ///     // SELECT * FROM players
+    ///     // SELECT * FROM player
     ///     let players = try Player.fetchAll(db) // [Player]
     ///
     /// The selection defaults to all columns. This default can be changed for
@@ -45,7 +45,7 @@ extension FetchableRecord where Self: TableRecord {
     
     /// The first found record.
     ///
-    ///     // SELECT * FROM players
+    ///     // SELECT * FROM player
     ///     let player = try Player.fetchOne(db) // Player?
     ///
     /// The selection defaults to all columns. This default can be changed for

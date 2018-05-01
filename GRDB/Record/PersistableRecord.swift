@@ -623,16 +623,16 @@ extension MutablePersistableRecord {
     /// Delete records identified by their primary keys; returns the number of
     /// deleted rows.
     ///
-    ///     // DELETE FROM players WHERE id IN (1, 2, 3)
+    ///     // DELETE FROM player WHERE id IN (1, 2, 3)
     ///     try Player.deleteAll(db, keys: [1, 2, 3])
     ///
-    ///     // DELETE FROM countries WHERE code IN ('FR', 'US', 'DE')
+    ///     // DELETE FROM country WHERE code IN ('FR', 'US', 'DE')
     ///     try Country.deleteAll(db, keys: ["FR", "US", "DE"])
     ///
     /// When the table has no explicit primary key, GRDB uses the hidden
     /// "rowid" column:
     ///
-    ///     // DELETE FROM documents WHERE rowid IN (1, 2, 3)
+    ///     // DELETE FROM document WHERE rowid IN (1, 2, 3)
     ///     try Document.deleteAll(db, keys: [1, 2, 3])
     ///
     /// - parameters:
@@ -652,16 +652,16 @@ extension MutablePersistableRecord {
     /// Delete a record, identified by its primary key; returns whether a
     /// database row was deleted.
     ///
-    ///     // DELETE FROM players WHERE id = 123
+    ///     // DELETE FROM player WHERE id = 123
     ///     try Player.deleteOne(db, key: 123)
     ///
-    ///     // DELETE FROM countries WHERE code = 'FR'
+    ///     // DELETE FROM country WHERE code = 'FR'
     ///     try Country.deleteOne(db, key: "FR")
     ///
     /// When the table has no explicit primary key, GRDB uses the hidden
     /// "rowid" column:
     ///
-    ///     // DELETE FROM documents WHERE rowid = 1
+    ///     // DELETE FROM document WHERE rowid = 1
     ///     try Document.deleteOne(db, key: 1)
     ///
     /// - parameters:

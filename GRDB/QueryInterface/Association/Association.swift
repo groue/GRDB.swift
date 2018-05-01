@@ -48,6 +48,7 @@ public protocol Association: SelectionRequest, FilteredRequest, OrderedRequest {
     ///     }
     func forKey(_ key: String) -> Self
     
+    // TODO: this one prevents "through" associations like HasOneThrough, HasManyThrough, etc.
     /// :nodoc:
     var request: AssociationRequest<RightAssociated> { get }
     
@@ -271,7 +272,7 @@ extension Association where LeftAssociated: MutablePersistableRecord {
     /// For example:
     ///
     ///     struct Team: {
-    ///         static let players = hasMany(Book.self)
+    ///         static let players = hasMany(Player.self)
     ///         var players: QueryInterfaceRequest<Player> {
     ///             return request(for: Team.players)
     ///         }

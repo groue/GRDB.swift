@@ -289,7 +289,7 @@ extension AuthorizedStatement {
 /// You create SelectStatement with the Database.makeSelectStatement() method:
 ///
 ///     try dbQueue.read { db in
-///         let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM players WHERE score > ?")
+///         let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM player WHERE score > ?")
 ///         let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
 ///         let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
 ///     }
@@ -375,7 +375,7 @@ extension SelectStatement: AuthorizedStatement { }
 /// For example:
 ///
 ///     try dbQueue.read { db in
-///         let statement = db.makeSelectStatement("SELECT * FROM players")
+///         let statement = db.makeSelectStatement("SELECT * FROM player")
 ///         let cursor: StatementCursor = statement.cursor()
 ///     }
 public final class StatementCursor: Cursor {
@@ -414,7 +414,7 @@ public final class StatementCursor: Cursor {
 /// You create UpdateStatement with the Database.makeUpdateStatement() method:
 ///
 ///     try dbQueue.inTransaction { db in
-///         let statement = try db.makeUpdateStatement("INSERT INTO players (name) VALUES (?)")
+///         let statement = try db.makeUpdateStatement("INSERT INTO player (name) VALUES (?)")
 ///         try statement.execute(arguments: ["Arthur"])
 ///         try statement.execute(arguments: ["Barbara"])
 ///         return .commit

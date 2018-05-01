@@ -216,6 +216,7 @@ extension QueryInterfaceQuery {
 }
 
 extension QueryInterfaceQuery {
+    /// precondition: self is the result of finalizedQuery
     func sql(_ db: Database, _ context: inout SQLGenerationContext) throws -> String {
         var sql = "SELECT"
         

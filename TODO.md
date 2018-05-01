@@ -30,6 +30,7 @@ GRDB 3.0
 - [ ] If required by associations, make reversed() make nothing when there is no alraedy applied ordering
 - [ ] Fix matchingRowIds
 - [ ] Simplify Range extensions for Swift 4.1
+- [ ] https://forums.swift.org/t/how-to-encode-objects-of-unknown-type/12253/6
 
 Not sure
 

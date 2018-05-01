@@ -18,7 +18,7 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
     ///
     ///     let controller = FetchedRecordsController<Wine>(
     ///         dbQueue,
-    ///         sql: "SELECT * FROM wines WHERE color = ? ORDER BY name",
+    ///         sql: "SELECT * FROM wine WHERE color = ? ORDER BY name",
     ///         arguments: [Color.red],
     ///         isSameRecord: { (wine1, wine2) in wine1.id == wine2.id })
     ///
@@ -402,17 +402,17 @@ extension FetchedRecordsController where Record: TableRecord {
     ///
     ///     let controller = FetchedRecordsController<Wine>(
     ///         dbQueue,
-    ///         sql: "SELECT * FROM wines WHERE color = ? ORDER BY name",
+    ///         sql: "SELECT * FROM wine WHERE color = ? ORDER BY name",
     ///         arguments: [Color.red])
     ///
     /// The records are compared by primary key (single-column primary key,
     /// compound primary key, or implicit rowid). For a database table which
     /// has an `id` primary key, this initializer is equivalent to:
     ///
-    ///     // Assuming the wines table has an `id` primary key:
+    ///     // Assuming the wine table has an `id` primary key:
     ///     let controller = FetchedRecordsController<Wine>(
     ///         dbQueue,
-    ///         sql: "SELECT * FROM wines WHERE color = ? ORDER BY name",
+    ///         sql: "SELECT * FROM wine WHERE color = ? ORDER BY name",
     ///         arguments: [Color.red],
     ///         isSameRecord: { (wine1, wine2) in wine1.id == wine2.id })
     ///
@@ -451,7 +451,7 @@ extension FetchedRecordsController where Record: TableRecord {
     /// compound primary key, or implicit rowid). For a database table which
     /// has an `id` primary key, this initializer is equivalent to:
     ///
-    ///     // Assuming the wines table has an `id` primary key:
+    ///     // Assuming the wine table has an `id` primary key:
     ///     let controller = FetchedRecordsController<Wine>(
     ///         dbQueue,
     ///         request: request,
@@ -1049,4 +1049,3 @@ private final class Item<T: FetchableRecord> : FetchableRecord, Equatable {
         return lhs.row == rhs.row
     }
 }
-

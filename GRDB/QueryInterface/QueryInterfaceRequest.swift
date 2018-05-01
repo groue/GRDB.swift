@@ -49,13 +49,13 @@ extension QueryInterfaceRequest : SelectionRequest, FilteredRequest, Aggregating
 
     /// Creates a request with a new net of selected columns.
     ///
-    ///     // SELECT id, email FROM players
+    ///     // SELECT id, email FROM player
     ///     var request = Player.all()
     ///     request = request.select([Column("id"), Column("email")])
     ///
     /// Any previous selection is replaced:
     ///
-    ///     // SELECT email FROM players
+    ///     // SELECT email FROM player
     ///     request
     ///         .select([Column("id")])
     ///         .select([Column("email")])
@@ -65,11 +65,11 @@ extension QueryInterfaceRequest : SelectionRequest, FilteredRequest, Aggregating
     
     /// Creates a request which returns distinct rows.
     ///
-    ///     // SELECT DISTINCT * FROM players
+    ///     // SELECT DISTINCT * FROM player
     ///     var request = Player.all()
     ///     request = request.distinct()
     ///
-    ///     // SELECT DISTINCT name FROM players
+    ///     // SELECT DISTINCT name FROM player
     ///     var request = Player.select(Column("name"))
     ///     request = request.distinct()
     public func distinct() -> QueryInterfaceRequest<T> {
@@ -79,7 +79,7 @@ extension QueryInterfaceRequest : SelectionRequest, FilteredRequest, Aggregating
     /// Creates a request with the provided *predicate promise* added to the
     /// eventual set of already applied predicates.
     ///
-    ///     // SELECT * FROM players WHERE 1
+    ///     // SELECT * FROM player WHERE 1
     ///     var request = Player.all()
     ///     request = request.filter { db in true }
     public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> QueryInterfaceRequest<T> {
@@ -99,13 +99,13 @@ extension QueryInterfaceRequest : SelectionRequest, FilteredRequest, Aggregating
     
     /// Creates a request with the provided *orderings*.
     ///
-    ///     // SELECT * FROM players ORDER BY name
+    ///     // SELECT * FROM player ORDER BY name
     ///     var request = Player.all()
     ///     request = request.order([Column("name")])
     ///
     /// Any previous ordering is replaced:
     ///
-    ///     // SELECT * FROM players ORDER BY name
+    ///     // SELECT * FROM player ORDER BY name
     ///     request
     ///         .order([Column("email")])
     ///         .reversed()
@@ -116,13 +116,13 @@ extension QueryInterfaceRequest : SelectionRequest, FilteredRequest, Aggregating
     
     /// Creates a request that reverses applied orderings.
     ///
-    ///     // SELECT * FROM players ORDER BY name DESC
+    ///     // SELECT * FROM player ORDER BY name DESC
     ///     var request = Player.all().order(Column("name"))
     ///     request = request.reversed()
     ///
     /// If no ordering was applied, the returned request is identical.
     ///
-    ///     // SELECT * FROM players
+    ///     // SELECT * FROM player
     ///     var request = Player.all()
     ///     request = request.reversed()
     public func reversed() -> QueryInterfaceRequest<T> {
@@ -131,7 +131,7 @@ extension QueryInterfaceRequest : SelectionRequest, FilteredRequest, Aggregating
     
     /// Creates a request which fetches *limit* rows, starting at *offset*.
     ///
-    ///     // SELECT * FROM players LIMIT 1
+    ///     // SELECT * FROM player LIMIT 1
     ///     var request = Player.all()
     ///     request = request.limit(1)
     ///
@@ -214,7 +214,7 @@ extension TableRecord {
     
     /// Creates a request which fetches all records.
     ///
-    ///     // SELECT * FROM players
+    ///     // SELECT * FROM player
     ///     let request = Player.all()
     ///
     /// The selection defaults to all columns. This default can be changed for
@@ -234,7 +234,7 @@ extension TableRecord {
     
     /// Creates a request which selects *selection*.
     ///
-    ///     // SELECT id, email FROM players
+    ///     // SELECT id, email FROM player
     ///     let request = Player.select(Column("id"), Column("email"))
     public static func select(_ selection: SQLSelectable...) -> QueryInterfaceRequest<Self> {
         return all().select(selection)
@@ -242,7 +242,7 @@ extension TableRecord {
     
     /// Creates a request which selects *selection*.
     ///
-    ///     // SELECT id, email FROM players
+    ///     // SELECT id, email FROM player
     ///     let request = Player.select([Column("id"), Column("email")])
     public static func select(_ selection: [SQLSelectable]) -> QueryInterfaceRequest<Self> {
         return all().select(selection)
@@ -250,7 +250,7 @@ extension TableRecord {
     
     /// Creates a request which selects *sql*.
     ///
-    ///     // SELECT id, email FROM players
+    ///     // SELECT id, email FROM player
     ///     let request = Player.select(sql: "id, email")
     public static func select(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<Self> {
         return all().select(sql: sql, arguments: arguments)
@@ -258,7 +258,7 @@ extension TableRecord {
     
     /// Creates a request with the provided *predicate*.
     ///
-    ///     // SELECT * FROM players WHERE email = 'arthur@example.com'
+    ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
     ///     let request = Player.filter(Column("email") == "arthur@example.com")
     ///
     /// The selection defaults to all columns. This default can be changed for
@@ -270,7 +270,7 @@ extension TableRecord {
     
     /// Creates a request with the provided primary key *predicate*.
     ///
-    ///     // SELECT * FROM players WHERE id = 1
+    ///     // SELECT * FROM player WHERE id = 1
     ///     let request = Player.filter(key: 1)
     ///
     /// The selection defaults to all columns. This default can be changed for
@@ -282,7 +282,7 @@ extension TableRecord {
     
     /// Creates a request with the provided primary key *predicate*.
     ///
-    ///     // SELECT * FROM players WHERE id IN (1, 2, 3)
+    ///     // SELECT * FROM player WHERE id IN (1, 2, 3)
     ///     let request = Player.filter(keys: [1, 2, 3])
     ///
     /// The selection defaults to all columns. This default can be changed for
@@ -294,7 +294,7 @@ extension TableRecord {
     
     /// Creates a request with the provided primary key *predicate*.
     ///
-    ///     // SELECT * FROM passports WHERE personId = 1 AND countryCode = 'FR'
+    ///     // SELECT * FROM passport WHERE personId = 1 AND countryCode = 'FR'
     ///     let request = Passport.filter(key: ["personId": 1, "countryCode": "FR"])
     ///
     /// When executed, this request raises a fatal error if there is no unique
@@ -309,7 +309,7 @@ extension TableRecord {
     
     /// Creates a request with the provided primary key *predicate*.
     ///
-    ///     // SELECT * FROM passports WHERE (personId = 1 AND countryCode = 'FR') OR ...
+    ///     // SELECT * FROM passport WHERE (personId = 1 AND countryCode = 'FR') OR ...
     ///     let request = Passport.filter(keys: [["personId": 1, "countryCode": "FR"], ...])
     ///
     /// When executed, this request raises a fatal error if there is no unique
@@ -324,7 +324,7 @@ extension TableRecord {
     
     /// Creates a request with the provided *predicate*.
     ///
-    ///     // SELECT * FROM players WHERE email = 'arthur@example.com'
+    ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
     ///     let request = Player.filter(sql: "email = ?", arguments: ["arthur@example.com"])
     ///
     /// The selection defaults to all columns. This default can be changed for
@@ -337,7 +337,7 @@ extension TableRecord {
     /// Creates a request sorted according to the
     /// provided *orderings*.
     ///
-    ///     // SELECT * FROM players ORDER BY name
+    ///     // SELECT * FROM player ORDER BY name
     ///     let request = Player.order(Column("name"))
     ///
     /// The selection defaults to all columns. This default can be changed for
@@ -350,7 +350,7 @@ extension TableRecord {
     /// Creates a request sorted according to the
     /// provided *orderings*.
     ///
-    ///     // SELECT * FROM players ORDER BY name
+    ///     // SELECT * FROM player ORDER BY name
     ///     let request = Player.order([Column("name")])
     ///
     /// The selection defaults to all columns. This default can be changed for
@@ -362,7 +362,7 @@ extension TableRecord {
     
     /// Creates a request sorted according to *sql*.
     ///
-    ///     // SELECT * FROM players ORDER BY name
+    ///     // SELECT * FROM player ORDER BY name
     ///     let request = Player.order(sql: "name")
     ///
     /// The selection defaults to all columns. This default can be changed for
@@ -375,7 +375,7 @@ extension TableRecord {
     /// Creates a request which fetches *limit* rows, starting at
     /// *offset*.
     ///
-    ///     // SELECT * FROM players LIMIT 1
+    ///     // SELECT * FROM player LIMIT 1
     ///     let request = Player.limit(1)
     ///
     /// The selection defaults to all columns. This default can be changed for

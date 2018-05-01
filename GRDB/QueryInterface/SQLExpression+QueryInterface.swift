@@ -142,8 +142,6 @@ public struct SQLUnaryOperator : Hashable {
 /// SQLExpressionUnary is an expression made of an unary operator and
 /// an operand expression.
 ///
-///     SQLExpressionUnary(.not, Column("favorite"))
-///
 /// :nodoc:
 public struct SQLExpressionUnary : SQLExpression {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)

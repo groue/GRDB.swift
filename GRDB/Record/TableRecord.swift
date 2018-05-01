@@ -12,10 +12,10 @@ public protocol TableRecord {
     /// The name of the database table used to build requests.
     ///
     ///     struct Player : TableRecord {
-    ///         static var databaseTableName = "players"
+    ///         static var databaseTableName = "player"
     ///     }
     ///
-    ///     // SELECT * FROM players
+    ///     // SELECT * FROM player
     ///     try Player.fetchAll(db)
     static var databaseTableName: String { get }
     
@@ -23,28 +23,28 @@ public protocol TableRecord {
     ///
     /// Unless said otherwise, requests select all columns:
     ///
-    ///     // SELECT * FROM players
+    ///     // SELECT * FROM player
     ///     try Player.fetchAll(db)
     ///
     /// You can provide a custom implementation and provide an explicit list
     /// of columns:
     ///
     ///     struct RestrictedPlayer : TableRecord {
-    ///         static var databaseTableName = "players"
+    ///         static var databaseTableName = "player"
     ///         static var databaseSelection = [Column("id"), Column("name")]
     ///     }
     ///
-    ///     // SELECT id, name FROM players
+    ///     // SELECT id, name FROM player
     ///     try RestrictedPlayer.fetchAll(db)
     ///
     /// You can also add extra columns such as the `rowid` column:
     ///
     ///     struct ExtendedPlayer : TableRecord {
-    ///         static var databaseTableName = "players"
+    ///         static var databaseTableName = "player"
     ///         static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
     ///     }
     ///
-    ///     // SELECT *, rowid FROM players
+    ///     // SELECT *, rowid FROM player
     ///     try ExtendedPlayer.fetchAll(db)
     static var databaseSelection: [SQLSelectable] { get }
 }
@@ -77,14 +77,14 @@ extension TableRecord {
     /// For example:
     ///
     ///     struct Player: TableRecord {
-    ///         static let databaseTableName = "players"
+    ///         static let databaseTableName = "player"
     ///     }
     ///
-    ///     // SELECT "players".* FROM players
-    ///     let sql = "SELECT \(Player.selectionSQL()) FROM players"
+    ///     // SELECT "player".* FROM player
+    ///     let sql = "SELECT \(Player.selectionSQL()) FROM player"
     ///
-    ///     // SELECT "p".* FROM players AS p
-    ///     let sql = "SELECT \(Player.selectionSQL(alias: "p")) FROM players AS p"
+    ///     // SELECT "p".* FROM player AS p
+    ///     let sql = "SELECT \(Player.selectionSQL(alias: "p")) FROM player p"
     public static func selectionSQL(alias: String? = nil) -> String {
         let alias = TableAlias(tableName: databaseTableName, userName: alias)
         let selection = databaseSelection.map { $0.qualifiedSelectable(with: alias) }
@@ -99,11 +99,11 @@ extension TableRecord {
     /// For example:
     ///
     ///     struct Player: TableRecord {
-    ///         static let databaseTableName = "players"
+    ///         static let databaseTableName = "player"
     ///     }
     ///
     ///     try dbQueue.write { db in
-    ///         try db.create(table: "players") { t in
+    ///         try db.create(table: "player") { t in
     ///             t.autoIncrementedPrimaryKey("id")
     ///             t.column("name", .text)
     ///             t.column("score", .integer)

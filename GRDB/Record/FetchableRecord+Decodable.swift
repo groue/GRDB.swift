@@ -273,4 +273,3 @@ extension FetchableRecord where Self: Decodable {
         try! self.init(from: RowDecoder(row: row, codingPath: []))
     }
 }
-

@@ -1,15 +1,15 @@
 /// FTS3 lets you define "fts3" virtual tables.
 ///
-///     // CREATE VIRTUAL TABLE documents USING fts3(content)
-///     try db.create(virtualTable: "documents", using: FTS3()) { t in
+///     // CREATE VIRTUAL TABLE document USING fts3(content)
+///     try db.create(virtualTable: "document", using: FTS3()) { t in
 ///         t.column("content")
 ///     }
 public struct FTS3 : VirtualTableModule {
     /// Creates a FTS3 module suitable for the Database
     /// `create(virtualTable:using:)` method.
     ///
-    ///     // CREATE VIRTUAL TABLE documents USING fts3(content)
-    ///     try db.create(virtualTable: "documents", using: FTS3()) { t in
+    ///     // CREATE VIRTUAL TABLE document USING fts3(content)
+    ///     try db.create(virtualTable: "document", using: FTS3()) { t in
     ///         t.column("content")
     ///     }
     public init() {
@@ -54,7 +54,7 @@ public struct FTS3 : VirtualTableModule {
 /// You don't create instances of this class. Instead, you use the Database
 /// `create(virtualTable:using:)` method:
 ///
-///     try db.create(virtualTable: "documents", using: FTS3()) { t in // t is FTS3TableDefinition
+///     try db.create(virtualTable: "document", using: FTS3()) { t in // t is FTS3TableDefinition
 ///         t.column("content")
 ///     }
 public final class FTS3TableDefinition {
@@ -62,7 +62,7 @@ public final class FTS3TableDefinition {
     
     /// The virtual table tokenizer
     ///
-    ///     try db.create(virtualTable: "documents", using: FTS3()) { t in
+    ///     try db.create(virtualTable: "document", using: FTS3()) { t in
     ///         t.tokenizer = .porter
     ///     }
     /// See https://www.sqlite.org/fts3.html#creating_and_destroying_fts_tables
@@ -70,7 +70,7 @@ public final class FTS3TableDefinition {
     
     /// Appends a table column.
     ///
-    ///     try db.create(virtualTable: "documents", using: FTS3()) { t in
+    ///     try db.create(virtualTable: "document", using: FTS3()) { t in
     ///         t.column("content")
     ///     }
     ///

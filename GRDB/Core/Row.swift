@@ -583,7 +583,7 @@ extension Row {
 /// A cursor of database rows. For example:
 ///
 ///     try dbQueue.read { db in
-///         let rows: RowCursor = try Row.fetchCursor(db, "SELECT * FROM players")
+///         let rows: RowCursor = try Row.fetchCursor(db, "SELECT * FROM player")
 ///     }
 public final class RowCursor : Cursor {
     public let statement: SelectStatement
@@ -690,7 +690,7 @@ extension Row {
     
     /// Returns a cursor over rows fetched from an SQL query.
     ///
-    ///     let rows = try Row.fetchCursor(db, "SELECT id, name FROM players") // RowCursor
+    ///     let rows = try Row.fetchCursor(db, "SELECT id, name FROM player") // RowCursor
     ///     while let row = try rows.next() { // Row
     ///         let id: Int64 = row[0]
     ///         let name: String = row[1]

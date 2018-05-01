@@ -18,27 +18,27 @@
 ///
 /// - `SelectStatement.fetchedRegion`:
 ///
-///     let statement = db.makeSelectStatement("SELECT name, score FROM players")
+///     let statement = db.makeSelectStatement("SELECT name, score FROM player")
 ///     print(statement.fetchedRegion)
-///     // prints "players(name,score)"
+///     // prints "player(name,score)"
 ///
 /// - `Request.fetchedRegion(_:)`
 ///
 ///     let request = Player.filter(key: 1)
 ///     try print(request.fetchedRegion(db))
-///     // prints "players(*)[1]"
+///     // prints "player(*)[1]"
 ///
 /// Database regions returned by requests can be more precise than regions
 /// returned by select statements. Especially, regions returned by statements
 /// don't know about rowids:
 ///
 ///     // A plain statement
-///     let statement = db.makeSelectStatement("SELECT * FROM players WHERE id = 1")
-///     statement.fetchedRegion       // "players(*)"
+///     let statement = db.makeSelectStatement("SELECT * FROM player WHERE id = 1")
+///     statement.fetchedRegion       // "player(*)"
 ///
 ///     // A query interface request that executes the same statement:
 ///     let request = Player.filter(key: 1)
-///     try request.fetchedRegion(db) // "players(*)[1]"
+///     try request.fetchedRegion(db) // "player(*)[1]"
 public struct DatabaseRegion: CustomStringConvertible, Equatable {
     private let tableRegions: [String: TableRegion]?
     private init(tableRegions: [String: TableRegion]?) {

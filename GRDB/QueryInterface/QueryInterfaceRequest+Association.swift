@@ -48,7 +48,7 @@ extension MutablePersistableRecord {
     /// For example:
     ///
     ///     struct Team: {
-    ///         static let players = hasMany(Book.self)
+    ///         static let players = hasMany(Player.self)
     ///         var players: QueryInterfaceRequest<Player> {
     ///             return request(for: Team.players)
     ///         }
