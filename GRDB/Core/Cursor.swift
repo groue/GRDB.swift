@@ -132,7 +132,6 @@ extension Cursor {
         return nil
     }
     
-    #if swift(>=4.1)
     /// Returns a cursor over the concatenated non-nil results of mapping
     /// transform over this cursor.
     public func compactMap<ElementOfResult>(_ transform: @escaping (Element) throws -> ElementOfResult?) -> MapCursor<FilterCursor<MapCursor<Self, ElementOfResult?>>, ElementOfResult> {
@@ -143,13 +142,6 @@ extension Cursor {
     public func flatMap<ElementOfResult>(_ transform: @escaping (Element) throws -> ElementOfResult?) -> MapCursor<FilterCursor<MapCursor<Self, ElementOfResult?>>, ElementOfResult> {
         return compactMap(transform)
     }
-    #else
-    /// Returns a cursor over the concatenated non-nil results of mapping
-    /// transform over this cursor.
-    public func flatMap<ElementOfResult>(_ transform: @escaping (Element) throws -> ElementOfResult?) -> MapCursor<FilterCursor<MapCursor<Self, ElementOfResult?>>, ElementOfResult> {
-        return map(transform).filter { $0 != nil }.map { $0! }
-    }
-    #endif
     
     /// Returns a cursor that skips any initial elements that satisfy
     /// `predicate`.

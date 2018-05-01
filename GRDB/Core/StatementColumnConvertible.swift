@@ -75,7 +75,7 @@ extension StatementColumnConvertible {
 /// For example:
 ///
 ///     try dbQueue.read { db in
-///         let names: ColumnCursor<String> = try String.fetchCursor(db, "SELECT name FROM players")
+///         let names: ColumnCursor<String> = try String.fetchCursor(db, "SELECT name FROM player")
 ///         while let name = names.next() { // String
 ///             print(name)
 ///         }
@@ -121,7 +121,7 @@ public final class ColumnCursor<Value: DatabaseValueConvertible & StatementColum
 /// For example:
 ///
 ///     try dbQueue.read { db in
-///         let emails: NullableColumnCursor<String> = try Optional<String>.fetchCursor(db, "SELECT email FROM players")
+///         let emails: NullableColumnCursor<String> = try Optional<String>.fetchCursor(db, "SELECT email FROM player")
 ///         while let email = emails.next() { // String?
 ///             print(email ?? "<NULL>")
 ///         }

@@ -8,17 +8,17 @@ extension SQLExpression {
     ///
     /// :nodoc:
     public var literal: SQLExpressionLiteral {
-        var arguments: StatementArguments? = []
-        let sql = expressionSQL(&arguments)
-        return SQLExpressionLiteral(sql, arguments: arguments)
+        var context = SQLGenerationContext.literalGenerationContext(withArguments: true)
+        let sql = expressionSQL(&context)
+        return SQLExpressionLiteral(sql, arguments: context.arguments)
     }
     
     /// The expression as a quoted SQL literal (not public in order to avoid abuses)
     ///
     ///     "foo'bar".databaseValue.sql  // "'foo''bar'""
     var sql: String {
-        var arguments: StatementArguments? = nil
-        return expressionSQL(&arguments)
+        var context = SQLGenerationContext.literalGenerationContext(withArguments: false)
+        return expressionSQL(&context)
     }
 }
 
@@ -66,14 +66,13 @@ public struct SQLExpressionLiteral : SQLExpression {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func expressionSQL(_ arguments: inout StatementArguments?) -> String {
-        if let literalArguments = self.arguments {
-            guard arguments != nil else {
+    public func expressionSQL(_ context: inout SQLGenerationContext) -> String {
+        if let arguments = arguments {
+            if context.appendArguments(arguments) == false {
                 // GRDB limitation: we don't know how to look for `?` in sql and
                 // replace them with with literals.
                 fatalError("Not implemented")
             }
-            arguments! += literalArguments
         }
         if unsafeRaw {
             return sql
@@ -84,7 +83,13 @@ public struct SQLExpressionLiteral : SQLExpression {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
+    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        return self
+    }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// :nodoc:
+    public func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
         return self
     }
 }
@@ -137,8 +142,6 @@ public struct SQLUnaryOperator : Hashable {
 /// SQLExpressionUnary is an expression made of an unary operator and
 /// an operand expression.
 ///
-///     SQLExpressionUnary(.not, Column("favorite"))
-///
 /// :nodoc:
 public struct SQLExpressionUnary : SQLExpression {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -165,14 +168,20 @@ public struct SQLExpressionUnary : SQLExpression {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func expressionSQL(_ arguments: inout StatementArguments?) -> String {
-        return op.sql + (op.needsRightSpace ? " " : "") + expression.expressionSQL(&arguments)
+    public func expressionSQL(_ context: inout SQLGenerationContext) -> String {
+        return op.sql + (op.needsRightSpace ? " " : "") + expression.expressionSQL(&context)
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
-        return SQLExpressionUnary(op, expression.qualifiedExpression(with: qualifier))
+    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        return SQLExpressionUnary(op, expression.qualifiedExpression(with: alias))
+    }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// :nodoc:
+    public func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
+        return SQLExpressionUnary(op, expression.resolvedExpression(inContext: context))
     }
 }
 
@@ -268,8 +277,8 @@ public struct SQLExpressionBinary : SQLExpression {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func expressionSQL(_ arguments: inout StatementArguments?) -> String {
-        return "(" + lhs.expressionSQL(&arguments) + " " + op.sql + " " + rhs.expressionSQL(&arguments) + ")"
+    public func expressionSQL(_ context: inout SQLGenerationContext) -> String {
+        return "(" + lhs.expressionSQL(&context) + " " + op.sql + " " + rhs.expressionSQL(&context) + ")"
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -281,11 +290,157 @@ public struct SQLExpressionBinary : SQLExpression {
             return SQLExpressionNot(self)
         }
     }
+        
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// :nodoc:
+    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        return SQLExpressionBinary(op, lhs.qualifiedExpression(with: alias), rhs.qualifiedExpression(with: alias))
+    }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
-        // FIXME: this implementation ignores column qualifiers
+    public func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
+        return SQLExpressionBinary(op, lhs.resolvedExpression(inContext: context), rhs.resolvedExpression(inContext: context))
+    }
+}
+
+// MARK: - SQLExpressionAnd
+
+struct SQLExpressionAnd : SQLExpression {
+    let expressions: [SQLExpression]
+    
+    init(_ expressions: [SQLExpression]) {
+        self.expressions = expressions
+    }
+    
+    func expressionSQL(_ context: inout SQLGenerationContext) -> String {
+        guard let first = expressions.first else {
+            // Ruby [].all? # => true
+            return true.sqlExpression.expressionSQL(&context)
+        }
+        if expressions.count == 1 {
+            return first.expressionSQL(&context)
+        }
+        let expressionSQLs = expressions.map { $0.expressionSQL(&context) }
+        return "(" + expressionSQLs.joined(separator: " AND ") + ")"
+    }
+    
+    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        return SQLExpressionAnd(expressions.map { $0.qualifiedExpression(with: alias) })
+    }
+    
+    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
+        return SQLExpressionAnd(expressions.map { $0.resolvedExpression(inContext: context) })
+    }
+    
+    func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
+        let matchedRowIds = expressions.compactMap {
+            $0.matchedRowIds(rowIdName: rowIdName)
+        }
+        guard let first = matchedRowIds.first else {
+            return nil
+        }
+        return matchedRowIds.suffix(from: 1).reduce(into: first) { $0.formIntersection($1) }
+    }
+}
+
+// MARK: - SQLExpressionOr
+
+struct SQLExpressionOr : SQLExpression {
+    let expressions: [SQLExpression]
+    
+    init(_ expressions: [SQLExpression]) {
+        self.expressions = expressions
+    }
+    
+    func expressionSQL(_ context: inout SQLGenerationContext) -> String {
+        guard let first = expressions.first else {
+            // Ruby [].any? # => false
+            return false.sqlExpression.expressionSQL(&context)
+        }
+        if expressions.count == 1 {
+            return first.expressionSQL(&context)
+        }
+        let expressionSQLs = expressions.map { $0.expressionSQL(&context) }
+        return "(" + expressionSQLs.joined(separator: " OR ") + ")"
+    }
+    
+    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        return SQLExpressionOr(expressions.map { $0.qualifiedExpression(with: alias) })
+    }
+    
+    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
+        return SQLExpressionOr(expressions.map { $0.resolvedExpression(inContext: context) })
+    }
+    
+    func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
+        if expressions.isEmpty {
+            return []
+        }
+        var result: Set<Int64> = []
+        for expr in expressions {
+            guard let matchedRowIds = expr.matchedRowIds(rowIdName: rowIdName) else {
+                return nil
+            }
+            result.formUnion(matchedRowIds)
+        }
+        return result
+    }
+}
+
+// MARK: - SQLExpressionEqual
+
+struct SQLExpressionEqual: SQLExpression {
+    var lhs: SQLExpression
+    var rhs: SQLExpression
+    var op: Operator
+    
+    init(_ op: Operator, _ lhs: SQLExpression, _ rhs: SQLExpression) {
+        self.lhs = lhs
+        self.rhs = rhs
+        self.op = op
+    }
+    
+    enum Operator: String {
+        case equal = "="
+        case notEqual = "<>"
+        case `is` = "IS"
+        case isNot = "IS NOT"
+        
+        var negated: Operator {
+            switch self {
+            case .equal: return .notEqual
+            case .notEqual: return .equal
+            case .is: return .isNot
+            case .isNot: return .is
+            }
+        }
+    }
+    
+    func expressionSQL(_ context: inout SQLGenerationContext) -> String {
+        return "(" +
+            lhs.expressionSQL(&context) +
+            " " +
+            op.rawValue +
+            " " +
+            rhs.expressionSQL(&context) +
+        ")"
+    }
+    
+    var negated: SQLExpression {
+        return SQLExpressionEqual(op.negated, lhs, rhs)
+    }
+    
+    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        return SQLExpressionEqual(op, lhs.qualifiedExpression(with: alias), rhs.qualifiedExpression(with: alias))
+    }
+    
+    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
+        return SQLExpressionEqual(op, lhs.resolvedExpression(inContext: context), rhs.resolvedExpression(inContext: context))
+    }
+    
+    func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
+        // FIXME: this implementation ignores column aliases
         switch op {
         case .equal, .is:
             // Look for `id ==/IS 1`, `rowid ==/IS 1`, `1 ==/IS id`, `1 ==/IS rowid`
@@ -312,91 +467,9 @@ public struct SQLExpressionBinary : SQLExpression {
                 return nil
             }
             
-        default:
+        case .notEqual, .isNot:
             return nil
         }
-    }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
-        return SQLExpressionBinary(op, lhs.qualifiedExpression(with: qualifier), rhs.qualifiedExpression(with: qualifier))
-    }
-}
-
-// MARK: - SQLExpressionAnd
-
-struct SQLExpressionAnd : SQLExpression {
-    let expressions: [SQLExpression]
-    
-    init(_ expressions: [SQLExpression]) {
-        self.expressions = expressions
-    }
-    
-    func expressionSQL(_ arguments: inout StatementArguments?) -> String {
-        guard let expression = expressions.first else {
-            // Ruby [].all? # => true
-            return true.sqlExpression.expressionSQL(&arguments)
-        }
-        if expressions.count == 1 {
-            return expression.expressionSQL(&arguments)
-        }
-        let expressionSQLs = expressions.map { $0.expressionSQL(&arguments) }
-        return "(" + expressionSQLs.joined(separator: " AND ") + ")"
-    }
-    
-    func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
-        return SQLExpressionAnd(expressions.map { $0.qualifiedExpression(with: qualifier) })
-    }
-    
-    func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
-        let matchedRowIds = expressions.compactMap {
-            $0.matchedRowIds(rowIdName: rowIdName)
-        }
-        guard let first = matchedRowIds.first else {
-            return nil
-        }
-        return matchedRowIds.suffix(from: 1).reduce(into: first) { $0.formIntersection($1) }
-    }
-}
-
-// MARK: - SQLExpressionOr
-
-struct SQLExpressionOr : SQLExpression {
-    let expressions: [SQLExpression]
-    
-    init(_ expressions: [SQLExpression]) {
-        self.expressions = expressions
-    }
-    
-    func expressionSQL(_ arguments: inout StatementArguments?) -> String {
-        guard let expression = expressions.first else {
-            // Ruby [].any? # => false
-            return false.sqlExpression.expressionSQL(&arguments)
-        }
-        if expressions.count == 1 {
-            return expression.expressionSQL(&arguments)
-        }
-        let expressionSQLs = expressions.map { $0.expressionSQL(&arguments) }
-        return "(" + expressionSQLs.joined(separator: " OR ") + ")"
-    }
-    
-    func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
-        return SQLExpressionOr(expressions.map { $0.qualifiedExpression(with: qualifier) })
-    }
-    
-    func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
-        if expressions.isEmpty {
-            return []
-        }
-        var result: Set<Int64> = []
-        for expr in expressions {
-            guard let matchedRowIds = expr.matchedRowIds(rowIdName: rowIdName) else {
-                return nil
-            }
-            result.formUnion(matchedRowIds)
-        }
-        return result
     }
 }
 
@@ -418,11 +491,11 @@ struct SQLExpressionContains : SQLExpression {
         self.isNegated = negated
     }
     
-    func expressionSQL(_ arguments: inout StatementArguments?) -> String {
+    func expressionSQL(_ context: inout SQLGenerationContext) -> String {
         return "(" +
-            expression.expressionSQL(&arguments) +
+            expression.expressionSQL(&context) +
             (isNegated ? " NOT IN (" : " IN (") +
-            collection.collectionSQL(&arguments) +
+            collection.collectionSQL(&context) +
         "))"
     }
     
@@ -430,9 +503,16 @@ struct SQLExpressionContains : SQLExpression {
         return SQLExpressionContains(expression, collection, negated: !isNegated)
     }
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        return SQLExpressionContains(expression.qualifiedExpression(with: alias), collection, negated: isNegated)
+    }
+    
+    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
+        return SQLExpressionContains(expression.resolvedExpression(inContext: context), collection, negated: isNegated)
+    }
+    
     func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
-        // FIXME: this implementation ignores column qualifiers
+        // FIXME: this implementation ignores column aliases
         // Look for `id IN (1, 2, 3)`
         guard let column = expression as? ColumnExpression,
             let array = collection as? SQLExpressionsArray else
@@ -444,7 +524,7 @@ struct SQLExpressionContains : SQLExpression {
         if let rowIdName = rowIdName {
             rowIdNames.append(rowIdName.lowercased())
         }
-
+        
         guard rowIdNames.contains(column.name.lowercased()) else {
             return nil
         }
@@ -457,10 +537,6 @@ struct SQLExpressionContains : SQLExpression {
             }
         }
         return rowIDs
-    }
-    
-    func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
-        return SQLExpressionContains(expression.qualifiedExpression(with: qualifier), collection, negated: isNegated)
     }
 }
 
@@ -484,13 +560,13 @@ struct SQLExpressionBetween : SQLExpression {
         self.isNegated = negated
     }
     
-    func expressionSQL(_ arguments: inout StatementArguments?) -> String {
+    func expressionSQL(_ context: inout SQLGenerationContext) -> String {
         return "(" +
-            expression.expressionSQL(&arguments) +
+            expression.expressionSQL(&context) +
             (isNegated ? " NOT BETWEEN " : " BETWEEN ") +
-            lowerBound.expressionSQL(&arguments) +
+            lowerBound.expressionSQL(&context) +
             " AND " +
-            upperBound.expressionSQL(&arguments) +
+            upperBound.expressionSQL(&context) +
         ")"
     }
 
@@ -498,11 +574,19 @@ struct SQLExpressionBetween : SQLExpression {
         return SQLExpressionBetween(expression, lowerBound, upperBound, negated: !isNegated)
     }
     
-    func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
+    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         return SQLExpressionBetween(
-            expression.qualifiedExpression(with: qualifier),
-            lowerBound.qualifiedExpression(with: qualifier),
-            upperBound.qualifiedExpression(with: qualifier),
+            expression.qualifiedExpression(with: alias),
+            lowerBound.qualifiedExpression(with: alias),
+            upperBound.qualifiedExpression(with: alias),
+            negated: isNegated)
+    }
+    
+    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
+        return SQLExpressionBetween(
+            expression.resolvedExpression(inContext: context),
+            lowerBound.resolvedExpression(inContext: context),
+            upperBound.resolvedExpression(inContext: context),
             negated: isNegated)
     }
 }
@@ -518,7 +602,7 @@ public struct SQLFunctionName : Hashable {
     /// The SQL function name
     ///
     /// :nodoc:
-    public let sql: String
+    public var sql: String
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
@@ -530,22 +614,6 @@ public struct SQLFunctionName : Hashable {
     public init(_ sql: String) {
         self.sql = sql
     }
-    
-    #if !swift(>=4.1)
-    /// The hash value
-    ///
-    /// :nodoc:
-    public var hashValue: Int {
-        return sql.hashValue
-    }
-    
-    /// Equality operator
-    ///
-    /// :nodoc:
-    public static func == (lhs: SQLFunctionName, rhs: SQLFunctionName) -> Bool {
-        return lhs.sql == rhs.sql
-    }
-    #endif
 }
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -590,14 +658,20 @@ public struct SQLExpressionFunction : SQLExpression {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func expressionSQL(_ arguments: inout StatementArguments?) -> String {
-        return functionName.sql + "(" + (self.arguments.map { $0.expressionSQL(&arguments) } as [String]).joined(separator: ", ")  + ")"
+    public func expressionSQL(_ context: inout SQLGenerationContext) -> String {
+        return functionName.sql + "(" + (self.arguments.map { $0.expressionSQL(&context) } as [String]).joined(separator: ", ")  + ")"
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
-        return SQLExpressionFunction(functionName, arguments: arguments.map { $0.qualifiedExpression(with: qualifier) })
+    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        return SQLExpressionFunction(functionName, arguments: arguments.map { $0.qualifiedExpression(with: alias) })
+    }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// :nodoc:
+    public func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
+        return SQLExpressionFunction(functionName, arguments: arguments.map { $0.resolvedExpression(inContext: context) })
     }
 }
 
@@ -615,12 +689,16 @@ struct SQLExpressionCount : SQLExpression {
         self.counted = counted
     }
     
-    func expressionSQL(_ arguments: inout StatementArguments?) -> String {
-        return "COUNT(" + counted.countedSQL(&arguments) + ")"
+    func expressionSQL(_ context: inout SQLGenerationContext) -> String {
+        return "COUNT(" + counted.countedSQL(&context) + ")"
     }
     
-    func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
-        return SQLExpressionCount(counted.qualifiedSelectable(with: qualifier))
+    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        return SQLExpressionCount(counted.qualifiedSelectable(with: alias))
+    }
+    
+    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
+        return self
     }
 }
 
@@ -637,12 +715,39 @@ struct SQLExpressionCountDistinct : SQLExpression {
         self.counted = counted
     }
     
-    func expressionSQL(_ arguments: inout StatementArguments?) -> String {
-        return "COUNT(DISTINCT " + counted.expressionSQL(&arguments) + ")"
+    func expressionSQL(_ context: inout SQLGenerationContext) -> String {
+        return "COUNT(DISTINCT " + counted.expressionSQL(&context) + ")"
     }
     
-    func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
-        return SQLExpressionCountDistinct(counted.qualifiedExpression(with: qualifier))
+    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        return SQLExpressionCountDistinct(counted.qualifiedExpression(with: alias))
+    }
+    
+    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
+        return self
+    }
+}
+
+// MARK: - TableMatchExpression
+
+struct TableMatchExpression: SQLExpression {
+    var alias: TableAlias
+    var pattern: SQLExpression
+    
+    func expressionSQL(_ context: inout SQLGenerationContext) -> String {
+        return "(" + context.resolvedName(for: alias).quotedDatabaseIdentifier + " MATCH " + pattern.expressionSQL(&context) + ")"
+    }
+    
+    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        return TableMatchExpression(
+            alias: self.alias,
+            pattern: pattern.qualifiedExpression(with: alias))
+    }
+    
+    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
+        return TableMatchExpression(
+            alias: alias,
+            pattern: pattern.resolvedExpression(inContext: context))
     }
 }
 
@@ -661,8 +766,8 @@ struct SQLExpressionCollate : SQLExpression {
         self.collationName = collationName
     }
     
-    func expressionSQL(_ arguments: inout StatementArguments?) -> String {
-        let sql = expression.expressionSQL(&arguments)
+    func expressionSQL(_ context: inout SQLGenerationContext) -> String {
+        let sql = expression.expressionSQL(&context)
         if sql.last! == ")" {
             return String(sql.prefix(upTo: sql.index(sql.endIndex, offsetBy: -1))) + " COLLATE " + collationName.rawValue + ")"
         } else {
@@ -670,7 +775,11 @@ struct SQLExpressionCollate : SQLExpression {
         }
     }
     
-    func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
-        return SQLExpressionCollate(expression.qualifiedExpression(with: qualifier), collationName: collationName)
+    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        return SQLExpressionCollate(expression.qualifiedExpression(with: alias), collationName: collationName)
+    }
+    
+    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
+        return SQLExpressionCollate(expression.resolvedExpression(inContext: context), collationName: collationName)
     }
 }

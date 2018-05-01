@@ -5,20 +5,20 @@ extension QueryInterfaceRequest {
     /// Creates a request with a full-text predicate added to the eventual
     /// set of already applied predicates.
     ///
-    ///     // SELECT * FROM books WHERE books MATCH '...'
+    ///     // SELECT * FROM book WHERE book MATCH '...'
     ///     var request = Book.all()
     ///     request = request.matching(pattern)
     ///
     /// If the search pattern is nil, the request does not match any
     /// database row.
     public func matching(_ pattern: FTS3Pattern?) -> QueryInterfaceRequest<T> {
-        switch query.source {
-        case .table(let name, let alias)?:
-            return filter(SQLExpressionBinary(.match, Column(alias ?? name), pattern ?? DatabaseValue.null))
-        default:
-            // Programmer error
-            fatalError("fts3 match requires a table")
+        guard let pattern = pattern else {
+            return none()
         }
+        let alias = TableAlias()
+        let qualifiedQuery = query.qualified(with: alias)
+        let matchExpression = TableMatchExpression(alias: alias, pattern: pattern.databaseValue)
+        return QueryInterfaceRequest(query: qualifiedQuery).filter(matchExpression)
     }
 }
 
@@ -28,7 +28,7 @@ extension TableRecord {
     
     /// Returns a QueryInterfaceRequest with a matching predicate.
     ///
-    ///     // SELECT * FROM books WHERE books MATCH '...'
+    ///     // SELECT * FROM book WHERE book MATCH '...'
     ///     var request = Book.matching(pattern)
     ///
     /// If the search pattern is nil, the request does not match any

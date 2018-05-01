@@ -224,14 +224,14 @@ extension DatabasePool : DatabaseReader {
     ///
     ///     try dbPool.read { db in
     ///         // Those two values are guaranteed to be equal, even if the
-    ///         // `wines` table is modified between the two requests:
-    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
-    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         // `wine` table is modified between the two requests:
+    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
+    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     ///     try dbPool.read { db in
     ///         // Now this value may be different:
-    ///         let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     /// This method is *not* reentrant.
@@ -266,8 +266,8 @@ extension DatabasePool : DatabaseReader {
     ///     try dbPool.unsafeRead { db in
     ///         // Those two values may be different because some other thread
     ///         // may have inserted or deleted a wine between the two requests:
-    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
-    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
+    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     /// Cursor iteration is safe, though:
@@ -303,8 +303,8 @@ extension DatabasePool : DatabaseReader {
     ///     try dbPool.unsafeReentrantRead { db in
     ///         // Those two values may be different because some other thread
     ///         // may have inserted or deleted a wine between the two requests:
-    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
-    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
+    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     /// Cursor iteration is safe, though:
@@ -346,12 +346,12 @@ extension DatabasePool : DatabaseReader {
     /// database updates are *not visible* inside the block.
     ///
     ///     try dbPool.write { db in
-    ///         try db.execute("DELETE FROM players")
+    ///         try db.execute("DELETE FROM player")
     ///         try dbPool.readFromCurrentState { db in
     ///             // Guaranteed to be zero
-    ///             try Int.fetchOne(db, "SELECT COUNT(*) FROM players")!
+    ///             try Int.fetchOne(db, "SELECT COUNT(*) FROM player")!
     ///         }
-    ///         try db.execute("INSERT INTO players ...")
+    ///         try db.execute("INSERT INTO player ...")
     ///     }
     ///
     /// This method blocks the current thread until the isolation guarantee has
@@ -611,7 +611,7 @@ extension DatabasePool : DatabaseReader {
     ///     }
     ///     dbPool.add(collation: collation)
     ///     try dbPool.write { db in
-    ///         try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
+    ///         try db.execute("CREATE TABLE file (name TEXT COLLATE LOCALIZED_STANDARD")
     ///     }
     public func add(collation: DatabaseCollation) {
         collations.update(with: collation)

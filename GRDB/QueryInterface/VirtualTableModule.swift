@@ -2,7 +2,7 @@
 /// the `Database.create(virtualTable:using:)` method:
 ///
 ///     let module = ...
-///     try db.create(virtualTable: "items", using: module) { t in
+///     try db.create(virtualTable: "item", using: module) { t in
 ///         ...
 ///     }
 ///
@@ -13,7 +13,7 @@ public protocol VirtualTableModule {
     /// The type of the closure argument in the
     /// `Database.create(virtualTable:using:)` method:
     ///
-    ///     try db.create(virtualTable: "items", using: module) { t in
+    ///     try db.create(virtualTable: "item", using: module) { t in
     ///         // t is TableDefinition
     ///     }
     associatedtype TableDefinition
@@ -24,7 +24,7 @@ public protocol VirtualTableModule {
     /// Returns a table definition that is passed as the closure argument in the
     /// `Database.create(virtualTable:using:)` method:
     ///
-    ///     try db.create(virtualTable: "items", using: module) { t in
+    ///     try db.create(virtualTable: "item", using: module) { t in
     ///         // t is the result of makeTableDefinition()
     ///     }
     func makeTableDefinition() -> TableDefinition
@@ -70,7 +70,7 @@ extension Database {
     /// Creates a virtual database table.
     ///
     ///     let module = ...
-    ///     try db.create(virtualTable: "pointOfInterests", using: module) { t in
+    ///     try db.create(virtualTable: "book", using: module) { t in
     ///         ...
     ///     }
     ///
@@ -80,7 +80,7 @@ extension Database {
     /// Use this method to create full-text tables using the FTS3, FTS4, or
     /// FTS5 modules:
     ///
-    ///     try db.create(virtualTable: "books", using: FTS4()) { t in
+    ///     try db.create(virtualTable: "book", using: FTS4()) { t in
     ///         t.column("title")
     ///         t.column("author")
     ///         t.column("body")

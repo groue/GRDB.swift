@@ -1,12 +1,12 @@
 import Foundation
 
 extension Database {
-
+    
     // MARK: - Statements
-
+    
     /// Returns a new prepared statement that can be reused.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM players WHERE score > ?")
+    ///     let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM player WHERE score > ?")
     ///     let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
     ///     let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
     ///
@@ -19,7 +19,7 @@ extension Database {
     
     /// Returns a new prepared statement that can be reused.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM players WHERE score > ?", prepFlags: 0)
+    ///     let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM player WHERE score > ?", prepFlags: 0)
     ///     let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
     ///     let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
     ///
@@ -34,7 +34,7 @@ extension Database {
     
     /// Returns a prepared statement that can be reused.
     ///
-    ///     let statement = try db.cachedSelectStatement("SELECT COUNT(*) FROM players WHERE score > ?")
+    ///     let statement = try db.cachedSelectStatement("SELECT COUNT(*) FROM player WHERE score > ?")
     ///     let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
     ///     let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
     ///
@@ -55,7 +55,7 @@ extension Database {
     
     /// Returns a new prepared statement that can be reused.
     ///
-    ///     let statement = try db.makeUpdateStatement("INSERT INTO players (name) VALUES (?)")
+    ///     let statement = try db.makeUpdateStatement("INSERT INTO player (name) VALUES (?)")
     ///     try statement.execute(arguments: ["Arthur"])
     ///     try statement.execute(arguments: ["Barbara"])
     ///
@@ -68,7 +68,7 @@ extension Database {
     
     /// Returns a new prepared statement that can be reused.
     ///
-    ///     let statement = try db.makeUpdateStatement("INSERT INTO players (name) VALUES (?)", prepFlags: 0)
+    ///     let statement = try db.makeUpdateStatement("INSERT INTO player (name) VALUES (?)", prepFlags: 0)
     ///     try statement.execute(arguments: ["Arthur"])
     ///     try statement.execute(arguments: ["Barbara"])
     ///
@@ -83,7 +83,7 @@ extension Database {
     
     /// Returns a prepared statement that can be reused.
     ///
-    ///     let statement = try db.cachedUpdateStatement("INSERT INTO players (name) VALUES (?)")
+    ///     let statement = try db.cachedUpdateStatement("INSERT INTO player (name) VALUES (?)")
     ///     try statement.execute(arguments: ["Arthur"])
     ///     try statement.execute(arguments: ["Barbara"])
     ///
@@ -105,13 +105,13 @@ extension Database {
     /// Executes one or several SQL statements, separated by semi-colons.
     ///
     ///     try db.execute(
-    ///         "INSERT INTO players (name) VALUES (:name)",
+    ///         "INSERT INTO player (name) VALUES (:name)",
     ///         arguments: ["name": "Arthur"])
     ///
     ///     try db.execute("""
-    ///         INSERT INTO players (name) VALUES (?);
-    ///         INSERT INTO players (name) VALUES (?);
-    ///         INSERT INTO players (name) VALUES (?);
+    ///         INSERT INTO player (name) VALUES (?);
+    ///         INSERT INTO player (name) VALUES (?);
+    ///         INSERT INTO player (name) VALUES (?);
     ///         """, arguments; ['Arthur', 'Barbara', 'Craig'])
     ///
     /// This method may throw a DatabaseError.

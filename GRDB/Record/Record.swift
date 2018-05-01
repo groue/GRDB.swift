@@ -32,7 +32,7 @@ open class Record : FetchableRecord, TableRecord, PersistableRecord {
     ///
     ///     class Player : Record {
     ///         override class var databaseTableName: String {
-    ///             return "players"
+    ///             return "player"
     ///         }
     ///     }
     ///
@@ -64,7 +64,7 @@ open class Record : FetchableRecord, TableRecord, PersistableRecord {
     ///
     /// Unless this method is overriden, requests select all columns:
     ///
-    ///     // SELECT * FROM players
+    ///     // SELECT * FROM player
     ///     try Player.fetchAll(db)
     ///
     /// You can override this property and provide an explicit list
@@ -76,7 +76,7 @@ open class Record : FetchableRecord, TableRecord, PersistableRecord {
     ///         }
     ///     }
     ///
-    ///     // SELECT id, name FROM players
+    ///     // SELECT id, name FROM player
     ///     try RestrictedPlayer.fetchAll(db)
     ///
     /// You can also add extra columns such as the `rowid` column:
@@ -87,7 +87,7 @@ open class Record : FetchableRecord, TableRecord, PersistableRecord {
     ///         }
     ///     }
     ///
-    ///     // SELECT *, rowid FROM players
+    ///     // SELECT *, rowid FROM player
     ///     try ExtendedPlayer.fetchAll(db)
     open class var databaseSelection: [SQLSelectable] {
         return [AllColumns()]

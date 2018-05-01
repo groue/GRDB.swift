@@ -10,16 +10,6 @@ public final class DatabaseFunction: Hashable {
     private struct Identity: Hashable {
         let name: String
         let nArg: Int32 // -1 for variadic functions
-        
-        #if !swift(>=4.1)
-        var hashValue: Int {
-            return name.hashValue ^ nArg.hashValue
-        }
-        
-        static func == (lhs: Identity, rhs: Identity) -> Bool {
-            return lhs.name == rhs.name && lhs.nArg == rhs.nArg
-        }
-        #endif
     }
     
     public var name: String { return identity.name }
@@ -373,10 +363,10 @@ public protocol DatabaseAggregate {
     /// aggregate function.
     ///
     ///    -- One value
-    ///    SELECT maxLength(name) FROM players
+    ///    SELECT maxLength(name) FROM player
     ///
     ///    -- Two values
-    ///    SELECT maxFullNameLength(firstName, lastName) FROM players
+    ///    SELECT maxFullNameLength(firstName, lastName) FROM player
     ///
     /// This method is never called after the finalize() method has been called.
     mutating func step(_ dbValues: [DatabaseValue]) throws

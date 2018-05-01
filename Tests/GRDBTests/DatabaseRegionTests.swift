@@ -410,6 +410,41 @@ class DatabaseRegionTests : GRDBTestCase {
         }
     }
     
+    func testDatabaseRegionOfJoinedRequests() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("CREATE TABLE a (id INTEGER PRIMARY KEY, name TEXT)")
+            try db.execute("CREATE TABLE b (id INTEGER PRIMARY KEY, name TEXT, aid INTEGER REFERENCES a(id))")
+            try db.execute("CREATE TABLE c (id INTEGER PRIMARY KEY, name TEXT, aid INTEGER REFERENCES a(id))")
+            struct A: TableRecord {
+                static let databaseTableName = "a"
+                static let b = hasOne(B.self)
+                static let c = hasMany(C.self)
+            }
+            struct B: TableRecord {
+                static let databaseTableName = "b"
+                static let a = belongsTo(A.self)
+            }
+            struct C: TableRecord {
+                static let databaseTableName = "c"
+            }
+            do {
+                let request = A.filter(key: 1)
+                    .including(optional: A.b.filter(key: 2))
+                    .including(optional: A.c.filter(keys: [1, 2, 3]))
+                // This test will fail when we are able to improve regions of joined requestt
+                try XCTAssertEqual(request.fetchedRegion(db).description, "a(id,name)[1],b(aid,id,name),c(aid,id,name)")
+            }
+            do {
+                let request = B.filter(key: 1)
+                    .including(optional: B.a.filter(key: 2)
+                        .including(optional: A.c.filter(keys: [1, 2, 3])))
+                // This test will fail when we are able to improve regions of joined requestt
+                try XCTAssertEqual(request.fetchedRegion(db).description, "a(id,name),b(aid,id,name)[1],c(aid,id,name)")
+            }
+        }
+   }
+    
     func testDatabaseRegionOfDerivedRequests() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in

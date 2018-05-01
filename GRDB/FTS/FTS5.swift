@@ -1,8 +1,8 @@
 #if SQLITE_ENABLE_FTS5
     /// FTS5 lets you define "fts5" virtual tables.
     ///
-    ///     // CREATE VIRTUAL TABLE documents USING fts5(content)
-    ///     try db.create(virtualTable: "documents", using: FTS5()) { t in
+    ///     // CREATE VIRTUAL TABLE document USING fts5(content)
+    ///     try db.create(virtualTable: "document", using: FTS5()) { t in
     ///         t.column("content")
     ///     }
     ///
@@ -12,8 +12,8 @@
         /// Creates a FTS5 module suitable for the Database
         /// `create(virtualTable:using:)` method.
         ///
-        ///     // CREATE VIRTUAL TABLE documents USING fts5(content)
-        ///     try db.create(virtualTable: "documents", using: FTS5()) { t in
+        ///     // CREATE VIRTUAL TABLE document USING fts5(content)
+        ///     try db.create(virtualTable: "document", using: FTS5()) { t in
         ///         t.column("content")
         ///     }
         ///
@@ -156,7 +156,7 @@
     /// You don't create instances of this class. Instead, you use the Database
     /// `create(virtualTable:using:)` method:
     ///
-    ///     try db.create(virtualTable: "documents", using: FTS5()) { t in // t is FTS5TableDefinition
+    ///     try db.create(virtualTable: "document", using: FTS5()) { t in // t is FTS5TableDefinition
     ///         t.column("content")
     ///     }
     ///
@@ -172,7 +172,7 @@
         
         /// The virtual table tokenizer
         ///
-        ///     try db.create(virtualTable: "documents", using: FTS5()) { t in
+        ///     try db.create(virtualTable: "document", using: FTS5()) { t in
         ///         t.tokenizer = .porter()
         ///     }
         ///
@@ -254,7 +254,7 @@
         
         /// Appends a table column.
         ///
-        ///     try db.create(virtualTable: "documents", using: FTS5()) { t in
+        ///     try db.create(virtualTable: "document", using: FTS5()) { t in
         ///         t.column("content")
         ///     }
         ///
@@ -284,7 +284,7 @@
     ///
     /// You get instances of this class when you create an FTS5 table:
     ///
-    ///     try db.create(virtualTable: "documents", using: FTS5()) { t in
+    ///     try db.create(virtualTable: "document", using: FTS5()) { t in
     ///         t.column("content")      // FTS5ColumnDefinition
     ///     }
     ///
@@ -300,7 +300,7 @@
         
         /// Excludes the column from the full-text index.
         ///
-        ///     try db.create(virtualTable: "documents", using: FTS5()) { t in
+        ///     try db.create(virtualTable: "document", using: FTS5()) { t in
         ///         t.column("a")
         ///         t.column("b").notIndexed()
         ///     }

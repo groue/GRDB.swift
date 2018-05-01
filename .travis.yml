@@ -15,198 +15,140 @@ jobs:
     ###########################################
     ## Test GRDB
 
-    # Test GRDBOSX (Xcode 9.2)
+    # Test GRDBOSX (Xcode 9.3)
     - stage: Test GRDB
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9.2
+      osx_image: xcode9.3
       env:
-        - TID=GRDBOSX (Xcode 9.2, macOS)
+        - TID=GRDBOSX (Xcode 9.3, macOS)
       script: make test_framework_GRDBOSX
 
-    # Test GRDBWatchOS (Xcode 9.2)
+    # Test GRDBWatchOS (Xcode 9.3)
     - stage: Test GRDB
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9.2
+      osx_image: xcode9.3
       env:
-        - TID=GRDBWatchOS (Xcode 9.2, watchOS)
+        - TID=GRDBWatchOS (Xcode 9.3, watchOS)
       script: make test_framework_GRDBWatchOS
 
-    # Test GRDBiOS (Xcode 9.2, iOS <MAXIMUM VERSION>)
+    # Test GRDBiOS (Xcode 9.3, iOS <MAXIMUM VERSION>)
     - stage: Test GRDB
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9.2
+      osx_image: xcode9.3
       env:
-        - TID=GRDBiOS (Xcode 9.2, iOS <MAX>)
+        - TID=GRDBiOS (Xcode 9.3, iOS <MAX>)
       script: make test_framework_GRDBiOS_maxTarget
 
-    # Test GRDBiOS (Xcode 9.2, iOS <MINIMUM VERSION>))
+    # Test GRDBiOS (Xcode 9.3, iOS <MINIMUM VERSION>))
     - stage: Test GRDB
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9.2
+      osx_image: xcode9.3
       env:
-        - TID=GRDBiOS (Xcode 9.2, iOS <MIN>)
+        - TID=GRDBiOS (Xcode 9.3, iOS <MIN>)
       script: make test_framework_GRDBiOS_minTarget
 
-    # Test GRDB [SPM] (Xcode 9.2, macOS)
+    # Test GRDB [SPM] (Xcode 9.3, macOS)
     - stage: Test GRDB
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9.2
+      osx_image: xcode9.3
       env:
-        - TID=GRDB [SPM] (Xcode 9.2, macOS)
+        - TID=GRDB [SPM] (Xcode 9.3, macOS)
       script: make test_SPM
-
-    # Test GRDBOSX (Xcode 9.0)
-    - stage: Test GRDB
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9
-      env:
-        - TID=GRDBOSX (Xcode 9.0, macOS)
-      script: make test_framework_GRDBOSX
-
-    # Test GRDBiOS (Xcode 9.0, iOS <MAXIMUM VERSION>)
-    - stage: Test GRDB
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9
-      env:
-        - TID=GRDBiOS (Xcode 9.0, iOS <MAX>)
-      script: make test_framework_GRDBiOS_maxTarget
 
     ###########################################
     ## Test GRDB (Custom SQLite)
 
-    # Test GRDBCustomSQLiteOSX (Xcode 9.2)
+    # Test GRDBCustomSQLiteOSX (Xcode 9.3)
     - stage: Test GRDB + Custom SQLite
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9.2
+      osx_image: xcode9.3
       env:
-        - TID=GRDBCustomSQLiteOSX (Xcode 9.2, macOS)
+        - TID=GRDBCustomSQLiteOSX (Xcode 9.3, macOS)
       script: make test_framework_GRDBCustomSQLiteOSX
 
-    # Test GRDBCustomSQLiteiOS (Xcode 9.2, iOS <MAXIMUM VERSION>)
+    # Test GRDBCustomSQLiteiOS (Xcode 9.3, iOS <MAXIMUM VERSION>)
     - stage: Test GRDB + Custom SQLite
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9.2
+      osx_image: xcode9.3
       env:
-        - TID=GRDBCustomSQLiteiOS (Xcode 9.2, iOS <MAX>)
+        - TID=GRDBCustomSQLiteiOS (Xcode 9.3, iOS <MAX>)
       script: make test_framework_GRDBCustomSQLiteiOS_maxTarget
 
-    # Test GRDBCustomSQLiteiOS (Xcode 9.2, iOS <MINIMUM VERSION>))
+    # Test GRDBCustomSQLiteiOS (Xcode 9.3, iOS <MINIMUM VERSION>))
     - stage: Test GRDB + Custom SQLite
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9.2
+      osx_image: xcode9.3
       env:
-        - TID=GRDBCustomSQLiteiOS (Xcode 9.2, iOS <MIN>)
+        - TID=GRDBCustomSQLiteiOS (Xcode 9.3, iOS <MIN>)
       script: make test_framework_GRDBCustomSQLiteiOS_minTarget
-
-    # Test GRDBCustomSQLiteOSX (Xcode 9.0)
-    - stage: Test GRDB + Custom SQLite
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9
-      env:
-        - TID=GRDBCustomSQLiteOSX (Xcode 9.0, macOS)
-      script: make test_framework_GRDBCustomSQLiteOSX
-
-    # Test GRDBCustomSQLiteiOS (Xcode 9.0, iOS <MAXIMUM VERSION>)
-    - stage: Test GRDB + Custom SQLite
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9
-      env:
-        - TID=GRDBCustomSQLiteiOS (Xcode 9.0, iOS <MAX>)
-      script: make test_framework_GRDBCustomSQLiteiOS_maxTarget
 
     ###########################################
     ## Test GRDB (SQLCipher)
 
-    # Test GRDBCipherOSX (Xcode 9.2)
+    # Test GRDBCipherOSX (Xcode 9.3)
     - stage: Test GRDB + SQLCipher
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9.2
+      osx_image: xcode9.3
       env:
-        - TID=GRDBCipherOSX (Xcode 9.2, macOS)
+        - TID=GRDBCipherOSX (Xcode 9.3, macOS)
       script: make test_framework_GRDBCipherOSX
 
-    # Test GRDBCipheriOS (Xcode 9.2, iOS <MAXIMUM VERSION>)
+    # Test GRDBCipheriOS (Xcode 9.3, iOS <MAXIMUM VERSION>)
     - stage: Test GRDB + SQLCipher
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9.2
+      osx_image: xcode9.3
       env:
-        - TID=GRDBCipheriOS (Xcode 9.2, iOS <MAX>)
+        - TID=GRDBCipheriOS (Xcode 9.3, iOS <MAX>)
       script: make test_framework_GRDBCipheriOS_maxTarget
 
-    # Test GRDBCipheriOS (Xcode 9.2, iOS <MINIMUM VERSION>))
+    # Test GRDBCipheriOS (Xcode 9.3, iOS <MINIMUM VERSION>))
     - stage: Test GRDB + SQLCipher
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9.2
+      osx_image: xcode9.3
       env:
-        - TID=GRDBCipheriOS (Xcode 9.2, iOS <MIN>)
+        - TID=GRDBCipheriOS (Xcode 9.3, iOS <MIN>)
       script: make test_framework_GRDBCipheriOS_minTarget
-
-    # Test GRDBCipherOSX (Xcode 9.0)
-    - stage: Test GRDB + SQLCipher
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9
-      env:
-        - TID=GRDBCipherOSX (Xcode 9.0, macOS)
-      script: make test_framework_GRDBCipherOSX
-
-    # Test GRDBCipheriOS (Xcode 9.0, iOS <MAXIMUM VERSION>)
-    - stage: Test GRDB + SQLCipher
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9
-      env:
-        - TID=GRDBCipheriOS (Xcode 9.0, iOS <MAX>)
-      script: make test_framework_GRDBCipheriOS_maxTarget
-
 
     ###########################################
     ## Test Installation Methods
 
-    # Manual Install (Xcode 9.2)
+    # Manual Install (Xcode 9.3)
     - stage: Test Installation
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9.2
+      osx_image: xcode9.3
       env:
-        - TID=Manual Install (Xcode 9.2)
+        - TID=Manual Install (Xcode 9.3)
       script: make test_install_manual
 
-    # Manual Install (GRDBCipher, Xcode 9.2)
+    # Manual Install (GRDBCipher, Xcode 9.3)
     - stage: Test Installation
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9.2
+      osx_image: xcode9.3
       env:
-        - TID=Manual Install (GRDBCipher, Xcode 9.2)
+        - TID=Manual Install (GRDBCipher, Xcode 9.3)
       script: make test_install_GRDBCipher
 
-    # Cocoapods Lint (Xcode 9.2)
+    # Cocoapods Lint (Xcode 9.3)
     - stage: Test Installation
-      osx_image: xcode9.2
+      osx_image: xcode9.3
       install:
         - gem install cocoapods # Since Travis is not always on latest version
       env:
-        - TID=Cocoapods (Xcode 9.2)
+        - TID=Cocoapods (Xcode 9.3)
       script: make test_CocoaPodsLint
 
-    # Cocoapods Lint (Xcode 9.0)
+    # SPM Install (Xcode 9.3)
     - stage: Test Installation
-      osx_image: xcode9
-      install:
-        - gem install cocoapods # Since Travis is not always on latest version
+      osx_image: xcode9.3
       env:
-        - TID=Cocoapods (Xcode 9.0)
-      script: make test_CocoaPodsLint
-
-    # SPM Install (Xcode 9.2)
-    - stage: Test Installation
-      osx_image: xcode9.2
-      env:
-        - TID=SPM (Xcode 9.2)
+        - TID=SPM (Xcode 9.3)
       script: make test_install_SPM
 
     ## Carthage Build
     ## Commented out until `make test_CarthageBuild` performs *reliably*.
     ## See https://github.com/groue/GRDB.swift/pull/262
     # - stage: Test Installation
-    #   osx_image: xcode9.2
+    #   osx_image: xcode9.3
     #   before_install:
     #     - brew update
     #     - brew outdated carthage || brew upgrade carthage

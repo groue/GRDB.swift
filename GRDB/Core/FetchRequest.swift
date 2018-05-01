@@ -73,23 +73,6 @@ public protocol FetchRequest: SelectStatementRequest {
 }
 
 extension FetchRequest {
-    /// Returns a request bound to type T.
-    ///
-    /// The returned request can fetch if the type T is fetchable (Row,
-    /// value, record).
-    ///
-    ///     // Int?
-    ///     let maxScore = Player
-    ///         .select(max(scoreColumn))
-    ///         .asRequest(of: Int.self)    // <--
-    ///         .fetchOne(db)
-    ///
-    /// - parameter type: The fetched type T
-    /// - returns: A typed request bound to type T.
-    public func asRequest<T>(of type: T.Type) -> AnyFetchRequest<T> {
-        return AnyFetchRequest(self)
-    }
-    
     /// Returns an adapted request.
     public func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AdaptedFetchRequest<Self> {
         return AdaptedFetchRequest(self, adapter)
@@ -202,8 +185,8 @@ public struct SQLRequest<T> : FetchRequest {
     /// Creates a request from an SQL string, optional arguments, and
     /// optional row adapter.
     ///
-    ///     let request = SQLRequest("SELECT * FROM players")
-    ///     let request = SQLRequest("SELECT * FROM players WHERE id = ?", arguments: [1])
+    ///     let request = SQLRequest("SELECT * FROM player")
+    ///     let request = SQLRequest("SELECT * FROM player WHERE id = ?", arguments: [1])
     ///
     /// - parameters:
     ///     - sql: An SQL query.
@@ -232,8 +215,8 @@ public struct SQLRequest<T> : FetchRequest {
     /// Creates an SQL request from an SQL string, optional arguments, and
     /// optional row adapter.
     ///
-    ///     let request = SQLRequest("SELECT * FROM players")
-    ///     let request = SQLRequest("SELECT * FROM players WHERE id = ?", arguments: [1])
+    ///     let request = SQLRequest("SELECT * FROM player")
+    ///     let request = SQLRequest("SELECT * FROM player WHERE id = ?", arguments: [1])
     ///
     /// - parameters:
     ///     - sql: An SQL query.

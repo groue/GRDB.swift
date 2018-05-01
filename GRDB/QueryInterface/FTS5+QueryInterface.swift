@@ -6,7 +6,7 @@
         /// Creates a request with a full-text predicate added to the eventual
         /// set of already applied predicates.
         ///
-        ///     // SELECT * FROM books WHERE books MATCH '...'
+        ///     // SELECT * FROM book WHERE book MATCH '...'
         ///     var request = Book.all()
         ///     request = request.matching(pattern)
         ///
@@ -17,17 +17,13 @@
         /// all requests by the `TableRecord.databaseSelection` property, or
         /// for individual requests with the `TableRecord.select` method.
         public func matching(_ pattern: FTS5Pattern?) -> QueryInterfaceRequest<T> {
-            switch query.source {
-            case .table(let name, let alias)?:
-                if let pattern = pattern {
-                    return filter(SQLExpressionBinary(.match, Column(alias ?? name), pattern))
-                } else {
-                    return filter(false)
-                }
-            default:
-                // Programmer error
-                fatalError("fts5 match requires a table")
+            guard let pattern = pattern else {
+                return none()
             }
+            let alias = TableAlias()
+            let qualifiedQuery = query.qualified(with: alias)
+            let matchExpression = TableMatchExpression(alias: alias, pattern: pattern.databaseValue)
+            return QueryInterfaceRequest(query: qualifiedQuery).filter(matchExpression)
         }
     }
     
@@ -37,7 +33,7 @@
         
         /// Returns a QueryInterfaceRequest with a matching predicate.
         ///
-        ///     // SELECT * FROM books WHERE books MATCH '...'
+        ///     // SELECT * FROM book WHERE book MATCH '...'
         ///     var request = Book.matching(pattern)
         ///
         /// If the search pattern is nil, the request does not match any

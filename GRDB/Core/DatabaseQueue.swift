@@ -10,7 +10,7 @@ public final class DatabaseQueue: DatabaseWriter {
     #if os(iOS)
     private weak var application: UIApplication?
     #endif
-
+    
     // MARK: - Configuration
     
     /// The database configuration
@@ -291,7 +291,7 @@ extension DatabaseQueue {
     /// Synchronously executes a block in a protected dispatch queue, and
     /// returns its result.
     ///
-    ///     // INSERT INTO players ...
+    ///     // INSERT INTO player ...
     ///     let players = try dbQueue.inDatabase { db in
     ///         try Player(...).insert(db)
     ///     }
@@ -307,7 +307,7 @@ extension DatabaseQueue {
     /// Synchronously executes a block in a protected dispatch queue, and
     /// returns its result.
     ///
-    ///     // INSERT INTO players ...
+    ///     // INSERT INTO player ...
     ///     try dbQueue.unsafeReentrantWrite { db in
     ///         try Player(...).insert(db)
     ///     }
@@ -350,7 +350,7 @@ extension DatabaseQueue {
     ///     }
     ///     dbQueue.add(collation: collation)
     ///     try dbQueue.write { db in
-    ///         try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
+    ///         try db.execute("CREATE TABLE file (name TEXT COLLATE LOCALIZED_STANDARD")
     ///     }
     public func add(collation: DatabaseCollation) {
         writer.sync { $0.add(collation: collation) }

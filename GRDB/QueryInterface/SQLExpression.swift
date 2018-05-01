@@ -23,22 +23,7 @@ public protocol SQLExpression : SQLSpecificExpressible, SQLSelectable, SQLOrderi
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Returns an SQL string that represents the expression.
-    ///
-    /// When the arguments parameter is nil, any value must be written down as
-    /// a literal in the returned SQL:
-    ///
-    ///     var arguments: StatementArguments? = nil
-    ///     let expression = "foo'bar".databaseValue
-    ///     expression.expressionSQL(&arguments)  // "'foo''bar'"
-    ///
-    /// When the arguments parameter is not nil, then values may be replaced by
-    /// `?` or colon-prefixed tokens, and fed into arguments.
-    ///
-    ///     var arguments = StatementArguments()
-    ///     let expression = "foo'bar".databaseValue
-    ///     expression.expressionSQL(&arguments)  // "?"
-    ///     arguments                             // ["foo'bar"]
-    func expressionSQL(_ arguments: inout StatementArguments?) -> String
+    func expressionSQL(_ context: inout SQLGenerationContext) -> String
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
@@ -59,10 +44,13 @@ public protocol SQLExpression : SQLSpecificExpressible, SQLSelectable, SQLOrderi
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Returns the rowIds matched by the expression.
-    func matchedRowIds(rowIdName: String?) -> Set<Int64>? // TODO: this method should take SQLTableQualifier in account
+    func matchedRowIds(rowIdName: String?) -> Set<Int64>? // FIXME: this method should take TableAlias in account
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression
+    func qualifiedExpression(with alias: TableAlias) -> SQLExpression
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression
 }
 
 extension SQLExpression {
@@ -93,8 +81,17 @@ extension SQLExpression {
     /// The default implementation returns qualifiedExpression(with:)
     ///
     /// :nodoc:
-    public func qualifiedSelectable(with qualifier: SQLTableQualifier) -> SQLSelectable {
-        return qualifiedExpression(with: qualifier)
+    public func qualifiedSelectable(with alias: TableAlias) -> SQLSelectable {
+        return qualifiedExpression(with: alias)
+    }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// The default implementation returns qualifiedExpression(with:)
+    ///
+    /// :nodoc:
+    public func qualifiedOrdering(with alias: TableAlias) -> SQLOrderingTerm {
+        return qualifiedExpression(with: alias)
     }
 }
 
@@ -139,15 +136,19 @@ struct SQLExpressionNot : SQLExpression {
         self.expression = expression
     }
     
-    func expressionSQL(_ arguments: inout StatementArguments?) -> String {
-        return "NOT \(expression.expressionSQL(&arguments))"
+    func expressionSQL(_ context: inout SQLGenerationContext) -> String {
+        return "NOT \(expression.expressionSQL(&context))"
     }
     
     var negated: SQLExpression {
         return expression
     }
     
-    func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
-        return SQLExpressionNot(expression.qualifiedExpression(with: qualifier))
+    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        return SQLExpressionNot(expression.qualifiedExpression(with: alias))
+    }
+    
+    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
+        return SQLExpressionNot(expression.resolvedExpression(inContext: context))
     }
 }

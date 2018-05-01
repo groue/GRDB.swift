@@ -28,14 +28,20 @@ public protocol ColumnExpression: SQLExpression {
 extension ColumnExpression {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func expressionSQL(_ arguments: inout StatementArguments?) -> String {
+    public func expressionSQL(_ context: inout SQLGenerationContext) -> String {
         return name.quotedDatabaseIdentifier
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
-        return QualifiedColumn(name, qualifier: qualifier)
+    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        return QualifiedColumn(name, alias: alias)
+    }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// :nodoc:
+    public func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
+        return self
     }
 }
 
@@ -61,24 +67,34 @@ public struct Column: ColumnExpression {
 /// A qualified column in the database, as in `SELECT t.a FROM t`
 struct QualifiedColumn: ColumnExpression {
     var name: String
-    private let qualifier: SQLTableQualifier
+    private let alias: TableAlias
     
     /// Creates a column given its name.
-    init(_ name: String, qualifier: SQLTableQualifier) {
+    init(_ name: String, alias: TableAlias) {
         self.name = name
-        self.qualifier = qualifier
+        self.alias = alias
     }
     
-    func expressionSQL(_ arguments: inout StatementArguments?) -> String {
-        if let qualifierName = qualifier.name {
-            return qualifierName.quotedDatabaseIdentifier + "." + name.quotedDatabaseIdentifier
+    func expressionSQL(_ context: inout SQLGenerationContext) -> String {
+        if let qualifier = context.qualifier(for: alias) {
+            return qualifier.quotedDatabaseIdentifier + "." + name.quotedDatabaseIdentifier
         }
         return name.quotedDatabaseIdentifier
     }
     
-    func qualifiedExpression(with qualifier: SQLTableQualifier) -> SQLExpression {
+    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         // Never requalify
         return self
+    }
+    
+    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
+        guard
+            let container = context[alias.root],
+            let value = container.value(forCaseInsensitiveColumn: name) else
+        {
+            return self
+        }
+        return value
     }
 }
 

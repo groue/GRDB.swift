@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="421px" height="227px" viewBox="0 0 421 227" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 49 (51002) - http://www.bohemiancoding.com/sketch -->
+    <title>TreeOfAssociationKeysMapping</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <linearGradient x1="50%" y1="100%" x2="50%" y2="1.41638472e-14%" id="linearGradient-1">
+            <stop stop-color="#FFFFFF" stop-opacity="0.9" offset="0%"></stop>
+            <stop stop-color="#FFFFFF" offset="100%"></stop>
+        </linearGradient>
+        <rect id="path-2" x="0" y="0" width="119" height="28" rx="10"></rect>
+        <filter x="-12.2%" y="-41.1%" width="124.4%" height="203.6%" filterUnits="objectBoundingBox" id="filter-4">
+            <feMorphology radius="1" operator="dilate" in="SourceAlpha" result="shadowSpreadOuter1"></feMorphology>
+            <feOffset dx="0" dy="3" in="shadowSpreadOuter1" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="4" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feComposite in="shadowBlurOuter1" in2="SourceAlpha" operator="out" result="shadowBlurOuter1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.1 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+        <rect id="path-5" x="0" y="0" width="119" height="28" rx="10"></rect>
+        <filter x="-12.2%" y="-41.1%" width="124.4%" height="203.6%" filterUnits="objectBoundingBox" id="filter-7">
+            <feMorphology radius="1" operator="dilate" in="SourceAlpha" result="shadowSpreadOuter1"></feMorphology>
+            <feOffset dx="0" dy="3" in="shadowSpreadOuter1" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="4" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feComposite in="shadowBlurOuter1" in2="SourceAlpha" operator="out" result="shadowBlurOuter1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.1 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+        <rect id="path-8" x="0" y="0" width="119" height="28" rx="10"></rect>
+        <filter x="-12.2%" y="-41.1%" width="124.4%" height="203.6%" filterUnits="objectBoundingBox" id="filter-10">
+            <feMorphology radius="1" operator="dilate" in="SourceAlpha" result="shadowSpreadOuter1"></feMorphology>
+            <feOffset dx="0" dy="3" in="shadowSpreadOuter1" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="4" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feComposite in="shadowBlurOuter1" in2="SourceAlpha" operator="out" result="shadowBlurOuter1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.1 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+        <rect id="path-11" x="0" y="0" width="119" height="28" rx="10"></rect>
+        <filter x="-12.2%" y="-41.1%" width="124.4%" height="203.6%" filterUnits="objectBoundingBox" id="filter-13">
+            <feMorphology radius="1" operator="dilate" in="SourceAlpha" result="shadowSpreadOuter1"></feMorphology>
+            <feOffset dx="0" dy="3" in="shadowSpreadOuter1" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="4" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feComposite in="shadowBlurOuter1" in2="SourceAlpha" operator="out" result="shadowBlurOuter1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.1 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="TreeOfAssociationKeysMapping" transform="translate(0.000000, 6.000000)">
+            <g id="Group-4">
+                <path d="M83,36 L83,186" id="Line-Copy-2" stroke="#727272" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4,8"></path>
+                <path d="M159,96 L159,186" id="Line-Copy-3" stroke="#727272" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4,8"></path>
+                <path d="M246,156 L246,186" id="Line-Copy-4" stroke="#727272" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4,8"></path>
+                <path d="M352,96 L352,186" id="Line-Copy-5" stroke="#727272" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4,8"></path>
+                <path d="M85,14 L136,57" id="Line" stroke="#000000" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path id="Line-decoration-1" d="M125.809367,52.3319166 L136,57 L129.676951,47.7447827" stroke="#000000" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M85,14 L292,57" id="Line" stroke="#000000" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path id="Line-decoration-1" d="M280.815576,57.7407092 L292,57 L282.035901,51.8661193" stroke="#000000" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M156,72 L207,115" id="Line" stroke="#000000" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path id="Line-decoration-1" d="M196.809367,110.331917 L207,115 L200.676951,105.744783" stroke="#000000" stroke-linecap="round" stroke-linejoin="round"></path>
+                <g id="Table-Copy-6" transform="translate(23.000000, 0.000000)">
+                    <mask id="mask-3" fill="white">
+                        <use xlink:href="#path-2"></use>
+                    </mask>
+                    <g id="Rectangle">
+                        <use fill="black" fill-opacity="1" filter="url(#filter-4)" xlink:href="#path-2"></use>
+                        <use fill="#005CC5" fill-rule="evenodd" xlink:href="#path-2"></use>
+                        <use fill="url(#linearGradient-1)" fill-rule="evenodd" xlink:href="#path-2"></use>
+                        <rect stroke-opacity="0.25" stroke="#000000" stroke-width="1" x="-0.5" y="-0.5" width="120" height="29" rx="10"></rect>
+                    </g>
+                    <text id="root" mask="url(#mask-3)" font-family="-apple-system,sans-serif" font-size="14" font-weight="500" fill="#000000">
+                        <tspan x="45.390625" y="19">root</tspan>
+                    </text>
+                </g>
+                <g id="Table-Copy-7" transform="translate(100.000000, 62.000000)">
+                    <mask id="mask-6" fill="white">
+                        <use xlink:href="#path-5"></use>
+                    </mask>
+                    <g id="Rectangle">
+                        <use fill="black" fill-opacity="1" filter="url(#filter-7)" xlink:href="#path-5"></use>
+                        <use fill="#417505" fill-rule="evenodd" xlink:href="#path-5"></use>
+                        <use fill="url(#linearGradient-1)" fill-rule="evenodd" xlink:href="#path-5"></use>
+                        <rect stroke-opacity="0.25" stroke="#000000" stroke-width="1" x="-0.5" y="-0.5" width="120" height="29" rx="10"></rect>
+                    </g>
+                    <text id="&quot;author&quot;" mask="url(#mask-6)" font-family="-apple-system,sans-serif" font-size="14" font-weight="500" fill="#000000">
+                        <tspan x="30.2421875" y="19">"author"</tspan>
+                    </text>
+                </g>
+                <g id="Table-Copy-8" transform="translate(293.000000, 62.000000)">
+                    <mask id="mask-9" fill="white">
+                        <use xlink:href="#path-8"></use>
+                    </mask>
+                    <g id="Rectangle">
+                        <use fill="black" fill-opacity="1" filter="url(#filter-10)" xlink:href="#path-8"></use>
+                        <use fill="#9013FE" fill-rule="evenodd" xlink:href="#path-8"></use>
+                        <use fill="url(#linearGradient-1)" fill-rule="evenodd" xlink:href="#path-8"></use>
+                        <rect stroke-opacity="0.25" stroke="#000000" stroke-width="1" x="-0.5" y="-0.5" width="120" height="29" rx="10"></rect>
+                    </g>
+                    <text id="&quot;coverImage&quot;" mask="url(#mask-9)" font-family="-apple-system,sans-serif" font-size="14" font-weight="500" fill="#000000">
+                        <tspan x="12.8037109" y="19">"coverImage"</tspan>
+                    </text>
+                </g>
+                <g id="Table-Copy-9" transform="translate(187.000000, 120.000000)">
+                    <mask id="mask-12" fill="white">
+                        <use xlink:href="#path-11"></use>
+                    </mask>
+                    <g id="Rectangle">
+                        <use fill="black" fill-opacity="1" filter="url(#filter-13)" xlink:href="#path-11"></use>
+                        <use fill="#D0021B" fill-rule="evenodd" xlink:href="#path-11"></use>
+                        <use fill="url(#linearGradient-1)" fill-rule="evenodd" xlink:href="#path-11"></use>
+                        <rect stroke-opacity="0.25" stroke="#000000" stroke-width="1" x="-0.5" y="-0.5" width="120" height="29" rx="10"></rect>
+                    </g>
+                    <text id="&quot;country&quot;" mask="url(#mask-12)" font-family="-apple-system,sans-serif" font-size="14" font-weight="500" fill="#000000">
+                        <tspan x="26.2294922" y="19">"country"</tspan>
+                    </text>
+                </g>
+                <g id="Group-5" transform="translate(0.000000, 191.000000)" font-family="Menlo-Regular, Menlo" font-size="14" font-weight="normal">
+                    <text id="SELECT-book.*,-autho">
+                        <tspan x="0" y="13" fill="#404040">SELECT </tspan>
+                        <tspan x="59.0009766" y="13" fill="#4A90E2">book.*</tspan>
+                        <tspan x="109.573242" y="13" fill="#404040">, </tspan>
+                        <tspan x="126.430664" y="13" fill="#417505">author.*</tspan>
+                        <tspan x="193.860352" y="13" fill="#404040">, </tspan>
+                        <tspan x="210.717773" y="13" fill="#D0021B">country.*</tspan>
+                        <tspan x="286.576172" y="13" fill="#404040">, </tspan>
+                        <tspan x="303.433594" y="13" fill="#9013FE">coverImage.*</tspan>
+                        <tspan x="404.578125" y="13" fill="#404040"></tspan>
+                        <tspan x="0" y="29" fill="#404040">FROM …</tspan>
+                    </text>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

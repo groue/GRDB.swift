@@ -27,6 +27,9 @@ GRDB 3.0
     - sync
     - ?
 - [ ] filter(rowid:), filter(rowids:)
+- [ ] Fix matchingRowIds
+- [ ] Simplify Range extensions for Swift 4.1
+- [ ] https://forums.swift.org/t/how-to-encode-objects-of-unknown-type/12253/6
 - [ ] hide ScopeAdapter(base, scopes), because base.addingScopes has a better implementation
 
 Not sure

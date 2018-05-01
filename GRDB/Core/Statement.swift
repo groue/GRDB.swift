@@ -289,7 +289,7 @@ extension AuthorizedStatement {
 /// You create SelectStatement with the Database.makeSelectStatement() method:
 ///
 ///     try dbQueue.read { db in
-///         let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM players WHERE score > ?")
+///         let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM player WHERE score > ?")
 ///         let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
 ///         let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
 ///     }
@@ -375,7 +375,7 @@ extension SelectStatement: AuthorizedStatement { }
 /// For example:
 ///
 ///     try dbQueue.read { db in
-///         let statement = db.makeSelectStatement("SELECT * FROM players")
+///         let statement = db.makeSelectStatement("SELECT * FROM player")
 ///         let cursor: StatementCursor = statement.cursor()
 ///     }
 public final class StatementCursor: Cursor {
@@ -414,7 +414,7 @@ public final class StatementCursor: Cursor {
 /// You create UpdateStatement with the Database.makeUpdateStatement() method:
 ///
 ///     try dbQueue.inTransaction { db in
-///         let statement = try db.makeUpdateStatement("INSERT INTO players (name) VALUES (?)")
+///         let statement = try db.makeUpdateStatement("INSERT INTO player (name) VALUES (?)")
 ///         try statement.execute(arguments: ["Arthur"])
 ///         try statement.execute(arguments: ["Barbara"])
 ///         return .commit
@@ -588,8 +588,8 @@ extension UpdateStatement: AuthorizedStatement { }
 ///     print(row)
 ///     // Prints [two:2 foo:"foo" one:1 foo2:"foo" bar:"bar"]
 public struct StatementArguments: CustomStringConvertible, Equatable, ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral {
-    var values: [DatabaseValue] = []
-    var namedValues: [String: DatabaseValue] = [:]
+    private(set) var values: [DatabaseValue] = []
+    private(set) var namedValues: [String: DatabaseValue] = [:]
     
     public var isEmpty: Bool {
         return values.isEmpty && namedValues.isEmpty
@@ -904,18 +904,6 @@ extension StatementArguments {
         return "[" + (namedValuesDescriptions + valuesDescriptions).joined(separator: ", ") + "]"
     }
 }
-
-#if !swift(>=4.1)
-// Equatable
-extension StatementArguments {
-    /// :nodoc:
-    public static func == (lhs: StatementArguments, rhs: StatementArguments) -> Bool {
-        if lhs.values != rhs.values { return false }
-        if lhs.namedValues != rhs.namedValues { return false }
-        return true
-    }
-}
-#endif
 
 /// A thread-unsafe statement cache
 struct StatementCache {

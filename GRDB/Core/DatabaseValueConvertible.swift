@@ -42,7 +42,7 @@ extension DatabaseValueConvertible {
 /// For example:
 ///
 ///     try dbQueue.read { db in
-///         let urls: DatabaseValueCursor<URL> = try URL.fetchCursor(db, "SELECT url FROM links")
+///         let urls: DatabaseValueCursor<URL> = try URL.fetchCursor(db, "SELECT url FROM link")
 ///         while let url = urls.next() { // URL
 ///             print(url)
 ///         }
@@ -82,7 +82,7 @@ public final class DatabaseValueCursor<Value: DatabaseValueConvertible> : Cursor
 /// For example:
 ///
 ///     try dbQueue.read { db in
-///         let urls: NullableDatabaseValueCursor<URL> = try Optional<URL>.fetchCursor(db, "SELECT url FROM links")
+///         let urls: NullableDatabaseValueCursor<URL> = try Optional<URL>.fetchCursor(db, "SELECT url FROM link")
 ///         while let url = urls.next() { // URL?
 ///             print(url)
 ///         }

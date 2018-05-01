@@ -71,8 +71,9 @@ class ColumnExpressionTests: GRDBTestCase {
             
             // Test FTS3 match expression
             let expression = try Player.Columns.name.match(FTS3Pattern(rawPattern: "foo"))
-            var arguments: StatementArguments? = nil
-            XCTAssertEqual(expression.expressionSQL(&arguments), "(\"name\" MATCH 'foo')")
+            let literal = expression.literal
+            XCTAssertEqual(literal.sql, "(\"name\" MATCH ?)")
+            XCTAssertEqual(literal.arguments, ["foo"])
         }
     }
     
@@ -132,8 +133,9 @@ class ColumnExpressionTests: GRDBTestCase {
             
             // Test FTS3 match expression
             let expression = try Player.Columns.name.match(FTS3Pattern(rawPattern: "foo"))
-            var arguments: StatementArguments? = nil
-            XCTAssertEqual(expression.expressionSQL(&arguments), "(\"name\" MATCH 'foo')")
+            let literal = expression.literal
+            XCTAssertEqual(literal.sql, "(\"name\" MATCH ?)")
+            XCTAssertEqual(literal.arguments, ["foo"])
         }
     }
 }

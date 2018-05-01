@@ -36,7 +36,7 @@ public protocol FetchableRecord {
 ///
 ///     struct Player : FetchableRecord { ... }
 ///     try dbQueue.read { db in
-///         let players: RecordCursor<Player> = try Player.fetchCursor(db, "SELECT * FROM players")
+///         let players: RecordCursor<Player> = try Player.fetchCursor(db, "SELECT * FROM player")
 ///     }
 public final class RecordCursor<Record: FetchableRecord> : Cursor {
     private let statement: SelectStatement
@@ -73,7 +73,7 @@ extension FetchableRecord {
     
     /// A cursor over records fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT * FROM players")
+    ///     let statement = try db.makeSelectStatement("SELECT * FROM player")
     ///     let players = try Player.fetchCursor(statement) // Cursor of Player
     ///     while let player = try players.next() { // Player
     ///         ...
@@ -96,7 +96,7 @@ extension FetchableRecord {
     
     /// Returns an array of records fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT * FROM players")
+    ///     let statement = try db.makeSelectStatement("SELECT * FROM player")
     ///     let players = try Player.fetchAll(statement) // [Player]
     ///
     /// - parameters:
@@ -111,7 +111,7 @@ extension FetchableRecord {
     
     /// Returns a single record fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT * FROM players")
+    ///     let statement = try db.makeSelectStatement("SELECT * FROM player")
     ///     let player = try Player.fetchOne(statement) // Player?
     ///
     /// - parameters:
@@ -131,7 +131,7 @@ extension FetchableRecord {
     
     /// Returns a cursor over records fetched from an SQL query.
     ///
-    ///     let players = try Player.fetchCursor(db, "SELECT * FROM players") // Cursor of Player
+    ///     let players = try Player.fetchCursor(db, "SELECT * FROM player") // Cursor of Player
     ///     while let player = try players.next() { // Player
     ///         ...
     ///     }
@@ -154,7 +154,7 @@ extension FetchableRecord {
     
     /// Returns an array of records fetched from an SQL query.
     ///
-    ///     let players = try Player.fetchAll(db, "SELECT * FROM players") // [Player]
+    ///     let players = try Player.fetchAll(db, "SELECT * FROM player") // [Player]
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -169,7 +169,7 @@ extension FetchableRecord {
     
     /// Returns a single record fetched from an SQL query.
     ///
-    ///     let player = try Player.fetchOne(db, "SELECT * FROM players") // Player?
+    ///     let player = try Player.fetchOne(db, "SELECT * FROM player") // Player?
     ///
     /// - parameters:
     ///     - db: A database connection.

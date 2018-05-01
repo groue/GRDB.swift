@@ -295,11 +295,7 @@ class DatabaseAggregateTests: GRDBTestCase {
         struct Aggregate : DatabaseAggregate {
             var result: DatabaseValueConvertible?
             mutating func step(_ dbValues: [DatabaseValue]) {
-                #if swift(>=4.1)
                 let ints = dbValues.compactMap { Int.fromDatabaseValue($0) }
-                #else
-                let ints = dbValues.flatMap { Int.fromDatabaseValue($0) }
-                #endif
                 result = ints.reduce(0, +)
             }
             func finalize() -> DatabaseValueConvertible? {
