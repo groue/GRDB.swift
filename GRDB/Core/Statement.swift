@@ -588,8 +588,8 @@ extension UpdateStatement: AuthorizedStatement { }
 ///     print(row)
 ///     // Prints [two:2 foo:"foo" one:1 foo2:"foo" bar:"bar"]
 public struct StatementArguments: CustomStringConvertible, Equatable, ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral {
-    var values: [DatabaseValue] = []
-    var namedValues: [String: DatabaseValue] = [:]
+    private(set) var values: [DatabaseValue] = []
+    private(set) var namedValues: [String: DatabaseValue] = [:]
     
     public var isEmpty: Bool {
         return values.isEmpty && namedValues.isEmpty
