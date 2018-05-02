@@ -53,9 +53,9 @@ GRDB 3 still accepts any database, but brings two schema recommendations:
 
 - :bulb: Integer primary keys should be auto-incremented, in order to avoid any row id to be reused.
     
-    When ids can be reused, high-level database observation tools such as [FetchedRecordsController] or [RxGRDB] may see an update when a row is deleted, then replaced, in a single database transaction. Depending on your application needs, this may be OK. Or not.
+    When ids can be reused, your app and [database observation tools] may think that a row was updated, when it was actually deleted, then replaced. Depending on your application needs, this may be OK. Or not.
     
-    GRDB3 thus comes with this new *good pratice*: use the new `autoIncrementedPrimaryKey` method when you create a database table with an integer primary key:
+    GRDB3 thus comes with a new good practice: use the `autoIncrementedPrimaryKey` method when you create a database table with an integer primary key:
     
     ```diff
      try db.create(table: "author") { t in
@@ -67,9 +67,7 @@ GRDB 3 still accepts any database, but brings two schema recommendations:
 
 - :bulb: Database table names should be singular, and camel-cased. Make them look like Swift identifiers: `place`, `country`, `postalAddress`.
     
-    This will help you using the new [Associations] feature when you need it.
-    
-    Database table names that follow another naming convention are OK, but you will need to perform extra configuration.
+    This will help you using the new [Associations] feature when you need it. Database table names that follow another naming convention are totally OK, but you will need to perform extra configuration.
 
 Since you are reading this guide, your application has already defined its database schema. You can migrate it in order to apply the new recommendations, if needed. Below is a sample code that uses [DatabaseMigrator], the recommended tool for managing your database schema:
 
@@ -138,3 +136,4 @@ That is because the library requires Swift 4.1, which ships with Xcode 9.3, unab
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
 [Associations]: AssociationsBasics.md
 [DatabaseMigrator]: ../README.md#migrations
+[database observation tools]: ../README.md#database-changes-observation

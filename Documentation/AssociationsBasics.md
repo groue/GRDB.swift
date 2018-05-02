@@ -275,7 +275,7 @@ Those conventions help associations be convenient and, generally, "just work". W
 
 **Database table names should be singular and camel-cased.**
 
-This is the same convention as Swift identifiers for variables and properties. For example: `book`, `author`, `postalAddress`.
+Make them look like Swift identifiers: `book`, `author`, `postalAddress`.
 
 This convention helps fetching values from associations. It is used, for example, in the sample code below, where we load all pairs of books along with their authors:
 

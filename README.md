@@ -3304,7 +3304,9 @@ try db.create(table: "example") { t in ... }
 try db.create(table: "example", temporary: true, ifNotExists: true) { t in
 ```
 
-> :bulb: **Tip**: when you create a database table, prefer giving it a name that is singular and camel-cased, such as `place`, `country`, or `postalAddress`. This is the prefered convention for database table names in GRDB. Other names such as `places` or `postal_address` are also valid, but you may have to perform extra configuration steps.
+> :bulb: **Tip**: database table names should be singular, and camel-cased. Make them look like Swift identifiers: `place`, `country`, `postalAddress`.
+>
+> This will help you using the new [Associations](Documentation/AssociationsBasics.md) feature when you need it. Database table names that follow another naming convention are totally OK, but you will need to perform extra configuration.
 
 **Add regular columns** with their name and eventual type (text, integer, double, numeric, boolean, blob, date and datetime) - see [SQLite data types](https://www.sqlite.org/datatype3.html):
 
@@ -3345,9 +3347,16 @@ Use an individual column as **primary**, **unique**, or **foreign key**. When de
     t.column("countryCode", .text).references("country", onDelete: .cascade)
 ```
 
-> :bulb: **Tip**: when you need an integer primary key that automatically generates unique values, it is highly recommended that you use the `autoIncrementedPrimaryKey` method.
+> :bulb: **Tip**: when you need an integer primary key that automatically generates unique values, it is highly recommended that you use the `autoIncrementedPrimaryKey` method:
 >
-> Such primary key prevents the reuse of ids, and is an excellent guard against data races that could happen when your application processes ids in an asynchronous way. The auto-incremented primary key provides the guarantee that a given id can't reference a row that is different from the one it used to be at the beginning of the asynchronous process, even if this row gets deleted and a new one is inserted in between.
+> ```swift
+> try db.create(table: "example") { t in
+>     t.autoIncrementedPrimaryKey("id")
+>     ...
+> }
+> ```
+>
+> The reason for this recommendation is that auto-incremented primary keys prevent the reuse of ids. This prevents your app or [database observation tools](#database-changes-observation) to think that a row was updated, when it was actually deleted, then replaced. Depending on your application needs, this may be OK. Or not.
 
 **Create an index** on the column:
 
