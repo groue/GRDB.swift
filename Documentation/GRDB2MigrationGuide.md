@@ -240,6 +240,33 @@ Now `write` automatically wraps your changes in a transaction, with the guarante
 
 ## If You Use Database Snapshots
 
+With GRDB 2, you used to create [database snapshots] with the `makeSnaphot` [DatabasePool] method. For example:
+
+```swift
+// GRDB 2
+let snapshot: DatabaseSnapshot = try dbPool.write { db in
+    try Player.deleteAll()
+    return dbPool.makeSnapshot()
+}
+
+// Guaranteed to be zero
+let count = try snapshot.read { db in
+    try Player.fetchCount(db)
+}
+```
+
+GRDB 3 will crash the above code on the `makeSnapshot()` line, with a fatal error: "makeSnapshot() must not be called from inside a transaction."
+
+To avoid this error, you will need [precise transaction handling]:
+
+```swift
+// GRDB 3
+let snapshot: DatabaseSnapshot = try dbPool.writeWithoutTransaction { db in
+    try Player.deleteAll()
+    return dbPool.makeSnapshot()
+}
+```
+
 
 ## If You Use RxGRDB
 
@@ -257,6 +284,8 @@ Now `write` automatically wraps your changes in a transaction, with the guarante
 [DatabaseMigrator]: ../README.md#migrations
 [database observation tools]: ../README.md#database-changes-observation
 [Transactions and Savepoints]: ../README.md#transactions-and-savepoints
+[precise transaction handling]: ../README.md#transactions-and-savepoints
 [DatabaseQueue]: ../README.md#database-queues
 [DatabasePool]: ../README.md#database-pools
+[database snapshots]: ../README.md#database-snapshots
 [FMDB]: http://github.com/ccgus/fmdb
