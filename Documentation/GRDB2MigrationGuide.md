@@ -27,7 +27,7 @@ pod 'GRDB.swift', git: 'https://github.com/groue/GRDB.swift', branch: 'GRDB3'
 
 Update your Package.swift file:
 
-```
+```swift
 let package = Package(
     dependencies: [
         .package(url: "https://github.com/groue/GRDB.swift.git", branch: "GRDB3")
@@ -53,7 +53,7 @@ GRDB 3 still accepts any database, but brings two schema recommendations:
 
 - :bulb: Integer primary keys should be auto-incremented, in order to avoid any row id to be reused.
     
-    When ids can be reused, high-level database observation tools such as [FetchedRecordsController] or [RxGRDB] that ship with GRDB may see an update when a row is deleted, then replaced, in a single database transaction. Depending on your application needs, this may be OK. Or not.
+    When ids can be reused, high-level database observation tools such as [FetchedRecordsController] or [RxGRDB] may see an update when a row is deleted, then replaced, in a single database transaction. Depending on your application needs, this may be OK. Or not.
     
     GRDB3 thus comes with this new *good pratice*: use the new `autoIncrementedPrimaryKey` method when you create a database table with an integer primary key:
     
@@ -116,10 +116,17 @@ migrator.registerMigrationWithDeferredForeignKeyCheck("GRDB3") { db in
 
 
 ## If You Target iOS 8
+
+GRDB 3 is only supported on iOS 9+.
+
+That is because the library requires Swift 4.1, which ships with Xcode 9.3, unable to run tests before iOS 9.
+
+> :construction_worker: Beta note: GRDB 3 currently still *runs* on iOS8, although untested. I won't delete the code that targets older versions of SQLite and iOS until I grab some feedback.
+
+
 ## If You Use Database Queues
+
 ## If You Use Database Pools
-
-
 
 
 [How To Upgrade]: #how-to-upgrade
