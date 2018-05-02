@@ -8,6 +8,8 @@ GRDB 3 comes with new features, but also a few breaking changes, and a set of up
 - [If You Target iOS 8]
 - [If You Use Database Queues]
 - [If You Use Database Pools]
+- [If You Use Database Snapshots]
+- [If You Use RxGRDB]
 
 
 ## How to Upgrade
@@ -166,7 +168,7 @@ let balance = try dbQueue.write { db in
 }
 ```
 
-The purpose of the new `read` and `write` methods is to soothe the "transaction mental load" of GRDB 2, a legacy of the [FMDB] heritage. All developers can *forget* to open transactions, with the unfortunate consequence that the database may end up containing inconsistent values. Experienced developers may *wonder* whether they should open transactions or not, even when this doesn't matter a lot.
+The purpose of the new `read` and `write` methods is to soothe the "transaction mental load" of previous versions of GRDB, a legacy of the [FMDB] heritage. All developers can *forget* to open transactions, with the unfortunate consequence that the database may end up containing inconsistent values. Experienced developers may *wonder* whether they should open transactions or not, even when this doesn't matter a lot.
 
 With GRDB 3, use `read` when you need to read values. It's impossible to write within a `read` block, which means that you can be sure that no unwanted side effect can happen.
 
@@ -178,11 +180,19 @@ Of course, precise transaction handling sometimes matter. Check the updated [Tra
 ## If You Use Database Pools
 
 
+## If You Use Database Snapshots
+
+
+## If You Use RxGRDB
+
+
 [How To Upgrade]: #how-to-upgrade
 [Database Schema Recommendations]: #database-schema-recommendations
 [If You Target iOS 8]: #if-you-target-ios-8
 [If You Use Database Queues]: #if-you-use-database-queues
 [If You Use Database Pools]: #if-you-use-database-pools
+[If You Use Database Snapshots]: #if-you-use-database-snapshots
+[If You Use RxGRDB]: #if-you-use-rxgrdb
 [FetchedRecordsController]: ../README.md#fetchedrecordscontroller
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
 [Associations]: AssociationsBasics.md
