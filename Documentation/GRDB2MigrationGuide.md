@@ -124,6 +124,57 @@ That is because the library requires Swift 4.1, which ships with Xcode 9.3, unab
 
 ## If You Use Database Queues
 
+With GRDB 2, you used to access the database through the `inDatabase` or `inTransaction` DatabaseQueue methods:
+
+```swift
+// Typical GRDB 2
+let players = try dbQueue.inDatabase { db in
+    try Player.fetchAll(db)
+}
+
+try dbQueue.inDatabase { db in
+    try player.updateChanges(db)
+}
+
+var balance: Amount! = nil
+try dbQueue.inTransaction { db in
+    try Credit(destinationAccout, amount).insert(db)
+    try Debit(sourceAccount, amount).insert(db)
+    balance = try sourceAccount.fetchBalance(db)
+    return .commit
+}
+```
+
+The code above still runs, unchanged, in GRDB 3.
+
+Yet it is now recommended that you use the `read` and `write` methods instead:
+
+```swift
+// GRDB 3
+let players = try dbQueue.read { db in
+    try Player.fetchAll(db)
+}
+
+try dbQueue.write { db in
+    try player.updateChanges(db)
+}
+
+let balance = try dbQueue.write { db in
+    try Credit(destinationAccout, amount).insert(db)
+    try Debit(sourceAccount, amount).insert(db)
+    return try sourceAccount.fetchBalance(db)
+}
+```
+
+The purpose of the new `read` and `write` methods is to soothe the "transaction mental load" of GRDB 2, inherited from FMDB. All developers can *forget* to open transactions, with the unfortunate consequence that the database may end up containing inconsistent values. Experienced developers may *wonder* whether they should open transactions or not, even when this doesn't matter a lot.
+
+With GRDB 3, use `read` when you need to read values. It's impossible to write within a `read` block, which means that you can be sure that no unwanted side effect can happen.
+
+When you need to write, use `write`: your database changes are automatically wrapped in a transaction, with the guarantee that all changes are applied, or, should any error happen, none at all.
+
+Of course, precise transaction handling is still possible. Check the updated [Transactions and Savepoints] chapter.
+
+
 ## If You Use Database Pools
 
 
@@ -137,3 +188,4 @@ That is because the library requires Swift 4.1, which ships with Xcode 9.3, unab
 [Associations]: AssociationsBasics.md
 [DatabaseMigrator]: ../README.md#migrations
 [database observation tools]: ../README.md#database-changes-observation
+[Transactions and Savepoints]: ../README.md#transactions-and-savepoints
