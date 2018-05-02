@@ -5,7 +5,7 @@ GRDB 3 [![Swift](https://img.shields.io/badge/swift-4.1-orange.svg?style=flat)](
 
 **Latest release**: March 30, 2018 • version 2.10.0 • [CHANGELOG](CHANGELOG.md)
 
-**Requirements**: iOS 8.0+ / OSX 10.9+ / watchOS 2.0+ &bull; Swift 4+ / Xcode 9.3+
+**Requirements**: iOS 8.0+ / OSX 10.9+ / watchOS 2.0+ &bull; Swift 4.1+ / Xcode 9.3+
 
 | Swift version | GRDB version                                                |
 | ------------- | ----------------------------------------------------------- |

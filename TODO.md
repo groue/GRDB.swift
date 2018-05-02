@@ -21,7 +21,6 @@ GRDB 3.0
     - [ ] Introduce some record protocol with an associated primary key type. Restrict filter(key:) methods to this type. Allow distinguishing FooId from BarId types.
     - [ ] Replace Column with TypedColumn. How to avoid code duplication (repeated types)? Keypaths?
 - [ ] HiddenColumnsAdapter
-- [ ] PR for OffsettedAdapter
 - [ ] Find a common name for DatabaseQueue.inDatabase / DatabasePool.writeWithoutTransaction:
     - writeRaw, rawWrite, pureWrite, plainWrite, directWrite, basicWrite
     - sync
@@ -31,6 +30,8 @@ GRDB 3.0
 - [ ] Simplify Range extensions for Swift 4.1
 - [ ] https://forums.swift.org/t/how-to-encode-objects-of-unknown-type/12253/6
 - [ ] hide ScopeAdapter(base, scopes), because base.addingScopes has a better implementation
+- [ ] Drop iOS 8 compatibility, due to lack of Xcode support
+- [ ] Joins and full-text tables
 
 Not sure
 
