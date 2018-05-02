@@ -172,12 +172,70 @@ The purpose of the new `read` and `write` methods is to soothe the "transaction 
 
 With GRDB 3, use `read` when you need to read values. It's impossible to write within a `read` block, which means that you can be sure that no unwanted side effect can happen.
 
-When you need to write, use `write`: your database changes are automatically wrapped in a transaction, with the guarantee that all changes are applied, or, should any error happen, none at all.
+When you need to write, use `write`: your database changes are automatically wrapped in a transaction, with the guarantee that all changes are written to disk, or, should any error happen, none at all.
 
 Of course, precise transaction handling sometimes matter. Check the updated [Transactions and Savepoints] chapter.
 
 
 ## If You Use Database Pools
+
+With GRDB 2, you used to access the database through the `read`, `write` or `writeInTransaction` [DatabasePool] methods:
+
+```swift
+// GRDB 2
+let players = try dbPool.read { db in
+    try Player.fetchAll(db)
+}
+
+try dbPool.write { db in
+    try player.updateChanges(db)
+}
+
+var balance: Amount! = nil
+try dbPool.writeInTransaction { db in
+    try Credit(destinationAccout, amount).insert(db)
+    try Debit(sourceAccount, amount).insert(db)
+    balance = try sourceAccount.fetchBalance(db)
+    return .commit
+}
+```
+
+In GRDB 3, the `write` method has changed: it now automatically wraps your database changes in a transaction, which means that the last block can be rewritten as below:
+
+```swift
+// GRDB 3
+let balance = try dbPool.write { db in
+    try Credit(destinationAccout, amount).insert(db)
+    try Debit(sourceAccount, amount).insert(db)
+    return try sourceAccount.fetchBalance(db)
+}
+```
+
+Side effect: you can no longer open explicit transactions inside a `write` block:
+
+```swift
+// GRDB 2: OK
+// GRDB 3: SQLite error 1 with statement `BEGIN DEFERRED TRANSACTION`:
+//         cannot start a transaction within a transaction
+try dbPool.write { db in
+    db.inTransaction { ... }
+}
+```
+
+When precise transaction handling is needed, check the updated [Transactions and Savepoints] chapter.
+
+The purpose of this change is to prevent an easy misuse of database pools in previous GRDB versions. Unless writes were wrapped inside an explicit transactions, concurrent reads could see an inconsistent state of the database:
+
+```swift
+// GRDB 2: unsafe
+// GRDB 3: safe
+try dbPool.write { db in
+    try Credit(destinationAccout, amount).insert(db)
+    try Debit(sourceAccount, amount).insert(db)
+}
+```
+
+Now `write` automatically wraps your changes in a transaction, with the guarantee that concurrent reads can't see them until they are all written to disk.
 
 
 ## If You Use Database Snapshots
@@ -200,4 +258,5 @@ Of course, precise transaction handling sometimes matter. Check the updated [Tra
 [database observation tools]: ../README.md#database-changes-observation
 [Transactions and Savepoints]: ../README.md#transactions-and-savepoints
 [DatabaseQueue]: ../README.md#database-queues
+[DatabasePool]: ../README.md#database-pools
 [FMDB]: http://github.com/ccgus/fmdb
