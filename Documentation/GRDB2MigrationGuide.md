@@ -302,7 +302,7 @@ extension Player {
 let players = try Player.filter(color: .red).fetchAll(db)
 ```
 
-The `AnyTypedRequest` type is no longer available, and SQLRequest is now a generic type:
+The `AnyTypedRequest` type is no longer available, and `SQLRequest` is now a generic type:
 
 ```swift
 // GRDB 3
