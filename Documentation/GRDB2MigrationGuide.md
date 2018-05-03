@@ -342,6 +342,6 @@ For other incompatible changes, let the compiler fixits guide you.
 [DatabasePool]: ../README.md#database-pools
 [database snapshots]: ../README.md#database-snapshots
 [FMDB]: http://github.com/ccgus/fmdb
-[record protocols]: ../README.md##record-protocols-overview
-[Custom requests]: ../README.md##custom-requests
-[query interface]: ../README.md##the-query-interface
+[record protocols]: ../README.md#record-protocols-overview
+[Custom requests]: ../README.md#custom-requests
+[query interface]: ../README.md#the-query-interface
