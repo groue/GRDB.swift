@@ -15,7 +15,7 @@ GRDB 3 comes with new features, but also a few breaking changes, and a set of up
 - [If You Use Database Queues]
 - [If You Use Database Pools]
 - [If You Use Database Snapshots]
-- [If You Define Custom Requests]
+- [If You Use Custom Requests]
 - [If You Use RxGRDB]
 
 
@@ -283,7 +283,7 @@ let snapshot: DatabaseSnapshot = try dbPool.writeWithoutTransaction { db in
 ```
 
 
-## If You Define Custom Requests
+## If You Use Custom Requests
 
 [Custom requests] let you escape the limitations of the [query interface], when it can not generate the requests you need.
 
@@ -329,7 +329,7 @@ For other incompatible changes, let the compiler fixits guide you.
 [If You Use Database Queues]: #if-you-use-database-queues
 [If You Use Database Pools]: #if-you-use-database-pools
 [If You Use Database Snapshots]: #if-you-use-database-snapshots
-[If You Define Custom Requests]: #if-you-define-custom-requests
+[If You Use Custom Requests]: #if-you-use-custom-requests
 [If You Use RxGRDB]: #if-you-use-rxgrdb
 [FetchedRecordsController]: ../README.md#fetchedrecordscontroller
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
