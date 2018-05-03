@@ -233,7 +233,7 @@ Side effect: you can no longer open explicit transactions inside a `write` block
 // GRDB 3: SQLite error 1 with statement `BEGIN DEFERRED TRANSACTION`:
 //         cannot start a transaction within a transaction
 try dbPool.write { db in
-    db.inTransaction { ... }
+    try db.inTransaction { ... }
 }
 ```
 
@@ -250,7 +250,7 @@ try dbPool.write { db in
 }
 ```
 
-Now `write` automatically wraps your changes in a transaction, with the guarantee that concurrent reads can't see them until they are all written to disk.
+Since `write` now wraps your changes in a transaction, you have the guarantee that concurrent reads can't see them until they are all written to disk.
 
 
 ## If You Use Database Snapshots
