@@ -3,9 +3,15 @@ Migrating From GRDB 2 to GRDB 3
 
 GRDB 3 comes with new features, but also a few breaking changes, and a set of updated good practices. This guide aims at helping you upgrading your applications.
 
+**For all users**
+
 - [How To Upgrade]
+- [iOS 8 Sunsetting]
 - [Database Schema Recommendations]
-- [If You Target iOS 8]
+- [Record Protocols Renaming]
+
+**By topic**
+
 - [If You Use Database Queues]
 - [If You Use Database Pools]
 - [If You Use Database Snapshots]
@@ -45,6 +51,11 @@ Update your local copy of GRDB:
 git checkout GRDB3
 git pull
 ```
+
+
+## iOS 8 Sunsetting
+
+GRDB 3 is only tested on iOS 9+. Code that targets older versions of SQLite and iOS is still there, but is not supported.
 
 
 ## Database Schema Recommendations
@@ -115,13 +126,16 @@ migrator.registerMigrationWithDeferredForeignKeyCheck("GRDB3") { db in
 ```
 
 
-## If You Target iOS 8
+## Record Protocols Renaming
 
-GRDB 3 is only supported on iOS 9+.
+GRDB 3 has renamed the [record protocols]:
 
-That is because the library requires Swift 4.1, which ships with Xcode 9.3, unable to run tests before iOS 9.
+- `RowConvertible` -> `FetchableRecord`
+- `TableMapping` -> `TableRecord`
+- `Persistable` -> `PersistableRecord`
+- `MutablePersistable` -> `MutablePersistableRecord`
 
-> :construction_worker: Beta note: GRDB 3 currently still *runs* on iOS8, although untested. I won't delete the code that targets older versions of SQLite and iOS until I grab some feedback.
+After upgrading, build your project: the compiler will guide you through the renaming by the way of fixits.
 
 
 ## If You Use Database Queues
@@ -273,7 +287,8 @@ let snapshot: DatabaseSnapshot = try dbPool.writeWithoutTransaction { db in
 
 [How To Upgrade]: #how-to-upgrade
 [Database Schema Recommendations]: #database-schema-recommendations
-[If You Target iOS 8]: #if-you-target-ios-8
+[Record Protocols Renaming]: #record-protocols-renaming
+[iOS 8 Sunsetting]: @ios-8-sunsetting
 [If You Use Database Queues]: #if-you-use-database-queues
 [If You Use Database Pools]: #if-you-use-database-pools
 [If You Use Database Snapshots]: #if-you-use-database-snapshots
@@ -289,3 +304,4 @@ let snapshot: DatabaseSnapshot = try dbPool.writeWithoutTransaction { db in
 [DatabasePool]: ../README.md#database-pools
 [database snapshots]: ../README.md#database-snapshots
 [FMDB]: http://github.com/ccgus/fmdb
+[record protocols]: ../README.md##record-protocols-overview
