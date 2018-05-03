@@ -15,6 +15,7 @@ GRDB 3 comes with new features, but also a few breaking changes, and a set of up
 - [If You Use Database Queues]
 - [If You Use Database Pools]
 - [If You Use Database Snapshots]
+- [If You Define Custom Requests]
 - [If You Use RxGRDB]
 
 
@@ -282,6 +283,42 @@ let snapshot: DatabaseSnapshot = try dbPool.writeWithoutTransaction { db in
 ```
 
 
+## If You Define Custom Requests
+
+[Custom requests] let you escape the limitations of the [query interface], when it can not generate the requests you need.
+
+You may, for example, use `SQLRequest`:
+
+```swift
+// GRDB 2
+extension Player {
+    static func filter(color: Color) -> AnyTypedRequest<Player> {
+        let sql = "SELECT * FROM players WHERE color = ?"
+        let request = SQLRequest(sql, arguments: [color])
+        return request.asRequest(of: Player.self)
+    }
+}
+
+let players = try Player.filter(color: .red).fetchAll(db)
+```
+
+The `AnyTypedRequest` type is no longer available, and SQLRequest is now a generic type:
+
+```swift
+// GRDB 3
+extension Player {
+    static func filter(color: Color) -> SQLRequest<Player> {
+        let sql = "SELECT * FROM players WHERE color = ?"
+        return SQLRequest(sql, arguments: [color])
+    }
+}
+
+let players = try Player.filter(color: .red).fetchAll(db)
+```
+
+For other incompatible changes, let the compiler fixits guide you.
+
+
 ## If You Use RxGRDB
 
 
@@ -292,6 +329,7 @@ let snapshot: DatabaseSnapshot = try dbPool.writeWithoutTransaction { db in
 [If You Use Database Queues]: #if-you-use-database-queues
 [If You Use Database Pools]: #if-you-use-database-pools
 [If You Use Database Snapshots]: #if-you-use-database-snapshots
+[If You Define Custom Requests]: #if-you-define-custom-requests
 [If You Use RxGRDB]: #if-you-use-rxgrdb
 [FetchedRecordsController]: ../README.md#fetchedrecordscontroller
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
@@ -305,3 +343,5 @@ let snapshot: DatabaseSnapshot = try dbPool.writeWithoutTransaction { db in
 [database snapshots]: ../README.md#database-snapshots
 [FMDB]: http://github.com/ccgus/fmdb
 [record protocols]: ../README.md##record-protocols-overview
+[Custom requests]: ../README.md##custom-requests
+[query interface]: ../README.md##the-query-interface
