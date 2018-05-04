@@ -1,11 +1,6 @@
-public struct HasOneAssociation<Origin, Destination> : Association, TableRequest where
-    Origin: TableRecord,
-    Destination: TableRecord
-{
-    fileprivate let foreignKeyRequest: ForeignKeyRequest
-    
-    // Association conformance
-    
+public struct HasOneAssociation<Origin, Destination> : Association {
+    fileprivate let joinConditionRequest: ForeignKeyJoinConditionRequest
+
     /// :nodoc:
     public typealias OriginRowDecoder = Origin
     
@@ -25,7 +20,7 @@ public struct HasOneAssociation<Origin, Destination> : Association, TableRequest
     
     /// :nodoc:
     public func joinCondition(_ db: Database) throws -> JoinCondition {
-        return try ForeignKeyJoinConditionRequest(foreignKeyRequest: foreignKeyRequest, originIsLeft: false).fetch(db)
+        return try joinConditionRequest.fetch(db)
     }
     
     /// :nodoc:
@@ -34,17 +29,17 @@ public struct HasOneAssociation<Origin, Destination> : Association, TableRequest
         association.request = transform(request)
         return association
     }
-    
-    // TableRequest conformance
-    
+}
+
+extension HasOneAssociation: TableRequest where Destination: TableRecord {
     /// :nodoc:
     public var databaseTableName: String { return Destination.databaseTableName }
 }
 
 extension TableRecord {
-    // TODO: Make it public if and only if we really want to build an association from any request
-    static func hasOne<Destination>(
-        _ request: QueryInterfaceRequest<Destination>,
+    /// TODO
+    public static func hasOne<Destination>(
+        _ destination: Destination.Type,
         key: String? = nil,
         using foreignKey: ForeignKey? = nil)
         -> HasOneAssociation<Self, Destination>
@@ -55,20 +50,13 @@ extension TableRecord {
             destinationTable: databaseTableName,
             foreignKey: foreignKey)
         
-        return HasOneAssociation(
+        let joinConditionRequest = ForeignKeyJoinConditionRequest(
             foreignKeyRequest: foreignKeyRequest,
+            originIsLeft: false)
+        
+        return HasOneAssociation(
+            joinConditionRequest: joinConditionRequest,
             key: key ?? Destination.databaseTableName,
-            request: AssociationRequest(request))
-    }
-    
-    /// TODO
-    public static func hasOne<Destination>(
-        _ destination: Destination.Type,
-        key: String? = nil,
-        using foreignKey: ForeignKey? = nil)
-        -> HasOneAssociation<Self, Destination>
-        where Destination: TableRecord
-    {
-        return hasOne(Destination.all(), key: key, using: foreignKey)
+            request: AssociationRequest(Destination.all()))
     }
 }

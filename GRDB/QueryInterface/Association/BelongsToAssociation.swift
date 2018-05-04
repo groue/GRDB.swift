@@ -1,10 +1,5 @@
-public struct BelongsToAssociation<Origin, Destination> : Association, TableRequest where
-    Origin: TableRecord,
-    Destination: TableRecord
-{
-    fileprivate let foreignKeyRequest: ForeignKeyRequest
-    
-    // Association conformance
+public struct BelongsToAssociation<Origin, Destination>: Association {
+    fileprivate let joinConditionRequest: ForeignKeyJoinConditionRequest
     
     /// :nodoc:
     public typealias OriginRowDecoder = Origin
@@ -25,7 +20,7 @@ public struct BelongsToAssociation<Origin, Destination> : Association, TableRequ
     
     /// :nodoc:
     public func joinCondition(_ db: Database) throws -> JoinCondition {
-        return try ForeignKeyJoinConditionRequest(foreignKeyRequest: foreignKeyRequest, originIsLeft: true).fetch(db)
+        return try joinConditionRequest.fetch(db)
     }
     
     /// :nodoc:
@@ -34,17 +29,17 @@ public struct BelongsToAssociation<Origin, Destination> : Association, TableRequ
         association.request = transform(request)
         return association
     }
-    
-    // TableRequest conformance
-    
+}
+
+extension BelongsToAssociation: TableRequest where Destination: TableRecord {
     /// :nodoc:
     public var databaseTableName: String { return Destination.databaseTableName }
 }
 
 extension TableRecord {
-    // TODO: Make it public if and only if we really want to build an association from any request
-    static func belongsTo<Destination>(
-        _ request: QueryInterfaceRequest<Destination>,
+    /// TODO
+    public static func belongsTo<Destination>(
+        _ destination: Destination.Type,
         key: String? = nil,
         using foreignKey: ForeignKey? = nil)
         -> BelongsToAssociation<Self, Destination>
@@ -55,20 +50,13 @@ extension TableRecord {
             destinationTable: Destination.databaseTableName,
             foreignKey: foreignKey)
         
-        return BelongsToAssociation(
+        let joinConditionRequest = ForeignKeyJoinConditionRequest(
             foreignKeyRequest: foreignKeyRequest,
+            originIsLeft: true)
+
+        return BelongsToAssociation(
+            joinConditionRequest: joinConditionRequest,
             key: key ?? Destination.databaseTableName,
-            request: AssociationRequest(request))
-    }
-    
-    /// TODO
-    public static func belongsTo<Destination>(
-        _ destination: Destination.Type,
-        key: String? = nil,
-        using foreignKey: ForeignKey? = nil)
-        -> BelongsToAssociation<Self, Destination>
-        where Destination: TableRecord
-    {
-        return belongsTo(Destination.all(), key: key, using: foreignKey)
+            request: AssociationRequest(Destination.all()))
     }
 }

@@ -324,10 +324,7 @@ extension OrderedRequest {
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
-/// The base protocol for all requests that can be refined:
-///
-///     extension DerivableRequest where RowDecoder: Player {
-///     }
+/// The base protocol for all requests that can be refined.
 public protocol DerivableRequest: SelectionRequest, FilteredRequest, OrderedRequest {
     associatedtype RowDecoder
 }
