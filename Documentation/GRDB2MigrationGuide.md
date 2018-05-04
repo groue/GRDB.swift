@@ -88,7 +88,7 @@ Since you are reading this guide, your application has already defined its datab
 ```swift
 var migrator = DatabaseMigrator()
 
-// GRDB 2 migration
+// Existing GRDB 2 migration:
 migrator.registerMigration("initial") { db in
     try db.create(table: "authors") { t in
         t.column("id", .integer).primaryKey()
@@ -101,12 +101,14 @@ migrator.registerMigration("initial") { db in
     }
 }
 
-// GRDB 3 migration:
-// - table names look like Swift identifiers (singular and camelCased)
-// - integer primary keys are auto-incremented
+// New GRDB 3 migration:
+// - Rename tables so that they look like Swift identifiers (singular and camelCased)
+// - Make integer primary keys auto-incremented
 //
-// Use registerMigrationWithDeferredForeignKeyCheck in order to disable
-// foreign key checks during the migration:
+// Since several tables are recreated from scratch, referential integrity
+// constraints may break during the process. The
+// registerMigrationWithDeferredForeignKeyCheck method makes sure that foreign
+// key checks are temporarily disabled, and checked at the end:
 migrator.registerMigrationWithDeferredForeignKeyCheck("GRDB3") { db in
     try db.create(table: "author") { t in
         t.autoIncrementedPrimaryKey("id")
