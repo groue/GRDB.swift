@@ -196,7 +196,7 @@ class SelectStatementTests : GRDBTestCase {
             
             let doubtfulCountFunction = (sqlite3_libversion_number() < 3019000)
             
-            let observers = statements.map { Observer(region: $0.fetchedRegion) }
+            let observers = statements.map { Observer(region: $0.databaseRegion) }
             if doubtfulCountFunction {
                 XCTAssertEqual(observers.map { $0.region.description }, ["table1(a,b,id,id3,id4)","table1(a,id,id3)", "table1(a,id),table2(a,id)", "full database"])
             } else {

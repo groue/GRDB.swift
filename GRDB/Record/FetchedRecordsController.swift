@@ -105,7 +105,7 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
         self.itemsAreIdenticalFactory = itemsAreIdenticalFactory
         self.request = ItemRequest(request)
         (self.region, self.itemsAreIdentical) = try databaseWriter.unsafeRead { db in
-            let region = try request.fetchedRegion(db)
+            let region = try request.databaseRegion(db)
             let itemsAreIdentical = try itemsAreIdenticalFactory(db)
             return (region, itemsAreIdentical)
         }
@@ -165,7 +165,7 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
     public func setRequest<Request>(_ request: Request) throws where Request: FetchRequest, Request.RowDecoder == Record {
         self.request = ItemRequest(request)
         (self.region, self.itemsAreIdentical) = try databaseWriter.unsafeRead { db in
-            let region = try request.fetchedRegion(db)
+            let region = try request.databaseRegion(db)
             let itemsAreIdentical = try itemsAreIdenticalFactory(db)
             return (region, itemsAreIdentical)
         }

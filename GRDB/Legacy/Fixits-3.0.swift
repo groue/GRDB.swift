@@ -34,7 +34,7 @@ extension SelectStatement {
     public typealias SelectionInfo = DatabaseRegion
     
     /// :nodoc:
-    @available(*, unavailable, renamed:"fetchedRegion")
+    @available(*, unavailable, renamed:"databaseRegion")
     public var selectionInfo: DatabaseRegion { preconditionFailure() }
 }
 

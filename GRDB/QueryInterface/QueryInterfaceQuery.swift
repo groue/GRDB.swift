@@ -329,37 +329,37 @@ extension QueryInterfaceQuery {
     
     /// The database region that the request looks into.
     /// precondition: self is the result of finalizedQuery
-    func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
+    func databaseRegion(_ db: Database) throws -> DatabaseRegion {
         let statement = try makeSelectStatement(db)
-        let region = statement.fetchedRegion
+        let databaseRegion = statement.databaseRegion
         
         // Can we intersect the region with rowIds?
         //
         // Give up unless request feeds from a single database table
         guard case .table(tableName: let tableName, alias: _) = source else {
             // TODO: try harder
-            return region
+            return databaseRegion
         }
         
         // Give up unless primary key is rowId
         let primaryKeyInfo = try db.primaryKey(tableName)
         guard primaryKeyInfo.isRowID else {
-            return region
+            return databaseRegion
         }
         
         // Give up unless there is a where clause
         guard let filter = try filterPromise.resolve(db) else {
-            return region
+            return databaseRegion
         }
         
         // The filter knows better
         guard let rowIds = filter.matchedRowIds(rowIdName: primaryKeyInfo.rowIDColumn) else {
-            return region
+            return databaseRegion
         }
         
         // Database regions are case-insensitive: use the canonical table name
         let canonicalTableName = try db.canonicalTableName(tableName)
-        return region.tableIntersection(canonicalTableName, rowIds: rowIds)
+        return databaseRegion.tableIntersection(canonicalTableName, rowIds: rowIds)
     }
     
     private var countQuery: QueryInterfaceQuery {

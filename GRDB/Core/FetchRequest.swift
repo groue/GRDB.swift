@@ -1,17 +1,17 @@
-// MARK: - DatabaseRequest
+// MARK: - FetchRequest
 
-/// The protocol for all types that request database values.
-public protocol DatabaseRequest {
-    /// Returns the database region that the request looks into.
-    ///
-    /// - parameter db: A database connection.
-    func fetchedRegion(_ db: Database) throws -> DatabaseRegion
-}
-
-// MARK: - SelectStatementRequest
-
-/// The protocol for all requests that run from a single select statement.
-public protocol SelectStatementRequest: DatabaseRequest {
+/// The protocol for all requests that run from a single select statement, and
+/// tell how fetched rows should be interpreted.
+///
+///     struct Player: FetchableRecord { ... }
+///     let request: ... // Some FetchRequest that fetches Player
+///     try request.fetchCursor(db) // Cursor of Player
+///     try request.fetchAll(db)    // [Player]
+///     try request.fetchOne(db)    // Player?
+public protocol FetchRequest {
+    /// The type that tells how fetched database rows should be interpreted.
+    associatedtype RowDecoder
+    
     /// Returns a tuple that contains a prepared statement that is ready to be
     /// executed, and an eventual row adapter.
     ///
@@ -30,9 +30,19 @@ public protocol SelectStatementRequest: DatabaseRequest {
     ///
     /// - parameter db: A database connection.
     func fetchCount(_ db: Database) throws -> Int
+    
+    /// Returns the database region that the request looks into.
+    ///
+    /// - parameter db: A database connection.
+    func databaseRegion(_ db: Database) throws -> DatabaseRegion
 }
 
-extension SelectStatementRequest {
+extension FetchRequest {
+    /// Returns an adapted request.
+    public func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AdaptedFetchRequest<Self> {
+        return AdaptedFetchRequest(self, adapter)
+    }
+    
     /// Returns the number of rows fetched by the request.
     ///
     /// This default implementation builds a naive SQL query based on the
@@ -51,31 +61,9 @@ extension SelectStatementRequest {
     /// returned by the `prepare` method.
     ///
     /// - parameter db: A database connection.
-    public func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
+    public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
         let (statement, _) = try prepare(db)
-        return statement.fetchedRegion
-    }
-}
-
-// MARK: - FetchRequest
-
-/// The protocol for all requests that run from a single select statement, and
-/// tell how fetched rows should be interpreted.
-///
-///     struct Player: FetchableRecord { ... }
-///     let request: ... // Some FetchRequest that fetches Player
-///     try request.fetchCursor(db) // Cursor of Player
-///     try request.fetchAll(db)    // [Player]
-///     try request.fetchOne(db)    // Player?
-public protocol FetchRequest: SelectStatementRequest {
-    /// The type that tells how fetched database rows should be interpreted.
-    associatedtype RowDecoder
-}
-
-extension FetchRequest {
-    /// Returns an adapted request.
-    public func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AdaptedFetchRequest<Self> {
-        return AdaptedFetchRequest(self, adapter)
+        return statement.databaseRegion
     }
 }
 
@@ -111,8 +99,8 @@ public struct AdaptedFetchRequest<Base: FetchRequest> : FetchRequest {
     }
     
     /// :nodoc:
-    public func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
-        return try base.fetchedRegion(db)
+    public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
+        return try base.databaseRegion(db)
     }
 }
 
@@ -127,13 +115,13 @@ public struct AnyFetchRequest<T> : FetchRequest {
     
     private let _prepare: (Database) throws -> (SelectStatement, RowAdapter?)
     private let _fetchCount: (Database) throws -> Int
-    private let _fetchedRegion: (Database) throws -> DatabaseRegion
+    private let _databaseRegion: (Database) throws -> DatabaseRegion
     
     /// Creates a request that wraps and forwards operations to `request`.
     public init<Request: FetchRequest>(_ request: Request) {
         _prepare = request.prepare
         _fetchCount = request.fetchCount
-        _fetchedRegion = request.fetchedRegion
+        _databaseRegion = request.databaseRegion
     }
     
     /// Creates a request whose `prepare()` method wraps and forwards
@@ -149,9 +137,9 @@ public struct AnyFetchRequest<T> : FetchRequest {
             return try Int.fetchOne(db, sql, arguments: statement.arguments)!
         }
         
-        _fetchedRegion = { db in
+        _databaseRegion = { db in
             let (statement, _) = try prepare(db)
-            return statement.fetchedRegion
+            return statement.databaseRegion
         }
     }
     
@@ -166,8 +154,8 @@ public struct AnyFetchRequest<T> : FetchRequest {
     }
     
     /// :nodoc:
-    public func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
-        return try _fetchedRegion(db)
+    public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
+        return try _databaseRegion(db)
     }
 }
 

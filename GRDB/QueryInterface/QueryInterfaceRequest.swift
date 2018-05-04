@@ -38,8 +38,8 @@ extension QueryInterfaceRequest : FetchRequest {
     ///
     /// - parameter db: A database connection.
     /// :nodoc:
-    public func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
-        return try query.finalizedQuery.fetchedRegion(db)
+    public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
+        return try query.finalizedQuery.databaseRegion(db)
     }
 }
 

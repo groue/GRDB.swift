@@ -295,7 +295,7 @@ extension AuthorizedStatement {
 ///     }
 public final class SelectStatement : Statement {    
     /// The database region that the statement looks into.
-    public private(set) var fetchedRegion: DatabaseRegion
+    public private(set) var databaseRegion: DatabaseRegion
     
     /// Creates a prepared statement.
     ///
@@ -316,7 +316,7 @@ public final class SelectStatement : Statement {
         prepFlags: Int32,
         authorizer: StatementCompilationAuthorizer) throws
     {
-        self.fetchedRegion = DatabaseRegion()
+        self.databaseRegion = DatabaseRegion()
         try super.init(
             database: database,
             statementStart: statementStart,
@@ -326,7 +326,7 @@ public final class SelectStatement : Statement {
         GRDBPrecondition(authorizer.invalidatesDatabaseSchemaCache == false, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
         GRDBPrecondition(authorizer.transactionEffect == nil, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
         
-        self.fetchedRegion = authorizer.region
+        self.databaseRegion = authorizer.databaseRegion
     }
     
     /// The number of columns in the resulting rows.
