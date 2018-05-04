@@ -2,9 +2,9 @@
 ///
 /// The base protocol for all associations that define a connection between two
 /// record types.
-public protocol Association: SelectionRequest, FilteredRequest, OrderedRequest {
-    associatedtype LeftAssociated
-    associatedtype RightAssociated
+public protocol Association: DerivableRequest {
+    associatedtype OriginRowDecoder
+    associatedtype RowDecoder
     
     /// The association key defines how rows fetched from this association
     /// should be consumed.
@@ -50,14 +50,14 @@ public protocol Association: SelectionRequest, FilteredRequest, OrderedRequest {
     
     // TODO: this one prevents "through" associations like HasOneThrough, HasManyThrough, etc.
     /// :nodoc:
-    var request: AssociationRequest<RightAssociated> { get }
+    var request: AssociationRequest<RowDecoder> { get }
     
     // TODO: this one prevents "through" associations like HasOneThrough, HasManyThrough, etc.
     /// :nodoc:
     func joinCondition(_ db: Database) throws -> JoinCondition
     
     /// :nodoc:
-    func mapRequest(_ transform: (AssociationRequest<RightAssociated>) -> AssociationRequest<RightAssociated>) -> Self
+    func mapRequest(_ transform: (AssociationRequest<RowDecoder>) -> AssociationRequest<RowDecoder>) -> Self
 }
 
 extension Association {
@@ -240,33 +240,33 @@ extension Association {
     /// Creates an association that includes another one. The columns of the
     /// associated record are selected. The returned association does not
     /// require that the associated database table contains a matching row.
-    public func including<A: Association>(optional association: A) -> Self where A.LeftAssociated == RightAssociated {
+    public func including<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
         return mapRequest { $0.joining(.optional, association) }
     }
     
     /// Creates an association that includes another one. The columns of the
     /// associated record are selected. The returned association requires
     /// that the associated database table contains a matching row.
-    public func including<A: Association>(required association: A) -> Self where A.LeftAssociated == RightAssociated {
+    public func including<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
         return mapRequest { $0.joining(.required, association) }
     }
     
     /// Creates an association that joins another one. The columns of the
     /// associated record are not selected. The returned association does not
     /// require that the associated database table contains a matching row.
-    public func joining<A: Association>(optional association: A) -> Self where A.LeftAssociated == RightAssociated {
+    public func joining<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
         return mapRequest { $0.joining(.optional, association.select([])) }
     }
     
     /// Creates an association that joins another one. The columns of the
     /// associated record are not selected. The returned association requires
     /// that the associated database table contains a matching row.
-    public func joining<A: Association>(required association: A) -> Self where A.LeftAssociated == RightAssociated {
+    public func joining<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
         return mapRequest { $0.joining(.required, association.select([])) }
     }
 }
 
-extension Association where LeftAssociated: MutablePersistableRecord {
+extension Association where OriginRowDecoder: MutablePersistableRecord {
     /// Support for MutablePersistableRecord.request(for:).
     ///
     /// For example:
@@ -280,11 +280,11 @@ extension Association where LeftAssociated: MutablePersistableRecord {
     ///
     ///     let team: Team = ...
     ///     let players = try team.players.fetchAll(db) // [Player]
-    func request(from record: LeftAssociated) -> QueryInterfaceRequest<RightAssociated> {
+    func request(from record: OriginRowDecoder) -> QueryInterfaceRequest<RowDecoder> {
         // Turn `JOIN associated ON associated.recordId = record.id`
         // into `FROM associated WHERE associated.recordId = 1`
         let associationAlias = TableAlias()
-        let recordAlias = TableAlias(tableName: LeftAssociated.databaseTableName)
+        let recordAlias = TableAlias(tableName: OriginRowDecoder.databaseTableName)
         return QueryInterfaceRequest(request)
             .aliased(associationAlias)
             .filter { db in

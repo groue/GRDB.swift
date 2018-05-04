@@ -1,21 +1,23 @@
-public struct BelongsToAssociation<Left, Right> : Association, TableRequest where
-    Left: TableRecord,
-    Right: TableRecord
+public struct BelongsToAssociation<Origin, Destination> : Association, TableRequest where
+    Origin: TableRecord,
+    Destination: TableRecord
 {
-    public typealias LeftAssociated = Left
-    public typealias RightAssociated = Right
+    fileprivate let foreignKeyRequest: ForeignKeyRequest
     
+    // Association conformance
+    
+    /// :nodoc:
+    public typealias OriginRowDecoder = Origin
+    
+    /// :nodoc:
+    public typealias RowDecoder = Destination
+
     public var key: String
     
     /// :nodoc:
-    public var databaseTableName: String { return RightAssociated.databaseTableName }
-    
-    /// :nodoc:
-    public var request: AssociationRequest<Right>
-    
-    let foreignKeyRequest: ForeignKeyRequest
+    public var request: AssociationRequest<Destination>
 
-    public func forKey(_ key: String) -> BelongsToAssociation<Left, Right> {
+    public func forKey(_ key: String) -> BelongsToAssociation<Origin, Destination> {
         var association = self
         association.key = key
         return association
@@ -27,41 +29,46 @@ public struct BelongsToAssociation<Left, Right> : Association, TableRequest wher
     }
     
     /// :nodoc:
-    public func mapRequest(_ transform: (AssociationRequest<Right>) -> AssociationRequest<Right>) -> BelongsToAssociation<Left, Right> {
+    public func mapRequest(_ transform: (AssociationRequest<Destination>) -> AssociationRequest<Destination>) -> BelongsToAssociation<Origin, Destination> {
         var association = self
         association.request = transform(request)
         return association
     }
+    
+    // TableRequest conformance
+    
+    /// :nodoc:
+    public var databaseTableName: String { return Destination.databaseTableName }
 }
 
 extension TableRecord {
     // TODO: Make it public if and only if we really want to build an association from any request
-    static func belongsTo<Right>(
-        _ rightRequest: QueryInterfaceRequest<Right>,
+    static func belongsTo<Destination>(
+        _ request: QueryInterfaceRequest<Destination>,
         key: String? = nil,
         using foreignKey: ForeignKey? = nil)
-        -> BelongsToAssociation<Self, Right>
-        where Right: TableRecord
+        -> BelongsToAssociation<Self, Destination>
+        where Destination: TableRecord
     {
         let foreignKeyRequest = ForeignKeyRequest(
             originTable: databaseTableName,
-            destinationTable: Right.databaseTableName,
+            destinationTable: Destination.databaseTableName,
             foreignKey: foreignKey)
         
         return BelongsToAssociation(
-            key: key ?? Right.databaseTableName,
-            request: AssociationRequest(rightRequest),
-            foreignKeyRequest: foreignKeyRequest)
+            foreignKeyRequest: foreignKeyRequest,
+            key: key ?? Destination.databaseTableName,
+            request: AssociationRequest(request))
     }
     
     /// TODO
-    public static func belongsTo<Right>(
-        _ right: Right.Type,
+    public static func belongsTo<Destination>(
+        _ destination: Destination.Type,
         key: String? = nil,
         using foreignKey: ForeignKey? = nil)
-        -> BelongsToAssociation<Self, Right>
-        where Right: TableRecord
+        -> BelongsToAssociation<Self, Destination>
+        where Destination: TableRecord
     {
-        return belongsTo(Right.all(), key: key, using: foreignKey)
+        return belongsTo(Destination.all(), key: key, using: foreignKey)
     }
 }

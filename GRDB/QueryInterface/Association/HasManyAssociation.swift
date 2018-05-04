@@ -1,21 +1,23 @@
-public struct HasManyAssociation<Left, Right> : Association, TableRequest where
-    Left: TableRecord,
-    Right: TableRecord
+public struct HasManyAssociation<Origin, Destination> : Association, TableRequest where
+    Origin: TableRecord,
+    Destination: TableRecord
 {
-    public typealias LeftAssociated = Left
-    public typealias RightAssociated = Right
+    fileprivate let foreignKeyRequest: ForeignKeyRequest
     
+    // Association conformance
+
+    /// :nodoc:
+    public typealias OriginRowDecoder = Origin
+    
+    /// :nodoc:
+    public typealias RowDecoder = Destination
+
     public var key: String
     
     /// :nodoc:
-    public var databaseTableName: String { return RightAssociated.databaseTableName }
+    public var request: AssociationRequest<Destination>
     
-    /// :nodoc:
-    public var request: AssociationRequest<Right>
-    
-    let foreignKeyRequest: ForeignKeyRequest
-    
-    public func forKey(_ key: String) -> HasManyAssociation<Left, Right> {
+    public func forKey(_ key: String) -> HasManyAssociation<Origin, Destination> {
         var association = self
         association.key = key
         return association
@@ -27,41 +29,46 @@ public struct HasManyAssociation<Left, Right> : Association, TableRequest where
     }
     
     /// :nodoc:
-    public func mapRequest(_ transform: (AssociationRequest<Right>) -> AssociationRequest<Right>) -> HasManyAssociation<Left, Right> {
+    public func mapRequest(_ transform: (AssociationRequest<Destination>) -> AssociationRequest<Destination>) -> HasManyAssociation<Origin, Destination> {
         var association = self
         association.request = transform(request)
         return association
     }
+    
+    // TableRequest conformance
+    
+    /// :nodoc:
+    public var databaseTableName: String { return Destination.databaseTableName }
 }
 
 extension TableRecord {
     // TODO: Make it public if and only if we really want to build an association from any request
-    static func hasMany<Right>(
-        _ rightRequest: QueryInterfaceRequest<Right>,
+    static func hasMany<Destination>(
+        _ request: QueryInterfaceRequest<Destination>,
         key: String? = nil,
         using foreignKey: ForeignKey? = nil)
-        -> HasManyAssociation<Self, Right>
-        where Right: TableRecord
+        -> HasManyAssociation<Self, Destination>
+        where Destination: TableRecord
     {
         let foreignKeyRequest = ForeignKeyRequest(
-            originTable: Right.databaseTableName,
+            originTable: Destination.databaseTableName,
             destinationTable: databaseTableName,
             foreignKey: foreignKey)
         
         return HasManyAssociation(
-            key: key ?? Right.databaseTableName,
-            request: AssociationRequest(rightRequest),
-            foreignKeyRequest: foreignKeyRequest)
+            foreignKeyRequest: foreignKeyRequest,
+            key: key ?? Destination.databaseTableName,
+            request: AssociationRequest(request))
     }
     
     /// TODO
-    public static func hasMany<Right>(
-        _ right: Right.Type,
+    public static func hasMany<Destination>(
+        _ destination: Destination.Type,
         key: String? = nil,
         using foreignKey: ForeignKey? = nil)
-        -> HasManyAssociation<Self, Right>
-        where Right: TableRecord
+        -> HasManyAssociation<Self, Destination>
+        where Destination: TableRecord
     {
-        return hasMany(Right.all(), key: key, using: foreignKey)
+        return hasMany(Destination.all(), key: key, using: foreignKey)
     }
 }

@@ -65,7 +65,7 @@ class SQLRequestTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let request = CustomRequest()
-            let sqlRequest = try SQLRequest(db, request: request)
+            let sqlRequest = try SQLRequest<Row>(db, request: request)
             XCTAssertEqual(sqlRequest.sql, "SELECT ? AS a, ? AS b")
             XCTAssertEqual(sqlRequest.arguments, [1, "foo"])
             XCTAssertEqual(try sqlRequest.fetchOne(db)!, ["a": 1, "b": "foo"])
