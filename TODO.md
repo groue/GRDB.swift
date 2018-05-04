@@ -30,8 +30,20 @@ GRDB 3.0
 - [ ] Simplify Range extensions for Swift 4.1
 - [ ] https://forums.swift.org/t/how-to-encode-objects-of-unknown-type/12253/6
 - [ ] hide ScopeAdapter(base, scopes), because base.addingScopes has a better implementation
-- [ ] Drop iOS 8 compatibility, due to lack of Xcode support
 - [ ] Joins and full-text tables
+- [ ] DatabaseRequest should be part of RxGRDB, as DatabaseRegionConvertible. Rename fetchedRegion(_:) to databaseRegion(_:). SelectStatementRequest hasn't much traction left: remove?
+- [ ] Provide a way to extend both QueryInterfaceRequest and Association:
+    
+    ```swift
+    extension ??? where ??? = Player {
+        func filter(color: Color) -> Self {
+            return filter(Column("color") == color)
+        }
+    }
+    let players = Player.all().filter(color: .red)
+    let players = Player.filter(color: .red) // Possible ??
+    let teamPlayers = Team.players.filter(color: .red)
+    ```
 
 Not sure
 
