@@ -37,7 +37,7 @@ extension AssociationRequest {
     
     func joining<A: Association>(_ joinOperator: AssociationJoinOperator, _ association: A)
         -> AssociationRequest
-        where A.LeftAssociated == T
+        where A.OriginRowDecoder == T
     {
         let join = AssociationJoin(
             joinOperator: joinOperator,

@@ -319,3 +319,12 @@ extension OrderedRequest {
         return order([expression])
     }
 }
+
+// MARK: - DerivableRequest
+
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
+/// The base protocol for all requests that can be refined.
+public protocol DerivableRequest: SelectionRequest, FilteredRequest, OrderedRequest {
+    associatedtype RowDecoder
+}

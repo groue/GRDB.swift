@@ -43,7 +43,7 @@ extension QueryInterfaceRequest : FetchRequest {
     }
 }
 
-extension QueryInterfaceRequest : SelectionRequest, FilteredRequest, AggregatingRequest, OrderedRequest {
+extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     
     // MARK: Request Derivation
 
@@ -192,7 +192,7 @@ extension QueryInterfaceRequest: TableRequest where RowDecoder: TableRecord {
     }
 }
 
-extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
+extension QueryInterfaceRequest where T: MutablePersistableRecord {
     
     // MARK: Deleting
     
