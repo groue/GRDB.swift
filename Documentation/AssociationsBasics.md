@@ -547,11 +547,12 @@ Foreign keys can also be defined from `Column`:
 
 ```swift
 struct Book: TableRecord {
-    static let authorId = Column("authorId")
-    static let translatorId = Column("translatorId")
+    enum Columns: String, ColumnExpression {
+        case id, title, authorId, translatorId
+    }
     
-    static let authorForeignKey = ForeignKey([authorId]))
-    static let translatorForeignKey = ForeignKey([translatorId]))
+    static let authorForeignKey = ForeignKey([Columns.authorId]))
+    static let translatorForeignKey = ForeignKey([Columns.translatorId]))
 }
 ```
 
@@ -777,7 +778,7 @@ The request above fetches all books, along with their author's country.
 
 **You can filter associated records.**
 
-The `filter(_:)`, `filter(key:)` and `filter(keys:)` methods, that you already know for [filtering simple requests](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#requests), can filter associated records as well:
+The `filter(_:)`, `filter(key:)` and `filter(keys:)` methods, that you already know for [filtering simple requests](../README.md#requests), can filter associated records as well:
 
 ```swift
 // SELECT book.*
@@ -802,7 +803,7 @@ Those extra filtering options require **[Table Aliases]**, introduced below.
 
 **You can sort fetched results according to associated records.**
 
-The `order()` method, that you already know for [sorting simple requests](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#requests), can sort associated records as well:
+The `order()` method, that you already know for [sorting simple requests](../README.md#requests), can sort associated records as well:
 
 ```swift
 // SELECT book.*, person.*
@@ -891,7 +892,7 @@ Modifying `databaseSelection` not only affects joined requests, but all requests
 let request = RestrictedAuthor.all()
 ```
 
-> :point_up: **Note**: make sure the `databaseSelection` property is explicitely declared as `[SQLSelectable]`. If it is not, the Swift compiler may infer a type which may silently miss the protocol requirement, resulting in sticky SELECT * requests. See [Columns Selected by a Request](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#columns-selected-by-a-request) for further information.
+> :point_up: **Note**: make sure the `databaseSelection` property is explicitely declared as `[SQLSelectable]`. If it is not, the Swift compiler may infer a type which may silently miss the protocol requirement, resulting in sticky SELECT * requests. See [Columns Selected by a Request](../README.md#columns-selected-by-a-request) for further information.
 
 
 ## Table Aliases
@@ -1228,7 +1229,7 @@ struct BookInfo: FetchableRecord {
 let bookInfos = try BookInfo.fetchAll(db, request) // [BookInfo]
 ```
 
-You are already familiar with row subscripts to decode [database values](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#column-values):
+You are already familiar with row subscripts to decode [database values](../README.md#column-values):
 
 ```swift
 let name: String = row["name"]
@@ -1346,9 +1347,9 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Self Joins]: #self-joins
 [The Types of Associations]: #the-types-of-associations
 [Codable]: https://developer.apple.com/documentation/swift/codable
-[FetchableRecord]: https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#fetchablerecord-protocols
-[migration]: https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#migrations
-[Record]: https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#records
+[FetchableRecord]: ../README.md#fetchablerecord-protocols
+[migration]: ../README.md#migrations
+[Record]: ../README.md#records
 [Foreign Key Actions]: https://sqlite.org/foreignkeys.html#fk_actions
 [Associations and the Database Schema]: #associations-and-the-database-schema
 [Convention for Database Table Names]: #convention-for-database-table-names
@@ -1369,7 +1370,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Decoding a Joined Request with a Decodable Record]: #decoding-a-joined-request-with-a-decodable-record
 [Decoding a Hierarchical Decodable Record]: #decoding-a-hierarchical-decodable-record
 [Decoding a Joined Request with FetchableRecord]: #decoding-a-joined-request-with-fetchablerecord
-[Custom Requests]: https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#custom-requests
+[Custom Requests]: ../README.md#custom-requests
 [Known Issues]: #known-issues
 [Future Directions]: #future-directions
-[Row Adapters]: https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#row-adapters
+[Row Adapters]: ../README.md#row-adapters
