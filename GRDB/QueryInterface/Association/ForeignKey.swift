@@ -10,7 +10,7 @@ public struct ForeignKey {
     }
     
     /// TODO
-    public init(_ originColumns: [Column], to destinationColumns: [Column]? = nil) {
+    public init(_ originColumns: [ColumnExpression], to destinationColumns: [ColumnExpression]? = nil) {
         self.init(originColumns.map { $0.name }, to: destinationColumns?.map { $0.name })
     }
 }
