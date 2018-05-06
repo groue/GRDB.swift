@@ -157,7 +157,7 @@ let nameColumn = Column("name")
 let arthur = try Player.filter(nameColumn == "Arthur").fetchOne(db)
 ```
 
-A recommended practice was to define an enum namespace in the Record type:
+A recommended practice was to define enum namespaces in record types:
 
 ```swift
 // GRDB 2
@@ -437,6 +437,7 @@ dbQueue.rx
     })
 
 // GRDB 3: Track a team and its players
+struct TeamInfoRequest: DatabaseRegionConvertible { ... }
 let request = TeamInfoRequest(teamId: 1)
 dbQueue.rx
     .fetch(from: [request]) { try request.fetchOne($0) }
