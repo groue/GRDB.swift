@@ -452,7 +452,7 @@ dbQueue.rx
 If you have time, you may dig deeper in GRDB 3 with those updated documentation chapter:
 
 - [Database Queues](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#database-queues): focus on the new `read` and `write` methods.
-- [Transactions and Savepoints](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#transactions-and-savepoints): the chapter has been rewritten in order to introduce transactions as an advanced and potentially dangerous feature.
+- [Transactions and Savepoints](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#transactions-and-savepoints): the chapter has been rewritten in order to introduce transactions as a power-user feature.
 - [ScopeAdapter](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#scopeadapter): do you use row adapters? If so, have a look.
 - [Examples of Record Definitions](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#examples-of-record-definitions): this new chapter provides a handy reference of the three main ways to define record types (Codable, plain struct, Record subclass).
 - [SQL Operators](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#sql-operators): the chapter introduces the new `joined(operator:)` method that lets you join a chain of expressions with `AND` or `OR` without nesting: `[cond1, cond2, ...].joined(operator: .and)`.
