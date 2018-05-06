@@ -323,6 +323,58 @@ For other incompatible changes, let the compiler fixits guide you.
 
 ## If You Use RxGRDB
 
+Not only was RxGRDB upgraded for GRDB3, but some APIs have slighly changed.
+
+Did you track multiple requests at the same time with "fetch tokens"?
+
+```swift
+// GRDB2
+dbQueue.rx
+    .fetchTokens(in: [...])
+    .mapFetch { db in ... }
+    .subscribe(...)
+```
+
+Now you'll write instead:
+
+```swift
+// GRDB3
+dbQueue.rx
+    .fetch(from: [...]) { db in ... }
+    .subscribe(...)
+```
+
+It's just a syntactic change, without any impact on the runtime.
+
+RxGRDB from GRDB3 also introduces a new protocol, [DatabaseRegionConvertible], that allows a better encapsulation of complex requests, and a streamlined observable definition:
+
+```swift
+// GRDB2: Track a team and its players
+let teamId = 1
+let teamRequest = Team.filter(key: teamId)
+let playersRequest = Player.filter(teamId: teamId)
+dbQueue.rx
+    .fetchTokens(in: [teamRequest, playersRequest])
+    .mapFetch { db -> TeamInfo? in
+        guard let team = try teamRequest.fetchOne(db) else {
+            return nil
+        }
+        let players = try playersRequest.fetchAll(db)
+        return TeamInfo(team: team, players: players)
+    }
+    .subscribe(onNext: { teamInfo: TeamInfo? in
+        ...
+    })
+
+// GRDB3: Track a team and its players
+let request = TeamInfoRequest(teamId: 1)
+dbQueue.rx
+    .fetch(from: [request]) { try request.fetchOne($0) }
+    .subscribe(onNext: { teamInfo: TeamInfo? in
+        ...
+    })
+```
+
 
 [How To Upgrade]: #how-to-upgrade
 [Database Schema Recommendations]: #database-schema-recommendations
@@ -347,3 +399,4 @@ For other incompatible changes, let the compiler fixits guide you.
 [record protocols]: ../README.md#record-protocols-overview
 [Custom requests]: ../README.md#custom-requests
 [query interface]: ../README.md#the-query-interface
+[DatabaseRegionConvertible]: https://github.com/groue/RxGRDB/blob/GRDB3/README.md#databaseregionconvertible-protocol
