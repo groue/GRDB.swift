@@ -10,6 +10,7 @@ GRDB 3 comes with new features, but also a few breaking changes, and a set of up
 - [iOS 8 Sunsetting]
 - [Database Schema Recommendations]
 - [Record Protocols Renaming]
+- [Columns Definition]
 
 **By topic**
 
@@ -18,6 +19,7 @@ GRDB 3 comes with new features, but also a few breaking changes, and a set of up
 - [If You Use Database Snapshots]
 - [If You Use Custom Requests]
 - [If You Use RxGRDB]
+- [Notable Documentation Updates]
 
 
 ## How to Upgrade
@@ -143,6 +145,64 @@ GRDB 3 has renamed the [record protocols]:
 - `MutablePersistable` -> `MutablePersistableRecord`
 
 After upgrading, build your project: the compiler will guide you through the renaming by the way of fixits.
+
+
+## Columns Definition
+
+GRDB 2 has you define columns of the query interface with the Column type:
+
+```swift
+// GRDB 2
+let nameColumn = Column("name")
+let arthur = try Player.filter(nameColumn == "Arthur").fetchOne(db)
+```
+
+A recommended practice was to define an enum namespace in the Record type:
+
+```swift
+// GRDB 2
+struct Player: RowConvertible, TableMapping {
+    enum Columns {
+        static let id = Column("id")
+        static let name = Column("name")
+        static let score = Column("score")
+    }
+    
+    init(row: Row) {
+        id = row[Columns.id]
+        name = row[Columns.name]
+        score = row[Columns.score]
+    }
+}
+```
+
+In GRDB 3, `Column` is still there, but a new `ColumnExpression` protocol has been introduced in order to streamline column enums:
+
+```swift
+// GRDB 3
+struct Player: RowConvertible, TableMapping {
+    enum Columns: String, ColumnExpression {
+        case id, name, score
+    }
+    
+    init(row: Row) {
+        id = row[Columns.id]
+        name = row[Columns.name]
+        score = row[Columns.score]
+    }
+}
+```
+
+GRDB can apply additional optimizations on expressions that adopt ColumnExpression, so conform to this protocol when you define a custom column type:
+
+```swift
+struct TypedColumn: ColumnExpression {
+    var name: String
+    var sqlType: String
+}
+let nameColumn = TypedColumn(name: "name", sqlType: "VARCHAR")
+let arthur = try Player.filter(nameColumn == "Arthur").fetchOne(db)
+```
 
 
 ## If You Use Database Queues
@@ -322,7 +382,7 @@ extension Player {
 let players = try Player.filter(color: .red).fetchAll(db)
 ```
 
-For other incompatible changes, let the compiler fixits guide you.
+See the updated [Custom Requests](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#custom-requests) chapter for more information.
 
 
 ## If You Use RxGRDB
@@ -386,9 +446,23 @@ dbQueue.rx
 ```
 
 
+## Notable Documentation Updates
+
+If you have time, you may dig deeper in GRDB 3 with those updated documentation chapter:
+
+- [Database Queues](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#database-queues): focus on the new `read` and `write` methods.
+- [Transactions and Savepoints](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#transactions-and-savepoints): the chapter has been rewritten in order to introduce transactions as an advanced and potentially dangerous feature.
+- [ScopeAdapter](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#scopeadapter): do you use row adapters? If so, have a look.
+- [Examples of Record Definitions](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#examples-of-record-definitions): this new chapter provides a handy reference of the three main ways to define record types (Codable, plain struct, Record subclass).
+- [SQL Operators](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#sql-operators): the chapter introduces the new `joined(operator:)` method that lets you join a chain of expressions with `AND` or `OR` without nesting: `[cond1, cond2, ...].joined(operator: .and)`.
+- [Custom Requests](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#custom-requests): the old `Request` and `TypedRequest` protocols have been replaced with `FetchRequest`. If you want to know more about custom requests, check this chapter.
+- [Migrations](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#migrations): learn how to check if a migration has been applied (very useful for migration tests).
+
+
 [How To Upgrade]: #how-to-upgrade
 [Database Schema Recommendations]: #database-schema-recommendations
 [Record Protocols Renaming]: #record-protocols-renaming
+[Columns Definition]: #columns-definition
 [Swift 4.1 Required]: #swift-41-required
 [iOS 8 Sunsetting]: #ios-8-sunsetting
 [If You Use Database Queues]: #if-you-use-database-queues
@@ -396,6 +470,7 @@ dbQueue.rx
 [If You Use Database Snapshots]: #if-you-use-database-snapshots
 [If You Use Custom Requests]: #if-you-use-custom-requests
 [If You Use RxGRDB]: #if-you-use-rxgrdb
+[Notable Documentation Updates]: #notable-documentation-updates
 [FetchedRecordsController]: ../README.md#fetchedrecordscontroller
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
 [Associations]: AssociationsBasics.md
@@ -411,4 +486,4 @@ dbQueue.rx
 [Custom requests]: ../README.md#custom-requests
 [query interface]: ../README.md#the-query-interface
 [DatabaseRegionConvertible]: https://github.com/groue/RxGRDB/blob/GRDB3/README.md#databaseregionconvertible-protocol
-[conditional conformance]: https://github.com/apple/swift-evolution/blob/master/proposals/0143-conditional-conformances.md
+[conditional conformances]: https://github.com/apple/swift-evolution/blob/master/proposals/0143-conditional-conformances.md
