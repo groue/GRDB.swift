@@ -3,166 +3,53 @@ Release Notes
 
 ## Next Version
 
+GRDB 3.0.0-beta.1 is a release focused on **modernization**, **safety**, and **associations between record types**.
+
+It comes with new features, but also a few breaking changes, and a set of updated good practices. The [GRDB 2 Migration Guide](Documentation/GRDB2MigrationGuide.md) will help you upgrading your applications.
+
+
 ### New
 
-- `Database.isSQLiteInternalTable(_:)` returns whether a table name is an internal SQLite table.
-- `Database.isGRDBInternalTable(_:)` returns whether a table name is an internal GRDB table.
-- `DatabaseMigrator.appliedMigrations(in:)` returns the set of applied migrations identifiers in a database.
+- Associations and Joins ([#319](https://github.com/groue/GRDB.swift/pull/319)).
+- Enhancements to logical operators ([#336](https://github.com/groue/GRDB.swift/pull/336)).
+- Foster auto-incremented primary keys ([#337](https://github.com/groue/GRDB.swift/pull/337)).
+- ColumnExpression Protocol ([#340](https://github.com/groue/GRDB.swift/pull/340)).
+- Improved parsing of dates and date components ([#334](https://github.com/groue/GRDB.swift/pull/334) by @sobri909).
+- Common API for requests and associations derivation ([#347](https://github.com/groue/GRDB.swift/pull/347)).
+- `DatabaseMigrator.appliedMigrations(in:)` returns the set of applied migrations identifiers in a database ([#321](https://github.com/groue/GRDB.swift/pull/321)).
+- `Database.isSQLiteInternalTable(_:)` returns whether a table name is an internal SQLite table ([#321](https://github.com/groue/GRDB.swift/pull/321)).
+- `Database.isGRDBInternalTable(_:)` returns whether a table name is an internal GRDB table ([#321](https://github.com/groue/GRDB.swift/pull/321)).
+- Upgrade custom SQLite builds to [v3.23.0](http://www.sqlite.org/changes.html) (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib)).
+- Improve Row descriptions ([#331](https://github.com/groue/GRDB.swift/pull/331)).
+- Request derivation protocols ([#329](https://github.com/groue/GRDB.swift/pull/329)).
+
 
 ### Breaking Changes
 
-- The Record protocols have been renamed: `RowConvertible` to `FetchableRecord`, `Persistable` to `PersistableRecord`, and `TableMapping` to `TableRecord`.
-- `Request` and `TypedRequest` protocols have been merged into `FetchRequest` ([311](https://github.com/groue/GRDB.swift/pull/311)).
-- The `IteratorCursor` type has been removed. Use `AnyCursor` instead.
+- Swift 4.1 is now required.
+- iOS 8 sunsetting: GRDB 3 is only tested on iOS 9+, due to a limitation in Xcode 9.3. Code that targets older versions of SQLite and iOS is still there, but is not supported.
+- The Record protocols have been renamed: `RowConvertible` to `FetchableRecord`, `Persistable` to `PersistableRecord`, and `TableMapping` to `TableRecord` ([#314](https://github.com/groue/GRDB.swift/pull/314)).
+- Implicit transaction in DatabasePool.write and DatabaseQueue.write ([#332](https://github.com/groue/GRDB.swift/pull/332)).
+- `Request` and `TypedRequest` protocols have been merged into `FetchRequest` ([#311](https://github.com/groue/GRDB.swift/pull/311), [#328](https://github.com/groue/GRDB.swift/pull/328), [#348](https://github.com/groue/GRDB.swift/pull/348)).
+- Reversing unordered requests has no effect ([#342](https://github.com/groue/GRDB.swift/pull/342)).
+- The `IteratorCursor` type has been removed. Use `AnyCursor` instead ([#312](https://github.com/groue/GRDB.swift/pull/312)).
+- Row scopes collection, breadth-first scope search ([#335](https://github.com/groue/GRDB.swift/pull/335)).
+- Expressions are no longer PATs ([#330](https://github.com/groue/GRDB.swift/pull/330)).
 - Deprecated APIs have been removed.
 
 
-### API diff
+### Documentation Diff
 
-**Record protocols**
+- [Associations](Documentation/AssociationsBasics.md): Discover the major GRDB 3 feature
+- [Database Queues](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#database-queues): focus on the `read` and `write` methods.
+- [Database Pools](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#database-pools): focus on the `read` and `write` methods.
+- [Transactions and Savepoints](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#transactions-and-savepoints): the chapter has been rewritten in order to introduce transactions as a power-user feature.
+- [ScopeAdapter](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#scopeadapter): do you use row adapters? If so, have a look.
+- [Examples of Record Definitions](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#examples-of-record-definitions): this new chapter provides a handy reference of the three main ways to define record types (Codable, plain struct, Record subclass).
+- [SQL Operators](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#sql-operators): the chapter introduces the new `joined(operator:)` method that lets you join a chain of expressions with `AND` or `OR` without nesting: `[cond1, cond2, ...].joined(operator: .and)`.
+- [Custom Requests](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#custom-requests): the old `Request` and `TypedRequest` protocols have been replaced with `FetchRequest`. If you want to know more about custom requests, check this chapter.
+- [Migrations](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#migrations): learn how to check if a migration has been applied (very useful for migration tests).
 
-```diff
--protocol RowConvertible {
-+protocol FetchableRecord {
- }
- 
--protocol TableMapping {
-+protocol TableRecord {
- }
- 
--protocol MutablePersistable: TableMapping {
-+protocol MutablePersistableRecord: TableRecord {
- }
- 
--protocol Persistable: MutablePersistable {
-+protocol PersistableRecord: MutablePersistableRecord {
- }
-```
-
-**FetchRequest**
-
-```diff
-+protocol FetchRequest {
-+    associatedtype RowDecoder
-+    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?)
-+    func fetchCount(_ db: Database) throws -> Int
-+    func databaseRegion(_ db: Database) throws -> DatabaseRegion
-+}
-+extension FetchRequest {
-+    func fetchCount(_ db: Database) throws -> Int
-+    func databaseRegion(_ db: Database) throws -> DatabaseRegion
-+    func asRequest<T>(of type: T.Type) -> AnyFetchRequest<T>
-+    func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AdaptedFetchRequest<Self>
-+}
-+struct AdaptedFetchRequest<Base: FetchRequest> : FetchRequest {
-+    typealias RowDecoder = Base.RowDecoder
-+}
-+struct AnyFetchRequest<T> : FetchRequest {
-+    typealias RowDecoder = T
-+    init<Request: FetchRequest>(_ request: Request)
-+    init(_ prepare: @escaping (Database) throws -> (SelectStatement, RowAdapter?))
-+}
-+struct SQLRequest<T> : FetchRequest {
-+    typealias RowDecoder = T
-+    let sql: String
-+    let arguments: StatementArguments?
-+    let adapter: RowAdapter?
-+    init(_ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, cached: Bool = false)
-+    init<Request: FetchRequest>(_ db: Database, request: Request, cached: Bool = false) throws where Request.RowDecoder == RowDecoder
-+}
-
-+extension FetchRequest where RowDecoder: DatabaseValueConvertible {
-+    func fetchCursor(_ db: Database) throws -> DatabaseValueCursor<RowDecoder>
-+    func fetchAll(_ db: Database) throws -> [RowDecoder]
-+    func fetchOne(_ db: Database) throws -> RowDecoder?
-+
-}
-+extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped: DatabaseValueConvertible
-+    func fetchCursor(_ db: Database) throws -> NullableDatabaseValueCursor<RowDecoder._Wrapped>
-+    func fetchAll(_ db: Database) throws -> [RowDecoder._Wrapped?]
-+}
-
-+extension FetchRequest where RowDecoder: Row {
-+    func fetchCursor(_ db: Database) throws -> RowCursor
-+    func fetchAll(_ db: Database) throws -> [Row]
-+    func fetchOne(_ db: Database) throws -> Row?
-+}
-
-+extension FetchRequest where RowDecoder: FetchableRecord {
-+    func fetchCursor(_ db: Database) throws -> RecordCursor<RowDecoder>
-+    func fetchAll(_ db: Database) throws -> [RowDecoder]
-+    func fetchOne(_ db: Database) throws -> RowDecoder?
-+}
-
--protocol Request { }
--struct AdaptedRequest : Request { }
--struct AnyRequest : Request { }
--struct SQLRequest : Request { }
--protocol TypedRequest : Request { }
--struct AdaptedTypedRequest<Base: TypedRequest> : TypedRequest { }
--struct AnyTypedRequest<T> : TypedRequest { }
-
--extension DatabaseValueConvertible {
--    static func fetchCursor(_ db: Database, _ request: Request) throws -> DatabaseValueCursor<Self>
--    static func fetchAll(_ db: Database, _ request: Request) throws -> [Self]
--    static func fetchOne(_ db: Database, _ request: Request) throws -> Self?
--}
-
--extension Optional where Wrapped: DatabaseValueConvertible {
--    static func fetchCursor(_ db: Database, _ request: Request) throws -> NullableDatabaseValueCursor<Wrapped>
--    static func fetchAll(_ db: Database, _ request: Request) throws -> [Wrapped?]
--}
-
--extension Row {
--    static func fetchCursor(_ db: Database, _ request: Request) throws -> RowCursor
--    static func fetchAll(_ db: Database, _ request: Request) throws -> [Row]
--    static func fetchOne(_ db: Database, _ request: Request) throws -> Row?
--}
-
--extension RowConvertible {
--    static func fetchCursor(_ db: Database, _ request: Request) throws -> RecordCursor<Self>
--    static func fetchAll(_ db: Database, _ request: Request) throws -> [Self]
--    static func fetchOne(_ db: Database, _ request: Request) throws -> Self?
--}
-
--extension QueryInterfaceRequest : TypedRequest { }
-+extension QueryInterfaceRequest : FetchRequest { }
-```
-
-**Cursor**
-
-```diff
- final class AnyCursor<Element> : Cursor {
-+    convenience init<I: IteratorProtocol>(iterator: I) where I.Element == Element
-+    convenience init<S: Sequence>(_ s: S) where S.Element == Element
- }
--final class IteratorCursor<Base: IteratorProtocol> : Cursor { }
-```
-
-**Removed Deprecated APIs**
-
-```diff
- final class Database {
--    func columnCount(in tableName: String) throws -> Int
- }
- final class SelectStatement : Statement {
--    typealias SelectionInfo = DatabaseRegion
--    var selectionInfo: DatabaseRegion
- }
- enum DatabaseEventKind {
--    func impacts(_ region: DatabaseRegion) -> Bool
- }
- open class Record: FetchableRecord, TableRecord, PersistableRecord {
--    var hasPersistentChangedValues: Bool
--    var persistentChangedValues: [String: DatabaseValue?]
- }
--final class RecordBox<T: FetchableRecord & MutablePersistableRecord>: Record { }
-```
-
-
-## Next Version
-
-- Improved parsing of dates and date components ([#334](https://github.com/groue/GRDB.swift/pull/334) by @sobri909)
 
 
 ## 2.10.0
