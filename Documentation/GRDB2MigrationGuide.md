@@ -62,7 +62,7 @@ GRDB 3 uses [conditional conformances], introduced in Swift 4.1. It can only be 
 
 ## iOS 8 Sunsetting
 
-GRDB 3 is only tested on iOS 9+, due to a limitation in XCode 9.3. Code that targets older versions of SQLite and iOS is still there, but is not supported.
+GRDB 3 is only tested on iOS 9+, due to a limitation in Xcode 9.3. Code that targets older versions of SQLite and iOS is still there, but is not supported.
 
 
 ## Database Schema Recommendations
@@ -382,7 +382,7 @@ extension Player {
 let players = try Player.filter(color: .red).fetchAll(db)
 ```
 
-See the updated [Custom Requests](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#custom-requests) chapter for more information.
+See the updated [Custom Requests](../README.md#custom-requests) chapter for more information.
 
 
 ## If You Use RxGRDB
@@ -451,13 +451,13 @@ dbQueue.rx
 
 If you have time, you may dig deeper in GRDB 3 with those updated documentation chapter:
 
-- [Database Queues](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#database-queues): focus on the new `read` and `write` methods.
-- [Transactions and Savepoints](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#transactions-and-savepoints): the chapter has been rewritten in order to introduce transactions as a power-user feature.
-- [ScopeAdapter](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#scopeadapter): do you use row adapters? If so, have a look.
-- [Examples of Record Definitions](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#examples-of-record-definitions): this new chapter provides a handy reference of the three main ways to define record types (Codable, plain struct, Record subclass).
-- [SQL Operators](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#sql-operators): the chapter introduces the new `joined(operator:)` method that lets you join a chain of expressions with `AND` or `OR` without nesting: `[cond1, cond2, ...].joined(operator: .and)`.
-- [Custom Requests](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#custom-requests): the old `Request` and `TypedRequest` protocols have been replaced with `FetchRequest`. If you want to know more about custom requests, check this chapter.
-- [Migrations](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#migrations): learn how to check if a migration has been applied (very useful for migration tests).
+- [Database Queues](../README.md#database-queues): focus on the new `read` and `write` methods.
+- [Transactions and Savepoints](../README.md#transactions-and-savepoints): the chapter has been rewritten in order to introduce transactions as a power-user feature.
+- [ScopeAdapter](../README.md#scopeadapter): do you use row adapters? If so, have a look.
+- [Examples of Record Definitions](../README.md#examples-of-record-definitions): this new chapter provides a handy reference of the three main ways to define record types (Codable, plain struct, Record subclass).
+- [SQL Operators](../README.md#sql-operators): the chapter introduces the new `joined(operator:)` method that lets you join a chain of expressions with `AND` or `OR` without nesting: `[cond1, cond2, ...].joined(operator: .and)`.
+- [Custom Requests](../README.md#custom-requests): the old `Request` and `TypedRequest` protocols have been replaced with `FetchRequest`. If you want to know more about custom requests, check this chapter.
+- [Migrations](../README.md#migrations): learn how to check if a migration has been applied (very useful for migration tests).
 
 
 [How To Upgrade]: #how-to-upgrade
