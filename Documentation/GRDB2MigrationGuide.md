@@ -29,7 +29,6 @@ Update your Podfile:
 
 ```ruby
 pod 'GRDB.swift', git: 'https://github.com/groue/GRDB.swift', branch: 'GRDB3'
-# pod 'RxGRDB', git: 'https://github.com/groue/RxGRDB', branch: 'GRDB3'
 ```
 
 ### Swift Package Manager
@@ -323,9 +322,13 @@ For other incompatible changes, let the compiler fixits guide you.
 
 ## If You Use RxGRDB
 
-Not only was RxGRDB upgraded for GRDB3, but some APIs have slighly changed.
+To install the GRDB3 flavor of RxGRDB, update your Podfile:
 
-Did you track multiple requests at the same time with "fetch tokens"?
+```ruby
+pod 'RxGRDB', git: 'https://github.com/groue/RxGRDB', branch: 'GRDB3'
+```
+
+Some APIs have slighly changed. Did you track multiple requests at the same time with "fetch tokens"?
 
 ```swift
 // GRDB2
@@ -346,7 +349,9 @@ dbQueue.rx
 
 It's just a syntactic change, without any impact on the runtime.
 
-RxGRDB from GRDB3 also introduces a new protocol, [DatabaseRegionConvertible], that allows a better encapsulation of complex requests, and a streamlined observable definition:
+RxGRDB from GRDB3 also introduces a new protocol, [DatabaseRegionConvertible], that allows a better encapsulation of complex requests, and a streamlined observable definition.
+
+For example:
 
 ```swift
 // GRDB2: Track a team and its players
