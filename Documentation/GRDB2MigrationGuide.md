@@ -389,7 +389,8 @@ dbQueue.rx
 [How To Upgrade]: #how-to-upgrade
 [Database Schema Recommendations]: #database-schema-recommendations
 [Record Protocols Renaming]: #record-protocols-renaming
-[iOS 8 Sunsetting]: @ios-8-sunsetting
+[Swift 4.1 Required]: #swift-41-required
+[iOS 8 Sunsetting]: #ios-8-sunsetting
 [If You Use Database Queues]: #if-you-use-database-queues
 [If You Use Database Pools]: #if-you-use-database-pools
 [If You Use Database Snapshots]: #if-you-use-database-snapshots
