@@ -6,6 +6,7 @@ GRDB 3 comes with new features, but also a few breaking changes, and a set of up
 **For all users**
 
 - [How To Upgrade]
+- [Swift 4.1 Required]
 - [iOS 8 Sunsetting]
 - [Database Schema Recommendations]
 - [Record Protocols Renaming]
@@ -52,10 +53,14 @@ git checkout GRDB3
 git pull
 ```
 
+## Swift 4.1 Required
+
+GRDB 3 uses [conditional conformances], introduced in Swift 4.1. It can only be built on Xcode 9.3+.
+
 
 ## iOS 8 Sunsetting
 
-GRDB 3 is only tested on iOS 9+. Code that targets older versions of SQLite and iOS is still there, but is not supported.
+GRDB 3 is only tested on iOS 9+, due to a limitation in XCode 9.3. Code that targets older versions of SQLite and iOS is still there, but is not supported.
 
 
 ## Database Schema Recommendations
@@ -68,7 +73,7 @@ GRDB 3 still accepts any database, but brings two schema recommendations:
     
     When ids can be reused, your app and [database observation tools] may think that a row was updated, when it was actually deleted, then replaced. Depending on your application needs, this may be OK. Or not.
     
-    GRDB3 thus comes with a new good practice: use the `autoIncrementedPrimaryKey` method when you create a database table with an integer primary key:
+    GRDB 3 thus comes with a new good practice: use the `autoIncrementedPrimaryKey` method when you create a database table with an integer primary key:
     
     ```diff
      try db.create(table: "author") { t in
@@ -322,7 +327,7 @@ For other incompatible changes, let the compiler fixits guide you.
 
 ## If You Use RxGRDB
 
-To install the GRDB3 flavor of RxGRDB, update your Podfile:
+To install the GRDB 3 flavor of RxGRDB, update your Podfile:
 
 ```ruby
 pod 'RxGRDB', git: 'https://github.com/groue/RxGRDB', branch: 'GRDB3'
@@ -331,7 +336,7 @@ pod 'RxGRDB', git: 'https://github.com/groue/RxGRDB', branch: 'GRDB3'
 Some APIs have slighly changed. Did you track multiple requests at the same time with "fetch tokens"?
 
 ```swift
-// GRDB2
+// GRDB 2
 dbQueue.rx
     .fetchTokens(in: [...])
     .mapFetch { db in ... }
@@ -341,7 +346,7 @@ dbQueue.rx
 Now you'll write instead:
 
 ```swift
-// GRDB3
+// GRDB 3
 dbQueue.rx
     .fetch(from: [...]) { db in ... }
     .subscribe(...)
@@ -349,12 +354,12 @@ dbQueue.rx
 
 It's just a syntactic change, without any impact on the runtime.
 
-RxGRDB from GRDB3 also introduces a new protocol, [DatabaseRegionConvertible], that allows a better encapsulation of complex requests, and a streamlined observable definition.
+RxGRDB for GRDB 3 also introduces a new protocol, [DatabaseRegionConvertible], that allows a better encapsulation of complex requests, and a streamlined observable definition.
 
 For example:
 
 ```swift
-// GRDB2: Track a team and its players
+// GRDB 2: Track a team and its players
 let teamId = 1
 let teamRequest = Team.filter(key: teamId)
 let playersRequest = Player.filter(teamId: teamId)
@@ -371,7 +376,7 @@ dbQueue.rx
         ...
     })
 
-// GRDB3: Track a team and its players
+// GRDB 3: Track a team and its players
 let request = TeamInfoRequest(teamId: 1)
 dbQueue.rx
     .fetch(from: [request]) { try request.fetchOne($0) }
@@ -405,3 +410,4 @@ dbQueue.rx
 [Custom requests]: ../README.md#custom-requests
 [query interface]: ../README.md#the-query-interface
 [DatabaseRegionConvertible]: https://github.com/groue/RxGRDB/blob/GRDB3/README.md#databaseregionconvertible-protocol
+[conditional conformance]: https://github.com/apple/swift-evolution/blob/master/proposals/0143-conditional-conformances.md
