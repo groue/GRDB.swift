@@ -4125,9 +4125,7 @@ protocol FetchRequest {
     /// The number of rows fetched by the request.
     func fetchCount(_ db: Database) throws -> Int
     
-    /// Returns the database region that the request looks into.
-    ///
-    /// - parameter db: A database connection.
+    /// The database region that the request looks into.
     func databaseRegion(_ db: Database) throws -> DatabaseRegion
 }
 ```
