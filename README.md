@@ -4105,78 +4105,9 @@ Player.customRequest(...).rx
     })
 ```
 
-- [DatabaseRequest Protocol](#databaserequest-protocol)
-- [SelectStatementRequest Protocol](#selectstatementrequest-protocol)
 - [FetchRequest Protocol](#fetchrequest-protocol)
 - [Building Custom Requests](#building-custom-requests)
 - [Fetching From Custom Requests](#fetching-from-custom-requests)
-
-
-### DatabaseRequest Protocol
-
-**DatabaseRequest** is the highest-level protocol for all types that request database values. It does not tell how values are fetched, but it allows database observation tools ([transaction observers](#transactionobserver-protocol) and [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB)) the ability to notify changes in the request content.
-
-```swift
-protocol DatabaseRequest {
-    func fetchedRegion(_ db: Database) throws -> DatabaseRegion
-}
-```
-
-**You'll use DatabaseRequest when you want to encapsulate your most complex fetching strategies.**
-
-For example:
-
-```swift
-struct LibraryRequest: DatabaseRequest {
-    func fetchAll(_ db: Database) throws -> [(Author, [Books])] {
-        let authors = try Author.fetchAll(db)
-        let books = try Dictionary(
-            grouping: Book.fetchAll(db),
-            by: { book in book.authorId })
-        return authors.map { author in (author, books[author.id]!) }
-    }
-    
-    func fetchedRegion(_ db: Database) throws -> DatabaseRegion {
-        let authorsRegion = try Author.all().fetchedRegion(db)
-        let booksRegion = try Book.all().fetchedRegion(db)
-        return authorsRegion.union(booksRegion)
-    }
-}
-
-// Track library content with RxGRDB
-let request = LibraryRequest()
-dbQueue.rx
-    .fetchTokens(in: [request])
-    .mapFetch { db in try request.fetchAll(db) }
-    .subscribe(onNext: { library: [(Author, [Books])] in
-        print("Library has changed.")
-    })
-```
-
-See [DatabaseRegion](https://groue.github.io/GRDB.swift/docs/2.10/Structs/DatabaseRegion.html) reference for more information.
-
-
-### SelectStatementRequest Protocol
-
-**SelectStatementRequest** is the protocol for all requests that run a single select statement:
-
-```swift
-protocol SelectStatementRequest: DatabaseRequest {
-    /// A tuple that contains a prepared statement, and an eventual row adapter.
-    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?)
-    
-    /// The number of rows fetched by the request.
-    func fetchCount(_ db: Database) throws -> Int
-}
-```
-
-The `prepare` method returns a prepared statement and an optional row adapter. The [prepared statement](#prepared-statements) tells which SQL query should be executed. The row adapter helps presenting the fetched rows in the way expected by the row decoders (see [row adapter](#row-adapters)).
-
-The `fetchCount` method has a default implementation that builds a correct but naive SQL query from the statement returned by `prepare`: `SELECT COUNT(*) FROM (...)`. Adopting types can refine the counting SQL by customizing their `fetchCount` implementation.
-
-The `fetchedRegion` method inherited from [DatabaseRequest](#databaserequest-protocol) is also given a default implementation, based on the statement returned by `prepare`.
-
-There are few use cases for SelectStatementRequest. Usually, your custom requests will adopt its derivative [FetchRequest](#fetchrequest-protocol), introduced below:
 
 
 ### FetchRequest Protocol
@@ -4184,15 +4115,32 @@ There are few use cases for SelectStatementRequest. Usually, your custom request
 **FetchRequest** is the protocol for all requests that run from a single select statement, and know how fetched rows should be interpreted:
 
 ```swift
-protocol FetchRequest: SelectStatementRequest {
+protocol FetchRequest {
     /// The type that tells how fetched rows should be decoded
     associatedtype RowDecoder
+    
+    /// A tuple that contains a prepared statement, and an eventual row adapter.
+    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?)
+    
+    /// The number of rows fetched by the request.
+    func fetchCount(_ db: Database) throws -> Int
+    
+    /// Returns the database region that the request looks into.
+    ///
+    /// - parameter db: A database connection.
+    func databaseRegion(_ db: Database) throws -> DatabaseRegion
 }
 ```
 
-The `RowDecoder` associated type can be any type. Yet, not all types have built-in support: see [Fetching From Custom Requests](#fetching-from-custom-requests) below.
+When the `RowDecoder` associated type is [Row](#fetching-rows), or a [value](#value-queries), or a type that conforms to [FetchableRecord], the request can fetch: see [Fetching From Custom Requests](#fetching-from-custom-requests) below.
 
-FetchRequest is adopted, for example, by [query interface requests](#requests):
+The `prepare` method returns a prepared statement and an optional row adapter. The [prepared statement](#prepared-statements) tells which SQL query should be executed. The row adapter helps presenting the fetched rows in the way expected by the row decoders (see [row adapter](#row-adapters)).
+
+The `fetchCount` method has a default implementation that builds a correct but naive SQL query from the statement returned by `prepare`: `SELECT COUNT(*) FROM (...)`. Adopting types can refine the counting SQL by customizing their `fetchCount` implementation.
+
+The `databaseRegion` method is involved in [database observation](#database-changes-observation). It is given a default implementation, based on the statement returned by `prepare`. For more information, see [DatabaseRegion](https://groue.github.io/GRDB.swift/docs/2.10/Structs/DatabaseRegion.html), and [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB).
+
+The FetchRequest protocol is adopted, for example, by [query interface requests](#requests):
 
 ```swift
 // A FetchRequest whose RowDecoder associated type is Player:
@@ -4202,7 +4150,7 @@ let request = Player.all()
 
 ### Building Custom Requests
 
-**To build custom requests**, you can use one of the built-in requests, derive requests from other requests, or create your own request type that adopts one of the request protocols described above ([FetchRequest](#fetchrequest-protocol), [SelectStatementRequest](#selectstatementrequest-protocol), or [DatabaseRequest](#databaserequest-protocol)). 
+**To build custom requests**, you can use one of the built-in requests, derive requests from other requests, or create your own request type that adopts the [FetchRequest](#fetchrequest-protocol) protocol. 
 
 - [SQLRequest](http://groue.github.io/GRDB.swift/docs/2.10/Structs/SQLRequest.html) is a fetch request built from raw SQL. For example:
     
