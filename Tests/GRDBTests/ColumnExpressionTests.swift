@@ -58,11 +58,11 @@ class ColumnExpressionTests: GRDBTestCase {
             }
             
             // Test rowId column identification
-            try XCTAssertEqual(Player.filter(key: 1).fetchedRegion(db).description, "players(id,name,score)[1]")
-            try XCTAssertEqual(Player.filter(Player.Columns.id == 1).fetchedRegion(db).description, "players(id,name,score)[1]")
-            try XCTAssertEqual(Player.filter(1 == Player.Columns.id).fetchedRegion(db).description, "players(id,name,score)[1]")
-            try XCTAssertEqual(Player.filter(Player.Columns.id == 1 || Player.Columns.id == 2).fetchedRegion(db).description, "players(id,name,score)[1,2]")
-            try XCTAssertEqual(Player.filter([1, 2, 3].contains(Player.Columns.id)).fetchedRegion(db).description, "players(id,name,score)[1,2,3]")
+            try XCTAssertEqual(Player.filter(key: 1).databaseRegion(db).description, "players(id,name,score)[1]")
+            try XCTAssertEqual(Player.filter(Player.Columns.id == 1).databaseRegion(db).description, "players(id,name,score)[1]")
+            try XCTAssertEqual(Player.filter(1 == Player.Columns.id).databaseRegion(db).description, "players(id,name,score)[1]")
+            try XCTAssertEqual(Player.filter(Player.Columns.id == 1 || Player.Columns.id == 2).databaseRegion(db).description, "players(id,name,score)[1,2]")
+            try XCTAssertEqual(Player.filter([1, 2, 3].contains(Player.Columns.id)).databaseRegion(db).description, "players(id,name,score)[1,2,3]")
             
             // Test specific column updates
             let player = Player(row: ["id": 1, "name": "Arthur", "score": 1000])
@@ -120,11 +120,11 @@ class ColumnExpressionTests: GRDBTestCase {
             }
             
             // Test rowId column identification
-            try XCTAssertEqual(Player.filter(key: 1).fetchedRegion(db).description, "players(id,name,score)[1]")
-            try XCTAssertEqual(Player.filter(Player.Columns.id == 1).fetchedRegion(db).description, "players(id,name,score)[1]")
-            try XCTAssertEqual(Player.filter(1 == Player.Columns.id).fetchedRegion(db).description, "players(id,name,score)[1]")
-            try XCTAssertEqual(Player.filter(Player.Columns.id == 1 || Player.Columns.id == 2).fetchedRegion(db).description, "players(id,name,score)[1,2]")
-            try XCTAssertEqual(Player.filter([1, 2, 3].contains(Player.Columns.id)).fetchedRegion(db).description, "players(id,name,score)[1,2,3]")
+            try XCTAssertEqual(Player.filter(key: 1).databaseRegion(db).description, "players(id,name,score)[1]")
+            try XCTAssertEqual(Player.filter(Player.Columns.id == 1).databaseRegion(db).description, "players(id,name,score)[1]")
+            try XCTAssertEqual(Player.filter(1 == Player.Columns.id).databaseRegion(db).description, "players(id,name,score)[1]")
+            try XCTAssertEqual(Player.filter(Player.Columns.id == 1 || Player.Columns.id == 2).databaseRegion(db).description, "players(id,name,score)[1,2]")
+            try XCTAssertEqual(Player.filter([1, 2, 3].contains(Player.Columns.id)).databaseRegion(db).description, "players(id,name,score)[1,2,3]")
             
             // Test specific column updates
             let player = Player(row: ["id": 1, "name": "Arthur", "score": 1000])

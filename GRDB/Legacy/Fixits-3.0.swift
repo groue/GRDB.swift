@@ -34,8 +34,12 @@ extension SelectStatement {
     public typealias SelectionInfo = DatabaseRegion
     
     /// :nodoc:
-    @available(*, unavailable, renamed:"fetchedRegion")
+    @available(*, unavailable, renamed:"databaseRegion")
     public var selectionInfo: DatabaseRegion { preconditionFailure() }
+    
+    /// :nodoc:
+    @available(*, unavailable, renamed:"databaseRegion")
+    public var fetchedRegion: DatabaseRegion { preconditionFailure() }
 }
 
 extension DatabaseEventKind {
@@ -71,4 +75,11 @@ extension Row {
     /// :nodoc:
     @available(*, unavailable, message: "Use row.scopes[name] instead")
     public func scoped(on name: String) -> Row? { preconditionFailure() }
+}
+
+extension FetchRequest {
+    
+    /// :nodoc:
+    @available(*, unavailable, renamed:"databaseRegion(_:)")
+    public func fetchedRegion(_ db: Database) throws -> DatabaseRegion { preconditionFailure() }
 }

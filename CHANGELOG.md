@@ -46,11 +46,11 @@ Release Notes
 +    associatedtype RowDecoder
 +    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?)
 +    func fetchCount(_ db: Database) throws -> Int
-+    func fetchedRegion(_ db: Database) throws -> DatabaseRegion
++    func databaseRegion(_ db: Database) throws -> DatabaseRegion
 +}
 +extension FetchRequest {
 +    func fetchCount(_ db: Database) throws -> Int
-+    func fetchedRegion(_ db: Database) throws -> DatabaseRegion
++    func databaseRegion(_ db: Database) throws -> DatabaseRegion
 +    func asRequest<T>(of type: T.Type) -> AnyFetchRequest<T>
 +    func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AdaptedFetchRequest<Self>
 +}

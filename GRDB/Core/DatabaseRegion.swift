@@ -16,16 +16,16 @@
 /// You don't create a database region directly. Instead, you use one of
 /// those methods:
 ///
-/// - `SelectStatement.fetchedRegion`:
+/// - `SelectStatement.databaseRegion`:
 ///
 ///     let statement = db.makeSelectStatement("SELECT name, score FROM player")
-///     print(statement.fetchedRegion)
+///     print(statement.databaseRegion)
 ///     // prints "player(name,score)"
 ///
-/// - `Request.fetchedRegion(_:)`
+/// - `Request.databaseRegion(_:)`
 ///
 ///     let request = Player.filter(key: 1)
-///     try print(request.fetchedRegion(db))
+///     try print(request.databaseRegion(db))
 ///     // prints "player(*)[1]"
 ///
 /// Database regions returned by requests can be more precise than regions
@@ -34,11 +34,11 @@
 ///
 ///     // A plain statement
 ///     let statement = db.makeSelectStatement("SELECT * FROM player WHERE id = 1")
-///     statement.fetchedRegion       // "player(*)"
+///     statement.databaseRegion       // "player(*)"
 ///
 ///     // A query interface request that executes the same statement:
 ///     let request = Player.filter(key: 1)
-///     try request.fetchedRegion(db) // "player(*)[1]"
+///     try request.databaseRegion(db) // "player(*)[1]"
 public struct DatabaseRegion: CustomStringConvertible, Equatable {
     private let tableRegions: [String: TableRegion]?
     private init(tableRegions: [String: TableRegion]?) {
@@ -51,8 +51,9 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
         return tableRegions.isEmpty
     }
     
-    /// The full database: (All columns in all tables) × (all rows)
-    static let fullDatabase = DatabaseRegion(tableRegions: nil)
+    /// The region that covers the full database: all columns and all rows
+    /// from all tables.
+    public static let fullDatabase = DatabaseRegion(tableRegions: nil)
     
     /// The empty database region
     public init() {
