@@ -51,8 +51,9 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
         return tableRegions.isEmpty
     }
     
-    /// The full database: (All columns in all tables) × (all rows)
-    static let fullDatabase = DatabaseRegion(tableRegions: nil)
+    /// The region that covers the full database: all columns and all rows
+    /// from all tables.
+    public static let fullDatabase = DatabaseRegion(tableRegions: nil)
     
     /// The empty database region
     public init() {
