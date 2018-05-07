@@ -281,18 +281,37 @@ extension Association where OriginRowDecoder: MutablePersistableRecord {
     ///     let team: Team = ...
     ///     let players = try team.players.fetchAll(db) // [Player]
     func request(from record: OriginRowDecoder) -> QueryInterfaceRequest<RowDecoder> {
-        // Turn `JOIN associated ON associated.recordId = record.id`
-        // into `FROM associated WHERE associated.recordId = 1`
+        // Goal: turn `JOIN association ON association.recordId = record.id`
+        // into a regular request `SELECT * FROM association WHERE association.recordId = 123`
+        
+        // We need table aliases to build the joining condition
         let associationAlias = TableAlias()
-        let recordAlias = TableAlias(tableName: OriginRowDecoder.databaseTableName)
+        let recordAlias = TableAlias()
+        
+        // Turn JOIN into SELECT FROM
         return QueryInterfaceRequest(request)
-            .aliased(associationAlias)
+            
+            // Turn the JOIN condition into a regular WHERE condition
             .filter { db in
+                // Build a join condition: `association.recordId = record.id`
+                // We still need to replace `record.id` with the actual record id.
                 guard let joinCondition = try self.joinCondition(db)(recordAlias, associationAlias) else {
                     fatalError("Can't request from record without join condition")
                 }
-                let container = PersistenceContainer(record) // support for record classes: late construction of container
+                
+                // Serialize record: ["id": 123, ...]
+                // We do it as late as possible, when request is about to be
+                // executed, in order to support long-lived reference types.
+                let container = PersistenceContainer(record)
+                
+                // Replace `record.id` with 123
                 return joinCondition.resolvedExpression(inContext: [recordAlias: container])
-        }
+            }
+            
+            // We just added a condition qualified with associationAlias. Don't
+            // risk introducing conflicting aliases that would prevent the user
+            // from setting a custom alias name: force the same alias for the
+            // whole request.
+            .aliased(associationAlias)
     }
 }
