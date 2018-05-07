@@ -57,7 +57,7 @@ public struct SQLGenerationContext {
     
     /// WHERE <resolvedName> MATCH pattern
     func resolvedName(for alias: TableAlias) -> String {
-        return resolvedNames[alias.root] ?? alias.identityName
+        return resolvedNames[alias] ?? alias.identityName
     }
     
     /// FROM tableName <alias>
@@ -73,30 +73,60 @@ public struct SQLGenerationContext {
 // MARK: - TableAlias
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
+/// A TableAlias identifies a table in a request.
 public class TableAlias: Hashable {
+    private var impl: Impl
     private enum Impl {
         /// A TableAlias is undefined when it is created by the GRDB user:
         ///
         ///     let alias = TableAlias()
-        ///     let alias = TableAlias(name: "player")
+        ///     let alias = TableAlias(name: "custom")
         case undefined(userName: String?)
         
         /// A TableAlias is a table when explicitly specified:
         ///
         ///     let alias = TableAlias(tableName: "player")
         ///
-        /// Or when it has been qualified by a request:
+        /// Or when it qualifies a request that wasn't qualified yet (in which
+        /// case it turns from undefined to a table):
         ///
-        ///     let alias = TableAlias()
+        ///     // SELECT custom.* FROM player custom
+        ///     let alias = TableAlias(name: "custom")
         ///     let request = Player.all().aliased(alias)
         case table(tableName: String, userName: String?)
-        case derived(TableAlias)
+        
+        /// A TableAlias can be a proxy for another table alias. Two different
+        /// instances for the same table identifier:
+        ///
+        ///     // Pointless example: make alias2 a proxy for alias1
+        ///     let alias1 = TableAlias()
+        ///     let alias2 = TableAlias()
+        ///     Player.all()
+        ///         .aliased(alias1)
+        ///         .aliased(alias2)
+        ///
+        /// Proxies are useful because queries get implicit aliases as soon
+        /// as they are joined with associations. In the example below,
+        /// customAlias becomes a proxy for the request's implicit alias, which
+        /// gets a custom name. This allows implicit and user aliases to merge
+        /// into a single "table identifier" that matches the user's expectations:
+        ///
+        ///     // SELECT custom.*, team.*
+        ///     // FROM player custom
+        ///     // JOIN team ON taem.id = custom.teamId
+        ///     // WHERE custom.name = 'Arthur'
+        ///     let customAlias = TableAlias(name: "custom")
+        ///     let request = Player
+        ///         .including(required: Player.team)
+        ///         .filter(sql: "custom.name = 'Arthur'")
+        ///         .aliased(customAlias)
+        case proxy(TableAlias)
     }
-    private var impl: Impl
     
-    // exposed for SQLGenerationContext and expression.resolvedExpression
-    var root: TableAlias {
-        if case .derived(let base) = impl {
+    /// Resolve all proxies
+    private var root: TableAlias {
+        if case .proxy(let base) = impl {
             return base.root
         } else {
             return self
@@ -116,10 +146,11 @@ public class TableAlias: Hashable {
     var tableName: String {
         switch impl {
         case .undefined:
+            // Likely a GRDB bug
             fatalError("Undefined alias has no table name")
         case .table(tableName: let tableName, userName: _):
             return tableName
-        case .derived(let base):
+        case .proxy(let base):
             return base.tableName
         }
     }
@@ -130,7 +161,7 @@ public class TableAlias: Hashable {
             return userName
         case .table(tableName: _, userName: let userName):
             return userName
-        case .derived(let base):
+        case .proxy(let base):
             return base.userName
         }
     }
@@ -143,26 +174,27 @@ public class TableAlias: Hashable {
         self.impl = .table(tableName: tableName, userName: userName)
     }
     
-    func rebase(on base: TableAlias) {
+    func becomeProxy(of base: TableAlias) {
         switch impl {
         case .undefined(let userName):
             if let userName = userName {
                 // rename
                 base.setUserName(userName)
             }
-            self.impl = .derived(base)
+            self.impl = .proxy(base)
         default:
+            // Likely a GRDB bug
             fatalError("Not implemented")
         }
     }
     
-    func setUserName(_ userName: String) {
+    private func setUserName(_ userName: String) {
         switch impl {
         case .undefined:
             self.impl = .undefined(userName: userName)
         case .table(tableName: let tableName, userName: _):
             self.impl = .table(tableName: tableName, userName: userName)
-        case .derived(let base):
+        case .proxy(let base):
             base.setUserName(userName)
         }
     }
@@ -172,8 +204,11 @@ public class TableAlias: Hashable {
         case .undefined(let userName):
             self.impl = .table(tableName: tableName, userName: userName)
         case .table(tableName: let initialTableName, userName: _):
-            GRDBPrecondition(tableName.lowercased() == initialTableName.lowercased(), "Can't change table name of a table alias")
-        case .derived(let base):
+            GRDBPrecondition(
+                tableName.lowercased() == initialTableName.lowercased(),
+                // Likely a GRDB bug
+                "Can't change table name of a table alias")
+        case .proxy(let base):
             base.setTableName(tableName)
         }
     }
@@ -192,11 +227,7 @@ public class TableAlias: Hashable {
     
     /// :nodoc:
     public var hashValue: Int {
-        if case .derived(let base) = impl {
-            return base.hashValue
-        } else {
-            return ObjectIdentifier(self).hashValue
-        }
+        return ObjectIdentifier(root).hashValue
     }
     
     /// :nodoc:
@@ -208,13 +239,11 @@ public class TableAlias: Hashable {
 extension Array where Element == TableAlias {
     /// Resolve ambiguities in aliases' names.
     fileprivate var resolvedNames: [TableAlias: String] {
-        let aliases = map { $0.root }
-        
-        // It is a programmer error to reuse the same (===) TableAlias for
+        // It is a programmer error to reuse the same TableAlias for
         // multiple tables.
-        GRDBPrecondition(aliases.count == Set(aliases).count, "A TableAlias most not be used to refer to multiple tables")
+        GRDBPrecondition(count == Set(self).count, "A TableAlias most not be used to refer to multiple tables")
         
-        let groups = Dictionary.init(grouping: aliases) {
+        let groups = Dictionary.init(grouping: self) {
             $0.identityName.lowercased()
         }
         

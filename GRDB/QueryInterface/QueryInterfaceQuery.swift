@@ -633,7 +633,7 @@ enum SQLSource {
         switch self {
         case .table(let tableName, let sourceAlias):
             if let sourceAlias = sourceAlias {
-                alias.rebase(on: sourceAlias)
+                alias.becomeProxy(of: sourceAlias)
                 return self
             } else {
                 alias.setTableName(tableName)

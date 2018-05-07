@@ -89,7 +89,7 @@ struct QualifiedColumn: ColumnExpression {
     
     func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
         guard
-            let container = context[alias.root],
+            let container = context[alias],
             let value = container.value(forCaseInsensitiveColumn: name) else
         {
             return self
