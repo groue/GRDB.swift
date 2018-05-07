@@ -182,16 +182,16 @@ extension TableRequest where Self: FilteredRequest {
                     // Prevent filter(keys: [["foo": 1, "bar": 2]]) where
                     // ("foo", "bar") is not a unique key (primary key or columns of a
                     // unique index)
-                    guard let orderedColumns = try db.columnsForUniqueKey(key.keys, in: databaseTableName) else {
+                    guard let columns = try db.columnsForUniqueKey(key.keys, in: databaseTableName) else {
                         fatalError("table \(databaseTableName) has no unique index on column(s) \(key.keys.sorted().joined(separator: ", "))")
                     }
                     
-                    let lowercaseOrderedColumns = orderedColumns.map { $0.lowercased() }
+                    let lowercaseColumns = columns.map { $0.lowercased() }
                     return key
-                        // Sort key columns in the same order as the unique index
+                        // Preserve ordering of columns in the unique index
                         .sorted { (kv1, kv2) in
-                            let index1 = lowercaseOrderedColumns.index(of: kv1.key.lowercased())!
-                            let index2 = lowercaseOrderedColumns.index(of: kv2.key.lowercased())!
+                            let index1 = lowercaseColumns.index(of: kv1.key.lowercased())!
+                            let index2 = lowercaseColumns.index(of: kv2.key.lowercased())!
                             return index1 < index2
                         }
                         .map { (column, value) in Column(column) == value }
