@@ -47,7 +47,7 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     
     // MARK: Request Derivation
 
-    /// Creates a request with a new net of selected columns.
+    /// Creates a request with a new set of selected columns.
     ///
     ///     // SELECT id, email FROM player
     ///     var request = Player.all()
