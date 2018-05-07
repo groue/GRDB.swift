@@ -243,7 +243,7 @@ extension Array where Element == TableAlias {
         // multiple tables.
         GRDBPrecondition(count == Set(self).count, "A TableAlias most not be used to refer to multiple tables")
         
-        let groups = Dictionary.init(grouping: self) {
+        let groups = Dictionary(grouping: self) {
             $0.identityName.lowercased()
         }
         

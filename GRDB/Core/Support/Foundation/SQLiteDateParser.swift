@@ -11,7 +11,7 @@ class SQLiteDateParser {
         var hour: Int32 = 0
         var minute: Int32 = 0
         var second: Int32 = 0
-        var nanosecond = ContiguousArray<CChar>.init(repeating: 0, count: 10) // 9 digits, and trailing \0
+        var nanosecond = ContiguousArray<CChar>(repeating: 0, count: 10) // 9 digits, and trailing \0
     }
     
     func components(from dateString: String) -> DatabaseDateComponents? {
