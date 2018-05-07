@@ -180,7 +180,7 @@ In GRDB 3, `Column` is still there, but a new `ColumnExpression` protocol has be
 
 ```swift
 // GRDB 3
-struct Player: RowConvertible, TableMapping {
+struct Player: FetchableRecord, TableRecord {
     enum Columns: String, ColumnExpression {
         case id, name, score
     }
