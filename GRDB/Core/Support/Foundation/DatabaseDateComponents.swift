@@ -94,7 +94,7 @@ public struct DatabaseDateComponents : DatabaseValueConvertible, StatementColumn
             let year = dateComponents.year ?? 0
             let month = dateComponents.month ?? 1
             let day = dateComponents.day ?? 1
-            dateString = NSString(format: "%04d-%02d-%02d", year, month, day) as String
+            dateString = String(format: "%04d-%02d-%02d", year, month, day)
         default:
             dateString = nil
         }
@@ -104,18 +104,18 @@ public struct DatabaseDateComponents : DatabaseValueConvertible, StatementColumn
         case .YMD_HM, .HM:
             let hour = dateComponents.hour ?? 0
             let minute = dateComponents.minute ?? 0
-            timeString = NSString(format: "%02d:%02d", hour, minute) as String
+            timeString = String(format: "%02d:%02d", hour, minute)
         case .YMD_HMS, .HMS:
             let hour = dateComponents.hour ?? 0
             let minute = dateComponents.minute ?? 0
             let second = dateComponents.second ?? 0
-            timeString = NSString(format: "%02d:%02d:%02d", hour, minute, second) as String
+            timeString = String(format: "%02d:%02d:%02d", hour, minute, second)
         case .YMD_HMSS, .HMSS:
             let hour = dateComponents.hour ?? 0
             let minute = dateComponents.minute ?? 0
             let second = dateComponents.second ?? 0
             let nanosecond = dateComponents.nanosecond ?? 0
-            timeString = NSString(format: "%02d:%02d:%02d.%03d", hour, minute, second, Int(round(Double(nanosecond) / 1_000_000.0))) as String
+            timeString = String(format: "%02d:%02d:%02d.%03d", hour, minute, second, Int(round(Double(nanosecond) / 1_000_000.0)))
         default:
             timeString = nil
         }
