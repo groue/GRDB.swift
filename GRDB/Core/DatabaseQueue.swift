@@ -230,6 +230,7 @@ extension DatabaseQueue {
     ///
     /// - parameter block: A block that executes SQL statements.
     /// - throws: An eventual database error, or the error thrown by the block.
+    @discardableResult
     public func write<T>(_ block: (Database) throws -> T) rethrows -> T {
         return try writer.sync { db in
             var result: T? = nil
