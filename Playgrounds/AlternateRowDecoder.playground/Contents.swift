@@ -1,3 +1,13 @@
+//: # Customized Decoding of Database Rows
+//:
+//: To run this playground:
+//:
+//: - Open GRDB.xcworkspace
+//: - Select the GRDBOSX scheme: menu Product > Scheme > GRDBOSX
+//: - Build: menu Product > Build
+//: - Select the playground in the Playgrounds Group
+//: - Run the playground
+
 import GRDB
 
 //: This playground demonstrates how one can implement **customized decoding of
@@ -23,6 +33,8 @@ import GRDB
 //: None of those use cases can be handled by the built-in `FetchableRecord`
 //: protocol and its `init(row:)` initializer. They need *customized
 //: row decoding*.
+//:
+//: ## An Example: Polymorphic Decoding
 //:
 //: In this playground, we will provide some sample code that performs
 //: polymorphic row decoding. Given a base class, `Base`, and two subclasses
@@ -117,10 +129,12 @@ extension Base {
 //: few extensions that guarantee the most efficient use of GRDB, and have the
 //: Base class adopt this protocol.
 //:
+//: ## Keep It Simple, Stupid!
+//:
 //: But first, let's see how polymorphic decoding can be done as simply as
 //: possible. After all, it is useless to design a full-fledged protocol unless
 //: we need to use this protocol several times, or write code that is as
-//: streamlined as possible. Keep it simple, stupid!
+//: streamlined as possible.
 //:
 //: Can we fetch Foo and Bar values from an SQL request? Sure:
 
@@ -160,6 +174,8 @@ try dbQueue.read { db in
 //: The resulting code is not as streamlined as usual GRDB code, but we could
 //: already do what we needed without much effort.
 //:
+//: ## Custom Protocol: MyDatabaseDecoder
+//:
 //: In the rest of this playground, we will define a **new realm of requests**.
 //:
 //: GRDB ships with three build-in realms of requests: requests of raw rows,
@@ -167,57 +183,79 @@ try dbQueue.read { db in
 //: `FetchableRecord` protocol.
 //:
 //: We'll define requests of record types that adopt the custom
-//: `DatabaseDecoder` protocol:
+//: `MyDatabaseDecoder` protocol:
 
-protocol DatabaseDecoder {
+protocol MyDatabaseDecoder {
     associatedtype DecodedType
     static func decode(row: Row) -> DecodedType
 }
 
-//: Types that adopt the DatabaseDecoder protocol are able to perform the
-//: polymorphic decoding of our Base type:
+//: Types that adopt the MyDatabaseDecoder protocol are able, among other
+//: things, to perform polymorphic decoding. Our Base class, for example:
 
-extension Base: DatabaseDecoder {
-    // Uses the decode(row: Row) already declared above
+extension Base: MyDatabaseDecoder {
+    // Already declared above:
+    // static func decode(row: Row) -> Base { ... }
 }
 
-//: 
+//: Now let's see how we can define a new realm of requests based on the
+//: `MyDatabaseDecoder` protocol. Our goal is to make them just as powerful as
+//: raedy-made requests of rows, values and FetchableRecord.
+//:
+//: All we need is a set of *extensions* that define the classic GRDB fetching
+//: methods: `fetchOne`, `fetchAll`, and `fetchCursor`. The most fundamental one
+//: is `fetchCursor`, because from it we can derive the two others.
+//:
+//: The first extension is the most low-level one: fetching from SQLite
+//: **prepared statement**:
+//:
+//:     try dbQueue.read { db in
+//:         let statement = try db.makeSelectStatement("SELECT ...")
+//:         try Base.fetchCursor(statement) // Cursor of Base
+//:         try Base.fetchAll(statement)    // [Base]
+//:         try Base.fetchOne(statement)    // Base?
+//:     }
 
-// MARK: Fetching From SelectStatement
-
-/// Fetch from prepared statement:
-///
-///     struct Decoder: DatabaseDecoder { ... }
-///     try dbQueue.read { db in
-///         let statement = try db.makeSelectStatement("SELECT ...")
-///         let values = try Decoder.fetchAll(statement)
-///     }
-extension DatabaseDecoder {
+extension MyDatabaseDecoder {
     static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, DecodedType> {
+        // Turn the cursor of raw rows into a cursor of decoded rows
         return try Row.fetchCursor(statement, arguments: arguments, adapter: adapter).map {
             self.decode(row: $0)
         }
     }
     
     static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [DecodedType] {
+        // Turn the cursor into an Array
         return try Array(fetchCursor(statement, arguments: arguments, adapter: adapter))
     }
     
     static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DecodedType? {
+        // Consume the first value of the cursor
         return try fetchCursor(statement, arguments: arguments, adapter: adapter).next()
     }
 }
 
-// MARK: Fetching From FetchRequest
+try dbQueue.read { db in
+    print("> Fetch from prepared statement")
+    let statement = try db.makeSelectStatement("SELECT * FROM base")
+    let bases = try Base.fetchAll(statement)
+    for base in bases {
+        print(base.description)
+    }
+}
 
-/// Fetch from request:
-///
-///     struct Decoder: DatabaseDecoder { ... }
-///     try dbQueue.read { db in
-///         let request = SQLRequest<Decoder>("SELECT ...")
-///         let values = try Decoder.fetchAll(db, request)
-///     }
-extension DatabaseDecoder {
+//: Now that we can fetch from prepared statements, we can fetch when given a
+//: **request**, as defined by the `FetchRequest` protocol. This is the
+//: protocol for query interface requests such as `Base.all()`, or
+//: `SQLRequest`, etc.
+//:
+//:     try dbQueue.read { db in
+//:         let request = Base.all()
+//:         try Base.fetchCursor(db, request) // Cursor of Base
+//:         try Base.fetchAll(db, request)    // [Base]
+//:         try Base.fetchOne(db, request)    // Base?
+//:     }
+extension MyDatabaseDecoder {
     static func fetchCursor<R: FetchRequest>(_ db: Database, _ request: R) throws -> MapCursor<RowCursor, DecodedType> {
         let (statement, adapter) = try request.prepare(db)
         return try fetchCursor(statement, adapter: adapter)
@@ -234,20 +272,25 @@ extension DatabaseDecoder {
     }
 }
 
-/// Requests can fetch, too:
-///
-///     struct Decoder: DatabaseDecoder { ... }
-///     try dbQueue.read { db in
-///         let request = SQLRequest<Decoder>("SELECT ...")
-///         let values = try request.fetchAll(db)
-///     }
-///
-///     extension Decoder: TableRecord { ... }
-///     try dbQueue.read { db in
-///         let request = Decoder.filter(...).order(...)
-///         let values = try request.fetchAll(db)
-///     }
-extension FetchRequest where RowDecoder: DatabaseDecoder {
+try dbQueue.read { db in
+    print("> Fetch given a request")
+    let request = Base.all()
+    let bases = try Base.fetchAll(db, request)
+    for base in bases {
+        print(base.description)
+    }
+}
+
+//: When it's fine to fetch given a request, it's even better when requests can
+//: fetch, too:
+//:
+//:     try dbQueue.read { db in
+//:         let request = Base.all()
+//:         try request.fetchCursor(db) // Cursor of Base
+//:         try request.fetchAll(db)    // [Base]
+//:         try request.fetchOne(db)    // Base?
+//:     }
+extension FetchRequest where RowDecoder: MyDatabaseDecoder {
     func fetchCursor(_ db: Database) throws -> MapCursor<RowCursor, RowDecoder.DecodedType> {
         return try RowDecoder.fetchCursor(db, self)
     }
@@ -261,37 +304,24 @@ extension FetchRequest where RowDecoder: DatabaseDecoder {
     }
 }
 
-// MARK: Fetching From SQL
-
-/// Fetch from SQL:
-///
-///     struct Decoder: DatabaseDecoder { ... }
-///     try dbQueue.read { db in
-///         let values = try Decoder.fetchAll(db, "SELECT ...")
-///     }
-extension DatabaseDecoder {
-    static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, DecodedType> {
-        return try fetchCursor(db, SQLRequest<Self>(sql, arguments: arguments, adapter: adapter))
-    }
-    
-    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [DecodedType] {
-        return try fetchAll(db, SQLRequest<Self>(sql, arguments: arguments, adapter: adapter))
-    }
-    
-    static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DecodedType? {
-        return try fetchOne(db, SQLRequest<Self>(sql, arguments: arguments, adapter: adapter))
+try dbQueue.read { db in
+    print("> Fetch from request")
+    let request = Base.all()
+    let bases = try request.fetchAll(db)
+    for base in bases {
+        print(base.description)
     }
 }
 
-// MARK: Fetching From Base Tye
-
-/// Fetch from SQL:
-///
-///     struct Decoder: DatabaseDecoder { ... }
-///     try dbQueue.read { db in
-///         let values = try Decoder.fetchAll(db)
-///     }
-extension DatabaseDecoder where Self: TableRecord {
+//: Types that adopt both FetchableRecord and TableRecord are able to fetch
+//: right from the base type. Let's allow this as well for MyDatabaseDecoder:
+//:
+//:     try dbQueue.read { db in
+//:         try Base.fetchCursor(db) // Cursor of Base
+//:         try Base.fetchAll(db)    // [Base]
+//:         try Base.fetchOne(db)    // Base?
+//:     }
+extension MyDatabaseDecoder where Self: TableRecord {
     static func fetchCursor(_ db: Database) throws -> MapCursor<RowCursor, DecodedType> {
         return try all().fetchCursor(db)
     }
@@ -305,30 +335,51 @@ extension DatabaseDecoder where Self: TableRecord {
     }
 }
 
-// =============================================================================
-
 try dbQueue.read { db in
-    do {
-        print("> Fetch from SQL")
-        let bases = try Base.fetchAll(db, "SELECT * FROM base")
-        for base in bases {
-            print(base.description)
-        }
-    }
-    
-    do {
-        print("> Fetch from query interface request")
-        let bases = try Base.filter(Column("type") == "Foo").fetchAll(db)
-        for base in bases {
-            print(base.description)
-        }
-    }
-    
-    do {
-        print("> Fetch right from the Base type")
-        let bases = try Base.fetchAll(db)
-        for base in bases {
-            print(base.description)
-        }
+    print("> Fetch from base type")
+    let bases = try Base.fetchAll(db)
+    for base in bases {
+        print(base.description)
     }
 }
+
+//: Finally, you don't have a true GRDB record unless it allows fetching from
+//: raw SQL:
+//:
+//:     try dbQueue.read { db in
+//:         try Base.fetchCursor(db, "SELECT ...") // Cursor of Base
+//:         try Base.fetchAll(db, "SELECT ...")    // [Base]
+//:         try Base.fetchOne(db, "SELECT ...")    // Base?
+//:     }
+extension MyDatabaseDecoder {
+    static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, DecodedType> {
+        return try fetchCursor(db, SQLRequest<Self>(sql, arguments: arguments, adapter: adapter))
+    }
+    
+    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [DecodedType] {
+        return try fetchAll(db, SQLRequest<Self>(sql, arguments: arguments, adapter: adapter))
+    }
+    
+    static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DecodedType? {
+        return try fetchOne(db, SQLRequest<Self>(sql, arguments: arguments, adapter: adapter))
+    }
+}
+
+try dbQueue.read { db in
+    print("> Fetch from SQL")
+    let bases = try Base.fetchAll(db, "SELECT * FROM base")
+    for base in bases {
+        print(base.description)
+    }
+}
+
+//: This is the end of this tour of **customized decoding of database rows**.
+//:
+//: In this tour, you have learned:
+//:
+//: - to keep things simple: as long as you can fetch rows, you can decode them
+//: the way you want.
+//: - to define a whole new realm of requests based on a custom protocol. This
+//: involves writing a few extensions that give your protocol the same fluent
+//: interface that is ready-made for the built-in FetchableRecord protocol. This
+//: is more work, but you are granted with the full customization power.
