@@ -20,6 +20,9 @@
          location = "group:Issue156.playground">
       </FileRef>
       <FileRef
+         location = "group:AlternateRowDecoder.playground">
+      </FileRef>
+      <FileRef
          location = "group:MyPlayground.playground">
       </FileRef>
    </Group>
