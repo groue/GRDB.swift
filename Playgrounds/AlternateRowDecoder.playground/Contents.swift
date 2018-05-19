@@ -217,6 +217,8 @@ extension Base: MyDatabaseDecoder {
 //:     }
 
 extension MyDatabaseDecoder {
+    // SelectStatement, StatementArguments, and RowAdapter are the fundamental
+    // fetching parameters of GRDB. Make sure to accept them all:
     static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, DecodedType> {
         // Turn the cursor of raw rows into a cursor of decoded rows
         return try Row.fetchCursor(statement, arguments: arguments, adapter: adapter).map {
@@ -373,13 +375,77 @@ try dbQueue.read { db in
     }
 }
 
-//: This is the end of this tour of **customized decoding of database rows**.
+//: Voilà! Our `MyDatabaseDecoder` protocol is now as able as the built-in
+//: `FetchableRecord` protocol.
 //:
-//: In this tour, you have learned:
+//: To sum up, you have learned:
 //:
-//: - to keep things simple: as long as you can fetch rows, you can decode them
-//: the way you want.
-//: - to define a whole new realm of requests based on a custom protocol. This
-//: involves writing a few extensions that give your protocol the same fluent
-//: interface that is ready-made for the built-in FetchableRecord protocol. This
-//: is more work, but you are granted with the full customization power.
+//: - how to keep things simple: as long as you can fetch rows, you can decode
+//: them the way you want.
+//: - how to define a whole new realm of requests based on a custom protocol.
+//: This involves writing a few extensions that give your protocol the same
+//: fluent interface that is ready-made for the built-in FetchableRecord
+//: protocol. This is more work, but you are granted with the full
+//: customization freedom.
+//:
+//: To end this tour, let's quickly look at two other possible customized
+//: row decoding strategies:
+//:
+//: - Your application needs to decode rows with a context - which means that
+//: each decoded value should be initialized with some extra value that does not
+//: come from the database.
+//:
+//:     In this case, you may define a `ContextFetchableRecord` protocol, and
+//:     derive all other fetching methods from the most fundamental one, which
+//:     fetches a cursor from a prepared statement (as above):
+
+protocol ContextFetchableRecord {
+    associatedtype Context
+    init(row: Row, context: Context)
+}
+
+extension ContextFetchableRecord {
+    static func fetchCursor(
+        _ statement: SelectStatement,
+        arguments: StatementArguments? = nil,
+        adapter: RowAdapter? = nil,
+        context: Context)
+        throws -> MapCursor<RowCursor, Self>
+    {
+        // Turn the cursor of raw rows into a cursor of decoded rows
+        return try Row.fetchCursor(statement, arguments: arguments, adapter: adapter).map {
+            self.init(row: $0, context: context)
+        }
+    }
+    
+    // Define fetchAll, fetchOne, ...
+}
+
+//: - Your application needs a record type that supports untrusted databases,
+//: and may fail at decoding database rows (throw an error when a row contains
+//: invalid values).
+//:
+//:     In this case, you may define a `FailableFetchableRecord` protocol, and
+//:     derive all other fetching methods from the most fundamental one, which
+//:     fetches a cursor from a prepared statement (as above):
+
+protocol FailableFetchableRecord {
+    init(row: Row) throws
+}
+
+extension FailableFetchableRecord {
+    static func fetchCursor(
+        _ statement: SelectStatement,
+        arguments: StatementArguments? = nil,
+        adapter: RowAdapter? = nil)
+        throws -> MapCursor<RowCursor, Self>
+    {
+        // Turn the cursor of raw rows into a cursor of decoded rows
+        return try Row.fetchCursor(statement, arguments: arguments, adapter: adapter).map {
+            try self.init(row: $0)
+        }
+    }
+    
+    // Define fetchAll, fetchOne, ...
+}
+
