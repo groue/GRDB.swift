@@ -2033,6 +2033,7 @@ Your custom structs and classes can adopt each protocol individually, and opt in
 - [Record Comparison]
 - [Conflict Resolution](#conflict-resolution)
 - [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key)
+- [Customized Decoding of Database Rows](#customized-decoding-of-database-rows)
 
 **Records in a Glance**
 
@@ -2143,6 +2144,7 @@ Details follow:
 - [Record Comparison]
 - [Conflict Resolution](#conflict-resolution)
 - [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key)
+- [Customized Decoding of Database Rows](#customized-decoding-of-database-rows)
 - [Examples of Record Definitions](#examples-of-record-definitions)
 - [List of Record Methods](#list-of-record-methods)
 
@@ -2277,6 +2279,8 @@ try Place.fetchOne(db, "SELECT ...", arguments:...)    // Place?
 ```
 
 See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll` and `fetchOne` methods. See [StatementArguments](http://groue.github.io/GRDB.swift/docs/3.0-beta.1/Structs/StatementArguments.html) for more information about the query arguments.
+
+> :point_up: **Note**: The `FetchableRecord.init(row:)` initializer fits the needs of most applications. But some application are more demanding than others. When FetchableRecord does not exactly provide the support you need, have a look at the [Customized Decoding of Database Rows](#customized-decoding-of-database-rows) chapter.
 
 
 ## TableRecord Protocol
@@ -2926,6 +2930,21 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](#fu
     // Record knows if it exists:
     event.exists(db) // true
     ```
+
+
+## Customized Decoding of Database Rows
+
+**Some GRDB users eventually discover that the [FetchableRecord] protocol does not fit all situations.** Use cases that are not well handled by FetchableRecord include:
+
+- Your application needs polymorphic row decoding: it decodes some class or another, depending on the values contained in a database row.
+
+- Your application needs to decode rows with a context: each decoded value should be initialized with some extra value that does not come from the database.
+
+- Your application needs a record type that supports untrusted databases, and may fail at decoding database rows (throw an error when a row contains invalid values).
+
+Since those use cases are not well handled by FetchableRecord, don't try to implement them on top of this protocol: you'll just fight the framework.
+
+Instead, please have a look at the [CustomizedDecodingOfDatabaseRows](Playgrounds/CustomizedDecodingOfDatabaseRows.playground/Contents.swift) playground. You'll run some sample code, and learn how to escape FetchableRecord when you need.
 
 
 ## Examples of Record Definitions

@@ -19,12 +19,12 @@ import GRDB
 //:
 //: For example:
 //:
-//: - Your application needs polymorphic row decoding (which means decoding some
-//: class or another depending on the values contained in a database row).
+//: - Your application needs polymorphic row decoding: it decodes some class or
+//: another, depending on the values contained in a database row.
 //:
-//: - Your application needs to decode rows with a context - which means that
-//: each decoded value should be initialized with some extra value that does not
-//: come from the database.
+//: - Your application needs to decode rows with a context: each decoded value
+//: should be initialized with some extra value that does not come from
+//: the database.
 //:
 //: - Your application needs a record type that supports untrusted databases,
 //: and may fail at decoding database rows (throw an error when a row contains
@@ -391,9 +391,9 @@ try dbQueue.read { db in
 //: To end this tour, let's quickly look at two other possible customized
 //: row decoding strategies:
 //:
-//: - Your application needs to decode rows with a context - which means that
-//: each decoded value should be initialized with some extra value that does not
-//: come from the database.
+//: - Your application needs to decode rows with a context: each decoded value
+//: should be initialized with some extra value that does not come from
+//: the database.
 //:
 //:     In this case, you may define a `ContextFetchableRecord` protocol, and
 //:     derive all other fetching methods from the most fundamental one, which

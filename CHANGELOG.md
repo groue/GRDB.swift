@@ -41,14 +41,15 @@ It comes with new features, but also a few breaking changes, and a set of update
 ### Documentation Diff
 
 - [Associations](Documentation/AssociationsBasics.md): Discover the major GRDB 3 feature
-- [Database Queues](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#database-queues): focus on the `read` and `write` methods.
-- [Database Pools](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#database-pools): focus on the `read` and `write` methods.
-- [Transactions and Savepoints](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#transactions-and-savepoints): the chapter has been rewritten in order to introduce transactions as a power-user feature.
-- [ScopeAdapter](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#scopeadapter): do you use row adapters? If so, have a look.
-- [Examples of Record Definitions](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#examples-of-record-definitions): this new chapter provides a handy reference of the three main ways to define record types (Codable, plain struct, Record subclass).
-- [SQL Operators](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#sql-operators): the chapter introduces the new `joined(operator:)` method that lets you join a chain of expressions with `AND` or `OR` without nesting: `[cond1, cond2, ...].joined(operator: .and)`.
-- [Custom Requests](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#custom-requests): the old `Request` and `TypedRequest` protocols have been replaced with `FetchRequest`. If you want to know more about custom requests, check this chapter.
-- [Migrations](https://github.com/groue/GRDB.swift/blob/GRDB3/README.md#migrations): learn how to check if a migration has been applied (very useful for migration tests).
+- [Database Queues](README.md#database-queues): focus on the `read` and `write` methods.
+- [Database Pools](README.md#database-pools): focus on the `read` and `write` methods.
+- [Transactions and Savepoints](README.md#transactions-and-savepoints): the chapter has been rewritten in order to introduce transactions as a power-user feature.
+- [ScopeAdapter](README.md#scopeadapter): do you use row adapters? If so, have a look.
+- [Examples of Record Definitions](README.md#examples-of-record-definitions): this new chapter provides a handy reference of the three main ways to define record types (Codable, plain struct, Record subclass).
+- [SQL Operators](README.md#sql-operators): the chapter introduces the new `joined(operator:)` method that lets you join a chain of expressions with `AND` or `OR` without nesting: `[cond1, cond2, ...].joined(operator: .and)`.
+- [Custom Requests](README.md#custom-requests): the old `Request` and `TypedRequest` protocols have been replaced with `FetchRequest`. If you want to know more about custom requests, check this chapter.
+- [Customized Decoding of Database Rows](README.md#customized-decoding-of-database-rows): learn how to escape the ready-made `FetchableRecord` protocol when it does not fit your needs.
+- [Migrations](README.md#migrations): learn how to check if a migration has been applied (very useful for migration tests).
 
 
 
