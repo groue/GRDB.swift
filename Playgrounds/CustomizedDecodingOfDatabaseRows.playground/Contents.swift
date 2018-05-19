@@ -200,7 +200,7 @@ extension Base: MyDatabaseDecoder {
 
 //: Now let's see how we can define a new realm of requests based on the
 //: `MyDatabaseDecoder` protocol. Our goal is to make them just as powerful as
-//: raedy-made requests of rows, values and FetchableRecord.
+//: ready-made requests of rows, values and FetchableRecord.
 //:
 //: All we need is a set of *extensions* that define the classic GRDB fetching
 //: methods: `fetchOne`, `fetchAll`, and `fetchCursor`. The most fundamental one
