@@ -4224,7 +4224,7 @@ try request.fetchAll(db)    // [Player]
 
 See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll` and `fetchOne` methods.
 
-When the RowDecoder type associated with the FetchRequest is not Row, DatabaseValueConvertible, or FetchableRecord, you can write your own convenience methods in an extension of the FetchRequest protocol.
+The RowDecoder type associated with the FetchRequest does not have to be Row, DatabaseValueConvertible, or FetchableRecord. See the [Customized Decoding of Database Rows](#customized-decoding-of-database-rows) chapter for more information.
 
 
 Application Tools
