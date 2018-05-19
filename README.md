@@ -545,11 +545,11 @@ SQLite API
     - [Date and DateComponents](#date-and-datecomponents)
     - [NSNumber and NSDecimalNumber](#nsnumber-and-nsdecimalnumber)
     - [Swift enums](#swift-enums)
+    - [Custom Value Types](#custom-value-types)
 - [Transactions and Savepoints](#transactions-and-savepoints)
 
 Advanced topics:
 
-- [Custom Value Types](#custom-value-types)
 - [Prepared Statements](#prepared-statements)
 - [Custom SQL Functions and Aggregates](#custom-sql-functions-and-aggregates)
 - [Database Schema Introspection](#database-schema-introspection)
@@ -1327,6 +1327,27 @@ Grape.fromDatabaseValue(row[0])  // nil
 ```
 
 
+### Custom Value Types
+
+Conversion to and from the database is based on the `DatabaseValueConvertible` protocol:
+
+```swift
+protocol DatabaseValueConvertible {
+    /// Returns a value that can be stored in the database.
+    var databaseValue: DatabaseValue { get }
+    
+    /// Returns a value initialized from dbValue, if possible.
+    static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self?
+}
+```
+
+All types that adopt this protocol can be used like all other [values](#values) (Bool, Int, String, Date, Swift enums, etc.)
+
+The `databaseValue` property returns [DatabaseValue](#databasevalue), a type that wraps the five values supported by SQLite: NULL, Int64, Double, String and Data. Since DatabaseValue has no public initializer, use `DatabaseValue.null`, or another type that already adopts the protocol: `1.databaseValue`, `"foo".databaseValue`, etc. Conversion to DatabaseValue *must not* fail.
+
+The `fromDatabaseValue()` factory method returns an instance of your custom type if the database value contains a suitable value. If the database value does not contain a suitable value, such as "foo" for Date, `fromDatabaseValue` *must* return nil (GRDB will interpret this nil result as a conversion error, and react accordingly).
+
+
 ## Transactions and Savepoints
 
 - [Transactions and Safety](#transactions-and-safety)
@@ -1535,27 +1556,6 @@ dbQueue.write { db in ... }
 // BEGIN EXCLUSIVE TRANSACTION ...
 dbQueue.inTransaction(.exclusive) { db in ... }
 ```
-
-
-## Custom Value Types
-
-Conversion to and from the database is based on the `DatabaseValueConvertible` protocol:
-
-```swift
-protocol DatabaseValueConvertible {
-    /// Returns a value that can be stored in the database.
-    var databaseValue: DatabaseValue { get }
-    
-    /// Returns a value initialized from dbValue, if possible.
-    static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self?
-}
-```
-
-All types that adopt this protocol can be used like all other [values](#values) (Bool, Int, String, Date, Swift enums, etc.)
-
-The `databaseValue` property returns [DatabaseValue](#databasevalue), a type that wraps the five values supported by SQLite: NULL, Int64, Double, String and Data. Since DatabaseValue has no public initializer, use `DatabaseValue.null`, or another type that already adopts the protocol: `1.databaseValue`, `"foo".databaseValue`, etc. Conversion to DatabaseValue *must not* fail.
-
-The `fromDatabaseValue()` factory method returns an instance of your custom type if the database value contains a suitable value. If the database value does not contain a suitable value, such as "foo" for Date, `fromDatabaseValue` *must* return nil (GRDB will interpret this nil result as a conversion error, and react accordingly).
 
 
 ## Prepared Statements
