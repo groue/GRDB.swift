@@ -178,7 +178,7 @@ try dbQueue.read { db in
 //:
 //: In the rest of this playground, we will define a **new realm of requests**.
 //:
-//: GRDB ships with three build-in realms of requests: requests of raw rows,
+//: GRDB ships with three built-in realms of requests: requests of raw rows,
 //: requests of values, and requests of record types that adopt the
 //: `FetchableRecord` protocol.
 //:
