@@ -20,7 +20,7 @@
          location = "group:Issue156.playground">
       </FileRef>
       <FileRef
-         location = "group:AlternateRowDecoder.playground">
+         location = "group:/Users/groue/Documents/git/groue/GRDB.swift/Playgrounds/CustomizedDecodingOfDatabaseRows.playground">
       </FileRef>
       <FileRef
          location = "group:MyPlayground.playground">
