@@ -2944,7 +2944,7 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](#fu
 
 Since those use cases are not well handled by FetchableRecord, don't try to implement them on top of this protocol: you'll just fight the framework.
 
-Instead, please have a look at the [CustomizedDecodingOfDatabaseRows](Playgrounds/CustomizedDecodingOfDatabaseRows.playground/Contents.swift) playground. You'll run some sample code, and learn how to escape FetchableRecord when you need.
+Instead, please have a look at the [CustomizedDecodingOfDatabaseRows](Playgrounds/CustomizedDecodingOfDatabaseRows.playground/Contents.swift) playground. You'll run some sample code, and learn how to escape FetchableRecord when you need. And remember that leaving FetchableRecord will not deprive you of [query interface requests](#requests) and generally all SQL generation features of the [TableRecord] and [PersistableRecord] protocols.
 
 
 ## Examples of Record Definitions
