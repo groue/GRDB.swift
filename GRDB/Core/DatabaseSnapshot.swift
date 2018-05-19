@@ -110,7 +110,7 @@ extension DatabaseSnapshot {
     ///     }
     ///     snapshot.add(collation: collation)
     ///     let files = try snapshot.read { db in
-    ///         try File.fetchAll(db, "SELECT * FROM files ORDER BY name COLLATE localized_standard")
+    ///         try File.fetchAll(db, "SELECT * FROM file ORDER BY name COLLATE localized_standard")
     ///     }
     public func add(collation: DatabaseCollation) {
         serializedDatabase.sync { $0.add(collation: collation) }

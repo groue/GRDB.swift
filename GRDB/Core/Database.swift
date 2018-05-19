@@ -21,8 +21,8 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 ///     let dbQueue = DatabaseQueue(...)
 ///
 ///     // The Database is the `db` in the closure:
-///     try dbQueue.inDatabase { db in
-///         try db.execute(...)
+///     try dbQueue.write { db in
+///         try Player(...).insert(db)
 ///     }
 public final class Database {
     // The Database class is not thread-safe. An instance should always be
@@ -98,8 +98,6 @@ public final class Database {
     
     /// True if the database connection is currently in a transaction.
     public var isInsideTransaction: Bool {
-        if isClosed { return false }
-        
         // https://sqlite.org/c3ref/get_autocommit.html
         //
         // > The sqlite3_get_autocommit() interface returns non-zero or zero if
@@ -109,6 +107,12 @@ public final class Database {
         // > Autocommit mode is on by default. Autocommit mode is disabled by a
         // > BEGIN statement. Autocommit mode is re-enabled by a COMMIT
         // > or ROLLBACK.
+        //
+        // > If another thread changes the autocommit status of the database
+        // > connection while this routine is running, then the return value
+        // > is undefined.
+        SchedulingWatchdog.preconditionValidQueue(self)
+        if isClosed { return false } // Support for SerializedDatabasae.deinit
         return sqlite3_get_autocommit(sqliteConnection) == 0
     }
     
@@ -146,7 +150,9 @@ public final class Database {
     lazy var observationBroker = DatabaseObservationBroker(self)
     
     /// The list of compile options used when building SQLite
-    static let sqliteCompileOptions: Set<String> = DatabaseQueue().inDatabase { try! Set(String.fetchCursor($0, "PRAGMA COMPILE_OPTIONS")) }
+    static let sqliteCompileOptions: Set<String> = DatabaseQueue().inDatabase {
+        try! Set(String.fetchCursor($0, "PRAGMA COMPILE_OPTIONS"))
+    }
     
     // MARK: - Private properties
     
@@ -298,7 +304,7 @@ extension Database {
                 let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
                 db.configuration.trace!(sql)
             }, dbPointer)
-        #else
+        #elseif !os(Linux)
             if #available(iOS 10.0, OSX 10.12, watchOS 3.0, *) {
                 sqlite3_trace_v2(sqliteConnection, UInt32(SQLITE_TRACE_STMT), { (mask, dbPointer, stmt, unexpandedSQL) -> Int32 in
                     guard let stmt = stmt else { return SQLITE_OK }
@@ -316,6 +322,12 @@ extension Database {
                     db.configuration.trace!(sql)
                 }, dbPointer)
             }
+        #else
+        sqlite3_trace(sqliteConnection, { (dbPointer, sql) in
+                                            guard let sql = sql.map({ String(cString: $0) }) else { return }
+                                            let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
+                                            db.configuration.trace!(sql)
+                                        }, dbPointer)
         #endif
     }
     
@@ -524,6 +536,25 @@ extension Database {
 }
 
 extension Database {
+    
+    // MARK: - Read-Only Access
+    
+    /// Grants read-only access, starting SQLite 3.8.0
+    func readOnly<T>(_ block: () throws -> T) rethrows -> T {
+        if configuration.readonly {
+            return try block()
+        }
+        
+        // query_only pragma was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
+        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+        // Assume those pragmas never fail
+        try! execute("PRAGMA query_only = 1")
+        defer { try! execute("PRAGMA query_only = 0") }
+        return try block()
+    }
+}
+
+extension Database {
 
     // MARK: - Transactions & Savepoint
     
@@ -544,7 +575,7 @@ extension Database {
     /// - parameters:
     ///     - kind: The transaction type (default nil). If nil, the transaction
     ///       type is configuration.defaultTransactionKind, which itself
-    ///       defaults to .immediate. See https://www.sqlite.org/lang_transaction.html
+    ///       defaults to .deferred. See https://www.sqlite.org/lang_transaction.html
     ///       for more information.
     ///     - block: A block that executes SQL statements and return either
     ///       .commit or .rollback.
@@ -675,7 +706,7 @@ extension Database {
     ///
     /// - parameter kind: The transaction type (default nil). If nil, the
     ///   transaction type is configuration.defaultTransactionKind, which itself
-    ///   defaults to .immediate. See https://www.sqlite.org/lang_transaction.html
+    ///   defaults to .deferred. See https://www.sqlite.org/lang_transaction.html
     ///   for more information.
     /// - throws: The error thrown by the block.
     public func beginTransaction(_ kind: TransactionKind? = nil) throws {
@@ -724,6 +755,7 @@ extension Database {
         // The second technique is more robust, because we don't have to guess
         // which rollback errors should be ignored, and which rollback errors
         // should be exposed to the library user.
+        SchedulingWatchdog.preconditionValidQueue(self) // guard sqlite3_get_autocommit
         if sqlite3_get_autocommit(sqliteConnection) == 0 {
             try execute("ROLLBACK TRANSACTION")
         }
@@ -841,14 +873,6 @@ extension Database {
             self.rawValue = rawValue
         }
         
-        #if !swift(>=4.1)
-        /// The hash value
-        /// :nodoc:
-        public var hashValue: Int {
-            return rawValue.hashValue
-        }
-        #endif
-        
         /// The `BINARY` built-in SQL collation
         public static let binary = CollationName("BINARY")
         
@@ -861,8 +885,8 @@ extension Database {
     
     /// An SQL column type.
     ///
-    ///     try db.create(table: "players") { t in
-    ///         t.column("id", .integer).primaryKey()
+    ///     try db.create(table: "player") { t in
+    ///         t.autoIncrementedPrimaryKey("id")
     ///         t.column("title", .text)
     ///     }
     ///
@@ -879,14 +903,6 @@ extension Database {
         public init(_ rawValue: String) {
             self.rawValue = rawValue
         }
-        
-        #if !swift(>=4.1)
-        /// The hash value
-        /// :nodoc:
-        public var hashValue: Int {
-            return rawValue.hashValue
-        }
-        #endif
         
         /// The `TEXT` SQL column type
         public static let text = ColumnType("TEXT")

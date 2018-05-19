@@ -12,15 +12,15 @@ private struct TestError : Error { }
 class CursorTests: GRDBTestCase {
     
     func testContainsEquatable() {
-        XCTAssertTrue(try IteratorCursor([1, 2]).contains(1))
-        XCTAssertFalse(try IteratorCursor([1, 2]).contains(3))
+        XCTAssertTrue(try AnyCursor([1, 2]).contains(1))
+        XCTAssertFalse(try AnyCursor([1, 2]).contains(3))
     }
     
     func testContainsClosure() {
-        XCTAssertTrue(try IteratorCursor([1, 2]).contains { $0 == 1 })
-        XCTAssertFalse(try IteratorCursor([1, 2]).contains { $0 == 3 })
+        XCTAssertTrue(try AnyCursor([1, 2]).contains { $0 == 1 })
+        XCTAssertFalse(try AnyCursor([1, 2]).contains { $0 == 3 })
         do {
-            _ = try IteratorCursor([1, 2]).contains { _ -> Bool in throw TestError() }
+            _ = try AnyCursor([1, 2]).contains { _ -> Bool in throw TestError() }
             XCTFail()
         } catch is TestError {
         } catch {
@@ -29,10 +29,10 @@ class CursorTests: GRDBTestCase {
     }
     
     func testDropLast() {
-        XCTAssertTrue(try IteratorCursor([1, 2, 3, 4, 5]).dropLast(0) == [1, 2, 3, 4, 5])
-        XCTAssertTrue(try IteratorCursor([1, 2, 3, 4, 5]).dropLast(2) == [1, 2, 3])
-        XCTAssertTrue(try IteratorCursor([1, 2, 3, 4, 5]).dropLast(10) == [])
-        XCTAssertTrue(try IteratorCursor([1, 2, 3, 4, 5]).dropLast() == [1, 2, 3, 4])
+        XCTAssertTrue(try AnyCursor([1, 2, 3, 4, 5]).dropLast(0) == [1, 2, 3, 4, 5])
+        XCTAssertTrue(try AnyCursor([1, 2, 3, 4, 5]).dropLast(2) == [1, 2, 3])
+        XCTAssertTrue(try AnyCursor([1, 2, 3, 4, 5]).dropLast(10) == [])
+        XCTAssertTrue(try AnyCursor([1, 2, 3, 4, 5]).dropLast() == [1, 2, 3, 4])
     }
     
     func testContainsIsLazy() {
@@ -55,8 +55,8 @@ class CursorTests: GRDBTestCase {
     }
     
     func testFirst() {
-        XCTAssertEqual(try IteratorCursor([1, 2]).first { $0 == 1 }!, 1)
-        XCTAssertTrue(try IteratorCursor([1, 2]).first { $0 == 3 } == nil)
+        XCTAssertEqual(try AnyCursor([1, 2]).first { $0 == 1 }!, 1)
+        XCTAssertTrue(try AnyCursor([1, 2]).first { $0 == 3 } == nil)
     }
     
     func testFirstIsLazy() {
@@ -78,24 +78,15 @@ class CursorTests: GRDBTestCase {
         }
     }
     
-    #if swift(>=4.1)
     func testCompactMap() {
-        let cursor = IteratorCursor(["1", "foo", "2"]).compactMap { Int($0) }
+        let cursor = AnyCursor(["1", "foo", "2"]).compactMap { Int($0) }
         XCTAssertEqual(try cursor.next()!, 1)
         XCTAssertEqual(try cursor.next()!, 2)
         XCTAssertTrue(try cursor.next() == nil) // end
     }
-    #else
-    func testFlatMapOfOptional() {
-        let cursor = IteratorCursor(["1", "foo", "2"]).flatMap { Int($0) }
-        XCTAssertEqual(try cursor.next()!, 1)
-        XCTAssertEqual(try cursor.next()!, 2)
-        XCTAssertTrue(try cursor.next() == nil) // end
-    }
-    #endif
     
     func testForEach() throws {
-        let cursor = IteratorCursor([1, 2])
+        let cursor = AnyCursor([1, 2])
         var ints: [Int] = []
         try cursor.forEach { ints.append($0) }
         XCTAssertEqual(ints, [1, 2])
@@ -121,66 +112,66 @@ class CursorTests: GRDBTestCase {
     
     func testJoinedWithSeparator() throws {
         do {
-            let x = try IteratorCursor([String]()).joined()
+            let x = try AnyCursor([String]()).joined()
             XCTAssertEqual(x, "")
         }
         do {
-            let x = try IteratorCursor([String]()).joined(separator: "><")
+            let x = try AnyCursor([String]()).joined(separator: "><")
             XCTAssertEqual(x, "")
         }
         do {
-            let x = try IteratorCursor(["foo"]).joined()
+            let x = try AnyCursor(["foo"]).joined()
             XCTAssertEqual(x, "foo")
         }
         do {
-            let x = try IteratorCursor(["foo"]).joined(separator: "><")
+            let x = try AnyCursor(["foo"]).joined(separator: "><")
             XCTAssertEqual(x, "foo")
         }
         do {
-            let x = try IteratorCursor(["foo", "bar", "baz"]).joined()
+            let x = try AnyCursor(["foo", "bar", "baz"]).joined()
             XCTAssertEqual(x, "foobarbaz")
         }
         do {
-            let x = try IteratorCursor(["foo", "bar", "baz"]).joined(separator: "><")
+            let x = try AnyCursor(["foo", "bar", "baz"]).joined(separator: "><")
             XCTAssertEqual(x, "foo><bar><baz")
         }
     }
     
     func testMax() {
-        XCTAssertEqual(try IteratorCursor([1, 2, 3]).max(), 3)
-        XCTAssertEqual(try IteratorCursor([1, 2, 3]).max(by: >), 1)
+        XCTAssertEqual(try AnyCursor([1, 2, 3]).max(), 3)
+        XCTAssertEqual(try AnyCursor([1, 2, 3]).max(by: >), 1)
     }
 
     func testMin() {
-        XCTAssertEqual(try IteratorCursor([1, 2, 3]).min(), 1)
-        XCTAssertEqual(try IteratorCursor([1, 2, 3]).min(by: >), 3)
+        XCTAssertEqual(try AnyCursor([1, 2, 3]).min(), 1)
+        XCTAssertEqual(try AnyCursor([1, 2, 3]).min(by: >), 3)
     }
     
     func testReduce() throws {
-        let cursor = IteratorCursor([1, 2])
+        let cursor = AnyCursor([1, 2])
         let squareSum = try cursor.reduce(0) { (acc, int) in acc + int * int }
         XCTAssertEqual(squareSum, 5)
     }
     
     func testReduceInto() throws {
-        let cursor = IteratorCursor([1, 2])
+        let cursor = AnyCursor([1, 2])
         let squareSum = try cursor.reduce(into: 0) { (acc, int) in acc += int * int }
         XCTAssertEqual(squareSum, 5)
     }
 
     func testSuffix() throws {
         do {
-            let cursor = IteratorCursor([1, 2, 3, 4, 5])
+            let cursor = AnyCursor([1, 2, 3, 4, 5])
             let suffix = try cursor.suffix(0)
             XCTAssertTrue(suffix == [])
         }
         do {
-            let cursor = IteratorCursor([1, 2, 3, 4, 5])
+            let cursor = AnyCursor([1, 2, 3, 4, 5])
             let suffix = try cursor.suffix(2)
             XCTAssertTrue(suffix == [4, 5])
         }
         do {
-            let cursor = IteratorCursor([1, 2, 3, 4, 5])
+            let cursor = AnyCursor([1, 2, 3, 4, 5])
             let suffix = try cursor.suffix(10)
             XCTAssertTrue(suffix == [1, 2, 3, 4, 5])
         }

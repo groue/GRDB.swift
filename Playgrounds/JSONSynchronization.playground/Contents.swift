@@ -1,11 +1,17 @@
-// To run this playground, select and build the GRDBOSX scheme.
-//
-// This sample code shows how to use GRDB to synchronize a database table
-// with a JSON payload. We use as few SQL queries as possible:
-//
-// - Only one SELECT query.
-// - One query per insert, delete, and update.
-// - Useless UPDATE statements are avoided.
+//: To run this playground:
+//:
+//: - Open GRDB.xcworkspace
+//: - Select the GRDBOSX scheme: menu Product > Scheme > GRDBOSX
+//: - Build: menu Product > Build
+//: - Select the playground in the Playgrounds Group
+//: - Run the playground
+//:
+//: This sample code shows how to use GRDB to synchronize a database table
+//: with a JSON payload. We use as few SQL queries as possible:
+//:
+//: - Only one SELECT query.
+//: - One query per insert, delete, and update.
+//: - Useless UPDATE statements are avoided.
 
 import Foundation
 import GRDB
@@ -31,7 +37,7 @@ try dbQueue.inDatabase { db in
 
 // Define the Player subclass of GRDB's Record.
 //
-// Record provides change tracking that helps avoiding useless UPDATE statements.
+// Record can compare against itself, and that helps avoiding useless UPDATE statements.
 class Player : Record {
     var id: Int64
     var name: String

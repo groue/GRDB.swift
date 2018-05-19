@@ -1,6 +1,58 @@
 Release Notes
 =============
 
+## Next Version
+
+GRDB 3.0.0-beta.1 is a release focused on **modernization**, **safety**, and **associations between record types**.
+
+It comes with new features, but also a few breaking changes, and a set of updated good practices. The [GRDB 2 Migration Guide](Documentation/GRDB2MigrationGuide.md) will help you upgrading your applications.
+
+
+### New
+
+- Associations and Joins ([#319](https://github.com/groue/GRDB.swift/pull/319)).
+- Enhancements to logical operators ([#336](https://github.com/groue/GRDB.swift/pull/336)).
+- Foster auto-incremented primary keys ([#337](https://github.com/groue/GRDB.swift/pull/337)).
+- ColumnExpression Protocol ([#340](https://github.com/groue/GRDB.swift/pull/340)).
+- Improved parsing of dates and date components ([#334](https://github.com/groue/GRDB.swift/pull/334) by @sobri909).
+- Common API for requests and associations derivation ([#347](https://github.com/groue/GRDB.swift/pull/347)).
+- `DatabaseMigrator.appliedMigrations(in:)` returns the set of applied migrations identifiers in a database ([#321](https://github.com/groue/GRDB.swift/pull/321)).
+- `Database.isSQLiteInternalTable(_:)` returns whether a table name is an internal SQLite table ([#321](https://github.com/groue/GRDB.swift/pull/321)).
+- `Database.isGRDBInternalTable(_:)` returns whether a table name is an internal GRDB table ([#321](https://github.com/groue/GRDB.swift/pull/321)).
+- Upgrade custom SQLite builds to [v3.23.0](http://www.sqlite.org/changes.html) (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib)).
+- Improve Row descriptions ([#331](https://github.com/groue/GRDB.swift/pull/331)).
+- Request derivation protocols ([#329](https://github.com/groue/GRDB.swift/pull/329)).
+
+
+### Breaking Changes
+
+- Swift 4.1 is now required.
+- iOS 8 sunsetting: GRDB 3 is only tested on iOS 9+, due to a limitation in Xcode 9.3. Code that targets older versions of SQLite and iOS is still there, but is not supported.
+- The Record protocols have been renamed: `RowConvertible` to `FetchableRecord`, `Persistable` to `PersistableRecord`, and `TableMapping` to `TableRecord` ([#314](https://github.com/groue/GRDB.swift/pull/314)).
+- Implicit transaction in DatabasePool.write and DatabaseQueue.write ([#332](https://github.com/groue/GRDB.swift/pull/332)).
+- `Request` and `TypedRequest` protocols have been merged into `FetchRequest` ([#311](https://github.com/groue/GRDB.swift/pull/311), [#328](https://github.com/groue/GRDB.swift/pull/328), [#348](https://github.com/groue/GRDB.swift/pull/348)).
+- Reversing unordered requests has no effect ([#342](https://github.com/groue/GRDB.swift/pull/342)).
+- The `IteratorCursor` type has been removed. Use `AnyCursor` instead ([#312](https://github.com/groue/GRDB.swift/pull/312)).
+- Row scopes collection, breadth-first scope search ([#335](https://github.com/groue/GRDB.swift/pull/335)).
+- Expressions are no longer PATs ([#330](https://github.com/groue/GRDB.swift/pull/330)).
+- Deprecated APIs have been removed.
+
+
+### Documentation Diff
+
+- [Associations](Documentation/AssociationsBasics.md): Discover the major GRDB 3 feature
+- [Database Queues](README.md#database-queues): focus on the `read` and `write` methods.
+- [Database Pools](README.md#database-pools): focus on the `read` and `write` methods.
+- [Transactions and Savepoints](README.md#transactions-and-savepoints): the chapter has been rewritten in order to introduce transactions as a power-user feature.
+- [ScopeAdapter](README.md#scopeadapter): do you use row adapters? If so, have a look.
+- [Examples of Record Definitions](README.md#examples-of-record-definitions): this new chapter provides a handy reference of the three main ways to define record types (Codable, plain struct, Record subclass).
+- [SQL Operators](README.md#sql-operators): the chapter introduces the new `joined(operator:)` method that lets you join a chain of expressions with `AND` or `OR` without nesting: `[cond1, cond2, ...].joined(operator: .and)`.
+- [Custom Requests](README.md#custom-requests): the old `Request` and `TypedRequest` protocols have been replaced with `FetchRequest`. If you want to know more about custom requests, check this chapter.
+- [Customized Decoding of Database Rows](README.md#customized-decoding-of-database-rows): learn how to escape the ready-made `FetchableRecord` protocol when it does not fit your needs.
+- [Migrations](README.md#migrations): learn how to check if a migration has been applied (very useful for migration tests).
+
+
+
 ## 2.10.0
 
 Released March 30, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.9.0...v2.10.0)

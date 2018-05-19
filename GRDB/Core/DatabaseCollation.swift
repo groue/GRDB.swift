@@ -16,7 +16,7 @@ public final class DatabaseCollation {
     ///         return (string1 as NSString).localizedStandardCompare(string2)
     ///     }
     ///     db.add(collation: collation)
-    ///     try db.execute("CREATE TABLE files (name TEXT COLLATE localized_standard")
+    ///     try db.execute("CREATE TABLE file (name TEXT COLLATE localized_standard")
     ///
     /// - parameters:
     ///     - name: The function name.

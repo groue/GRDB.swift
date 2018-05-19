@@ -302,7 +302,7 @@ class DatabaseTests : GRDBTestCase {
     func testExplicitTransactionManagement() throws {
         let dbQueue = try makeDatabaseQueue()
         
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.beginTransaction()
             XCTAssertEqual(lastSQLQuery, "BEGIN DEFERRED TRANSACTION")
             try db.rollback()

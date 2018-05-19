@@ -5,8 +5,8 @@ extension Database {
     #if GRDBCUSTOMSQLITE || GRDBCIPHER
     /// Creates a database table.
     ///
-    ///     try db.create(table: "pointOfInterests") { t in
-    ///         t.column("id", .integer).primaryKey()
+    ///     try db.create(table: "place") { t in
+    ///         t.autoIncrementedPrimaryKey("id")
     ///         t.column("title", .text)
     ///         t.column("favorite", .boolean).notNull().default(false)
     ///         t.column("longitude", .double).notNull()
@@ -34,8 +34,8 @@ extension Database {
     #else
     /// Creates a database table.
     ///
-    ///     try db.create(table: "pointOfInterests") { t in
-    ///         t.column("id", .integer).primaryKey()
+    ///     try db.create(table: "place") { t in
+    ///         t.autoIncrementedPrimaryKey("id")
     ///         t.column("title", .text)
     ///         t.column("favorite", .boolean).notNull().default(false)
     ///         t.column("longitude", .double).notNull()
@@ -66,8 +66,8 @@ extension Database {
     
     /// Creates a database table.
     ///
-    ///     try db.create(table: "pointOfInterests") { t in
-    ///         t.column("id", .integer).primaryKey()
+    ///     try db.create(table: "place") { t in
+    ///         t.autoIncrementedPrimaryKey("id")
     ///         t.column("title", .text)
     ///         t.column("favorite", .boolean).notNull().default(false)
     ///         t.column("longitude", .double).notNull()
@@ -103,7 +103,7 @@ extension Database {
     
     /// Modifies a database table.
     ///
-    ///     try db.alter(table: "players") { t in
+    ///     try db.alter(table: "player") { t in
     ///         t.add(column: "url", .text)
     ///     }
     ///
@@ -223,7 +223,7 @@ extension Database {
 /// You don't create instances of this class. Instead, you use the Database
 /// `create(table:)` method:
 ///
-///     try db.create(table: "players") { t in // t is TableDefinition
+///     try db.create(table: "player") { t in // t is TableDefinition
 ///         t.column(...)
 ///     }
 ///
@@ -248,9 +248,41 @@ public final class TableDefinition {
         self.withoutRowID = withoutRowID
     }
     
+    /// Defines the auto-incremented primary key.
+    ///
+    ///     try db.create(table: "player") { t in
+    ///         t.autoIncrementedPrimaryKey("id")
+    ///     }
+    ///
+    /// The auto-incremented primary key is an integer primary key that
+    /// automatically generates unused values when you do not explicitly
+    /// provide one, and prevents the reuse of ids over the lifetime of
+    /// the database.
+    ///
+    /// **It is the preferred way to define a numeric primary key**.
+    ///
+    /// The fact that an auto-incremented primary key prevents the reuse of
+    /// ids is an excellent guard against data races that could happen when your
+    /// application processes ids in an asynchronous way. The auto-incremented
+    /// primary key provides the guarantee that a given id can't reference a row
+    /// that is different from the one it used to be at the beginning of the
+    /// asynchronous process, even if this row gets deleted and a new one is
+    /// inserted in between.
+    ///
+    /// See https://www.sqlite.org/lang_createtable.html#primkeyconst and
+    /// https://www.sqlite.org/lang_createtable.html#rowid
+    ///
+    /// - parameter conflitResolution: An optional conflict resolution
+    ///   (see https://www.sqlite.org/lang_conflict.html).
+    /// - returns: Self so that you can further refine the column definition.
+    @discardableResult
+    public func autoIncrementedPrimaryKey(_ name: String, onConflict conflictResolution: Database.ConflictResolution? = nil) -> ColumnDefinition {
+        return column(name, .integer).primaryKey(onConflict: conflictResolution, autoincrement: true)
+    }
+
     /// Appends a table column.
     ///
-    ///     try db.create(table: "players") { t in
+    ///     try db.create(table: "player") { t in
     ///         t.column("name", .text)
     ///     }
     ///
@@ -269,7 +301,7 @@ public final class TableDefinition {
     
     /// Defines the table primary key.
     ///
-    ///     try db.create(table: "citizenships") { t in
+    ///     try db.create(table: "citizenship") { t in
     ///         t.column("citizenID", .integer)
     ///         t.column("countryCode", .text)
     ///         t.primaryKey(["citizenID", "countryCode"])
@@ -291,7 +323,7 @@ public final class TableDefinition {
     
     /// Adds a unique key.
     ///
-    ///     try db.create(table: "pointOfInterests") { t in
+    ///     try db.create(table: "place") { t in
     ///         t.column("latitude", .double)
     ///         t.column("longitude", .double)
     ///         t.uniqueKey(["latitude", "longitude"])
@@ -312,7 +344,7 @@ public final class TableDefinition {
     ///         t.column("issueDate", .date)
     ///         t.column("citizenID", .integer)
     ///         t.column("countryCode", .text)
-    ///         t.foreignKey(["citizenID", "countryCode"], references: "citizenships", onDelete: .cascade)
+    ///         t.foreignKey(["citizenID", "countryCode"], references: "citizenship", onDelete: .cascade)
     ///     }
     ///
     /// See https://www.sqlite.org/foreignkeys.html
@@ -333,7 +365,7 @@ public final class TableDefinition {
     
     /// Adds a CHECK constraint.
     ///
-    ///     try db.create(table: "players") { t in
+    ///     try db.create(table: "player") { t in
     ///         t.column("personalPhone", .text)
     ///         t.column("workPhone", .text)
     ///         let personalPhone = Column("personalPhone")
@@ -350,7 +382,7 @@ public final class TableDefinition {
     
     /// Adds a CHECK constraint.
     ///
-    ///     try db.create(table: "players") { t in
+    ///     try db.create(table: "player") { t in
     ///         t.column("personalPhone", .text)
     ///         t.column("workPhone", .text)
     ///         t.check(sql: "personalPhone IS NOT NULL OR workPhone IS NOT NULL")
@@ -360,7 +392,9 @@ public final class TableDefinition {
     ///
     /// - parameter sql: An SQL snippet
     public func check(sql: String) {
-        checkConstraints.append(SQLExpressionLiteral(sql))
+        var expression = SQLExpressionLiteral(sql)
+        expression.unsafeRaw = true // It's safe because this expression can't be composed with others
+        checkConstraints.append(expression)
     }
     
     fileprivate func sql(_ db: Database) throws -> String {
@@ -475,7 +509,7 @@ public final class TableDefinition {
 /// You don't create instances of this class. Instead, you use the Database
 /// `alter(table:)` method:
 ///
-///     try db.alter(table: "players") { t in // t is TableAlteration
+///     try db.alter(table: "player") { t in // t is TableAlteration
 ///         t.add(column: ...)
 ///     }
 ///
@@ -490,7 +524,7 @@ public final class TableAlteration {
     
     /// Appends a column to the table.
     ///
-    ///     try db.alter(table: "players") { t in
+    ///     try db.alter(table: "player") { t in
     ///         t.add(column: "url", .text)
     ///     }
     ///
@@ -532,11 +566,11 @@ public final class TableAlteration {
 ///
 /// You get instances of this class when you create or alter a database table:
 ///
-///     try db.create(table: "players") { t in
+///     try db.create(table: "player") { t in
 ///         t.column(...)      // ColumnDefinition
 ///     }
 ///
-///     try db.alter(table: "players") { t in
+///     try db.alter(table: "player") { t in
 ///         t.add(column: ...) // ColumnDefinition
 ///     }
 ///
@@ -565,7 +599,7 @@ public final class ColumnDefinition {
     
     /// Adds a primary key constraint on the column.
     ///
-    ///     try db.create(table: "players") { t in
+    ///     try db.create(table: "player") { t in
     ///         t.column("id", .integer).primaryKey()
     ///     }
     ///
@@ -585,7 +619,7 @@ public final class ColumnDefinition {
     
     /// Adds a NOT NULL constraint on the column.
     ///
-    ///     try db.create(table: "players") { t in
+    ///     try db.create(table: "player") { t in
     ///         t.column("name", .text).notNull()
     ///     }
     ///
@@ -602,7 +636,7 @@ public final class ColumnDefinition {
     
     /// Adds a UNIQUE constraint on the column.
     ///
-    ///     try db.create(table: "players") { t in
+    ///     try db.create(table: "player") { t in
     ///         t.column("email", .text).unique()
     ///     }
     ///
@@ -619,7 +653,7 @@ public final class ColumnDefinition {
     
     /// Adds an index of the column.
     ///
-    ///     try db.create(table: "players") { t in
+    ///     try db.create(table: "player") { t in
     ///         t.column("email", .text).indexed()
     ///     }
     ///
@@ -636,7 +670,7 @@ public final class ColumnDefinition {
     
     /// Adds a CHECK constraint on the column.
     ///
-    ///     try db.create(table: "players") { t in
+    ///     try db.create(table: "player") { t in
     ///         t.column("name", .text).check { length($0) > 0 }
     ///     }
     ///
@@ -653,7 +687,7 @@ public final class ColumnDefinition {
     
     /// Adds a CHECK constraint on the column.
     ///
-    ///     try db.create(table: "players") { t in
+    ///     try db.create(table: "player") { t in
     ///         t.column("name", .text).check(sql: "LENGTH(name) > 0")
     ///     }
     ///
@@ -663,13 +697,15 @@ public final class ColumnDefinition {
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
     public func check(sql: String) -> Self {
-        checkConstraints.append(SQLExpressionLiteral(sql))
+        var expression = SQLExpressionLiteral(sql)
+        expression.unsafeRaw = true // It's safe because this expression can't be composed with others
+        checkConstraints.append(expression)
         return self
     }
     
     /// Defines the default column value.
     ///
-    ///     try db.create(table: "players") { t in
+    ///     try db.create(table: "player") { t in
     ///         t.column("name", .text).defaults(to: "Anonymous")
     ///     }
     ///
@@ -685,7 +721,7 @@ public final class ColumnDefinition {
     
     /// Defines the default column value.
     ///
-    ///     try db.create(table: "players") { t in
+    ///     try db.create(table: "player") { t in
     ///         t.column("creationDate", .DateTime).defaults(sql: "CURRENT_TIMESTAMP")
     ///     }
     ///
@@ -695,13 +731,15 @@ public final class ColumnDefinition {
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
     public func defaults(sql: String) -> Self {
-        defaultExpression = SQLExpressionLiteral(sql)
+        var expression = SQLExpressionLiteral(sql)
+        expression.unsafeRaw = true // It's safe because this expression can't be composed with others
+        defaultExpression = expression
         return self
     }
     
     // Defines the default column collation.
     ///
-    ///     try db.create(table: "players") { t in
+    ///     try db.create(table: "player") { t in
     ///         t.column("email", .text).collate(.nocase)
     ///     }
     ///
@@ -717,7 +755,7 @@ public final class ColumnDefinition {
     
     // Defines the default column collation.
     ///
-    ///     try db.create(table: "players") { t in
+    ///     try db.create(table: "player") { t in
     ///         t.column("name", .text).collate(.localizedCaseInsensitiveCompare)
     ///     }
     ///
@@ -733,8 +771,8 @@ public final class ColumnDefinition {
     
     /// Defines a foreign key.
     ///
-    ///     try db.create(table: "books") { t in
-    ///         t.column("authorId", .integer).references("authors", onDelete: .cascade)
+    ///     try db.create(table: "book") { t in
+    ///         t.column("authorId", .integer).references("author", onDelete: .cascade)
     ///     }
     ///
     /// See https://www.sqlite.org/foreignkeys.html

@@ -1,3 +1,6 @@
+#if os(Linux)
+    import Glibc
+#endif
 #if SWIFT_PACKAGE
     import CSQLite
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
@@ -18,7 +21,7 @@ protocol StatementAuthorizer : class {
 /// A class that gathers information about one statement during its compilation.
 final class StatementCompilationAuthorizer : StatementAuthorizer {
     /// What this statements reads
-    var region = DatabaseRegion()
+    var databaseRegion = DatabaseRegion()
     
     /// What this statements writes
     var databaseEventKinds: [DatabaseEventKind] = []
@@ -66,10 +69,10 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
             guard let columnName = cString2.map({ String(cString: $0) }) else { return SQLITE_OK }
             if columnName.isEmpty {
                 // SELECT COUNT(*) FROM table
-                region.formUnion(DatabaseRegion(table: tableName))
+                databaseRegion.formUnion(DatabaseRegion(table: tableName))
             } else {
                 // SELECT column FROM table
-                region.formUnion(DatabaseRegion(table: tableName, columns: [columnName]))
+                databaseRegion.formUnion(DatabaseRegion(table: tableName, columns: [columnName]))
             }
             return SQLITE_OK
             
@@ -135,7 +138,7 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
             guard sqlite3_libversion_number() < 3019000 else { return SQLITE_OK }
             guard let cString2 = cString2 else { return SQLITE_OK }
             if sqlite3_stricmp(cString2, "COUNT") == 0 {
-                region = .fullDatabase
+                databaseRegion = .fullDatabase
             }
             return SQLITE_OK
             

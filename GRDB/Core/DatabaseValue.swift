@@ -10,7 +10,7 @@ import Foundation
 /// DatabaseValue is the intermediate type between SQLite and your values.
 ///
 /// See https://www.sqlite.org/datatype3.html
-public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueConvertible, SQLExpressible, SQLExpression {
+public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueConvertible, SQLExpression {
     /// The SQLite storage
     public let storage: Storage
     
@@ -204,17 +204,6 @@ extension DatabaseValue {
     }
 }
 
-// MARK: - SQLSelectable
-
-extension DatabaseValue {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// :nodoc:
-    public func qualified(by qualifier: SQLTableQualifier) -> DatabaseValue {
-        return self
-    }
-}
-
 // MARK: - Lossless conversions
 
 extension DatabaseValue {
@@ -319,14 +308,13 @@ extension DatabaseValue {
 extension DatabaseValue {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func expressionSQL(_ arguments: inout StatementArguments?) -> String {
+    public func expressionSQL(_ context: inout SQLGenerationContext) -> String {
         // fast path for NULL
         if isNull {
             return "NULL"
         }
         
-        if arguments != nil {
-            arguments!.values.append(self)
+        if context.appendArguments([self]) {
             return "?"
         } else {
             // Correctness above all: use SQLite to quote the value.
@@ -360,6 +348,18 @@ extension DatabaseValue {
             return SQLExpressionNot(self)
         }
     }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// :nodoc:
+    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        return self
+    }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// :nodoc:
+    public func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
+        return self
+    }
 }
 
 // CustomStringConvertible
@@ -376,7 +376,7 @@ extension DatabaseValue {
         case .string(let string):
             return String(reflecting: string)
         case .blob(let data):
-            return data.description
+            return "Data(\(data.description))"
         }
     }
 }

@@ -1,7 +1,7 @@
 #if SQLITE_ENABLE_FTS5
     /// An FTS5 tokenizer, suitable for FTS5 table definitions:
     ///
-    ///     db.create(virtualTable: "books", using: FTS5()) { t in
+    ///     db.create(virtualTable: "book", using: FTS5()) { t in
     ///         t.tokenizer = .unicode61() // FTS5TokenizerDescriptor
     ///     }
     ///
@@ -33,7 +33,7 @@
         
         /// Creates an FTS5 tokenizer descriptor.
         ///
-        ///     db.create(virtualTable: "books", using: FTS5()) { t in
+        ///     db.create(virtualTable: "book", using: FTS5()) { t in
         ///         let tokenizer = FTS5TokenizerDescriptor(components: ["porter", "unicode61", "remove_diacritics", "0"])
         ///         t.tokenizer = tokenizer
         ///     }
@@ -47,7 +47,7 @@
         
         /// The "ascii" tokenizer
         ///
-        ///     db.create(virtualTable: "books", using: FTS5()) { t in
+        ///     db.create(virtualTable: "book", using: FTS5()) { t in
         ///         t.tokenizer = .ascii()
         ///     }
         ///
@@ -66,7 +66,7 @@
         
         /// The "porter" tokenizer
         ///
-        ///     db.create(virtualTable: "books", using: FTS5()) { t in
+        ///     db.create(virtualTable: "book", using: FTS5()) { t in
         ///         t.tokenizer = .porter()
         ///     }
         ///
@@ -85,7 +85,7 @@
         
         /// An "unicode61" tokenizer
         ///
-        ///     db.create(virtualTable: "books", using: FTS5()) { t in
+        ///     db.create(virtualTable: "book", using: FTS5()) { t in
         ///         t.tokenizer = .unicode61()
         ///     }
         ///

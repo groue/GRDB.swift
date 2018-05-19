@@ -25,7 +25,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
     
     func testSnapshotSeesLatestTransaction() throws {
         let dbPool = try makeDatabasePool()
-        try dbPool.write { db in
+        try dbPool.writeWithoutTransaction { db in
             try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
             try db.execute("INSERT INTO t DEFAULT VALUES")
             let snapshot = try dbPool.makeSnapshot()
@@ -36,21 +36,6 @@ class DatabaseSnapshotTests: GRDBTestCase {
             try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 2)
             try snapshot.read { db in
                 try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 1)
-            }
-        }
-    }
-    
-    func testSnapshotDoesNotSeeUncommittedTransaction() throws {
-        let dbPool = try makeDatabasePool()
-        try dbPool.write { db in
-            try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
-            try db.beginTransaction()
-            try db.execute("INSERT INTO t DEFAULT VALUES")
-            let snapshot = try dbPool.makeSnapshot()
-            try db.commit()
-            try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 1)
-            try snapshot.read { db in
-                try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 0)
             }
         }
     }

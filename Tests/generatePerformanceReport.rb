@@ -48,7 +48,7 @@ All tests use the default settings of each library. For each library, we:
 - Build and consume database rows with raw SQL and column indexes (aiming at the best performance)
 - Build and consume database rows with column names (sacrificing performance for maintainability)
 - Build and consume records values to and from database rows (aiming at the shortest code from database to records)
-- Build and consume records values to and from database rows, with [change tracking](https://github.com/groue/GRDB.swift#changes-tracking) (records know if they have unsaved changes)
+- Build and consume records values to and from database rows, with [change tracking](https://github.com/groue/GRDB.swift/blob/master/README.md#record-comparison) (records know if they have unsaved changes)
 
 As a bottom line, the raw SQLite C API is used as efficiently as possible, without any error checking.
 
@@ -103,11 +103,11 @@ As a bottom line, the raw SQLite C API is used as efficiently as possible, witho
         
         This test fetches an array of 100000 record objects initiated from rows of 10 ints.
         
-        It builds records from FMDB's `-[FMResultSet resultDictionary]`, GRDB's built-in [RowConvertible](https://github.com/groue/GRDB.swift#rowconvertible-protocol) protocol, and the values returned by the high-level query builder of SQLite.swift.
+        It builds records from FMDB's `-[FMResultSet resultDictionary]`, GRDB's built-in [FetchableRecord](https://github.com/groue/GRDB.swift/blob/master/README.md#fetchablerecord-protocol) protocol, and the values returned by the high-level query builder of SQLite.swift.
     
     - **Insert** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/InsertRecordStructTests.swift))
         
-        This tests inserts 20000 records with the persistence method provided by GRDB's [Persistable](https://github.com/groue/GRDB.swift#persistable-protocol) protocol.
+        This tests inserts 20000 records with the persistence method provided by GRDB's [PersistableRecord](https://github.com/groue/GRDB.swift/blob/master/README.md#persistablerecord-protocol) protocol.
 
 - **Records with change tracking**:
 
@@ -115,9 +115,9 @@ As a bottom line, the raw SQLite C API is used as efficiently as possible, witho
         
         This test fetches an array of 100000 record objects initiated from rows of 10 ints.
         
-        It builds records from FMDB's `-[FMResultSet resultDictionary]`, GRDB's built-in [Record](https://github.com/groue/GRDB.swift#record-class) class.
+        It builds records from FMDB's `-[FMResultSet resultDictionary]`, GRDB's built-in [Record](https://github.com/groue/GRDB.swift/blob/master/README.md#record-class) class.
     
     - **Insert** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/InsertRecordClassTests.swift))
         
-        This tests inserts 20000 records with the persistence method provided by GRDB's [Record](https://github.com/groue/GRDB.swift#record-class) class.
+        This tests inserts 20000 records with the persistence method provided by GRDB's [Record](https://github.com/groue/GRDB.swift/blob/master/README.md#record-class) class.
 REPORT

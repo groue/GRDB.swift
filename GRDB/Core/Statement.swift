@@ -222,6 +222,8 @@ protocol AuthorizedStatement {
     // https://bugs.swift.org/browse/SR-2347
     //
     // We work around SR-2347 with this internal protocol.
+    //
+    // TODO: hasn't this bug been fixed in Swift 4.2? https://github.com/apple/swift/blob/master/CHANGELOG.md#swift-42
     init(
         database: Database,
         statementStart: UnsafePointer<Int8>,
@@ -286,22 +288,14 @@ extension AuthorizedStatement {
 ///
 /// You create SelectStatement with the Database.makeSelectStatement() method:
 ///
-///     try dbQueue.inDatabase { db in
-///         let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM players WHERE score > ?")
+///     try dbQueue.read { db in
+///         let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM player WHERE score > ?")
 ///         let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
 ///         let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
 ///     }
-public final class SelectStatement : Statement {
-    /// :nodoc:
-    @available(*, deprecated, renamed:"DatabaseRegion")
-    public typealias SelectionInfo = DatabaseRegion
-    
-    /// :nodoc:
-    @available(*, deprecated, renamed:"fetchedRegion")
-    public var selectionInfo: DatabaseRegion { return fetchedRegion }
-    
+public final class SelectStatement : Statement {    
     /// The database region that the statement looks into.
-    public private(set) var fetchedRegion: DatabaseRegion
+    public private(set) var databaseRegion: DatabaseRegion
     
     /// Creates a prepared statement.
     ///
@@ -322,7 +316,7 @@ public final class SelectStatement : Statement {
         prepFlags: Int32,
         authorizer: StatementCompilationAuthorizer) throws
     {
-        self.fetchedRegion = DatabaseRegion()
+        self.databaseRegion = DatabaseRegion()
         try super.init(
             database: database,
             statementStart: statementStart,
@@ -332,7 +326,7 @@ public final class SelectStatement : Statement {
         GRDBPrecondition(authorizer.invalidatesDatabaseSchemaCache == false, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
         GRDBPrecondition(authorizer.transactionEffect == nil, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
         
-        self.fetchedRegion = authorizer.region
+        self.databaseRegion = authorizer.databaseRegion
     }
     
     /// The number of columns in the resulting rows.
@@ -380,8 +374,8 @@ extension SelectStatement: AuthorizedStatement { }
 /// A cursor that iterates a database statement without producing any value.
 /// For example:
 ///
-///     try dbQueue.inDatabase { db in
-///         let statement = db.makeSelectStatement("SELECT * FROM players")
+///     try dbQueue.read { db in
+///         let statement = db.makeSelectStatement("SELECT * FROM player")
 ///         let cursor: StatementCursor = statement.cursor()
 ///     }
 public final class StatementCursor: Cursor {
@@ -420,7 +414,7 @@ public final class StatementCursor: Cursor {
 /// You create UpdateStatement with the Database.makeUpdateStatement() method:
 ///
 ///     try dbQueue.inTransaction { db in
-///         let statement = try db.makeUpdateStatement("INSERT INTO players (name) VALUES (?)")
+///         let statement = try db.makeUpdateStatement("INSERT INTO player (name) VALUES (?)")
 ///         try statement.execute(arguments: ["Arthur"])
 ///         try statement.execute(arguments: ["Barbara"])
 ///         return .commit
@@ -592,10 +586,10 @@ extension UpdateStatement: AuthorizedStatement { }
 ///     let sql = "SELECT ?2 AS two, :foo AS foo, ?1 AS one, :foo AS foo2, :bar AS bar"
 ///     let row = try Row.fetchOne(db, sql, arguments: [1, 2, "bar"] + ["foo": "foo"])!
 ///     print(row)
-///     // Prints <Row two:2 foo:"foo" one:1 foo2:"foo" bar:"bar">
+///     // Prints [two:2 foo:"foo" one:1 foo2:"foo" bar:"bar"]
 public struct StatementArguments: CustomStringConvertible, Equatable, ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral {
-    var values: [DatabaseValue] = []
-    var namedValues: [String: DatabaseValue] = [:]
+    private(set) var values: [DatabaseValue] = []
+    private(set) var namedValues: [String: DatabaseValue] = [:]
     
     public var isEmpty: Bool {
         return values.isEmpty && namedValues.isEmpty
@@ -910,18 +904,6 @@ extension StatementArguments {
         return "[" + (namedValuesDescriptions + valuesDescriptions).joined(separator: ", ") + "]"
     }
 }
-
-#if !swift(>=4.1)
-// Equatable
-extension StatementArguments {
-    /// :nodoc:
-    public static func == (lhs: StatementArguments, rhs: StatementArguments) -> Bool {
-        if lhs.values != rhs.values { return false }
-        if lhs.namedValues != rhs.namedValues { return false }
-        return true
-    }
-}
-#endif
 
 /// A thread-unsafe statement cache
 struct StatementCache {

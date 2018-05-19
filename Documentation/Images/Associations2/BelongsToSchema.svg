@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="468px" height="121px" viewBox="0 0 468 121" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 49 (51002) - http://www.bohemiancoding.com/sketch -->
+    <title>BelongsToSchema</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <linearGradient x1="50%" y1="100%" x2="50%" y2="1.41638472e-14%" id="linearGradient-1">
+            <stop stop-color="#FFFFFF" stop-opacity="0.9" offset="0%"></stop>
+            <stop stop-color="#FFFFFF" offset="100%"></stop>
+        </linearGradient>
+        <rect id="path-2" x="0" y="0" width="200" height="103" rx="10"></rect>
+        <filter x="-7.2%" y="-11.2%" width="114.5%" height="128.2%" filterUnits="objectBoundingBox" id="filter-4">
+            <feMorphology radius="1" operator="dilate" in="SourceAlpha" result="shadowSpreadOuter1"></feMorphology>
+            <feOffset dx="0" dy="3" in="shadowSpreadOuter1" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="4" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feComposite in="shadowBlurOuter1" in2="SourceAlpha" operator="out" result="shadowBlurOuter1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.1 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+        <rect id="path-5" x="0" y="0" width="200" height="103" rx="10"></rect>
+        <filter x="-7.2%" y="-11.2%" width="114.5%" height="128.2%" filterUnits="objectBoundingBox" id="filter-7">
+            <feMorphology radius="1" operator="dilate" in="SourceAlpha" result="shadowSpreadOuter1"></feMorphology>
+            <feOffset dx="0" dy="3" in="shadowSpreadOuter1" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="4" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feComposite in="shadowBlurOuter1" in2="SourceAlpha" operator="out" result="shadowBlurOuter1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.1 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+        <circle id="path-8" cx="200.5" cy="67.5" r="3.5"></circle>
+        <path d="M254.40688,43.6237841 L247.481919,39.8150553 C246.997998,39.5488989 246.38994,39.7254318 246.123784,40.2093525 C246.042579,40.3569975 246,40.5227683 246,40.6912712 L246,48.3087288 C246,48.8610135 246.447715,49.3087288 247,49.3087288 C247.168503,49.3087288 247.334274,49.2661494 247.481919,49.1849447 L254.40688,45.3762159 C254.890801,45.1100595 255.067334,44.5020019 254.801177,44.0180813 C254.709789,43.8519215 254.57304,43.7151719 254.40688,43.6237841 Z" id="path-9"></path>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="BelongsToSchema" transform="translate(9.000000, 6.000000)">
+            <g id="Table">
+                <mask id="mask-3" fill="white">
+                    <use xlink:href="#path-2"></use>
+                </mask>
+                <g id="Rectangle">
+                    <use fill="black" fill-opacity="1" filter="url(#filter-4)" xlink:href="#path-2"></use>
+                    <use fill="#005CC5" fill-rule="evenodd" xlink:href="#path-2"></use>
+                    <use fill="url(#linearGradient-1)" fill-rule="evenodd" xlink:href="#path-2"></use>
+                    <rect stroke-opacity="0.25" stroke="#000000" stroke-width="1" x="-0.5" y="-0.5" width="201" height="104" rx="10"></rect>
+                </g>
+                <g id="Field" mask="url(#mask-3)">
+                    <g transform="translate(0.000000, 31.000000)">
+                        <text id="name" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="500">
+                            <tspan x="10" y="17" fill="#000000">id</tspan>
+                        </text>
+                        <text id="type" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="normal">
+                            <tspan x="110" y="17" fill="#000000">integer</tspan>
+                        </text>
+                        <rect id="Rectangle" fill-opacity="0.12" fill="#000000" fill-rule="evenodd" x="0" y="0" width="200" height="1"></rect>
+                    </g>
+                </g>
+                <g id="Field" mask="url(#mask-3)">
+                    <g transform="translate(0.000000, 55.000000)">
+                        <text id="name" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="500">
+                            <tspan x="10" y="17" fill="#000000">authorId</tspan>
+                        </text>
+                        <text id="type" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="normal">
+                            <tspan x="110" y="17" fill="#000000">integer</tspan>
+                        </text>
+                        <rect id="Rectangle" fill-opacity="0.12" fill="#000000" fill-rule="evenodd" x="0" y="0" width="200" height="1"></rect>
+                    </g>
+                </g>
+                <g id="Field" mask="url(#mask-3)">
+                    <g transform="translate(0.000000, 79.000000)">
+                        <text id="name" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="500">
+                            <tspan x="10" y="17" fill="#000000">title</tspan>
+                        </text>
+                        <text id="type" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="normal">
+                            <tspan x="110" y="17" fill="#000000">text</tspan>
+                        </text>
+                        <rect id="Rectangle" fill-opacity="0.12" fill="#000000" fill-rule="evenodd" x="0" y="0" width="200" height="1"></rect>
+                    </g>
+                </g>
+                <text id="book" mask="url(#mask-3)" font-family="-apple-system,sans-serif" font-size="14" font-weight="500" fill="#000000">
+                    <tspan x="82.9443359" y="21">book</tspan>
+                </text>
+            </g>
+            <g id="Table-Copy-2" transform="translate(250.000000, 0.000000)">
+                <mask id="mask-6" fill="white">
+                    <use xlink:href="#path-5"></use>
+                </mask>
+                <g id="Rectangle">
+                    <use fill="black" fill-opacity="1" filter="url(#filter-7)" xlink:href="#path-5"></use>
+                    <use fill="#005CC5" fill-rule="evenodd" xlink:href="#path-5"></use>
+                    <use fill="url(#linearGradient-1)" fill-rule="evenodd" xlink:href="#path-5"></use>
+                    <rect stroke-opacity="0.25" stroke="#000000" stroke-width="1" x="-0.5" y="-0.5" width="201" height="104" rx="10"></rect>
+                </g>
+                <g id="Field" mask="url(#mask-6)">
+                    <g transform="translate(0.000000, 31.000000)">
+                        <text id="name" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="500">
+                            <tspan x="10" y="17" fill="#000000">id</tspan>
+                        </text>
+                        <text id="type" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="normal">
+                            <tspan x="110" y="17" fill="#000000">integer</tspan>
+                        </text>
+                        <rect id="Rectangle" fill-opacity="0.12" fill="#000000" fill-rule="evenodd" x="0" y="0" width="200" height="1"></rect>
+                    </g>
+                </g>
+                <g id="Field" mask="url(#mask-6)">
+                    <g transform="translate(0.000000, 55.000000)">
+                        <text id="name" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="500">
+                            <tspan x="10" y="17" fill="#000000">name</tspan>
+                        </text>
+                        <text id="type" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="normal">
+                            <tspan x="110" y="17" fill="#000000">text</tspan>
+                        </text>
+                        <rect id="Rectangle" fill-opacity="0.12" fill="#000000" fill-rule="evenodd" x="0" y="0" width="200" height="1"></rect>
+                    </g>
+                </g>
+                <g id="Field" mask="url(#mask-6)">
+                    <g transform="translate(0.000000, 79.000000)">
+                        <text id="name" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="500"></text>
+                        <text id="type" fill="none" font-family="-apple-system,sans-serif" font-size="14" font-weight="normal"></text>
+                        <rect id="Rectangle" fill-opacity="0.12" fill="#000000" fill-rule="evenodd" x="0" y="0" width="200" height="1"></rect>
+                    </g>
+                </g>
+                <text id="author" mask="url(#mask-6)" font-family="-apple-system,sans-serif" font-size="14" font-weight="500" fill="#000000">
+                    <tspan x="77.3867188" y="21">author</tspan>
+                </text>
+            </g>
+            <g id="Oval">
+                <use fill="#000000" fill-rule="evenodd" xlink:href="#path-8"></use>
+                <circle stroke="#FFFFFF" stroke-width="1" cx="200.5" cy="67.5" r="4"></circle>
+            </g>
+            <g id="Path-3">
+                <use fill="#000000" fill-rule="evenodd" xlink:href="#path-9"></use>
+                <path stroke="#FFFFFF" stroke-width="1" d="M254.64784,43.1856761 C254.897079,43.3227579 255.102204,43.5278823 255.239285,43.7771219 C255.63852,44.5030029 255.373721,45.4150893 254.64784,45.8143239 L247.722878,49.6230526 C247.501411,49.7448598 247.252754,49.8087288 247,49.8087288 C246.171573,49.8087288 245.5,49.1371559 245.5,48.3087288 L245.5,40.6912712 C245.5,40.4385168 245.563869,40.1898606 245.685676,39.9683931 C246.084911,39.2425121 246.996997,38.9777128 247.722878,39.3769474 L254.64784,43.1856761 Z"></path>
+            </g>
+            <path d="M199.5,67.5 C199.5,67.5 199.5,67.5 213.5,67.5 C227.5,67.5 224.5,44.5 237.5,44.5 C246.166667,44.5 250.5,44.5 250.5,44.5" id="Path-2" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+    </g>
+</svg>

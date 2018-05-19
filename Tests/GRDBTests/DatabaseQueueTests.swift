@@ -95,11 +95,11 @@ class DatabaseQueueTests: GRDBTestCase {
         dbConfiguration.allowsUnsafeTransactions = true
         let dbQueue = try makeDatabaseQueue()
         
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.beginTransaction()
         }
         
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.commit()
         }
     }

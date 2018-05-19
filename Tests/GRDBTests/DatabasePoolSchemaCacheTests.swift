@@ -17,7 +17,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
             try db.execute("CREATE INDEX foobar ON items(foo, bar)")
         }
         
-        dbPool.write { db in
+        try dbPool.write { db in
             // Assert that the writer cache is empty
             XCTAssertTrue(db.schemaCache.primaryKey("items") == nil)
             XCTAssertTrue(db.schemaCache.columns(in: "items") == nil)
@@ -148,7 +148,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
         // table exists: false
 
         let block1 = { () in
-            try! dbPool.write { db in
+            try! dbPool.writeWithoutTransaction { db in
                 try db.execute("CREATE TABLE foo(id INTEGER PRIMARY KEY)")
                 // warm cache
                 _ = try db.primaryKey("foo")

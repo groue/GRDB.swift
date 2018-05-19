@@ -59,7 +59,7 @@ class DatabaseSavepointTests: GRDBTestCase {
     
     func testIsInsideTransaction() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             XCTAssertFalse(db.isInsideTransaction)
             try db.inTransaction {
                 XCTAssertTrue(db.isInsideTransaction)
@@ -91,7 +91,7 @@ class DatabaseSavepointTests: GRDBTestCase {
 
     func testIsInsideTransactionWithImplicitRollback() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.create(table: "test") { t in
                 t.column("value", .integer).unique()
             }
@@ -112,7 +112,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         sqlQueries.removeAll()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try insertItem(db, name: "item1")
             try db.inSavepoint {
                 XCTAssertTrue(db.isInsideTransaction)
@@ -143,7 +143,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         sqlQueries.removeAll()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try insertItem(db, name: "item1")
             try db.inSavepoint {
                 XCTAssertTrue(db.isInsideTransaction)
@@ -173,7 +173,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         sqlQueries.removeAll()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try insertItem(db, name: "item1")
             try db.inSavepoint {
                 XCTAssertTrue(db.isInsideTransaction)
@@ -210,7 +210,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         observer.reset()
         
         sqlQueries.removeAll()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try insertItem(db, name: "item1")
             try db.inSavepoint {
                 XCTAssertTrue(db.isInsideTransaction)
@@ -247,7 +247,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         observer.reset()
         
         sqlQueries.removeAll()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try insertItem(db, name: "item1")
             try db.inSavepoint {
                 XCTAssertTrue(db.isInsideTransaction)
@@ -285,7 +285,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         observer.reset()
         
         sqlQueries.removeAll()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try insertItem(db, name: "item1")
             try db.inSavepoint {
                 XCTAssertTrue(db.isInsideTransaction)
@@ -329,7 +329,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         sqlQueries.removeAll()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try insertItem(db, name: "item1")
             try db.inSavepoint {
                 XCTAssertTrue(db.isInsideTransaction)
@@ -359,7 +359,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         sqlQueries.removeAll()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try insertItem(db, name: "item1")
             try db.inSavepoint {
                 XCTAssertTrue(db.isInsideTransaction)
@@ -389,7 +389,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         sqlQueries.removeAll()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try insertItem(db, name: "item1")
             try db.inSavepoint {
                 XCTAssertTrue(db.isInsideTransaction)
@@ -426,7 +426,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         observer.reset()
         
         sqlQueries.removeAll()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try insertItem(db, name: "item1")
             try db.inSavepoint {
                 XCTAssertTrue(db.isInsideTransaction)
@@ -463,7 +463,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         observer.reset()
         
         sqlQueries.removeAll()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try insertItem(db, name: "item1")
             try db.inSavepoint {
                 XCTAssertTrue(db.isInsideTransaction)
@@ -501,7 +501,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         observer.reset()
         
         sqlQueries.removeAll()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try insertItem(db, name: "item1")
             try db.inSavepoint {
                 XCTAssertTrue(db.isInsideTransaction)

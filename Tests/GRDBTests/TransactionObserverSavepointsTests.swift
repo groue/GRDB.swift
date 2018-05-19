@@ -80,7 +80,7 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
             try db.execute("CREATE TABLE items2 (id INTEGER PRIMARY KEY)")
             try db.execute("SAVEPOINT sp1")
@@ -112,7 +112,7 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
             try db.execute("CREATE TABLE items2 (id INTEGER PRIMARY KEY)")
             try db.execute("BEGIN TRANSACTION")
@@ -143,7 +143,7 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
             try db.execute("CREATE TABLE items2 (id INTEGER PRIMARY KEY)")
             try db.execute("CREATE TABLE items3 (id INTEGER PRIMARY KEY)")
@@ -191,7 +191,7 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
             try db.execute("CREATE TABLE items2 (id INTEGER PRIMARY KEY)")
             try db.execute("CREATE TABLE items3 (id INTEGER PRIMARY KEY)")
@@ -234,7 +234,7 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
             try db.execute("CREATE TABLE items2 (id INTEGER PRIMARY KEY)")
             try db.execute("CREATE TABLE items3 (id INTEGER PRIMARY KEY)")
@@ -278,7 +278,7 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
         
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
             try db.execute("CREATE TABLE items2 (id INTEGER PRIMARY KEY)")
             try db.execute("CREATE TABLE items3 (id INTEGER PRIMARY KEY)")

@@ -15,21 +15,21 @@ private struct Book {
     let body: String
 }
 
-extension Book : RowConvertible {
+extension Book : FetchableRecord {
     init(row: Row) {
-        id = row[.rowID]
+        id = row[Column.rowID]
         title = row["title"]
         author = row["author"]
         body = row["body"]
     }
 }
 
-extension Book : MutablePersistable {
+extension Book : MutablePersistableRecord {
     static let databaseTableName = "books"
     static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
 
     func encode(to container: inout PersistenceContainer) {
-        container[.rowID] = id
+        container[Column.rowID] = id
         container["title"] = title
         container["author"] = author
         container["body"] = body

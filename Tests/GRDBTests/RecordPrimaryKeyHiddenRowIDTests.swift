@@ -42,7 +42,7 @@ private class Person : Record {
     }
     
     required init(row: Row) {
-        id = row[.rowID]
+        id = row[Column.rowID]
         age = row["age"]
         name = row["name"]
         creationDate = row["creationDate"]
@@ -50,7 +50,7 @@ private class Person : Record {
     }
     
     override func encode(to container: inout PersistenceContainer) {
-        container[.rowID] = id
+        container[Column.rowID] = id
         container["name"] = name
         container["age"] = age
         container["creationDate"] = creationDate

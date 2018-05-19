@@ -23,14 +23,36 @@ public protocol DatabaseWriter : DatabaseReader {
     /// Eventual concurrent database updates are postponed until the block
     /// has executed.
     ///
+    /// Eventual concurrent reads are guaranteed not to see any changes
+    /// performed in the block until they are all saved in the database.
+    ///
+    /// The block may, or may not, be wrapped inside a transaction.
+    ///
     /// This method is *not* reentrant.
-    func write<T>(_ block: (Database) throws -> T) rethrows -> T
+    func write<T>(_ block: (Database) throws -> T) throws -> T
     
     /// Synchronously executes a block that takes a database connection, and
     /// returns its result.
     ///
     /// Eventual concurrent database updates are postponed until the block
     /// has executed.
+    ///
+    /// Eventual concurrent reads may see changes performed in the block before
+    /// the block completes.
+    ///
+    /// The block is guaranteed to be executed outside of a transaction.
+    ///
+    /// This method is *not* reentrant.
+    func writeWithoutTransaction<T>(_ block: (Database) throws -> T) rethrows -> T
+    
+    /// Synchronously executes a block that takes a database connection, and
+    /// returns its result.
+    ///
+    /// Eventual concurrent database updates are postponed until the block
+    /// has executed.
+    ///
+    /// Eventual concurrent reads may see changes performed in the block before
+    /// the block completes.
     ///
     /// This method is reentrant. It should be avoided because it fosters
     /// dangerous concurrency practices.
@@ -51,12 +73,12 @@ public protocol DatabaseWriter : DatabaseReader {
     /// For example:
     ///
     ///     try writer.write { db in
-    ///         try db.execute("DELETE FROM players")
+    ///         try db.execute("DELETE FROM player")
     ///         try writer.readFromCurrentState { db in
     ///             // Guaranteed to be zero
-    ///             try Int.fetchOne(db, "SELECT COUNT(*) FROM players")!
+    ///             try Int.fetchOne(db, "SELECT COUNT(*) FROM player")!
     ///         }
-    ///         try db.execute("INSERT INTO players ...")
+    ///         try db.execute("INSERT INTO player ...")
     ///     }
     func readFromCurrentState(_ block: @escaping (Database) -> Void) throws
 }
@@ -73,12 +95,12 @@ extension DatabaseWriter {
     ///   the observer lifetime (observation lasts until observer
     ///   is deallocated).
     public func add(transactionObserver: TransactionObserver, extent: Database.TransactionObservationExtent = .observerLifetime) {
-        write { $0.add(transactionObserver: transactionObserver, extent: extent) }
+        writeWithoutTransaction { $0.add(transactionObserver: transactionObserver, extent: extent) }
     }
     
     /// Remove a transaction observer.
     public func remove(transactionObserver: TransactionObserver) {
-        write { $0.remove(transactionObserver: transactionObserver) }
+        writeWithoutTransaction { $0.remove(transactionObserver: transactionObserver) }
     }
 }
 
@@ -119,8 +141,13 @@ public final class AnyDatabaseWriter : DatabaseWriter {
     // MARK: - Writing in Database
 
     /// :nodoc:
-    public func write<T>(_ block: (Database) throws -> T) rethrows -> T {
+    public func write<T>(_ block: (Database) throws -> T) throws -> T {
         return try base.write(block)
+    }
+    
+    /// :nodoc:
+    public func writeWithoutTransaction<T>(_ block: (Database) throws -> T) rethrows -> T {
+        return try base.writeWithoutTransaction(block)
     }
 
     /// :nodoc:
