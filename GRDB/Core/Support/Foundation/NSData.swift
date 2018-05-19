@@ -1,3 +1,4 @@
+#if !os(Linux)
 import Foundation
 
 /// NSData is convertible to and from DatabaseValue.
@@ -17,3 +18,4 @@ extension NSData : DatabaseValueConvertible {
         return cast(data)
     }
 }
+#endif
