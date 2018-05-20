@@ -428,7 +428,7 @@ struct Demographics: FetchableRecord, TableRecord {
 If the database schema does not follow this convention, and does not define foreign keys between tables, you can still use HasOne associations. But your help is needed to define the missing foreign key:
 
 ```swift
-struct Book: FetchableRecord, TableRecord {
+struct Country: FetchableRecord, TableRecord {
     static let demographics = hasOne(Demographics.self, using: ForeignKey(...))
 }
 ```

@@ -50,7 +50,7 @@
 /// speaking, all primary keys are supported.
 ///
 /// If the database schema does not define foreign keys between tables, you can
-/// still use BelongsTo associations. But your help is needed to define the
+/// still use HasMany associations. But your help is needed to define the
 /// missing foreign key:
 ///
 ///     struct Author: TableRecord {
