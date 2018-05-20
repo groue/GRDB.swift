@@ -1407,6 +1407,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Decoding a Hierarchical Decodable Record]: #decoding-a-hierarchical-decodable-record
 [Decoding a Joined Request with FetchableRecord]: #decoding-a-joined-request-with-fetchablerecord
 [Custom Requests]: ../README.md#custom-requests
+[DerivableRequest Protocol]: #derivablerequest-protocol
 [Known Issues]: #known-issues
 [Future Directions]: #future-directions
 [Row Adapters]: ../README.md#row-adapters
