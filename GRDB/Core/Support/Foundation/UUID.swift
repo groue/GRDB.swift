@@ -9,19 +9,17 @@ extension NSUUID : DatabaseValueConvertible {
         var uuidBytes = ContiguousArray(repeating: UInt8(0), count: 16)
         return uuidBytes.withUnsafeMutableBufferPointer { buffer in
             getBytes(buffer.baseAddress!)
-            return Data(buffer: buffer).databaseValue
+            return NSData(bytes: buffer.baseAddress, length: 16).databaseValue
         }
     }
     
     /// Returns an NSUUID initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self? {
-        guard let data = Data.fromDatabaseValue(dbValue), data.count == 16 else {
+        guard let data = NSData.fromDatabaseValue(dbValue), data.length == 16 else {
             return nil
         }
-        return data.withUnsafeBytes { buffer in
-            self.init(uuidBytes: buffer)
-        }
-    }
+        return self.init(uuidBytes: data.bytes.assumingMemoryBound(to: UInt8.self))
+     }
 }
 #endif
 
