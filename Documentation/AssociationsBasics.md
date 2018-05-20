@@ -26,6 +26,7 @@ GRDB Associations
     - [The Structure of a Joined Request]
     - [Decoding a Joined Request with a Decodable Record]
     - [Decoding a Joined Request with FetchableRecord]
+- [DerivableRequest Protocol]
 - [Known Issues]
 - [Future Directions]
 
@@ -1245,6 +1246,41 @@ let country: Country? = row["country"]
 You can also perform custom navigation in the tree by using *row scopes*. See [Row Adapters] for more information.
 
 
+## DerivableRequest Protocol
+
+The `DerivableRequest` protocol is adopted by both [query interface requests] such as `Author.all()` and associations such as `Book.author`. It is intended for you to use as a customization point when you want to extend the built-in GRDB apis.
+
+For example:
+
+```swift
+extension DerivableRequest where RowDecoder == Author {
+    func filter(country: String) -> Self {
+        return filter(Column("country") == country)
+    }
+    
+    func orderByFullName() -> Self {
+        return order(
+            Column("lastName").collating(.localizedCaseInsensitiveCompare),
+            Column("firstName").collating(.localizedCaseInsensitiveCompare))
+    }
+}
+```
+
+Thanks to DerivableRequest, both the `filter(country:)` and `orderByFullName()` methods are now available for both Author-based requests and associations:
+
+```swift
+// French authors sorted by full name:
+let request = Author.all()
+    .filter(country: "FR")
+    .orderByFullName()
+
+// French books, sorted by full name of author:
+let request = Book.joining(required: Book.author
+    .filter(country: "FR")
+    .orderByFullName())
+```
+
+
 ## Known Issues
 
 **You can't chain a required association on an optional association:**
@@ -1374,3 +1410,4 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Known Issues]: #known-issues
 [Future Directions]: #future-directions
 [Row Adapters]: ../README.md#row-adapters
+[query interface requests]: ../README.md#requests

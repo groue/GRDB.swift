@@ -9,8 +9,14 @@ import GRDB
 
 private struct Author: FetchableRecord, PersistableRecord, Codable {
     var id: Int64
-    var name: String
+    var firstName: String?
+    var lastName: String?
     var country: String
+    var fullName: String {
+        return [firstName, lastName]
+            .compactMap { $0 }
+            .joined(separator: " ")
+    }
     
     static let databaseTableName = "author"
     static let books = hasMany(Book.self)
@@ -35,7 +41,8 @@ private var libraryMigrator: DatabaseMigrator = {
     migrator.registerMigration("library") { db in
         try db.create(table: "author") { t in
             t.autoIncrementedPrimaryKey("id")
-            t.column("name", .text).notNull()
+            t.column("firstName", .text)
+            t.column("lastName", .text)
             t.column("country", .text).notNull()
         }
         try db.create(table: "book") { t in
@@ -45,11 +52,10 @@ private var libraryMigrator: DatabaseMigrator = {
         }
     }
     migrator.registerMigration("fixture") { db in
-        try Author(id: 1, name: "Melville", country: "US").insert(db)
-        try Author(id: 2, name: "Proust", country: "FR").insert(db)
+        try Author(id: 1, firstName: "Herman", lastName: "Melville", country: "US").insert(db)
+        try Author(id: 2, firstName: "Marcel", lastName: "Proust", country: "FR").insert(db)
         try Book(id: 1, authorId: 1, title: "Moby-Dick").insert(db)
         try Book(id: 2, authorId: 2, title: "Du côté de chez Swann").insert(db)
-        try Book(id: 3, authorId: 2, title: "Le Côté de Guermantes").insert(db)
     }
     return migrator
 }()
@@ -59,10 +65,16 @@ extension DerivableRequest where RowDecoder == Author {
     func filter(country: String) -> Self {
         return filter(Column("country") == country)
     }
+    
+    func orderByFullName() -> Self {
+        return order(
+            Column("lastName").collating(.localizedCaseInsensitiveCompare),
+            Column("firstName").collating(.localizedCaseInsensitiveCompare))
+    }
 }
 
 class DerivableRequestTests: GRDBTestCase {
-    func testDerivation() throws {
+    func testFilter() throws {
         let dbQueue = try makeDatabaseQueue()
         try libraryMigrator.migrate(dbQueue)
         try dbQueue.inDatabase { db in
@@ -70,8 +82,8 @@ class DerivableRequestTests: GRDBTestCase {
             let frenchAuthorNames = try Author.all()
                 .filter(country: "FR")
                 .fetchAll(db)
-                .map { $0.name }
-            XCTAssertEqual(frenchAuthorNames, ["Proust"])
+                .map { $0.fullName }
+            XCTAssertEqual(frenchAuthorNames, ["Marcel Proust"])
             
             // ... for two requests (2)
             let frenchBookTitles = try Book
@@ -79,7 +91,41 @@ class DerivableRequestTests: GRDBTestCase {
                 .order(Column("title"))
                 .fetchAll(db)
                 .map { $0.title }
-            XCTAssertEqual(frenchBookTitles, ["Du côté de chez Swann", "Le Côté de Guermantes"])
+            XCTAssertEqual(frenchBookTitles, ["Du côté de chez Swann"])
+        }
+    }
+    
+    func testOrder() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try libraryMigrator.migrate(dbQueue)
+        try dbQueue.inDatabase { db in
+            // ... for two requests (1)
+            let authorNames = try Author.all()
+                .orderByFullName()
+                .fetchAll(db)
+                .map { $0.fullName }
+            XCTAssertEqual(authorNames, ["Herman Melville", "Marcel Proust"])
+            
+            let reversedAuthorNames = try Author.all()
+                .orderByFullName()
+                .reversed()
+                .fetchAll(db)
+                .map { $0.fullName }
+            XCTAssertEqual(reversedAuthorNames, ["Marcel Proust", "Herman Melville"])
+
+            // ... for two requests (2)
+            let bookTitles = try Book
+                .joining(required: Book.author.orderByFullName())
+                .fetchAll(db)
+                .map { $0.title }
+            XCTAssertEqual(bookTitles, ["Moby-Dick", "Du côté de chez Swann"])
+            
+            let reversedBookTitles = try Book
+                .joining(required: Book.author.orderByFullName())
+                .reversed()
+                .fetchAll(db)
+                .map { $0.title }
+            XCTAssertEqual(reversedBookTitles, ["Du côté de chez Swann", "Moby-Dick"])
         }
     }
 }
