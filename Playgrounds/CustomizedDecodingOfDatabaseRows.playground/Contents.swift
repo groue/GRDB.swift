@@ -129,7 +129,7 @@ extension Base {
 //: few extensions that guarantee the most efficient use of GRDB, and have the
 //: Base class adopt this protocol.
 //:
-//: ## Keep It Simple, Stupid!
+//: ### Keep It Simple, Stupid!
 //:
 //: But first, let's see how polymorphic decoding can be done as simply as
 //: possible. After all, it is useless to design a full-fledged protocol unless
@@ -174,7 +174,7 @@ try dbQueue.read { db in
 //: The resulting code is not as streamlined as usual GRDB code, but we could
 //: already do what we needed without much effort.
 //:
-//: ## Custom Protocol: MyDatabaseDecoder
+//: ### Custom Protocol: MyDatabaseDecoder
 //:
 //: In the rest of this playground, we will define a **new realm of requests**.
 //:
@@ -389,15 +389,18 @@ try dbQueue.read { db in
 //: customization freedom.
 //:
 //: To end this tour, let's quickly look at two other possible customized
-//: row decoding strategies:
+//: row decoding strategies.
 //:
-//: - Your application needs to decode rows with a context: each decoded value
+//: ## An Example: Contextualized Records
+//:
+//: Your application needs to decode rows with a context: each decoded value
 //: should be initialized with some extra value that does not come from
 //: the database.
 //:
-//:     In this case, you may define a `ContextFetchableRecord` protocol, and
-//:     derive all other fetching methods from the most fundamental one, which
-//:     fetches a cursor from a prepared statement (as above):
+//: In this case, you may define a `ContextFetchableRecord` protocol, and
+//: derive all other fetching methods from the most fundamental one, which
+//: fetches a cursor from a prepared statement (as we did for the
+//: MyDatabaseDecoder protocol, above):
 
 protocol ContextFetchableRecord {
     associatedtype Context
@@ -418,16 +421,19 @@ extension ContextFetchableRecord {
         }
     }
     
-    // Define fetchAll, fetchOne, ...
+    // Define fetchAll, fetchOne, and other extensions...
 }
 
-//: - Your application needs a record type that supports untrusted databases,
+//: ## An Example: Failable Records
+//:
+//: Your application needs a record type that supports untrusted databases,
 //: and may fail at decoding database rows (throw an error when a row contains
 //: invalid values).
 //:
-//:     In this case, you may define a `FailableFetchableRecord` protocol, and
-//:     derive all other fetching methods from the most fundamental one, which
-//:     fetches a cursor from a prepared statement (as above):
+//: In this case, you may define a `FailableFetchableRecord` protocol, and
+//: derive all other fetching methods from the most fundamental one, which
+//: fetches a cursor from a prepared statement (as we did for the
+//: MyDatabaseDecoder protocol, above):
 
 protocol FailableFetchableRecord {
     init(row: Row) throws
@@ -446,6 +452,5 @@ extension FailableFetchableRecord {
         }
     }
     
-    // Define fetchAll, fetchOne, ...
+    // Define fetchAll, fetchOne, and other extensions...
 }
-
