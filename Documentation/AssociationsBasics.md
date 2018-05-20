@@ -101,7 +101,7 @@ let books = try author.books.fetchAll(db)
 As for loading all pairs of books and authors, it is not only easier, but also *far much efficient*:
 
 ```swift
-struct BookInfo: FetchableRecord, Codable {
+struct BookInfo: FetchableRecord, Decodable {
     let book: Book
     let author: Author?
 }
@@ -295,7 +295,7 @@ struct Author: FetchableRecord, TableRecord {
 }
 
 // A pair made of a book and its author
-struct BookInfo: FetchableRecord, Codable {
+struct BookInfo: FetchableRecord, Decodable {
     let book: Book
     let author: Author?
 }
@@ -1382,7 +1382,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Choosing Between BelongsTo and HasOne]: #choosing-between-belongsto-and-hasone
 [Self Joins]: #self-joins
 [The Types of Associations]: #the-types-of-associations
-[Codable]: https://developer.apple.com/documentation/swift/codable
 [FetchableRecord]: ../README.md#fetchablerecord-protocols
 [migration]: ../README.md#migrations
 [Record]: ../README.md#records
