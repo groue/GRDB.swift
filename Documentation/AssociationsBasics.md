@@ -544,7 +544,7 @@ struct Person: TableRecord {
 }
 ```
 
-Foreign keys can also be defined from `Column`:
+Foreign keys can also be defined from query interface columns:
 
 ```swift
 struct Book: TableRecord {
