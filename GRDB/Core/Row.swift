@@ -717,7 +717,7 @@ extension Row {
     /// - returns: A cursor over fetched rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> RowCursor {
-        return try SQLRequest<Row>(sql, arguments: arguments, adapter: adapter).fetchCursor(db)
+        return try fetchCursor(db, SQLRequest<Void>(sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of rows fetched from an SQL query.
@@ -732,7 +732,7 @@ extension Row {
     /// - returns: An array of rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Row] {
-        return try SQLRequest<Row>(sql, arguments: arguments, adapter: adapter).fetchAll(db)
+        return try fetchAll(db, SQLRequest<Void>(sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single row fetched from an SQL query.
@@ -747,7 +747,7 @@ extension Row {
     /// - returns: An optional row.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Row? {
-        return try SQLRequest<Row>(sql, arguments: arguments, adapter: adapter).fetchOne(db)
+        return try fetchOne(db, SQLRequest<Void>(sql, arguments: arguments, adapter: adapter))
     }
 }
 
