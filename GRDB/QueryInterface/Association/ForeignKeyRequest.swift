@@ -41,8 +41,8 @@ struct ForeignKeyRequest {
                     return false
                 }
             }
-            // TODO: test
             if let destinationColumns = destinationColumns {
+                // TODO: test
                 let destinationColumns = Set(destinationColumns.lazy.map { $0.lowercased() })
                 let foreignKeyColumns = Set(foreignKey.mapping.lazy.map { $0.destination.lowercased() })
                 if destinationColumns != foreignKeyColumns {
@@ -56,7 +56,6 @@ struct ForeignKeyRequest {
         if let foreignKey = foreignKeys.first {
             if foreignKeys.count == 1 {
                 // Non-ambiguous
-                // TODO: test
                 return foreignKey
             } else {
                 // Ambiguous: can't choose
@@ -68,7 +67,6 @@ struct ForeignKeyRequest {
         if let originColumns = originColumns {
             let destinationColumns = try db.primaryKey(destinationTable).columns
             if (originColumns.count == destinationColumns.count) {
-                // TODO: test
                 let mapping = zip(originColumns, destinationColumns).map {
                     (origin: $0, destination: $1)
                 }
