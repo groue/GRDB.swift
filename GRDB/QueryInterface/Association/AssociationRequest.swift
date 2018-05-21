@@ -2,6 +2,7 @@
 ///
 /// In `SELECT a.*, b.* FROM a JOIN b ON b.aid = a.id AND b.name = 'foo'`,
 /// the AssociationRequest is (`b.*` + `b.name = 'foo'`).
+/// :nodoc:
 public struct AssociationRequest<T> {
     let query: AssociationQuery
     

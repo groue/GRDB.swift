@@ -48,11 +48,9 @@ public protocol Association: DerivableRequest {
     ///     }
     func forKey(_ key: String) -> Self
     
-    // TODO: this one prevents "through" associations like HasOneThrough, HasManyThrough, etc.
     /// :nodoc:
     var request: AssociationRequest<RowDecoder> { get }
     
-    // TODO: this one prevents "through" associations like HasOneThrough, HasManyThrough, etc.
     /// :nodoc:
     func joinCondition(_ db: Database) throws -> JoinCondition
     
@@ -213,6 +211,8 @@ extension Association {
     }
 }
 
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+/// :nodoc:
 public typealias JoinCondition = (_ leftAlias: TableAlias, _ rightAlias: TableAlias) -> SQLExpression?
 
 /// Turns a ForeignKeyRequest into a JoinCondition
@@ -288,7 +288,8 @@ extension Association where OriginRowDecoder: MutablePersistableRecord {
         let associationAlias = TableAlias()
         let recordAlias = TableAlias()
         
-        // Turn JOIN into SELECT FROM
+        // Turn the association request into a query interface request:
+        // JOIN association -> SELECT FROM association
         return QueryInterfaceRequest(request)
             
             // Turn the JOIN condition into a regular WHERE condition

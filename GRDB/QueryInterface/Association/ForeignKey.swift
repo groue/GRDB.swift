@@ -57,8 +57,8 @@
 ///         static let author = belongsTo(Person.self, using: authorForeignKey)
 ///     }
 public struct ForeignKey {
-    let originColumns: [String]
-    let destinationColumns: [String]?
+    var originColumns: [String]
+    var destinationColumns: [String]?
     
     /// Creates a ForeignKey intended to define a record association.
     ///

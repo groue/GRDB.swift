@@ -91,6 +91,7 @@ public struct HasManyAssociation<Origin, Destination>: Association {
     }
 }
 
+// Allow HasManyAssociation(...).filter(key: ...)
 extension HasManyAssociation: TableRequest where Destination: TableRecord {
     /// :nodoc:
     public var databaseTableName: String { return Destination.databaseTableName }

@@ -1,12 +1,11 @@
-/// Adopt the ColumnExpression protocol in order to define a custom column type.
+/// Adopt the ColumnExpression protocol when you define a column type.
 ///
 /// You can, for example, define a String-based column enum:
 ///
 ///     enum Columns: String, ColumnExpression {
 ///         case id, name, score
 ///     }
-///     let nameColumn = Columns.name
-///     let arthur = try Player.filter(nameColumn == "Arthur").fetchOne(db)
+///     let arthur = try Player.filter(Columns.name == "Arthur").fetchOne(db)
 ///
 /// You can also define a genuine column type:
 ///
