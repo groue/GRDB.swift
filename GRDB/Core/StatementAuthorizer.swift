@@ -1,3 +1,6 @@
+#if os(Linux)
+    import Glibc
+#endif
 #if SWIFT_PACKAGE
     import CSQLite
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER

@@ -304,7 +304,7 @@ extension Database {
                 let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
                 db.configuration.trace!(sql)
             }, dbPointer)
-        #else
+        #elseif !os(Linux)
             if #available(iOS 10.0, OSX 10.12, watchOS 3.0, *) {
                 sqlite3_trace_v2(sqliteConnection, UInt32(SQLITE_TRACE_STMT), { (mask, dbPointer, stmt, unexpandedSQL) -> Int32 in
                     guard let stmt = stmt else { return SQLITE_OK }
@@ -322,6 +322,12 @@ extension Database {
                     db.configuration.trace!(sql)
                 }, dbPointer)
             }
+        #else
+        sqlite3_trace(sqliteConnection, { (dbPointer, sql) in
+                                            guard let sql = sql.map({ String(cString: $0) }) else { return }
+                                            let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
+                                            db.configuration.trace!(sql)
+                                        }, dbPointer)
         #endif
     }
     
