@@ -645,7 +645,7 @@ extension DatabasePool {
     ///
     ///     let snapshot1 = try dbPool.write { db -> DatabaseSnapshot in
     ///         try Player.deleteAll()
-    ///         return dbPool.makeSnapshot()
+    ///         return try dbPool.makeSnapshot()
     ///     }
     ///     // <- Other threads may modify the database here
     ///     let snapshot2 = try dbPool.makeSnapshot()
@@ -668,7 +668,7 @@ extension DatabasePool {
     ///         try db.inTransaction {
     ///             try Player.deleteAll()
     ///             // fatal error: makeSnapshot() must not be called from inside a transaction
-    ///             let snapshot = dbPool.makeSnapshot()
+    ///             let snapshot = try dbPool.makeSnapshot()
     ///             return .commit
     ///         }
     ///     }
@@ -676,9 +676,9 @@ extension DatabasePool {
     /// To avoid this fatal error, create the snapshot *before* or *after* the
     /// transaction:
     ///
-    ///     try dbPool.write { db in
+    ///     try dbPool.writeWithoutTransaction { db in
     ///         // OK
-    ///         let snapshot = dbPool.makeSnapshot()
+    ///         let snapshot = try dbPool.makeSnapshot()
     ///
     ///         try db.inTransaction {
     ///             try Player.deleteAll()
@@ -686,7 +686,7 @@ extension DatabasePool {
     ///         }
     ///
     ///         // OK
-    ///         let snapshot = dbPool.makeSnapshot()
+    ///         let snapshot = try dbPool.makeSnapshot()
     ///     }
     ///
     /// You can create as many snapshots as you need, regardless of the maximum
