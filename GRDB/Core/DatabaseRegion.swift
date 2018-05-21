@@ -6,12 +6,12 @@
 /// cover a full table, or the combination of columns and rows (identified by
 /// their rowids):
 ///
-///    |Table1 |   |Table2 |   |Table3 |   |Table4 |   |Table5 |
-///    |-------|   |-------|   |-------|   |-------|   |-------|
-///    |x|x|x|x|   |x| | | |   |x|x|x|x|   |x|x| |x|   | | | | |
-///    |x|x|x|x|   |x| | | |   | | | | |   | | | | |   | |x| | |
-///    |x|x|x|x|   |x| | | |   | | | | |   |x|x| |x|   | | | | |
-///    |x|x|x|x|   |x| | | |   | | | | |   | | | | |   | | | | |
+///     |Table1 |   |Table2 |   |Table3 |   |Table4 |   |Table5 |
+///     |-------|   |-------|   |-------|   |-------|   |-------|
+///     |x|x|x|x|   |x| | | |   |x|x|x|x|   |x|x| |x|   | | | | |
+///     |x|x|x|x|   |x| | | |   | | | | |   | | | | |   | |x| | |
+///     |x|x|x|x|   |x| | | |   | | | | |   |x|x| |x|   | | | | |
+///     |x|x|x|x|   |x| | | |   | | | | |   | | | | |   | | | | |
 ///
 /// You don't create a database region directly. Instead, you use one of
 /// those methods:
