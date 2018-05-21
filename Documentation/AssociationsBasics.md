@@ -519,7 +519,7 @@ Sometimes the database schema does not define any foreign key. And sometimes, th
 
 ![AmbiguousForeignKeys](https://cdn.rawgit.com/groue/GRDB.swift/GRDB3/Documentation/Images/Associations2/AmbiguousForeignKeys.svg)
 
-When this happens, associations can't be automatically inferred from the database schema. GRDB will complain with a fatal error such as "Ambiguous foreign key from book to author", or "Could not infer foreign key from book to author".
+When this happens, associations can't be automatically inferred from the database schema. GRDB will complain with a fatal error such as "Ambiguous foreign key from book to person", or "Could not infer foreign key from book to person".
 
 Your help is needed. You have to instruct GRDB which foreign key to use:
 

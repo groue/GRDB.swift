@@ -5,16 +5,17 @@
 /// tables. And sometimes, there are several foreign keys from a table
 /// to another:
 ///
-///     Table book            Table author
-///     • id             +--> • id
-///     • authorId ------+    • name
-///     • translatorId --+
-///     • title
+///     | Table book   |       | Table person |
+///     | ------------ |       | ------------ |
+///     | id           |   +-->• id           |
+///     | authorId     •---+   | name         |
+///     | translatorId •---+
+///     | title        |
 ///
 /// When this happens, associations can't be automatically inferred from the
 /// database schema. GRDB will complain with a fatal error such as "Ambiguous
-/// foreign key from book to author", or "Could not infer foreign key from book
-/// to author".
+/// foreign key from book to person", or "Could not infer foreign key from book
+/// to person".
 ///
 /// Your help is needed. You have to instruct GRDB which foreign key to use:
 ///
@@ -59,13 +60,48 @@ public struct ForeignKey {
     let originColumns: [String]
     let destinationColumns: [String]?
     
-    /// TODO
+    /// Creates a ForeignKey intended to define a record association.
+    ///
+    ///     struct Book: TableRecord {
+    ///         // Define foreign keys
+    ///         static let authorForeignKey = ForeignKey(["authorId"]))
+    ///         static let translatorForeignKey = ForeignKey(["translatorId"]))
+    ///
+    ///         // Use foreign keys to define associations:
+    ///         static let author = belongsTo(Person.self, using: authorForeignKey)
+    ///         static let translator = belongsTo(Person.self, using: translatorForeignKey)
+    ///     }
+    ///
+    /// - parameter originColumns: The columns at the origin of the foreign key.
+    /// - parameter destinationColumns: The columns at the destination of the
+    /// foreign key. When nil (the default), GRDB automatically uses the
+    /// primary key.
     public init(_ originColumns: [String], to destinationColumns: [String]? = nil) {
         self.originColumns = originColumns
         self.destinationColumns = destinationColumns
     }
     
-    /// TODO
+    /// Creates a ForeignKey intended to define a record association.
+    ///
+    ///     struct Book: TableRecord {
+    ///         // Define columns
+    ///         enum Columns: String, ColumnExpression {
+    ///             case id, title, authorId, translatorId
+    ///         }
+    ///
+    ///         // Define foreign keys
+    ///         static let authorForeignKey = ForeignKey([Columns.authorId]))
+    ///         static let translatorForeignKey = ForeignKey([Columns.translatorId]))
+    ///
+    ///         // Use foreign keys to define associations:
+    ///         static let author = belongsTo(Person.self, using: authorForeignKey)
+    ///         static let translator = belongsTo(Person.self, using: translatorForeignKey)
+    ///     }
+    ///
+    /// - parameter originColumns: The columns at the origin of the foreign key.
+    /// - parameter destinationColumns: The columns at the destination of the
+    /// foreign key. When nil (the default), GRDB automatically uses the
+    /// primary key.
     public init(_ originColumns: [ColumnExpression], to destinationColumns: [ColumnExpression]? = nil) {
         self.init(originColumns.map { $0.name }, to: destinationColumns?.map { $0.name })
     }
