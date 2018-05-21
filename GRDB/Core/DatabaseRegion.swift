@@ -22,7 +22,7 @@
 ///     print(statement.databaseRegion)
 ///     // prints "player(name,score)"
 ///
-/// - `Request.databaseRegion(_:)`
+/// - `FetchRequest.databaseRegion(_:)`
 ///
 ///     let request = Player.filter(key: 1)
 ///     try print(request.databaseRegion(db))
