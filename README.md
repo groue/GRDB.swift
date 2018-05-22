@@ -2285,7 +2285,7 @@ See [fetching methods](#fetching-methods) for information about the `fetchCursor
 
 ## TableRecord Protocol
 
-**Adopt the TableRecord protocol** on top of [FetchableRecord], and you are granted with the full [query interface](#the-query-interface).
+**The TableRecord protocol** generates SQL for you. To use TableRecord, subclass the [Record](#record-class) class, or adopt it explicitly:
 
 ```swift
 protocol TableRecord {
@@ -2294,9 +2294,14 @@ protocol TableRecord {
 }
 ```
 
-**To use TableRecord**, subclass the [Record](#record-class) class, or adopt it explicitly.
-
 - The `databaseTableName` type property is the name of a database table. By default, it is derived from the type name:
+    
+    ```swift
+    struct Place: TableRecord { }
+    print(Place.databaseTableName) // prints "place"
+    ```
+    
+    For example:
     
     - Place: `place`
     - Country: `country`
@@ -2304,9 +2309,13 @@ protocol TableRecord {
     - HTTPRequest: `httpRequest`
     - TOEFL: `toefl`
     
+    You can still provide a custom table name:
+    
     ```swift
-    struct Place: TableRecord { }
-    print(Place.databaseTableName) // prints "place"
+    struct Place: TableRecord {
+        static let databaseTableName = "location"
+    }
+    print(Place.databaseTableName) // prints "location"
     ```
     
     Subclasses of the [Record](#record-class) class can't profit from this default name, and must explicitly override their superclass's `databaseTableName` property:
@@ -2322,7 +2331,7 @@ protocol TableRecord {
     
 - The `databaseSelection` type property is optional, and documented in the [Columns Selected by a Request](#columns-selected-by-a-request) chapter.
 
-Adopting types can generate SQL. When they also adopt FetchableRecord, they can be fetched using the [query interface](#the-query-interface):
+When a type adopts both TableRecord and [FetchableRecord](#fetchablerecord-protocol), it can be fetched using the [query interface](#the-query-interface):
 
 ```swift
 // SELECT * FROM place WHERE name = 'Paris'
