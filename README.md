@@ -2318,7 +2318,7 @@ protocol TableRecord {
     print(Place.databaseTableName) // prints "location"
     ```
     
-    Subclasses of the [Record](#record-class) class can't profit from this default name, and must explicitly override their superclass's `databaseTableName` property:
+    Subclasses of the [Record](#record-class) class must always override their superclass's `databaseTableName` property:
     
     ```swift
     class Place: Record {
