@@ -150,14 +150,7 @@ open class Record : FetchableRecord, TableRecord, PersistableRecord {
     ///
     /// - returns: A copy of self.
     open func copy() -> Self {
-        let row: Row
-        #if swift(>=3.1)
-            row = Row(self)
-        #else
-            // workaround weird Swift 3.0 glitch
-            row = Row(self as! MutablePersistableRecord)
-        #endif
-        let copy = type(of: self).init(row: row)
+        let copy = type(of: self).init(row: Row(self))
         copy.referenceRow = referenceRow
         return copy
     }
