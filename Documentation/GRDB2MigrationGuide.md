@@ -86,7 +86,7 @@ GRDB 3 still accepts any database, but brings two schema recommendations:
      }
     ```
 
-- :bulb: Database table names should be singular, and camel-cased. Make them look like Swift identifiers: `place`, `country`, `postalAddress`.
+- :bulb: Database table names should be singular, and camel-cased. Make them look like Swift identifiers: `place`, `country`, `postalAddress`, 'httpRequest'.
     
     This will help you using the new [Associations] feature when you need it. Database table names that follow another naming convention are totally OK, but you will need to perform extra configuration.
     
@@ -376,14 +376,14 @@ That default name follows the [Database Schema Recommendations]: it is singular,
 
 - Place: `place`
 - Country: `country`
-- PostalAddrress: `postalAddress`
+- PostalAddress: `postalAddress`
 - HTTPRequest: `httpRequest`
-- TOELF: `toefl`
+- TOEFL: `toefl`
 
 When you subclass the Record class, the Swift compiler won't let you profit from this default name: you have to keep on providing an explicit table name:
 
 ```swift
-// GRDB 3
+// GRDB 2 and GRDB 3
 class Place: Record {
     override var databaseTableName: String {
         return "place"
