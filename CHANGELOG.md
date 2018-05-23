@@ -22,6 +22,8 @@ It comes with new features, but also a few breaking changes, and a set of update
 - Upgrade custom SQLite builds to [v3.23.0](http://www.sqlite.org/changes.html) (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib)).
 - Improve Row descriptions ([#331](https://github.com/groue/GRDB.swift/pull/331)).
 - Request derivation protocols ([#329](https://github.com/groue/GRDB.swift/pull/329)).
+- Preliminary Linux support for the main framework ([#354](https://github.com/groue/GRDB.swift/pull/354)).
+- Automatic table name generation ([#355](https://github.com/groue/GRDB.swift/pull/355)).
 
 
 ### Breaking Changes
@@ -45,6 +47,7 @@ It comes with new features, but also a few breaking changes, and a set of update
 - [Database Pools](README.md#database-pools): focus on the `read` and `write` methods.
 - [Transactions and Savepoints](README.md#transactions-and-savepoints): the chapter has been rewritten in order to introduce transactions as a power-user feature.
 - [ScopeAdapter](README.md#scopeadapter): do you use row adapters? If so, have a look.
+- [TableRecord Protocol](README.md#tablerecord-protocol): updated for the new automatic generation of database table name.
 - [Examples of Record Definitions](README.md#examples-of-record-definitions): this new chapter provides a handy reference of the three main ways to define record types (Codable, plain struct, Record subclass).
 - [SQL Operators](README.md#sql-operators): the chapter introduces the new `joined(operator:)` method that lets you join a chain of expressions with `AND` or `OR` without nesting: `[cond1, cond2, ...].joined(operator: .and)`.
 - [Custom Requests](README.md#custom-requests): the old `Request` and `TypedRequest` protocols have been replaced with `FetchRequest`. If you want to know more about custom requests, check this chapter.

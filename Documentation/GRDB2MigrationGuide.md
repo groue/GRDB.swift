@@ -17,6 +17,7 @@ GRDB 3 comes with new features, but also a few breaking changes, and a set of up
 - [If You Use Database Queues]
 - [If You Use Database Pools]
 - [If You Use Database Snapshots]
+- [If You Use Record Types]
 - [If You Use Custom Requests]
 - [If You Use RxGRDB]
 - [Notable Documentation Updates]
@@ -85,9 +86,11 @@ GRDB 3 still accepts any database, but brings two schema recommendations:
      }
     ```
 
-- :bulb: Database table names should be singular, and camel-cased. Make them look like Swift identifiers: `place`, `country`, `postalAddress`.
+- :bulb: Database table names should be singular, and camel-cased. Make them look like Swift identifiers: `place`, `country`, `postalAddress`, 'httpRequest'.
     
     This will help you using the new [Associations] feature when you need it. Database table names that follow another naming convention are totally OK, but you will need to perform extra configuration.
+    
+    This convention is applied by the default implementation of the `TableRecord.databaseTableName`: see [If You Use Record Types] below.
 
 Since you are reading this guide, your application has already defined its database schema. You can migrate it in order to apply the new recommendations, if needed. Below is a sample code that uses [DatabaseMigrator], the recommended tool for managing your database schema:
 
@@ -349,6 +352,46 @@ let snapshot: DatabaseSnapshot = try dbPool.writeWithoutTransaction { db in
 ```
 
 
+## If You Use Record Types
+
+Record types that adopt the former TableMapping protocol, renamed TableRecord, used to declare their table name:
+
+```swift
+// GRDB 2
+struct Place: TableMapping {
+    static let databaseTableName = "place"
+}
+print(Place.databaseTableName) // print "place"
+```
+
+With GRDB 3, the `databaseTableName` property gets a default implementation:
+
+```swift
+// GRDB 3
+struct Place: TableRecord { }
+print(Place.databaseTableName) // print "place"
+```
+
+That default name follows the [Database Schema Recommendations]: it is singular, camel-cased, and looks like a Swift identifier:
+
+- Place: `place`
+- Country: `country`
+- PostalAddress: `postalAddress`
+- HTTPRequest: `httpRequest`
+- TOEFL: `toefl`
+
+When you subclass the Record class, the Swift compiler won't let you profit from this default name: you have to keep on providing an explicit table name:
+
+```swift
+// GRDB 2 and GRDB 3
+class Place: Record {
+    override var databaseTableName: String {
+        return "place"
+    }
+}
+```
+
+
 ## If You Use Custom Requests
 
 [Custom requests] let you escape the limitations of the [query interface], when it can not generate the requests you need.
@@ -469,6 +512,7 @@ If you have time, you may dig deeper in GRDB 3 with those updated documentation 
 [If You Use Database Queues]: #if-you-use-database-queues
 [If You Use Database Pools]: #if-you-use-database-pools
 [If You Use Database Snapshots]: #if-you-use-database-snapshots
+[If You Use Record Types]: #if-you-use-record-types
 [If You Use Custom Requests]: #if-you-use-custom-requests
 [If You Use RxGRDB]: #if-you-use-rxgrdb
 [Notable Documentation Updates]: #notable-documentation-updates

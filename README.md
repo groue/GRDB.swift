@@ -2285,7 +2285,7 @@ See [fetching methods](#fetching-methods) for information about the `fetchCursor
 
 ## TableRecord Protocol
 
-**Adopt the TableRecord protocol** on top of [FetchableRecord], and you are granted with the full [query interface](#the-query-interface).
+**The TableRecord protocol** generates SQL for you. To use TableRecord, subclass the [Record](#record-class) class, or adopt it explicitly:
 
 ```swift
 protocol TableRecord {
@@ -2294,17 +2294,44 @@ protocol TableRecord {
 }
 ```
 
-The `databaseTableName` type property is the name of a database table. `databaseSelection` is optional, and documented in the [Columns Selected by a Request](#columns-selected-by-a-request) chapter.
+- The `databaseTableName` type property is the name of a database table. By default, it is derived from the type name:
+    
+    ```swift
+    struct Place: TableRecord { }
+    print(Place.databaseTableName) // prints "place"
+    ```
+    
+    For example:
+    
+    - Place: `place`
+    - Country: `country`
+    - PostalAddress: `postalAddress`
+    - HTTPRequest: `httpRequest`
+    - TOEFL: `toefl`
+    
+    You can still provide a custom table name:
+    
+    ```swift
+    struct Place: TableRecord {
+        static let databaseTableName = "location"
+    }
+    print(Place.databaseTableName) // prints "location"
+    ```
+    
+    Subclasses of the [Record](#record-class) class must always override their superclass's `databaseTableName` property:
+    
+    ```swift
+    class Place: Record {
+        override class var databaseTableName: String {
+            return "place"
+        }
+    }
+    print(Place.databaseTableName) // prints "place"
+    ```
+    
+- The `databaseSelection` type property is optional, and documented in the [Columns Selected by a Request](#columns-selected-by-a-request) chapter.
 
-**To use TableRecord**, subclass the [Record](#record-class) class, or adopt it explicitly. For example:
-
-```swift
-extension Place : TableRecord {
-    static let databaseTableName = "place"
-}
-```
-
-Adopting types can be fetched without SQL, using the [query interface](#the-query-interface):
+When a type adopts both TableRecord and [FetchableRecord](#fetchablerecord-protocol), it can be fetched using the [query interface](#the-query-interface):
 
 ```swift
 // SELECT * FROM place WHERE name = 'Paris'
@@ -2523,9 +2550,7 @@ struct Player: Codable {
 }
 
 // Adopt Record protocols...
-extension Player: FetchableRecord, PersistableRecord {
-    static let databaseTableName = "player"
-}
+extension Player: FetchableRecord, PersistableRecord { }
 
 // ...and you can save and fetch players:
 try dbQueue.write { db in
@@ -2539,8 +2564,6 @@ GRDB support for Codable works well with "flat" records, whose stored properties
 ```swift
 // Can't take profit from Codable code generation:
 struct Place: FetchableRecord, PersistableRecord, Codable {
-    static let databaseTableName = "place"
-    
     var title: String
     var coordinate: CLLocationCoordinate2D // <- Not a simple value!
 }
@@ -2570,9 +2593,7 @@ struct Place: Codable {
 }
 
 // Free database support!
-extension Place: FetchableRecord, PersistableRecord {
-    static let databaseTableName = "place"
-}
+extension Place: FetchableRecord, PersistableRecord { }
 ```
 
 GRDB ships with support for nested codable records, but this is a more complex topic. See [Joined Queries Support](#joined-queries-support) for more information.
@@ -2589,8 +2610,6 @@ struct Place: Codable {
 }
 
 extension Place: FetchableRecord, MutablePersistableRecord {
-    static let databaseTableName = "place"
-    
     mutating func didInsert(with rowID: Int64, for column: String?) {
         // Update id after insertion
         id = rowID
@@ -2994,10 +3013,7 @@ struct Place: Codable {
 }
 
 // SQL generation
-extension Place: TableRecord {
-    /// The table name
-    static let databaseTableName = "place"
-}
+extension Place: TableRecord { }
 
 // Fetching methods
 extension Place: FetchableRecord { }
@@ -3028,9 +3044,6 @@ struct Place {
 
 // SQL generation
 extension Place: TableRecord {
-    /// The table name
-    static let databaseTableName = "place"
-    
     /// The table columns
     enum Columns: String, ColumnExpression {
         case id, title, favorite, latitude, longitude
@@ -3323,7 +3336,7 @@ try db.create(table: "example") { t in ... }
 try db.create(table: "example", temporary: true, ifNotExists: true) { t in
 ```
 
-> :bulb: **Tip**: database table names should be singular, and camel-cased. Make them look like Swift identifiers: `place`, `country`, `postalAddress`.
+> :bulb: **Tip**: database table names should be singular, and camel-cased. Make them look like Swift identifiers: `place`, `country`, `postalAddress`, 'httpRequest'.
 >
 > This will help you using the new [Associations](Documentation/AssociationsBasics.md) feature when you need it. Database table names that follow another naming convention are totally OK, but you will need to perform extra configuration.
 
@@ -5320,12 +5333,10 @@ You can consume complex joined queries with Codable records as well. As a demons
 
 ```swift
 struct Player: Decodable, FetchableRecord, TableRecord {
-    static let databaseTableName = "player"
     var id: Int64
     var name: String
 }
 struct Team: Decodable, FetchableRecord, TableRecord {
-    static let databaseTableName = "team"
     var id: Int64
     var name: String
     var color: Color

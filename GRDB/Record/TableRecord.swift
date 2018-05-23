@@ -50,6 +50,40 @@ public protocol TableRecord {
 }
 
 extension TableRecord {
+    
+    /// The default name of the database table used to build requests.
+    ///
+    /// - Player -> "player"
+    /// - Place -> "place"
+    /// - PostalAddress -> "postalAddress"
+    /// - HTTPRequest -> "httpRequest"
+    /// - TOEFL -> "toefl"
+    internal static var defaultDatabaseTableName: String {
+        let typeName = "\(Self.self)".replacingOccurrences(of: "(.)\\b.*$", with: "$1", options: [.regularExpression])
+        let initial = typeName.replacingOccurrences(of: "^([A-Z]+).*$", with: "$1", options: [.regularExpression])
+        switch initial.count {
+        case typeName.count:
+            return initial.lowercased()
+        case 0:
+            return typeName
+        case 1:
+            return initial.lowercased() + typeName.dropFirst()
+        default:
+            return initial.dropLast().lowercased() + typeName.dropFirst(initial.count - 1)
+        }
+    }
+    
+    /// The default name of the database table used to build requests.
+    ///
+    /// - Player -> "player"
+    /// - Place -> "place"
+    /// - PostalAddress -> "postalAddress"
+    /// - HTTPRequest -> "httpRequest"
+    /// - TOEFL -> "toefl"
+    public static var databaseTableName: String {
+        return defaultDatabaseTableName
+    }
+    
     /// Default value: `[AllColumns()]`.
     public static var databaseSelection: [SQLSelectable] {
         return [AllColumns()]
