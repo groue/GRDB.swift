@@ -42,7 +42,7 @@ Update your Package.swift file:
 ```swift
 let package = Package(
     dependencies: [
-        .package(url: "https://github.com/groue/GRDB.swift.git", branch: "GRDB3")
+        .package(url: "https://github.com/groue/GRDB.swift.git", .branchItem("GRDB3"))
     ]
 )
 ```
