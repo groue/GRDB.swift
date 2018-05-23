@@ -221,7 +221,7 @@ struct Country: TableRecord, FetchableRecord {
 }
 
 struct Demographics: TableRecord, FetchableRecord {
-    static let country = belongsTo(Demographics.self)
+    static let country = belongsTo(Country.self)
     ...
 }
 ```
