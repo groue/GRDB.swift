@@ -2369,9 +2369,6 @@ try Citizenship.fetchOne(db, key: ["playerID": 1, "countryISOCode": "FR"]) // Ci
 
 ```swift
 protocol MutablePersistableRecord : TableRecord {
-    /// The name of the database table (from TableRecord)
-    static var databaseTableName: String { get }
-    
     /// Defines the values persisted in the database
     func encode(to container: inout PersistenceContainer)
     
@@ -2390,23 +2387,22 @@ protocol PersistableRecord : MutablePersistableRecord {
 
 Yes, two protocols instead of one. Both grant exactly the same advantages. Here is how you pick one or the other:
 
-- *If your type is a struct that mutates on insertion*, choose `MutablePersistableRecord`.
-    
-    For example, your table has an INTEGER PRIMARY KEY and you want to store the inserted id on successful insertion. Or your table has a UUID primary key, and you want to automatically generate one on insertion.
+- **If your type is a class**, choose `PersistableRecord`. On top of that, implement `didInsert(with:for:)` if the database table has an auto-incremented primary key.
 
-- Otherwise, stick with `PersistableRecord`. Particularly if your type is a class.
+- **If your type is a struct, and the database table has an auto-incremented primary key**, choose `MutablePersistableRecord`, and implement `didInsert(with:for:)`.
+
+- **Otherwise**, choose `PersistableRecord`, and ignore `didInsert(with:for:)`.
 
 The `encode(to:)` method defines which [values](#values) (Bool, Int, String, Date, Swift enums, etc.) are assigned to database columns.
 
 > :bulb: **Tip**: `encode(to:)` can be automatically generated when your type adopts the standard `Encodable` protocol. See [Codable Records](#codable-records) for more information.
 
-The optional `didInsert` method lets the adopting type store its rowID after successful insertion. If your table has an INTEGER PRIMARY KEY column, you are likely to define this method. Otherwise, you can safely ignore it. It is called from a protected dispatch queue, and serialized with all database updates.
+The optional `didInsert` method lets the adopting type store its rowID after successful insertion, and is only useful for tables that have an auto-incremented primary key. It is called from a protected dispatch queue, and serialized with all database updates.
 
-**To use those protocols**, subclass the [Record](#record-class) class, or adopt one of them explicitly. For example:
+**To use the persistable protocols**, subclass the [Record](#record-class) class, or adopt one of them explicitly. For example:
 
 ```swift
 extension Place : MutablePersistableRecord {
-    
     /// The values persisted in the database
     func encode(to container: inout PersistenceContainer) {
         container["id"] = id
@@ -7388,7 +7384,7 @@ Sample Code
 **Thanks**
 
 - [Pierlis](http://pierlis.com), where we write great software.
-- [Vladimir Babin](https://github.com/Chiliec), [Darren Clark](https://github.com/darrenclark), [Pascal Edmond](https://github.com/pakko972), [Andrey Fidrya](https://github.com/zmeyc), [Cristian Filipov](https://github.com/cfilipov), [Matt Greenfield](https://github.com/sobri909), [David Hart](https://github.com/hartbit), [@kluufger](https://github.com/kluufger), [Brad Lindsay](https://github.com/bfad), [@peter-ss](https://github.com/peter-ss), [Florent Pillet](http://github.com/fpillet), [@pocketpixels](https://github.com/pocketpixels) [Pierre-Loïc Raynaud](https://github.com/pierlo), [Stefano Rodriguez](https://github.com/sroddy), [Steven Schveighoffer](https://github.com/schveiguy), [@swiftlyfalling](https://github.com/swiftlyfalling), and [Kevin Wooten](https://github.com/kdubb) for their contributions, help, and feedback on GRDB.
+- [Vladimir Babin](https://github.com/Chiliec), [Darren Clark](https://github.com/darrenclark), [Pascal Edmond](https://github.com/pakko972), [Andrey Fidrya](https://github.com/zmeyc), [Cristian Filipov](https://github.com/cfilipov), [Matt Greenfield](https://github.com/sobri909), [David Hart](https://github.com/hartbit), [@kluufger](https://github.com/kluufger), [Brad Lindsay](https://github.com/bfad), [@peter-ss](https://github.com/peter-ss), [Florent Pillet](http://github.com/fpillet), [@pocketpixels](https://github.com/pocketpixels), [Pierre-Loïc Raynaud](https://github.com/pierlo), [Stefano Rodriguez](https://github.com/sroddy), [Steven Schveighoffer](https://github.com/schveiguy), [@swiftlyfalling](https://github.com/swiftlyfalling), and [Kevin Wooten](https://github.com/kdubb) for their contributions, help, and feedback on GRDB.
 - [@aymerick](https://github.com/aymerick) and [Mathieu "Kali" Poumeyrol](https://github.com/kali) because SQL.
 - [ccgus/fmdb](https://github.com/ccgus/fmdb) for its excellency.
 
