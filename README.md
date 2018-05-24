@@ -4183,7 +4183,7 @@ let request = Player.all()
     ```swift
     extension Player {
         static func filter(color: Color) -> SQLRequest<Player> {
-            let request = SQLRequest<Player>(
+            return SQLRequest<Player>(
                 "SELECT * FROM player WHERE color = ?"
                 arguments: [color])
         }
