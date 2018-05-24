@@ -44,6 +44,8 @@ GRDB 3.0
     let players = Player.filter(color: .red) // Possible ??
     let teamPlayers = Team.players.filter(color: .red)
     ```
+- [ ] From vapor: How do they use [keypaths](https://docs.vapor.codes/3.0/fluent/querying/) for filtering?
+
 
 Not sure
 
