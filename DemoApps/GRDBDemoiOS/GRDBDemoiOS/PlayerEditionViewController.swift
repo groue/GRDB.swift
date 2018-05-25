@@ -1,14 +1,13 @@
 import UIKit
 
-protocol PersonEditionViewControllerDelegate: class {
-    func personEditionControllerDidComplete(_ controller: PersonEditionViewController)
+protocol PlayerEditionViewControllerDelegate: class {
+    func playerEditionControllerDidComplete(_ controller: PlayerEditionViewController)
 }
 
-class PersonEditionViewController: UITableViewController {
-    weak var delegate: PersonEditionViewControllerDelegate?
-    var person: Person! { didSet { configureView() } }
-    var cancelButtonHidden: Bool = false { didSet { configureView() } }
-    var commitButtonHidden: Bool = false { didSet { configureView() } }
+class PlayerEditionViewController: UITableViewController {
+    weak var delegate: PlayerEditionViewControllerDelegate?
+    var player: Player!
+    var commitButtonHidden: Bool = false
 
     @IBOutlet fileprivate weak var cancelBarButtonItem: UIBarButtonItem!
     @IBOutlet fileprivate weak var commitBarButtonItem: UIBarButtonItem!
@@ -18,10 +17,8 @@ class PersonEditionViewController: UITableViewController {
     @IBOutlet fileprivate weak var scoreTextField: UITextField!
     
     func applyChanges() {
-        if let name = nameTextField.text, !name.isEmpty {
-            person.name = name
-        }
-        person.score = scoreTextField.text.flatMap { Int($0) } ?? 0
+        player.name = nameTextField.text ?? ""
+        player.score = scoreTextField.text.flatMap { Int($0) } ?? 0
     }
     
     override func viewDidLoad() {
@@ -30,24 +27,18 @@ class PersonEditionViewController: UITableViewController {
     }
     
     private func configureView() {
-        guard isViewLoaded else { return }
-        
-        nameTextField.text = person.name
-        if person.score == 0 && person.id == nil {
+        nameTextField.text = player.name
+        if player.score == 0 && player.id == nil {
             scoreTextField.text = ""
         } else {
-            scoreTextField.text = "\(person.score)"
+            scoreTextField.text = "\(player.score)"
         }
     
-        if cancelButtonHidden {
+        if commitButtonHidden {
             navigationItem.leftBarButtonItem = nil
-        } else {
-            navigationItem.leftBarButtonItem = cancelBarButtonItem
-        }
-
-        if cancelButtonHidden {
             navigationItem.rightBarButtonItem = nil
         } else {
+            navigationItem.leftBarButtonItem = cancelBarButtonItem
             navigationItem.rightBarButtonItem = commitBarButtonItem
         }
     }
@@ -56,7 +47,7 @@ class PersonEditionViewController: UITableViewController {
 
 // MARK: - Navigation
 
-extension PersonEditionViewController {
+extension PlayerEditionViewController {
     
     override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool {
         // Force keyboard to dismiss early
@@ -69,7 +60,7 @@ extension PersonEditionViewController {
         
         if parent == nil {
             // Self is popping from its navigation controller
-            delegate?.personEditionControllerDidComplete(self)
+            delegate?.playerEditionControllerDidComplete(self)
         }
     }
     
@@ -78,7 +69,7 @@ extension PersonEditionViewController {
 
 // MARK: - Form
 
-extension PersonEditionViewController: UITextFieldDelegate {
+extension PlayerEditionViewController: UITextFieldDelegate {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)

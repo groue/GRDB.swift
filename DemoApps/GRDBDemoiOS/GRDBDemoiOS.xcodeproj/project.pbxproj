@@ -21,11 +21,11 @@
 		56B0360E1E8D9EBE003B6DA4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 56B0360D1E8D9EBE003B6DA4 /* Assets.xcassets */; };
 		56B036111E8D9EBE003B6DA4 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 56B0360F1E8D9EBE003B6DA4 /* LaunchScreen.storyboard */; };
 		56B0361B1E8D9F38003B6DA4 /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B036191E8D9F38003B6DA4 /* AppDatabase.swift */; };
-		56B0361C1E8D9F38003B6DA4 /* Person.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B0361A1E8D9F38003B6DA4 /* Person.swift */; };
+		56B0361C1E8D9F38003B6DA4 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B0361A1E8D9F38003B6DA4 /* Player.swift */; };
 		56B036221E8D9F4C003B6DA4 /* DemoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B0361E1E8D9F4C003B6DA4 /* DemoViewController.swift */; };
-		56B036231E8D9F4C003B6DA4 /* PersonEditionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B0361F1E8D9F4C003B6DA4 /* PersonEditionViewController.swift */; };
-		56B036241E8D9F4C003B6DA4 /* PersonsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B036201E8D9F4C003B6DA4 /* PersonsViewController.swift */; };
-		56B036251E8D9F4C003B6DA4 /* SimplePersonsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B036211E8D9F4C003B6DA4 /* SimplePersonsViewController.swift */; };
+		56B036231E8D9F4C003B6DA4 /* PlayerEditionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B0361F1E8D9F4C003B6DA4 /* PlayerEditionViewController.swift */; };
+		56B036241E8D9F4C003B6DA4 /* PlayersViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B036201E8D9F4C003B6DA4 /* PlayersViewController.swift */; };
+		56B036251E8D9F4C003B6DA4 /* SimplePlayersViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B036211E8D9F4C003B6DA4 /* SimplePlayersViewController.swift */; };
 		56B0365E1E8D9FB1003B6DA4 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56B0364D1E8D9F79003B6DA4 /* GRDB.framework */; };
 		56B0365F1E8D9FB1003B6DA4 /* GRDB.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 56B0364D1E8D9F79003B6DA4 /* GRDB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
@@ -195,11 +195,11 @@
 		56B036101E8D9EBE003B6DA4 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		56B036121E8D9EBE003B6DA4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		56B036191E8D9F38003B6DA4 /* AppDatabase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDatabase.swift; sourceTree = "<group>"; };
-		56B0361A1E8D9F38003B6DA4 /* Person.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Person.swift; sourceTree = "<group>"; };
+		56B0361A1E8D9F38003B6DA4 /* Player.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
 		56B0361E1E8D9F4C003B6DA4 /* DemoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DemoViewController.swift; sourceTree = "<group>"; };
-		56B0361F1E8D9F4C003B6DA4 /* PersonEditionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersonEditionViewController.swift; sourceTree = "<group>"; };
-		56B036201E8D9F4C003B6DA4 /* PersonsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersonsViewController.swift; sourceTree = "<group>"; };
-		56B036211E8D9F4C003B6DA4 /* SimplePersonsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimplePersonsViewController.swift; sourceTree = "<group>"; };
+		56B0361F1E8D9F4C003B6DA4 /* PlayerEditionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerEditionViewController.swift; sourceTree = "<group>"; };
+		56B036201E8D9F4C003B6DA4 /* PlayersViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayersViewController.swift; sourceTree = "<group>"; };
+		56B036211E8D9F4C003B6DA4 /* SimplePlayersViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimplePlayersViewController.swift; sourceTree = "<group>"; };
 		56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GRDB.xcodeproj; path = ../../GRDB.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -270,7 +270,7 @@
 			children = (
 				56B036061E8D9EBE003B6DA4 /* AppDelegate.swift */,
 				56B036191E8D9F38003B6DA4 /* AppDatabase.swift */,
-				56B0361A1E8D9F38003B6DA4 /* Person.swift */,
+				56B0361A1E8D9F38003B6DA4 /* Player.swift */,
 				56B0361D1E8D9F3D003B6DA4 /* Controllers */,
 				56B0360A1E8D9EBE003B6DA4 /* Main.storyboard */,
 				56B0360D1E8D9EBE003B6DA4 /* Assets.xcassets */,
@@ -284,9 +284,9 @@
 			isa = PBXGroup;
 			children = (
 				56B0361E1E8D9F4C003B6DA4 /* DemoViewController.swift */,
-				56B0361F1E8D9F4C003B6DA4 /* PersonEditionViewController.swift */,
-				56B036201E8D9F4C003B6DA4 /* PersonsViewController.swift */,
-				56B036211E8D9F4C003B6DA4 /* SimplePersonsViewController.swift */,
+				56B0361F1E8D9F4C003B6DA4 /* PlayerEditionViewController.swift */,
+				56B036201E8D9F4C003B6DA4 /* PlayersViewController.swift */,
+				56B036211E8D9F4C003B6DA4 /* SimplePlayersViewController.swift */,
 			);
 			name = Controllers;
 			sourceTree = "<group>";
@@ -524,12 +524,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				56B0361C1E8D9F38003B6DA4 /* Person.swift in Sources */,
+				56B0361C1E8D9F38003B6DA4 /* Player.swift in Sources */,
 				56B0361B1E8D9F38003B6DA4 /* AppDatabase.swift in Sources */,
 				56B036071E8D9EBE003B6DA4 /* AppDelegate.swift in Sources */,
-				56B036241E8D9F4C003B6DA4 /* PersonsViewController.swift in Sources */,
-				56B036231E8D9F4C003B6DA4 /* PersonEditionViewController.swift in Sources */,
-				56B036251E8D9F4C003B6DA4 /* SimplePersonsViewController.swift in Sources */,
+				56B036241E8D9F4C003B6DA4 /* PlayersViewController.swift in Sources */,
+				56B036231E8D9F4C003B6DA4 /* PlayerEditionViewController.swift in Sources */,
+				56B036251E8D9F4C003B6DA4 /* SimplePlayersViewController.swift in Sources */,
 				56B036221E8D9F4C003B6DA4 /* DemoViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -770,7 +770,6 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
-				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_VERSION = 4.0;
 				VALIDATE_PRODUCT = YES;
