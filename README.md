@@ -2592,7 +2592,7 @@ struct Place: Codable {
 extension Place: FetchableRecord, PersistableRecord { }
 ```
 
-GRDB ships with support for nested codable records, but this is a more complex topic. See [Joined Queries Support](#joined-queries-support) for more information.
+GRDB ships with support for nested codable records, but this is a more complex topic. See [Associations](Documentation/AssociationsBasics.md) for more information.
 
 As documented with the [PersistableRecord] protocol, have your struct records use MutablePersistableRecord instead of PersistableRecord when they store their automatically incremented row id:
 
@@ -3334,7 +3334,7 @@ try db.create(table: "example", temporary: true, ifNotExists: true) { t in
 
 > :bulb: **Tip**: database table names should be singular, and camel-cased. Make them look like Swift identifiers: `place`, `country`, `postalAddress`, 'httpRequest'.
 >
-> This will help you using the new [Associations](Documentation/AssociationsBasics.md) feature when you need it. Database table names that follow another naming convention are totally OK, but you will need to perform extra configuration.
+> This will help you using [Associations](Documentation/AssociationsBasics.md) when you need them. Database table names that follow another naming convention are totally OK, but you will need to perform extra configuration.
 
 **Add regular columns** with their name and eventual type (text, integer, double, numeric, boolean, blob, date and datetime) - see [SQLite data types](https://www.sqlite.org/datatype3.html):
 
