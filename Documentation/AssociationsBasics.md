@@ -656,6 +656,16 @@ let author: Author = ...
 let books = try author.books.fetchAll(db)   // [Book]
 ```
 
+Requests for associated records can be filtered and ordered like all [query interface requests]:
+
+```swift
+let novels = try author
+    .books
+    .filter(Column("kind") == BookKind.novel)
+    .order(Column("publicationDate").desc)
+    .fetchAll(db)
+```
+
 Those requests can also turn out useful when you want to track their changes with database observation tools like [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB):
 
 ```swift
