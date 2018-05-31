@@ -305,7 +305,7 @@ This sample code only works if the database table for authors is called "author"
 If the database schema does not follow this convention, and has, for example, database tables named with plural names (`authors` and `books`), you can still use associations. But you need to help row consumption by providing the required key:
 
 ```swift
-// Setup for a customized table name
+// Setup for customized table names
 
 struct Author: FetchableRecord, TableRecord {
     // Customized table name
@@ -313,6 +313,9 @@ struct Author: FetchableRecord, TableRecord {
 }
 
 struct Book: FetchableRecord, TableRecord {
+    // Customized table name
+    static let databaseTableName = "books"
+    
     // Explicit association key
     static let author = belongsTo(Author.self, key: "author")
 }
