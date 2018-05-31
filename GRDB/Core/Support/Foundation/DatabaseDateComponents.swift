@@ -75,9 +75,14 @@ public struct DatabaseDateComponents : DatabaseValueConvertible, StatementColumn
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
-        let cString = UnsafePointer<Int8>(OpaquePointer(sqlite3_column_text(sqliteStatement, index)!))
+        guard let cString = sqlite3_column_text(sqliteStatement, index) else {
+            fatalError("could not convert database value \(DatabaseValue(sqliteStatement: sqliteStatement, index: index)) to DatabaseDateComponents")
+        }
         let length = Int(sqlite3_column_bytes(sqliteStatement, index)) // avoid an strlen
-        guard let components = SQLiteDateParser().components(cString: cString, length: length) else {
+        let optionalComponents = cString.withMemoryRebound(to: Int8.self, capacity: length + 1 /* trailing \0 */) { cString in
+            SQLiteDateParser().components(cString: cString, length: length)
+        }
+        guard let components = optionalComponents else {
             fatalError("could not convert database value \(String(cString: cString)) to DatabaseDateComponents")
         }
         self.dateComponents = components.dateComponents
