@@ -137,17 +137,27 @@ Each one of the three types of associations is appropriate for a particular data
 
 The **BelongsTo** association sets up a one-to-one connection from a record type to another record type, such as each instance of the declaring record "belongs to" an instance of the other record.
 
-For example, if your application includes authors and books, and each book is assigned its author, you'd declare the association this way:
+For example, if your application includes authors and books, and each book is assigned its author, you'd declare the `Book.author` association as below, with its companion property:
 
 ```swift
 struct Book: TableRecord {
     static let author = belongsTo(Author.self)
+    var author: QueryInterfaceRequest<Author> {
+        return request(for: Book.author)
+    }
     ...
 }
 
 struct Author: TableRecord {
     ...
 }
+```
+
+The `Book.author` association will help you build [association requests]. The property lets you fetch a book's author:
+
+```swift
+let book: Book = ...
+let author = try book.author.fetchOne(db) // Author?
 ```
 
 The **BelongsTo** association between a book and its author needs that the database table for books has a column that points to the table for authors:
@@ -161,17 +171,27 @@ See [Convention for the BelongsTo Association] for some sample code that defines
 
 The **HasOne** association also sets up a one-to-one connection from a record type to another record type, but with different semantics, and underlying database schema. It is usually used when an entity has been denormalized into two database tables.
 
-For example, if your application has one database table for countries, and another for their demographic profiles, you'd declare the association this way:
+For example, if your application has one database table for countries, and another for their demographic profiles, you'd declare the `Country.demographics` association as below, with its companion property:
 
 ```swift
 struct Country: TableRecord {
     static let demographics = hasOne(Demographics.self)
+    var demographics: QueryInterfaceRequest<Demographics> {
+        return request(for: Country.demographics)
+    }
     ...
 }
 
 struct Demographics: TableRecord {
     ...
 }
+```
+
+The `Country.demographics` association will help you build [association requests]. The property lets you fetch a country's demographic profile:
+
+```swift
+let country: Country = ...
+let demographics = try country.demographics.fetchOne(db) // Demographics?
 ```
 
 The **HasOne** association between a country and its demographics needs that the database table for demographics has a column that points to the table for countries:
@@ -185,16 +205,26 @@ See [Convention for the HasOne Association] for some sample code that defines th
 
 The **HasMany** association indicates a one-to-many connection between two record types, such as each instance of the declaring record "has many" instances of the other record. You'll often find this association on the other side of a **BelongsTo** association.
 
-For example, if your application includes authors and books, and each author is assigned zero or more books, you'd declare the association this way:
+For example, if your application includes authors and books, and each author is assigned zero or more books, you'd declare the `Author.books` association as below, with its companion property:
 
 ```swift
 struct Author: TableRecord {
     static let books = hasMany(Book.self)
+    var books: QueryInterfaceRequest<Book> {
+        return request(for: Author.books)
+    }
 }
 
 struct Book: TableRecord {
     ...
 }
+```
+
+The `Author.books` association will help you build [association requests]. The property lets you fetch an author's books:
+
+```swift
+let author: Author = ...
+let books = try author.books.fetchAll(db) // [Book]
 ```
 
 The **HasMany** association between an author and its books needs that the database table for books has a column that points to the table for authors:
@@ -1413,3 +1443,4 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Row Adapters]: ../README.md#row-adapters
 [query interface requests]: ../README.md#requests
 [TableRecord]: ../README.md#tablerecord-protocol
+[association requests]: #building-requests-from-associations
