@@ -662,7 +662,7 @@ Requests for associated records can be filtered and ordered like all [query inte
 let novels = try author
     .books
     .filter(Column("kind") == BookKind.novel)
-    .order(Column("publicationDate").desc)
+    .order(Column("publishDate").desc)
     .fetchAll(db)
 ```
 
