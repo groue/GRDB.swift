@@ -281,17 +281,13 @@ Make them look like Swift identifiers: `book`, `author`, `postalAddress`.
 This convention helps fetching values from associations. It is used, for example, in the sample code below, where we load all pairs of books along with their authors:
 
 ```swift
-// The Book record
-struct Book: FetchableRecord, TableRecord {
-    static let databaseTableName = "book"
-    static let author = belongsTo(Author.self)
-    ...
-}
-
 // The Author record
 struct Author: FetchableRecord, TableRecord {
-    static let databaseTableName = "author"
-    ...
+}
+
+// The Book record
+struct Book: FetchableRecord, TableRecord {
+    static let author = belongsTo(Author.self)
 }
 
 // A pair made of a book and its author
@@ -304,13 +300,21 @@ let request = Book.including(optional: Book.author)
 let bookInfos = BookInfo.fetchAll(db, request)
 ```
 
-This sample code only works if the database table for authors is called "author". This name "author" is the key that helps BookInfo initialize its `author` property.
+This sample code only works if the database table for authors is called "author". The name "author" is the key that helps BookInfo initialize its `author` property. For your convenience, "author" is also the default value of the `Author.databaseTableName` property (see the [TableRecord] protocol).
 
 If the database schema does not follow this convention, and has, for example, database tables named with plural names (`authors` and `books`), you can still use associations. But you need to help row consumption by providing the required key:
 
 ```swift
+// Setup for a customized table name
+
+struct Author: FetchableRecord, TableRecord {
+    // Customized table name
+    static let databaseTableName = "authors"
+}
+
 struct Book: FetchableRecord, TableRecord {
-    static let author = belongsTo(Author.self).forKey("author") // <-
+    // Explicit association key
+    static let author = belongsTo(Author.self, key: "author")
 }
 ```
 
@@ -356,12 +360,10 @@ Following this convention lets you write, for example:
 
 ```swift
 struct Book: FetchableRecord, TableRecord {
-    static let databaseTableName = "book"
     static let author = belongsTo(Author.self)
 }
 
 struct Author: FetchableRecord, TableRecord {
-    static let databaseTableName = "author"
 }
 ```
 
@@ -416,12 +418,10 @@ Following this convention lets you write, for example:
 
 ```swift
 struct Country: FetchableRecord, TableRecord {
-    static let databaseTableName = "country"
     static let demographics = hasOne(Demographics.self)
 }
 
 struct Demographics: FetchableRecord, TableRecord {
-    static let databaseTableName = "demographics"
 }
 ```
 
@@ -475,11 +475,9 @@ Following this convention lets you write, for example:
 
 ```swift
 struct Book: FetchableRecord, TableRecord {
-    static let databaseTableName = "book"
 }
 
 struct Author: FetchableRecord, TableRecord {
-    static let databaseTableName = "author"
     static let books = hasMany(Book.self)
 }
 ```
@@ -1194,7 +1192,7 @@ Association keys can also be defined right into the definition of the associatio
 
 ```swift
 struct Book {
-    static let author = belongsTo(Person.self).forKey("author")
+    static let author = belongsTo(Person.self, key: "author")
 }
 
 let request = Book
@@ -1411,3 +1409,4 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Future Directions]: #future-directions
 [Row Adapters]: ../README.md#row-adapters
 [query interface requests]: ../README.md#requests
+[TableRecord]: ../README.md#tablerecord-protocol
