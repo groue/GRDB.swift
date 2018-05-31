@@ -993,17 +993,17 @@ let request = Book
 **Table aliases** can be given a name. This name is guaranteed to be used as the table alias in the SQL query. This guarantee lets you write SQL snippets when you need it:
 
 ```swift
-// SELECT myBook.*
-// FROM book myBook
-// JOIN person myAuthor ON myAuthor.id = myBook.authorId
-//                     AND myAuthor.countryCode = 'FR'
-// WHERE myBook.publishDate >= myAuthor.deathDate
-let bookAlias = TableAlias(name: "myBook")
-let authorAlias = TableAlias(name: "myAuthor")
+// SELECT b.*
+// FROM book b
+// JOIN person a ON a.id = b.authorId
+//              AND a.countryCode = 'FR'
+// WHERE b.publishDate >= a.deathDate
+let bookAlias = TableAlias(name: "b")
+let authorAlias = TableAlias(name: "a")
 let request = Book.aliased(bookAlias)
     .joining(required: Book.author.aliased(authorAlias)
-        .filter(sql: "myAuthor.countryCode = ?", arguments: ["FR"]))
-    .filter(sql: "myBook.publishDate >= myAuthor.deathDate")
+        .filter(sql: "a.countryCode = ?", arguments: ["FR"]))
+    .filter(sql: "b.publishDate >= a.deathDate")
 ```
 
 > :point_up: **Note**: avoid reusing table aliases between several tables or requests, because you will get a fatal error:
