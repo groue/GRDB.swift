@@ -1006,6 +1006,15 @@ let request = Book.aliased(bookAlias)
     .filter(sql: "myBook.publishDate >= myAuthor.deathDate")
 ```
 
+> :point_up: **Note**: avoid reusing table aliases between several tables or requests, because you will get a fatal error:
+>
+> ```swift
+> // Fatal error: A TableAlias most not be used to refer to multiple tables
+> let alias = TableAlias()
+> let books = Book.aliased(alias)...
+> let people = Person.aliased(alias)...
+> ```
+
 
 Fetching Values from Associations
 =================================

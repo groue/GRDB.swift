@@ -204,10 +204,16 @@ public class TableAlias: Hashable {
         case .undefined(let userName):
             self.impl = .table(tableName: tableName, userName: userName)
         case .table(tableName: let initialTableName, userName: _):
+            // It is a programmer error to reuse the same TableAlias for
+            // multiple tables.
+            //
+            //      // Don't do that
+            //      let alias = TableAlias()
+            //      let books = Book.aliased(alias)...
+            //      let authors = Author.aliased(alias)...
             GRDBPrecondition(
                 tableName.lowercased() == initialTableName.lowercased(),
-                // Likely a GRDB bug
-                "Can't change table name of a table alias")
+                "A TableAlias most not be used to refer to multiple tables")
         case .proxy(let base):
             base.setTableName(tableName)
         }
@@ -241,6 +247,12 @@ extension Array where Element == TableAlias {
     fileprivate var resolvedNames: [TableAlias: String] {
         // It is a programmer error to reuse the same TableAlias for
         // multiple tables.
+        //
+        //      // Don't do that
+        //      let alias = TableAlias()
+        //      let request = Book
+        //          .including(required: Book.author.aliased(alias)...)
+        //          .including(required: Book.author.aliased(alias)...)
         GRDBPrecondition(count == Set(self).count, "A TableAlias most not be used to refer to multiple tables")
         
         let groups = Dictionary(grouping: self) {
