@@ -25,12 +25,12 @@ struct AppDatabase {
     static var migrator: DatabaseMigrator {
         var migrator = DatabaseMigrator()
         
-        migrator.registerMigration("createPlayerTable") { db in
+        migrator.registerMigration("createPlayer") { db in
             // Create a table
             // See https://github.com/groue/GRDB.swift#create-tables
             try db.create(table: "player") { t in
-                // An integer primary key auto-increment unique IDs
-                t.autoIncrementedPrimaryKey("id")
+                // An integer primary key auto-generates unique IDs
+                t.column("id", .integer).primaryKey()
                 
                 // Sort player names in a localized case insensitive fashion by default
                 // See https://github.com/groue/GRDB.swift/#unicode
@@ -41,13 +41,13 @@ struct AppDatabase {
         }
         
         migrator.registerMigration("fixtures") { db in
-            // Populate the player table with random data
+            // Populate the players table with random data
             for _ in 0..<8 {
                 var player = Player(id: nil, name: Player.randomName(), score: Player.randomScore())
                 try player.insert(db)
             }
         }
-
+        
 //        // Migrations for future application versions will be inserted here:
 //        migrator.registerMigration(...) { db in
 //            ...
@@ -56,3 +56,4 @@ struct AppDatabase {
         return migrator
     }
 }
+

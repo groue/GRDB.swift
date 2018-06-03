@@ -6,8 +6,8 @@ protocol PlayerEditionViewControllerDelegate: class {
 
 class PlayerEditionViewController: UITableViewController {
     weak var delegate: PlayerEditionViewControllerDelegate?
-    var player: Player!
-    var commitButtonHidden: Bool = false
+    var player: Player! { didSet { configureView() } }
+    var commitButtonHidden: Bool = false { didSet { configureView() } }
 
     @IBOutlet fileprivate weak var cancelBarButtonItem: UIBarButtonItem!
     @IBOutlet fileprivate weak var commitBarButtonItem: UIBarButtonItem!
@@ -16,18 +16,16 @@ class PlayerEditionViewController: UITableViewController {
     @IBOutlet fileprivate weak var scoreCell: UITableViewCell!
     @IBOutlet fileprivate weak var scoreTextField: UITextField!
     
-    func applyChanges() {
-        player.name = nameTextField.text ?? ""
-        player.score = scoreTextField.text.flatMap { Int($0) } ?? 0
-    }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         configureView()
     }
     
-    private func configureView() {
+    fileprivate func configureView() {
+        guard isViewLoaded else { return }
+        
         nameTextField.text = player.name
+        
         if player.score == 0 && player.id == nil {
             scoreTextField.text = ""
         } else {
@@ -55,11 +53,18 @@ extension PlayerEditionViewController {
         return true
     }
     
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "Commit" {
+            applyChanges()
+        }
+    }
+    
     override func willMove(toParentViewController parent: UIViewController?) {
         super.willMove(toParentViewController: parent)
         
         if parent == nil {
             // Self is popping from its navigation controller
+            applyChanges()
             delegate?.playerEditionControllerDidComplete(self)
         }
     }
@@ -91,5 +96,14 @@ extension PlayerEditionViewController: UITextFieldDelegate {
             scoreTextField.becomeFirstResponder()
         }
         return false
+    }
+    
+    private func applyChanges() {
+        guard var player = self.player else {
+            return
+        }
+        player.name = nameTextField.text ?? ""
+        player.score = scoreTextField.text.flatMap { Int($0) } ?? 0
+        self.player = player
     }
 }
