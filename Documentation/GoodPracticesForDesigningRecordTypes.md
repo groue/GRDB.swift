@@ -158,7 +158,7 @@ struct AuthorInfo {
     var author: Author
     var books: [Book]
 }
-let authorInfo = try dbQueue.read { db -> AuthorInfo? in
+let authorInfo: AuthorInfo? = try dbQueue.read { db in
     guard let author = try Author.fetchOne(db, key: 123) else {
         return nil
     }
@@ -171,7 +171,7 @@ struct Authorship: Decodable, FetchableRecord {
     var book: Book
     var author: Author
 }
-let authorships = try dbQueue.read { db -> [Authorship] in
+let authorships: [Authorship] = try dbQueue.read { db in
     let request = Book.including(required: Book.author)
     return try Authorship.fetchAll(db, request)
 }
