@@ -670,6 +670,7 @@ extension Database {
             switch completion {
             case .commit:
                 try execute("RELEASE SAVEPOINT grdb")
+                assert(!topLevelSavepoint || !isInsideTransaction)
                 needsRollback = false
             case .rollback:
                 needsRollback = true
@@ -759,11 +760,13 @@ extension Database {
         if sqlite3_get_autocommit(sqliteConnection) == 0 {
             try execute("ROLLBACK TRANSACTION")
         }
+        assert(!isInsideTransaction)
     }
     
     /// Commits a database transaction.
     public func commit() throws {
         try execute("COMMIT TRANSACTION")
+        assert(!isInsideTransaction)
     }
 }
 
