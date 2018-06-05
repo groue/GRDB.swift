@@ -24,6 +24,7 @@ It comes with new features, but also a few breaking changes, and a set of update
 - Request derivation protocols ([#329](https://github.com/groue/GRDB.swift/pull/329)).
 - Preliminary Linux support for the main framework ([#354](https://github.com/groue/GRDB.swift/pull/354)).
 - Automatic table name generation ([#355](https://github.com/groue/GRDB.swift/pull/355)).
+- Delayed Request Ordering ([#365](https://github.com/groue/GRDB.swift/pull/365)).
 
 
 ### Breaking Changes
