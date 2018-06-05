@@ -529,7 +529,7 @@ extension MutablePersistableRecord {
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
     public func performUpdate(_ db: Database, columns: Set<String>) throws {
-        guard let statement = try DAO(db, self).updateStatement(columns: columns, onConflict: type(of: self).persistenceConflictPolicy.conflictResolutionForUpdate) else {
+        guard let statement = try DAO(db, self).updateStatement(db, columns: columns, onConflict: type(of: self).persistenceConflictPolicy.conflictResolutionForUpdate) else {
             // Nil primary key
             throw PersistenceError.recordNotFound(self)
         }
@@ -903,7 +903,7 @@ final class DAO {
     }
     
     /// Returns nil if and only if primary key is nil
-    func updateStatement(columns: Set<String>, onConflict: Database.ConflictResolution) throws -> UpdateStatement? {
+    func updateStatement(_ db: Database, columns: Set<String>, onConflict: Database.ConflictResolution) throws -> UpdateStatement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = primaryKeyColumns.map {
@@ -911,17 +911,17 @@ final class DAO {
         }
         guard primaryKeyValues.contains(where: { !$0.isNull }) else { return nil }
         
-        let lowercasePersistentColumns = Set(persistenceContainer.columns.map { $0.lowercased() })
-        let lowercasePrimaryKeyColumns = Set(primaryKeyColumns.map { $0.lowercased() })
-        var updatedColumns: [String] = []
-        for column in columns {
-            let lowercaseColumn = column.lowercased()
-            // Don't update columns that are not present in the persistenceContainer
-            guard lowercasePersistentColumns.contains(lowercaseColumn) else { continue }
-            // Don't update primary key columns
-            guard !lowercasePrimaryKeyColumns.contains(lowercaseColumn) else { continue }
-            updatedColumns.append(column)
-        }
+        // Don't update columns not present in columns
+        // Don't update columns not present in the persistenceContainer
+        // Don't update primary key columns
+        let lowercaseUpdatedColumns = Set(columns.map { $0.lowercased() })
+            .intersection(persistenceContainer.columns.map { $0.lowercased() })
+            .subtracting(primaryKeyColumns.map { $0.lowercased() })
+        
+        var updatedColumns: [String] = try db
+            .columns(in: databaseTableName)
+            .map { $0.name }
+            .filter { lowercaseUpdatedColumns.contains($0.lowercased()) }
         
         if updatedColumns.isEmpty {
             // IMPLEMENTATION NOTE
@@ -934,6 +934,7 @@ final class DAO {
             // including tables made of a single primary key column.
             updatedColumns = primaryKeyColumns
         }
+        
         let updatedValues = updatedColumns.map {
             persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
         }

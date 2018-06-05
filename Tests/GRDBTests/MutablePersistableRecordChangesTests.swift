@@ -264,7 +264,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
                 let totalChangesCount = db.totalChangesCount
                 try XCTAssertTrue(newPlayer.updateChanges(db, from: oldPlayer))
                 XCTAssertEqual(db.totalChangesCount, totalChangesCount + 1)
-                XCTAssertEqual(lastSQLQuery, "UPDATE \"players\" SET \"NAME\"='Bobby' WHERE \"id\"=1")
+                XCTAssertEqual(lastSQLQuery, "UPDATE \"players\" SET \"name\"='Bobby' WHERE \"id\"=1")
                 return .rollback
             }
         }

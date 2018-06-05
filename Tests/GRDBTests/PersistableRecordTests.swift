@@ -240,7 +240,7 @@ class PersistableRecordTests: GRDBTestCase {
             do {
                 person1.name = "David"
                 try person1.update(db, columns: ["AgE"])    // case insensitivity
-                XCTAssertEqual(self.lastSQLQuery, "UPDATE \"persons\" SET \"AgE\"=25 WHERE \"id\"=1")
+                XCTAssertEqual(self.lastSQLQuery, "UPDATE \"persons\" SET \"age\"=25 WHERE \"id\"=1")
                 
                 let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
                 XCTAssertEqual(rows.count, 2)
