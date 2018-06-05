@@ -174,6 +174,14 @@ extension Database {
             return IndexInfo(name: indexName, columns: columns, unique: unique)
         }
         
+        if indexes.isEmpty {
+            // PRAGMA index_list doesn't throw any error when table does
+            // not exist. So let's check if table exists:
+            if try tableExists(tableName) == false {
+                throw DatabaseError(message: "no such table: \(tableName)")
+            }
+        }
+        
         schemaCache.set(indexes: indexes, forTable: tableName)
         return indexes
     }
@@ -205,6 +213,14 @@ extension Database {
             } else {
                 rawForeignKeys.append((destinationTable: table, mapping: [(origin: origin, destination: destination, seq: seq)]))
                 previousId = id
+            }
+        }
+        
+        if rawForeignKeys.isEmpty {
+            // PRAGMA foreign_key_list doesn't throw any error when table does
+            // not exist. So let's check if table exists:
+            if try tableExists(tableName) == false {
+                throw DatabaseError(message: "no such table: \(tableName)")
             }
         }
         
