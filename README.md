@@ -2360,8 +2360,8 @@ try Document.fetchOne(db, key: 1)            // Document?
 For multiple-column primary keys and unique keys defined by unique indexes, provide a dictionary:
 
 ```swift
-// SELECT * FROM citizenship WHERE playerID = 1 AND countryISOCode = 'FR'
-try Citizenship.fetchOne(db, key: ["playerID": 1, "countryISOCode": "FR"]) // Citizenship?
+// SELECT * FROM citizenship WHERE citizenId = 1 AND countryCode = 'FR'
+try Citizenship.fetchOne(db, key: ["citizenId": 1, "countryCode": "FR"]) // Citizenship?
 ```
 
 
@@ -3547,8 +3547,8 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     // SELECT * FROM country WHERE isoCode IN ('FR', 'US')
     Country.filter(keys: ["FR", "US"])
     
-    // SELECT * FROM citizenship WHERE playerID = 1 AND countryISOCode = 'FR'
-    Citizenship.filter(key: ["playerID": 1, "countryISOCode": "FR"])
+    // SELECT * FROM citizenship WHERE citizenId = 1 AND countryCode = 'FR'
+    Citizenship.filter(key: ["citizenId": 1, "countryCode": "FR"])
     
     // SELECT * FROM player WHERE email = 'arthur@example.com'
     Player.filter(key: ["email": "arthur@example.com"])
@@ -3598,6 +3598,19 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     ```swift
     // SELECT * FROM player ORDER BY name
     Player.order(scoreColumn).order(nameColumn)
+    ```
+
+    `orderByPrimaryKey()` sorts by primary key:
+    
+    ```swift
+    // SELECT * FROM player ORDER BY id
+    Player.orderByPrimaryKey()
+    
+    // SELECT * FROM country ORDER BY code
+    Country.orderByPrimaryKey()
+    
+    // SELECT * FROM citizenship ORDER BY citizenId, countryCode
+    Citizenship.orderByPrimaryKey()
     ```
 
 - `reversed()` reverses the eventual orderings.
@@ -3970,8 +3983,8 @@ try Document.fetchOne(db, key: 1)            // Document?
 For multiple-column primary keys and unique keys defined by unique indexes, provide a dictionary:
 
 ```swift
-// SELECT * FROM citizenship WHERE playerID = 1 AND countryISOCode = 'FR'
-try Citizenship.fetchOne(db, key: ["playerID": 1, "countryISOCode": "FR"]) // Citizenship?
+// SELECT * FROM citizenship WHERE citizenId = 1 AND countryCode = 'FR'
+try Citizenship.fetchOne(db, key: ["citizenId": 1, "countryCode": "FR"]) // Citizenship?
 
 // SELECT * FROM player WHERE email = 'arthur@example.com'
 try Player.fetchOne(db, key: ["email": "arthur@example.com"])              // Player?
@@ -3996,8 +4009,8 @@ let country = try request.fetchOne(db)   // Country?
 let request = Country.filter(keys: ["FR", "US"])
 let countries = try request.fetchAll(db) // [Country]
 
-// SELECT * FROM citizenship WHERE playerID = 1 AND countryISOCode = 'FR'
-let request = Citizenship.filter(key: ["playerID": 1, "countryISOCode": "FR"])
+// SELECT * FROM citizenship WHERE citizenId = 1 AND countryCode = 'FR'
+let request = Citizenship.filter(key: ["citizenId": 1, "countryCode": "FR"])
 let citizenship = request.fetchOne(db)   // Citizenship?
 
 // SELECT * FROM player WHERE email = 'arthur@example.com'
@@ -4086,8 +4099,8 @@ try Document.deleteOne(db, key: 1)
 For multiple-column primary keys and unique keys defined by unique indexes, provide a dictionary:
 
 ```swift
-// DELETE FROM citizenship WHERE playerID = 1 AND countryISOCode = 'FR'
-try Citizenship.deleteOne(db, key: ["playerID": 1, "countryISOCode": "FR"])
+// DELETE FROM citizenship WHERE citizenId = 1 AND countryCode = 'FR'
+try Citizenship.deleteOne(db, key: ["citizenId": 1, "countryCode": "FR"])
 
 // DELETE FROM player WHERE email = 'arthur@example.com'
 Player.deleteOne(db, key: ["email": "arthur@example.com"])
@@ -5775,7 +5788,7 @@ let controller = FetchedRecordsController(
 // Using SQL, and eventual arguments:
 let controller = FetchedRecordsController<Player>(
     dbQueue,
-    sql: "SELECT * FROM player ORDER BY name WHERE countryIsoCode = ?",
+    sql: "SELECT * FROM player ORDER BY name WHERE countryCode = ?",
     arguments: ["FR"])
 ```
 
