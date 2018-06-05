@@ -379,7 +379,19 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             XCTAssertTrue(fetchedRecord.id == record.id)
         }
     }
-
+    
+    
+    // MARK: - Order By Primary Key
+    
+    func testOrderByPrimaryKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request = MinimalRowID.orderByPrimaryKey()
+            let sqlRequest = try SQLRequest(db, request: request)
+            XCTAssertEqual(sqlRequest.sql, "SELECT * FROM \"minimalRowIDs\" ORDER BY \"id\"")
+        }
+    }
+    
 
     // MARK: - Fetch With Primary Key
     

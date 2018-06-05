@@ -458,8 +458,20 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
             XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
         }
     }
-
-
+    
+    
+    // MARK: - Order By Primary Key
+    
+    func testOrderByPrimaryKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request = Person.orderByPrimaryKey()
+            let sqlRequest = try SQLRequest(db, request: request)
+            XCTAssertEqual(sqlRequest.sql, "SELECT * FROM \"persons\" ORDER BY \"id\"")
+        }
+    }
+    
+    
     // MARK: - Fetch With Primary Key
     
     func testFetchCursorWithPrimaryKeys() throws {
