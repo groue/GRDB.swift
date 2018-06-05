@@ -100,7 +100,7 @@ extension Association {
         return mapRequest { $0.filter(predicate) }
     }
     
-    /// Creates an association with the provided *orderings*.
+    /// Creates an association with the provided *orderings promise*.
     ///
     ///     struct Player: TableRecord {
     ///         static let team = belongsTo(Team.self)
@@ -110,7 +110,7 @@ extension Association {
     ///     // FROM player
     ///     // JOIN team ON team.id = player.teamId
     ///     // ORDER BY team.name
-    ///     let association = Player.team.order(Column("name"))
+    ///     let association = Player.team.order { _ in [Column("name")] }
     ///     var request = Player.including(required: association)
     ///
     /// Any previous ordering is replaced:
@@ -120,11 +120,11 @@ extension Association {
     ///     // JOIN team ON team.id = player.teamId
     ///     // ORDER BY team.name
     ///     let association = Player.team
-    ///         .order(Column("color"))
+    ///         .order{ _ in [Column("color")] }
     ///         .reversed()
-    ///         .order(Column("name"))
+    ///         .order{ _ in [Column("name")] }
     ///     var request = Player.including(required: association)
-    public func order(_ orderings: [SQLOrderingTerm]) -> Self {
+    public func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> Self {
         return mapRequest { $0.order(orderings) }
     }
     

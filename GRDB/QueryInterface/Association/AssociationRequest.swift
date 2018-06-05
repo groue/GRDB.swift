@@ -24,7 +24,7 @@ extension AssociationRequest {
         return AssociationRequest(query: query.filter(predicate))
     }
     
-    func order(_ orderings: [SQLOrderingTerm]) -> AssociationRequest {
+    func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> AssociationRequest {
         return AssociationRequest(query: query.order(orderings))
     }
     

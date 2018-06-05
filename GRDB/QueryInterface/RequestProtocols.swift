@@ -202,6 +202,16 @@ extension TableRequest where Self: FilteredRequest {
     }
 }
 
+extension TableRequest where Self: OrderedRequest {
+    /// Creates a request ordered by primary key.
+    public func orderByPrimaryKey() -> Self {
+        let tableName = self.databaseTableName
+        return order { db in
+            try db.primaryKey(tableName).columns.map { Column($0) }
+        }
+    }
+}
+
 // MARK: - AggregatingRequest
 
 /// The protocol for all requests that can aggregate.
@@ -246,20 +256,20 @@ extension AggregatingRequest {
 
 /// The protocol for all requests that be ordered.
 public protocol OrderedRequest {
-    /// Creates a request with the provided *orderings*.
+    /// Creates a request with the provided *orderings promise*.
     ///
     ///     // SELECT * FROM player ORDER BY name
     ///     var request = Player.all()
-    ///     request = request.order([Column("name")])
+    ///     request = request.order { _ in [Column("name")] }
     ///
     /// Any previous ordering is replaced:
     ///
     ///     // SELECT * FROM player ORDER BY name
     ///     request
-    ///         .order([Column("email")])
+    ///         .order{ _ in [Column("email")] }
     ///         .reversed()
-    ///         .order([Column("name")])
-    func order(_ orderings: [SQLOrderingTerm]) -> Self
+    ///         .order{ _ in [Column("name")] }
+    func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> Self
     
     /// Creates a request that reverses applied orderings.
     ///
@@ -290,7 +300,24 @@ extension OrderedRequest {
     ///         .reversed()
     ///         .order(Column("name"))
     public func order(_ orderings: SQLOrderingTerm...) -> Self {
-        return order(orderings)
+        return order { _ in orderings }
+    }
+    
+    /// Creates a request with the provided *orderings*.
+    ///
+    ///     // SELECT * FROM player ORDER BY name
+    ///     var request = Player.all()
+    ///     request = request.order(Column("name"))
+    ///
+    /// Any previous ordering is replaced:
+    ///
+    ///     // SELECT * FROM player ORDER BY name
+    ///     request
+    ///         .order(Column("email"))
+    ///         .reversed()
+    ///         .order(Column("name"))
+    public func order(_ orderings: [SQLOrderingTerm]) -> Self {
+        return order { _ in orderings }
     }
     
     /// Creates a request with the provided *sql* used for sorting.
