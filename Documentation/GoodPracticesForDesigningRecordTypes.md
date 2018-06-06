@@ -33,11 +33,11 @@ migrator.registerMigration("createLibrary") { db in
     
     try db.create(table: "book") { t in
         t.autoIncrementedPrimaryKey("id")
-        t.column("authorId", .integer)                // (4)
-            .notNull()                                // (5)
-            .indexed()                                // (6)
-            .references("author", onDelete: .cascade) // (7)
-        t.column("title", .text)                      // (8)
+        t.column("title", .text)                      // (4)
+        t.column("authorId", .integer)                // (5)
+            .notNull()                                // (6)
+            .indexed()                                // (7)
+            .references("author", onDelete: .cascade) // (8)
     }
 }
 
@@ -47,11 +47,11 @@ try migrator.migrate(dbQueue)
 1. Our database table names follow the GRDB 3 recommendation: generally speaking they should be singular, and camel-cased. Make them look like Swift identifiers: `author`, `book`, `postalAddress`, `httpRequest`.
 2. Each author has a unique id.
 3. An author must have a name.
-4. The `book.authorId` column is used to link a book to the author it belongs to.
-5. The `book.authorId` column is not null so that SQLite guarantees that all books have an author.
-6. The `book.authorId` column is indexed in order to ease the selection of an author's books.
-7. We define a foreign key from `book.authorId` column to `authors.id`, so that SQLite guarantees that no book can refer to a missing author. On top of that, the `onDelete: .cascade` option has SQLite automatically delete all of an author's books when that author is deleted. See [Foreign Key Actions] for more information.
-8. A book must have a title.
+4. A book must have a title.
+5. The `book.authorId` column is used to link a book to the author it belongs to.
+6. The `book.authorId` column is not null so that SQLite guarantees that all books have an author.
+7. The `book.authorId` column is indexed in order to ease the selection of an author's books.
+8. We define a foreign key from `book.authorId` column to `authors.id`, so that SQLite guarantees that no book can refer to a missing author. On top of that, the `onDelete: .cascade` option has SQLite automatically delete all of an author's books when that author is deleted. See [Foreign Key Actions] for more information.
 
 Thanks to this database schema, you can be confident so no matter how wrong our application goes, it will always process *consistent data*. Even after a hard crash, application will always find the author of any book, all books will have a non-nil title, etc.
 
@@ -59,7 +59,7 @@ Thanks to this database schema, you can be confident so no matter how wrong our 
 >
 > :bulb: **Tip**: Plan early for future versions of your application, and use [migrations].
 >
-> :bulb: **Tip**: In the definition of your migrations, define tables and their columns with *strings*:
+> :bulb: **Tip**: In the definition of your migrations, define tables and their columns with **strings**:
 >
 > ```swift
 > migrator.registerMigration("createLibrary") { db in
@@ -79,7 +79,7 @@ Thanks to this database schema, you can be confident so no matter how wrong our 
 >
 > By using strings, you make sure that you will not have to change the Swift code of your migrations in the future. Even if author columns eventually change. Even if the Author type eventually gets replaced with another type. Even when your startup eventually pivots and starts selling pet food. A good migration that never changes is easy to test once and for good. A good migration that never changes will run smoothly on all devices in the wild, even if a user upgrades straight from version 1.0 to version 5.0 of your application.
 >
-> So make sure that migrations don't use application types and values: migrations talk to the database, only to the database, and use the database language, which is *strings*.
+> So make sure that migrations don't use application types and values: migrations should talk to the database, only to the database, and use the database language: **strings**.
 
 
 ## Record Types are Responsible for Their Tables
