@@ -16,11 +16,11 @@ To support this guide, we'll design a simply library application that lets the u
 
 ## Trust SQLite More Than Yourself
 
-Even if you don't know SQLite and SQL well, you must know that SQLite is a robust database. It is very difficult to corrupt a database file. It can make sure that only valid information is persisted on disk.
+SQLite is a robust database. Even if you don't know it well, and aren't familiar with the SQL language, you are able to take profit from its solid foundation. It is very difficult to corrupt an SQLite database file. And it can make sure that only valid information is persisted on disk.
 
-You know that in the process of developing an application, bugs happen, right? Some bugs will even ship in the wild, and affect your application users. Thanks to SQLite, those bugs will be unable to corrupt your precious users' data if you take time to define a robust database schema.
+This is important because we developers write bugs, and some of them will ship in the wild, affecting your application users. But thanks to SQLite, those bugs will be unable to corrupt your precious users' data. All it takes a robust **database schema**.
 
-For example, if we were to define a [migration] that sets up our library database, we could write:
+For example, if we were to define a [migration] that sets up our library database, made of books and their authors, we could write:
 
 ```swift
 var migrator = DatabaseMigrator()
@@ -44,7 +44,7 @@ migrator.registerMigration("createLibrary") { db in
 try migrator.migrate(dbQueue)
 ```
 
-1. Our database table names follow the GRDB 3 recommendation: generally speaking they should be singular, and camel-cased. Make them look like Swift identifiers: `author`, `book`, `postalAddress`, 'httpRequest'.
+1. Our database table names follow the GRDB 3 recommendation: generally speaking they should be singular, and camel-cased. Make them look like Swift identifiers: `author`, `book`, `postalAddress`, `httpRequest`.
 2. Each author has a unique id.
 3. An author must have a name.
 4. The `book.authorId` column is used to link a book to the author it belongs to.
