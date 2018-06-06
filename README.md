@@ -26,7 +26,7 @@ GRDB provides raw access to SQL and advanced SQLite features, because one someti
 
 Compared to [SQLite.swift](http://github.com/stephencelis/SQLite.swift) or [FMDB](http://github.com/ccgus/fmdb), GRDB can spare you a lot of glue code. Compared to [Core Data](https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/CoreData/) or [Realm](http://realm.io), it can simplify your multi-threaded applications.
 
-It comes with [up-to-date documentation](#documentation), [general articles](https://medium.com/@gwendal.roue), [sample code](#sample-code), and a lot of interesting resolved issues that may answer your eventual [questions](https://github.com/groue/GRDB.swift/issues?utf8=✓&q=is%3Aissue%20label%3Aquestion) and foster [best practices](https://github.com/groue/GRDB.swift/issues?q=is%3Aissue+label%3A%22best+practices%22).
+It comes with [up-to-date documentation](#documentation), [general guides](#general-guides--good-practices), [sample code](#sample-code), and a [FAQ](#faq).
 
 
 ---
@@ -284,19 +284,19 @@ Documentation
 
 #### General Guides & Good Practices
 
-- [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md)
-- [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md)
-- [Migrating From GRDB 2 to GRDB 3](Documentation/GRDB2MigrationGuide.md)
-- [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3)
-- [Four different ways to handle SQLite concurrency](https://medium.com/@gwendal.roue/four-different-ways-to-handle-sqlite-concurrency-db3bcc74d00e)
-- [Unexpected SQLite with Swift](https://hackernoon.com/unexpected-sqlite-with-swift-ddc6343bcbfc)
-- [Issues tagged "question"](https://github.com/groue/GRDB.swift/issues?utf8=✓&q=is%3Aissue%20label%3Aquestion)
-- [Issues tagged "best practices"](https://github.com/groue/GRDB.swift/issues?q=is%3Aissue+label%3A%22best+practices%22)
+- :bulb: [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md)
+- :bulb: [Migrating From GRDB 2 to GRDB 3](Documentation/GRDB2MigrationGuide.md)
+- :bulb: [Issues tagged "best practices"](https://github.com/groue/GRDB.swift/issues?q=is%3Aissue+label%3A%22best+practices%22)
+- :question: [Issues tagged "question"](https://github.com/groue/GRDB.swift/issues?utf8=✓&q=is%3Aissue%20label%3Aquestion)
+- :blue_book: [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md)
+- :blue_book: [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3)
+- :blue_book: [Four different ways to handle SQLite concurrency](https://medium.com/@gwendal.roue/four-different-ways-to-handle-sqlite-concurrency-db3bcc74d00e)
+- :blue_book: [Unexpected SQLite with Swift](https://hackernoon.com/unexpected-sqlite-with-swift-ddc6343bcbfc)
 
 
-#### [FAQ](#faq)
+**[FAQ](#faq)**
 
-#### [Sample Code](#sample-code)
+**[Sample Code](#sample-code)**
 
 
 Installation
