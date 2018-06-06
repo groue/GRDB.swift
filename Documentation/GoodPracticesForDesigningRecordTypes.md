@@ -195,9 +195,7 @@ The consequence is that each part of your application will load the data it need
     
     ```swift
     let authors: [Author] = dbQueue.read { db in
-        Author
-            .order(Colum("name").collate(.localizedCaseInsensitiveCompare))
-            .fetchAll(db)
+        Author.order(Colum("name")).fetchAll(db)
     }
     ```
 
@@ -210,13 +208,8 @@ The consequence is that each part of your application will load the data it need
     }
     let authorId = 123
     let authorInfo: AuthorInfo? = dbQueue.read { db in
-        guard let author = try Author.fetchOne(db, key: authorId) else {
-            return nil
-        }
-        let books = try author
-            .books
-            .order(Column("publishDate").desc)
-            .fetchAll(db)
+        guard let author = try Author.fetchOne(db, key: authorId) else { return nil }
+        let books = try author.books.order(Column("publishDate").desc).fetchAll(db)
         return AuthorInfo(author: author, books: books)
     }
     ```
@@ -230,9 +223,7 @@ The consequence is that each part of your application will load the data it need
     }
     let bookId = 123
     let bookInfo: BookInfo? = dbQueue.read { db in
-        guard let book = try Book.fetchOne(db, key: bookId) else {
-            return nil
-        }
+        guard let book = try Book.fetchOne(db, key: bookId) else { return nil }
         let author = try book.author.fetchOne(db)!
         return BookInfo(book: book, author: author)
     }
