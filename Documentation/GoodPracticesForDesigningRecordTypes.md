@@ -159,9 +159,7 @@ struct AuthorInfo {
     var books: [Book]
 }
 let authorInfo: AuthorInfo? = try dbQueue.read { db in
-    guard let author = try Author.fetchOne(db, key: 123) else {
-        return nil
-    }
+    guard let author = try Author.fetchOne(db, key: 123) else { return nil }
     let books = try author.books.fetchAll(db)
     return AuthorInfo(author: author, books: books)
 }
@@ -240,9 +238,7 @@ The consequence is that each part of your application will load the data it need
 // RECOMMENDED
 let bookId = 123
 let bookInfo: BookInfo? = try dbQueue.read { db in
-    guard let book = try Book.fetchOne(db, key: bookId) else {
-        return nil
-    }
+    guard let book = try Book.fetchOne(db, key: bookId) else { return nil }
     let author = try book.author.fetchOne(db)!
     return BookInfo(book: book, author: author)
 }
