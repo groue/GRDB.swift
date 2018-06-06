@@ -406,8 +406,20 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             XCTAssertTrue(fetchedRecord.name == record.name)
         }
     }
-
-
+    
+    
+    // MARK: - Order By Primary Key
+    
+    func testOrderByPrimaryKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request = Pet.orderByPrimaryKey()
+            let sqlRequest = try SQLRequest(db, request: request)
+            XCTAssertEqual(sqlRequest.sql, "SELECT * FROM \"pets\" ORDER BY \"UUID\"")
+        }
+    }
+    
+    
     // MARK: - Fetch With Primary Key
     
     func testFetchCursorWithPrimaryKeys() throws {

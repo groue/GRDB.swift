@@ -104,7 +104,7 @@ extension QueryInterfaceQuery {
         return query
     }
 
-    func order(_ orderings: [SQLOrderingTerm]) -> QueryInterfaceQuery {
+    func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> QueryInterfaceQuery {
         return order(QueryOrdering(orderings: orderings))
     }
     
@@ -248,7 +248,7 @@ extension QueryInterfaceQuery {
             sql += " HAVING " + havingExpression.expressionSQL(&context)
         }
         
-        let orderings = finalizedOrdering.resolve()
+        let orderings = try finalizedOrdering.resolve(db)
         if !orderings.isEmpty {
             sql += " ORDER BY " + orderings.map { $0.orderingTermSQL(&context) }.joined(separator: ", ")
         }
@@ -300,7 +300,7 @@ extension QueryInterfaceQuery {
         }
         
         if let limit = limit {
-            let orderings = finalizedOrdering.resolve()
+            let orderings = try finalizedOrdering.resolve(db)
             if !orderings.isEmpty {
                 sql += " ORDER BY " + orderings.map { $0.orderingTermSQL(&context) }.joined(separator: ", ")
             }
@@ -516,88 +516,6 @@ struct AssociationJoin {
         }
         
         return sql
-    }
-}
-
-// MARK: - QueryOrdering
-
-struct QueryOrdering {
-    private var elements: [Element] = []
-    var isReversed: Bool
-    
-    private enum Element {
-        case orderingTerm(SQLOrderingTerm)
-        case queryOrdering(QueryOrdering)
-        
-        var reversed: Element {
-            switch self {
-            case .orderingTerm(let orderingTerm):
-                return .orderingTerm(orderingTerm.reversed)
-            case .queryOrdering(let queryOrdering):
-                return .queryOrdering(queryOrdering.reversed)
-            }
-        }
-        
-        func qualified(with alias: TableAlias) -> Element {
-            switch self {
-            case .orderingTerm(let orderingTerm):
-                return .orderingTerm(orderingTerm.qualifiedOrdering(with: alias))
-            case .queryOrdering(let queryOrdering):
-                return .queryOrdering(queryOrdering.qualified(with: alias))
-            }
-        }
-        
-        func resolve() -> [SQLOrderingTerm] {
-            switch self {
-            case .orderingTerm(let orderingTerm):
-                return [orderingTerm]
-            case .queryOrdering(let queryOrdering):
-                return queryOrdering.resolve()
-            }
-        }
-    }
-    
-    private init(elements: [Element], isReversed: Bool) {
-        self.elements = elements
-        self.isReversed = isReversed
-    }
-    
-    init() {
-        self.init(
-            elements: [],
-            isReversed: false)
-    }
-    
-    init(orderings: [SQLOrderingTerm]) {
-        self.init(
-            elements: orderings.map { .orderingTerm($0) },
-            isReversed: false)
-    }
-    
-    var reversed: QueryOrdering {
-        return QueryOrdering(
-            elements: elements,
-            isReversed: !isReversed)
-    }
-    
-    func qualified(with alias: TableAlias) -> QueryOrdering {
-        return QueryOrdering(
-            elements: elements.map { $0.qualified(with: alias) },
-            isReversed: isReversed)
-    }
-    
-    func appending(_ ordering: QueryOrdering) -> QueryOrdering {
-        return QueryOrdering(
-            elements: elements + [.queryOrdering(ordering)],
-            isReversed: isReversed)
-    }
-    
-    func resolve() -> [SQLOrderingTerm] {
-        if isReversed {
-            return elements.flatMap { $0.reversed.resolve() }
-        } else {
-            return elements.flatMap { $0.resolve() }
-        }
     }
 }
 

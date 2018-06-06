@@ -45,7 +45,7 @@ extension AssociationQuery {
         return query
     }
     
-    func order(_ orderings: [SQLOrderingTerm]) -> AssociationQuery {
+    func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> AssociationQuery {
         return order(QueryOrdering(orderings: orderings))
     }
     

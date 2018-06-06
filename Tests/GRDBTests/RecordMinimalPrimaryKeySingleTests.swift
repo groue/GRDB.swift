@@ -395,8 +395,20 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             XCTAssertTrue(fetchedRecord.UUID == record.UUID)
         }
     }
-
-
+    
+    
+    // MARK: - Order By Primary Key
+    
+    func testOrderByPrimaryKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request = MinimalSingle.orderByPrimaryKey()
+            let sqlRequest = try SQLRequest(db, request: request)
+            XCTAssertEqual(sqlRequest.sql, "SELECT * FROM \"minimalSingles\" ORDER BY \"UUID\"")
+        }
+    }
+    
+    
     // MARK: - Fetch With Primary Key
     
     func testFetchCursorWithPrimaryKeys() throws {

@@ -401,8 +401,20 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             XCTAssertTrue(fetchedRecord.email == record.email)
         }
     }
-
-
+    
+    
+    // MARK: - Order By Primary Key
+    
+    func testOrderByPrimaryKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request = Email.orderByPrimaryKey()
+            let sqlRequest = try SQLRequest(db, request: request)
+            XCTAssertEqual(sqlRequest.sql, "SELECT * FROM \"emails\" ORDER BY \"email\"")
+        }
+    }
+    
+    
     // MARK: - Fetch With Primary Key
     
     func testFetchCursorWithPrimaryKeys() throws {

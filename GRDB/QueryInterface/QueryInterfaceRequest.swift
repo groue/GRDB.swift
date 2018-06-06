@@ -97,20 +97,20 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
         return QueryInterfaceRequest(query: query.having(predicate))
     }
     
-    /// Creates a request with the provided *orderings*.
+    /// Creates a request with the provided *orderings promise*.
     ///
     ///     // SELECT * FROM player ORDER BY name
     ///     var request = Player.all()
-    ///     request = request.order([Column("name")])
+    ///     request = request.order { _ in [Column("name")] }
     ///
     /// Any previous ordering is replaced:
     ///
     ///     // SELECT * FROM player ORDER BY name
     ///     request
-    ///         .order([Column("email")])
+    ///         .order{ _ in [Column("email")] }
     ///         .reversed()
-    ///         .order([Column("name")])
-    public func order(_ orderings: [SQLOrderingTerm]) -> QueryInterfaceRequest<T> {
+    ///         .order{ _ in [Column("name")] }
+    public func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> QueryInterfaceRequest<T> {
         return QueryInterfaceRequest(query: query.order(orderings))
     }
     
@@ -358,6 +358,21 @@ extension TableRecord {
     /// for individual requests with the `TableRecord.select` method.
     public static func order(_ orderings: [SQLOrderingTerm]) -> QueryInterfaceRequest<Self> {
         return all().order(orderings)
+    }
+    
+    /// Creates a request sorted by primary key.
+    ///
+    ///     // SELECT * FROM player ORDER BY id
+    ///     let request = Player.orderByPrimaryKey()
+    ///
+    ///     // SELECT * FROM country ORDER BY code
+    ///     let request = Country.orderByPrimaryKey()
+    ///
+    /// The selection defaults to all columns. This default can be changed for
+    /// all requests by the `TableRecord.databaseSelection` property, or
+    /// for individual requests with the `TableRecord.select` method.
+    public static func orderByPrimaryKey() -> QueryInterfaceRequest<Self> {
+        return all().orderByPrimaryKey()
     }
     
     /// Creates a request sorted according to *sql*.
