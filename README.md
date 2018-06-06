@@ -28,6 +28,8 @@ Compared to [SQLite.swift](http://github.com/stephencelis/SQLite.swift) or [FMDB
 
 It comes with [up-to-date documentation](#documentation), [general guides](#general-guides--good-practices), [sample code](#sample-code), and a [FAQ](#faq).
 
+See [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md) if you are looking for your favorite database library!
+
 
 ---
 
