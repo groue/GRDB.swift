@@ -288,10 +288,10 @@ Documentation
 - :bulb: [Migrating From GRDB 2 to GRDB 3](Documentation/GRDB2MigrationGuide.md)
 - :bulb: [Issues tagged "best practices"](https://github.com/groue/GRDB.swift/issues?q=is%3Aissue+label%3A%22best+practices%22)
 - :question: [Issues tagged "question"](https://github.com/groue/GRDB.swift/issues?utf8=✓&q=is%3Aissue%20label%3Aquestion)
-- :blue_book: [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md)
-- :blue_book: [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3)
-- :blue_book: [Four different ways to handle SQLite concurrency](https://medium.com/@gwendal.roue/four-different-ways-to-handle-sqlite-concurrency-db3bcc74d00e)
-- :blue_book: [Unexpected SQLite with Swift](https://hackernoon.com/unexpected-sqlite-with-swift-ddc6343bcbfc)
+- :green_book: [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md)
+- :green_book: [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3)
+- :green_book: [Four different ways to handle SQLite concurrency](https://medium.com/@gwendal.roue/four-different-ways-to-handle-sqlite-concurrency-db3bcc74d00e)
+- :green_book: [Unexpected SQLite with Swift](https://hackernoon.com/unexpected-sqlite-with-swift-ddc6343bcbfc)
 
 
 **[FAQ](#faq)**
