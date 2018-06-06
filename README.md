@@ -26,9 +26,9 @@ GRDB provides raw access to SQL and advanced SQLite features, because one someti
 
 Compared to [SQLite.swift](http://github.com/stephencelis/SQLite.swift) or [FMDB](http://github.com/ccgus/fmdb), GRDB can spare you a lot of glue code. Compared to [Core Data](https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/CoreData/) or [Realm](http://realm.io), it can simplify your multi-threaded applications.
 
-It comes with [up-to-date documentation](#documentation), [general guides](#general-guides--good-practices), [sample code](#sample-code), and a [FAQ](#faq).
+It comes with [up-to-date documentation](#documentation), [general guides](#general-guides--good-practices), and it is [fast](https://github.com/groue/GRDB.swift/wiki/Performance).
 
-See [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md) if you are looking for your favorite database library!
+See [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md) if you are looking for your favorite database library.
 
 
 ---
@@ -62,11 +62,6 @@ Companion libraries that enhance and extend GRDB:
 
 - [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB): track database changes in a reactive way, with [RxSwift](https://github.com/ReactiveX/RxSwift).
 - [GRDBObjc](https://github.com/groue/GRDBObjc): FMDB-compatible bindings to GRDB.
-
-More than a set of tools that leverage SQLite abilities, GRDB is also:
-
-- **Safer**: read the blog post [Four different ways to handle SQLite concurrency](https://medium.com/@gwendal.roue/four-different-ways-to-handle-sqlite-concurrency-db3bcc74d00e)
-- **Faster**: see [Comparing the Performances of Swift SQLite libraries](https://github.com/groue/GRDB.swift/wiki/Performance) for a comparison between raw SQLite, FMDB, SQLite.swift, Core Data, Realm, and GRDB.
 
 
 ## Usage
