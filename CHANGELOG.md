@@ -3,6 +3,8 @@ Release Notes
 
 ## 3.0.0
 
+Released June 7, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.10.0...v3.0.0)
+
 GRDB 3 is a release focused on **modernization**, **safety**, and **associations between record types**.
 
 It comes with new features, but also a few breaking changes, and a set of updated good practices. The [GRDB 2 Migration Guide](Documentation/GRDB2MigrationGuide.md) will help you upgrading your applications.

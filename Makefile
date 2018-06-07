@@ -295,10 +295,10 @@ ifdef JAZZY
 	  --author 'Gwendal Roué' \
 	  --author_url https://github.com/groue \
 	  --github_url https://github.com/groue/GRDB.swift \
-	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v2.10.0 \
-	  --module-version 2.10 \
+	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v3.0.0 \
+	  --module-version 3.0 \
 	  --module GRDB \
-	  --root-url http://groue.github.io/GRDB.swift/docs/2.10/ \
+	  --root-url http://groue.github.io/GRDB.swift/docs/3.0/ \
 	  --output Documentation/Reference \
 	  --podspec GRDB.swift.podspec
 else
