@@ -2,7 +2,7 @@
 
 /// Record is a class that wraps a table row, or the result of any query. It is
 /// designed to be subclassed.
-open class Record : RowConvertible, TableMapping, Persistable {
+open class Record : FetchableRecord, TableRecord, PersistableRecord {
     
     // MARK: - Initializers
     
@@ -32,7 +32,7 @@ open class Record : RowConvertible, TableMapping, Persistable {
     ///
     ///     class Player : Record {
     ///         override class var databaseTableName: String {
-    ///             return "players"
+    ///             return "player"
     ///         }
     ///     }
     ///
@@ -64,7 +64,7 @@ open class Record : RowConvertible, TableMapping, Persistable {
     ///
     /// Unless this method is overriden, requests select all columns:
     ///
-    ///     // SELECT * FROM players
+    ///     // SELECT * FROM player
     ///     try Player.fetchAll(db)
     ///
     /// You can override this property and provide an explicit list
@@ -76,7 +76,7 @@ open class Record : RowConvertible, TableMapping, Persistable {
     ///         }
     ///     }
     ///
-    ///     // SELECT id, name FROM players
+    ///     // SELECT id, name FROM player
     ///     try RestrictedPlayer.fetchAll(db)
     ///
     /// You can also add extra columns such as the `rowid` column:
@@ -87,7 +87,7 @@ open class Record : RowConvertible, TableMapping, Persistable {
     ///         }
     ///     }
     ///
-    ///     // SELECT *, rowid FROM players
+    ///     // SELECT *, rowid FROM player
     ///     try ExtendedPlayer.fetchAll(db)
     open class var databaseSelection: [SQLSelectable] {
         return [AllColumns()]
@@ -150,20 +150,13 @@ open class Record : RowConvertible, TableMapping, Persistable {
     ///
     /// - returns: A copy of self.
     open func copy() -> Self {
-        let row: Row
-        #if swift(>=3.1)
-            row = Row(self)
-        #else
-            // workaround weird Swift 3.0 glitch
-            row = Row(self as! MutablePersistable)
-        #endif
-        let copy = type(of: self).init(row: row)
+        let copy = type(of: self).init(row: Row(self))
         copy.referenceRow = referenceRow
         return copy
     }
     
     
-    // MARK: - Changes Tracking
+    // MARK: - Compare with Previous Versions
     
     /// A boolean that indicates whether the record has changes that have not
     /// been saved.
@@ -186,13 +179,6 @@ open class Record : RowConvertible, TableMapping, Persistable {
         set { referenceRow = newValue ? nil : Row(self) }
     }
     
-    /// Deprecated alias for `hasDatabaseChanges`.
-    @available(*, deprecated, renamed: "hasDatabaseChanges")
-    public var hasPersistentChangedValues: Bool {
-        get { return hasDatabaseChanges }
-        set { hasDatabaseChanges = newValue }
-    }
-    
     /// A dictionary of changes that have not been saved.
     ///
     /// Its keys are column names, and values the old values that have been
@@ -204,12 +190,6 @@ open class Record : RowConvertible, TableMapping, Persistable {
     /// See `hasDatabaseChanges` for more information.
     public var databaseChanges: [String: DatabaseValue?] {
         return Dictionary(uniqueKeysWithValues: databaseChangesIterator())
-    }
-    
-    /// Deprecated alias for `databaseChanges`.
-    @available(*, deprecated, renamed: "databaseChanges")
-    public var persistentChangedValues: [String: DatabaseValue?] {
-        return databaseChanges
     }
     
     // A change iterator that is used by both hasDatabaseChanges and
@@ -294,7 +274,7 @@ open class Record : RowConvertible, TableMapping, Persistable {
         //
         // But this would trigger two calls to `encode(to:)`.
         let dao = try DAO(db, self)
-        guard let statement = try dao.updateStatement(columns: columns, onConflict: type(of: self).persistenceConflictPolicy.conflictResolutionForUpdate) else {
+        guard let statement = try dao.updateStatement(db, columns: columns, onConflict: type(of: self).persistenceConflictPolicy.conflictResolutionForUpdate) else {
             // Nil primary key
             throw PersistenceError.recordNotFound(self)
         }
@@ -344,6 +324,9 @@ open class Record : RowConvertible, TableMapping, Persistable {
     ///
     /// This method is guaranteed to have inserted or updated a row in the
     /// database if it returns without error.
+    ///
+    /// You can't override this method. Instead, override `insert(_:)`
+    /// or `update(_:columns:)`.
     ///
     /// - parameter db: A database connection.
     /// - throws: A DatabaseError whenever an SQLite error occurs, or errors

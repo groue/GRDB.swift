@@ -308,14 +308,16 @@ class RowFromStatementTests : RowTestCase {
         }
     }
 
-    func testVariants() throws {
+    func testScopes() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var rowFetched = false
             let rows = try Row.fetchCursor(db, "SELECT 'foo' AS nAmE, 1 AS foo")
             while let row = try rows.next() {
                 rowFetched = true
-                XCTAssertTrue(row.scoped(on: "missing") == nil)
+                XCTAssertTrue(row.scopes.isEmpty)
+                XCTAssertTrue(row.scopes["missing"] == nil)
+                XCTAssertTrue(row.scopesTree["missing"] == nil)
             }
             XCTAssertTrue(rowFetched)
         }
@@ -365,6 +367,20 @@ class RowFromStatementTests : RowTestCase {
             XCTAssertEqual(try values.next()!, 2)
             XCTAssertEqual(try values.next()!, 3)
             XCTAssertTrue(try values.next() == nil)
+        }
+    }
+    
+    func testDescription() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let rows = try Row.fetchCursor(db, "SELECT NULL AS \"null\", 1 AS \"int\", 1.1 AS \"double\", 'foo' AS \"string\", x'53514C697465' AS \"data\"")
+            var rowFetched = false
+            while let row = try rows.next() {
+                rowFetched = true
+                XCTAssertEqual(row.description, "[null:NULL int:1 double:1.1 string:\"foo\" data:Data(6 bytes)]")
+                XCTAssertEqual(row.debugDescription, "[null:NULL int:1 double:1.1 string:\"foo\" data:Data(6 bytes)]")
+            }
+            XCTAssertTrue(rowFetched)
         }
     }
 }

@@ -177,7 +177,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
 
     func testFTS4Options() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.create(virtualTable: "documents", using: FTS4()) { t in
                 t.content = ""
                 t.compress = "zip"

@@ -31,14 +31,14 @@ public protocol DatabaseReader : class {
     ///
     ///     try reader.read { db in
     ///         // Those two values are guaranteed to be equal, even if the
-    ///         // `wines` table is modified between the two requests:
-    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
-    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         // `wine` table is modified between the two requests:
+    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
+    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     ///     try reader.read { db in
     ///         // Now this value may be different:
-    ///         let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     /// Guarantee 2: Starting iOS 8.2, OSX 10.10, and with custom SQLite builds
@@ -61,8 +61,8 @@ public protocol DatabaseReader : class {
     ///     try reader.unsafeRead { db in
     ///         // Those two values may be different because some other thread
     ///         // may have inserted or deleted a wine between the two requests:
-    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
-    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
+    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     /// Cursor iterations are isolated, though:
@@ -92,8 +92,8 @@ public protocol DatabaseReader : class {
     ///     try reader.unsafeReentrantRead { db in
     ///         // Those two values may be different because some other thread
     ///         // may have inserted or deleted a wine between the two requests:
-    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
-    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
+    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     /// Cursor iterations are isolated, though:
@@ -144,7 +144,7 @@ public protocol DatabaseReader : class {
     ///         return (string1 as NSString).localizedStandardCompare(string2)
     ///     }
     ///     reader.add(collation: collation)
-    ///     try reader.execute("SELECT * FROM files ORDER BY name COLLATE localized_standard")
+    ///     try reader.execute("SELECT * FROM file ORDER BY name COLLATE localized_standard")
     func add(collation: DatabaseCollation)
     
     /// Remove a collation.

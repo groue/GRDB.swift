@@ -28,8 +28,8 @@ extension Sequence {
     
     /// Returns a cursor over the concatenated results of mapping transform
     /// over self.
-    public func flatMap<SegmentOfResult: Cursor>(_ transform: @escaping (Iterator.Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<IteratorCursor<Iterator>, SegmentOfResult>> {
-        return IteratorCursor(self).flatMap(transform)
+    public func flatMap<SegmentOfResult: Cursor>(_ transform: @escaping (Iterator.Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<AnyCursor<Iterator.Element>, SegmentOfResult>> {
+        return AnyCursor(self).flatMap(transform)
     }
 }
 
@@ -132,7 +132,6 @@ extension Cursor {
         return nil
     }
     
-    #if swift(>=4.1)
     /// Returns a cursor over the concatenated non-nil results of mapping
     /// transform over this cursor.
     public func compactMap<ElementOfResult>(_ transform: @escaping (Element) throws -> ElementOfResult?) -> MapCursor<FilterCursor<MapCursor<Self, ElementOfResult?>>, ElementOfResult> {
@@ -143,13 +142,6 @@ extension Cursor {
     public func flatMap<ElementOfResult>(_ transform: @escaping (Element) throws -> ElementOfResult?) -> MapCursor<FilterCursor<MapCursor<Self, ElementOfResult?>>, ElementOfResult> {
         return compactMap(transform)
     }
-    #else
-    /// Returns a cursor over the concatenated non-nil results of mapping
-    /// transform over this cursor.
-    public func flatMap<ElementOfResult>(_ transform: @escaping (Element) throws -> ElementOfResult?) -> MapCursor<FilterCursor<MapCursor<Self, ElementOfResult?>>, ElementOfResult> {
-        return map(transform).filter { $0 != nil }.map { $0! }
-    }
-    #endif
     
     /// Returns a cursor that skips any initial elements that satisfy
     /// `predicate`.
@@ -168,7 +160,7 @@ extension Cursor {
     /// If the number of elements to drop exceeds the number of elements in
     /// the cursor, the result is an empty cursor.
     ///
-    ///     let numbers = IteratorCursor([1, 2, 3, 4, 5])
+    ///     let numbers = AnyCursor([1, 2, 3, 4, 5])
     ///     try print(numbers.dropFirst(2))
     ///     // Prints "[3, 4, 5]"
     ///     try print(numbers.dropFirst(10))
@@ -186,7 +178,7 @@ extension Cursor {
     ///
     /// The following example drops the first element from a cursor of integers.
     ///
-    ///     let numbers = IteratorCursor([1, 2, 3, 4, 5])
+    ///     let numbers = AnyCursor([1, 2, 3, 4, 5])
     ///     try print(numbers.dropFirst())
     ///     // Prints "[2, 3, 4, 5]"
     ///
@@ -203,7 +195,7 @@ extension Cursor {
     /// The cursor must be finite. If the number of elements to drop exceeds
     /// the number of elements in the cursor, the result is an empty array.
     ///
-    ///     let numbers = IteratorCursor([1, 2, 3, 4, 5])
+    ///     let numbers = AnyCursor([1, 2, 3, 4, 5])
     ///     try print(numbers.dropLast(2))
     ///     // Prints "[1, 2, 3]"
     ///     try print(numbers.dropLast(10))
@@ -236,7 +228,7 @@ extension Cursor {
     ///
     /// The following example drops the last element from a cursor of integers.
     ///
-    ///     let numbers = IteratorCursor([1, 2, 3, 4, 5])
+    ///     let numbers = AnyCursor([1, 2, 3, 4, 5])
     ///     try print(numbers.dropLast())
     ///     // Prints "[1, 2, 3, 4]"
     ///
@@ -249,8 +241,8 @@ extension Cursor {
     
     /// Returns a cursor over the concatenated results of mapping transform
     /// over self.
-    public func flatMap<SegmentOfResult: Sequence>(_ transform: @escaping (Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<Self, IteratorCursor<SegmentOfResult.Iterator>>> {
-        return flatMap { try IteratorCursor(transform($0)) }
+    public func flatMap<SegmentOfResult: Sequence>(_ transform: @escaping (Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<Self, AnyCursor<SegmentOfResult.Element>>> {
+        return flatMap { try AnyCursor(transform($0)) }
     }
     
     /// Returns a cursor over the concatenated results of mapping transform
@@ -318,7 +310,7 @@ extension Cursor {
     /// If the maximum length exceeds the number of elements in the cursor,
     /// the result contains all the elements in the cursor.
     ///
-    ///     let numbers = IteratorCursor([1, 2, 3, 4, 5])
+    ///     let numbers = AnyCursor([1, 2, 3, 4, 5])
     ///     try print(numbers.prefix(2))
     ///     // Prints "[1, 2]"
     ///     try print(numbers.prefix(10))
@@ -378,7 +370,7 @@ extension Cursor {
     /// elements in the cursor, the result contains all the elements in the
     /// cursor.
     ///
-    ///     let numbers = IteratorCursor([1, 2, 3, 4, 5])
+    ///     let numbers = AnyCursor([1, 2, 3, 4, 5])
     ///     try print(numbers.suffix(2))
     ///     // Prints "[4, 5]"
     ///     try print(numbers.suffix(10))
@@ -472,7 +464,7 @@ extension Cursor where Element: Cursor {
 
 extension Cursor where Element: Sequence {
     /// Returns the elements of this cursor of sequences, concatenated.
-    public func joined() -> FlattenCursor<MapCursor<Self, IteratorCursor<Element.Iterator>>> {
+    public func joined() -> FlattenCursor<MapCursor<Self, AnyCursor<Element.Element>>> {
         return flatMap { $0 }
     }
 }
@@ -509,13 +501,26 @@ extension Cursor where Element: StringProtocol {
 /// This cursor forwards its next() method to an arbitrary underlying cursor
 /// having the same Element type, hiding the specifics of the underlying
 /// cursor.
-public class AnyCursor<Element> : Cursor {
+public final class AnyCursor<Element> : Cursor {
     private let element: () throws -> Element?
     
     /// Creates a cursor that wraps a base cursor but whose type depends only on
     /// the base cursor’s element type
     public init<C: Cursor>(_ base: C) where C.Element == Element {
         element = base.next
+    }
+    
+    /// Creates a cursor that wraps a base iterator but whose type depends only
+    /// on the base iterator’s element type
+    public convenience init<I: IteratorProtocol>(iterator: I) where I.Element == Element {
+        var iterator = iterator
+        self.init { iterator.next() }
+    }
+    
+    /// Creates a cursor that wraps a base sequence but whose type depends only
+    /// on the base sequence’s element type
+    public convenience init<S: Sequence>(_ s: S) where S.Element == Element {
+        self.init(iterator: s.makeIterator())
     }
     
     /// Creates a cursor that wraps the given closure in its next() method
@@ -747,27 +752,5 @@ public final class PrefixWhileCursor<Base: Cursor> : Cursor {
             }
         }
         return nil
-    }
-}
-
-/// A Cursor whose elements are those of a sequence iterator.
-public final class IteratorCursor<Base: IteratorProtocol> : Cursor {
-    private var base: Base
-
-    /// Creates a cursor from a sequence iterator.
-    public init(_ base: Base) {
-        self.base = base
-    }
-    
-    /// Creates a cursor from a sequence.
-    public init<S: Sequence>(_ s: S) where S.Iterator == Base {
-        self.base = s.makeIterator()
-    }
-    
-    /// Advances to the next element and returns it, or nil if no next
-    /// element exists.
-    /// :nodoc:
-    public func next() -> Base.Element? {
-        return base.next()
     }
 }

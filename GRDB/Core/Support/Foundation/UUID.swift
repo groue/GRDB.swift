@@ -1,5 +1,6 @@
 import Foundation
 
+#if !os(Linux)
 /// NSUUID adopts DatabaseValueConvertible
 extension NSUUID : DatabaseValueConvertible {
     
@@ -18,8 +19,9 @@ extension NSUUID : DatabaseValueConvertible {
             return nil
         }
         return self.init(uuidBytes: data.bytes.assumingMemoryBound(to: UInt8.self))
-    }
+     }
 }
+#endif
 
 /// UUID adopts DatabaseValueConvertible
 extension UUID : DatabaseValueConvertible { }

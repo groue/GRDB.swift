@@ -1,7 +1,7 @@
 /// FTS4 lets you define "fts4" virtual tables.
 ///
-///     // CREATE VIRTUAL TABLE documents USING fts4(content)
-///     try db.create(virtualTable: "documents", using: FTS4()) { t in
+///     // CREATE VIRTUAL TABLE document USING fts4(content)
+///     try db.create(virtualTable: "document", using: FTS4()) { t in
 ///         t.column("content")
 ///     }
 ///
@@ -11,8 +11,8 @@ public struct FTS4 : VirtualTableModule {
     /// Creates a FTS4 module suitable for the Database
     /// `create(virtualTable:using:)` method.
     ///
-    ///     // CREATE VIRTUAL TABLE documents USING fts4(content)
-    ///     try db.create(virtualTable: "documents", using: FTS4()) { t in
+    ///     // CREATE VIRTUAL TABLE document USING fts4(content)
+    ///     try db.create(virtualTable: "document", using: FTS4()) { t in
     ///         t.column("content")
     ///     }
     ///
@@ -137,7 +137,7 @@ public struct FTS4 : VirtualTableModule {
 /// You don't create instances of this class. Instead, you use the Database
 /// `create(virtualTable:using:)` method:
 ///
-///     try db.create(virtualTable: "documents", using: FTS4()) { t in // t is FTS4TableDefinition
+///     try db.create(virtualTable: "document", using: FTS4()) { t in // t is FTS4TableDefinition
 ///         t.column("content")
 ///     }
 ///
@@ -153,7 +153,7 @@ public final class FTS4TableDefinition {
     
     /// The virtual table tokenizer
     ///
-    ///     try db.create(virtualTable: "documents", using: FTS4()) { t in
+    ///     try db.create(virtualTable: "document", using: FTS4()) { t in
     ///         t.tokenizer = .porter
     ///     }
     ///
@@ -201,8 +201,8 @@ public final class FTS4TableDefinition {
     
     /// Support for the FTS5 `prefix` option
     ///
-    ///     // CREATE VIRTUAL TABLE documents USING FTS4(content, prefix='2 4');
-    ///     db.create(virtualTable: "documents", using:FTS4()) { t in
+    ///     // CREATE VIRTUAL TABLE document USING FTS4(content, prefix='2 4');
+    ///     db.create(virtualTable: "document", using:FTS4()) { t in
     ///         t.prefixes = [2, 4]
     ///         t.column("content")
     ///     }
@@ -212,7 +212,7 @@ public final class FTS4TableDefinition {
     
     /// Appends a table column.
     ///
-    ///     try db.create(virtualTable: "documents", using: FTS4()) { t in
+    ///     try db.create(virtualTable: "document", using: FTS4()) { t in
     ///         t.column("content")
     ///     }
     ///
@@ -242,7 +242,7 @@ public final class FTS4TableDefinition {
 ///
 /// You get instances of this class when you create an FTS4 table:
 ///
-///     try db.create(virtualTable: "documents", using: FTS4()) { t in
+///     try db.create(virtualTable: "document", using: FTS4()) { t in
 ///         t.column("content")      // FTS4ColumnDefinition
 ///     }
 ///
@@ -261,7 +261,7 @@ public final class FTS4ColumnDefinition {
     #if GRDBCUSTOMSQLITE || GRDBCIPHER
     /// Excludes the column from the full-text index.
     ///
-    ///     try db.create(virtualTable: "documents", using: FTS4()) { t in
+    ///     try db.create(virtualTable: "document", using: FTS4()) { t in
     ///         t.column("a")
     ///         t.column("b").notIndexed()
     ///     }
@@ -280,7 +280,7 @@ public final class FTS4ColumnDefinition {
     #else
     /// Excludes the column from the full-text index.
     ///
-    ///     try db.create(virtualTable: "documents", using: FTS4()) { t in
+    ///     try db.create(virtualTable: "document", using: FTS4()) { t in
     ///         t.column("a")
     ///         t.column("b").notIndexed()
     ///     }
@@ -300,7 +300,7 @@ public final class FTS4ColumnDefinition {
     
     /// Uses the column as the Int32 language id hidden column.
     ///
-    ///     try db.create(virtualTable: "documents", using: FTS4()) { t in
+    ///     try db.create(virtualTable: "document", using: FTS4()) { t in
     ///         t.column("a")
     ///         t.column("lid").asLanguageId()
     ///     }

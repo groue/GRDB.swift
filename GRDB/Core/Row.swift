@@ -6,7 +6,7 @@ import Foundation
 #endif
 
 /// A database row.
-public final class Row : Equatable, Hashable, RandomAccessCollection, ExpressibleByDictionaryLiteral, CustomStringConvertible {
+public final class Row : Equatable, Hashable, RandomAccessCollection, ExpressibleByDictionaryLiteral, CustomStringConvertible, CustomDebugStringConvertible {
     let impl: RowImpl
     
     /// Unless we are producing a row array, we use a single row when iterating
@@ -61,7 +61,7 @@ public final class Row : Equatable, Hashable, RandomAccessCollection, Expressibl
     /// the iteration of a query: make sure to make a copy of it whenever you
     /// want to keep a specific one: `row.copy()`.
     public func copy() -> Row {
-        return impl.copy(self)
+        return impl.copiedRow(self)
     }
     
     // MARK: - Not Public
@@ -143,11 +143,11 @@ extension Row {
     ///     let row = try Row.fetchOne(db, "SELECT NULL, NULL")!
     ///     row.containsNonNullValue // false
     public var containsNonNullValue: Bool {
-        for i in (0..<count) {
-            if !hasNull(atIndex: i) { return true }
+        for i in (0..<count) where !hasNull(atIndex: i) {
+            return true
         }
         
-        for name in scopeNames where scoped(on: name)!.containsNonNullValue {
+        for (_, scopedRow) in scopes where scopedRow.containsNonNullValue {
             return true
         }
         
@@ -347,7 +347,7 @@ extension Row {
     /// the same name, the leftmost column is considered.
     ///
     /// The result is nil if the row does not contain the column.
-    public subscript(_ column: Column) -> DatabaseValueConvertible? {
+    public subscript(_ column: ColumnExpression) -> DatabaseValueConvertible? {
         return self[column.name]
     }
     
@@ -359,7 +359,7 @@ extension Row {
     /// If the column is missing or if the SQLite value is NULL, the result is
     /// nil. Otherwise the SQLite value is converted to the requested type
     /// `Value`. Should this conversion fail, a fatal error is raised.
-    public subscript<Value: DatabaseValueConvertible>(_ column: Column) -> Value? {
+    public subscript<Value: DatabaseValueConvertible>(_ column: ColumnExpression) -> Value? {
         return self[column.name]
     }
     
@@ -375,7 +375,7 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ column: Column) -> Value? {
+    public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ column: ColumnExpression) -> Value? {
         return self[column.name]
     }
     
@@ -388,7 +388,7 @@ extension Row {
     ///
     /// This method crashes if the fetched SQLite value is NULL, or if the
     /// SQLite value can not be converted to `Value`.
-    public subscript<Value: DatabaseValueConvertible>(_ column: Column) -> Value {
+    public subscript<Value: DatabaseValueConvertible>(_ column: ColumnExpression) -> Value {
         return self[column.name]
     }
     
@@ -405,7 +405,7 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ column: Column) -> Value {
+    public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ column: ColumnExpression) -> Value {
         return self[column.name]
     }
     
@@ -453,7 +453,7 @@ extension Row {
     ///
     /// The returned data does not owns its bytes: it must not be used longer
     /// than the row's lifetime.
-    public func dataNoCopy(_ column: Column) -> Data? {
+    public func dataNoCopy(_ column: ColumnExpression) -> Data? {
         return dataNoCopy(named: column.name)
     }
 }
@@ -482,8 +482,8 @@ extension Row {
     ///
     /// See https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support
     /// for more information.
-    public subscript<Record: RowConvertible>(_ scope: String) -> Record {
-        guard let scopedRow = scoped(on: scope) else {
+    public subscript<Record: FetchableRecord>(_ scope: String) -> Record {
+        guard let scopedRow = scopesTree[scope] else {
             // Programmer error
             fatalError("no such scope: \(scope)")
         }
@@ -498,8 +498,8 @@ extension Row {
     ///
     /// See https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support
     /// for more information.
-    public subscript<Record: RowConvertible>(_ scope: String) -> Record? {
-        guard let scopedRow = scoped(on: scope), scopedRow.containsNonNullValue else {
+    public subscript<Record: FetchableRecord>(_ scope: String) -> Record? {
+        guard let scopedRow = scopesTree[scope], scopedRow.containsNonNullValue else {
             return nil
         }
         return Record(row: scopedRow)
@@ -510,48 +510,80 @@ extension Row {
     
     // MARK: - Scopes
     
-    var scopeNames: Set<String> {
-        return impl.scopeNames
-    }
-    
-    /// Returns a scoped row, if the row was fetched with a row adapter that
-    /// defines this scope.
+    /// Returns a view on the scopes defined by row adapters.
     ///
-    ///     // Two adapters
-    ///     let fooAdapter = ColumnMapping(["value": "foo"])
-    ///     let barAdapter = ColumnMapping(["value": "bar"])
+    /// For example:
     ///
-    ///     // Define scopes
+    ///     // Define a tree of nested scopes
     ///     let adapter = ScopeAdapter([
-    ///         "foo": fooAdapter,
-    ///         "bar": barAdapter])
+    ///         "foo": RangeRowAdapter(0..<1),
+    ///         "bar": RangeRowAdapter(1..<2).addingScopes([
+    ///             "baz" : RangeRowAdapter(2..<3)])])
     ///
     ///     // Fetch
-    ///     let sql = "SELECT 'foo' AS foo, 'bar' AS bar"
+    ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
     ///     let row = try Row.fetchOne(db, sql, adapter: adapter)!
     ///
-    ///     // Scoped rows:
-    ///     if let fooRow = row.scoped(on: "foo") {
-    ///         fooRow["value"]    // "foo"
-    ///     }
-    ///     if let barRow = row.scopeed(on: "bar") {
-    ///         barRow["value"]    // "bar"
-    ///     }
-    public func scoped(on name: String) -> Row? {
-        return impl.scoped(on: name)
+    ///     row.scopes.count  // 2
+    ///     row.scopes.names  // ["foo", "bar"]
+    ///
+    ///     row.scopes["foo"] // [foo:1]
+    ///     row.scopes["bar"] // [bar:2]
+    ///     row.scopes["baz"] // nil
+    public var scopes: ScopesView {
+        return impl.scopes
     }
     
-    /// Returns a copy of the row, without any scoped row (if the row was fetched
-    /// with a row adapter that defines scopes).
+    /// Returns a view on the scopes tree defined by row adapters.
+    ///
+    /// For example:
+    ///
+    ///     // Define a tree of nested scopes
+    ///     let adapter = ScopeAdapter([
+    ///         "foo": RangeRowAdapter(0..<1),
+    ///         "bar": RangeRowAdapter(1..<2).addingScopes([
+    ///             "baz" : RangeRowAdapter(2..<3)])])
+    ///
+    ///     // Fetch
+    ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
+    ///     let row = try Row.fetchOne(db, sql, adapter: adapter)!
+    ///
+    ///     row.scopesTree.names  // ["foo", "bar", "baz"]
+    ///
+    ///     row.scopesTree["foo"] // [foo:1]
+    ///     row.scopesTree["bar"] // [bar:2]
+    ///     row.scopesTree["baz"] // [baz:3]
+    public var scopesTree: ScopesTreeView {
+        return ScopesTreeView(scopes: scopes)
+    }
+    
+    /// Returns a copy of the row, without any scopes.
+    ///
+    /// This property can turn out useful when you want to test the content of
+    /// adapted rows, such as rows fetched from joined requests.
+    ///
+    ///     let row = ...
+    ///     // Failure because row equality tests for row scopes:
+    ///     XCTAssertEqual(row, ["id": 1, "name": "foo"])
+    ///     // Success:
+    ///     XCTAssertEqual(row.unscoped, ["id": 1, "name": "foo"])
     public var unscoped: Row {
-        return Row(impl: ArrayRowImpl(columns: map { ($0, $1) }))
+        return impl.unscopedRow(self)
+    }
+    
+    /// Return the raw row fetched from the database.
+    ///
+    /// This property can turn out useful when you debug the consumption of
+    /// adapted rows, such as rows fetched from joined requests.
+    public var unadapted: Row {
+        return impl.unadaptedRow(self)
     }
 }
 
 /// A cursor of database rows. For example:
 ///
-///     try dbQueue.inDatabase { db in
-///         let rows: RowCursor = try Row.fetchCursor(db, "SELECT * FROM players")
+///     try dbQueue.read { db in
+///         let rows: RowCursor = try Row.fetchCursor(db, "SELECT * FROM player")
 ///     }
 public final class RowCursor : Cursor {
     public let statement: SelectStatement
@@ -654,78 +686,11 @@ extension Row {
 
 extension Row {
     
-    // MARK: - Fetching From Request
-    
-    /// Returns a cursor over rows fetched from a fetch request.
-    ///
-    ///     let idColumn = Column("id")
-    ///     let nameColumn = Column("name")
-    ///     let request = Player.select(idColumn, nameColumn)
-    ///     let rows = try Row.fetchCursor(db) // RowCursor
-    ///     while let row = try rows.next() {  // Row
-    ///         let id: Int64 = row[0]
-    ///         let name: String = row[1]
-    ///     }
-    ///
-    /// Fetched rows are reused during the cursor iteration: don't turn a row
-    /// cursor into an array with `Array(rows)` or `rows.filter { ... }` since
-    /// you would not get the distinct rows you expect. Use `Row.fetchAll(...)`
-    /// instead.
-    ///
-    /// For the same reason, make sure you make a copy whenever you extract a
-    /// row for later use: `row.copy()`.
-    ///
-    /// If the database is modified during the cursor iteration, the remaining
-    /// elements are undefined.
-    ///
-    /// The cursor must be iterated in a protected dispath queue.
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - request: A fetch request.
-    /// - returns: A cursor over fetched rows.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database, _ request: Request) throws -> RowCursor {
-        let (statement, adapter) = try request.prepare(db)
-        return try fetchCursor(statement, adapter: adapter)
-    }
-    
-    /// Returns an array of rows fetched from a fetch request.
-    ///
-    ///     let idColumn = Column("id")
-    ///     let nameColumn = Column("name")
-    ///     let request = Player.select(idColumn, nameColumn)
-    ///     let rows = try Row.fetchAll(db, request)
-    ///
-    /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll(_ db: Database, _ request: Request) throws -> [Row] {
-        let (statement, adapter) = try request.prepare(db)
-        return try fetchAll(statement, adapter: adapter)
-    }
-    
-    /// Returns a single row fetched from a fetch request.
-    ///
-    ///     let idColumn = Column("id")
-    ///     let nameColumn = Column("name")
-    ///     let request = Player.select(idColumn, nameColumn)
-    ///     let row = try Row.fetchOne(db, request)
-    ///
-    /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne(_ db: Database, _ request: Request) throws -> Row? {
-        let (statement, adapter) = try request.prepare(db)
-        return try fetchOne(statement, adapter: adapter)
-    }
-}
-
-extension Row {
-    
     // MARK: - Fetching From SQL
     
     /// Returns a cursor over rows fetched from an SQL query.
     ///
-    ///     let rows = try Row.fetchCursor(db, "SELECT id, name FROM players") // RowCursor
+    ///     let rows = try Row.fetchCursor(db, "SELECT id, name FROM player") // RowCursor
     ///     while let row = try rows.next() { // Row
     ///         let id: Int64 = row[0]
     ///         let name: String = row[1]
@@ -752,7 +717,7 @@ extension Row {
     /// - returns: A cursor over fetched rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> RowCursor {
-        return try fetchCursor(db, SQLRequest(sql, arguments: arguments, adapter: adapter))
+        return try fetchCursor(db, SQLRequest<Void>(sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of rows fetched from an SQL query.
@@ -767,7 +732,7 @@ extension Row {
     /// - returns: An array of rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Row] {
-        return try fetchAll(db, SQLRequest(sql, arguments: arguments, adapter: adapter))
+        return try fetchAll(db, SQLRequest<Void>(sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single row fetched from an SQL query.
@@ -782,10 +747,135 @@ extension Row {
     /// - returns: An optional row.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Row? {
-        return try fetchOne(db, SQLRequest(sql, arguments: arguments, adapter: adapter))
+        return try fetchOne(db, SQLRequest<Void>(sql, arguments: arguments, adapter: adapter))
     }
 }
 
+extension Row {
+    
+    // MARK: - Fetching From FetchRequest
+    
+    /// Returns a cursor over rows fetched from a fetch request.
+    ///
+    ///     let request = Player.all()
+    ///     let rows = try Row.fetchCursor(db, request) // RowCursor
+    ///     while let row = try rows.next() { // Row
+    ///         let id: Int64 = row["id"]
+    ///         let name: String = row["name"]
+    ///     }
+    ///
+    /// Fetched rows are reused during the cursor iteration: don't turn a row
+    /// cursor into an array with `Array(rows)` or `rows.filter { ... }` since
+    /// you would not get the distinct rows you expect. Use `Row.fetchAll(...)`
+    /// instead.
+    ///
+    /// For the same reason, make sure you make a copy whenever you extract a
+    /// row for later use: `row.copy()`.
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
+    ///
+    /// The cursor must be iterated in a protected dispath queue.
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - request: A FetchRequest.
+    /// - returns: A cursor over fetched rows.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchCursor<R: FetchRequest>(_ db: Database, _ request: R) throws -> RowCursor {
+        let (statement, adapter) = try request.prepare(db)
+        return try fetchCursor(statement, adapter: adapter)
+    }
+    
+    /// Returns an array of rows fetched from a fetch request.
+    ///
+    ///     let request = Player.all()
+    ///     let rows = try Row.fetchAll(db, request)
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - request: A FetchRequest.
+    /// - returns: An array of rows.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchAll<R: FetchRequest>(_ db: Database, _ request: R) throws -> [Row] {
+        let (statement, adapter) = try request.prepare(db)
+        return try fetchAll(statement, adapter: adapter)
+    }
+    
+    /// Returns a single row fetched from a fetch request.
+    ///
+    ///     let request = Player.filter(key: 1)
+    ///     let row = try Row.fetchOne(db, request)
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - request: A FetchRequest.
+    /// - returns: An optional row.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchOne<R: FetchRequest>(_ db: Database, _ request: R) throws -> Row? {
+        let (statement, adapter) = try request.prepare(db)
+        return try fetchOne(statement, adapter: adapter)
+    }
+}
+
+extension FetchRequest where RowDecoder: Row {
+    
+    // MARK: Fetching Rows
+    
+    /// A cursor over fetched rows.
+    ///
+    ///     let request: ... // Some TypedRequest that fetches Row
+    ///     let rows = try request.fetchCursor(db) // RowCursor
+    ///     while let row = try rows.next() {  // Row
+    ///         let id: Int64 = row[0]
+    ///         let name: String = row[1]
+    ///     }
+    ///
+    /// Fetched rows are reused during the cursor iteration: don't turn a row
+    /// cursor into an array with `Array(rows)` or `rows.filter { ... }` since
+    /// you would not get the distinct rows you expect. Use `Row.fetchAll(...)`
+    /// instead.
+    ///
+    /// For the same reason, make sure you make a copy whenever you extract a
+    /// row for later use: `row.copy()`.
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
+    ///
+    /// The cursor must be iterated in a protected dispath queue.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A cursor over fetched rows.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchCursor(_ db: Database) throws -> RowCursor {
+        return try Row.fetchCursor(db, self)
+    }
+    
+    /// An array of fetched rows.
+    ///
+    ///     let request: ... // Some TypedRequest that fetches Row
+    ///     let rows = try request.fetchAll(db)
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: An array of fetched rows.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchAll(_ db: Database) throws -> [Row] {
+        return try Row.fetchAll(db, self)
+    }
+    
+    /// The first fetched row.
+    ///
+    ///     let request: ... // Some TypedRequest that fetches Row
+    ///     let row = try request.fetchOne(db)
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A,n optional rows.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchOne(_ db: Database) throws -> Row? {
+        return try Row.fetchOne(db, self)
+    }
+}
+    
 // ExpressibleByDictionaryLiteral
 extension Row {
     
@@ -794,7 +884,7 @@ extension Row {
     ///
     ///     let row: Row = ["foo": 1, "foo": "bar", "baz": nil]
     ///     print(row)
-    ///     // Prints <Row foo:1 foo:"bar" baz:NULL>
+    ///     // Prints [foo:1 foo:"bar" baz:NULL]
     public convenience init(dictionaryLiteral elements: (String, DatabaseValueConvertible?)...) {
         self.init(impl: ArrayRowImpl(columns: elements.map { ($0, $1?.databaseValue ?? .null) }))
     }
@@ -852,15 +942,15 @@ extension Row {
             }
         }
         
-        let lscopeNames = lhs.impl.scopeNames
-        let rscopeNames = rhs.impl.scopeNames
+        let lscopeNames = lhs.scopes.names
+        let rscopeNames = rhs.scopes.names
         guard lscopeNames == rscopeNames else {
             return false
         }
         
         for name in lscopeNames {
-            let lscope = lhs.scoped(on: name)
-            let rscope = rhs.scoped(on: name)
+            let lscope = lhs.scopes[name]
+            let rscope = rhs.scopes[name]
             guard lscope == rscope else {
                 return false
             }
@@ -880,15 +970,40 @@ extension Row {
     }
 }
 
-// CustomStringConvertible
+// CustomStringConvertible & CustomDebugStringConvertible
 extension Row {
     /// :nodoc:
     public var description: String {
-        return "<Row"
-            + map { (column, dbValue) in
-                " \(column):\(dbValue)"
-                }.joined(separator: "")
-            + ">"
+        return "["
+            + map { (column, dbValue) in "\(column):\(dbValue)" }.joined(separator: " ")
+            + "]"
+    }
+    
+    /// :nodoc:
+    public var debugDescription: String {
+        return debugDescription(level: 0)
+    }
+    
+    private func debugDescription(level: Int) -> String {
+        if level == 0 && self == self.unadapted {
+            return description
+        }
+        let prefix = repeatElement("  ", count: level + 1).joined(separator: "")
+        var str = ""
+        if level == 0 {
+            str = "▿ " + description
+            let unadapted = self.unadapted
+            if self != unadapted {
+                str += "\n" + prefix + "unadapted: " + unadapted.description
+            }
+        } else {
+            str = description
+        }
+        for (name, scopedRow) in scopes.sorted(by: { $0.name < $1.name }) {
+            str += "\n" + prefix + "- " + name + ": " + scopedRow.debugDescription(level: level + 1)
+        }
+        
+        return str
     }
 }
 
@@ -927,6 +1042,134 @@ extension RowIndex {
     }
 }
 
+// MARK: - Row.ScopesView
+
+extension Row {
+    /// A view of the scopes defined by row adapters. It is a collection of
+    /// tuples made of a scope name and a scoped row, which behaves like a
+    /// dictionary.
+    ///
+    /// For example:
+    ///
+    ///     // Define a tree of nested scopes
+    ///     let adapter = ScopeAdapter([
+    ///         "foo": RangeRowAdapter(0..<1),
+    ///         "bar": RangeRowAdapter(1..<2).addingScopes([
+    ///             "baz" : RangeRowAdapter(2..<3)])])
+    ///
+    ///     // Fetch
+    ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
+    ///     let row = try Row.fetchOne(db, sql, adapter: adapter)!
+    ///
+    ///     row.scopes.count  // 2
+    ///     row.scopes.names  // ["foo", "bar"]
+    ///
+    ///     row.scopes["foo"] // [foo:1]
+    ///     row.scopes["bar"] // [bar:2]
+    ///     row.scopes["baz"] // nil
+    public struct ScopesView: Collection {
+        public typealias Index = Dictionary<String, LayoutedRowAdapter>.Index
+        private let row: Row
+        private let scopes: [String: LayoutedRowAdapter]
+        
+        /// The scopes defined on this row.
+        public var names: Dictionary<String, LayoutedRowAdapter>.Keys {
+            return scopes.keys
+        }
+        
+        init() {
+            self.init(row: Row(), scopes: [:])
+        }
+        
+        init(row: Row, scopes: [String: LayoutedRowAdapter]) {
+            self.row = row
+            self.scopes = scopes
+        }
+        
+        /// :nodoc:
+        public var startIndex: Index {
+            return scopes.startIndex
+        }
+        
+        /// :nodoc:
+        public var endIndex: Index {
+            return scopes.endIndex
+        }
+        
+        /// :nodoc:
+        public func index(after i: Index) -> Index {
+            return scopes.index(after: i)
+        }
+        
+        /// :nodoc:
+        public subscript(position: Index) -> (name: String, row: Row) {
+            let (name, adapter) = scopes[position]
+            return (name: name, row: Row(base: row, adapter: adapter))
+        }
+        
+        /// Returns the row associated with the given scope, or nil if the
+        /// scope is not defined.
+        public subscript(_ name: String) -> Row? {
+            guard let adapter = scopes[name] else {
+                return nil
+            }
+            return Row(base: row, adapter: adapter)
+        }
+    }
+}
+
+// MARK: - Row.ScopesTreeView
+
+extension Row {
+    
+    /// A view on the scopes tree defined by row adapters.
+    ///
+    /// For example:
+    ///
+    ///     // Define a tree of nested scopes
+    ///     let adapter = ScopeAdapter([
+    ///         "foo": RangeRowAdapter(0..<1),
+    ///         "bar": RangeRowAdapter(1..<2).addingScopes([
+    ///             "baz" : RangeRowAdapter(2..<3)])])
+    ///
+    ///     // Fetch
+    ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
+    ///     let row = try Row.fetchOne(db, sql, adapter: adapter)!
+    ///
+    ///     row.scopesTree.names  // ["foo", "bar", "baz"]
+    ///
+    ///     row.scopesTree["foo"] // [foo:1]
+    ///     row.scopesTree["bar"] // [bar:2]
+    ///     row.scopesTree["baz"] // [baz:3]
+    public struct ScopesTreeView {
+        let scopes: ScopesView
+        
+        /// The scopes defined on this row, recursively.
+        public var names: Set<String> {
+            var names = Set<String>()
+            for (name, row) in scopes {
+                names.insert(name)
+                names.formUnion(row.scopesTree.names)
+            }
+            return names
+        }
+
+        /// Returns the row associated with the given scope, by performing a
+        /// breadth-first search in this row's scopes and the scopes of its
+        /// scoped rows, recursively.
+        public subscript(_ name: String) -> Row? {
+            var fifo = Array(scopes)
+            while !fifo.isEmpty {
+                let scope = fifo.removeFirst()
+                if scope.name == name {
+                    return scope.row
+                }
+                fifo.append(contentsOf: scope.row.scopes)
+            }
+            return nil
+        }
+    }
+}
 
 // MARK: - RowImpl
 
@@ -934,6 +1177,7 @@ extension RowIndex {
 protocol RowImpl {
     var count: Int { get }
     var isFetched: Bool { get }
+    var scopes: Row.ScopesView { get }
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue
     func fastValue<Value: DatabaseValueConvertible & StatementColumnConvertible>(atUncheckedIndex index: Int) -> Value
     func fastValue<Value: DatabaseValueConvertible & StatementColumnConvertible>(atUncheckedIndex index: Int) -> Value?
@@ -945,14 +1189,29 @@ protocol RowImpl {
     // leftmost column that matches *name*.
     func index(ofColumn name: String) -> Int?
     
-    func scoped(on name: String) -> Row?
-    var scopeNames: Set<String> { get }
-    
     // row.impl is guaranteed to be self.
-    func copy(_ row: Row) -> Row
+    func unscopedRow(_ row: Row) -> Row
+    func unadaptedRow(_ row: Row) -> Row
+    func copiedRow(_ row: Row) -> Row
 }
 
 extension RowImpl {
+    func copiedRow(_ row: Row) -> Row {
+        return row
+    }
+    
+    func unscopedRow(_ row: Row) -> Row {
+        return row
+    }
+    
+    func unadaptedRow(_ row: Row) -> Row {
+        return row
+    }
+    
+    var scopes: Row.ScopesView {
+        return Row.ScopesView()
+    }
+    
     func hasNull(atUncheckedIndex index:Int) -> Bool {
         return databaseValue(atUncheckedIndex: index).isNull
     }
@@ -1008,18 +1267,6 @@ private struct ArrayRowImpl : RowImpl {
         let lowercaseName = name.lowercased()
         return columns.index { (column, _) in column.lowercased() == lowercaseName }
     }
-    
-    func scoped(on name: String) -> Row? {
-        return nil
-    }
-    
-    var scopeNames: Set<String> {
-        return []
-    }
-    
-    func copy(_ row: Row) -> Row {
-        return row
-    }
 }
 
 
@@ -1059,18 +1306,6 @@ private struct StatementCopyRowImpl : RowImpl {
     func index(ofColumn name: String) -> Int? {
         let lowercaseName = name.lowercased()
         return columnNames.index { $0.lowercased() == lowercaseName }
-    }
-    
-    func scoped(on name: String) -> Row? {
-        return nil
-    }
-    
-    var scopeNames: Set<String> {
-        return []
-    }
-    
-    func copy(_ row: Row) -> Row {
-        return row
     }
 }
 
@@ -1142,19 +1377,10 @@ private struct StatementRowImpl : RowImpl {
         return lowercaseColumnIndexes[name.lowercased()]
     }
     
-    func scoped(on name: String) -> Row? {
-        return nil
-    }
-    
-    var scopeNames: Set<String> {
-        return []
-    }
-    
-    func copy(_ row: Row) -> Row {
+    func copiedRow(_ row: Row) -> Row {
         return Row(copiedFromSQLiteStatement: sqliteStatement, statementRef: statementRef)
     }
 }
-
 
 /// See Row.init()
 private struct EmptyRowImpl : RowImpl {
@@ -1183,17 +1409,5 @@ private struct EmptyRowImpl : RowImpl {
     
     func index(ofColumn name: String) -> Int? {
         return nil
-    }
-    
-    func scoped(on name: String) -> Row? {
-        return nil
-    }
-    
-    var scopeNames: Set<String> {
-        return []
-    }
-    
-    func copy(_ row: Row) -> Row {
-        return row
     }
 }

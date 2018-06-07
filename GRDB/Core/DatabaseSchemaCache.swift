@@ -2,8 +2,8 @@
 protocol DatabaseSchemaCache {
     mutating func clear()
     
-    func canonicalName(table: String) -> String?
-    mutating func set(canonicalName: String, forTable table: String)
+    func canonicalTableName(_ table: String) -> String?
+    mutating func set(canonicalTableName: String, forTable table: String)
 
     func primaryKey(_ table: String) -> PrimaryKeyInfo?
     mutating func set(primaryKey: PrimaryKeyInfo, forTable table: String)
@@ -20,26 +20,26 @@ protocol DatabaseSchemaCache {
 
 /// A thread-unsafe database schema cache
 struct SimpleDatabaseSchemaCache: DatabaseSchemaCache {
-    private var canonicalNames: [String: String] = [:]
+    private var canonicalTableNames: [String: String] = [:]
     private var primaryKeys: [String: PrimaryKeyInfo] = [:]
     private var columns: [String: [ColumnInfo]] = [:]
     private var indexes: [String: [IndexInfo]] = [:]
     private var foreignKeys: [String: [ForeignKeyInfo]] = [:]
     
     mutating func clear() {
-        canonicalNames = [:]
+        canonicalTableNames = [:]
         primaryKeys = [:]
         columns = [:]
         indexes = [:]
         foreignKeys = [:]
     }
     
-    func canonicalName(table: String) -> String? {
-        return canonicalNames[table]
+    func canonicalTableName(_ table: String) -> String? {
+        return canonicalTableNames[table]
     }
     
-    mutating func set(canonicalName: String, forTable table: String) {
-        canonicalNames[table] = table
+    mutating func set(canonicalTableName: String, forTable table: String) {
+        canonicalTableNames[table] = table
     }
     
     func primaryKey(_ table: String) -> PrimaryKeyInfo? {
@@ -79,8 +79,8 @@ struct SimpleDatabaseSchemaCache: DatabaseSchemaCache {
 struct EmptyDatabaseSchemaCache: DatabaseSchemaCache {
     func clear() { }
     
-    func canonicalName(table: String) -> String? { return nil }
-    func set(canonicalName: String, forTable table: String) { }
+    func canonicalTableName(_ table: String) -> String? { return nil }
+    func set(canonicalTableName: String, forTable table: String) { }
     
     func primaryKey(_ table: String) -> PrimaryKeyInfo? { return nil }
     func set(primaryKey: PrimaryKeyInfo, forTable table: String) { }

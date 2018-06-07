@@ -27,7 +27,6 @@ public func databaseQuestionMarks(count: Int) -> String {
 /// :nodoc:
 public protocol _OptionalProtocol {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// :nodoc:
     associatedtype _Wrapped
 }
@@ -39,7 +38,6 @@ public protocol _OptionalProtocol {
 /// :nodoc:
 extension Optional : _OptionalProtocol {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// :nodoc:
     public typealias _Wrapped = Wrapped
 }

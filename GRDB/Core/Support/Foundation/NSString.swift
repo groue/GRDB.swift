@@ -1,3 +1,4 @@
+#if !os(Linux)
 import Foundation
 
 /// NSString adopts DatabaseValueConvertible
@@ -16,3 +17,4 @@ extension NSString : DatabaseValueConvertible {
         return self.init(string: string)
     }
 }
+#endif

@@ -11,7 +11,7 @@
         /// VIRTUAL TABLE statement. In the example below, the arguments will
         /// be `["arg1", "arg2"]`.
         ///
-        ///     CREATE VIRTUAL TABLE documents USING fts5(
+        ///     CREATE VIRTUAL TABLE document USING fts5(
         ///         tokenize='custom arg1 arg2'
         ///     )
         ///
@@ -26,7 +26,7 @@
         ///
         ///     class MyTokenizer : FTS5CustomTokenizer { ... }
         ///
-        ///     db.create(virtualTable: "books", using: FTS5()) { t in
+        ///     db.create(virtualTable: "book", using: FTS5()) { t in
         ///         let tokenizer = MyTokenizer.tokenizerDescriptor(arguments: ["unicode61", "remove_diacritics", "0"])
         ///         t.tokenizer = tokenizer
         ///     }
@@ -160,7 +160,7 @@
         ///     class MyTokenizer : FTS5CustomTokenizer { ... }
         ///     dbPool.add(tokenizer: MyTokenizer.self)
         public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) {
-            write { db in
+            writeWithoutTransaction { db in
                 db.add(tokenizer: Tokenizer.self)
             }
         }

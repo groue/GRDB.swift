@@ -17,24 +17,35 @@
 
 GRDB 3.0
 
-- [ ] Rename "changes tracking" (ambiguous with database observation) to "record comparison"
-- [ ] Refactor SQL generation and rowId extraction from expression on the visitor pattern. Provide more documentation for literal expressions which become the only way to extend GRDB.
-- [ ] Hide useless scheduling methods behind protocols : https://forums.swift.org/t/discouraging-protocol-methods-on-concrete-values/8737/4?u=gwendal.roue
-- [ ] Make DatabasePool.write safe. See https://github.com/groue/GRDB.swift/commit/5e3c7d9c430df606a1cccfd4983be6b50e778a5c#commitcomment-26988970
-- [ ] Do one of those two:
-    1. Make save() impossible to customize: remove it from Persistable protocol, and remove performSave() from tne public API.
-    2. Open Record.save(), and have RecordBox.save() forward this method to its underlying type.
-- [ ] Not sure: Make the MutablePersistable.update(_:columns:) method mutating (as support for an updatedDate column)
 - [ ] Not sure: type safety
     - [ ] Introduce some record protocol with an associated primary key type. Restrict filter(key:) methods to this type. Allow distinguishing FooId from BarId types.
     - [ ] Replace Column with TypedColumn. How to avoid code duplication (repeated types)? Keypaths?
-- [ ] Rename Request to FetchRequest, because Request is a bad name: https://github.com/swift-server/http/pull/7#issuecomment-308448528
-- [ ] Rename RowConvertible, TableMapping, MutablePersistable and Persistable so that their names contain Record: FetchableRecord, TableRecord, MutablePersistableRecord, PersistableRecord?
-- [ ] Not sure: Consider introducing RowDecodable and RowEncodable on top of FetchableRecord and MutablePersistableRecord. This would allow keeping fetching and persistence methods private in some files.
-- [ ] Drop IteratorCursor, use AnyCursor instead
-- [ ] Drop TypedRequest, have FetchRequest defaults to Row requests.
-- [ ] Rename columnCount -> numberOfColumns
-- [ ] Try to remove double Persistable/MutablePersistable protocols: Would non-mutating Record methods help?
+- [ ] HiddenColumnsAdapter
+- [ ] Find a common name for DatabaseQueue.inDatabase / DatabasePool.writeWithoutTransaction:
+    - writeRaw, rawWrite, pureWrite, plainWrite, directWrite, basicWrite
+    - sync
+    - ?
+- [ ] filter(rowid:), filter(rowids:)
+- [ ] Fix matchingRowIds
+- [ ] Simplify Range extensions for Swift 4.1
+- [ ] https://forums.swift.org/t/how-to-encode-objects-of-unknown-type/12253/6
+- [ ] hide ScopeAdapter(base, scopes), because base.addingScopes has a better implementation
+- [ ] Joins and full-text tables
+- [ ] DatabaseRequest should be part of RxGRDB, as DatabaseRegionConvertible. Rename fetchedRegion(_:) to databaseRegion(_:). SelectStatementRequest hasn't much traction left: remove?
+- [ ] Provide a way to extend both QueryInterfaceRequest and Association:
+    
+    ```swift
+    extension ??? where ??? = Player {
+        func filter(color: Color) -> Self {
+            return filter(Column("color") == color)
+        }
+    }
+    let players = Player.all().filter(color: .red)
+    let players = Player.filter(color: .red) // Possible ??
+    let teamPlayers = Team.players.filter(color: .red)
+    ```
+- [ ] From vapor: How do they use [keypaths](https://docs.vapor.codes/3.0/fluent/querying/) for filtering?
+
 
 Not sure
 
@@ -89,6 +100,7 @@ Requires recompilation of SQLite:
 
 Reading list:
 
+- Documentation generation: https://twitter.com/jckarter/status/987525569196650496: cmark is the implementation the Swift compiler uses for doc comments etc.
 - VACUUM (https://blogs.gnome.org/jnelson/)
 - http://www.sqlite.org/intern-v-extern-blob.html
 - https://sqlite.org/sharedcache.html

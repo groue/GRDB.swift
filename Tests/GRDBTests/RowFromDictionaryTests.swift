@@ -196,9 +196,11 @@ class RowFromDictionaryTests : RowTestCase {
         XCTAssertTrue(row.hasColumn("FOO"))
     }
     
-    func testSubRows() {
+    func testScopes() {
         let row = Row(["a": 0, "b": 1, "c": 2])
-        XCTAssertTrue(row.scoped(on: "missing") == nil)
+        XCTAssertTrue(row.scopes.isEmpty)
+        XCTAssertTrue(row.scopes["missing"] == nil)
+        XCTAssertTrue(row.scopesTree["missing"] == nil)
     }
     
     func testCopy() {
@@ -216,5 +218,13 @@ class RowFromDictionaryTests : RowTestCase {
         
         let copiedRow = row.copy()
         XCTAssertEqual(row, copiedRow)
+    }
+    
+    func testDescription() throws {
+        let row = Row(["a": 0, "b": "foo"])
+        let variants: Set<String> = ["[a:0 b:\"foo\"]", "[b:\"foo\" a:0]"]
+        XCTAssert(variants.contains(row.description))
+        let debugVariants: Set<String> = ["[a:0 b:\"foo\"]", "[b:\"foo\" a:0]"]
+        XCTAssert(debugVariants.contains(row.debugDescription))
     }
 }

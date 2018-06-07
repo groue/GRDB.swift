@@ -12,10 +12,10 @@ class SQLExpressionLiteralTests: GRDBTestCase {
 
     func testWithArguments() {
         let expression = Column("foo").collating(.nocase) == "'fooéı👨👨🏿🇫🇷🇨🇮'" && Column("baz") >= 1
-        var arguments: StatementArguments? = StatementArguments()
-        let sql = expression.expressionSQL(&arguments)
+        var context = SQLGenerationContext.literalGenerationContext(withArguments: true)
+        let sql = expression.expressionSQL(&context)
         XCTAssertEqual(sql, "((\"foo\" = ? COLLATE NOCASE) AND (\"baz\" >= ?))")
-        let values = arguments!.values
+        let values = context.arguments!.values
         XCTAssertEqual(values.count, 2)
         XCTAssertEqual(values[0], "'fooéı👨👨🏿🇫🇷🇨🇮'".databaseValue)
         XCTAssertEqual(values[1], 1.databaseValue)
@@ -23,8 +23,9 @@ class SQLExpressionLiteralTests: GRDBTestCase {
     
     func testWithoutArguments() {
         let expression = Column("foo").collating(.nocase) == "'fooéı👨👨🏿🇫🇷🇨🇮'" && Column("baz") >= 1
-        var arguments: StatementArguments? = nil
-        let sql = expression.expressionSQL(&arguments)
+        var context = SQLGenerationContext.literalGenerationContext(withArguments: false)
+        let sql = expression.expressionSQL(&context)
+        XCTAssertNil(context.arguments)
         XCTAssertEqual(sql, "((\"foo\" = '''fooéı👨👨🏿🇫🇷🇨🇮''' COLLATE NOCASE) AND (\"baz\" >= 1))")
     }
 }

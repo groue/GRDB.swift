@@ -250,11 +250,7 @@ class DatabaseFunctionTests: GRDBTestCase {
     func testFunctionOfTwoArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         let fn = DatabaseFunction("f", argumentCount: 2) { dbValues in
-            #if swift(>=4.1)
             let ints = dbValues.compactMap { Int.fromDatabaseValue($0) }
-            #else
-            let ints = dbValues.flatMap { Int.fromDatabaseValue($0) }
-            #endif
             return ints.reduce(0, +)
         }
         dbQueue.add(function: fn)

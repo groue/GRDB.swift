@@ -15,22 +15,10 @@ public protocol SQLOrderingTerm {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Returns an SQL string that represents the ordering term.
-    ///
-    /// When the arguments parameter is nil, any value must be written down as
-    /// a literal in the returned SQL:
-    ///
-    ///     var arguments: StatementArguments? = nil
-    ///     let orderingTerm = Column("name") ?? "Anonymous"
-    ///     orderingTerm.orderingTermSQL(&arguments) // "IFNULL(name, 'Anonymous')"
-    ///
-    /// When the arguments parameter is not nil, then values may be replaced by
-    /// `?` or colon-prefixed tokens, and fed into arguments.
-    ///
-    ///     var arguments = StatementArguments()
-    ///     let orderingTerm = Column("name") ?? "Anonymous"
-    ///     orderingTerm.orderingTermSQL(&arguments) // "IFNULL(name, ?)"
-    ///     arguments                                // ["Anonymous"]
-    func orderingTermSQL(_ arguments: inout StatementArguments?) -> String
+    func orderingTermSQL(_ context: inout SQLGenerationContext) -> String
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    func qualifiedOrdering(with alias: TableAlias) -> SQLOrderingTerm
 }
 
 // MARK: - SQLOrdering
@@ -48,12 +36,21 @@ enum SQLOrdering : SQLOrderingTerm {
         }
     }
     
-    func orderingTermSQL(_ arguments: inout StatementArguments?) -> String {
+    func orderingTermSQL(_ context: inout SQLGenerationContext) -> String {
         switch self {
         case .asc(let expression):
-            return expression.expressionSQL(&arguments) + " ASC"
+            return expression.expressionSQL(&context) + " ASC"
         case .desc(let expression):
-            return expression.expressionSQL(&arguments) + " DESC"
+            return expression.expressionSQL(&context) + " DESC"
+        }
+    }
+    
+    func qualifiedOrdering(with alias: TableAlias) -> SQLOrderingTerm {
+        switch self {
+        case .asc(let expression):
+            return SQLOrdering.asc(expression.qualifiedExpression(with: alias))
+        case .desc(let expression):
+            return SQLOrdering.desc(expression.qualifiedExpression(with: alias))
         }
     }
 }

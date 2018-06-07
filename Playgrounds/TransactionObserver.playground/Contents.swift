@@ -1,13 +1,17 @@
-// To run this playground, select and build the GRDBOSX scheme.
+//: To run this playground:
+//:
+//: - Open GRDB.xcworkspace
+//: - Select the GRDBOSX scheme: menu Product > Scheme > GRDBOSX
+//: - Build: menu Product > Build
+//: - Select the playground in the Playgrounds Group
+//: - Run the playground
 
 import GRDB
 
 
 // Create the databsae
 
-var configuration = Configuration()
-configuration.trace = { print($0) }
-let dbQueue = DatabaseQueue(configuration: configuration)   // Memory database
+let dbQueue = DatabaseQueue()   // Memory database
 var migrator = DatabaseMigrator()
 migrator.registerMigration("createPersons") { db in
     try db.execute(
@@ -80,6 +84,7 @@ try dbQueue.inTransaction { db in
 
 
 print("-- Changes 3")
-try dbQueue.inDatabase { db in
+try dbQueue.write { db in
     try db.execute("DELETE FROM persons")
+    try db.execute("DELETE FROM pets")
 }

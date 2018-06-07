@@ -77,6 +77,7 @@ private class UserDatabaseWriter : DatabaseWriter {
     func add(collation: DatabaseCollation) { }
     func remove(collation: DatabaseCollation) { }
     func write<T>(_ block: (Database) throws -> T) rethrows -> T { preconditionFailure() }
+    func writeWithoutTransaction<T>(_ block: (Database) throws -> T) rethrows -> T { preconditionFailure() }
     func unsafeReentrantWrite<T>(_ block: (Database) throws -> T) rethrows -> T { preconditionFailure() }
     func readFromCurrentState(_ block: @escaping (Database) -> Void) throws { preconditionFailure() }
 }
@@ -110,47 +111,45 @@ private class UserFTS5WrapperTokenizer : FTS5WrapperTokenizer {
 }
 #endif
 
-// MARK: - MutablePersistable
+// MARK: - MutablePersistableRecord
 
-private struct UserMutablePersistable1 : MutablePersistable {
-    static let databaseTableName = "UserMutablePersistable1"
+private struct UserMutablePersistableRecord1 : MutablePersistableRecord {
+    static let databaseTableName = "UserMutablePersistableRecord1"
     func encode(to container: inout PersistenceContainer) { }
 }
 
-private class UserMutablePersistable2 : MutablePersistable {
-    static let databaseTableName = "UserMutablePersistable2"
+private class UserMutablePersistableRecord2 : MutablePersistableRecord {
+    static let databaseTableName = "UserMutablePersistableRecord2"
     func encode(to container: inout PersistenceContainer) { }
 }
 
-// MARK: - Persistable
+// MARK: - PersistableRecord
 
-private struct UserPersistable1 : Persistable {
-    static let databaseTableName = "UserPersistable1"
+private struct UserPersistableRecord1 : PersistableRecord {
+    static let databaseTableName = "UserPersistableRecord1"
     func encode(to container: inout PersistenceContainer) { }
 }
 
-private class UserPersistable2 : Persistable {
-    static let databaseTableName = "UserPersistable2"
+private class UserPersistableRecord2 : PersistableRecord {
+    static let databaseTableName = "UserPersistableRecord2"
     func encode(to container: inout PersistenceContainer) { }
 }
 
-// MARK: - Request
+// MARK: - FetchRequest
 
-private struct UserRequest1 : Request {
+private struct UserRowRequest : FetchRequest {
+    struct CustomType { }
+    typealias RowDecoder = CustomType
     func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) { preconditionFailure() }
 }
 
-private class UserRequest2 : Request {
-    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) { preconditionFailure() }
-}
+// MARK: - FetchableRecord
 
-// MARK: - RowConvertible
-
-private struct UserRowConvertible1 : RowConvertible {
+private struct UserFetchableRecord1 : FetchableRecord {
     init(row: Row) { }
 }
 
-private class UserRowConvertible2 : RowConvertible {
+private class UserFetchableRecord2 : FetchableRecord {
     required init(row: Row) { }
 }
 
@@ -164,27 +163,14 @@ private class UserStatementColumnConvertible2 : StatementColumnConvertible {
     required init(sqliteStatement: SQLiteStatement, index: Int32) { }
 }
 
-// MARK: - TableMapping
+// MARK: - TableRecord
 
-private struct UserTableMapping1 : TableMapping {
-    static let databaseTableName = "UserTableMapping1"
+private struct UserTableRecord1 : TableRecord {
+    static let databaseTableName = "UserTableRecord1"
 }
 
-private class UserTableMapping2 : TableMapping {
-    static let databaseTableName = "UserTableMapping2"
-}
-
-// MARK: - TypedRequest
-
-private struct UserTypedRequest1 : TypedRequest {
-    struct CustomType { }
-    typealias RowDecoder = CustomType
-    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) { preconditionFailure() }
-}
-
-private class UserTypedRequest2<T> : TypedRequest {
-    typealias RowDecoder = T
-    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) { preconditionFailure() }
+private class UserTableRecord2 : TableRecord {
+    static let databaseTableName = "UserTableRecord2"
 }
 
 // MARK: - TransactionObserver

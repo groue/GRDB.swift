@@ -3,7 +3,7 @@ Pod::Spec.new do |s|
 	s.version  = '2.10.0'
 	
 	s.license  = { :type => 'MIT', :file => 'LICENSE' }
-	s.summary  = 'A Swift application toolkit for SQLite databases.'
+	s.summary  = 'A toolkit for SQLite databases, with a focus on application development.'
 	s.homepage = 'https://github.com/groue/GRDB.swift'
 	s.author   = { 'Gwendal Roué' => 'gr@pierlis.com' }
 	s.source   = { :git => 'https://github.com/groue/GRDB.swift.git', :tag => "v#{s.version}" }

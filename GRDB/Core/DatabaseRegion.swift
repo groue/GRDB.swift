@@ -6,39 +6,39 @@
 /// cover a full table, or the combination of columns and rows (identified by
 /// their rowids):
 ///
-///    |Table1 |   |Table2 |   |Table3 |   |Table4 |   |Table5 |
-///    |-------|   |-------|   |-------|   |-------|   |-------|
-///    |x|x|x|x|   |x| | | |   |x|x|x|x|   |x|x| |x|   | | | | |
-///    |x|x|x|x|   |x| | | |   | | | | |   | | | | |   | |x| | |
-///    |x|x|x|x|   |x| | | |   | | | | |   |x|x| |x|   | | | | |
-///    |x|x|x|x|   |x| | | |   | | | | |   | | | | |   | | | | |
+///     |Table1 |   |Table2 |   |Table3 |   |Table4 |   |Table5 |
+///     |-------|   |-------|   |-------|   |-------|   |-------|
+///     |x|x|x|x|   |x| | | |   |x|x|x|x|   |x|x| |x|   | | | | |
+///     |x|x|x|x|   |x| | | |   | | | | |   | | | | |   | |x| | |
+///     |x|x|x|x|   |x| | | |   | | | | |   |x|x| |x|   | | | | |
+///     |x|x|x|x|   |x| | | |   | | | | |   | | | | |   | | | | |
 ///
 /// You don't create a database region directly. Instead, you use one of
 /// those methods:
 ///
-/// - `SelectStatement.fetchedRegion`:
+/// - `SelectStatement.databaseRegion`:
 ///
-///     let statement = db.makeSelectStatement("SELECT name, score FROM players")
-///     print(statement.fetchedRegion)
-///     // prints "players(name,score)"
+///     let statement = db.makeSelectStatement("SELECT name, score FROM player")
+///     print(statement.databaseRegion)
+///     // prints "player(name,score)"
 ///
-/// - `Request.fetchedRegion(_:)`
+/// - `FetchRequest.databaseRegion(_:)`
 ///
 ///     let request = Player.filter(key: 1)
-///     try print(request.fetchedRegion(db))
-///     // prints "players(*)[1]"
+///     try print(request.databaseRegion(db))
+///     // prints "player(*)[1]"
 ///
 /// Database regions returned by requests can be more precise than regions
 /// returned by select statements. Especially, regions returned by statements
 /// don't know about rowids:
 ///
 ///     // A plain statement
-///     let statement = db.makeSelectStatement("SELECT * FROM players WHERE id = 1")
-///     statement.fetchedRegion       // "players(*)"
+///     let statement = db.makeSelectStatement("SELECT * FROM player WHERE id = 1")
+///     statement.databaseRegion       // "player(*)"
 ///
 ///     // A query interface request that executes the same statement:
 ///     let request = Player.filter(key: 1)
-///     try request.fetchedRegion(db) // "players(*)[1]"
+///     try request.databaseRegion(db) // "player(*)[1]"
 public struct DatabaseRegion: CustomStringConvertible, Equatable {
     private let tableRegions: [String: TableRegion]?
     private init(tableRegions: [String: TableRegion]?) {
@@ -51,8 +51,9 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
         return tableRegions.isEmpty
     }
     
-    /// The full database: (All columns in all tables) × (all rows)
-    static let fullDatabase = DatabaseRegion(tableRegions: nil)
+    /// The region that covers the full database: all columns and all rows
+    /// from all tables.
+    public static let fullDatabase = DatabaseRegion(tableRegions: nil)
     
     /// The empty database region
     public init() {
@@ -254,14 +255,6 @@ private struct TableRegion: Equatable {
         if let rowIds = rowIds, rowIds.isEmpty { return true }
         return false
     }
-    
-    #if !swift(>=4.1)
-    static func == (lhs: TableRegion, rhs: TableRegion) -> Bool {
-        if lhs.columns != rhs.columns { return false }
-        if lhs.rowIds != rhs.rowIds { return false }
-        return true
-    }
-    #endif
     
     func intersection(_ other: TableRegion) -> TableRegion {
         let columnsIntersection: Set<String>?

@@ -44,26 +44,15 @@ XCPRETTY_PATH := $(shell command -v xcpretty 2> /dev/null)
 # xcodebuild actions to run test targets
 TEST_ACTIONS = clean build build-for-testing test-without-building
 
-# xcodebuild destination to run tests on iOS 8.1 (requires a pre-installed simulator)
-MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=8.1"
-
 # When adding support for an Xcode version, look for available devices with `instruments -s devices`
-ifeq ($(XCODEVERSION),9.3)
+ifeq ($(XCODEVERSION),9.4)
+  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=11.4"
+  MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=9.0"
+else ifeq ($(XCODEVERSION),9.3)
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=11.3"
-else ifeq ($(XCODEVERSION),9.2)
-  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=11.2"
-else ifeq ($(XCODEVERSION),9.1)
-  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=11.1"
-else ifeq ($(XCODEVERSION),9.0)
-  ifeq ($(XCODEVERSION_PATCH),1)
-    # Xcode 9.0.1: @groue's personal computer
-    MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=11.0.1"
-  else
-    # Xcode 9.0: Travis https://docs.travis-ci.com/user/reference/osx/#Xcode-9.0
-    MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=11.0"
-  endif
+  MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=9.0"
 else
-  # Xcode < 9.0 is not supported
+  # Swift 4.1 required: Xcode < 9.3 is not supported
 endif
 
 # If xcpretty is available, use it for xcodebuild output

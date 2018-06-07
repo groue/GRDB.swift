@@ -11,7 +11,7 @@ class SQLiteDateParser {
         var hour: Int32 = 0
         var minute: Int32 = 0
         var second: Int32 = 0
-        var nanosecond = ContiguousArray<CChar>.init(repeating: 0, count: 10) // 9 digits, and trailing \0
+        var nanosecond = ContiguousArray<CChar>(repeating: 0, count: 10) // 9 digits, and trailing \0
     }
     
     func components(from dateString: String) -> DatabaseDateComponents? {
@@ -55,7 +55,7 @@ class SQLiteDateParser {
                             withUnsafeMutablePointer(to: &parserComponents.second) { secondP in
                                 parserComponents.nanosecond.withUnsafeMutableBufferPointer { nanosecondBuffer in
                                     withVaList([yearP, monthP, dayP, hourP, minuteP, secondP, nanosecondBuffer.baseAddress!]) { pointer in
-                                        vsscanf(cString, "%4d-%2d-%2d%*1[ T]%2d:%2d:%2d.%10s", pointer)
+                                        vsscanf(cString, "%4d-%2d-%2d%*1[ T]%2d:%2d:%2d.%9s", pointer)
                                     }
                                 }
                             }
@@ -100,7 +100,7 @@ class SQLiteDateParser {
                 withUnsafeMutablePointer(to: &parserComponents.second) { secondP in
                     parserComponents.nanosecond.withUnsafeMutableBufferPointer { nanosecondBuffer in
                         withVaList([hourP, minuteP, secondP, nanosecondBuffer.baseAddress!]) { pointer in
-                            vsscanf(cString, "%2d:%2d:%2d.%10s", pointer)
+                            vsscanf(cString, "%2d:%2d:%2d.%9s", pointer)
                         }
                     }
                 }

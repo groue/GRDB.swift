@@ -58,17 +58,11 @@ public struct DatabaseDateComponents : DatabaseValueConvertible, StatementColumn
     
     /// Creates a DatabaseDateComponents from a DateComponents and a format.
     ///
-    /// The result is nil if and only if *dateComponents* is nil.
-    ///
     /// - parameters:
     ///     - dateComponents: An optional DateComponents.
     ///     - format: The format used for storing the date components in
     ///       the database.
-    /// - returns: An optional DatabaseDateComponents.
-    public init?(_ dateComponents: DateComponents?, format: Format) {
-        guard let dateComponents = dateComponents else {
-            return nil
-        }
+    public init(_ dateComponents: DateComponents, format: Format) {
         self.format = format
         self.dateComponents = dateComponents
     }
@@ -81,9 +75,14 @@ public struct DatabaseDateComponents : DatabaseValueConvertible, StatementColumn
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
-        let cString = UnsafePointer<Int8>(OpaquePointer(sqlite3_column_text(sqliteStatement, index)!))
+        guard let cString = sqlite3_column_text(sqliteStatement, index) else {
+            fatalError("could not convert database value \(DatabaseValue(sqliteStatement: sqliteStatement, index: index)) to DatabaseDateComponents")
+        }
         let length = Int(sqlite3_column_bytes(sqliteStatement, index)) // avoid an strlen
-        guard let components = SQLiteDateParser().components(cString: cString, length: length) else {
+        let optionalComponents = cString.withMemoryRebound(to: Int8.self, capacity: length + 1 /* trailing \0 */) { cString in
+            SQLiteDateParser().components(cString: cString, length: length)
+        }
+        guard let components = optionalComponents else {
             fatalError("could not convert database value \(String(cString: cString)) to DatabaseDateComponents")
         }
         self.dateComponents = components.dateComponents
@@ -100,7 +99,7 @@ public struct DatabaseDateComponents : DatabaseValueConvertible, StatementColumn
             let year = dateComponents.year ?? 0
             let month = dateComponents.month ?? 1
             let day = dateComponents.day ?? 1
-            dateString = NSString(format: "%04d-%02d-%02d", year, month, day) as String
+            dateString = String(format: "%04d-%02d-%02d", year, month, day)
         default:
             dateString = nil
         }
@@ -110,18 +109,18 @@ public struct DatabaseDateComponents : DatabaseValueConvertible, StatementColumn
         case .YMD_HM, .HM:
             let hour = dateComponents.hour ?? 0
             let minute = dateComponents.minute ?? 0
-            timeString = NSString(format: "%02d:%02d", hour, minute) as String
+            timeString = String(format: "%02d:%02d", hour, minute)
         case .YMD_HMS, .HMS:
             let hour = dateComponents.hour ?? 0
             let minute = dateComponents.minute ?? 0
             let second = dateComponents.second ?? 0
-            timeString = NSString(format: "%02d:%02d:%02d", hour, minute, second) as String
+            timeString = String(format: "%02d:%02d:%02d", hour, minute, second)
         case .YMD_HMSS, .HMSS:
             let hour = dateComponents.hour ?? 0
             let minute = dateComponents.minute ?? 0
             let second = dateComponents.second ?? 0
             let nanosecond = dateComponents.nanosecond ?? 0
-            timeString = NSString(format: "%02d:%02d:%02d.%03d", hour, minute, second, Int(round(Double(nanosecond) / 1_000_000.0))) as String
+            timeString = String(format: "%02d:%02d:%02d.%03d", hour, minute, second, Int(round(Double(nanosecond) / 1_000_000.0)))
         default:
             timeString = nil
         }
