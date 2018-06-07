@@ -239,9 +239,10 @@ The consequence is that each part of your application will load the data it need
 // RECOMMENDED
 let bookId = 123
 let bookInfo: BookInfo? = try dbQueue.read { db in
-    guard let book = try Book.fetchOne(db, key: bookId) else { return nil }
-    let author = try book.author.fetchOne(db)!
-    return BookInfo(book: book, author: author)
+    let request = Book
+        .filter(key: bookId)
+        .including(required: Book.author)
+    return try BookInfo.fetchOne(db, request)
 }
 if let bookInfo = bookInfo {
     // use bookInfo
