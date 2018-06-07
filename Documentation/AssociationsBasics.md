@@ -162,7 +162,7 @@ let author = try book.author.fetchOne(db) // Author?
 
 The **BelongsTo** association between a book and its author needs that the database table for books has a column that points to the table for authors:
 
-![BelongsToSchema](https://cdn.rawgit.com/groue/GRDB.swift/GRDB3/Documentation/Images/Associations2/BelongsToSchema.svg)
+![BelongsToSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/BelongsToSchema.svg)
 
 See [Convention for the BelongsTo Association] for some sample code that defines the database schema for such an association.
 
@@ -196,7 +196,7 @@ let demographics = try country.demographics.fetchOne(db) // Demographics?
 
 The **HasOne** association between a country and its demographics needs that the database table for demographics has a column that points to the table for countries:
 
-![HasOneSchema](https://cdn.rawgit.com/groue/GRDB.swift/GRDB3/Documentation/Images/Associations2/HasOneSchema.svg)
+![HasOneSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasOneSchema.svg)
 
 See [Convention for the HasOne Association] for some sample code that defines the database schema for such an association.
 
@@ -229,7 +229,7 @@ let books = try author.books.fetchAll(db) // [Book]
 
 The **HasMany** association between an author and its books needs that the database table for books has a column that points to the table for authors:
 
-![HasManySchema](https://cdn.rawgit.com/groue/GRDB.swift/GRDB3/Documentation/Images/Associations2/HasManySchema.svg)
+![HasManySchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasManySchema.svg)
 
 See [Convention for the HasMany Association] for some sample code that defines the database schema for such an association.
 
@@ -242,7 +242,7 @@ The distinction is in where you place the database foreign key. The record that 
 
 A country **has one** demographic profile, a demographic profile **belongs to** a country:
 
-![HasOneSchema](https://cdn.rawgit.com/groue/GRDB.swift/GRDB3/Documentation/Images/Associations2/HasOneSchema.svg)
+![HasOneSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasOneSchema.svg)
 
 ```swift
 struct Country: TableRecord, FetchableRecord {
@@ -267,7 +267,7 @@ struct Employee {
 }
 ```
 
-![RecursiveSchema](https://cdn.rawgit.com/groue/GRDB.swift/GRDB3/Documentation/Images/Associations2/RecursiveSchema.svg)
+![RecursiveSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/RecursiveSchema.svg)
 
 The matching [migration] would look like:
 
@@ -360,7 +360,7 @@ See [The Structure of a Joined Request] for more information.
 
 Foreign keys are the recommended way to declare relationships between database tables. Not only will SQLite guarantee the integrity of your data, but GRDB will be able to use those foreign keys to automatically configure your associations.
 
-![BelongsToSchema](https://cdn.rawgit.com/groue/GRDB.swift/GRDB3/Documentation/Images/Associations2/BelongsToSchema.svg)
+![BelongsToSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/BelongsToSchema.svg)
 
 The matching [migration] could look like:
 
@@ -417,7 +417,7 @@ See [Foreign Keys] for more information.
 
 Foreign keys are the recommended way to declare relationships between database tables. Not only will SQLite guarantee the integrity of your data, but GRDB will be able to use those foreign keys to automatically configure your associations.
 
-![HasOneSchema](https://cdn.rawgit.com/groue/GRDB.swift/GRDB3/Documentation/Images/Associations2/HasOneSchema.svg)
+![HasOneSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasOneSchema.svg)
 
 The matching [migration] could look like:
 
@@ -475,7 +475,7 @@ See [Foreign Keys] for more information.
 
 Foreign keys are the recommended way to declare relationships between database tables. Not only will SQLite guarantee the integrity of your data, but GRDB will be able to use those foreign keys to automatically configure your associations.
 
-![HasManySchema](https://cdn.rawgit.com/groue/GRDB.swift/GRDB3/Documentation/Images/Associations2/HasManySchema.svg)
+![HasManySchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasManySchema.svg)
 
 The matching [migration] could look like:
 
@@ -532,7 +532,7 @@ See [Foreign Keys] for more information.
 
 In the example below, the `book.authorId` column is automatically used to link a book to its author:
 
-![BelongsToSchema](https://cdn.rawgit.com/groue/GRDB.swift/GRDB3/Documentation/Images/Associations2/BelongsToSchema.svg)
+![BelongsToSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/BelongsToSchema.svg)
 
 ```swift
 struct Book: TableRecord {
@@ -548,7 +548,7 @@ But this requires the database schema to define a foreign key between the book a
 
 Sometimes the database schema does not define any foreign key. And sometimes, there are *several* foreign keys from a table to another.
 
-![AmbiguousForeignKeys](https://cdn.rawgit.com/groue/GRDB.swift/GRDB3/Documentation/Images/Associations2/AmbiguousForeignKeys.svg)
+![AmbiguousForeignKeys](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/AmbiguousForeignKeys.svg)
 
 When this happens, associations can't be automatically inferred from the database schema. GRDB will complain with a fatal error such as "Ambiguous foreign key from book to person", or "Could not infer foreign key from book to person".
 
@@ -1084,13 +1084,13 @@ let request = Book
 
 This request builds the following **tree of association keys**:
 
-![TreeOfAssociationKeys](https://cdn.rawgit.com/groue/GRDB.swift/GRDB3/Documentation/Images/Associations2/TreeOfAssociationKeys.svg)
+![TreeOfAssociationKeys](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/TreeOfAssociationKeys.svg)
 
 **Association keys** are strings. They are the names of the database tables of associated records (unless you specify otherwise, as we'll see below).
 
 Those keys are associated with slices in the fetched rows:
 
-![TreeOfAssociationKeysMapping](https://cdn.rawgit.com/groue/GRDB.swift/GRDB3/Documentation/Images/Associations2/TreeOfAssociationKeysMapping.svg)
+![TreeOfAssociationKeysMapping](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/TreeOfAssociationKeysMapping.svg)
 
 We'll see below how this tree of association keys and row slices can feed a Decodable record type. We'll then add some details by using FetchableRecord without Decodable support.
 
@@ -1118,7 +1118,7 @@ This deserves a little explanation:
 
 You known that the Decodable protocol feeds a value's properties by looking for **coding keys**. For example, the standard built-in JSONDecoder matches those coding keys with dictionary keys in a JSON object. The GRDB record decoder also matches coding keys, but with association keys:
 
-![TreeOfAssociationKeysMapping](https://cdn.rawgit.com/groue/GRDB.swift/GRDB3/Documentation/Images/Associations2/TreeOfAssociationKeysMapping.svg)
+![TreeOfAssociationKeysMapping](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/TreeOfAssociationKeysMapping.svg)
 
 Practically speaking, the BookInfo initializer first looks for the "book" coding key. This key is not found anywhere in the tree of association keys, so the book property is initialized from the row slice associated with the root of the tree, which contains book columns.
 

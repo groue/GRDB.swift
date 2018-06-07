@@ -490,5 +490,5 @@ If you have time, you may dig deeper in GRDB 3 with those updated documentation 
 [record protocols]: ../README.md#record-protocols-overview
 [Custom requests]: ../README.md#custom-requests
 [query interface]: ../README.md#the-query-interface
-[DatabaseRegionConvertible]: https://github.com/groue/RxGRDB/blob/GRDB3/README.md#databaseregionconvertible-protocol
+[DatabaseRegionConvertible]: https://github.com/groue/RxGRDB/blob/master/README.md#databaseregionconvertible-protocol
 [conditional conformances]: https://github.com/apple/swift-evolution/blob/master/proposals/0143-conditional-conformances.md
