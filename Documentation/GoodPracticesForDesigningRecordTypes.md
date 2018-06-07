@@ -205,9 +205,9 @@ The consequence is that each part of your application will load the data it need
         var books: [Book]
     }
     let authorId = 123
-    let authorInfo: AuthorInfo? = dbQueue.read { db in
+    let authorInfo: AuthorInfo? = try dbQueue.read { db in
         guard let author = try Author.fetchOne(db, key: authorId) else { return nil }
-        let books = try author.books.order(Column("publishDate").desc).fetchAll(db)
+        let books = try author.books.fetchAll(db)
         return AuthorInfo(author: author, books: books)
     }
     ```
@@ -215,15 +215,16 @@ The consequence is that each part of your application will load the data it need
 3. Prepare the application screen that displays a book information:
     
     ```swift
-    struct BookInfo {
+    struct BookInfo: FetchableRecord, Codable {
         var book: Book
         var author: Author
     }
-    let bookId = 123
-    let bookInfo: BookInfo? = dbQueue.read { db in
-        guard let book = try Book.fetchOne(db, key: bookId) else { return nil }
-        let author = try book.author.fetchOne(db)!
-        return BookInfo(book: book, author: author)
+    let bookId = 1
+    let bookInfo: BookInfo? = try dbQueue.read { db in
+        let request = Book
+            .filter(key: bookId)
+            .including(required: Book.author)
+        return try BookInfo.fetchOne(db, request)
     }
     ```
 
