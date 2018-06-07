@@ -33,7 +33,7 @@ migrator.registerMigration("createLibrary") { db in
     
     try db.create(table: "book") { t in
         t.autoIncrementedPrimaryKey("id")
-        t.column("title", .text)                      // (4)
+        t.column("title", .text).notNull()            // (4)
         t.column("authorId", .integer)                // (5)
             .notNull()                                // (6)
             .indexed()                                // (7)
