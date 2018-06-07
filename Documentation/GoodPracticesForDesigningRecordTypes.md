@@ -239,6 +239,7 @@ The consequence is that each part of your application will load the data it need
 // RECOMMENDED
 let bookId = 123
 let bookInfo: BookInfo? = try dbQueue.read { db in
+    // Gather as many fetches as required in this single `read` block:
     let request = Book
         .filter(key: bookId)
         .including(required: Book.author)
@@ -250,6 +251,7 @@ if let bookInfo = bookInfo {
 
 // NOT RECOMMENDED
 let bookId = 123
+// Two fetches not gathered in a single `read` block:
 if let book = databaseManager.getBook(id: bookId) {
     let author = databaseManager.getAuthor(id: book.authorId)!
     // use book and author
