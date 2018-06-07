@@ -5,7 +5,6 @@ GRDB 3 comes with new features, but also a few breaking changes, and a set of up
 
 **For all users**
 
-- [How To Upgrade]
 - [Swift 4.1 Required]
 - [iOS 8 Sunsetting]
 - [Database Schema Recommendations]
@@ -22,39 +21,6 @@ GRDB 3 comes with new features, but also a few breaking changes, and a set of up
 - [If You Use RxGRDB]
 - [Notable Documentation Updates]
 
-
-## How to Upgrade
-
-Target the "GRDB3" branch:
-
-### CocoaPods
-
-Update your Podfile:
-
-```ruby
-pod 'GRDB.swift', git: 'https://github.com/groue/GRDB.swift', branch: 'GRDB3'
-```
-
-### Swift Package Manager
-
-Update your Package.swift file:
-
-```swift
-let package = Package(
-    dependencies: [
-        .package(url: "https://github.com/groue/GRDB.swift.git", .branchItem("GRDB3"))
-    ]
-)
-```
-
-### Manually
-
-Update your local copy of GRDB:
-
-```sh
-git checkout GRDB3
-git pull
-```
 
 ## Swift 4.1 Required
 
@@ -430,19 +396,13 @@ See the updated [Custom Requests](../README.md#custom-requests) chapter for more
 
 ## If You Use RxGRDB
 
-To install the GRDB 3 flavor of RxGRDB, update your Podfile:
-
-```ruby
-pod 'RxGRDB', git: 'https://github.com/groue/RxGRDB', branch: 'GRDB3'
-```
-
-Some APIs have slighly changed. Did you track multiple requests at the same time with "fetch tokens"?
+Some RxGRDB APIs have slighly changed. Did you track multiple requests at the same time with "fetch tokens"?
 
 ```swift
 // GRDB 2
 dbQueue.rx
-    .fetchTokens(in: [...])
-    .mapFetch { db in ... }
+    .fetchTokens(in: [request, ...])
+    .mapFetch { db in try fetchResult(db) }
     .subscribe(...)
 ```
 
@@ -451,7 +411,7 @@ Now you'll write instead:
 ```swift
 // GRDB 3
 dbQueue.rx
-    .fetch(from: [...]) { db in ... }
+    .fetch(from: [request, ...]) { db in try fetchResult(db) }
     .subscribe(...)
 ```
 
