@@ -2699,7 +2699,7 @@ let oldPlayer = try Player.fetchOne(db, ...)
 var newPlayer = oldPlayer
 newPlayer.score = 100
 if try newPlayer.updateChanges(db, from: oldPlayer) {
-    print("player was modified")
+    print("player was modified, and updated in the database")
 } else {
     print("player was not modified")
 }
@@ -2714,7 +2714,7 @@ The [Record](#record-class) class is able to compare against itself, and knows i
 let player = try Player.fetchOne(db, ...)
 player.score = 100
 if try player.updateChanges(db) {
-    print("player was modified")
+    print("player was modified, and updated in the database")
 } else {
     print("player was not modified")
 }
@@ -3147,7 +3147,7 @@ class Place: Record {
 
 ## List of Record Methods
 
-This is the list of record methods, along with their required protocols. The [Record](#record-class) adopts all these protocols, and adds a few extra methods.
+This is the list of record methods, along with their required protocols. The [Record](#record-class) class adopts all these protocols, and adds a few extra methods.
 
 | Method | Protocols | Notes |
 | ------ | --------- | :---: |
