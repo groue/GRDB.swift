@@ -274,9 +274,9 @@ end
 
 The problem is that it is very hard to guarantee that you will surely fetch an author after you have fetched a book, despite the constraints of the database schema. One has to perform subsequent fetches in the proper [isolation] level, so that eventual concurrent writes that modify the database are unable to mess with subsequent requests.
 
-This isolation can be achieved with record management, as in [Core Data] or [Realm], that target with long-running multi-threaded applications. Most web-oriented ORMs rely on short-lived database transactions, so that each HTTP request can be processed independently of others.
+This isolation can be achieved with record management, as in [Core Data] or [Realm], that target long-running multi-threaded applications. On the other side, most web-oriented ORMs rely on short-lived database transactions, so that each HTTP request can be processed independently of others.
 
-GRDB is not a managed ORM. It thus has to use the same isolation techniques as web-oriented ORMs. Unlike web-oriented ORMs, though, GRDB can't provide implicit isolation: the application must decide when it wants to safely read information in the database, and this decision is made explicit with database access methods such as `dbQueue.read`.
+GRDB is not a managed ORM. It thus has to use the same isolation techniques as web-oriented ORMs. But unlike web-oriented ORMs, GRDB can't provide implicit isolation: the application must decide when it wants to safely read information in the database, and this decision is made explicit with database access methods such as `dbQueue.read`.
 
 Do not overlook this advice, or your application will exhibit weird concurrency-related bugs. Read the [Concurrency Guide] for detailed information, and the "Solving Problems" chapter of [Why Adopt GRDB?](WhyAdoptGRDB.md#solving-problems) for more rationale.
 
