@@ -258,7 +258,9 @@ if let book = databaseManager.getBook(id: bookId) {
 }
 ```
 
-This tip is paramount, and deserves an explanation: when you do not fetch your data in a single database read, other threads of your application may modify the database in the background, and have you fetch inconsistent data. This leads to hard-to-reproduce bugs, from funny values on screen to data loss.
+This tip is paramount, and deserves an explanation because too many database libraries out there tend to completely disregard multi-threading subtleties.
+
+When you do not fetch your data in a single database access block, other threads of your application may modify the database in the background, and have you fetch inconsistent data. This leads to hard-to-reproduce bugs, from funny values on screen to data loss.
 
 Wrapping all fetches in a `read` method may look like an inconvenience to you. After all, other ORMs don't require that much ceremony:
 
@@ -274,7 +276,7 @@ The problem is that it is very hard to guarantee that you will surely fetch an a
 
 This isolation can be achieved with record management, as in [Core Data] or [Realm], that target with long-running multi-threaded applications. Most web-oriented ORMs rely on short-lived database transactions, so that each HTTP request can be processed independently of others.
 
-GRDB is not a managed ORM. It thus has to use the same isolation techniques as web-oriented ORMs. Unlike web-oriented ORMs, though, GRDB can't provide *implicit* isolation: the application must decide when it wants to safely read information in the database, and this decision is made *explicit* with the `read` GRDB method.
+GRDB is not a managed ORM. It thus has to use the same isolation techniques as web-oriented ORMs. Unlike web-oriented ORMs, though, GRDB can't provide implicit isolation: the application must decide when it wants to safely read information in the database, and this decision is made explicit with database access methods such as `dbQueue.read`.
 
 Do not overlook this advice, or your application will exhibit weird concurrency-related bugs. Read the [Concurrency Guide] for detailed information, and the "Solving Problems" chapter of [Why Adopt GRDB?](WhyAdoptGRDB.md#solving-problems) for more rationale.
 
