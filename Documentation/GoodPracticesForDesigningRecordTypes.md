@@ -219,7 +219,7 @@ The consequence is that each part of your application will load the data it need
         var book: Book
         var author: Author
     }
-    let bookId = 1
+    let bookId = 123
     let bookInfo: BookInfo? = try dbQueue.read { db in
         let request = Book
             .filter(key: bookId)
