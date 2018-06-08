@@ -215,7 +215,7 @@ The consequence is that each part of your application will load the data it need
 3. Prepare the application screen that displays a book information:
     
     ```swift
-    struct BookInfo: FetchableRecord, Codable {
+    struct BookInfo: Decodable, FetchableRecord {
         var book: Book
         var author: Author
     }
