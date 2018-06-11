@@ -1037,9 +1037,9 @@ let request = Book
 
 **Now is the time to tell how joined requests should be consumed.**
 
-As always in GRDB, requests can be consumed as raw database rows, or as well-structured and convenient records.
+You will generally define a record type that matches the structure of the request. You'll make it adopt the [FetchableRecord] protocol, so that it can decode database rows. Often, you'll also make it adopt the standard Decodable protocol, because the compiler will generate the decoding code for you.
 
-The request above can be consumed into the following record:
+For example, the request above can be consumed into the following record:
 
 ```swift
 struct BookInfo: FetchableRecord, Decodable {
@@ -1050,18 +1050,6 @@ struct BookInfo: FetchableRecord, Decodable {
 }
 
 let bookInfos = try BookInfo.fetchAll(db, request) // [BookInfo]
-```
-
-If we consume raw rows, we start to see what's happening under the hood:
-
-```swift
-let row = try Row.fetchOne(db, request)! // Row
-print(row.debugDescription)
-// ▿ [id:1, authorId:2, title:"Moby-Dick"]
-//   unadapted: [id:1, authorId:2, title:"Moby-Dick", id:2, name:"Herman Melville", countryCode:"US", code:"US", name:"United States of America", id:42, imageId:1, path:"moby-dick.jpg"]
-//   - author: [id:2, name:"Herman Melville", countryCode:"US"]
-//     - country: [code:"US", name:"United States of America"]
-//   - coverImage: [id:42, imageId:1, path:"moby-dick.jpg"]
 ```
 
 - [The Structure of a Joined Request]
