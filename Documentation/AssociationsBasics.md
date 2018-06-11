@@ -1055,6 +1055,7 @@ let bookInfos = try BookInfo.fetchAll(db, request) // [BookInfo]
 - [The Structure of a Joined Request]
 - [Decoding a Joined Request with a Decodable Record]
 - [Decoding a Joined Request with FetchableRecord]
+- [Good Practices for Designing Record Types] - in this general guide about records, check out the "Compose Records" chapter.
 
 
 ## The Structure of a Joined Request
@@ -1451,3 +1452,4 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [query interface requests]: ../README.md#requests
 [TableRecord]: ../README.md#tablerecord-protocol
 [association requests]: #building-requests-from-associations
+[Good Practices for Designing Record Types]: GoodPracticesForDesigningRecordTypes.md
