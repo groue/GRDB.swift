@@ -1,7 +1,6 @@
 - [ ] Attach databases. Interesting question: what happens when one attaches a non-WAL db to a databasePool?
 - [ ] SQLCipher: sqlite3_rekey is discouraged (https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320)
 - [ ] Query builder
-    - [ ] SELECT readers.*, books.* FROM ... JOIN ...
     - [ ] date functions
     - [ ] NOW/CURRENT_TIMESTAMP
     - [ ] ROUND() http://marc.info/?l=sqlite-users&m=130419182719263
@@ -13,42 +12,31 @@
 - [ ] Allow concurrent reads from a snapshot
 - [ ] Decode NSDecimalNumber from text database values
 - [ ] Check https://sqlite.org/sqlar.html
-- [ ] SQLite 3.23.0 https://github.com/swiftlyfalling/SQLiteLib/commit/a1732cac8dc7314b4c943daf20956dbfb895872d
-
-GRDB 3.0
-
-- [ ] Not sure: type safety
-    - [ ] Introduce some record protocol with an associated primary key type. Restrict filter(key:) methods to this type. Allow distinguishing FooId from BarId types.
-    - [ ] Replace Column with TypedColumn. How to avoid code duplication (repeated types)? Keypaths?
-- [ ] HiddenColumnsAdapter
-- [ ] Find a common name for DatabaseQueue.inDatabase / DatabasePool.writeWithoutTransaction:
-    - writeRaw, rawWrite, pureWrite, plainWrite, directWrite, basicWrite
-    - sync
-    - ?
 - [ ] filter(rowid:), filter(rowids:)
 - [ ] Fix matchingRowIds
 - [ ] Simplify Range extensions for Swift 4.1
 - [ ] https://forums.swift.org/t/how-to-encode-objects-of-unknown-type/12253/6
-- [ ] hide ScopeAdapter(base, scopes), because base.addingScopes has a better implementation
+- [ ] deprecate ScopeAdapter(base, scopes), because base.addingScopes has a better implementation
 - [ ] Joins and full-text tables
-- [ ] DatabaseRequest should be part of RxGRDB, as DatabaseRegionConvertible. Rename fetchedRegion(_:) to databaseRegion(_:). SelectStatementRequest hasn't much traction left: remove?
-- [ ] Provide a way to extend both QueryInterfaceRequest and Association:
-    
-    ```swift
-    extension ??? where ??? = Player {
-        func filter(color: Color) -> Self {
-            return filter(Column("color") == color)
-        }
-    }
-    let players = Player.all().filter(color: .red)
-    let players = Player.filter(color: .red) // Possible ??
-    let teamPlayers = Team.players.filter(color: .red)
-    ```
-- [ ] From vapor: How do they use [keypaths](https://docs.vapor.codes/3.0/fluent/querying/) for filtering?
+- [ ] SQLite 3.24.0
+- [ ] UPSERT https://www.sqlite.org/lang_UPSERT.html
 
+Swift 4.2
+
+- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0210-key-path-offset.md
+- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0208-package-manager-system-library-targets.md
+- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0207-containsOnly.md
+- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0206-hashable-enhancements.md
+- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0202-random-unification.md
+- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0201-package-manager-local-dependencies.md
+- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0193-cross-module-inlining-and-specialization.md
 
 Not sure
 
+- [ ] HiddenColumnsAdapter
+- [ ] Not sure: type safety
+    - [ ] Introduce some record protocol with an associated primary key type. Restrict filter(key:) methods to this type. Allow distinguishing FooId from BarId types.
+    - [ ] Replace Column with TypedColumn. How to avoid code duplication (repeated types)? Keypaths?
 - [ ] encode/decode nested records/arrays/dictionaries as JSON?
 - [ ] Think about supporting Cursor's underestimatedCount, which could speed up Array(cursor) and fetchAll()
 - [ ] Support for OR ROLLBACK, and mismatch between the Swift depth and the SQLite depth of nested transactions/savepoint:
