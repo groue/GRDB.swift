@@ -20,6 +20,7 @@
 - [ ] Joins and full-text tables
 - [ ] SQLite 3.24.0
 - [ ] UPSERT https://www.sqlite.org/lang_UPSERT.html
+- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0075-import-test.md
 
 Swift 4.2
 
