@@ -20,7 +20,8 @@ public class DatabaseSnapshot : DatabaseReader {
         serializedDatabase = try SerializedDatabase(
             path: path,
             configuration: configuration,
-            schemaCache: SimpleDatabaseSchemaCache())
+            schemaCache: SimpleDatabaseSchemaCache(),
+            label: "GRDB.DatabaseSnapshot")
         
         try serializedDatabase.sync { db in
             // Assert WAL mode

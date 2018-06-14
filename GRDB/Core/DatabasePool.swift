@@ -47,7 +47,8 @@ public final class DatabasePool: DatabaseWriter {
         writer = try SerializedDatabase(
             path: path,
             configuration: configuration,
-            schemaCache: SimpleDatabaseSchemaCache())
+            schemaCache: SimpleDatabaseSchemaCache(),
+            label: "GRDB.DatabasePool.Writer")
         
         // Activate WAL Mode unless readonly
         if !configuration.readonly {
@@ -77,11 +78,14 @@ public final class DatabasePool: DatabaseWriter {
         readerConfig.readonly = true
         readerConfig.defaultTransactionKind = .deferred // Make it the default for readers. Other transaction kinds are forbidden by SQLite in read-only connections.
         readerConfig.allowsUnsafeTransactions = false   // Because there's no guarantee that one can get the same reader in order to close its opened transaction.
+        var readerCount = 0
         readerPool = Pool(maximumCount: configuration.maximumReaderCount, makeElement: { [unowned self] in
+            readerCount += 1 // protected by pool's ReadWriteBox (undocumented behavior and protection)
             let reader = try SerializedDatabase(
                 path: path,
                 configuration: self.readerConfig,
-                schemaCache: SimpleDatabaseSchemaCache())
+                schemaCache: SimpleDatabaseSchemaCache(),
+                label: "GRDB.DatabasePool.Reader.\(readerCount)")
             reader.sync { self.setupDatabase($0) }
             return reader
         })

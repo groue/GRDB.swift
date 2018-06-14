@@ -30,8 +30,8 @@ final class SchedulingWatchdog {
         allowedDatabases = [database]
     }
     
-    static func makeSerializedQueue(allowingDatabase database: Database) -> DispatchQueue {
-        let queue = DispatchQueue(label: "GRDB.SerializedDatabase")
+    static func makeSerializedQueue(allowingDatabase database: Database, label: String) -> DispatchQueue {
+        let queue = DispatchQueue(label: label)
         let watchdog = SchedulingWatchdog(allowedDatabase: database)
         queue.setSpecific(key: specificKey, value: watchdog)
         return queue
