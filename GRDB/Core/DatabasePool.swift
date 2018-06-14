@@ -17,6 +17,8 @@ public final class DatabasePool: DatabaseWriter {
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
     
+    var snapshotCount = ReadWriteBox(0)
+    
     #if os(iOS)
     private weak var application: UIApplication?
     #endif
@@ -48,7 +50,7 @@ public final class DatabasePool: DatabaseWriter {
             path: path,
             configuration: configuration,
             schemaCache: SimpleDatabaseSchemaCache(),
-            label: "GRDB.DatabasePool.Writer")
+            label: (configuration.label ?? "GRDB.DatabasePool") + ".Writer")
         
         // Activate WAL Mode unless readonly
         if !configuration.readonly {
@@ -85,7 +87,7 @@ public final class DatabasePool: DatabaseWriter {
                 path: path,
                 configuration: self.readerConfig,
                 schemaCache: SimpleDatabaseSchemaCache(),
-                label: "GRDB.DatabasePool.Reader.\(readerCount)")
+                label: (self.readerConfig.label ?? "GRDB.DatabasePool") + ".Reader.\(readerCount)")
             reader.sync { self.setupDatabase($0) }
             return reader
         })
@@ -705,7 +707,10 @@ extension DatabasePool {
             }
         }
         
-        let snapshot = try DatabaseSnapshot(path: path, configuration: writer.configuration)
+        let snapshot = try DatabaseSnapshot(
+            path: path,
+            configuration: writer.configuration,
+            labelSuffix: ".Snapshot.\(snapshotCount.increment())")
         snapshot.read { setupDatabase($0) }
         return snapshot
     }

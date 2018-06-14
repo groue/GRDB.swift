@@ -20,6 +20,53 @@ public struct Configuration {
     /// Default: false
     public var readonly: Bool = false
     
+    /// The database label.
+    ///
+    /// You can query this label at runtime:
+    ///
+    ///     var configuration = Configuration()
+    ///     configuration.label = "MyDatabase"
+    ///     let dbQueue = DatabaseQueue(path: ..., configuration: configuration)
+    ///
+    ///     try dbQueue.read { db in
+    ///         print(db.configuration.label) // Prints "MyDatabase"
+    ///     }
+    ///
+    /// This label is also used to describe the various dispatch queues created
+    /// by GRDB, visible in debugging sessions and crash logs. However those
+    /// dispatch queue labels are intended for debugging only. Their format may
+    /// change between GRDB releases. Applications should not depend on the
+    /// GRDB dispatch queue labels.
+    ///
+    /// If the label is nil, the current GRDB implementation uses those
+    /// dispatch queue labels:
+    ///
+    /// - `GRDB.DatabaseQueue`: the (unique) dispatch queue of a DatabaseQueue
+    /// - `GRDB.DatabasePool.Writer`: the (unique) writer dispatch queue of
+    ///   a DatabasePool
+    /// - `GRDB.DatabasePool.Reader.N`, where N is 1, 2, ...: one of the reader
+    ///   dispatch queue(s) of a DatabasePool. N grows with the number of SQLite
+    ///   connections: it may get bigger than the maximum number of concurrent
+    ///   readers, as SQLite connections get closed and new ones are opened.
+    /// - `GRDB.DatabasePool.Snapshot.N`: the dispatch queue of a
+    ///   DatabaseSnapshot. N grows with the number of snapshots.
+    ///
+    /// If the label is not nil, for example "MyDatabase", the current GRDB
+    /// implementation uses those dispatch queue labels:
+    ///
+    /// - `MyDatabase`: the (unique) dispatch queue of a DatabaseQueue
+    /// - `MyDatabase.Writer`: the (unique) writer dispatch queue of
+    ///   a DatabasePool
+    /// - `MyDatabase.Reader.N`, where N is 1, 2, ...: one of the reader
+    ///   dispatch queue(s) of a DatabasePool. N grows with the number of SQLite
+    ///   connections: it may get bigger than the maximum number of concurrent
+    ///   readers, as SQLite connections get closed and new ones are opened.
+    /// - `MyDatabase.Snapshot.N`: the dispatch queue of a
+    ///   DatabaseSnapshot. N grows with the number of snapshots.
+    ///
+    /// The default label is nil.
+    public var label: String? = nil
+    
     /// A function that is called on every statement executed by the database.
     ///
     /// Default: nil

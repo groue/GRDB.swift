@@ -127,7 +127,6 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
     func testCacheSnapshotIsolation() throws {
         // This test checks that the schema cache follows snapshot isolation.
         // and that writer and readers do not naively share the same cache.
-        dbConfiguration.trace = { print($0) }
         let dbPool = try makeDatabasePool()
         
         // writer                   reader

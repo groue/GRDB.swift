@@ -3,7 +3,7 @@ Release Notes
 
 ## Next Version
 
-- Database dispatch queues now have labels ([#371](https://github.com/groue/GRDB.swift/pull/371)).
+- Database can have a label ([#371](https://github.com/groue/GRDB.swift/pull/371)).
 
 
 ## 3.0.0

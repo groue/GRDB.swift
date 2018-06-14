@@ -872,7 +872,6 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     }
 
     func testReadFromCurrentStateError() throws {
-        dbConfiguration.trace = { print($0) }
         let dbPool = try makeDatabasePool()
         try dbPool.writeWithoutTransaction { db in
             try db.execute("PRAGMA locking_mode=EXCLUSIVE")
@@ -941,6 +940,95 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         }
         try dbPool.read { db in
             _ = try Row.fetchAll(db, "SELECT * FROM search")
+        }
+    }
+    
+    func testDefaultLabel() throws {
+        let dbPool = try makeDatabasePool()
+        dbPool.writeWithoutTransaction { db in
+            XCTAssertEqual(db.configuration.label, nil)
+            
+            // This test CAN break in future releases: the dispatch queue labels
+            // are documented to be a debug-only tool.
+            let label = String(utf8String: __dispatch_queue_get_label(nil))
+            XCTAssertEqual(label, "GRDB.DatabasePool.Writer")
+        }
+        
+        let s1 = DispatchSemaphore(value: 0)
+        let s2 = DispatchSemaphore(value: 0)
+        let block1 = { () in
+            try! dbPool.read { db in
+                XCTAssertEqual(db.configuration.label, nil)
+                
+                // This test CAN break in future releases: the dispatch queue labels
+                // are documented to be a debug-only tool.
+                let label = String(utf8String: __dispatch_queue_get_label(nil))
+                XCTAssertEqual(label, "GRDB.DatabasePool.Reader.1")
+                
+                _ = s1.signal()
+                _ = s2.wait(timeout: .distantFuture)
+            }
+        }
+        let block2 = { () in
+            _ = s1.wait(timeout: .distantFuture)
+            try! dbPool.read { db in
+                _ = s2.signal()
+                XCTAssertEqual(db.configuration.label, nil)
+                
+                // This test CAN break in future releases: the dispatch queue labels
+                // are documented to be a debug-only tool.
+                let label = String(utf8String: __dispatch_queue_get_label(nil))
+                XCTAssertEqual(label, "GRDB.DatabasePool.Reader.2")
+            }
+        }
+        let blocks = [block1, block2]
+        DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
+            blocks[index]()
+        }
+    }
+    
+    func testCustomLabel() throws {
+        dbConfiguration.label = "Toreador"
+        let dbPool = try makeDatabasePool()
+        dbPool.writeWithoutTransaction { db in
+            XCTAssertEqual(db.configuration.label, "Toreador")
+            
+            // This test CAN break in future releases: the dispatch queue labels
+            // are documented to be a debug-only tool.
+            let label = String(utf8String: __dispatch_queue_get_label(nil))
+            XCTAssertEqual(label, "Toreador.Writer")
+        }
+        
+        let s1 = DispatchSemaphore(value: 0)
+        let s2 = DispatchSemaphore(value: 0)
+        let block1 = { () in
+            try! dbPool.read { db in
+                XCTAssertEqual(db.configuration.label, "Toreador")
+                
+                // This test CAN break in future releases: the dispatch queue labels
+                // are documented to be a debug-only tool.
+                let label = String(utf8String: __dispatch_queue_get_label(nil))
+                XCTAssertEqual(label, "Toreador.Reader.1")
+                
+                _ = s1.signal()
+                _ = s2.wait(timeout: .distantFuture)
+            }
+        }
+        let block2 = { () in
+            _ = s1.wait(timeout: .distantFuture)
+            try! dbPool.read { db in
+                _ = s2.signal()
+                XCTAssertEqual(db.configuration.label, "Toreador")
+                
+                // This test CAN break in future releases: the dispatch queue labels
+                // are documented to be a debug-only tool.
+                let label = String(utf8String: __dispatch_queue_get_label(nil))
+                XCTAssertEqual(label, "Toreador.Reader.2")
+            }
+        }
+        let blocks = [block1, block2]
+        DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
+            blocks[index]()
         }
     }
 }
