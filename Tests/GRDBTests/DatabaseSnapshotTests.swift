@@ -130,7 +130,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
             // This test CAN break in future releases: the dispatch queue labels
             // are documented to be a debug-only tool.
             let label = String(utf8String: __dispatch_queue_get_label(nil))
-            XCTAssertEqual(label, "GRDB.DatabasePool.Snapshot.1")
+            XCTAssertEqual(label, "GRDB.DatabasePool.snapshot.1")
         }
         
         let snapshot2 = try dbPool.makeSnapshot()
@@ -140,7 +140,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
             // This test CAN break in future releases: the dispatch queue labels
             // are documented to be a debug-only tool.
             let label = String(utf8String: __dispatch_queue_get_label(nil))
-            XCTAssertEqual(label, "GRDB.DatabasePool.Snapshot.2")
+            XCTAssertEqual(label, "GRDB.DatabasePool.snapshot.2")
         }
     }
     
@@ -155,7 +155,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
             // This test CAN break in future releases: the dispatch queue labels
             // are documented to be a debug-only tool.
             let label = String(utf8String: __dispatch_queue_get_label(nil))
-            XCTAssertEqual(label, "Toreador.Snapshot.1")
+            XCTAssertEqual(label, "Toreador.snapshot.1")
         }
         
         let snapshot2 = try dbPool.makeSnapshot()
@@ -165,7 +165,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
             // This test CAN break in future releases: the dispatch queue labels
             // are documented to be a debug-only tool.
             let label = String(utf8String: __dispatch_queue_get_label(nil))
-            XCTAssertEqual(label, "Toreador.Snapshot.2")
+            XCTAssertEqual(label, "Toreador.snapshot.2")
         }
     }
 }

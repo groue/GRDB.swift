@@ -26,7 +26,7 @@ public struct Configuration {
     ///
     ///     var configuration = Configuration()
     ///     configuration.label = "MyDatabase"
-    ///     let dbQueue = DatabaseQueue(path: ..., configuration: configuration)
+    ///     let dbQueue = try DatabaseQueue(path: ..., configuration: configuration)
     ///
     ///     try dbQueue.read { db in
     ///         print(db.configuration.label) // Prints "MyDatabase"
@@ -42,26 +42,26 @@ public struct Configuration {
     /// following dispatch queue labels:
     ///
     /// - `GRDB.DatabaseQueue`: the (unique) dispatch queue of a DatabaseQueue
-    /// - `GRDB.DatabasePool.Writer`: the (unique) writer dispatch queue of
+    /// - `GRDB.DatabasePool.writer`: the (unique) writer dispatch queue of
     ///   a DatabasePool
-    /// - `GRDB.DatabasePool.Reader.N`, where N is 1, 2, ...: one of the reader
+    /// - `GRDB.DatabasePool.reader.N`, where N is 1, 2, ...: one of the reader
     ///   dispatch queue(s) of a DatabasePool. N grows with the number of SQLite
     ///   connections: it may get bigger than the maximum number of concurrent
     ///   readers, as SQLite connections get closed and new ones are opened.
-    /// - `GRDB.DatabasePool.Snapshot.N`: the dispatch queue of a
+    /// - `GRDB.DatabasePool.snapshot.N`: the dispatch queue of a
     ///   DatabaseSnapshot. N grows with the number of snapshots.
     ///
     /// If the database label is not nil, for example "MyDatabase", the current
     /// GRDB implementation uses the following dispatch queue labels:
     ///
     /// - `MyDatabase`: the (unique) dispatch queue of a DatabaseQueue
-    /// - `MyDatabase.Writer`: the (unique) writer dispatch queue of
+    /// - `MyDatabase.writer`: the (unique) writer dispatch queue of
     ///   a DatabasePool
-    /// - `MyDatabase.Reader.N`, where N is 1, 2, ...: one of the reader
+    /// - `MyDatabase.reader.N`, where N is 1, 2, ...: one of the reader
     ///   dispatch queue(s) of a DatabasePool. N grows with the number of SQLite
     ///   connections: it may get bigger than the maximum number of concurrent
     ///   readers, as SQLite connections get closed and new ones are opened.
-    /// - `MyDatabase.Snapshot.N`: the dispatch queue of a
+    /// - `MyDatabase.snapshot.N`: the dispatch queue of a
     ///   DatabaseSnapshot. N grows with the number of snapshots.
     ///
     /// The default label is nil.

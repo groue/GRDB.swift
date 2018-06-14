@@ -951,7 +951,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             // This test CAN break in future releases: the dispatch queue labels
             // are documented to be a debug-only tool.
             let label = String(utf8String: __dispatch_queue_get_label(nil))
-            XCTAssertEqual(label, "GRDB.DatabasePool.Writer")
+            XCTAssertEqual(label, "GRDB.DatabasePool.writer")
         }
         
         let s1 = DispatchSemaphore(value: 0)
@@ -963,7 +963,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 // This test CAN break in future releases: the dispatch queue labels
                 // are documented to be a debug-only tool.
                 let label = String(utf8String: __dispatch_queue_get_label(nil))
-                XCTAssertEqual(label, "GRDB.DatabasePool.Reader.1")
+                XCTAssertEqual(label, "GRDB.DatabasePool.reader.1")
                 
                 _ = s1.signal()
                 _ = s2.wait(timeout: .distantFuture)
@@ -978,7 +978,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 // This test CAN break in future releases: the dispatch queue labels
                 // are documented to be a debug-only tool.
                 let label = String(utf8String: __dispatch_queue_get_label(nil))
-                XCTAssertEqual(label, "GRDB.DatabasePool.Reader.2")
+                XCTAssertEqual(label, "GRDB.DatabasePool.reader.2")
             }
         }
         let blocks = [block1, block2]
@@ -996,7 +996,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             // This test CAN break in future releases: the dispatch queue labels
             // are documented to be a debug-only tool.
             let label = String(utf8String: __dispatch_queue_get_label(nil))
-            XCTAssertEqual(label, "Toreador.Writer")
+            XCTAssertEqual(label, "Toreador.writer")
         }
         
         let s1 = DispatchSemaphore(value: 0)
@@ -1008,7 +1008,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 // This test CAN break in future releases: the dispatch queue labels
                 // are documented to be a debug-only tool.
                 let label = String(utf8String: __dispatch_queue_get_label(nil))
-                XCTAssertEqual(label, "Toreador.Reader.1")
+                XCTAssertEqual(label, "Toreador.reader.1")
                 
                 _ = s1.signal()
                 _ = s2.wait(timeout: .distantFuture)
@@ -1023,7 +1023,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 // This test CAN break in future releases: the dispatch queue labels
                 // are documented to be a debug-only tool.
                 let label = String(utf8String: __dispatch_queue_get_label(nil))
-                XCTAssertEqual(label, "Toreador.Reader.2")
+                XCTAssertEqual(label, "Toreador.reader.2")
             }
         }
         let blocks = [block1, block2]
