@@ -32,14 +32,14 @@ public struct Configuration {
     ///         print(db.configuration.label) // Prints "MyDatabase"
     ///     }
     ///
-    /// This label is also used to describe the various dispatch queues created
-    /// by GRDB, visible in debugging sessions and crash logs. However those
-    /// dispatch queue labels are intended for debugging only. Their format may
-    /// change between GRDB releases. Applications should not depend on the
-    /// GRDB dispatch queue labels.
+    /// The database label is also used to name the various dispatch queues
+    /// created by GRDB, visible in debugging sessions and crash logs. However
+    /// those dispatch queue labels are intended for debugging only. Their
+    /// format may change between GRDB releases. Applications should not depend
+    /// on the GRDB dispatch queue labels.
     ///
-    /// If the label is nil, the current GRDB implementation uses those
-    /// dispatch queue labels:
+    /// If the database label is nil, the current GRDB implementation uses the
+    /// following dispatch queue labels:
     ///
     /// - `GRDB.DatabaseQueue`: the (unique) dispatch queue of a DatabaseQueue
     /// - `GRDB.DatabasePool.Writer`: the (unique) writer dispatch queue of
@@ -51,8 +51,8 @@ public struct Configuration {
     /// - `GRDB.DatabasePool.Snapshot.N`: the dispatch queue of a
     ///   DatabaseSnapshot. N grows with the number of snapshots.
     ///
-    /// If the label is not nil, for example "MyDatabase", the current GRDB
-    /// implementation uses those dispatch queue labels:
+    /// If the database label is not nil, for example "MyDatabase", the current
+    /// GRDB implementation uses the following dispatch queue labels:
     ///
     /// - `MyDatabase`: the (unique) dispatch queue of a DatabaseQueue
     /// - `MyDatabase.Writer`: the (unique) writer dispatch queue of
