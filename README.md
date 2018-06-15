@@ -441,6 +441,7 @@ var config = Configuration()
 config.readonly = true
 config.foreignKeysEnabled = true // Default is already true
 config.trace = { print($0) }     // Prints all SQL statements
+config.label = "MyDatabase"      // Useful when your app opens multiple databases
 
 let dbQueue = try DatabaseQueue(
     path: "/path/to/database.sqlite",
@@ -525,6 +526,7 @@ var config = Configuration()
 config.readonly = true
 config.foreignKeysEnabled = true // Default is already true
 config.trace = { print($0) }     // Prints all SQL statements
+config.label = "MyDatabase"      // Useful when your app opens multiple databases
 config.maximumReaderCount = 10   // The default is 5
 
 let dbPool = try DatabasePool(

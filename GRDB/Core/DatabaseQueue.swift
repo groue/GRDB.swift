@@ -39,7 +39,8 @@ public final class DatabaseQueue: DatabaseWriter {
         writer = try SerializedDatabase(
             path: path,
             configuration: configuration,
-            schemaCache: SimpleDatabaseSchemaCache())
+            schemaCache: SimpleDatabaseSchemaCache(),
+            label: configuration.label ?? "GRDB.DatabaseQueue")
     }
     
     /// Opens an in-memory SQLite database.
@@ -54,7 +55,8 @@ public final class DatabaseQueue: DatabaseWriter {
         writer = try! SerializedDatabase(
             path: ":memory:",
             configuration: configuration,
-            schemaCache: SimpleDatabaseSchemaCache())
+            schemaCache: SimpleDatabaseSchemaCache(),
+            label: configuration.label ?? "GRDB.DatabaseQueue")
     }
     
     #if os(iOS)

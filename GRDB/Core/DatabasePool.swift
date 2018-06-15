@@ -17,6 +17,8 @@ public final class DatabasePool: DatabaseWriter {
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
     
+    var snapshotCount = ReadWriteBox(0)
+    
     #if os(iOS)
     private weak var application: UIApplication?
     #endif
@@ -47,7 +49,8 @@ public final class DatabasePool: DatabaseWriter {
         writer = try SerializedDatabase(
             path: path,
             configuration: configuration,
-            schemaCache: SimpleDatabaseSchemaCache())
+            schemaCache: SimpleDatabaseSchemaCache(),
+            label: (configuration.label ?? "GRDB.DatabasePool") + ".writer")
         
         // Activate WAL Mode unless readonly
         if !configuration.readonly {
@@ -77,11 +80,14 @@ public final class DatabasePool: DatabaseWriter {
         readerConfig.readonly = true
         readerConfig.defaultTransactionKind = .deferred // Make it the default for readers. Other transaction kinds are forbidden by SQLite in read-only connections.
         readerConfig.allowsUnsafeTransactions = false   // Because there's no guarantee that one can get the same reader in order to close its opened transaction.
+        var readerCount = 0
         readerPool = Pool(maximumCount: configuration.maximumReaderCount, makeElement: { [unowned self] in
+            readerCount += 1 // protected by pool's ReadWriteBox (undocumented behavior and protection)
             let reader = try SerializedDatabase(
                 path: path,
                 configuration: self.readerConfig,
-                schemaCache: SimpleDatabaseSchemaCache())
+                schemaCache: SimpleDatabaseSchemaCache(),
+                label: (self.readerConfig.label ?? "GRDB.DatabasePool") + ".reader.\(readerCount)")
             reader.sync { self.setupDatabase($0) }
             return reader
         })
@@ -701,7 +707,10 @@ extension DatabasePool {
             }
         }
         
-        let snapshot = try DatabaseSnapshot(path: path, configuration: writer.configuration)
+        let snapshot = try DatabaseSnapshot(
+            path: path,
+            configuration: writer.configuration,
+            labelSuffix: ".snapshot.\(snapshotCount.increment())")
         snapshot.read { setupDatabase($0) }
         return snapshot
     }

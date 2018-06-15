@@ -1,4 +1,5 @@
 import XCTest
+import Dispatch
 #if GRDBCIPHER
     import GRDBCipher
 #elseif GRDBCUSTOMSQLITE
@@ -101,6 +102,33 @@ class DatabaseQueueTests: GRDBTestCase {
         
         try dbQueue.writeWithoutTransaction { db in
             try db.commit()
+        }
+    }
+    
+    func testDefaultLabel() throws {
+        let dbQueue = try makeDatabaseQueue()
+        XCTAssertEqual(dbQueue.configuration.label, nil)
+        dbQueue.inDatabase { db in
+            XCTAssertEqual(db.configuration.label, nil)
+            
+            // This test CAN break in future releases: the dispatch queue labels
+            // are documented to be a debug-only tool.
+            let label = String(utf8String: __dispatch_queue_get_label(nil))
+            XCTAssertEqual(label, "GRDB.DatabaseQueue")
+        }
+    }
+    
+    func testCustomLabel() throws {
+        dbConfiguration.label = "Toreador"
+        let dbQueue = try makeDatabaseQueue()
+        XCTAssertEqual(dbQueue.configuration.label, "Toreador")
+        dbQueue.inDatabase { db in
+            XCTAssertEqual(db.configuration.label, "Toreador")
+            
+            // This test CAN break in future releases: the dispatch queue labels
+            // are documented to be a debug-only tool.
+            let label = String(utf8String: __dispatch_queue_get_label(nil))
+            XCTAssertEqual(label, "Toreador")
         }
     }
 }

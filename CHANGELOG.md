@@ -1,6 +1,11 @@
 Release Notes
 =============
 
+## Next Version
+
+- Database can have a label ([#371](https://github.com/groue/GRDB.swift/pull/371)).
+
+
 ## 3.0.0
 
 Released June 7, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v2.10.0...v3.0.0)

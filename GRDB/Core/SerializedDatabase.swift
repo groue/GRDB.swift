@@ -16,7 +16,7 @@ final class SerializedDatabase {
     /// The dispatch queue
     private let queue: DispatchQueue
     
-    init(path: String, configuration: Configuration = Configuration(), schemaCache: DatabaseSchemaCache) throws {
+    init(path: String, configuration: Configuration = Configuration(), schemaCache: DatabaseSchemaCache, label: String) throws {
         // According to https://www.sqlite.org/threadsafe.html
         //
         // > SQLite support three different threading modes:
@@ -38,7 +38,7 @@ final class SerializedDatabase {
         config.threadingMode = .multiThread
         
         db = try Database(path: path, configuration: config, schemaCache: schemaCache)
-        queue = SchedulingWatchdog.makeSerializedQueue(allowingDatabase: db)
+        queue = SchedulingWatchdog.makeSerializedQueue(allowingDatabase: db, label: label)
         self.path = path
         try queue.sync {
             try db.setup()

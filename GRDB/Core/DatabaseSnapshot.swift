@@ -6,13 +6,13 @@
 /// For more information, read about "snapshot isolation" at https://sqlite.org/isolation.html
 public class DatabaseSnapshot : DatabaseReader {
     private var serializedDatabase: SerializedDatabase
-
+    
     /// The database configuration
     var configuration: Configuration {
         return serializedDatabase.configuration
     }
     
-    init(path: String, configuration: Configuration = Configuration()) throws {
+    init(path: String, configuration: Configuration = Configuration(), labelSuffix: String) throws {
         var configuration = configuration
         configuration.readonly = true
         configuration.allowsUnsafeTransactions = true // Snaphost keeps a long-lived transaction
@@ -20,7 +20,8 @@ public class DatabaseSnapshot : DatabaseReader {
         serializedDatabase = try SerializedDatabase(
             path: path,
             configuration: configuration,
-            schemaCache: SimpleDatabaseSchemaCache())
+            schemaCache: SimpleDatabaseSchemaCache(),
+            label: (configuration.label ?? "GRDB.DatabasePool") + labelSuffix)
         
         try serializedDatabase.sync { db in
             // Assert WAL mode
