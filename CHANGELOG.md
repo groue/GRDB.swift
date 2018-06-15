@@ -3,7 +3,10 @@ Release Notes
 
 ## Next Version
 
+### New
+
 - Database can have a label ([#371](https://github.com/groue/GRDB.swift/pull/371)).
+- Upgrade custom SQLite builds to 3.24.0 ([#372](https://github.com/groue/GRDB.swift/pull/372)).
 
 
 ## 3.0.0
