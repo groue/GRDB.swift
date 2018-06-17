@@ -69,7 +69,7 @@
             
             
             if let prefixes = definition.prefixes {
-                arguments.append("prefix=\(prefixes.map { "\($0)" }.joined(separator: " ").sqlExpression.sql)")
+                arguments.append("prefix=\(prefixes.sorted().map { "\($0)" }.joined(separator: " ").sqlExpression.sql)")
             }
             
             if let columnSize = definition.columnSize {
