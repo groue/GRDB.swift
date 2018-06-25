@@ -249,7 +249,7 @@ let bookId = 123
 let bookInfo: BookInfo? = try dbQueue.read { db in
     // All fetches are grouped in a single `read` block:
     if let book = try Book.fetchOne(db, key: bookId) {
-        let author = try book.fetchOne(db, key: book.authorId)!
+        let author = try Author.fetchOne(db, key: book.authorId)!
         return BookInfo(book: book, author: author)
     } else {}
         return nil
