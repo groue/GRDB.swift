@@ -236,10 +236,33 @@ The consequence is that each part of your application will load the data it need
 > :bulb: **Tip**: Make sure you fetch all the data your application needs in a **single database read**.
 
 ```swift
-// RECOMMENDED
+// NOT RECOMMENDED
+let bookId = 123
+// Two fetches not grouped in a single `read` block:
+if let book = databaseManager.getBook(id: bookId) {
+    let author = databaseManager.getAuthor(id: book.authorId)!
+    // use book and author
+}
+
+// RECOMMENDED (without associations)
 let bookId = 123
 let bookInfo: BookInfo? = try dbQueue.read { db in
-    // Gather as many fetches as required in this single `read` block:
+    // All fetches are grouped in a single `read` block:
+    if let book = try Book.fetchOne(db, key: bookId) {
+        let author = try book.fetchOne(db, key: book.authorId)!
+        return BookInfo(book: book, author: author)
+    } else {}
+        return nil
+    }
+}
+if let bookInfo = bookInfo {
+    // use bookInfo
+}
+
+// RECOMMENDED (with associations)
+let bookId = 123
+let bookInfo: BookInfo? = try dbQueue.read { db in
+    // All fetches are grouped in a single `read` block:
     let request = Book
         .filter(key: bookId)
         .including(required: Book.author)
@@ -248,17 +271,9 @@ let bookInfo: BookInfo? = try dbQueue.read { db in
 if let bookInfo = bookInfo {
     // use bookInfo
 }
-
-// NOT RECOMMENDED
-let bookId = 123
-// Two fetches not gathered in a single `read` block:
-if let book = databaseManager.getBook(id: bookId) {
-    let author = databaseManager.getAuthor(id: book.authorId)!
-    // use book and author
-}
 ```
 
-This tip is paramount, and deserves an explanation because too many database libraries out there tend to completely disregard multi-threading subtleties.
+This tip is paramount, and deserves an explanation because too many database libraries out there tend to completely disregard multi-threading gotchas.
 
 When you do not fetch your data in a single database access block, other threads of your application may modify the database in the background, and have you fetch inconsistent data. This leads to hard-to-reproduce bugs, from funny values on screen to data loss.
 
