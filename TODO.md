@@ -18,9 +18,10 @@
 - [ ] https://forums.swift.org/t/how-to-encode-objects-of-unknown-type/12253/6
 - [ ] deprecate ScopeAdapter(base, scopes), because base.addingScopes has a better implementation
 - [ ] Joins and full-text tables
-- [ ] SQLite 3.24.0
 - [ ] UPSERT https://www.sqlite.org/lang_UPSERT.html
 - [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0075-import-test.md
+- [ ] Avoid code duplication: https://forums.swift.org/t/c-interoperability-combinations-of-library-and-os-versions/14029/4
+- [ ] Expose FTS5 in regular GRDB: https://github.com/groue/GRDB.swift/issues/373
 
 Swift 4.2
 
@@ -35,11 +36,11 @@ Swift 4.2
 Not sure
 
 - [ ] HiddenColumnsAdapter
-- [ ] Not sure: type safety
+- [ ] Not sure: type safety for SQL expressions
     - [ ] Introduce some record protocol with an associated primary key type. Restrict filter(key:) methods to this type. Allow distinguishing FooId from BarId types.
     - [ ] Replace Column with TypedColumn. How to avoid code duplication (repeated types)? Keypaths?
-- [ ] encode/decode nested records/arrays/dictionaries as JSON?
-- [ ] Think about supporting Cursor's underestimatedCount, which could speed up Array(cursor) and fetchAll()
+- [ ] Encode/decode nested records/arrays/dictionaries as JSON?
+- [ ] Cursor.underestimatedCount, which could speed up Array(cursor) and fetchAll()
 - [ ] Support for OR ROLLBACK, and mismatch between the Swift depth and the SQLite depth of nested transactions/savepoint:
     
     ```swift
