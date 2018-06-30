@@ -18,7 +18,7 @@ To support this guide, we'll design a simply library application that lets the u
 
 SQLite is a robust database. Even if you don't know it well, and aren't familiar with the SQL language, you are able to take profit from its solid foundation. It is very difficult to corrupt an SQLite database file. And it can make sure that only valid information is persisted on disk.
 
-This is important because we developers write bugs, and some of them will ship in the wild, affecting your application users. But thanks to SQLite, those bugs will be unable to corrupt your precious users' data. All it takes a robust **database schema**.
+This is important because we developers write bugs, and some of them will ship in the wild, affecting your application users. But thanks to SQLite, those bugs will be unable to corrupt your precious users' data. All it takes is a robust **database schema**.
 
 For example, if we were to define a [migration] that sets up our library database, made of books and their authors, we could write:
 
