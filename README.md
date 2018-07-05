@@ -933,7 +933,7 @@ Generally speaking, you can extract the type you need, *provided it can be conve
     }
     ```
     
-    see [Fatal Errors](#fatal-errors) for more information.
+    This extra verbosity is the consequence of having to deal with an untrusted database: you may consider fixing the content of your database instead. See [Fatal Errors](#fatal-errors) for more information.
     
 - **SQLite has a weak type system, and provides [convenience conversions](https://www.sqlite.org/c3ref/column_blob.html) that can turn Blob to String, String to Int, etc.**
     
