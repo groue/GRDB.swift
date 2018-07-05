@@ -94,8 +94,8 @@ extension DatabaseQueue {
     public func setupMemoryManagement(in application: UIApplication) {
         self.application = application
         let center = NotificationCenter.default
-        center.addObserver(self, selector: #selector(DatabaseQueue.applicationDidReceiveMemoryWarning(_:)), name: .UIApplicationDidReceiveMemoryWarning, object: nil)
-        center.addObserver(self, selector: #selector(DatabaseQueue.applicationDidEnterBackground(_:)), name: .UIApplicationDidEnterBackground, object: nil)
+        center.addObserver(self, selector: #selector(DatabaseQueue.applicationDidReceiveMemoryWarning(_:)), name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
+        center.addObserver(self, selector: #selector(DatabaseQueue.applicationDidEnterBackground(_:)), name: UIApplication.didEnterBackgroundNotification, object: nil)
     }
     
     @objc private func applicationDidEnterBackground(_ notification: NSNotification) {
@@ -106,7 +106,7 @@ extension DatabaseQueue {
         var task: UIBackgroundTaskIdentifier! = nil
         task = application.beginBackgroundTask(expirationHandler: nil)
         
-        if task == UIBackgroundTaskInvalid {
+        if task == UIBackgroundTaskIdentifier.invalid {
             // Perform releaseMemory() synchronously.
             releaseMemory()
         } else {
