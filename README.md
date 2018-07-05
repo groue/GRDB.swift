@@ -919,7 +919,7 @@ Generally speaking, you can extract the type you need, *provided it can be conve
     row[0] as UInt8  // fatal error: could not convert 256 to UInt8.
     ```
     
-    Those conversions fatal errors can be avoided with the [DatabaseValue](#databasevalue) type:
+    Those conversion fatal errors can be avoided with the [DatabaseValue](#databasevalue) type:
     
     ```swift
     let row = try Row.fetchOne(db, "SELECT 'Mom’s birthday'")!
