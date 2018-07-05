@@ -912,9 +912,28 @@ Generally speaking, you can extract the type you need, *provided it can be conve
     row[0] as String // "Mom’s birthday"
     row[0] as Date?  // fatal error: could not convert "Mom’s birthday" to Date.
     row[0] as Date   // fatal error: could not convert "Mom’s birthday" to Date.
+    
+    let row = try Row.fetchOne(db, "SELECT 256")!
+    row[0] as Int    // 256
+    row[0] as UInt8? // fatal error: could not convert 256 to UInt8.
+    row[0] as UInt8  // fatal error: could not convert 256 to UInt8.
     ```
     
-    This fatal error can be avoided: see [Fatal Errors](#fatal-errors).
+    Those conversions fatal errors can be avoided with the [DatabaseValue](#databasevalue) type:
+    
+    ```swift
+    let row = try Row.fetchOne(db, "SELECT 'Mom’s birthday'")!
+    let dbValue: DatabaseValue = row[0]
+    if dbValue.isNull {
+        // Handle NULL
+    } else if let date = Date.fromDatabaseValue(dbValue) {
+        // Handle valid date
+    } else {
+        // Handle invalid date
+    }
+    ```
+    
+    see [Fatal Errors](#fatal-errors) for more information.
     
 - **SQLite has a weak type system, and provides [convenience conversions](https://www.sqlite.org/c3ref/column_blob.html) that can turn Blob to String, String to Int, etc.**
     
