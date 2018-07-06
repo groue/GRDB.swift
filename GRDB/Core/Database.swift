@@ -782,6 +782,48 @@ extension Database {
     }
 }
 
+extension Database {
+    
+    // MARK: - Backup
+    
+    static func backup(from dbFrom: Database, to dbDest: Database, afterBackupInit: (() -> ())? = nil, afterBackupStep: (() -> ())? = nil) throws {
+        guard let backup = sqlite3_backup_init(dbDest.sqliteConnection, "main", dbFrom.sqliteConnection, "main") else {
+            throw DatabaseError(resultCode: dbDest.lastErrorCode, message: dbDest.lastErrorMessage)
+        }
+        guard Int(bitPattern: backup) != Int(SQLITE_ERROR) else {
+            throw DatabaseError(resultCode: .SQLITE_ERROR)
+        }
+        
+        afterBackupInit?()
+        
+        do {
+            backupLoop: while true {
+                switch sqlite3_backup_step(backup, -1) {
+                case SQLITE_DONE:
+                    afterBackupStep?()
+                    break backupLoop
+                case SQLITE_OK:
+                    afterBackupStep?()
+                case let code:
+                    throw DatabaseError(resultCode: code, message: dbDest.lastErrorMessage)
+                }
+            }
+        } catch {
+            sqlite3_backup_finish(backup)
+            throw error
+        }
+        
+        switch sqlite3_backup_finish(backup) {
+        case SQLITE_OK:
+            break
+        case let code:
+            throw DatabaseError(resultCode: code, message: dbDest.lastErrorMessage)
+        }
+        
+        dbDest.clearSchemaCache()
+    }
+}
+
 #if SQLITE_HAS_CODEC
     extension Database {
 
