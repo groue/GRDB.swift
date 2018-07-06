@@ -57,7 +57,7 @@ public protocol DatabaseWriter : DatabaseReader {
     /// This method is reentrant. It should be avoided because it fosters
     /// dangerous concurrency practices.
     func unsafeReentrantWrite<T>(_ block: (Database) throws -> T) rethrows -> T
-
+    
     // MARK: - Reading from Database
     
     /// Synchronously or asynchronously executes a read-only block that takes a
@@ -101,6 +101,26 @@ extension DatabaseWriter {
     /// Remove a transaction observer.
     public func remove(transactionObserver: TransactionObserver) {
         writeWithoutTransaction { $0.remove(transactionObserver: transactionObserver) }
+    }
+    
+    // MARK: - Erasing the content of the database
+    
+    /// Erases the content of the database.
+    ///
+    /// - precondition: database is not accessed concurrently during the
+    ///   execution of this method.
+    public func erase() throws {
+        try DatabaseQueue().backup(to: self)
+    }
+    
+    // MARK: - Claiming Disk Space
+    
+    /// Rebuilds the database file, repacking it into a minimal amount of
+    /// disk space.
+    ///
+    /// See https://www.sqlite.org/lang_vacuum.html for more information.
+    public func vacuum() throws {
+        try writeWithoutTransaction { try $0.execute("VACUUM") }
     }
 }
 
