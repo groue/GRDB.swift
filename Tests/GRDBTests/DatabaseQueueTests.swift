@@ -131,4 +131,30 @@ class DatabaseQueueTests: GRDBTestCase {
             XCTAssertEqual(label, "Toreador")
         }
     }
+    
+    func testEraseAndVacuum() throws {
+        let writer = try makeDatabaseQueue()
+        try writer.write { db in
+            try db.execute("CREATE TABLE t (a, b UNIQUE)")
+            try db.execute("CREATE INDEX i ON t(a)")
+            try db.execute("CREATE VIEW v AS SELECT a FROM t")
+            try db.execute("CREATE TRIGGER tr AFTER INSERT ON t BEGIN INSERT INTO t (a, b) VALUES (1, 2); END")
+        }
+        
+        try writer.read { db in
+            try XCTAssertTrue(db.tableExists("t"))
+            try XCTAssertTrue(db.viewExists("v"))
+            try XCTAssertTrue(db.triggerExists("tr"))
+            try XCTAssertEqual(db.indexes(on: "t").count, 2)
+        }
+        
+        try writer.erase()
+        try writer.vacuum()
+
+        try writer.read { db in
+            try XCTAssertFalse(db.tableExists("t"))
+            try XCTAssertFalse(db.viewExists("i"))
+            try XCTAssertFalse(db.triggerExists("tr"))
+        }
+    }
 }
