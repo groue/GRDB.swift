@@ -169,7 +169,7 @@ extension DatabaseReader {
     
     func backup(to writer: DatabaseWriter, afterBackupInit: (() -> ())?, afterBackupStep: (() -> ())?) throws {
         try read { dbFrom in
-            try writer.write { dbDest in
+            try writer.writeWithoutTransaction { dbDest in
                 try Database.backup(from: dbFrom, to: dbDest, afterBackupInit: afterBackupInit, afterBackupStep: afterBackupStep)
             }
         }
