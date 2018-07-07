@@ -267,6 +267,10 @@ extension Database {
         schemaCache.set(canonicalTableName: canonicalTableName, forTable: tableName)
         return canonicalTableName
     }
+    
+    func schema() throws -> SchemaInfo {
+        return try SchemaInfo(self)
+    }
 }
 
 extension Database {
@@ -556,5 +560,26 @@ public struct ForeignKeyInfo {
     /// The destination columns
     public var destinationColumns: [String] {
         return mapping.map { $0.destination }
+    }
+}
+
+struct SchemaInfo: Equatable {
+    var objects: [SchemaKey: String?]
+    
+    init(_ db: Database) throws {
+        objects = try Dictionary(uniqueKeysWithValues: Row
+            .fetchAll(db, "SELECT type, name, tbl_name, sql FROM sqlite_master")
+            .map { row in (SchemaKey(row: row), row["sql"]) })
+    }
+    
+    struct SchemaKey: Codable, Hashable, FetchableRecord {
+        var type: String
+        var name: String
+        var tbl_name: String?
+        
+        // TODO: remove when Hashable conformance is synthesized
+        var hashValue: Int {
+            return type.hashValue ^ name.hashValue ^ (tbl_name?.hashValue ?? 0)
+        }
     }
 }
