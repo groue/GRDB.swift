@@ -3,7 +3,13 @@ Release Notes
 
 ## Next Version
 
+### New
+
 - [#381](https://github.com/groue/GRDB.swift/pull/381): Nuking db during development
+
+### Documentation Diff
+
+- [The `eraseDatabaseOnSchemaChange` Option](README.md#the-erasedatabaseonschemachange-option): See how a DatabaseMigrator can automatically recreate the whole database when a migration has changed its definition.
 
 
 ## 3.1.0
