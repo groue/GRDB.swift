@@ -172,10 +172,11 @@ public struct DatabaseMigrator {
         if eraseDatabaseOnSchemaChange {
             let witness = try DatabaseQueue(path: "")
             
+            // Erase database if we detect a change in the *current* schema.
             let (currentIdentifier, currentSchema) = try writer.writeWithoutTransaction { db -> (String?, SchemaInfo) in
                 try setupMigrations(db)
                 let identifiers = try appliedIdentifiers(db)
-                let currentIdentifier = try migrations
+                let currentIdentifier = migrations
                     .reversed()
                     .first { identifiers.contains($0.identifier) }?
                     .identifier
@@ -190,18 +191,17 @@ public struct DatabaseMigrator {
                 
                 if currentSchema != witnessSchema {
                     try writer.erase()
-                    try writer.writeWithoutTransaction { db in
-                        try setupMigrations(db)
-                        try runMigrations(db, upTo: currentIdentifier)
-                    }
                 }
             }
             
+            // Migrate to *target* schema
             let schema: SchemaInfo = try writer.writeWithoutTransaction { db in
+                try setupMigrations(db)
                 try runMigrations(db, upTo: targetIdentifier)
                 return try db.schema()
             }
             
+            // Erase database if we detect a change in the *target* schema.
             let witnessSchema: SchemaInfo = try witness.writeWithoutTransaction { db in
                 try setupMigrations(db)
                 try runMigrations(db, upTo: targetIdentifier)
