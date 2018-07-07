@@ -122,7 +122,7 @@ extension DatabaseWriter {
             
             // Remove all database objects, one after the other
             try db.inTransaction {
-                while let row = try Row.fetchOne(db, "SELECT type, name FROM sqlite_master") {
+                while let row = try Row.fetchOne(db, "SELECT type, name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'") {
                     let type: String = row["type"]
                     let name: String = row["name"]
                     try db.execute("DROP \(type) \(name.quotedDatabaseIdentifier)")
