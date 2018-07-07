@@ -62,8 +62,8 @@ class DatabaseWriterTests : GRDBTestCase {
             // Create a database with recursive constraints, so that we test
             // that those don't prevent database erasure.
             try db.execute("""
-                CREATE TABLE t1 (id INTEGER PRIMARY KEY, b UNIQUE, c REFERENCES t2(id) ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED);
-                CREATE TABLE t2 (id INTEGER PRIMARY KEY, b UNIQUE, c REFERENCES t1(id) ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED);
+                CREATE TABLE t1 (id INTEGER PRIMARY KEY AUTOINCREMENT, b UNIQUE, c REFERENCES t2(id) ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED);
+                CREATE TABLE t2 (id INTEGER PRIMARY KEY AUTOINCREMENT, b UNIQUE, c REFERENCES t1(id) ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED);
                 CREATE VIRTUAL TABLE ft USING fts4(content);
                 CREATE INDEX i ON t1(c);
                 CREATE VIEW v AS SELECT id FROM t1;
