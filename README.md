@@ -4361,7 +4361,7 @@ Yet it may be useful in those two situations:
     
     In this case, it is recommended that this flag does not ship in the distributed application:
     
-    ```swif
+    ```swift
     var migrator = DatabaseMigrator()
     #if DEBUG
     // Speed up development by nuking the database when migrations change
