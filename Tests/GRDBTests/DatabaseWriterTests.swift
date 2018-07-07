@@ -64,6 +64,7 @@ class DatabaseWriterTests : GRDBTestCase {
             try db.execute("""
                 CREATE TABLE t1 (id INTEGER PRIMARY KEY, b UNIQUE, c REFERENCES t2(id) ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED);
                 CREATE TABLE t2 (id INTEGER PRIMARY KEY, b UNIQUE, c REFERENCES t1(id) ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED);
+                CREATE VIRTUAL TABLE ft USING fts4(content);
                 CREATE INDEX i ON t1(c);
                 CREATE VIEW v AS SELECT id FROM t1;
                 CREATE TRIGGER tr AFTER INSERT ON t1 BEGIN INSERT INTO t2 (id, b, c) VALUES (NEW.c, NEW.b, NEW.id); END;
@@ -76,6 +77,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try writer.read { db in
             try XCTAssertTrue(db.tableExists("t1"))
             try XCTAssertTrue(db.tableExists("t2"))
+            try XCTAssertTrue(db.tableExists("ft"))
             try XCTAssertTrue(db.viewExists("v"))
             try XCTAssertTrue(db.triggerExists("tr"))
             try XCTAssertEqual(db.indexes(on: "t1").count, 2)
