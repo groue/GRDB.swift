@@ -4371,7 +4371,7 @@ Yet it may be useful in those two situations:
 
 2. When the database content can easily be recreated, such as a cache for some downloaded data.
 
-The `eraseDatabaseOnSchemaChange` option triggers a recreation of the database if and only the migrator detects a *schema change*. A schema change is any difference in the `sqlite_master` table, which contains the SQL used to create database tables, indexes, triggers, and views.
+The `eraseDatabaseOnSchemaChange` option triggers a recreation of the database if the migrator detects a *schema change*. A schema change is any difference in the `sqlite_master` table, which contains the SQL used to create database tables, indexes, triggers, and views.
 
 
 ### Advanced Database Schema Changes
