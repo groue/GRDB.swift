@@ -57,7 +57,7 @@ public protocol DatabaseWriter : DatabaseReader {
     /// This method is reentrant. It should be avoided because it fosters
     /// dangerous concurrency practices.
     func unsafeReentrantWrite<T>(_ block: (Database) throws -> T) rethrows -> T
-
+    
     // MARK: - Reading from Database
     
     /// Synchronously or asynchronously executes a read-only block that takes a
@@ -101,6 +101,61 @@ extension DatabaseWriter {
     /// Remove a transaction observer.
     public func remove(transactionObserver: TransactionObserver) {
         writeWithoutTransaction { $0.remove(transactionObserver: transactionObserver) }
+    }
+    
+    // MARK: - Erasing the content of the database
+    
+    /// Erases the content of the database.
+    ///
+    /// - precondition: database is not accessed concurrently during the
+    ///   execution of this method.
+    public func erase() throws {
+        #if SQLITE_HAS_CODEC
+        // SQLCipher does not support the backup API: https://discuss.zetetic.net/t/using-the-sqlite-online-backup-api/2631
+        // So we'll drop all database objects one after the other.
+        try writeWithoutTransaction { db in
+            // Prevent foreign keys from messing with drop table statements
+            let foreignKeysEnabled = try Bool.fetchOne(db, "PRAGMA foreign_keys")!
+            if foreignKeysEnabled {
+                try db.execute("PRAGMA foreign_keys = OFF")
+            }
+            
+            // Remove all database objects, one after the other
+            do {
+                try db.inTransaction {
+                    while let row = try Row.fetchOne(db, "SELECT type, name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'") {
+                        let type: String = row["type"]
+                        let name: String = row["name"]
+                        try db.execute("DROP \(type) \(name.quotedDatabaseIdentifier)")
+                    }
+                    return .commit
+                }
+                
+                // Restore foreign keys if needed
+                if foreignKeysEnabled {
+                    try db.execute("PRAGMA foreign_keys = ON")
+                }
+            } catch {
+                // Restore foreign keys if needed
+                if foreignKeysEnabled {
+                    try? db.execute("PRAGMA foreign_keys = ON")
+                }
+                throw error
+            }
+        }
+        #else
+        try DatabaseQueue().backup(to: self)
+        #endif
+    }
+    
+    // MARK: - Claiming Disk Space
+    
+    /// Rebuilds the database file, repacking it into a minimal amount of
+    /// disk space.
+    ///
+    /// See https://www.sqlite.org/lang_vacuum.html for more information.
+    public func vacuum() throws {
+        try writeWithoutTransaction { try $0.execute("VACUUM") }
     }
 }
 

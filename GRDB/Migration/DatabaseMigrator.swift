@@ -42,7 +42,33 @@
 ///
 ///     try migrator.migrate(dbQueue)
 public struct DatabaseMigrator {
-    
+    /// When the `eraseDatabaseOnSchemaChange` flag is true, the migrator will
+    /// automatically wipe out the full database content, and recreate the whole
+    /// database from scratch, if it detects that a migration has changed its
+    /// definition.
+    ///
+    /// This flag can destroy your precious users' data!
+    ///
+    /// But it may be useful in two situations:
+    ///
+    /// 1. During application development, as you are still designing
+    ///     migrations, and the schema changes often.
+    ///
+    ///     In this case, it is recommended that you make sure this flag does
+    ///     not ship in the distributed application, in order to avoid undesired
+    ///     data loss:
+    ///
+    ///         var migrator = DatabaseMigrator()
+    ///         #if DEBUG
+    ///         // Speed up development by nuking the database when migrations change
+    ///         migrator.eraseDatabaseOnSchemaChange = true
+    ///         #endif
+    ///
+    /// 2. When the database content can easily be recreated, such as a cache
+    ///     for some downloaded data.
+    public var eraseDatabaseOnSchemaChange = false
+    private var migrations: [Migration] = []
+
     /// A new migrator.
     public init() {
     }
@@ -128,10 +154,10 @@ public struct DatabaseMigrator {
     ///   migrations should apply.
     /// - throws: An eventual error thrown by the registered migration blocks.
     public func migrate(_ writer: DatabaseWriter) throws {
-        try writer.writeWithoutTransaction { db in
-            try setupMigrations(db)
-            try runMigrations(db)
+        guard let lastMigration = migrations.last else {
+            return
         }
+        try migrate(writer, upTo: lastMigration.identifier)
     }
     
     /// Iterate migrations in the same order as they were registered, up to the
@@ -143,9 +169,57 @@ public struct DatabaseMigrator {
     /// - targetIdentifier: The identifier of a registered migration.
     /// - throws: An eventual error thrown by the registered migration blocks.
     public func migrate(_ writer: DatabaseWriter, upTo targetIdentifier: String) throws {
-        try writer.writeWithoutTransaction { db in
-            try setupMigrations(db)
-            try runMigrations(db, upTo: targetIdentifier)
+        if eraseDatabaseOnSchemaChange {
+            let witness = try DatabaseQueue(path: "")
+            
+            // Erase database if we detect a change in the *current* schema.
+            let (currentIdentifier, currentSchema) = try writer.writeWithoutTransaction { db -> (String?, SchemaInfo) in
+                try setupMigrations(db)
+                let identifiers = try appliedIdentifiers(db)
+                let currentIdentifier = migrations
+                    .reversed()
+                    .first { identifiers.contains($0.identifier) }?
+                    .identifier
+                return try (currentIdentifier, db.schema())
+            }
+            if let currentIdentifier = currentIdentifier {
+                let witnessSchema: SchemaInfo = try witness.writeWithoutTransaction { db in
+                    try setupMigrations(db)
+                    try runMigrations(db, upTo: currentIdentifier)
+                    return try db.schema()
+                }
+                
+                if currentSchema != witnessSchema {
+                    try writer.erase()
+                }
+            }
+            
+            // Migrate to *target* schema
+            let schema: SchemaInfo = try writer.writeWithoutTransaction { db in
+                try setupMigrations(db)
+                try runMigrations(db, upTo: targetIdentifier)
+                return try db.schema()
+            }
+            
+            // Erase database if we detect a change in the *target* schema.
+            let witnessSchema: SchemaInfo = try witness.writeWithoutTransaction { db in
+                try setupMigrations(db)
+                try runMigrations(db, upTo: targetIdentifier)
+                return try db.schema()
+            }
+            
+            if schema != witnessSchema {
+                try writer.erase()
+                try writer.writeWithoutTransaction { db in
+                    try setupMigrations(db)
+                    try runMigrations(db, upTo: targetIdentifier)
+                }
+            }
+        } else {
+            try writer.writeWithoutTransaction { db in
+                try setupMigrations(db)
+                try runMigrations(db, upTo: targetIdentifier)
+            }
         }
     }
     
@@ -156,8 +230,6 @@ public struct DatabaseMigrator {
     
     
     // MARK: - Non public
-    
-    private var migrations: [Migration] = []
     
     private mutating func registerMigration(_ migration: Migration) {
         GRDBPrecondition(!migrations.map({ $0.identifier }).contains(migration.identifier), "already registered migration: \(String(reflecting: migration.identifier))")
@@ -170,13 +242,6 @@ public struct DatabaseMigrator {
     
     private func appliedIdentifiers(_ db: Database) throws -> Set<String> {
         return try Set(String.fetchAll(db, "SELECT identifier FROM grdb_migrations"))
-    }
-    
-    private func runMigrations(_ db: Database) throws {
-        let appliedIdentifiers = try self.appliedIdentifiers(db)
-        for migration in migrations where !appliedIdentifiers.contains(migration.identifier) {
-            try migration.run(db)
-        }
     }
     
     private func runMigrations(_ db: Database, upTo targetIdentifier: String) throws {
