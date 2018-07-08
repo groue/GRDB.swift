@@ -1,7 +1,9 @@
 Release Notes
 =============
 
-## Next Version
+## 3.2.0
+
+Released July 8, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.1.0...v3.2.0)
 
 ### New
 
@@ -11,6 +13,18 @@ Release Notes
 
 - [The `eraseDatabaseOnSchemaChange` Option](README.md#the-erasedatabaseonschemachange-option): See how a DatabaseMigrator can automatically recreate the whole database when a migration has changed its definition.
 
+### API diff
+
+```diff
+ struct DatabaseMigrator {
++    var eraseDatabaseOnSchemaChange: Bool
+ }
+ 
+ extension DatabaseWriter {
++    func erase() throws
++    func vacuum() throws
+ }
+```
 
 ## 3.1.0
 
