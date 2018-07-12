@@ -207,16 +207,14 @@ extension DatabaseValue {
 // MARK: - Lossless conversions
 
 struct ValueConversionDebuggingInfo {
+    var statement: SelectStatement?
     var row: Row?
-    var sql: String?
-    var arguments: StatementArguments?
     var columnIndex: Int?
     var columnName: String?
     
-    init(row: Row? = nil, sql: String? = nil, arguments: StatementArguments? = nil, columnIndex: Int? = nil, columnName: String? = nil) {
+    init(statement: SelectStatement? = nil, row: Row? = nil, columnIndex: Int? = nil, columnName: String? = nil) {
+        self.statement = statement
         self.row = row
-        self.sql = sql
-        self.arguments = arguments
         self.columnIndex = columnIndex
         self.columnName = columnName
     }
@@ -228,21 +226,26 @@ struct ValueConversionError<T>: Error, CustomStringConvertible {
     
     var description: String {
         var error = "could not convert database value \(dbValue) to \(T.self)"
+        var extras: [String] = []
         if let columnName = debugInfo.columnName {
-            error += " at column `\(columnName)`"
+            extras.append("column: `\(columnName)`")
         }
         if let columnIndex = debugInfo.columnIndex {
-            error += " at index `\(columnIndex)`"
+            extras.append("index: \(columnIndex)")
         }
-        if let row = debugInfo.row {
-            error += " in row `\(row)`"
+        let row = debugInfo.row ?? debugInfo.statement.map { Row(statement: $0) }
+        if let row = row {
+            extras.append("row: \(row)")
         }
-        let sql = debugInfo.sql ?? debugInfo.row?.statementRef?.takeUnretainedValue().sql
-        if let sql = sql {
-            error += " from statement `\(sql)`"
+        let statement = debugInfo.statement ?? debugInfo.row?.statement
+        if let statement = statement {
+            extras.append("statement: `\(statement.sql)`")
+            if statement.arguments.isEmpty == false {
+                extras.append("arguments: \(statement.arguments)")
+            }
         }
-        if let arguments = debugInfo.arguments, !arguments.isEmpty {
-            error += " arguments \(arguments)"
+        if extras.isEmpty == false {
+            error += " (" + extras.joined(separator: ", ") + ")"
         }
         return error
     }

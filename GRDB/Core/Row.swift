@@ -21,6 +21,9 @@ public final class Row : Equatable, Hashable, RandomAccessCollection, Expressibl
     /// The statementRef is released in deinit.
     let statementRef: Unmanaged<SelectStatement>?
     let sqliteStatement: SQLiteStatement?
+    var statement: SelectStatement? {
+        return statementRef?.takeUnretainedValue()
+    }
     
     /// The number of columns in the row.
     public let count: Int
@@ -177,6 +180,44 @@ extension Row {
         return impl.databaseValue(atUncheckedIndex: index).storage.value
     }
     
+    func decodeIfPresent<Value: DatabaseValueConvertible>(
+        _ type: Value.Type,
+        atUncheckedIndex index: Int,
+        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value?
+    {
+        return try impl.decodeIfPresent(Value.self, atUncheckedIndex: index, debugInfo: debugInfo)
+    }
+    
+    func decode<Value: DatabaseValueConvertible>(
+        _ type: Value.Type,
+        atUncheckedIndex index: Int,
+        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value
+    {
+        return try impl.decode(Value.self, atUncheckedIndex: index, debugInfo: debugInfo)
+    }
+
+    func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+        _ type: Value.Type,
+        atUncheckedIndex index: Int,
+        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value?
+    {
+        if let sqliteStatement = sqliteStatement {
+            return Value.convertOptional(sqliteStatement: sqliteStatement, index: Int32(index))
+        }
+        return try impl.fastDecodeIfPresent(Value.self, atUncheckedIndex: index, debugInfo: debugInfo)
+    }
+    
+    func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+        _ type: Value.Type,
+        atUncheckedIndex index: Int,
+        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value
+    {
+        if let sqliteStatement = sqliteStatement {
+            return try Value.convert(sqliteStatement: sqliteStatement, index: Int32(index), debugInfo: debugInfo)
+        }
+        return try impl.fastDecode(Value.self, atUncheckedIndex: index, debugInfo: debugInfo)
+    }
+    
     /// Returns the value at given index, converted to the requested type.
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
@@ -187,7 +228,7 @@ extension Row {
     /// fail, a fatal error is raised.
     public subscript<Value: DatabaseValueConvertible>(_ index: Int) -> Value? {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
-        return try! impl.optionalValue(atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index))
+        return try! decodeIfPresent(Value.self, atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index))
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -204,10 +245,7 @@ extension Row {
     /// (see https://www.sqlite.org/datatype3.html).
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ index: Int) -> Value? {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
-        if let sqliteStatement = sqliteStatement { // fast path
-            return Value.convertOptional(sqliteStatement: sqliteStatement, index: Int32(index))
-        }
-        return try! impl.fastOptionalValue(atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index))
+        return try! fastDecodeIfPresent(Value.self, atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index))
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -219,7 +257,7 @@ extension Row {
     /// SQLite value can not be converted to `Value`.
     public subscript<Value: DatabaseValueConvertible>(_ index: Int) -> Value {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
-        return try! impl.value(atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index))
+        return try! decode(Value.self, atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index))
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -235,10 +273,7 @@ extension Row {
     /// (see https://www.sqlite.org/datatype3.html).
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ index: Int) -> Value {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
-        if let sqliteStatement = sqliteStatement { // fast path
-            return try! Value.convert(sqliteStatement: sqliteStatement, index: Int32(index), debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index))
-        }
-        return try! impl.fastValue(atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index))
+        return try! fastDecode(Value.self, atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index))
     }
     
     /// Returns Int64, Double, String, Data or nil, depending on the value
@@ -274,7 +309,7 @@ extension Row {
         guard let index = impl.index(ofColumn: columnName) else {
             return nil
         }
-        return try! impl.optionalValue(atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName))
+        return try! decodeIfPresent(Value.self, atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName))
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -293,10 +328,7 @@ extension Row {
         guard let index = impl.index(ofColumn: columnName) else {
             return nil
         }
-        if let sqliteStatement = sqliteStatement { // fast path
-            return Value.convertOptional(sqliteStatement: sqliteStatement, index: Int32(index))
-        }
-        return try! impl.fastOptionalValue(atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName))
+        return try! fastDecodeIfPresent(Value.self, atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName))
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -313,7 +345,7 @@ extension Row {
             // Programmer error
             fatalError("no such column: \(columnName)")
         }
-        return try! impl.value(atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName))
+        return try! decode(Value.self, atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName))
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -334,10 +366,7 @@ extension Row {
             // Programmer error
             fatalError("no such column: \(columnName)")
         }
-        if let sqliteStatement = sqliteStatement { // fast path
-            return try! Value.convert(sqliteStatement: sqliteStatement, index: Int32(index), debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName))
-        }
-        return try! impl.fastValue(atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName))
+        return try! fastDecode(Value.self, atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName))
     }
     
     /// Returns Int64, Double, String, NSData or nil, depending on the value
@@ -1181,8 +1210,8 @@ protocol RowImpl {
     func columnName(atUncheckedIndex index: Int) -> String
     func hasNull(atUncheckedIndex index:Int) -> Bool
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue
-    func fastValue<Value: DatabaseValueConvertible & StatementColumnConvertible>(atUncheckedIndex index: Int, debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value
-    func fastOptionalValue<Value: DatabaseValueConvertible & StatementColumnConvertible>(atUncheckedIndex index: Int, debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value?
+    func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ type: Value.Type, atUncheckedIndex index: Int, debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value
+    func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ type: Value.Type, atUncheckedIndex index: Int, debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value?
     func dataNoCopy(atUncheckedIndex index:Int, debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Data?
     
     // This method MUST be case-insensitive, and returns the index of the
@@ -1216,34 +1245,38 @@ extension RowImpl {
         return databaseValue(atUncheckedIndex: index).isNull
     }
     
-    func value<Value: DatabaseValueConvertible>(
+    func decode<Value: DatabaseValueConvertible>(
+        _ type: Value.Type,
         atUncheckedIndex index: Int,
         debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value
     {
         return try Value.convert(from: databaseValue(atUncheckedIndex: index), debugInfo: debugInfo)
     }
     
-    func optionalValue<Value: DatabaseValueConvertible>(
+    func decodeIfPresent<Value: DatabaseValueConvertible>(
+        _ type: Value.Type,
         atUncheckedIndex index: Int,
         debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value?
     {
         return try Value.convertOptional(from: databaseValue(atUncheckedIndex: index), debugInfo: debugInfo)
     }
     
-    func fastValue<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+    func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+        _ type: Value.Type,
         atUncheckedIndex index: Int,
         debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value
     {
         // default fast implementation is slow
-        return try value(atUncheckedIndex: index, debugInfo: debugInfo)
+        return try decode(Value.self, atUncheckedIndex: index, debugInfo: debugInfo)
     }
     
-    func fastOptionalValue<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+    func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+        _ type: Value.Type,
         atUncheckedIndex index: Int,
         debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value?
     {
         // default fast implementation is slow
-        return try optionalValue(atUncheckedIndex: index, debugInfo: debugInfo)
+        return try decodeIfPresent(Value.self, atUncheckedIndex: index, debugInfo: debugInfo)
     }
     
     func dataNoCopy(atUncheckedIndex index:Int, debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Data? {
