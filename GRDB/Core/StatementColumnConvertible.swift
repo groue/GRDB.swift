@@ -50,21 +50,24 @@ public protocol StatementColumnConvertible {
     init(sqliteStatement: SQLiteStatement, index: Int32)
 }
 
-extension StatementColumnConvertible {
+extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     
+    /// Performs lossless conversion from a statement value.
+    ///
+    /// - throws: ValueConversionError<Self>
     @inline(__always)
-    static func losslessConvert(sqliteStatement: SQLiteStatement, index: Int32) -> Self? {
-        guard sqlite3_column_type(sqliteStatement, index) != SQLITE_NULL else {
-            return nil
+    static func convert(sqliteStatement: SQLiteStatement, index: Int32, debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Self {
+        if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
+            throw ValueConversionError<Self>(dbValue: .null, debugInfo: debugInfo())
         }
         return self.init(sqliteStatement: sqliteStatement, index: index)
     }
     
+    /// Performs lossless conversion from a statement value.
     @inline(__always)
-    static func losslessConvert(sqliteStatement: SQLiteStatement, index: Int32) -> Self {
-        guard sqlite3_column_type(sqliteStatement, index) != SQLITE_NULL else {
-            // Programmer error
-            fatalError("could not convert database value NULL to \(Self.self)")
+    static func convertOptional(sqliteStatement: SQLiteStatement, index: Int32) -> Self? {
+        if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
+            return nil
         }
         return self.init(sqliteStatement: sqliteStatement, index: index)
     }
@@ -102,14 +105,7 @@ public final class ColumnCursor<Value: DatabaseValueConvertible & StatementColum
             done = true
             return nil
         case SQLITE_ROW:
-            if sqlite3_column_type(sqliteStatement, columnIndex) == SQLITE_NULL {
-                var error = "could not convert database value NULL to \(Value.self) with statement `\(statement.sql)`"
-                if !statement.arguments.isEmpty {
-                    error += " arguments \(statement.arguments)"
-                }
-                fatalError(error)
-            }
-            return Value(sqliteStatement: sqliteStatement, index: columnIndex)
+            return try! Value.convert(sqliteStatement: sqliteStatement, index: columnIndex, debugInfo: ValueConversionDebuggingInfo(sql: statement.sql, arguments: statement.arguments, columnIndex: Int(columnIndex)))
         case let code:
             statement.database.selectStatementDidFail(statement)
             throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
@@ -148,10 +144,7 @@ public final class NullableColumnCursor<Value: DatabaseValueConvertible & Statem
             done = true
             return nil
         case SQLITE_ROW:
-            if sqlite3_column_type(sqliteStatement, columnIndex) == SQLITE_NULL {
-                return .some(nil)
-            }
-            return Value(sqliteStatement: sqliteStatement, index: columnIndex)
+            return Value.convertOptional(sqliteStatement: sqliteStatement, index: columnIndex)
         case let code:
             statement.database.selectStatementDidFail(statement)
             throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)

@@ -15,20 +15,20 @@ private struct DatabaseValueDecodingContainer: SingleValueDecodingContainer {
     /// - returns: A value of the requested type.
     /// - throws: `DecodingError.typeMismatch` if the encountered encoded value cannot be converted to the requested type.
     /// - throws: `DecodingError.valueNotFound` if the encountered encoded value is null.
-    func decode(_ type: Bool.Type) throws -> Bool { return dbValue.losslessConvert() }
-    func decode(_ type: Int.Type) throws -> Int { return dbValue.losslessConvert() }
-    func decode(_ type: Int8.Type) throws -> Int8 { return dbValue.losslessConvert() }
-    func decode(_ type: Int16.Type) throws -> Int16 { return dbValue.losslessConvert() }
-    func decode(_ type: Int32.Type) throws -> Int32 { return dbValue.losslessConvert() }
-    func decode(_ type: Int64.Type) throws -> Int64 { return dbValue.losslessConvert() }
-    func decode(_ type: UInt.Type) throws -> UInt { return dbValue.losslessConvert() }
-    func decode(_ type: UInt8.Type) throws -> UInt8 { return dbValue.losslessConvert() }
-    func decode(_ type: UInt16.Type) throws -> UInt16 { return dbValue.losslessConvert() }
-    func decode(_ type: UInt32.Type) throws -> UInt32 { return dbValue.losslessConvert() }
-    func decode(_ type: UInt64.Type) throws -> UInt64 { return dbValue.losslessConvert() }
-    func decode(_ type: Float.Type) throws -> Float { return dbValue.losslessConvert() }
-    func decode(_ type: Double.Type) throws -> Double { return dbValue.losslessConvert() }
-    func decode(_ type: String.Type) throws -> String { return dbValue.losslessConvert() }
+    func decode(_ type: Bool.Type) throws -> Bool { return try! Bool.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
+    func decode(_ type: Int.Type) throws -> Int { return try! Int.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
+    func decode(_ type: Int8.Type) throws -> Int8 { return try! Int8.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
+    func decode(_ type: Int16.Type) throws -> Int16 { return try! Int16.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
+    func decode(_ type: Int32.Type) throws -> Int32 { return try! Int32.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
+    func decode(_ type: Int64.Type) throws -> Int64 { return try! Int64.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
+    func decode(_ type: UInt.Type) throws -> UInt { return try! UInt.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
+    func decode(_ type: UInt8.Type) throws -> UInt8 { return try! UInt8.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
+    func decode(_ type: UInt16.Type) throws -> UInt16 { return try! UInt16.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
+    func decode(_ type: UInt32.Type) throws -> UInt32 { return try! UInt32.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
+    func decode(_ type: UInt64.Type) throws -> UInt64 { return try! UInt64.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
+    func decode(_ type: Float.Type) throws -> Float { return try! Float.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
+    func decode(_ type: Double.Type) throws -> Double { return try! Double.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
+    func decode(_ type: String.Type) throws -> String { return try! String.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
     
     /// Decodes a single value of the given type.
     ///
@@ -41,7 +41,7 @@ private struct DatabaseValueDecodingContainer: SingleValueDecodingContainer {
             // Prefer DatabaseValueConvertible decoding over Decodable.
             // This allows custom database decoding, such as decoding Date from
             // String, for example.
-            return type.fromDatabaseValue(dbValue) as! T
+            return try! type.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) as! T
         } else {
             return try T(from: DatabaseValueDecoder(dbValue: dbValue, codingPath: codingPath))
         }

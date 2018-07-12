@@ -206,6 +206,75 @@ extension DatabaseValue {
 
 // MARK: - Lossless conversions
 
+struct ValueConversionDebuggingInfo {
+    var row: Row?
+    var sql: String?
+    var arguments: StatementArguments?
+    var columnIndex: Int?
+    var columnName: String?
+    
+    init(row: Row? = nil, sql: String? = nil, arguments: StatementArguments? = nil, columnIndex: Int? = nil, columnName: String? = nil) {
+        self.row = row
+        self.sql = sql
+        self.arguments = arguments
+        self.columnIndex = columnIndex
+        self.columnName = columnName
+    }
+}
+
+struct ValueConversionError<T>: Error, CustomStringConvertible {
+    var dbValue: DatabaseValue
+    var debugInfo: ValueConversionDebuggingInfo
+    
+    var description: String {
+        var error = "could not convert database value \(dbValue) to \(T.self)"
+        if let columnName = debugInfo.columnName {
+            error += " at column `\(columnName)`"
+        }
+        if let columnIndex = debugInfo.columnIndex {
+            error += " at index `\(columnIndex)`"
+        }
+        if let row = debugInfo.row {
+            error += " in row `\(row)`"
+        }
+        let sql = debugInfo.sql ?? debugInfo.row?.statementRef?.takeUnretainedValue().sql
+        if let sql = sql {
+            error += " from statement `\(sql)`"
+        }
+        if let arguments = debugInfo.arguments, !arguments.isEmpty {
+            error += " arguments \(arguments)"
+        }
+        return error
+    }
+}
+
+extension DatabaseValueConvertible {
+    /// Performs lossless conversion from a database value.
+    ///
+    /// - throws: ValueConversionError<Self>
+    static func convert(from dbValue: DatabaseValue, debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Self {
+        if let value = fromDatabaseValue(dbValue) {
+            return value
+        } else {
+            throw ValueConversionError<Self>(dbValue: dbValue, debugInfo: debugInfo())
+        }
+    }
+    
+    /// Performs lossless conversion from a database value.
+    ///
+    /// - throws: ValueConversionError<Self>
+    static func convertOptional(from dbValue: DatabaseValue, debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Self? {
+        // Use fromDatabaseValue before checking for null: this allows DatabaseValue to convert NULL to .null.
+        if let value = fromDatabaseValue(dbValue) {
+            return value
+        } else if dbValue.isNull {
+            return nil
+        } else {
+            throw ValueConversionError<Self>(dbValue: dbValue, debugInfo: debugInfo())
+        }
+    }
+}
+
 extension DatabaseValue {
     /// Converts the database value to the type T.
     ///
@@ -225,19 +294,9 @@ extension DatabaseValue {
     ///       conversion error
     ///     - arguments: Optional statement arguments that enhances the eventual
     ///       conversion error
+    @available(*, deprecated)
     public func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T where T : DatabaseValueConvertible {
-        if let value = T.fromDatabaseValue(self) {
-            return value
-        }
-        // Failed conversion: this is data loss, a programmer error.
-        var error = "could not convert database value \(self) to \(T.self)"
-        if let sql = sql {
-            error += " with statement `\(sql)`"
-        }
-        if let arguments = arguments, !arguments.isEmpty {
-            error += " arguments \(arguments)"
-        }
-        fatalError(error)
+        return try! T.convert(from: self, debugInfo: ValueConversionDebuggingInfo())
     }
     
     /// Converts the database value to the type Optional<T>.
@@ -259,26 +318,9 @@ extension DatabaseValue {
     ///       conversion error
     ///     - arguments: Optional statement arguments that enhances the eventual
     ///       conversion error
+    @available(*, deprecated)
     public func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T? where T : DatabaseValueConvertible {
-        // Use fromDatabaseValue first: this allows DatabaseValue to convert NULL to .null.
-        if let value = T.fromDatabaseValue(self) {
-            return value
-        }
-        if isNull {
-            // Failed conversion from null: ok
-            return nil
-        } else {
-            // Failed conversion from a non-null database value: this is data
-            // loss, a programmer error.
-            var error = "could not convert database value \(self) to \(T.self)"
-            if let sql = sql {
-                error += " with statement `\(sql)`"
-            }
-            if let arguments = arguments, !arguments.isEmpty {
-                error += " arguments \(arguments)"
-            }
-            fatalError(error)
-        }
+        return try! T.convertOptional(from: self, debugInfo: ValueConversionDebuggingInfo())
     }
 }
 

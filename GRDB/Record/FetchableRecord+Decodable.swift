@@ -75,7 +75,7 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
             if let type = T.self as? DatabaseValueConvertible.Type {
                 // Prefer DatabaseValueConvertible decoding over Decodable.
                 // This allows decoding Date from String, or DatabaseValue from NULL.
-                return type.fromDatabaseValue(dbValue) as! T?
+                return try! type.convertOptional(from: dbValue, debugInfo: ValueConversionDebuggingInfo(row: row, columnName: key.stringValue)) as! T?
             } else if dbValue.isNull {
                 return nil
             } else {
@@ -114,7 +114,7 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
             if let type = T.self as? DatabaseValueConvertible.Type {
                 // Prefer DatabaseValueConvertible decoding over Decodable.
                 // This allows decoding Date from String, or DatabaseValue from NULL.
-                return type.fromDatabaseValue(dbValue) as! T
+                return try! type.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo(row: row, columnName: key.stringValue)) as! T
             } else {
                 return try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))
             }
@@ -227,7 +227,7 @@ private struct RowSingleValueDecodingContainer: SingleValueDecodingContainer {
         if let type = T.self as? DatabaseValueConvertible.Type {
             // Prefer DatabaseValueConvertible decoding over Decodable.
             // This allows decoding Date from String, or DatabaseValue from NULL.
-            return type.fromDatabaseValue(row[column.stringValue]) as! T
+            return try! type.convert(from: row[column.stringValue], debugInfo: ValueConversionDebuggingInfo(row: row, columnName: column.stringValue)) as! T
         } else {
             return try T(from: RowDecoder(row: row, codingPath: [column]))
         }
