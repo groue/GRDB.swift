@@ -195,7 +195,10 @@ extension Row {
     /// fail, a fatal error is raised.
     public subscript<Value: DatabaseValueConvertible>(_ index: Int) -> Value? {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
-        return require { try decodeIfPresent(Value.self, atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index)) }
+        return require { try decodeIfPresent(
+            Value.self,
+            atUncheckedIndex: index,
+            debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index)) }
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -212,7 +215,10 @@ extension Row {
     /// (see https://www.sqlite.org/datatype3.html).
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ index: Int) -> Value? {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
-        return require { try fastDecodeIfPresent(Value.self, atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index)) }
+        return require { try fastDecodeIfPresent(
+            Value.self,
+            atUncheckedIndex: index,
+            debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index)) }
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -224,7 +230,10 @@ extension Row {
     /// SQLite value can not be converted to `Value`.
     public subscript<Value: DatabaseValueConvertible>(_ index: Int) -> Value {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
-        return require { try decode(Value.self, atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index)) }
+        return require { try decode(
+            Value.self,
+            atUncheckedIndex: index,
+            debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index)) }
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -240,7 +249,10 @@ extension Row {
     /// (see https://www.sqlite.org/datatype3.html).
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ index: Int) -> Value {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
-        return require { try fastDecode(Value.self, atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index)) }
+        return require { try fastDecode(
+            Value.self,
+            atUncheckedIndex: index,
+            debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index)) }
     }
     
     /// Returns Int64, Double, String, Data or nil, depending on the value
@@ -276,7 +288,10 @@ extension Row {
         guard let index = index(ofColumn: columnName) else {
             return nil
         }
-        return require { try decodeIfPresent(Value.self, atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName)) }
+        return require { try decodeIfPresent(
+            Value.self,
+            atUncheckedIndex: index,
+            debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName)) }
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -295,7 +310,10 @@ extension Row {
         guard let index = index(ofColumn: columnName) else {
             return nil
         }
-        return require { try fastDecodeIfPresent(Value.self, atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName)) }
+        return require { try fastDecodeIfPresent(
+            Value.self,
+            atUncheckedIndex: index,
+            debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName)) }
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -312,7 +330,10 @@ extension Row {
             // Programmer error
             fatalError("no such column: \(columnName)")
         }
-        return require { try decode(Value.self, atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName)) }
+        return require { try decode(
+            Value.self,
+            atUncheckedIndex: index,
+            debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName)) }
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -333,7 +354,10 @@ extension Row {
             // Programmer error
             fatalError("no such column: \(columnName)")
         }
-        return require { try fastDecode(Value.self, atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName)) }
+        return require { try fastDecode(
+            Value.self,
+            atUncheckedIndex: index,
+            debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName)) }
     }
     
     /// Returns Int64, Double, String, NSData or nil, depending on the value
@@ -417,7 +441,9 @@ extension Row {
     /// than the row's lifetime.
     public func dataNoCopy(atIndex index: Int) -> Data? {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
-        return require { try impl.dataNoCopy(atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index)) }
+        return require { try impl.dataNoCopy(
+            atUncheckedIndex: index,
+            debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index)) }
     }
     
     /// Returns the optional Data at given column.
@@ -435,7 +461,9 @@ extension Row {
         guard let index = index(ofColumn: columnName) else {
             return nil
         }
-        return require { try impl.dataNoCopy(atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName)) }
+        return require { try impl.dataNoCopy(
+            atUncheckedIndex: index,
+            debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName)) }
     }
     
     /// Returns the optional `NSData` at given column.
