@@ -15,20 +15,20 @@ private struct DatabaseValueDecodingContainer: SingleValueDecodingContainer {
     /// - returns: A value of the requested type.
     /// - throws: `DecodingError.typeMismatch` if the encountered encoded value cannot be converted to the requested type.
     /// - throws: `DecodingError.valueNotFound` if the encountered encoded value is null.
-    func decode(_ type: Bool.Type) throws -> Bool { return try! Bool.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: Int.Type) throws -> Int { return try! Int.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: Int8.Type) throws -> Int8 { return try! Int8.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: Int16.Type) throws -> Int16 { return try! Int16.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: Int32.Type) throws -> Int32 { return try! Int32.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: Int64.Type) throws -> Int64 { return try! Int64.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: UInt.Type) throws -> UInt { return try! UInt.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: UInt8.Type) throws -> UInt8 { return try! UInt8.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: UInt16.Type) throws -> UInt16 { return try! UInt16.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: UInt32.Type) throws -> UInt32 { return try! UInt32.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: UInt64.Type) throws -> UInt64 { return try! UInt64.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: Float.Type) throws -> Float { return try! Float.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: Double.Type) throws -> Double { return try! Double.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: String.Type) throws -> String { return try! String.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
+    func decode(_ type: Bool.Type) throws -> Bool { return require { try Bool.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) } }
+    func decode(_ type: Int.Type) throws -> Int { return require { try Int.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) } }
+    func decode(_ type: Int8.Type) throws -> Int8 { return require { try Int8.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) } }
+    func decode(_ type: Int16.Type) throws -> Int16 { return require { try Int16.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) } }
+    func decode(_ type: Int32.Type) throws -> Int32 { return require { try Int32.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) } }
+    func decode(_ type: Int64.Type) throws -> Int64 { return require { try Int64.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) } }
+    func decode(_ type: UInt.Type) throws -> UInt { return require { try UInt.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) } }
+    func decode(_ type: UInt8.Type) throws -> UInt8 { return require { try UInt8.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) } }
+    func decode(_ type: UInt16.Type) throws -> UInt16 { return require { try UInt16.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) } }
+    func decode(_ type: UInt32.Type) throws -> UInt32 { return require { try UInt32.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) } }
+    func decode(_ type: UInt64.Type) throws -> UInt64 { return require { try UInt64.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) } }
+    func decode(_ type: Float.Type) throws -> Float { return require { try Float.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) } }
+    func decode(_ type: Double.Type) throws -> Double { return require { try Double.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) } }
+    func decode(_ type: String.Type) throws -> String { return require { try String.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) } }
     
     /// Decodes a single value of the given type.
     ///
@@ -41,7 +41,7 @@ private struct DatabaseValueDecodingContainer: SingleValueDecodingContainer {
             // Prefer DatabaseValueConvertible decoding over Decodable.
             // This allows custom database decoding, such as decoding Date from
             // String, for example.
-            return try! type.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) as! T
+            return require { try type.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) as! T }
         } else {
             return try T(from: DatabaseValueDecoder(dbValue: dbValue, codingPath: codingPath))
         }

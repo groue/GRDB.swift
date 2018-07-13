@@ -50,30 +50,6 @@ public protocol StatementColumnConvertible {
     init(sqliteStatement: SQLiteStatement, index: Int32)
 }
 
-extension DatabaseValueConvertible where Self: StatementColumnConvertible {
-    
-    /// Performs lossless conversion from a statement value.
-    ///
-    /// - throws: ValueConversionError<Self>
-    @inline(__always)
-    static func convert(sqliteStatement: SQLiteStatement, index: Int32, debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Self {
-        if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
-            throw ValueConversionError<Self>(dbValue: .null, debugInfo: debugInfo())
-        }
-        return self.init(sqliteStatement: sqliteStatement, index: index)
-    }
-    
-    /// Performs lossless conversion from a statement value.
-    @inline(__always)
-    static func convertOptional(sqliteStatement: SQLiteStatement, index: Int32) -> Self? {
-        if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
-            return nil
-        }
-        return self.init(sqliteStatement: sqliteStatement, index: index)
-    }
-}
-
-
 /// A cursor of database values extracted from a single column.
 /// For example:
 ///
@@ -105,7 +81,7 @@ public final class ColumnCursor<Value: DatabaseValueConvertible & StatementColum
             done = true
             return nil
         case SQLITE_ROW:
-            return try! Value.convert(sqliteStatement: sqliteStatement, index: columnIndex, debugInfo: ValueConversionDebuggingInfo(statement: statement, columnIndex: Int(columnIndex)))
+            return require { try Value.decode(from: sqliteStatement, index: columnIndex, debugInfo: ValueConversionDebuggingInfo(statement: statement, columnIndex: Int(columnIndex))) }
         case let code:
             statement.database.selectStatementDidFail(statement)
             throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
@@ -144,7 +120,7 @@ public final class NullableColumnCursor<Value: DatabaseValueConvertible & Statem
             done = true
             return nil
         case SQLITE_ROW:
-            return Value.convertOptional(sqliteStatement: sqliteStatement, index: columnIndex)
+            return Value.decodeIfPresent(from: sqliteStatement, index: columnIndex)
         case let code:
             statement.database.selectStatementDidFail(statement)
             throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)

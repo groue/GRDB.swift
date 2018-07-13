@@ -206,105 +206,6 @@ extension DatabaseValue {
 
 // MARK: - Lossless conversions
 
-struct ValueConversionDebuggingInfo {
-    var _statement: SelectStatement?
-    var _row: Row?
-    var _columnIndex: Int?
-    var _columnName: String?
-    
-    var statement: SelectStatement? {
-        return _statement ?? _row?.statement
-    }
-    
-    var row: Row? {
-        return _row ?? _statement.map { Row(statement: $0) }
-    }
-    
-    var columnIndex: Int? {
-        if let columnIndex = _columnIndex {
-            return columnIndex
-        }
-        if let columnName = _columnName, let row = row {
-            return row.index(ofColumn: columnName)
-        }
-        return nil
-    }
-    
-    var columnName: String? {
-        if let columnName = _columnName {
-            return columnName
-        }
-        if let columnIndex = _columnIndex, let row = row {
-            let rowIndex = row.index(row.startIndex, offsetBy: columnIndex)
-            return row[rowIndex].0
-        }
-        return nil
-    }
-
-    init(statement: SelectStatement? = nil, row: Row? = nil, columnIndex: Int? = nil, columnName: String? = nil) {
-        _statement = statement
-        _row = row
-        _columnIndex = columnIndex
-        _columnName = columnName
-    }
-}
-
-struct ValueConversionError<T>: Error, CustomStringConvertible {
-    var dbValue: DatabaseValue
-    var debugInfo: ValueConversionDebuggingInfo
-    
-    var description: String {
-        var error = "could not convert database value \(dbValue) to \(T.self)"
-        var extras: [String] = []
-        if let columnName = debugInfo.columnName {
-            extras.append("column: `\(columnName)`")
-        }
-        if let columnIndex = debugInfo.columnIndex {
-            extras.append("column index: \(columnIndex)")
-        }
-        if let row = debugInfo.row {
-            extras.append("row: \(row)")
-        }
-        if let statement = debugInfo.statement {
-            extras.append("statement: `\(statement.sql)`")
-            if statement.arguments.isEmpty == false {
-                extras.append("arguments: \(statement.arguments)")
-            }
-        }
-        if extras.isEmpty == false {
-            error += " (" + extras.joined(separator: ", ") + ")"
-        }
-        return error
-    }
-}
-
-extension DatabaseValueConvertible {
-    /// Performs lossless conversion from a database value.
-    ///
-    /// - throws: ValueConversionError<Self>
-    static func convert(from dbValue: DatabaseValue, debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Self {
-        if let value = fromDatabaseValue(dbValue) {
-            return value
-        } else {
-            throw ValueConversionError<Self>(dbValue: dbValue, debugInfo: debugInfo())
-        }
-    }
-    
-    /// Performs lossless conversion from a database value.
-    ///
-    /// - throws: ValueConversionError<Self>
-    static func convertOptional(from dbValue: DatabaseValue, debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Self? {
-        // Use fromDatabaseValue before checking for null: this allows DatabaseValue to convert NULL to .null.
-        if let value = fromDatabaseValue(dbValue) {
-            return value
-        } else if dbValue.isNull {
-            return nil
-        } else {
-            throw ValueConversionError<Self>(dbValue: dbValue, debugInfo: debugInfo())
-        }
-    }
-}
-
 extension DatabaseValue {
     /// Converts the database value to the type T.
     ///
@@ -326,7 +227,7 @@ extension DatabaseValue {
     ///       conversion error
     @available(*, deprecated)
     public func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T where T : DatabaseValueConvertible {
-        return try! T.convert(from: self, debugInfo: ValueConversionDebuggingInfo())
+        return require { try T.decode(from: self, debugInfo: ValueConversionDebuggingInfo()) }
     }
     
     /// Converts the database value to the type Optional<T>.
@@ -350,7 +251,7 @@ extension DatabaseValue {
     ///       conversion error
     @available(*, deprecated)
     public func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T? where T : DatabaseValueConvertible {
-        return try! T.convertOptional(from: self, debugInfo: ValueConversionDebuggingInfo())
+        return require { try T.decodeIfPresent(from: self, debugInfo: ValueConversionDebuggingInfo()) }
     }
 }
 

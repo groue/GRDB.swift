@@ -70,7 +70,7 @@ public final class DatabaseValueCursor<Value: DatabaseValueConvertible> : Cursor
             return nil
         case SQLITE_ROW:
             let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: columnIndex)
-            return try! Value.convert(from: dbValue, debugInfo: ValueConversionDebuggingInfo(statement: statement, columnIndex: Int(columnIndex)))
+            return require { try Value.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo(statement: statement, columnIndex: Int(columnIndex))) }
         case let code:
             statement.database.selectStatementDidFail(statement)
             throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
@@ -110,7 +110,7 @@ public final class NullableDatabaseValueCursor<Value: DatabaseValueConvertible> 
             return nil
         case SQLITE_ROW:
             let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: columnIndex)
-            return try! Value.convertOptional(from: dbValue, debugInfo: ValueConversionDebuggingInfo(statement: statement, columnIndex: Int(columnIndex)))
+            return require { try Value.decodeIfPresent(from: dbValue, debugInfo: ValueConversionDebuggingInfo(statement: statement, columnIndex: Int(columnIndex))) }
         case let code:
             statement.database.selectStatementDidFail(statement)
             throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
