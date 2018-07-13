@@ -207,16 +207,45 @@ extension DatabaseValue {
 // MARK: - Lossless conversions
 
 struct ValueConversionDebuggingInfo {
-    var statement: SelectStatement?
-    var row: Row?
-    var columnIndex: Int?
-    var columnName: String?
+    var _statement: SelectStatement?
+    var _row: Row?
+    var _columnIndex: Int?
+    var _columnName: String?
     
+    var statement: SelectStatement? {
+        return _statement ?? _row?.statement
+    }
+    
+    var row: Row? {
+        return _row ?? _statement.map { Row(statement: $0) }
+    }
+    
+    var columnIndex: Int? {
+        if let columnIndex = _columnIndex {
+            return columnIndex
+        }
+        if let columnName = _columnName, let row = row {
+            return row.index(ofColumn: columnName)
+        }
+        return nil
+    }
+    
+    var columnName: String? {
+        if let columnName = _columnName {
+            return columnName
+        }
+        if let columnIndex = _columnIndex, let row = row {
+            let rowIndex = row.index(row.startIndex, offsetBy: columnIndex)
+            return row[rowIndex].0
+        }
+        return nil
+    }
+
     init(statement: SelectStatement? = nil, row: Row? = nil, columnIndex: Int? = nil, columnName: String? = nil) {
-        self.statement = statement
-        self.row = row
-        self.columnIndex = columnIndex
-        self.columnName = columnName
+        _statement = statement
+        _row = row
+        _columnIndex = columnIndex
+        _columnName = columnName
     }
 }
 
@@ -231,14 +260,12 @@ struct ValueConversionError<T>: Error, CustomStringConvertible {
             extras.append("column: `\(columnName)`")
         }
         if let columnIndex = debugInfo.columnIndex {
-            extras.append("index: \(columnIndex)")
+            extras.append("column index: \(columnIndex)")
         }
-        let row = debugInfo.row ?? debugInfo.statement.map { Row(statement: $0) }
-        if let row = row {
+        if let row = debugInfo.row {
             extras.append("row: \(row)")
         }
-        let statement = debugInfo.statement ?? debugInfo.row?.statement
-        if let statement = statement {
+        if let statement = debugInfo.statement {
             extras.append("statement: `\(statement.sql)`")
             if statement.arguments.isEmpty == false {
                 extras.append("arguments: \(statement.arguments)")

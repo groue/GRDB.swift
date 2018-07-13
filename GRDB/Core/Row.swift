@@ -132,6 +132,50 @@ extension Row {
 
 extension Row {
     
+    // MARK: - Extracting values: primitive
+    
+    func index(ofColumn name: String) -> Int? {
+        return impl.index(ofColumn: name)
+    }
+    
+    func decodeIfPresent<Value: DatabaseValueConvertible>(
+        _ type: Value.Type,
+        atUncheckedIndex index: Int,
+        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value?
+    {
+        return try impl.decodeIfPresent(Value.self, atUncheckedIndex: index, debugInfo: debugInfo)
+    }
+    
+    func decode<Value: DatabaseValueConvertible>(
+        _ type: Value.Type,
+        atUncheckedIndex index: Int,
+        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value
+    {
+        return try impl.decode(Value.self, atUncheckedIndex: index, debugInfo: debugInfo)
+    }
+    
+    func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+        _ type: Value.Type,
+        atUncheckedIndex index: Int,
+        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value?
+    {
+        if let sqliteStatement = sqliteStatement {
+            return Value.convertOptional(sqliteStatement: sqliteStatement, index: Int32(index))
+        }
+        return try impl.fastDecodeIfPresent(Value.self, atUncheckedIndex: index, debugInfo: debugInfo)
+    }
+    
+    func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+        _ type: Value.Type,
+        atUncheckedIndex index: Int,
+        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value
+    {
+        if let sqliteStatement = sqliteStatement {
+            return try Value.convert(sqliteStatement: sqliteStatement, index: Int32(index), debugInfo: debugInfo)
+        }
+        return try impl.fastDecode(Value.self, atUncheckedIndex: index, debugInfo: debugInfo)
+    }
+    
     // MARK: - Extracting Values
     
     /// Returns true if and only if one column contains a non-null value, or if
@@ -178,44 +222,6 @@ extension Row {
     public subscript(_ index: Int) -> DatabaseValueConvertible? {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
         return impl.databaseValue(atUncheckedIndex: index).storage.value
-    }
-    
-    func decodeIfPresent<Value: DatabaseValueConvertible>(
-        _ type: Value.Type,
-        atUncheckedIndex index: Int,
-        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value?
-    {
-        return try impl.decodeIfPresent(Value.self, atUncheckedIndex: index, debugInfo: debugInfo)
-    }
-    
-    func decode<Value: DatabaseValueConvertible>(
-        _ type: Value.Type,
-        atUncheckedIndex index: Int,
-        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value
-    {
-        return try impl.decode(Value.self, atUncheckedIndex: index, debugInfo: debugInfo)
-    }
-
-    func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
-        _ type: Value.Type,
-        atUncheckedIndex index: Int,
-        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value?
-    {
-        if let sqliteStatement = sqliteStatement {
-            return Value.convertOptional(sqliteStatement: sqliteStatement, index: Int32(index))
-        }
-        return try impl.fastDecodeIfPresent(Value.self, atUncheckedIndex: index, debugInfo: debugInfo)
-    }
-    
-    func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
-        _ type: Value.Type,
-        atUncheckedIndex index: Int,
-        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value
-    {
-        if let sqliteStatement = sqliteStatement {
-            return try Value.convert(sqliteStatement: sqliteStatement, index: Int32(index), debugInfo: debugInfo)
-        }
-        return try impl.fastDecode(Value.self, atUncheckedIndex: index, debugInfo: debugInfo)
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -291,7 +297,7 @@ extension Row {
         //     if row["foo"] != nil { ... }
         //
         // Without this method, the code above would not compile.
-        guard let index = impl.index(ofColumn: columnName) else {
+        guard let index = index(ofColumn: columnName) else {
             return nil
         }
         return impl.databaseValue(atUncheckedIndex: index).storage.value
@@ -306,7 +312,7 @@ extension Row {
     /// nil. Otherwise the SQLite value is converted to the requested type
     /// `Value`. Should this conversion fail, a fatal error is raised.
     public subscript<Value: DatabaseValueConvertible>(_ columnName: String) -> Value? {
-        guard let index = impl.index(ofColumn: columnName) else {
+        guard let index = index(ofColumn: columnName) else {
             return nil
         }
         return try! decodeIfPresent(Value.self, atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName))
@@ -325,7 +331,7 @@ extension Row {
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ columnName: String) -> Value? {
-        guard let index = impl.index(ofColumn: columnName) else {
+        guard let index = index(ofColumn: columnName) else {
             return nil
         }
         return try! fastDecodeIfPresent(Value.self, atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName))
@@ -341,7 +347,7 @@ extension Row {
     /// This method crashes if the fetched SQLite value is NULL, or if the
     /// SQLite value can not be converted to `Value`.
     public subscript<Value: DatabaseValueConvertible>(_ columnName: String) -> Value {
-        guard let index = impl.index(ofColumn: columnName) else {
+        guard let index = index(ofColumn: columnName) else {
             // Programmer error
             fatalError("no such column: \(columnName)")
         }
@@ -362,7 +368,7 @@ extension Row {
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ columnName: String) -> Value {
-        guard let index = impl.index(ofColumn: columnName) else {
+        guard let index = index(ofColumn: columnName) else {
             // Programmer error
             fatalError("no such column: \(columnName)")
         }
@@ -465,7 +471,7 @@ extension Row {
     /// The returned data does not owns its bytes: it must not be used longer
     /// than the row's lifetime.
     public func dataNoCopy(named columnName: String) -> Data? {
-        guard let index = impl.index(ofColumn: columnName) else {
+        guard let index = index(ofColumn: columnName) else {
             return nil
         }
         return try! impl.dataNoCopy(atUncheckedIndex: index, debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName))
@@ -1214,8 +1220,7 @@ protocol RowImpl {
     func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ type: Value.Type, atUncheckedIndex index: Int, debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value?
     func dataNoCopy(atUncheckedIndex index:Int, debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Data?
     
-    // This method MUST be case-insensitive, and returns the index of the
-    // leftmost column that matches *name*.
+    /// Returns the index of the leftmost column that matches *name* (case-insensitive)
     func index(ofColumn name: String) -> Int?
     
     // row.impl is guaranteed to be self.
@@ -1308,8 +1313,6 @@ private struct ArrayRowImpl : RowImpl {
         return columns[index].0
     }
     
-    // This method MUST be case-insensitive, and returns the index of the
-    // leftmost column that matches *name*.
     func index(ofColumn name: String) -> Int? {
         let lowercaseName = name.lowercased()
         return columns.index { (column, _) in column.lowercased() == lowercaseName }
@@ -1344,8 +1347,6 @@ private struct StatementCopyRowImpl : RowImpl {
         return columnNames[index]
     }
     
-    // This method MUST be case-insensitive, and returns the index of the
-    // leftmost column that matches *name*.
     func index(ofColumn name: String) -> Int? {
         let lowercaseName = name.lowercased()
         return columnNames.index { $0.lowercased() == lowercaseName }
@@ -1417,8 +1418,6 @@ private struct StatementRowImpl : RowImpl {
         return statementRef.takeUnretainedValue().columnNames[index]
     }
     
-    // This method MUST be case-insensitive, and returns the index of the
-    // leftmost column that matches *name*.
     func index(ofColumn name: String) -> Int? {
         if let index = lowercaseColumnIndexes[name] {
             return index
