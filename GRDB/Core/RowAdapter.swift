@@ -493,12 +493,12 @@ struct AdaptedRowImpl : RowImpl {
     
     func hasNull(atUncheckedIndex index: Int) -> Bool {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return base.impl.hasNull(atUncheckedIndex: mappedIndex)
+        return base.impl.hasNull(atUncheckedIndex: mappedIndex) // base.impl: Demeter violation
     }
     
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return base.impl.databaseValue(atUncheckedIndex: mappedIndex)
+        return base.impl.databaseValue(atUncheckedIndex: mappedIndex) // base.impl: Demeter violation
     }
     
     func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
@@ -507,7 +507,7 @@ struct AdaptedRowImpl : RowImpl {
         debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value
     {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return try base.impl.fastDecode(Value.self, atUncheckedIndex: mappedIndex, debugInfo: debugInfo)
+        return try base.impl.fastDecode(Value.self, atUncheckedIndex: mappedIndex, debugInfo: debugInfo) // base.impl: Demeter violation
     }
     
     func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
@@ -516,7 +516,7 @@ struct AdaptedRowImpl : RowImpl {
         debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value?
     {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return try base.impl.fastDecodeIfPresent(Value.self, atUncheckedIndex: mappedIndex, debugInfo: debugInfo)
+        return try base.impl.fastDecodeIfPresent(Value.self, atUncheckedIndex: mappedIndex, debugInfo: debugInfo) // base.impl: Demeter violation
     }
     
     func dataNoCopy(
@@ -524,7 +524,7 @@ struct AdaptedRowImpl : RowImpl {
         debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Data?
     {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return try base.impl.dataNoCopy(atUncheckedIndex: mappedIndex, debugInfo: debugInfo)
+        return try base.impl.dataNoCopy(atUncheckedIndex: mappedIndex, debugInfo: debugInfo) // base.impl: Demeter violation
     }
     
     func columnName(atUncheckedIndex index: Int) -> String {
