@@ -1,3 +1,9 @@
+#if SWIFT_PACKAGE
+    import CSQLite
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+    import SQLite3
+#endif
+
 // All primitive value conversion methods.
 
 /// An alternative to try!, preferred for conversion methods.
