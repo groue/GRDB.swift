@@ -3995,7 +3995,7 @@ try Player.fetchOne(db, key: 1)              // Player?
 // SELECT * FROM player WHERE id IN (1, 2, 3)
 try Player.fetchAll(db, keys: [1, 2, 3])     // [Player]
 
-// SELECT * FROM player WHERE isoCode = 'FR'
+// SELECT * FROM country WHERE isoCode = 'FR'
 try Country.fetchOne(db, key: "FR")          // Country?
 
 // SELECT * FROM country WHERE isoCode IN ('FR', 'US')
