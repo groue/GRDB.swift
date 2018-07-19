@@ -3459,7 +3459,7 @@ Other **table constraints** can involve several columns:
 SQLite lets you rename tables, and add columns to existing tables:
 
 ```swift
-// ALTER TABLE referers RENAME TO referrers
+// ALTER TABLE referer RENAME TO referrer
 try db.rename(table: "referer", to: "referrer")
 
 // ALTER TABLE player ADD COLUMN url TEXT
@@ -3995,7 +3995,7 @@ try Player.fetchOne(db, key: 1)              // Player?
 // SELECT * FROM player WHERE id IN (1, 2, 3)
 try Player.fetchAll(db, keys: [1, 2, 3])     // [Player]
 
-// SELECT * FROM player WHERE isoCode = 'FR'
+// SELECT * FROM country WHERE isoCode = 'FR'
 try Country.fetchOne(db, key: "FR")          // Country?
 
 // SELECT * FROM country WHERE isoCode IN ('FR', 'US')
@@ -4030,7 +4030,7 @@ let player = try request.fetchOne(db)    // Player?
 let request = Player.filter(keys: [1, 2, 3])
 let players = try request.fetchAll(db)   // [Player]
 
-// SELECT * FROM player WHERE isoCode = 'FR'
+// SELECT * FROM country WHERE isoCode = 'FR'
 let request = Country.filter(key: "FR")
 let country = try request.fetchOne(db)   // Country?
 
@@ -4111,7 +4111,7 @@ try Player.deleteOne(db, key: 1)
 // DELETE FROM player WHERE id IN (1, 2, 3)
 try Player.deleteAll(db, keys: [1, 2, 3])
 
-// DELETE FROM player WHERE isoCode = 'FR'
+// DELETE FROM country WHERE isoCode = 'FR'
 try Country.deleteOne(db, key: "FR")
 
 // DELETE FROM country WHERE isoCode IN ('FR', 'US')
