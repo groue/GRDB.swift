@@ -3459,7 +3459,7 @@ Other **table constraints** can involve several columns:
 SQLite lets you rename tables, and add columns to existing tables:
 
 ```swift
-// ALTER TABLE referers RENAME TO referrers
+// ALTER TABLE referer RENAME TO referrer
 try db.rename(table: "referer", to: "referrer")
 
 // ALTER TABLE player ADD COLUMN url TEXT
