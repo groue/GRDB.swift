@@ -4111,7 +4111,7 @@ try Player.deleteOne(db, key: 1)
 // DELETE FROM player WHERE id IN (1, 2, 3)
 try Player.deleteAll(db, keys: [1, 2, 3])
 
-// DELETE FROM player WHERE isoCode = 'FR'
+// DELETE FROM country WHERE isoCode = 'FR'
 try Country.deleteOne(db, key: "FR")
 
 // DELETE FROM country WHERE isoCode IN ('FR', 'US')
