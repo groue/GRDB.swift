@@ -4030,7 +4030,7 @@ let player = try request.fetchOne(db)    // Player?
 let request = Player.filter(keys: [1, 2, 3])
 let players = try request.fetchAll(db)   // [Player]
 
-// SELECT * FROM player WHERE isoCode = 'FR'
+// SELECT * FROM country WHERE isoCode = 'FR'
 let request = Country.filter(key: "FR")
 let country = try request.fetchOne(db)   // Country?
 
