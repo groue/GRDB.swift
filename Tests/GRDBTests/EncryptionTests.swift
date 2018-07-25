@@ -333,6 +333,30 @@ class EncryptionTests: GRDBTestCase {
         }
     }
     
+    func testCipherPageSize() throws {
+        do {
+            dbConfiguration.passphrase = "secret"
+            dbConfiguration.cipherPageSize = .ps8192
+            
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
+            try dbQueue.inDatabase({ db in
+                XCTAssertEqual(try Int.fetchOne(db, "PRAGMA cipher_page_size")!, 8192)
+            })
+        }
+        
+        do {
+            dbConfiguration.cipherPageSize = .ps4096
+            
+            let dbQueue = try makeDatabasePool(filename: "testpool.sqlite")
+            try dbQueue.read({ db in
+                XCTAssertEqual(try Int.fetchOne(db, "PRAGMA cipher_page_size")!, 4096)
+            })
+            try dbQueue.write({ db in
+                XCTAssertEqual(try Int.fetchOne(db, "PRAGMA cipher_page_size")!, 4096)
+            })
+        }
+    }
+    
     func testExportPlainTextDatabaseToEncryptedDatabase() throws {
         // See https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/868?source_topic_id=939
         do {

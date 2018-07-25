@@ -173,6 +173,7 @@ public final class Database {
                 try Database.validateSQLCipher(sqliteConnection)
                 if let passphrase = configuration.passphrase {
                     try Database.set(passphrase: passphrase, forConnection: sqliteConnection)
+                    try Database.set(cipherPageSize: configuration.cipherPageSize, forConnection: sqliteConnection)
                 }
             #endif
             try Database.validateDatabaseFormat(sqliteConnection)
@@ -259,6 +260,21 @@ extension Database {
         }
         guard code == SQLITE_OK else {
             throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
+        }
+    }
+    
+    private static func set(cipherPageSize: Configuration.CipherPageSize, forConnection sqliteConnection: SQLiteConnection) throws {
+        var sqliteStatement: SQLiteStatement? = nil
+        let code = sqlite3_prepare_v2(sqliteConnection, "PRAGMA cipher_page_size = \(cipherPageSize.rawValue)", -1, &sqliteStatement, nil)
+        guard code == SQLITE_OK else {
+            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
+        }
+        defer {
+            sqlite3_finalize(sqliteStatement)
+        }
+        let step = sqlite3_step(sqliteStatement)
+        if step != SQLITE_DONE {
+            throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Unable to set cipher_page_size")
         }
     }
     #endif
