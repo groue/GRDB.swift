@@ -130,24 +130,32 @@
         }
         
         static func api(_ db: Database) -> UnsafePointer<fts5_api> {
-            let sqliteConnection = db.sqliteConnection
-            var statement: SQLiteStatement? = nil
-            var api: UnsafePointer<fts5_api>? = nil
-            let type: StaticString = "fts5_api_ptr"
+            #if GRDBCUSTOMSQLITE || GRDBCIPHER
+                let sqliteConnection = db.sqliteConnection
+                var statement: SQLiteStatement? = nil
+                var api: UnsafePointer<fts5_api>? = nil
+                let type: StaticString = "fts5_api_ptr"
             
-            let code = sqlite3_prepare_v3(db.sqliteConnection, "SELECT fts5(?)", -1, 0, &statement, nil)
-            guard code == SQLITE_OK else {
-                fatalError("FTS5 is not available")
-            }
-            defer { sqlite3_finalize(statement) }
-            type.utf8Start.withMemoryRebound(to: Int8.self, capacity: type.utf8CodeUnitCount) { typePointer in
-                _ = sqlite3_bind_pointer(statement, 1, &api, typePointer, nil)
-            }
-            sqlite3_step(statement)
-            guard let result = api else {
-                fatalError("FTS5 is not available")
-            }
-            return result
+                let code = sqlite3_prepare_v3(db.sqliteConnection, "SELECT fts5(?)", -1, 0, &statement, nil)
+                guard code == SQLITE_OK else {
+                    fatalError("FTS5 is not available")
+                }
+                defer { sqlite3_finalize(statement) }
+                type.utf8Start.withMemoryRebound(to: Int8.self, capacity: type.utf8CodeUnitCount) { typePointer in
+                    _ = sqlite3_bind_pointer(statement, 1, &api, typePointer, nil)
+                }
+                sqlite3_step(statement)
+                guard let result = api else {
+                    fatalError("FTS5 is not available")
+                }
+                return result
+            #else
+                // sqlite3_prepare_v3 and sqlite3_bind_pointer are not available yet.
+                guard let data = try! Data.fetchOne(db, "SELECT fts5()") else {
+                    fatalError("FTS5 is not available")
+                }
+                return data.withUnsafeBytes { $0.pointee }
+            #endif
         }
     }
     
